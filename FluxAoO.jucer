@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="ZRovAH" name="FluxAoO" projectType="audioplug" jucerVersion="5.4.3"
+              companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
+              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone"
+              pluginManufacturerCode="Sono" pluginCode="Flux" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1"
+              pluginDesc="Network Audio">
+  <MAINGROUP id="i87g34" name="FluxAoO">
+    <GROUP id="{0A5C718F-ECF4-7A7E-1D8F-27A725A1C4B7}" name="external">
+      <GROUP id="{6D1E44EF-572A-380C-2088-148ABE6086A3}" name="aoo">
+        <FILE id="WdUAg6" name="aoo.h" compile="0" resource="0" file="../aoo/lib/aoo/aoo.h"/>
+        <FILE id="QUO2jm" name="aoo.hpp" compile="0" resource="0" file="../aoo/lib/aoo/aoo.hpp"/>
+        <FILE id="BbDjeb" name="aoo_net.h" compile="0" resource="0" file="../aoo/lib/aoo/aoo_net.h"/>
+        <FILE id="vWLCOr" name="aoo_net.hpp" compile="0" resource="0" file="../aoo/lib/aoo/aoo_net.hpp"/>
+        <FILE id="zy2921" name="aoo_opus.h" compile="0" resource="0" file="../aoo/lib/aoo/aoo_opus.h"/>
+        <FILE id="HRdngL" name="aoo_pcm.h" compile="0" resource="0" file="../aoo/lib/aoo/aoo_pcm.h"/>
+        <FILE id="axgfNb" name="aoo_types.h" compile="0" resource="0" file="../aoo/lib/aoo/aoo_types.h"/>
+        <FILE id="ucvvX1" name="aoo_utils.hpp" compile="0" resource="0" file="../aoo/lib/aoo/aoo_utils.hpp"/>
+      </GROUP>
+      <GROUP id="{9B5E9171-02F6-E910-39F6-B30DAF8DD40B}" name="aoo_source">
+        <FILE id="MtTYLr" name="client.cpp" compile="1" resource="0" file="../aoo/lib/src/client.cpp"/>
+        <FILE id="s3sDad" name="client.hpp" compile="0" resource="0" file="../aoo/lib/src/client.hpp"/>
+        <FILE id="Na7Vj1" name="codec_opus.cpp" compile="1" resource="0" file="../aoo/lib/src/codec_opus.cpp"/>
+        <FILE id="eBUgy9" name="codec_pcm.cpp" compile="1" resource="0" file="../aoo/lib/src/codec_pcm.cpp"/>
+        <FILE id="XfGefC" name="common.cpp" compile="1" resource="0" file="../aoo/lib/src/common.cpp"/>
+        <FILE id="q69M1Q" name="common.hpp" compile="0" resource="0" file="../aoo/lib/src/common.hpp"/>
+        <FILE id="rpF8Dt" name="lockfree.hpp" compile="0" resource="0" file="../aoo/lib/src/lockfree.hpp"/>
+        <FILE id="Aisvam" name="net_utils.cpp" compile="1" resource="0" file="../aoo/lib/src/net_utils.cpp"/>
+        <FILE id="UZgjpX" name="net_utils.hpp" compile="0" resource="0" file="../aoo/lib/src/net_utils.hpp"/>
+        <FILE id="bEPvVj" name="server.cpp" compile="1" resource="0" file="../aoo/lib/src/server.cpp"/>
+        <FILE id="daHJGH" name="server.hpp" compile="0" resource="0" file="../aoo/lib/src/server.hpp"/>
+        <FILE id="MSMebL" name="sink.cpp" compile="1" resource="0" file="../aoo/lib/src/sink.cpp"/>
+        <FILE id="zZq0nn" name="sink.hpp" compile="0" resource="0" file="../aoo/lib/src/sink.hpp"/>
+        <FILE id="lS85fu" name="SLIP.hpp" compile="0" resource="0" file="../aoo/lib/src/SLIP.hpp"/>
+        <FILE id="vBKngl" name="source.cpp" compile="1" resource="0" file="../aoo/lib/src/source.cpp"/>
+        <FILE id="vUzP1b" name="source.hpp" compile="0" resource="0" file="../aoo/lib/src/source.hpp"/>
+        <FILE id="ysQCD4" name="sync.cpp" compile="1" resource="0" file="../aoo/lib/src/sync.cpp"/>
+        <FILE id="hK5Un5" name="sync.hpp" compile="0" resource="0" file="../aoo/lib/src/sync.hpp"/>
+        <FILE id="Hu0PZp" name="time.cpp" compile="1" resource="0" file="../aoo/lib/src/time.cpp"/>
+        <FILE id="tO40jM" name="time.hpp" compile="0" resource="0" file="../aoo/lib/src/time.hpp"/>
+        <FILE id="SwMd5V" name="time_dll.hpp" compile="0" resource="0" file="../aoo/lib/src/time_dll.hpp"/>
+      </GROUP>
+      <GROUP id="{FD15A2B9-8345-A6C5-170C-80EA4D67112B}" name="md5">
+        <FILE id="Dw7e68" name="md5.c" compile="1" resource="0" file="../aoo/deps/md5/md5.c"/>
+        <FILE id="h1BhlX" name="md5.h" compile="0" resource="0" file="../aoo/deps/md5/md5.h"/>
+      </GROUP>
+      <GROUP id="{328245AD-1694-A88B-49C1-8B8AB0D7B4FE}" name="osc">
+        <FILE id="NvH4wZ" name="MessageMappingOscPacketListener.h" compile="0"
+              resource="0" file="../aoo/deps/oscpack/osc/MessageMappingOscPacketListener.h"/>
+        <FILE id="kxDSSj" name="OscException.h" compile="0" resource="0" file="../aoo/deps/oscpack/osc/OscException.h"/>
+        <FILE id="LJo7vL" name="OscHostEndianness.h" compile="0" resource="0"
+              file="../aoo/deps/oscpack/osc/OscHostEndianness.h"/>
+        <FILE id="AYVLOA" name="OscOutboundPacketStream.cpp" compile="1" resource="0"
+              file="../aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp"/>
+        <FILE id="rtpOHD" name="OscOutboundPacketStream.h" compile="0" resource="0"
+              file="../aoo/deps/oscpack/osc/OscOutboundPacketStream.h"/>
+        <FILE id="Ntq3e2" name="OscPacketListener.h" compile="0" resource="0"
+              file="../aoo/deps/oscpack/osc/OscPacketListener.h"/>
+        <FILE id="YCDgsq" name="OscPrintReceivedElements.cpp" compile="1" resource="0"
+              file="../aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp"/>
+        <FILE id="uW5BSd" name="OscPrintReceivedElements.h" compile="0" resource="0"
+              file="../aoo/deps/oscpack/osc/OscPrintReceivedElements.h"/>
+        <FILE id="nRMotf" name="OscReceivedElements.cpp" compile="1" resource="0"
+              file="../aoo/deps/oscpack/osc/OscReceivedElements.cpp"/>
+        <FILE id="ZI6Gyx" name="OscReceivedElements.h" compile="0" resource="0"
+              file="../aoo/deps/oscpack/osc/OscReceivedElements.h"/>
+        <FILE id="Z9nO9R" name="OscTypes.cpp" compile="1" resource="0" file="../aoo/deps/oscpack/osc/OscTypes.cpp"/>
+        <FILE id="mlKGiM" name="OscTypes.h" compile="0" resource="0" file="../aoo/deps/oscpack/osc/OscTypes.h"/>
+      </GROUP>
+    </GROUP>
+    <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
+      <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
+    </GROUP>
+    <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
+      <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
+            file="Source/BeatToggleGrid.cpp"/>
+      <FILE id="IeUqt0" name="BeatToggleGrid.h" compile="0" resource="0"
+            file="Source/BeatToggleGrid.h"/>
+      <FILE id="JhBMID" name="CrossPlatformUtils.h" compile="0" resource="0"
+            file="Source/CrossPlatformUtils.h"/>
+      <FILE id="Pd0jq9" name="CrossPlatformUtilsAndroid.cpp" compile="1"
+            resource="0" file="Source/CrossPlatformUtilsAndroid.cpp"/>
+      <FILE id="mJdadQ" name="CrossPlatformUtilsIOS.mm" compile="1" resource="0"
+            file="Source/CrossPlatformUtilsIOS.mm"/>
+      <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
+      <FILE id="SZiCPL" name="FluxPluginEditor.cpp" compile="1" resource="0"
+            file="Source/FluxPluginEditor.cpp"/>
+      <FILE id="LNdJkH" name="FluxPluginEditor.h" compile="0" resource="0"
+            file="Source/FluxPluginEditor.h"/>
+      <FILE id="f8xqxN" name="FluxPluginProcessor.cpp" compile="1" resource="0"
+            file="Source/FluxPluginProcessor.cpp"/>
+      <FILE id="PntDaO" name="FluxPluginProcessor.h" compile="0" resource="0"
+            file="Source/FluxPluginProcessor.h"/>
+      <FILE id="V9bo92" name="SonoDrawableButton.cpp" compile="1" resource="0"
+            file="Source/SonoDrawableButton.cpp"/>
+      <FILE id="MfLcWs" name="SonoDrawableButton.h" compile="0" resource="0"
+            file="Source/SonoDrawableButton.h"/>
+      <FILE id="eZgobB" name="SonoLookAndFeel.cpp" compile="1" resource="0"
+            file="Source/SonoLookAndFeel.cpp"/>
+      <FILE id="IwZ4vm" name="SonoLookAndFeel.h" compile="0" resource="0"
+            file="Source/SonoLookAndFeel.h"/>
+      <FILE id="yo0rVc" name="SonoStandaloneFilterApp.cpp" compile="1" resource="0"
+            file="Source/SonoStandaloneFilterApp.cpp"/>
+      <FILE id="AkPNDZ" name="SonoStandaloneFilterWindow.h" compile="0" resource="0"
+            file="Source/SonoStandaloneFilterWindow.h"/>
+      <FILE id="YM6W4y" name="SonoTextButton.cpp" compile="1" resource="0"
+            file="Source/SonoTextButton.cpp"/>
+      <FILE id="JCcqcC" name="SonoTextButton.h" compile="0" resource="0"
+            file="Source/SonoTextButton.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;/usr/local/include"
+                       libraryPath="/usr/local/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;/usr/local/include"
+                       libraryPath="/usr/local/lib" osxCompatibility="10.9 SDK"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_core" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_events" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce5/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../juce5/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <OSX/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+</JUCERPROJECT>
