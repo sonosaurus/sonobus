@@ -131,6 +131,22 @@ public:
 
     int64_t getRemotePeerPacketsReceived(int index) const;
 
+
+    int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
+
+    void setDefaultAudioCodecFormat(int formatIndex) { if (formatIndex < mAudioFormats.size()) mDefaultAudioFormatIndex = formatIndex; }
+    int getDefaultAudioCodecFormat() const { return mDefaultAudioFormatIndex; }
+
+    String getAudioCodeFormatName(int formatIndex) const;
+
+    
+    void setRemotePeerAudioCodecFormat(int index, int formatIndex);
+    int getRemotePeerAudioCodecFormat(int index) const;
+
+    int getRemotePeerSendPacketsize(int index) const;
+    void setRemotePeerSendPacketsize(int index, int psize);
+
+    
     
     void setRemotePeerConnected(int index, bool active);
     bool getRemotePeerConnected(int index) const;
@@ -151,8 +167,9 @@ private:
     void doSendData();
     void handleEvents();
     
-    void setupSourceFormat(aoo::isource * source);
+    void setupSourceFormat(RemotePeer * peer, aoo::isource * source);
     
+    /// NOT USED
     RemoteSink *  findRemoteSink(EndpointState * endpoint, int32_t sinkId);
     RemoteSink *  doAddRemoteSinkIfNecessary(EndpointState * endpoint, int32_t sinkId);
     bool doRemoveRemoteSinkIfNecessary(EndpointState * endpoint, int32_t sinkId);
@@ -160,6 +177,7 @@ private:
     RemoteSource *  findRemoteSource(EndpointState * endpoint, int32_t sourceId);
     RemoteSource *  doAddRemoteSourceIfNecessary(EndpointState * endpoint, int32_t sourceId);
     bool doRemoveRemoteSourceIfNecessary(EndpointState * endpoint, int32_t sourceId);
+    /// END NOT USED
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);
     RemotePeer *  findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId);
@@ -190,6 +208,7 @@ private:
     int mSourceBlocksize = 1024;
     
     int currSamplesPerBlock = 256;
+    int lastSamplesPerBlock = 256;
     
     AudioProcessorValueTreeState mState;
     UndoManager                  mUndoManager;
@@ -219,7 +238,28 @@ private:
 
 
     CriticalSection  mRemotesLock;
+
+    enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus };
+
     
+    struct AudioCodecFormatInfo {
+        AudioCodecFormatInfo() {}
+        AudioCodecFormatInfo(String name_, int bitdepth_) : name(name_), codec(CodecPCM), bitdepth(bitdepth_) {}
+        AudioCodecFormatInfo(String name_, int bitrate_, int complexity_, int signaltype) : name(name_), codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype) {}
+        String name;
+        AudioCodecFormatCodec codec;
+        // PCM options
+        int bitdepth = 2; // bytes
+        // opus options
+        int bitrate = 0;
+        int complexity = 0;
+        int signal_type = 0;
+    };
+    
+    Array<AudioCodecFormatInfo> mAudioFormats;
+    int mDefaultAudioFormatIndex;
+    
+    void initFormats();
     
     bool mRemoteSendMatrix[MAX_PEERS][MAX_PEERS];
     

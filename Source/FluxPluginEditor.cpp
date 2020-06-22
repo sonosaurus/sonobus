@@ -257,7 +257,7 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     mLocalAddressStaticLabel->setJustificationType(Justification::centredRight);
 
 
-    mRemoteAddressStaticLabel = std::make_unique<Label>("remaddrst", TRANS("Connect to: "));
+    mRemoteAddressStaticLabel = std::make_unique<Label>("remaddrst", TRANS("Host: "));
     mRemoteAddressStaticLabel->setJustificationType(Justification::centredRight);
     
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
@@ -290,6 +290,7 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     mPatchbayButton->setButtonText(TRANS("Patchbay"));
     mPatchbayButton->addListener(this);
 
+    
     
     addAndMakeVisible(mDrySlider.get());
     //addAndMakeVisible(mWetSlider.get());
@@ -384,12 +385,34 @@ FluxAoOAudioProcessorEditor::PeerViewInfo * FluxAoOAudioProcessorEditor::createP
     pvf->bufferTimeSlider->addListener(this);
     //configKnobSlider(pvf->bufferTimeSlider.get());
 
+    pvf->packetsizeSlider     = std::make_unique<Slider>(Slider::IncDecButtons,  Slider::TextBoxLeft);
+    pvf->packetsizeSlider->setName("buffer");
+    pvf->packetsizeSlider->setRange(6, 11, 1);
+    pvf->packetsizeSlider->textFromValueFunction = [](double value) { return String::formatted("%d", 1 << (int) value); };
+    pvf->packetsizeSlider->setTextValueSuffix("");
+    pvf->packetsizeSlider->setSkewFactor(1.0);
+    pvf->packetsizeSlider->setDoubleClickReturnValue(true, 9.0);
+    pvf->packetsizeSlider->setTextBoxIsEditable(false);
+    pvf->packetsizeSlider->setSliderSnapsToMousePosition(false);
+    pvf->packetsizeSlider->setChangeNotificationOnlyOnRelease(true);
+
+    pvf->packetsizeSlider->addListener(this);
+
+    
     pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Net Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), false);
 
     pvf->removeButton = std::make_unique<TextButton>("X");
     pvf->removeButton->addListener(this);
     pvf->levelSlider->addListener(this);
+
+    pvf->formatChoiceButton = std::make_unique<SonoChoiceButton>();
+    pvf->formatChoiceButton->addChoiceListener(this);
+    int numformats = processor.getNumberAudioCodecFormats();
+    for (int i=0; i < numformats; ++i) {
+        pvf->formatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i+1);
+    }
+
 
     
     return pvf;
@@ -449,6 +472,8 @@ void FluxAoOAudioProcessorEditor::rebuildPeerViews()
         addAndMakeVisible(pvf->levelSlider.get());
         addAndMakeVisible(pvf->levelLabel.get());
         addAndMakeVisible(pvf->removeButton.get());
+        addAndMakeVisible(pvf->formatChoiceButton.get());
+        addAndMakeVisible(pvf->packetsizeSlider.get());
     }
     
     updatePeerViews();
@@ -478,10 +503,18 @@ void FluxAoOAudioProcessorEditor::updatePeerViews()
             pvf->bufferTimeSlider->setValue(processor.getRemotePeerBufferTime(i), dontSendNotification);
         }
 
+        
+        int formatindex = processor.getRemotePeerAudioCodecFormat(i);
+        pvf->formatChoiceButton->setSelectedItemIndex(formatindex >= 0 ? formatindex : processor.getDefaultAudioCodecFormat());
+        
+               
+        pvf->packetsizeSlider->setValue(findHighestSetBit(processor.getRemotePeerSendPacketsize(i)), dontSendNotification);
+        
         //pvf->removeButton->setEnabled(connected);
         pvf->levelSlider->setEnabled(connected);
         pvf->bufferTimeSlider->setEnabled(connected);
 
+        pvf->formatChoiceButton->setAlpha(connected ? 1.0 : 0.8);
         pvf->nameLabel->setAlpha(connected ? 1.0 : 0.8);
         pvf->sendActiveButton->setAlpha(connected ? 1.0 : 0.8);
         pvf->recvActiveButton->setAlpha(connected ? 1.0 : 0.8);
@@ -490,6 +523,17 @@ void FluxAoOAudioProcessorEditor::updatePeerViews()
         pvf->levelSlider->setAlpha(connected ? 1.0 : 0.6);
         pvf->bufferTimeLabel->setAlpha(connected ? 1.0 : 0.6);
         pvf->bufferTimeSlider->setAlpha(connected ? 1.0 : 0.6);
+    }
+}
+
+void FluxAoOAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, int index, int ident)
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        if (pvf->formatChoiceButton.get() == comp) {
+            processor.setRemotePeerAudioCodecFormat(i, index);
+            break;
+        }        
     }
 }
 
@@ -642,6 +686,9 @@ void FluxAoOAudioProcessorEditor::sliderValueChanged (Slider* slider)
        else if (pvf->bufferTimeSlider.get() == slider) {
            processor.setRemotePeerBufferTime(i, pvf->bufferTimeSlider->getValue());   
        }
+       else if (pvf->packetsizeSlider.get() == slider) {
+           processor.setRemotePeerSendPacketsize(i, 1 << (int)pvf->packetsizeSlider->getValue());   
+       }
 
    }
 
@@ -783,7 +830,8 @@ void FluxAoOAudioProcessorEditor::updateLayout()
         pvf->namebox.items.clear();
         pvf->namebox.flexDirection = FlexBox::Direction::row;
         pvf->namebox.items.add(FlexItem(180, minitemheight, *pvf->nameLabel).withMargin(2).withFlex(0));
-        pvf->namebox.items.add(FlexItem(10, 18).withMargin(0));
+        pvf->namebox.items.add(FlexItem(8, 18).withMargin(0));
+        pvf->namebox.items.add(FlexItem(100, minitemheight, *pvf->formatChoiceButton).withMargin(2).withFlex(0));
         pvf->namebox.items.add(FlexItem(160, minitemheight, pvf->activebox).withMargin(2).withFlex(0));
         pvf->namebox.items.add(FlexItem(10, 18).withMargin(0));
         pvf->namebox.items.add(FlexItem(120, minitemheight, *pvf->statusLabel).withMargin(2).withFlex(0));
@@ -798,6 +846,7 @@ void FluxAoOAudioProcessorEditor::updateLayout()
         box.items.add(FlexItem(100, minitemheight, *pvf->levelSlider).withMargin(2).withFlex(2));
         box.items.add(FlexItem(60, 18, *pvf->bufferTimeLabel).withMargin(0));
         box.items.add(FlexItem(100, minitemheight, *pvf->bufferTimeSlider).withMargin(2).withFlex(1));
+        box.items.add(FlexItem(100, minitemheight, *pvf->packetsizeSlider).withMargin(2).withFlex(0));
         box.items.add(FlexItem(32, minitemheight, *pvf->removeButton).withMargin(2).withFlex(0));
 
         

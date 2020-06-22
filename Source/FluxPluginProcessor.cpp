@@ -77,6 +77,8 @@ struct FluxAoOAudioProcessor::RemotePeer {
     bool recvActive = false;
     bool recvMuted = false;
     bool invitedPeer = false;
+    int  formatIndex = -1; // default
+    int packetsize = 512;
     // runtime state
     float _lastgain = 0.0f;
     bool connected = false;
@@ -214,9 +216,11 @@ void FluxAoOAudioProcessor::initializeAoo()
 {
     int udpport = 11000;
     // we have both an AOO source and sink
-    
+        
     aoo_initialize();
     
+    initFormats();
+
     const ScopedWriteLock sl (mCoreLock);        
 
     //mAooSink.reset(aoo::isink::create(1));
@@ -241,6 +245,11 @@ void FluxAoOAudioProcessor::initializeAoo()
         }
         ++udpport;
         --attempts;
+    }
+    
+    if (attempts <= 0) {
+        DebugLogC("COULD NOT BIND TO PORT!");
+        udpport = 0;
     }
     
     mUdpLocalPort = udpport;
@@ -276,6 +285,93 @@ void FluxAoOAudioProcessor::cleanupAoo()
         mRemotePeers.clear();
         
         mEndpoints.clear();
+    }
+    
+}
+
+
+void FluxAoOAudioProcessor::initFormats()
+{
+    mAudioFormats.clear();
+    
+    // low bandwidth to high
+    mAudioFormats.add(AudioCodecFormatInfo("16 kbps",  16000, 10, OPUS_SIGNAL_VOICE));
+    mAudioFormats.add(AudioCodecFormatInfo("24 kbps", 24000, 10, OPUS_SIGNAL_VOICE));
+    mAudioFormats.add(AudioCodecFormatInfo("32 kbps",  32000, 10, OPUS_SIGNAL_VOICE));
+    mAudioFormats.add(AudioCodecFormatInfo("64 kbps",  64000, 10, OPUS_SIGNAL_MUSIC));
+    mAudioFormats.add(AudioCodecFormatInfo("96 kbps",  96000, 10, OPUS_SIGNAL_MUSIC));
+    mAudioFormats.add(AudioCodecFormatInfo("128 kbps",  128000, 10, OPUS_SIGNAL_MUSIC));
+    
+    mAudioFormats.add(AudioCodecFormatInfo("PCM 16 bit", 2));
+    mAudioFormats.add(AudioCodecFormatInfo("PCM 24 bit", 3));
+    mAudioFormats.add(AudioCodecFormatInfo("PCM 32 bit float", 4));
+    //mAudioFormats.add(AudioCodecFormatInfo(CodecPCM, 8));
+
+    mDefaultAudioFormatIndex = mAudioFormats.size() - 4; // 128kb Opus
+}
+
+
+String FluxAoOAudioProcessor::getAudioCodeFormatName(int formatIndex) const
+{
+    if (formatIndex >= mAudioFormats.size()) return "";
+    
+    const AudioCodecFormatInfo & info = mAudioFormats.getReference(formatIndex);
+    return info.name;    
+}
+
+void FluxAoOAudioProcessor::setRemotePeerAudioCodecFormat(int index, int formatIndex)
+{
+    if (formatIndex >= mAudioFormats.size() || index >= mRemotePeers.size()) return;
+    
+    const AudioCodecFormatInfo & info = mAudioFormats.getReference(formatIndex);
+
+    const ScopedReadLock sl (mCoreLock);        
+ 
+    auto remote = mRemotePeers.getUnchecked(index);
+    remote->formatIndex = formatIndex;
+    
+    if (remote->oursource) {
+        setupSourceFormat(remote, remote->oursource.get());
+        remote->oursource->setup(getSampleRate(), lastSamplesPerBlock, getTotalNumOutputChannels());        
+        //remote->oursource->setup(getSampleRate(), remote->packetsize    , getTotalNumOutputChannels());        
+    }
+}
+
+int FluxAoOAudioProcessor::getRemotePeerAudioCodecFormat(int index) const
+{
+    if (index >= mRemotePeers.size()) return -1;
+    
+    const ScopedReadLock sl (mCoreLock);        
+    auto remote = mRemotePeers.getUnchecked(index);
+    return remote->formatIndex;
+}
+
+int FluxAoOAudioProcessor::getRemotePeerSendPacketsize(int index) const
+{
+    if (index >= mRemotePeers.size()) return -1;
+    const ScopedReadLock sl (mCoreLock);        
+    auto remote = mRemotePeers.getUnchecked(index);
+    return remote->packetsize;
+    
+}
+
+void FluxAoOAudioProcessor::setRemotePeerSendPacketsize(int index, int psize)
+{
+    if (index >= mRemotePeers.size()) return;
+    
+    const ScopedReadLock sl (mCoreLock);        
+
+    DebugLogC("Setting packet size to %d", psize);
+    
+    auto remote = mRemotePeers.getUnchecked(index);
+    remote->packetsize = psize;
+    
+    if (remote->oursource) {
+        //setupSourceFormat(remote, remote->oursource.get());
+
+        //remote->oursource->setup(getSampleRate(), remote->packetsize, getTotalNumInputChannels());
+
+        remote->oursource->set_packetsize(remote->packetsize);
     }
     
 }
@@ -1585,8 +1681,9 @@ FluxAoOAudioProcessor::RemotePeer * FluxAoOAudioProcessor::doAddRemotePeerIfNece
 
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getTotalNumOutputChannels());
 
-        setupSourceFormat(retpeer->oursource.get());
+        setupSourceFormat(retpeer, retpeer->oursource.get());
         retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, getTotalNumInputChannels());
+        retpeer->oursource->set_packetsize(retpeer->packetsize);
 
         retpeer->workBuffer.setSize(2, currSamplesPerBlock);
 
@@ -1622,19 +1719,35 @@ bool FluxAoOAudioProcessor::doRemoveRemotePeerIfNecessary(EndpointState * endpoi
 
 ////
 
-void FluxAoOAudioProcessor::setupSourceFormat(aoo::isource * source)
+void FluxAoOAudioProcessor::setupSourceFormat(FluxAoOAudioProcessor::RemotePeer * peer, aoo::isource * source)
 {
-    // TODO have choice and parameters
+    // have choice and parameters
+    
+    const AudioCodecFormatInfo & info =  mAudioFormats.getReference((!peer || peer->formatIndex < 0) ? mDefaultAudioFormatIndex : peer->formatIndex);
     
     aoo_format_storage f;
-    aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
-    fmt->header.codec = AOO_CODEC_PCM;
-    fmt->header.blocksize = currSamplesPerBlock;
-    fmt->header.samplerate = getSampleRate();
-    fmt->header.nchannels = getTotalNumOutputChannels();
-    fmt->bitdepth = AOO_PCM_INT16;
+    
+    if (info.codec == CodecPCM) {
+        aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
+        fmt->header.codec = AOO_CODEC_PCM;
+        fmt->header.blocksize = lastSamplesPerBlock; // peer ? peer->packetsize : lastSamplesPerBlock; // lastSamplesPerBlock;
+        fmt->header.samplerate = getSampleRate();
+        fmt->header.nchannels = getTotalNumOutputChannels();
+        fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT16;
+        source->set_format(fmt->header);
+    } 
+    else if (info.codec == CodecOpus) {
+        aoo_format_opus *fmt = (aoo_format_opus *)&f;
+        fmt->header.codec = AOO_CODEC_OPUS;
+        fmt->header.blocksize = lastSamplesPerBlock;// peer ? peer->packetsize : lastSamplesPerBlock; // lastSamplesPerBlock;
+        fmt->header.samplerate = getSampleRate();
+        fmt->header.nchannels = getTotalNumOutputChannels();
+        fmt->bitrate = info.bitrate;
+        fmt->complexity = info.complexity;
+        fmt->signal_type = info.signal_type;
 
-    source->set_format(fmt->header);
+        source->set_format(fmt->header);        
+    }
 }
 
 
@@ -1745,13 +1858,14 @@ void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    currSamplesPerBlock = samplesPerBlock;
+    lastSamplesPerBlock = currSamplesPerBlock = samplesPerBlock;
 
+    DebugLogC("Prepare to play: SR %g  blocksize: %d", sampleRate, samplesPerBlock);
 
     const ScopedReadLock sl (mCoreLock);        
     
     //mAooSource->set_format(fmt->header);
-    setupSourceFormat(mAooDummySource.get());
+    setupSourceFormat(0, mAooDummySource.get());
     mAooDummySource->setup(sampleRate, samplesPerBlock, getTotalNumInputChannels());
 
     for (auto s : mRemotePeers) {
@@ -1760,8 +1874,8 @@ void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         }
 
         if (s->oursource) {
-            setupSourceFormat(s->oursource.get());
-            s->oursource->setup(sampleRate, samplesPerBlock, getTotalNumInputChannels());        
+            setupSourceFormat(s, s->oursource.get());
+            s->oursource->setup(sampleRate, samplesPerBlock, getTotalNumOutputChannels());        
         }
         if (s->oursink) {
             s->oursink->setup(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
@@ -1874,6 +1988,8 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.applyGain(inGain);
     }
     
+    bool needsblockchange = false; //lastSamplesPerBlock != numSamples;
+
     // push data for going out
     {
         const ScopedReadLock sl (mCoreLock);        
@@ -1931,12 +2047,20 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             }
         }
         
+        
+        
         // send out final outputs
         int i=0;
         for (auto & remote : mRemotePeers) 
         {
             if (remote->oursource /*&& remote->sendActive */) {
 
+                if (needsblockchange) {
+                    setupSourceFormat(remote, remote->oursource.get());
+                    remote->oursource->setup(getSampleRate(), numSamples, getTotalNumOutputChannels());
+
+                }
+                
                 workBuffer.clear(0, numSamples);
                 
                 for (int channel = 0; channel < totalNumOutputChannels && totalNumInputChannels > 0; ++channel) {
@@ -1950,7 +2074,7 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 int j=0;
                 for (auto & crossremote : mRemotePeers) 
                 {
-                    if (mRemoteSendMatrix[i][j]) {
+                    if (mRemoteSendMatrix[j][i]) {
                         for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
                             int inchan = channel;
                             // add this remote to it
@@ -1981,6 +2105,10 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
 
         
+    }
+    
+    if (needsblockchange) {
+        lastSamplesPerBlock = numSamples;
     }
 
     mSendWaitable.signal();

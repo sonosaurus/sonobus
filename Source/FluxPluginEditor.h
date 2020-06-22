@@ -14,6 +14,7 @@
 
 #include "FluxPluginProcessor.h"
 #include "SonoLookAndFeel.h"
+#include "SonoChoiceButton.h"
 
 //==============================================================================
 /**
@@ -22,6 +23,7 @@ class FluxAoOAudioProcessorEditor  : public AudioProcessorEditor, public MultiTi
 public Button::Listener,
 public AudioProcessorValueTreeState::Listener,
 public Slider::Listener,
+public SonoChoiceButton::Listener, 
 public AsyncUpdater
 {
 public:
@@ -41,6 +43,8 @@ public:
     void parameterChanged (const String&, float newValue) override;
     void handleAsyncUpdate() override;
 
+    void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
+
 private:
 
     void updateLayout();
@@ -51,6 +55,8 @@ private:
     void configLabel(Label * lab, bool val);
 
     void showPatchbay(bool flag);
+    
+    void showFormatChooser(int peerindex);
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -83,6 +89,9 @@ private:
     std::unique_ptr<Label> mWetLabel;
     std::unique_ptr<Label> mBufferTimeLabel;
 
+
+    
+    
     std::unique_ptr<PatchMatrixView> mPatchMatrixView;
     std::unique_ptr<DialogWindow> mPatchbayWindow;
         
@@ -96,6 +105,8 @@ private:
         std::unique_ptr<Label>  bufferTimeLabel;
         std::unique_ptr<Slider> bufferTimeSlider;        
         std::unique_ptr<TextButton> removeButton;        
+        std::unique_ptr<SonoChoiceButton> formatChoiceButton;
+        std::unique_ptr<Slider> packetsizeSlider;        
 
         FlexBox mainbox;
         FlexBox namebox;
