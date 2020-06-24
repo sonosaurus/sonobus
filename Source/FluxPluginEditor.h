@@ -93,8 +93,9 @@ private:
     
     
     std::unique_ptr<PatchMatrixView> mPatchMatrixView;
-    std::unique_ptr<DialogWindow> mPatchbayWindow;
-        
+    //std::unique_ptr<DialogWindow> mPatchbayWindow;
+    WeakReference<Component> patchbayCalloutBox;
+
     struct PeerViewInfo {
         std::unique_ptr<Label> nameLabel;
         std::unique_ptr<ToggleButton> sendActiveButton;

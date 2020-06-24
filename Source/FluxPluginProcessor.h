@@ -245,7 +245,7 @@ private:
     struct AudioCodecFormatInfo {
         AudioCodecFormatInfo() {}
         AudioCodecFormatInfo(String name_, int bitdepth_) : name(name_), codec(CodecPCM), bitdepth(bitdepth_) {}
-        AudioCodecFormatInfo(String name_, int bitrate_, int complexity_, int signaltype) : name(name_), codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype) {}
+        AudioCodecFormatInfo(String name_, int bitrate_, int complexity_, int signaltype, int minblocksize=120) : name(name_), codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype), min_preferred_blocksize(minblocksize) {}
         String name;
         AudioCodecFormatCodec codec;
         // PCM options
@@ -254,6 +254,7 @@ private:
         int bitrate = 0;
         int complexity = 0;
         int signal_type = 0;
+        int min_preferred_blocksize = 120;
     };
     
     Array<AudioCodecFormatInfo> mAudioFormats;
@@ -264,7 +265,13 @@ private:
     bool mRemoteSendMatrix[MAX_PEERS][MAX_PEERS];
     
     
+    void notifySendThread() {
+        mHasStuffToSend = true;
+        mSendWaitable.signal();
+    }
+    
     WaitableEvent  mSendWaitable;
+    volatile bool mHasStuffToSend = false;
     
     std::unique_ptr<SendThread> mSendThread;
     std::unique_ptr<RecvThread> mRecvThread;

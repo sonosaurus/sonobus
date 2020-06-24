@@ -29,6 +29,7 @@ struct FluxAoOAudioProcessor::EndpointState {
     DatagramSocket *owner;
     //struct sockaddr_storage addr;
     //socklen_t addrlen;
+    std::unique_ptr<DatagramSocket::RemoteAddrInfo> peer;
     String ipaddr;
     int port;
 };
@@ -91,7 +92,12 @@ struct FluxAoOAudioProcessor::RemotePeer {
 static int endpoint_send(void *e, const char *data, int size)
 {
     FluxAoOAudioProcessor::EndpointState * endpoint = static_cast<FluxAoOAudioProcessor::EndpointState*>(e);
-    int result = endpoint->owner->write(endpoint->ipaddr, endpoint->port, data, size);
+    int result = -1;
+    if (endpoint->peer) {
+        result = endpoint->owner->write(*(endpoint->peer), data, size);
+    } else {
+        result = endpoint->owner->write(endpoint->ipaddr, endpoint->port, data, size);
+    }
     
     return result;
 }
@@ -107,7 +113,7 @@ public:
         
         while (!threadShouldExit()) {
          
-            if (_processor.mSendWaitable.wait(20)) {
+            if (_processor.mSendWaitable.wait(10)) {
                 _processor.doSendData();
             }            
         }
@@ -253,7 +259,37 @@ void FluxAoOAudioProcessor::initializeAoo()
     }
     
     mUdpLocalPort = udpport;
-    mLocalIPAddress = IPAddress::getLocalAddress();
+
+    //mLocalIPAddress = IPAddress::getLocalAddress();
+
+#if JUCE_IOS    
+    auto addresses = IPAddress::getAllInterfaceAddresses (false);
+    for (auto& a : addresses) {
+        // look for local wifi interface address first
+        if (a.first != IPAddress::local(false) && ( a.second == "en0" || a.second == "en1")) {
+            mLocalIPAddress = a.first;
+            break;
+        }        
+    }
+    if (mLocalIPAddress.isNull()) {
+        // now accept anything
+        for (auto& a : addresses) {
+            // look for local wifi interface address first
+            if (a.first != IPAddress::local(false)) {
+                mLocalIPAddress = a.first;
+                break;
+            }
+        }        
+    }
+#else
+    auto addresses = IPAddress::getAllInterfaceAddresses (false);
+    for (auto& a : addresses) {
+        if (a.first != IPAddress::local(false)) {
+            mLocalIPAddress = a.first;
+            break;
+        }
+    }
+#endif
     
     mSendThread = std::make_unique<SendThread>(*this);
     mRecvThread = std::make_unique<RecvThread>(*this);
@@ -295,19 +331,21 @@ void FluxAoOAudioProcessor::initFormats()
     mAudioFormats.clear();
     
     // low bandwidth to high
-    mAudioFormats.add(AudioCodecFormatInfo("16 kbps",  16000, 10, OPUS_SIGNAL_VOICE));
-    mAudioFormats.add(AudioCodecFormatInfo("24 kbps", 24000, 10, OPUS_SIGNAL_VOICE));
-    mAudioFormats.add(AudioCodecFormatInfo("32 kbps",  32000, 10, OPUS_SIGNAL_VOICE));
-    mAudioFormats.add(AudioCodecFormatInfo("64 kbps",  64000, 10, OPUS_SIGNAL_MUSIC));
-    mAudioFormats.add(AudioCodecFormatInfo("96 kbps",  96000, 10, OPUS_SIGNAL_MUSIC));
-    mAudioFormats.add(AudioCodecFormatInfo("128 kbps",  128000, 10, OPUS_SIGNAL_MUSIC));
+    mAudioFormats.add(AudioCodecFormatInfo("16 kbps",  16000, 10, OPUS_SIGNAL_MUSIC, 960));
+    mAudioFormats.add(AudioCodecFormatInfo("24 kbps", 24000, 10, OPUS_SIGNAL_MUSIC, 960));
+    mAudioFormats.add(AudioCodecFormatInfo("32 kbps",  32000, 10, OPUS_SIGNAL_MUSIC, 480));
+    mAudioFormats.add(AudioCodecFormatInfo("64 kbps",  64000, 10, OPUS_SIGNAL_MUSIC, 240));
+    mAudioFormats.add(AudioCodecFormatInfo("96 kbps",  96000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo("128 kbps",  128000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo("160 kbps",  160000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo("256 kbps",  256000, 10, OPUS_SIGNAL_MUSIC, 120));
     
     mAudioFormats.add(AudioCodecFormatInfo("PCM 16 bit", 2));
     mAudioFormats.add(AudioCodecFormatInfo("PCM 24 bit", 3));
     mAudioFormats.add(AudioCodecFormatInfo("PCM 32 bit float", 4));
     //mAudioFormats.add(AudioCodecFormatInfo(CodecPCM, 8));
 
-    mDefaultAudioFormatIndex = mAudioFormats.size() - 4; // 128kb Opus
+    mDefaultAudioFormatIndex = mAudioFormats.size() - 6; // 128kb Opus
 }
 
 
@@ -395,6 +433,7 @@ FluxAoOAudioProcessor::EndpointState * FluxAoOAudioProcessor::findOrAddEndpoint(
         // add it as new
         endpoint = mEndpoints.add(new EndpointState(host, port));
         endpoint->owner = mUdpSocket.get();
+        endpoint->peer = std::make_unique<DatagramSocket::RemoteAddrInfo>(host, port);
         DebugLogC("Added new endpoint for %s:%d", host.toRawUTF8(), port);
     }
     return endpoint;
@@ -484,7 +523,7 @@ void FluxAoOAudioProcessor::doReceiveData()
         }
 
         // notify send thread
-        mSendWaitable.signal();
+        notifySendThread();
 
     } 
     else {
@@ -499,16 +538,25 @@ void FluxAoOAudioProcessor::doSendData()
     // just try to send for everybody
     const ScopedReadLock sl (mCoreLock);        
 
-    //mAooSource->send();
-    mAooDummySource->send();
+    // send stuff until there is nothing left to send
     
-    for (auto & remote : mRemotePeers) {
-        if (remote->oursource) {
-            remote->oursource->send();
+    bool didsomething = true;
+    
+    while (didsomething) {
+        //mAooSource->send();
+        didsomething = false;
+        
+        didsomething |= mAooDummySource->send();
+        
+        for (auto & remote : mRemotePeers) {
+            if (remote->oursource) {
+                didsomething |= remote->oursource->send();
+            }
+            if (remote->oursink) {
+                didsomething |= remote->oursink->send();
+            }
         }
-        if (remote->oursink) {
-            remote->oursink->send();
-        }
+        
     }
 
     return;
@@ -1307,8 +1355,10 @@ void FluxAoOAudioProcessor::setRemotePeerRecvActive(int index, bool active)
         // TODO
 #if 1
         if (active) {
+            DebugLogC("inviting peer %d source %d", remote->ourId, remote->remoteSourceId);
             remote->oursink->invite_source(remote->endpoint,remote->remoteSourceId, endpoint_send);
         } else {
+            DebugLogC("uninviting peer %d source %d", remote->ourId, remote->remoteSourceId);
             remote->oursink->uninvite_source(remote->endpoint, remote->remoteSourceId, endpoint_send);
         }
 #endif
@@ -1739,7 +1789,7 @@ void FluxAoOAudioProcessor::setupSourceFormat(FluxAoOAudioProcessor::RemotePeer 
     else if (info.codec == CodecOpus) {
         aoo_format_opus *fmt = (aoo_format_opus *)&f;
         fmt->header.codec = AOO_CODEC_OPUS;
-        fmt->header.blocksize = lastSamplesPerBlock;// peer ? peer->packetsize : lastSamplesPerBlock; // lastSamplesPerBlock;
+        fmt->header.blocksize = lastSamplesPerBlock >= info.min_preferred_blocksize ? lastSamplesPerBlock : info.min_preferred_blocksize;
         fmt->header.samplerate = getSampleRate();
         fmt->header.nchannels = getTotalNumOutputChannels();
         fmt->bitrate = info.bitrate;
@@ -2055,11 +2105,13 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         {
             if (remote->oursource /*&& remote->sendActive */) {
 
+                /*
                 if (needsblockchange) {
                     setupSourceFormat(remote, remote->oursource.get());
                     remote->oursource->setup(getSampleRate(), numSamples, getTotalNumOutputChannels());
 
                 }
+                */
                 
                 workBuffer.clear(0, numSamples);
                 
@@ -2111,7 +2163,7 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         lastSamplesPerBlock = numSamples;
     }
 
-    mSendWaitable.signal();
+    notifySendThread();
     
     mLastWet = wetnow;
     mLastDry = drynow;

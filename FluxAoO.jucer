@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="ZRovAH" name="FluxAoO" projectType="audioplug" jucerVersion="5.4.3"
               companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
-              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildAUv3,buildStandalone"
+              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,enableIAA"
               pluginManufacturerCode="Sono" pluginCode="Flux" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1"
               pluginDesc="Network Audio" version="1.0">
   <MAINGROUP id="i87g34" name="FluxAoO">
@@ -122,7 +122,7 @@
                extraDefs="USE_CODEC_OPUS=1">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/mac/include"
-                       libraryPath="../../deps/mac/lib" defines="LOGLEVEL=3" osxCompatibility="10.9 SDK"/>
+                       libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/mac/include"
                        libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"/>
       </CONFIGURATIONS>
@@ -145,7 +145,7 @@
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
                   iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;1&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
-                  extraDefs="USE_CODEC_OPUS=1">
+                  extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/ios/include"
                        libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2"/>

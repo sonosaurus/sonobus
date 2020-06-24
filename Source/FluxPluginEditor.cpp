@@ -12,6 +12,7 @@
 #include "FluxPluginEditor.h"
 
 #include "BeatToggleGrid.h"
+#include "DebugLogC.h"
 
 enum {
     PeriodicUpdateTimerId = 0
@@ -85,7 +86,26 @@ public:
             }            
         }
         
+        repaint();
     }
+    
+    Rectangle<int> getPreferredBounds() const
+    {
+        int count = processor.getNumberRemotePeers();
+        int labwidth = 30;
+        int labheight= 18;
+        int buttwidth = 60;
+        int buttheight = 44;
+
+        Rectangle<int> prefsize;
+        prefsize.setX(0);
+        prefsize.setY(0);
+        prefsize.setWidth(count * buttwidth + labwidth);
+        prefsize.setHeight(count * buttheight + labheight);
+
+        return prefsize;
+    }
+
     
     void updateGridLayout() {
 
@@ -128,7 +148,8 @@ public:
         
         int labwidth = 30;
         int labheight= 18;
-
+        int buttheight = 36;
+        
         topbox.items.add(FlexItem(labwidth, labheight));
         
         for (int i=0; i < count; ++i) {
@@ -146,15 +167,15 @@ public:
 
         middlebox.items.clear();
         middlebox.flexDirection = FlexBox::Direction::row;    
-        middlebox.items.add(FlexItem(labwidth, 100, leftbox).withMargin(2).withFlex(0));
-        middlebox.items.add(FlexItem(labwidth, 100, *grid).withMargin(2).withFlex(1));
+        middlebox.items.add(FlexItem(labwidth, labheight, leftbox).withMargin(2).withFlex(0));
+        middlebox.items.add(FlexItem(labwidth, buttheight, *grid).withMargin(2).withFlex(1));
         
 
         
         mainbox.items.clear();
         mainbox.flexDirection = FlexBox::Direction::column;    
-        mainbox.items.add(FlexItem(120, labheight, topbox).withMargin(3).withFlex(0).withMaxHeight(30));
-        mainbox.items.add(FlexItem(120, 100, middlebox).withMargin(3).withFlex(1));
+        mainbox.items.add(FlexItem(labwidth*2, labheight, topbox).withMargin(2).withFlex(0).withMaxHeight(30));
+        mainbox.items.add(FlexItem(labwidth*2, buttheight, middlebox).withMargin(2).withFlex(1));
         
         resized();
     }
@@ -162,7 +183,7 @@ public:
     void paint (Graphics& g) override
     {
         // (Our component is opaque, so we must completely fill the background with a solid colour)
-        g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+        //g.fillAll (getLookAndFeel().findColour (ColourScheme::UIColour::widgetBackground));
 
         //g.setColour (Colours::white);
         //g.setFont (15.0f);
@@ -188,6 +209,7 @@ public:
     FlexBox leftbox;
     FlexBox topbox;
 
+    
     bool valonpress = false;
     
     FluxAoOAudioProcessor & processor;
@@ -544,7 +566,7 @@ void FluxAoOAudioProcessorEditor::timerCallback(int timerid)
         if (mPeerViews.size() != processor.getNumberRemotePeers()) {
             rebuildPeerViews();
 
-            if (mPatchbayWindow && mPatchbayWindow->isVisible()) {
+            if (patchbayCalloutBox) {
                 mPatchMatrixView->updateGridLayout();
                 mPatchMatrixView->updateGrid();
             }
@@ -553,7 +575,7 @@ void FluxAoOAudioProcessorEditor::timerCallback(int timerid)
         else {
             updatePeerViews();
 
-            if (mPatchbayWindow && mPatchbayWindow->isVisible()) {
+            if (patchbayCalloutBox) {
                 mPatchMatrixView->updateGrid();
             }
         }
@@ -598,7 +620,7 @@ void FluxAoOAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         
     }
     else if (buttonThatWasClicked == mPatchbayButton.get()) {
-        if (!mPatchbayWindow || !mPatchbayWindow->isVisible()) {
+        if (!patchbayCalloutBox) {
             showPatchbay(true);
         } else {
             showPatchbay(false);
@@ -649,30 +671,59 @@ void FluxAoOAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
 void FluxAoOAudioProcessorEditor::showPatchbay(bool flag)
 {
-    if (flag) {
-        
-        if (!mPatchMatrixView) {
-            mPatchMatrixView = std::make_unique<PatchMatrixView>(processor);
-            DialogWindow::LaunchOptions options;
-            options.dialogBackgroundColour = Colours::black;
-            options.dialogTitle = TRANS("Patchbay");
-            options.content.setNonOwned(mPatchMatrixView.get());
-            options.content->setSize(200, 200); 
-            mPatchbayWindow.reset(options.create());
-            //mPatchbayWindow->setSize(200, 200); 
-        }
-
-        mPatchMatrixView->updateGridLayout();
-        mPatchMatrixView->updateGrid();
-        mPatchbayWindow->setVisible(true);        
-        //mPatchbayWindow->setSize(mPatchbayButton->getWidth(), mPatchbayButton->getHeight());
-    }
-    else {
-        if (mPatchbayWindow) {
-            mPatchbayWindow->setVisible(false);
-        }
+    if (!mPatchMatrixView) {
+        mPatchMatrixView = std::make_unique<PatchMatrixView>(processor);
     }
     
+    if (flag && patchbayCalloutBox == nullptr) {
+        
+        Viewport * wrap = new Viewport();
+        
+        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        
+        if (!dw) {
+            dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
+        }
+        if (!dw) {
+            dw = this->findParentComponentOfClass<Component>();        
+        }
+        if (!dw) {
+            dw = this;
+        }
+        
+        // calculate based on how many peers we have
+        auto prefbounds = mPatchMatrixView->getPreferredBounds();
+        const int defWidth = prefbounds.getWidth(); 
+        const int defHeight = prefbounds.getHeight();
+        
+        wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 20), jmin(defHeight + 8, dw->getHeight() - 24));
+        
+        //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
+        
+        mPatchMatrixView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        
+        //wrap->addAndMakeVisible(mSettingsPanel.get());
+        wrap->setViewedComponent(mPatchMatrixView.get(), false);
+        
+        //patchbayBox.performLayout(mPatchMatrixView->getLocalBounds());
+        
+        mPatchMatrixView->updateGridLayout();
+        mPatchMatrixView->updateGrid();
+        
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mPatchbayButton->getScreenBounds());
+        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        patchbayCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(patchbayCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(patchbayCalloutBox.get())) {
+            box->dismiss();
+            patchbayCalloutBox = nullptr;
+        }
+    }
 }
 
 
