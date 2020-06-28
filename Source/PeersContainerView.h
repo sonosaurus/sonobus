@@ -39,6 +39,8 @@ public:
     std::unique_ptr<Label>  statusLabel;
     std::unique_ptr<Label>  levelLabel;
     std::unique_ptr<Slider> levelSlider;
+    std::unique_ptr<Slider> panSlider1;
+    std::unique_ptr<Slider> panSlider2;
     std::unique_ptr<Label>  bufferTimeLabel;
     std::unique_ptr<Slider> bufferTimeSlider;        
     std::unique_ptr<SonoChoiceButton> formatChoiceButton;

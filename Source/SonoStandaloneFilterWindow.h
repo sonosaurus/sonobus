@@ -269,12 +269,21 @@ public:
             updateMinAndMax ((int) defaultConfig.numOuts, minNumOutputs, maxNumOutputs);
         }
 
-        if (auto* bus = processor->getBus (true, 0))
+        if (auto* bus = processor->getBus (true, 0)) {
             updateMinAndMax (bus->getDefaultLayout().size(), minNumInputs, maxNumInputs);
+            if (bus->isNumberOfChannelsSupported(1)) {
+                updateMinAndMax (1, minNumInputs, maxNumInputs);                
+            }
+        }
 
-        if (auto* bus = processor->getBus (false, 0))
+        if (auto* bus = processor->getBus (false, 0)) {
             updateMinAndMax (bus->getDefaultLayout().size(), minNumOutputs, maxNumOutputs);
+            if (bus->isNumberOfChannelsSupported(1)) {
+                updateMinAndMax (1, minNumOutputs, maxNumOutputs);                
+            }
+        }
 
+        
         minNumInputs  = jmin (minNumInputs,  maxNumInputs);
         minNumOutputs = jmin (minNumOutputs, maxNumOutputs);
 
@@ -432,7 +441,7 @@ private:
                               minAudioOutputChannels, maxAudioOutputChannels,
                               true,
                               (pluginHolder.processor.get() != nullptr && pluginHolder.processor->producesMidi()),
-                              true, false),
+                              false, false),
               shouldMuteLabel  ("Feedback Loop:", "Feedback Loop:"),
               shouldMuteButton ("Mute audio input")
         {

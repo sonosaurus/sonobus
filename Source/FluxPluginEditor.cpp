@@ -353,6 +353,13 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     outputMeter->setLookAndFeel(&outMeterLnf);
     outputMeter->setMeterSource (&processor.getOutputMeterSource());        
     
+    
+    mSettingsButton = std::make_unique<SonoDrawableButton>("settings",  DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> setimg(Drawable::createFromImageData(BinaryData::settings_icon_svg, BinaryData::settings_icon_svgSize));
+    mSettingsButton->setImages(setimg.get());
+    mSettingsButton->addListener(this);
+    mSettingsButton->setAlpha(0.7);
+    mSettingsButton->addMouseListener(this, false);
 
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
     
@@ -380,7 +387,8 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     addAndMakeVisible(outputMeter.get());
     addAndMakeVisible(mPeerViewport.get());
     //addAndMakeVisible(mPeerContainer.get());
-    
+    addAndMakeVisible (mSettingsButton.get());
+
     updateLayout();
     
     updateState();
@@ -560,6 +568,70 @@ void FluxAoOAudioProcessorEditor::sliderValueChanged (Slider* slider)
 
 }
 
+void FluxAoOAudioProcessorEditor::mouseDown (const MouseEvent& event) 
+{
+    
+    if (event.eventComponent == mSettingsButton.get()) {
+        settingsWasShownOnDown = settingsCalloutBox != nullptr;
+        if (!settingsWasShownOnDown) {
+            showOrHideSettings();        
+        }
+    }
+}
+
+void FluxAoOAudioProcessorEditor::showOrHideSettings()
+{
+    DebugLogC("Got settings click");
+
+    if (settingsCalloutBox == nullptr) {
+        
+        Viewport * wrap = new Viewport();
+        
+        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        
+        if (!dw) {
+            dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
+        }
+        if (!dw) {
+            dw = this->findParentComponentOfClass<Component>();        
+        }
+        if (!dw) {
+            dw = this;
+        }
+
+        const int defWidth = 260;
+        const int defHeight = 150;                
+        
+        wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 20), jmin(defHeight + 8, dw->getHeight() - 24));
+        
+        //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
+
+        /*
+        
+        mSettingsPanel->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        
+        //wrap->addAndMakeVisible(mSettingsPanel.get());
+        wrap->setViewedComponent(mSettingsPanel.get(), false);
+           
+        settingsBox.performLayout(mSettingsPanel->getLocalBounds());
+         */
+        
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mSettingsButton->getScreenBounds());
+        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        settingsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
+            box->dismiss();
+            settingsCalloutBox = nullptr;
+        }
+    }
+}
+
 void FluxAoOAudioProcessorEditor::updateState()
 {
     mLocalAddressLabel->setText(String::formatted("%s : %d", processor.getLocalIPAddress().toString().toRawUTF8(), processor.getUdpLocalPort()), dontSendNotification);
@@ -653,7 +725,8 @@ void FluxAoOAudioProcessorEditor::updateLayout()
 
     titleBox.items.clear();
     titleBox.flexDirection = FlexBox::Direction::row;
-    //titleBox.items.add(FlexItem(90, 20, *mTitleImage).withMargin(1).withMaxWidth(151).withFlex(1));
+    titleBox.items.add(FlexItem(20, 20, *mSettingsButton).withMargin(1).withMaxWidth(40).withFlex(0));
+    //titleBox.items.add(FlexItem(90, 20, *mSettingsButton).withMargin(1).withMaxWidth(151).withFlex(1));
     titleBox.items.add(FlexItem(6, 20).withMargin(1).withFlex(0));
     titleBox.items.add(FlexItem(6, 20).withMargin(1).withFlex(1));
     titleBox.items.add(FlexItem(120, 18, *mLocalAddressStaticLabel).withMargin(2));

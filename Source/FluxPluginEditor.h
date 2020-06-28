@@ -15,6 +15,7 @@
 #include "FluxPluginProcessor.h"
 #include "SonoLookAndFeel.h"
 #include "SonoChoiceButton.h"
+#include "SonoDrawableButton.h"
 
 class PeersContainerView;
 
@@ -36,10 +37,12 @@ public:
     void paint (Graphics&) override;
     void resized() override;
 
+    void mouseDown (const MouseEvent& event)  override;
+
     void timerCallback(int timerid) override;
 
     void buttonClicked (Button* buttonThatWasClicked) override;
-    
+
     void sliderValueChanged (Slider* slider) override;
 
     void parameterChanged (const String&, float newValue) override;
@@ -61,6 +64,8 @@ private:
     
     void showFormatChooser(int peerindex);
     
+    void showOrHideSettings();
+    
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FluxAoOAudioProcessor& processor;
@@ -78,6 +83,7 @@ private:
     std::unique_ptr<TextButton> mConnectButton;
     std::unique_ptr<ToggleButton> mStreamingEnabledButton;
     std::unique_ptr<TextButton> mPatchbayButton;
+    std::unique_ptr<SonoDrawableButton> mSettingsButton;
 
     std::unique_ptr<Slider> mInGainSlider;
     std::unique_ptr<Slider> mDrySlider;
@@ -110,7 +116,9 @@ private:
     std::unique_ptr<PeersContainerView> mPeerContainer;
 
     int peersHeight = 0;
-    
+    bool settingsWasShownOnDown = false;
+    WeakReference<Component> settingsCalloutBox;
+
 
     
     std::unique_ptr<TableListBox> mRemoteSinkListBox;

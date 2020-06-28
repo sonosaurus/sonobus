@@ -120,6 +120,11 @@ public:
     void setRemotePeerLevelGain(int index, float levelgain);
     float getRemotePeerLevelGain(int index) const;
 
+    void setRemotePeerChannelPan(int index, int chan, float pan);
+    float getRemotePeerChannelPan(int index, int chan) const;
+
+    int getRemotePeerChannelCount(int index) const;
+    
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
 

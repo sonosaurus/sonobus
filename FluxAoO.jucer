@@ -72,6 +72,8 @@
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
+      <FILE id="DLrrYi" name="settings_icon.svg" compile="0" resource="1"
+            file="images/settings_icon.svg"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"

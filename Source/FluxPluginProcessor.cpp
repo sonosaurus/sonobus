@@ -24,6 +24,7 @@ String FluxAoOAudioProcessor::paramBufferTime  ("buffertime");
 String FluxAoOAudioProcessor::paramStreamingEnabled  ("streaming_enabled");
 
 #define METER_RMS_SEC 0.04
+#define MAX_PANNERS 4
 
 struct FluxAoOAudioProcessor::EndpointState {
     EndpointState(String ipaddr_="", int port_=0) : ipaddr(ipaddr_), port(port_) {}
@@ -65,7 +66,11 @@ struct FluxAoOAudioProcessor::RemoteSource {
 struct FluxAoOAudioProcessor::RemotePeer {
     RemotePeer(EndpointState * ep = 0, int id_=0, aoo::isink::pointer oursink_ = 0, aoo::isource::pointer oursource_ = 0) : endpoint(ep), 
         ourId(id_), 
-        oursink(std::move(oursink_)), oursource(std::move(oursource_)) {}
+        oursink(std::move(oursink_)), oursource(std::move(oursource_)) {
+            for (int i=0; i < MAX_PANNERS; ++i) {
+                recvPan[i] = recvPanLast[i] = 0.0f;
+            }
+        }
 
     EndpointState * endpoint = 0;
     int32_t ourId = AOO_ID_NONE;
@@ -84,6 +89,8 @@ struct FluxAoOAudioProcessor::RemotePeer {
     int  formatIndex = -1; // default
     int packetsize = 512;
     int sendChannels = 2;
+    int recvChannels = 0;
+    float recvPan[MAX_PANNERS];
     // runtime state
     float _lastgain = 0.0f;
     bool connected = false;
@@ -92,6 +99,7 @@ struct FluxAoOAudioProcessor::RemotePeer {
     float pingTime = 0.0f;
     float totalLatency = 0.0f;
     AudioSampleBuffer workBuffer;
+    float recvPanLast[MAX_PANNERS];
     // metering
     foleys::LevelMeterSource sendMeterSource;
     foleys::LevelMeterSource recvMeterSource;
@@ -890,8 +898,25 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
             if (peer) {
                 aoo_format_storage f;
                 if (peer->oursink->get_source_format(e->endpoint, e->id, f) > 0) {
-                    DebugLogC("Got source format event from %s:%d  %d ", es->ipaddr.toRawUTF8(), es->port, e->id);
+                    DebugLogC("Got source format event from %s:%d  %d   channels: %d", es->ipaddr.toRawUTF8(), es->port, e->id, f.header.nchannels);
                     peer->recvMeterSource.resize(f.header.nchannels, meterRmsWindow);
+                    if (peer->recvChannels != f.header.nchannels) {
+                        peer->recvChannels = std::min(MAX_PANNERS, f.header.nchannels);
+                        if (peer->recvChannels == 1) {
+                            // center pan
+                            peer->recvPan[0] = 0.0f;
+                        } else if (peer->recvChannels == 2) {
+                            // Left/Right
+                            peer->recvPan[0] = -1.0f;
+                            peer->recvPan[1] = 1.0f;
+                        } else if (peer->recvChannels > 2) {
+                            peer->recvPan[0] = -1.0f;
+                            peer->recvPan[1] = 1.0f;
+                            for (int i=2; i < peer->recvChannels; ++i) {
+                                peer->recvPan[i] = 0.0f;
+                            }
+                        }
+                    }
                 }                
             }
             else { 
@@ -1401,6 +1426,43 @@ float FluxAoOAudioProcessor::getRemotePeerLevelGain(int index) const
     }
     return levelgain;
 }
+
+void FluxAoOAudioProcessor::setRemotePeerChannelPan(int index, int chan, float pan)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        if (chan < MAX_PANNERS) {
+            remote->recvPan[chan] = pan;
+        }
+    }
+}
+
+float FluxAoOAudioProcessor::getRemotePeerChannelPan(int index, int chan) const
+{
+    float pan = 0.0f;
+    
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        if (chan < remote->recvChannels) {
+            pan = remote->recvPan[chan];
+        }
+    }
+    return pan;
+}
+
+int FluxAoOAudioProcessor::getRemotePeerChannelCount(int index) const
+{
+    int ret = 0;
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        ret = remote->recvChannels;
+    }
+    return ret;
+}
+
 
 void FluxAoOAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
 {
@@ -2294,6 +2356,10 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 }
             } 
 
+            // pre-meter before gain adjust
+            remote->recvMeterSource.measureBlock (remote->workBuffer);
+            
+            
             // apply wet gain for this to tempbuf
             if (fabsf(usegain - remote->_lastgain) > 0.00001) {
                 remote->workBuffer.applyGainRamp(0, numSamples, remote->_lastgain, usegain);
@@ -2302,12 +2368,35 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 remote->workBuffer.applyGain(remote->gain);
             }
 
-            remote->recvMeterSource.measureBlock (remote->workBuffer);
 
             
             for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            
-                tempBuffer.addFrom(channel, 0, remote->workBuffer, channel, 0, numSamples);
+
+                // now apply panning
+
+                if (remote->recvChannels > 0 && totalNumOutputChannels > 1) {
+                    for (int i=0; i < remote->recvChannels; ++i) {
+                        const float pan = remote->recvPan[i];
+                        const float lastpan = remote->recvPanLast[i];
+                        
+                        // apply pan law
+                        // -1 is left, 1 is right
+                        float pgain = channel == 0 ? (pan >= 0.0f ? (1.0f - pan) : 1.0f) : (pan >= 0.0f ? 1.0f : (1.0f+pan)) ;
+
+                        if (pan != lastpan) {
+                            float plastgain = channel == 0 ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
+                            
+                            tempBuffer.addFromWithRamp(channel, 0, remote->workBuffer.getReadPointer(i), numSamples, plastgain, pgain);
+                        } else {
+                            tempBuffer.addFrom (channel, 0, remote->workBuffer, i, 0, numSamples, pgain);                            
+                        }
+
+                        remote->recvPanLast[i] = pan;
+                    }
+                } else {
+                    
+                    tempBuffer.addFrom(channel, 0, remote->workBuffer, channel, 0, numSamples);
+                }
             }
         }
         

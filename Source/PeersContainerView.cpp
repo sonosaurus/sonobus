@@ -117,6 +117,32 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->levelLabel = std::make_unique<Label>("level", TRANS("Level"));
     configLabel(pvf->levelLabel.get(), false);
 
+    pvf->panSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
+    pvf->panSlider1->setName("pan1");
+    pvf->panSlider1->addListener(this);
+    pvf->panSlider1->getProperties().set ("fromCentre", true);
+    pvf->panSlider1->setRange(-1, 1, 0.0f);
+    pvf->panSlider1->setDoubleClickReturnValue(true, -1.0);
+    pvf->panSlider1->setTextBoxIsEditable(false);
+    pvf->panSlider1->setSliderSnapsToMousePosition(false);
+    pvf->panSlider1->setScrollWheelEnabled(false);
+    pvf->panSlider1->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
+    pvf->panSlider1->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
+    
+    pvf->panSlider2     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
+    pvf->panSlider2->setName("pan2");
+    pvf->panSlider2->addListener(this);
+    pvf->panSlider2->getProperties().set ("fromCentre", true);
+    pvf->panSlider2->setRange(-1, 1, 0.01f);
+    pvf->panSlider2->setDoubleClickReturnValue(true, -1.0);
+    pvf->panSlider2->setTextBoxIsEditable(false);
+    pvf->panSlider2->setSliderSnapsToMousePosition(false);
+    pvf->panSlider2->setScrollWheelEnabled(false);
+    pvf->panSlider2->textFromValueFunction =  [](double v) -> String { if ( fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
+    pvf->panSlider2->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
+
+    
+    
     pvf->bufferTimeSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
     pvf->bufferTimeSlider->setName("buffer");
     pvf->bufferTimeSlider->setRange(0, 1000, 1);
@@ -211,6 +237,8 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->recvMeter.get());
         pvf->addAndMakeVisible(pvf->sendActualBitrateLabel.get());
         pvf->addAndMakeVisible(pvf->recvActualBitrateLabel.get());
+        pvf->addAndMakeVisible(pvf->panSlider1.get());
+        pvf->addAndMakeVisible(pvf->panSlider2.get());
 
         addAndMakeVisible(pvf);
     }
@@ -290,7 +318,15 @@ void PeersContainerView::updateLayout()
 
         pvf->recvlevelbox.items.clear();
         pvf->recvlevelbox.flexDirection = FlexBox::Direction::row;
-        pvf->recvlevelbox.items.add(FlexItem(100, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(2));
+        pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(2));
+        if (processor.getTotalNumOutputChannels() > 1) {            
+            pvf->recvlevelbox.items.add(FlexItem(3, 5));
+            pvf->recvlevelbox.items.add(FlexItem(40, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(0));
+            if (processor.getRemotePeerChannelCount(i) > 1) {
+                pvf->recvlevelbox.items.add(FlexItem(2, 5));
+                pvf->recvlevelbox.items.add(FlexItem(40, minitemheight, *pvf->panSlider2).withMargin(0).withFlex(0));
+            }
+        }
 
         
         pvf->mainrecvbox.items.clear();
@@ -385,6 +421,23 @@ void PeersContainerView::updatePeerViews()
         pvf->recvMeter->setMeterSource (processor.getRemotePeerRecvMeterSource(i));        
         //pvf->sendMeter->setMeterSource (processor.getRemotePeerSendMeterSource(i));
 
+        pvf->panSlider1->setValue(processor.getRemotePeerChannelPan(i, 0), dontSendNotification);
+        pvf->panSlider2->setValue(processor.getRemotePeerChannelPan(i, 1), dontSendNotification);
+        
+        
+        if (processor.getTotalNumOutputChannels() == 1) {
+            pvf->panSlider1->setVisible(false);
+            pvf->panSlider2->setVisible(false);
+        }
+        else if (processor.getRemotePeerChannelCount(i) == 1) {
+            pvf->panSlider1->setDoubleClickReturnValue(true, 0.0);
+            pvf->panSlider2->setVisible(false);
+        } else {
+            pvf->panSlider1->setDoubleClickReturnValue(true, -1.0);
+            pvf->panSlider2->setDoubleClickReturnValue(true, 1.0);
+            pvf->panSlider1->setVisible(true);
+            pvf->panSlider2->setVisible(true); 
+        } 
         
         //pvf->packetsizeSlider->setValue(findHighestSetBit(processor.getRemotePeerSendPacketsize(i)), dontSendNotification);
         
@@ -482,6 +535,12 @@ void PeersContainerView::sliderValueChanged (Slider* slider)
        }
        else if (pvf->bufferTimeSlider.get() == slider) {
            processor.setRemotePeerBufferTime(i, pvf->bufferTimeSlider->getValue());   
+       }
+       else if (pvf->panSlider1.get() == slider) {
+           processor.setRemotePeerChannelPan(i, 0, pvf->panSlider1->getValue());   
+       }
+       else if (pvf->panSlider2.get() == slider) {
+           processor.setRemotePeerChannelPan(i, 1, pvf->panSlider2->getValue());   
        }
 
    }
