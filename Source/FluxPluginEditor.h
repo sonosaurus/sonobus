@@ -16,6 +16,8 @@
 #include "SonoLookAndFeel.h"
 #include "SonoChoiceButton.h"
 
+class PeersContainerView;
+
 //==============================================================================
 /**
 */
@@ -52,8 +54,9 @@ private:
     void updateState();
     
     void configKnobSlider(Slider *);
-    void configLabel(Label * lab, bool val);
-
+    //void configLabel(Label * lab, bool val);
+    //void configLevelSlider(Slider *);
+    
     void showPatchbay(bool flag);
     
     void showFormatChooser(int peerindex);
@@ -72,23 +75,25 @@ private:
     std::unique_ptr<TextEditor> mAddRemotePortEditor;
     std::unique_ptr<Label> mLocalAddressStaticLabel;
     std::unique_ptr<Label> mLocalAddressLabel;
-    std::unique_ptr<TextButton> mAddRemoteSourceButton;
-    std::unique_ptr<TextButton> mAddRemoteSinkButton;
-    std::unique_ptr<TextButton> mRemoveRemoteSourceButton;
-    std::unique_ptr<TextButton> mRemoveRemoteSinkButton;
+    std::unique_ptr<TextButton> mConnectButton;
     std::unique_ptr<ToggleButton> mStreamingEnabledButton;
     std::unique_ptr<TextButton> mPatchbayButton;
 
     std::unique_ptr<Slider> mInGainSlider;
     std::unique_ptr<Slider> mDrySlider;
-    std::unique_ptr<Slider> mWetSlider;
+    std::unique_ptr<Slider> mOutGainSlider;
     std::unique_ptr<Slider> mBufferTimeSlider;
     
     std::unique_ptr<Label> mInGainLabel;
     std::unique_ptr<Label> mDryLabel;
     std::unique_ptr<Label> mWetLabel;
-    std::unique_ptr<Label> mBufferTimeLabel;
+    std::unique_ptr<Label> mOutGainLabel;
 
+    SonoLookAndFeel inMeterLnf;
+    SonoLookAndFeel outMeterLnf;
+
+    std::unique_ptr<foleys::LevelMeter> inputMeter;
+    std::unique_ptr<foleys::LevelMeter> outputMeter;
 
     
     
@@ -96,31 +101,16 @@ private:
     //std::unique_ptr<DialogWindow> mPatchbayWindow;
     WeakReference<Component> patchbayCalloutBox;
 
-    struct PeerViewInfo {
-        std::unique_ptr<Label> nameLabel;
-        std::unique_ptr<ToggleButton> sendActiveButton;
-        std::unique_ptr<ToggleButton> recvActiveButton;
-        std::unique_ptr<Label>  statusLabel;
-        std::unique_ptr<Label>  levelLabel;
-        std::unique_ptr<Slider> levelSlider;
-        std::unique_ptr<Label>  bufferTimeLabel;
-        std::unique_ptr<Slider> bufferTimeSlider;        
-        std::unique_ptr<TextButton> removeButton;        
-        std::unique_ptr<SonoChoiceButton> formatChoiceButton;
-        std::unique_ptr<Slider> packetsizeSlider;        
+    
 
-        FlexBox mainbox;
-        FlexBox namebox;
-        FlexBox activebox;
-        FlexBox controlsbox;
-    };
     
     
-    OwnedArray<PeerViewInfo> mPeerViews;
+    
+    std::unique_ptr<Viewport> mPeerViewport;
+    std::unique_ptr<PeersContainerView> mPeerContainer;
 
-    PeerViewInfo * createPeerViewInfo();
-    void rebuildPeerViews();
-    void updatePeerViews();
+    int peersHeight = 0;
+    
 
     
     std::unique_ptr<TableListBox> mRemoteSinkListBox;
@@ -128,8 +118,11 @@ private:
     
     FlexBox mainBox;
     FlexBox titleBox;
+
+    FlexBox inputBox;
+    FlexBox addressBox;
     FlexBox middleBox;
-    FlexBox localBox;
+
     FlexBox remoteBox;
     FlexBox remoteSourceBox;
     FlexBox remoteSinkBox;
@@ -137,8 +130,7 @@ private:
     FlexBox inGainBox;
     FlexBox dryBox;
     FlexBox wetBox;
-    FlexBox bufferTimeBox;
-    FlexBox peersBox;
+    FlexBox toolbarBox;
         
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;

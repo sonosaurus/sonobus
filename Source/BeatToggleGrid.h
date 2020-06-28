@@ -84,7 +84,7 @@ protected:
     
     HashMap<int, int> touchIndexes;
     
-        int  segments;
+        int  segments = 0;
         
         Array<int>  segmentSizes;
         

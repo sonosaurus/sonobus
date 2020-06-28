@@ -11,11 +11,13 @@
 
 #include "JuceHeader.h"
 
-class SonoLookAndFeel   : public LookAndFeel_V4
+
+class SonoLookAndFeel   : public LookAndFeel_V4, public foleys::LevelMeter::LookAndFeelMethods
 {
 public:
     SonoLookAndFeel();
 
+    
     //void fillWithBackgroundTexture (Graphics&);
     //static void fillWithBackgroundTexture (Component&, Graphics&);
 
@@ -104,6 +106,12 @@ protected:
     float fontScale;
     
     float labelCornerRadius = 6.0f;
+    
+public:
+
+  #include "LevelMeterLookAndFeelMethods.h"
+
+    
 };
 
 class SonoBigTextLookAndFeel   : public SonoLookAndFeel

@@ -23,6 +23,7 @@ String FluxAoOAudioProcessor::paramWet     ("wet");
 String FluxAoOAudioProcessor::paramBufferTime  ("buffertime");
 String FluxAoOAudioProcessor::paramStreamingEnabled  ("streaming_enabled");
 
+#define METER_RMS_SEC 0.04
 
 struct FluxAoOAudioProcessor::EndpointState {
     EndpointState(String ipaddr_="", int port_=0) : ipaddr(ipaddr_), port(port_) {}
@@ -76,15 +77,25 @@ struct FluxAoOAudioProcessor::RemotePeer {
     float buffertimeMs = 30.0f;
     bool sendActive = false;
     bool recvActive = false;
+    bool sendAllow = true;
+    bool recvAllow = true;
     bool recvMuted = false;
     bool invitedPeer = false;
     int  formatIndex = -1; // default
     int packetsize = 512;
+    int sendChannels = 2;
     // runtime state
     float _lastgain = 0.0f;
     bool connected = false;
     int64_t dataPacketsReceived = 0;
+    int64_t dataPacketsSent = 0;
+    float pingTime = 0.0f;
+    float totalLatency = 0.0f;
     AudioSampleBuffer workBuffer;
+    // metering
+    foleys::LevelMeterSource sendMeterSource;
+    foleys::LevelMeterSource recvMeterSource;
+
 };
 
 
@@ -182,16 +193,16 @@ FluxAoOAudioProcessor::FluxAoOAudioProcessor()
 #endif
 mState (*this, &mUndoManager, "FluxAoO",
 {
-    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 1.0, 0.01), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
-                                          [](float v, int maxlen) -> String { return String(v*100.0f) + " %"; }, 
+    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
+                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           //[](float v, int maxlen) -> String { return String::formatted("%.1f %%",v*100.0f); }, 
-                                          [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
-    std::make_unique<AudioParameterFloat>(paramDry,     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.01), mDry.get(), "", AudioProcessorParameter::genericParameter, 
-                                          [](float v, int maxlen) -> String { return String(v*100.0f) + " %"; }, 
-                                          [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
-    std::make_unique<AudioParameterFloat>(paramWet,     TRANS ("Wet Level"),    NormalisableRange<float>(0.0,    1.0), mWet.get(), "", AudioProcessorParameter::genericParameter, 
-                                          [](float v, int maxlen) -> String { return String((int)(v*100.0f)) + " %"; }, 
-                                          [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
+                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+    std::make_unique<AudioParameterFloat>(paramDry,     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.25), mDry.get(), "", AudioProcessorParameter::genericParameter, 
+                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
+                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+    std::make_unique<AudioParameterFloat>(paramWet,     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mWet.get(), "", AudioProcessorParameter::genericParameter, 
+                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
+                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
     std::make_unique<AudioParameterFloat>(paramBufferTime,     TRANS ("Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
@@ -331,21 +342,22 @@ void FluxAoOAudioProcessor::initFormats()
     mAudioFormats.clear();
     
     // low bandwidth to high
-    mAudioFormats.add(AudioCodecFormatInfo("16 kbps",  16000, 10, OPUS_SIGNAL_MUSIC, 960));
-    mAudioFormats.add(AudioCodecFormatInfo("24 kbps", 24000, 10, OPUS_SIGNAL_MUSIC, 960));
-    mAudioFormats.add(AudioCodecFormatInfo("32 kbps",  32000, 10, OPUS_SIGNAL_MUSIC, 480));
-    mAudioFormats.add(AudioCodecFormatInfo("64 kbps",  64000, 10, OPUS_SIGNAL_MUSIC, 240));
-    mAudioFormats.add(AudioCodecFormatInfo("96 kbps",  96000, 10, OPUS_SIGNAL_MUSIC, 120));
-    mAudioFormats.add(AudioCodecFormatInfo("128 kbps",  128000, 10, OPUS_SIGNAL_MUSIC, 120));
-    mAudioFormats.add(AudioCodecFormatInfo("160 kbps",  160000, 10, OPUS_SIGNAL_MUSIC, 120));
-    mAudioFormats.add(AudioCodecFormatInfo("256 kbps",  256000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo("8 kbps/ch",  8000, 10, OPUS_SIGNAL_MUSIC, 960));
+    mAudioFormats.add(AudioCodecFormatInfo("16 kbps/ch",  16000, 10, OPUS_SIGNAL_MUSIC, 960));
+    mAudioFormats.add(AudioCodecFormatInfo("24 kbps/ch", 24000, 10, OPUS_SIGNAL_MUSIC, 480));
+    mAudioFormats.add(AudioCodecFormatInfo("48 kbps/ch",  48000, 10, OPUS_SIGNAL_MUSIC, 240));
+    mAudioFormats.add(AudioCodecFormatInfo("64 kbps/ch",  64000, 10, OPUS_SIGNAL_MUSIC, 240));
+    mAudioFormats.add(AudioCodecFormatInfo("96 kbps/ch",  96000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo("128 kbps/ch",  128000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo("160 kbps/ch",  160000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo("256 kbps/ch",  256000, 10, OPUS_SIGNAL_MUSIC, 120));
     
     mAudioFormats.add(AudioCodecFormatInfo("PCM 16 bit", 2));
     mAudioFormats.add(AudioCodecFormatInfo("PCM 24 bit", 3));
     mAudioFormats.add(AudioCodecFormatInfo("PCM 32 bit float", 4));
     //mAudioFormats.add(AudioCodecFormatInfo(CodecPCM, 8));
 
-    mDefaultAudioFormatIndex = mAudioFormats.size() - 6; // 128kb Opus
+    mDefaultAudioFormatIndex = 5; // 96kpbs/ch Opus
 }
 
 
@@ -413,6 +425,24 @@ void FluxAoOAudioProcessor::setRemotePeerSendPacketsize(int index, int psize)
     }
     
 }
+
+// should use shared pointer
+foleys::LevelMeterSource * FluxAoOAudioProcessor::getRemotePeerRecvMeterSource(int index)
+{
+    if (index >= mRemotePeers.size()) return nullptr;
+    const ScopedReadLock sl (mCoreLock);        
+    auto remote = mRemotePeers.getUnchecked(index);
+    return &(remote->recvMeterSource);
+}
+
+foleys::LevelMeterSource * FluxAoOAudioProcessor::getRemotePeerSendMeterSource(int index)
+{
+    if (index >= mRemotePeers.size()) return nullptr;
+    const ScopedReadLock sl (mCoreLock);        
+    auto remote = mRemotePeers.getUnchecked(index);
+    return &(remote->sendMeterSource);
+}
+
 
 
 
@@ -551,6 +581,10 @@ void FluxAoOAudioProcessor::doSendData()
         for (auto & remote : mRemotePeers) {
             if (remote->oursource) {
                 didsomething |= remote->oursource->send();
+                
+                if (didsomething) {
+                    remote->dataPacketsSent += 1;
+                }
             }
             if (remote->oursink) {
                 didsomething |= remote->oursink->send();
@@ -653,6 +687,15 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
             EndpointState * es = (EndpointState *)e->endpoint;
             DebugLogC("ping to source %d recvd from %s:%d -- %g %g %g", sourceId, es->ipaddr.toRawUTF8(), es->port, diff1, diff2, rtt);
             
+            RemotePeer * peer = findRemotePeer(es, sourceId);
+            if (peer) {
+                const ScopedReadLock sl (mCoreLock);        
+
+                // todo smooth it
+                peer->pingTime = rtt * 0.5;
+                peer->totalLatency = peer->pingTime + peer->buffertimeMs;
+            }
+            
             break;
         }
         case AOO_INVITE_EVENT:
@@ -682,9 +725,11 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     peer->remoteSinkId = e->id;
 
                     // add their sink
-                    peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
-                    peer->oursource->start();
-                    peer->sendActive = true;
+                    if (peer->sendAllow) {
+                        peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
+                        peer->oursource->start();
+                        peer->sendActive = true;
+                    }
                     
                     DebugLogC("Was invited by remote peer %s:%d sourceId: %d  ourId: %d", es->ipaddr.toRawUTF8(), es->port, peer->remoteSinkId,  peer->ourId);
 
@@ -697,6 +742,7 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
 
                     // now remove dummy handshake one
                     mAooDummySource->remove_sink(es, dummyid);
+                    
                 }
                 else {
                     // invited 
@@ -706,10 +752,16 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     if (peer) {
                         
                         peer->remoteSinkId = e->id;
-                        peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
-                        peer->oursource->start();
 
-                        peer->sendActive = true;
+                        peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
+                        
+                        if (peer->sendAllow) {
+                            peer->oursource->start();
+                            
+                            peer->sendActive = true;
+                            DebugLogC("Starting to send, we allow it", es->ipaddr.toRawUTF8(), es->port, peer->remoteSinkId);
+                        }
+                        
                         peer->connected = true;
                         
                         DebugLogC("Finishing peer connection for %s:%d  %d", es->ipaddr.toRawUTF8(), es->port, peer->remoteSinkId);
@@ -749,6 +801,8 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                         //peer->oursink->uninvite_all(); // ??
                         //peer->connected = false;
                         peer->sendActive = false;
+                        peer->dataPacketsSent = 0;
+
                         if (!peer->recvActive) {
                             peer->connected = false;
                         }
@@ -800,9 +854,16 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                     peer->remoteSourceId = e->id;
                     
                     peer->oursink->uninvite_source(es, 0, endpoint_send); // get rid of existing bogus one
-                    peer->oursink->invite_source(es, peer->remoteSourceId, endpoint_send);
+
+                    if (peer->recvAllow) {
+                        peer->oursink->invite_source(es, peer->remoteSourceId, endpoint_send);
+                        peer->recvActive = true;
+                    } else {
+                        DebugLogC("we aren't accepting recv right now, politely decline it")
+                        peer->oursink->uninvite_source(es, peer->remoteSourceId, endpoint_send);
+                        peer->recvActive = false;                        
+                    }
                     
-                    peer->recvActive = true;
                     peer->connected = true;
                 }
                 
@@ -830,6 +891,7 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                 aoo_format_storage f;
                 if (peer->oursink->get_source_format(e->endpoint, e->id, f) > 0) {
                     DebugLogC("Got source format event from %s:%d  %d ", es->ipaddr.toRawUTF8(), es->port, e->id);
+                    peer->recvMeterSource.resize(f.header.nchannels, meterRmsWindow);
                 }                
             }
             else { 
@@ -1119,6 +1181,8 @@ int FluxAoOAudioProcessor::connectRemotePeer(const String & host, int port, bool
     EndpointState * endpoint = findOrAddEndpoint(host, port);
 
     RemotePeer * remote = doAddRemotePeerIfNecessary(endpoint); // get new one
+
+    remote->recvAllow = true;
     
     // special - use 0 
     bool ret = remote->oursink->invite_source(endpoint, 0, endpoint_send) == 1;
@@ -1128,7 +1192,6 @@ int FluxAoOAudioProcessor::connectRemotePeer(const String & host, int port, bool
         remote->connected = true;
         remote->invitedPeer = reciprocate;
         remote->recvActive = reciprocate;
-        
         remote->sendActive = true;
         remote->oursource->start();
         
@@ -1226,6 +1289,21 @@ void FluxAoOAudioProcessor::setPatchMatrixValue(int srcindex, int destindex, boo
 
     if (srcindex < MAX_PEERS && destindex < MAX_PEERS) {
         mRemoteSendMatrix[srcindex][destindex] = value;
+
+        const ScopedReadLock sl (mCoreLock);        
+        if (destindex < mRemotePeers.size() && destindex >= 0) {
+            auto * peer = mRemotePeers.getUnchecked(destindex);
+            int newchancnt = isAnythingRoutedToPeer(destindex) ? getTotalNumOutputChannels() : getTotalNumInputChannels();
+
+            if (peer->sendChannels != newchancnt) {
+                peer->sendChannels = newchancnt;
+                DebugLogC("Peer %d  has new sendChannel count: %d", peer->sendChannels);
+                if (peer->oursource) {
+                    setupSourceFormat(peer, peer->oursource.get());
+                    peer->oursource->setup(getSampleRate(), currSamplesPerBlock, peer->sendChannels);
+                }
+            }
+        }
     }
 }
 
@@ -1303,25 +1381,25 @@ int FluxAoOAudioProcessor::getNumberRemotePeers() const
     return mRemotePeers.size();
 }
 
-void FluxAoOAudioProcessor::setRemotePeerLevelDb(int index, float leveldb)
+void FluxAoOAudioProcessor::setRemotePeerLevelGain(int index, float levelgain)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        remote->gain = Decibels::decibelsToGain(leveldb);
+        remote->gain = levelgain;
     }
 }
 
-float FluxAoOAudioProcessor::getRemotePeerLevelDb(int index) const
+float FluxAoOAudioProcessor::getRemotePeerLevelGain(int index) const
 {
-    float leveldb = 0.0f;
+    float levelgain = 0.0f;
     
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        leveldb = Decibels::gainToDecibels(remote->gain);
+        levelgain = remote->gain;
     }
-    return leveldb;
+    return levelgain;
 }
 
 void FluxAoOAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
@@ -1330,6 +1408,7 @@ void FluxAoOAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         remote->buffertimeMs = bufferMs;
+        remote->totalLatency = remote->pingTime + remote->buffertimeMs;
         remote->oursink->set_buffersize(remote->buffertimeMs); // ms
     }
 }
@@ -1352,6 +1431,11 @@ void FluxAoOAudioProcessor::setRemotePeerRecvActive(int index, bool active)
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         remote->recvActive = active;
+
+        if (remote->recvActive) {
+            remote->recvAllow = true;
+        }
+        
         // TODO
 #if 1
         if (active) {
@@ -1375,6 +1459,54 @@ bool FluxAoOAudioProcessor::getRemotePeerRecvActive(int index) const
     return false;        
 }
 
+void FluxAoOAudioProcessor::setRemotePeerSendAllow(int index, bool allow)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->sendAllow = allow;
+        
+        if (!allow) {
+            //remote->oursource->remove_all();
+            setRemotePeerSendActive(index, allow);
+        }
+    }
+}
+
+bool FluxAoOAudioProcessor::getRemotePeerSendAllow(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->sendAllow;
+    }
+    return false;        
+}
+
+void FluxAoOAudioProcessor::setRemotePeerRecvAllow(int index, bool allow)
+{
+     const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->recvAllow = allow;
+
+        if (!allow) {
+            setRemotePeerRecvActive(index, allow);
+        }
+    }
+}
+
+bool FluxAoOAudioProcessor::getRemotePeerRecvAllow(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->recvAllow;
+    }
+    return false;        
+}
+
+
 int64_t FluxAoOAudioProcessor::getRemotePeerPacketsReceived(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
@@ -1385,6 +1517,37 @@ int64_t FluxAoOAudioProcessor::getRemotePeerPacketsReceived(int index) const
     return 0;      
 }
 
+int64_t FluxAoOAudioProcessor::getRemotePeerPacketsSent(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->dataPacketsSent;
+    }
+    return 0;      
+}
+
+float FluxAoOAudioProcessor::getRemotePeerPingMs(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->pingTime;
+    }
+    return 0;          
+}
+
+float FluxAoOAudioProcessor::getRemotePeerTotalLatencyMs(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->totalLatency ;
+    }
+    return 0;          
+}
+
+
 void FluxAoOAudioProcessor::setRemotePeerSendActive(int index, bool active)
 {
     const ScopedReadLock sl (mCoreLock);        
@@ -1392,6 +1555,7 @@ void FluxAoOAudioProcessor::setRemotePeerSendActive(int index, bool active)
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         remote->sendActive = active;
         if (active) {
+            remote->sendAllow = true; // implied
             remote->oursource->start();
         } else {
             remote->oursource->stop();            
@@ -1495,9 +1659,12 @@ FluxAoOAudioProcessor::RemoteSink * FluxAoOAudioProcessor::doAddRemoteSinkIfNece
         
         retsink = mRemoteSinks.add(new RemoteSink(endpoint, sinkId, aoo::isource::pointer(aoo::isource::create(sourceid))));
         
-        retsink->oursource->setup(getSampleRate(), currSamplesPerBlock, getTotalNumOutputChannels());
+        int outchannels = getTotalNumOutputChannels();
+
+        retsink->oursource->setup(getSampleRate(), currSamplesPerBlock, outchannels);
 
         retsink->oursource->add_sink(endpoint, sinkId, endpoint_send);
+        
 
     }
     
@@ -1731,11 +1898,19 @@ FluxAoOAudioProcessor::RemotePeer * FluxAoOAudioProcessor::doAddRemotePeerIfNece
 
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getTotalNumOutputChannels());
 
+        retpeer->sendChannels = getTotalNumInputChannels(); // by default
+        
         setupSourceFormat(retpeer, retpeer->oursource.get());
-        retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, getTotalNumInputChannels());
+        retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, retpeer->sendChannels);
         retpeer->oursource->set_packetsize(retpeer->packetsize);
 
         retpeer->workBuffer.setSize(2, currSamplesPerBlock);
+
+        int outchannels = getTotalNumOutputChannels();
+        
+        retpeer->recvMeterSource.resize (outchannels, meterRmsWindow);
+        retpeer->sendMeterSource.resize (retpeer->sendChannels, meterRmsWindow);
+
 
     }
     else {
@@ -1765,6 +1940,19 @@ bool FluxAoOAudioProcessor::doRemoveRemotePeerIfNecessary(EndpointState * endpoi
     
 }
 
+bool FluxAoOAudioProcessor::isAnythingRoutedToPeer(int index) const
+{
+    bool ret = false;
+
+    for (int i=0; i < mRemotePeers.size(); ++i) {
+        if (mRemoteSendMatrix[i][index]) {
+            ret = true;
+            break;
+        }
+    }
+
+    return ret;
+}
 
 
 ////
@@ -1777,12 +1965,14 @@ void FluxAoOAudioProcessor::setupSourceFormat(FluxAoOAudioProcessor::RemotePeer 
     
     aoo_format_storage f;
     
+    int channels = peer ? peer->sendChannels : getTotalNumInputChannels();
+    
     if (info.codec == CodecPCM) {
         aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
         fmt->header.codec = AOO_CODEC_PCM;
         fmt->header.blocksize = lastSamplesPerBlock; // peer ? peer->packetsize : lastSamplesPerBlock; // lastSamplesPerBlock;
         fmt->header.samplerate = getSampleRate();
-        fmt->header.nchannels = getTotalNumOutputChannels();
+        fmt->header.nchannels = channels;
         fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT16;
         source->set_format(fmt->header);
     } 
@@ -1791,8 +1981,8 @@ void FluxAoOAudioProcessor::setupSourceFormat(FluxAoOAudioProcessor::RemotePeer 
         fmt->header.codec = AOO_CODEC_OPUS;
         fmt->header.blocksize = lastSamplesPerBlock >= info.min_preferred_blocksize ? lastSamplesPerBlock : info.min_preferred_blocksize;
         fmt->header.samplerate = getSampleRate();
-        fmt->header.nchannels = getTotalNumOutputChannels();
-        fmt->bitrate = info.bitrate;
+        fmt->header.nchannels = channels;
+        fmt->bitrate = info.bitrate * fmt->header.nchannels;
         fmt->complexity = info.complexity;
         fmt->signal_type = info.signal_type;
 
@@ -1910,7 +2100,7 @@ void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     // initialisation that you need..
     lastSamplesPerBlock = currSamplesPerBlock = samplesPerBlock;
 
-    DebugLogC("Prepare to play: SR %g  blocksize: %d", sampleRate, samplesPerBlock);
+    DebugLogC("Prepare to play: SR %g  blocksize: %d  inch: %d  outch: %d", sampleRate, samplesPerBlock, getTotalNumInputChannels(), getTotalNumOutputChannels());
 
     const ScopedReadLock sl (mCoreLock);        
     
@@ -1918,21 +2108,36 @@ void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     setupSourceFormat(0, mAooDummySource.get());
     mAooDummySource->setup(sampleRate, samplesPerBlock, getTotalNumInputChannels());
 
+    int inchannels = getTotalNumInputChannels();
+    int outchannels = getTotalNumOutputChannels();
+
+    meterRmsWindow = sampleRate * METER_RMS_SEC / currSamplesPerBlock;
+    
+    inputMeterSource.resize (inchannels, meterRmsWindow);
+    outputMeterSource.resize (outchannels, meterRmsWindow);
+
+    int i=0;
     for (auto s : mRemotePeers) {
         if (s->workBuffer.getNumSamples() < samplesPerBlock) {
             s->workBuffer.setSize(2, samplesPerBlock);
         }
 
+        s->sendChannels = isAnythingRoutedToPeer(i) ? outchannels : inchannels;
+        
         if (s->oursource) {
             setupSourceFormat(s, s->oursource.get());
-            s->oursource->setup(sampleRate, samplesPerBlock, getTotalNumOutputChannels());        
+            s->oursource->setup(sampleRate, samplesPerBlock, s->sendChannels);  // todo use inchannels maybe?
         }
         if (s->oursink) {
-            s->oursink->setup(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+            s->oursink->setup(sampleRate, samplesPerBlock, outchannels);
         }
 
+        s->recvMeterSource.resize (outchannels, meterRmsWindow);
+        s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
+        
+        ++i;
     }
-/*    
+    /*    
     for (auto s : mRemoteSinks) {
         if (!s->oursource) continue;
         setupSourceFormat(s->oursource.get());
@@ -1975,10 +2180,12 @@ bool FluxAoOAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
      && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
         return false;
 
+    // allow different input counts than outputs
+    
     // This checks if the input layout matches the output layout
    #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
+   // if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
+   //     return false;
    #endif
 
     return true;
@@ -2038,6 +2245,9 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.applyGain(inGain);
     }
     
+    inputMeterSource.measureBlock (buffer);
+
+    
     bool needsblockchange = false; //lastSamplesPerBlock != numSamples;
 
     // push data for going out
@@ -2069,6 +2279,7 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             // get audio data coming in from outside into tempbuf
             remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
 
+
             
             float usegain = remote->gain;
             
@@ -2090,6 +2301,9 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             } else {
                 remote->workBuffer.applyGain(remote->gain);
             }
+
+            remote->recvMeterSource.measureBlock (remote->workBuffer);
+
             
             for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
             
@@ -2137,7 +2351,9 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 }
                 
                 
-                remote->oursource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);            
+                remote->oursource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);      
+                
+                remote->sendMeterSource.measureBlock (workBuffer);
             }
             
             ++i;
@@ -2158,6 +2374,16 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
         
     }
+    
+    // apply wet gain to original buf
+    if (fabsf(wetnow - mLastWet) > 0.00001) {
+        buffer.applyGainRamp(0, numSamples, mLastWet, wetnow);
+    } else {
+        buffer.applyGain(wetnow);
+    }
+    
+    outputMeterSource.measureBlock (buffer);
+
     
     if (needsblockchange) {
         lastSamplesPerBlock = numSamples;

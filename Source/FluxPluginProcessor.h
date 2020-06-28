@@ -117,8 +117,8 @@ public:
 
     int getNumberRemotePeers() const;
 
-    void setRemotePeerLevelDb(int index, float leveldb);
-    float getRemotePeerLevelDb(int index) const;
+    void setRemotePeerLevelGain(int index, float levelgain);
+    float getRemotePeerLevelGain(int index) const;
 
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
@@ -129,7 +129,18 @@ public:
     void setRemotePeerRecvActive(int index, bool active);
     bool getRemotePeerRecvActive(int index) const;
 
+    void setRemotePeerSendAllow(int index, bool allow);
+    bool getRemotePeerSendAllow(int index) const;
+
+    void setRemotePeerRecvAllow(int index, bool allow);
+    bool getRemotePeerRecvAllow(int index) const;
+
+    
     int64_t getRemotePeerPacketsReceived(int index) const;
+    int64_t getRemotePeerPacketsSent(int index) const;
+
+    float getRemotePeerPingMs(int index) const;
+    float getRemotePeerTotalLatencyMs(int index) const;
 
 
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
@@ -146,7 +157,9 @@ public:
     int getRemotePeerSendPacketsize(int index) const;
     void setRemotePeerSendPacketsize(int index, int psize);
 
-    
+    // danger
+    foleys::LevelMeterSource * getRemotePeerRecvMeterSource(int index);
+    foleys::LevelMeterSource * getRemotePeerSendMeterSource(int index);
     
     void setRemotePeerConnected(int index, bool active);
     bool getRemotePeerConnected(int index) const;
@@ -155,6 +168,11 @@ public:
 
     bool getPatchMatrixValue(int srcindex, int destindex) const;
     void setPatchMatrixValue(int srcindex, int destindex, bool value);
+    
+    foleys::LevelMeterSource & getInputMeterSource() { return inputMeterSource; }
+    foleys::LevelMeterSource & getOutputMeterSource() { return outputMeterSource; }
+    
+    bool isAnythingRoutedToPeer(int index) const;
     
 private:
     //==============================================================================
@@ -210,9 +228,15 @@ private:
     int currSamplesPerBlock = 256;
     int lastSamplesPerBlock = 256;
     
+    float meterRmsWindow = 0.0f;
+    
     AudioProcessorValueTreeState mState;
     UndoManager                  mUndoManager;
 
+    // top level meter sources
+    foleys::LevelMeterSource inputMeterSource;
+    foleys::LevelMeterSource outputMeterSource;
+    
     // AOO stuff
     aoo::isource::pointer mAooDummySource;
 

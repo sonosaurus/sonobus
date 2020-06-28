@@ -31,7 +31,7 @@ SonoLookAndFeel::SonoLookAndFeel()
         // with open sans
         //fontScale = 1.3;
     }
-    
+        
     setColourScheme(getDarkColourScheme());
     
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::windowBackground, Colour::fromFloatRGBA(0.0, 0.0, 0.0, 1.0));
@@ -117,6 +117,8 @@ SonoLookAndFeel::SonoLookAndFeel()
 
     //myFont = Typeface::createSystemTypefaceFor (BinaryData::GillSans_ttc, BinaryData::GillSans_ttcSize);
     myFont = Font(16 * fontScale);
+    
+    setupDefaultMeterColours();
     
     //DebugLogC("Myfont name %s", myFont.getTypefaceName().toRawUTF8());
 }
@@ -608,6 +610,7 @@ Label* SonoLookAndFeel::createSliderTextBox (Slider& slider)
     lab->setKeyboardType(TextInputTarget::decimalKeyboard);
     lab->setFont(myFont.withHeight(16.0* fontScale));
     lab->setMinimumHorizontalScale(0.5);
+    lab->setJustificationType(Justification::centredRight);
     return lab;
 }
 

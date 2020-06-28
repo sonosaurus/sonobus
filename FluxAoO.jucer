@@ -70,6 +70,8 @@
     </GROUP>
     <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
+      <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
+      <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
@@ -95,6 +97,12 @@
             file="Source/GenericItemChooser.cpp"/>
       <FILE id="ID61Jz" name="GenericItemChooser.h" compile="0" resource="0"
             file="Source/GenericItemChooser.h"/>
+      <FILE id="fqZMTM" name="LevelMeterLookAndFeelMethods.h" compile="0"
+            resource="0" file="Source/LevelMeterLookAndFeelMethods.h"/>
+      <FILE id="HNtjtj" name="PeersContainerView.cpp" compile="1" resource="0"
+            file="Source/PeersContainerView.cpp"/>
+      <FILE id="ETWAvX" name="PeersContainerView.h" compile="0" resource="0"
+            file="Source/PeersContainerView.h"/>
       <FILE id="VZVoBA" name="SonoChoiceButton.cpp" compile="1" resource="0"
             file="Source/SonoChoiceButton.cpp"/>
       <FILE id="jV66tt" name="SonoChoiceButton.h" compile="0" resource="0"
@@ -121,9 +129,9 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
                extraDefs="USE_CODEC_OPUS=1">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/mac/include"
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/mac/include"
+        <CONFIGURATION isDebug="0" name="Release" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -141,15 +149,16 @@
         <MODULEPATH id="juce_gui_basics" path="../../juce5/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../juce5/modules"/>
         <MODULEPATH id="juce_opengl" path="../../juce5/modules"/>
+        <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
                   iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;1&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                   extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/ios/include"
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/ios/include&#10;"
                        libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/ios/include"
+        <CONFIGURATION isDebug="0" name="Release" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/ios/include&#10;"
                        libraryPath="../../deps/ios/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -167,10 +176,12 @@
         <MODULEPATH id="juce_audio_formats"/>
         <MODULEPATH id="juce_audio_devices"/>
         <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
   </EXPORTFORMATS>
   <MODULES>
+    <MODULE id="ff_meters" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -190,5 +201,6 @@
   <LIVE_SETTINGS>
     <OSX/>
   </LIVE_SETTINGS>
-  <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
+               FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0"/>
 </JUCERPROJECT>

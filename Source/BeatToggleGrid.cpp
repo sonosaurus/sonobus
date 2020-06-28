@@ -73,6 +73,8 @@ void BeatToggleGrid::setupStuff()
     
         
     segments = 1;
+    segmentSizes.add(0);
+
     value = -1;
 }
 
