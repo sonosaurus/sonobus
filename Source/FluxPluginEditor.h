@@ -81,7 +81,6 @@ private:
     std::unique_ptr<Label> mLocalAddressStaticLabel;
     std::unique_ptr<Label> mLocalAddressLabel;
     std::unique_ptr<TextButton> mConnectButton;
-    std::unique_ptr<ToggleButton> mStreamingEnabledButton;
     std::unique_ptr<TextButton> mPatchbayButton;
     std::unique_ptr<SonoDrawableButton> mSettingsButton;
 
@@ -144,7 +143,6 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mStreamingEnabledAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FluxAoOAudioProcessorEditor)
 };

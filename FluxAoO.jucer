@@ -105,6 +105,13 @@
             file="Source/PeersContainerView.cpp"/>
       <FILE id="ETWAvX" name="PeersContainerView.h" compile="0" resource="0"
             file="Source/PeersContainerView.h"/>
+      <FILE id="RQrK2V" name="RunCumulantor.cpp" compile="1" resource="0"
+            file="Source/RunCumulantor.cpp"/>
+      <FILE id="dbEjZv" name="RunCumulantor.h" compile="0" resource="0" file="Source/RunCumulantor.h"/>
+      <FILE id="pXhFnk" name="RunningCumulant.c" compile="1" resource="0"
+            file="Source/RunningCumulant.c"/>
+      <FILE id="ImaCFA" name="RunningCumulant.h" compile="0" resource="0"
+            file="Source/RunningCumulant.h"/>
       <FILE id="VZVoBA" name="SonoChoiceButton.cpp" compile="1" resource="0"
             file="Source/SonoChoiceButton.cpp"/>
       <FILE id="jV66tt" name="SonoChoiceButton.h" compile="0" resource="0"

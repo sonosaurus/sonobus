@@ -43,6 +43,7 @@ public:
     std::unique_ptr<Slider> panSlider2;
     std::unique_ptr<Label>  bufferTimeLabel;
     std::unique_ptr<Slider> bufferTimeSlider;        
+    std::unique_ptr<ToggleButton> autosizeButton;
     std::unique_ptr<SonoChoiceButton> formatChoiceButton;
 
     std::unique_ptr<Label>  staticLatencyLabel;
@@ -71,6 +72,8 @@ public:
     FlexBox latencybox;
     FlexBox recvlevelbox;
 
+    int64_t lastBytesRecv = 0;
+    int64_t lastBytesSent = 0;
 };
 
 class PeersContainerView : public Component,
@@ -108,5 +111,7 @@ protected:
     FlexBox peersBox;
     int peersMinHeight = 120;
     int peersMinWidth = 400;
+    
+    double lastUpdateTimestampMs = 0;
 };
 

@@ -305,15 +305,12 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     configLabel(mOutGainLabel.get(), false);
 
     
-    mStreamingEnabledButton = std::make_unique<ToggleButton>(TRANS("Streaming"));
-    
     
     mInGainAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramInGain, *mInGainSlider);
     mDryAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramDry, *mDrySlider);
     mWetAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramWet, *mOutGainSlider);
     //mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramBufferTime, *mBufferTimeSlider);
     
-    mStreamingEnabledAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramStreamingEnabled, *mStreamingEnabledButton);
 
     
     mLocalAddressLabel = std::make_unique<Label>("localaddr", TRANS("--"));
@@ -382,7 +379,6 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     addAndMakeVisible(mInGainLabel.get());
     addAndMakeVisible(mDryLabel.get());
     addAndMakeVisible(mOutGainLabel.get());
-    addAndMakeVisible(mStreamingEnabledButton.get());
     addAndMakeVisible(inputMeter.get());
     addAndMakeVisible(outputMeter.get());
     addAndMakeVisible(mPeerViewport.get());
@@ -699,7 +695,7 @@ void FluxAoOAudioProcessorEditor::updateLayout()
     int minKnobWidth = 50;
     int minitemheight = 36;
     int setitemheight = 36;
-    int minButtonWidth = 80;
+    int minButtonWidth = 100;
     int sliderheight = 44;
     int meterheight = 32 ;
     
@@ -753,7 +749,7 @@ void FluxAoOAudioProcessorEditor::updateLayout()
     
     remoteBox.items.clear();
     remoteBox.flexDirection = FlexBox::Direction::column;
-    remoteBox.items.add(FlexItem(minButtonWidth, minitemheight, *mConnectButton).withMargin(2).withFlex(0).withMaxWidth(150).withMinWidth(100).withAlignSelf(FlexItem::AlignSelf::center));
+    remoteBox.items.add(FlexItem(minButtonWidth, minitemheight, *mConnectButton).withMargin(2).withFlex(0).withMaxWidth(200).withMinWidth(100).withAlignSelf(FlexItem::AlignSelf::center));
     remoteBox.items.add(FlexItem(180, minitemheight, addressBox).withMargin(2).withFlex(0).withMaxWidth(240).withAlignSelf(FlexItem::AlignSelf::center));
     remoteBox.items.add(FlexItem(10, 0).withFlex(1));
     //remoteBox.items.add(FlexItem(60, minitemheight, *mPatchbayButton).withMargin(2).withFlex(0.5).withMaxWidth(120));

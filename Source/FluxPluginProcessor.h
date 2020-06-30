@@ -67,7 +67,6 @@ public:
     static String paramDry;
     static String paramWet;
     static String paramBufferTime;
-    static String paramStreamingEnabled;
 
     struct EndpointState;
     struct RemoteSink;
@@ -83,33 +82,7 @@ public:
     int getUdpLocalPort() const { return mUdpLocalPort; }
     IPAddress getLocalIPAddress() const { return mLocalIPAddress; }
     
-    bool addRemoteSink(const String & host, int port, int32_t sinkId);
-    bool removeRemoteSink(const String & host, int port, int32_t sinkId);
-
-    bool inviteRemoteSource(const String & host, int port, int32_t sourceId, bool reciprocate=false);
-    bool unInviteRemoteSource(const String & host, int port, int32_t sourceId);
-    bool unInviteRemoteSource(int index);
-    int getNumberRemoteSources() const;
-    
-    void setRemoteSourceLevelDb(int index, float leveldb);
-    float getRemoteSourceLevelDb(int index) const;
-
-    void setRemoteSourceBufferTime(int index, float bufferMs);
-    float getRemoteSourceBufferTime(int index) const;
-
-    void setRemoteSourceActive(int index, bool active);
-    bool getRemoteSourceActive(int index) const;
-
-    
-    int getNumberRemoteSinks() const;
-
-    void setSendToRemoteSinkActive(int index, bool active);
-    bool getSendToRemoteSinkActive(int index) const;
-
-    
-    bool getRemoteSourceAddressInfo(int index, String & rethost, int & retport) const;
-
-    
+  
     int connectRemotePeer(const String & host, int port, bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
     bool disconnectRemotePeer(int index);
@@ -128,6 +101,9 @@ public:
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
 
+    void setRemotePeerAutoresizeBuffer(int index, bool flag);
+    bool getRemotePeerAutoresizeBuffer(int index) const;
+
     void setRemotePeerSendActive(int index, bool active);
     bool getRemotePeerSendActive(int index) const;
 
@@ -144,6 +120,14 @@ public:
     int64_t getRemotePeerPacketsReceived(int index) const;
     int64_t getRemotePeerPacketsSent(int index) const;
 
+    int64_t getRemotePeerBytesReceived(int index) const;
+    int64_t getRemotePeerBytesSent(int index) const;
+
+    int64_t getRemotePeerPacketsDropped(int index) const;
+    int64_t getRemotePeerPacketsResent(int index) const;
+
+
+    
     float getRemotePeerPingMs(int index) const;
     float getRemotePeerTotalLatencyMs(int index) const;
 
@@ -191,16 +175,7 @@ private:
     void handleEvents();
     
     void setupSourceFormat(RemotePeer * peer, aoo::isource * source);
-    
-    /// NOT USED
-    RemoteSink *  findRemoteSink(EndpointState * endpoint, int32_t sinkId);
-    RemoteSink *  doAddRemoteSinkIfNecessary(EndpointState * endpoint, int32_t sinkId);
-    bool doRemoveRemoteSinkIfNecessary(EndpointState * endpoint, int32_t sinkId);
 
-    RemoteSource *  findRemoteSource(EndpointState * endpoint, int32_t sourceId);
-    RemoteSource *  doAddRemoteSourceIfNecessary(EndpointState * endpoint, int32_t sourceId);
-    bool doRemoveRemoteSourceIfNecessary(EndpointState * endpoint, int32_t sourceId);
-    /// END NOT USED
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);
     RemotePeer *  findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId);
@@ -219,7 +194,6 @@ private:
     Atomic<float>   mWet    {   1.0 };
     Atomic<double>   mBufferTime     { 0.1 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
-    Atomic<bool>   mStreamingEnabled {  false };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
@@ -261,8 +235,6 @@ private:
     
     OwnedArray<EndpointState> mEndpoints;
     
-    OwnedArray<RemoteSink> mRemoteSinks;
-    OwnedArray<RemoteSource> mRemoteSources;
     OwnedArray<RemotePeer> mRemotePeers;
 
 
