@@ -21,6 +21,8 @@
 
 String FluxAoOAudioProcessor::paramInGain     ("ingain");
 String FluxAoOAudioProcessor::paramDry     ("dry");
+String FluxAoOAudioProcessor::paramInMonitorPan1     ("inmonpan1");
+String FluxAoOAudioProcessor::paramInMonitorPan2     ("inmonpan2");
 String FluxAoOAudioProcessor::paramWet     ("wet");
 String FluxAoOAudioProcessor::paramBufferTime  ("buffertime");
 
@@ -59,7 +61,7 @@ struct FluxAoOAudioProcessor::RemotePeer {
     aoo::isource::pointer oursource;
     float gain = 1.0f;
     float buffertimeMs = 15.0f;
-    bool  autosizeBuffer = true;
+    AutoNetBufferMode  autosizeBufferMode = AutoNetBufferModeAutoFull;
     bool sendActive = false;
     bool recvActive = false;
     bool sendAllow = true;
@@ -80,6 +82,8 @@ struct FluxAoOAudioProcessor::RemotePeer {
     int64_t dataPacketsResent = 0;
     double lastDroptime = 0;
     int64_t lastDropCount = 0;
+    double lastNetBufDecrTime = 0;
+    float netBufAutoBaseline = 0.0f;
     float pingTime = 0.0f; // ms
     stats::RunCumulantor1D  smoothPingTime; // ms
     float totalLatency = 0.0f;
@@ -192,14 +196,24 @@ mState (*this, &mUndoManager, "FluxAoO",
 {
     std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
-                                          //[](float v, int maxlen) -> String { return String::formatted("%.1f %%",v*100.0f); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+
+    std::make_unique<AudioParameterFloat>(paramInMonitorPan1,     TRANS ("In Mon Pan 1"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan1.get(), "", AudioProcessorParameter::genericParameter, 
+                                          [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
+                                          [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
+
+    std::make_unique<AudioParameterFloat>(paramInMonitorPan2,     TRANS ("In Mon Pan 2"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan2.get(), "", AudioProcessorParameter::genericParameter, 
+                                          [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
+                                          [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
+
     std::make_unique<AudioParameterFloat>(paramDry,     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.25), mDry.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+
     std::make_unique<AudioParameterFloat>(paramWet,     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mWet.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+
     std::make_unique<AudioParameterFloat>(paramBufferTime,     TRANS ("Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; })
@@ -209,6 +223,8 @@ mState (*this, &mUndoManager, "FluxAoO",
     mState.addParameterListener (paramDry, this);
     mState.addParameterListener (paramWet, this);
     mState.addParameterListener (paramBufferTime, this);
+    mState.addParameterListener (paramInMonitorPan1, this);
+    mState.addParameterListener (paramInMonitorPan2, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -655,11 +671,44 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
             if (peer) {
                 const ScopedReadLock sl (mCoreLock);        
 
-                // todo smooth it
+                // smooth it
                 peer->pingTime = rtt * 0.5;
                 peer->smoothPingTime.Z *= 0.9;
                 peer->smoothPingTime.push(peer->pingTime);
                 peer->totalLatency =  peer->smoothPingTime.xbar + peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+
+                if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {                    
+                    // possibly adjust net buffer down, if it has been longer than threshold since last drop
+                    double nowtime = Time::getMillisecondCounterHiRes();
+                    const float nodropsthresh = 10.0; // no drops in 10 seconds
+                    const float adjustlimit = 10; // don't adjust more often than once every 10 seconds
+
+                    if (peer->lastNetBufDecrTime > 0 && peer->buffertimeMs > peer->netBufAutoBaseline) {
+                        double deltatime = (nowtime - peer->lastNetBufDecrTime) * 1e-3;  
+                        if (deltatime > adjustlimit) {
+                            //float droprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltatime;
+                            //if (droprate < dropratethresh) {
+                            if (nowtime - peer->lastDroptime > nodropsthresh) {
+                                peer->buffertimeMs -= 2;
+                                
+                                peer->buffertimeMs = std::max(peer->buffertimeMs, peer->netBufAutoBaseline);
+                                
+                                peer->totalLatency = peer->smoothPingTime.xbar + peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+                                peer->oursink->set_buffersize(peer->buffertimeMs);
+
+                                DebugLogC("AUTO-Decreasing buffer time by 2 ms to %d ", (int) peer->buffertimeMs);
+
+                                peer->lastNetBufDecrTime = nowtime;                                
+                            }
+                            
+                            //peer->lastNetBufDropCount = peer->dataPacketsDropped;
+                        }
+                    }
+                    else {
+                        peer->lastNetBufDecrTime = nowtime;   
+                    }
+
+                }
             }
             
             break;
@@ -918,7 +967,7 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
             if (peer) {
                 peer->dataPacketsDropped += e->count;
                 
-                if (peer->autosizeBuffer) {
+                if (peer->autosizeBufferMode != AutoNetBufferModeOff) {
                     // see if our drop rate exceeds threshold, and increase buffersize if so
                     double nowtime = Time::getMillisecondCounterHiRes();
                     const float dropratethresh = 1.0/30.0; // 1 every 30 seconds
@@ -934,6 +983,15 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                                 peer->oursink->set_buffersize(peer->buffertimeMs);
 
                                 DebugLogC("AUTO-Increasing buffer time by 1 ms to %d  droprate: %g", (int) peer->buffertimeMs, droprate);
+
+                                if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {
+
+                                    const float timesincedecrthresh = 2.0;
+                                    if (peer->lastNetBufDecrTime > 0 && (nowtime - peer->lastNetBufDecrTime)*1e-3 < timesincedecrthresh ) {
+                                        peer->netBufAutoBaseline = peer->buffertimeMs;
+                                        DebugLogC("Got drop within short time thresh, setting minimum baseline for future decr to %g", peer->netBufAutoBaseline);
+                                    }
+                                }
                             }
                             
                             peer->lastDroptime = nowtime;
@@ -944,6 +1002,10 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                         peer->lastDroptime = nowtime;
                         peer->lastDropCount = peer->dataPacketsDropped;
                     }
+                    
+
+                    
+                    //peer->lastNetBufDecrTime = 0; // reset auto-decr
                 }
             }
             
@@ -1274,6 +1336,7 @@ void FluxAoOAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
         remote->buffertimeMs = bufferMs;
         remote->totalLatency = remote->smoothPingTime.xbar + remote->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
         remote->oursink->set_buffersize(remote->buffertimeMs); // ms
+        remote->netBufAutoBaseline = 0.0f; // reset
     }
 }
 
@@ -1289,23 +1352,27 @@ float FluxAoOAudioProcessor::getRemotePeerBufferTime(int index) const
     return buftimeMs;    
 }
 
-void FluxAoOAudioProcessor::setRemotePeerAutoresizeBuffer(int index, bool flag)
+void FluxAoOAudioProcessor::setRemotePeerAutoresizeBufferMode(int index, FluxAoOAudioProcessor::AutoNetBufferMode flag)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        remote->autosizeBuffer = flag;
+        remote->autosizeBufferMode = flag;
+        
+        if (flag == AutoNetBufferModeAutoFull) {
+            remote->netBufAutoBaseline = 0.0; // reset
+        }
     }
 }
 
-bool FluxAoOAudioProcessor::getRemotePeerAutoresizeBuffer(int index) const
+FluxAoOAudioProcessor::AutoNetBufferMode FluxAoOAudioProcessor::getRemotePeerAutoresizeBufferMode(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        return remote->autosizeBuffer;
+        return remote->autosizeBufferMode;
     }
-    return false;    
+    return AutoNetBufferModeOff;    
 }
 
 
@@ -1723,8 +1790,11 @@ void FluxAoOAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramWet) {
         mWet = newValue;
     }
-    else if (parameterID == paramBufferTime) {
-       
+    else if (parameterID == paramInMonitorPan1) {
+        mInMonPan1 = newValue;
+    }
+    else if (parameterID == paramInMonitorPan2) {
+        mInMonPan2 = newValue;
     }
 
 }
@@ -1814,6 +1884,22 @@ void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     inputMeterSource.resize (inchannels, meterRmsWindow);
     outputMeterSource.resize (outchannels, meterRmsWindow);
 
+    if (lastInputChannels != inchannels || lastOutputChannels != outchannels) {
+        if (inchannels < outchannels) {
+            // center pan it
+            mState.getParameter(paramInMonitorPan1)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan1)->convertTo0to1(0.0));
+            mState.getParameter(paramInMonitorPan2)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan2)->convertTo0to1(0.0));
+        }
+        else {
+            // hard pan left/right
+            mState.getParameter(paramInMonitorPan1)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan1)->convertTo0to1(-1.0));
+            mState.getParameter(paramInMonitorPan2)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan2)->convertTo0to1(1.0));
+        }
+
+        lastInputChannels = inchannels;
+        lastOutputChannels = outchannels;
+    }
+    
     int i=0;
     for (auto s : mRemotePeers) {
         if (s->workBuffer.getNumSamples() < samplesPerBlock) {
@@ -1888,7 +1974,8 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     float inGain = mInGain.get();
     float drynow = mDry.get(); // DB_CO(dry_level);
     float wetnow = mWet.get(); // DB_CO(wet_level);
-
+    float inmonPan1 = mInMonPan1.get();
+    float inmonPan2 = mInMonPan2.get();
     
     int numSamples = buffer.getNumSamples();
     
@@ -2096,13 +2183,57 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         
         // end scoped lock
     }
+
     
-    // apply dry gain to original buf
-    if (fabsf(drynow - mLastDry) > 0.00001) {
-        buffer.applyGainRamp(0, numSamples, mLastDry, drynow);
+    // apply dry (input monitor) gain to original buf
+    // and panning
+    
+    if (totalNumInputChannels > 0 && totalNumOutputChannels > 1) {
+        
+        // copy input into workbuffer
+        workBuffer.clear();
+        
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            for (int i=0; i < totalNumInputChannels; ++i) {
+                const float pan = (i==0 ? inmonPan1 : inmonPan2);
+                const float lastpan = (i==0 ? mLastInMonPan1 : mLastInMonPan2);
+                
+                // apply pan law
+                // -1 is left, 1 is right
+                float pgain = channel == 0 ? (pan >= 0.0f ? (1.0f - pan) : 1.0f) : (pan >= 0.0f ? 1.0f : (1.0f+pan)) ;
+                
+                if (fabsf(pan - lastpan) > 0.00001f) {
+                    float plastgain = channel == 0 ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
+                    
+                    workBuffer.addFromWithRamp(channel, 0, buffer.getReadPointer(i), numSamples, plastgain, pgain);
+                } else {
+                    workBuffer.addFrom (channel, 0, buffer, i, 0, numSamples, pgain);                            
+                }
+            }
+        }
+        
+        // now copy workbuffer into buffer with gain
+        bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            if (rampit) {
+                buffer.copyFromWithRamp(channel, 0, workBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);                
+            }
+            else {
+                buffer.copyFrom(channel, 0, workBuffer.getReadPointer(channel), numSamples, drynow);
+            }
+        }
+        
+        
     } else {
-        buffer.applyGain(drynow);
+
+        if (fabsf(drynow - mLastDry) > 0.00001) {
+            buffer.applyGainRamp(0, numSamples, mLastDry, drynow);
+        } else {
+            buffer.applyGain(drynow);
+        }
+        
     }
+    
     
     // add from tempBuffer
     for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
@@ -2110,7 +2241,7 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
     }
     
-    // apply wet gain to original buf
+    // apply wet (output) gain to original buf
     if (fabsf(wetnow - mLastWet) > 0.00001) {
         buffer.applyGainRamp(0, numSamples, mLastWet, wetnow);
     } else {
@@ -2119,6 +2250,8 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     outputMeterSource.measureBlock (buffer);
 
+    // TODO output to file writer if necessary
+    
     
     if (needsblockchange) {
         lastSamplesPerBlock = numSamples;
@@ -2129,6 +2262,8 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     mLastWet = wetnow;
     mLastDry = drynow;
     mLastInputGain = inGain;
+    mLastInMonPan1 = inmonPan1;
+    mLastInMonPan2 = inmonPan2;
 }
 
 //==============================================================================

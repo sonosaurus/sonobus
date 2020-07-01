@@ -271,6 +271,22 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     mInGainSlider->setTextBoxIsEditable(false);
     mInGainSlider->setScrollWheelEnabled(false);
 
+    mInMonPanSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
+    mInMonPanSlider1->setName("inpan1");
+    mInMonPanSlider1->getProperties().set ("fromCentre", true);
+    mInMonPanSlider1->setSliderSnapsToMousePosition(false);
+    mInMonPanSlider1->setTextBoxIsEditable(false);
+    mInMonPanSlider1->setScrollWheelEnabled(false);
+    mInMonPanSlider1->setMouseDragSensitivity(100);
+    
+    mInMonPanSlider2     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
+    mInMonPanSlider2->setName("inpan2");
+    mInMonPanSlider2->getProperties().set ("fromCentre", true);
+    mInMonPanSlider2->setSliderSnapsToMousePosition(false);
+    mInMonPanSlider2->setTextBoxIsEditable(false);
+    mInMonPanSlider2->setScrollWheelEnabled(false);
+    mInMonPanSlider2->setMouseDragSensitivity(100);
+    
     mDrySlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
     mDrySlider->setName("dry");
     mDrySlider->setSliderSnapsToMousePosition(false);
@@ -310,6 +326,8 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     mDryAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramDry, *mDrySlider);
     mWetAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramWet, *mOutGainSlider);
     //mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramBufferTime, *mBufferTimeSlider);
+    mInMonPan1Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramInMonitorPan1, *mInMonPanSlider1);
+    mInMonPan2Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), FluxAoOAudioProcessor::paramInMonitorPan2, *mInMonPanSlider2);
     
 
     
@@ -384,7 +402,12 @@ FluxAoOAudioProcessorEditor::FluxAoOAudioProcessorEditor (FluxAoOAudioProcessor&
     addAndMakeVisible(mPeerViewport.get());
     //addAndMakeVisible(mPeerContainer.get());
     addAndMakeVisible (mSettingsButton.get());
+    addAndMakeVisible (mInMonPanSlider1.get());
+    addAndMakeVisible (mInMonPanSlider2.get());
 
+    inChannels = processor.getTotalNumInputChannels();
+    outChannels = processor.getTotalNumOutputChannels();
+    
     updateLayout();
     
     updateState();
@@ -464,6 +487,15 @@ void FluxAoOAudioProcessorEditor::timerCallback(int timerid)
                 mPatchMatrixView->updateGrid();
             }
         }
+        
+        if (inChannels != processor.getTotalNumInputChannels() || outChannels != processor.getTotalNumOutputChannels()) {
+            inChannels = processor.getTotalNumInputChannels();            
+            outChannels = processor.getTotalNumOutputChannels();
+            updateLayout();
+            updateState();
+            resized();
+        }
+
     }
 }
 
@@ -693,6 +725,7 @@ void FluxAoOAudioProcessorEditor::resized()
 void FluxAoOAudioProcessorEditor::updateLayout()
 {
     int minKnobWidth = 50;
+    int minPannerWidth = 60;
     int minitemheight = 36;
     int setitemheight = 36;
     int minButtonWidth = 100;
@@ -705,10 +738,26 @@ void FluxAoOAudioProcessorEditor::updateLayout()
     inGainBox.items.add(FlexItem(minKnobWidth, minitemheight, *mInGainSlider).withMargin(0).withFlex(1));
 
     dryBox.items.clear();
-    dryBox.flexDirection = FlexBox::Direction::column;
+    dryBox.flexDirection = FlexBox::Direction::row;
     //dryBox.items.add(FlexItem(minKnobWidth, 16, *mDryLabel).withMargin(0));
     dryBox.items.add(FlexItem(minKnobWidth, minitemheight, *mDrySlider).withMargin(0).withFlex(1));
-
+    if (outChannels > 1) {
+        dryBox.items.add(FlexItem(6, 20).withMargin(1).withFlex(0));
+        dryBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider1).withMargin(0).withFlex(0));
+        mInMonPanSlider1->setVisible(true);
+        if (inChannels > 1) {
+            dryBox.items.add(FlexItem(4, 20).withMargin(1).withFlex(0));
+            dryBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider2).withMargin(0).withFlex(0));
+            mInMonPanSlider2->setVisible(true);
+        }
+        else {
+            mInMonPanSlider2->setVisible(false);
+        }
+    }
+    else {
+        mInMonPanSlider1->setVisible(false);
+    }
+    
     //wetBox.items.clear();
     //wetBox.flexDirection = FlexBox::Direction::column;
     //wetBox.items.add(FlexItem(minKnobWidth, 18, *mWetLabel).withMargin(0));

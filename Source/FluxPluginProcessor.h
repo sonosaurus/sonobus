@@ -26,6 +26,12 @@ public:
     FluxAoOAudioProcessor();
     ~FluxAoOAudioProcessor();
 
+    enum AutoNetBufferMode {
+        AutoNetBufferModeOff = 0,
+        AutoNetBufferModeAutoIncreaseOnly,
+        AutoNetBufferModeAutoFull        
+    };
+    
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -64,6 +70,8 @@ public:
     AudioProcessorValueTreeState& getValueTreeState();
 
     static String paramInGain;
+    static String paramInMonitorPan1;
+    static String paramInMonitorPan2;
     static String paramDry;
     static String paramWet;
     static String paramBufferTime;
@@ -101,8 +109,8 @@ public:
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
 
-    void setRemotePeerAutoresizeBuffer(int index, bool flag);
-    bool getRemotePeerAutoresizeBuffer(int index) const;
+    void setRemotePeerAutoresizeBufferMode(int index, AutoNetBufferMode flag);
+    AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index) const;
 
     void setRemotePeerSendActive(int index, bool active);
     bool getRemotePeerSendActive(int index) const;
@@ -190,6 +198,8 @@ private:
     AudioSampleBuffer workBuffer;
 
     Atomic<float>   mInGain    {   1.0 };
+    Atomic<float>   mInMonPan1    {   0.0 };
+    Atomic<float>   mInMonPan2    {   0.0 };
     Atomic<float>   mDry    {   1.0 };
     Atomic<float>   mWet    {   1.0 };
     Atomic<double>   mBufferTime     { 0.1 };
@@ -198,7 +208,11 @@ private:
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
     float mLastWet    = 0.0f;
-
+    float mLastInMonPan1 = 0.0f;
+    float mLastInMonPan2 = 0.0f;
+    
+    bool hasInitializedInMonPanners = false;
+    
     int maxBlockSize = 4096;
 
     int mSinkBlocksize = 1024;
@@ -208,6 +222,9 @@ private:
     int lastSamplesPerBlock = 256;
     
     float meterRmsWindow = 0.0f;
+    
+    int lastInputChannels = 0;
+    int lastOutputChannels = 0;
     
     AudioProcessorValueTreeState mState;
     UndoManager                  mUndoManager;

@@ -85,6 +85,8 @@ private:
     std::unique_ptr<SonoDrawableButton> mSettingsButton;
 
     std::unique_ptr<Slider> mInGainSlider;
+    std::unique_ptr<Slider> mInMonPanSlider1;
+    std::unique_ptr<Slider> mInMonPanSlider2;
     std::unique_ptr<Slider> mDrySlider;
     std::unique_ptr<Slider> mOutGainSlider;
     std::unique_ptr<Slider> mBufferTimeSlider;
@@ -118,7 +120,9 @@ private:
     bool settingsWasShownOnDown = false;
     WeakReference<Component> settingsCalloutBox;
 
-
+    int inChannels = 0;
+    int outChannels = 0;
+    
     
     std::unique_ptr<TableListBox> mRemoteSinkListBox;
     std::unique_ptr<TableListBox> mRemoteSourceListBox;
@@ -140,6 +144,8 @@ private:
     FlexBox toolbarBox;
         
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan1Attachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan2Attachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;

@@ -43,7 +43,7 @@ public:
     std::unique_ptr<Slider> panSlider2;
     std::unique_ptr<Label>  bufferTimeLabel;
     std::unique_ptr<Slider> bufferTimeSlider;        
-    std::unique_ptr<ToggleButton> autosizeButton;
+    std::unique_ptr<SonoChoiceButton> autosizeButton;
     std::unique_ptr<SonoChoiceButton> formatChoiceButton;
 
     std::unique_ptr<Label>  staticLatencyLabel;

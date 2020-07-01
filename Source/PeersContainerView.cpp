@@ -157,7 +157,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeSlider->addListener(this);
     //configKnobSlider(pvf->bufferTimeSlider.get());
 
-    pvf->autosizeButton = std::make_unique<ToggleButton>(TRANS("Auto"));
+    pvf->autosizeButton = std::make_unique<SonoChoiceButton>();
+    pvf->autosizeButton->addChoiceListener(this);
+    pvf->autosizeButton->addItem(TRANS("Manual"), 1);
+    pvf->autosizeButton->addItem(TRANS("Auto Up"), 1);
+    pvf->autosizeButton->addItem(TRANS("Auto"), 1);
     pvf->autosizeButton->addListener(this);
 
 
@@ -317,7 +321,8 @@ void PeersContainerView::updateLayout()
         
         pvf->recvnetbox.items.clear();
         pvf->recvnetbox.flexDirection = FlexBox::Direction::row;
-        pvf->recvnetbox.items.add(FlexItem(60, minitemheight, *pvf->autosizeButton).withMargin(0).withFlex(0));
+        pvf->recvnetbox.items.add(FlexItem(72, minitemheight, *pvf->autosizeButton).withMargin(0).withFlex(0));
+        pvf->recvnetbox.items.add(FlexItem(2, 5));
         pvf->recvnetbox.items.add(FlexItem(60, minitemheight, *pvf->bufferTimeSlider).withMargin(0).withFlex(1));
         pvf->recvnetbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0));
 
@@ -352,7 +357,7 @@ void PeersContainerView::updateLayout()
         pvf->mainbox.flexDirection = FlexBox::Direction::row;
         pvf->mainbox.items.add(FlexItem(100 + mincheckheight, singleph, pvf->mainsendbox).withMargin(2).withFlex(1));
         pvf->mainbox.items.add(FlexItem(30, 50, *pvf->recvMeter).withMargin(2).withFlex(0));
-        pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(2).withFlex(1));
+        pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(2).withFlex(2));
 
         peersBox.items.add(FlexItem(8, 5).withMargin(0));
         peersBox.items.add(FlexItem(pw, ph + 6, *pvf).withMargin(0).withFlex(0));
@@ -443,7 +448,7 @@ void PeersContainerView::updatePeerViews()
         pvf->sendActiveButton->setToggleState(processor.getRemotePeerSendAllow(i) && connected, dontSendNotification);
         pvf->recvActiveButton->setToggleState(processor.getRemotePeerRecvAllow(i) && connected, dontSendNotification);
 
-        pvf->autosizeButton->setToggleState(processor.getRemotePeerAutoresizeBuffer(i), dontSendNotification);
+        pvf->autosizeButton->setSelectedItemIndex((int)processor.getRemotePeerAutoresizeBufferMode(i), dontSendNotification);
 
         
         if (!pvf->levelSlider->isMouseOverOrDragging()) {
@@ -455,7 +460,7 @@ void PeersContainerView::updatePeerViews()
 
         
         int formatindex = processor.getRemotePeerAudioCodecFormat(i);
-        pvf->formatChoiceButton->setSelectedItemIndex(formatindex >= 0 ? formatindex : processor.getDefaultAudioCodecFormat());
+        pvf->formatChoiceButton->setSelectedItemIndex(formatindex >= 0 ? formatindex : processor.getDefaultAudioCodecFormat(), dontSendNotification);
         
         pvf->recvMeter->setMeterSource (processor.getRemotePeerRecvMeterSource(i));        
         //pvf->sendMeter->setMeterSource (processor.getRemotePeerSendMeterSource(i));
@@ -506,6 +511,10 @@ void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index,
             processor.setRemotePeerAudioCodecFormat(i, index);
             break;
         }        
+        else if (pvf->autosizeButton.get() == comp) {
+            processor.setRemotePeerAutoresizeBufferMode(i, (FluxAoOAudioProcessor::AutoNetBufferMode) index);
+            break;
+        }        
     }
 }
 
@@ -551,9 +560,9 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             }
             break;
         }
-        else if (pvf->autosizeButton.get() == buttonThatWasClicked) {
-            processor.setRemotePeerAutoresizeBuffer(i, pvf->autosizeButton->getToggleState());   
-        }
+        //else if (pvf->autosizeButton.get() == buttonThatWasClicked) {
+            //processor.setRemotePeerAutoresizeBufferMode(i, (FluxAoOAudioProcessor::AutoNetBufferMode) pvf->autosizeButton->getSelectedItemIndex());
+        //}
         else if (pvf->menuButton.get() == buttonThatWasClicked) {
             if (!connected) {
                 // remove it
