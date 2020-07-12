@@ -1,15 +1,7 @@
-/*
-  ==============================================================================
 
-    This file was auto-generated!
 
-    It contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
-#include "FluxPluginProcessor.h"
-#include "FluxPluginEditor.h"
+#include "SonobusPluginProcessor.h"
+#include "SonobusPluginEditor.h"
 
 #include "RunCumulantor.h"
 
@@ -19,38 +11,121 @@
 #include "aoo/aoo_pcm.h"
 #include "aoo/aoo_opus.h"
 
-String FluxAoOAudioProcessor::paramInGain     ("ingain");
-String FluxAoOAudioProcessor::paramDry     ("dry");
-String FluxAoOAudioProcessor::paramInMonitorPan1     ("inmonpan1");
-String FluxAoOAudioProcessor::paramInMonitorPan2     ("inmonpan2");
-String FluxAoOAudioProcessor::paramWet     ("wet");
-String FluxAoOAudioProcessor::paramBufferTime  ("buffertime");
+#include "mtdm.h"
+
+#ifdef _WIN32
+#include <winsock2.h>
+typedef int socklen_t;
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+
+String SonobusAudioProcessor::paramInGain     ("ingain");
+String SonobusAudioProcessor::paramDry     ("dry");
+String SonobusAudioProcessor::paramInMonitorPan1     ("inmonpan1");
+String SonobusAudioProcessor::paramInMonitorPan2     ("inmonpan2");
+String SonobusAudioProcessor::paramWet     ("wet");
+String SonobusAudioProcessor::paramBufferTime  ("buffertime");
+
+static String recentsCollectionKey("RecentConnections");
+static String recentsItemKey("ServerConnectionInfo");
+
 
 #define METER_RMS_SEC 0.04
 #define MAX_PANNERS 4
 
-struct FluxAoOAudioProcessor::EndpointState {
-    EndpointState(String ipaddr_="", int port_=0) : ipaddr(ipaddr_), port(port_) {}
+// get sockaddr, IPv4 or IPv6:
+static void *get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET)
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+static in_port_t get_in_port(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET)
+        return (((struct sockaddr_in*)sa)->sin_port);
+
+    return (((struct sockaddr_in6*)sa)->sin6_port);
+}
+
+static addrinfo* getAddressInfo (bool isDatagram, const String& hostName, int portNumber)
+{
+    struct addrinfo hints;
+    zerostruct (hints);
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = isDatagram ? SOCK_DGRAM : SOCK_STREAM;
+    hints.ai_flags = AI_NUMERICSERV;
+
+    struct addrinfo* info = nullptr;
+
+    if (getaddrinfo (hostName.toRawUTF8(), String (portNumber).toRawUTF8(), &hints, &info) == 0)
+        return info;
+
+    return nullptr;
+}
+
+struct SonobusAudioProcessor::EndpointState {
+    EndpointState(String ipaddr_="", int port_=0) : ipaddr(ipaddr_), port(port_) {
+        rawaddr.sa_family = AF_UNSPEC;
+    }
+    
+
     DatagramSocket *owner;
     //struct sockaddr_storage addr;
     //socklen_t addrlen;
     std::unique_ptr<DatagramSocket::RemoteAddrInfo> peer;
     String ipaddr;
     int port = 0;
+    
+    
+    struct sockaddr * getRawAddr() {
+        if (rawaddr.sa_family == AF_UNSPEC) {
+            struct addrinfo * info = getAddressInfo(true, ipaddr, port);
+            if (info) {
+                memcpy(&rawaddr, info->ai_addr, info->ai_addrlen);
+
+                freeaddrinfo(info);
+            }
+        }
+        return &rawaddr;
+    }
+    
+    
     // runtime state
     int64_t sentBytes = 0;
     int64_t recvBytes = 0;
+    
+private:
+    struct sockaddr rawaddr;
+    
 };
 
 
+#define LATENCY_ID_OFFSET 20000
+#define ECHO_ID_OFFSET    40000
 
-struct FluxAoOAudioProcessor::RemotePeer {
+struct SonobusAudioProcessor::RemotePeer {
     RemotePeer(EndpointState * ep = 0, int id_=0, aoo::isink::pointer oursink_ = 0, aoo::isource::pointer oursource_ = 0) : endpoint(ep), 
         ourId(id_), 
         oursink(std::move(oursink_)), oursource(std::move(oursource_)) {
             for (int i=0; i < MAX_PANNERS; ++i) {
                 recvPan[i] = recvPanLast[i] = 0.0f;
             }
+            
+            oursink.reset(aoo::isink::create(ourId));
+            oursource.reset(aoo::isource::create(ourId));
+            
+            // create latency sink/sources
+            latencysink.reset(aoo::isink::create(ourId + LATENCY_ID_OFFSET));
+            latencysource.reset(aoo::isource::create(ourId + LATENCY_ID_OFFSET));
+            echosink.reset(aoo::isink::create(ourId + ECHO_ID_OFFSET));
+            echosource.reset(aoo::isource::create(ourId + ECHO_ID_OFFSET));               
         }
 
     EndpointState * endpoint = 0;
@@ -59,6 +134,14 @@ struct FluxAoOAudioProcessor::RemotePeer {
     int32_t remoteSourceId = AOO_ID_NONE;
     aoo::isink::pointer oursink;
     aoo::isource::pointer oursource;
+
+    aoo::isink::pointer latencysink;
+    aoo::isource::pointer latencysource;
+    aoo::isink::pointer echosink;
+    aoo::isource::pointer echosource;
+    bool activeLatencyTest = false;
+    std::unique_ptr<MTDM> latencyProcessor;
+    
     float gain = 1.0f;
     float buffertimeMs = 15.0f;
     AutoNetBufferMode  autosizeBufferMode = AutoNetBufferModeAutoFull;
@@ -76,6 +159,8 @@ struct FluxAoOAudioProcessor::RemotePeer {
     // runtime state
     float _lastgain = 0.0f;
     bool connected = false;
+    String userName;
+    String groupName;
     int64_t dataPacketsReceived = 0;
     int64_t dataPacketsSent = 0;
     int64_t dataPacketsDropped = 0;
@@ -86,7 +171,10 @@ struct FluxAoOAudioProcessor::RemotePeer {
     float netBufAutoBaseline = 0.0f;
     float pingTime = 0.0f; // ms
     stats::RunCumulantor1D  smoothPingTime; // ms
+    float totalEstLatency = 0.0f;
     float totalLatency = 0.0f;
+    bool hasRealLatency = false;
+    bool latencyDirty = false;
     AudioSampleBuffer workBuffer;
     float recvPanLast[MAX_PANNERS];
     // metering
@@ -97,9 +185,9 @@ struct FluxAoOAudioProcessor::RemotePeer {
 
 
 
-static int endpoint_send(void *e, const char *data, int size)
+static int32_t endpoint_send(void *e, const char *data, int32_t size)
 {
-    FluxAoOAudioProcessor::EndpointState * endpoint = static_cast<FluxAoOAudioProcessor::EndpointState*>(e);
+    SonobusAudioProcessor::EndpointState * endpoint = static_cast<SonobusAudioProcessor::EndpointState*>(e);
     int result = -1;
     if (endpoint->peer) {
         result = endpoint->owner->write(*(endpoint->peer), data, size);
@@ -110,15 +198,36 @@ static int endpoint_send(void *e, const char *data, int size)
     if (result > 0) {
         endpoint->sentBytes += result;
     }
+    else if (result < 0) {
+        DebugLogC("Error sending %d bytes to endpoint %s", endpoint->ipaddr.toRawUTF8());
+    }
+    return result;
+}
+
+static int32_t client_send(void *e, const char *data, int32_t size, void *raddr)
+{
+    SonobusAudioProcessor::EndpointState * endpoint = static_cast<SonobusAudioProcessor::EndpointState*>(e);
+    int result = -1;
+
+    const struct sockaddr *addr = (struct sockaddr *)raddr;
+    
+    if (addr->sa_family == AF_INET){
+        result = (int) ::sendto(endpoint->owner->getRawSocketHandle(), data, (size_t)size, 0, addr, sizeof(struct sockaddr_in));
+    }
+    
+    if (result > 0) {
+        endpoint->sentBytes += result;
+    }
     
     return result;
 }
 
 
-class FluxAoOAudioProcessor::SendThread : public juce::Thread
+
+class SonobusAudioProcessor::SendThread : public juce::Thread
 {
 public:
-    SendThread(FluxAoOAudioProcessor & processor) : Thread("FluxSendThread") , _processor(processor) 
+    SendThread(SonobusAudioProcessor & processor) : Thread("SonoBusSendThread") , _processor(processor) 
     {}
     
     void run() override {
@@ -132,14 +241,14 @@ public:
         DebugLogC("Send thread finishing");
     }
     
-    FluxAoOAudioProcessor & _processor;
+    SonobusAudioProcessor & _processor;
     
 };
 
-class FluxAoOAudioProcessor::RecvThread : public juce::Thread
+class SonobusAudioProcessor::RecvThread : public juce::Thread
 {
 public:
-    RecvThread(FluxAoOAudioProcessor & processor) : Thread("FluxRecvThread") , _processor(processor) 
+    RecvThread(SonobusAudioProcessor & processor) : Thread("SonoBusRecvThread") , _processor(processor) 
     {}
     
     void run() override {
@@ -154,14 +263,14 @@ public:
         DebugLogC("Recv thread finishing");        
     }
     
-    FluxAoOAudioProcessor & _processor;
+    SonobusAudioProcessor & _processor;
     
 };
 
-class FluxAoOAudioProcessor::EventThread : public juce::Thread
+class SonobusAudioProcessor::EventThread : public juce::Thread
 {
 public:
-    EventThread(FluxAoOAudioProcessor & processor) : Thread("FluxEventThread") , _processor(processor) 
+    EventThread(SonobusAudioProcessor & processor) : Thread("SonoBusEventThread") , _processor(processor) 
     {}
     
     void run() override {
@@ -176,12 +285,51 @@ public:
         DebugLogC("Event thread finishing");
     }
     
-    FluxAoOAudioProcessor & _processor;
+    SonobusAudioProcessor & _processor;
     
 };
 
+class SonobusAudioProcessor::ServerThread : public juce::Thread
+{
+public:
+    ServerThread(SonobusAudioProcessor & processor) : Thread("SonoBusServerThread") , _processor(processor) 
+    {}
+    
+    void run() override {
+
+        if (_processor.mAooServer) {
+            _processor.mAooServer->run();
+        }
+        
+        DebugLogC("Server thread finishing");        
+    }
+    
+    SonobusAudioProcessor & _processor;
+    
+};
+
+class SonobusAudioProcessor::ClientThread : public juce::Thread
+{
+public:
+    ClientThread(SonobusAudioProcessor & processor) : Thread("SonoBusClientThread") , _processor(processor) 
+    {}
+    
+    void run() override {
+
+        if (_processor.mAooClient) {
+            _processor.mAooClient->run();
+        }
+        
+        DebugLogC("Client thread finishing");        
+    }
+    
+    SonobusAudioProcessor & _processor;
+    
+};
+
+
 //==============================================================================
-FluxAoOAudioProcessor::FluxAoOAudioProcessor()
+SonobusAudioProcessor::SonobusAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -192,7 +340,7 @@ FluxAoOAudioProcessor::FluxAoOAudioProcessor()
                      #endif
                        ),
 #endif
-mState (*this, &mUndoManager, "FluxAoO",
+mState (*this, &mUndoManager, "SonoBusAoO",
 {
     std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
@@ -235,16 +383,18 @@ mState (*this, &mUndoManager, "FluxAoO",
     initializeAoo();
 }
 
-FluxAoOAudioProcessor::~FluxAoOAudioProcessor()
+SonobusAudioProcessor::~SonobusAudioProcessor()
 {
     cleanupAoo();
 }
 
-void FluxAoOAudioProcessor::initializeAoo()
+void SonobusAudioProcessor::initializeAoo()
 {
     int udpport = 11000;
     // we have both an AOO source and sink
         
+    const int echoId = 12321;
+    
     aoo_initialize();
     
     initFormats();
@@ -255,6 +405,9 @@ void FluxAoOAudioProcessor::initializeAoo()
 
     mAooDummySource.reset(aoo::isource::create(0));
 
+
+
+    
     //mAooSink->set_buffersize(mBufferTime.get()); // ms
     //mAooSource->set_buffersize(mBufferTime.get()); // ms
     
@@ -313,18 +466,35 @@ void FluxAoOAudioProcessor::initializeAoo()
     }
 #endif
     
+    mServerEndpoint = std::make_unique<EndpointState>();
+    mServerEndpoint->owner = mUdpSocket.get();
+    
+    if (mUdpLocalPort > 0) {
+        mAooClient.reset(aoo::net::iclient::create(mServerEndpoint.get(), client_send, mUdpLocalPort));
+    }
+
+    
     mSendThread = std::make_unique<SendThread>(*this);
     mSendThread->setPriority(8);
     mRecvThread = std::make_unique<RecvThread>(*this);
     mRecvThread->setPriority(7);
     mEventThread = std::make_unique<EventThread>(*this);
+
+    if (mAooClient) {
+        mClientThread = std::make_unique<ClientThread>(*this);
+    }
     
     mSendThread->startThread();
     mRecvThread->startThread();
     mEventThread->startThread();
+
+    if (mAooClient) {
+        mClientThread->startThread();
+    }
+    
 }
 
-void FluxAoOAudioProcessor::cleanupAoo()
+void SonobusAudioProcessor::cleanupAoo()
 {
     DebugLogC("waiting on recv thread to die");
     mRecvThread->stopThread(400);
@@ -333,8 +503,17 @@ void FluxAoOAudioProcessor::cleanupAoo()
     DebugLogC("waiting on event thread to die");
     mEventThread->stopThread(400);
 
+    if (mAooClient) {
+        mAooClient->disconnect();
+        mAooClient->quit();
+        mClientThread->stopThread(400);        
+    }
+
+    
     {
         const ScopedWriteLock sl (mCoreLock);        
+
+        mAooClient.reset();
 
         mUdpSocket.reset();
         
@@ -344,11 +523,156 @@ void FluxAoOAudioProcessor::cleanupAoo()
         
         mEndpoints.clear();
     }
+
+    stopAooServer();    
+}
+
+void SonobusAudioProcessor::startAooServer()
+{
+    stopAooServer();
     
+    {
+        const ScopedWriteLock sl (mCoreLock);
+        int32_t err;
+        mAooServer.reset(aoo::net::iserver::create(10999, &err));
+        
+        if (err != 0) {
+            DebugLogC("Error creating Aoo Server: %d : %s", err);
+        }
+    }
+    
+    if (mAooServer) {
+        mServerThread = std::make_unique<ServerThread>(*this);    
+        mServerThread->startThread();
+    }
+}
+    
+void SonobusAudioProcessor::stopAooServer()
+{
+    if (mAooServer) {
+        DebugLogC("waiting on recv thread to die");
+        mAooServer->quit();
+        mServerThread->stopThread(400);    
+
+        const ScopedWriteLock sl (mCoreLock);
+        mAooServer.reset();
+    }
+}
+
+bool SonobusAudioProcessor::connectToServer(const String & host, int port, const String & username, const String & passwd)
+{
+    if (!mAooClient) return false;
+    
+    // disconnect from everything else!
+    removeAllRemotePeers();
+    
+    mServerEndpoint->ipaddr = host;
+    mServerEndpoint->port = port;
+    mServerEndpoint->peer.reset();
+    
+    int32_t retval = mAooClient->connect(host.toRawUTF8(), port, username.toRawUTF8(), passwd.toRawUTF8());
+    
+    if (retval < 0) {
+        DebugLogC("Error connecting to server: %d", retval);
+    }
+    
+    return retval >= 0;
+}
+
+bool SonobusAudioProcessor::isConnectedToServer() const
+{
+    if (!mAooClient) return false;
+
+    return mIsConnectedToServer;    
+}
+
+bool SonobusAudioProcessor::disconnectFromServer()
+{
+    if (!mAooClient) return false;
+ 
+    mAooClient->disconnect();
+    
+    // disconnect from everything else!
+    removeAllRemotePeers();
+
+    const ScopedLock sl (mClientLock);        
+    
+    mIsConnectedToServer = false;    
+    mCurrentJoinedGroup.clear();
+
+    return true;
+}
+
+void SonobusAudioProcessor::addRecentServerConnectionInfo(const AooServerConnectionInfo & cinfo)
+{
+    // look for existing match, and update only timestamp if found, otherwise add to end
+    int index = mRecentConnectionInfos.indexOf(cinfo);
+    if (index >= 0) {
+        // already there
+        mRecentConnectionInfos.getReference(index).timestamp = cinfo.timestamp;
+    } else {
+        // add it
+        mRecentConnectionInfos.add(cinfo);
+    }
+}
+
+int SonobusAudioProcessor::getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray)
+{
+    retarray = mRecentConnectionInfos;
+    return retarray.size();
+}
+
+void SonobusAudioProcessor::clearRecentServerConnectionInfos()
+{
+    mRecentConnectionInfos.clear();
 }
 
 
-void FluxAoOAudioProcessor::initFormats()
+void SonobusAudioProcessor::setAutoconnectToGroupPeers(bool flag)
+{
+    mAutoconnectGroupPeers = flag;
+}
+
+
+bool SonobusAudioProcessor::joinServerGroup(const String & group, const String & groupsecret)
+{
+    if (!mAooClient) return false;
+
+    int32_t retval = mAooClient->group_join(group.toRawUTF8(), groupsecret.toRawUTF8());
+    
+    if (retval < 0) {
+        DebugLogC("Error joining group %s: %d", group.toRawUTF8(), retval);
+    }
+    
+    return retval >= 0;
+}
+
+bool SonobusAudioProcessor::leaveServerGroup(const String & group)
+{
+    if (!mAooClient) return false;
+
+    int32_t retval = mAooClient->group_leave(group.toRawUTF8());
+    
+    if (retval < 0) {
+        DebugLogC("Error leaving group %s: %d", group.toRawUTF8(), retval);
+    }
+
+    const ScopedLock sl (mClientLock);        
+    
+    if (mCurrentJoinedGroup == group) {
+        mCurrentJoinedGroup.clear();
+    }
+    
+    return retval >= 0;
+}
+
+String SonobusAudioProcessor::getCurrentJoinedGroup() const { 
+    const ScopedLock sl (mClientLock);        
+    return mCurrentJoinedGroup;     
+}
+
+
+void SonobusAudioProcessor::initFormats()
 {
     mAudioFormats.clear();
     
@@ -372,7 +696,7 @@ void FluxAoOAudioProcessor::initFormats()
 }
 
 
-String FluxAoOAudioProcessor::getAudioCodeFormatName(int formatIndex) const
+String SonobusAudioProcessor::getAudioCodeFormatName(int formatIndex) const
 {
     if (formatIndex >= mAudioFormats.size()) return "";
     
@@ -380,7 +704,7 @@ String FluxAoOAudioProcessor::getAudioCodeFormatName(int formatIndex) const
     return info.name;    
 }
 
-void FluxAoOAudioProcessor::setRemotePeerAudioCodecFormat(int index, int formatIndex)
+void SonobusAudioProcessor::setRemotePeerAudioCodecFormat(int index, int formatIndex)
 {
     if (formatIndex >= mAudioFormats.size() || index >= mRemotePeers.size()) return;
     
@@ -395,10 +719,17 @@ void FluxAoOAudioProcessor::setRemotePeerAudioCodecFormat(int index, int formatI
         setupSourceFormat(remote, remote->oursource.get());
         remote->oursource->setup(getSampleRate(), lastSamplesPerBlock, remote->sendChannels);        
         //remote->oursource->setup(getSampleRate(), remote->packetsize    , getTotalNumOutputChannels());        
+        
+        setupSourceFormat(remote, remote->latencysource.get(), true);
+        remote->latencysource->setup(getSampleRate(), lastSamplesPerBlock, 1);
+        setupSourceFormat(remote, remote->echosource.get(), true);
+        remote->echosource->setup(getSampleRate(), lastSamplesPerBlock, 1);
+        
+        remote->latencyDirty = true;
     }
 }
 
-int FluxAoOAudioProcessor::getRemotePeerAudioCodecFormat(int index) const
+int SonobusAudioProcessor::getRemotePeerAudioCodecFormat(int index) const
 {
     if (index >= mRemotePeers.size()) return -1;
     
@@ -407,7 +738,7 @@ int FluxAoOAudioProcessor::getRemotePeerAudioCodecFormat(int index) const
     return remote->formatIndex;
 }
 
-int FluxAoOAudioProcessor::getRemotePeerSendPacketsize(int index) const
+int SonobusAudioProcessor::getRemotePeerSendPacketsize(int index) const
 {
     if (index >= mRemotePeers.size()) return -1;
     const ScopedReadLock sl (mCoreLock);        
@@ -416,7 +747,7 @@ int FluxAoOAudioProcessor::getRemotePeerSendPacketsize(int index) const
     
 }
 
-void FluxAoOAudioProcessor::setRemotePeerSendPacketsize(int index, int psize)
+void SonobusAudioProcessor::setRemotePeerSendPacketsize(int index, int psize)
 {
     if (index >= mRemotePeers.size()) return;
     
@@ -438,7 +769,7 @@ void FluxAoOAudioProcessor::setRemotePeerSendPacketsize(int index, int psize)
 }
 
 // should use shared pointer
-foleys::LevelMeterSource * FluxAoOAudioProcessor::getRemotePeerRecvMeterSource(int index)
+foleys::LevelMeterSource * SonobusAudioProcessor::getRemotePeerRecvMeterSource(int index)
 {
     if (index >= mRemotePeers.size()) return nullptr;
     const ScopedReadLock sl (mCoreLock);        
@@ -446,7 +777,7 @@ foleys::LevelMeterSource * FluxAoOAudioProcessor::getRemotePeerRecvMeterSource(i
     return &(remote->recvMeterSource);
 }
 
-foleys::LevelMeterSource * FluxAoOAudioProcessor::getRemotePeerSendMeterSource(int index)
+foleys::LevelMeterSource * SonobusAudioProcessor::getRemotePeerSendMeterSource(int index)
 {
     if (index >= mRemotePeers.size()) return nullptr;
     const ScopedReadLock sl (mCoreLock);        
@@ -457,7 +788,23 @@ foleys::LevelMeterSource * FluxAoOAudioProcessor::getRemotePeerSendMeterSource(i
 
 
 
-FluxAoOAudioProcessor::EndpointState * FluxAoOAudioProcessor::findOrAddEndpoint(const String & host, int port)
+SonobusAudioProcessor::EndpointState * SonobusAudioProcessor::findOrAddRawEndpoint(void * rawaddr)
+{
+    String ipaddr;
+    int port = 0 ;
+
+    char hostip[INET6_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, get_in_addr((struct sockaddr *)rawaddr), hostip, sizeof(hostip)) == nullptr) {
+        DebugLogC("Error converting raw addr to IP");
+        return nullptr;
+    } else {
+        ipaddr = hostip;
+        port = ntohs(get_in_port((struct sockaddr *)rawaddr));        
+        return findOrAddEndpoint(ipaddr, port);    
+    }    
+}
+
+SonobusAudioProcessor::EndpointState * SonobusAudioProcessor::findOrAddEndpoint(const String & host, int port)
 {
     const ScopedLock sl (mEndpointsLock);        
     
@@ -480,7 +827,7 @@ FluxAoOAudioProcessor::EndpointState * FluxAoOAudioProcessor::findOrAddEndpoint(
     return endpoint;
 }
 
-void FluxAoOAudioProcessor::doReceiveData()
+void SonobusAudioProcessor::doReceiveData()
 {
     // receive from udp port, and parse packet
     char buf[AOO_MAXPACKETSIZE];
@@ -522,6 +869,15 @@ void FluxAoOAudioProcessor::doReceiveData()
                         if (id != AOO_ID_WILDCARD) break;
                     }
                     
+                    if (remote->echosink->get_id(dummyid) && id == dummyid) {
+                        remote->echosink->handle_message(buf, nbytes, endpoint, endpoint_send);
+                        break;
+                    }
+                    else if (remote->latencysink->get_id(dummyid) && id == dummyid) {
+                        remote->latencysink->handle_message(buf, nbytes, endpoint, endpoint_send);
+                        break;
+                    }
+                    
                 }
                 
             } else if (type == AOO_TYPE_SOURCE){
@@ -541,12 +897,27 @@ void FluxAoOAudioProcessor::doReceiveData()
                             if (id != AOO_ID_WILDCARD) break;
                         }
                         
+                        if (remote->echosource->get_id(dummyid) && id == dummyid) {
+                            remote->echosource->handle_message(buf, nbytes, endpoint, endpoint_send);
+                            break;
+                        }
+                        else if (remote->latencysource->get_id(dummyid) && id == dummyid) {
+                            remote->latencysource->handle_message(buf, nbytes, endpoint, endpoint_send);
+                            break;
+                        }
                     }
                 }
 
                 
             } else if (type == AOO_TYPE_CLIENT || type == AOO_TYPE_PEER){
                 // forward OSC packet to matching client
+
+                //DebugLogC("Got AOO_CLIENT or PEER data");
+
+                if (mAooClient) {
+                    mAooClient->handle_message(buf, nbytes, endpoint->getRawAddr());
+                }
+                
                 /*
                  for (int i = 0; i < x->x_numclients; ++i){
                  if (pd_class(x->x_clients[i].c_obj) == aoo_client_class)
@@ -560,8 +931,14 @@ void FluxAoOAudioProcessor::doReceiveData()
                  */
             } else if (type == AOO_TYPE_SERVER){
                 // ignore
+                DebugLogC("Got AOO_SERVER data");
+
+                if (mAooServer) {
+                    // mAooServer->handle_message(buf, nbytes, endpoint);
+                }
+                
             } else {
-                DebugLogC("FluxAoo bug: unknown aoo type: %d", type);
+                DebugLogC("SonoBus bug: unknown aoo type: %d", type);
             }
         }
 
@@ -571,12 +948,12 @@ void FluxAoOAudioProcessor::doReceiveData()
     } 
     else {
         // not a valid AoO OSC message
-        DebugLogC("FluxAoO: not a valid AOO message!");
+        DebugLogC("SonoBus: not a valid AOO message!");
     }
         
 }
 
-void FluxAoOAudioProcessor::doSendData()
+void SonobusAudioProcessor::doSendData()
 {
     // just try to send for everybody
     const ScopedReadLock sl (mCoreLock);        
@@ -591,6 +968,10 @@ void FluxAoOAudioProcessor::doSendData()
         
         didsomething |= mAooDummySource->send();
         
+        if (mAooClient) {
+            mAooClient->send();
+        }
+        
         for (auto & remote : mRemotePeers) {
             if (remote->oursource) {
                 didsomething |= remote->oursource->send();
@@ -602,6 +983,14 @@ void FluxAoOAudioProcessor::doSendData()
             if (remote->oursink) {
                 didsomething |= remote->oursink->send();
             }
+
+            if (remote->latencysource) {
+                didsomething |= remote->latencysource->send();
+                didsomething |= remote->latencysink->send();
+                didsomething |= remote->echosource->send();
+                didsomething |= remote->echosink->send();
+            }
+
         }
         
     }
@@ -609,8 +998,8 @@ void FluxAoOAudioProcessor::doSendData()
 
 struct ProcessorIdPair
 {
-    ProcessorIdPair(FluxAoOAudioProcessor *proc, int32_t id_) : processor(proc), id(id_) {}
-    FluxAoOAudioProcessor * processor;
+    ProcessorIdPair(SonobusAudioProcessor *proc, int32_t id_) : processor(proc), id(id_) {}
+    SonobusAudioProcessor * processor;
     int32_t id;
 };
 
@@ -626,11 +1015,34 @@ static int32_t gHandleSinkEvents(void * user, const aoo_event ** events, int32_t
     return pp->processor->handleSinkEvents(events, n, pp->id);
 }
 
+static int32_t gHandleServerEvents(void * user, const aoo_event ** events, int32_t n)
+{
+    ProcessorIdPair * pp = static_cast<ProcessorIdPair*> (user);
+    return pp->processor->handleServerEvents(events, n);
+}
 
-void FluxAoOAudioProcessor::handleEvents()
+static int32_t gHandleClientEvents(void * user, const aoo_event ** events, int32_t n)
+{
+    ProcessorIdPair * pp = static_cast<ProcessorIdPair*> (user);
+    return pp->processor->handleClientEvents(events, n);
+}
+
+
+void SonobusAudioProcessor::handleEvents()
 {
     const ScopedReadLock sl (mCoreLock);        
-    int32_t dummy;
+    int32_t dummy = 0;
+    
+    if (mAooServer /*&& mAooServer->events_available()*/) {
+        ProcessorIdPair pp(this, dummy);
+        mAooServer->handle_events(gHandleServerEvents, &pp);
+    }
+
+    if (mAooClient && mAooClient->events_available()) {
+        ProcessorIdPair pp(this, dummy);
+        mAooClient->handle_events(gHandleClientEvents, &pp);
+    }
+
     
     if (mAooDummySource->events_available() > 0) {
         mAooDummySource->get_id(dummy);
@@ -649,11 +1061,35 @@ void FluxAoOAudioProcessor::handleEvents()
             ProcessorIdPair pp(this, dummy);
             remote->oursink->handle_events(gHandleSinkEvents, &pp);
         }
+
+        
+        if (remote->latencysink) {
+            remote->latencysink->get_id(dummy);
+            ProcessorIdPair pp(this, dummy);
+            remote->latencysink->handle_events(gHandleSinkEvents, &pp);
+        }
+        if (remote->echosink) {
+            remote->echosink->get_id(dummy);
+            ProcessorIdPair pp(this, dummy);
+            remote->echosink->handle_events(gHandleSinkEvents, &pp);
+        }
+         
+        if (remote->latencysource) {
+            remote->latencysource->get_id(dummy);
+            ProcessorIdPair pp(this, dummy);
+            remote->latencysource->handle_events(gHandleSourceEvents, &pp);
+        }
+        if (remote->echosource) {
+            remote->echosource->get_id(dummy);
+            ProcessorIdPair pp(this, dummy);
+            remote->echosource->handle_events(gHandleSourceEvents, &pp);
+        }
+        
     }
 
 }
 
-int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId)
+int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId)
 {
     for (int i = 0; i < n; ++i){
         switch (events[i]->type){
@@ -672,10 +1108,12 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                 const ScopedReadLock sl (mCoreLock);        
 
                 // smooth it
-                peer->pingTime = rtt * 0.5;
-                peer->smoothPingTime.Z *= 0.9;
-                peer->smoothPingTime.push(peer->pingTime);
-                peer->totalLatency =  peer->smoothPingTime.xbar + peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+                peer->pingTime = rtt; // * 0.5;
+                if (rtt < 1000.0) {
+                    peer->smoothPingTime.Z *= 0.9;
+                    peer->smoothPingTime.push(peer->pingTime);
+                }
+                peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
 
                 if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {                    
                     // possibly adjust net buffer down, if it has been longer than threshold since last drop
@@ -693,8 +1131,11 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                                 
                                 peer->buffertimeMs = std::max(peer->buffertimeMs, peer->netBufAutoBaseline);
                                 
-                                peer->totalLatency = peer->smoothPingTime.xbar + peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+                                peer->totalEstLatency = peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
                                 peer->oursink->set_buffersize(peer->buffertimeMs);
+                                peer->echosink->set_buffersize(peer->buffertimeMs);
+                                peer->latencysink->set_buffersize(peer->buffertimeMs);
+                                peer->latencyDirty = true;
 
                                 DebugLogC("AUTO-Decreasing buffer time by 2 ms to %d ", (int) peer->buffertimeMs);
 
@@ -783,8 +1224,21 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                         
                     }
                     else {
-                        // not one of our sources 
-                        DebugLogC("No source, how is this possible?")
+                        // find by echo id
+                        if (auto * echopeer = findRemotePeerByEchoId(es, sourceId)) {
+                            echopeer->echosource->add_sink(es, e->id, endpoint_send);                            
+                            echopeer->echosource->start();
+                            DebugLogC("Invite to echo source adding sink %d", e->id);
+                        }
+                        else if (auto * latpeer = findRemotePeerByLatencyId(es, sourceId)) {
+                            echopeer->latencysource->add_sink(es, e->id, endpoint_send);                                                        
+                            echopeer->latencysource->start();
+                            DebugLogC("Invite to our latency source adding sink %d", e->id);
+                        }
+                        else {
+                            // not one of our sources 
+                            DebugLogC("No source %d invited, how is this possible?", sourceId);
+                        }
 
                     }
                 }
@@ -828,8 +1282,19 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     DebugLogC("Uninvited, removed remote peer %s:%d", es->ipaddr.toRawUTF8(), es->port);
                     
                 }
+                else if (auto * echopeer = findRemotePeerByEchoId(es, sourceId)) {
+                    echopeer->echosource->remove_sink(es, e->id);                            
+                    echopeer->echosource->stop();
+                    DebugLogC("UnInvite to echo source adding sink %d", e->id);
+                }
+                else if (auto * latpeer = findRemotePeerByLatencyId(es, sourceId)) {
+                    echopeer->latencysource->remove_sink(es, e->id);
+                    echopeer->latencysource->stop();
+                    DebugLogC("UnInvite to latency source adding sink %d", e->id);
+                }
+
                 else {
-                    DebugLogC("Uninvite received to unknown");                    
+                    DebugLogC("Uninvite received to unknown");
                 }
 
             } else {
@@ -846,7 +1311,7 @@ int32_t FluxAoOAudioProcessor::handleSourceEvents(const aoo_event ** events, int
 
 }
 
-int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32_t n, int32_t sinkId)
+int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32_t n, int32_t sinkId)
 {
     for (int i = 0; i < n; ++i){
         switch (events[i]->type){
@@ -924,6 +1389,8 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                             }
                         }
                     }
+                    
+                    clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerChangedState, this, "format");
                 }                
             }
             else { 
@@ -952,6 +1419,8 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                 }
             }
             
+            //clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerChangedState, this, "state");
+            
             break;
         }
         case AOO_BLOCK_LOST_EVENT:
@@ -979,8 +1448,11 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                             float droprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltatime;
                             if (droprate > dropratethresh) {
                                 peer->buffertimeMs += 2;
-                                peer->totalLatency = peer->smoothPingTime.xbar + peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+                                peer->totalEstLatency = peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
                                 peer->oursink->set_buffersize(peer->buffertimeMs);
+                                peer->echosink->set_buffersize(peer->buffertimeMs);
+                                peer->latencysink->set_buffersize(peer->buffertimeMs);
+                                peer->latencyDirty = true;
 
                                 DebugLogC("AUTO-Increasing buffer time by 1 ms to %d  droprate: %g", (int) peer->buffertimeMs, droprate);
 
@@ -1063,16 +1535,233 @@ int32_t FluxAoOAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
     return 1;
 }
 
+int32_t SonobusAudioProcessor::handleServerEvents(const aoo_event ** events, int32_t n)
+{
+    for (int i = 0; i < n; ++i){
+        switch (events[i]->type){
+            case AOONET_SERVER_USER_JOIN_EVENT:
+            {
+                aoonet_server_user_event *e = (aoonet_server_user_event *)events[i];
+                
+                DebugLogC("Server - User joined: %s", e->name);
+                
+                break;
+            }
+            case AOONET_SERVER_USER_LEAVE_EVENT:
+            {
+                aoonet_server_user_event *e = (aoonet_server_user_event *)events[i];
+                
+                DebugLogC("Server - User left: %s", e->name);
+                
+                
+                break;
+            }
+            case AOONET_SERVER_GROUP_JOIN_EVENT:
+            {
+                aoonet_server_group_event *e = (aoonet_server_group_event *)events[i];
+                
+                DebugLogC("Server - Group Joined: %s  by user: %s", e->group, e->user);
+                
+                break;
+            }
+            case AOONET_SERVER_GROUP_LEAVE_EVENT:
+            {
+                aoonet_server_group_event *e = (aoonet_server_group_event *)events[i];
+                
+                DebugLogC("Server - Group Left: %s  by user: %s", e->group, e->user);
+                
+                break;
+            }
+            case AOONET_SERVER_ERROR_EVENT:
+            {
+                aoonet_server_event *e = (aoonet_server_event *)events[i];
+                
+                DebugLogC("Server error: %s", e->errormsg);
+                
+                break;
+            }
+            default:
+                DebugLogC("Got unknown server event: %d", events[i]->type);
+                break;
+        }
+    }
+    return 1;
+}
+
+int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int32_t n)
+{
+    for (int i = 0; i < n; ++i){
+        switch (events[i]->type){
+        case AOONET_CLIENT_CONNECT_EVENT:
+        {
+            aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
+            if (e->result > 0){
+                DebugLogC("Connected to server!");
+                mIsConnectedToServer = true;
+            } else {
+                DebugLogC("Couldn't connect to server - %s!", e->errormsg);
+                mIsConnectedToServer = false;
+            }
+            
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, this, e->result > 0, e->errormsg);
+            
+            break;
+        }
+        case AOONET_CLIENT_DISCONNECT_EVENT:
+        {
+            aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
+            if (e->result == 0){
+                DebugLogC("Disconnected from server - %s!", e->errormsg);
+            }
+
+            removeAllRemotePeers();
+            mIsConnectedToServer = false;
+
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientDisconnected, this, e->result > 0, e->errormsg);
+
+            break;
+        }
+        case AOONET_CLIENT_GROUP_JOIN_EVENT:
+        {
+            aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
+            if (e->result > 0){
+                DebugLogC("Joined group - %s", e->name);
+                const ScopedLock sl (mClientLock);        
+                mCurrentJoinedGroup = e->name;
+            } else {
+                DebugLogC("Couldn't join group %s - %s!", e->name, e->errormsg);
+            }
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, this, e->result > 0, e->name, e->errormsg);
+            break;
+        }
+        case AOONET_CLIENT_GROUP_LEAVE_EVENT:
+        {
+            aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
+            if (e->result > 0){
+
+                DebugLogC("Group leave - %s", e->name);
+
+                const ScopedLock sl (mClientLock);        
+                mCurrentJoinedGroup.clear();
+
+                // assume they are all part of the group, XXX
+                removeAllRemotePeers();
+
+                //aoo_node_remove_group(x->x_node, gensym(e->name));
+                
+
+            } else {
+                DebugLogC("Couldn't leave group %s - %s!", e->name, e->errormsg);
+            }
+
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, this, e->result > 0, e->name, e->errormsg);
+
+            break;
+        }
+        case AOONET_CLIENT_PEER_JOIN_EVENT:
+        {
+            aoonet_client_peer_event *e = (aoonet_client_peer_event *)events[i];
+
+            if (e->result > 0){
+                DebugLogC("Peer joined group %s - user %s", e->group, e->user);
+
+                if (mAutoconnectGroupPeers) {
+                    connectRemotePeerRaw(e->address, e->user, e->group);
+                }
+                
+                //aoo_node_add_peer(x->x_node, gensym(e->group), gensym(e->user),
+                //                  (const struct sockaddr *)e->address, e->length);
+
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoined, this, e->group, e->user);
+                
+            } else {
+                DebugLogC("bug bad result on join event");
+            }
+            
+
+            break;
+        }
+        case AOONET_CLIENT_PEER_LEAVE_EVENT:
+        {
+            aoonet_client_peer_event *e = (aoonet_client_peer_event *)events[i];
+
+            if (e->result > 0){
+
+                DebugLogC("Peer leave group %s - user %s", e->group, e->user);
+
+                EndpointState * endpoint = findOrAddRawEndpoint(e->address);
+                if (endpoint) {
+                    
+                    removeAllRemotePeersWithEndpoint(endpoint);
+                }
+                
+                //aoo_node_remove_peer(x->x_node, gensym(e->group), gensym(e->user));
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerLeft, this, e->group, e->user);
+
+            } else {
+                DebugLogC("bug bad result on leave event");
+            }
+            break;
+        }
+        case AOONET_CLIENT_ERROR_EVENT:
+        {
+            aoonet_client_event *e = (aoonet_client_event *)events[i];
+            DebugLogC("client error: %s", e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientError, this, e->errormsg);
+            break;
+        }
+        default:
+            DebugLogC("Got unknown client event: %d", events[i]->type);
+            break;
+        }
+    }
+    return 1;
+}
 
 
-int FluxAoOAudioProcessor::connectRemotePeer(const String & host, int port, bool reciprocate)
+int SonobusAudioProcessor::connectRemotePeerRaw(void * sockaddr, const String & username, const String & groupname, bool reciprocate)
+{
+    EndpointState * endpoint = findOrAddRawEndpoint(sockaddr);
+    
+    if (!endpoint) {
+        DebugLogC("Error getting endpoint from raw address");
+        return 0;
+    }
+    
+    RemotePeer * remote = doAddRemotePeerIfNecessary(endpoint); // get new one
+
+    remote->recvAllow = true;
+    remote->userName = username;
+    remote->groupName = groupname;
+    
+    // special - use 0 
+    bool ret = remote->oursink->invite_source(endpoint, 0, endpoint_send) == 1;
+    
+    if (ret) {
+        DebugLogC("Successfully invited remote peer at %s:%d - ourId %d", endpoint->ipaddr.toRawUTF8(), endpoint->port, remote->ourId);
+        remote->connected = true;
+        remote->invitedPeer = reciprocate;
+        remote->recvActive = reciprocate;
+        remote->sendActive = true;
+        remote->oursource->start();
+        
+    } else {
+        DebugLogC("Error inviting remote peer at %s:%d - ourId %d", endpoint->ipaddr.toRawUTF8(), endpoint->port, remote->ourId);
+    }
+
+    return ret;    
+}
+
+int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, const String & username, const String & groupname, bool reciprocate)
 {
     EndpointState * endpoint = findOrAddEndpoint(host, port);
 
     RemotePeer * remote = doAddRemotePeerIfNecessary(endpoint); // get new one
 
     remote->recvAllow = true;
-    
+    remote->userName = username;
+    remote->groupName = groupname;
+
     // special - use 0 
     bool ret = remote->oursink->invite_source(endpoint, 0, endpoint_send) == 1;
     
@@ -1091,7 +1780,7 @@ int FluxAoOAudioProcessor::connectRemotePeer(const String & host, int port, bool
     return ret;
 }
 
-bool FluxAoOAudioProcessor::disconnectRemotePeer(const String & host, int port, int32_t ourId)
+bool SonobusAudioProcessor::disconnectRemotePeer(const String & host, int port, int32_t ourId)
 {
     EndpointState * endpoint = findOrAddEndpoint(host, port);
     bool ret = false;
@@ -1133,7 +1822,7 @@ bool FluxAoOAudioProcessor::disconnectRemotePeer(const String & host, int port, 
     return ret;
 }
 
-bool FluxAoOAudioProcessor::disconnectRemotePeer(int index)
+bool SonobusAudioProcessor::disconnectRemotePeer(int index)
 {
     RemotePeer * remote = 0;
     bool ret = false;
@@ -1165,7 +1854,7 @@ bool FluxAoOAudioProcessor::disconnectRemotePeer(int index)
     return ret;
 }
 
-bool FluxAoOAudioProcessor::getPatchMatrixValue(int srcindex, int destindex) const
+bool SonobusAudioProcessor::getPatchMatrixValue(int srcindex, int destindex) const
 {
     if (srcindex < MAX_PEERS && destindex < MAX_PEERS) {
         return mRemoteSendMatrix[srcindex][destindex];
@@ -1173,7 +1862,7 @@ bool FluxAoOAudioProcessor::getPatchMatrixValue(int srcindex, int destindex) con
     return false;
 }
 
-void FluxAoOAudioProcessor::setPatchMatrixValue(int srcindex, int destindex, bool value)
+void SonobusAudioProcessor::setPatchMatrixValue(int srcindex, int destindex, bool value)
 {
 
     if (srcindex < MAX_PEERS && destindex < MAX_PEERS) {
@@ -1197,7 +1886,7 @@ void FluxAoOAudioProcessor::setPatchMatrixValue(int srcindex, int destindex, boo
 }
 
 
-void FluxAoOAudioProcessor::adjustRemoteSendMatrix(int index, bool removed)
+void SonobusAudioProcessor::adjustRemoteSendMatrix(int index, bool removed)
 {
     if (removed) {
         // adjust mRemoteSendMatrix
@@ -1241,7 +1930,32 @@ void FluxAoOAudioProcessor::adjustRemoteSendMatrix(int index, bool removed)
     }
 }
 
-bool FluxAoOAudioProcessor::removeRemotePeer(int index)
+bool SonobusAudioProcessor::removeAllRemotePeers()
+{
+    const ScopedWriteLock sl (mCoreLock);        
+
+    for (int index = 0; index < mRemotePeers.size(); ++index) {  
+        auto remote = mRemotePeers.getUnchecked(index);
+        
+        if (remote->connected) {
+            disconnectRemotePeer(index);
+        }        
+    }
+
+    mRemotePeers.clear();
+    
+    // reset matrix
+    for (int i=0; i < MAX_PEERS; ++i) {
+        for (int j=0; j < MAX_PEERS; ++j) {
+            mRemoteSendMatrix[i][j] = false;
+        }
+    }
+    
+    return true;
+}
+
+
+bool SonobusAudioProcessor::removeRemotePeer(int index)
 {
     RemotePeer * remote = 0;
     bool ret = false;
@@ -1254,7 +1968,7 @@ bool FluxAoOAudioProcessor::removeRemotePeer(int index)
             if (remote->connected) {
                 disconnectRemotePeer(index);
             }
-            
+                        
             adjustRemoteSendMatrix(index, true);
             
             mRemotePeers.remove(index);
@@ -1265,12 +1979,12 @@ bool FluxAoOAudioProcessor::removeRemotePeer(int index)
 }
 
 
-int FluxAoOAudioProcessor::getNumberRemotePeers() const
+int SonobusAudioProcessor::getNumberRemotePeers() const
 {
     return mRemotePeers.size();
 }
 
-void FluxAoOAudioProcessor::setRemotePeerLevelGain(int index, float levelgain)
+void SonobusAudioProcessor::setRemotePeerLevelGain(int index, float levelgain)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1279,7 +1993,7 @@ void FluxAoOAudioProcessor::setRemotePeerLevelGain(int index, float levelgain)
     }
 }
 
-float FluxAoOAudioProcessor::getRemotePeerLevelGain(int index) const
+float SonobusAudioProcessor::getRemotePeerLevelGain(int index) const
 {
     float levelgain = 0.0f;
     
@@ -1291,7 +2005,7 @@ float FluxAoOAudioProcessor::getRemotePeerLevelGain(int index) const
     return levelgain;
 }
 
-void FluxAoOAudioProcessor::setRemotePeerChannelPan(int index, int chan, float pan)
+void SonobusAudioProcessor::setRemotePeerChannelPan(int index, int chan, float pan)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1302,7 +2016,27 @@ void FluxAoOAudioProcessor::setRemotePeerChannelPan(int index, int chan, float p
     }
 }
 
-float FluxAoOAudioProcessor::getRemotePeerChannelPan(int index, int chan) const
+void SonobusAudioProcessor::setRemotePeerUserName(int index, const String & name)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        auto * remote = mRemotePeers.getUnchecked(index);
+        remote->userName = name;
+    }
+}
+
+String SonobusAudioProcessor::getRemotePeerUserName(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        auto * remote = mRemotePeers.getUnchecked(index);
+        return remote->userName;
+    }
+    return "";
+}
+
+
+float SonobusAudioProcessor::getRemotePeerChannelPan(int index, int chan) const
 {
     float pan = 0.0f;
     
@@ -1316,7 +2050,7 @@ float FluxAoOAudioProcessor::getRemotePeerChannelPan(int index, int chan) const
     return pan;
 }
 
-int FluxAoOAudioProcessor::getRemotePeerChannelCount(int index) const
+int SonobusAudioProcessor::getRemotePeerChannelCount(int index) const
 {
     int ret = 0;
     const ScopedReadLock sl (mCoreLock);        
@@ -1328,19 +2062,22 @@ int FluxAoOAudioProcessor::getRemotePeerChannelCount(int index) const
 }
 
 
-void FluxAoOAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
+void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         remote->buffertimeMs = bufferMs;
-        remote->totalLatency = remote->smoothPingTime.xbar + remote->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+        remote->totalEstLatency = remote->smoothPingTime.xbar + 2*remote->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
         remote->oursink->set_buffersize(remote->buffertimeMs); // ms
+        remote->echosink->set_buffersize(remote->buffertimeMs);
+        remote->latencysink->set_buffersize(remote->buffertimeMs);
         remote->netBufAutoBaseline = 0.0f; // reset
+        remote->latencyDirty = true;
     }
 }
 
-float FluxAoOAudioProcessor::getRemotePeerBufferTime(int index) const
+float SonobusAudioProcessor::getRemotePeerBufferTime(int index) const
 {
     float buftimeMs = 30.0f;
     
@@ -1352,7 +2089,7 @@ float FluxAoOAudioProcessor::getRemotePeerBufferTime(int index) const
     return buftimeMs;    
 }
 
-void FluxAoOAudioProcessor::setRemotePeerAutoresizeBufferMode(int index, FluxAoOAudioProcessor::AutoNetBufferMode flag)
+void SonobusAudioProcessor::setRemotePeerAutoresizeBufferMode(int index, SonobusAudioProcessor::AutoNetBufferMode flag)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1365,7 +2102,7 @@ void FluxAoOAudioProcessor::setRemotePeerAutoresizeBufferMode(int index, FluxAoO
     }
 }
 
-FluxAoOAudioProcessor::AutoNetBufferMode FluxAoOAudioProcessor::getRemotePeerAutoresizeBufferMode(int index) const
+SonobusAudioProcessor::AutoNetBufferMode SonobusAudioProcessor::getRemotePeerAutoresizeBufferMode(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1376,7 +2113,7 @@ FluxAoOAudioProcessor::AutoNetBufferMode FluxAoOAudioProcessor::getRemotePeerAut
 }
 
 
-void FluxAoOAudioProcessor::setRemotePeerRecvActive(int index, bool active)
+void SonobusAudioProcessor::setRemotePeerRecvActive(int index, bool active)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1400,7 +2137,7 @@ void FluxAoOAudioProcessor::setRemotePeerRecvActive(int index, bool active)
     }
 }
 
-bool FluxAoOAudioProcessor::getRemotePeerRecvActive(int index) const
+bool SonobusAudioProcessor::getRemotePeerRecvActive(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1410,7 +2147,7 @@ bool FluxAoOAudioProcessor::getRemotePeerRecvActive(int index) const
     return false;        
 }
 
-void FluxAoOAudioProcessor::setRemotePeerSendAllow(int index, bool allow)
+void SonobusAudioProcessor::setRemotePeerSendAllow(int index, bool allow)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1424,7 +2161,7 @@ void FluxAoOAudioProcessor::setRemotePeerSendAllow(int index, bool allow)
     }
 }
 
-bool FluxAoOAudioProcessor::getRemotePeerSendAllow(int index) const
+bool SonobusAudioProcessor::getRemotePeerSendAllow(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1434,7 +2171,7 @@ bool FluxAoOAudioProcessor::getRemotePeerSendAllow(int index) const
     return false;        
 }
 
-void FluxAoOAudioProcessor::setRemotePeerRecvAllow(int index, bool allow)
+void SonobusAudioProcessor::setRemotePeerRecvAllow(int index, bool allow)
 {
      const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1447,7 +2184,7 @@ void FluxAoOAudioProcessor::setRemotePeerRecvAllow(int index, bool allow)
     }
 }
 
-bool FluxAoOAudioProcessor::getRemotePeerRecvAllow(int index) const
+bool SonobusAudioProcessor::getRemotePeerRecvAllow(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1458,7 +2195,7 @@ bool FluxAoOAudioProcessor::getRemotePeerRecvAllow(int index) const
 }
 
 
-int64_t FluxAoOAudioProcessor::getRemotePeerPacketsReceived(int index) const
+int64_t SonobusAudioProcessor::getRemotePeerPacketsReceived(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1468,7 +2205,7 @@ int64_t FluxAoOAudioProcessor::getRemotePeerPacketsReceived(int index) const
     return 0;      
 }
 
-int64_t FluxAoOAudioProcessor::getRemotePeerPacketsSent(int index) const
+int64_t SonobusAudioProcessor::getRemotePeerPacketsSent(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1478,7 +2215,7 @@ int64_t FluxAoOAudioProcessor::getRemotePeerPacketsSent(int index) const
     return 0;      
 }
 
-int64_t FluxAoOAudioProcessor::getRemotePeerBytesSent(int index) const
+int64_t SonobusAudioProcessor::getRemotePeerBytesSent(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1488,7 +2225,7 @@ int64_t FluxAoOAudioProcessor::getRemotePeerBytesSent(int index) const
     return 0;          
 }
 
-int64_t FluxAoOAudioProcessor::getRemotePeerBytesReceived(int index) const
+int64_t SonobusAudioProcessor::getRemotePeerBytesReceived(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1498,7 +2235,7 @@ int64_t FluxAoOAudioProcessor::getRemotePeerBytesReceived(int index) const
     return 0;      
 }
 
-int64_t  FluxAoOAudioProcessor::getRemotePeerPacketsDropped(int index) const
+int64_t  SonobusAudioProcessor::getRemotePeerPacketsDropped(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1508,7 +2245,7 @@ int64_t  FluxAoOAudioProcessor::getRemotePeerPacketsDropped(int index) const
     return 0;      
 }
 
-int64_t  FluxAoOAudioProcessor::getRemotePeerPacketsResent(int index) const
+int64_t  SonobusAudioProcessor::getRemotePeerPacketsResent(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1519,7 +2256,7 @@ int64_t  FluxAoOAudioProcessor::getRemotePeerPacketsResent(int index) const
 }
 
 
-float FluxAoOAudioProcessor::getRemotePeerPingMs(int index) const
+float SonobusAudioProcessor::getRemotePeerPingMs(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1529,18 +2266,122 @@ float FluxAoOAudioProcessor::getRemotePeerPingMs(int index) const
     return 0;          
 }
 
-float FluxAoOAudioProcessor::getRemotePeerTotalLatencyMs(int index) const
+float SonobusAudioProcessor::getRemotePeerTotalLatencyMs(int index, bool & estimated) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        return remote->totalLatency ;
+        if (remote->activeLatencyTest && remote->latencyProcessor) {
+            if (remote->latencyProcessor->resolve() < 0) {
+                DebugLogC("Latency Signal below threshold...");
+
+            }
+            else 
+            {
+                const bool excludeBuffer = false;
+
+                double         d, dcapt, dplay, t;
+                bool inv = false;
+                bool quest = false;
+                t = 1000.0 / getSampleRate();
+                dcapt = currSamplesPerBlock;
+                dplay = currSamplesPerBlock;
+                
+                if (remote->latencyProcessor->err () > 0.35f) 
+                {
+                    remote->latencyProcessor->invert ();
+                    remote->latencyProcessor->resolve ();
+                }
+
+                d = remote->latencyProcessor->del ();
+
+                if (excludeBuffer) {
+                    d -= dcapt + dplay;   
+                }
+                if (remote->latencyProcessor->err () > 0.30f) {
+                    //printf ("???  ");   
+                    quest = true;
+                }
+                else if (remote->latencyProcessor->inv ()) {
+                    inv = true;
+                }
+
+                DebugLogC("Peer %d:  %10.3lf frames %8.3lf ms   - %s", d, d * t, quest ? "???" : (inv ? "Inv" : ""));
+
+                remote->totalLatency = d*t;
+                remote->hasRealLatency = true;
+                remote->latencyDirty = false;
+                estimated = false;
+                return remote->totalLatency;
+            }
+        }
+
+        if (remote->hasRealLatency) {
+            estimated = remote->latencyDirty;
+            return remote->totalLatency;
+        }
+        else {
+            estimated = true;
+            return remote->totalEstLatency ;
+        }
     }
     return 0;          
 }
 
+bool SonobusAudioProcessor::isRemotePeerLatencyTestActive(int index)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->activeLatencyTest;
+    }
+    return false;      
+}
 
-void FluxAoOAudioProcessor::setRemotePeerSendActive(int index, bool active)
+
+bool SonobusAudioProcessor::startRemotePeerLatencyTest(int index, float durationsec)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        if (!remote->activeLatencyTest) {
+            // invite remote's echosource to send to our latency sink
+            remote->latencysink->invite_source(remote->endpoint, remote->remoteSourceId+ECHO_ID_OFFSET, endpoint_send);
+            
+            // start our latency source sending to remote's echosink
+            remote->latencysource->add_sink(remote->endpoint, remote->remoteSinkId+ECHO_ID_OFFSET, endpoint_send);            
+            remote->latencysource->start();
+            
+            remote->activeLatencyTest = true;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool SonobusAudioProcessor::stopRemotePeerLatencyTest(int index)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        if (remote->activeLatencyTest) {
+            // uninvite remote's echosource
+            remote->latencysink->uninvite_all();
+            
+            // stop our latency source sending to anyone
+            remote->latencysource->remove_all();
+            remote->latencysource->stop();
+
+            remote->activeLatencyTest = false;            
+        }
+        return true;
+    }
+    return false;          
+}
+
+
+
+void SonobusAudioProcessor::setRemotePeerSendActive(int index, bool active)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1555,7 +2396,7 @@ void FluxAoOAudioProcessor::setRemotePeerSendActive(int index, bool active)
     }
 }
 
-bool FluxAoOAudioProcessor::getRemotePeerSendActive(int index) const
+bool SonobusAudioProcessor::getRemotePeerSendActive(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1565,7 +2406,7 @@ bool FluxAoOAudioProcessor::getRemotePeerSendActive(int index) const
     return false;        
 }
 
-void FluxAoOAudioProcessor::setRemotePeerConnected(int index, bool active)
+void SonobusAudioProcessor::setRemotePeerConnected(int index, bool active)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1574,7 +2415,7 @@ void FluxAoOAudioProcessor::setRemotePeerConnected(int index, bool active)
     }
 }
 
-bool FluxAoOAudioProcessor::getRemotePeerConnected(int index) const
+bool SonobusAudioProcessor::getRemotePeerConnected(int index) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1585,7 +2426,7 @@ bool FluxAoOAudioProcessor::getRemotePeerConnected(int index) const
 }
 
 
-bool FluxAoOAudioProcessor::getRemotePeerAddressInfo(int index, String & rethost, int & retport) const
+bool SonobusAudioProcessor::getRemotePeerAddressInfo(int index, String & rethost, int & retport) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -1598,7 +2439,7 @@ bool FluxAoOAudioProcessor::getRemotePeerAddressInfo(int index, String & rethost
 }
 
 
-FluxAoOAudioProcessor::RemotePeer *  FluxAoOAudioProcessor::findRemotePeer(EndpointState * endpoint, int32_t ourId)
+SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeer(EndpointState * endpoint, int32_t ourId)
 {
     const ScopedReadLock sl (mCoreLock);        
 
@@ -1614,7 +2455,7 @@ FluxAoOAudioProcessor::RemotePeer *  FluxAoOAudioProcessor::findRemotePeer(Endpo
     return retpeer;        
 }
 
-FluxAoOAudioProcessor::RemotePeer *  FluxAoOAudioProcessor::findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId)
+SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId)
 {
     const ScopedReadLock sl (mCoreLock);        
 
@@ -1630,7 +2471,7 @@ FluxAoOAudioProcessor::RemotePeer *  FluxAoOAudioProcessor::findRemotePeerByRemo
     return retpeer;        
 }
 
-FluxAoOAudioProcessor::RemotePeer *  FluxAoOAudioProcessor::findRemotePeerByRemoteSinkId(EndpointState * endpoint, int32_t sinkId)
+SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeerByRemoteSinkId(EndpointState * endpoint, int32_t sinkId)
 {
     const ScopedReadLock sl (mCoreLock);        
 
@@ -1646,9 +2487,41 @@ FluxAoOAudioProcessor::RemotePeer *  FluxAoOAudioProcessor::findRemotePeerByRemo
     return retpeer;        
 }
 
+SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeerByEchoId(EndpointState * endpoint, int32_t echoId)
+{
+    const ScopedReadLock sl (mCoreLock);        
+
+    RemotePeer * retpeer = 0;
+
+    for (auto s : mRemotePeers) {
+        if (s->endpoint == endpoint && s->ourId+ECHO_ID_OFFSET == echoId) {
+            retpeer = s;
+            break;
+        }
+    }
+        
+    return retpeer;        
+}
+
+SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeerByLatencyId(EndpointState * endpoint, int32_t latId)
+{
+    const ScopedReadLock sl (mCoreLock);        
+
+    RemotePeer * retpeer = 0;
+
+    for (auto s : mRemotePeers) {
+        if (s->endpoint == endpoint && s->ourId+LATENCY_ID_OFFSET == latId) {
+            retpeer = s;
+            break;
+        }
+    }
+        
+    return retpeer;        
+}
 
 
-FluxAoOAudioProcessor::RemotePeer * FluxAoOAudioProcessor::doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId)
+
+SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId)
 {
     const ScopedWriteLock sl (mCoreLock);        
 
@@ -1682,9 +2555,10 @@ FluxAoOAudioProcessor::RemotePeer * FluxAoOAudioProcessor::doAddRemotePeerIfNece
         
         adjustRemoteSendMatrix(mRemotePeers.size(), false);
 
-        retpeer = mRemotePeers.add(new RemotePeer(endpoint, newid, aoo::isink::pointer(aoo::isink::create(newid)), aoo::isource::pointer(aoo::isource::create(newid))));
+        retpeer = mRemotePeers.add(new RemotePeer(endpoint, newid));
 
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getTotalNumOutputChannels());
+        retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
 
         retpeer->sendChannels = getTotalNumInputChannels(); // by default
         
@@ -1692,6 +2566,21 @@ FluxAoOAudioProcessor::RemotePeer * FluxAoOAudioProcessor::doAddRemotePeerIfNece
         retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, retpeer->sendChannels);
         retpeer->oursource->set_packetsize(retpeer->packetsize);
 
+        setupSourceFormat(retpeer, retpeer->latencysource.get(), true);
+        retpeer->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
+        retpeer->latencysource->set_packetsize(retpeer->packetsize);
+        setupSourceFormat(retpeer, retpeer->echosource.get(), true);
+        retpeer->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
+        retpeer->echosource->set_packetsize(retpeer->packetsize);
+
+        retpeer->latencysink->setup(getSampleRate(), currSamplesPerBlock, 1);
+        retpeer->echosink->setup(getSampleRate(), currSamplesPerBlock, 1);
+
+        retpeer->latencysink->set_buffersize(retpeer->buffertimeMs);
+        retpeer->echosink->set_buffersize(retpeer->buffertimeMs);
+
+        retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
+        
         retpeer->workBuffer.setSize(2, currSamplesPerBlock);
 
         int outchannels = getTotalNumOutputChannels();
@@ -1708,7 +2597,33 @@ FluxAoOAudioProcessor::RemotePeer * FluxAoOAudioProcessor::doAddRemotePeerIfNece
     return retpeer;    
 }
 
-bool FluxAoOAudioProcessor::doRemoveRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId)
+bool SonobusAudioProcessor::removeAllRemotePeersWithEndpoint(EndpointState * endpoint)
+{
+    const ScopedWriteLock sl (mCoreLock);        
+
+    bool didremove = false;
+    
+    // go from end, so deletions don't mess it up
+    for (int i = mRemotePeers.size()-1; i >= 0;  --i) {
+        auto * s = mRemotePeers.getUnchecked(i);
+        if (s->endpoint == endpoint) {
+            
+            if (s->connected) {
+                disconnectRemotePeer(i);
+            }
+            
+            adjustRemoteSendMatrix(i, true);
+
+            didremove = true;
+            mRemotePeers.remove(i);
+        }
+    }
+    
+    return didremove;
+}
+
+
+bool SonobusAudioProcessor::doRemoveRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId)
 {
     const ScopedWriteLock sl (mCoreLock);        
 
@@ -1728,7 +2643,7 @@ bool FluxAoOAudioProcessor::doRemoveRemotePeerIfNecessary(EndpointState * endpoi
     
 }
 
-bool FluxAoOAudioProcessor::isAnythingRoutedToPeer(int index) const
+bool SonobusAudioProcessor::isAnythingRoutedToPeer(int index) const
 {
     bool ret = false;
 
@@ -1745,7 +2660,7 @@ bool FluxAoOAudioProcessor::isAnythingRoutedToPeer(int index) const
 
 ////
 
-void FluxAoOAudioProcessor::setupSourceFormat(FluxAoOAudioProcessor::RemotePeer * peer, aoo::isource * source)
+void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer * peer, aoo::isource * source, bool latencymode)
 {
     // have choice and parameters
     
@@ -1753,7 +2668,7 @@ void FluxAoOAudioProcessor::setupSourceFormat(FluxAoOAudioProcessor::RemotePeer 
     
     aoo_format_storage f;
     
-    int channels = peer ? peer->sendChannels : getTotalNumInputChannels();
+    int channels = latencymode ? 1  :  peer ? peer->sendChannels : getTotalNumInputChannels();
     
     if (info.codec == CodecPCM) {
         aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
@@ -1779,7 +2694,7 @@ void FluxAoOAudioProcessor::setupSourceFormat(FluxAoOAudioProcessor::RemotePeer 
 }
 
 
-void FluxAoOAudioProcessor::parameterChanged (const String &parameterID, float newValue)
+void SonobusAudioProcessor::parameterChanged (const String &parameterID, float newValue)
 {
     if (parameterID == paramDry) {
         mDry = newValue;
@@ -1800,12 +2715,12 @@ void FluxAoOAudioProcessor::parameterChanged (const String &parameterID, float n
 }
 
 //==============================================================================
-const String FluxAoOAudioProcessor::getName() const
+const String SonobusAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool FluxAoOAudioProcessor::acceptsMidi() const
+bool SonobusAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -1814,7 +2729,7 @@ bool FluxAoOAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool FluxAoOAudioProcessor::producesMidi() const
+bool SonobusAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -1823,7 +2738,7 @@ bool FluxAoOAudioProcessor::producesMidi() const
    #endif
 }
 
-bool FluxAoOAudioProcessor::isMidiEffect() const
+bool SonobusAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -1832,37 +2747,37 @@ bool FluxAoOAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double FluxAoOAudioProcessor::getTailLengthSeconds() const
+double SonobusAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int FluxAoOAudioProcessor::getNumPrograms()
+int SonobusAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int FluxAoOAudioProcessor::getCurrentProgram()
+int SonobusAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void FluxAoOAudioProcessor::setCurrentProgram (int index)
+void SonobusAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const String FluxAoOAudioProcessor::getProgramName (int index)
+const String SonobusAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void FluxAoOAudioProcessor::changeProgramName (int index, const String& newName)
+void SonobusAudioProcessor::changeProgramName (int index, const String& newName)
 {
 }
 
 //==============================================================================
-void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -1915,6 +2830,19 @@ void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         if (s->oursink) {
             s->oursink->setup(sampleRate, samplesPerBlock, outchannels);
         }
+        
+        if (s->latencysource) {
+            setupSourceFormat(s, s->latencysource.get(), true);
+            s->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
+            setupSourceFormat(s, s->echosource.get(), true);
+            s->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
+
+            s->latencysink->setup(sampleRate, samplesPerBlock, 1);
+            s->echosink->setup(sampleRate, samplesPerBlock, 1);
+            
+            s->latencyProcessor.reset(new MTDM(sampleRate));
+        }
+
 
         s->recvMeterSource.resize (outchannels, meterRmsWindow);
         s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
@@ -1933,24 +2861,27 @@ void FluxAoOAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     
 }
 
-void FluxAoOAudioProcessor::releaseResources()
+void SonobusAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool FluxAoOAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool SonobusAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     ignoreUnused (layouts);
     return true;
   #else
+    
+    // actually allow anything! what the hell.
+    
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
-        return false;
+//    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
+//     && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
+//        return false;
 
     // allow different input counts than outputs
     
@@ -1965,7 +2896,7 @@ bool FluxAoOAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 }
 #endif
 
-void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -2168,6 +3099,27 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 remote->oursource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);      
                 
                 remote->sendMeterSource.measureBlock (workBuffer);
+                
+                // now process echo and latency stuff
+                
+                workBuffer.clear(0, 0, numSamples);
+                if (remote->echosink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
+                    //DebugLogC("received something from our ECHO sink");
+                    remote->echosource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);
+                }
+
+                if (remote->activeLatencyTest && remote->latencyProcessor) {
+                    workBuffer.clear(0, 0, numSamples);
+                    if (remote->latencysink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
+                        //DebugLogC("received something from our latency sink");
+                    }
+                    
+                    remote->latencyProcessor->process(numSamples, workBuffer.getWritePointer(0), workBuffer.getWritePointer(0));
+                    
+
+                    remote->latencysource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);                                        
+                }
+                
             }
             
             ++i;
@@ -2267,34 +3219,70 @@ void FluxAoOAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 }
 
 //==============================================================================
-bool FluxAoOAudioProcessor::hasEditor() const
+bool SonobusAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-AudioProcessorEditor* FluxAoOAudioProcessor::createEditor()
+AudioProcessorEditor* SonobusAudioProcessor::createEditor()
 {
-    return new FluxAoOAudioProcessorEditor (*this);
+    return new SonobusAudioProcessorEditor (*this);
 }
 
-AudioProcessorValueTreeState& FluxAoOAudioProcessor::getValueTreeState()
+AudioProcessorValueTreeState& SonobusAudioProcessor::getValueTreeState()
 {
     return mState;
 }
 
+ValueTree AooServerConnectionInfo::getValueTree() const
+{
+    ValueTree item(recentsItemKey);
+    
+    item.setProperty("userName", userName, nullptr);
+    item.setProperty("userPassword", userPassword, nullptr);
+    item.setProperty("groupName", groupName, nullptr);
+    item.setProperty("groupPassword", groupPassword, nullptr);
+    item.setProperty("serverHost", serverHost, nullptr);
+    item.setProperty("serverPort", serverPort, nullptr);
+    item.setProperty("timestamp", timestamp, nullptr);
+    
+    return item;
+}
+
+void AooServerConnectionInfo::setFromValueTree(const ValueTree & item)
+{    
+    userName = item.getProperty("userName", userName);
+    userPassword = item.getProperty("userPassword", userPassword);
+    groupName = item.getProperty("groupName", groupName);
+    groupPassword = item.getProperty("groupPassword", groupPassword);
+    serverHost = item.getProperty("serverHost", serverHost);
+    serverPort = item.getProperty("serverPort", serverPort);
+    timestamp = item.getProperty("timestamp", timestamp);
+}
+
+
 //==============================================================================
-void FluxAoOAudioProcessor::getStateInformation (MemoryBlock& destData)
+void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
     MemoryOutputStream stream(destData, false);
+
+    ValueTree recentsTree = mState.state.getOrCreateChildWithName(recentsCollectionKey, nullptr);
+    // update state with our recents info
+    recentsTree.removeAllChildren(nullptr);
+    for (auto & info : mRecentConnectionInfos) {
+        recentsTree.appendChild(info.getValueTree(), nullptr);        
+    }
+    
+    
     mState.state.writeToStream (stream);
     
     DebugLogC("GETSTATE: %s", mState.state.toXmlString().toRawUTF8());
 }
 
-void FluxAoOAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -2303,6 +3291,16 @@ void FluxAoOAudioProcessor::setStateInformation (const void* data, int sizeInByt
         mState.state = tree;
         
         DebugLogC("SETSTATE: %s", mState.state.toXmlString().toRawUTF8());
+        ValueTree recentsTree = mState.state.getChildWithName(recentsCollectionKey);
+        if (recentsTree.isValid()) {
+            mRecentConnectionInfos.clear();
+            for (auto child : recentsTree) {
+                AooServerConnectionInfo info;
+                info.setFromValueTree(child);
+                mRecentConnectionInfos.add(info);
+            }
+        }
+        
         
     }
 }
@@ -2311,5 +3309,5 @@ void FluxAoOAudioProcessor::setStateInformation (const void* data, int sizeInByt
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new FluxAoOAudioProcessor();
+    return new SonobusAudioProcessor();
 }

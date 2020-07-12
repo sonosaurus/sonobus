@@ -30,6 +30,9 @@ extern juce::AudioProcessor* JUCE_API JUCE_CALLTYPE createPluginFilterOfType (ju
 
 #include "CrossPlatformUtils.h"
 
+// HACK
+#include "SonobusPluginEditor.h"
+
 namespace juce
 {
 
@@ -294,7 +297,8 @@ public:
                                                           maxNumOutputs));
         o.content->setSize (500, 550);
 
-        o.dialogTitle                   = TRANS("Audio/MIDI Settings");
+        //o.dialogTitle                   = TRANS("Audio/MIDI Settings");
+        o.dialogTitle                   = TRANS("Audio Settings");
         o.dialogBackgroundColour        = o.content->getLookAndFeel().findColour (ResizableWindow::backgroundColourId);
         o.escapeKeyTriggersCloseButton  = true;
         o.useNativeTitleBar             = true;
@@ -439,7 +443,7 @@ private:
               deviceSelector (deviceManagerToUse,
                               minAudioInputChannels, maxAudioInputChannels,
                               minAudioOutputChannels, maxAudioOutputChannels,
-                              true,
+                              false, // show MIDI input
                               (pluginHolder.processor.get() != nullptr && pluginHolder.processor->producesMidi()),
                               false, false),
               shouldMuteLabel  ("Feedback Loop:", "Feedback Loop:"),
@@ -625,7 +629,7 @@ public:
         Component::addAndMakeVisible (optionsButton);
         optionsButton.addListener (this);
         optionsButton.setTriggeredOnMouseDown (true);
-        setUsingNativeTitleBar(false);
+        setUsingNativeTitleBar(true);
         #endif
 
         setResizable (true, false);
@@ -762,6 +766,11 @@ private:
 
             if (editor != nullptr)
             {
+                // hack to allow editor to get devicemanager
+                if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(editor.get())) {
+                    sonoeditor->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
+                }
+                
                 editor->addComponentListener (this);
                 componentMovedOrResized (*editor, false, true);
 
@@ -842,11 +851,11 @@ private:
 
             NotificationArea (Button::Listener* settingsButtonListener)
                 : notification ("notification", "Audio input is muted to avoid\nfeedback loop.\nHeadphones recommended!"),
-                 #if JUCE_IOS || JUCE_ANDROID
+                 //#if JUCE_IOS || JUCE_ANDROID
                   settingsButton ("Unmute Input")
-                 #else
-                  settingsButton ("Settings...")
-                 #endif
+                 //#else
+                 // settingsButton ("Settings...")
+                 //#endif
             {
                 setOpaque (true);
 
@@ -899,11 +908,11 @@ private:
         void valueChanged (Value& value) override     { inputMutedChanged (value.getValue()); }
         void buttonClicked (Button*) override
         {
-           #if JUCE_IOS || JUCE_ANDROID
+           //#if JUCE_IOS || JUCE_ANDROID
             owner.pluginHolder->getMuteInputValue().setValue (false);
-           #else
-            owner.pluginHolder->showAudioSettingsDialog();
-           #endif
+           //#else
+           // owner.pluginHolder->showAudioSettingsDialog();
+           //#endif
         }
 
         //==============================================================================

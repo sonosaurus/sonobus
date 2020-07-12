@@ -12,13 +12,14 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "FluxPluginProcessor.h"
+#include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
 #include "SonoChoiceButton.h"
 #include "SonoDrawableButton.h"
+#include "GenericItemChooser.h"
 
 
-class PeerViewInfo : public Component {
+class PeerViewInfo : public Component{
 public:
     PeerViewInfo();
     virtual ~PeerViewInfo() {}
@@ -27,14 +28,17 @@ public:
     void resized() override;
     
     //void updateLayout();
-    
+
+    SonoBigTextLookAndFeel smallLnf;
     
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;
     
     std::unique_ptr<Label> nameLabel;
+    std::unique_ptr<Label> addrLabel;
     std::unique_ptr<ToggleButton> sendActiveButton;
     std::unique_ptr<ToggleButton> recvActiveButton;
+    std::unique_ptr<TextButton> latActiveButton;
     std::unique_ptr<SonoDrawableButton> menuButton;
     std::unique_ptr<Label>  statusLabel;
     std::unique_ptr<Label>  levelLabel;
@@ -60,9 +64,11 @@ public:
     
     
     FlexBox mainbox;
+    FlexBox mainnarrowbox;
     FlexBox mainsendbox;
     FlexBox mainrecvbox;
     FlexBox namebox;
+    FlexBox nameaddrbox;
     FlexBox sendbox;
     FlexBox sendmeterbox;
     FlexBox recvbox;
@@ -74,15 +80,20 @@ public:
 
     int64_t lastBytesRecv = 0;
     int64_t lastBytesSent = 0;
+    
+    double stopLatencyTestTimestampMs = 0.0;
+    bool wasRecvActiveAtLatencyTest = false;
+    bool wasSendActiveAtLatencyTest = false;
 };
 
 class PeersContainerView : public Component,
 public Button::Listener,
 public Slider::Listener,
-public SonoChoiceButton::Listener
+public SonoChoiceButton::Listener,
+public GenericItemChooser::Listener 
 {
 public:
-    PeersContainerView(FluxAoOAudioProcessor&);
+    PeersContainerView(SonobusAudioProcessor&);
     
     void paint(Graphics & g) override;
     
@@ -92,26 +103,42 @@ public:
     void sliderValueChanged (Slider* slider) override;
     void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
     
+    void mouseUp (const MouseEvent& event)  override;
+
+    
     int getPeerViewCount() const { return mPeerViews.size(); }
     
     void rebuildPeerViews();
     void updatePeerViews();
     
+    void setNarrowMode(bool flag) { isNarrow = flag; updateLayout(); }
+    bool setNarrowMode() const { return isNarrow; }
+    
+    void showPopupMenu(Component * source, int index);
+
+    void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
+    
+
     Rectangle<int> getMinimumContentBounds() const;
     
     void updateLayout();
     
 protected:
     
+    void startLatencyTest(int i);
+    void stopLatencyTest(int i);
+    
     PeerViewInfo * createPeerViewInfo();
     
     OwnedArray<PeerViewInfo> mPeerViews;
-    FluxAoOAudioProcessor& processor;
+    SonobusAudioProcessor& processor;
     
     FlexBox peersBox;
     int peersMinHeight = 120;
     int peersMinWidth = 400;
     
+    bool isNarrow = false;
+
     double lastUpdateTimestampMs = 0;
 };
 

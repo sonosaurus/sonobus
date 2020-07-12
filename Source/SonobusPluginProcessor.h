@@ -1,30 +1,54 @@
-/*
-  ==============================================================================
 
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
 
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "aoo/aoo.hpp"
+#include "aoo/aoo_net.hpp"
 
 #define MAX_PEERS 32
+
+
+struct AooServerConnectionInfo
+{
+    AooServerConnectionInfo() {}
+    
+    ValueTree getValueTree() const;
+    void setFromValueTree(const ValueTree & val);
+    
+    String userName;
+    String userPassword;
+    String groupName;
+    String groupPassword;
+    String serverHost;
+    int    serverPort;
+    
+    int64_t timestamp; // milliseconds since 1970
+};
+
+inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs) {
+    // compare all except timestamp
+     return (lhs.userName == rhs.userName
+             && lhs.userPassword == rhs.userPassword
+             && lhs.groupName == rhs.groupName
+             && lhs.groupPassword == rhs.groupPassword
+             && lhs.serverHost == rhs.serverHost
+             && lhs.serverPort == rhs.serverPort
+             );
+}
+
+inline bool operator!=(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs){ return !(lhs == rhs); }
 
 //==============================================================================
 /**
 */
-class FluxAoOAudioProcessor  : public AudioProcessor, public AudioProcessorValueTreeState::Listener
+class SonobusAudioProcessor  : public AudioProcessor, public AudioProcessorValueTreeState::Listener
 {
 public:
     //==============================================================================
-    FluxAoOAudioProcessor();
-    ~FluxAoOAudioProcessor();
+    SonobusAudioProcessor();
+    ~SonobusAudioProcessor();
 
     enum AutoNetBufferMode {
         AutoNetBufferModeOff = 0,
@@ -83,19 +107,45 @@ public:
     
     int32_t handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId);
     int32_t handleSinkEvents(const aoo_event ** events, int32_t n, int32_t sinkId);
+    int32_t handleServerEvents(const aoo_event ** events, int32_t n);
+    int32_t handleClientEvents(const aoo_event ** events, int32_t n);
 
+    // server stuff
+    void startAooServer();
+    void stopAooServer();
+  
+    // client stuff
+    bool connectToServer(const String & host, int port, const String & username, const String & passwd="");
+    bool isConnectedToServer() const;
+    bool disconnectFromServer();
+
+    void setAutoconnectToGroupPeers(bool flag);
+    bool getAutoconnectToGroupPeers() const { return mAutoconnectGroupPeers; }
+
+    bool joinServerGroup(const String & group, const String & groupsecret = "");
+    bool leaveServerGroup(const String & group);
+    String getCurrentJoinedGroup() const ;
+    
+    void addRecentServerConnectionInfo(const AooServerConnectionInfo & cinfo);
+    int getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray);
+    void clearRecentServerConnectionInfos();
+    
+    // peer stuff
     
     EndpointState * findOrAddEndpoint(const String & host, int port);
+    EndpointState * findOrAddRawEndpoint(void * rawaddr);
 
     int getUdpLocalPort() const { return mUdpLocalPort; }
     IPAddress getLocalIPAddress() const { return mLocalIPAddress; }
     
   
-    int connectRemotePeer(const String & host, int port, bool reciprocate=true);
+    int connectRemotePeer(const String & host, int port, const String & username = "", const String & groupname = "",  bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
     bool disconnectRemotePeer(int index);
     bool removeRemotePeer(int index);
 
+    bool removeAllRemotePeers();
+    
     int getNumberRemotePeers() const;
 
     void setRemotePeerLevelGain(int index, float levelgain);
@@ -103,6 +153,9 @@ public:
 
     void setRemotePeerChannelPan(int index, int chan, float pan);
     float getRemotePeerChannelPan(int index, int chan) const;
+
+    void setRemotePeerUserName(int index, const String & name);
+    String getRemotePeerUserName(int index) const;
 
     int getRemotePeerChannelCount(int index) const;
     
@@ -137,9 +190,13 @@ public:
 
     
     float getRemotePeerPingMs(int index) const;
-    float getRemotePeerTotalLatencyMs(int index) const;
+    float getRemotePeerTotalLatencyMs(int index, bool & estimated) const;
 
-
+    bool startRemotePeerLatencyTest(int index, float durationsec = 1.0);
+    bool stopRemotePeerLatencyTest(int index);
+    bool isRemotePeerLatencyTestActive(int index);
+    
+    
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
     void setDefaultAudioCodecFormat(int formatIndex) { if (formatIndex < mAudioFormats.size()) mDefaultAudioFormatIndex = formatIndex; }
@@ -171,9 +228,30 @@ public:
     
     bool isAnythingRoutedToPeer(int index) const;
     
+    class ClientListener {
+    public:
+        virtual ~ClientListener() {}
+        virtual void aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") {}
+        virtual void aooClientDisconnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") {}
+        virtual void aooClientLoginResult(SonobusAudioProcessor *comp, bool success, const String & errmesg="") {}
+        virtual void aooClientGroupJoined(SonobusAudioProcessor *comp, bool success, const String & group,  const String & errmesg="") {}
+        virtual void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") {}
+        virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) {}
+        virtual void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) {}
+        virtual void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) {}
+        virtual void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) {}
+    };
+    
+    void addClientListener(ClientListener * l) {
+        clientListeners.add(l);
+    }
+    void removeClientListener(ClientListener * l) {
+        clientListeners.remove(l);
+    }
+    
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FluxAoOAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
     
     void initializeAoo();
     void cleanupAoo();
@@ -182,16 +260,26 @@ private:
     void doSendData();
     void handleEvents();
     
-    void setupSourceFormat(RemotePeer * peer, aoo::isource * source);
+    void setupSourceFormat(RemotePeer * peer, aoo::isource * source, bool latencymode=false);
 
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);
+    RemotePeer *  findRemotePeerByEchoId(EndpointState * endpoint, int32_t echoId);
+    RemotePeer *  findRemotePeerByLatencyId(EndpointState * endpoint, int32_t latId);
     RemotePeer *  findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId);
     RemotePeer *  findRemotePeerByRemoteSinkId(EndpointState * endpoint, int32_t sinkId);
     RemotePeer *  doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId=AOO_ID_NONE);
     bool doRemoveRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId);
     
+    bool removeAllRemotePeersWithEndpoint(EndpointState * endpoint);
+
     void adjustRemoteSendMatrix(int index, bool removed);
+
+    
+    int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
+
+    
+    ListenerList<ClientListener> clientListeners;
 
     
     AudioSampleBuffer tempBuffer;
@@ -236,6 +324,15 @@ private:
     // AOO stuff
     aoo::isource::pointer mAooDummySource;
 
+    aoo::net::iserver::pointer mAooServer;
+    aoo::net::iclient::pointer mAooClient;
+
+    std::unique_ptr<EndpointState> mServerEndpoint;
+    
+    bool mAutoconnectGroupPeers = true;
+    bool mIsConnectedToServer = false;
+    String mCurrentJoinedGroup;
+    
     // we will add sinks for any peer we invite, as part of a RemoteSource
     
     
@@ -246,15 +343,20 @@ private:
     class SendThread;
     class RecvThread;
     class EventThread;
+    class ServerThread;
+    class ClientThread;
     
     CriticalSection  mEndpointsLock;
     ReadWriteLock    mCoreLock;
+    CriticalSection  mClientLock;
     
     OwnedArray<EndpointState> mEndpoints;
     
     OwnedArray<RemotePeer> mRemotePeers;
 
 
+    Array<AooServerConnectionInfo> mRecentConnectionInfos;
+    
     CriticalSection  mRemotesLock;
 
     enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus };
@@ -294,5 +396,7 @@ private:
     std::unique_ptr<SendThread> mSendThread;
     std::unique_ptr<RecvThread> mRecvThread;
     std::unique_ptr<EventThread> mEventThread;
+    std::unique_ptr<ServerThread> mServerThread;
+    std::unique_ptr<ClientThread> mClientThread;
     
 };

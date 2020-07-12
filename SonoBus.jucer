@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="ZRovAH" name="FluxAoO" projectType="audioplug" jucerVersion="5.4.3"
+<JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" jucerVersion="5.4.3"
               companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
               companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,enableIAA"
-              pluginManufacturerCode="Sono" pluginCode="Flux" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1"
+              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1"
               pluginDesc="Network Audio" version="1.0">
-  <MAINGROUP id="i87g34" name="FluxAoO">
+  <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{0A5C718F-ECF4-7A7E-1D8F-27A725A1C4B7}" name="external">
       <GROUP id="{6D1E44EF-572A-380C-2088-148ABE6086A3}" name="aoo">
         <FILE id="WdUAg6" name="aoo.h" compile="0" resource="0" file="../aoo/lib/aoo/aoo.h"/>
@@ -74,6 +74,10 @@
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
       <FILE id="DLrrYi" name="settings_icon.svg" compile="0" resource="1"
             file="images/settings_icon.svg"/>
+      <FILE id="seEQvf" name="tempicon-256.png" compile="0" resource="0"
+            file="images/tempicon-256.png"/>
+      <FILE id="clKeGk" name="tempicon-1024.png" compile="0" resource="0"
+            file="images/tempicon-1024.png"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
@@ -87,20 +91,22 @@
       <FILE id="mJdadQ" name="CrossPlatformUtilsIOS.mm" compile="1" resource="0"
             file="Source/CrossPlatformUtilsIOS.mm"/>
       <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
-      <FILE id="SZiCPL" name="FluxPluginEditor.cpp" compile="1" resource="0"
-            file="Source/FluxPluginEditor.cpp"/>
-      <FILE id="LNdJkH" name="FluxPluginEditor.h" compile="0" resource="0"
-            file="Source/FluxPluginEditor.h"/>
-      <FILE id="f8xqxN" name="FluxPluginProcessor.cpp" compile="1" resource="0"
-            file="Source/FluxPluginProcessor.cpp"/>
-      <FILE id="PntDaO" name="FluxPluginProcessor.h" compile="0" resource="0"
-            file="Source/FluxPluginProcessor.h"/>
+      <FILE id="SZiCPL" name="SonobusPluginEditor.cpp" compile="1" resource="0"
+            file="Source/SonobusPluginEditor.cpp"/>
+      <FILE id="LNdJkH" name="SonobusPluginEditor.h" compile="0" resource="0"
+            file="Source/SonobusPluginEditor.h"/>
+      <FILE id="f8xqxN" name="SonobusPluginProcessor.cpp" compile="1" resource="0"
+            file="Source/SonobusPluginProcessor.cpp"/>
+      <FILE id="PntDaO" name="SonobusPluginProcessor.h" compile="0" resource="0"
+            file="Source/SonobusPluginProcessor.h"/>
       <FILE id="lPT2dw" name="GenericItemChooser.cpp" compile="1" resource="0"
             file="Source/GenericItemChooser.cpp"/>
       <FILE id="ID61Jz" name="GenericItemChooser.h" compile="0" resource="0"
             file="Source/GenericItemChooser.h"/>
       <FILE id="fqZMTM" name="LevelMeterLookAndFeelMethods.h" compile="0"
             resource="0" file="Source/LevelMeterLookAndFeelMethods.h"/>
+      <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
+      <FILE id="CTpEGU" name="mtdm.h" compile="0" resource="0" file="Source/mtdm.h"/>
       <FILE id="HNtjtj" name="PeersContainerView.cpp" compile="1" resource="0"
             file="Source/PeersContainerView.cpp"/>
       <FILE id="ETWAvX" name="PeersContainerView.h" compile="0" resource="0"
@@ -136,7 +142,8 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
-               extraDefs="USE_CODEC_OPUS=1">
+               extraDefs="USE_CODEC_OPUS=1" smallIcon="seEQvf" bigIcon="clKeGk"
+               iosDevelopmentTeamID="XCS435894D">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
@@ -162,8 +169,9 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;1&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
-                  extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus">
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;2&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus" smallIcon="seEQvf"
+                  bigIcon="clKeGk">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/ios/include&#10;"
                        libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2"/>
@@ -211,5 +219,5 @@
     <OSX/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
-               FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0"/>
+               FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"/>
 </JUCERPROJECT>

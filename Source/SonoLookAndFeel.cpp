@@ -456,8 +456,8 @@ void SonoLookAndFeel::drawTabAreaBehindFrontButton (TabbedButtonBar& bar, Graphi
         default: break;
     }
     
-//    g.setGradientFill (gradient);
-//    g.fillRect (shadowRect.expanded (2, 2));
+    g.setGradientFill (gradient);
+    g.fillRect (shadowRect.expanded (2, 2));
     
     g.setColour (bar.findColour (TabbedButtonBar::tabOutlineColourId));
     g.fillRect (line);
@@ -939,8 +939,11 @@ void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, in
         if (slider.getProperties().contains ("fromCentre")) {
             auto centrex = x + width*0.5f;
             auto centrey = y + height*0.5f;
-            g.fillRect (slider.isHorizontal() ? Rectangle<float> (sliderPos > centrex ? centrex : sliderPos, y + 0.5f, sliderPos > centrex ? sliderPos - centrex : centrex - sliderPos, height - 1.0f)
-                        : Rectangle<float> (x + 0.5f, sliderPos < centrey ? sliderPos : centrey, width - 1.0f, sliderPos < centrey ?  centrey - sliderPos : sliderPos - centrey));
+            
+            if (!slider.getProperties().contains ("noFill")) {
+                g.fillRect (slider.isHorizontal() ? Rectangle<float> (sliderPos > centrex ? centrex : sliderPos, y + 0.5f, sliderPos > centrex ? sliderPos - centrex : centrex - sliderPos, height - 1.0f)
+                            : Rectangle<float> (x + 0.5f, sliderPos < centrey ? sliderPos : centrey, width - 1.0f, sliderPos < centrey ?  centrey - sliderPos : sliderPos - centrey));
+            }
             
             // draw line
             g.fillRect (slider.isHorizontal() ? Rectangle<float> (sliderPos - 1, y + 0.5f, 2, height - 1.0f)
