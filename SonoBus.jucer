@@ -70,14 +70,25 @@
     </GROUP>
     <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
+      <FILE id="vgfrLE" name="dice_icon_128.png" compile="0" resource="1"
+            file="images/dice_icon_128.png"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
+      <FILE id="esS2r1" name="incoming_allowed.svg" compile="0" resource="1"
+            file="images/incoming_allowed.svg"/>
+      <FILE id="Kbk1hl" name="incoming_disallowed.svg" compile="0" resource="1"
+            file="images/incoming_disallowed.svg"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
+      <FILE id="C2rj32" name="outgoing_allowed.svg" compile="0" resource="1"
+            file="images/outgoing_allowed.svg"/>
+      <FILE id="TwBbMl" name="outgoing_disallowed.svg" compile="0" resource="1"
+            file="images/outgoing_disallowed.svg"/>
       <FILE id="DLrrYi" name="settings_icon.svg" compile="0" resource="1"
             file="images/settings_icon.svg"/>
       <FILE id="seEQvf" name="tempicon-256.png" compile="0" resource="0"
             file="images/tempicon-256.png"/>
       <FILE id="clKeGk" name="tempicon-1024.png" compile="0" resource="0"
             file="images/tempicon-1024.png"/>
+      <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
@@ -91,18 +102,12 @@
       <FILE id="mJdadQ" name="CrossPlatformUtilsIOS.mm" compile="1" resource="0"
             file="Source/CrossPlatformUtilsIOS.mm"/>
       <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
-      <FILE id="SZiCPL" name="SonobusPluginEditor.cpp" compile="1" resource="0"
-            file="Source/SonobusPluginEditor.cpp"/>
-      <FILE id="LNdJkH" name="SonobusPluginEditor.h" compile="0" resource="0"
-            file="Source/SonobusPluginEditor.h"/>
-      <FILE id="f8xqxN" name="SonobusPluginProcessor.cpp" compile="1" resource="0"
-            file="Source/SonobusPluginProcessor.cpp"/>
-      <FILE id="PntDaO" name="SonobusPluginProcessor.h" compile="0" resource="0"
-            file="Source/SonobusPluginProcessor.h"/>
       <FILE id="lPT2dw" name="GenericItemChooser.cpp" compile="1" resource="0"
             file="Source/GenericItemChooser.cpp"/>
       <FILE id="ID61Jz" name="GenericItemChooser.h" compile="0" resource="0"
             file="Source/GenericItemChooser.h"/>
+      <FILE id="U4G4zF" name="Grammar.cpp" compile="1" resource="0" file="Source/Grammar.cpp"/>
+      <FILE id="abl0cE" name="Grammar.h" compile="0" resource="0" file="Source/Grammar.h"/>
       <FILE id="fqZMTM" name="LevelMeterLookAndFeelMethods.h" compile="0"
             resource="0" file="Source/LevelMeterLookAndFeelMethods.h"/>
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
@@ -111,6 +116,10 @@
             file="Source/PeersContainerView.cpp"/>
       <FILE id="ETWAvX" name="PeersContainerView.h" compile="0" resource="0"
             file="Source/PeersContainerView.h"/>
+      <FILE id="uyHPZI" name="RandomSentenceGenerator.cpp" compile="1" resource="0"
+            file="Source/RandomSentenceGenerator.cpp"/>
+      <FILE id="p5BMQt" name="RandomSentenceGenerator.h" compile="0" resource="0"
+            file="Source/RandomSentenceGenerator.h"/>
       <FILE id="RQrK2V" name="RunCumulantor.cpp" compile="1" resource="0"
             file="Source/RunCumulantor.cpp"/>
       <FILE id="dbEjZv" name="RunCumulantor.h" compile="0" resource="0" file="Source/RunCumulantor.h"/>
@@ -118,6 +127,14 @@
             file="Source/RunningCumulant.c"/>
       <FILE id="ImaCFA" name="RunningCumulant.h" compile="0" resource="0"
             file="Source/RunningCumulant.h"/>
+      <FILE id="SZiCPL" name="SonobusPluginEditor.cpp" compile="1" resource="0"
+            file="Source/SonobusPluginEditor.cpp"/>
+      <FILE id="LNdJkH" name="SonobusPluginEditor.h" compile="0" resource="0"
+            file="Source/SonobusPluginEditor.h"/>
+      <FILE id="f8xqxN" name="SonobusPluginProcessor.cpp" compile="1" resource="0"
+            file="Source/SonobusPluginProcessor.cpp"/>
+      <FILE id="PntDaO" name="SonobusPluginProcessor.h" compile="0" resource="0"
+            file="Source/SonobusPluginProcessor.h"/>
       <FILE id="VZVoBA" name="SonoChoiceButton.cpp" compile="1" resource="0"
             file="Source/SonoChoiceButton.cpp"/>
       <FILE id="jV66tt" name="SonoChoiceButton.h" compile="0" resource="0"
@@ -169,7 +186,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;2&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;3&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                   extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus" smallIcon="seEQvf"
                   bigIcon="clKeGk">
       <CONFIGURATIONS>

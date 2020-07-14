@@ -605,6 +605,8 @@ bool SonobusAudioProcessor::disconnectFromServer()
 
 void SonobusAudioProcessor::addRecentServerConnectionInfo(const AooServerConnectionInfo & cinfo)
 {
+    const ScopedLock sl (mRecentsLock);
+
     // look for existing match, and update only timestamp if found, otherwise add to end
     int index = mRecentConnectionInfos.indexOf(cinfo);
     if (index >= 0) {
@@ -614,16 +616,25 @@ void SonobusAudioProcessor::addRecentServerConnectionInfo(const AooServerConnect
         // add it
         mRecentConnectionInfos.add(cinfo);
     }
+    // resort
+    mRecentConnectionInfos.sort();
+    
+    // limit to 10
+    if (mRecentConnectionInfos.size() > 10) {
+        mRecentConnectionInfos.removeRange(10, mRecentConnectionInfos.size() - 10);
+    }
 }
 
 int SonobusAudioProcessor::getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray)
 {
+    const ScopedLock sl (mRecentsLock);
     retarray = mRecentConnectionInfos;
     return retarray.size();
 }
 
 void SonobusAudioProcessor::clearRecentServerConnectionInfos()
 {
+    const ScopedLock sl (mRecentsLock);
     mRecentConnectionInfos.clear();
 }
 
@@ -2255,6 +2266,16 @@ int64_t  SonobusAudioProcessor::getRemotePeerPacketsResent(int index) const
     return 0;      
 }
 
+void  SonobusAudioProcessor::resetRemotePeerPacketStats(int index)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->dataPacketsResent = 0;
+        remote->dataPacketsDropped = 0;
+    }    
+}
+
 
 float SonobusAudioProcessor::getRemotePeerPingMs(int index) const
 {
@@ -2688,7 +2709,9 @@ void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer 
         fmt->bitrate = info.bitrate * fmt->header.nchannels;
         fmt->complexity = info.complexity;
         fmt->signal_type = info.signal_type;
-
+        fmt->application_type = OPUS_APPLICATION_RESTRICTED_LOWDELAY;
+        //fmt->application_type = OPUS_APPLICATION_AUDIO;
+        
         source->set_format(fmt->header);        
     }
 }

@@ -10,6 +10,7 @@
 #include "SonoDrawableButton.h"
 
 class PeersContainerView;
+class RandomSentenceGenerator;
 
 //==============================================================================
 /**
@@ -43,6 +44,9 @@ public:
 
     void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
 
+    void connectWithInfo(const AooServerConnectionInfo & info);
+
+    
     // client listener
     void aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
     void aooClientDisconnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
@@ -78,7 +82,7 @@ private:
     
     void updateServerStatusLabel(const String & mesg, bool mainonly=true);
     void updateChannelState(bool force=false);
-    void updatePeerState(bool force=false);
+    bool updatePeerState(bool force=false);
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -91,7 +95,6 @@ private:
 
     std::unique_ptr<Label> mTitleLabel;
     
-    std::unique_ptr<Label> mRemoteAddressStaticLabel;
 
     std::unique_ptr<Label> mLocalAddressStaticLabel;
     std::unique_ptr<Label> mLocalAddressLabel;
@@ -101,10 +104,13 @@ private:
     std::unique_ptr<TextButton> mConnectButton;
 
     std::unique_ptr<Label> mMainGroupLabel;
+    std::unique_ptr<Label> mMainUserLabel;
     std::unique_ptr<Label> mMainPeerLabel;
 
     
+    std::unique_ptr<Label> mRemoteAddressStaticLabel;
     std::unique_ptr<TextEditor> mAddRemoteHostEditor;
+    std::unique_ptr<Label> mDirectConnectDescriptionLabel;
 
     std::unique_ptr<TextButton> mServerConnectButton;
 
@@ -120,6 +126,8 @@ private:
     std::unique_ptr<TextEditor> mServerGroupEditor;
     std::unique_ptr<Label> mServerGroupPassStaticLabel;
     std::unique_ptr<TextEditor> mServerGroupPasswordEditor;
+
+    std::unique_ptr<SonoDrawableButton> mServerGroupRandomButton;
 
 
     std::unique_ptr<Label> mServerStatusLabel;
@@ -164,7 +172,7 @@ private:
     std::unique_ptr<Component> inPannersContainer;
     WeakReference<Component> inPannerCalloutBox;
 
-    std::unique_ptr<Component> serverContainer;
+    //std::unique_ptr<Component> serverContainer;
     WeakReference<Component> serverCalloutBox;
 
     
@@ -203,6 +211,31 @@ private:
     };
     Array<ClientEvent> clientEvents;
     
+    class RecentsListModel : public ListBoxModel
+    {
+    public:
+        RecentsListModel(SonobusAudioProcessorEditor * parent_) : parent(parent_) {}
+        int getNumRows() override;
+        void     paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
+        void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
+        void selectedRowsChanged(int lastRowSelected) override;
+
+        void updateState();
+
+    protected:
+        SonobusAudioProcessorEditor * parent;
+
+        Array<AooServerConnectionInfo> recents;
+    };
+    RecentsListModel recentsListModel;
+    Font recentsGroupFont;
+    Font recentsNameFont;
+    Font recentsInfoFont;
+    bool firstTimeConnectShow = true;
+    
+    std::unique_ptr<ListBox> mRecentsListBox;
+
+    
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
     
@@ -225,9 +258,14 @@ private:
     std::unique_ptr<TableListBox> mRemoteSinkListBox;
     std::unique_ptr<TableListBox> mRemoteSourceListBox;
     
+    std::unique_ptr<RandomSentenceGenerator> mRandomSentence;
+
+    
     FlexBox mainBox;
     FlexBox titleBox;
 
+    FlexBox mainGroupUserBox;
+    
     FlexBox remoteBox;
     FlexBox inputBox;
     FlexBox addressBox;
@@ -253,6 +291,8 @@ private:
     FlexBox toolbarBox;
 
     FlexBox connectBox;
+
+    FlexBox recentsBox;
     
     FlexBox inPannerMainBox;
     FlexBox inPannerLabelBox;

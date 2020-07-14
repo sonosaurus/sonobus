@@ -10,35 +10,6 @@
 
 #include "PeersContainerView.h"
 
-static void configLevelSlider(Slider * slider)
-{
-    //slider->setTextValueSuffix(" dB");
-    slider->setRange(0.0, 1.0, 0.0);
-    slider->setSkewFactor(0.25);
-    slider->setDoubleClickReturnValue(true, 1.0);
-    slider->setTextBoxIsEditable(false);
-    slider->setSliderSnapsToMousePosition(false);
-    slider->setScrollWheelEnabled(false);
-    slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
-    slider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
-}
-
-
-static void configLabel(Label *label, bool val)
-{
-    if (val) {
-        label->setFont(12);
-        label->setColour(Label::textColourId, Colour(0xc0eeeeee));
-        label->setJustificationType(Justification::centredRight);        
-    }
-    else {
-        label->setFont(14);
-        //label->setColour(Label::textColourId, Colour(0xaaeeeeee));
-        label->setJustificationType(Justification::centredLeft);
-    }
-}
-
-
 
 PeerViewInfo::PeerViewInfo() : smallLnf(12)
 {
@@ -60,14 +31,51 @@ void PeerViewInfo::resized()
         levelLabel->setBounds(levelSlider->getBounds().removeFromLeft(levelSlider->getWidth()*0.5));
         bufferTimeLabel->setBounds(bufferTimeSlider->getBounds().removeFromLeft(bufferTimeSlider->getWidth()*0.5));
     }
+    
+    latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
 }
 
 
 PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
  : Component("pcv"),  processor(proc)
 {
+    mutedTextColor = Colour::fromFloatRGBA(0.8, 0.5, 0.2, 1.0);
+    regularTextColor = Colour(0xc0eeeeee);
+    
     rebuildPeerViews();
 }
+
+void PeersContainerView::configLevelSlider(Slider * slider)
+{
+    //slider->setTextValueSuffix(" dB");
+    slider->setRange(0.0, 1.0, 0.0);
+    slider->setSkewFactor(0.25);
+    slider->setDoubleClickReturnValue(true, 1.0);
+    slider->setTextBoxIsEditable(false);
+    slider->setSliderSnapsToMousePosition(false);
+    slider->setScrollWheelEnabled(false);
+    slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
+    slider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
+}
+
+
+void PeersContainerView::configLabel(Label *label, bool val)
+{
+    if (val) {
+        label->setFont(12);
+        label->setColour(Label::textColourId, regularTextColor);
+        label->setJustificationType(Justification::centredRight);        
+    }
+    else {
+        label->setFont(14);
+        //label->setColour(Label::textColourId, Colour(0xaaeeeeee));
+        label->setJustificationType(Justification::centredLeft);
+    }
+}
+
+
+
+
 
 void PeersContainerView::resized()
 {
@@ -77,6 +85,31 @@ void PeersContainerView::resized()
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         pvf->resized();
+    }
+}
+
+void PeersContainerView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
+{
+    popTip.reset(new BubbleMessageComponent());
+    popTip->setAllowedPlacement(BubbleComponent::above);
+    
+    if (target) {
+        target->getTopLevelComponent()->addChildComponent (popTip.get());
+    }
+    else {
+        addChildComponent(popTip.get());
+    }
+    
+    AttributedString text(message);
+    text.setJustification (Justification::centred);
+    text.setColour (findColour (TextButton::textColourOffId));
+    text.setFont(Font(12));
+    if (target) {
+        popTip->showAt(target, text, timeoutMs);
+    }
+    else {
+        Rectangle<int> topbox(getWidth()/2 - maxwidth/2, 0, maxwidth, 2);
+        popTip->showAt(topbox, text, timeoutMs);
     }
 }
 
@@ -106,13 +139,26 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->addrLabel->setJustificationType(Justification::centredLeft);
     pvf->addrLabel->setFont(12);
     
-    pvf->sendActiveButton = std::make_unique<ToggleButton>(TRANS("Send"));
-    pvf->sendActiveButton->addListener(this);
+    pvf->sendMutedButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> sendallowimg(Drawable::createFromImageData(BinaryData::outgoing_allowed_svg, BinaryData::outgoing_allowed_svgSize));
+    std::unique_ptr<Drawable> senddisallowimg(Drawable::createFromImageData(BinaryData::outgoing_disallowed_svg, BinaryData::outgoing_disallowed_svgSize));
+    pvf->sendMutedButton->setImages(sendallowimg.get(), nullptr, nullptr, nullptr, senddisallowimg.get());
+    pvf->sendMutedButton->addListener(this);
+    pvf->sendMutedButton->setClickingTogglesState(true);
+    //pvf->sendMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7));
+    pvf->sendMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    pvf->sendMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    
+    pvf->recvMutedButton = std::make_unique<SonoDrawableButton>("recvmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> recvallowimg(Drawable::createFromImageData(BinaryData::incoming_allowed_svg, BinaryData::incoming_allowed_svgSize));
+    std::unique_ptr<Drawable> recvdisallowimg(Drawable::createFromImageData(BinaryData::incoming_disallowed_svg, BinaryData::incoming_disallowed_svgSize));
+    pvf->recvMutedButton->setImages(recvallowimg.get(), nullptr, nullptr, nullptr, recvdisallowimg.get());
+    pvf->recvMutedButton->addListener(this);
+    pvf->recvMutedButton->setClickingTogglesState(true);
+    pvf->recvMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
 
-    pvf->recvActiveButton = std::make_unique<ToggleButton>(TRANS("Allow Recv"));
-    pvf->recvActiveButton->addListener(this);
-
-    pvf->latActiveButton = std::make_unique<TextButton>(TRANS("Latency\nTest"));
+    pvf->latActiveButton = std::make_unique<TextButton>(""); // (TRANS("Latency\nTest"));
     pvf->latActiveButton->setClickingTogglesState(true);
     pvf->latActiveButton->setTriggeredOnMouseDown(true);
     pvf->latActiveButton->setLookAndFeel(&pvf->smallLnf);
@@ -199,21 +245,24 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
         pvf->formatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i+1);
     }
 
-    pvf->staticLatencyLabel = std::make_unique<Label>("lat", TRANS("RT Latency:"));
+    pvf->staticLatencyLabel = std::make_unique<Label>("lat", TRANS("Latency:"));
     configLabel(pvf->staticLatencyLabel.get(), true);
     pvf->staticPingLabel = std::make_unique<Label>("ping", TRANS("Ping:"));
     configLabel(pvf->staticPingLabel.get(), true);
 
-    pvf->latencyLabel = std::make_unique<Label>("lat");
+    pvf->latencyLabel = std::make_unique<Label>("lat", TRANS("PRESS"));
     configLabel(pvf->latencyLabel.get(), true);
     pvf->pingLabel = std::make_unique<Label>("ping");
     configLabel(pvf->pingLabel.get(), true);
 
     pvf->sendActualBitrateLabel = std::make_unique<Label>("sbit");
     configLabel(pvf->sendActualBitrateLabel.get(), true);
+
     pvf->recvActualBitrateLabel = std::make_unique<Label>("rbit");
     configLabel(pvf->recvActualBitrateLabel.get(), true);
-
+    pvf->recvActualBitrateLabel->addMouseListener(this, false);
+    pvf->recvActualBitrateLabel->setInterceptsMouseClicks(true, false);
+    
     
     // meters
     auto flags = foleys::LevelMeter::Horizontal|foleys::LevelMeter::Minimal;
@@ -221,6 +270,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvMeter = std::make_unique<foleys::LevelMeter>(foleys::LevelMeter::Minimal);
     pvf->recvMeter->setLookAndFeel(&(pvf->rmeterLnf));
     pvf->recvMeter->setRefreshRateHz(10);
+    pvf->recvMeter->addMouseListener(this, false);
 
     //pvf->sendMeter = std::make_unique<foleys::LevelMeter>(flags);
     //pvf->sendMeter->setLookAndFeel(&(pvf->smeterLnf));
@@ -244,8 +294,8 @@ void PeersContainerView::rebuildPeerViews()
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
 
-        pvf->addAndMakeVisible(pvf->sendActiveButton.get());
-        pvf->addAndMakeVisible(pvf->recvActiveButton.get());
+        pvf->addAndMakeVisible(pvf->sendMutedButton.get());
+        pvf->addAndMakeVisible(pvf->recvMutedButton.get());
         pvf->addAndMakeVisible(pvf->latActiveButton.get());
         pvf->addAndMakeVisible(pvf->bufferTimeSlider.get());
         pvf->addAndMakeVisible(pvf->bufferTimeLabel.get());
@@ -288,7 +338,7 @@ void PeersContainerView::updateLayout()
     peersBox.flexDirection = FlexBox::Direction::column;
     peersBox.justifyContent = FlexBox::JustifyContent::flexStart;
     int peersheight = 0;
-    const int singleph = mincheckheight + minitemheight*2 + 12;
+    const int singleph =  minitemheight*3 + 12;
     
     
     for (int i=0; i < mPeerViews.size(); ++i) {
@@ -315,7 +365,8 @@ void PeersContainerView::updateLayout()
         
         pvf->sendbox.items.clear();
         pvf->sendbox.flexDirection = FlexBox::Direction::row;
-        pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->sendActiveButton).withMargin(0).withFlex(1));
+        pvf->sendbox.items.add(FlexItem(100, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
+        pvf->sendbox.items.add(FlexItem(3, 2));
         pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(1));
         if (isNarrow) {
             pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(1));
@@ -323,16 +374,16 @@ void PeersContainerView::updateLayout()
         
         pvf->sendmeterbox.items.clear();
         pvf->sendmeterbox.flexDirection = FlexBox::Direction::row;
-        pvf->sendmeterbox.items.add(FlexItem(60, minitemheight, *pvf->sendMeter).withMargin(0).withFlex(1));
+        //pvf->sendmeterbox.items.add(FlexItem(60, minitemheight, *pvf->sendMeter).withMargin(0).withFlex(1));
         if (!isNarrow) {
             pvf->sendmeterbox.items.add(FlexItem(60, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(1));
         }
 
         pvf->recvbox.items.clear();
         pvf->recvbox.flexDirection = FlexBox::Direction::row;
-        pvf->recvbox.items.add(FlexItem(60, mincheckheight, *pvf->recvActiveButton).withMargin(0).withFlex(1));
+        pvf->recvbox.items.add(FlexItem(100, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
         pvf->recvbox.items.add(FlexItem(60, mincheckheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(1));
-        pvf->recvbox.items.add(FlexItem(40, mincheckheight, *pvf->latActiveButton).withMargin(0).withFlex(1).withMaxWidth(60));
+        //pvf->recvbox.items.add(FlexItem(40, mincheckheight, *pvf->latActiveButton).withMargin(0).withFlex(1).withMaxWidth(60));
 
         pvf->pingbox.items.clear();
         pvf->pingbox.flexDirection = FlexBox::Direction::row;
@@ -356,6 +407,7 @@ void PeersContainerView::updateLayout()
         pvf->recvnetbox.items.add(FlexItem(72, minitemheight, *pvf->autosizeButton).withMargin(0).withFlex(0));
         pvf->recvnetbox.items.add(FlexItem(2, 5));
         pvf->recvnetbox.items.add(FlexItem(60, minitemheight, *pvf->bufferTimeSlider).withMargin(0).withFlex(1));
+        pvf->recvnetbox.items.add(FlexItem(2, 5));
         pvf->recvnetbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0));
 
         pvf->recvlevelbox.items.clear();
@@ -373,7 +425,7 @@ void PeersContainerView::updateLayout()
         
         pvf->mainrecvbox.items.clear();
         pvf->mainrecvbox.flexDirection = FlexBox::Direction::column;
-        pvf->mainrecvbox.items.add(FlexItem(150, mincheckheight, pvf->recvbox).withMargin(2).withFlex(0));
+        pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(2).withFlex(0));
         pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvnetbox).withMargin(2).withFlex(0));
         pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvlevelbox).withMargin(2).withFlex(0));
 
@@ -463,7 +515,10 @@ void PeersContainerView::updatePeerViews()
 
         String sendtext;
         bool sendactive = processor.getRemotePeerSendActive(i);
+        bool sendallow = processor.getRemotePeerSendAllow(i);
+
         bool recvactive = processor.getRemotePeerRecvActive(i);
+        bool recvallow = processor.getRemotePeerRecvAllow(i);
         bool latactive = processor.isRemotePeerLatencyTestActive(i);
 
         double sendrate = 0.0;
@@ -484,9 +539,15 @@ void PeersContainerView::updatePeerViews()
         if (sendactive) {
             //sendtext += String::formatted("%Ld sent", processor.getRemotePeerPacketsSent(i) );
             sendtext += String::formatted("%.d kb/s", lrintf(sendrate * 8 * 1e-3) );
+            pvf->sendActualBitrateLabel->setColour(Label::textColourId, regularTextColor);
+        }
+        else if (sendallow) {
+            sendtext += TRANS("Other end muted us, not sending audio");
+            pvf->sendActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
         }
         else {
-            sendtext += TRANS("send off");
+            sendtext += TRANS("Self-muted, not sending audio");
+            pvf->sendActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
         }
         
         String recvtext;
@@ -494,19 +555,28 @@ void PeersContainerView::updatePeerViews()
         if (recvactive) {
             //recvtext += String::formatted("%Ld recvd", processor.getRemotePeerPacketsReceived(i));
             recvtext += String::formatted("%d kb/s", lrintf(recvrate * 8 * 1e-3));
-        } else {
-            recvtext += TRANS("recv off");            
+
+            int64_t dropped = processor.getRemotePeerPacketsDropped(i);
+            if (dropped > 0) {
+                recvtext += String::formatted(" | %d drop", dropped);
+            }
+
+            int64_t resent = processor.getRemotePeerPacketsResent(i);
+            if (resent > 0) {
+                recvtext += String::formatted(" | %d resent", resent);
+            }
+
+            pvf->recvActualBitrateLabel->setColour(Label::textColourId, regularTextColor);
+        } 
+        else if (recvallow) {
+            recvtext += TRANS("Other side is muted");    
+            pvf->recvActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
+        }
+        else {
+            recvtext += TRANS("We muted them");    
+            pvf->recvActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
         }
 
-        int64_t dropped = processor.getRemotePeerPacketsDropped(i);
-        if (dropped > 0) {
-            recvtext += String::formatted(" | %d drop", dropped);
-        }
-
-        int64_t resent = processor.getRemotePeerPacketsResent(i);
-        if (resent > 0) {
-            recvtext += String::formatted(" | %d resent", resent);
-        }
 
         
         pvf->sendActualBitrateLabel->setText(sendtext, dontSendNotification);
@@ -516,13 +586,18 @@ void PeersContainerView::updatePeerViews()
         float totallat = processor.getRemotePeerTotalLatencyMs(i, estlat);
         
         pvf->pingLabel->setText(String::formatted("%d ms", (int)processor.getRemotePeerPingMs(i) ), dontSendNotification);
-        pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)totallat, estlat ? "*" : "" ), dontSendNotification);
+        if (estlat) {
+            pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
+        } else {
+            //pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)totallat, estlat ? "*" : "" ), dontSendNotification);            
+            pvf->latencyLabel->setText(String::formatted("%d ms", (int)totallat), dontSendNotification);            
+        }
 
         
         //pvf->statusLabel->setText(statustext, dontSendNotification);
         
-        pvf->sendActiveButton->setToggleState(processor.getRemotePeerSendAllow(i) && connected, dontSendNotification);
-        pvf->recvActiveButton->setToggleState(processor.getRemotePeerRecvAllow(i) && connected, dontSendNotification);
+        pvf->sendMutedButton->setToggleState(!processor.getRemotePeerSendAllow(i) , dontSendNotification);
+        pvf->recvMutedButton->setToggleState(!processor.getRemotePeerRecvAllow(i) , dontSendNotification);
 
         pvf->latActiveButton->setToggleState(latactive, dontSendNotification);
 
@@ -565,23 +640,36 @@ void PeersContainerView::updatePeerViews()
         //pvf->packetsizeSlider->setValue(findHighestSetBit(processor.getRemotePeerSendPacketsize(i)), dontSendNotification);
         
         //pvf->removeButton->setEnabled(connected);
-        pvf->levelSlider->setEnabled(connected);
-        pvf->bufferTimeSlider->setEnabled(connected);
+        pvf->levelSlider->setEnabled(recvactive);
+        pvf->bufferTimeSlider->setEnabled(recvactive);
+        pvf->autosizeButton->setEnabled(recvactive);
+        pvf->panSlider1->setEnabled(recvactive);
+        pvf->panSlider2->setEnabled(recvactive);
+        pvf->formatChoiceButton->setEnabled(sendactive);
 
-        pvf->formatChoiceButton->setAlpha(connected ? 1.0 : 0.8);
+        const float disalpha = 0.4;
+        pvf->formatChoiceButton->setAlpha(sendactive ? 1.0 : disalpha);
         pvf->nameLabel->setAlpha(connected ? 1.0 : 0.8);
         pvf->addrLabel->setAlpha(connected ? 1.0 : 0.8);
-        pvf->sendActiveButton->setAlpha(connected ? 1.0 : 0.8);
-        pvf->recvActiveButton->setAlpha(connected ? 1.0 : 0.8);
+        //pvf->sendMutedButton->setAlpha(connected ? 1.0 : 0.8);
+        //pvf->recvMutedButton->setAlpha(connected ? 1.0 : 0.8);
         //pvf->latActiveButton->setAlpha(connected ? 1.0 : 0.8);
-        pvf->levelLabel->setAlpha(connected ? 1.0 : 0.6);
-        pvf->statusLabel->setAlpha(connected ? 1.0 : 0.6);
-        pvf->levelSlider->setAlpha(connected ? 1.0 : 0.6);
-        pvf->bufferTimeLabel->setAlpha(connected ? 1.0 : 0.6);
-        pvf->bufferTimeSlider->setAlpha(connected ? 1.0 : 0.6);
+        pvf->levelLabel->setAlpha(recvactive ? 1.0 : disalpha);
+        pvf->statusLabel->setAlpha(connected ? 1.0 : disalpha);
+        pvf->levelSlider->setAlpha(recvactive ? 1.0 : disalpha);
+        pvf->bufferTimeLabel->setAlpha(recvactive ? 1.0 : disalpha);
+        pvf->bufferTimeSlider->setAlpha(recvactive ? 1.0 : disalpha);
+        pvf->panSlider1->setAlpha(recvactive ? 1.0 : disalpha);
+        pvf->panSlider2->setAlpha(recvactive ? 1.0 : disalpha);
+        //pvf->autosizeButton->setAlpha(recvactive ? 1.0 : 0.6);
         
         if (pvf->stopLatencyTestTimestampMs > 0.0 && nowstampms > pvf->stopLatencyTestTimestampMs && !pvf->latActiveButton->isMouseButtonDown()) {
             stopLatencyTest(i);
+
+            if (popTip && popTip->isVisible()) {
+                Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
+                popTip.reset();
+            }
         }
     }
     
@@ -644,16 +732,19 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         bool connected = processor.getRemotePeerConnected(i);
         //bool sendallow = processor.getRemotePeerSendAllow(i);
         //bool recvallow = processor.getRemotePeerRecvAllow(i);
+        //bool sendactive = processor.getRemotePeerSendActive(i);
+        //bool recvactive = processor.getRemotePeerRecvActive(i);
+        bool isGroupPeer = processor.getRemotePeerUserName(i).isNotEmpty();
         
-        if (pvf->sendActiveButton.get() == buttonThatWasClicked) {
-            if (!connected) {
+        if (pvf->sendMutedButton.get() == buttonThatWasClicked) {
+            if (!connected && !isGroupPeer) {
                 String hostname;
                 int port = 0;
                 processor.getRemotePeerAddressInfo(i, hostname, port);
                 processor.connectRemotePeer(hostname, port);
             } else {
                 // turns on allow and starts sending
-                if (pvf->sendActiveButton->getToggleState()) {
+                if (!pvf->sendMutedButton->getToggleState()) {
                     processor.setRemotePeerSendActive(i, true);
                 } else {
                     // turns off sending and allow
@@ -662,14 +753,14 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             }
             break;
         }
-        else if (pvf->recvActiveButton.get() == buttonThatWasClicked) {
-            if (!connected) {
+        else if (pvf->recvMutedButton.get() == buttonThatWasClicked) {
+            if (!connected && !isGroupPeer) {
                 String hostname;
                 int port = 0;
                 processor.getRemotePeerAddressInfo(i, hostname, port);
                 processor.connectRemotePeer(hostname, port);
             } else {
-                if (pvf->recvActiveButton->getToggleState()) {
+                if (!pvf->recvMutedButton->getToggleState()) {
                     // allows receiving and invites
                     processor.setRemotePeerRecvActive(i, true);             
                 } else {
@@ -682,8 +773,13 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         else if (pvf->latActiveButton.get() == buttonThatWasClicked) {
             if (pvf->latActiveButton->getToggleState()) {
                 startLatencyTest(i);
+                showPopTip(TRANS("Measuring actual round-trip latency..."), 4000, pvf->latActiveButton.get(), 140);
             } else {
                 stopLatencyTest(i);
+                if (popTip && popTip->isVisible()) {
+                    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
+                    popTip.reset();
+                }
             }
             break;
         }
@@ -711,9 +807,21 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
             if (nowtimems >= pvf->stopLatencyTestTimestampMs) {
                 stopLatencyTest(i);
                 pvf->latActiveButton->setToggleState(false, dontSendNotification);
+                if (popTip && popTip->isVisible()) {
+                    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
+                    popTip.reset();
+                }
             }
             break;
         }
+        else if (event.eventComponent == pvf->recvActualBitrateLabel.get()) {
+            // reset stats
+            processor.resetRemotePeerPacketStats(i);
+        }
+        else if (event.eventComponent == pvf->recvMeter.get()) {
+            pvf->recvMeter->clearClipIndicator(-1);
+        }
+
     }
 }
 
@@ -722,15 +830,39 @@ void PeersContainerView::showPopupMenu(Component * source, int index)
     if (index >= mPeerViews.size()) return;
     
     PeerViewInfo * pvf = mPeerViews.getUnchecked(index);
+    bool isGroupPeer = processor.getRemotePeerUserName(index).isNotEmpty();
 
     Array<GenericItemChooserItem> items;
-    if (processor.getRemotePeerConnected(index)) {
-        items.add(GenericItemChooserItem(TRANS("Disconnect")));
+    if (isGroupPeer) {
+        if (processor.getRemotePeerRecvAllow(index) && processor.getRemotePeerSendAllow(index)) {
+            items.add(GenericItemChooserItem(TRANS("Disconnect")));
+        } else {
+            items.add(GenericItemChooserItem(TRANS("Reconnect")));        
+        }
     } else {
-        items.add(GenericItemChooserItem(TRANS("Reconnect")));        
+        if (processor.getRemotePeerConnected(index)) {
+            items.add(GenericItemChooserItem(TRANS("Disconnect")));
+        } else {
+            items.add(GenericItemChooserItem(TRANS("Reconnect")));        
+        }        
     }
     items.add(GenericItemChooserItem(TRANS("Remove")));
-    GenericItemChooser::launchPopupChooser(items, source->getBounds(), source->getParentComponent(), this, index+1);
+    
+    Component* dw = source->findParentComponentOfClass<DocumentWindow>();
+
+    if (!dw) {
+        dw = source->findParentComponentOfClass<AudioProcessorEditor>();        
+    }
+    if (!dw) {
+        dw = source->findParentComponentOfClass<Component>();        
+    }
+    
+    //chooser->setSize(jmin(chooser->getWidth(), dw->getWidth() - 16), jmin(chooser->getHeight(), dw->getHeight() - 20));
+
+    
+    Rectangle<int> bounds =  dw->getLocalArea(nullptr, source->getScreenBounds());
+    
+    GenericItemChooser::launchPopupChooser(items, bounds, dw, this, index+1);
 }
 
 void PeersContainerView::genericItemChooserSelected(GenericItemChooser *comp, int index)
@@ -740,17 +872,33 @@ void PeersContainerView::genericItemChooserSelected(GenericItemChooser *comp, in
     if (vindex >= mPeerViews.size()) return;        
     //PeerViewInfo * pvf = mPeerViews.getUnchecked(vindex);
     
+    bool isGroupPeer = processor.getRemotePeerUserName(vindex).isNotEmpty();
+    
     if (index == 0) {
 
-        if (processor.getRemotePeerConnected(vindex)) {
-            // disconnect
-            processor.disconnectRemotePeer(vindex);  
-        } else {
-            
-            String hostname;
-            int port = 0;
-            processor.getRemotePeerAddressInfo(vindex, hostname, port);
-            processor.connectRemotePeer(hostname, port);            
+        if (isGroupPeer) {
+            if (!processor.getRemotePeerRecvAllow(vindex) || !processor.getRemotePeerSendAllow(vindex)) {
+                // allow everything
+                processor.setRemotePeerSendActive(vindex, true); 
+                processor.setRemotePeerRecvActive(vindex, true);                 
+            }
+            else {
+                // disallow everything
+                processor.setRemotePeerSendAllow(vindex, false); 
+                processor.setRemotePeerRecvAllow(vindex, false); 
+            }
+        }
+        else {
+            if (processor.getRemotePeerConnected(vindex)) {
+                // disconnect
+                processor.disconnectRemotePeer(vindex);  
+            } else {
+                
+                String hostname;
+                int port = 0;
+                processor.getRemotePeerAddressInfo(vindex, hostname, port);
+                processor.connectRemotePeer(hostname, port);            
+            }
         }
     }
     else if (index == 1) {

@@ -36,8 +36,8 @@ public:
     
     std::unique_ptr<Label> nameLabel;
     std::unique_ptr<Label> addrLabel;
-    std::unique_ptr<ToggleButton> sendActiveButton;
-    std::unique_ptr<ToggleButton> recvActiveButton;
+    std::unique_ptr<SonoDrawableButton> sendMutedButton;
+    std::unique_ptr<SonoDrawableButton> recvMutedButton;
     std::unique_ptr<TextButton> latActiveButton;
     std::unique_ptr<SonoDrawableButton> menuButton;
     std::unique_ptr<Label>  statusLabel;
@@ -84,6 +84,9 @@ public:
     double stopLatencyTestTimestampMs = 0.0;
     bool wasRecvActiveAtLatencyTest = false;
     bool wasSendActiveAtLatencyTest = false;
+    
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeerViewInfo)
 };
 
 class PeersContainerView : public Component,
@@ -128,11 +131,19 @@ protected:
     void startLatencyTest(int i);
     void stopLatencyTest(int i);
     
+    void configLevelSlider(Slider * slider);    
+    void configLabel(Label *label, bool val);
+    
     PeerViewInfo * createPeerViewInfo();
+    
+    void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
+
     
     OwnedArray<PeerViewInfo> mPeerViews;
     SonobusAudioProcessor& processor;
     
+    std::unique_ptr<BubbleMessageComponent> popTip;
+
     FlexBox peersBox;
     int peersMinHeight = 120;
     int peersMinWidth = 400;
@@ -140,5 +151,11 @@ protected:
     bool isNarrow = false;
 
     double lastUpdateTimestampMs = 0;
+    
+    Colour mutedTextColor;
+    Colour regularTextColor;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeersContainerView)
+
 };
 

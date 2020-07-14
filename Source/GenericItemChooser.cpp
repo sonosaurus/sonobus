@@ -31,6 +31,8 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     if (maxheight > 0) {
         chooser->setMaxHeight(maxheight);        
     }
+    
+    
     CallOutBox & box = CallOutBox::launchAsynchronously (chooser, targetBounds, targetComponent);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     // box.setArrowSize(0);

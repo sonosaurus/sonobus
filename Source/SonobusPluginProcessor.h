@@ -40,6 +40,13 @@ inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnec
 
 inline bool operator!=(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs){ return !(lhs == rhs); }
 
+inline bool operator<(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs)
+{
+    // default sorting most recent first
+    return (lhs.timestamp > rhs.timestamp); 
+}
+
+
 //==============================================================================
 /**
 */
@@ -186,7 +193,8 @@ public:
 
     int64_t getRemotePeerPacketsDropped(int index) const;
     int64_t getRemotePeerPacketsResent(int index) const;
-
+    void    resetRemotePeerPacketStats(int index);
+    
 
     
     float getRemotePeerPingMs(int index) const;
@@ -285,10 +293,16 @@ private:
     AudioSampleBuffer tempBuffer;
     AudioSampleBuffer workBuffer;
 
-    Atomic<float>   mInGain    {   1.0 };
+    Atomic<float>   mInGain    { 1.0 };
     Atomic<float>   mInMonPan1    {   0.0 };
     Atomic<float>   mInMonPan2    {   0.0 };
-    Atomic<float>   mDry    {   1.0 };
+    Atomic<float>   mDry    {
+#if JUCE_IOS
+        0.0 
+#else
+        1.0
+#endif        
+    };
     Atomic<float>   mWet    {   1.0 };
     Atomic<double>   mBufferTime     { 0.1 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
@@ -356,6 +370,7 @@ private:
 
 
     Array<AooServerConnectionInfo> mRecentConnectionInfos;
+    CriticalSection  mRecentsLock;
     
     CriticalSection  mRemotesLock;
 

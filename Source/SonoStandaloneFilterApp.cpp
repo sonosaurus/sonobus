@@ -137,11 +137,21 @@ public:
     void suspended() override
     {
         DebugLogC("suspended");
-        if (mainWindow.get() != nullptr)
+        if (mainWindow.get() != nullptr) {
             mainWindow->pluginHolder->savePluginState();
 
+            if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
+                if (sonoproc->getNumberRemotePeers() == 0 ) {
+                    // shutdown audio engine
+                }
+            }
+
+        }
+        
         appProperties.saveIfNeeded();
 
+
+        
         Desktop::getInstance().setScreenSaverEnabled(true);        
     }
     
