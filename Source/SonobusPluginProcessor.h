@@ -106,6 +106,9 @@ public:
     static String paramDry;
     static String paramWet;
     static String paramBufferTime;
+    static String paramDefaultAutoNetbuf;
+    static String paramDefaultNetbufMs;
+    static String paramDefaultSendQual;
 
     struct EndpointState;
     struct RemoteSink;
@@ -207,11 +210,14 @@ public:
     
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
-    void setDefaultAudioCodecFormat(int formatIndex) { if (formatIndex < mAudioFormats.size()) mDefaultAudioFormatIndex = formatIndex; }
+    void setDefaultAudioCodecFormat(int formatIndex);
     int getDefaultAudioCodecFormat() const { return mDefaultAudioFormatIndex; }
 
     String getAudioCodeFormatName(int formatIndex) const;
 
+    void setDefaultAutoresizeBufferMode(AutoNetBufferMode flag);
+    AutoNetBufferMode getDefaultAutoresizeBufferMode() const { return (AutoNetBufferMode) defaultAutoNetbufMode; }
+    
     
     void setRemotePeerAudioCodecFormat(int index, int formatIndex);
     int getRemotePeerAudioCodecFormat(int index) const;
@@ -304,7 +310,7 @@ private:
 #endif        
     };
     Atomic<float>   mWet    {   1.0 };
-    Atomic<double>   mBufferTime     { 0.1 };
+    Atomic<double>   mBufferTime     { 0.01 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
 
     float mLastInputGain    = 0.0f;
@@ -312,6 +318,11 @@ private:
     float mLastWet    = 0.0f;
     float mLastInMonPan1 = 0.0f;
     float mLastInMonPan2 = 0.0f;
+    
+    int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
+    
+    RangedAudioParameter * mDefaultAutoNetbufModeParam;
+
     
     bool hasInitializedInMonPanners = false;
     
@@ -393,7 +404,10 @@ private:
     };
     
     Array<AudioCodecFormatInfo> mAudioFormats;
-    int mDefaultAudioFormatIndex;
+    int mDefaultAudioFormatIndex = 5;
+    
+    RangedAudioParameter * mDefaultAudioFormatParam;
+
     
     void initFormats();
     

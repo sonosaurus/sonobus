@@ -29,6 +29,9 @@ String SonobusAudioProcessor::paramInMonitorPan1     ("inmonpan1");
 String SonobusAudioProcessor::paramInMonitorPan2     ("inmonpan2");
 String SonobusAudioProcessor::paramWet     ("wet");
 String SonobusAudioProcessor::paramBufferTime  ("buffertime");
+String SonobusAudioProcessor::paramDefaultNetbufMs ("defnetbuf");
+String SonobusAudioProcessor::paramDefaultAutoNetbuf ("defnetauto");
+String SonobusAudioProcessor::paramDefaultSendQual ("defsendqual");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -362,23 +365,32 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramBufferTime,     TRANS ("Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(paramDefaultNetbufMs,     TRANS ("Default Net Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
-                                          [](const String& s) -> float { return s.getFloatValue()*1e-3f; })
+                                          [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
+
+    std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full"}), defaultAutoNetbufMode),
+
+    std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex)
 })
 {
     mState.addParameterListener (paramInGain, this);
     mState.addParameterListener (paramDry, this);
     mState.addParameterListener (paramWet, this);
-    mState.addParameterListener (paramBufferTime, this);
     mState.addParameterListener (paramInMonitorPan1, this);
     mState.addParameterListener (paramInMonitorPan2, this);
+    mState.addParameterListener (paramDefaultAutoNetbuf, this);
+    mState.addParameterListener (paramDefaultNetbufMs, this);
+    mState.addParameterListener (paramDefaultSendQual, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
             mRemoteSendMatrix[i][j] = false;
         }
     }
+    
+    mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
+    mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
     
     initializeAoo();
 }
@@ -714,6 +726,24 @@ String SonobusAudioProcessor::getAudioCodeFormatName(int formatIndex) const
     const AudioCodecFormatInfo & info = mAudioFormats.getReference(formatIndex);
     return info.name;    
 }
+
+void SonobusAudioProcessor::setDefaultAudioCodecFormat(int formatIndex)
+{
+    if (formatIndex < mAudioFormats.size()) {
+        mDefaultAudioFormatIndex = formatIndex;
+        mDefaultAudioFormatParam->setValueNotifyingHost(mDefaultAudioFormatParam->convertTo0to1(mDefaultAudioFormatIndex));
+    }
+    
+}
+
+
+void SonobusAudioProcessor::setDefaultAutoresizeBufferMode(AutoNetBufferMode flag)
+{
+    defaultAutoNetbufMode = flag;
+    mDefaultAutoNetbufModeParam->setValueNotifyingHost(mDefaultAutoNetbufModeParam->convertTo0to1(defaultAutoNetbufMode));
+
+}
+
 
 void SonobusAudioProcessor::setRemotePeerAudioCodecFormat(int index, int formatIndex)
 {
@@ -2578,6 +2608,10 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
 
         retpeer = mRemotePeers.add(new RemotePeer(endpoint, newid));
 
+        retpeer->buffertimeMs = mBufferTime.get() * 1000.0f;
+        retpeer->formatIndex = mDefaultAudioFormatIndex;
+        retpeer->autosizeBufferMode = (AutoNetBufferMode) defaultAutoNetbufMode;
+        
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getTotalNumOutputChannels());
         retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
 
@@ -2733,6 +2767,15 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramInMonitorPan2) {
         mInMonPan2 = newValue;
+    }
+    else if (parameterID == paramDefaultSendQual) {
+        mDefaultAudioFormatIndex = (int) newValue;
+    }
+    else if (parameterID == paramDefaultNetbufMs) {
+        mBufferTime = newValue;
+    }
+    else if (parameterID == paramDefaultAutoNetbuf) {
+        defaultAutoNetbufMode = (int) newValue;
     }
 
 }

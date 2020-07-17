@@ -75,13 +75,21 @@
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
       <FILE id="esS2r1" name="incoming_allowed.svg" compile="0" resource="1"
             file="images/incoming_allowed.svg"/>
+      <FILE id="WK94yG" name="incoming_allowed_active.svg" compile="0" resource="1"
+            file="images/incoming_allowed_active.svg"/>
       <FILE id="Kbk1hl" name="incoming_disallowed.svg" compile="0" resource="1"
             file="images/incoming_disallowed.svg"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
       <FILE id="C2rj32" name="outgoing_allowed.svg" compile="0" resource="1"
             file="images/outgoing_allowed.svg"/>
+      <FILE id="QMiY36" name="outgoing_allowed_active.svg" compile="0" resource="1"
+            file="images/outgoing_allowed_active.svg"/>
       <FILE id="TwBbMl" name="outgoing_disallowed.svg" compile="0" resource="1"
             file="images/outgoing_disallowed.svg"/>
+      <FILE id="kIBndj" name="people.png" compile="0" resource="1" file="images/people.png"/>
+      <FILE id="MMeLRD" name="people.svg" compile="0" resource="1" file="images/people.svg"/>
+      <FILE id="Rp0do6" name="person.png" compile="0" resource="1" file="images/person.png"/>
+      <FILE id="u0HeLW" name="person.svg" compile="0" resource="1" file="images/person.svg"/>
       <FILE id="DLrrYi" name="settings_icon.svg" compile="0" resource="1"
             file="images/settings_icon.svg"/>
       <FILE id="seEQvf" name="tempicon-256.png" compile="0" resource="0"

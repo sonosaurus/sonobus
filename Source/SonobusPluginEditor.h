@@ -32,6 +32,7 @@ public:
     void resized() override;
 
     void mouseDown (const MouseEvent& event)  override;
+    void mouseUp (const MouseEvent& event)  override;
 
     void timerCallback(int timerid) override;
 
@@ -78,11 +79,14 @@ private:
     
     void showFormatChooser(int peerindex);
     
-    void showOrHideSettings();
+    void showSettings(bool flag);
     
     void updateServerStatusLabel(const String & mesg, bool mainonly=true);
     void updateChannelState(bool force=false);
     bool updatePeerState(bool force=false);
+
+    void updateOptionsState();
+
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -106,6 +110,8 @@ private:
     std::unique_ptr<Label> mMainGroupLabel;
     std::unique_ptr<Label> mMainUserLabel;
     std::unique_ptr<Label> mMainPeerLabel;
+    std::unique_ptr<ImageComponent> mMainGroupImage;
+    std::unique_ptr<ImageComponent> mMainPersonImage;
 
     
     std::unique_ptr<Label> mRemoteAddressStaticLabel;
@@ -148,6 +154,7 @@ private:
 
     std::unique_ptr<Slider> mDrySlider;
     std::unique_ptr<Slider> mOutGainSlider;
+    
     std::unique_ptr<Slider> mBufferTimeSlider;
     
     std::unique_ptr<Label> mInGainLabel;
@@ -161,6 +168,17 @@ private:
     std::unique_ptr<Component> mRecentsContainer;
 
     std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
+
+    std::unique_ptr<TabbedComponent> mSettingsTab;
+
+    std::unique_ptr<Component> mHelpComponent;
+    std::unique_ptr<Component> mOptionsComponent;
+
+    std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
+    std::unique_ptr<SonoChoiceButton> mOptionsFormatChoiceDefaultChoice;
+    std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
+    std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
+
     
     SonoLookAndFeel inMeterLnf;
     SonoLookAndFeel outMeterLnf;
@@ -214,7 +232,7 @@ private:
     class RecentsListModel : public ListBoxModel
     {
     public:
-        RecentsListModel(SonobusAudioProcessorEditor * parent_) : parent(parent_) {}
+        RecentsListModel(SonobusAudioProcessorEditor * parent_);
         int getNumRows() override;
         void     paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
         void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
@@ -225,6 +243,9 @@ private:
     protected:
         SonobusAudioProcessorEditor * parent;
 
+        Image groupImage;
+        Image personImage;
+        
         Array<AooServerConnectionInfo> recents;
     };
     RecentsListModel recentsListModel;
@@ -297,6 +318,10 @@ private:
     FlexBox inPannerMainBox;
     FlexBox inPannerLabelBox;
     FlexBox inPannerBox;
+
+    FlexBox optionsBox;
+    FlexBox optionsNetbufBox;
+    FlexBox optionsSendQualBox;
 
     
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;

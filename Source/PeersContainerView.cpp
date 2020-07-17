@@ -359,16 +359,16 @@ void PeersContainerView::updateLayout()
 
         pvf->namebox.items.clear();
         pvf->namebox.flexDirection = FlexBox::Direction::row;
-        pvf->namebox.items.add(FlexItem(mincheckheight, mincheckheight, *pvf->menuButton).withMargin(0).withFlex(0));
+        pvf->namebox.items.add(FlexItem(mincheckheight, mincheckheight, *pvf->menuButton).withMargin(0).withFlex(0).withMaxHeight(mincheckheight).withAlignSelf(FlexItem::AlignSelf::center));
         pvf->namebox.items.add(FlexItem(100, minitemheight, pvf->nameaddrbox).withMargin(2).withFlex(1));
 
         
         pvf->sendbox.items.clear();
         pvf->sendbox.flexDirection = FlexBox::Direction::row;
         pvf->sendbox.items.add(FlexItem(100, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
-        pvf->sendbox.items.add(FlexItem(3, 2));
-        pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(1));
         if (isNarrow) {
+            pvf->sendbox.items.add(FlexItem(3, 2));
+            pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(1));
             pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(1));
         }
         
@@ -376,6 +376,7 @@ void PeersContainerView::updateLayout()
         pvf->sendmeterbox.flexDirection = FlexBox::Direction::row;
         //pvf->sendmeterbox.items.add(FlexItem(60, minitemheight, *pvf->sendMeter).withMargin(0).withFlex(1));
         if (!isNarrow) {
+            pvf->sendmeterbox.items.add(FlexItem(60, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(2));
             pvf->sendmeterbox.items.add(FlexItem(60, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(1));
         }
 
@@ -573,7 +574,7 @@ void PeersContainerView::updatePeerViews()
             pvf->recvActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
         }
         else {
-            recvtext += TRANS("We muted them");    
+            recvtext += TRANS("You muted them");    
             pvf->recvActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
         }
 
@@ -835,15 +836,15 @@ void PeersContainerView::showPopupMenu(Component * source, int index)
     Array<GenericItemChooserItem> items;
     if (isGroupPeer) {
         if (processor.getRemotePeerRecvAllow(index) && processor.getRemotePeerSendAllow(index)) {
-            items.add(GenericItemChooserItem(TRANS("Disconnect")));
+            items.add(GenericItemChooserItem(TRANS("Mute All")));
         } else {
-            items.add(GenericItemChooserItem(TRANS("Reconnect")));        
+            items.add(GenericItemChooserItem(TRANS("Unmute All")));
         }
     } else {
         if (processor.getRemotePeerConnected(index)) {
-            items.add(GenericItemChooserItem(TRANS("Disconnect")));
+            items.add(GenericItemChooserItem(TRANS("Mute All")));
         } else {
-            items.add(GenericItemChooserItem(TRANS("Reconnect")));        
+            items.add(GenericItemChooserItem(TRANS("Unmute All")));        
         }        
     }
     items.add(GenericItemChooserItem(TRANS("Remove")));
