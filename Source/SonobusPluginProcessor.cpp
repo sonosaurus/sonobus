@@ -3268,8 +3268,17 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     outputMeterSource.measureBlock (buffer);
 
-    // TODO output to file writer if necessary
-    
+    // output to file writer if necessary
+    if (writingPossible) {
+        const ScopedTryLock sl (writerLock);
+        if (sl.isLocked())
+        {
+            if (activeWriter.load() != nullptr)
+            {
+                activeWriter.load()->write (buffer.getArrayOfReadPointers(), numSamples);
+            }
+        }
+    }
     
     if (needsblockchange) {
         lastSamplesPerBlock = numSamples;
@@ -3370,6 +3379,97 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
         
     }
 }
+
+bool SonobusAudioProcessor::startRecordingToFile(const File & file)
+{
+    if (!recordingThread) {
+        recordingThread = std::make_unique<TimeSliceThread>("Recording Thread");
+        recordingThread->startThread();
+        
+        writingPossible = true;
+    }
+    
+    stopRecordingToFile();
+
+    bool ret = false;
+    
+    if (getSampleRate() > 0)
+    {
+        // Create an OutputStream to write to our destination file...
+        file.deleteFile();
+        
+        if (auto fileStream = std::unique_ptr<FileOutputStream> (file.createOutputStream()))
+        {
+            // Now create a WAV writer object that writes to our output stream...
+            //WavAudioFormat audioFormat;
+            std::unique_ptr<AudioFormat> audioFormat;
+            
+            if (file.getFileExtension().toLowerCase() == ".flac") {
+                audioFormat = std::make_unique<FlacAudioFormat>();
+            }
+            else if (file.getFileExtension().toLowerCase() == ".wav") {
+                audioFormat = std::make_unique<WavAudioFormat>();
+            }
+            else if (file.getFileExtension().toLowerCase() == ".ogg") {
+                audioFormat = std::make_unique<OggVorbisAudioFormat>();
+            }
+            else {
+                DebugLogC("Could not find format for filename");
+                return false;
+            }
+            
+            if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), getMainBusNumOutputChannels(), 16, {}, 0))
+            {
+                fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+                
+                // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
+                // write the data to disk on our background thread.
+                threadedWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
+                                
+                // And now, swap over our active writer pointer so that the audio callback will start using it..
+                const ScopedLock sl (writerLock);
+                activeWriter = threadedWriter.get();
+                DebugLogC("Started recording file %s", file.getFullPathName().toRawUTF8());
+                ret = true;
+            } else {
+                DebugLogC("Error creating writer for %s", file.getFullPathName().toRawUTF8());
+            }
+        } else {
+            DebugLogC("Error creating output file: %s", file.getFullPathName().toRawUTF8());
+        }
+    }
+    
+    return ret;
+}
+
+bool SonobusAudioProcessor::stopRecordingToFile()
+{
+    // First, clear this pointer to stop the audio callback from using our writer object..
+    {
+        const ScopedLock sl (writerLock);
+        activeWriter = nullptr;
+    }
+    
+    if (threadedWriter) {
+        
+        // Now we can delete the writer object. It's done in this order because the deletion could
+        // take a little time while remaining data gets flushed to disk, and we can't be blocking
+        // the audio callback while this happens.
+        threadedWriter.reset();
+        
+        DebugLogC("Stopped recording file");
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool SonobusAudioProcessor::isRecordingToFile()
+{
+    return activeWriter.load() != nullptr;
+}
+
 
 //==============================================================================
 // This creates new instances of the plugin..

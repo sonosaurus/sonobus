@@ -1,10 +1,7 @@
 
-#ifndef __VRI_STATS_RUNNING_CUMULANT_INLINE__
-#define __VRI_STATS_RUNNING_CUMULANT_INLINE__
+#ifndef __RUNNING_CUMULANT_INLINE__
+#define __RUNNING_CUMULANT_INLINE__
 
-#ifdef __SPU__
-#define FAST_CUMULANT // Have the SPUs always use the fast version
-#endif
 
 #ifdef FAST_CUMULANT // define this label if you want to inline this C file
 
@@ -21,7 +18,7 @@ INLINE_ME void push_sample_2d( float* Za, float* xa, float* ya, float* xxa, floa
 
 #else
 
-//#include "vri/common/stats/RunningCumulant.h"
+//#include "RunningCumulant.h"
 #define INLINE_ME // use a name slightly different from INLINE in case some other header file used that commonly named label
 
 #endif

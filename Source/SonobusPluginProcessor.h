@@ -263,6 +263,11 @@ public:
         clientListeners.remove(l);
     }
     
+    // recording stuff
+    bool startRecordingToFile(const File & file);
+    bool stopRecordingToFile();
+    bool isRecordingToFile();
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
@@ -427,5 +432,12 @@ private:
     std::unique_ptr<EventThread> mEventThread;
     std::unique_ptr<ServerThread> mServerThread;
     std::unique_ptr<ClientThread> mClientThread;
+    
+    // recording stuff
+    volatile bool writingPossible = false;
+    std::unique_ptr<TimeSliceThread> recordingThread;
+    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
+    CriticalSection writerLock;
+    std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter { nullptr };
     
 };

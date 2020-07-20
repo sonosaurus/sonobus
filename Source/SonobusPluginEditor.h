@@ -179,6 +179,8 @@ private:
     std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
     std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
 
+    std::unique_ptr<SonoTextButton> mRecordingButton;
+
     
     SonoLookAndFeel inMeterLnf;
     SonoLookAndFeel outMeterLnf;

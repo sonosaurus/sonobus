@@ -1,5 +1,5 @@
-#ifndef __VRI_STATS_RUNCUMULANTOR__
-#define __VRI_STATS_RUNCUMULANTOR__
+#ifndef __RUNCUMULANTOR__
+#define __RUNCUMULANTOR__
 
 /// Function for updating the cumulants, 1-D version
 extern void push_aggregate( float* Za, float* xa, float* sigma2a, float Zb, float xb, float sigma2b);

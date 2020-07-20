@@ -24,7 +24,7 @@ RandomSentenceGenerator::RandomSentenceGenerator(const std::string & fileName)
 
     
     //if the file doesnt open
-    if( !inFile.is_open() )
+    if ( !inFile.is_open() )
     {
         cerr << "Unable to open " << fileName << " for reading. "; 
         return;
@@ -51,9 +51,9 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
     grammar.clear();
     
     //while there is still another line to read
-    while(getline(inFile, line)){
+    while (getline(inFile, line)){
         unsigned long flag = line.find("{");
-        if(flag != std::string::npos){
+        if (flag != std::string::npos){
             //the next line should be the grammar rule
             getline(inFile, line);
             rule = toLwer(line);
@@ -61,7 +61,7 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
             //cout << "rule: " << rule << endl;
             getline(inFile, line);
             unsigned long flag2 = line.find("}");
-            while(flag2 == std::string::npos){ //if the line isn't a right bracket
+            while (flag2 == std::string::npos){ //if the line isn't a right bracket
                 sentence = line;
                 sentence = sentence.substr(0,sentence.find_last_not_of(delimiters)+1);
                 //cout << "sentence: " << sentence << endl;
@@ -82,20 +82,22 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
  *    Returns a random sentence generated from the grammar.
  *    Calls a recursive helper method to fill in grammar rules.
  **/
-string RandomSentenceGenerator::randomSentence(){
-  return randomSentence("<start>");
+string RandomSentenceGenerator::randomSentence()
+{
+    return randomSentence("<start>");
 }//end randomSentence
 
 /**
  *   Recursive helper method to generate a random sentence.    
  **/
-string RandomSentenceGenerator::randomSentence(string rule){
+string RandomSentenceGenerator::randomSentence(string rule)
+{
     string sentence = grammar.getRandomRHS(rule); //save the first random sentence
 
     rule = getRule(sentence); //get the rule in the the sentence (this matters in the recursion)
     
     //while we still have more rules to get
-    while(rule != ""){
+    while (rule != "") {
         replaceRule(&sentence, rule, randomSentence(rule));
         rule = getRule(sentence);
     }//end while
@@ -106,9 +108,10 @@ string RandomSentenceGenerator::randomSentence(string rule){
 /**
  * Replace non terminal (non '<rule>')
  **/
-void RandomSentenceGenerator::replaceRule(string *s, string lhs, string sub){
-    int start = s->find(lhs);
-    if(start != string::npos){
+void RandomSentenceGenerator::replaceRule(string *s, string lhs, string sub)
+{
+    int start = (int) s->find(lhs);
+    if (start != string::npos){
         unsigned long end = s->find('>');
         if (capEveryWord && sub.length() > 0) {
             capFirst(sub);
@@ -120,10 +123,11 @@ void RandomSentenceGenerator::replaceRule(string *s, string lhs, string sub){
 /**
  * Get the rule in the sentence
  **/
-string RandomSentenceGenerator::getRule(string sentence){
+string RandomSentenceGenerator::getRule(string sentence)
+{
    unsigned long ruleIndexStart = sentence.find('<');
    //if there is a rule to be found / no '<''s if not
-   if(ruleIndexStart != string::npos){
+   if (ruleIndexStart != string::npos){
       unsigned long ruleIndexEnd = sentence.find('>'); //find the beginning and end of the rule
       //return the sentence with the rule filled
       return sentence.substr(ruleIndexStart, ++ruleIndexEnd - ruleIndexStart);
@@ -136,14 +140,16 @@ string RandomSentenceGenerator::getRule(string sentence){
 /**   
  * Prints the grammar using the overloaded << operator
  **/
-void RandomSentenceGenerator::printGrammar(){
+void RandomSentenceGenerator::printGrammar()
+{
     cout << grammar << endl;
 }//end printGrammar
 
 /**
  * returns a lowercase version of a given string
  **/
-string RandomSentenceGenerator::toLwer(string s){
+string RandomSentenceGenerator::toLwer(string s)
+{
   locale loc;
   for (int i = 0; i < s.length(); ++i){
     tolower(s[i], loc);
@@ -151,7 +157,8 @@ string RandomSentenceGenerator::toLwer(string s){
   return s;
 }
 
-void RandomSentenceGenerator::capFirst(string & s){
+void RandomSentenceGenerator::capFirst(string & s)
+{
   locale loc;
   if (s.length() > 0) {
       s[0] = toupper(s[0], loc);

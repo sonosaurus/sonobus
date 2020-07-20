@@ -618,6 +618,17 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
 
     
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        //mRecordingButton = std::make_unique<SonoDrawableButton>("record", DrawableButton::ButtonStyle::ImageFitted);
+        //std::unique_ptr<Drawable> recimg(Drawable::createFromImageData(BinaryData::rec_normal_png, BinaryData::rec_normal_pngSize));
+        //std::unique_ptr<Drawable> recselimg(Drawable::createFromImageData(BinaryData::rec_sel_png, BinaryData::rec_sel_pngSize));
+        //mRecordingButton->setImages(recimg.get(), nullptr, nullptr, nullptr, recselimg.get());
+        mRecordingButton = std::make_unique<SonoTextButton>("record");
+        mRecordingButton->setButtonText(TRANS("Rec"));
+        mRecordingButton->addListener(this);
+        mRecordingButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.8, 0.3, 0.3, 0.7));
+        
+    }
     
 #if JUCE_IOS
     mPeerViewport->setScrollOnDragEnabled(true);
@@ -649,7 +660,11 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mPatchbayButton.get());
     addAndMakeVisible(mConnectButton.get());
     addAndMakeVisible(mMainStatusLabel.get());
-    
+
+    if (mRecordingButton) {
+        addAndMakeVisible(mRecordingButton.get());
+    }
+
     
     mDirectConnectContainer->addAndMakeVisible(mDirectConnectButton.get());
     mDirectConnectContainer->addAndMakeVisible(mAddRemoteHostEditor.get());
@@ -952,6 +967,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
         else {
             if (!serverCalloutBox) {
+                mMainPeerLabel->setText("", dontSendNotification);
                 showConnectPopup(true);
             } else {
                 showConnectPopup(false);
@@ -1014,6 +1030,32 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mSettingsButton.get()) {
         if (!settingsWasShownOnDown) {
             showSettings(true);
+        }
+    }
+    else if (buttonThatWasClicked == mRecordingButton.get()) {
+        if (processor.isRecordingToFile()) {
+            processor.stopRecordingToFile();
+            mRecordingButton->setToggleState(false, dontSendNotification);
+            updateServerStatusLabel("Stopped Recording");
+        } else {
+            // create new timestamped filename
+            String filename = Time::getCurrentTime().formatted("SonoBusSession_%Y-%m-%d_%H.%M.%S");
+
+#if (JUCE_IOS)
+            auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
+#else
+            auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
+            parentDir = parentDir.getChildFile("SonoBus");
+            parentDir.createDirectory();
+#endif
+
+            const File file (parentDir.getNonexistentChildFile (filename, ".flac"));
+
+            if (processor.startRecordingToFile(file)) {
+                mRecordingButton->setToggleState(true, dontSendNotification);
+                updateServerStatusLabel("Started Recording");
+            }
+            
         }
     }
     else {
@@ -1290,7 +1332,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         }
 
         const int defWidth = 300;
-        const int defHeight = 330;                
+        const int defHeight = 350;
         
         wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 20), jmin(defHeight + 8, dw->getHeight() - 24));
         
@@ -1426,6 +1468,11 @@ void SonobusAudioProcessorEditor::updateState()
         //mServerGroupEditor->setAlpha(0.5f);
     }
 
+    if (mRecordingButton) {
+        mRecordingButton->setToggleState(processor.isRecordingToFile(), dontSendNotification);
+    }
+
+    
     currGroup = processor.getCurrentJoinedGroup();
     if (!currGroup.isEmpty() && currConnected) {
         //mServerGroupEditor->setEnabled(false);
@@ -1882,6 +1929,10 @@ void SonobusAudioProcessorEditor::updateLayout()
         toolbarBox.items.add(FlexItem(60, minitemheight, *mPatchbayButton).withMargin(2).withFlex(0.5).withMaxWidth(120));
     }
 #endif
+    if (mRecordingButton) {
+        toolbarBox.items.add(FlexItem(40, minitemheight, *mRecordingButton).withMargin(2).withFlex(0));
+    }
+
     toolbarBox.items.add(FlexItem(12, 6).withMargin(0).withFlex(0));
     
 
