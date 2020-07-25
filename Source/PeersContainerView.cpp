@@ -48,7 +48,7 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
 void PeersContainerView::configLevelSlider(Slider * slider)
 {
     //slider->setTextValueSuffix(" dB");
-    slider->setRange(0.0, 1.0, 0.0);
+    slider->setRange(0.0, 2.0, 0.0);
     slider->setSkewFactor(0.25);
     slider->setDoubleClickReturnValue(true, 1.0);
     slider->setTextBoxIsEditable(false);
@@ -365,7 +365,7 @@ void PeersContainerView::updateLayout()
         
         pvf->sendbox.items.clear();
         pvf->sendbox.flexDirection = FlexBox::Direction::row;
-        pvf->sendbox.items.add(FlexItem(100, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
+        pvf->sendbox.items.add(FlexItem(80, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
         if (isNarrow) {
             pvf->sendbox.items.add(FlexItem(3, 2));
             pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(1));
@@ -382,7 +382,7 @@ void PeersContainerView::updateLayout()
 
         pvf->recvbox.items.clear();
         pvf->recvbox.flexDirection = FlexBox::Direction::row;
-        pvf->recvbox.items.add(FlexItem(100, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
+        pvf->recvbox.items.add(FlexItem(80, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
         pvf->recvbox.items.add(FlexItem(60, mincheckheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(1));
         //pvf->recvbox.items.add(FlexItem(40, mincheckheight, *pvf->latActiveButton).withMargin(0).withFlex(1).withMaxWidth(60));
 
@@ -457,8 +457,8 @@ void PeersContainerView::updateLayout()
         } else {            
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
             pvf->mainbox.items.add(FlexItem(100 + mincheckheight, singleph, pvf->mainsendbox).withMargin(2).withFlex(1));
-            pvf->mainbox.items.add(FlexItem(30, 50, *pvf->recvMeter).withMargin(2).withFlex(0));
             pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(2).withFlex(3));
+            pvf->mainbox.items.add(FlexItem(30, 50, *pvf->recvMeter).withMargin(2).withFlex(0));
         }
 
         peersBox.items.add(FlexItem(8, 5).withMargin(0));
@@ -584,14 +584,16 @@ void PeersContainerView::updatePeerViews()
         pvf->recvActualBitrateLabel->setText(recvtext, dontSendNotification);
 
         bool estlat = true;
-        float totallat = processor.getRemotePeerTotalLatencyMs(i, estlat);
+        bool isreal = false;
+        float totallat = processor.getRemotePeerTotalLatencyMs(i, isreal, estlat);
         
         pvf->pingLabel->setText(String::formatted("%d ms", (int)processor.getRemotePeerPingMs(i) ), dontSendNotification);
-        if (estlat) {
+
+        if (!isreal) {
             pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
         } else {
-            //pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)totallat, estlat ? "*" : "" ), dontSendNotification);            
-            pvf->latencyLabel->setText(String::formatted("%d ms", (int)totallat), dontSendNotification);            
+            pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)lrintf(totallat), estlat ? "*" : "" ), dontSendNotification);
+            //pvf->latencyLabel->setText(String::formatted("%d ms", (int)totallat), dontSendNotification);
         }
 
         
@@ -664,12 +666,20 @@ void PeersContainerView::updatePeerViews()
         pvf->panSlider2->setAlpha(recvactive ? 1.0 : disalpha);
         //pvf->autosizeButton->setAlpha(recvactive ? 1.0 : 0.6);
         
-        if (pvf->stopLatencyTestTimestampMs > 0.0 && nowstampms > pvf->stopLatencyTestTimestampMs && !pvf->latActiveButton->isMouseButtonDown()) {
-            stopLatencyTest(i);
+        if (pvf->stopLatencyTestTimestampMs > 0.0 && nowstampms > pvf->stopLatencyTestTimestampMs
+            && !pvf->latActiveButton->isMouseButtonDown()) {
 
-            if (popTip && popTip->isVisible()) {
-                Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
-                popTip.reset();
+            bool isreal=false, est = false;
+            processor.getRemotePeerTotalLatencyMs(i, isreal, est);
+
+            // only stop if it has actually gotten a real latency
+            if (isreal) {
+                stopLatencyTest(i);
+                
+                if (popTip && popTip->isVisible()) {
+                    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
+                    popTip.reset();
+                }
             }
         }
     }
@@ -686,8 +696,9 @@ void PeersContainerView::startLatencyTest(int i)
     pvf->stopLatencyTestTimestampMs = Time::getMillisecondCounterHiRes() + 1500.0;
     pvf->wasRecvActiveAtLatencyTest = processor.getRemotePeerRecvActive(i);
     pvf->wasSendActiveAtLatencyTest = processor.getRemotePeerSendActive(i);
-    processor.setRemotePeerSendActive(i, false);
-    processor.setRemotePeerRecvActive(i, false);
+    
+    //processor.setRemotePeerSendActive(i, false);
+    //processor.setRemotePeerRecvActive(i, false);
     
     processor.startRemotePeerLatencyTest(i);             
 }
@@ -699,13 +710,15 @@ void PeersContainerView::stopLatencyTest(int i)
 
     processor.stopRemotePeerLatencyTest(i);
     
+    /*
     if (pvf->wasRecvActiveAtLatencyTest) {
         processor.setRemotePeerRecvActive(i, true);
     }
     if (pvf->wasSendActiveAtLatencyTest) {
         processor.setRemotePeerSendActive(i, true);
     }
-    
+    */
+     
     pvf->stopLatencyTestTimestampMs = 0.0;
     
 }

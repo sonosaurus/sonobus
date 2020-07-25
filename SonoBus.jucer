@@ -116,6 +116,10 @@
             file="Source/GenericItemChooser.h"/>
       <FILE id="U4G4zF" name="Grammar.cpp" compile="1" resource="0" file="Source/Grammar.cpp"/>
       <FILE id="abl0cE" name="Grammar.h" compile="0" resource="0" file="Source/Grammar.h"/>
+      <FILE id="HDtnq4" name="LatencyMeasurer.cpp" compile="1" resource="0"
+            file="Source/LatencyMeasurer.cpp"/>
+      <FILE id="CAs5yt" name="LatencyMeasurer.h" compile="0" resource="0"
+            file="Source/LatencyMeasurer.h"/>
       <FILE id="fqZMTM" name="LevelMeterLookAndFeelMethods.h" compile="0"
             resource="0" file="Source/LevelMeterLookAndFeelMethods.h"/>
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>

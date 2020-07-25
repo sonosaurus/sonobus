@@ -377,6 +377,16 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mPanButton->addListener(this);
 
     
+    mMasterMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> sendallowimg(Drawable::createFromImageData(BinaryData::outgoing_allowed_svg, BinaryData::outgoing_allowed_svgSize));
+    std::unique_ptr<Drawable> senddisallowimg(Drawable::createFromImageData(BinaryData::outgoing_disallowed_svg, BinaryData::outgoing_disallowed_svgSize));
+    mMasterMuteButton->setImages(sendallowimg.get(), nullptr, nullptr, nullptr, senddisallowimg.get());
+    mMasterMuteButton->addListener(this);
+    mMasterMuteButton->setClickingTogglesState(true);
+    //pvf->sendMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7));
+    mMasterMuteButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mMasterMuteButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+
     
     mDrySlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
     mDrySlider->setName("dry");
@@ -422,7 +432,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
     mInMonPan1Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan1, *mInMonPanSlider1);
     mInMonPan2Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan2, *mInMonPanSlider2);
-    
+    mMasterSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMasterSendMute, *mMasterMuteButton);
+
 
     mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
     mConnectTab->setOutline(0);
@@ -654,7 +665,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mOutGainSlider.get());
     //addAndMakeVisible(mWetLabel.get());
     addAndMakeVisible(mInGainSlider.get());
-
+    addAndMakeVisible(mMasterMuteButton.get());
+    
     addAndMakeVisible(mLocalAddressLabel.get());
     addAndMakeVisible(mLocalAddressStaticLabel.get());
     addAndMakeVisible(mPatchbayButton.get());
@@ -1021,6 +1033,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         } else {
             showInPanners(false);
         }        
+    }
+    else if (buttonThatWasClicked == mMasterMuteButton.get()) {
+        // allow or disallow sending to all peers
+        mPeerContainer->updatePeerViews();
     }
     else if (buttonThatWasClicked == mServerGroupRandomButton.get()) {
         // randomize group name
@@ -1700,13 +1716,13 @@ void SonobusAudioProcessorEditor::updateLayout()
     int iconwidth = iconheight;
 
     inGainBox.items.clear();
-    inGainBox.flexDirection = FlexBox::Direction::column;
-    //inGainBox.items.add(FlexItem(minKnobWidth, 16, *mInGainLabel).withMargin(0));
+    inGainBox.flexDirection = FlexBox::Direction::row;
+    inGainBox.items.add(FlexItem(80, minitemheight, *mMasterMuteButton).withMargin(0).withFlex(0));
+    inGainBox.items.add(FlexItem(4, 20).withMargin(0).withFlex(0));
     inGainBox.items.add(FlexItem(minKnobWidth, minitemheight, *mInGainSlider).withMargin(0).withFlex(1));
 
     dryBox.items.clear();
     dryBox.flexDirection = FlexBox::Direction::row;
-    //dryBox.items.add(FlexItem(minKnobWidth, 16, *mDryLabel).withMargin(0));
     dryBox.items.add(FlexItem(minKnobWidth, minitemheight, *mDrySlider).withMargin(0).withFlex(4));
     dryBox.items.add(FlexItem(4, 20).withMargin(0).withFlex(0));
     dryBox.items.add(FlexItem(minKnobWidth, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(50));

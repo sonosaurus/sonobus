@@ -109,6 +109,7 @@ public:
     static String paramDefaultAutoNetbuf;
     static String paramDefaultNetbufMs;
     static String paramDefaultSendQual;
+    static String paramMasterSendMute;
 
     struct EndpointState;
     struct RemoteSink;
@@ -201,7 +202,7 @@ public:
 
     
     float getRemotePeerPingMs(int index) const;
-    float getRemotePeerTotalLatencyMs(int index, bool & estimated) const;
+    float getRemotePeerTotalLatencyMs(int index, bool & isreal, bool & estimated) const;
 
     bool startRemotePeerLatencyTest(int index, float durationsec = 1.0);
     bool stopRemotePeerLatencyTest(int index);
@@ -317,6 +318,7 @@ private:
     Atomic<float>   mWet    {   1.0 };
     Atomic<double>   mBufferTime     { 0.01 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
+    Atomic<bool>   mMasterSendMute    {   false };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;

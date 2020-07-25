@@ -13,6 +13,8 @@
 
 #include "mtdm.h"
 
+#include "LatencyMeasurer.h"
+
 #ifdef _WIN32
 #include <winsock2.h>
 typedef int socklen_t;
@@ -32,6 +34,7 @@ String SonobusAudioProcessor::paramBufferTime  ("buffertime");
 String SonobusAudioProcessor::paramDefaultNetbufMs ("defnetbuf");
 String SonobusAudioProcessor::paramDefaultAutoNetbuf ("defnetauto");
 String SonobusAudioProcessor::paramDefaultSendQual ("defsendqual");
+String SonobusAudioProcessor::paramMasterSendMute ("mastsendmute");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -144,7 +147,8 @@ struct SonobusAudioProcessor::RemotePeer {
     aoo::isource::pointer echosource;
     bool activeLatencyTest = false;
     std::unique_ptr<MTDM> latencyProcessor;
-    
+    std::unique_ptr<LatencyMeasurer> latencyMeasurer;
+
     float gain = 1.0f;
     float buffertimeMs = 15.0f;
     AutoNetBufferMode  autosizeBufferMode = AutoNetBufferModeAutoFull;
@@ -174,8 +178,9 @@ struct SonobusAudioProcessor::RemotePeer {
     float netBufAutoBaseline = 0.0f;
     float pingTime = 0.0f; // ms
     stats::RunCumulantor1D  smoothPingTime; // ms
-    float totalEstLatency = 0.0f;
-    float totalLatency = 0.0f;
+    float totalEstLatency = 0.0f; // ms
+    float totalLatency = 0.0f; // ms
+    float bufferTimeAtRealLatency = 0.0f; // ms
     bool hasRealLatency = false;
     bool latencyDirty = false;
     AudioSampleBuffer workBuffer;
@@ -345,7 +350,7 @@ SonobusAudioProcessor::SonobusAudioProcessor()
 #endif
 mState (*this, &mUndoManager, "SonoBusAoO",
 {
-    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 2.0, 0.0, 0.25), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
@@ -361,13 +366,15 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramWet,     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mWet.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(paramWet,     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 2.0, 0.0, 0.25), mWet.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
     std::make_unique<AudioParameterFloat>(paramDefaultNetbufMs,     TRANS ("Default Net Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
+
+    std::make_unique<AudioParameterBool>(paramMasterSendMute, TRANS ("Main Send Mute"), mMasterSendMute.get()),
 
     std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full"}), defaultAutoNetbufMode),
 
@@ -382,6 +389,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramDefaultAutoNetbuf, this);
     mState.addParameterListener (paramDefaultNetbufMs, this);
     mState.addParameterListener (paramDefaultSendQual, this);
+    mState.addParameterListener (paramMasterSendMute, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -1154,7 +1162,10 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     peer->smoothPingTime.Z *= 0.9;
                     peer->smoothPingTime.push(peer->pingTime);
                 }
-                peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+
+                if (!peer->hasRealLatency) {
+                    peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+                }
 
                 if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {                    
                     // possibly adjust net buffer down, if it has been longer than threshold since last drop
@@ -1178,6 +1189,10 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                                 peer->latencysink->set_buffersize(peer->buffertimeMs);
                                 peer->latencyDirty = true;
 
+                                if (peer->hasRealLatency) {
+                                    peer->totalEstLatency = peer->totalLatency + (peer->buffertimeMs - peer->bufferTimeAtRealLatency);
+                                }
+                                
                                 DebugLogC("AUTO-Decreasing buffer time by 2 ms to %d ", (int) peer->buffertimeMs);
 
                                 peer->lastNetBufDecrTime = nowtime;                                
@@ -1222,10 +1237,14 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     peer->remoteSinkId = e->id;
 
                     // add their sink
+                    peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
+
                     if (peer->sendAllow) {
-                        peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
                         peer->oursource->start();
                         peer->sendActive = true;
+                    } else {
+                        peer->oursource->stop();
+                        peer->sendActive = false;
                     }
                     
                     DebugLogC("Was invited by remote peer %s:%d sourceId: %d  ourId: %d", es->ipaddr.toRawUTF8(), es->port, peer->remoteSinkId,  peer->ourId);
@@ -1257,6 +1276,9 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                             
                             peer->sendActive = true;
                             DebugLogC("Starting to send, we allow it", es->ipaddr.toRawUTF8(), es->port, peer->remoteSinkId);
+                        } else {
+                            peer->sendActive = false;
+                            peer->oursource->stop();
                         }
                         
                         peer->connected = true;
@@ -1496,6 +1518,10 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                                 peer->latencyDirty = true;
 
                                 DebugLogC("AUTO-Increasing buffer time by 1 ms to %d  droprate: %g", (int) peer->buffertimeMs, droprate);
+
+                                if (peer->hasRealLatency) {
+                                    peer->totalEstLatency = peer->totalLatency + (peer->buffertimeMs - peer->bufferTimeAtRealLatency);
+                                }
 
                                 if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {
 
@@ -1783,8 +1809,14 @@ int SonobusAudioProcessor::connectRemotePeerRaw(void * sockaddr, const String & 
         remote->connected = true;
         remote->invitedPeer = reciprocate;
         remote->recvActive = reciprocate;
-        remote->sendActive = true;
-        remote->oursource->start();
+        if (!mMasterSendMute.get()) {
+            remote->sendActive = true;
+            remote->oursource->start();
+        }
+        else {
+            remote->sendActive = false;
+            remote->oursource->stop();
+        }
         
     } else {
         DebugLogC("Error inviting remote peer at %s:%d - ourId %d", endpoint->ipaddr.toRawUTF8(), endpoint->port, remote->ourId);
@@ -1811,8 +1843,10 @@ int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, cons
         remote->connected = true;
         remote->invitedPeer = reciprocate;
         remote->recvActive = reciprocate;
-        remote->sendActive = true;
-        remote->oursource->start();
+        if (!mMasterSendMute.get()) {
+            remote->sendActive = true;
+            remote->oursource->start();
+        }
         
     } else {
         DebugLogC("Error inviting remote peer at %s:%d - ourId %d", host.toRawUTF8(), port, remote->ourId);
@@ -2115,6 +2149,9 @@ void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
         remote->latencysink->set_buffersize(remote->buffertimeMs);
         remote->netBufAutoBaseline = 0.0f; // reset
         remote->latencyDirty = true;
+        if (remote->hasRealLatency) {
+            remote->totalEstLatency = remote->totalLatency + (remote->buffertimeMs - remote->bufferTimeAtRealLatency);
+        }
     }
 }
 
@@ -2317,11 +2354,33 @@ float SonobusAudioProcessor::getRemotePeerPingMs(int index) const
     return 0;          
 }
 
-float SonobusAudioProcessor::getRemotePeerTotalLatencyMs(int index, bool & estimated) const
+float SonobusAudioProcessor::getRemotePeerTotalLatencyMs(int index, bool & isreal, bool & estimated) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
+
+#if 1
+        if (remote->activeLatencyTest && remote->latencyMeasurer) {
+            if (remote->latencyMeasurer->state > 1 /*remote->latencyMeasurer->measurementCount */) {
+
+                DebugLogC("Latency calculated: %g", remote->latencyMeasurer->latencyMs);
+
+                remote->totalLatency = remote->latencyMeasurer->latencyMs;
+                remote->bufferTimeAtRealLatency = remote->buffertimeMs;
+                remote->hasRealLatency = true;
+                remote->latencyDirty = false;
+                remote->totalEstLatency = remote->totalLatency;
+                estimated = false;
+                isreal = true;
+                return remote->totalLatency;
+            }
+            else {
+                DebugLogC("Latency not calculated yet...");
+
+            }
+        }
+#else
         if (remote->activeLatencyTest && remote->latencyProcessor) {
             if (remote->latencyProcessor->resolve() < 0) {
                 DebugLogC("Latency Signal below threshold...");
@@ -2366,12 +2425,21 @@ float SonobusAudioProcessor::getRemotePeerTotalLatencyMs(int index, bool & estim
                 return remote->totalLatency;
             }
         }
-
+#endif
+        
         if (remote->hasRealLatency) {
             estimated = remote->latencyDirty;
-            return remote->totalLatency;
+            isreal = true;
+            if (remote->latencyDirty) {
+                // is a good estimate
+                return remote->totalEstLatency;
+            }
+            else {
+                return remote->totalLatency;
+            }
         }
         else {
+            isreal = false;
             estimated = true;
             return remote->totalEstLatency ;
         }
@@ -2402,6 +2470,12 @@ bool SonobusAudioProcessor::startRemotePeerLatencyTest(int index, float duration
             // start our latency source sending to remote's echosink
             remote->latencysource->add_sink(remote->endpoint, remote->remoteSinkId+ECHO_ID_OFFSET, endpoint_send);            
             remote->latencysource->start();
+            
+#if 1
+            remote->latencyMeasurer->measurementCount = 10000;
+            remote->latencyMeasurer->initializeWithThreshold(-90.0f);
+
+#endif
             
             remote->activeLatencyTest = true;
         }
@@ -2635,6 +2709,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->echosink->set_buffersize(retpeer->buffertimeMs);
 
         retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
+        retpeer->latencyMeasurer.reset(new LatencyMeasurer());
         
         retpeer->workBuffer.setSize(2, currSamplesPerBlock);
 
@@ -2643,6 +2718,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->recvMeterSource.resize (outchannels, meterRmsWindow);
         retpeer->sendMeterSource.resize (retpeer->sendChannels, meterRmsWindow);
 
+        retpeer->sendAllow = !mMasterSendMute.get();
 
     }
     else {
@@ -2758,6 +2834,35 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramInGain) {
         mInGain = newValue;
+    }
+    else if (parameterID == paramMasterSendMute) {
+        // allow or disallow sending to all peers
+
+        mMasterSendMute = newValue > 0;
+                       
+        for (int i=0; i < getNumberRemotePeers(); ++i) {
+            bool connected  = getRemotePeerConnected(i);
+            bool isGroupPeer = getRemotePeerUserName(i).isNotEmpty();
+            
+            if (!connected && !isGroupPeer) {
+                /*
+                 String hostname;
+                 int port = 0;
+                 processor.getRemotePeerAddressInfo(i, hostname, port);
+                 processor.connectRemotePeer(hostname, port);
+                 */
+            }
+            else
+            {
+                // turns on allow and starts sending
+                if (!mMasterSendMute.get()) {
+                    setRemotePeerSendActive(i, true);
+                } else {
+                    // turns off sending and allow
+                    setRemotePeerSendAllow(i, false);
+                }
+            }
+        }
     }
     else if (parameterID == paramWet) {
         mWet = newValue;
@@ -2907,6 +3012,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
             s->echosink->setup(sampleRate, samplesPerBlock, 1);
             
             s->latencyProcessor.reset(new MTDM(sampleRate));
+            s->latencyMeasurer.reset(new LatencyMeasurer());
         }
 
 
@@ -3174,18 +3280,22 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     remote->echosource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);
                 }
 
+
                 if (remote->activeLatencyTest && remote->latencyProcessor) {
                     workBuffer.clear(0, 0, numSamples);
                     if (remote->latencysink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
                         //DebugLogC("received something from our latency sink");
                     }
-                    
+
+#if 1
+                    remote->latencyMeasurer->processInput(workBuffer.getWritePointer(0), (int)lrint(getSampleRate()), numSamples);
+                    remote->latencyMeasurer->processOutput(workBuffer.getWritePointer(0));
+#else
                     remote->latencyProcessor->process(numSamples, workBuffer.getWritePointer(0), workBuffer.getWritePointer(0));
-                    
+#endif
 
                     remote->latencysource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);                                        
                 }
-                
             }
             
             ++i;

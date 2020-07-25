@@ -155,6 +155,8 @@ private:
     std::unique_ptr<Slider> mDrySlider;
     std::unique_ptr<Slider> mOutGainSlider;
     
+    std::unique_ptr<SonoDrawableButton> mMasterMuteButton;
+
     std::unique_ptr<Slider> mBufferTimeSlider;
     
     std::unique_ptr<Label> mInGainLabel;
@@ -332,6 +334,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMasterSendMuteAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };
