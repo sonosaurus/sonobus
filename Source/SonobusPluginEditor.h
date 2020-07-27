@@ -47,6 +47,8 @@ public:
 
     void connectWithInfo(const AooServerConnectionInfo & info);
 
+    void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
+
     
     // client listener
     void aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
@@ -203,6 +205,9 @@ private:
     //std::unique_ptr<DialogWindow> mPatchbayWindow;
     WeakReference<Component> patchbayCalloutBox;
 
+    std::unique_ptr<BubbleMessageComponent> popTip;
+
+    File lastRecordedFile;
     
     // client state stuff
     CriticalSection clientStateLock;

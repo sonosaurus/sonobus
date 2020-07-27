@@ -230,18 +230,6 @@ public:
 };
 
 
-static void configLevelSlider(Slider * slider)
-{
-    //slider->setTextValueSuffix(" dB");
-    slider->setRange(0.0, 1.0, 0.0);
-    slider->setSkewFactor(0.25);
-    slider->setDoubleClickReturnValue(true, 1.0);
-    slider->setTextBoxIsEditable(false);
-    slider->setSliderSnapsToMousePosition(false);
-    slider->setScrollWheelEnabled(false);
-    slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
-    slider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
-}
 
 
 static void configLabel(Label *label, bool val)
@@ -434,7 +422,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInMonPan2Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan2, *mInMonPanSlider2);
     mMasterSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMasterSendMute, *mMasterMuteButton);
 
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMasterSendMute, this);
 
+    
     mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
     mConnectTab->setOutline(0);
     mConnectTab->setTabBarDepth(36);
@@ -628,6 +618,15 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
     mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
 
+    
+#if JUCE_IOS
+    mInGainSlider->setPopupDisplayEnabled(true, false, this);
+    mBufferTimeSlider->setPopupDisplayEnabled(true, false, mOptionsComponent.get());
+    mInMonPanSlider1->setPopupDisplayEnabled(true, false, inPannersContainer.get());
+    mInMonPanSlider2->setPopupDisplayEnabled(true, false, inPannersContainer.get());
+    mDrySlider->setPopupDisplayEnabled(true, false, this);
+    mOutGainSlider->setPopupDisplayEnabled(true, false, this);
+#endif
     
     if (JUCEApplicationBase::isStandaloneApp()) {
         //mRecordingButton = std::make_unique<SonoDrawableButton>("record", DrawableButton::ButtonStyle::ImageFitted);
@@ -1035,8 +1034,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }        
     }
     else if (buttonThatWasClicked == mMasterMuteButton.get()) {
-        // allow or disallow sending to all peers
-        mPeerContainer->updatePeerViews();
+        // allow or disallow sending to all peers, handled by button attachment
+
+        if (mMasterMuteButton->getToggleState()) {
+            showPopTip(TRANS("Not sending your audio anywhere"), 2000, mMasterMuteButton.get());
+        } else {
+            showPopTip(TRANS("Sending your audio to all"), 2000, mMasterMuteButton.get());
+        }
     }
     else if (buttonThatWasClicked == mServerGroupRandomButton.get()) {
         // randomize group name
@@ -1052,7 +1056,16 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         if (processor.isRecordingToFile()) {
             processor.stopRecordingToFile();
             mRecordingButton->setToggleState(false, dontSendNotification);
-            updateServerStatusLabel("Stopped Recording");
+            //updateServerStatusLabel("Stopped Recording");
+
+            String filepath;
+#if (JUCE_IOS)
+            filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+#else
+            filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+#endif
+            showPopTip(TRANS("Finished recording to ") + filepath, 4000, mRecordingButton.get(), 130);
+
         } else {
             // create new timestamped filename
             String filename = Time::getCurrentTime().formatted("SonoBusSession_%Y-%m-%d_%H.%M.%S");
@@ -1069,7 +1082,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
             if (processor.startRecordingToFile(file)) {
                 mRecordingButton->setToggleState(true, dontSendNotification);
-                updateServerStatusLabel("Started Recording");
+                //updateServerStatusLabel("Started recording...");
+                showPopTip(TRANS("Started recording output..."), 2000, mRecordingButton.get());
+                lastRecordedFile = file;
             }
             
         }
@@ -1128,7 +1143,7 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
         const int defWidth = 140; 
         const int defHeight = 70;
         
-        wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 20), jmin(defHeight + 8, dw->getHeight() - 24));
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
         //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
         
@@ -1537,6 +1552,16 @@ void SonobusAudioProcessorEditor::updateState()
 
 void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float newValue)
 {
+    
+    if (pname == SonobusAudioProcessor::paramMasterSendMute) {
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    
+    
     /*
     if (pname == YaleDAudioProcessor::paramLPFilterCutoff) {
         lastLPCutoff = newValue;
@@ -1582,8 +1607,14 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             if (ev.success) {
                 statstr = TRANS("Connected to server");                
             } else {
-                if (ev.message == "access denied") {
+                if (String(ev.message).contains("access denied")) {
                     statstr = TRANS("Already connected with this user name");
+
+                    // try again with different username (auto-incremented)
+                    //if (currConnectionInfo.userName.)
+                    
+                    //connectWithInfo(currConnectionInfo);
+
                 } else {
                     statstr = TRANS("Connect failed: ") + ev.message;
                 }
@@ -1725,7 +1756,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     dryBox.flexDirection = FlexBox::Direction::row;
     dryBox.items.add(FlexItem(minKnobWidth, minitemheight, *mDrySlider).withMargin(0).withFlex(4));
     dryBox.items.add(FlexItem(4, 20).withMargin(0).withFlex(0));
-    dryBox.items.add(FlexItem(minKnobWidth, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(50));
+    dryBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(50));
 
     // options
     optionsNetbufBox.items.clear();
@@ -1976,6 +2007,32 @@ void SonobusAudioProcessorEditor::updateLayout()
     //if (getHeight() < minheight) {
     //    setSize(getWidth(), minheight);
     //}
+}
+
+void SonobusAudioProcessorEditor::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
+{
+
+    popTip = std::make_unique<BubbleMessageComponent>();
+    popTip->setAllowedPlacement(BubbleMessageComponent::BubblePlacement::above | BubbleMessageComponent::BubblePlacement::below);
+    
+    if (target) {
+        target->getTopLevelComponent()->addChildComponent (popTip.get());
+    }
+    else {
+        addChildComponent(popTip.get());
+    }
+    
+    AttributedString text(message);
+    text.setJustification (Justification::centred);
+    text.setColour (findColour (TextButton::textColourOffId));
+    text.setFont(Font(12));
+    if (target) {
+        popTip->showAt(target, text, timeoutMs);
+    }
+    else {
+        Rectangle<int> topbox(getWidth()/2 - maxwidth/2, 0, maxwidth, 2);
+        popTip->showAt(topbox, text, timeoutMs);
+    }
 }
 
 #pragma RecentsListModel

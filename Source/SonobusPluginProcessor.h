@@ -63,6 +63,26 @@ public:
         AutoNetBufferModeAutoFull        
     };
     
+    enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus };
+
+       
+    struct AudioCodecFormatInfo {
+        AudioCodecFormatInfo() {}
+        AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_) { computeName(); }
+        AudioCodecFormatInfo(int bitrate_, int complexity_, int signaltype, int minblocksize=120) :  codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype), min_preferred_blocksize(minblocksize) { computeName(); }
+        void computeName();
+        
+        String name;
+        AudioCodecFormatCodec codec;
+        // PCM options
+        int bitdepth = 2; // bytes
+        // opus options
+        int bitrate = 0;
+        int complexity = 0;
+        int signal_type = 0;
+        int min_preferred_blocksize = 120;
+    };
+    
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -223,6 +243,8 @@ public:
     void setRemotePeerAudioCodecFormat(int index, int formatIndex);
     int getRemotePeerAudioCodecFormat(int index) const;
 
+    bool getRemotePeerReceiveAudioCodecFormat(int index, AudioCodecFormatInfo & retinfo) const;
+    
     int getRemotePeerSendPacketsize(int index) const;
     void setRemotePeerSendPacketsize(int index, int psize);
 
@@ -269,9 +291,15 @@ public:
     bool stopRecordingToFile();
     bool isRecordingToFile();
     
+    
+   
+    
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
+    
+    
     
     void initializeAoo();
     void cleanupAoo();
@@ -297,6 +325,8 @@ private:
 
     
     int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
+
+    int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
 
     
     ListenerList<ClientListener> clientListeners;
@@ -392,23 +422,7 @@ private:
     
     CriticalSection  mRemotesLock;
 
-    enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus };
-
     
-    struct AudioCodecFormatInfo {
-        AudioCodecFormatInfo() {}
-        AudioCodecFormatInfo(String name_, int bitdepth_) : name(name_), codec(CodecPCM), bitdepth(bitdepth_) {}
-        AudioCodecFormatInfo(String name_, int bitrate_, int complexity_, int signaltype, int minblocksize=120) : name(name_), codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype), min_preferred_blocksize(minblocksize) {}
-        String name;
-        AudioCodecFormatCodec codec;
-        // PCM options
-        int bitdepth = 2; // bytes
-        // opus options
-        int bitrate = 0;
-        int complexity = 0;
-        int signal_type = 0;
-        int min_preferred_blocksize = 120;
-    };
     
     Array<AudioCodecFormatInfo> mAudioFormats;
     int mDefaultAudioFormatIndex = 5;

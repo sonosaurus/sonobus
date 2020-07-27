@@ -39,7 +39,9 @@ public:
     std::unique_ptr<SonoDrawableButton> sendMutedButton;
     std::unique_ptr<SonoDrawableButton> recvMutedButton;
     std::unique_ptr<TextButton> latActiveButton;
+    std::unique_ptr<TextButton> optionsButton;
     std::unique_ptr<SonoDrawableButton> menuButton;
+    std::unique_ptr<TextButton> panButton;
     std::unique_ptr<Label>  statusLabel;
     std::unique_ptr<Label>  levelLabel;
     std::unique_ptr<Slider> levelSlider;
@@ -50,10 +52,21 @@ public:
     std::unique_ptr<SonoChoiceButton> autosizeButton;
     std::unique_ptr<SonoChoiceButton> formatChoiceButton;
 
+    std::unique_ptr<Component> pannersContainer;
+    std::unique_ptr<Component> optionsContainer;
+
     std::unique_ptr<Label>  staticLatencyLabel;
     std::unique_ptr<Label>  latencyLabel;
     std::unique_ptr<Label>  staticPingLabel;
     std::unique_ptr<Label>  pingLabel;
+
+    std::unique_ptr<Label>  staticSendQualLabel;
+    std::unique_ptr<Label>  sendQualityLabel;
+    std::unique_ptr<Label>  staticBufferLabel;
+    std::unique_ptr<Label>  bufferLabel;
+
+    
+    std::unique_ptr<Label>  staticFormatChoiceLabel;
 
     std::unique_ptr<Label>  sendActualBitrateLabel;
     std::unique_ptr<Label>  recvActualBitrateLabel;
@@ -77,6 +90,13 @@ public:
     FlexBox pingbox;
     FlexBox latencybox;
     FlexBox recvlevelbox;
+    FlexBox pannerbox;
+    FlexBox optionsBox;
+    FlexBox optionsNetbufBox;
+    FlexBox optionsSendQualBox;
+    FlexBox optionsstatbox;
+    FlexBox squalbox;
+    FlexBox netbufbox;
 
     int64_t lastBytesRecv = 0;
     int64_t lastBytesSent = 0;
@@ -132,17 +152,22 @@ protected:
     void stopLatencyTest(int i);
     
     void configLevelSlider(Slider * slider);    
-    void configLabel(Label *label, bool val);
+    void configLabel(Label *label, int ltype);
     
     PeerViewInfo * createPeerViewInfo();
     
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
+    void showPanners(int index, bool flag);
+    void showOptions(int index, bool flag);
 
     
     OwnedArray<PeerViewInfo> mPeerViews;
     SonobusAudioProcessor& processor;
     
     std::unique_ptr<BubbleMessageComponent> popTip;
+
+    WeakReference<Component> pannerCalloutBox;
+    WeakReference<Component> optionsCalloutBox;
 
     FlexBox peersBox;
     int peersMinHeight = 120;
@@ -154,6 +179,7 @@ protected:
     
     Colour mutedTextColor;
     Colour regularTextColor;
+    Colour dimTextColor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeersContainerView)
 
