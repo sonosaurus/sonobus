@@ -88,7 +88,9 @@ SonoLookAndFeel::SonoLookAndFeel()
 
     setColour (BubbleComponent::backgroundColourId, Colour::fromFloatRGBA(0.25, 0.25, 0.25, 1.0));
     setColour (BubbleComponent::outlineColourId, Colour::fromFloatRGBA(0.4, 0.4, 0.4, 0.5));
-    setColour (TooltipWindow::textColourId, Colour(0xeecccccc));
+    //setColour (TooltipWindow::textColourId, Colour(0xeecccccc));
+    setColour (TooltipWindow::textColourId, Colour(0xee222222));
+    setColour (TooltipWindow::backgroundColourId, Colour(0xeeffff99));
 
     //setColour (SonoDrawableButton::overOverlayColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.08));
     //setColour (SonoDrawableButton::downOverlayColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.3));

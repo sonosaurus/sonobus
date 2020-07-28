@@ -63,7 +63,7 @@ void PeersContainerView::configLevelSlider(Slider * slider)
     slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
     slider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
 #if JUCE_IOS
-    slider->setPopupDisplayEnabled(true, false, this);
+    //slider->setPopupDisplayEnabled(true, false, this);
 #endif
 }
 
@@ -164,6 +164,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     //pvf->sendMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7));
     pvf->sendMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     pvf->sendMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    pvf->sendMutedButton->setTooltip(TRANS("Toggles input muting, preventing or allowing your audio to be sent to this user"));
+
     
     pvf->recvMutedButton = std::make_unique<SonoDrawableButton>("recvmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     std::unique_ptr<Drawable> recvallowimg(Drawable::createFromImageData(BinaryData::incoming_allowed_svg, BinaryData::incoming_allowed_svgSize));
@@ -173,6 +175,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvMutedButton->setClickingTogglesState(true);
     pvf->recvMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    pvf->recvMutedButton->setTooltip(TRANS("Toggles receive muting, preventing or allowing audio to be heard from this user"));
 
     pvf->latActiveButton = std::make_unique<TextButton>(""); // (TRANS("Latency\nTest"));
     pvf->latActiveButton->setClickingTogglesState(true);
@@ -224,8 +227,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->panSlider2->setMouseDragSensitivity(100);
 
 #if JUCE_IOS
-    pvf->panSlider1->setPopupDisplayEnabled(true, false, pvf->pannersContainer.get());
-    pvf->panSlider2->setPopupDisplayEnabled(true, false, pvf->pannersContainer.get());
+    //pvf->panSlider1->setPopupDisplayEnabled(true, false, pvf->pannersContainer.get());
+    //pvf->panSlider2->setPopupDisplayEnabled(true, false, pvf->pannersContainer.get());
 #endif
     
     pvf->panSlider2->textFromValueFunction =  [](double v) -> String { if ( fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
@@ -439,7 +442,7 @@ void PeersContainerView::updateLayout()
         //if (isNarrow) {
         //pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(1));
         if (!isNarrow) {
-            pvf->sendbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1));
+            pvf->sendbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1).withMaxWidth(260));
         }
         //pvf->sendbox.items.add(FlexItem(3, 2));
         //pvf->sendbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0));
@@ -461,7 +464,7 @@ void PeersContainerView::updateLayout()
         pvf->recvbox.items.add(FlexItem(76, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
         //pvf->recvbox.items.add(FlexItem(3, 2));
         pvf->recvbox.items.add(FlexItem(80, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
-        pvf->recvbox.items.add(FlexItem(60, mincheckheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(1));
+        pvf->recvbox.items.add(FlexItem(40, mincheckheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(1));
         //pvf->recvbox.items.add(FlexItem(40, mincheckheight, *pvf->latActiveButton).withMargin(0).withFlex(1).withMaxWidth(60));
 
         pvf->pingbox.items.clear();
@@ -595,7 +598,7 @@ void PeersContainerView::updateLayout()
             pvf->mainbox.items.add(FlexItem(3, 2));
             pvf->mainbox.items.add(FlexItem(150, singleph*2 - minitemheight , pvf->mainnarrowbox).withMargin(0).withFlex(1));
             pvf->mainbox.items.add(FlexItem(2, 2));
-            pvf->mainbox.items.add(FlexItem(30, 50, *pvf->recvMeter).withMargin(2).withFlex(0));
+            pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
         } else {            
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
             pvf->mainbox.items.add(FlexItem(3, 5));
@@ -603,16 +606,16 @@ void PeersContainerView::updateLayout()
             pvf->mainbox.items.add(FlexItem(3, 5));
             pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(0).withFlex(3));
             pvf->mainbox.items.add(FlexItem(1, 5));
-            pvf->mainbox.items.add(FlexItem(30, 50, *pvf->recvMeter).withMargin(2).withFlex(0));
+            pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(4).withFlex(0));
         }
 
         peersBox.items.add(FlexItem(8, 5).withMargin(0));
         
         if (isNarrow) {
-            peersBox.items.add(FlexItem(pw, ph*2 - minitemheight + 6, *pvf).withMargin(0).withFlex(0));
-            peersheight += ph*2-minitemheight + 6 + 5;
+            peersBox.items.add(FlexItem(pw, ph*2 - minitemheight + 5, *pvf).withMargin(0).withFlex(0));
+            peersheight += ph*2-minitemheight + 5 + 5;
         } else {
-            peersBox.items.add(FlexItem(pw, ph + 6, *pvf).withMargin(0).withFlex(0));
+            peersBox.items.add(FlexItem(pw, ph + 6, *pvf).withMargin(1).withFlex(0));
             peersheight += ph + 6 + 5;
         }
 
@@ -621,7 +624,7 @@ void PeersContainerView::updateLayout()
 
     if (isNarrow) {
         peersMinHeight = std::max(singleph*2 + 14,  peersheight);
-        peersMinWidth = 300;  
+        peersMinWidth = 300;
     }
     else {
         peersMinHeight = std::max(singleph + 11,  peersheight);
@@ -810,7 +813,7 @@ void PeersContainerView::updatePeerViews()
         //pvf->formatChoiceButton->setEnabled(sendactive);
 
         const float disalpha = 0.4;
-        pvf->formatChoiceButton->setAlpha(sendactive ? 1.0 : disalpha);
+        //pvf->formatChoiceButton->setAlpha(sendactive ? 1.0 : disalpha);
         pvf->nameLabel->setAlpha(connected ? 1.0 : 0.8);
         pvf->addrLabel->setAlpha(connected ? 1.0 : 0.8);
         //pvf->sendMutedButton->setAlpha(connected ? 1.0 : 0.8);
@@ -1055,9 +1058,8 @@ void PeersContainerView::showOptions(int index, bool flag)
             dw = this;
         }
         
-        // calculate based on how many peers we have
         const int defWidth = 260;
-        const int defHeight = 100;
+        const int defHeight = 90;
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         

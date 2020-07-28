@@ -32,6 +32,7 @@ extern juce::AudioProcessor* JUCE_API JUCE_CALLTYPE createPluginFilterOfType (ju
 
 // HACK
 #include "SonobusPluginEditor.h"
+#include "DebugLogC.h"
 
 namespace juce
 {
@@ -529,7 +530,7 @@ private:
         
 #if JUCE_IOS
         if (auto iosdevice = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice())) {
-            processorHasPotentialFeedbackLoop = !iosdevice->isHeadphonesConnected();
+            processorHasPotentialFeedbackLoop = !iosdevice->isHeadphonesConnected() && !isInterAppAudioConnected();
             shouldMuteInput.setValue(processorHasPotentialFeedbackLoop);
         }
 #endif
@@ -591,7 +592,8 @@ private:
     @tags{Audio}
 */
 class StandaloneFilterWindow    : public DocumentWindow,
-                                  public Button::Listener
+                                  public Button::Listener,
+                                  public Timer
 {
 public:
     //==============================================================================
@@ -659,6 +661,10 @@ public:
             centreWithSize (getWidth(), getHeight());
         }
        #endif
+        
+#if JUCE_IOS
+      //  startTimer(500);
+#endif
     }
 
     ~StandaloneFilterWindow()
@@ -680,6 +686,37 @@ public:
     AudioProcessor* getAudioProcessor() const noexcept      { return pluginHolder->processor.get(); }
     AudioDeviceManager& getDeviceManager() const noexcept   { return pluginHolder->deviceManager; }
 
+    bool iaaConnected = false;
+    
+    void timerCallback() override {
+#if JUCE_IOS
+        if (auto iosdevice = dynamic_cast<iOSAudioIODevice*> (getDeviceManager().getCurrentAudioDevice())) {
+            if (pluginHolder->isInterAppAudioConnected() != iaaConnected) {
+                // reload state
+                iaaConnected = pluginHolder->isInterAppAudioConnected();
+                DebugLogC("IAA state changed: %d  %s", iaaConnected, iosdevice->getActiveInputChannels().toString(10).toRawUTF8());
+                
+#if 0
+                pluginHolder->stopPlaying();
+                clearContentComponent();
+                pluginHolder->deletePlugin();
+
+                //if (auto* props = pluginHolder->settings.get())
+                //    props->removeValue ("filterState");
+                getDeviceManager().restartLastAudioDevice();
+                
+                pluginHolder->createPlugin();
+                pluginHolder->init(true, "");
+
+                setContentOwned (new MainContentComponent (*this), true);
+                //pluginHolder->startPlaying();
+#endif
+            }
+        }
+#endif
+                
+    }
+    
     /** Deletes and re-creates the plugin, resetting it to its default state. */
     void resetToDefaultState()
     {
@@ -769,6 +806,9 @@ private:
                 // hack to allow editor to get devicemanager
                 if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(editor.get())) {
                     sonoeditor->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
+                    sonoeditor->isInterAppAudioConnected = [this]() { return owner.pluginHolder->isInterAppAudioConnected();  };
+                    sonoeditor->getIAAHostIcon = [this](int size) { return owner.pluginHolder->getIAAHostIcon(size);  };
+                    sonoeditor->switchToHostApplication = [this]() { return owner.pluginHolder->switchToHostApplication(); };
                 }
                 
                 editor->addComponentListener (this);
@@ -796,6 +836,9 @@ private:
                 owner.pluginHolder->processor->editorBeingDeleted (editor.get());
                 editor = nullptr;
             }
+
+            Value& inputMutedValue = owner.pluginHolder->getMuteInputValue();
+            inputMutedValue.removeListener(this);
         }
 
         void resized() override

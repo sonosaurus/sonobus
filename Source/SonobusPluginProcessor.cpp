@@ -160,7 +160,7 @@ struct SonobusAudioProcessor::RemotePeer {
     bool invitedPeer = false;
     int  formatIndex = -1; // default
     AudioCodecFormatInfo recvFormat;
-    int packetsize = 512;
+    int packetsize = 600;
     int sendChannels = 2;
     int recvChannels = 0;
     float recvPan[MAX_PANNERS];
@@ -3081,8 +3081,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
             s->latencyMeasurer.reset(new LatencyMeasurer());
         }
 
-
-        s->recvMeterSource.resize (outchannels, meterRmsWindow);
+        s->recvMeterSource.resize (s->recvChannels, meterRmsWindow);
         s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
         
         ++i;
@@ -3094,6 +3093,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     }
     if (workBuffer.getNumSamples() < samplesPerBlock) {
         workBuffer.setSize(2, samplesPerBlock);
+    }
+    if (inputBuffer.getNumSamples() < samplesPerBlock) {
+        inputBuffer.setSize(2, samplesPerBlock);
     }
 
     
@@ -3178,6 +3180,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
         databufs[channel] = channelData;        
         tmpbufs[channel] = tempBuffer.getWritePointer(channel);
+
     }
 
     // apply input gain
@@ -3187,6 +3190,14 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.applyGain(inGain);
     }
     
+    
+    for (int channel = 0; channel < totalNumInputChannels; ++channel) {
+        // used later
+        inputBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
+    }
+    
+    // TODO -- possibly do the input panning before everything else
+
     inputMeterSource.measureBlock (buffer);
 
     
@@ -3382,7 +3393,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // apply dry (input monitor) gain to original buf
     // and panning
     
-    if (totalNumInputChannels > 0 && totalNumOutputChannels > 1) {
+    if (totalNumInputChannels > 0 && totalNumOutputChannels > 1 && ( drynow > 0.0f || mLastDry > 0.0f )) {
         
         // copy input into workbuffer
         workBuffer.clear();
@@ -3451,7 +3462,26 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         {
             if (activeWriter.load() != nullptr)
             {
-                activeWriter.load()->write (buffer.getArrayOfReadPointers(), numSamples);
+                if (drynow == 0.0f) {
+                    // if not input monitoring, we need to add the input to the output and write that to file
+                    bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
+                    for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+                        int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : channel;
+                        if (rampit) {
+                            workBuffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, mLastWet, wetnow);
+                        }
+                        else {
+                            workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, wetnow);
+                        }
+
+                        workBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+                    }
+                    
+                    activeWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                }
+                else {
+                    activeWriter.load()->write (buffer.getArrayOfReadPointers(), numSamples);
+                }
             }
         }
     }

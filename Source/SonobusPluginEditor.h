@@ -62,7 +62,10 @@ public:
     void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) override;
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
-    
+    std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
+    std::function<Image(int)> getIAAHostIcon; // = []() { return 0; };
+    std::function<void()> switchToHostApplication; // = []() { return 0; };
+
 private:
 
     void updateLayout();
@@ -185,6 +188,8 @@ private:
 
     std::unique_ptr<SonoTextButton> mRecordingButton;
 
+    std::unique_ptr<SonoDrawableButton> mIAAHostButton;
+
     
     SonoLookAndFeel inMeterLnf;
     SonoLookAndFeel outMeterLnf;
@@ -296,6 +301,8 @@ private:
 
     FlexBox mainGroupUserBox;
     
+    FlexBox knobBox;    
+    
     FlexBox remoteBox;
     FlexBox inputBox;
     FlexBox addressBox;
@@ -308,7 +315,7 @@ private:
     //FlexBox inputBox;
     FlexBox servAddressBox;
     FlexBox servButtonBox;
-
+    FlexBox localAddressBox;
     
     FlexBox middleBox;
 
@@ -319,7 +326,9 @@ private:
     FlexBox dryBox;
     FlexBox wetBox;
     FlexBox toolbarBox;
+    FlexBox outmeterBox;
 
+    
     FlexBox connectBox;
 
     FlexBox recentsBox;
@@ -332,6 +341,9 @@ private:
     FlexBox optionsNetbufBox;
     FlexBox optionsSendQualBox;
 
+    Image iaaHostIcon;
+
+    TooltipWindow tooltipWindow{ this };
     
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan1Attachment;
@@ -341,5 +353,8 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMasterSendMuteAttachment;
 
+    
+    bool iaaConnected = false;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

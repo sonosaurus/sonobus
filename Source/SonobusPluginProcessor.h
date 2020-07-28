@@ -334,6 +334,7 @@ private:
     
     AudioSampleBuffer tempBuffer;
     AudioSampleBuffer workBuffer;
+    AudioSampleBuffer inputBuffer;
 
     Atomic<float>   mInGain    { 1.0 };
     Atomic<float>   mInMonPan1    {   0.0 };

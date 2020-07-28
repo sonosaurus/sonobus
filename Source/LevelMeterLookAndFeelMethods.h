@@ -171,7 +171,7 @@ juce::Rectangle<float> getMeterTickmarksBounds (juce::Rectangle<float> bounds,
     if (meterType & foleys::LevelMeter::Minimal)
     {
         if (meterType & foleys::LevelMeter::Horizontal) {
-            return getMeterBarBounds(bounds, meterType).reduced (0.0, 2.0);
+            return getMeterBarBounds(bounds, meterType).reduced (0.0, 0.0);
         }
         else {
             return getMeterBarBounds(bounds, meterType).reduced (2.0, 0.0);

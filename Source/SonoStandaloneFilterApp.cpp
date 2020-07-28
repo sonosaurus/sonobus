@@ -141,8 +141,10 @@ public:
             mainWindow->pluginHolder->savePluginState();
 
             if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
-                if (sonoproc->getNumberRemotePeers() == 0 ) {
+                if (sonoproc->getNumberRemotePeers() == 0 && !mainWindow->pluginHolder->isInterAppAudioConnected()) {
                     // shutdown audio engine
+                    DebugLogC("no connections shutting down audio");
+                    mainWindow->getDeviceManager().closeAudioDevice();
                 }
             }
 
@@ -157,7 +159,24 @@ public:
     
     void resumed() override
     {
-        Desktop::getInstance().setScreenSaverEnabled(false);                
+        Desktop::getInstance().setScreenSaverEnabled(false);
+        
+#if JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE
+        Desktop::getInstance().setKioskModeComponent (nullptr, false);
+        Desktop::getInstance().setKioskModeComponent (mainWindow.get(), false);
+#endif
+
+        if (auto * dev = mainWindow->getDeviceManager().getCurrentAudioDevice()) {
+            if (!dev->isPlaying()) {
+                DebugLogC("dev not playing, restarting");
+                mainWindow->getDeviceManager().restartLastAudioDevice();
+            }
+        }
+        else {
+            DebugLogC("was not actve: restarting");
+            mainWindow->getDeviceManager().restartLastAudioDevice();
+        }
+
     }
     
     //==============================================================================
