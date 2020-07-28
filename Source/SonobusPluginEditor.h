@@ -92,6 +92,7 @@ private:
 
     void updateOptionsState();
 
+    String generateNewUsername(const AooServerConnectionInfo & info);
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

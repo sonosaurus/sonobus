@@ -1642,10 +1642,43 @@ void SonobusAudioProcessorEditor::updateServerStatusLabel(const String & mesg, b
     }
 }
 
+
+String SonobusAudioProcessorEditor::generateNewUsername(const AooServerConnectionInfo & info)
+{
+    String newname = info.userName;
+    
+    // look for number as last word
+    int spacepos = newname.lastIndexOf(" ");
+    if (spacepos >= 0) {
+        String lastword = newname.substring(spacepos+1);
+        int ival = lastword.getIntValue();
+        if (ival > 0) {
+            // found a number, increment it
+            newname = newname.substring(0, spacepos) + String::formatted(" %d", ival+1);
+        }
+        else {
+            // no number, add one
+            newname += " 2";
+        }
+    } else {
+        // nothing, append a number 2
+        newname += " 2";
+    }
+    
+    return newname;
+}
+
+
 void SonobusAudioProcessorEditor::handleAsyncUpdate()
-{ 
-    const ScopedLock sl (clientStateLock);        
-    for (auto & ev : clientEvents) {
+{
+    Array<ClientEvent> newevents;
+    {
+        const ScopedLock sl (clientStateLock);
+        newevents = clientEvents;
+        clientEvents.clearQuick();
+    }
+    
+    for (auto & ev : newevents) {
         if (ev.type == ClientEvent::PeerChangedState) {
             peerStateUpdated = true;
             mPeerContainer->updateLayout();
@@ -1662,10 +1695,13 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                     statstr = TRANS("Already connected with this user name");
 
                     // try again with different username (auto-incremented)
-                    //if (currConnectionInfo.userName.)
-                    
-                    //connectWithInfo(currConnectionInfo);
+                    currConnectionInfo.userName = generateNewUsername(currConnectionInfo);
 
+                    DebugLogC("Trying again with name: %s", currConnectionInfo.userName.toRawUTF8());
+                    connectWithInfo(currConnectionInfo);
+                    
+                    return;
+                    
                 } else {
                     statstr = TRANS("Connect failed: ") + ev.message;
                 }
@@ -1735,7 +1771,6 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         }
 
     }
-    clientEvents.clearQuick();
 }
 
 //==============================================================================
