@@ -21,6 +21,7 @@ public AudioProcessorValueTreeState::Listener,
 public Slider::Listener,
 public SonoChoiceButton::Listener, 
 public SonobusAudioProcessor::ClientListener,
+public ComponentListener,
 public AsyncUpdater
 {
 public:
@@ -38,6 +39,9 @@ public:
 
     void buttonClicked (Button* buttonThatWasClicked) override;
 
+    void componentVisibilityChanged (Component& component) override;
+    void componentParentHierarchyChanged (Component& component) override;
+    
     void sliderValueChanged (Slider* slider) override;
 
     void parameterChanged (const String&, float newValue) override;
@@ -268,7 +272,8 @@ private:
     Font recentsNameFont;
     Font recentsInfoFont;
     bool firstTimeConnectShow = true;
-    
+    uint32 settingsClosedTimestamp = 0;
+
     std::unique_ptr<ListBox> mRecentsListBox;
 
     

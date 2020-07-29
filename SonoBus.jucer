@@ -79,6 +79,10 @@
             file="images/incoming_allowed_active.svg"/>
       <FILE id="Kbk1hl" name="incoming_disallowed.svg" compile="0" resource="1"
             file="images/incoming_disallowed.svg"/>
+      <FILE id="vtjKwH" name="launchicon@2x.png" compile="0" resource="0"
+            file="images/launchicon@2x.png" xcodeResource="1"/>
+      <FILE id="ULiYlv" name="LaunchScreen.storyboard" compile="0" resource="0"
+            file="images/LaunchScreen.storyboard" xcodeResource="1"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
       <FILE id="C2rj32" name="outgoing_allowed.svg" compile="0" resource="1"
             file="images/outgoing_allowed.svg"/>
@@ -93,7 +97,7 @@
       <FILE id="DLrrYi" name="settings_icon.svg" compile="0" resource="1"
             file="images/settings_icon.svg"/>
       <FILE id="seEQvf" name="tempicon-256.png" compile="0" resource="0"
-            file="images/tempicon-256.png"/>
+            file="images/tempicon-256.png" xcodeResource="0"/>
       <FILE id="clKeGk" name="tempicon-1024.png" compile="0" resource="0"
             file="images/tempicon-1024.png"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
@@ -198,9 +202,10 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;5&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;6&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                   extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus" smallIcon="seEQvf"
-                  bigIcon="clKeGk" UISupportsDocumentBrowser="1" UIFileSharingEnabled="1">
+                  bigIcon="clKeGk" UISupportsDocumentBrowser="1" UIFileSharingEnabled="1"
+                  customLaunchStoryboard="LaunchScreen">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps&#10;../../deps/ios/include&#10;"
                        libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"/>

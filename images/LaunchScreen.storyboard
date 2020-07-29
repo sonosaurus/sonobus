@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15705" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina5_9" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15706"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="launchicon.png" translatesAutoresizingMaskIntoConstraints="NO" id="nNQ-TI-MGT">
+                                <rect key="frame" x="59.666666666666657" y="342" width="255.99999999999997" height="128"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="lessThanOrEqual" constant="378" id="YJ7-4S-kBW"/>
+                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="128" id="bCQ-hT-uwj"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Sonosaurus LLC" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B0U-z2-e7T">
+                                <rect key="frame" x="128" y="737" width="119.33333333333331" height="21"/>
+                                <fontDescription key="fontDescription" name="GillSans" family="Gill Sans" pointSize="18"/>
+                                <color key="textColor" white="1" alpha="0.59884629360465125" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                                <variation key="heightClass=regular-widthClass=regular">
+                                    <fontDescription key="fontDescription" name="GillSans" family="Gill Sans" pointSize="24"/>
+                                </variation>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="SonoBus" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H1m-RD-lB0">
+                                <rect key="frame" x="119.33333333333333" y="281" width="136.66666666666669" height="43"/>
+                                <fontDescription key="fontDescription" name="GillSans-SemiBold" family="Gill Sans" pointSize="36"/>
+                                <color key="textColor" red="0.51046837150869306" green="0.33634164170856007" blue="0.86559569558571425" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                                <variation key="heightClass=regular-widthClass=regular">
+                                    <fontDescription key="fontDescription" name="GillSans-SemiBold" family="Gill Sans" pointSize="48"/>
+                                </variation>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="nNQ-TI-MGT" firstAttribute="top" secondItem="H1m-RD-lB0" secondAttribute="bottom" constant="18" id="2nC-MT-D1P"/>
+                            <constraint firstItem="nNQ-TI-MGT" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uDo-Wg-ZcK" secondAttribute="leading" constant="40" id="5Cj-Qr-qiK"/>
+                            <constraint firstItem="uDo-Wg-ZcK" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="nNQ-TI-MGT" secondAttribute="trailing" constant="40" id="C0h-R7-HEP"/>
+                            <constraint firstItem="B0U-z2-e7T" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="H7F-Cv-2kE"/>
+                            <constraint firstItem="H1m-RD-lB0" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="LM0-5E-ytx"/>
+                            <constraint firstItem="nNQ-TI-MGT" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="ehe-qG-pio"/>
+                            <constraint firstItem="uDo-Wg-ZcK" firstAttribute="bottom" secondItem="B0U-z2-e7T" secondAttribute="bottom" constant="20" id="iab-7C-Fui"/>
+                            <constraint firstItem="uDo-Wg-ZcK" firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="nNQ-TI-MGT" secondAttribute="bottom" constant="40" id="s4g-zH-X4Q"/>
+                            <constraint firstItem="nNQ-TI-MGT" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="wVo-ge-HXH"/>
+                            <constraint firstItem="nNQ-TI-MGT" firstAttribute="top" relation="greaterThanOrEqual" secondItem="uDo-Wg-ZcK" secondAttribute="top" constant="40" id="xXo-PC-37i"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="uDo-Wg-ZcK"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="133.59999999999999" y="133.5832083958021"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="launchicon.png" width="61.439998626708984" height="61.439998626708984"/>
+    </resources>
+</document>

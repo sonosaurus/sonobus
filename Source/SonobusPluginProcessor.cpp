@@ -1201,7 +1201,6 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
             double rtt = aoo_osctime_duration(e->tt1, e->tt3) * 1000.0;
 
             EndpointState * es = (EndpointState *)e->endpoint;
-            DebugLogC("ping to source %d recvd from %s:%d -- %g %g %g", sourceId, es->ipaddr.toRawUTF8(), es->port, diff1, diff2, rtt);
             
             RemotePeer * peer = findRemotePeer(es, sourceId);
             if (peer) {
@@ -1210,10 +1209,13 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                 // smooth it
                 peer->pingTime = rtt; // * 0.5;
                 if (rtt < 1000.0) {
-                    peer->smoothPingTime.Z *= 0.9;
+                    peer->smoothPingTime.Z *= 0.9f;
                     peer->smoothPingTime.push(peer->pingTime);
                 }
 
+                DebugLogC("ping to source %d recvd from %s:%d -- %g %g %g  smooth: %g  stdev: %g", sourceId, es->ipaddr.toRawUTF8(), es->port, diff1, diff2, rtt, peer->smoothPingTime.xbar, peer->smoothPingTime.s2xx);
+
+                
                 if (!peer->hasRealLatency) {
                     peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
                 }

@@ -13,7 +13,10 @@
 
 PeerViewInfo::PeerViewInfo() : smallLnf(12)
 {
-    
+    bgColor = Colour::fromFloatRGBA(0.112f, 0.112f, 0.112f, 1.0f);
+
+    //Random rcol;
+    //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
 }
 
 enum {
@@ -24,7 +27,11 @@ enum {
 
 void PeerViewInfo::paint(Graphics& g) 
 {
-    g.fillAll (Colour(0xff111111));
+    //g.fillAll (Colour(0xff111111));
+    //g.fillAll (Colour(0xff202020));
+    
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
 }
 
 void PeerViewInfo::resized()
@@ -47,7 +54,11 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
     mutedTextColor = Colour::fromFloatRGBA(0.8, 0.5, 0.2, 1.0);
     regularTextColor = Colour(0xc0eeeeee);
     dimTextColor = Colour(0xc0aaaaaa);
+    droppedTextColor = Colour(0xc0ee8888);
 
+    outlineColor = Colour::fromFloatRGBA(0.25, 0.25, 0.25, 1.0);
+    bgColor = Colours::black;
+    
     rebuildPeerViews();
 }
 
@@ -95,8 +106,9 @@ void PeersContainerView::configLabel(Label *label, int ltype)
 
 void PeersContainerView::resized()
 {
-    
-    peersBox.performLayout(getLocalBounds().reduced(5, 0));
+    Rectangle<int> bounds = getLocalBounds().reduced(5, 0);
+    bounds.removeFromLeft(3);
+    peersBox.performLayout(bounds);
     
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
@@ -131,7 +143,17 @@ void PeersContainerView::showPopTip(const String & message, int timeoutMs, Compo
 
 void PeersContainerView::paint(Graphics & g)
 {    
-    g.fillAll (Colours::black);
+    //g.fillAll (Colours::black);
+    Rectangle<int> bounds = getLocalBounds();
+
+    bounds.reduce(1, 1);
+    bounds.removeFromLeft(3);
+    
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
+    g.setColour(outlineColor);
+    g.drawRoundedRectangle(bounds.toFloat(), 6.0f, 0.5f);
+
 }
 
 PeerViewInfo * PeersContainerView::createPeerViewInfo()
@@ -273,7 +295,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     dotimg.setImage(ImageCache::getFromMemory (BinaryData::dots_icon_png, BinaryData::dots_icon_pngSize));
     pvf->menuButton->setImages(&dotimg);
     pvf->menuButton->addListener(this);
-
+    //pvf->menuButton->setColour(TextButton::buttonColourId, pvf->itemColor);
+    
     pvf->formatChoiceButton = std::make_unique<SonoChoiceButton>();
     pvf->formatChoiceButton->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
@@ -402,9 +425,18 @@ void PeersContainerView::updateLayout()
 {
     int minitemheight = 36;
     int mincheckheight = 32;
-    const int textheight = minitemheight / 2;
     int minPannerWidth = 40;
     int minButtonWidth = 90;
+    
+#if JUCE_IOS
+    // make the button heights a bit more for touchscreen purposes
+    minitemheight = 44;
+    mincheckheight = 40;
+    
+#endif
+
+    const int textheight = minitemheight / 2;
+
     
     peersBox.items.clear();
     peersBox.flexDirection = FlexBox::Direction::column;
@@ -413,6 +445,9 @@ void PeersContainerView::updateLayout()
     //const int singleph =  minitemheight*3 + 12;
     const int singleph =  minitemheight*2 + 6;
     
+    peersBox.items.add(FlexItem(8, 2).withMargin(0));
+    peersheight += 2;
+
     
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
@@ -609,14 +644,15 @@ void PeersContainerView::updateLayout()
             pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(4).withFlex(0));
         }
 
-        peersBox.items.add(FlexItem(8, 5).withMargin(0));
+        peersBox.items.add(FlexItem(8, 4).withMargin(0));
+        peersheight += 4;
         
         if (isNarrow) {
             peersBox.items.add(FlexItem(pw, ph*2 - minitemheight + 5, *pvf).withMargin(0).withFlex(0));
-            peersheight += ph*2-minitemheight + 5 + 5;
+            peersheight += ph*2-minitemheight + 5;
         } else {
-            peersBox.items.add(FlexItem(pw, ph + 6, *pvf).withMargin(1).withFlex(0));
-            peersheight += ph + 6 + 5;
+            peersBox.items.add(FlexItem(pw, ph + 5, *pvf).withMargin(1).withFlex(0));
+            peersheight += ph + 5;
         }
 
     }
@@ -641,7 +677,7 @@ Rectangle<int> PeersContainerView::getMinimumContentBounds() const
 
 void PeersContainerView::updatePeerViews()
 {
-    double nowstampms = Time::getMillisecondCounterHiRes();
+    uint32 nowstampms = Time::getMillisecondCounter();
     
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
@@ -713,13 +749,25 @@ void PeersContainerView::updatePeerViews()
                 recvtext += String::formatted(" | %d drop", dropped);
             }
 
+            if (dropped > pvf->lastDropped) {
+                
+                pvf->lastDroppedChangedTimestampMs = nowstampms;
+            }
+
             int64_t resent = processor.getRemotePeerPacketsResent(i);
             if (resent > 0) {
                 recvtext += String::formatted(" | %d resent", resent);
             }
 
-            pvf->recvActualBitrateLabel->setColour(Label::textColourId, regularTextColor);
-        } 
+            if (nowstampms < pvf->lastDroppedChangedTimestampMs + 1500) {
+                pvf->recvActualBitrateLabel->setColour(Label::textColourId, droppedTextColor);
+            }
+            else {
+                pvf->recvActualBitrateLabel->setColour(Label::textColourId, regularTextColor);
+            }
+
+            pvf->lastDropped = dropped;
+        }
         else if (recvallow) {
             recvtext += TRANS("Other side is muted");    
             pvf->recvActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
@@ -855,7 +903,7 @@ void PeersContainerView::startLatencyTest(int i)
     
     PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
 
-    pvf->stopLatencyTestTimestampMs = Time::getMillisecondCounterHiRes() + 1500.0;
+    pvf->stopLatencyTestTimestampMs = Time::getMillisecondCounter() + 1500;
     pvf->wasRecvActiveAtLatencyTest = processor.getRemotePeerRecvActive(i);
     pvf->wasSendActiveAtLatencyTest = processor.getRemotePeerSendActive(i);
     
@@ -881,7 +929,7 @@ void PeersContainerView::stopLatencyTest(int i)
     }
     */
      
-    pvf->stopLatencyTestTimestampMs = 0.0;
+    pvf->stopLatencyTestTimestampMs = 0;
     
 }
 
@@ -1006,7 +1054,11 @@ void PeersContainerView::showPanners(int index, bool flag)
         }
         
         const int defWidth = 140;
+#if JUCE_IOS
+        const int defHeight = 50;
+#else
         const int defHeight = 42;
+#endif
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
@@ -1059,7 +1111,12 @@ void PeersContainerView::showOptions(int index, bool flag)
         }
         
         const int defWidth = 260;
+#if JUCE_IOS
+        const int defHeight = 106;
+#else
         const int defHeight = 90;
+#endif
+        
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
@@ -1099,7 +1156,7 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
 
         if (event.eventComponent == pvf->latActiveButton.get()) {
-            double nowtimems = Time::getMillisecondCounterHiRes();
+            uint32 nowtimems = Time::getMillisecondCounter();
             if (nowtimems >= pvf->stopLatencyTestTimestampMs) {
                 stopLatencyTest(i);
                 pvf->latActiveButton->setToggleState(false, dontSendNotification);

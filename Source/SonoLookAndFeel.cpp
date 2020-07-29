@@ -44,7 +44,8 @@ SonoLookAndFeel::SonoLookAndFeel()
     setColour(ResizableWindow::backgroundColourId, Colour(0xff111111));
     
     //setColour (TextButton::buttonColourId, Colour (0xff363636));
-    setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7));
+    //setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7)); // old one
+    setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.0));
     //setColour (TextButton::buttonOnColourId, Colour (0xff3d70c8));
     setColour (TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.8));
     setColour (TextButton::textColourOnId, Colour (0xddcccccc));
@@ -92,6 +93,10 @@ SonoLookAndFeel::SonoLookAndFeel()
     setColour (TooltipWindow::textColourId, Colour(0xee222222));
     setColour (TooltipWindow::backgroundColourId, Colour(0xeeffff99));
 
+    setColour (PopupMenu::backgroundColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 1.0));
+    setColour (PopupMenu::highlightedBackgroundColourId, Colour::fromFloatRGBA(0.35, 0.35, 0.4, 1.0));
+
+    
     //setColour (SonoDrawableButton::overOverlayColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.08));
     //setColour (SonoDrawableButton::downOverlayColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.3));
     setColour (SonoDrawableButton::overOverlayColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.0));

@@ -904,6 +904,8 @@ private:
 
                 notification.setColour (Label::textColourId, Colours::black);
 
+                settingsButton.setColour (TextButton::textColourOffId, Colours::black);
+
                 settingsButton.addListener (settingsButtonListener);
 
                 addAndMakeVisible (notification);

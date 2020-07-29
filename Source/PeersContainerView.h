@@ -100,12 +100,17 @@ public:
 
     int64_t lastBytesRecv = 0;
     int64_t lastBytesSent = 0;
-    
-    double stopLatencyTestTimestampMs = 0.0;
+
+    int64_t lastDropped = 0;
+    uint32 lastDroppedChangedTimestampMs = 0;
+
+    uint32 stopLatencyTestTimestampMs = 0;
     bool wasRecvActiveAtLatencyTest = false;
     bool wasSendActiveAtLatencyTest = false;
     
-    
+    Colour bgColor;
+    Colour itemColor;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeerViewInfo)
 };
 
@@ -175,11 +180,14 @@ protected:
     
     bool isNarrow = false;
 
-    double lastUpdateTimestampMs = 0;
+    uint32 lastUpdateTimestampMs = 0;
     
     Colour mutedTextColor;
     Colour regularTextColor;
+    Colour droppedTextColor;
     Colour dimTextColor;
+    Colour outlineColor;
+    Colour bgColor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeersContainerView)
 

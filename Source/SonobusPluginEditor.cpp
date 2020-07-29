@@ -285,7 +285,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     }
     else {
         // defaults
-        currConnectionInfo.groupName = "Default";
+        currConnectionInfo.groupName = "";
 #if JUCE_IOS
         String username = SystemStats::getComputerName(); //SystemStats::getLogonName();
 #else
@@ -365,7 +365,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mPanButton = std::make_unique<TextButton>("pan");
     mPanButton->setButtonText(TRANS("Pan"));
     mPanButton->addListener(this);
-
+    
+    
+    
     
     mMasterMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     std::unique_ptr<Drawable> sendallowimg(Drawable::createFromImageData(BinaryData::outgoing_allowed_svg, BinaryData::outgoing_allowed_svgSize));
@@ -419,8 +421,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     configLabel(mOutGainLabel.get(), false);
 
     
-    
-    
+    int largeEditorFontsize = 16;
+    int smallerEditorFontsize = 14;
+
+#if JUCE_IOS
+    largeEditorFontsize = 18;
+    smallerEditorFontsize = 16;
+#endif
     
     mInGainAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInGain, *mInGainSlider);
     mDryAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDry, *mDrySlider);
@@ -1148,21 +1155,38 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
     
     if (currConnectionInfo.groupName.isEmpty()) {
         mServerStatusLabel->setText(TRANS("You need to specify a group name!"), dontSendNotification);
+        mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+        mServerGroupEditor->repaint();
         return;
+    }
+    else {
+        mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mServerGroupEditor->repaint();
     }
     
     if (currConnectionInfo.userName.isEmpty()) {
         mServerStatusLabel->setText(TRANS("You need to specify a user name!"), dontSendNotification);
+        mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+        mServerUsernameEditor->repaint();
         return;
+    }
+    else {
+        mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mServerUsernameEditor->repaint();
     }
     
     if (currConnectionInfo.serverHost.isNotEmpty() && currConnectionInfo.serverPort != 0) 
     {
         processor.connectToServer(currConnectionInfo.serverHost, currConnectionInfo.serverPort, currConnectionInfo.userName, currConnectionInfo.userPassword);
         updateState();
+
+        mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mServerHostEditor->repaint();
     }
     else {
         mServerStatusLabel->setText(TRANS("Server address is invalid!"), dontSendNotification);
+        mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+        mServerHostEditor->repaint();
     }
 }
 
@@ -1363,13 +1387,15 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
 {
     
     if (event.eventComponent == mSettingsButton.get()) {
-        settingsWasShownOnDown = settingsCalloutBox != nullptr;
+        settingsWasShownOnDown = settingsCalloutBox != nullptr || (Time::getMillisecondCounter() < settingsClosedTimestamp + 500);
+
         if (!settingsWasShownOnDown) {
           //  showOrHideSettings();
         }
     }
     else if (event.eventComponent == mTitleLabel.get()) {
         settingsWasShownOnDown = settingsCalloutBox != nullptr;
+        settingsClosedTimestamp = 0; // reset on a down
         if (settingsWasShownOnDown) {
             showSettings(false);
         }
@@ -1385,9 +1411,30 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
 void SonobusAudioProcessorEditor::mouseUp (const MouseEvent& event)
 {
     if (event.eventComponent == mTitleLabel.get()) {
-        showSettings(true);
+        if (Time::getMillisecondCounter() > settingsClosedTimestamp + 1000) {
+            // only show if it wasn't just dismissed
+            showSettings(true);
+        }
     }
 }
+
+void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& component)
+{
+    //if (&component == mSettingsTab.get()) {
+    //    DebugLogC("setting vis changed: %d", component.isVisible());
+    //}
+}
+
+void SonobusAudioProcessorEditor::componentParentHierarchyChanged (Component& component)
+{
+    if (&component == mSettingsTab.get()) {
+        if (component.getParentComponent() == nullptr) {
+            DebugLogC("setting parent changed: %p", component.getParentComponent());
+            settingsClosedTimestamp = Time::getMillisecondCounter();
+        }
+    }
+}
+
 
 void SonobusAudioProcessorEditor::showSettings(bool flag)
 {
@@ -1409,10 +1456,15 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
             dw = this;
         }
 
-        const int defWidth = 300;
-        const int defHeight = 350;
+        const int defWidth = 320;
         
-        wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 20), jmin(defHeight + 8, dw->getHeight() - 24));
+#if JUCE_IOS
+        const int defHeight = 400;
+#else
+        const int defHeight = 350;
+#endif
+        
+        wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 10), jmin(defHeight + 8, dw->getHeight() - 24));
         
         //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
         bool firsttime = false;
@@ -1421,6 +1473,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
             mSettingsTab->setTabBarDepth(36);
             mSettingsTab->setOutline(0);
             mSettingsTab->getTabbedButtonBar().setMinimumTabScaleFactor(0.1f);
+            mSettingsTab->addComponentListener(this);
             firsttime = true;
         }
 
@@ -1471,6 +1524,10 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
                                                                                       false, // show MIDI input
                                                                                       false,
                                                                                       false, false);
+                
+#if JUCE_IOS
+                mAudioDeviceSelector->setItemHeight(44);
+#endif
             }
 
             if (firsttime) {
@@ -1520,6 +1577,9 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
+        
+        settingsClosedTimestamp = 0;
+        
     }
     else {
         // dismiss it
@@ -1731,6 +1791,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 //statstr = TRANS("Disconnect failed: ") + ev.message;
             }
             updateServerStatusLabel(statstr);
+            updatePeerState(true);
             updateState();
         }
         else if (ev.type == ClientEvent::GroupJoinEvent) {
@@ -1833,6 +1894,13 @@ void SonobusAudioProcessorEditor::updateLayout()
     int iconheight = 24;
     int iconwidth = iconheight;
     int knoblabelheight = 18;
+    
+#if JUCE_IOS
+    // make the button heights a bit more for touchscreen purposes
+    minitemheight = 44;
+    knobitemheight = 90;
+    minpassheight = 38;
+#endif
     
     inGainBox.items.clear();
     inGainBox.flexDirection = FlexBox::Direction::column;
