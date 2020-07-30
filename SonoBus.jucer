@@ -113,6 +113,8 @@
             resource="0" file="Source/CrossPlatformUtilsAndroid.cpp"/>
       <FILE id="mJdadQ" name="CrossPlatformUtilsIOS.mm" compile="1" resource="0"
             file="Source/CrossPlatformUtilsIOS.mm"/>
+      <FILE id="u959u3" name="CrossPlatformUtilsLinux.cpp" compile="1" resource="0"
+            file="Source/CrossPlatformUtilsLinux.cpp"/>
       <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
       <FILE id="lPT2dw" name="GenericItemChooser.cpp" compile="1" resource="0"
             file="Source/GenericItemChooser.cpp"/>
@@ -230,6 +232,31 @@
         <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1"
+                externalLibraries="opus" smallIcon="seEQvf" bigIcon="clKeGk">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps"
+                       defines="LOGLEVEL=2"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="$(HOME)/src/aoo/lib&#10;$(HOME)/src/aoo/deps"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_cryptography" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="ff_meters" path="deps"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="ff_meters" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
@@ -251,7 +278,9 @@
   </MODULES>
   <LIVE_SETTINGS>
     <OSX/>
+    <LINUX/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
-               FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"/>
+               FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"
+               JUCE_JACK="1"/>
 </JUCERPROJECT>

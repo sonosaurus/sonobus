@@ -3,7 +3,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#if JUCE_ANDROID
+#if JUCE_LINUX
 
 
 #include "DebugLogC.h"

@@ -3,7 +3,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#ifdef JUCE_IOS
+#if JUCE_IOS
 #import <UIKit/UIKit.h>
 
 #endif

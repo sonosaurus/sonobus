@@ -1,7 +1,7 @@
 #include "LatencyMeasurer.h"
 #include <cmath>
 #include <cstdlib>
-#include <string>
+#include <cstring>
 
 /*
  Cross-platform class measuring round-trip audio latency.
@@ -177,7 +177,7 @@ void LatencyMeasurer::processInput(float *audio, int _samplerate, int numberOfSa
         default: // Waiting minWaitTime seconds
             samplesElapsed += numberOfSamples;
 
-            double waittime = std::max(minWaitTime, 1.25f * latencyMs*0.001f);
+            double waittime = (double) std::fmax(minWaitTime, 1.25f * latencyMs*0.001f);
             
             if (samplesElapsed > samplerate * waittime) { // min wait time elapsed, start over.
                 samplesElapsed = 0;

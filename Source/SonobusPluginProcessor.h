@@ -24,7 +24,7 @@ struct AooServerConnectionInfo
     String serverHost;
     int    serverPort;
     
-    int64_t timestamp; // milliseconds since 1970
+    int64 timestamp; // milliseconds since 1970
 };
 
 inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs) {

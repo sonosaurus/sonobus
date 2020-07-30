@@ -757,7 +757,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     processor.addClientListener(this);
     
-    std::istringstream gramstream(BinaryData::wordmaker_g, BinaryData::wordmaker_gSize);
+    std::istringstream gramstream(std::string(BinaryData::wordmaker_g, BinaryData::wordmaker_gSize));
     mRandomSentence = std::make_unique<RandomSentenceGenerator>(gramstream);
     mRandomSentence->capEveryWord = true;
     
