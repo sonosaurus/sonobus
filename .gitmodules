@@ -1,0 +1,4 @@
+[submodule "deps/aoo"]
+	path = deps/aoo
+	url = https://github.com/essej/aoo
+	branch = sono
