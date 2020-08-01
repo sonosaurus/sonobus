@@ -179,6 +179,8 @@ struct SonobusAudioProcessor::RemotePeer {
     float netBufAutoBaseline = 0.0f;
     float pingTime = 0.0f; // ms
     stats::RunCumulantor1D  smoothPingTime; // ms
+    stats::RunCumulantor1D  fillRatio;
+    stats::RunCumulantor1D  fillRatioSlow;
     float totalEstLatency = 0.0f; // ms
     float totalLatency = 0.0f; // ms
     float bufferTimeAtRealLatency = 0.0f; // ms
@@ -438,6 +440,8 @@ void SonobusAudioProcessor::initializeAoo()
 
     
     mUdpSocket = std::make_unique<DatagramSocket>();
+    mUdpSocket->setSendBufferSize(1048576);
+    mUdpSocket->setReceiveBufferSize(1048576);
 
     int attempts = 100;
     while (attempts > 0) {
@@ -1232,7 +1236,8 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                             //float droprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltatime;
                             //if (droprate < dropratethresh) {
                             if (nowtime - peer->lastDroptime > nodropsthresh) {
-                                peer->buffertimeMs -= 2;
+                                float adjms = 1000.0f * currSamplesPerBlock / getSampleRate();
+                                peer->buffertimeMs -= adjms;
                                 
                                 peer->buffertimeMs = std::max(peer->buffertimeMs, peer->netBufAutoBaseline);
                                 
@@ -1242,11 +1247,14 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                                 peer->latencysink->set_buffersize(peer->buffertimeMs);
                                 peer->latencyDirty = true;
 
+                                peer->fillRatioSlow.reset();
+                                peer->fillRatio.reset();
+
                                 if (peer->hasRealLatency) {
                                     peer->totalEstLatency = peer->totalLatency + (peer->buffertimeMs - peer->bufferTimeAtRealLatency);
                                 }
                                 
-                                DebugLogC("AUTO-Decreasing buffer time by 2 ms to %d ", (int) peer->buffertimeMs);
+                                DebugLogC("AUTO-Decreasing buffer time by %g ms to %d", adjms, (int) peer->buffertimeMs);
 
                                 peer->lastNetBufDecrTime = nowtime;                                
                             }
@@ -1578,14 +1586,17 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                         if (deltatime > adjustlimit) {
                             float droprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltatime;
                             if (droprate > dropratethresh) {
-                                peer->buffertimeMs += 2;
+                                float adjms = 1000.0f * currSamplesPerBlock / getSampleRate();
+                                peer->buffertimeMs += adjms;
                                 peer->totalEstLatency = peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
                                 peer->oursink->set_buffersize(peer->buffertimeMs);
                                 peer->echosink->set_buffersize(peer->buffertimeMs);
                                 peer->latencysink->set_buffersize(peer->buffertimeMs);
                                 peer->latencyDirty = true;
+                                peer->fillRatioSlow.reset();
+                                peer->fillRatio.reset();
 
-                                DebugLogC("AUTO-Increasing buffer time by 1 ms to %d  droprate: %g", (int) peer->buffertimeMs, droprate);
+                                DebugLogC("AUTO-Increasing buffer time by %g ms to %d  droprate: %g", adjms, peer->buffertimeMs, droprate);
 
                                 if (peer->hasRealLatency) {
                                     peer->totalEstLatency = peer->totalLatency + (peer->buffertimeMs - peer->bufferTimeAtRealLatency);
@@ -1660,7 +1671,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
 
             double diff = aoo_osctime_duration(e->tt1, e->tt2) * 1000.0;
             DebugLogC("Got source block ping event from %s:%d  %d -- diff %g", es->ipaddr.toRawUTF8(), es->port, e->id, diff);
-
+            
             break;
         }
         default:
@@ -2215,6 +2226,8 @@ void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
         remote->oursink->set_buffersize(remote->buffertimeMs); // ms
         remote->echosink->set_buffersize(remote->buffertimeMs);
         remote->latencysink->set_buffersize(remote->buffertimeMs);
+        remote->fillRatioSlow.reset();
+        remote->fillRatio.reset();
         remote->netBufAutoBaseline = 0.0f; // reset
         remote->latencyDirty = true;
         if (remote->hasRealLatency) {
@@ -2231,6 +2244,8 @@ float SonobusAudioProcessor::getRemotePeerBufferTime(int index) const
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         buftimeMs = remote->buffertimeMs;
+        // reflect actual truth
+        buftimeMs = jmax((double)buftimeMs, 1000.0f * currSamplesPerBlock / getSampleRate());
     }
     return buftimeMs;    
 }
@@ -2258,6 +2273,19 @@ SonobusAudioProcessor::AutoNetBufferMode SonobusAudioProcessor::getRemotePeerAut
     return AutoNetBufferModeOff;    
 }
 
+bool SonobusAudioProcessor::getRemotePeerReceiveBufferFillRatio(int index, float & retratio, float & retstddev) const
+{
+    retratio = 0.0f;
+    retstddev = 0.0f;
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        retratio = remote->fillRatio.xbar;
+        retstddev = remote->fillRatioSlow.s2xx;
+        return true;
+    }
+    return false;
+}
 
 void SonobusAudioProcessor::setRemotePeerRecvActive(int index, bool active)
 {
@@ -2756,11 +2784,12 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getTotalNumOutputChannels());
         retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
-
+        
         retpeer->sendChannels = getTotalNumInputChannels(); // by default
         
         setupSourceFormat(retpeer, retpeer->oursource.get());
         retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, retpeer->sendChannels);
+        retpeer->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
         retpeer->oursource->set_packetsize(retpeer->packetsize);
 
         setupSourceFormat(retpeer, retpeer->latencysource.get(), true);
@@ -2768,6 +2797,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->latencysource->set_packetsize(retpeer->packetsize);
         setupSourceFormat(retpeer, retpeer->echosource.get(), true);
         retpeer->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
+        retpeer->echosource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
         retpeer->echosource->set_packetsize(retpeer->packetsize);
 
         retpeer->latencysink->setup(getSampleRate(), currSamplesPerBlock, 1);
@@ -2776,8 +2806,14 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->latencysink->set_buffersize(retpeer->buffertimeMs);
         retpeer->echosink->set_buffersize(retpeer->buffertimeMs);
 
+        retpeer->oursink->set_ping_interval(2000);
+        retpeer->latencysink->set_ping_interval(2000);
+        retpeer->echosink->set_ping_interval(2000);
+        
         retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
         retpeer->latencyMeasurer.reset(new LatencyMeasurer());
+        
+        
         
         retpeer->workBuffer.setSize(2, currSamplesPerBlock);
 
@@ -3065,6 +3101,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         if (s->oursource) {
             setupSourceFormat(s, s->oursource.get());
             s->oursource->setup(sampleRate, samplesPerBlock, s->sendChannels);  // todo use inchannels maybe?
+            s->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
         }
         if (s->oursink) {
             s->oursink->setup(sampleRate, samplesPerBlock, outchannels);
@@ -3075,6 +3112,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
             s->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
             setupSourceFormat(s, s->echosource.get(), true);
             s->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
+            s->echosource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
 
             s->latencysink->setup(sampleRate, samplesPerBlock, 1);
             s->echosink->setup(sampleRate, samplesPerBlock, 1);
@@ -3221,6 +3259,16 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             
             remote->workBuffer.clear(0, numSamples);
 
+            // calculate fill ratio before processing the sink
+            float retratio = 0.0f;
+            if (remote->oursink->get_sourceoption(remote->endpoint, remote->remoteSourceId, aoo_opt_buffer_fill_ratio, &retratio, sizeof(retratio)) > 0) {
+                remote->fillRatio.Z *= 0.95;
+                remote->fillRatio.push(retratio);
+                remote->fillRatioSlow.Z *= 0.99;
+                remote->fillRatioSlow.push(retratio);
+            }
+
+            
             // get audio data coming in from outside into tempbuf
             remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
 
@@ -3350,6 +3398,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 remote->oursource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);      
                 
                 remote->sendMeterSource.measureBlock (workBuffer);
+                
                 
                 // now process echo and latency stuff
                 

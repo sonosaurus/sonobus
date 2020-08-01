@@ -1,12 +1,19 @@
 
 #include "CrossPlatformUtils.h"
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "../JuceLibraryCode/AppConfig.h"
+#include <juce_core/system/juce_TargetPlatform.h>
+
 
 #if JUCE_IOS
-#import <UIKit/UIKit.h>
+#import <UIKit/UIView.h>
 
 #endif
+
+
+#include "../JuceLibraryCode/JuceHeader.h"
+
+
 
 #include "DebugLogC.h"
 
@@ -14,7 +21,7 @@ void getSafeAreaInsets(void * component, float & top, float & bottom, float & le
 {
     top = bottom = left = right = 0;
 
-#ifdef JUCE_IOS
+#if JUCE_IOS
     if ([(id)component isKindOfClass:[UIView class]]) {
         UIView * view = (UIView *) component;
 

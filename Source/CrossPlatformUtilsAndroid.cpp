@@ -1,10 +1,10 @@
 
-#include "CrossPlatformUtils.h"
-
-#include "../JuceLibraryCode/JuceHeader.h"
 
 #if JUCE_ANDROID
 
+#include "CrossPlatformUtils.h"
+
+//#include "../JuceLibraryCode/JuceHeader.h"
 
 #include "DebugLogC.h"
 

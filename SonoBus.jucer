@@ -122,6 +122,10 @@
             file="Source/GenericItemChooser.h"/>
       <FILE id="U4G4zF" name="Grammar.cpp" compile="1" resource="0" file="Source/Grammar.cpp"/>
       <FILE id="abl0cE" name="Grammar.h" compile="0" resource="0" file="Source/Grammar.h"/>
+      <FILE id="x0wMjk" name="JitterBufferMeter.cpp" compile="1" resource="0"
+            file="Source/JitterBufferMeter.cpp"/>
+      <FILE id="kZPlJM" name="JitterBufferMeter.h" compile="0" resource="0"
+            file="Source/JitterBufferMeter.h"/>
       <FILE id="HDtnq4" name="LatencyMeasurer.cpp" compile="1" resource="0"
             file="Source/LatencyMeasurer.cpp"/>
       <FILE id="CAs5yt" name="LatencyMeasurer.h" compile="0" resource="0"

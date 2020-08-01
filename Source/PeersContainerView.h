@@ -18,11 +18,12 @@
 #include "SonoDrawableButton.h"
 #include "GenericItemChooser.h"
 
+class JitterBufferMeter;
 
 class PeerViewInfo : public Component{
 public:
     PeerViewInfo();
-    virtual ~PeerViewInfo() {}
+    virtual ~PeerViewInfo();
     
     void paint(Graphics& g) override;
     void resized() override;
@@ -71,6 +72,9 @@ public:
     std::unique_ptr<Label>  sendActualBitrateLabel;
     std::unique_ptr<Label>  recvActualBitrateLabel;
 
+    double fillRatio = 0.0;
+    std::unique_ptr<JitterBufferMeter> jitterBufferMeter;
+
     
     std::unique_ptr<foleys::LevelMeter> recvMeter;
     std::unique_ptr<foleys::LevelMeter> sendMeter;
@@ -118,7 +122,8 @@ class PeersContainerView : public Component,
 public Button::Listener,
 public Slider::Listener,
 public SonoChoiceButton::Listener,
-public GenericItemChooser::Listener 
+public GenericItemChooser::Listener,
+public MultiTimer
 {
 public:
     PeersContainerView(SonobusAudioProcessor&);
@@ -133,6 +138,8 @@ public:
     
     void mouseUp (const MouseEvent& event)  override;
 
+    void timerCallback(int timerId) override;
+    
     
     int getPeerViewCount() const { return mPeerViews.size(); }
     

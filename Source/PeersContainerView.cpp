@@ -10,6 +10,7 @@
 
 #include "PeersContainerView.h"
 #include "DebugLogC.h"
+#include "JitterBufferMeter.h"
 
 PeerViewInfo::PeerViewInfo() : smallLnf(12)
 {
@@ -19,10 +20,19 @@ PeerViewInfo::PeerViewInfo() : smallLnf(12)
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
 }
 
+PeerViewInfo::~PeerViewInfo()
+{
+    
+}
+
 enum {
     LabelTypeRegular = 0,
     LabelTypeSmallDim ,
     LabelTypeSmall
+};
+
+enum {
+    FillRatioUpdateTimerId = 0
 };
 
 void PeerViewInfo::paint(Graphics& g) 
@@ -44,7 +54,12 @@ void PeerViewInfo::resized()
     }
     
     latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
-    optionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), sendQualityLabel->getRight() - staticSendQualLabel->getX(), bufferLabel->getBottom() - sendQualityLabel->getY());
+
+    Rectangle<int> optbounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), sendQualityLabel->getRight() - staticSendQualLabel->getX(), bufferLabel->getBottom() - sendQualityLabel->getY());
+    optionsButton->setBounds(optbounds);
+    
+    jitterBufferMeter->setBounds(optbounds);
+                            
 }
 
 
@@ -345,6 +360,9 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvActualBitrateLabel->setMinimumHorizontalScale(0.75);
     
     
+    pvf->jitterBufferMeter = std::make_unique<JitterBufferMeter>();
+    
+    
     // meters
     auto flags = foleys::LevelMeter::Horizontal|foleys::LevelMeter::Minimal;
     
@@ -391,6 +409,7 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->nameLabel.get());
         pvf->addAndMakeVisible(pvf->addrLabel.get());
         pvf->addAndMakeVisible(pvf->statusLabel.get());
+        pvf->addAndMakeVisible(pvf->jitterBufferMeter.get());
         pvf->addAndMakeVisible(pvf->optionsButton.get());
         pvf->addAndMakeVisible(pvf->staticSendQualLabel.get());
         pvf->addAndMakeVisible(pvf->staticBufferLabel.get());
@@ -415,6 +434,11 @@ void PeersContainerView::rebuildPeerViews()
         addAndMakeVisible(pvf);
     }
     
+    if (mPeerViews.size() > 0) {
+        startTimer(FillRatioUpdateTimerId, 40);
+    } else {
+        stopTimer(FillRatioUpdateTimerId);
+    }
     
     updatePeerViews();
     updateLayout();
@@ -706,6 +730,7 @@ void PeersContainerView::updatePeerViews()
         bool recvallow = processor.getRemotePeerRecvAllow(i);
         bool latactive = processor.isRemotePeerLatencyTestActive(i);
 
+        
         double sendrate = 0.0;
         double recvrate = 0.0;
         
@@ -742,6 +767,7 @@ void PeersContainerView::updatePeerViews()
         if (recvactive) {
             //String recvfmtstr = recvformatindex >= 0 ?processor.getAudioCodeFormatName(recvformatindex) : "";
             //recvtext += String::formatted("%Ld recvd", processor.getRemotePeerPacketsReceived(i));
+            //recvtext += String::formatted("%s | %d kb/s | %d%%", recvfinfo.name.toRawUTF8(), lrintf(recvrate * 8 * 1e-3), (int) lrintf(fillratio*100.0f));
             recvtext += String::formatted("%s | %d kb/s", recvfinfo.name.toRawUTF8(), lrintf(recvrate * 8 * 1e-3));
 
             int64_t dropped = processor.getRemotePeerPacketsDropped(i);
@@ -931,6 +957,20 @@ void PeersContainerView::stopLatencyTest(int i)
      
     pvf->stopLatencyTestTimestampMs = 0;
     
+}
+
+void PeersContainerView::timerCallback(int timerId)
+{
+    if (timerId == FillRatioUpdateTimerId) {
+        for (int i=0; i < mPeerViews.size(); ++i) {
+            PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+
+            float ratio, stdev;
+            if (processor.getRemotePeerReceiveBufferFillRatio(i, ratio, stdev) > 0) {
+                pvf->jitterBufferMeter->setFillRatio(ratio, stdev);
+            }
+        }
+    }
 }
 
 
@@ -1274,7 +1314,9 @@ void PeersContainerView::sliderValueChanged (Slider* slider)
            processor.setRemotePeerLevelGain(i, pvf->levelSlider->getValue());   
        }
        else if (pvf->bufferTimeSlider.get() == slider) {
-           processor.setRemotePeerBufferTime(i, pvf->bufferTimeSlider->getValue());   
+           float buftime = pvf->bufferTimeSlider->getValue();
+           processor.setRemotePeerBufferTime(i, buftime);
+           pvf->bufferTimeSlider->setValue(buftime, dontSendNotification);
        }
        else if (pvf->panSlider1.get() == slider) {
            processor.setRemotePeerChannelPan(i, 0, pvf->panSlider1->getValue());   

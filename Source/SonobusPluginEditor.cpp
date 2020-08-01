@@ -287,12 +287,17 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         // defaults
         currConnectionInfo.groupName = "";
 #if JUCE_IOS
-        String username = SystemStats::getComputerName(); //SystemStats::getLogonName();
+        String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();
+        //String username = SystemStats::getComputerName(); //SystemStats::getLogonName();
 #else
         String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();    
-        if (username.length() > 0) username = username.replaceSection(0, 1, username.substring(0, 1).toUpperCase());
+        //if (username.length() > 0) username = username.replaceSection(0, 1, username.substring(0, 1).toUpperCase());
 #endif
 
+        if (username.isEmpty()) {
+            username = SystemStats::getComputerName();
+        }
+        
         currConnectionInfo.userName = username;
 
         currConnectionInfo.serverHost = "aoo.sonobus.net";
@@ -1037,8 +1042,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             //String port = mAddRemotePortEditor->getText();
             // parse it
             StringArray toks = StringArray::fromTokens(hostport, ":", "");
-            String host;
-            int port = 10999;
+            String host = "aoo.sonobus.net";
+            int port = 10998;
             
             if (toks.size() >= 1) {
                 host = toks[0].trim();

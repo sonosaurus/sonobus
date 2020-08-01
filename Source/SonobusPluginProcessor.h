@@ -83,6 +83,8 @@ public:
         int min_preferred_blocksize = 120;
     };
     
+    int32 getCurrSamplesPerBlock() const { return currSamplesPerBlock; }
+    
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -196,6 +198,9 @@ public:
     void setRemotePeerAutoresizeBufferMode(int index, AutoNetBufferMode flag);
     AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index) const;
 
+    bool getRemotePeerReceiveBufferFillRatio(int index, float & retratio, float & retstddev) const;
+
+    
     void setRemotePeerSendActive(int index, bool active);
     bool getRemotePeerSendActive(int index) const;
 
