@@ -39,8 +39,8 @@ public:
     std::unique_ptr<Label> addrLabel;
     std::unique_ptr<SonoDrawableButton> sendMutedButton;
     std::unique_ptr<SonoDrawableButton> recvMutedButton;
-    std::unique_ptr<TextButton> latActiveButton;
-    std::unique_ptr<TextButton> optionsButton;
+    std::unique_ptr<SonoTextButton> latActiveButton;
+    std::unique_ptr<SonoDrawableButton> optionsButton;
     std::unique_ptr<SonoDrawableButton> menuButton;
     std::unique_ptr<TextButton> panButton;
     std::unique_ptr<Label>  statusLabel;
@@ -101,7 +101,8 @@ public:
     FlexBox optionsstatbox;
     FlexBox squalbox;
     FlexBox netbufbox;
-
+    FlexBox recvstatbox;
+    
     int64_t lastBytesRecv = 0;
     int64_t lastBytesSent = 0;
 

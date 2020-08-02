@@ -104,6 +104,7 @@ private:
 
     SonoLookAndFeel sonoLookAndFeel;
     SonoBigTextLookAndFeel sonoSliderLNF;
+    SonoBigTextLookAndFeel smallLNF;
 
     class PatchMatrixView;
 
@@ -122,6 +123,7 @@ private:
     std::unique_ptr<Label> mMainPeerLabel;
     std::unique_ptr<ImageComponent> mMainGroupImage;
     std::unique_ptr<ImageComponent> mMainPersonImage;
+    std::unique_ptr<Label> mMainMessageLabel;
 
     
     std::unique_ptr<Label> mRemoteAddressStaticLabel;
@@ -304,6 +306,7 @@ private:
     
     FlexBox mainBox;
     FlexBox titleBox;
+    FlexBox titleVBox;
 
     FlexBox mainGroupUserBox;
     
@@ -332,7 +335,7 @@ private:
     FlexBox dryBox;
     FlexBox wetBox;
     FlexBox toolbarBox;
-    FlexBox outmeterBox;
+    FlexBox outBox;
 
     
     FlexBox connectBox;

@@ -2228,7 +2228,7 @@ void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
         remote->latencysink->set_buffersize(remote->buffertimeMs);
         remote->fillRatioSlow.reset();
         remote->fillRatio.reset();
-        remote->netBufAutoBaseline = 0.0f; // reset
+        remote->netBufAutoBaseline = (1e3*currSamplesPerBlock/getSampleRate()); // at least a process block
         remote->latencyDirty = true;
         if (remote->hasRealLatency) {
             remote->totalEstLatency = remote->totalLatency + (remote->buffertimeMs - remote->bufferTimeAtRealLatency);
@@ -2258,7 +2258,7 @@ void SonobusAudioProcessor::setRemotePeerAutoresizeBufferMode(int index, Sonobus
         remote->autosizeBufferMode = flag;
         
         if (flag == AutoNetBufferModeAutoFull) {
-            remote->netBufAutoBaseline = 0.0; // reset
+            remote->netBufAutoBaseline = (1e3*currSamplesPerBlock/getSampleRate()); // at least a process block
         }
     }
 }
@@ -2806,9 +2806,9 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->latencysink->set_buffersize(retpeer->buffertimeMs);
         retpeer->echosink->set_buffersize(retpeer->buffertimeMs);
 
-        retpeer->oursink->set_ping_interval(2000);
-        retpeer->latencysink->set_ping_interval(2000);
-        retpeer->echosink->set_ping_interval(2000);
+        retpeer->oursource->set_ping_interval(2000);
+        retpeer->latencysource->set_ping_interval(2000);
+        retpeer->echosource->set_ping_interval(2000);
         
         retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
         retpeer->latencyMeasurer.reset(new LatencyMeasurer());
@@ -3056,6 +3056,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
     lastSamplesPerBlock = currSamplesPerBlock = samplesPerBlock;
 
     DebugLogC("Prepare to play: SR %g  blocksize: %d  inch: %d  outch: %d", sampleRate, samplesPerBlock, getTotalNumInputChannels(), getTotalNumOutputChannels());
@@ -3113,6 +3114,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
             setupSourceFormat(s, s->echosource.get(), true);
             s->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
             s->echosource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
+
+            s->netBufAutoBaseline = (1e3*samplesPerBlock/getSampleRate()); // at least a process block
 
             s->latencysink->setup(sampleRate, samplesPerBlock, 1);
             s->echosink->setup(sampleRate, samplesPerBlock, 1);
@@ -3287,9 +3290,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 }
             } 
 
-            // pre-meter before gain adjust
-            remote->recvMeterSource.measureBlock (remote->workBuffer);
-            
             
             // apply wet gain for this to tempbuf
             if (fabsf(usegain - remote->_lastgain) > 0.00001) {
@@ -3298,6 +3298,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             } else {
                 remote->workBuffer.applyGain(remote->gain);
             }
+
+            remote->recvMeterSource.measureBlock (remote->workBuffer);
+            
 
 
             
@@ -3397,7 +3400,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 
                 remote->oursource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);      
                 
-                remote->sendMeterSource.measureBlock (workBuffer);
+                //remote->sendMeterSource.measureBlock (workBuffer);
                 
                 
                 // now process echo and latency stuff

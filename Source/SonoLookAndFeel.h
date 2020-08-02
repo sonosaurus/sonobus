@@ -87,7 +87,9 @@ public:
     
     Font getSliderPopupFont (Slider&) override;
     int getSliderPopupPlacement (Slider&) override;
-    
+
+    int getSliderThumbRadius (Slider& slider) override;
+
     
     void drawDrawableButton (Graphics& g, DrawableButton& button,
                              bool /*isMouseOverButton*/, bool /*isButtonDown*/) override;

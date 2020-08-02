@@ -77,7 +77,7 @@ SonoLookAndFeel::SonoLookAndFeel()
     setColour (Slider::textBoxOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
     
     setColour (Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.8));
-    setColour (Slider::thumbColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.9));
+    setColour (Slider::thumbColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 1.0));
     setColour (Slider::rotarySliderFillColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.9));
     
     setColour (TabbedButtonBar::tabOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
@@ -932,6 +932,13 @@ void SonoLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, in
     
     g.setColour (findColour (Slider::thumbColourId));
     g.fillEllipse (Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));
+}
+
+//==============================================================================
+int SonoLookAndFeel::getSliderThumbRadius (Slider& slider)
+{
+    return jmin (16, slider.isHorizontal() ? static_cast<int> (slider.getHeight() * 0.5f)
+                                           : static_cast<int> (slider.getWidth()  * 0.5f));
 }
 
 void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, int height,

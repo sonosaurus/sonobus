@@ -49,16 +49,20 @@ void PeerViewInfo::resized()
     
     mainbox.performLayout(getLocalBounds());
     
-    if (levelLabel) {
-        levelLabel->setBounds(levelSlider->getBounds().removeFromLeft(levelSlider->getWidth()*0.5));
+    //if (levelLabel) {
+    //    levelLabel->setBounds(levelSlider->getBounds().removeFromLeft(levelSlider->getWidth()*0.5));
+    //}
+    
+    if (latActiveButton) {
+        latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
     }
-    
-    latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
 
-    Rectangle<int> optbounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), sendQualityLabel->getRight() - staticSendQualLabel->getX(), bufferLabel->getBottom() - sendQualityLabel->getY());
-    optionsButton->setBounds(optbounds);
+    //Rectangle<int> optbounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), sendQualityLabel->getRight() - staticSendQualLabel->getX(), bufferLabel->getBottom() - sendQualityLabel->getY());
+    //optionsButton->setBounds(optbounds);
     
-    jitterBufferMeter->setBounds(optbounds);
+    if (jitterBufferMeter) {
+        jitterBufferMeter->setBounds(bufferLabel->getBounds());
+    }
                             
 }
 
@@ -80,6 +84,14 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
 void PeersContainerView::configLevelSlider(Slider * slider)
 {
     //slider->setTextValueSuffix(" dB");
+    slider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
+    slider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+
+    
+    slider->setTextBoxStyle(Slider::TextBoxRight, true, 60, 14);
+
     slider->setRange(0.0, 2.0, 0.0);
     slider->setSkewFactor(0.25);
     slider->setDoubleClickReturnValue(true, 1.0);
@@ -214,7 +226,9 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     pvf->recvMutedButton->setTooltip(TRANS("Toggles receive muting, preventing or allowing audio to be heard from this user"));
 
-    pvf->latActiveButton = std::make_unique<TextButton>(""); // (TRANS("Latency\nTest"));
+    pvf->latActiveButton = std::make_unique<SonoTextButton>(""); // (TRANS("Latency\nTest"));
+    pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
+    pvf->latActiveButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setClickingTogglesState(true);
     pvf->latActiveButton->setTriggeredOnMouseDown(true);
     pvf->latActiveButton->setLookAndFeel(&pvf->smallLnf);
@@ -226,13 +240,14 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->statusLabel->setJustificationType(Justification::centredLeft);
 
     
-    pvf->levelSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
+    pvf->levelSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxRight);
     pvf->levelSlider->setName("level");
     pvf->levelSlider->addListener(this);
     configLevelSlider(pvf->levelSlider.get());
-    
-    pvf->levelLabel = std::make_unique<Label>("level", TRANS("Level"));
-    configLabel(pvf->levelLabel.get(), LabelTypeRegular);
+    //pvf->levelSlider->setLookAndFeel(&pvf->smallLnf);
+
+    //pvf->levelLabel = std::make_unique<Label>("level", TRANS("Level"));
+    //configLabel(pvf->levelLabel.get(), LabelTypeRegular);
 
     
     pvf->pannersContainer = std::make_unique<Component>();
@@ -250,6 +265,9 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->panSlider1->setMouseDragSensitivity(100);
     pvf->panSlider1->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
     pvf->panSlider1->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
+    pvf->panSlider1->setValue(0.1, dontSendNotification);
+    pvf->panSlider1->setValue(0.0, dontSendNotification);
+
     
     pvf->panSlider2     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
     pvf->panSlider2->setName("pan2");
@@ -274,9 +292,17 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->panButton = std::make_unique<TextButton>(TRANS("Pan"));
     pvf->panButton->addListener(this);
 
-    pvf->optionsButton = std::make_unique<TextButton>("");
-    pvf->optionsButton->addListener(this);
+    //pvf->optionsButton = std::make_unique<TextButton>("");
+    //pvf->optionsButton->addListener(this);
 
+    pvf->optionsButton = std::make_unique<SonoDrawableButton>("settings",  DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> setimg(Drawable::createFromImageData(BinaryData::settings_icon_svg, BinaryData::settings_icon_svgSize));
+    pvf->optionsButton->setImages(setimg.get());
+    pvf->optionsButton->addListener(this);
+    pvf->optionsButton->setAlpha(0.7);
+   // pvf->optionsButton->addMouseListener(this, false);
+
+    
     
     pvf->bufferTimeSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
     pvf->bufferTimeSlider->setName("buffer");
@@ -305,11 +331,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Jitter Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
 
-    pvf->menuButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageOnButtonBackground);
-    DrawableImage dotimg;
-    dotimg.setImage(ImageCache::getFromMemory (BinaryData::dots_icon_png, BinaryData::dots_icon_pngSize));
-    pvf->menuButton->setImages(&dotimg);
-    pvf->menuButton->addListener(this);
+    //pvf->menuButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageOnButtonBackground);
+    //DrawableImage dotimg;
+    //dotimg.setImage(ImageCache::getFromMemory (BinaryData::dots_icon_png, BinaryData::dots_icon_pngSize));
+    //pvf->menuButton->setImages(&dotimg);
+    //pvf->menuButton->addListener(this);
     //pvf->menuButton->setColour(TextButton::buttonColourId, pvf->itemColor);
     
     pvf->formatChoiceButton = std::make_unique<SonoChoiceButton>();
@@ -349,14 +375,14 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     
     pvf->sendActualBitrateLabel = std::make_unique<Label>("sbit");
     configLabel(pvf->sendActualBitrateLabel.get(), LabelTypeSmall);
-    pvf->sendActualBitrateLabel->setJustificationType(Justification::centredLeft);
+    pvf->sendActualBitrateLabel->setJustificationType(Justification::centred);
     pvf->sendActualBitrateLabel->setMinimumHorizontalScale(0.75);
 
     pvf->recvActualBitrateLabel = std::make_unique<Label>("rbit");
     configLabel(pvf->recvActualBitrateLabel.get(), LabelTypeSmall);
     pvf->recvActualBitrateLabel->addMouseListener(this, false);
     pvf->recvActualBitrateLabel->setInterceptsMouseClicks(true, false);
-    pvf->recvActualBitrateLabel->setJustificationType(Justification::centredLeft);
+    pvf->recvActualBitrateLabel->setJustificationType(Justification::centred);
     pvf->recvActualBitrateLabel->setMinimumHorizontalScale(0.75);
     
     
@@ -400,8 +426,8 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->recvMutedButton.get());
         pvf->addAndMakeVisible(pvf->latActiveButton.get());
         pvf->addAndMakeVisible(pvf->levelSlider.get());
-        pvf->addAndMakeVisible(pvf->levelLabel.get());
-        pvf->addAndMakeVisible(pvf->menuButton.get());
+        //pvf->addAndMakeVisible(pvf->levelLabel.get());
+        //pvf->addAndMakeVisible(pvf->menuButton.get());
         pvf->addAndMakeVisible(pvf->staticLatencyLabel.get());
         pvf->addAndMakeVisible(pvf->staticPingLabel.get());
         pvf->addAndMakeVisible(pvf->latencyLabel.get());
@@ -491,23 +517,11 @@ void PeersContainerView::updateLayout()
 
         pvf->namebox.items.clear();
         pvf->namebox.flexDirection = FlexBox::Direction::row;
-        pvf->namebox.items.add(FlexItem(mincheckheight, mincheckheight, *pvf->menuButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight)); //.withAlignSelf(FlexItem::AlignSelf::center));
+//.withAlignSelf(FlexItem::AlignSelf::center));
         pvf->namebox.items.add(FlexItem(100, minitemheight, pvf->nameaddrbox).withMargin(2).withFlex(1));
 
         
-        pvf->sendbox.items.clear();
-        pvf->sendbox.flexDirection = FlexBox::Direction::row;
-        //pvf->sendbox.items.add(FlexItem(80, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
-        //if (isNarrow) {
-        //pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(1));
-        if (!isNarrow) {
-            pvf->sendbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1).withMaxWidth(260));
-        }
-        //pvf->sendbox.items.add(FlexItem(3, 2));
-        //pvf->sendbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0));
-
-            //pvf->sendbox.items.add(FlexItem(60, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(1));
-        //}
+       
         
         pvf->sendmeterbox.items.clear();
         pvf->sendmeterbox.flexDirection = FlexBox::Direction::row;
@@ -517,47 +531,48 @@ void PeersContainerView::updateLayout()
         //    pvf->sendmeterbox.items.add(FlexItem(60, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(1));
         //}
 
-        pvf->recvbox.items.clear();
-        pvf->recvbox.flexDirection = FlexBox::Direction::row;
-        pvf->recvbox.items.add(FlexItem(80, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
-        pvf->recvbox.items.add(FlexItem(76, minitemheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
-        //pvf->recvbox.items.add(FlexItem(3, 2));
-        pvf->recvbox.items.add(FlexItem(80, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
-        pvf->recvbox.items.add(FlexItem(40, mincheckheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(1));
-        //pvf->recvbox.items.add(FlexItem(40, mincheckheight, *pvf->latActiveButton).withMargin(0).withFlex(1).withMaxWidth(60));
-
+      
+        
         pvf->pingbox.items.clear();
         pvf->pingbox.flexDirection = FlexBox::Direction::row;
-        pvf->pingbox.items.add(FlexItem(60, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0));
-        pvf->pingbox.items.add(FlexItem(40, textheight, *pvf->pingLabel).withMargin(0).withFlex(0));
+        pvf->pingbox.items.add(FlexItem(40, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0.6));
+        pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->pingLabel).withMargin(0).withFlex(0.4));
 
         pvf->latencybox.items.clear();
         pvf->latencybox.flexDirection = FlexBox::Direction::row;
-        pvf->latencybox.items.add(FlexItem(60, textheight, *pvf->staticLatencyLabel).withMargin(0).withFlex(0));
-        pvf->latencybox.items.add(FlexItem(40, textheight, *pvf->latencyLabel).withMargin(0).withFlex(0));
+        pvf->latencybox.items.add(FlexItem(40, textheight, *pvf->staticLatencyLabel).withMargin(0).withFlex(0.6));
+        pvf->latencybox.items.add(FlexItem(20, textheight, *pvf->latencyLabel).withMargin(0).withFlex(0.4));
 
         
         pvf->netstatbox.items.clear();
         pvf->netstatbox.flexDirection = FlexBox::Direction::column;
-        pvf->netstatbox.items.add(FlexItem(100, textheight, pvf->pingbox).withMargin(0).withFlex(0));
-        pvf->netstatbox.items.add(FlexItem(100, textheight, pvf->latencybox).withMargin(0).withFlex(0));
+        pvf->netstatbox.items.add(FlexItem(80, textheight, pvf->pingbox).withMargin(0).withFlex(0));
+        pvf->netstatbox.items.add(FlexItem(80, textheight, pvf->latencybox).withMargin(0).withFlex(0));
 
         
         pvf->squalbox.items.clear();
         pvf->squalbox.flexDirection = FlexBox::Direction::row;
         pvf->squalbox.items.add(FlexItem(60, textheight, *pvf->staticSendQualLabel).withMargin(0).withFlex(1));
-        pvf->squalbox.items.add(FlexItem(40, textheight, *pvf->sendQualityLabel).withMargin(0).withFlex(1));
+        pvf->squalbox.items.add(FlexItem(40, textheight, *pvf->sendQualityLabel).withMargin(0).withFlex(2));
 
         pvf->netbufbox.items.clear();
         pvf->netbufbox.flexDirection = FlexBox::Direction::row;
-        pvf->netbufbox.items.add(FlexItem(60, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(1));
-        pvf->netbufbox.items.add(FlexItem(40, textheight, *pvf->bufferLabel).withMargin(0).withFlex(1));
+        pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
+        pvf->netbufbox.items.add(FlexItem(80, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(0));
+        pvf->netbufbox.items.add(FlexItem(40, textheight, *pvf->bufferLabel).withMargin(0).withFlex(3).withMaxWidth(120));
+        pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
 
         
         pvf->optionsstatbox.items.clear();
         pvf->optionsstatbox.flexDirection = FlexBox::Direction::column;
         pvf->optionsstatbox.items.add(FlexItem(100, textheight, pvf->squalbox).withMargin(0).withFlex(0));
-        pvf->optionsstatbox.items.add(FlexItem(100, textheight, pvf->netbufbox).withMargin(0).withFlex(0));
+        pvf->optionsstatbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
+
+        
+        pvf->recvstatbox.items.clear();
+        pvf->recvstatbox.flexDirection = FlexBox::Direction::column;
+        pvf->recvstatbox.items.add(FlexItem(100, textheight, pvf->netbufbox).withMargin(0).withFlex(0));
+        pvf->recvstatbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(0));
 
         
         // options
@@ -595,11 +610,52 @@ void PeersContainerView::updateLayout()
         pvf->pannerbox.items.clear();
         pvf->pannerbox.flexDirection = FlexBox::Direction::row;
         
+        pvf->sendbox.items.clear();
+        pvf->sendbox.flexDirection = FlexBox::Direction::row;
+        pvf->sendbox.items.add(FlexItem(5, 2).withFlex(0));
+        if (!isNarrow) {
+            pvf->sendbox.items.add(FlexItem(mincheckheight, mincheckheight, *pvf->optionsButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight));
+            pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
+            pvf->sendbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0).withMaxWidth(200));
+            pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
+        } else {
+            pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
+            pvf->sendbox.items.add(FlexItem(80, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
+            pvf->sendbox.items.add(FlexItem(5, 2));
+            pvf->sendbox.items.add(FlexItem(80, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
+            pvf->sendbox.items.add(FlexItem(3, 5).withFlex(1));
+            pvf->sendbox.items.add(FlexItem(80, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0.5).withMaxWidth(200));
+            pvf->sendbox.items.add(FlexItem(3, 5));
+        }
+        
+        pvf->recvbox.items.clear();
+        pvf->recvbox.flexDirection = FlexBox::Direction::row;
+        if (isNarrow) {
+            pvf->recvbox.items.add(FlexItem(mincheckheight, mincheckheight, *pvf->optionsButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight));
+            pvf->recvbox.items.add(FlexItem(3, 5));
+        }
+        pvf->recvbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1).withMaxWidth(300));
+        pvf->recvbox.items.add(FlexItem(3, 5));
+        pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->recvstatbox).withMargin(0).withFlex(1));
+        pvf->recvbox.items.add(FlexItem(3, 5));
+
         
         pvf->recvlevelbox.items.clear();
         pvf->recvlevelbox.flexDirection = FlexBox::Direction::row;
-        pvf->recvlevelbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0));
-        pvf->recvlevelbox.items.add(FlexItem(3, 5));
+
+        if (!isNarrow) {
+            pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
+            pvf->recvlevelbox.items.add(FlexItem(5, 2));
+            pvf->recvlevelbox.items.add(FlexItem(80, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
+            pvf->recvlevelbox.items.add(FlexItem(3, 5));
+
+            pvf->levelSlider->setTextBoxStyle(Slider::TextBoxRight, true, 60, 14);
+            pvf->levelSlider->setPopupDisplayEnabled(false, false, getTopLevelComponent());
+        }
+        else {
+            pvf->levelSlider->setTextBoxStyle(Slider::NoTextBox, true, 50, 10);
+            pvf->levelSlider->setPopupDisplayEnabled(true, true, getTopLevelComponent());
+        }
         pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(2));
 
         if (processor.getTotalNumOutputChannels() > 1) {
@@ -615,13 +671,18 @@ void PeersContainerView::updateLayout()
             }
         }
 
+        pvf->recvlevelbox.items.add(FlexItem(3, 5));
+
         
         pvf->mainrecvbox.items.clear();
         pvf->mainrecvbox.flexDirection = FlexBox::Direction::column;
         pvf->mainrecvbox.items.add(FlexItem(2, 3));
-        pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
+        if (isNarrow) {
+        } else {
+            pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(0));
+        }
         pvf->mainrecvbox.items.add(FlexItem(2, 4));
-        pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(0));
+        pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
         //pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvnetbox).withMargin(2).withFlex(0));
 
         
@@ -629,14 +690,14 @@ void PeersContainerView::updateLayout()
         if (isNarrow) {
             pvf->mainsendbox.items.clear();
             pvf->mainsendbox.flexDirection = FlexBox::Direction::row;
-            pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->namebox).withMargin(0).withFlex(1));
+            pvf->mainsendbox.items.add(FlexItem(100, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
             pvf->mainsendbox.items.add(FlexItem(3, 3));
-            pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1));
+            pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(1));
         } else {
             pvf->mainsendbox.items.clear();
             pvf->mainsendbox.flexDirection = FlexBox::Direction::column;
             pvf->mainsendbox.items.add(FlexItem(2, 3));
-            pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
+            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
             pvf->mainsendbox.items.add(FlexItem(2, 4));
             pvf->mainsendbox.items.add(FlexItem(120, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
         }
@@ -648,20 +709,21 @@ void PeersContainerView::updateLayout()
         if (isNarrow) {
             pvf->mainnarrowbox.flexDirection = FlexBox::Direction::column;
             pvf->mainnarrowbox.items.add(FlexItem(2, 3));
-            pvf->mainnarrowbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(100, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
             pvf->mainnarrowbox.items.add(FlexItem(2, 3));
-            pvf->mainnarrowbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(0).withFlex(0));
-            //pvf->mainnarrowbox.items.add(FlexItem(120, minitemheight, pvf->sendbox).withMargin(2).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(120, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(2, 3));
+            pvf->mainnarrowbox.items.add(FlexItem(150, minitemheight, pvf->mainrecvbox).withMargin(0).withFlex(0));
 
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
             pvf->mainbox.items.add(FlexItem(3, 2));
             pvf->mainbox.items.add(FlexItem(150, singleph*2 - minitemheight , pvf->mainnarrowbox).withMargin(0).withFlex(1));
             pvf->mainbox.items.add(FlexItem(2, 2));
             pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
-        } else {            
+        } else {
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
-            pvf->mainbox.items.add(FlexItem(3, 5));
-            pvf->mainbox.items.add(FlexItem(100 + mincheckheight, singleph, pvf->mainsendbox).withMargin(0).withFlex(1));
+            pvf->mainbox.items.add(FlexItem(2, 5));
+            pvf->mainbox.items.add(FlexItem(100, singleph, pvf->mainsendbox).withMargin(0).withFlex(1).withMaxWidth(200));
             pvf->mainbox.items.add(FlexItem(3, 5));
             pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(0).withFlex(3));
             pvf->mainbox.items.add(FlexItem(1, 5));
@@ -893,7 +955,7 @@ void PeersContainerView::updatePeerViews()
         //pvf->sendMutedButton->setAlpha(connected ? 1.0 : 0.8);
         //pvf->recvMutedButton->setAlpha(connected ? 1.0 : 0.8);
         //pvf->latActiveButton->setAlpha(connected ? 1.0 : 0.8);
-        pvf->levelLabel->setAlpha(recvactive ? 1.0 : disalpha);
+        //pvf->levelLabel->setAlpha(recvactive ? 1.0 : disalpha);
         pvf->statusLabel->setAlpha(connected ? 1.0 : disalpha);
         pvf->levelSlider->setAlpha(recvactive ? 1.0 : disalpha);
         //pvf->bufferTimeLabel->setAlpha(recvactive ? 1.0 : disalpha);
@@ -1051,12 +1113,14 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         //else if (pvf->autosizeButton.get() == buttonThatWasClicked) {
             //processor.setRemotePeerAutoresizeBufferMode(i, (SonobusAudioProcessor::AutoNetBufferMode) pvf->autosizeButton->getSelectedItemIndex());
         //}
+        /*
         else if (pvf->menuButton.get() == buttonThatWasClicked) {
             
             showPopupMenu(pvf->menuButton.get(), i);
 
             break;
         }
+         */
         else if (pvf->panButton.get() == buttonThatWasClicked) {
             if (!pannerCalloutBox) {
                 showPanners(i, true);
