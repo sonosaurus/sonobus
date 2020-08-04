@@ -151,6 +151,7 @@ public:
     bool connectToServer(const String & host, int port, const String & username, const String & passwd="");
     bool isConnectedToServer() const;
     bool disconnectFromServer();
+    double getElapsedConnectedTime() const { return mSessionConnectionStamp > 0 ? (Time::getMillisecondCounterHiRes() - mSessionConnectionStamp) * 1e-3 : 0.0; }
 
     void setAutoconnectToGroupPeers(bool flag);
     bool getAutoconnectToGroupPeers() const { return mAutoconnectGroupPeers; }
@@ -295,10 +296,13 @@ public:
     bool startRecordingToFile(const File & file);
     bool stopRecordingToFile();
     bool isRecordingToFile();
-    
-    
-   
-    
+    double getElapsedRecordTime() const { return mElapsedRecordSamples / getSampleRate(); }
+
+    // playback stuff
+    bool loadURLIntoTransport (const URL& audioURL);
+    AudioTransportSource & getTransportSource() { return mTransportSource; }
+    AudioFormatManager & getFormatManager() { return mFormatManager; }
+
     
 private:
     //==============================================================================
@@ -340,6 +344,7 @@ private:
     AudioSampleBuffer tempBuffer;
     AudioSampleBuffer workBuffer;
     AudioSampleBuffer inputBuffer;
+    AudioSampleBuffer fileBuffer;
 
     Atomic<float>   mInGain    { 1.0 };
     Atomic<float>   mInMonPan1    {   0.0 };
@@ -400,7 +405,8 @@ private:
     bool mAutoconnectGroupPeers = true;
     bool mIsConnectedToServer = false;
     String mCurrentJoinedGroup;
-    
+    double mSessionConnectionStamp = 0.0;
+
     // we will add sinks for any peer we invite, as part of a RemoteSource
     
     
@@ -457,9 +463,15 @@ private:
     
     // recording stuff
     volatile bool writingPossible = false;
+    int64 mElapsedRecordSamples = 0;
     std::unique_ptr<TimeSliceThread> recordingThread;
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
     CriticalSection writerLock;
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter { nullptr };
-    
+  
+    // playing stuff
+    AudioTransportSource mTransportSource;
+    std::unique_ptr<AudioFormatReaderSource> mCurrentAudioFileSource; // the FIFO used to buffer the incoming data
+    AudioFormatManager mFormatManager;
+    TimeSliceThread mDiskThread  { "audio file reader" };
 };

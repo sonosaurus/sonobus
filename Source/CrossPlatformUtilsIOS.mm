@@ -11,7 +11,7 @@
 #endif
 
 
-#include "../JuceLibraryCode/JuceHeader.h"
+//#include "../JuceLibraryCode/JuceHeader.h"
 
 
 
@@ -33,11 +33,11 @@ void getSafeAreaInsets(void * component, float & top, float & bottom, float & le
             right = insets.right;
         }
 
-        DebugLogC("Safe area insets of UIView: t: %g  b: %g  l: %g  r:%g", top, bottom, left, right);
+        //DebugLogC("Safe area insets of UIView: t: %g  b: %g  l: %g  r:%g", top, bottom, left, right);
     }
     else {
         top = bottom = left = right = 0;
-        DebugLogC("NOT A UIVIEW");
+        //DebugLogC("NOT A UIVIEW");
     }
 #endif
 }

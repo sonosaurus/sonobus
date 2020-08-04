@@ -95,6 +95,7 @@ public:
        #endif
 
         AudioDeviceManager::AudioDeviceSetup setupOptions;
+        setupOptions.sampleRate = 48000;
         setupOptions.bufferSize = 256;
         
         return new StandaloneFilterWindow (getApplicationName(),

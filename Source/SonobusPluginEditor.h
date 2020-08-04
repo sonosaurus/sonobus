@@ -8,9 +8,11 @@
 #include "SonoLookAndFeel.h"
 #include "SonoChoiceButton.h"
 #include "SonoDrawableButton.h"
+#include "SonoUtility.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
+class WaveformTransportComponent;
 
 //==============================================================================
 /**
@@ -22,7 +24,9 @@ public Slider::Listener,
 public SonoChoiceButton::Listener, 
 public SonobusAudioProcessor::ClientListener,
 public ComponentListener,
-public AsyncUpdater
+public AsyncUpdater,
+public ChangeListener,
+public TextEditor::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -47,6 +51,11 @@ public:
     void parameterChanged (const String&, float newValue) override;
     void handleAsyncUpdate() override;
 
+    void changeListenerCallback (ChangeBroadcaster* source) override;
+
+    void textEditorReturnKeyPressed (TextEditor&) override;
+    void textEditorEscapeKeyPressed (TextEditor&) override;
+    
     void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
 
     void connectWithInfo(const AooServerConnectionInfo & info);
@@ -79,7 +88,8 @@ private:
     void configKnobSlider(Slider *);
     //void configLabel(Label * lab, bool val);
     //void configLevelSlider(Slider *);
-    
+    void configEditor(TextEditor *editor, bool passwd = false);
+
     void showPatchbay(bool flag);
     void showInPanners(bool flag);
 
@@ -93,10 +103,13 @@ private:
     void updateServerStatusLabel(const String & mesg, bool mainonly=true);
     void updateChannelState(bool force=false);
     bool updatePeerState(bool force=false);
-
+    void updateTransportState();
+    
     void updateOptionsState();
 
     String generateNewUsername(const AooServerConnectionInfo & info);
+
+    bool loadAudioFromURL(URL fileurl);
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -146,10 +159,15 @@ private:
     std::unique_ptr<TextEditor> mServerGroupPasswordEditor;
 
     std::unique_ptr<SonoDrawableButton> mServerGroupRandomButton;
+    std::unique_ptr<Label> mServerAudioInfoLabel;
 
 
     std::unique_ptr<Label> mServerStatusLabel;
+    std::unique_ptr<Label> mServerInfoLabel;
     std::unique_ptr<Label> mMainStatusLabel;
+
+    std::unique_ptr<Label> mConnectionTimeLabel;
+    std::unique_ptr<Label> mFileRecordingLabel;
 
     
     std::unique_ptr<TextButton> mPatchbayButton;
@@ -180,7 +198,14 @@ private:
     std::unique_ptr<Component> mDirectConnectContainer;
     std::unique_ptr<Component> mServerConnectContainer;
     std::unique_ptr<Component> mRecentsContainer;
+    std::unique_ptr<GroupComponent> mRecentsGroup;
 
+    std::unique_ptr<Component> mConnectComponent;
+    std::unique_ptr<DrawableRectangle> mConnectComponentBg;
+    std::unique_ptr<Label> mConnectTitle;
+    std::unique_ptr<SonoDrawableButton> mConnectCloseButton;
+
+    
     std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
 
     std::unique_ptr<TabbedComponent> mSettingsTab;
@@ -193,8 +218,18 @@ private:
     std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
     std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
 
-    std::unique_ptr<SonoTextButton> mRecordingButton;
+    std::unique_ptr<SonoDrawableButton> mRecordingButton;
+    std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
+    std::unique_ptr<SonoDrawableButton> mPlayButton;
+    std::unique_ptr<SonoDrawableButton> mDismissTransportButton;
+    std::unique_ptr<SonoDrawableButton> mLoopButton;
+    std::unique_ptr<Slider> mPlaybackSlider;
+    std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
+    std::unique_ptr<FileChooser> mFileChooser;
+    File  mCurrOpenDir;
+    URL mCurrentAudioFile;
+    
     std::unique_ptr<SonoDrawableButton> mIAAHostButton;
 
     
@@ -335,9 +370,15 @@ private:
     FlexBox dryBox;
     FlexBox wetBox;
     FlexBox toolbarBox;
+    FlexBox toolbarTextBox;
     FlexBox outBox;
+    FlexBox transportBox;
 
-    
+
+    FlexBox connectMainBox;
+    FlexBox connectHorizBox;
+    FlexBox connectTitleBox;
+
     FlexBox connectBox;
 
     FlexBox recentsBox;

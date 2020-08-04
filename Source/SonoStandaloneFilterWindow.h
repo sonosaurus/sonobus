@@ -136,7 +136,7 @@ public:
         jassert (processor != nullptr); // Your createPluginFilter() function must return a valid object!
 
         processor->disableNonMainBuses();
-        processor->setRateAndBufferSizeDetails (44100, 512);
+        processor->setRateAndBufferSizeDetails (48000, 256);
 
         int inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns
                                                           : processor->getMainBusNumInputChannels());

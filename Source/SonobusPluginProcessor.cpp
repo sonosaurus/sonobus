@@ -43,6 +43,9 @@ static String recentsItemKey("ServerConnectionInfo");
 #define METER_RMS_SEC 0.04
 #define MAX_PANNERS 4
 
+#define ECHO_SINKSOURCE_ID 12321
+#define DEFAULT_UDP_PORT 11000
+
 // get sockaddr, IPv4 or IPv6:
 static void *get_in_addr(struct sockaddr *sa)
 {
@@ -403,21 +406,24 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
     
+    // audio setup
+    mFormatManager.registerBasicFormats();    
+    
     initializeAoo();
 }
 
 SonobusAudioProcessor::~SonobusAudioProcessor()
 {
+    mTransportSource.setSource(nullptr);
+
     cleanupAoo();
 }
 
 void SonobusAudioProcessor::initializeAoo()
 {
-    int udpport = 11000;
+    int udpport = DEFAULT_UDP_PORT;
     // we have both an AOO source and sink
         
-    const int echoId = 12321;
-    
     aoo_initialize();
     
     initFormats();
@@ -622,7 +628,9 @@ bool SonobusAudioProcessor::disconnectFromServer()
 
     const ScopedLock sl (mClientLock);        
     
-    mIsConnectedToServer = false;    
+    mIsConnectedToServer = false;
+    mSessionConnectionStamp = 0.0;
+
     mCurrentJoinedGroup.clear();
 
     return true;
@@ -1744,9 +1752,11 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             if (e->result > 0){
                 DebugLogC("Connected to server!");
                 mIsConnectedToServer = true;
+                mSessionConnectionStamp = Time::getMillisecondCounterHiRes();
             } else {
                 DebugLogC("Couldn't connect to server - %s!", e->errormsg);
                 mIsConnectedToServer = false;
+                mSessionConnectionStamp = 0.0;
             }
             
             clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, this, e->result > 0, e->errormsg);
@@ -1762,6 +1772,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
 
             removeAllRemotePeers();
             mIsConnectedToServer = false;
+            mSessionConnectionStamp = 0.0;
 
             clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientDisconnected, this, e->result > 0, e->errormsg);
 
@@ -3063,6 +3074,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
     const ScopedReadLock sl (mCoreLock);        
     
+    
+    mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());
+
     //mAooSource->set_format(fmt->header);
     setupSourceFormat(0, mAooDummySource.get());
     mAooDummySource->setup(sampleRate, samplesPerBlock, getTotalNumInputChannels());
@@ -3140,6 +3154,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     if (inputBuffer.getNumSamples() < samplesPerBlock) {
         inputBuffer.setSize(2, samplesPerBlock);
     }
+    if (fileBuffer.getNumSamples() < samplesPerBlock) {
+        fileBuffer.setSize(2, samplesPerBlock);
+    }
 
     
 }
@@ -3148,6 +3165,8 @@ void SonobusAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    mTransportSource.releaseResources();
+
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -3193,6 +3212,22 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     int numSamples = buffer.getNumSamples();
     
+    
+    // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case
+    // I know this isn't RT safe.
+    if (tempBuffer.getNumSamples() < numSamples) {
+        tempBuffer.setSize(2, numSamples);
+    }
+    if (workBuffer.getNumSamples() < numSamples) {
+        workBuffer.setSize(2, numSamples);
+    }
+    if (inputBuffer.getNumSamples() < numSamples) {
+        inputBuffer.setSize(2, numSamples);
+    }
+    if (fileBuffer.getNumSamples() < numSamples) {
+        fileBuffer.setSize(2, numSamples);
+    }
+    
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
@@ -3203,7 +3238,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.clear (i, 0, numSamples);
     }
     
-    tempBuffer.clear(0, numSamples);
     
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
@@ -3212,19 +3246,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
 
-    aoo_sample *databufs[totalNumOutputChannels];
-    aoo_sample *tmpbufs[totalNumOutputChannels];
 
     uint64_t t = aoo_osctime_get();
 
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        databufs[channel] = channelData;        
-        tmpbufs[channel] = tempBuffer.getWritePointer(channel);
-
-    }
 
     // apply input gain
     if (fabsf(inGain - mLastInputGain) > 0.00001) {
@@ -3243,6 +3267,23 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     inputMeterSource.measureBlock (buffer);
 
+    
+    // file playback goes to everyone
+    // TODO
+    bool hasfiledata = false;
+    if (mTransportSource.getTotalLength() > 0)
+    {
+        AudioSourceChannelInfo info (&fileBuffer, 0, numSamples);
+        mTransportSource.getNextAudioBlock (info);
+        hasfiledata = true;
+        
+        //add to main buffer for going out
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            buffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
+        }
+
+    }
+    
     
     bool needsblockchange = false; //lastSamplesPerBlock != numSamples;
 
@@ -3464,9 +3505,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 if (fabsf(pan - lastpan) > 0.00001f) {
                     float plastgain = channel == 0 ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
                     
-                    workBuffer.addFromWithRamp(channel, 0, buffer.getReadPointer(i), numSamples, plastgain, pgain);
+                    workBuffer.addFromWithRamp(channel, 0, inputBuffer.getReadPointer(i), numSamples, plastgain, pgain);
                 } else {
-                    workBuffer.addFrom (channel, 0, buffer, i, 0, numSamples, pgain);                            
+                    workBuffer.addFrom (channel, 0, inputBuffer, i, 0, numSamples, pgain);
                 }
             }
         }
@@ -3484,20 +3525,32 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         
         
     } else {
-
-        if (fabsf(drynow - mLastDry) > 0.00001) {
-            buffer.applyGainRamp(0, numSamples, mLastDry, drynow);
-        } else {
-            buffer.applyGain(drynow);
-        }
         
+        // copy from input buffer with gain
+        bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            if (rampit) {
+                buffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
+            }
+            else {
+                buffer.copyFrom(channel, 0, inputBuffer.getReadPointer(channel), numSamples, drynow);
+            }
+        }
     }
     
     
-    // add from tempBuffer
+    // add from tempBuffer (audio from remote peers)
     for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-        
+
         buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+    }
+    
+    
+    // add from file playback buffer
+    if (hasfiledata) {
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            buffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
+        }
     }
     
     // apply wet (output) gain to original buf
@@ -3506,6 +3559,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     } else {
         buffer.applyGain(wetnow);
     }
+
+   
+   
+
     
     outputMeterSource.measureBlock (buffer);
 
@@ -3516,26 +3573,29 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         {
             if (activeWriter.load() != nullptr)
             {
-                if (drynow == 0.0f) {
-                    // if not input monitoring, we need to add the input to the output and write that to file
-                    bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
-                    for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-                        int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : channel;
-                        if (rampit) {
-                            workBuffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, mLastWet, wetnow);
-                        }
-                        else {
-                            workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, wetnow);
-                        }
+                // we need to mix the input, audio from remote peers, and the file playback together here
+                // if not input monitoring, we need to add the input to the output and write that to file
+                bool rampit =  (fabsf(wetnow - mLastWet) > 0.00001);
+                for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+                    int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : channel;
 
-                        workBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+                    // copy input as-is
+                    workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
+
+                    // apply master out gain to audio from remote peers and file playback (should we?)
+                    if (rampit) {
+                        workBuffer.addFromWithRamp(channel, 0, tempBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
+                        workBuffer.addFromWithRamp(channel, 0, fileBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
                     }
-                    
-                    activeWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                    else {
+                        workBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples, wetnow);
+                        workBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples, wetnow);
+                    }
                 }
-                else {
-                    activeWriter.load()->write (buffer.getArrayOfReadPointers(), numSamples);
-                }
+                
+                activeWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                
+                mElapsedRecordSamples += numSamples;
             }
         }
     }
@@ -3663,6 +3723,7 @@ bool SonobusAudioProcessor::startRecordingToFile(const File & file)
             // Now create a WAV writer object that writes to our output stream...
             //WavAudioFormat audioFormat;
             std::unique_ptr<AudioFormat> audioFormat;
+            int qualindex = 0;
             
             if (file.getFileExtension().toLowerCase() == ".flac") {
                 audioFormat = std::make_unique<FlacAudioFormat>();
@@ -3672,13 +3733,14 @@ bool SonobusAudioProcessor::startRecordingToFile(const File & file)
             }
             else if (file.getFileExtension().toLowerCase() == ".ogg") {
                 audioFormat = std::make_unique<OggVorbisAudioFormat>();
+                qualindex = 8; // 256k
             }
             else {
                 DebugLogC("Could not find format for filename");
                 return false;
             }
             
-            if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), getMainBusNumOutputChannels(), 16, {}, 0))
+            if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), getMainBusNumOutputChannels(), 16, {}, qualindex))
             {
                 fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                 
@@ -3688,6 +3750,7 @@ bool SonobusAudioProcessor::startRecordingToFile(const File & file)
                                 
                 // And now, swap over our active writer pointer so that the audio callback will start using it..
                 const ScopedLock sl (writerLock);
+                mElapsedRecordSamples = 0;
                 activeWriter = threadedWriter.get();
                 DebugLogC("Started recording file %s", file.getFullPathName().toRawUTF8());
                 ret = true;
@@ -3729,6 +3792,52 @@ bool SonobusAudioProcessor::isRecordingToFile()
 {
     return activeWriter.load() != nullptr;
 }
+
+ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
+{
+    if (!mDiskThread.isThreadRunning()) {
+        mDiskThread.startThread (3);
+    }
+
+    // unload the previous file source and delete it..
+    mTransportSource.stop();
+    mTransportSource.setSource (nullptr);
+    mCurrentAudioFileSource.reset();
+    
+    AudioFormatReader* reader = nullptr;
+    
+#if ! JUCE_IOS
+    if (audioURL.isLocalFile())
+    {
+        reader = mFormatManager.createReaderFor (audioURL.getLocalFile());
+    }
+    else
+#endif
+    {
+        if (reader == nullptr)
+            reader = mFormatManager.createReaderFor (audioURL.createInputStream (false));
+    }
+    
+    if (reader != nullptr)
+    {
+        mCurrentAudioFileSource.reset (new AudioFormatReaderSource (reader, true));
+
+        mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());
+
+        // ..and plug it into our transport source
+        mTransportSource.setSource (mCurrentAudioFileSource.get(),
+                                   32768,                   // tells it to buffer this many samples ahead
+                                   &mDiskThread,                 // this is the background thread to use for reading-ahead
+                                   reader->sampleRate);     // allows for sample rate correction
+        
+
+        return true;
+    }
+    
+    return false;
+}
+
+
 
 
 //==============================================================================

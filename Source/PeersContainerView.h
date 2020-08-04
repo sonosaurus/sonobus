@@ -31,7 +31,8 @@ public:
     //void updateLayout();
 
     SonoBigTextLookAndFeel smallLnf;
-    
+    SonoBigTextLookAndFeel medLnf;
+
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;
     
@@ -39,7 +40,7 @@ public:
     std::unique_ptr<Label> addrLabel;
     std::unique_ptr<SonoDrawableButton> sendMutedButton;
     std::unique_ptr<SonoDrawableButton> recvMutedButton;
-    std::unique_ptr<SonoTextButton> latActiveButton;
+    std::unique_ptr<SonoDrawableButton> latActiveButton;
     std::unique_ptr<SonoDrawableButton> optionsButton;
     std::unique_ptr<SonoDrawableButton> menuButton;
     std::unique_ptr<TextButton> panButton;
@@ -171,7 +172,7 @@ protected:
     
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showPanners(int index, bool flag);
-    void showOptions(int index, bool flag);
+    void showOptions(int index, bool flag, Component * fromView=nullptr);
 
     
     OwnedArray<PeerViewInfo> mPeerViews;
