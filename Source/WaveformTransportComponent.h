@@ -96,6 +96,7 @@ public:
             scrollbar.setRangeLimits (newRange);
             setRange (newRange);
 
+            
             currentPositionMarker.setVisible(true);
 
             currentLoopRect.setVisible(transportSource.isLooping());
@@ -103,13 +104,17 @@ public:
             double lensec = transportSource.getLengthInSeconds();
             totLabel.setText(SonoUtility::durationToString(lensec, true), dontSendNotification);
 
+            selRangeStart = 0;
+            selRangeEnd = lensec;
+            setLoopFromSelection();
+            
             String fname = url.getFileName().isNotEmpty() ? url.getLocalFile().getFileNameWithoutExtension() : "";
             
             nameLabel.setText(fname, dontSendNotification);
             
             updatePositionLabels();
             
-            startTimerHz (20);
+            //startTimerHz (20);
         } else {
             currentPositionMarker.setVisible(false);
             currentLoopRect.setVisible(false);
@@ -247,7 +252,7 @@ public:
 
     bool isInterestedInFileDrag (const StringArray& /*files*/) override
     {
-        return true;
+        return false; // handled in the main editor now
     }
 
     void filesDropped (const StringArray& files, int /*x*/, int /*y*/) override

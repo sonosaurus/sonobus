@@ -115,6 +115,8 @@
       <FILE id="mmyCfu" name="record.svg" compile="0" resource="1" file="images/record.svg"/>
       <FILE id="NI7XJk" name="record_active.svg" compile="0" resource="1"
             file="images/record_active.svg"/>
+      <FILE id="KcXBdG" name="record_active_alt.svg" compile="0" resource="1"
+            file="images/record_active_alt.svg"/>
       <FILE id="zhDqf1" name="send_group.svg" compile="0" resource="1" file="images/send_group.svg"/>
       <FILE id="Oc1M6j" name="send_group_small.svg" compile="0" resource="1"
             file="images/send_group_small.svg"/>

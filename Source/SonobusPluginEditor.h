@@ -32,7 +32,8 @@ public ComponentListener,
 public ChangeListener,
 public TextEditor::Listener,
 public ApplicationCommandTarget,
-public AsyncUpdater
+public AsyncUpdater,
+public FileDragAndDropTarget
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -79,7 +80,13 @@ public:
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
 
-    
+    // file drop
+
+    bool isInterestedInFileDrag (const StringArray& /*files*/) override;
+    void filesDropped (const StringArray& files, int /*x*/, int /*y*/) override;
+    void fileDragEnter (const StringArray& files, int x, int y) override;
+    void fileDragExit (const StringArray& files) override;
+
     // client listener
     void aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
     void aooClientDisconnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
@@ -215,6 +222,8 @@ private:
     std::unique_ptr<Label> mMetLevelSliderLabel;
     std::unique_ptr<Slider> mMetLevelSlider;
     std::unique_ptr<DrawableRectangle> mMetButtonBg;
+
+    std::unique_ptr<DrawableRectangle> mDragDropBg;
 
     std::unique_ptr<Slider> mBufferTimeSlider;
     

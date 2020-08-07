@@ -167,7 +167,8 @@ struct SonobusAudioProcessor::RemotePeer {
     bool recvActive = false;
     bool sendAllow = true;
     bool recvAllow = true;
-    bool recvMuted = false;
+    bool recvAllowCache = false; // used for recvmute all state
+    bool sendAllowCache = false; // used for sendmute all state
     bool invitedPeer = false;
     int  formatIndex = -1; // default
     AudioCodecFormatInfo recvFormat;
@@ -434,6 +435,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
+
+    mTempoParameter = mState.getParameter(paramMetTempo);
     
     mMetronome = std::make_unique<SonoAudio::Metronome>();
     
@@ -2344,6 +2347,7 @@ void SonobusAudioProcessor::setRemotePeerRecvActive(int index, bool active)
 
         if (remote->recvActive) {
             remote->recvAllow = true;
+            remote->recvAllowCache = true;            
         }
         
         // TODO
@@ -2369,49 +2373,60 @@ bool SonobusAudioProcessor::getRemotePeerRecvActive(int index) const
     return false;        
 }
 
-void SonobusAudioProcessor::setRemotePeerSendAllow(int index, bool allow)
+void SonobusAudioProcessor::setRemotePeerSendAllow(int index, bool allow, bool cached)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        remote->sendAllow = allow;
-        
-        if (!allow) {
-            //remote->oursource->remove_all();
-            setRemotePeerSendActive(index, allow);
+        if (cached) {
+            remote->sendAllowCache = allow;
+        } else {
+            remote->sendAllow = allow;
+            
+            
+            if (!allow) {
+                //remote->oursource->remove_all();
+                setRemotePeerSendActive(index, allow);
+            }
         }
     }
 }
 
-bool SonobusAudioProcessor::getRemotePeerSendAllow(int index) const
+bool SonobusAudioProcessor::getRemotePeerSendAllow(int index, bool cached) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        return remote->sendAllow;
+        return cached ? remote->sendAllowCache : remote->sendAllow;
     }
     return false;        
 }
 
-void SonobusAudioProcessor::setRemotePeerRecvAllow(int index, bool allow)
+void SonobusAudioProcessor::setRemotePeerRecvAllow(int index, bool allow, bool cached)
 {
      const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        remote->recvAllow = allow;
 
-        if (!allow) {
-            setRemotePeerRecvActive(index, allow);
+        if (cached) {
+            remote->recvAllowCache = allow;            
+        }
+        else {
+            remote->recvAllow = allow;
+            
+            if (!allow) {
+                setRemotePeerRecvActive(index, allow);
+            }
         }
     }
 }
 
-bool SonobusAudioProcessor::getRemotePeerRecvAllow(int index) const
+bool SonobusAudioProcessor::getRemotePeerRecvAllow(int index, bool cached) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        return remote->recvAllow;
+        return cached ? remote->recvAllowCache : remote->recvAllow;
     }
     return false;        
 }
@@ -2666,6 +2681,7 @@ void SonobusAudioProcessor::setRemotePeerSendActive(int index, bool active)
         remote->sendActive = active;
         if (active) {
             remote->sendAllow = true; // implied
+            remote->sendAllowCache = true; // implied
             remote->oursource->start();
         } else {
             remote->oursource->stop();            
@@ -2878,8 +2894,8 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->recvMeterSource.resize (outchannels, meterRmsWindow);
         retpeer->sendMeterSource.resize (retpeer->sendChannels, meterRmsWindow);
 
-        retpeer->sendAllow = !mMasterSendMute.get();
-        retpeer->recvAllow = !mMasterRecvMute.get();
+        retpeer->sendAllow = retpeer->sendAllowCache = !mMasterSendMute.get();
+        retpeer->recvAllow = retpeer->recvAllowCache =  !mMasterRecvMute.get();
 
     }
     else {
@@ -3033,11 +3049,23 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
             }
             else
             {
-                // turns on allow and starts sending
                 if (!mMasterSendMute.get()) {
-                    setRemotePeerSendActive(i, true);
+                    // turns on allow and starts sending
+                    // actually restores from cached values
+                    bool cached = getRemotePeerSendAllow(i, true);
+
+                    if (cached) {
+                        setRemotePeerSendActive(i, cached);
+                    } else {
+                        setRemotePeerSendAllow(i, cached);                        
+                    }
                 } else {
                     // turns off sending and allow
+
+                    // set cached value
+                    bool curr = getRemotePeerSendAllow(i);
+                    setRemotePeerSendAllow(i, curr, true); // set cached only
+
                     setRemotePeerSendAllow(i, false);
                 }
             }
@@ -3062,11 +3090,17 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
             }
             else
             {
-                // turns on allow and allows receiving
                 if (!mMasterRecvMute.get()) {
-                    setRemotePeerRecvActive(i, true);
+                    // turns on allow and allows receiving
+                    // actually restores from cached values
+                    bool cached = getRemotePeerRecvAllow(i, true);
+                    setRemotePeerRecvActive(i, cached);
                 } else {
                     // turns off sending and allow
+                    // set cached value
+                    bool curr = getRemotePeerRecvAllow(i);
+                    setRemotePeerRecvAllow(i, curr, true); // set cached only
+                    
                     setRemotePeerRecvAllow(i, false);
                 }
             }
@@ -3177,7 +3211,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
     int inchannels = getTotalNumInputChannels();
     int outchannels = getTotalNumOutputChannels();
-
+    int maxchans = jmax(inchannels, outchannels);
+    
     meterRmsWindow = sampleRate * METER_RMS_SEC / currSamplesPerBlock;
     
     inputMeterSource.resize (inchannels, meterRmsWindow);
@@ -3238,23 +3273,23 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         ++i;
     }
     
+    if (tempBuffer.getNumSamples() < samplesPerBlock || tempBuffer.getNumChannels() != maxchans) {
+        tempBuffer.setSize(maxchans, samplesPerBlock);
+    }
+    if (workBuffer.getNumSamples() < samplesPerBlock || workBuffer.getNumChannels() != maxchans) {
+        workBuffer.setSize(maxchans, samplesPerBlock);
+    }
+    if (inputBuffer.getNumSamples() < samplesPerBlock || inputBuffer.getNumChannels() != maxchans) {
+        inputBuffer.setSize(maxchans, samplesPerBlock);
+    }
+    if (fileBuffer.getNumSamples() < samplesPerBlock || fileBuffer.getNumChannels() != maxchans) {
+        fileBuffer.setSize(maxchans, samplesPerBlock);
+    }
+    if (metBuffer.getNumSamples() < samplesPerBlock || metBuffer.getNumChannels() != maxchans) {
+        metBuffer.setSize(maxchans, samplesPerBlock);
+    }
     
-    if (tempBuffer.getNumSamples() < samplesPerBlock) {
-        tempBuffer.setSize(2, samplesPerBlock);
-    }
-    if (workBuffer.getNumSamples() < samplesPerBlock) {
-        workBuffer.setSize(2, samplesPerBlock);
-    }
-    if (inputBuffer.getNumSamples() < samplesPerBlock) {
-        inputBuffer.setSize(2, samplesPerBlock);
-    }
-    if (fileBuffer.getNumSamples() < samplesPerBlock) {
-        fileBuffer.setSize(2, samplesPerBlock);
-    }
-    if (metBuffer.getNumSamples() < samplesPerBlock) {
-        metBuffer.setSize(2, samplesPerBlock);
-    }
-
+   
     
 }
 
@@ -3300,7 +3335,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
+    auto maxchans = jmax(totalNumInputChannels, totalNumOutputChannels);
+    
     float inGain = mInGain.get();
     float drynow = mDry.get(); // DB_CO(dry_level);
     float wetnow = mWet.get(); // DB_CO(wet_level);
@@ -3312,20 +3348,34 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case
     // I know this isn't RT safe.
-    if (tempBuffer.getNumSamples() < numSamples) {
-        tempBuffer.setSize(2, numSamples);
+    if (tempBuffer.getNumSamples() < numSamples || tempBuffer.getNumChannels() != maxchans) {
+        tempBuffer.setSize(maxchans, numSamples);
     }
-    if (workBuffer.getNumSamples() < numSamples) {
-        workBuffer.setSize(2, numSamples);
+    if (workBuffer.getNumSamples() < numSamples || workBuffer.getNumChannels() != maxchans) {
+        workBuffer.setSize(maxchans, numSamples);
     }
-    if (inputBuffer.getNumSamples() < numSamples) {
-        inputBuffer.setSize(2, numSamples);
+    if (inputBuffer.getNumSamples() < numSamples || inputBuffer.getNumChannels() != maxchans) {
+        inputBuffer.setSize(maxchans, numSamples);
     }
-    if (fileBuffer.getNumSamples() < numSamples) {
-        fileBuffer.setSize(2, numSamples);
+    if (fileBuffer.getNumSamples() < numSamples || fileBuffer.getNumChannels() != maxchans) {
+        fileBuffer.setSize(maxchans, numSamples);
     }
-    if (metBuffer.getNumSamples() < numSamples) {
-        metBuffer.setSize(2, numSamples);
+    if (metBuffer.getNumSamples() < numSamples || metBuffer.getNumChannels() != maxchans) {
+        metBuffer.setSize(maxchans, numSamples);
+    }
+    
+    
+    AudioPlayHead::CurrentPositionInfo posInfo;
+    posInfo.resetToDefault();
+    posInfo.bpm = mMetTempo.get();
+    bool posValid = getPlayHead() && getPlayHead()->getCurrentPosition(posInfo);
+    bool hostPlaying = posValid && posInfo.isPlaying;
+    if (posInfo.bpm <= 0.0) {
+        posInfo.bpm = mMetTempo.get();        
+    }
+    if (posValid && fabs(posInfo.bpm - mMetTempo.get()) > 0.001) {
+        mMetTempo = posInfo.bpm;
+        mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetTempo.get()));
     }
     
     // In case we have more outputs than inputs, this code clears any output
@@ -3396,7 +3446,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     if (metenabled != mLastMetEnabled) {
         if (metenabled) {
             mMetronome->setGain(metgain, true);
-            mMetronome->resetRelativeStart();
+            if (!hostPlaying) {
+                mMetronome->resetRelativeStart();
+            }
         } else {
             metgain = 0.0f;
             mMetronome->setGain(0.0f);
@@ -3406,7 +3458,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         metBuffer.clear(0, numSamples);
         mMetronome->setGain(metgain);
         mMetronome->setTempo(mettempo);
-        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(totalNumOutputChannels > 1 ? 1 : 0), 0.0, true);
+        double beattime = 0.0;
+        if (hostPlaying) {
+            beattime = posInfo.ppqPosition;
+        }
+        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(totalNumOutputChannels > 1 ? 1 : 0), beattime, !hostPlaying);
 
         if (sendmet) {
             //add to main buffer for going out
@@ -3675,11 +3731,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         // copy from input buffer with gain
         bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
         for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : 0;
             if (rampit) {
-                buffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
+                buffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, mLastDry, drynow);
             }
             else {
-                buffer.copyFrom(channel, 0, inputBuffer.getReadPointer(channel), numSamples, drynow);
+                buffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, drynow);
             }
         }
     }
@@ -3730,10 +3787,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             if (activeWriter.load() != nullptr)
             {
                 // we need to mix the input, audio from remote peers, and the file playback together here
-
+                //workBuffer.clear(0, numSamples);
+                
                 bool rampit =  (fabsf(wetnow - mLastWet) > 0.00001);
                 for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-                    int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : channel;
+                    int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : 0;
 
                     // copy input as-is
                     workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
@@ -3741,11 +3799,15 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     // apply master out gain to audio from remote peers and file playback (should we?)
                     if (rampit) {
                         workBuffer.addFromWithRamp(channel, 0, tempBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
-                        workBuffer.addFromWithRamp(channel, 0, fileBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
+                        if (hasfiledata) {
+                            workBuffer.addFromWithRamp(channel, 0, fileBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
+                        }
                     }
                     else {
                         workBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples, wetnow);
-                        workBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples, wetnow);
+                        if (hasfiledata) {
+                            workBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples, wetnow);
+                        }
                     }
                 }
                 
@@ -3852,7 +3914,12 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
             }
         }
         
-        
+        // don't recover the metronome enable state, always default it to off
+        mState.getParameter(paramMetEnabled)->setValueNotifyingHost(0.0f);
+
+        // don't recover the recv mute either
+        mState.getParameter(paramMasterRecvMute)->setValueNotifyingHost(0.0f);
+
     }
 }
 

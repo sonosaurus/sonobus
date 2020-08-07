@@ -220,11 +220,11 @@ public:
     void setRemotePeerRecvActive(int index, bool active);
     bool getRemotePeerRecvActive(int index) const;
 
-    void setRemotePeerSendAllow(int index, bool allow);
-    bool getRemotePeerSendAllow(int index) const;
+    void setRemotePeerSendAllow(int index, bool allow, bool cached=false);
+    bool getRemotePeerSendAllow(int index, bool cached=false) const;
 
-    void setRemotePeerRecvAllow(int index, bool allow);
-    bool getRemotePeerRecvAllow(int index) const;
+    void setRemotePeerRecvAllow(int index, bool allow, bool cached=false);
+    bool getRemotePeerRecvAllow(int index, bool cached=false) const;
 
     
     int64_t getRemotePeerPacketsReceived(int index) const;
@@ -392,6 +392,7 @@ private:
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
     
     RangedAudioParameter * mDefaultAutoNetbufModeParam;
+    RangedAudioParameter * mTempoParameter;
 
     
     bool hasInitializedInMonPanners = false;

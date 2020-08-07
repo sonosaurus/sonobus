@@ -416,6 +416,12 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMetButtonBg->setFill (Colour::fromFloatRGBA(0.0, 0.0, 0.0, 1.0));
     mMetButtonBg->setStrokeFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.25));
     mMetButtonBg->setStrokeThickness(0.5);
+
+    mDragDropBg = std::make_unique<DrawableRectangle>();
+    //mDragDropBg->setCornerSize(Point<float>(8,8));
+    mDragDropBg->setFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.2));
+    //mDragDropBg->setStrokeFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.25));
+    //mDragDropBg->setStrokeThickness(0.5);
     
     
     mMetEnableButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
@@ -812,7 +818,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     {
         mRecordingButton = std::make_unique<SonoDrawableButton>("record", DrawableButton::ButtonStyle::ImageFitted);
         std::unique_ptr<Drawable> recimg(Drawable::createFromImageData(BinaryData::record_svg, BinaryData::record_svgSize));
-        std::unique_ptr<Drawable> recselimg(Drawable::createFromImageData(BinaryData::record_active_svg, BinaryData::record_active_svgSize));
+        std::unique_ptr<Drawable> recselimg(Drawable::createFromImageData(BinaryData::record_active_alt_svg, BinaryData::record_active_alt_svgSize));
         mRecordingButton->setImages(recimg.get(), nullptr, nullptr, nullptr, recselimg.get());
         //mRecordingButton = std::make_unique<SonoTextButton>("record");
         //mRecordingButton->setButtonText(TRANS("Record"));
@@ -938,6 +944,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mMetEnableButton.get());
     addAndMakeVisible(mMetConfigButton.get());
 
+
+    
     mMetContainer->addAndMakeVisible(mMetLevelSlider.get());
     mMetContainer->addAndMakeVisible(mMetTempoSlider.get());
     mMetContainer->addAndMakeVisible(mMetLevelSliderLabel.get());
@@ -1002,6 +1010,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     addChildComponent(mConnectComponent.get());
 
+    // over everything
+    addChildComponent(mDragDropBg.get());
+
+    
     inPannersContainer->addAndMakeVisible (mInMonPanLabel1.get());
     inPannersContainer->addAndMakeVisible (mInMonPanLabel2.get());
     inPannersContainer->addAndMakeVisible (mInMonPanSlider1.get());
@@ -1093,6 +1105,30 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 
 }
 
+
+bool SonobusAudioProcessorEditor::isInterestedInFileDrag (const StringArray& /*files*/) 
+{
+    return true;
+}
+
+void SonobusAudioProcessorEditor::filesDropped (const StringArray& files, int /*x*/, int /*y*/) 
+{
+    mDragDropBg->setVisible(false);    
+
+    URL fileDropped = URL (File (files[0]));
+    loadAudioFromURL(fileDropped);
+}
+
+void  SonobusAudioProcessorEditor::fileDragEnter (const StringArray& files, int x, int y) 
+{
+    // todo check to see if it's an audio file and highlight something
+    mDragDropBg->setVisible(true);
+}
+
+void SonobusAudioProcessorEditor::fileDragExit (const StringArray& files)
+{
+    mDragDropBg->setVisible(false);    
+}
 
 
 void SonobusAudioProcessorEditor::configKnobSlider(Slider * slider)
@@ -1278,12 +1314,14 @@ void SonobusAudioProcessorEditor::updateTransportState()
             mDismissTransportButton->setVisible(true);
             mWaveformThumbnail->setVisible(true);
             mPlaybackSlider->setVisible(true);
+            mFileSendAudioButton->setVisible(true);
         } else {
             mPlayButton->setVisible(false);
             mLoopButton->setVisible(false);
             mDismissTransportButton->setVisible(false);
             mWaveformThumbnail->setVisible(false);
             mPlaybackSlider->setVisible(false);
+            mFileSendAudioButton->setVisible(false);
         }
 
         mPlayButton->setToggleState(processor.getTransportSource().isPlaying(), dontSendNotification);
@@ -1404,7 +1442,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mConnectButton.get()) {
         
         if (processor.isConnectedToServer()) {
-            mConnectionTimeLabel->setText("Last Total: " + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
+            mConnectionTimeLabel->setText(TRANS("Last Session: ") + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
             mConnectButton->setTextJustification(Justification::centredTop);
 
             processor.disconnectFromServer();
@@ -1412,7 +1450,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
         else {
             mConnectionTimeLabel->setText("", dontSendNotification);
-            mConnectButton->setTextJustification(Justification::centredTop);
+            mConnectButton->setTextJustification(Justification::centred);
 
             if (!mConnectComponent->isVisible()) {
                 //mMainPeerLabel->setText("", dontSendNotification);
@@ -1426,7 +1464,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mServerConnectButton.get()) {
 
         if (processor.isConnectedToServer()) {
-            mConnectionTimeLabel->setText("Total: " + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
+            mConnectionTimeLabel->setText(TRANS("Total: ") + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
 
             processor.disconnectFromServer();    
             updateState();
@@ -1487,7 +1525,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         if (mMasterMuteButton->getToggleState()) {
             showPopTip(TRANS("Not sending your audio anywhere"), 3000, mMasterMuteButton.get());
         } else {
-            showPopTip(TRANS("Sending your audio to all"), 3000, mMasterMuteButton.get());
+            showPopTip(TRANS("Sending your audio to others"), 3000, mMasterMuteButton.get());
         }
     }
     else if (buttonThatWasClicked == mMasterRecvMuteButton.get()) {
@@ -1496,7 +1534,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         if (mMasterRecvMuteButton->getToggleState()) {
             showPopTip(TRANS("Muted everyone"), 3000, mMasterRecvMuteButton.get());
         } else {
-            showPopTip(TRANS("Unmuted everyone"), 3000, mMasterRecvMuteButton.get());
+            showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMasterRecvMuteButton.get());
         }
     }
     else if (buttonThatWasClicked == mMetSendButton.get()) {
@@ -1842,8 +1880,14 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
             dw = this;
         }
         
+#if JUCE_IOS
+        const int defWidth = 230; 
+        const int defHeight = 96;
+#else
         const int defWidth = 210; 
         const int defHeight = 86;
+#endif
+        
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
@@ -2606,6 +2650,9 @@ void SonobusAudioProcessorEditor::resized()
     mMetButtonBg->setRectangle (metbgbounds.toFloat());
 
     
+    mDragDropBg->setRectangle (getLocalBounds().toFloat());
+
+    
     // connect component stuff
     mConnectComponent->setBounds(getLocalBounds());
     mConnectComponentBg->setRectangle (mConnectComponent->getLocalBounds().toFloat());
@@ -2650,7 +2697,7 @@ void SonobusAudioProcessorEditor::resized()
     mConnectionTimeLabel->setBounds(mConnectButton->getBounds().removeFromBottom(16));
     
     if (mRecordingButton) {
-        mFileRecordingLabel->setBounds(mRecordingButton->getBounds().removeFromTop(14).translated(0, -6));
+        mFileRecordingLabel->setBounds(mRecordingButton->getBounds().removeFromBottom(14).translated(0, 1));
     }
 
 

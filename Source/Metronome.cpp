@@ -171,8 +171,8 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
         FloatVectorOperations::add(inOutDataR, tempBuffer.getReadPointer(0), nframes);
     }
 
-    mCurrentBarRemainRatio = framesUntilBar / (float)framesInBar;
-    mCurrentBeatRemainRatio = framesUntilBeat / (float)framesInBeat;        
+    mCurrentBarRemainRatio = framesUntilBar / (double)framesInBar;
+    mCurrentBeatRemainRatio = framesUntilBeat / (double)framesInBeat;        
     
     if (relativeTime) {
         mCurrBeatPos += nframes / framesInBeatF;
