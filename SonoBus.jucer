@@ -69,9 +69,12 @@
       </GROUP>
     </GROUP>
     <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
+      <FILE id="O1xtq9" name="bar_click.wav" compile="0" resource="1" file="images/bar_click.wav"/>
+      <FILE id="dmiruB" name="beat_click.wav" compile="0" resource="1" file="images/beat_click.wav"/>
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
       <FILE id="vgfrLE" name="dice_icon_128.png" compile="0" resource="1"
             file="images/dice_icon_128.png"/>
+      <FILE id="wSd24I" name="dots.svg" compile="0" resource="1" file="images/dots.svg"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
       <FILE id="BdZUXk" name="folder.png" compile="0" resource="1" file="images/folder.png"/>
       <FILE id="zGzv4L" name="folder_icon.svg" compile="0" resource="1" file="images/folder_icon.svg"/>
@@ -85,11 +88,13 @@
             file="images/launchicon@2x.png" xcodeResource="1"/>
       <FILE id="ULiYlv" name="LaunchScreen.storyboard" compile="0" resource="0"
             file="images/LaunchScreen.storyboard" xcodeResource="1"/>
+      <FILE id="sjyJRV" name="lgc_bar.wav" compile="0" resource="1" file="images/lgc_bar.wav"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
       <FILE id="v6OfG4" name="loop_button.png" compile="0" resource="1" file="images/loop_button.png"/>
       <FILE id="SyjIVR" name="loop_button_selected.png" compile="0" resource="1"
             file="images/loop_button_selected.png"/>
       <FILE id="QOhFEr" name="loop_icon.svg" compile="0" resource="1" file="images/loop_icon.svg"/>
+      <FILE id="V0RVkS" name="met.svg" compile="0" resource="1" file="images/met.svg"/>
       <FILE id="NKBZSH" name="mic.svg" compile="0" resource="1" file="images/mic.svg"/>
       <FILE id="cOUMJd" name="mic_disabled.svg" compile="0" resource="1"
             file="images/mic_disabled.svg"/>
@@ -110,6 +115,9 @@
       <FILE id="mmyCfu" name="record.svg" compile="0" resource="1" file="images/record.svg"/>
       <FILE id="NI7XJk" name="record_active.svg" compile="0" resource="1"
             file="images/record_active.svg"/>
+      <FILE id="zhDqf1" name="send_group.svg" compile="0" resource="1" file="images/send_group.svg"/>
+      <FILE id="Oc1M6j" name="send_group_small.svg" compile="0" resource="1"
+            file="images/send_group_small.svg"/>
       <FILE id="DLrrYi" name="settings_icon.svg" compile="0" resource="1"
             file="images/settings_icon.svg"/>
       <FILE id="A2rpsw" name="speaker.svg" compile="0" resource="1" file="images/speaker.svg"/>
@@ -119,6 +127,7 @@
             file="images/tempicon-256.png" xcodeResource="0"/>
       <FILE id="clKeGk" name="tempicon-1024.png" compile="0" resource="0"
             file="images/tempicon-1024.png"/>
+      <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>
       <FILE id="EKos55" name="x_white.png" compile="0" resource="1" file="images/x_white.png"/>
@@ -153,6 +162,8 @@
             file="Source/LatencyMeasurer.h"/>
       <FILE id="fqZMTM" name="LevelMeterLookAndFeelMethods.h" compile="0"
             resource="0" file="Source/LevelMeterLookAndFeelMethods.h"/>
+      <FILE id="JIOwEt" name="Metronome.cpp" compile="1" resource="0" file="Source/Metronome.cpp"/>
+      <FILE id="qPvWp5" name="Metronome.h" compile="0" resource="0" file="Source/Metronome.h"/>
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
       <FILE id="CTpEGU" name="mtdm.h" compile="0" resource="0" file="Source/mtdm.h"/>
       <FILE id="HNtjtj" name="PeersContainerView.cpp" compile="1" resource="0"
@@ -178,6 +189,7 @@
             file="Source/SonobusPluginProcessor.cpp"/>
       <FILE id="PntDaO" name="SonobusPluginProcessor.h" compile="0" resource="0"
             file="Source/SonobusPluginProcessor.h"/>
+      <FILE id="FlH0Sq" name="SonobusTypes.h" compile="0" resource="0" file="Source/SonobusTypes.h"/>
       <FILE id="VZVoBA" name="SonoChoiceButton.cpp" compile="1" resource="0"
             file="Source/SonoChoiceButton.cpp"/>
       <FILE id="jV66tt" name="SonoChoiceButton.h" compile="0" resource="0"

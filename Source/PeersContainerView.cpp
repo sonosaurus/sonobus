@@ -887,7 +887,11 @@ void PeersContainerView::updatePeerViews()
         pvf->pingLabel->setText(String::formatted("%d ms", (int)processor.getRemotePeerPingMs(i) ), dontSendNotification);
 
         if (!isreal) {
-            pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
+            if (pvf->stopLatencyTestTimestampMs > 0) {
+                pvf->latencyLabel->setText(TRANS("****"), dontSendNotification);
+            } else {
+                pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
+            }
         } else {
             pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)lrintf(totallat), estlat ? "*" : "" ), dontSendNotification);
             //pvf->latencyLabel->setText(String::formatted("%d ms", (int)totallat), dontSendNotification);
@@ -977,17 +981,16 @@ void PeersContainerView::updatePeerViews()
         if (pvf->stopLatencyTestTimestampMs > 0.0 && nowstampms > pvf->stopLatencyTestTimestampMs
             && !pvf->latActiveButton->isMouseButtonDown()) {
 
-            bool isreal=false, est = false;
-            processor.getRemotePeerTotalLatencyMs(i, isreal, est);
-
             // only stop if it has actually gotten a real latency
             if (isreal) {
                 stopLatencyTest(i);
                 
-                if (popTip && popTip->isVisible()) {
-                    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
-                    popTip.reset();
-                }
+                showPopTip(String::formatted(TRANS("Measured actual round-trip latency of %d ms"), (int) lrintf(totallat)), 4000, pvf->latActiveButton.get(), 140);
+
+                //if (popTip && popTip->isVisible()) {
+                //    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
+                //    popTip.reset();
+                //}
             }
         }
     }
@@ -1001,10 +1004,12 @@ void PeersContainerView::startLatencyTest(int i)
     
     PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
 
-    pvf->stopLatencyTestTimestampMs = Time::getMillisecondCounter() + 1500;
+    pvf->stopLatencyTestTimestampMs = Time::getMillisecondCounter(); // make it stop after the first one  //+ 1500;
     pvf->wasRecvActiveAtLatencyTest = processor.getRemotePeerRecvActive(i);
     pvf->wasSendActiveAtLatencyTest = processor.getRemotePeerSendActive(i);
     
+    pvf->latencyLabel->setText(TRANS("****"), dontSendNotification);
+
     //processor.setRemotePeerSendActive(i, false);
     //processor.setRemotePeerRecvActive(i, false);
     
@@ -1029,6 +1034,15 @@ void PeersContainerView::stopLatencyTest(int i)
      
     pvf->stopLatencyTestTimestampMs = 0;
     
+    bool estlat = true;
+    bool isreal = false;
+    float totallat = processor.getRemotePeerTotalLatencyMs(i, isreal, estlat);
+    
+    if (!isreal) {
+        pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
+    } else {
+        pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)lrintf(totallat), estlat ? "*" : "" ), dontSendNotification);
+    }
 }
 
 void PeersContainerView::timerCallback(int timerId)
@@ -1109,13 +1123,13 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         else if (pvf->latActiveButton.get() == buttonThatWasClicked) {
             if (pvf->latActiveButton->getToggleState()) {
                 startLatencyTest(i);
-                showPopTip(TRANS("Measuring actual round-trip latency..."), 4000, pvf->latActiveButton.get(), 140);
+                //showPopTip(TRANS("Measuring actual round-trip latency"), 4000, pvf->latActiveButton.get(), 140);
             } else {
                 stopLatencyTest(i);
-                if (popTip && popTip->isVisible()) {
-                    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
-                    popTip.reset();
-                }
+                //if (popTip && popTip->isVisible()) {
+                //    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
+                //    popTip.reset();
+                //}
             }
             break;
         }
@@ -1276,13 +1290,19 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
 
         if (event.eventComponent == pvf->latActiveButton.get()) {
             uint32 nowtimems = Time::getMillisecondCounter();
-            if (nowtimems >= pvf->stopLatencyTestTimestampMs) {
+            bool isreal=false, est = false;
+            float latval = processor.getRemotePeerTotalLatencyMs(i, isreal, est);
+
+            // only stop if it has actually gotten a real latency
+
+            if (nowtimems >= pvf->stopLatencyTestTimestampMs && isreal) {
                 stopLatencyTest(i);
                 pvf->latActiveButton->setToggleState(false, dontSendNotification);
-                if (popTip && popTip->isVisible()) {
-                    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
-                    popTip.reset();
-                }
+                showPopTip(String::formatted(TRANS("Measured actual round-trip latency of %d ms"), (int) lrintf(latval)), 4000, pvf->latActiveButton.get(), 140);
+                //if (popTip && popTip->isVisible()) {
+                //    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
+                //    popTip.reset();
+                //}
             }
             break;
         }

@@ -8,11 +8,16 @@
 #include "SonoLookAndFeel.h"
 #include "SonoChoiceButton.h"
 #include "SonoDrawableButton.h"
+#include "SonoTextButton.h"
 #include "SonoUtility.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
+
+class SonobusAudioProcessorEditor;
+
+
 
 //==============================================================================
 /**
@@ -24,9 +29,10 @@ public Slider::Listener,
 public SonoChoiceButton::Listener, 
 public SonobusAudioProcessor::ClientListener,
 public ComponentListener,
-public AsyncUpdater,
 public ChangeListener,
-public TextEditor::Listener
+public TextEditor::Listener,
+public ApplicationCommandTarget,
+public AsyncUpdater
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -53,6 +59,17 @@ public:
 
     void changeListenerCallback (ChangeBroadcaster* source) override;
 
+    // ApplicationCommandTarget
+    void getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) override;
+    void getAllCommands (Array<CommandID>& cmds) override;
+    bool perform (const InvocationInfo& info) override;
+    ApplicationCommandTarget* getNextCommandTarget() override {
+        return findFirstTargetParentComponent();
+    }
+
+    
+
+    
     void textEditorReturnKeyPressed (TextEditor&) override;
     void textEditorEscapeKeyPressed (TextEditor&) override;
     
@@ -92,6 +109,7 @@ private:
 
     void showPatchbay(bool flag);
     void showInPanners(bool flag);
+    void showMetConfig(bool flag);
 
     void showConnectPopup(bool flag);
 
@@ -118,6 +136,7 @@ private:
     SonoLookAndFeel sonoLookAndFeel;
     SonoBigTextLookAndFeel sonoSliderLNF;
     SonoBigTextLookAndFeel smallLNF;
+    SonoBigTextLookAndFeel teensyLNF;
 
     class PatchMatrixView;
 
@@ -129,7 +148,7 @@ private:
 
     std::unique_ptr<TextButton> mDirectConnectButton;
 
-    std::unique_ptr<TextButton> mConnectButton;
+    std::unique_ptr<SonoTextButton> mConnectButton;
 
     std::unique_ptr<Label> mMainGroupLabel;
     std::unique_ptr<Label> mMainUserLabel;
@@ -186,6 +205,16 @@ private:
     std::unique_ptr<Slider> mOutGainSlider;
     
     std::unique_ptr<SonoDrawableButton> mMasterMuteButton;
+    std::unique_ptr<SonoDrawableButton> mMasterRecvMuteButton;
+
+    std::unique_ptr<SonoDrawableButton> mMetConfigButton;
+    std::unique_ptr<SonoDrawableButton> mMetEnableButton;
+    std::unique_ptr<SonoDrawableButton> mMetSendButton;
+    std::unique_ptr<Label> mMetTempoSliderLabel;
+    std::unique_ptr<Slider> mMetTempoSlider;
+    std::unique_ptr<Label> mMetLevelSliderLabel;
+    std::unique_ptr<Slider> mMetLevelSlider;
+    std::unique_ptr<DrawableRectangle> mMetButtonBg;
 
     std::unique_ptr<Slider> mBufferTimeSlider;
     
@@ -213,16 +242,22 @@ private:
     std::unique_ptr<Component> mHelpComponent;
     std::unique_ptr<Component> mOptionsComponent;
 
+    std::unique_ptr<Component> mMetContainer;
+
+    
     std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
     std::unique_ptr<SonoChoiceButton> mOptionsFormatChoiceDefaultChoice;
     std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
     std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
+
+    std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
 
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
     std::unique_ptr<SonoDrawableButton> mPlayButton;
     std::unique_ptr<SonoDrawableButton> mDismissTransportButton;
     std::unique_ptr<SonoDrawableButton> mLoopButton;
+    std::unique_ptr<SonoDrawableButton> mFileSendAudioButton;
     std::unique_ptr<Slider> mPlaybackSlider;
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
@@ -245,6 +280,8 @@ private:
 
     //std::unique_ptr<Component> serverContainer;
     WeakReference<Component> serverCalloutBox;
+
+    WeakReference<Component> metCalloutBox;
 
     
     
@@ -336,6 +373,39 @@ private:
     std::unique_ptr<TableListBox> mRemoteSinkListBox;
     std::unique_ptr<TableListBox> mRemoteSourceListBox;
     
+    
+    class SonobusCommandManager : public ApplicationCommandManager {
+    public:
+        SonobusCommandManager(SonobusAudioProcessorEditor & parent_) : parent(parent_) {}
+        ApplicationCommandTarget* getFirstCommandTarget(CommandID commandID) override {
+            return &parent;
+        }
+    private:
+        SonobusAudioProcessorEditor & parent;
+    };
+
+    
+    SonobusCommandManager commandManager { *this };
+
+    
+    class SonobusMenuBarModel
+     : public MenuBarModel
+    {
+    public:
+        SonobusMenuBarModel(SonobusAudioProcessorEditor & parent_) : parent(parent_) {}
+        
+        // MenuBarModel
+        StringArray getMenuBarNames() override;
+        PopupMenu getMenuForIndex (int topLevelMenuIndex, const String& /*menuName*/) override;
+        void menuItemSelected (int menuItemID, int topLevelMenuIndex) override;
+
+    protected:
+        SonobusAudioProcessorEditor & parent;
+    };
+    
+    std::unique_ptr<SonobusMenuBarModel> menuBarModel;;
+    
+    
     std::unique_ptr<RandomSentenceGenerator> mRandomSentence;
 
     
@@ -373,6 +443,14 @@ private:
     FlexBox toolbarTextBox;
     FlexBox outBox;
     FlexBox transportBox;
+    FlexBox transportWaveBox;
+    FlexBox transportVBox;
+    FlexBox recBox;
+
+    FlexBox metBox;
+    FlexBox metVolBox;
+    FlexBox metTempoBox;
+    FlexBox metSendBox;
 
 
     FlexBox connectMainBox;
@@ -390,6 +468,7 @@ private:
     FlexBox optionsBox;
     FlexBox optionsNetbufBox;
     FlexBox optionsSendQualBox;
+    FlexBox optionsHearlatBox;
 
     Image iaaHostIcon;
 
@@ -402,6 +481,13 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMasterSendMuteAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMasterRecvMuteAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetTempoAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetEnableAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mHearLatencyTestAttachment;
 
     
     bool iaaConnected = false;

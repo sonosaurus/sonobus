@@ -60,6 +60,7 @@ public:
     void setTextJustification(Justification just) { textJustification = just; }
     Justification getTextJustification() const { return textJustification; }
     
+
 protected:
     
     bool hitTest (int x, int y) override;

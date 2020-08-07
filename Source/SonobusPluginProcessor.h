@@ -7,6 +7,11 @@
 #include "aoo/aoo.hpp"
 #include "aoo/aoo_net.hpp"
 
+namespace SonoAudio {
+class Metronome;
+}
+
+
 #define MAX_PEERS 32
 
 
@@ -132,6 +137,13 @@ public:
     static String paramDefaultNetbufMs;
     static String paramDefaultSendQual;
     static String paramMasterSendMute;
+    static String paramMasterRecvMute;
+    static String paramMetEnabled;
+    static String paramMetGain;
+    static String paramMetTempo;
+    static String paramSendMetAudio;
+    static String paramSendFileAudio;
+    static String paramHearLatencyTest;
 
     struct EndpointState;
     struct RemoteSink;
@@ -345,6 +357,7 @@ private:
     AudioSampleBuffer workBuffer;
     AudioSampleBuffer inputBuffer;
     AudioSampleBuffer fileBuffer;
+    AudioSampleBuffer metBuffer;
 
     Atomic<float>   mInGain    { 1.0 };
     Atomic<float>   mInMonPan1    {   0.0 };
@@ -360,12 +373,21 @@ private:
     Atomic<double>   mBufferTime     { 0.01 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
     Atomic<bool>   mMasterSendMute    {   false };
+    Atomic<bool>   mMasterRecvMute    {   false };
+    Atomic<bool>   mMetEnabled  { false };
+    Atomic<bool>   mSendMet  { false };
+    Atomic<float>   mMetGain    { 0.5f };
+    Atomic<double>   mMetTempo    { 100.0f };
+    Atomic<bool>   mSendPlaybackAudio  { false };
+    Atomic<bool>   mHearLatencyTest  { false };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
     float mLastWet    = 0.0f;
     float mLastInMonPan1 = 0.0f;
     float mLastInMonPan2 = 0.0f;
+    bool mLastMetEnabled = false;
+
     
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
     
@@ -474,4 +496,11 @@ private:
     std::unique_ptr<AudioFormatReaderSource> mCurrentAudioFileSource; // the FIFO used to buffer the incoming data
     AudioFormatManager mFormatManager;
     TimeSliceThread mDiskThread  { "audio file reader" };
+    
+    // metronome
+    std::unique_ptr<SonoAudio::Metronome> mMetronome;
+   
+
+
+
 };

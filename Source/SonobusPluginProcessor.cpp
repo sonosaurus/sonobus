@@ -14,6 +14,7 @@
 #include "mtdm.h"
 
 #include "LatencyMeasurer.h"
+#include "Metronome.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -35,6 +36,13 @@ String SonobusAudioProcessor::paramDefaultNetbufMs ("defnetbuf");
 String SonobusAudioProcessor::paramDefaultAutoNetbuf ("defnetauto");
 String SonobusAudioProcessor::paramDefaultSendQual ("defsendqual");
 String SonobusAudioProcessor::paramMasterSendMute ("mastsendmute");
+String SonobusAudioProcessor::paramMasterRecvMute ("mastrecvmute");
+String SonobusAudioProcessor::paramMetEnabled ("metenabled");
+String SonobusAudioProcessor::paramMetGain     ("metgain");
+String SonobusAudioProcessor::paramMetTempo     ("mettempo");
+String SonobusAudioProcessor::paramSendMetAudio    ("sendmetaudio");
+String SonobusAudioProcessor::paramSendFileAudio    ("sendfileaudio");
+String SonobusAudioProcessor::paramHearLatencyTest   ("hearlatencytest");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -380,7 +388,21 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
 
+    std::make_unique<AudioParameterBool>(paramMetEnabled, TRANS ("Metronome Enabled"), mMetEnabled.get()),
+    std::make_unique<AudioParameterBool>(paramSendMetAudio, TRANS ("Send Metronome Audio"), mSendMet.get()),
+    std::make_unique<AudioParameterFloat>(paramMetGain,     TRANS ("Metronome Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.25), mMetGain.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
+                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+
+    std::make_unique<AudioParameterFloat>(paramMetTempo,     TRANS ("Metronome Tempo"),    NormalisableRange<float>(10.0, 400.0, 1, 0.5), mMetTempo.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String(v) + " bpm"; },
+                                          [](const String& s) -> float { return s.getFloatValue(); }),
+
+    std::make_unique<AudioParameterBool>(paramSendFileAudio, TRANS ("Send Playback Audio"), mSendPlaybackAudio.get()),
+    std::make_unique<AudioParameterBool>(paramHearLatencyTest, TRANS ("Hear Latency Test"), mHearLatencyTest.get()),
+
     std::make_unique<AudioParameterBool>(paramMasterSendMute, TRANS ("Main Send Mute"), mMasterSendMute.get()),
+    std::make_unique<AudioParameterBool>(paramMasterRecvMute, TRANS ("Main Receive Mute"), mMasterRecvMute.get()),
 
     std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full"}), defaultAutoNetbufMode),
 
@@ -396,6 +418,13 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramDefaultNetbufMs, this);
     mState.addParameterListener (paramDefaultSendQual, this);
     mState.addParameterListener (paramMasterSendMute, this);
+    mState.addParameterListener (paramMasterRecvMute, this);
+    mState.addParameterListener (paramMetEnabled, this);
+    mState.addParameterListener (paramMetGain, this);
+    mState.addParameterListener (paramMetTempo, this);
+    mState.addParameterListener (paramSendMetAudio, this);
+    mState.addParameterListener (paramSendFileAudio, this);
+    mState.addParameterListener (paramHearLatencyTest, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -405,6 +434,12 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
+    
+    mMetronome = std::make_unique<SonoAudio::Metronome>();
+    
+    mMetronome->loadBarSoundFromBinaryData(BinaryData::bar_click_wav, BinaryData::bar_click_wavSize);
+    mMetronome->loadBeatSoundFromBinaryData(BinaryData::beat_click_wav, BinaryData::beat_click_wavSize);
+    mMetronome->setTempo(100.0);
     
     // audio setup
     mFormatManager.registerBasicFormats();    
@@ -1770,7 +1805,9 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 DebugLogC("Disconnected from server - %s!", e->errormsg);
             }
 
-            removeAllRemotePeers();
+            // don't remove all peers?
+            //removeAllRemotePeers();
+            
             mIsConnectedToServer = false;
             mSessionConnectionStamp = 0.0;
 
@@ -1823,7 +1860,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 DebugLogC("Peer joined group %s - user %s", e->group, e->user);
 
                 if (mAutoconnectGroupPeers) {
-                    connectRemotePeerRaw(e->address, e->user, e->group);
+                    connectRemotePeerRaw(e->address, e->user, e->group, !mMasterRecvMute.get());
                 }
                 
                 //aoo_node_add_peer(x->x_node, gensym(e->group), gensym(e->user),
@@ -2572,6 +2609,11 @@ bool SonobusAudioProcessor::startRemotePeerLatencyTest(int index, float duration
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         if (!remote->activeLatencyTest) {
             // invite remote's echosource to send to our latency sink
+
+            remote->latencysink->uninvite_all();
+            remote->latencysink->reset();
+            remote->latencysource->remove_all();
+
             remote->latencysink->invite_source(remote->endpoint, remote->remoteSourceId+ECHO_ID_OFFSET, endpoint_send);
             
             // start our latency source sending to remote's echosink
@@ -2580,10 +2622,13 @@ bool SonobusAudioProcessor::startRemotePeerLatencyTest(int index, float duration
             
 #if 1
             remote->latencyMeasurer->measurementCount = 10000;
-            remote->latencyMeasurer->initializeWithThreshold(-90.0f);
+            //remote->latencyMeasurer->initializeWithThreshold(-50.0f);
+            remote->latencyMeasurer->overrideThreshold = 0.2f;
+            remote->latencyMeasurer->noiseMeasureTime = 0.2f;
+            remote->latencyMeasurer->toggle(true);
 
 #endif
-            
+            remote->hasRealLatency = false;
             remote->activeLatencyTest = true;
         }
         return true;
@@ -2834,6 +2879,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->sendMeterSource.resize (retpeer->sendChannels, meterRmsWindow);
 
         retpeer->sendAllow = !mMasterSendMute.get();
+        retpeer->recvAllow = !mMasterRecvMute.get();
 
     }
     else {
@@ -2950,6 +2996,24 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramInGain) {
         mInGain = newValue;
     }
+    else if (parameterID == paramMetGain) {
+        mMetGain = newValue;
+    }
+    else if (parameterID == paramMetTempo) {
+        mMetTempo = newValue;
+    }
+    else if (parameterID == paramMetEnabled) {
+        mMetEnabled = newValue > 0;
+    }
+    else if (parameterID == paramSendFileAudio) {
+        mSendPlaybackAudio = newValue > 0;
+    }
+    else if (parameterID == paramHearLatencyTest) {
+        mHearLatencyTest = newValue > 0;
+    }
+    else if (parameterID == paramSendMetAudio) {
+        mSendMet = newValue > 0;
+    }
     else if (parameterID == paramMasterSendMute) {
         // allow or disallow sending to all peers
 
@@ -2975,6 +3039,35 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
                 } else {
                     // turns off sending and allow
                     setRemotePeerSendAllow(i, false);
+                }
+            }
+        }
+    }
+    else if (parameterID == paramMasterRecvMute) {
+        // allow or disallow sending to all peers
+
+        mMasterRecvMute = newValue > 0;
+                       
+        for (int i=0; i < getNumberRemotePeers(); ++i) {
+            bool connected  = getRemotePeerConnected(i);
+            bool isGroupPeer = getRemotePeerUserName(i).isNotEmpty();
+            
+            if (!connected && !isGroupPeer) {
+                /*
+                 String hostname;
+                 int port = 0;
+                 processor.getRemotePeerAddressInfo(i, hostname, port);
+                 processor.connectRemotePeer(hostname, port);
+                 */
+            }
+            else
+            {
+                // turns on allow and allows receiving
+                if (!mMasterRecvMute.get()) {
+                    setRemotePeerRecvActive(i, true);
+                } else {
+                    // turns off sending and allow
+                    setRemotePeerRecvAllow(i, false);
                 }
             }
         }
@@ -3074,6 +3167,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
     const ScopedReadLock sl (mCoreLock);        
     
+    mMetronome->setSampleRate(sampleRate);
     
     mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());
 
@@ -3157,6 +3251,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     if (fileBuffer.getNumSamples() < samplesPerBlock) {
         fileBuffer.setSize(2, samplesPerBlock);
     }
+    if (metBuffer.getNumSamples() < samplesPerBlock) {
+        metBuffer.setSize(2, samplesPerBlock);
+    }
 
     
 }
@@ -3227,6 +3324,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     if (fileBuffer.getNumSamples() < numSamples) {
         fileBuffer.setSize(2, numSamples);
     }
+    if (metBuffer.getNumSamples() < numSamples) {
+        metBuffer.setSize(2, numSamples);
+    }
     
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -3269,7 +3369,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     
     // file playback goes to everyone
-    // TODO
+    bool sendfileaudio = mSendPlaybackAudio.get();
+
     bool hasfiledata = false;
     if (mTransportSource.getTotalLength() > 0)
     {
@@ -3277,14 +3378,48 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         mTransportSource.getNextAudioBlock (info);
         hasfiledata = true;
         
-        //add to main buffer for going out
-        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            buffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
+        if (sendfileaudio) {
+            //add to main buffer for going out
+            for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+                buffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
+            }
         }
 
     }
     
+    // process metronome
+    bool metenabled = mMetEnabled.get();
+    bool sendmet = mSendMet.get();
+    float metgain = mMetGain.get();
+    double mettempo = mMetTempo.get();
     
+    if (metenabled != mLastMetEnabled) {
+        if (metenabled) {
+            mMetronome->setGain(metgain, true);
+            mMetronome->resetRelativeStart();
+        } else {
+            metgain = 0.0f;
+            mMetronome->setGain(0.0f);
+        }
+    }
+    if (mLastMetEnabled || metenabled) {
+        metBuffer.clear(0, numSamples);
+        mMetronome->setGain(metgain);
+        mMetronome->setTempo(mettempo);
+        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(totalNumOutputChannels > 1 ? 1 : 0), 0.0, true);
+
+        if (sendmet) {
+            //add to main buffer for going out
+            for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+                buffer.addFrom(channel, 0, metBuffer, channel, 0, numSamples);
+            }            
+        }
+    }
+    mLastMetEnabled = metenabled;
+
+    
+    bool hearlatencytest = mHearLatencyTest.get();
+
     bool needsblockchange = false; //lastSamplesPerBlock != numSamples;
 
     // push data for going out
@@ -3294,7 +3429,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         //mAooSource->process( buffer.getArrayOfReadPointers(), numSamples, t);
         
         
-        tempBuffer.clear();
+        tempBuffer.clear(0, numSamples);
         
         for (auto & remote : mRemotePeers) 
         {
@@ -3452,11 +3587,16 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     remote->echosource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);
                 }
 
-
+                
                 if (remote->activeLatencyTest && remote->latencyProcessor) {
                     workBuffer.clear(0, 0, numSamples);
                     if (remote->latencysink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
                         //DebugLogC("received something from our latency sink");
+                    }
+
+                    // hear latency measure stuff (recv into right channel)
+                    if (hearlatencytest) {
+                        tempBuffer.addFrom(totalNumOutputChannels > 1 ? 1 : 0, 0, workBuffer, 0, 0, numSamples);
                     }
 
 #if 1
@@ -3466,6 +3606,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     remote->latencyProcessor->process(numSamples, workBuffer.getWritePointer(0), workBuffer.getWritePointer(0));
 #endif
 
+                    // hear latency measure stuff (send into left channel)
+                    if (hearlatencytest) {
+                        tempBuffer.addFrom(0, 0, workBuffer, 0, 0, numSamples);
+                    }
+
+                    
                     remote->latencysource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);                                        
                 }
             }
@@ -3491,7 +3637,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     if (totalNumInputChannels > 0 && totalNumOutputChannels > 1 && ( drynow > 0.0f || mLastDry > 0.0f )) {
         
         // copy input into workbuffer
-        workBuffer.clear();
+        workBuffer.clear(0, numSamples);
         
         for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
             for (int i=0; i < totalNumInputChannels; ++i) {
@@ -3553,6 +3699,16 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
     }
     
+   
+    if (metenabled) {
+        //add from met buffer
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            buffer.addFrom(channel, 0, metBuffer, channel, 0, numSamples);
+        }            
+    }
+
+    
+    
     // apply wet (output) gain to original buf
     if (fabsf(wetnow - mLastWet) > 0.00001) {
         buffer.applyGainRamp(0, numSamples, mLastWet, wetnow);
@@ -3574,7 +3730,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             if (activeWriter.load() != nullptr)
             {
                 // we need to mix the input, audio from remote peers, and the file playback together here
-                // if not input monitoring, we need to add the input to the output and write that to file
+
                 bool rampit =  (fabsf(wetnow - mLastWet) > 0.00001);
                 for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
                     int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : channel;

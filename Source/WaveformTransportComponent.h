@@ -4,6 +4,7 @@
 #include "JuceHeader.h"
 
 #include "SonoUtility.h"
+#include "SonobusTypes.h"
 
 //==============================================================================
 class WaveformTransportComponent  : public Component,
@@ -15,9 +16,11 @@ class WaveformTransportComponent  : public Component,
 {
 public:
     WaveformTransportComponent (AudioFormatManager& formatManager,
-                       AudioTransportSource& source)
+                                AudioTransportSource& source,
+                                ApplicationCommandManager & cmdman)
                         //        Slider& slider);
         : transportSource (source),
+           commandManager (cmdman),
           //zoomSlider (slider),
           thumbnail (512, formatManager, thumbnailCache)
     {
@@ -46,7 +49,10 @@ public:
         currentPositionMarker.setFill (Colours::white.withAlpha (0.85f));
         addAndMakeVisible (currentPositionMarker);
 
-        currentLoopRect.setFill (Colour::fromFloatRGBA(0.7, 0.2, 0.5, 0.35));
+        selcolor = Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.3);
+        loopcolor = Colour::fromFloatRGBA(0.7, 0.2, 0.5, 0.35);
+        
+        currentLoopRect.setFill (selcolor);
         currentLoopRect.setCornerSize(Point<float>(4.0f,4.0f));
         addAndMakeVisible (currentLoopRect);
 
@@ -55,6 +61,8 @@ public:
         addAndMakeVisible(nameLabel);
         
         transportSource.addChangeListener(this);
+        
+        updateLoopPosition();
     }
 
     ~WaveformTransportComponent()
@@ -95,7 +103,9 @@ public:
             double lensec = transportSource.getLengthInSeconds();
             totLabel.setText(SonoUtility::durationToString(lensec, true), dontSendNotification);
 
-            nameLabel.setText(url.getFileName(), dontSendNotification);
+            String fname = url.getFileName().isNotEmpty() ? url.getLocalFile().getFileNameWithoutExtension() : "";
+            
+            nameLabel.setText(fname, dontSendNotification);
             
             updatePositionLabels();
             
@@ -143,6 +153,28 @@ public:
         updateCursorPosition();
     }
     
+    void updateSelectionFromLoop() {
+        int64 lstart,llen, tot;
+        tot = transportSource.getTotalLength();
+        double totsec = transportSource.getLengthInSeconds();
+        transportSource.getLoopRange(lstart, llen);
+        
+        if (totsec > 0) {
+            double startpos =  totsec * (lstart / (double) tot);
+            double endpos = startpos +  totsec * (llen / (double)tot);
+            
+            selRangeStart = startpos;
+            selRangeEnd = endpos;
+        }
+        
+        updateLoopPosition();
+    }
+    
+    void setLoopFromSelection() {
+        setLoopFromTimeRange(selRangeStart, selRangeEnd);
+        updateLoopPosition();
+    }
+    
     void paint (Graphics& g) override
     {
         g.setColour(Colours::black);
@@ -187,8 +219,25 @@ public:
         if (source == &transportSource) {
             if (transportSource.isPlaying()) {
                 startTimerHz(20);
+                
+                locatedOutsideDuringPlayback = false;
+
+                double currPos = transportSource.getCurrentPosition();
+
+                if (currPos >= selRangeStart && currPos < selRangeEnd) {
+                    startedWithinSelection = true;
+                } else {
+                    startedWithinSelection = false;
+                }
+                                
             } else {
                 stopTimer();
+                setLoopFromTimeRange(selRangeStart, selRangeEnd);
+                if (locatedOutsideDuringPlayback) {
+                    transportSource.setPosition(selRangeStart);
+                    updateState();
+                }
+                locatedOutsideDuringPlayback = false;
             }
         }
 
@@ -217,22 +266,39 @@ public:
         startDragX = e.x;
         startDragY = lastDragY = e.y;
 
-        if (transportSource.isLooping()) {
+        if (true || transportSource.isLooping())
+        {
             
 #if JUCE_IOS
             const int touchthresh = 50;
 #else
             const int touchthresh = 25;
 #endif
-            if (abs(currentLoopRect.getRectangle().getTopLeft().getX() - e.x) < touchthresh) {
+            int sdelta = abs(currentLoopRect.getRectangle().getTopLeft().getX() - e.x);
+            int edelta = abs(currentLoopRect.getRectangle().getTopRight().getX() - e.x);
+#if 0
+            if (sdelta < edelta) {
+                draggingLoopEdge = 1;
+            } else {
+                draggingLoopEdge = 2;
+            }
+#else
+            resetSelOnDrag = false;
+            
+            if (sdelta < touchthresh) {
                 draggingLoopEdge = 1;
             }
-            else if (abs(currentLoopRect.getRectangle().getTopRight().getX() - e.x) < touchthresh) {
+            else if (edelta < touchthresh) {
                 draggingLoopEdge = 2;
             }
             else {
-                draggingLoopEdge = 0;
+                // reset and start dragging fresh from here
+                draggingLoopEdge = 2;
+                resetSelOnDrag = true;
             }
+
+
+#endif
         } else {
             draggingLoopEdge = 0;
         }
@@ -245,6 +311,11 @@ public:
         if (!dragActive) {
             if (abs(startDragX - e.x) > 3) {
                 dragActive = true;
+                
+                if (resetSelOnDrag) {
+                    selRangeStart = selRangeEnd = xToTime(startDragX);
+                    locatedOutsideDuringPlayback = true;
+                }
                 
                 touchZooming = false;
             }
@@ -261,16 +332,18 @@ public:
             return;
         }
         
-        if (wasPlayingOnDown) {
+        if (wasPlayingOnDown && transportSource.isPlaying() && transportSource.isLooping()) {
             transportSource.stop();
         }
         
-        if (canMoveTransport()) {
+        /*
+        if (canMoveTransport() && !transportSource.isLooping()) {
             transportSource.setPosition (jlimit (0.0, transportSource.getLengthInSeconds(), xToTime ((float) e.x)));
             if (!transportSource.isPlaying()) {
                 updateCursorPosition();
             }
         }
+         */
         
         if (touchZooming) {
             // vertical drag adjusts zoom
@@ -285,23 +358,21 @@ public:
 
             repaint();
         }
-        else if (draggingLoopEdge > 0) {
-            int64 lstart, llength;
+        else if (draggingLoopEdge > 0)
+        {
+            double startpos = selRangeStart;
+            double endpos = selRangeEnd;
             double totsecs = transportSource.getLengthInSeconds();
-            int64 totsamps = transportSource.getTotalLength();
-            transportSource.getLoopRange(lstart, llength);
-            double startpos = totsecs * lstart / (double)totsamps;
-            double endpos = totsecs * (lstart + llength) / (double)totsamps;
-
+            
             double xtime = xToTime((float) e.x);
             
             if (draggingLoopEdge == 1) {
                 // drag loop start
-                startpos = xtime;
+                startpos = jlimit(0.0, totsecs, xtime);
 
                 if (endpos < startpos) {
                     // swap it
-                    int64 tmp = startpos;
+                    double tmp = startpos;
                     startpos = endpos;
                     endpos = tmp;
                     draggingLoopEdge = 2;
@@ -309,28 +380,32 @@ public:
 
             } else if (draggingLoopEdge == 2) {
                 // drag loop end
-                endpos = xtime;
+                endpos = jlimit(0.0, totsecs, xtime);
                 
                 if (endpos < startpos) {
                     // swap it
-                    int64 tmp = startpos;
+                    double tmp = startpos;
                     startpos = endpos;
                     endpos = tmp;
                     draggingLoopEdge = 1;
                 }
             }
 
-            lstart = (int64) (totsamps * startpos / totsecs);
-            llength = (int64) (totsamps * (endpos - startpos) / totsecs);
-            llength = jlimit( jmin((int64)2048, totsamps), totsamps, llength);
+            selRangeStart = startpos;
+            selRangeEnd = endpos;
             
-            if (lstart + llength > totsamps) {
-                lstart = totsamps - llength;
+            if (!transportSource.isPlaying()) {
+                setLoopFromTimeRange(selRangeStart, selRangeEnd);
             }
             
-            transportSource.setLoopRange(lstart, llength);
-
             updateLoopPosition();
+        }
+        
+        if (canMoveTransport() && !transportSource.isPlaying()) {
+            transportSource.setPosition (jlimit (0.0, transportSource.getLengthInSeconds(), selRangeStart));
+            if (!transportSource.isPlaying()) {
+                updateCursorPosition();
+            }
         }
         
         updatePositionLabels();
@@ -338,9 +413,39 @@ public:
         lastDragY = e.y;
     }
 
+    void setLoopFromTimeRange(double startpos, double endpos)
+    {
+        double totsecs = transportSource.getLengthInSeconds();
+        int64 totsamps = transportSource.getTotalLength();
+
+        int64 lstart = (int64) (totsamps * startpos / totsecs);
+        int64 llength = (int64) (totsamps * (endpos - startpos) / totsecs);
+        llength = jlimit( jmin((int64)2048, totsamps), totsamps, llength);
+        
+        if (lstart + llength > totsamps) {
+            lstart = totsamps - llength;
+        }
+        
+        transportSource.setLoopRange(lstart, llength);
+    }
+    
     void mouseUp (const MouseEvent& ev) override
     {
         if (!dragActive && canMoveTransport()) {
+            
+            // if not looping and clicked outside the current selection, clear it (set it to full file range)
+            double xtime = xToTime((float) ev.x);
+            if (!loopingState && (xtime < selRangeStart || xtime > selRangeEnd)) {
+                selRangeStart = 0.0;
+                selRangeEnd = transportSource.getLengthInSeconds();
+
+                //if (!transportSource.isPlaying()) {
+                setLoopFromTimeRange(selRangeStart, selRangeEnd);
+                //}
+                
+                updateLoopPosition();
+            }
+            
             transportSource.setPosition (jlimit (0.0, transportSource.getLengthInSeconds(), xToTime ((float) ev.x)));
             if (!transportSource.isPlaying()) {
                 updateCursorPosition();
@@ -380,6 +485,7 @@ public:
 
 private:
     AudioTransportSource& transportSource;
+    ApplicationCommandManager& commandManager;
     //Slider& zoomSlider;
     ScrollBar scrollbar  { false };
 
@@ -399,11 +505,21 @@ private:
     int startDragY = -1;
     int lastDragY = 0;
     bool dragActive = false;
+    bool startedWithinSelection = false;
+    bool locatedOutsideDuringPlayback = false;
+    bool loopingState = false;
+    bool resetSelOnDrag = false;
     Colour wavecolor;
-    
+    Colour selcolor;
+    Colour loopcolor;
+
     int32 lastPosUpdateStamp = 0;
     URL lastFileDropped;
 
+    // used for selection and loop range (seconds)
+    double selRangeStart = 0.0;
+    double selRangeEnd = 0.0;
+    
     DrawableRectangle currentPositionMarker;
     DrawableRectangle currentLoopRect;
 
@@ -432,13 +548,26 @@ private:
                 setRange (visibleRange.movedToStartAt (newRangeStart));
     }
 
+    void showPopupMenu (Rectangle<int> bounds) {
+        auto menu = PopupMenu();
+        menu.addCommandItem(&commandManager, SonobusCommands::TrimSelectionToNewFile);
+        menu.addCommandItem(&commandManager, SonobusCommands::ShareFile);
+        menu.addCommandItem(&commandManager, SonobusCommands::CloseFile);
+
+        menu.showAt(bounds);
+    }
+    
     void timerCallback() override
     {
-        if (canMoveTransport())
+        double currpos = transportSource.getCurrentPosition();
+        
+        if (canMoveTransport()) {
             updateCursorPosition();
-        else
-            setRange (visibleRange.movedToStartAt (transportSource.getCurrentPosition() - (visibleRange.getLength() / 2.0)));
-
+        }
+        else {
+            setRange (visibleRange.movedToStartAt (currpos - (visibleRange.getLength() / 2.0)));
+        }
+        
         auto nowtime = Time::getMillisecondCounter();
         
         if (nowtime > lastPosUpdateStamp + 1000) {
@@ -447,6 +576,15 @@ private:
             
             lastPosUpdateStamp = nowtime;
         }
+        
+        if (transportSource.isPlaying() && !loopingState && !locatedOutsideDuringPlayback && selRangeEnd > 0 && currpos > selRangeEnd) {
+            // stop transport, end of selection reached
+            transportSource.stop();
+            transportSource.setPosition(selRangeStart);
+            updateCursorPosition();
+            updatePositionLabels();
+        }
+        
     }
 
     void updatePositionLabels()
@@ -469,19 +607,38 @@ private:
     {
         //currentPositionMarker.setVisible (transportSource.isPlaying() || isMouseButtonDown());
 
-        int64 lstart,llen, tot;
-        tot = transportSource.getTotalLength();
+        //int64 lstart,llen, tot;
+        //tot = transportSource.getTotalLength();
         double totsec = transportSource.getLengthInSeconds();
-        transportSource.getLoopRange(lstart, llen);
-        if (tot > 0) {
-            double startpos =  totsec * (lstart / (double) tot);
-            double endpos = startpos +  totsec * (llen / (double)tot);
-            float xpos = timeToX(startpos);
+        //transportSource.getLoopRange(lstart, llen);
+        
+        if (totsec > 0) {
+            //double startpos =  totsec * (lstart / (double) tot);
+            //double endpos = startpos +  totsec * (llen / (double)tot);
+            
+            float xpos = timeToX(selRangeStart);
             currentLoopRect.setRectangle (Rectangle<float> (xpos , 1.0f,
-                                                            timeToX(endpos) - xpos, (float) (getHeight() - (zoomFactor > 0 ? 0 /*scrollbar.getHeight()*/ : 0)) - 2.0f));
+                                                            timeToX(selRangeEnd) - xpos, (float) (getHeight() - (zoomFactor > 0 ? 0 /*scrollbar.getHeight()*/ : 0)) - 2.0f));
+
+            //selRangeStart = startpos;
+            //selRangeEnd = endpos;
+        }
+                
+
+        if (loopingState != transportSource.isLooping()) {
+            loopingState = transportSource.isLooping();
+            if (loopingState) {
+                currentLoopRect.setFill (loopcolor);
+            }
+            else {
+                currentLoopRect.setFill (selcolor);
+            }
         }
 
-        currentLoopRect.setVisible(transportSource.isLooping());
+        bool selvisible = (selRangeEnd - selRangeStart) > 0 && ((selRangeEnd - selRangeStart) < transportSource.getLengthInSeconds() || loopingState);
+        
+        currentLoopRect.setVisible(selvisible);
+
     }
 
 };

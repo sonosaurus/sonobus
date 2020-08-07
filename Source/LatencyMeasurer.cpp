@@ -3,7 +3,9 @@
 #include <cstdlib>
 #include <cstring>
 
-/*
+#include "DebugLogC.h"
+
+/**
  Cross-platform class measuring round-trip audio latency.
  How one measurement step works:
  - Listen and measure the average loudness of the environment for 1 second.
@@ -13,11 +15,12 @@
  - Divide the the elapsed samples with the sample rate to get the round-trip audio latency value in seconds.
  - We expect the threshold exceeded within 1 second. If it did not, then fail with error. Usually happens when the environment is too noisy (loud).
  How the measurement process works:
- - Perform 10 measurement steps.
- - Repeat every step until it returns without an error.
- - Store the results in an array of 10 floats.
- - After each step, check the minimum and maximum values.
- - If the maximum is higher than the minimum's double, stop the measurement process with an error. It indicates an unknown error, perhaps an unwanted noise happened. Double jitter (dispersion) is too high, an audio system can not be so bad.
+MODIFIED, THE BELOW IS NO LONGER TRUE
+ XXX - Perform 10 measurement steps.
+ XXX - Repeat every step until it returns without an error.
+ XXX - Store the results in an array of 10 floats.
+ XXX - After each step, check the minimum and maximum values.
+ XXX - If the maximum is higher than the minimum's double, stop the measurement process with an error. It indicates an unknown error, perhaps an unwanted noise happened. Double jitter (dispersion) is too high, an audio system can not be so bad.
 */
 
 // Returns with the absolute sum of the audio.
@@ -32,18 +35,35 @@ static float sumAudio(float *audio, int numberOfSamples) {
 }
 
 LatencyMeasurer::LatencyMeasurer() : state(0), samplerate(0), latencyMs(0), buffersize(0), measurementState(idle), nextMeasurementState(idle),  sineWave(0), sum(0) ,samplesElapsed(0),threshold(0)  {
+    
+    //readAudioFromBinaryData(pulseDataBuffer, BinaryData::urei_main_wav, BinaryData::urei_main_wavSize);
+    readAudioFromBinaryData(pulseDataBuffer, BinaryData::lgc_bar_wav, BinaryData::lgc_bar_wavSize);
 }
 
-void LatencyMeasurer::toggle() {
-    if ((state == -1) || ((state > 0) && (state < 11))) { // stop
+void LatencyMeasurer::readAudioFromBinaryData(AudioSampleBuffer& buffer, const void* data, size_t sizeBytes)
+{
+    WavAudioFormat wavFormat;
+    std::unique_ptr<AudioFormatReader> reader (wavFormat.createReaderFor (new MemoryInputStream (data, sizeBytes, false), true));
+    if (reader.get() != nullptr)
+    {
+        buffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
+        reader->read(&buffer, 0, (int)reader->lengthInSamples, 0, true, true);
+        DebugLogC("Read pulse of %d samples", buffer.getNumSamples());
+    }
+    // reader is automatically deleted by using unique_ptr
+}
+
+void LatencyMeasurer::toggle(bool forcestart) {
+    if (!forcestart && ((state == -1) || ((state > 0) && (state < 11)))) { // stop
         state = 0;
         nextMeasurementState = idle;
     } else { // start
         state = 1;
         samplerate = latencyMs = buffersize = 0;
-        skipMeasure = false;
+        skipMeasure = measureOnlyOnce;
         smoothedLatency.reset();
-        nextMeasurementState = measure_average_loudness_for_1_sec;
+        playing = false;
+        nextMeasurementState = measure_average_loudness;
     };
 }
 
@@ -75,6 +95,8 @@ void LatencyMeasurer::initializeWithThreshold(float threshDb)
     sineWave = 0;
     samplesElapsed = 0;
     sum = 0;
+    pulsePos = 0;
+    playing = true;
 }
 
 
@@ -84,39 +106,64 @@ void LatencyMeasurer::processInput(float *audio, int _samplerate, int numberOfSa
     buffersize = numberOfSamples;
 
     if (nextMeasurementState != measurementState) {
-        if (nextMeasurementState == measure_average_loudness_for_1_sec) samplesElapsed = 0;
+        if (nextMeasurementState == measure_average_loudness) samplesElapsed = 0;
         measurementState = nextMeasurementState;
     };
 
     switch (measurementState) {
         // Measuring average loudness for 1 second.
-        case measure_average_loudness_for_1_sec:
+        case measure_average_loudness:
             sum += sumAudio(audio, numberOfSamples);
             samplesElapsed += numberOfSamples;
 
-            if (samplesElapsed >= samplerate) { // 1 second elapsed, set up the next step.
+            if (samplesElapsed >= (noiseMeasureTime * samplerate)) { // measurement time elapsed
                 // Look for an audio energy rise of 24 decibel.
-                float averageAudioValue = (float(sum) / float(samplesElapsed >> 1));
-                float referenceDecibel = 20.0f * log10f(averageAudioValue) + 24.0f;
-                threshold = (float)(powf(10.0f, referenceDecibel / 20.0f));
-
+                // hacking this threshold
+                if (overrideThreshold > 0.0f) {
+                    float averageAudioValue = jmax(0.001f, (float(sum) / float(samplesElapsed >> 1)));
+                    float referenceDecibel = 20.0f * log10f(averageAudioValue) + 24.0f;
+                    threshold = (float)(powf(10.0f, referenceDecibel / 20.0f));
+                } else {
+                    threshold = overrideThreshold;
+                }
+                //DebugLogC("Audio thresh is %g dB  or %g", referenceDecibel, threshold);
+                
                 measurementState = nextMeasurementState = playing_and_listening;
                 sineWave = 0;
-                samplesElapsed = 0;
+                samplesElapsed = numberOfSamples; // seed it with this buffer, because in the same cycle the output will go out
                 sum = 0;
+                pulsePos = 0;
+                playing = true;
             };
             break;
 
         // Playing sine wave and listening if it comes back.
         case playing_and_listening: {
-            float averageInputValue = sumAudio(audio, numberOfSamples) / numberOfSamples;
-            rampdec = 0.0f;
+            //float averageInputValue = sumAudio(audio, numberOfSamples) / numberOfSamples;
+            auto peakRange = FloatVectorOperations::findMinAndMax(audio, numberOfSamples);
+            auto abspeak = jmax(abs(peakRange.getStart()), abs(peakRange.getEnd()));
+            
+            if (!usePulseData) {
+                if (playing) {
+                    if ((samplesElapsed / (float) samplerate) > sinPulseTime) {
+                        // stop playing
+                        rampdec = (1.0f / float(numberOfSamples));
+                        playing = false;
+                    }
+                    else {
+                        rampdec = 0.0;
+                    }
+                }
+                else {
+                    rampdec = -1.0;
+                }
+            }
 
-            if (averageInputValue > threshold) { // The signal is above the threshold, so our sine wave comes back on the input.
+            if (abspeak > threshold) { // The signal is above the threshold, so our signal came back on the input.
                 int n = 0;
                 float *input = audio;
                 while (n < numberOfSamples) { // Check the location when it became loud enough.
-                    if (*input++ > threshold) break;
+                    if (abs(*input++) > threshold) break;
                     //if (*input++ > threshold) break;
                     n++;
                 };
@@ -126,45 +173,33 @@ void LatencyMeasurer::processInput(float *audio, int _samplerate, int numberOfSa
 
                     float latms = float(samplesElapsed * 1000) / float(samplerate);
 
-                    smoothedLatency.Z *= 0.75;
+                    DebugLogC("latms: %g", latms);
+                    
+                    if (smoothedLatency.Z > 1) {
+                        smoothedLatency.Z *= 0.75;
+                    }
                     smoothedLatency.push(latms);
                     
-                    /*
-                    roundTripLatencyMs[state - 1] = float(samplesElapsed * 1000) / float(samplerate);
-
-                    float sum = 0, max = 0, min = 100000.0f;
-                    for (n = 0; n < state; n++) {
-                        if (roundTripLatencyMs[n] > max) max = roundTripLatencyMs[n];
-                        if (roundTripLatencyMs[n] < min) min = roundTripLatencyMs[n];
-                        sum += roundTripLatencyMs[n];
-                    };
-                     */
-                     
-                    //if (max / min > 2.0f) { // Dispersion error.
-                    //    latencyMs = 0;
-                    //    state = measurementCount;
-                    //    measurementState = nextMeasurementState = idle;
-                    //}
                     if (state == measurementCount) { // Final result.
-                        //latencyMs = (sum / measurementCount);
                         latencyMs = smoothedLatency.xbar;
                         measurementState = nextMeasurementState = idle;
                     } else { // Next step.
                         latencyMs = smoothedLatency.xbar;
-                        // latencyMs = roundTripLatencyMs[state - 1];
                         measurementState = nextMeasurementState = waiting;
                     }
 
                     state++;
                 } else measurementState = nextMeasurementState = waiting; // Happens when an early noise comes in.
 
-                rampdec = 1.0f / float(numberOfSamples);
-            } else { // Still listening.
+                //rampdec = 1.0f / float(numberOfSamples);
+            }
+            else { // Still listening.
                 samplesElapsed += numberOfSamples;
 
                 // Do not listen to more than max seconds, let's start over. Maybe the environment's noise is too high.
                 if (samplesElapsed > samplerate*maxSecsToWait) {
                     rampdec = 1.0f / float(numberOfSamples);
+                    playing = false;
                     measurementState = nextMeasurementState = waiting;
                     latencyMs = -1;
                 };
@@ -177,17 +212,22 @@ void LatencyMeasurer::processInput(float *audio, int _samplerate, int numberOfSa
         default: // Waiting minWaitTime seconds
             samplesElapsed += numberOfSamples;
 
-            double waittime = (double) std::fmax(minWaitTime, 1.25f * latencyMs*0.001f);
+            playing = false;
+            
+            double waittime = (double) std::fmax(minWaitTime, 1.5f * latencyMs*0.001f);
             
             if (samplesElapsed > samplerate * waittime) { // min wait time elapsed, start over.
                 samplesElapsed = 0;
                 if (skipMeasure) {
                     measurementState = nextMeasurementState = playing_and_listening;
+                    samplesElapsed = numberOfSamples; // seed it with this buffer, because in the same cycle the output will go out
                     sineWave = 0;
                     sum = 0;
+                    pulsePos = 0;
+                    playing = true;
                 }
                 else {
-                    measurementState = nextMeasurementState = measure_average_loudness_for_1_sec;
+                    measurementState = nextMeasurementState = measure_average_loudness;
                 }
             };
     };
@@ -196,9 +236,26 @@ void LatencyMeasurer::processInput(float *audio, int _samplerate, int numberOfSa
 void LatencyMeasurer::processOutput(float *audio) {
     if (measurementState == passthrough) return;
 
-    if (rampdec < 0.0f) memset(audio, 0, (size_t)buffersize * sizeof(float)); // Output silence.
+    if (usePulseData) {
+        if (playing && pulsePos < pulseDataBuffer.getNumSamples()) {
+            auto toread = jmin(buffersize, pulseDataBuffer.getNumSamples()-pulsePos);
+            auto * pbuf = pulseDataBuffer.getReadPointer(0, pulsePos);
+            memcpy(audio, pbuf, toread*sizeof(float));
+            pulsePos += toread;
+            
+            if (toread < buffersize) {
+                memset(audio+toread, 0, (size_t)(buffersize - toread) * sizeof(float)); // Output silence remainder
+            }
+        }
+        else {
+            memset(audio, 0, (size_t)buffersize * sizeof(float)); // Output silence.
+        }
+    }
+    else if (rampdec < 0.0f) {
+        memset(audio, 0, (size_t)buffersize * sizeof(float)); // Output silence.
+    }
     else { // Output sine wave.
-        float ramp = 1.0f, mul = (2.0f * float(M_PI) * 1000.0f) / float(samplerate); // 1000 Hz
+        float ramp = 0.7f, mul = (2.0f * float(M_PI) * 2000.0f) / float(samplerate); // 2000 Hz
         int n = buffersize;
         while (n) {
             n--;

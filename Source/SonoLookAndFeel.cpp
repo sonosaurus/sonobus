@@ -1063,18 +1063,22 @@ void SonoLookAndFeel::drawDrawableButton (Graphics& g, DrawableButton& button,
     
     ;
 
-    Rectangle<float> bounds = g.getClipBounds().toFloat();
+    //Rectangle<float> bounds = g.getClipBounds().toFloat();
+    Rectangle<float> bounds = button.getLocalBounds().toFloat();
 
     g.setColour(button.findColour (toggleState ? DrawableButton::backgroundOnColourId
                                    : DrawableButton::backgroundColourId));
+    //g.fillAll();
     g.fillRoundedRectangle(bounds, cornerSize);
     
     if (isButtonDown) {
         g.setColour(findColour(SonoDrawableButton::downOverlayColourId));
+        //g.fillAll();
         g.fillRoundedRectangle(bounds, cornerSize);
     }
     else if (isMouseOverButton) {
         g.setColour(findColour(SonoDrawableButton::overOverlayColourId));
+        //g.fillAll();
         g.fillRoundedRectangle(bounds, cornerSize);
     }
     
