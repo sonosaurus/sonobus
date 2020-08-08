@@ -15,6 +15,7 @@
 PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14)
 {
     bgColor = Colour::fromFloatRGBA(0.112f, 0.112f, 0.112f, 1.0f);
+    borderColor = Colour::fromFloatRGBA(0.5f, 0.5f, 0.5f, 0.3f);
 
     //Random rcol;
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
@@ -42,6 +43,10 @@ void PeerViewInfo::paint(Graphics& g)
     
     g.setColour(bgColor);
     g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+
+    g.setColour(borderColor);
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.0f, 0.5f);
+
 }
 
 void PeerViewInfo::resized()
@@ -66,7 +71,18 @@ void PeerViewInfo::resized()
     if (jitterBufferMeter) {
         jitterBufferMeter->setBounds(bufferLabel->getBounds().reduced(0, 1));
     }
-                            
+              
+    if (statsBg) {
+        auto statsbounds = menuButton->getBounds();
+        statsBg->setRectangle (statsbounds.toFloat().expanded(1.0f));
+
+        auto pingbounds = latActiveButton->getBounds();
+        if (pingbounds.getBottom() < statsbounds.getY()) {
+            pingbounds.setBottom(statsbounds.getY() + 10);
+        }
+        pingBg->setRectangle (pingbounds.toFloat().expanded(1.0f));
+    }
+    
 }
 
 
@@ -74,8 +90,9 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
  : Component("pcv"),  processor(proc)
 {
     mutedTextColor = Colour::fromFloatRGBA(0.8, 0.5, 0.2, 1.0);
-    regularTextColor = Colour(0xc0eeeeee);
-    dimTextColor = Colour(0xc0aaaaaa);
+    regularTextColor = Colour(0xa0eeeeee);; //Colour(0xc0eeeeee);
+    dimTextColor = Colour(0xa0aaaaaa); //Colour(0xc0aaaaaa);
+    
     droppedTextColor = Colour(0xc0ee8888);
 
     outlineColor = Colour::fromFloatRGBA(0.25, 0.25, 0.25, 1.0);
@@ -98,7 +115,7 @@ void PeersContainerView::configLevelSlider(Slider * slider)
     slider->setRange(0.0, 2.0, 0.0);
     slider->setSkewFactor(0.25);
     slider->setDoubleClickReturnValue(true, 1.0);
-    slider->setTextBoxIsEditable(false);
+    slider->setTextBoxIsEditable(true);
     slider->setSliderSnapsToMousePosition(false);
     slider->setScrollWheelEnabled(false);
     slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
@@ -233,7 +250,6 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-
     pvf->latActiveButton->setClickingTogglesState(true);
     pvf->latActiveButton->setTriggeredOnMouseDown(true);
     pvf->latActiveButton->setLookAndFeel(&pvf->smallLnf);
@@ -334,7 +350,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
 
     
-    pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Jitter Buffer"));
+    pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Safety Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
 
     pvf->menuButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageFitted);
@@ -369,7 +385,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->staticSendQualLabel = std::make_unique<Label>("lat", TRANS("Send Quality:"));
     configLabel(pvf->staticSendQualLabel.get(), LabelTypeSmallDim);
-    pvf->staticBufferLabel = std::make_unique<Label>("ping", TRANS("Jitter Buffer:"));
+    pvf->staticBufferLabel = std::make_unique<Label>("ping", TRANS("Safety Buffer:"));
     configLabel(pvf->staticBufferLabel.get(), LabelTypeSmallDim);
     
     pvf->sendQualityLabel = std::make_unique<Label>("qual", "");
@@ -407,6 +423,20 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->optionsContainer = std::make_unique<Component>();
 
+    Colour statsbgcol = Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0); // 0.08
+    Colour statsbordcol = Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.0); // 0.25
+    pvf->statsBg = std::make_unique<DrawableRectangle>();
+    pvf->statsBg->setCornerSize(Point<float>(6,6));
+    pvf->statsBg->setFill (statsbgcol);
+    pvf->statsBg->setStrokeFill (statsbordcol);
+    pvf->statsBg->setStrokeThickness(0.5);
+
+    pvf->pingBg = std::make_unique<DrawableRectangle>();
+    pvf->pingBg->setCornerSize(Point<float>(6,6));
+    pvf->pingBg->setFill (statsbgcol);
+    pvf->pingBg->setStrokeFill (statsbordcol);
+    pvf->pingBg->setStrokeThickness(0.5);
+
     
     //pvf->sendMeter = std::make_unique<foleys::LevelMeter>(flags);
     //pvf->sendMeter->setLookAndFeel(&(pvf->smeterLnf));
@@ -430,6 +460,8 @@ void PeersContainerView::rebuildPeerViews()
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
 
+        pvf->addAndMakeVisible(pvf->statsBg.get());
+        pvf->addAndMakeVisible(pvf->pingBg.get());
         pvf->addAndMakeVisible(pvf->sendMutedButton.get());
         pvf->addAndMakeVisible(pvf->recvMutedButton.get());
         pvf->addAndMakeVisible(pvf->latActiveButton.get());
@@ -545,13 +577,13 @@ void PeersContainerView::updateLayout()
         
         pvf->pingbox.items.clear();
         pvf->pingbox.flexDirection = FlexBox::Direction::row;
-        pvf->pingbox.items.add(FlexItem(40, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0.6));
-        pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->pingLabel).withMargin(0).withFlex(0.4));
+        pvf->pingbox.items.add(FlexItem(40, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0.5));
+        pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->pingLabel).withMargin(0).withFlex(0.5));
 
         pvf->latencybox.items.clear();
         pvf->latencybox.flexDirection = FlexBox::Direction::row;
-        pvf->latencybox.items.add(FlexItem(40, textheight, *pvf->staticLatencyLabel).withMargin(0).withFlex(0.6));
-        pvf->latencybox.items.add(FlexItem(20, textheight, *pvf->latencyLabel).withMargin(0).withFlex(0.4));
+        pvf->latencybox.items.add(FlexItem(40, textheight, *pvf->staticLatencyLabel).withMargin(0).withFlex(0.5));
+        pvf->latencybox.items.add(FlexItem(20, textheight, *pvf->latencyLabel).withMargin(0).withFlex(0.5));
 
         
         pvf->netstatbox.items.clear();
@@ -625,16 +657,16 @@ void PeersContainerView::updateLayout()
         pvf->sendbox.items.add(FlexItem(5, 2).withFlex(0));
         if (!isNarrow) {
             //pvf->sendbox.items.add(FlexItem(mincheckheight, mincheckheight, *pvf->optionsButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight));
-            pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
-            pvf->sendbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0).withMaxWidth(200));
-            pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
+           // pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
+           // pvf->sendbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0).withMaxWidth(200));
+           // pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
         } else {
-            pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
+            pvf->sendbox.items.add(FlexItem(3, 2).withFlex(0.5));
             pvf->sendbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
             pvf->sendbox.items.add(FlexItem(5, 2));
             pvf->sendbox.items.add(FlexItem(mutebuttwidth, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
-            pvf->sendbox.items.add(FlexItem(3, 5).withFlex(1));
-            pvf->sendbox.items.add(FlexItem(80, minitemheight, pvf->netstatbox).withMargin(0).withFlex(0.5).withMaxWidth(200));
+            pvf->sendbox.items.add(FlexItem(3, 5).withFlex(0.5));
+            pvf->sendbox.items.add(FlexItem(90, minitemheight, pvf->netstatbox).withMargin(0).withFlex(1).withMaxWidth(130));
             pvf->sendbox.items.add(FlexItem(3, 5));
         }
         
@@ -644,11 +676,16 @@ void PeersContainerView::updateLayout()
             //pvf->recvbox.items.add(FlexItem(mincheckheight, mincheckheight, *pvf->optionsButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight));
             //pvf->recvbox.items.add(FlexItem(3, 5));
         }
+        pvf->recvbox.items.add(FlexItem(1, 5));
         pvf->recvbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1).withMaxWidth(300));
         pvf->recvbox.items.add(FlexItem(3, 5));
         pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->recvstatbox).withMargin(0).withFlex(1));
         pvf->recvbox.items.add(FlexItem(3, 5));
-
+        if ( ! isNarrow) {            
+            pvf->recvbox.items.add(FlexItem(2, 2).withFlex(0));
+            pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(1).withMaxWidth(130));
+            pvf->recvbox.items.add(FlexItem(3, 2).withFlex(0));
+        }
         
         pvf->recvlevelbox.items.clear();
         pvf->recvlevelbox.flexDirection = FlexBox::Direction::row;
@@ -683,7 +720,7 @@ void PeersContainerView::updateLayout()
 
         pvf->recvlevelbox.items.add(FlexItem(3, 5));
 
-        
+        /*
         pvf->mainrecvbox.items.clear();
         pvf->mainrecvbox.flexDirection = FlexBox::Direction::column;
         pvf->mainrecvbox.items.add(FlexItem(2, 3));
@@ -694,22 +731,28 @@ void PeersContainerView::updateLayout()
         pvf->mainrecvbox.items.add(FlexItem(2, 4));
         pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
         //pvf->mainrecvbox.items.add(FlexItem(150, minitemheight, pvf->recvnetbox).withMargin(2).withFlex(0));
-
+         */
         
 
         if (isNarrow) {
             pvf->mainsendbox.items.clear();
             pvf->mainsendbox.flexDirection = FlexBox::Direction::row;
-            pvf->mainsendbox.items.add(FlexItem(100, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
+            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
             pvf->mainsendbox.items.add(FlexItem(3, 3));
             pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(1));
         } else {
             pvf->mainsendbox.items.clear();
-            pvf->mainsendbox.flexDirection = FlexBox::Direction::column;
-            pvf->mainsendbox.items.add(FlexItem(2, 3));
-            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
-            pvf->mainsendbox.items.add(FlexItem(2, 4));
-            pvf->mainsendbox.items.add(FlexItem(120, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
+            pvf->mainsendbox.flexDirection = FlexBox::Direction::row;
+            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(1).withMaxWidth(160));
+            pvf->mainsendbox.items.add(FlexItem(3, 3));
+            pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(1));
+
+            //pvf->mainsendbox.items.clear();
+            //pvf->mainsendbox.flexDirection = FlexBox::Direction::column;
+            //pvf->mainsendbox.items.add(FlexItem(2, 3));
+            //pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
+                // pvf->mainsendbox.items.add(FlexItem(2, 4));
+                // pvf->mainsendbox.items.add(FlexItem(120, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
         }
         
         
@@ -720,10 +763,10 @@ void PeersContainerView::updateLayout()
             pvf->mainnarrowbox.flexDirection = FlexBox::Direction::column;
             pvf->mainnarrowbox.items.add(FlexItem(2, 3));
             pvf->mainnarrowbox.items.add(FlexItem(100, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
-            pvf->mainnarrowbox.items.add(FlexItem(2, 3));
+            pvf->mainnarrowbox.items.add(FlexItem(2, 4));
             pvf->mainnarrowbox.items.add(FlexItem(120, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
-            pvf->mainnarrowbox.items.add(FlexItem(2, 3));
-            pvf->mainnarrowbox.items.add(FlexItem(150, minitemheight, pvf->mainrecvbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(2, 4));
+            pvf->mainnarrowbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
 
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
             pvf->mainbox.items.add(FlexItem(3, 2));
@@ -731,21 +774,33 @@ void PeersContainerView::updateLayout()
             pvf->mainbox.items.add(FlexItem(2, 2));
             pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
         } else {
+            pvf->mainnarrowbox.flexDirection = FlexBox::Direction::column;
+            pvf->mainnarrowbox.items.add(FlexItem(2, 3));
+            pvf->mainnarrowbox.items.add(FlexItem(100, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(2, 4));
+            pvf->mainnarrowbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
+
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
-            pvf->mainbox.items.add(FlexItem(2, 5));
-            pvf->mainbox.items.add(FlexItem(100, singleph, pvf->mainsendbox).withMargin(0).withFlex(1).withMaxWidth(200));
-            pvf->mainbox.items.add(FlexItem(3, 5));
-            pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(0).withFlex(3));
-            pvf->mainbox.items.add(FlexItem(1, 5));
-            pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(4).withFlex(0));
+            pvf->mainbox.items.add(FlexItem(3, 2));
+            pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainnarrowbox).withMargin(0).withFlex(1));
+            pvf->mainbox.items.add(FlexItem(2, 2));
+            pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
+            
+            //pvf->mainbox.flexDirection = FlexBox::Direction::row;
+            //pvf->mainbox.items.add(FlexItem(2, 5));
+            //pvf->mainbox.items.add(FlexItem(100, singleph, pvf->mainsendbox).withMargin(0).withFlex(1).withMaxWidth(200));
+            //pvf->mainbox.items.add(FlexItem(3, 5));
+            //pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainrecvbox).withMargin(0).withFlex(3));
+            //pvf->mainbox.items.add(FlexItem(1, 5));
+            //pvf->mainbox.items.add(FlexItem(22, 50, *pvf->recvMeter).withMargin(4).withFlex(0));
         }
 
         peersBox.items.add(FlexItem(8, 4).withMargin(0));
         peersheight += 4;
         
         if (isNarrow) {
-            peersBox.items.add(FlexItem(pw, ph*2 - minitemheight + 5, *pvf).withMargin(0).withFlex(0));
-            peersheight += ph*2-minitemheight + 5;
+            peersBox.items.add(FlexItem(pw, ph*2 - minitemheight + 2, *pvf).withMargin(0).withFlex(0));
+            peersheight += ph*2-minitemheight + 2;
         } else {
             peersBox.items.add(FlexItem(pw, ph + 5, *pvf).withMargin(1).withFlex(0));
             peersheight += ph + 5;

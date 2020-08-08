@@ -4,7 +4,7 @@
 
 JitterBufferMeter::JitterBufferMeter()
 {
-    jitterColor = Colour::fromHSV(0.9f, 0.3f, 0.4f, 1.0f);
+    jitterColor = Colour::fromHSV(0.9f, 0.15f, 0.3f, 1.0f); //Colour::fromHSV(0.9f, 0.3f, 0.4f, 1.0f);
     barColor = jitterColor.withAlpha(0.7f);
     //fixedColor = Colour::fromFloatRGBA(0.6f, 0.2f, 0.6f, 1.0f);
     setInterceptsMouseClicks(false, false);

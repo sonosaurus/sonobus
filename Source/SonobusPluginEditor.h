@@ -260,6 +260,7 @@ private:
     std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
 
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
+    std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
 
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
@@ -377,6 +378,8 @@ private:
     String currGroup;
     bool  currConnected = false;
     
+    bool mSendChannelsOverridden = false;
+    
     AooServerConnectionInfo currConnectionInfo;
     
     std::unique_ptr<TableListBox> mRemoteSinkListBox;
@@ -412,7 +415,7 @@ private:
         SonobusAudioProcessorEditor & parent;
     };
     
-    std::unique_ptr<SonobusMenuBarModel> menuBarModel;;
+    std::unique_ptr<SonobusMenuBarModel> menuBarModel;
     
     
     std::unique_ptr<RandomSentenceGenerator> mRandomSentence;
@@ -478,10 +481,27 @@ private:
     FlexBox optionsNetbufBox;
     FlexBox optionsSendQualBox;
     FlexBox optionsHearlatBox;
+    FlexBox optionsMetRecordBox;
 
     Image iaaHostIcon;
 
-    TooltipWindow tooltipWindow{ this };
+    class CustomTooltipWindow : public TooltipWindow
+    {
+    public:
+        CustomTooltipWindow(SonobusAudioProcessorEditor * parent_) : TooltipWindow(parent_), parent(parent_) {}
+        
+        String getTipFor (Component& c) override
+        {
+            if (parent->popTip && parent->popTip->isShowing()) {
+                return {};
+            }
+            return TooltipWindow::getTipFor(c);
+        }
+                
+        SonobusAudioProcessorEditor * parent;
+    };
+    
+    CustomTooltipWindow tooltipWindow{ this };
     
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan1Attachment;
@@ -497,6 +517,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mHearLatencyTestAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetRecordedAttachment;
 
     
     bool iaaConnected = false;

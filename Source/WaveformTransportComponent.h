@@ -44,7 +44,8 @@ public:
         scrollbar.setRangeLimits (visibleRange);
         scrollbar.setAutoHide (false);
         scrollbar.addListener (this);
-        scrollbar.setAlpha (0.55f);
+        scrollbar.setAlpha (0.6f);
+        scrollbar.addMouseListener(this, false);
         
         currentPositionMarker.setFill (Colours::white.withAlpha (0.85f));
         addAndMakeVisible (currentPositionMarker);
@@ -124,15 +125,16 @@ public:
 
     URL getLastDroppedFile() const noexcept { return lastFileDropped; }
 
-    void setZoomFactor (double amount)
+    void setZoomFactor (double amount, double zoomAtXRatio = 0.5f)
     {
         zoomFactor = amount;
+        DebugLogC("Zoomfact: %g", zoomFactor);
         if (thumbnail.getTotalLength() > 0)
         {
             auto newScale = jmax (0.001, thumbnail.getTotalLength() * (1.0 - jlimit (0.0, 0.99, amount)));
-            auto timeAtCentre = xToTime (getWidth() / 2.0f);
+            auto timeAtXratio = xToTime (zoomAtXRatio * getWidth());
 
-            setRange ({ timeAtCentre - newScale * 0.5, timeAtCentre + newScale * 0.5 });
+            setRange ({ timeAtXratio - newScale * zoomAtXRatio, timeAtXratio + newScale * (1.0 - zoomAtXRatio) });
         }
     }
 
@@ -263,6 +265,8 @@ public:
 
     void mouseDown (const MouseEvent& e) override
     {
+        if (e.eventComponent != this) return;
+
         if ((wasPlayingOnDown = transportSource.isPlaying())) {
          //   transportSource.stop();
         }
@@ -313,6 +317,8 @@ public:
 
     void mouseDrag (const MouseEvent& e) override
     {
+        if (e.eventComponent != this) return;
+
         if (!dragActive) {
             if (abs(startDragX - e.x) > 3) {
                 dragActive = true;
@@ -357,7 +363,8 @@ public:
 
             if (deltay != 0.0f) {
                 double newfact = jlimit(0.0, 1.0, zoomFactor - deltay);
-                setZoomFactor(newfact);
+                double xratio = e.x / (double)getWidth();
+                setZoomFactor(newfact, xratio);
                 //zoomSlider.setValue (zoomSlider.getValue() - wheel.deltaY);
             }
 
@@ -436,6 +443,8 @@ public:
     
     void mouseUp (const MouseEvent& ev) override
     {
+        if (ev.eventComponent != this) return;
+
         if (!dragActive && canMoveTransport()) {
             
             // if not looping and clicked outside the current selection, clear it (set it to full file range)
@@ -450,6 +459,14 @@ public:
                 
                 updateLoopPosition();
             }
+            else if (ev.mods.isCommandDown()) {
+                // zoom to selection
+                if (transportSource.getLengthInSeconds() > 0)
+                {
+                    zoomFactor = 1.0 - (selRangeEnd - selRangeStart) / transportSource.getLengthInSeconds();
+                    setRange ({ selRangeStart, selRangeEnd });
+                }                
+            }
             
             transportSource.setPosition (jlimit (0.0, transportSource.getLengthInSeconds(), xToTime ((float) ev.x)));
             if (!transportSource.isPlaying()) {
@@ -458,28 +475,40 @@ public:
         }
         
         if (wasPlayingOnDown || ev.getNumberOfClicks() > 1) {
-            transportSource.start();
+            if (ev.getNumberOfClicks() > 1 && transportSource.isPlaying()) {
+                transportSource.stop();                
+            } else {
+                transportSource.start();
+            }
         }
         //transportSource.start();
     }
 
     void mouseWheelMove (const MouseEvent& ev, const MouseWheelDetails& wheel) override
     {
+        
         if (thumbnail.getTotalLength() > 0.0)
         {
-            auto newStart = visibleRange.getStart() - wheel.deltaX * (visibleRange.getLength()) / 5.0;
-            newStart = jlimit (0.0, jmax (0.0, thumbnail.getTotalLength() - (visibleRange.getLength())), newStart);
-
-            if (canMoveTransport())
-                setRange ({ newStart, newStart + visibleRange.getLength() });
+            bool wheelzooms = ev.mods.isAltDown();
+            bool wheelscrolls = !wheelzooms && zoomFactor > 0.0;
+            
+            float scrolldeltax = wheel.deltaX != 0.0f ? wheel.deltaX : wheelscrolls ? wheel.deltaY : 0.0f;
+            
+            if (scrolldeltax != 0.0f) {
+                auto newStart = visibleRange.getStart() - 2.0f*scrolldeltax * (visibleRange.getLength()) / 5.0;
+                newStart = jlimit (0.0, jmax (0.0, thumbnail.getTotalLength() - (visibleRange.getLength())), newStart);
+                
+                if (canMoveTransport())
+                    setRange ({ newStart, newStart + visibleRange.getLength() });
+            }
 
            // DBG("DeltaY is " << wheel.deltaY);
             
-            bool allowwheel = ev.mods.isAltDown();
-
-            if (allowwheel && wheel.deltaY != 0.0f) {
+            
+            if (wheelzooms && wheel.deltaY != 0.0f) {
                 double newfact = jlimit(0.0, 1.0, zoomFactor + wheel.deltaY);
-                setZoomFactor(newfact);
+                double xratio = ev.x / (double)getWidth();
+                setZoomFactor(newfact, xratio);
                 //zoomSlider.setValue (zoomSlider.getValue() - wheel.deltaY);
             }
 
@@ -604,7 +633,7 @@ private:
         //currentPositionMarker.setVisible (transportSource.isPlaying() || isMouseButtonDown());
 
         currentPositionMarker.setRectangle (Rectangle<float> (timeToX (transportSource.getCurrentPosition()) - 0.75f, 0,
-                                                              1.5f, (float) (getHeight() - (zoomFactor > 0 ? scrollbar.getHeight() : 0))));
+                                                              1.5f, (float) (getHeight() - (zoomFactor > 0 ? 0 /*scrollbar.getHeight() */ : 0))));
 
     }
 

@@ -43,6 +43,7 @@ String SonobusAudioProcessor::paramMetTempo     ("mettempo");
 String SonobusAudioProcessor::paramSendMetAudio    ("sendmetaudio");
 String SonobusAudioProcessor::paramSendFileAudio    ("sendfileaudio");
 String SonobusAudioProcessor::paramHearLatencyTest   ("hearlatencytest");
+String SonobusAudioProcessor::paramMetIsRecorded   ("metisrecorded");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -174,6 +175,7 @@ struct SonobusAudioProcessor::RemotePeer {
     AudioCodecFormatInfo recvFormat;
     int packetsize = 600;
     int sendChannels = 2;
+    int sendChannelsOverride = -1; // don't override
     int recvChannels = 0;
     float recvPan[MAX_PANNERS];
     // runtime state
@@ -401,6 +403,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     std::make_unique<AudioParameterBool>(paramSendFileAudio, TRANS ("Send Playback Audio"), mSendPlaybackAudio.get()),
     std::make_unique<AudioParameterBool>(paramHearLatencyTest, TRANS ("Hear Latency Test"), mHearLatencyTest.get()),
+    std::make_unique<AudioParameterBool>(paramMetIsRecorded, TRANS ("Record Metronome to File"), mMetIsRecorded.get()),
 
     std::make_unique<AudioParameterBool>(paramMasterSendMute, TRANS ("Main Send Mute"), mMasterSendMute.get()),
     std::make_unique<AudioParameterBool>(paramMasterRecvMute, TRANS ("Main Receive Mute"), mMasterRecvMute.get()),
@@ -426,6 +429,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramSendMetAudio, this);
     mState.addParameterListener (paramSendFileAudio, this);
     mState.addParameterListener (paramHearLatencyTest, this);
+    mState.addParameterListener (paramMetIsRecorded, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -444,15 +448,20 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mMetronome->loadBeatSoundFromBinaryData(BinaryData::beat_click_wav, BinaryData::beat_click_wavSize);
     mMetronome->setTempo(100.0);
     
+    mTransportSource.addChangeListener(this);
+    
     // audio setup
     mFormatManager.registerBasicFormats();    
     
     initializeAoo();
 }
 
+
+
 SonobusAudioProcessor::~SonobusAudioProcessor()
 {
     mTransportSource.setSource(nullptr);
+    mTransportSource.removeChangeListener(this);
 
     cleanupAoo();
 }
@@ -2077,6 +2086,9 @@ void SonobusAudioProcessor::setPatchMatrixValue(int srcindex, int destindex, boo
         if (destindex < mRemotePeers.size() && destindex >= 0) {
             auto * peer = mRemotePeers.getUnchecked(destindex);
             int newchancnt = isAnythingRoutedToPeer(destindex) ? getTotalNumOutputChannels() : getTotalNumInputChannels();
+            if (peer->sendChannelsOverride > 0) {
+                newchancnt = jmin(getTotalNumOutputChannels(), peer->sendChannelsOverride);
+            }
 
             if (peer->sendChannels != newchancnt) {
                 peer->sendChannels = newchancnt;
@@ -2266,6 +2278,65 @@ int SonobusAudioProcessor::getRemotePeerChannelCount(int index) const
     return ret;
 }
 
+int SonobusAudioProcessor::getRemotePeerOverrideSendChannelCount(int index) const
+{
+    int ret = 0;
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        ret = remote->sendChannelsOverride;
+    }
+    return ret;    
+}
+
+void SonobusAudioProcessor::setRemotePeerOverrideSendChannelCount(int index, int numchans)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    // could be -1 as index meaning all remote peers
+    for (int i=0; i < mRemotePeers.size(); ++i) {
+        if (index < 0 || index == i) {
+            RemotePeer * remote = mRemotePeers.getUnchecked(i);
+            remote->sendChannelsOverride = numchans;
+            
+            int newchancnt = remote->sendChannels;
+            
+            if (remote->sendChannelsOverride < 0) {
+                newchancnt = isAnythingRoutedToPeer(i) ? getTotalNumOutputChannels() : getTotalNumInputChannels();
+            }
+            else {
+                newchancnt = jmin(getTotalNumOutputChannels(), remote->sendChannelsOverride);
+            }
+            
+            if (remote->sendChannels != newchancnt) {
+                remote->sendChannels = newchancnt;
+                DebugLogC("Peer %d  has new sendChannel count: %d", remote->sendChannels);
+                if (remote->oursource) {
+                    setupSourceFormat(remote, remote->oursource.get());
+                    remote->oursource->setup(getSampleRate(), currSamplesPerBlock, remote->sendChannels);
+                }
+            }
+        }
+    }
+}
+
+void SonobusAudioProcessor::changeListenerCallback (ChangeBroadcaster* source)
+{
+    if (source == &mTransportSource) {
+        if (!mTransportSource.isPlaying() && mTransportSource.getCurrentPosition() >= mTransportSource.getLengthInSeconds()) {
+            // at end, return to start
+            mTransportSource.setPosition(0.0);
+        }
+        
+        if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
+            // override sending
+            setRemotePeerOverrideSendChannelCount(-1, getTotalNumOutputChannels()); // should be something different?
+        }
+        else if (!mTransportSource.isPlaying()) {
+            // remove override
+            setRemotePeerOverrideSendChannelCount(-1, -1); 
+        }
+    }
+}
 
 void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
 {
@@ -3023,9 +3094,21 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramSendFileAudio) {
         mSendPlaybackAudio = newValue > 0;
+        
+        if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
+            // override sending
+            setRemotePeerOverrideSendChannelCount(-1, getTotalNumOutputChannels()); // should be something different?
+        }
+        else if (!mSendPlaybackAudio.get()) {
+            // remove override
+            setRemotePeerOverrideSendChannelCount(-1, -1); 
+        }
     }
     else if (parameterID == paramHearLatencyTest) {
         mHearLatencyTest = newValue > 0;
+    }
+    else if (parameterID == paramMetIsRecorded) {
+        mMetIsRecorded = newValue > 0;
     }
     else if (parameterID == paramSendMetAudio) {
         mSendMet = newValue > 0;
@@ -3241,6 +3324,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         }
 
         s->sendChannels = isAnythingRoutedToPeer(i) ? outchannels : inchannels;
+        if (s->sendChannelsOverride > 0) {
+            s->sendChannels = jmin(outchannels, s->sendChannelsOverride);
+        }
         
         if (s->oursource) {
             setupSourceFormat(s, s->oursource.get());
@@ -3385,7 +3471,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
-        buffer.clear (i, 0, numSamples);
+        // replicate last input channel
+        if (totalNumInputChannels > 0) {
+            buffer.copyFrom(i, 0, buffer, totalNumInputChannels-1, 0, numSamples);
+        } else {
+            buffer.clear (i, 0, numSamples);            
+        }
     }
     
     
@@ -3442,7 +3533,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     bool sendmet = mSendMet.get();
     float metgain = mMetGain.get();
     double mettempo = mMetTempo.get();
-    
+    bool metrecorded = mMetIsRecorded.get();
+
     if (metenabled != mLastMetEnabled) {
         if (metenabled) {
             mMetronome->setGain(metgain, true);
@@ -3584,11 +3676,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 
                 workBuffer.clear(0, numSamples);
                 
-                for (int channel = 0; channel < totalNumOutputChannels && totalNumInputChannels > 0; ++channel) {
-                    int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;
+                for (int channel = 0; channel < totalNumOutputChannels /* && totalNumInputChannels > 0 */ ; ++channel) {
+                    //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;
                     // add our input
-                    workBuffer.addFrom(channel, 0, buffer, inchan, 0, numSamples);
-
+                    workBuffer.addFrom(channel, 0, buffer, channel, 0, numSamples);
                 }
 
                 // now add any cross-routed input
@@ -3802,11 +3893,17 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                         if (hasfiledata) {
                             workBuffer.addFromWithRamp(channel, 0, fileBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
                         }
+                        if (metrecorded && metenabled) {
+                            workBuffer.addFromWithRamp(channel, 0, metBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
+                        }
                     }
                     else {
                         workBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples, wetnow);
                         if (hasfiledata) {
                             workBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples, wetnow);
+                        }
+                        if (metrecorded && metenabled) {
+                            workBuffer.addFrom(channel, 0, metBuffer, channel, 0, numSamples, wetnow);
                         }
                     }
                 }

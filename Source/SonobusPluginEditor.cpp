@@ -559,6 +559,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
 
     
     mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
@@ -610,6 +611,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mConnectButton->setButtonText(TRANS("Connect..."));
     mConnectButton->addListener(this);
     mConnectButton->setColour(TextButton::buttonColourId, Colour::fromFloatRGBA(0.6, 0.4, 0.6, 0.6));
+    mConnectButton->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
     mConnectButton->setTextJustification(Justification::centred);
     
     mDirectConnectButton = std::make_unique<TextButton>("directconnect");
@@ -787,7 +789,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
     }
 
-    mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
+    mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Safety Buffer"));
     configLabel(mOptionsAutosizeStaticLabel.get(), false);
     mOptionsAutosizeStaticLabel->setJustificationType(Justification::centredLeft);
     
@@ -798,6 +800,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsHearLatencyButton = std::make_unique<ToggleButton>(TRANS("Make Latency Test Audible"));
     mOptionsHearLatencyButton->addListener(this);
     mHearLatencyTestAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramHearLatencyTest, *mOptionsHearLatencyButton);
+
+    mOptionsMetRecordedButton = std::make_unique<ToggleButton>(TRANS("Metronome output recorded"));
+    mOptionsMetRecordedButton->addListener(this);
+    mMetRecordedAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetIsRecorded, *mOptionsMetRecordedButton);
 
     
     mIAAHostButton = std::make_unique<SonoDrawableButton>("iaa", DrawableButton::ButtonStyle::ImageFitted);
@@ -916,6 +922,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
     
     addAndMakeVisible(mPeerViewport.get());
     addAndMakeVisible(mTitleLabel.get());
@@ -1327,6 +1334,7 @@ void SonobusAudioProcessorEditor::updateTransportState()
         mPlayButton->setToggleState(processor.getTransportSource().isPlaying(), dontSendNotification);
 
         mPlaybackSlider->setValue(processor.getTransportSource().getGain(), dontSendNotification);
+        
     }
 }
 
@@ -1680,6 +1688,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                     if (safeThis) {
                         safeThis->mFileChooser.reset();
                     }
+                    
+                    safeThis->mDragDropBg->setVisible(false);    
+                    
                 }, nullptr);
                
             }
@@ -2432,6 +2443,13 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         }
         triggerAsyncUpdate();
     }
+    else if (pname == SonobusAudioProcessor::paramMetIsRecorded) {
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {
         {
             const ScopedLock sl (clientStateLock);
@@ -2789,6 +2807,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsHearlatBox.items.add(FlexItem(10, 12));
     optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
 
+    optionsMetRecordBox.items.clear();
+    optionsMetRecordBox.flexDirection = FlexBox::Direction::row;
+    optionsMetRecordBox.items.add(FlexItem(10, 12));
+    optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
+
     
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
@@ -2796,8 +2819,10 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight, optionsSendQualBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 4));
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsHearlatBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 2));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 2));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
 
     
     if (outChannels > 1) {
@@ -3206,10 +3231,10 @@ void SonobusAudioProcessorEditor::changeListenerCallback (ChangeBroadcaster* sou
     if (source == mWaveformThumbnail.get()) {
         loadAudioFromURL(URL (mWaveformThumbnail->getLastDroppedFile()));
     } else if (source == &(processor.getTransportSource())) {
-        if (!processor.getTransportSource().isPlaying() && processor.getTransportSource().getCurrentPosition() >= processor.getTransportSource().getLengthInSeconds()) {
+        //if (!processor.getTransportSource().isPlaying() && processor.getTransportSource().getCurrentPosition() >= processor.getTransportSource().getLengthInSeconds()) {
             // at end, return to start
-            processor.getTransportSource().setPosition(0.0);
-        }
+//            processor.getTransportSource().setPosition(0.0);
+ //       }
         updateTransportState();
     }
 }

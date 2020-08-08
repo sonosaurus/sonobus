@@ -133,7 +133,9 @@ juce::Rectangle<float> getMeterBarBounds (juce::Rectangle<float> bounds,
         }
 
         const auto margin = bounds.getWidth() * 0.05f;
-        const auto top    = bounds.getY() + 2.0f * margin + bounds.getWidth() * 0.5f;
+        const auto cliph = jmin( bounds.getWidth() * 0.5f, 7.0f);
+
+        const auto top    = bounds.getY() + 2.0f * margin + cliph;
         const auto bottom = (meterType & foleys::LevelMeter::MaxNumber) ?
         bounds.getBottom() - (3.0f * margin + (bounds.getWidth() - margin * 2.0f))
         : bounds.getBottom() - margin;
@@ -196,7 +198,9 @@ juce::Rectangle<float> getMeterTickmarksBounds (juce::Rectangle<float> bounds,
     {
         const auto margin = bounds.getWidth() * 0.05f;
         const auto w      = bounds.getWidth() * 0.45f;
-        const auto top    = bounds.getY() + 2.0f * margin + w * 0.5f + 2.0f;
+        const auto cliph = jmin( bounds.getWidth() * 0.5f, 7.0f);
+
+        const auto top    = bounds.getY() + 2.0f * margin + cliph + 2.0f;
         const auto bottom = bounds.getBottom() - (2.0f * margin + 25.0f + 2.0f);
         return juce::Rectangle<float>(bounds.getCentreX(), top, w, bottom - top);
     }
@@ -225,10 +229,11 @@ juce::Rectangle<float> getMeterClipIndicatorBounds (juce::Rectangle<float> bound
         {
             const auto margin = bounds.getWidth() * 0.05f;
             const auto w      = bounds.getWidth() - margin * 2.0f;
+            const auto h      = jmin( w * 0.5f, 7.0f);
             return juce::Rectangle<float>(bounds.getX() + margin,
                                           bounds.getY() + margin,
                                           w,
-                                          w * 0.5f);
+                                          h);
         }
     }
     else if (meterType & foleys::LevelMeter::Vintage)

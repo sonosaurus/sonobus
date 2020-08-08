@@ -76,7 +76,9 @@ public:
     double fillRatio = 0.0;
     std::unique_ptr<JitterBufferMeter> jitterBufferMeter;
 
-    
+    std::unique_ptr<DrawableRectangle> statsBg;
+    std::unique_ptr<DrawableRectangle> pingBg;
+
     std::unique_ptr<foleys::LevelMeter> recvMeter;
     std::unique_ptr<foleys::LevelMeter> sendMeter;
     
@@ -115,6 +117,7 @@ public:
     bool wasSendActiveAtLatencyTest = false;
     
     Colour bgColor;
+    Colour borderColor;
     Colour itemColor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeerViewInfo)

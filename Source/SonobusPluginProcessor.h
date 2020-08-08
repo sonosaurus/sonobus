@@ -55,7 +55,7 @@ inline bool operator<(const AooServerConnectionInfo& lhs, const AooServerConnect
 //==============================================================================
 /**
 */
-class SonobusAudioProcessor  : public AudioProcessor, public AudioProcessorValueTreeState::Listener
+class SonobusAudioProcessor  : public AudioProcessor, public AudioProcessorValueTreeState::Listener, public ChangeListener
 {
 public:
     //==============================================================================
@@ -90,6 +90,8 @@ public:
     
     int32 getCurrSamplesPerBlock() const { return currSamplesPerBlock; }
     
+    void changeListenerCallback (ChangeBroadcaster* source) override;
+
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -144,6 +146,7 @@ public:
     static String paramSendMetAudio;
     static String paramSendFileAudio;
     static String paramHearLatencyTest;
+    static String paramMetIsRecorded;
 
     struct EndpointState;
     struct RemoteSink;
@@ -204,6 +207,10 @@ public:
     String getRemotePeerUserName(int index) const;
 
     int getRemotePeerChannelCount(int index) const;
+
+    int getRemotePeerOverrideSendChannelCount(int index) const;
+    void setRemotePeerOverrideSendChannelCount(int index, int numchans);
+
     
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
@@ -257,6 +264,7 @@ public:
     void setDefaultAutoresizeBufferMode(AutoNetBufferMode flag);
     AutoNetBufferMode getDefaultAutoresizeBufferMode() const { return (AutoNetBufferMode) defaultAutoNetbufMode; }
     
+    bool getSendingFilePlaybackAudio() const { return mSendPlaybackAudio.get(); }
     
     void setRemotePeerAudioCodecFormat(int index, int formatIndex);
     int getRemotePeerAudioCodecFormat(int index) const;
@@ -380,6 +388,7 @@ private:
     Atomic<double>   mMetTempo    { 100.0f };
     Atomic<bool>   mSendPlaybackAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };
+    Atomic<bool>   mMetIsRecorded  { true };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
