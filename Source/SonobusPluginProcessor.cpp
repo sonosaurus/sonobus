@@ -48,6 +48,9 @@ String SonobusAudioProcessor::paramMetIsRecorded   ("metisrecorded");
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
 
+static String extraStateCollectionKey("ExtraState");
+static String useSpecificUdpPortKey("UseUdpPort");
+
 
 #define METER_RMS_SEC 0.04
 #define MAX_PANNERS 4
@@ -466,9 +469,22 @@ SonobusAudioProcessor::~SonobusAudioProcessor()
     cleanupAoo();
 }
 
-void SonobusAudioProcessor::initializeAoo()
+void SonobusAudioProcessor::setUseSpecificUdpPort(int port)
 {
-    int udpport = DEFAULT_UDP_PORT;
+    mUseSpecificUdpPort = port;
+    
+    if (port != 0) {
+        if (port != mUdpLocalPort) {
+            cleanupAoo();
+            initializeAoo(port);
+        }
+    }
+}
+
+void SonobusAudioProcessor::initializeAoo(int udpPort)
+{
+    int udpport = udpPort; // defaults to letting system choose it  // DEFAULT_UDP_PORT;
+    
     // we have both an AOO source and sink
         
     aoo_initialize();
@@ -496,20 +512,34 @@ void SonobusAudioProcessor::initializeAoo()
     mUdpSocket->setSendBufferSize(1048576);
     mUdpSocket->setReceiveBufferSize(1048576);
 
-    int attempts = 100;
-    while (attempts > 0) {
-        if (mUdpSocket->bindToPort(udpport)) {
-            DebugLogC("Bound udp port to %d", udpport);
-            break;
+    if (udpport > 0) {
+        int attempts = 100;
+        while (attempts > 0) {
+            if (mUdpSocket->bindToPort(udpport)) {
+                udpport = mUdpSocket->getBoundPort();
+                DebugLogC("Bound udp port to %d", udpport);
+                break;
+            }
+            ++udpport;
+            --attempts;
         }
-        ++udpport;
-        --attempts;
+
+        if (attempts <= 0) {
+            DebugLogC("COULD NOT BIND TO PORT!");
+            udpport = 0;
+        }
+    }
+    else {
+        // system assigned
+        if (!mUdpSocket->bindToPort(0)) {
+            DebugLogC("Error binding to any udp port!");
+        }
+        else {
+            udpport = mUdpSocket->getBoundPort();
+            DebugLogC("Bound system chosen udp port to %d", udpport);
+        }
     }
     
-    if (attempts <= 0) {
-        DebugLogC("COULD NOT BIND TO PORT!");
-        udpport = 0;
-    }
     
     mUdpLocalPort = udpport;
 
@@ -574,6 +604,8 @@ void SonobusAudioProcessor::initializeAoo()
 
 void SonobusAudioProcessor::cleanupAoo()
 {
+    disconnectFromServer();
+    
     DebugLogC("waiting on recv thread to die");
     mRecvThread->stopThread(400);
     DebugLogC("waiting on send thread to die");
@@ -788,7 +820,7 @@ void SonobusAudioProcessor::initFormats()
     mAudioFormats.clear();
     
     // low bandwidth to high
-    mAudioFormats.add(AudioCodecFormatInfo(8000, 10, OPUS_SIGNAL_MUSIC, 960));
+    //mAudioFormats.add(AudioCodecFormatInfo(8000, 10, OPUS_SIGNAL_MUSIC, 960));
     mAudioFormats.add(AudioCodecFormatInfo(16000, 10, OPUS_SIGNAL_MUSIC, 960));
     mAudioFormats.add(AudioCodecFormatInfo(24000, 10, OPUS_SIGNAL_MUSIC, 480));
     mAudioFormats.add(AudioCodecFormatInfo(48000, 10, OPUS_SIGNAL_MUSIC, 240));
@@ -803,7 +835,7 @@ void SonobusAudioProcessor::initFormats()
     mAudioFormats.add(AudioCodecFormatInfo(4));
     //mAudioFormats.add(AudioCodecFormatInfo(CodecPCM, 8)); // insanity!
 
-    mDefaultAudioFormatIndex = 5; // 96kpbs/ch Opus
+    mDefaultAudioFormatIndex = 4; // 96kpbs/ch Opus
 }
 
 int SonobusAudioProcessor::findFormatIndex(SonobusAudioProcessor::AudioCodecFormatCodec codec, int bitrate, int bitdepth)
@@ -3985,6 +4017,11 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     for (auto & info : mRecentConnectionInfos) {
         recentsTree.appendChild(info.getValueTree(), nullptr);        
     }
+
+    ValueTree extraTree = mState.state.getOrCreateChildWithName(extraStateCollectionKey, nullptr);
+    // update state with our recents info
+    extraTree.removeAllChildren(nullptr);
+    extraTree.setProperty(useSpecificUdpPortKey, mUseSpecificUdpPort, nullptr);
     
     
     mState.state.writeToStream (stream);
@@ -4009,6 +4046,12 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
                 info.setFromValueTree(child);
                 mRecentConnectionInfos.add(info);
             }
+        }
+
+        ValueTree extraTree = mState.state.getChildWithName(extraStateCollectionKey);
+        if (extraTree.isValid()) {
+            int port = extraTree.getProperty(useSpecificUdpPortKey, mUseSpecificUdpPort);
+            setUseSpecificUdpPort(port);
         }
         
         // don't recover the metronome enable state, always default it to off

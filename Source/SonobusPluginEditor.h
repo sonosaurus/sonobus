@@ -73,6 +73,8 @@ public:
     
     void textEditorReturnKeyPressed (TextEditor&) override;
     void textEditorEscapeKeyPressed (TextEditor&) override;
+    void textEditorTextChanged (TextEditor&) override;
+    void textEditorFocusLost (TextEditor&) override;
     
     void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
 
@@ -130,8 +132,10 @@ private:
     bool updatePeerState(bool force=false);
     void updateTransportState();
     
-    void updateOptionsState();
+    void updateOptionsState(bool ignorecheck=false);
 
+    void changeUdpPort(int port);
+    
     String generateNewUsername(const AooServerConnectionInfo & info);
 
     bool loadAudioFromURL(URL fileurl);
@@ -258,6 +262,9 @@ private:
     std::unique_ptr<SonoChoiceButton> mOptionsFormatChoiceDefaultChoice;
     std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
     std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
+
+    std::unique_ptr<ToggleButton> mOptionsUseSpecificUdpPortButton;
+    std::unique_ptr<TextEditor>  mOptionsUdpPortEditor;
 
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
@@ -482,6 +489,7 @@ private:
     FlexBox optionsSendQualBox;
     FlexBox optionsHearlatBox;
     FlexBox optionsMetRecordBox;
+    FlexBox optionsUdpBox;
 
     Image iaaHostIcon;
 

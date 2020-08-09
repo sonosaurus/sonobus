@@ -38,6 +38,7 @@ public:
     
     std::unique_ptr<Label> nameLabel;
     std::unique_ptr<Label> addrLabel;
+    std::unique_ptr<Label> staticAddrLabel;
     std::unique_ptr<SonoDrawableButton> sendMutedButton;
     std::unique_ptr<SonoDrawableButton> recvMutedButton;
     std::unique_ptr<SonoDrawableButton> latActiveButton;
@@ -53,6 +54,8 @@ public:
     std::unique_ptr<Slider> bufferTimeSlider;        
     std::unique_ptr<SonoChoiceButton> autosizeButton;
     std::unique_ptr<SonoChoiceButton> formatChoiceButton;
+    std::unique_ptr<TextButton> optionsResetDropButton;
+    std::unique_ptr<TextButton> optionsRemoveButton;
 
     std::unique_ptr<Component> pannersContainer;
     std::unique_ptr<Component> optionsContainer;
@@ -98,10 +101,14 @@ public:
     FlexBox latencybox;
     FlexBox recvlevelbox;
     FlexBox pannerbox;
+    
     FlexBox optionsBox;
     FlexBox optionsNetbufBox;
     FlexBox optionsSendQualBox;
     FlexBox optionsstatbox;
+    FlexBox optionsbuttbox;
+    FlexBox optionsaddrbox;
+
     FlexBox squalbox;
     FlexBox netbufbox;
     FlexBox recvstatbox;

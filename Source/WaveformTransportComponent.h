@@ -460,9 +460,14 @@ public:
                 updateLoopPosition();
             }
             else if (ev.mods.isCommandDown()) {
-                // zoom to selection
-                if (transportSource.getLengthInSeconds() > 0)
+                if (ev.getNumberOfClicks() > 1) {
+                    // zoom full out
+                    zoomFactor = 0.0;
+                    setRange ({ 0.0, transportSource.getLengthInSeconds() });
+                }
+                else if (transportSource.getLengthInSeconds() > 0 && (selRangeEnd - selRangeStart) < transportSource.getLengthInSeconds())
                 {
+                    // zoom to selection
                     zoomFactor = 1.0 - (selRangeEnd - selRangeStart) / transportSource.getLengthInSeconds();
                     setRange ({ selRangeStart, selRangeEnd });
                 }                

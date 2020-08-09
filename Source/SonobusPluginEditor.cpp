@@ -289,8 +289,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         // defaults
         currConnectionInfo.groupName = "";
 #if JUCE_IOS
-        String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();
-        //String username = SystemStats::getComputerName(); //SystemStats::getLogonName();
+        //String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();
+        String username = SystemStats::getComputerName(); //SystemStats::getLogonName();
 #else
         String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();    
         //if (username.length() > 0) username = username.replaceSection(0, 1, username.substring(0, 1).toUpperCase());
@@ -326,7 +326,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mMainMessageLabel = std::make_unique<Label>("mesg", "");
     mMainMessageLabel->setJustificationType(Justification::centred);
-    mMainMessageLabel->setFont(14);
+    mMainMessageLabel->setFont(20);
 
     //mMainPersonImage.reset(Drawable::createFromImageData(BinaryData::person_svg, BinaryData::person_svgSize));
     //mMainGroupImage.reset(Drawable::createFromImageData(BinaryData::people_svg, BinaryData::people_svgSize));
@@ -805,6 +805,19 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsMetRecordedButton->addListener(this);
     mMetRecordedAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetIsRecorded, *mOptionsMetRecordedButton);
 
+    mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
+    mOptionsUseSpecificUdpPortButton->addListener(this);
+
+    mOptionsUdpPortEditor = std::make_unique<TextEditor>("udp");
+    mOptionsUdpPortEditor->addListener(this);
+    mOptionsUdpPortEditor->setFont(Font(16));
+    mOptionsUdpPortEditor->setText(""); // 100.36.128.246:11000
+    mOptionsUdpPortEditor->setKeyboardType(TextEditor::numericKeyboard);
+    mOptionsUdpPortEditor->setInputRestrictions(5, "0123456789");
+    
+    configEditor(mOptionsUdpPortEditor.get());
+    //mOptionsUdpPortEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
+
     
     mIAAHostButton = std::make_unique<SonoDrawableButton>("iaa", DrawableButton::ButtonStyle::ImageFitted);
     mIAAHostButton->addListener(this);
@@ -923,6 +936,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
     
     addAndMakeVisible(mPeerViewport.get());
     addAndMakeVisible(mTitleLabel.get());
@@ -1304,10 +1319,30 @@ void SonobusAudioProcessorEditor::updateChannelState(bool force)
     }    
 }
 
-void SonobusAudioProcessorEditor::updateOptionsState()
+void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
 {
     mOptionsFormatChoiceDefaultChoice->setSelectedItemIndex(processor.getDefaultAudioCodecFormat(), dontSendNotification);
     mOptionsAutosizeDefaultChoice->setSelectedItemIndex((int)processor.getDefaultAutoresizeBufferMode(), dontSendNotification);
+
+    int port = processor.getUseSpecificUdpPort();
+    if (port > 0) {
+        mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
+        mOptionsUdpPortEditor->setEnabled(true);
+        mOptionsUdpPortEditor->setAlpha(1.0);
+        if (!ignorecheck) {
+            mOptionsUseSpecificUdpPortButton->setToggleState(true, dontSendNotification);
+        }
+    }
+    else {
+        port = processor.getUdpLocalPort();
+        mOptionsUdpPortEditor->setEnabled(mOptionsUseSpecificUdpPortButton->getToggleState());
+        mOptionsUdpPortEditor->setAlpha(mOptionsUseSpecificUdpPortButton->getToggleState() ? 1.0 : 0.6);
+        mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
+        if (!ignorecheck) {
+            mOptionsUseSpecificUdpPortButton->setToggleState(false, dontSendNotification);        
+        }
+    }
+
 }
 
 
@@ -1402,6 +1437,11 @@ void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
 {
     DebugLogC("Return pressed");
     
+    if (&ed == mOptionsUdpPortEditor.get()) {
+        int port = mOptionsUdpPortEditor->getText().getIntValue();
+        changeUdpPort(port);
+    }
+
     
     if (mConnectComponent->isVisible()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
@@ -1421,7 +1461,31 @@ void SonobusAudioProcessorEditor::textEditorEscapeKeyPressed (TextEditor& ed)
     //grabKeyboardFocus();
 }
 
+void SonobusAudioProcessorEditor::textEditorTextChanged (TextEditor&)
+{
+}
 
+
+void SonobusAudioProcessorEditor::textEditorFocusLost (TextEditor& ed)
+{
+    // only one we care about live is udp port
+    if (&ed == mOptionsUdpPortEditor.get()) {
+        int port = mOptionsUdpPortEditor->getText().getIntValue();
+        changeUdpPort(port);
+    }
+}
+
+void SonobusAudioProcessorEditor::changeUdpPort(int port)
+{
+    if (port >= 0) {
+        DebugLogC("changing udp port to: %d", port);
+        processor.setUseSpecificUdpPort(port);
+
+        updateState();
+    } 
+    updateOptionsState(true);
+    
+}
 
 
 void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
@@ -1740,6 +1804,16 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mConnectCloseButton.get()) {
         mConnectComponent->setVisible(false);
+        mConnectButton->setTextJustification(Justification::centred);
+        updateState();
+    }
+    else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
+        if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {
+            // toggled off, change back to use system chosen port
+            changeUdpPort(0);
+        } else {
+            updateOptionsState(true);
+        }
     }
     else {
         
@@ -1801,6 +1875,10 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
         mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
         mServerUsernameEditor->repaint();
     }
+    
+    //mServerGroupPasswordEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+    mServerGroupPasswordEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+    mServerGroupPasswordEditor->repaint();
     
     if (currConnectionInfo.serverHost.isNotEmpty() && currConnectionInfo.serverPort != 0) 
     {
@@ -2364,7 +2442,7 @@ void SonobusAudioProcessorEditor::updateState()
         mMainPeerLabel->setVisible(true);
 
         if (processor.getNumberRemotePeers() == 0) {
-            mMainMessageLabel->setText(TRANS("Waiting for other users to join..."), dontSendNotification);
+            mMainMessageLabel->setText(String::formatted(TRANS("Waiting for other users to join group \"%s\"..."), currGroup.toRawUTF8()), dontSendNotification);
             mMainMessageLabel->setVisible(true);
         } else {
             mMainMessageLabel->setText("", dontSendNotification);
@@ -2590,6 +2668,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 showConnectPopup(false);
             } else {
                 statstr = TRANS("Failed to join group: ") + ev.message;
+
+                mServerGroupPasswordEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+                mServerGroupPasswordEditor->repaint();
+
                 // disconnect
                 processor.disconnectFromServer();
                 
@@ -2662,7 +2744,7 @@ void SonobusAudioProcessorEditor::resized()
     //mMainPersonImage->setTransformToFit(mMainPersonImage->getBounds().toFloat().translated(-mMainPersonImage->getWidth()*0.75, -mMainPersonImage->getHeight()*0.25), RectanglePlacement::fillDestination);
 
     //mMainMessageLabel->setBounds(mMainGroupImage->getX(), mMainGroupImage->getY(), mMainUserLabel->getRight() - mMainGroupImage->getX(), mMainUserLabel->getHeight());
-    mMainMessageLabel->setBounds(mPeerViewport->getX(), mPeerViewport->getY() + 20, mPeerViewport->getRight() - mPeerViewport->getX(), mMainUserLabel->getHeight());
+    mMainMessageLabel->setBounds(mPeerViewport->getX(), mPeerViewport->getY() + 15, mPeerViewport->getRight() - mPeerViewport->getX(), 50);
     
     auto metbgbounds = Rectangle<int>(mMetEnableButton->getX(), mMetEnableButton->getY(), mMetConfigButton->getRight() - mMetEnableButton->getX(),  mMetEnableButton->getHeight()).expanded(2, 2);
     mMetButtonBg->setRectangle (metbgbounds.toFloat());
@@ -2812,6 +2894,12 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsMetRecordBox.items.add(FlexItem(10, 12));
     optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
 
+    optionsUdpBox.items.clear();
+    optionsUdpBox.flexDirection = FlexBox::Direction::row;
+    optionsUdpBox.items.add(FlexItem(10, 12));
+    optionsUdpBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsUseSpecificUdpPortButton).withMargin(0).withFlex(1));
+    optionsUdpBox.items.add(FlexItem(90, minitemheight, *mOptionsUdpPortEditor).withMargin(0).withFlex(0));
+
     
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
@@ -2823,6 +2911,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 2));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsUdpBox).withMargin(2).withFlex(0));
 
     
     if (outChannels > 1) {
@@ -3184,10 +3274,10 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     connectHorizBox.items.clear();
     connectHorizBox.flexDirection = FlexBox::Direction::row;
+    connectHorizBox.items.add(FlexItem(100, 100, *mConnectTab).withMargin(3).withFlex(1));
     if (mConnectTab->getNumTabs() < 3) {
         connectHorizBox.items.add(FlexItem(320, 100, *mRecentsGroup).withMargin(3).withFlex(0));
     }
-    connectHorizBox.items.add(FlexItem(100, 100, *mConnectTab).withMargin(3).withFlex(1));
 
     connectMainBox.items.clear();
     connectMainBox.flexDirection = FlexBox::Direction::column;

@@ -964,8 +964,16 @@ void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, in
                         : Rectangle<float> (x + 0.5f, sliderPos - 1, width - 1.0f, 2));
         }
         else {
-            g.fillRect (slider.isHorizontal() ? Rectangle<float> (static_cast<float> (x), y + 0.5f, sliderPos - x, height - 1.0f)
-                        : Rectangle<float> (x + 0.5f, sliderPos, width - 1.0f, y + (height - sliderPos)));            
+            
+            if (!slider.getProperties().contains ("noFill")) {
+                g.fillRect (slider.isHorizontal() ? Rectangle<float> (static_cast<float> (x), y + 0.5f, sliderPos - x, height - 1.0f)
+                            : Rectangle<float> (x + 0.5f, sliderPos, width - 1.0f, y + (height - sliderPos)));
+            }
+            else {
+                // draw line
+                g.fillRect (slider.isHorizontal() ? Rectangle<float> (sliderPos - 1, y + 0.5f, 3, height - 1.0f)
+                            : Rectangle<float> (x + 0.5f, sliderPos - 1, width - 1.0f, 3));
+            }
         }
     }
     else

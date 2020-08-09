@@ -161,8 +161,13 @@ public:
     // server stuff
     void startAooServer();
     void stopAooServer();
-  
+    
     // client stuff
+    
+    // if value is 0, the system will choose any available UDP port (default)
+    void setUseSpecificUdpPort(int port);
+    int getUseSpecificUdpPort() const { return mUseSpecificUdpPort; }
+    
     bool connectToServer(const String & host, int port, const String & username, const String & passwd="");
     bool isConnectedToServer() const;
     bool disconnectFromServer();
@@ -330,7 +335,7 @@ private:
     
     
     
-    void initializeAoo();
+    void initializeAoo(int udpPort=0);
     void cleanupAoo();
     
     void doReceiveData();
@@ -403,6 +408,7 @@ private:
     RangedAudioParameter * mDefaultAutoNetbufModeParam;
     RangedAudioParameter * mTempoParameter;
 
+    int mUseSpecificUdpPort = 0;
     
     bool hasInitializedInMonPanners = false;
     
