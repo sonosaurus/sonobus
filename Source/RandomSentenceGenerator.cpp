@@ -17,8 +17,32 @@ using namespace std;
 
 
 
+/**
+ * Overloaded ostream operator
+ **/
+ostream & operator<<(ostream &out, const Grammar &g)
+{
+    GrammarMap::const_iterator it;
+    
+    //iterate through the map
+    for (it = g.grammarMap.begin(); it != g.grammarMap.end(); it++) {
+        out << "key:  '" << it->first << "'" << endl;
+        vector<string>::const_iterator rhs = (it->second).begin();
+        while (rhs != (it->second).end())
+        {
+            out << *rhs << " ;" << endl;
+            rhs++;
+        } //end inner loop
+    }//end outer loop
+        
+    return out;
+}
+
+
+
 RandomSentenceGenerator::RandomSentenceGenerator(const std::string & fileName)
 {
+    grammar = std::make_unique<Grammar>();
     //create a inFile and open the file
     ifstream inFile(fileName);
 
@@ -35,6 +59,7 @@ RandomSentenceGenerator::RandomSentenceGenerator(const std::string & fileName)
 
 RandomSentenceGenerator::RandomSentenceGenerator(std::istream & inFile)
 {
+    grammar = std::make_unique<Grammar>();
     readGrammar(inFile);    
 }
 
@@ -48,7 +73,7 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
     capEveryWord = false;
     
     
-    grammar.clear();
+    grammar->clear();
     
     //while there is still another line to read
     while (getline(inFile, line)){
@@ -65,7 +90,7 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
                 sentence = line;
                 sentence = sentence.substr(0,sentence.find_last_not_of(delimiters)+1);
                 //cout << "sentence: " << sentence << endl;
-                grammar.addProduction(rule, sentence);
+                grammar->addProduction(rule, sentence);
 
                 //reset the flag every time
                 getline(inFile, line);
@@ -92,7 +117,7 @@ string RandomSentenceGenerator::randomSentence()
  **/
 string RandomSentenceGenerator::randomSentence(string rule)
 {
-    string sentence = grammar.getRandomRHS(rule); //save the first random sentence
+    string sentence = grammar->getRandomRHS(rule); //save the first random sentence
 
     rule = getRule(sentence); //get the rule in the the sentence (this matters in the recursion)
     
@@ -142,7 +167,7 @@ string RandomSentenceGenerator::getRule(string sentence)
  **/
 void RandomSentenceGenerator::printGrammar()
 {
-    cout << grammar << endl;
+    cout << *grammar << endl;
 }//end printGrammar
 
 /**

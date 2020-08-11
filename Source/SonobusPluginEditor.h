@@ -138,6 +138,11 @@ private:
     
     String generateNewUsername(const AooServerConnectionInfo & info);
 
+    bool attemptToPasteConnectionFromClipboard();
+    bool copyInfoToClipboard();
+    void updateServerFieldsFromConnectionInfo();
+
+    
     bool loadAudioFromURL(URL fileurl);
     
     // This reference is provided as a quick way for your editor to
@@ -189,6 +194,8 @@ private:
     std::unique_ptr<TextEditor> mServerGroupPasswordEditor;
 
     std::unique_ptr<SonoDrawableButton> mServerGroupRandomButton;
+    std::unique_ptr<SonoDrawableButton> mServerPasteButton;
+    std::unique_ptr<SonoDrawableButton> mServerCopyButton;
     std::unique_ptr<Label> mServerAudioInfoLabel;
 
 
@@ -441,6 +448,7 @@ private:
     FlexBox addressBox;
 
     FlexBox serverBox;
+    FlexBox servStatusBox;
     FlexBox servGroupBox;
     FlexBox servGroupPassBox;
     FlexBox servUserBox;

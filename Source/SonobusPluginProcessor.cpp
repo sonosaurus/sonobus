@@ -66,7 +66,7 @@ static void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-static in_port_t get_in_port(struct sockaddr *sa)
+static int get_in_port(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET)
         return (((struct sockaddr_in*)sa)->sin_port);
@@ -2361,7 +2361,8 @@ void SonobusAudioProcessor::changeListenerCallback (ChangeBroadcaster* source)
         
         if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
             // override sending
-            setRemotePeerOverrideSendChannelCount(-1, getTotalNumOutputChannels()); // should be something different?
+            int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
+            setRemotePeerOverrideSendChannelCount(-1, jmax(getTotalNumInputChannels(), srcchans));
         }
         else if (!mTransportSource.isPlaying()) {
             // remove override
@@ -3129,7 +3130,8 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
         
         if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
             // override sending
-            setRemotePeerOverrideSendChannelCount(-1, getTotalNumOutputChannels()); // should be something different?
+            int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
+            setRemotePeerOverrideSendChannelCount(-1, jmax(getTotalNumInputChannels(), srcchans)); // should be something different?
         }
         else if (!mSendPlaybackAudio.get()) {
             // remove override

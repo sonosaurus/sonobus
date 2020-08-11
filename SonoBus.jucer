@@ -71,6 +71,7 @@
     <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
       <FILE id="O1xtq9" name="bar_click.wav" compile="0" resource="1" file="images/bar_click.wav"/>
       <FILE id="dmiruB" name="beat_click.wav" compile="0" resource="1" file="images/beat_click.wav"/>
+      <FILE id="N4OxEE" name="copy_icon.svg" compile="0" resource="1" file="images/copy_icon.svg"/>
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
       <FILE id="vgfrLE" name="dice_icon_128.png" compile="0" resource="1"
             file="images/dice_icon_128.png"/>
@@ -104,6 +105,7 @@
             file="images/outgoing_allowed_active.svg"/>
       <FILE id="TwBbMl" name="outgoing_disallowed.svg" compile="0" resource="1"
             file="images/outgoing_disallowed.svg"/>
+      <FILE id="DtTSpq" name="paste_icon.svg" compile="0" resource="1" file="images/paste_icon.svg"/>
       <FILE id="E4wgGe" name="pause_icon.svg" compile="0" resource="1" file="images/pause_icon.svg"/>
       <FILE id="XGvAW1" name="pause_white.png" compile="0" resource="1" file="images/pause_white.png"/>
       <FILE id="kIBndj" name="people.png" compile="0" resource="1" file="images/people.png"/>
@@ -122,13 +124,19 @@
             file="images/send_group_small.svg"/>
       <FILE id="DLrrYi" name="settings_icon.svg" compile="0" resource="1"
             file="images/settings_icon.svg"/>
+      <FILE id="eV7Fil" name="skipback_icon.svg" compile="0" resource="1"
+            file="images/skipback_icon.svg"/>
+      <FILE id="tb00W2" name="sonobus_icon_ios_256.png" compile="0" resource="0"
+            file="images/sonobus_icon_ios_256.png"/>
+      <FILE id="rlxTrd" name="sonobus_icon_ios_1024.png" compile="0" resource="0"
+            file="images/sonobus_icon_ios_1024.png"/>
+      <FILE id="ZWiivf" name="sonobus_icon_mac_256.png" compile="0" resource="0"
+            file="images/sonobus_icon_mac_256.png"/>
+      <FILE id="cVyJ9b" name="sonobus_icon_mac_1024.png" compile="0" resource="0"
+            file="images/sonobus_icon_mac_1024.png"/>
       <FILE id="A2rpsw" name="speaker.svg" compile="0" resource="1" file="images/speaker.svg"/>
       <FILE id="cp7a8H" name="speaker_disabled.svg" compile="0" resource="1"
             file="images/speaker_disabled.svg"/>
-      <FILE id="seEQvf" name="tempicon-256.png" compile="0" resource="0"
-            file="images/tempicon-256.png" xcodeResource="0"/>
-      <FILE id="clKeGk" name="tempicon-1024.png" compile="0" resource="0"
-            file="images/tempicon-1024.png"/>
       <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>
@@ -152,8 +160,6 @@
             file="Source/GenericItemChooser.cpp"/>
       <FILE id="ID61Jz" name="GenericItemChooser.h" compile="0" resource="0"
             file="Source/GenericItemChooser.h"/>
-      <FILE id="U4G4zF" name="Grammar.cpp" compile="1" resource="0" file="Source/Grammar.cpp"/>
-      <FILE id="abl0cE" name="Grammar.h" compile="0" resource="0" file="Source/Grammar.h"/>
       <FILE id="x0wMjk" name="JitterBufferMeter.cpp" compile="1" resource="0"
             file="Source/JitterBufferMeter.cpp"/>
       <FILE id="kZPlJM" name="JitterBufferMeter.h" compile="0" resource="0"
@@ -219,7 +225,7 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
-               extraDefs="USE_CODEC_OPUS=1" smallIcon="seEQvf" bigIcon="clKeGk"
+               extraDefs="USE_CODEC_OPUS=1" smallIcon="ZWiivf" bigIcon="cVyJ9b"
                iosDevelopmentTeamID="XCS435894D">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
@@ -247,8 +253,8 @@
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
                   iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;11&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
-                  extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus" smallIcon="seEQvf"
-                  bigIcon="clKeGk" UISupportsDocumentBrowser="1" UIFileSharingEnabled="1"
+                  extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus" smallIcon="tb00W2"
+                  bigIcon="rlxTrd" UISupportsDocumentBrowser="1" UIFileSharingEnabled="1"
                   customLaunchStoryboard="LaunchScreen">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/ios/include&#10;"
@@ -275,7 +281,7 @@
       </MODULEPATHS>
     </XCODE_IPHONE>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1"
-                externalLibraries="opus" smallIcon="seEQvf" bigIcon="clKeGk">
+                externalLibraries="opus" smallIcon="ZWiivf" bigIcon="cVyJ9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
                        defines="LOGLEVEL=2"/>
