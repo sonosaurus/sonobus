@@ -77,7 +77,6 @@
             file="images/dice_icon_128.png"/>
       <FILE id="wSd24I" name="dots.svg" compile="0" resource="1" file="images/dots.svg"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
-      <FILE id="BdZUXk" name="folder.png" compile="0" resource="1" file="images/folder.png"/>
       <FILE id="zGzv4L" name="folder_icon.svg" compile="0" resource="1" file="images/folder_icon.svg"/>
       <FILE id="esS2r1" name="incoming_allowed.svg" compile="0" resource="1"
             file="images/incoming_allowed.svg"/>
@@ -91,9 +90,6 @@
             file="images/LaunchScreen.storyboard" xcodeResource="1"/>
       <FILE id="sjyJRV" name="lgc_bar.wav" compile="0" resource="1" file="images/lgc_bar.wav"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
-      <FILE id="v6OfG4" name="loop_button.png" compile="0" resource="1" file="images/loop_button.png"/>
-      <FILE id="SyjIVR" name="loop_button_selected.png" compile="0" resource="1"
-            file="images/loop_button_selected.png"/>
       <FILE id="QOhFEr" name="loop_icon.svg" compile="0" resource="1" file="images/loop_icon.svg"/>
       <FILE id="V0RVkS" name="met.svg" compile="0" resource="1" file="images/met.svg"/>
       <FILE id="NKBZSH" name="mic.svg" compile="0" resource="1" file="images/mic.svg"/>
@@ -107,13 +103,11 @@
             file="images/outgoing_disallowed.svg"/>
       <FILE id="DtTSpq" name="paste_icon.svg" compile="0" resource="1" file="images/paste_icon.svg"/>
       <FILE id="E4wgGe" name="pause_icon.svg" compile="0" resource="1" file="images/pause_icon.svg"/>
-      <FILE id="XGvAW1" name="pause_white.png" compile="0" resource="1" file="images/pause_white.png"/>
       <FILE id="kIBndj" name="people.png" compile="0" resource="1" file="images/people.png"/>
       <FILE id="MMeLRD" name="people.svg" compile="0" resource="1" file="images/people.svg"/>
       <FILE id="Rp0do6" name="person.png" compile="0" resource="1" file="images/person.png"/>
       <FILE id="u0HeLW" name="person.svg" compile="0" resource="1" file="images/person.svg"/>
       <FILE id="oVahzP" name="play_icon.svg" compile="0" resource="1" file="images/play_icon.svg"/>
-      <FILE id="wpHIKB" name="play_white.png" compile="0" resource="1" file="images/play_white.png"/>
       <FILE id="mmyCfu" name="record.svg" compile="0" resource="1" file="images/record.svg"/>
       <FILE id="NI7XJk" name="record_active.svg" compile="0" resource="1"
             file="images/record_active.svg"/>
@@ -146,7 +140,6 @@
       <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>
-      <FILE id="EKos55" name="x_white.png" compile="0" resource="1" file="images/x_white.png"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
@@ -341,13 +334,14 @@
         <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </VS2019>
-    <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1"
-            externalLibraries="opus">
+    <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES"
+            externalLibraries="opus.lib">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\win32"
-                       libraryPath="..\..\deps\opus\win32"/>
+                       libraryPath="..\..\deps\opus\win32" useRuntimeLibDLL="0"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="..\..\deps\opus\win32"
-                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\win32"/>
+                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\win32"
+                       useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl"/>

@@ -22,7 +22,7 @@
 #define __MTDM_H
 
 
-#include <unistd.h>
+//#include <unistd.h>
 
 
 class Freq

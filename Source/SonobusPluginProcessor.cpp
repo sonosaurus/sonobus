@@ -15,7 +15,7 @@
 #include "LatencyMeasurer.h"
 #include "Metronome.h"
 
-#ifdef _WIN32
+#if JUCE_WINDOWS
 #include <winsock2.h>
 typedef int socklen_t;
 #else

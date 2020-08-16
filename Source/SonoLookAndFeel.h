@@ -31,7 +31,7 @@ public:
     int getTabButtonSpaceAroundImage() override;
 
     int getTabButtonBestWidth (TabBarButton&, int tabDepth) override;
-    Rectangle<int> getTabButtonExtraComponentBounds (const TabBarButton&, Rectangle<int>& textArea, Component& extraComp) override;
+    juce::Rectangle<int> getTabButtonExtraComponentBounds (const TabBarButton&, juce::Rectangle<int>& textArea, Component& extraComp) override;
 
     void createTabTextLayout (const TabBarButton& button, float length, float depth,
                               Colour colour, TextLayout& textLayout);
@@ -47,7 +47,7 @@ public:
 
     void drawButtonTextWithAlignment (Graphics& g, TextButton& button, bool /*isMouseOverButton*/, bool /*isButtonDown*/, Justification textjust = Justification::centred) ;
 
-    void drawBubble (Graphics&, BubbleComponent&, const Point<float>& tip, const Rectangle<float>& body) override;
+    void drawBubble (Graphics&, BubbleComponent&, const Point<float>& tip, const juce::Rectangle<float>& body) override;
 
 
     void drawFileBrowserRow (Graphics&, int width, int height,
@@ -66,7 +66,7 @@ public:
                                      Button* goUpButton) override;
 
 
-    void drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float>& area,
+    void drawTreeviewPlusMinusBox (Graphics& g, const juce::Rectangle<float>& area,
                                    Colour backgroundColour, bool isOpen, bool isMouseOver) override;
 
 

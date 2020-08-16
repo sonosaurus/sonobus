@@ -19,7 +19,7 @@ public:
                     ButtonStyle buttonStyle);
     
     
-    Rectangle<float> getImageBounds() const override;
+    juce::Rectangle<float> getImageBounds() const override;
 
     void paint (Graphics& g) override;    
     void resized() override;
