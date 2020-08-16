@@ -1932,58 +1932,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                     mCurrOpenDir.revealToUser();
                 }
                 
-            }            
-            else if (FileChooser::isPlatformDialogAvailable())
-            {
-#if !(JUCE_IOS)
-                if (mCurrOpenDir.getFullPathName().isEmpty()) {
-                    mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
-                    DebugLogC("curr open dir is: %s", mCurrOpenDir.getFullPathName().toRawUTF8());
-                    
-                }
-#endif
-                
-                mFileChooser.reset(new FileChooser(TRANS("Choose an audio file to open..."),
-                                                   mCurrOpenDir,
-#if (JUCE_IOS || JUCE_MAC)
-                                                   "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf",
-#else
-                                                   "*.wav;*.flac;*.aif;*.ogg;*.mp3",
-#endif
-                                                   true, false, getTopLevelComponent()));
-            
-            
-                
-                mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                                           [safeThis] (const FileChooser& chooser) mutable
-                                           {
-                    auto results = chooser.getURLResults();
-                    if (safeThis != nullptr && results.size() > 0)
-                    {
-                        auto url = results.getReference (0);
-
-                        DebugLogC("Attempting to load from: %s", url.toString(false).toRawUTF8());
-                        
-                        if (url.isLocalFile()) {
-                            safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
-                        }
-
-                        safeThis->loadAudioFromURL(std::move(url));
-                        
-                    }
-                    
-                    if (safeThis) {
-                        safeThis->mFileChooser.reset();
-                    }
-                    
-                    safeThis->mDragDropBg->setVisible(false);    
-                    
-                }, nullptr);
-               
-            }
+            }   
             else {
-                DebugLogC("Need to enable code signing");
+                openFileBrowser();
             }
+                      
         }
     }
     else if (buttonThatWasClicked == mDismissTransportButton.get()) {
@@ -2045,6 +1998,63 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else {
         
        
+    }
+}
+
+void SonobusAudioProcessorEditor::openFileBrowser()
+{
+    SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+    if (FileChooser::isPlatformDialogAvailable())
+    {
+#if !(JUCE_IOS)
+        if (mCurrOpenDir.getFullPathName().isEmpty()) {
+            mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+            DebugLogC("curr open dir is: %s", mCurrOpenDir.getFullPathName().toRawUTF8());
+            
+        }
+#endif
+        
+        mFileChooser.reset(new FileChooser(TRANS("Choose an audio file to open..."),
+                                           mCurrOpenDir,
+#if (JUCE_IOS || JUCE_MAC)
+                                           "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf",
+#else
+                                           "*.wav;*.flac;*.aif;*.ogg;*.mp3",
+#endif
+                                           true, false, getTopLevelComponent()));
+        
+        
+        
+        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                                   [safeThis] (const FileChooser& chooser) mutable
+                                   {
+            auto results = chooser.getURLResults();
+            if (safeThis != nullptr && results.size() > 0)
+            {
+                auto url = results.getReference (0);
+                
+                DebugLogC("Attempting to load from: %s", url.toString(false).toRawUTF8());
+                
+                if (url.isLocalFile()) {
+                    safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
+                }
+                
+                safeThis->loadAudioFromURL(std::move(url));
+                
+            }
+            
+            if (safeThis) {
+                safeThis->mFileChooser.reset();
+            }
+            
+            safeThis->mDragDropBg->setVisible(false);    
+            
+        }, nullptr);
+        
+    }
+    else {
+        DebugLogC("Need to enable code signing");
     }
 }
 
@@ -3740,7 +3750,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Share file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('e', ModifierKeys::commandModifier);
+            info.addDefaultKeypress ('f', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::RevealFile:
             info.setInfo (TRANS("Reveal File"),
@@ -3849,7 +3859,8 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::OpenFile:
             DebugLogC("got open file!");
-            buttonClicked(mFileBrowseButton.get());
+            openFileBrowser();
+
             break;
         case SonobusCommands::Connect:
             DebugLogC("got connect!");

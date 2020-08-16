@@ -150,7 +150,8 @@ private:
     bool copyInfoToClipboard(bool singleURL=false, String * retmessage = nullptr);
     void updateServerFieldsFromConnectionInfo();
 
-    
+    void openFileBrowser();
+
     bool loadAudioFromURL(URL fileurl);
     
     class TrimFileJob;
