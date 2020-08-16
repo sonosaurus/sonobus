@@ -24,6 +24,10 @@
   ==============================================================================
 */
 
+// needed for crappy windows
+#define NOMINMAX
+
+
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "juce_core/system/juce_TargetPlatform.h"
