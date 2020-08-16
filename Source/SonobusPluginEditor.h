@@ -10,6 +10,7 @@
 #include "SonoDrawableButton.h"
 #include "SonoTextButton.h"
 #include "SonoUtility.h"
+#include "GenericItemChooser.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
@@ -33,7 +34,8 @@ public ChangeListener,
 public TextEditor::Listener,
 public ApplicationCommandTarget,
 public AsyncUpdater,
-public FileDragAndDropTarget
+public FileDragAndDropTarget,
+public GenericItemChooser::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -78,6 +80,9 @@ public:
     
     void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
 
+    void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
+
+    
     void connectWithInfo(const AooServerConnectionInfo & info);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
@@ -105,6 +110,8 @@ public:
     std::function<Image(int)> getIAAHostIcon; // = []() { return 0; };
     std::function<void()> switchToHostApplication; // = []() { return 0; };
 
+    void handleURL(const String & urlstr);
+    
 private:
 
     void updateLayout();
@@ -122,7 +129,8 @@ private:
 
     void showConnectPopup(bool flag);
 
-    
+    bool handleSonobusURL(const URL & url);
+
     void showFormatChooser(int peerindex);
     
     void showSettings(bool flag);
@@ -139,11 +147,21 @@ private:
     String generateNewUsername(const AooServerConnectionInfo & info);
 
     bool attemptToPasteConnectionFromClipboard();
-    bool copyInfoToClipboard();
+    bool copyInfoToClipboard(bool singleURL=false, String * retmessage = nullptr);
     void updateServerFieldsFromConnectionInfo();
 
     
     bool loadAudioFromURL(URL fileurl);
+    
+    class TrimFileJob;
+
+    void trimCurrentAudioFile(bool replaceExisting);
+    
+    void trimAudioFile(const String & fname, double startPos, double lenSecs, bool replaceExisting);
+    void trimFinished(const String & trimmedFile);
+
+    void showFilePopupMenu(Component * source);
+
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -157,6 +175,7 @@ private:
     class PatchMatrixView;
 
     std::unique_ptr<Label> mTitleLabel;
+    std::unique_ptr<ImageComponent> mTitleImage;
     
 
     std::unique_ptr<Label> mLocalAddressStaticLabel;
@@ -196,6 +215,7 @@ private:
     std::unique_ptr<SonoDrawableButton> mServerGroupRandomButton;
     std::unique_ptr<SonoDrawableButton> mServerPasteButton;
     std::unique_ptr<SonoDrawableButton> mServerCopyButton;
+    std::unique_ptr<SonoDrawableButton> mServerShareButton;
     std::unique_ptr<Label> mServerAudioInfoLabel;
 
 
@@ -282,13 +302,17 @@ private:
     std::unique_ptr<SonoDrawableButton> mDismissTransportButton;
     std::unique_ptr<SonoDrawableButton> mLoopButton;
     std::unique_ptr<SonoDrawableButton> mFileSendAudioButton;
+    std::unique_ptr<SonoDrawableButton> mFileMenuButton;
     std::unique_ptr<Slider> mPlaybackSlider;
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
     std::unique_ptr<FileChooser> mFileChooser;
     File  mCurrOpenDir;
     URL mCurrentAudioFile;
+    bool mReloadFile = false;
     
+    std::unique_ptr<ThreadPool> mWorkPool;
+
     std::unique_ptr<SonoDrawableButton> mIAAHostButton;
 
     

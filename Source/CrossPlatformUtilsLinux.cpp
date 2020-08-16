@@ -1,4 +1,5 @@
 
+
 #include "CrossPlatformUtils.h"
 
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -12,5 +13,7 @@ void getSafeAreaInsets(void * component, float & top, float & bottom, float & le
 {
     top = bottom = left = right = 0;
 }
+
+
 
 #endif

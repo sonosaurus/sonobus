@@ -23,9 +23,10 @@ public:
         Connect,
         Disconnect,
         ShareFile,
+        RevealFile,
         ShowOptions,
         OpenFile,
-        RecordToggle
+        RecordToggle,
         
     };
     

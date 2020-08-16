@@ -235,15 +235,17 @@ public:
     //==============================================================================
     void startPlaying()
     {
+
+        
         player.setProcessor (processor.get());
 
-       #if JucePlugin_Enable_IAA && JUCE_IOS
-        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
-        {
-            processor->setPlayHead (device->getAudioPlayHead());
-            device->setMidiMessageCollector (&player.getMidiMessageCollector());
-        }
-       #endif
+      #if JucePlugin_Enable_IAA && JUCE_IOS
+              if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
+              {
+                  processor->setPlayHead (device->getAudioPlayHead());
+                  device->setMidiMessageCollector (&player.getMidiMessageCollector());
+              }
+      #endif
     }
 
     void stopPlaying()
@@ -530,9 +532,13 @@ private:
         
 #if JUCE_IOS
         if (auto iosdevice = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice())) {
+#if JucePlugin_Enable_IAA
+            processor->setPlayHead (iosdevice->getAudioPlayHead());
+            iosdevice->setMidiMessageCollector (&player.getMidiMessageCollector());            
+#endif
             processorHasPotentialFeedbackLoop = !iosdevice->isHeadphonesConnected() && !isInterAppAudioConnected();
             shouldMuteInput.setValue(processorHasPotentialFeedbackLoop);
-        }
+        }        
 #endif
     }
 

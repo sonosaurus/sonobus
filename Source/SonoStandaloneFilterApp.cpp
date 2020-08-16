@@ -83,7 +83,8 @@ public:
     const String getApplicationName() override              { return JucePlugin_Name; }
     const String getApplicationVersion() override           { return JucePlugin_VersionString; }
     bool moreThanOneInstanceAllowed() override              { return true; }
-    void anotherInstanceStarted (const String&) override    {}
+
+   
 
     SonoLookAndFeel  sonoLNF;
 
@@ -136,7 +137,38 @@ public:
         mainWindow = nullptr;
         appProperties.saveIfNeeded();
     }
-
+    
+    void urlOpened(const URL & url) override {
+        DebugLogC("Url opened: %s", url.toString(true).toRawUTF8());
+        
+        if (mainWindow.get() != nullptr) {
+            
+            if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
+                if (sonoproc->hasEditor()) {
+                    if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded())) {
+                        sonoeditor->handleURL(url.toString(true));
+                    }
+                }
+            }
+        }        
+    }
+    
+    void anotherInstanceStarted (const String& url) override    {
+        
+        DebugLogC("Url handled from another instance: %s", url.toRawUTF8());
+        
+        if (mainWindow.get() != nullptr) {
+            
+            if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
+                if (sonoproc->hasEditor()) {
+                    if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded())) {
+                        sonoeditor->handleURL(url);
+                    }
+                }
+            }
+        }
+    }
+        
     void suspended() override
     {
         DebugLogC("suspended");

@@ -475,7 +475,7 @@ private:
     
     
     Array<AudioCodecFormatInfo> mAudioFormats;
-    int mDefaultAudioFormatIndex = 5;
+    int mDefaultAudioFormatIndex = 4;
     
     RangedAudioParameter * mDefaultAudioFormatParam;
 

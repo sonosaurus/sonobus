@@ -3075,8 +3075,9 @@ bool SonobusAudioProcessor::isAnythingRoutedToPeer(int index) const
 void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer * peer, aoo::isource * source, bool latencymode)
 {
     // have choice and parameters
-    
-    const AudioCodecFormatInfo & info =  mAudioFormats.getReference((!peer || peer->formatIndex < 0) ? mDefaultAudioFormatIndex : peer->formatIndex);
+    int formatIndex = (!peer || peer->formatIndex < 0) ? mDefaultAudioFormatIndex : peer->formatIndex;
+    if (formatIndex < 0 || formatIndex >= mAudioFormats.size()) formatIndex = 4; //emergency default
+    const AudioCodecFormatInfo & info =  mAudioFormats.getReference(formatIndex);
     
     aoo_format_storage f;
     
@@ -3488,7 +3489,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     AudioPlayHead::CurrentPositionInfo posInfo;
     posInfo.resetToDefault();
     posInfo.bpm = mMetTempo.get();
-    bool posValid = getPlayHead() && getPlayHead()->getCurrentPosition(posInfo);
+    AudioPlayHead * playhead = getPlayHead();
+    bool posValid = playhead && playhead->getCurrentPosition(posInfo);
     bool hostPlaying = posValid && posInfo.isPlaying;
     if (posInfo.bpm <= 0.0) {
         posInfo.bpm = mMetTempo.get();        
@@ -3498,12 +3500,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetTempo.get()));
     }
     
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+    
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         // replicate last input channel
         if (totalNumInputChannels > 0) {
@@ -3601,8 +3598,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     
     bool hearlatencytest = mHearLatencyTest.get();
-
-    bool needsblockchange = false; //lastSamplesPerBlock != numSamples;
 
     // push data for going out
     {
@@ -3949,9 +3944,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
     }
     
-    if (needsblockchange) {
-        lastSamplesPerBlock = numSamples;
-    }
+    //if (needsblockchange) {
+    //lastSamplesPerBlock = numSamples;
+    //}
 
     notifySendThread();
     

@@ -182,6 +182,11 @@ public:
         updateLoopPosition();
     }
     
+    void getLoopRangeSec(double & start, double & length) {
+        start = selRangeStart;
+        length = selRangeEnd - selRangeStart;
+    }
+    
     void paint (Graphics& g) override
     {
         g.setColour(Colours::black);

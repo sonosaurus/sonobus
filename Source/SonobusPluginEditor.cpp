@@ -282,6 +282,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
     setColour (separatorColourId, Colour::fromFloatRGBA(0.3f, 0.3f, 0.3f, 0.3f));
 
+    mWorkPool = std::make_unique<ThreadPool>(1);
     
     Array<AooServerConnectionInfo> recents;
     processor.getRecentServerConnectionInfos(recents);
@@ -310,10 +311,19 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     }
     
     mTitleLabel = std::make_unique<Label>("title", TRANS("SonoBus"));
-    mTitleLabel->setFont(18);
-    mTitleLabel->setColour(Label::textColourId, Colour::fromFloatRGBA(0.4f, 0.6f, 0.8f, 1.0f));
+    mTitleLabel->setFont(20);
+    mTitleLabel->setColour(Label::textColourId, Colour(0xff47b0f8));
     mTitleLabel->setInterceptsMouseClicks(true, false);
     mTitleLabel->addMouseListener(this, false);
+
+    mTitleImage = std::make_unique<ImageComponent>("title");
+    //mTitleImage->setImage(ImageCache::getFromMemory(BinaryData::sonobus_title_small_png, BinaryData::sonobus_title_small_pngSize));
+    mTitleImage->setImage(ImageCache::getFromMemory(BinaryData::sonobus_logo_96_png, BinaryData::sonobus_logo_96_pngSize));
+    //mTitleImage->setFont(18);
+    //mTitleImage->setColour(Label::textColourId, Colour::fromFloatRGBA(0.4f, 0.6f, 0.8f, 1.0f));
+    mTitleImage->setInterceptsMouseClicks(true, false);
+    mTitleImage->addMouseListener(this, false);
+
     
     mMainGroupLabel = std::make_unique<Label>("group", "");
     mMainGroupLabel->setJustificationType(Justification::centredLeft);
@@ -693,6 +703,12 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mServerPasteButton->setImages(pasteimg.get());
     mServerPasteButton->addListener(this);
     mServerPasteButton->setTooltip(TRANS("Paste connection information from the clipboard"));
+
+    mServerShareButton = std::make_unique<SonoDrawableButton>("share", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> shareimg(Drawable::createFromImageData(BinaryData::copy_icon_svg, BinaryData::copy_icon_svgSize));
+    mServerShareButton->setImages(shareimg.get());
+    mServerShareButton->addListener(this);
+    //mServerShareButton->setTooltip(TRANS("Copy connection information to the clipboard to share"));
     
     
     mServerStatusLabel = std::make_unique<Label>("servstat", "");
@@ -939,6 +955,16 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
         mFileSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSendFileAudio, *mFileSendAudioButton);
 
+        mFileMenuButton = std::make_unique<SonoDrawableButton>("filemen", DrawableButton::ButtonStyle::ImageFitted);
+        std::unique_ptr<Drawable> fmenuimg(Drawable::createFromImageData(BinaryData::dots_svg, BinaryData::dots_svgSize));
+        mFileMenuButton->setImages(fmenuimg.get(), nullptr, nullptr, nullptr, nullptr);
+        mFileMenuButton->addListener(this);
+        //mMetConfigButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+        mFileMenuButton->setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
+        mFileMenuButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        //mFileMenuButton->setTooltip(TRANS("File Options"));
+
+        
     }
     
 #if JUCE_IOS
@@ -954,9 +980,11 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
-    
+    //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
+
     addAndMakeVisible(mPeerViewport.get());
     addAndMakeVisible(mTitleLabel.get());
+    //addAndMakeVisible(mTitleImage.get());
 
     addAndMakeVisible(mMainGroupLabel.get());
     addAndMakeVisible(mMainPeerLabel.get());
@@ -1003,6 +1031,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         addAndMakeVisible(mWaveformThumbnail.get());
         addAndMakeVisible(mPlaybackSlider.get());
         addAndMakeVisible(mFileSendAudioButton.get());
+        addAndMakeVisible(mFileMenuButton.get());
     }
 
     
@@ -1019,8 +1048,12 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mServerConnectContainer->addAndMakeVisible(mServerUserStaticLabel.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupEditor.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupRandomButton.get());
+#if ! JUCE_IOS
     mServerConnectContainer->addAndMakeVisible(mServerPasteButton.get());
     mServerConnectContainer->addAndMakeVisible(mServerCopyButton.get());
+#else
+    mServerConnectContainer->addAndMakeVisible(mServerShareButton.get());    
+#endif
     mServerConnectContainer->addAndMakeVisible(mServerGroupStaticLabel.get());
     mServerConnectContainer->addAndMakeVisible(mServerHostStaticLabel.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupPassStaticLabel.get());
@@ -1090,6 +1123,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         if (attemptToPasteConnectionFromClipboard()) {
             // show connect immediately
             showConnectPopup(true);
+            // switch to group page
+            mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+
             updateServerStatusLabel(TRANS("Filled in Group information from clipboard! Press 'Connect to Group' to join..."), false);
         }
         
@@ -1151,9 +1187,9 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 
 }
 
-bool SonobusAudioProcessorEditor::copyInfoToClipboard()
+bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * retmessage)
 {
-    String message = TRANS("Copy the following URL to your clipboard and launch SonoBus:\n\n");
+    String message = TRANS("Use this URL to launch SonoBus if you already have it installed:\n\n");
 
     String hostport = mServerHostEditor->getText();        
     if (hostport.isEmpty()) {
@@ -1162,24 +1198,71 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard()
     
     String groupName = mServerGroupEditor->getText();
     String groupPassword = mServerGroupPasswordEditor->getText();
-    
+
     URL url(String::formatted("sonobus://%s/", hostport.toRawUTF8()));
+    URL url2(String::formatted("http://go.sonobus.net/sblaunch", hostport.toRawUTF8()));
+
     if (url.isWellFormed() && groupName.isNotEmpty()) {        
+
+        url2 = url2.withParameter("s", hostport);
+        
         url = url.withParameter("g", groupName);
+        url2 = url2.withParameter("g", groupName);
+
         if (groupPassword.isNotEmpty()) {
             url = url.withParameter("p", groupPassword);
+            url2 = url2.withParameter("p", groupPassword);
         }
         
         message += url.toString(true);
+        message += "\n\n";
+
+        message += TRANS("Or share this link:\n\n");
+        message += url2.toString(true);
         message += "\n";
-        
+
+        if (singleURL) {
+            message = url2.toString(true);
+        }
         SystemClipboard::copyTextToClipboard(message);
 
+        if (retmessage) {
+            *retmessage = message;
+        }
+        
         return true;
     }
     return false;
 }
 
+bool SonobusAudioProcessorEditor::handleSonobusURL(const URL & url)
+{
+    // use domain part as host:port, look for 'g' and 'p' parameters for group and password
+    String hostpart = url.getDomain();
+    currConnectionInfo.serverHost =  hostpart.upToFirstOccurrenceOf(":", false, true);
+    int port = url.getPort();
+    if (port > 0) {
+        currConnectionInfo.serverPort = port;
+    } else {
+        currConnectionInfo.serverPort = DEFAULT_SERVER_PORT;
+    }
+    
+    auto & pnames = url.getParameterNames();
+    auto & pvals = url.getParameterValues();
+
+    int ind;
+    if ((ind = pnames.indexOf("g", true)) >= 0) {
+        currConnectionInfo.groupName = pvals[ind];
+
+        if ((ind = pnames.indexOf("p", true)) >= 0) { 
+            currConnectionInfo.groupPassword = pvals[ind];
+        } else {
+            currConnectionInfo.groupPassword = "";                    
+        }
+    }
+
+    return true;
+}
 
 bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
 {
@@ -1190,37 +1273,14 @@ bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
         String urlpart = clip.fromFirstOccurrenceOf("sonobus://", true, true);
         if (urlpart.isNotEmpty()) {
             // find the end (whitespace) and strip it out
+            urlpart = urlpart.upToFirstOccurrenceOf("\n", false, true).trim();
             urlpart = urlpart.upToFirstOccurrenceOf(" ", false, true).trim();
             URL url(urlpart);
-            
+
             if (url.isWellFormed()) {
                 DebugLogC("Got good sonobus URL: %s", urlpart.toRawUTF8());
-                
-                // use domain part as host:port, look for 'g' and 'p' parameters for group and password
-                String hostpart = url.getDomain();
-                currConnectionInfo.serverHost =  hostpart.upToFirstOccurrenceOf(":", false, true);
-                int port = url.getPort();
-                if (port > 0) {
-                    currConnectionInfo.serverPort = port;
-                } else {
-                    currConnectionInfo.serverPort = DEFAULT_SERVER_PORT;
-                }
-                
-                auto & pnames = url.getParameterNames();
-                auto & pvals = url.getParameterValues();
 
-                int ind;
-                if ((ind = pnames.indexOf("g", true)) >= 0) {
-                    currConnectionInfo.groupName = pvals[ind];
-
-                    if ((ind = pnames.indexOf("p", true)) >= 0) { 
-                        currConnectionInfo.groupPassword = pvals[ind];
-                    } else {
-                        currConnectionInfo.groupPassword = "";                    
-                    }
-                }
-                
-                return true;
+                return handleSonobusURL(url);                
             }
         }
     }
@@ -1469,6 +1529,7 @@ void SonobusAudioProcessorEditor::updateTransportState()
             mWaveformThumbnail->setVisible(true);
             mPlaybackSlider->setVisible(true);
             mFileSendAudioButton->setVisible(true);
+            mFileMenuButton->setVisible(true);
         } else {
             mPlayButton->setVisible(false);
             mLoopButton->setVisible(false);
@@ -1476,6 +1537,7 @@ void SonobusAudioProcessorEditor::updateTransportState()
             mWaveformThumbnail->setVisible(false);
             mPlaybackSlider->setVisible(false);
             mFileSendAudioButton->setVisible(false);
+            mFileMenuButton->setVisible(false);
         }
 
         mPlayButton->setToggleState(processor.getTransportSource().isPlaying(), dontSendNotification);
@@ -1754,6 +1816,26 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         copyInfoToClipboard();
         showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
     }
+    else if (buttonThatWasClicked == mServerShareButton.get()) {
+        String message;
+        bool singleurl = false;
+#if JUCE_IOS
+        singleurl = true;
+#endif
+        if (copyInfoToClipboard(singleurl, &message)) {
+            URL url(message);
+            if (url.isWellFormed()) {
+                Array<URL> urlarray;
+                urlarray.add(url);
+                ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DebugLogC("url share returned %d : %s", result, msg.toRawUTF8()); });
+            } else {
+                ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DebugLogC("share returned %d : %s", result, msg.toRawUTF8()); });                
+            }
+        }
+        
+        //copyInfoToClipboard();
+        //showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
+    }
 
     else if (buttonThatWasClicked == mSettingsButton.get()) {
         if (!settingsWasShownOnDown) {
@@ -1845,6 +1927,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 else {
                     if (mCurrOpenDir.getFullPathName().isEmpty()) {
                         mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+                        DebugLogC("curr open dir is: %s", mCurrOpenDir.getFullPathName().toRawUTF8());
                     }
                     mCurrOpenDir.revealToUser();
                 }
@@ -1855,6 +1938,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 #if !(JUCE_IOS)
                 if (mCurrOpenDir.getFullPathName().isEmpty()) {
                     mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+                    DebugLogC("curr open dir is: %s", mCurrOpenDir.getFullPathName().toRawUTF8());
+                    
                 }
 #endif
                 
@@ -1940,6 +2025,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         mWaveformThumbnail->updateState();
         commandManager.commandStatusChanged();
     }
+    else if (buttonThatWasClicked == mFileMenuButton.get()) {
+        // show file extra menu
+        showFilePopupMenu(mFileMenuButton.get());
+    }
     else if (buttonThatWasClicked == mConnectCloseButton.get()) {
         mConnectComponent->setVisible(false);
         mConnectButton->setTextJustification(Justification::centred);
@@ -1956,6 +2045,21 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else {
         
        
+    }
+}
+
+void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
+{
+    URL url(urlstr);
+    if (url.isWellFormed()) {
+        if (!currConnected) {
+            if (handleSonobusURL(url)) {
+                showConnectPopup(true);
+                // switch to group page
+                mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+                updateServerStatusLabel(TRANS("Filled in Group from link! Press 'Connect to Group' to join..."), false);
+            }
+        }
     }
 }
 
@@ -2255,7 +2359,7 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
           //  showOrHideSettings();
         }
     }
-    else if (event.eventComponent == mTitleLabel.get()) {
+    else if (event.eventComponent == mTitleLabel.get() || event.eventComponent == mTitleImage.get()) {
         settingsWasShownOnDown = settingsCalloutBox != nullptr;
         settingsClosedTimestamp = 0; // reset on a down
         if (settingsWasShownOnDown) {
@@ -2272,7 +2376,7 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
 
 void SonobusAudioProcessorEditor::mouseUp (const MouseEvent& event)
 {
-    if (event.eventComponent == mTitleLabel.get()) {
+    if (event.eventComponent == mTitleLabel.get() || event.eventComponent == mTitleImage.get()) {
         if (Time::getMillisecondCounter() > settingsClosedTimestamp + 1000) {
             // only show if it wasn't just dismissed
             showSettings(true);
@@ -2408,7 +2512,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
         if (firsttime) {
             mSettingsTab->addTab(TRANS("OPTIONS"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mOptionsComponent.get(), false);
-            mSettingsTab->addTab(TRANS("HELP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mHelpComponent.get(), false);
+           // mSettingsTab->addTab(TRANS("HELP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mHelpComponent.get(), false);
         }
         
         mSettingsTab->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
@@ -2698,7 +2802,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             }
             else {
                 // switch to group page
-                mConnectTab->setCurrentTabIndex(1);
+                mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
             }
             
             updateServerStatusLabel(statstr, false);
@@ -2754,6 +2858,11 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             updateState();
         }
 
+    }
+    
+    if (mReloadFile) {
+        loadAudioFromURL(mCurrentAudioFile);
+        mReloadFile = false;
     }
 }
 
@@ -3091,10 +3200,15 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     servStatusBox.items.clear();
     servStatusBox.flexDirection = FlexBox::Direction::row;
+#if (!JUCE_IOS)
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerPasteButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));
+#endif
     servStatusBox.items.add(FlexItem(servLabelWidth, minpassheight, *mServerStatusLabel).withMargin(2).withFlex(1));
+#if (!JUCE_IOS)
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerCopyButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));
-
+#else
+    servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerShareButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));    
+#endif
     
     servButtonBox.items.clear();
     servButtonBox.flexDirection = FlexBox::Direction::row;
@@ -3146,15 +3260,18 @@ void SonobusAudioProcessorEditor::updateLayout()
     titleBox.items.clear();
     titleBox.flexDirection = FlexBox::Direction::row;
     titleBox.items.add(FlexItem(2, 20).withMargin(1).withFlex(0));
-    titleBox.items.add(FlexItem(minitemheight - 8, minitemheight - 12, *mSettingsButton).withMargin(1).withMaxWidth(40).withFlex(0));
+    titleBox.items.add(FlexItem(minitemheight - 8, minitemheight - 12, *mSettingsButton).withMargin(1).withMaxWidth(44).withFlex(0));
     //titleBox.items.add(FlexItem(5, 20).withMargin(1).withFlex(0));
-    titleBox.items.add(FlexItem(90, 20, *mTitleLabel).withMargin(1).withFlex(0));
+    //titleBox.items.add(FlexItem(168, 40, *mTitleImage).withMargin(1).withFlex(0));
+    //titleBox.items.add(FlexItem(32, 32, *mTitleImage).withMargin(1).withFlex(0));
+    titleBox.items.add(FlexItem(86, 20, *mTitleLabel).withMargin(1).withFlex(0));
     if (iaaConnected) {
         titleBox.items.add(FlexItem(4, 4).withMargin(1).withFlex(0.0));
         titleBox.items.add(FlexItem(minitemheight, minitemheight, *mIAAHostButton).withMargin(0).withFlex(0));
     }
     titleBox.items.add(FlexItem(4, 4).withMargin(1).withFlex(0.0));
     titleBox.items.add(FlexItem(minButtonWidth, minitemheight, *mConnectButton).withMargin(0).withFlex(1));
+    //titleBox.items.add(FlexItem(6, 20).withMargin(0).withFlex(0));
 
     
     
@@ -3179,8 +3296,8 @@ void SonobusAudioProcessorEditor::updateLayout()
         midboxminwidth = 190;
     } else {
         middleBox.flexDirection = FlexBox::Direction::row;        
-        middleBox.items.add(FlexItem(260, minitemheight*1.5 , connectBox).withMargin(2).withFlex(1).withMaxWidth(400));
-        middleBox.items.add(FlexItem(4, 1).withMaxWidth(6).withFlex(0.5));
+        middleBox.items.add(FlexItem(280, minitemheight*1.5 , connectBox).withMargin(2).withFlex(1).withMaxWidth(440));
+        middleBox.items.add(FlexItem(1, 1).withMaxWidth(3).withFlex(0.5));
         middleBox.items.add(FlexItem(minKnobWidth*4 + meterheight*2, knobitemheight, paramsBox).withMargin(2).withFlex(4));
     }
 
@@ -3256,8 +3373,10 @@ void SonobusAudioProcessorEditor::updateLayout()
 
         transportBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(44, minitemheight, *mPlayButton).withMargin(0).withFlex(0));
-        transportBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(44, minitemheight, *mLoopButton).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(40, minitemheight, *mFileMenuButton).withMargin(0).withFlex(0));
         
         if ( ! isNarrow) {
             transportBox.items.add(FlexItem(3, 6, transportWaveBox).withMargin(0).withFlex(1));  
@@ -3377,6 +3496,65 @@ void SonobusAudioProcessorEditor::showPopTip(const String & message, int timeout
     }
 }
 
+
+void SonobusAudioProcessorEditor::showFilePopupMenu(Component * source)
+{
+    Array<GenericItemChooserItem> items;
+    items.add(GenericItemChooserItem(TRANS("Trim to New")));
+#if JUCE_IOS
+    items.add(GenericItemChooserItem(TRANS("Share File")));    
+#else
+    items.add(GenericItemChooserItem(TRANS("Reveal File")));
+#endif
+    
+    Component* dw = source->findParentComponentOfClass<DocumentWindow>();
+
+    if (!dw) {
+        dw = source->findParentComponentOfClass<AudioProcessorEditor>();        
+    }
+    if (!dw) {
+        dw = source->findParentComponentOfClass<Component>();        
+    }
+    
+    //chooser->setSize(jmin(chooser->getWidth(), dw->getWidth() - 16), jmin(chooser->getHeight(), dw->getHeight() - 20));
+    
+    Rectangle<int> bounds =  dw->getLocalArea(nullptr, source->getScreenBounds());
+    
+    GenericItemChooser::launchPopupChooser(items, bounds, dw, this, 1000);
+}
+
+void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser *comp, int index)
+{
+    int choosertag = comp->getTag();
+
+    if (choosertag == 1000) {
+        if (index == 0) {
+            // trim to new
+            trimCurrentAudioFile(false);
+        }
+        else if (index == 1) {
+#if JUCE_IOS
+            // share
+            Array<URL> urlarray;
+            urlarray.add(mCurrentAudioFile);
+            ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DebugLogC("url share returned %d : %s", result, msg.toRawUTF8()); });
+#else
+            // reveal
+            if (mCurrentAudioFile.getFileName().isNotEmpty()) {
+                mCurrentAudioFile.getLocalFile().revealToUser();
+            }
+#endif
+
+        }
+    }
+    
+    if (CallOutBox* const cb = comp->findParentComponentOfClass<CallOutBox>()) {
+        cb->dismiss();
+    }
+
+}
+
+
 void SonobusAudioProcessorEditor::changeListenerCallback (ChangeBroadcaster* source)
 {
     if (source == mWaveformThumbnail.get()) {
@@ -3388,6 +3566,120 @@ void SonobusAudioProcessorEditor::changeListenerCallback (ChangeBroadcaster* sou
  //       }
         updateTransportState();
     }
+}
+
+class SonobusAudioProcessorEditor::TrimFileJob : public ThreadPoolJob
+{
+public:
+    TrimFileJob(SonobusAudioProcessorEditor * parent_, const String & file_, double startPos_, double lenSecs_, bool replace_)
+    : ThreadPoolJob("TrimFilesJob"), parent(parent_), file(file_), startPos(startPos_), lenSecs(lenSecs_), replaceExisting(replace_) {}
+    
+    JobStatus runJob ()
+    {
+        // AppState * app = AppState::getInstance();
+        DebugLogC("Starting trim file job");
+        
+        File sourcefile = File(file);
+        File outputfile = sourcefile.getParentDirectory().getNonexistentChildFile(sourcefile.getFileNameWithoutExtension() + "-trim", sourcefile.getFileExtension());
+        ScopedPointer<AudioFormatReader> reader = parent->processor.getFormatManager().createReaderFor (sourcefile);
+        bool success = false;
+        
+        if (reader != nullptr) {
+            
+            String pathname = outputfile.getFullPathName();
+            
+            ScopedPointer<FileOutputStream> fos (outputfile.createOutputStream());
+            
+            if (fos != nullptr) {
+                // Now create a writer object that writes to our output stream...
+                std::unique_ptr<AudioFormat> audioFormat;
+                int qualindex = 0;
+                
+                if (outputfile.getFileExtension().toLowerCase() == ".wav") {
+                    audioFormat = std::make_unique<WavAudioFormat>();
+                }
+                else if (outputfile.getFileExtension().toLowerCase() == ".ogg") {
+                    audioFormat = std::make_unique<OggVorbisAudioFormat>();
+                    qualindex = 8; // 256k
+                }
+                else {
+                    // default to flac
+                    audioFormat = std::make_unique<FlacAudioFormat>();
+                }
+
+                ScopedPointer<AudioFormatWriter> writer = audioFormat->createWriterFor (fos, reader->sampleRate, reader->numChannels, 16, {}, qualindex);
+                
+                if (writer != nullptr)
+                {
+                    fos.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+                    
+                    writer->writeFromAudioReader(*reader, startPos * writer->getSampleRate(), lenSecs * writer->getSampleRate());
+                
+                    writer->flush();
+                    success = true;
+                }
+                
+                DebugLogC("Finished triming file JOB to: %s", pathname.toRawUTF8());
+            }
+        }
+        else {
+            DebugLogC("Error trimming file JOB to: %s", file.toRawUTF8());
+        }
+        
+        if (success && replaceExisting) {
+            outputfile.moveFileTo(sourcefile);
+            DebugLogC("Moved %s to %s", outputfile.getFullPathName().toRawUTF8(), sourcefile.getFullPathName().toRawUTF8());
+            
+            // remove any meta file
+            File metafname = sourcefile.getParentDirectory().getChildFile("." + sourcefile.getFileName() + ".json");
+            metafname.deleteFile();
+            
+        }
+
+        if (success) {
+            parent->trimFinished(replaceExisting ? sourcefile.getFullPathName() : outputfile.getFullPathName());
+        }
+        
+        
+        return ThreadPoolJob::jobHasFinished;
+    }
+    
+    SonobusAudioProcessorEditor * parent;
+    String file;
+    
+    double startPos;
+    double lenSecs;
+    bool replaceExisting;
+};
+
+void SonobusAudioProcessorEditor::trimFinished(const String & trimmedFile)
+{
+    // load it up!
+    mCurrentAudioFile = URL(File(trimmedFile));
+    mReloadFile  = true;
+    //mTrimDone = true;
+    triggerAsyncUpdate();
+
+}
+
+void SonobusAudioProcessorEditor::trimCurrentAudioFile(bool replaceExisting)
+{
+    if (mCurrentAudioFile.getFileName().isNotEmpty()) {
+        String selfile = mCurrentAudioFile.getLocalFile().getFullPathName();
+        double startpos, looplen;
+        mWaveformThumbnail->getLoopRangeSec(startpos, looplen);
+        if (looplen < processor.getTransportSource().getLengthInSeconds()) {
+            trimAudioFile(selfile, startpos, looplen, replaceExisting);
+        }
+    }
+
+}
+
+void SonobusAudioProcessorEditor::trimAudioFile(const String & fname, double startPos, double lenSecs, bool replaceExisting)
+{
+
+    mWorkPool->addJob(new TrimFileJob(this, fname, startPos, lenSecs, replaceExisting), true);
+
 }
 
 #pragma mark - ApplicationCommandTarget
@@ -3450,6 +3742,13 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
             info.addDefaultKeypress ('e', ModifierKeys::commandModifier);
             break;
+        case SonobusCommands::RevealFile:
+            info.setInfo (TRANS("Reveal File"),
+                          TRANS("Reveal file"),
+                          TRANS("Popup"), 0);
+            info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
+            info.addDefaultKeypress ('e', ModifierKeys::commandModifier);
+            break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
@@ -3489,6 +3788,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::TrimSelectionToNewFile);
     cmds.add(SonobusCommands::CloseFile);
     cmds.add(SonobusCommands::ShareFile);
+    cmds.add(SonobusCommands::RevealFile);
     cmds.add(SonobusCommands::Connect);
     cmds.add(SonobusCommands::Disconnect);
     cmds.add(SonobusCommands::ShowOptions);
@@ -3522,6 +3822,7 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::TrimSelectionToNewFile:
             DebugLogC("Got trim!");
+            trimCurrentAudioFile(false);
             break;
         case SonobusCommands::CloseFile:
             DebugLogC("got close file!");
@@ -3533,6 +3834,18 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::ShareFile:
             DebugLogC("got share file!");
 
+            break;
+        case SonobusCommands::RevealFile:
+            DebugLogC("got reveal file!");
+            if (mCurrentAudioFile.getFileName().isNotEmpty()) {
+                mCurrentAudioFile.getLocalFile().revealToUser();
+            }
+            else {
+                if (mCurrOpenDir.getFullPathName().isEmpty()) {
+                    mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+                }
+                mCurrOpenDir.revealToUser();
+            }
             break;
         case SonobusCommands::OpenFile:
             DebugLogC("got open file!");
@@ -3569,6 +3882,9 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
     return ret;
 }
 
+
+
+
 #pragma MenuBarModel
 
 enum
@@ -3583,8 +3899,8 @@ StringArray SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuBarNames()
 {
     return StringArray(TRANS("File"),
                        TRANS("Connect"),
-                       TRANS("Transport"),
-                       TRANS("Help"));
+                       TRANS("Transport"));
+    //TRANS("Help"));
 }
 
 PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int topLevelMenuIndex, const String& /*menuName*/)
@@ -3595,7 +3911,11 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
         case MenuFileIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::OpenFile);
             retval.addCommandItem (&parent.commandManager, SonobusCommands::CloseFile);
+#if JUCE_IOS
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ShareFile);
+#else
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::RevealFile);            
+#endif
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::TrimSelectionToNewFile);
 #if JUCE_WINDOWS

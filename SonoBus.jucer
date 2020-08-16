@@ -134,6 +134,12 @@
             file="images/sonobus_icon_mac_256.png"/>
       <FILE id="cVyJ9b" name="sonobus_icon_mac_1024.png" compile="0" resource="0"
             file="images/sonobus_icon_mac_1024.png"/>
+      <FILE id="K1XbSj" name="sonobus_logo@2x.png" compile="0" resource="0"
+            file="images/sonobus_logo@2x.png" xcodeResource="1"/>
+      <FILE id="ntCwaA" name="sonobus_logo_96.png" compile="0" resource="1"
+            file="images/sonobus_logo_96.png"/>
+      <FILE id="tuprJQ" name="sonobus_title_small.png" compile="0" resource="1"
+            file="images/sonobus_title_small.png"/>
       <FILE id="A2rpsw" name="speaker.svg" compile="0" resource="1" file="images/speaker.svg"/>
       <FILE id="cp7a8H" name="speaker_disabled.svg" compile="0" resource="1"
             file="images/speaker_disabled.svg"/>
@@ -155,6 +161,8 @@
             file="Source/CrossPlatformUtilsIOS.mm"/>
       <FILE id="u959u3" name="CrossPlatformUtilsLinux.cpp" compile="1" resource="0"
             file="Source/CrossPlatformUtilsLinux.cpp"/>
+      <FILE id="zq3Pjw" name="CrossPlatformUtilsMac.mm" compile="1" resource="0"
+            file="Source/CrossPlatformUtilsMac.mm"/>
       <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
       <FILE id="lPT2dw" name="GenericItemChooser.cpp" compile="1" resource="0"
             file="Source/GenericItemChooser.cpp"/>
@@ -225,8 +233,10 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
-               extraDefs="USE_CODEC_OPUS=1" smallIcon="ZWiivf" bigIcon="cVyJ9b"
-               iosDevelopmentTeamID="XCS435894D">
+               extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0" smallIcon="ZWiivf"
+               bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;10&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+               hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
+               prebuildCommand="../../scripts/mac_prebuild.sh">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
@@ -252,10 +262,10 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;11&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
-                  extraDefs="USE_CODEC_OPUS=1" externalLibraries="opus" smallIcon="tb00W2"
-                  bigIcon="rlxTrd" UISupportsDocumentBrowser="1" UIFileSharingEnabled="1"
-                  customLaunchStoryboard="LaunchScreen">
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;13&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0" externalLibraries="opus"
+                  smallIcon="tb00W2" bigIcon="rlxTrd" UISupportsDocumentBrowser="1"
+                  UIFileSharingEnabled="1" customLaunchStoryboard="LaunchScreen">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/ios/include&#10;"
                        libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"/>
@@ -280,7 +290,7 @@
         <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1"
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0"
                 externalLibraries="opus" smallIcon="ZWiivf" bigIcon="cVyJ9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"

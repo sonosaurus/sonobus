@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15705" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
-    <device id="retina5_9" orientation="portrait" appearance="light"/>
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15706"/>
@@ -13,38 +13,47 @@
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="launchicon.png" translatesAutoresizingMaskIntoConstraints="NO" id="nNQ-TI-MGT">
-                                <rect key="frame" x="59.666666666666657" y="342" width="255.99999999999997" height="128"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="sonobus_logo.png" translatesAutoresizingMaskIntoConstraints="NO" id="nNQ-TI-MGT">
+                                <rect key="frame" x="62.5" y="208.5" width="250" height="250"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" relation="lessThanOrEqual" constant="378" id="YJ7-4S-kBW"/>
-                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="128" id="bCQ-hT-uwj"/>
+                                    <constraint firstAttribute="width" relation="lessThanOrEqual" constant="250" id="YJ7-4S-kBW">
+                                        <variation key="heightClass=regular-widthClass=regular" constant="378"/>
+                                    </constraint>
+                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="250" id="bCQ-hT-uwj">
+                                        <variation key="heightClass=compact" constant="200"/>
+                                        <variation key="heightClass=regular-widthClass=regular" constant="378"/>
+                                    </constraint>
                                 </constraints>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Sonosaurus LLC" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B0U-z2-e7T">
-                                <rect key="frame" x="128" y="737" width="119.33333333333331" height="21"/>
+                                <rect key="frame" x="128" y="626" width="119" height="21"/>
                                 <fontDescription key="fontDescription" name="GillSans" family="Gill Sans" pointSize="18"/>
-                                <color key="textColor" white="1" alpha="0.59884629360465125" colorSpace="calibratedWhite"/>
+                                <color key="textColor" white="1" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                                 <variation key="heightClass=regular-widthClass=regular">
-                                    <fontDescription key="fontDescription" name="GillSans" family="Gill Sans" pointSize="24"/>
+                                    <fontDescription key="fontDescription" name="GillSans" family="Gill Sans" pointSize="26"/>
                                 </variation>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="SonoBus" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H1m-RD-lB0">
-                                <rect key="frame" x="119.33333333333333" y="281" width="136.66666666666669" height="43"/>
+                                <rect key="frame" x="119" y="145.5" width="137" height="43"/>
                                 <fontDescription key="fontDescription" name="GillSans-SemiBold" family="Gill Sans" pointSize="36"/>
-                                <color key="textColor" red="0.51046837150869306" green="0.33634164170856007" blue="0.86559569558571425" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.80000000000000004" green="0.80000000000000004" blue="0.80000000000000004" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <nil key="highlightedColor"/>
                                 <variation key="heightClass=regular-widthClass=regular">
-                                    <fontDescription key="fontDescription" name="GillSans-SemiBold" family="Gill Sans" pointSize="48"/>
+                                    <fontDescription key="fontDescription" name="GillSans-SemiBold" family="Gill Sans" pointSize="50"/>
                                 </variation>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.089999999999999997" green="0.089999999999999997" blue="0.089999999999999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="nNQ-TI-MGT" firstAttribute="top" secondItem="H1m-RD-lB0" secondAttribute="bottom" constant="18" id="2nC-MT-D1P"/>
+                            <constraint firstItem="nNQ-TI-MGT" firstAttribute="top" secondItem="H1m-RD-lB0" secondAttribute="bottom" constant="20" id="2nC-MT-D1P">
+                                <variation key="heightClass=compact" constant="10"/>
+                                <variation key="heightClass=regular-widthClass=regular" constant="60"/>
+                            </constraint>
+                            <constraint firstItem="H1m-RD-lB0" firstAttribute="top" relation="greaterThanOrEqual" secondItem="uDo-Wg-ZcK" secondAttribute="top" constant="5" id="4rc-iz-6Vu"/>
                             <constraint firstItem="nNQ-TI-MGT" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uDo-Wg-ZcK" secondAttribute="leading" constant="40" id="5Cj-Qr-qiK"/>
                             <constraint firstItem="uDo-Wg-ZcK" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="nNQ-TI-MGT" secondAttribute="trailing" constant="40" id="C0h-R7-HEP"/>
                             <constraint firstItem="B0U-z2-e7T" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="H7F-Cv-2kE"/>
@@ -60,10 +69,10 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="133.59999999999999" y="133.5832083958021"/>
+            <point key="canvasLocation" x="133.09859154929578" y="133.125"/>
         </scene>
     </scenes>
     <resources>
-        <image name="launchicon.png" width="61.439998626708984" height="61.439998626708984"/>
+        <image name="sonobus_logo.png" width="192" height="192"/>
     </resources>
 </document>
