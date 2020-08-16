@@ -83,8 +83,6 @@ public:
     const String getApplicationVersion() override           { return JucePlugin_VersionString; }
     bool moreThanOneInstanceAllowed() override              { return true; }
 
-   
-
     SonoLookAndFeel  sonoLNF;
 
     
