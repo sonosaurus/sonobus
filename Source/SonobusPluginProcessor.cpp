@@ -12,11 +12,15 @@
 
 #include "mtdm.h"
 
+#include <algorithm>
+
 #include "LatencyMeasurer.h"
 #include "Metronome.h"
 
-#ifdef _WIN32
-#include <winsock2.h>
+#if JUCE_WINDOWS
+#define NOMINMAX
+#include <WinSock2.h>
+#include <WS2tcpip.h>
 typedef int socklen_t;
 #else
 #include <sys/types.h>

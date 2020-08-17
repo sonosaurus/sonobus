@@ -65,7 +65,7 @@ public:
     void setTag(int tag_) { tag = tag_;}
     int getTag() const { return tag; }
     
-    static CallOutBox& launchPopupChooser(const Array<GenericItemChooserItem> & items, Rectangle<int> targetBounds, Component * targetComponent, GenericItemChooser::Listener * listener, int tag = 0, int selectedIndex=-1, int maxheight=0);
+    static CallOutBox& launchPopupChooser(const Array<GenericItemChooserItem> & items, juce::Rectangle<int> targetBounds, Component * targetComponent, GenericItemChooser::Listener * listener, int tag = 0, int selectedIndex=-1, int maxheight=0);
     
 private:
     

@@ -2,9 +2,9 @@
 
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" jucerVersion="5.4.3"
               companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
-              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,enableIAA"
+              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,buildVST3,enableIAA"
               pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1"
-              pluginDesc="Network Audio" version="1.0">
+              pluginDesc="Network Audio" version="1.0" cppLanguageStandard="17">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
       <GROUP id="{81488E5D-9CA2-F73A-62B1-4376F46E70B1}" name="aoo">
@@ -77,7 +77,6 @@
             file="images/dice_icon_128.png"/>
       <FILE id="wSd24I" name="dots.svg" compile="0" resource="1" file="images/dots.svg"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
-      <FILE id="BdZUXk" name="folder.png" compile="0" resource="1" file="images/folder.png"/>
       <FILE id="zGzv4L" name="folder_icon.svg" compile="0" resource="1" file="images/folder_icon.svg"/>
       <FILE id="esS2r1" name="incoming_allowed.svg" compile="0" resource="1"
             file="images/incoming_allowed.svg"/>
@@ -91,9 +90,6 @@
             file="images/LaunchScreen.storyboard" xcodeResource="1"/>
       <FILE id="sjyJRV" name="lgc_bar.wav" compile="0" resource="1" file="images/lgc_bar.wav"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
-      <FILE id="v6OfG4" name="loop_button.png" compile="0" resource="1" file="images/loop_button.png"/>
-      <FILE id="SyjIVR" name="loop_button_selected.png" compile="0" resource="1"
-            file="images/loop_button_selected.png"/>
       <FILE id="QOhFEr" name="loop_icon.svg" compile="0" resource="1" file="images/loop_icon.svg"/>
       <FILE id="V0RVkS" name="met.svg" compile="0" resource="1" file="images/met.svg"/>
       <FILE id="NKBZSH" name="mic.svg" compile="0" resource="1" file="images/mic.svg"/>
@@ -107,13 +103,11 @@
             file="images/outgoing_disallowed.svg"/>
       <FILE id="DtTSpq" name="paste_icon.svg" compile="0" resource="1" file="images/paste_icon.svg"/>
       <FILE id="E4wgGe" name="pause_icon.svg" compile="0" resource="1" file="images/pause_icon.svg"/>
-      <FILE id="XGvAW1" name="pause_white.png" compile="0" resource="1" file="images/pause_white.png"/>
       <FILE id="kIBndj" name="people.png" compile="0" resource="1" file="images/people.png"/>
       <FILE id="MMeLRD" name="people.svg" compile="0" resource="1" file="images/people.svg"/>
       <FILE id="Rp0do6" name="person.png" compile="0" resource="1" file="images/person.png"/>
       <FILE id="u0HeLW" name="person.svg" compile="0" resource="1" file="images/person.svg"/>
       <FILE id="oVahzP" name="play_icon.svg" compile="0" resource="1" file="images/play_icon.svg"/>
-      <FILE id="wpHIKB" name="play_white.png" compile="0" resource="1" file="images/play_white.png"/>
       <FILE id="mmyCfu" name="record.svg" compile="0" resource="1" file="images/record.svg"/>
       <FILE id="NI7XJk" name="record_active.svg" compile="0" resource="1"
             file="images/record_active.svg"/>
@@ -146,7 +140,6 @@
       <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>
-      <FILE id="EKos55" name="x_white.png" compile="0" resource="1" file="images/x_white.png"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
@@ -163,6 +156,8 @@
             file="Source/CrossPlatformUtilsLinux.cpp"/>
       <FILE id="zq3Pjw" name="CrossPlatformUtilsMac.mm" compile="1" resource="0"
             file="Source/CrossPlatformUtilsMac.mm"/>
+      <FILE id="PmOEYR" name="CrossPlatformUtilsWindows.cpp" compile="1"
+            resource="0" file="Source/CrossPlatformUtilsWindows.cpp"/>
       <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
       <FILE id="lPT2dw" name="GenericItemChooser.cpp" compile="1" resource="0"
             file="Source/GenericItemChooser.cpp"/>
@@ -233,8 +228,9 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
-               extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0" smallIcon="ZWiivf"
-               bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;10&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+               extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
+               smallIcon="ZWiivf" bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D"
+               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;10&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                prebuildCommand="../../scripts/mac_prebuild.sh">
       <CONFIGURATIONS>
@@ -263,9 +259,9 @@
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
                   iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;13&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
-                  extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0" externalLibraries="opus"
-                  smallIcon="tb00W2" bigIcon="rlxTrd" UISupportsDocumentBrowser="1"
-                  UIFileSharingEnabled="1" customLaunchStoryboard="LaunchScreen">
+                  extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
+                  externalLibraries="opus" smallIcon="tb00W2" bigIcon="rlxTrd"
+                  UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="LaunchScreen">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/ios/include&#10;"
                        libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"/>
@@ -290,7 +286,7 @@
         <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0"
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                 externalLibraries="opus" smallIcon="ZWiivf" bigIcon="cVyJ9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
@@ -315,6 +311,33 @@
         <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </LINUX_MAKE>
+    <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES&#10;AOO_STATIC&#10;AOO_TIMEFILTER_CHECK=0"
+            externalLibraries="opus.lib" smallIcon="ZWiivf" bigIcon="cVyJ9b">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64&#10;..\..\..\asiosdk\common"
+                       libraryPath="..\..\deps\opus\x64\Debug" useRuntimeLibDLL="0"/>
+        <CONFIGURATION isDebug="0" name="Release" libraryPath="..\..\deps\opus\x64\Release"
+                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64&#10;..\..\..\asiosdk\common"
+                       useRuntimeLibDLL="0"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_cryptography"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_plugin_client"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="ff_meters" path="deps"/>
+      </MODULEPATHS>
+    </VS2017>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="ff_meters" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
@@ -337,8 +360,9 @@
   <LIVE_SETTINGS>
     <OSX/>
     <LINUX/>
+    <WINDOWS/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
                FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"
-               JUCE_JACK="1"/>
+               JUCE_JACK="1" JUCE_ASIO="1"/>
 </JUCERPROJECT>

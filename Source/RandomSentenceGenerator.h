@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
+
+#include "JuceHeader.h"
 
 typedef std::map<std::string, std::vector<std::string> > GrammarMap;
 
@@ -15,7 +18,8 @@ private:
 public:
     Grammar()  {
         grammarMap.clear();
-        srand((unsigned int)time(NULL));
+
+        rng.setSeedRandomly();
     }
     virtual ~Grammar() {}
     
@@ -47,7 +51,7 @@ public:
         if (sz == 0){
             return "";
         }
-        return grammarMap[nonTerm].at(rand()%sz);
+        return grammarMap[nonTerm].at(rng.nextInt()%sz);
     }
     
     /**
@@ -63,6 +67,8 @@ public:
     
     friend std::ostream &operator<<(std::ostream & , const Grammar &);  
     
+    Random rng;
+
 };
 
 

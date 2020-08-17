@@ -10,6 +10,7 @@
 
 #include "SonoTextButton.h"
 #include "SonoLookAndFeel.h"
+#include <math.h>
 
 SonoTextButton::SonoTextButton(const String & name)
   : TextButton(name), _buttonStyle(SonoButtonStyleNormal)

@@ -14,16 +14,16 @@
 
 #ifdef DEBUG 
 
-#define DebugLogC(args...) { juce::String tempDbgBuf = String::formatted(args); juce::Logger::outputDebugString (tempDbgBuf); }
+#define DebugLogC(...) { juce::String tempDbgBuf = String::formatted(__VA_ARGS__); juce::Logger::outputDebugString (tempDbgBuf); }
 
 
 #else
 
-#define DebugLogC(x...) ;
+#define DebugLogC(...) ;
 
 #endif
 
-#define AlwaysLogC(args...) { juce::String tempDbgBuf = String::formatted(args); juce::Logger::outputDebugString (tempDbgBuf); }
+#define AlwaysLogC(...) { juce::String tempDbgBuf = String::formatted(__VA_ARGS__); juce::Logger::outputDebugString (tempDbgBuf); }
 
 
 //void _DebugLogC(const char *file, int lineNumber, const char *format,...);

@@ -28,10 +28,14 @@
 extern juce::AudioProcessor* JUCE_API JUCE_CALLTYPE createPluginFilterOfType (juce::AudioProcessor::WrapperType type);
 #endif
 
+
 #include "CrossPlatformUtils.h"
 
 // HACK
 #include "SonobusPluginEditor.h"
+
+#include <limits>
+#include <algorithm>
 
 namespace juce
 {
