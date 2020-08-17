@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" jucerVersion="5.4.3"
               companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
-              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,enableIAA"
+              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,buildVST3,enableIAA"
               pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1"
               pluginDesc="Network Audio" version="1.0" cppLanguageStandard="17">
   <MAINGROUP id="i87g34" name="SonoBus">
@@ -337,12 +337,12 @@
       </MODULEPATHS>
     </VS2019>
     <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES&#10;AOO_STATIC"
-            externalLibraries="opus.lib">
+            externalLibraries="opus.lib" smallIcon="ZWiivf" bigIcon="cVyJ9b">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64"
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64&#10;..\..\..\asiosdk\common"
                        libraryPath="..\..\deps\opus\x64\Debug" useRuntimeLibDLL="0"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="..\..\deps\opus\x64\Release"
-                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64"
+                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64&#10;..\..\..\asiosdk\common"
                        useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -389,5 +389,5 @@
   </LIVE_SETTINGS>
   <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
                FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"
-               JUCE_JACK="1"/>
+               JUCE_JACK="1" JUCE_ASIO="1"/>
 </JUCERPROJECT>
