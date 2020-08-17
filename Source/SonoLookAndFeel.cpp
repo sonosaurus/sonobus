@@ -8,7 +8,6 @@
 //
 
 #include "SonoLookAndFeel.h"
-#include "DebugLogC.h"
 #include "SonoDrawableButton.h"
 //#include "ConfigurationRowView.h"
 #include "SonoTextButton.h"
@@ -18,7 +17,7 @@
 SonoLookAndFeel::SonoLookAndFeel()
 {
     // setColour (mainBackgroundColourId, Colour::greyLevel (0.8f));
-    //DebugLogC("Sonolook and feel");
+    //DBG("Sonolook and feel");
     
     setUsingNativeAlertWindows(true);
 
@@ -127,13 +126,13 @@ SonoLookAndFeel::SonoLookAndFeel()
     
     setupDefaultMeterColours();
     
-    //DebugLogC("Myfont name %s", myFont.getTypefaceName().toRawUTF8());
+    //DBG("Myfont name " << myFont.getTypefaceName());
 }
 
 
 Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 {
-    DebugLogC("get typeface for font %s", font.getTypefaceName().toRawUTF8());
+    DBG("get typeface for font " << font.getTypefaceName());
     if (font.getTypefaceName() == Font::getDefaultSansSerifFontName())
     {
         // if on android and language is japanese/chinese/korean, use DroidSansFallback
@@ -145,7 +144,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         String slang = lang.initialSectionNotContaining("_").toLowerCase();
         
         if (slang == "ja" || slang == "ko") {
-            DebugLogC("Using japanese/korean");
+            DBG("Using japanese/korean");
             Font jfont(font);
             //jfont.setTypefaceName("DroidSansFallback");
 #if JUCE_MAC
@@ -158,7 +157,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
             return Typeface::createSystemTypefaceFor (jfont);            
         }
         else if (slang == "zh") {
-            DebugLogC("Using chinese");
+            DBG("Using chinese");
             Font jfont(font);
             //jfont.setTypefaceName("DroidSansFallback");
 #if JUCE_MAC
@@ -171,7 +170,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
             return Typeface::createSystemTypefaceFor (jfont);            
         }
         else {
-            DebugLogC("Creating custom typeface!!");
+            DBG("Creating custom typeface!!");
             
             return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
             //return Typeface::createSystemTypefaceFor (BinaryData::OpenSansRegular_ttf, BinaryData::OpenSansRegular_ttfSize);
@@ -267,9 +266,9 @@ Rectangle<int> SonoLookAndFeel::getTabButtonExtraComponentBounds (const TabBarBu
             default:                             jassertfalse; break;
         }
 
-        // DebugLogC("Extra comp bounds: %s", extraComp.toString().toRawUTF8())
+        // DBG("Extra comp bounds: " << extraComp.toString())
         extraComp.translate(0, 3);
-        //DebugLogC("After Extra comp bounds: %s", extraComp.toString().toRawUTF8())
+        //DBG("After Extra comp bounds: " << extraComp.toString())
 
     }
     else if (button.getExtraComponentPlacement() == TabBarButton::belowText)
@@ -311,7 +310,7 @@ void SonoLookAndFeel::drawTabButton (TabBarButton& button, Graphics& g, bool isM
     const Colour bkg (button.getTabBackgroundColour());
     const Colour selcol = Colour::fromFloatRGBA(0.0f, 0.2f, 0.4f, 1.0f);
 
-    // DebugLogC("Sono draw tab button");
+    // DBG("Sono draw tab button");
     
     
     if (button.getToggleState() && bkg != Colours::black)
@@ -474,7 +473,7 @@ void SonoLookAndFeel::drawTabButtonText (TabBarButton& button, Graphics& g, bool
 {
     const Rectangle<float> area (button.getTextArea().toFloat());
     
-    DebugLogC("Sono look and feel drawtabbutton text: %s", button.getButtonText().toRawUTF8());
+    //DBG("Sono look and feel drawtabbutton text: " << button.getButtonText());
     
     float length = area.getWidth();
     float depth  = area.getHeight();
@@ -596,7 +595,7 @@ void SonoLookAndFeel::drawLabel (Graphics& g, Label& label)
 
 Font SonoLookAndFeel::getTextButtonFont (TextButton& button, int buttonHeight)
 {
-    // DebugLogC("GetTextButton font with height: %d", buttonHeight);
+    // DBG("GetTextButton font with height: " << buttonHeight);
     float textRatio = 0.5f;
     if (SonoTextButton* const textbutt = dynamic_cast<SonoTextButton*> (&button)) {
         textRatio = textbutt->getTextHeightRatio();
@@ -802,7 +801,7 @@ void SonoLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<flo
     Path p;
     p.addTriangle (0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
 
-    DebugLogC("draw plus minus ours");
+    DBG("draw plus minus ours");
 
     //g.setColour (backgroundColour.contrasting().withAlpha (isMouseOver ? 0.5f : 0.3f));
     g.setColour (Colours::white.withAlpha (isMouseOver ? 0.5f : 0.3f));
@@ -1136,7 +1135,7 @@ SonoBigTextLookAndFeel::SonoBigTextLookAndFeel(float maxTextSize)
 
 Font SonoBigTextLookAndFeel::getTextButtonFont (TextButton& button, int buttonHeight)
 {
-    // DebugLogC("GetTextButton font with height: %d  maxsize: %g", buttonHeight, maxSize);
+    // DBG("GetTextButton font with height: " << buttonHeight << " maxsize: " << maxSize);
     float textRatio = 0.8f;
        if (SonoTextButton* const textbutt = dynamic_cast<SonoTextButton*> (&button)) {
            textRatio = textbutt->getTextHeightRatio();

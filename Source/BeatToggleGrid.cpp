@@ -10,7 +10,7 @@
 
 #include "BeatToggleGrid.h"
 
-#include "DebugLogC.h"
+//#include "DebugLogC.h"
 
 BeatToggleGrid::BeatToggleGrid()
 {
@@ -104,11 +104,11 @@ void BeatToggleGrid::mouseDown (const MouseEvent &event)
     
     Point<int> touchPoint = event.getPosition();;
         
-    DebugLogC("Touch began: x=%d  y=%d", touchPoint.x, touchPoint.y);
+    DBG("Touch began: x=" << touchPoint.x << " y=" <<  touchPoint.y);
     
     int index = findTouchPad(touchPoint);
     if (index >= 0) {
-        DebugLogC("Hit on %d", index);
+        DBG("Hit on " << index);
         
         setValue(index);
         
@@ -152,7 +152,7 @@ void BeatToggleGrid::mouseDrag (const MouseEvent &event)
 
 void BeatToggleGrid::mouseUp (const MouseEvent &event)
 {
-    DebugLogC("TOUCH END");
+    DBG("TOUCH END");
 
     int i = event.source.getIndex();
     
@@ -162,7 +162,7 @@ void BeatToggleGrid::mouseUp (const MouseEvent &event)
         int lastindex = touchIndexes[i];
         
         if (lastindex >= 0) {
-            DebugLogC("end Hit on %d", lastindex);
+            DBG("end Hit on " << lastindex);
             
 
             if (delegate.get()) {
@@ -193,7 +193,7 @@ void BeatToggleGrid::setValue(int val)
     if (val == value) return;
     
     value = val;
-    DebugLogC("Setvalue to %u", value);
+    DBG("Setvalue to " << value);
     
     //for (size_t i=0; i < [gridLabels count]; ++i)
     //{
@@ -317,7 +317,7 @@ void BeatToggleGrid::setSegments(int numSegments)
             segmentSizes.add(0);
         }
         
-        DebugLogC("Now segments is %u  segsize: %u", segments, segmentSizes.size());
+        DBG("Now segments is " << segments << "  segsize: " << segmentSizes.size());
         
     }
 }
@@ -325,7 +325,7 @@ void BeatToggleGrid::setSegments(int numSegments)
 
 void BeatToggleGrid::setSegmentSize(int size, int seg)
 {
-    DebugLogC("Segment sizes is now: %u   want: %d", segmentSizes.size(), seg);
+    DBG("Segment sizes is now: " << segmentSizes.size() << "  want: " << seg);
     if (seg < segments && seg < segmentSizes.size()) {
         segmentSizes.set(seg, size);
     }
@@ -403,7 +403,7 @@ void BeatToggleGrid::refreshGrid(bool reset)
         while (gridLabels.size() > 0) {
             BeatPad * label = (BeatPad*) gridLabels.getLast();
             if (label) {
-                DebugLogC("removing last item");
+                DBG("removing last item");
                 removeChildComponent(label);
             }
             gridLabels.removeLast();
@@ -413,7 +413,7 @@ void BeatToggleGrid::refreshGrid(bool reset)
     int width = getWidth();
     int height = getHeight();
     
-    DebugLogC("Request items %d  landscape: %d  width: %d  h: %d", items, landscape, width, height);
+    DBG("Request items " << items << "  landscape: " << (int) landscape << "  width: " << width  << " h: " << height);
     
     // if we have multiple segments (>1), size based on selected
     

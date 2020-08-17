@@ -32,7 +32,6 @@ extern juce::AudioProcessor* JUCE_API JUCE_CALLTYPE createPluginFilterOfType (ju
 
 // HACK
 #include "SonobusPluginEditor.h"
-#include "DebugLogC.h"
 
 namespace juce
 {
@@ -700,7 +699,7 @@ public:
             if (pluginHolder->isInterAppAudioConnected() != iaaConnected) {
                 // reload state
                 iaaConnected = pluginHolder->isInterAppAudioConnected();
-                DebugLogC("IAA state changed: %d  %s", iaaConnected, iosdevice->getActiveInputChannels().toString(10).toRawUTF8());
+                DBG("IAA state changed: " << (int) iaaConnected << "  " <<  iosdevice->getActiveInputChannels().toString(10));
                 
 #if 0
                 pluginHolder->stopPlaying();

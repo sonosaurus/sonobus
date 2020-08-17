@@ -8,7 +8,6 @@
 
 #include "GenericItemChooser.h"
 //#include "AppState.h"
-#include "DebugLogC.h"
 
 //using namespace SonoAudio;
 
@@ -207,7 +206,7 @@ void GenericItemChooser::paintListBoxItem (int rowNumber, Graphics &g, int width
     */
         
     String text = items[rowNumber].name;
-    //DebugLogC("Paint %s", text.toRawUTF8());
+    //DBG("Paint " << text);
 
     
     //g.drawFittedText (text, imagewidth + 10, 0, width - (imagewidth+8), height, Justification::centredLeft, 1, 0.5);

@@ -40,7 +40,6 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 
-#include "DebugLogC.h"
 
 // You can set this flag in your build if you need to specify a different
 // standalone JUCEApplication class for your app to use. If you don't
@@ -130,7 +129,7 @@ public:
 
     void shutdown() override
     {
-        DebugLogC("shutdown");
+        DBG("shutdown");
         if (mainWindow.get() != nullptr)
             mainWindow->pluginHolder->savePluginState();
         
@@ -139,7 +138,7 @@ public:
     }
     
     void urlOpened(const URL & url) override {
-        DebugLogC("Url opened: %s", url.toString(true).toRawUTF8());
+        DBG("Url opened: " << url.toString(true));
         
         if (mainWindow.get() != nullptr) {
             
@@ -155,7 +154,7 @@ public:
     
     void anotherInstanceStarted (const String& url) override    {
         
-        DebugLogC("Url handled from another instance: %s", url.toRawUTF8());
+        DBG("Url handled from another instance: " << url);
         
         if (mainWindow.get() != nullptr) {
             
@@ -171,14 +170,14 @@ public:
         
     void suspended() override
     {
-        DebugLogC("suspended");
+        DBG("suspended");
         if (mainWindow.get() != nullptr) {
             mainWindow->pluginHolder->savePluginState();
 
             if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
                 if (sonoproc->getNumberRemotePeers() == 0 && !mainWindow->pluginHolder->isInterAppAudioConnected()) {
                     // shutdown audio engine
-                    DebugLogC("no connections shutting down audio");
+                    DBG("no connections shutting down audio");
                     mainWindow->getDeviceManager().closeAudioDevice();
                 }
             }
@@ -203,12 +202,12 @@ public:
 
         if (auto * dev = mainWindow->getDeviceManager().getCurrentAudioDevice()) {
             if (!dev->isPlaying()) {
-                DebugLogC("dev not playing, restarting");
+                DBG("dev not playing, restarting");
                 mainWindow->getDeviceManager().restartLastAudioDevice();
             }
         }
         else {
-            DebugLogC("was not actve: restarting");
+            DBG("was not actve: restarting");
             mainWindow->getDeviceManager().restartLastAudioDevice();
         }
 
@@ -217,7 +216,7 @@ public:
     //==============================================================================
     void systemRequestedQuit() override
     {
-        DebugLogC("Requested quit");
+        DBG("Requested quit");
         if (mainWindow.get() != nullptr)
             mainWindow->pluginHolder->savePluginState();
 
@@ -239,7 +238,7 @@ public:
 
     void memoryWarningReceived()  override
     {
-        DebugLogC("Memory warning");
+        DBG("Memory warning");
     }
     
 protected:

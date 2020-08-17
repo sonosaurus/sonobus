@@ -4,7 +4,6 @@
 #include "SonobusPluginEditor.h"
 
 #include "BeatToggleGrid.h"
-#include "DebugLogC.h"
 
 #include "PeersContainerView.h"
 #include "WaveformTransportComponent.h"
@@ -1280,7 +1279,7 @@ bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
             URL url(urlpart);
 
             if (url.isWellFormed()) {
-                DebugLogC("Got good sonobus URL: %s", urlpart.toRawUTF8());
+                DBG("Got good sonobus URL: " << urlpart);
 
                 return handleSonobusURL(url);                
             }
@@ -1353,7 +1352,7 @@ void SonobusAudioProcessorEditor::configKnobSlider(Slider * slider)
 
 void SonobusAudioProcessorEditor::aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg) 
 {
-    DebugLogC("Client connect success: %d  mesg: %s", success, errmesg.toRawUTF8());
+    DBG("Client connect success: " <<  (int) success << "  mesg: " << errmesg);
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::ConnectEvent, success, errmesg));
@@ -1363,7 +1362,7 @@ void SonobusAudioProcessorEditor::aooClientConnected(SonobusAudioProcessor *comp
 
 void SonobusAudioProcessorEditor::aooClientDisconnected(SonobusAudioProcessor *comp, bool success, const String & errmesg) 
 {
-    DebugLogC("Client disconnect success: %d  mesg: %s", success, errmesg.toRawUTF8());
+    DBG("Client disconnect success: " << (int) success <<  "  mesg: " << errmesg);
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::DisconnectEvent, success, errmesg));
@@ -1373,7 +1372,7 @@ void SonobusAudioProcessorEditor::aooClientDisconnected(SonobusAudioProcessor *c
 
 void SonobusAudioProcessorEditor::aooClientLoginResult(SonobusAudioProcessor *comp, bool success, const String & errmesg)  
 {
-    DebugLogC("Client login success: %d  mesg: %s", success, errmesg.toRawUTF8());
+    DBG("Client login success: " << (int)success << "  mesg: " << errmesg);
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::LoginEvent, success, errmesg));
@@ -1383,7 +1382,7 @@ void SonobusAudioProcessorEditor::aooClientLoginResult(SonobusAudioProcessor *co
 
 void SonobusAudioProcessorEditor::aooClientGroupJoined(SonobusAudioProcessor *comp, bool success, const String & group,  const String & errmesg) 
 {
-    DebugLogC("Client join group %s success: %d  mesg: %s", group.toRawUTF8(), success, errmesg.toRawUTF8());
+    DBG("Client join group " << group << " success: " << (int)success  << "  mesg: " << errmesg);
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::GroupJoinEvent, group, success, errmesg));
@@ -1393,7 +1392,7 @@ void SonobusAudioProcessorEditor::aooClientGroupJoined(SonobusAudioProcessor *co
 
 void SonobusAudioProcessorEditor::aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg)  
 {
-    DebugLogC("Client leave group %s success: %d   mesg: %s", group.toRawUTF8(), success, errmesg.toRawUTF8());
+    DBG("Client leave group " << group << " success: " << (int)success << "   mesg: " << errmesg);
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::GroupLeaveEvent, group, success, errmesg));
@@ -1403,7 +1402,7 @@ void SonobusAudioProcessorEditor::aooClientGroupLeft(SonobusAudioProcessor *comp
 
 void SonobusAudioProcessorEditor::aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user)  
 {
-    DebugLogC("Client peer '%s' joined group '%s'", user.toRawUTF8(), group.toRawUTF8());
+    DBG("Client peer '" << user  << "' joined group '" <<  group << "'");
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::PeerJoinEvent, group, true, "", user));
@@ -1413,7 +1412,7 @@ void SonobusAudioProcessorEditor::aooClientPeerJoined(SonobusAudioProcessor *com
 
 void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user)  
 {
-    DebugLogC("Client peer '%s' left group '%s'", user.toRawUTF8(), group.toRawUTF8());
+    DBG("Client peer '" << user  << "' left group '" <<  group << "'");
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user));
@@ -1424,7 +1423,7 @@ void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp,
 
 void SonobusAudioProcessorEditor::aooClientError(SonobusAudioProcessor *comp, const String & errmesg)  
 {
-    DebugLogC("Client error: %s", errmesg.toRawUTF8());
+    DBG("Client error: " <<  errmesg);
     {
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::Error, errmesg));
@@ -1586,7 +1585,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             int outlat = getAudioDeviceManager()->getCurrentAudioDevice()->getOutputLatencyInSamples();
             int bufsize = getAudioDeviceManager()->getCurrentAudioDevice()->getCurrentBufferSizeSamples();
 
-            DebugLogC("InLat: %d  OutLat: %d  bufsize: %d", inlat, outlat, bufsize);
+            DBG("InLat: " << inlat << "  OutLat: " << outlat << "  bufsize: " << bufsize);
         }
 #endif
         
@@ -1595,7 +1594,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             bool iaaconn = isInterAppAudioConnected();
             if (iaaconn != iaaConnected) {
                 iaaConnected = iaaconn;
-                DebugLogC("Interapp audio state changed: %d", iaaConnected);
+                DBG("Interapp audio state changed: " << (int) iaaConnected);
                 if (iaaConnected) {
                     iaaHostIcon = getIAAHostIcon(78);
                     DrawableImage randimg;
@@ -1613,7 +1612,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
 
 void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
 {
-    DebugLogC("Return pressed");
+    DBG("Return pressed");
     
     if (&ed == mOptionsUdpPortEditor.get()) {
         int port = mOptionsUdpPortEditor->getText().getIntValue();
@@ -1630,7 +1629,7 @@ void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
 
 void SonobusAudioProcessorEditor::textEditorEscapeKeyPressed (TextEditor& ed)
 {
-    DebugLogC("escape pressed");
+    DBG("escape pressed");
     if (mConnectComponent->isVisible()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
         mServerConnectButton->grabKeyboardFocus();
@@ -1656,7 +1655,7 @@ void SonobusAudioProcessorEditor::textEditorFocusLost (TextEditor& ed)
 void SonobusAudioProcessorEditor::changeUdpPort(int port)
 {
     if (port >= 0) {
-        DebugLogC("changing udp port to: %d", port);
+        DBG("changing udp port to: " << port);
         processor.setUseSpecificUdpPort(port);
 
         updateState();
@@ -1831,9 +1830,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             if (url.isWellFormed()) {
                 Array<URL> urlarray;
                 urlarray.add(url);
-                ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DebugLogC("url share returned %d : %s", result, msg.toRawUTF8()); });
+                ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
             } else {
-                ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DebugLogC("share returned %d : %s", result, msg.toRawUTF8()); });                
+                ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });       
             }
         }
         
@@ -1931,7 +1930,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 else {
                     if (mCurrOpenDir.getFullPathName().isEmpty()) {
                         mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
-                        DebugLogC("curr open dir is: %s", mCurrOpenDir.getFullPathName().toRawUTF8());
+                        DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
                     }
                     mCurrOpenDir.revealToUser();
                 }
@@ -2014,7 +2013,7 @@ void SonobusAudioProcessorEditor::openFileBrowser()
 #if !(JUCE_IOS)
         if (mCurrOpenDir.getFullPathName().isEmpty()) {
             mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
-            DebugLogC("curr open dir is: %s", mCurrOpenDir.getFullPathName().toRawUTF8());
+            DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
             
         }
 #endif
@@ -2038,7 +2037,7 @@ void SonobusAudioProcessorEditor::openFileBrowser()
             {
                 auto url = results.getReference (0);
                 
-                DebugLogC("Attempting to load from: %s", url.toString(false).toRawUTF8());
+                DBG("Attempting to load from: " <<  url.toString(false));
                 
                 if (url.isLocalFile()) {
                     safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
@@ -2058,7 +2057,7 @@ void SonobusAudioProcessorEditor::openFileBrowser()
         
     }
     else {
-        DebugLogC("Need to enable code signing");
+        DBG("Need to enable code signing");
     }
 }
 
@@ -2191,7 +2190,7 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
         
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mPanButton->getScreenBounds());
-        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        DBG("callout bounds: " << bounds.toString());
         inPannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(inPannerCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
@@ -2248,7 +2247,7 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMetConfigButton->getScreenBounds());
-        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        DBG("callout bounds: " << bounds.toString());
         inPannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(metCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
@@ -2305,7 +2304,7 @@ void SonobusAudioProcessorEditor::showPatchbay(bool flag)
         mPatchMatrixView->updateGrid();
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mPatchbayButton->getScreenBounds());
-        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        DBG("callout bounds: " << bounds.toString());
         patchbayCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(patchbayCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
@@ -2409,7 +2408,7 @@ void SonobusAudioProcessorEditor::componentParentHierarchyChanged (Component& co
 {
     if (&component == mSettingsTab.get()) {
         if (component.getParentComponent() == nullptr) {
-            DebugLogC("setting parent changed: %p", component.getParentComponent());
+            DBG("setting parent changed: " << (uint64) component.getParentComponent());
             settingsClosedTimestamp = Time::getMillisecondCounter();
         }
     }
@@ -2418,7 +2417,7 @@ void SonobusAudioProcessorEditor::componentParentHierarchyChanged (Component& co
 
 void SonobusAudioProcessorEditor::showSettings(bool flag)
 {
-    DebugLogC("Got settings click");
+    DBG("Got settings click");
 
     if (flag && settingsCalloutBox == nullptr) {
         
@@ -2553,7 +2552,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
          */
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mTitleLabel->getScreenBounds().reduced(10));
-        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        DBG("callout bounds: " << bounds.toString());
         settingsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
@@ -2800,7 +2799,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                     // try again with different username (auto-incremented)
                     currConnectionInfo.userName = generateNewUsername(currConnectionInfo);
 
-                    DebugLogC("Trying again with name: %s", currConnectionInfo.userName.toRawUTF8());
+                    DBG("Trying again with name: " << currConnectionInfo.userName);
                     connectWithInfo(currConnectionInfo);
                     
                     return;
@@ -2914,7 +2913,7 @@ void SonobusAudioProcessorEditor::resized()
         updateLayout();
     }
     
-    DebugLogC("RESIZED to %d %d", getWidth(), getHeight());
+    DBG("RESIZED to " << getWidth() << " " << getHeight());
     
     mainBox.performLayout(getLocalBounds());    
 
@@ -3555,7 +3554,7 @@ void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser 
             // share
             Array<URL> urlarray;
             urlarray.add(mCurrentAudioFile);
-            ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DebugLogC("url share returned %d : %s", result, msg.toRawUTF8()); });
+            ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " << msg); });
 #else
             // reveal
             if (mCurrentAudioFile.getFileName().isNotEmpty()) {
@@ -3595,7 +3594,7 @@ public:
     JobStatus runJob ()
     {
         // AppState * app = AppState::getInstance();
-        DebugLogC("Starting trim file job");
+        DBG("Starting trim file job");
         
         File sourcefile = File(file);
         File outputfile = sourcefile.getParentDirectory().getNonexistentChildFile(sourcefile.getFileNameWithoutExtension() + "-trim", sourcefile.getFileExtension());
@@ -3637,16 +3636,16 @@ public:
                     success = true;
                 }
                 
-                DebugLogC("Finished triming file JOB to: %s", pathname.toRawUTF8());
+                DBG("Finished triming file JOB to: " << pathname);
             }
         }
         else {
-            DebugLogC("Error trimming file JOB to: %s", file.toRawUTF8());
+            DBG("Error trimming file JOB to: " << file);
         }
         
         if (success && replaceExisting) {
             outputfile.moveFileTo(sourcefile);
-            DebugLogC("Moved %s to %s", outputfile.getFullPathName().toRawUTF8(), sourcefile.getFullPathName().toRawUTF8());
+            DBG("Moved " << outputfile.getFullPathName() << " to " << sourcefile.getFullPathName());
             
             // remove any meta file
             File metafname = sourcefile.getParentDirectory().getChildFile("." + sourcefile.getFileName() + ".json");
@@ -3819,42 +3818,42 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
     
     switch (info.commandID) {
         case SonobusCommands::MuteAllInput:
-            DebugLogC("got mute toggle!");
+            DBG("got mute toggle!");
             mMasterMuteButton->setToggleState(!mMasterMuteButton->getToggleState(), sendNotification);
             break;
         case SonobusCommands::MuteAllPeers:
-            DebugLogC("got mute peers toggle!");
+            DBG("got mute peers toggle!");
             mMasterRecvMuteButton->setToggleState(!mMasterRecvMuteButton->getToggleState(), sendNotification);
             break;
         case SonobusCommands::TogglePlayPause:
-            DebugLogC("got play pause!");
+            DBG("got play pause!");
             if (mPlayButton->isVisible()) {
                 mPlayButton->setToggleState(!mPlayButton->getToggleState(), sendNotification);
             }
             break;
         case SonobusCommands::ToggleLoop:
-            DebugLogC("got loop toggle!");
+            DBG("got loop toggle!");
             if (mLoopButton->isVisible()) {
                 mLoopButton->setToggleState(!mLoopButton->getToggleState(), sendNotification);
             }
             break;
         case SonobusCommands::TrimSelectionToNewFile:
-            DebugLogC("Got trim!");
+            DBG("Got trim!");
             trimCurrentAudioFile(false);
             break;
         case SonobusCommands::CloseFile:
-            DebugLogC("got close file!");
+            DBG("got close file!");
             if (mDismissTransportButton->isVisible()) {
                 buttonClicked(mDismissTransportButton.get());
             }
 
             break;
         case SonobusCommands::ShareFile:
-            DebugLogC("got share file!");
+            DBG("got share file!");
 
             break;
         case SonobusCommands::RevealFile:
-            DebugLogC("got reveal file!");
+            DBG("got reveal file!");
             if (mCurrentAudioFile.getFileName().isNotEmpty()) {
                 mCurrentAudioFile.getLocalFile().revealToUser();
             }
@@ -3866,18 +3865,18 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             }
             break;
         case SonobusCommands::OpenFile:
-            DebugLogC("got open file!");
+            DBG("got open file!");
             openFileBrowser();
 
             break;
         case SonobusCommands::Connect:
-            DebugLogC("got connect!");
+            DBG("got connect!");
             if (!currConnected) {
                 buttonClicked(mConnectButton.get());
             }
             break;
         case SonobusCommands::Disconnect:
-            DebugLogC("got disconnect!");
+            DBG("got disconnect!");
             
             if (currConnected) {
                 buttonClicked(mConnectButton.get());
@@ -3885,12 +3884,12 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
 
             break;
         case SonobusCommands::ShowOptions:
-            DebugLogC("got show options!");
+            DBG("got show options!");
             buttonClicked(mSettingsButton.get());
 
             break;
         case SonobusCommands::RecordToggle:
-            DebugLogC("got record toggle!");
+            DBG("got record toggle!");
             buttonClicked(mRecordingButton.get());
 
             break;
@@ -4058,7 +4057,7 @@ void SonobusAudioProcessorEditor::RecentsListModel::paintListBoxItem (int rowNum
 void SonobusAudioProcessorEditor::RecentsListModel::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 {
     // use this
-    DebugLogC("Clicked %d", rowNumber);
+    DBG("Clicked " << rowNumber);
     
     parent->connectWithInfo(recents.getReference(rowNumber));
 }

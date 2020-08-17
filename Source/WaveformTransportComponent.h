@@ -128,7 +128,6 @@ public:
     void setZoomFactor (double amount, double zoomAtXRatio = 0.5f)
     {
         zoomFactor = amount;
-        //DebugLogC("Zoomfact: %g", zoomFactor);
         if (thumbnail.getTotalLength() > 0)
         {
             auto newScale = jmax (0.001, thumbnail.getTotalLength() * (1.0 - jlimit (0.0, 0.99, amount)));

@@ -9,7 +9,6 @@
 
 #include "Metronome.h"
 #include <cmath>
-#include "DebugLogC.h"
 //#include "utility.h"
 
 using namespace SonoAudio;
@@ -216,7 +215,7 @@ void Metronome::loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes)
     {
         beatSoundBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
         reader->read(&beatSoundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        DebugLogC("Read beat sound of %d samples", beatSoundBuffer.getNumSamples());
+        DBG("Read beat sound of " << beatSoundBuffer.getNumSamples() << " samples");
         mBeatState.sampleData = beatSoundBuffer.getWritePointer(0);
         mBeatState.sampleLength = beatSoundBuffer.getNumSamples();
         mBeatState.samplePos = 0;
@@ -234,7 +233,7 @@ void Metronome::loadBarSoundFromBinaryData(const void* data, size_t sizeBytes)
     {
         barSoundBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
         reader->read(&barSoundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        DebugLogC("Read bar sound of %d samples", barSoundBuffer.getNumSamples());
+        DBG("Read bar sound of " << barSoundBuffer.getNumSamples() << " samples");
         
         mBarState.sampleData = barSoundBuffer.getWritePointer(0);
         mBarState.sampleLength = barSoundBuffer.getNumSamples();

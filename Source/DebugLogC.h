@@ -16,6 +16,7 @@
 
 #define DebugLogC(args...) { juce::String tempDbgBuf = String::formatted(args); juce::Logger::outputDebugString (tempDbgBuf); }
 
+
 #else
 
 #define DebugLogC(x...) ;

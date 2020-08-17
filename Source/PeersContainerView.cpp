@@ -9,7 +9,6 @@
 */
 
 #include "PeersContainerView.h"
-#include "DebugLogC.h"
 #include "JitterBufferMeter.h"
 
 PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14)
@@ -1314,7 +1313,7 @@ void PeersContainerView::showPanners(int index, bool flag)
         
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, pvf->panButton->getScreenBounds());
-        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        DBG("callout bounds: " << bounds.toString());
         pannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(pannerCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
@@ -1372,7 +1371,7 @@ void PeersContainerView::showOptions(int index, bool flag, Component * fromView)
 
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->menuButton->getScreenBounds());
-        DebugLogC("callout bounds: %s", bounds.toString().toRawUTF8());
+        DBG("callout bounds: " << bounds.toString());
         optionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(optionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);

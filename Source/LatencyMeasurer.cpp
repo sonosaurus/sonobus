@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "DebugLogC.h"
 
 /**
  Cross-platform class measuring round-trip audio latency.
@@ -48,7 +47,7 @@ void LatencyMeasurer::readAudioFromBinaryData(AudioSampleBuffer& buffer, const v
     {
         buffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
         reader->read(&buffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        DebugLogC("Read pulse of %d samples", buffer.getNumSamples());
+        DBG("Read pulse of " << buffer.getNumSamples() << " samples");
     }
     // reader is automatically deleted by using unique_ptr
 }
@@ -173,7 +172,7 @@ void LatencyMeasurer::processInput(float *audio, int _samplerate, int numberOfSa
 
                     float latms = float(samplesElapsed * 1000) / float(samplerate);
 
-                    DebugLogC("latms: %g", latms);
+                    DBG("latms: " << latms);
                     
                     if (smoothedLatency.Z > 1) {
                         smoothedLatency.Z *= 0.75;

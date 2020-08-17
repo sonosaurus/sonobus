@@ -9,7 +9,6 @@
 */
 
 #include "SonoTextButton.h"
-#include "DebugLogC.h"
 #include "SonoLookAndFeel.h"
 
 SonoTextButton::SonoTextButton(const String & name)
@@ -119,7 +118,7 @@ void SonoTextButton::setupPath() {
         startAng += M_PI_2;
         endAng += M_PI_2;
         
-        DebugLogC("Start ang %g end %g  h: %g  rad: %g", radiansToDegrees(startAng), radiansToDegrees(endAng), height, radius);
+        DBG("Start ang " << radiansToDegrees(startAng) << " end " << radiansToDegrees(endAng) << " h: " << height << "  rad: " << radius);
         
         fillPath.startNewSubPath(borderOffset, height - borderOffset);
         fillPath.addCentredArc(maxdim/2, radius, radius, radius, 0.0f, startAng, endAng);
@@ -343,7 +342,7 @@ void SonoTextButton::setupPath() {
         startAng += M_PI_2;
         endAng += M_PI_2;
 
-        DebugLogC("URC Start ang %g end %g  h: %g  rad: %g", radiansToDegrees(startAng), radiansToDegrees(endAng), height, radius);
+        DBG("URC Start ang " << radiansToDegrees(startAng) << " end " << radiansToDegrees(endAng) << " h: " << height << "  rad: " << radius);
 
         fillPath.startNewSubPath(borderOffset, borderOffset);
         fillPath.addCentredArc(maxdim/2, height-radius, radius, radius, 0.0f, startAng, endAng);
@@ -377,7 +376,7 @@ void SonoTextButton::setupPath() {
         startAng += M_PI_2;
         endAng += M_PI_2;
 
-        DebugLogC("ULC Start ang %g end %g  h: %g  rad: %g", radiansToDegrees(startAng), radiansToDegrees(endAng), height, radius);
+        DBG("URC Start ang " << radiansToDegrees(startAng) << " end " << radiansToDegrees(endAng) << " h: " << height << "  rad: " << radius);
 
         
         fillPath.startNewSubPath(borderOffset, borderOffset);
