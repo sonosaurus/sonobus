@@ -879,7 +879,8 @@ void PeersContainerView::updatePeerViews()
         bool connected = processor.getRemotePeerConnected(i);
 
         String username = processor.getRemotePeerUserName(i);
-        String addrname = String::formatted("%s : %d", hostname.toRawUTF8(), port);
+        String addrname;
+        addrname << hostname << " : " << port;
         
         if (username.isNotEmpty()) {
             pvf->nameLabel->setText(username, dontSendNotification);
@@ -936,7 +937,8 @@ void PeersContainerView::updatePeerViews()
             //String recvfmtstr = recvformatindex >= 0 ?processor.getAudioCodeFormatName(recvformatindex) : "";
             //recvtext += String::formatted("%Ld recvd", processor.getRemotePeerPacketsReceived(i));
             //recvtext += String::formatted("%s | %d kb/s | %d%%", recvfinfo.name.toRawUTF8(), lrintf(recvrate * 8 * 1e-3), (int) lrintf(fillratio*100.0f));
-            recvtext += String::formatted("%s | %d kb/s", recvfinfo.name.toRawUTF8(), lrintf(recvrate * 8 * 1e-3));
+            //recvtext += String::formatted("%s | %d kb/s", recvfinfo.name.toRawUTF8(), lrintf(recvrate * 8 * 1e-3));
+            recvtext += recvfinfo.name + String::formatted(" | %d kb/s", lrintf(recvrate * 8 * 1e-3));
 
             int64_t dropped = processor.getRemotePeerPacketsDropped(i);
             if (dropped > 0) {
@@ -989,7 +991,7 @@ void PeersContainerView::updatePeerViews()
                 pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
             }
         } else {
-            pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)lrintf(totallat), estlat ? "*" : "" ), dontSendNotification);
+            pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(totallat)) + (estlat ? "*" : ""), dontSendNotification);
             //pvf->latencyLabel->setText(String::formatted("%d ms", (int)totallat), dontSendNotification);
         }
 
@@ -1006,7 +1008,7 @@ void PeersContainerView::updatePeerViews()
         float buftimeMs = processor.getRemotePeerBufferTime(i);
         
         pvf->autosizeButton->setSelectedItemIndex(autobufmode, dontSendNotification);
-        pvf->bufferLabel->setText(String::formatted("%d ms%s", (int) lrintf(buftimeMs), (autobufmode == 0 ? "" : autobufmode == 1 ? " (Auto+)" : " (Auto)")), dontSendNotification);
+        pvf->bufferLabel->setText(String::formatted("%d ms", (int) lrintf(buftimeMs)) + (autobufmode == 0 ? "" : autobufmode == 1 ? " (Auto+)" : " (Auto)"), dontSendNotification);
 
         
         if (!pvf->levelSlider->isMouseOverOrDragging()) {
@@ -1137,7 +1139,7 @@ void PeersContainerView::stopLatencyTest(int i)
     if (!isreal) {
         pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
     } else {
-        pvf->latencyLabel->setText(String::formatted("%d ms%s", (int)lrintf(totallat), estlat ? "*" : "" ), dontSendNotification);
+        pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(totallat)) + (estlat ? "*" : "") , dontSendNotification);
     }
 }
 

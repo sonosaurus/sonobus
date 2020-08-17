@@ -642,7 +642,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mServerHostEditor = std::make_unique<TextEditor>("srvaddredit");
     mServerHostEditor->setFont(Font(14));
-    mServerHostEditor->setText( String::formatted("%s:%d", currConnectionInfo.serverHost.toRawUTF8(), currConnectionInfo.serverPort)); // 100.36.128.246 // 23.23.205.37
+    mServerHostEditor->setText( currConnectionInfo.serverHost << ":" << currConnectionInfo.serverPort); // 100.36.128.246 // 23.23.205.37
     configEditor(mServerHostEditor.get());
     
     mServerUsernameEditor = std::make_unique<TextEditor>("srvaddredit");
@@ -1199,8 +1199,10 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * r
     String groupName = mServerGroupEditor->getText();
     String groupPassword = mServerGroupPasswordEditor->getText();
 
-    URL url(String::formatted("sonobus://%s/", hostport.toRawUTF8()));
-    URL url2(String::formatted("http://go.sonobus.net/sblaunch", hostport.toRawUTF8()));
+    String urlstr1;
+    urlstr1 << String("sonobus://") << hostport << String("/");
+    URL url(urlstr1);
+    URL url2("http://go.sonobus.net/sblaunch");
 
     if (url.isWellFormed() && groupName.isNotEmpty()) {        
 
@@ -1293,7 +1295,9 @@ void SonobusAudioProcessorEditor::updateServerFieldsFromConnectionInfo()
     if (currConnectionInfo.serverPort == 10998) {
         mServerHostEditor->setText( currConnectionInfo.serverHost);
     } else {
-        mServerHostEditor->setText( String::formatted("%s:%d", currConnectionInfo.serverHost.toRawUTF8(), currConnectionInfo.serverPort));
+        String hostport;
+        hostport << currConnectionInfo.serverHost << ":" << currConnectionInfo.serverPort;
+        mServerHostEditor->setText( hostport);
     }
     mServerUsernameEditor->setText(currConnectionInfo.userName);
     mServerGroupEditor->setText(currConnectionInfo.groupName);
@@ -2569,7 +2573,9 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
 void SonobusAudioProcessorEditor::updateState()
 {
-    mLocalAddressLabel->setText(String::formatted("%s : %d", processor.getLocalIPAddress().toString().toRawUTF8(), processor.getUdpLocalPort()), dontSendNotification);
+    String locstr;
+    locstr << processor.getLocalIPAddress().toString() << " : " << processor.getUdpLocalPort();
+    mLocalAddressLabel->setText(locstr, dontSendNotification);
 
     currConnected = processor.isConnectedToServer();
     if (currConnected) {
@@ -2611,7 +2617,9 @@ void SonobusAudioProcessorEditor::updateState()
         mMainPeerLabel->setVisible(true);
 
         if (processor.getNumberRemotePeers() == 0) {
-            mMainMessageLabel->setText(String::formatted(TRANS("Waiting for other users to join group \"%s\"..."), currGroup.toRawUTF8()), dontSendNotification);
+            String labstr;
+            labstr << TRANS("Waiting for other users to join group \"") << currGroup << "\"...";
+            mMainMessageLabel->setText(labstr, dontSendNotification);
             mMainMessageLabel->setVisible(true);
         } else {
             mMainMessageLabel->setText("", dontSendNotification);
@@ -4034,10 +4042,10 @@ void SonobusAudioProcessorEditor::RecentsListModel::paintListBoxItem (int rowNum
         infostr = TRANS("password protected, ");
     }
 
-    infostr += String::formatted(TRANS("on %s "), Time(info.timestamp).toString(true, true, false).toRawUTF8());
+    infostr += TRANS("on ") + Time(info.timestamp).toString(true, true, false) + " " ;
     
     if (info.serverHost != "aoo.sonobus.net") {
-        infostr += String::formatted(TRANS("to %s"), info.serverHost.toRawUTF8());
+        infostr += TRANS("to ") +  info.serverHost;
     }
 
     g.setColour (parent->findColour(nameTextColourId).withAlpha(0.5f));
