@@ -104,7 +104,7 @@ to help the users connect to each other, all audio is sent directly
 between users (peer-to-peer).
 
 PRESS Connect to Group! If others are already in the group you should
-see them show up and you'll be able to hear other. Otherwise, you will
+see them show up and you'll be able to hear each other. Otherwise, you will
 see a message indicating that you are waiting for others to join. You
 can adjust the levels that you hear the others with the volume
 sliders, or adjust the stereo panning with the Pan button (and popup
