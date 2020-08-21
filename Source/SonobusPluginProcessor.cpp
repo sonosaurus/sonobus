@@ -1056,9 +1056,19 @@ void SonobusAudioProcessor::doReceiveData()
                 for (auto & remote : mRemotePeers) {
                     if (!remote->oursink) continue;
                     
+                    if (id == AOO_ID_NONE) {
+                        // this is a compact data message, try them all
+                        if (remote->oursink->handle_message(buf, nbytes, endpoint, endpoint_send)) {
+                            remote->dataPacketsReceived += 1;
+                        
+                            break;
+                        }
+                    }
+                    
                     if (id == AOO_ID_WILDCARD || (remote->oursink->get_id(dummyid) && id == dummyid) ) {
-                        remote->oursink->handle_message(buf, nbytes, endpoint, endpoint_send);
-                        remote->dataPacketsReceived += 1;
+                        if (remote->oursink->handle_message(buf, nbytes, endpoint, endpoint_send)) {
+                            remote->dataPacketsReceived += 1;
+                        }
                         
                         if (id != AOO_ID_WILDCARD) break;
                     }
@@ -1389,6 +1399,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
 
                     // add their sink
                     peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
+                    peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
 
                     if (peer->sendAllow) {
                         peer->oursource->start();
@@ -1421,6 +1432,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                         peer->remoteSinkId = e->id;
 
                         peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
+                        peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
                         
                         if (peer->sendAllow) {
                             peer->oursource->start();
@@ -2963,6 +2975,9 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getTotalNumOutputChannels());
         retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
+
+        int32_t flags = AOO_PROTOCOL_FLAG_COMPACT_DATA;
+        retpeer->oursink->set_option(aoo_opt_protocol_flags, &flags, sizeof(int32_t));
         
         retpeer->sendChannels = getTotalNumInputChannels(); // by default
         
@@ -2981,6 +2996,9 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
 
         retpeer->latencysink->setup(getSampleRate(), currSamplesPerBlock, 1);
         retpeer->echosink->setup(getSampleRate(), currSamplesPerBlock, 1);
+
+        retpeer->latencysink->set_option(aoo_opt_protocol_flags, &flags, sizeof(int32_t));
+        retpeer->echosink->set_option(aoo_opt_protocol_flags, &flags, sizeof(int32_t));
 
         retpeer->latencysink->set_buffersize(retpeer->buffertimeMs);
         retpeer->echosink->set_buffersize(retpeer->buffertimeMs);
