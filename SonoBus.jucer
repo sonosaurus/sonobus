@@ -312,14 +312,14 @@
         <MODULEPATH id="ff_meters" path="deps"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES&#10;AOO_STATIC&#10;AOO_TIMEFILTER_CHECK=0"
+    <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES&#10;AOO_STATIC&#10;AOO_TIMEFILTER_CHECK=0&#10;WINVER=0x0601&#10;_WIN32_WINNT=0x0601"
             externalLibraries="opus.lib" smallIcon="ZWiivf" bigIcon="cVyJ9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64&#10;..\..\..\asiosdk\common"
                        libraryPath="..\..\deps\opus\x64\Debug" useRuntimeLibDLL="0"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="..\..\deps\opus\x64\Release"
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64&#10;..\..\..\asiosdk\common"
-                       useRuntimeLibDLL="0"/>
+                       useRuntimeLibDLL="0" enablePluginBinaryCopyStep="1" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl"/>
