@@ -1839,8 +1839,23 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
     }
     else if (buttonThatWasClicked == mMainLinkButton.get()) {
+#if JUCE_IOS
+        String message;
+        bool singleurl = true;
+        if (copyInfoToClipboard(singleurl, &message)) {
+            URL url(message);
+            if (url.isWellFormed()) {
+                Array<URL> urlarray;
+                urlarray.add(url);
+                ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
+            } else {
+                ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });       
+            }
+        }        
+#else
         copyInfoToClipboard();
         showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, mMainLinkButton.get());
+#endif
     }
     else if (buttonThatWasClicked == mServerShareButton.get()) {
         String message;
