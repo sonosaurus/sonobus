@@ -182,6 +182,11 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 #if 1
 
 
+Font SonoLookAndFeel::getMenuBarFont (MenuBarComponent& menuBar, int /*itemIndex*/, const String& /*itemText*/)
+{
+    return Font (menuBar.getHeight() * 0.7f);
+}
+
 //==============================================================================
 void SonoLookAndFeel::drawCallOutBoxBackground (CallOutBox& box, Graphics& g,
                                                const Path& path, Image& cachedImage)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" jucerVersion="5.4.3"
+<JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" jucerVersion="5.4.7"
               companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
               companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,buildVST3,enableIAA"
               pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1"
@@ -86,9 +86,8 @@
             file="images/incoming_disallowed.svg"/>
       <FILE id="vtjKwH" name="launchicon@2x.png" compile="0" resource="0"
             file="images/launchicon@2x.png" xcodeResource="1"/>
-      <FILE id="ULiYlv" name="LaunchScreen.storyboard" compile="0" resource="0"
-            file="images/LaunchScreen.storyboard" xcodeResource="1"/>
       <FILE id="sjyJRV" name="lgc_bar.wav" compile="0" resource="1" file="images/lgc_bar.wav"/>
+      <FILE id="MghBBn" name="link.svg" compile="0" resource="1" file="images/link.svg"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
       <FILE id="QOhFEr" name="loop_icon.svg" compile="0" resource="1" file="images/loop_icon.svg"/>
       <FILE id="V0RVkS" name="met.svg" compile="0" resource="1" file="images/met.svg"/>
@@ -230,7 +229,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
                extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                smallIcon="ZWiivf" bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D"
-               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;10&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;14&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                prebuildCommand="../../scripts/mac_prebuild.sh">
       <CONFIGURATIONS>
@@ -258,15 +257,16 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;13&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;14&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                   extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                   externalLibraries="opus" smallIcon="tb00W2" bigIcon="rlxTrd"
-                  UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="LaunchScreen">
+                  UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="images/LaunchScreen.storyboard">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/ios/include&#10;"
-                       libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"/>
+                       libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"
+                       iosCompatibility="11.0"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/ios/include&#10;"
-                       libraryPath="../../deps/ios/lib"/>
+                       libraryPath="../../deps/ios/lib" iosCompatibility="11.0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl"/>

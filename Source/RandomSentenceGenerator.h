@@ -51,7 +51,7 @@ public:
         if (sz == 0){
             return "";
         }
-        return grammarMap[nonTerm].at(rng.nextInt()%sz);
+        return grammarMap[nonTerm].at(abs(rng.nextInt())%sz);
     }
     
     /**

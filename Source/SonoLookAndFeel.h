@@ -38,7 +38,9 @@ public:
 
     Typeface::Ptr getTypefaceForFont (const Font& font) override;
 
+    Font getMenuBarFont (MenuBarComponent& menuBar, int /*itemIndex*/, const String& /*itemText*/) override;
 
+    
     Button* createSliderButton (Slider&, const bool isIncrement) override;
     Label* createSliderTextBox (Slider&) override;
     

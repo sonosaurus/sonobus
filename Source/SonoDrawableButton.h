@@ -40,7 +40,7 @@ public:
     
 protected:
     
-    ScopedPointer<Drawable> bgImage;
+    std::unique_ptr<Drawable> bgImage;
     float fgImageRatio = 0.75f;
     RectanglePlacement rectPlacement = RectanglePlacement::stretchToFit;
 };

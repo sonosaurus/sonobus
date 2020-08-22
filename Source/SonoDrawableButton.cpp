@@ -15,14 +15,14 @@ SonoDrawableButton::SonoDrawableButton (const String& buttonName, ButtonStyle bu
 {
 }
 
-static Drawable* copyDrawableIfNotNull (const Drawable* const d)
-{
-    return d != nullptr ? d->createCopy() : nullptr;
-}
 
 void SonoDrawableButton::setBackgroundImage(const Drawable * img)
 {
-    bgImage = copyDrawableIfNotNull(img);
+    if (img) {
+        bgImage = img->createCopy();
+    } else {
+        bgImage.reset();
+    }
 }
 
 

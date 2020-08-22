@@ -783,6 +783,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mSettingsButton->setAlpha(0.7);
     mSettingsButton->addMouseListener(this, false);
 
+    mMainLinkButton = std::make_unique<SonoDrawableButton>("link",  DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> linkimg(Drawable::createFromImageData(BinaryData::link_svg, BinaryData::link_svgSize));
+    mMainLinkButton->setImages(linkimg.get());
+    mMainLinkButton->addListener(this);
+    //mMainLinkButton->setAlpha(0.7);
+
+    
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
     
     mPeerViewport = std::make_unique<Viewport>();
@@ -991,6 +998,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mMainUserLabel.get());
     addAndMakeVisible(mMainPersonImage.get());
     addAndMakeVisible(mMainGroupImage.get());
+    addAndMakeVisible(mMainLinkButton.get());
 
     //addAndMakeVisible(mConnectTab.get());    
     addAndMakeVisible(mDrySlider.get());
@@ -1101,6 +1109,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     //setResizeLimits(400, 300, 2000, 1000);
 
+    commandManager.registerAllCommandsForTarget (this);
+      
+    
     if (JUCEApplicationBase::isStandaloneApp()) {
 #if !JUCE_IOS
         processor.startAooServer();
@@ -1115,9 +1126,15 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 #if JUCE_MAC
         auto extraAppleMenuItems = PopupMenu();
         extraAppleMenuItems.addCommandItem(&commandManager, SonobusCommands::ShowOptions);
+        
         MenuBarModel::setMacMainMenu(menuBarModel.get(), &extraAppleMenuItems);
 #endif
-      
+
+#if JUCE_WINDOWS
+        mMenuBar = std::make_unique<MenuBarComponent>(menuBarModel.get());
+        addAndMakeVisible(mMenuBar.get());
+#endif
+        
         // look for link in clipboard        
         if (attemptToPasteConnectionFromClipboard()) {
             // show connect immediately
@@ -1140,8 +1157,6 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRandomSentence->capEveryWord = true;
     
 
-    commandManager.registerAllCommandsForTarget (this);
-    
     // this will use the command manager to initialise the KeyPressMappingSet with
     // the default keypresses that were specified when the targets added their commands
     // to the manager.
@@ -1164,7 +1179,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
    // Make sure that before the constructor has finished, you've set the
    // editor's size to whatever you need it to be.
-   setSize (720, 440);
+
+    auto defHeight = 440;
+#if JUCE_WINDOWS
+    defHeight = 470;
+#endif
+    
+    setSize (720, defHeight);
        
 }
 
@@ -1808,16 +1829,18 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         mServerGroupEditor->setText(rgroup, dontSendNotification);
     }
     else if (buttonThatWasClicked == mServerPasteButton.get()) {
-        // randomize group name
         if (attemptToPasteConnectionFromClipboard()) {
             updateServerFieldsFromConnectionInfo();            
             updateServerStatusLabel(TRANS("Filled in Group information from clipboard! Press 'Connect to Group' to join..."), false);
         }
     }
     else if (buttonThatWasClicked == mServerCopyButton.get()) {
-        // randomize group name
         copyInfoToClipboard();
         showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
+    }
+    else if (buttonThatWasClicked == mMainLinkButton.get()) {
+        copyInfoToClipboard();
+        showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, mMainLinkButton.get());
     }
     else if (buttonThatWasClicked == mServerShareButton.get()) {
         String message;
@@ -2614,7 +2637,8 @@ void SonobusAudioProcessorEditor::updateState()
         mMainGroupImage->setVisible(true);
         mMainPersonImage->setVisible(true);
         mMainPeerLabel->setVisible(true);
-
+        mMainLinkButton->setVisible(true);
+        
         if (processor.getNumberRemotePeers() == 0) {
             String labstr;
             labstr << TRANS("Waiting for other users to join group \"") << currGroup << "\"...";
@@ -2635,6 +2659,7 @@ void SonobusAudioProcessorEditor::updateState()
         mMainGroupImage->setVisible(false);
         mMainPersonImage->setVisible(false);
         mMainPeerLabel->setVisible(false);
+        mMainLinkButton->setVisible(false);
 
         mMainMessageLabel->setVisible(true);
 
@@ -2915,7 +2940,15 @@ void SonobusAudioProcessorEditor::resized()
     
     DBG("RESIZED to " << getWidth() << " " << getHeight());
     
-    mainBox.performLayout(getLocalBounds());    
+    auto mainBounds = getLocalBounds();
+    const auto menuHeight = getLookAndFeel().getDefaultMenuBarHeight();
+    
+    if (mMenuBar) {
+        auto menuBounds = mainBounds.removeFromTop(menuHeight);
+        mMenuBar->setBounds(menuBounds);
+    }
+    
+    mainBox.performLayout(mainBounds);    
 
     Rectangle<int> peersminbounds = mPeerContainer->getMinimumContentBounds();
     
@@ -3266,6 +3299,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2, *mMainGroupLabel).withMargin(2).withFlex(1));
     mainGroupUserBox.items.add(FlexItem(iconwidth, iconheight, *mMainPersonImage).withMargin(0).withFlex(0));
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2, *mMainUserLabel).withMargin(2).withFlex(1));
+    mainGroupUserBox.items.add(FlexItem(iconwidth, iconheight, *mMainLinkButton).withMargin(0).withFlex(0));
 
     connectBox.items.clear();
     connectBox.flexDirection = FlexBox::Direction::column;

@@ -551,7 +551,8 @@ void PeersContainerView::updateLayout()
 
     const int textheight = minitemheight / 2;
 
-    
+    bool servconnected = processor.isConnectedToServer();
+
     peersBox.items.clear();
     peersBox.flexDirection = FlexBox::Direction::column;
     peersBox.justifyContent = FlexBox::JustifyContent::flexStart;
@@ -658,8 +659,13 @@ void PeersContainerView::updateLayout()
         pvf->optionsbuttbox.items.add(FlexItem(12, 12).withFlex(1));
         pvf->optionsbuttbox.items.add(FlexItem(100, minitemheight, *pvf->optionsResetDropButton).withMargin(0).withFlex(0));
         pvf->optionsbuttbox.items.add(FlexItem(12, 12).withFlex(1));
-        pvf->optionsbuttbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->optionsRemoveButton).withMargin(0).withFlex(0));
-        pvf->optionsbuttbox.items.add(FlexItem(12, 12).withFlex(1));
+        if (!servconnected) {
+            pvf->optionsbuttbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->optionsRemoveButton).withMargin(0).withFlex(0));
+            pvf->optionsbuttbox.items.add(FlexItem(12, 12).withFlex(1));
+            pvf->optionsRemoveButton->setVisible(true);
+        } else {
+            pvf->optionsRemoveButton->setVisible(false);
+        }
         
         pvf->optionsaddrbox.items.clear();
         pvf->optionsaddrbox.flexDirection = FlexBox::Direction::row;

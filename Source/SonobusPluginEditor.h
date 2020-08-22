@@ -230,6 +230,7 @@ private:
     
     std::unique_ptr<TextButton> mPatchbayButton;
     std::unique_ptr<SonoDrawableButton> mSettingsButton;
+    std::unique_ptr<SonoDrawableButton> mMainLinkButton;
 
     std::unique_ptr<Slider> mInGainSlider;
 
@@ -455,7 +456,8 @@ private:
     };
     
     std::unique_ptr<SonobusMenuBarModel> menuBarModel;
-    
+    std::unique_ptr<MenuBarComponent> mMenuBar;
+
     
     std::unique_ptr<RandomSentenceGenerator> mRandomSentence;
 
