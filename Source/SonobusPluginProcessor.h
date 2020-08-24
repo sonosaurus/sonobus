@@ -250,9 +250,18 @@ public:
     void    resetRemotePeerPacketStats(int index);
     
 
+    struct LatencyInfo
+    {
+        float pingMs = 0.0f;
+        float totalRoundtripMs = 0.0f;
+        float outgoingMs = 0.0f;
+        float incomingMs = 0.0f;
+        float jitterMs = 0.0f;
+        bool isreal = false;
+        bool estimated = false;
+    };
     
-    float getRemotePeerPingMs(int index) const;
-    float getRemotePeerTotalLatencyMs(int index, bool & isreal, bool & estimated) const;
+    bool getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo) const;
 
     bool startRemotePeerLatencyTest(int index, float durationsec = 1.0);
     bool stopRemotePeerLatencyTest(int index);

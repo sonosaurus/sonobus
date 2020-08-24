@@ -1312,7 +1312,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
 
                 // smooth it
                 peer->pingTime = rtt; // * 0.5;
-                if (rtt < 1000.0) {
+                if (rtt < 800.0 ) {
                     peer->smoothPingTime.Z *= 0.9f;
                     peer->smoothPingTime.push(peer->pingTime);
                 }
@@ -2622,17 +2622,7 @@ void  SonobusAudioProcessor::resetRemotePeerPacketStats(int index)
 }
 
 
-float SonobusAudioProcessor::getRemotePeerPingMs(int index) const
-{
-    const ScopedReadLock sl (mCoreLock);        
-    if (index < mRemotePeers.size()) {
-        RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        return remote->smoothPingTime.xbar;
-    }
-    return 0;          
-}
-
-float SonobusAudioProcessor::getRemotePeerTotalLatencyMs(int index, bool & isreal, bool & estimated) const
+bool SonobusAudioProcessor::getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -2649,9 +2639,6 @@ float SonobusAudioProcessor::getRemotePeerTotalLatencyMs(int index, bool & isrea
                 remote->hasRealLatency = true;
                 remote->latencyDirty = false;
                 remote->totalEstLatency = remote->totalLatency;
-                estimated = false;
-                isreal = true;
-                return remote->totalLatency;
             }
             else {
                 DBG("Latency not calculated yet...");
@@ -2705,24 +2692,41 @@ float SonobusAudioProcessor::getRemotePeerTotalLatencyMs(int index, bool & isrea
         }
 #endif
         
+        retinfo.pingMs = remote->smoothPingTime.xbar;
+        
         if (remote->hasRealLatency) {
-            estimated = remote->latencyDirty;
-            isreal = true;
+            retinfo.estimated = remote->latencyDirty;
+            retinfo.isreal = true;
             if (remote->latencyDirty) {
                 // is a good estimate
-                return remote->totalEstLatency;
+                retinfo.totalRoundtripMs = remote->totalEstLatency;
             }
             else {
-                return remote->totalLatency;
+                retinfo.totalRoundtripMs = remote->totalLatency;
             }
+
         }
         else {
-            isreal = false;
-            estimated = true;
-            return remote->totalEstLatency ;
+            retinfo.isreal = false;
+            retinfo.estimated = true;
+            retinfo.totalRoundtripMs = remote->totalEstLatency ;
+
         }
+
+        // given a roundtrip, a ping time, and our known internal buffering latency
+        // we can get decent estimates for the each-direction latencies
+        // outgoing = internal_input_latency + 0.5*pingtime + ??? remote buffering + ??? remote_output_latency
+        // incoming = internal_output_latency + 0.5*pingtime + receivejitterbuffer + ??? remote_input_latency
+        // roundtrip = incoming + outgoing
+        // reflect actual truth
+        float buftimeMs = jmax((double)remote->buffertimeMs, 1000.0f * currSamplesPerBlock / getSampleRate());
+
+        retinfo.incomingMs = 2e3*currSamplesPerBlock/getSampleRate() + retinfo.pingMs*0.5f + buftimeMs;
+        retinfo.outgoingMs = /* unknwon_remote_output_latency + */  retinfo.totalRoundtripMs - retinfo.incomingMs;
+        retinfo.jitterMs =  2 * remote->fillRatioSlow.s2xx * buftimeMs; // can't find a good estimate for this yet
+        return true;
     }
-    return 0;          
+    return false;          
 }
 
 bool SonobusAudioProcessor::isRemotePeerLatencyTestActive(int index)

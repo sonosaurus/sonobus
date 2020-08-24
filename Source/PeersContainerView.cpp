@@ -983,20 +983,19 @@ void PeersContainerView::updatePeerViews()
         pvf->sendActualBitrateLabel->setText(sendtext, dontSendNotification);
         pvf->recvActualBitrateLabel->setText(recvtext, dontSendNotification);
 
-        bool estlat = true;
-        bool isreal = false;
-        float totallat = processor.getRemotePeerTotalLatencyMs(i, isreal, estlat);
+        SonobusAudioProcessor::LatencyInfo latinfo;
+        processor.getRemotePeerLatencyInfo(i, latinfo);
         
-        pvf->pingLabel->setText(String::formatted("%d ms", (int)processor.getRemotePeerPingMs(i) ), dontSendNotification);
-
-        if (!isreal) {
+        pvf->pingLabel->setText(String::formatted("%d ms", (int)latinfo.pingMs ), dontSendNotification);
+        
+        if (!latinfo.isreal) {
             if (pvf->stopLatencyTestTimestampMs > 0) {
                 pvf->latencyLabel->setText(TRANS("****"), dontSendNotification);
             } else {
                 pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
             }
         } else {
-            pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(totallat)) + (estlat ? "*" : ""), dontSendNotification);
+            pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : ""), dontSendNotification);
             //pvf->latencyLabel->setText(String::formatted("%d ms", (int)totallat), dontSendNotification);
         }
 
@@ -1085,10 +1084,11 @@ void PeersContainerView::updatePeerViews()
             && !pvf->latActiveButton->isMouseButtonDown()) {
 
             // only stop if it has actually gotten a real latency
-            if (isreal) {
+            if (latinfo.isreal) {
                 stopLatencyTest(i);
                 
-                showPopTip(String::formatted(TRANS("Measured actual round-trip latency of %d ms"), (int) lrintf(totallat)), 4000, pvf->latActiveButton.get(), 140);
+                String messagestr = generateLatencyMessage(latinfo);
+                showPopTip(messagestr, 0, pvf->latActiveButton.get(), 140);
 
                 //if (popTip && popTip->isVisible()) {
                 //    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
@@ -1137,16 +1137,25 @@ void PeersContainerView::stopLatencyTest(int i)
      
     pvf->stopLatencyTestTimestampMs = 0;
     
-    bool estlat = true;
-    bool isreal = false;
-    float totallat = processor.getRemotePeerTotalLatencyMs(i, isreal, estlat);
-    
-    if (!isreal) {
+    SonobusAudioProcessor::LatencyInfo latinfo;
+    processor.getRemotePeerLatencyInfo(i, latinfo);
+        
+    if (!latinfo.isreal) {
         pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
     } else {
-        pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(totallat)) + (estlat ? "*" : "") , dontSendNotification);
+        pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : "") , dontSendNotification);
     }
 }
+
+String PeersContainerView::generateLatencyMessage(const SonobusAudioProcessor::LatencyInfo &latinfo)
+{
+    String messagestr = String::formatted(TRANS("Measured actual round-trip latency: %d ms"), (int) lrintf(latinfo.totalRoundtripMs));
+    messagestr += String::formatted(TRANS("\nEst. Outgoing: %.1f ms"), (latinfo.outgoingMs));
+    messagestr += String::formatted(TRANS("\nEst. Incoming: %.1f ms"), (latinfo.incomingMs));
+    //messagestr += String::formatted(TRANS("\nJitter: %.1f ms"), (latinfo.jitterMs));
+    return messagestr;
+}
+
 
 void PeersContainerView::timerCallback(int timerId)
 {
@@ -1400,15 +1409,19 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
 
         if (event.eventComponent == pvf->latActiveButton.get()) {
             uint32 nowtimems = Time::getMillisecondCounter();
-            bool isreal=false, est = false;
-            float latval = processor.getRemotePeerTotalLatencyMs(i, isreal, est);
+            SonobusAudioProcessor::LatencyInfo latinfo;
+            processor.getRemotePeerLatencyInfo(i, latinfo);
 
             // only stop if it has actually gotten a real latency
 
-            if (nowtimems >= pvf->stopLatencyTestTimestampMs && isreal) {
+            if (nowtimems >= pvf->stopLatencyTestTimestampMs && latinfo.isreal) {
                 stopLatencyTest(i);
                 pvf->latActiveButton->setToggleState(false, dontSendNotification);
-                showPopTip(String::formatted(TRANS("Measured actual round-trip latency of %d ms"), (int) lrintf(latval)), 4000, pvf->latActiveButton.get(), 140);
+                
+                String messagestr = generateLatencyMessage(latinfo);
+
+                showPopTip(messagestr, 0, pvf->latActiveButton.get(), 140);
+
                 //if (popTip && popTip->isVisible()) {
                 //    Desktop::getInstance().getAnimator().fadeOut(popTip.get(), 200);
                 //    popTip.reset();

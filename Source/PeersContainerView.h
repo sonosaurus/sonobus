@@ -178,6 +178,9 @@ protected:
     void configLevelSlider(Slider * slider);    
     void configLabel(Label *label, int ltype);
     
+    String generateLatencyMessage(const SonobusAudioProcessor::LatencyInfo &latinfo);
+
+    
     PeerViewInfo * createPeerViewInfo();
     
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
