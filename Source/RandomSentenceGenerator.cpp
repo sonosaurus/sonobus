@@ -77,7 +77,7 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
     
     //while there is still another line to read
     while (getline(inFile, line)){
-        unsigned long flag = line.find("{");
+        std::size_t flag = line.find("{");
         if (flag != std::string::npos){
             //the next line should be the grammar rule
             getline(inFile, line);
@@ -85,7 +85,7 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
             rule = rule.substr(0,rule.find_last_not_of(delimiters)+1);
             //cout << "rule: " << rule << endl;
             getline(inFile, line);
-            unsigned long flag2 = line.find("}");
+            std::size_t flag2 = line.find("}");
             while (flag2 == std::string::npos){ //if the line isn't a right bracket
                 sentence = line;
                 sentence = sentence.substr(0,sentence.find_last_not_of(delimiters)+1);
@@ -135,13 +135,15 @@ string RandomSentenceGenerator::randomSentence(string rule)
  **/
 void RandomSentenceGenerator::replaceRule(string *s, string lhs, string sub)
 {
-    int start = (int) s->find(lhs);
+    std::size_t start =  s->find(lhs);
     if (start != string::npos){
-        unsigned long end = s->find('>');
+        std::size_t end = s->find('>');
         if (capEveryWord && sub.length() > 0) {
             capFirst(sub);
         }
-        s->replace(start, (end - start) + 1, sub);
+        if (end != string::npos) {
+            s->replace(start, (end - start) + 1, sub);
+        }
     } // end if
 }
 
@@ -150,12 +152,13 @@ void RandomSentenceGenerator::replaceRule(string *s, string lhs, string sub)
  **/
 string RandomSentenceGenerator::getRule(string sentence)
 {
-   unsigned long ruleIndexStart = sentence.find('<');
+   std::size_t ruleIndexStart = sentence.find('<');
    //if there is a rule to be found / no '<''s if not
    if (ruleIndexStart != string::npos){
-      unsigned long ruleIndexEnd = sentence.find('>'); //find the beginning and end of the rule
-      //return the sentence with the rule filled
-      return sentence.substr(ruleIndexStart, ++ruleIndexEnd - ruleIndexStart);
+       std::size_t ruleIndexEnd = sentence.find('>'); //find the beginning and end of the rule
+       //return the sentence with the rule filled
+       if (ruleIndexEnd != string::npos) 
+           return sentence.substr(ruleIndexStart, ++ruleIndexEnd - ruleIndexStart);
    }// end if
 
    return "";
