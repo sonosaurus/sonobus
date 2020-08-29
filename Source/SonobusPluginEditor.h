@@ -126,6 +126,7 @@ private:
     void showPatchbay(bool flag);
     void showInPanners(bool flag);
     void showMetConfig(bool flag);
+    void showEffectsConfig(bool flag);
 
     void showConnectPopup(bool flag);
 
@@ -244,8 +245,8 @@ private:
     std::unique_ptr<Slider> mDrySlider;
     std::unique_ptr<Slider> mOutGainSlider;
     
-    std::unique_ptr<SonoDrawableButton> mMasterMuteButton;
-    std::unique_ptr<SonoDrawableButton> mMasterRecvMuteButton;
+    std::unique_ptr<SonoDrawableButton> mMainMuteButton;
+    std::unique_ptr<SonoDrawableButton> mMainRecvMuteButton;
 
     std::unique_ptr<SonoDrawableButton> mMetConfigButton;
     std::unique_ptr<SonoDrawableButton> mMetEnableButton;
@@ -278,13 +279,18 @@ private:
 
     
     std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
+    std::unique_ptr<Viewport> mAudioOptionsViewport;
+    std::unique_ptr<Viewport> mOtherOptionsViewport;
 
     std::unique_ptr<TabbedComponent> mSettingsTab;
 
     std::unique_ptr<Component> mHelpComponent;
     std::unique_ptr<Component> mOptionsComponent;
-
+    int minOptionsHeight = 0;
+    
     std::unique_ptr<Component> mMetContainer;
+
+    std::unique_ptr<Component> mEffectsContainer;
 
     
     std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
@@ -308,6 +314,21 @@ private:
     std::unique_ptr<Slider> mPlaybackSlider;
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
+    // effects
+    std::unique_ptr<TextButton> mEffectsButton;
+
+    std::unique_ptr<ToggleButton> mReverbEnabledButton;
+    std::unique_ptr<SonoChoiceButton> mReverbModelChoice;
+    std::unique_ptr<Label>  mReverbLevelLabel;
+    std::unique_ptr<Slider> mReverbLevelSlider;
+    std::unique_ptr<Label>  mReverbSizeLabel;
+    std::unique_ptr<Slider> mReverbSizeSlider;
+    std::unique_ptr<Label>  mReverbDampingLabel;
+    std::unique_ptr<Slider> mReverbDampingSlider;
+    std::unique_ptr<Label>  mReverbPreDelayLabel;
+    std::unique_ptr<Slider> mReverbPreDelaySlider;
+
+    
     std::unique_ptr<FileChooser> mFileChooser;
     File  mCurrOpenDir;
     URL mCurrentAudioFile;
@@ -332,6 +353,7 @@ private:
     WeakReference<Component> serverCalloutBox;
 
     WeakReference<Component> metCalloutBox;
+    WeakReference<Component> effectsCalloutBox;
 
     
     
@@ -500,13 +522,23 @@ private:
     FlexBox transportWaveBox;
     FlexBox transportVBox;
     FlexBox recBox;
+    FlexBox knobButtonBox;    
 
     FlexBox metBox;
     FlexBox metVolBox;
     FlexBox metTempoBox;
     FlexBox metSendBox;
 
-
+    FlexBox effectsBox;
+    FlexBox reverbBox;
+    FlexBox reverbKnobBox;
+    FlexBox reverbCheckBox;
+    FlexBox reverbLevelBox;
+    FlexBox reverbSizeBox;
+    FlexBox reverbDampBox;
+    FlexBox reverbPreDelayBox;
+    
+    
     FlexBox connectMainBox;
     FlexBox connectHorizBox;
     FlexBox connectTitleBox;
@@ -552,8 +584,8 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMasterSendMuteAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMasterRecvMuteAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainSendMuteAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainRecvMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetTempoAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetEnableAttachment;
@@ -561,6 +593,11 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mHearLatencyTestAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetRecordedAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mReverbEnableAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbSizeAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbLevelAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbDampingAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbPreDelayAttachment;
 
     
     bool iaaConnected = false;

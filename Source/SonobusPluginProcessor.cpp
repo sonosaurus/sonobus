@@ -38,8 +38,8 @@ String SonobusAudioProcessor::paramBufferTime  ("buffertime");
 String SonobusAudioProcessor::paramDefaultNetbufMs ("defnetbuf");
 String SonobusAudioProcessor::paramDefaultAutoNetbuf ("defnetauto");
 String SonobusAudioProcessor::paramDefaultSendQual ("defsendqual");
-String SonobusAudioProcessor::paramMasterSendMute ("mastsendmute");
-String SonobusAudioProcessor::paramMasterRecvMute ("mastrecvmute");
+String SonobusAudioProcessor::paramMainSendMute ("mastsendmute");
+String SonobusAudioProcessor::paramMainRecvMute ("mastrecvmute");
 String SonobusAudioProcessor::paramMetEnabled ("metenabled");
 String SonobusAudioProcessor::paramMetGain     ("metgain");
 String SonobusAudioProcessor::paramMetTempo     ("mettempo");
@@ -47,6 +47,12 @@ String SonobusAudioProcessor::paramSendMetAudio    ("sendmetaudio");
 String SonobusAudioProcessor::paramSendFileAudio    ("sendfileaudio");
 String SonobusAudioProcessor::paramHearLatencyTest   ("hearlatencytest");
 String SonobusAudioProcessor::paramMetIsRecorded   ("metisrecorded");
+String SonobusAudioProcessor::paramMainReverbEnabled  ("mainreverbenabled");
+String SonobusAudioProcessor::paramMainReverbLevel  ("mainreverblevel");
+String SonobusAudioProcessor::paramMainReverbSize  ("mainreverbsize");
+String SonobusAudioProcessor::paramMainReverbDamping  ("mainreverbdamp");
+String SonobusAudioProcessor::paramMainReverbPreDelay  ("mainreverbpredelay");
+String SonobusAudioProcessor::paramMainReverbModel  ("mainreverbmodel");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -410,9 +416,24 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterBool>(paramSendFileAudio, TRANS ("Send Playback Audio"), mSendPlaybackAudio.get()),
     std::make_unique<AudioParameterBool>(paramHearLatencyTest, TRANS ("Hear Latency Test"), mHearLatencyTest.get()),
     std::make_unique<AudioParameterBool>(paramMetIsRecorded, TRANS ("Record Metronome to File"), mMetIsRecorded.get()),
+    std::make_unique<AudioParameterBool>(paramMainReverbEnabled, TRANS ("Main Reverb Enabled"), mMainReverbEnabled.get()),
+    std::make_unique<AudioParameterFloat>(paramMainReverbLevel,     TRANS ("Main Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mMainReverbLevel.get(), "", AudioProcessorParameter::genericParameter, 
+                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
+                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+    std::make_unique<AudioParameterFloat>(paramMainReverbSize,     TRANS ("Main Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbSize.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
+                                          [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
+    std::make_unique<AudioParameterFloat>(paramMainReverbDamping,     TRANS ("Main Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
+                                          [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
+    std::make_unique<AudioParameterFloat>(paramMainReverbPreDelay,     TRANS ("Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mMainReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String(v, 0) + " ms"; }, 
+                                          [](const String& s) -> float { return s.getFloatValue(); }),
 
-    std::make_unique<AudioParameterBool>(paramMasterSendMute, TRANS ("Main Send Mute"), mMasterSendMute.get()),
-    std::make_unique<AudioParameterBool>(paramMasterRecvMute, TRANS ("Main Receive Mute"), mMasterRecvMute.get()),
+    std::make_unique<AudioParameterChoice>(paramMainReverbModel, TRANS ("Main Reverb Model"), StringArray({ "Freeverb", "MVerb", "Zita"}), mMainReverbModel.get()),
+
+    std::make_unique<AudioParameterBool>(paramMainSendMute, TRANS ("Main Send Mute"), mMainSendMute.get()),
+    std::make_unique<AudioParameterBool>(paramMainRecvMute, TRANS ("Main Receive Mute"), mMainRecvMute.get()),
 
     std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full"}), defaultAutoNetbufMode),
 
@@ -427,8 +448,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramDefaultAutoNetbuf, this);
     mState.addParameterListener (paramDefaultNetbufMs, this);
     mState.addParameterListener (paramDefaultSendQual, this);
-    mState.addParameterListener (paramMasterSendMute, this);
-    mState.addParameterListener (paramMasterRecvMute, this);
+    mState.addParameterListener (paramMainSendMute, this);
+    mState.addParameterListener (paramMainRecvMute, this);
     mState.addParameterListener (paramMetEnabled, this);
     mState.addParameterListener (paramMetGain, this);
     mState.addParameterListener (paramMetTempo, this);
@@ -436,6 +457,12 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramSendFileAudio, this);
     mState.addParameterListener (paramHearLatencyTest, this);
     mState.addParameterListener (paramMetIsRecorded, this);
+    mState.addParameterListener (paramMainReverbEnabled, this);
+    mState.addParameterListener (paramMainReverbSize, this);
+    mState.addParameterListener (paramMainReverbLevel, this);
+    mState.addParameterListener (paramMainReverbDamping, this);
+    mState.addParameterListener (paramMainReverbPreDelay, this);
+    mState.addParameterListener (paramMainReverbModel, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -453,6 +480,24 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mMetronome->loadBarSoundFromBinaryData(BinaryData::bar_click_wav, BinaryData::bar_click_wavSize);
     mMetronome->loadBeatSoundFromBinaryData(BinaryData::beat_click_wav, BinaryData::beat_click_wavSize);
     mMetronome->setTempo(100.0);
+    
+    mMainReverb = std::make_unique<Reverb>();
+    mMainReverbParams.dryLevel = 0.0f;
+    mMainReverbParams.wetLevel = mMainReverbLevel.get() * 0.5f;
+    mMainReverbParams.damping = mMainReverbDamping.get();
+    mMainReverbParams.roomSize = mMainReverbSize.get() * 0.9f;
+    mMainReverb->setParameters(mMainReverbParams);
+    
+    mMReverb.setParameter(MVerbFloat::MIX, 1.0f); // full wet
+    mMReverb.setParameter(MVerbFloat::GAIN, mMainReverbLevel.get());
+    mMReverb.setParameter(MVerbFloat::SIZE, mMainReverbSize.get());
+    mMReverb.setParameter(MVerbFloat::EARLYMIX, 0.75f);
+    mMReverb.setParameter(MVerbFloat::PREDELAY, jmap(mMainReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
+    mMReverb.setParameter(MVerbFloat::DAMPINGFREQ, mMainReverbDamping.get());
+    mMReverb.setParameter(MVerbFloat::BANDWIDTHFREQ, 1.0f);
+    mMReverb.setParameter(MVerbFloat::DENSITY, 0.5f);
+    mMReverb.setParameter(MVerbFloat::DECAY, mMainReverbSize.get());
+    
     
     mTransportSource.addChangeListener(this);
     
@@ -1919,7 +1964,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 DBG("Peer joined group " <<  e->group << " - user " << e->user);
 
                 if (mAutoconnectGroupPeers) {
-                    connectRemotePeerRaw(e->address, e->user, e->group, !mMasterRecvMute.get());
+                    connectRemotePeerRaw(e->address, e->user, e->group, !mMainRecvMute.get());
                 }
                 
                 //aoo_node_add_peer(x->x_node, gensym(e->group), gensym(e->user),
@@ -1995,7 +2040,7 @@ int SonobusAudioProcessor::connectRemotePeerRaw(void * sockaddr, const String & 
         remote->connected = true;
         remote->invitedPeer = reciprocate;
         remote->recvActive = reciprocate;
-        if (!mMasterSendMute.get()) {
+        if (!mMainSendMute.get()) {
             remote->sendActive = true;
             remote->oursource->start();
         }
@@ -2029,7 +2074,7 @@ int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, cons
         remote->connected = true;
         remote->invitedPeer = reciprocate;
         remote->recvActive = reciprocate;
-        if (!mMasterSendMute.get()) {
+        if (!mMainSendMute.get()) {
             remote->sendActive = true;
             remote->oursource->start();
         }
@@ -3023,8 +3068,8 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->recvMeterSource.resize (outchannels, meterRmsWindow);
         retpeer->sendMeterSource.resize (retpeer->sendChannels, meterRmsWindow);
 
-        retpeer->sendAllow = retpeer->sendAllowCache = !mMasterSendMute.get();
-        retpeer->recvAllow = retpeer->recvAllowCache =  !mMasterRecvMute.get();
+        retpeer->sendAllow = retpeer->sendAllowCache = !mMainSendMute.get();
+        retpeer->recvAllow = retpeer->recvAllowCache =  !mMainRecvMute.get();
 
     }
     else {
@@ -3151,6 +3196,52 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramMetEnabled) {
         mMetEnabled = newValue > 0;
     }
+    else if (parameterID == paramMainReverbSize)
+    {
+        mMainReverbSize = newValue;
+        mMainReverbParams.roomSize = jmap(mMainReverbSize.get(), 0.55f, 1.0f); //  mMainReverbSize.get() * 0.55f + 0.45f;
+        mReverbParamsChanged = true;
+        mReverbSizeChanged = true;
+        //mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Low_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
+        //mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Mid_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
+        mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Low_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
+        mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Mid_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
+
+        //mMainReverb->setParameters(mMainReverbParams);
+    }
+    else if (parameterID == paramMainReverbLevel)
+    {
+        mMainReverbLevel = newValue;
+        mMainReverbParams.wetLevel = mMainReverbLevel.get() * 0.35f;
+        mReverbParamsChanged = true;
+        mReverbLevelChanged = true;
+        //mZitaControl.setParamValue("/Zita_Rev1/Output/Level", jlimit(-70.0f, 40.0f, Decibels::gainToDecibels(mMainReverbLevel.get()) + 0.0f));
+        mZitaControl.setParamValue("/Zita_Rev1/Output/Level", jlimit(-70.0f, 40.0f, Decibels::gainToDecibels(mMainReverbLevel.get()) + 6.0f));
+        //mMainReverb->setParameters(mMainReverbParams);
+    }
+    else if (parameterID == paramMainReverbDamping)
+    {
+        mMainReverbDamping = newValue;
+        mMainReverbParams.damping = mMainReverbDamping.get();
+        mReverbParamsChanged = true;
+        mReverbDampingChanged = true;
+        mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/HF_Damping",                                    
+                                   jmap(mMainReverbDamping.get(), 23520.0f, 1500.0f));
+    }
+    else if (parameterID == paramMainReverbPreDelay)
+    {
+        //     mMReverb.setParameter(MVerbFloat::PREDELAY, jmap(mMainReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
+        mMainReverbPreDelay = newValue;
+        mReverbPredelayChanged = true;
+        mZitaControl.setParamValue("/Zita_Rev1/Input/In_Delay",                                    
+                                   jlimit(0.0f, 100.0f, mMainReverbPreDelay.get()));        
+    }
+    else if (parameterID == paramMainReverbEnabled) {
+        mMainReverbEnabled = newValue > 0;
+    }
+    else if (parameterID == paramMainReverbModel) {
+        mMainReverbModel = (int) newValue;
+    }
     else if (parameterID == paramSendFileAudio) {
         mSendPlaybackAudio = newValue > 0;
         
@@ -3173,10 +3264,10 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramSendMetAudio) {
         mSendMet = newValue > 0;
     }
-    else if (parameterID == paramMasterSendMute) {
+    else if (parameterID == paramMainSendMute) {
         // allow or disallow sending to all peers
 
-        mMasterSendMute = newValue > 0;
+        mMainSendMute = newValue > 0;
                        
         for (int i=0; i < getNumberRemotePeers(); ++i) {
             bool connected  = getRemotePeerConnected(i);
@@ -3192,7 +3283,7 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
             }
             else
             {
-                if (!mMasterSendMute.get()) {
+                if (!mMainSendMute.get()) {
                     // turns on allow and starts sending
                     // actually restores from cached values
                     bool cached = getRemotePeerSendAllow(i, true);
@@ -3214,10 +3305,10 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
             }
         }
     }
-    else if (parameterID == paramMasterRecvMute) {
+    else if (parameterID == paramMainRecvMute) {
         // allow or disallow sending to all peers
 
-        mMasterRecvMute = newValue > 0;
+        mMainRecvMute = newValue > 0;
                        
         for (int i=0; i < getNumberRemotePeers(); ++i) {
             bool connected  = getRemotePeerConnected(i);
@@ -3233,7 +3324,7 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
             }
             else
             {
-                if (!mMasterRecvMute.get()) {
+                if (!mMainRecvMute.get()) {
                     // turns on allow and allows receiving
                     // actually restores from cached values
                     bool cached = getRemotePeerRecvAllow(i, true);
@@ -3345,6 +3436,21 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     const ScopedReadLock sl (mCoreLock);        
     
     mMetronome->setSampleRate(sampleRate);
+    mMainReverb->setSampleRate(sampleRate);
+    mMReverb.setSampleRate(sampleRate);
+    
+    mZitaReverb.init(sampleRate);
+    mZitaReverb.buildUserInterface(&mZitaControl);
+    
+    for(int i=0; i < mZitaControl.getParamsCount(); i++){
+        std::cout << mZitaControl.getParamAddress(i) << "\n";
+    }
+    
+    // setting default values for the Faust module parameters
+    mZitaControl.setParamValue("/Zita_Rev1/Output/Dry/Wet_Mix", -1.0f);
+    mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Low_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
+    mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Mid_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
+    mZitaControl.setParamValue("/Zita_Rev1/Output/Level", jlimit(-70.0f, 40.0f, Decibels::gainToDecibels(mMainReverbLevel.get()) + 6.0f));
     
     mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());
 
@@ -3419,22 +3525,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         ++i;
     }
     
-    if (tempBuffer.getNumSamples() < samplesPerBlock || tempBuffer.getNumChannels() != maxchans) {
-        tempBuffer.setSize(maxchans, samplesPerBlock);
+    if (samplesPerBlock > mTempBufferSamples || maxchans > mTempBufferChannels) {
+        ensureBuffers(samplesPerBlock);
     }
-    if (workBuffer.getNumSamples() < samplesPerBlock || workBuffer.getNumChannels() != maxchans) {
-        workBuffer.setSize(maxchans, samplesPerBlock);
-    }
-    if (inputBuffer.getNumSamples() < samplesPerBlock || inputBuffer.getNumChannels() != maxchans) {
-        inputBuffer.setSize(maxchans, samplesPerBlock);
-    }
-    if (fileBuffer.getNumSamples() < samplesPerBlock || fileBuffer.getNumChannels() != maxchans) {
-        fileBuffer.setSize(maxchans, samplesPerBlock);
-    }
-    if (metBuffer.getNumSamples() < samplesPerBlock || metBuffer.getNumChannels() != maxchans) {
-        metBuffer.setSize(maxchans, samplesPerBlock);
-    }
-    
    
     
 }
@@ -3476,24 +3569,12 @@ bool SonobusAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 }
 #endif
 
-void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void SonobusAudioProcessor::ensureBuffers(int numSamples)
 {
-    ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     auto maxchans = jmax(totalNumInputChannels, totalNumOutputChannels);
-    
-    float inGain = mInGain.get();
-    float drynow = mDry.get(); // DB_CO(dry_level);
-    float wetnow = mWet.get(); // DB_CO(wet_level);
-    float inmonPan1 = mInMonPan1.get();
-    float inmonPan2 = mInMonPan2.get();
-    
-    int numSamples = buffer.getNumSamples();
-    
-    
-    // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case
-    // I know this isn't RT safe.
+
     if (tempBuffer.getNumSamples() < numSamples || tempBuffer.getNumChannels() != maxchans) {
         tempBuffer.setSize(maxchans, numSamples);
     }
@@ -3509,6 +3590,36 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     if (metBuffer.getNumSamples() < numSamples || metBuffer.getNumChannels() != maxchans) {
         metBuffer.setSize(maxchans, numSamples);
     }
+    if (mainFxBuffer.getNumSamples() < numSamples || mainFxBuffer.getNumChannels() != maxchans) {
+        mainFxBuffer.setSize(maxchans, numSamples);
+    }
+    
+    mTempBufferSamples = jmax(mTempBufferSamples, numSamples);
+    mTempBufferChannels = jmax(maxchans, mTempBufferChannels);
+}
+
+
+void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+{
+    ScopedNoDenormals noDenormals;
+    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
+    auto maxchans = jmax(totalNumInputChannels, totalNumOutputChannels);
+    
+    float inGain = mInGain.get();
+    float drynow = mDry.get(); // DB_CO(dry_level);
+    float wetnow = mWet.get(); // DB_CO(wet_level);
+    float inmonPan1 = mInMonPan1.get();
+    float inmonPan2 = mInMonPan2.get();
+    
+    int numSamples = buffer.getNumSamples();
+    
+    // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case.
+    // I know this isn't RT safe.
+    if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels) {
+        ensureBuffers(numSamples);
+    }
+    
     
     
     AudioPlayHead::CurrentPositionInfo posInfo;
@@ -3894,6 +4005,106 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
     
     
+    // EFFECTS
+    bool mainReverbEnabled = mMainReverbEnabled.get();
+    bool doreverb = mainReverbEnabled || mLastMainReverbEnabled;
+    bool hasmainfx = doreverb;
+
+    mainFxBuffer.clear(0, numSamples);
+    
+    // TODO other main FX
+    if (mainReverbEnabled != mLastMainReverbEnabled) {
+
+        float sgain = mainReverbEnabled ? 0.0f : 1.0f;
+        float egain = mainReverbEnabled ? 1.0f : 0.0f;
+        
+        if (mainReverbEnabled) {
+            mMainReverb->reset();
+            mMReverb.reset();
+            mZitaReverb.instanceClear();
+        }
+        
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            mainFxBuffer.addFromWithRamp(channel, 0, buffer.getReadPointer(channel), numSamples, sgain, egain);
+        }                    
+    }
+    else if (mainReverbEnabled){
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            mainFxBuffer.addFrom(channel, 0, buffer, channel, 0, numSamples);
+        }            
+
+    }
+
+    if (doreverb) {
+        // assumes reverb is NO dry
+        
+        if (mReverbParamsChanged) {
+            mMainReverb->setParameters(mMainReverbParams);
+            if (mReverbSizeChanged) {
+                mMReverb.setParameter(MVerbFloat::SIZE, jmap(mMainReverbSize.get(), 0.45f, 0.95f)); 
+                mMReverb.setParameter(MVerbFloat::DECAY, jmap(mMainReverbSize.get(), 0.45f, 0.95f));
+                mReverbSizeChanged = false;                
+            }
+            if (mReverbLevelChanged) {
+                mMReverb.setParameter(MVerbFloat::GAIN, jmap(mMainReverbLevel.get(), 0.0f, 0.8f)); 
+                mReverbLevelChanged = false;                
+            }
+            if (mReverbDampingChanged) {
+                mMReverb.setParameter(MVerbFloat::DAMPINGFREQ, jmap(mMainReverbDamping.get(), 0.0f, 0.85f));                
+                mReverbDampingChanged = false;
+            }
+            if (mReverbPredelayChanged) {
+                mMReverb.setParameter(MVerbFloat::PREDELAY, jmap(mMainReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
+                mReverbPredelayChanged = false;
+            }
+            mReverbParamsChanged = false;
+        }
+        
+        if (mLastReverbModel != mMainReverbModel.get()) {
+            mMReverb.reset();
+            mMainReverb->reset();
+            mZitaReverb.instanceClear();
+        }
+        
+        if (mMainReverbModel.get() == ReverbModelMVerb) {
+            if (totalNumOutputChannels > 1) {            
+                mMReverb.process(mainFxBuffer.getArrayOfWritePointers(), mainFxBuffer.getArrayOfWritePointers(), numSamples);
+            } 
+        }
+        else if (mMainReverbModel.get() == ReverbModelZita) {
+            if (totalNumOutputChannels > 1) {            
+                mZitaReverb.compute(numSamples, mainFxBuffer.getArrayOfWritePointers(), mainFxBuffer.getArrayOfWritePointers()); 
+            }
+        }
+        else {
+            if (totalNumOutputChannels > 1) {            
+                mMainReverb->processStereo(mainFxBuffer.getWritePointer(0), mainFxBuffer.getWritePointer(1), numSamples);
+            } else {
+                mMainReverb->processMono(mainFxBuffer.getWritePointer(0), numSamples);
+            }            
+        }
+    }
+
+    if (mLastHasMainFx != hasmainfx) {
+        float sgain = hasmainfx ? 0.0f : 1.0f;
+        float egain = hasmainfx ? 1.0f : 0.0f;
+
+        mainFxBuffer.applyGainRamp(0, numSamples, sgain, egain);
+    } 
+
+    mLastHasMainFx = hasmainfx;
+    mLastMainReverbEnabled = mainReverbEnabled;
+    mLastReverbModel = (ReverbModel) mMainReverbModel.get();
+    
+    // add from main FX
+    if (hasmainfx) {
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            buffer.addFrom(channel, 0, mainFxBuffer, channel, 0, numSamples);
+        }        
+    }
+    
+    
+    
     // add from file playback buffer
     if (hasfiledata) {
         for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
@@ -3911,6 +4122,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     
     
+    
+    
     // apply wet (output) gain to original buf
     if (fabsf(wetnow - mLastWet) > 0.00001) {
         buffer.applyGainRamp(0, numSamples, mLastWet, wetnow);
@@ -3918,7 +4131,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.applyGain(wetnow);
     }
 
-   
+
+    
    
 
     
@@ -3941,9 +4155,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     // copy input as-is
                     workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
 
-                    // apply master out gain to audio from remote peers and file playback (should we?)
+                    // apply Main out gain to audio from remote peers and file playback (should we?)
                     if (rampit) {
                         workBuffer.addFromWithRamp(channel, 0, tempBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
+                        if (hasmainfx) {
+                            workBuffer.addFromWithRamp(channel, 0, mainFxBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
+                        }
                         if (hasfiledata) {
                             workBuffer.addFromWithRamp(channel, 0, fileBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
                         }
@@ -3953,6 +4170,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     }
                     else {
                         workBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples, wetnow);
+
+                        if (hasmainfx) {
+                            workBuffer.addFrom(channel, 0, mainFxBuffer, channel, 0, numSamples, wetnow);
+                        }
                         if (hasfiledata) {
                             workBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples, wetnow);
                         }
@@ -4080,7 +4301,7 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
         mState.getParameter(paramMetEnabled)->setValueNotifyingHost(0.0f);
 
         // don't recover the recv mute either
-        mState.getParameter(paramMasterRecvMute)->setValueNotifyingHost(0.0f);
+        mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
 
     }
 }
@@ -4223,6 +4444,54 @@ bool SonobusAudioProcessor::isRecordingToFile()
 }
 
 
+#pragma Effects
+
+void SonobusAudioProcessor::setMainReverbEnabled(bool flag)
+{    
+    mMainReverbEnabled = flag;
+    mState.getParameter(paramMainReverbEnabled)->setValueNotifyingHost(flag ? 1.0f : 0.0f);
+}
+
+void  SonobusAudioProcessor::setMainReverbDryLevel(float level)
+{
+    // not used
+    mMainReverbParams.dryLevel = jlimit(0.0f, 1.0f, level);
+    mMainReverb->setParameters(mMainReverbParams);    
+}
+
+float SonobusAudioProcessor::getMainReverbDryLevel() const
+{
+    // not used
+    return mMainReverbParams.dryLevel;
+}
+
+void  SonobusAudioProcessor::setMainReverbWetLevel(float level)
+{
+    mState.getParameter(paramMainReverbLevel)->setValueNotifyingHost(level);
+
+   // mMainReverbParams.wetLevel = jlimit(0.0f, 1.0f, level);
+   // mMainReverb->setParameters(mMainReverbParams);
+}
+
+
+void  SonobusAudioProcessor::setMainReverbSize(float value)
+{
+    //mMainReverbParams.roomSize = jlimit(0.0f, 1.0f, value);
+    //mMainReverb->setParameters(mMainReverbParams);    
+    mState.getParameter(paramMainReverbSize)->setValueNotifyingHost(value);
+}
+
+void  SonobusAudioProcessor::setMainReverbPreDelay(float valuemsec)
+{
+    mState.getParameter(paramMainReverbPreDelay)->setValueNotifyingHost(mState.getParameter(paramMainReverbPreDelay)->convertTo0to1(valuemsec));
+}
+
+
+void SonobusAudioProcessor::setMainReverbModel(ReverbModel flag) 
+{ 
+    mMainReverbModel = flag; 
+    mState.getParameter(paramMainReverbModel)->setValueNotifyingHost(mState.getParameter(paramMainReverbModel)->convertTo0to1(flag));
+}
 
 
 //==============================================================================

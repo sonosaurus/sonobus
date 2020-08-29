@@ -393,36 +393,39 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     
     
-    mMasterMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
+    mMainMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> sendallowimg(Drawable::createFromImageData(BinaryData::mic_svg, BinaryData::mic_svgSize));
     std::unique_ptr<Drawable> senddisallowimg(Drawable::createFromImageData(BinaryData::mic_disabled_svg, BinaryData::mic_disabled_svgSize));
-    mMasterMuteButton->setImages(sendallowimg.get(), nullptr, nullptr, nullptr, senddisallowimg.get());
-    mMasterMuteButton->addListener(this);
-    mMasterMuteButton->setClickingTogglesState(true);
+    mMainMuteButton->setImages(sendallowimg.get(), nullptr, nullptr, nullptr, senddisallowimg.get());
+    mMainMuteButton->addListener(this);
+    mMainMuteButton->setClickingTogglesState(true);
     //pvf->sendMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7));
-    mMasterMuteButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
-    mMasterMuteButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
-    mMasterMuteButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
-    mMasterMuteButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
-    mMasterMuteButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    mMasterMuteButton->setTooltip(TRANS("Mutes/Unmutes your Input, none of your audio will be sent to users when muted"));
+    mMainMuteButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mMainMuteButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    mMainMuteButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
+    mMainMuteButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mMainMuteButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mMainMuteButton->setTooltip(TRANS("Mutes/Unmutes your Input, none of your audio will be sent to users when muted"));
 
-    mMasterRecvMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
+    mMainRecvMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> recvallowimg(Drawable::createFromImageData(BinaryData::speaker_svg, BinaryData::speaker_svgSize));
     std::unique_ptr<Drawable> recvdisallowimg(Drawable::createFromImageData(BinaryData::speaker_disabled_svg, BinaryData::speaker_disabled_svgSize));
-    mMasterRecvMuteButton->setImages(recvallowimg.get(), nullptr, nullptr, nullptr, recvdisallowimg.get());
-    mMasterRecvMuteButton->addListener(this);
-    mMasterRecvMuteButton->setClickingTogglesState(true);
-    mMasterRecvMuteButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
-    mMasterRecvMuteButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
-    mMasterRecvMuteButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
-    mMasterRecvMuteButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
-    mMasterRecvMuteButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    mMasterRecvMuteButton->setTooltip(TRANS("Mutes/Unmutes all users, no audio data will be received when users are muted"));
+    mMainRecvMuteButton->setImages(recvallowimg.get(), nullptr, nullptr, nullptr, recvdisallowimg.get());
+    mMainRecvMuteButton->addListener(this);
+    mMainRecvMuteButton->setClickingTogglesState(true);
+    mMainRecvMuteButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mMainRecvMuteButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    mMainRecvMuteButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
+    mMainRecvMuteButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mMainRecvMuteButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mMainRecvMuteButton->setTooltip(TRANS("Mutes/Unmutes all users, no audio data will be received when users are muted"));
 
     
     mMetContainer = std::make_unique<Component>();
+    mEffectsContainer = std::make_unique<Component>();
 
+    
+    
     mMetButtonBg = std::make_unique<DrawableRectangle>();
     mMetButtonBg->setCornerSize(Point<float>(8,8));
     mMetButtonBg->setFill (Colour::fromFloatRGBA(0.0, 0.0, 0.0, 1.0));
@@ -537,7 +540,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     //mWetLabel = std::make_unique<Label>(SonobusAudioProcessor::paramWet, TRANS("Wet"));
     //configLabel(mWetLabel.get(), false);
 
-    mOutGainLabel = std::make_unique<Label>("outgain", TRANS("Master Out"));
+    mOutGainLabel = std::make_unique<Label>("outgain", TRANS("Main Out"));
     configLabel(mOutGainLabel.get(), false);
     mOutGainLabel->setJustificationType(Justification::centred);
 
@@ -556,8 +559,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
     mInMonPan1Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan1, *mInMonPanSlider1);
     mInMonPan2Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan2, *mInMonPanSlider2);
-    mMasterSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMasterSendMute, *mMasterMuteButton);
-    mMasterRecvMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMasterRecvMute, *mMasterRecvMuteButton);
+    mMainSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainSendMute, *mMainMuteButton);
+    mMainRecvMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainRecvMute, *mMainRecvMuteButton);
 
     mMetEnableAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetEnabled, *mMetEnableButton);
     mMetLevelAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetGain, *mMetLevelSlider);
@@ -565,13 +568,15 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMetSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSendMetAudio, *mMetSendButton);
  
     
-    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMasterSendMute, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainSendMute, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetEnabled, this);
-    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMasterRecvMute, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbEnabled, this);
 
     
     mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
@@ -856,6 +861,85 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     configEditor(mOptionsUdpPortEditor.get());
     //mOptionsUdpPortEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
 
+
+    // effects
+    
+    mEffectsButton = std::make_unique<TextButton>("mainfx");
+    mEffectsButton->setButtonText(TRANS("Main FX"));
+    mEffectsButton->addListener(this);
+    mEffectsButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
+    //mEffectsButton->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
+    //mEffectsButton->setTextJustification(Justification::centred);
+
+    mReverbLevelLabel = std::make_unique<Label>(SonobusAudioProcessor::paramMainReverbLevel, TRANS("Level"));
+    configLabel(mReverbLevelLabel.get(), false);
+    mReverbLevelLabel->setJustificationType(Justification::centred);
+
+    mReverbSizeLabel = std::make_unique<Label>(SonobusAudioProcessor::paramMainReverbSize, TRANS("Size"));
+    configLabel(mReverbSizeLabel.get(), false);
+    mReverbSizeLabel->setJustificationType(Justification::centred);
+
+    mReverbDampingLabel = std::make_unique<Label>(SonobusAudioProcessor::paramMainReverbDamping, TRANS("Damping"));
+    configLabel(mReverbDampingLabel.get(), false);
+    mReverbDampingLabel->setJustificationType(Justification::centred);
+
+    mReverbPreDelayLabel = std::make_unique<Label>(SonobusAudioProcessor::paramMainReverbDamping, TRANS("Pre-Delay"));
+    configLabel(mReverbPreDelayLabel.get(), false);
+    mReverbPreDelayLabel->setJustificationType(Justification::centred);
+
+    
+    mReverbEnabledButton = std::make_unique<ToggleButton>(TRANS("Reverb Enabled"));
+    mReverbEnabledButton->addListener(this);
+    mReverbEnableAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainReverbEnabled, *mReverbEnabledButton);
+
+
+    mReverbModelChoice = std::make_unique<SonoChoiceButton>();
+    mReverbModelChoice->addChoiceListener(this);
+    mReverbModelChoice->addItem(TRANS("Freeverb"), SonobusAudioProcessor::ReverbModelFreeverb);
+    mReverbModelChoice->addItem(TRANS("MVerb"), SonobusAudioProcessor::ReverbModelMVerb);
+    mReverbModelChoice->addItem(TRANS("Zita"), SonobusAudioProcessor::ReverbModelZita);
+
+    
+    mReverbSizeSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::NoTextBox);
+    mReverbSizeSlider->setName("revsize");
+    mReverbSizeSlider->setSliderSnapsToMousePosition(false);
+    mReverbSizeSlider->setScrollWheelEnabled(false);
+    configKnobSlider(mReverbSizeSlider.get());
+    mReverbSizeSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
+    mReverbSizeSlider->setTextBoxIsEditable(true);
+    
+    mReverbSizeAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainReverbSize, *mReverbSizeSlider);
+
+    mReverbLevelSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::NoTextBox);
+    mReverbLevelSlider->setName("revsize");
+    mReverbLevelSlider->setSliderSnapsToMousePosition(false);
+    mReverbLevelSlider->setScrollWheelEnabled(false);
+    configKnobSlider(mReverbLevelSlider.get());
+    mReverbLevelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
+    mReverbLevelSlider->setTextBoxIsEditable(true);
+
+    mReverbLevelAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainReverbLevel, *mReverbLevelSlider);
+
+    mReverbDampingSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::NoTextBox);
+    mReverbDampingSlider->setName("revsize");
+    mReverbDampingSlider->setSliderSnapsToMousePosition(false);
+    mReverbDampingSlider->setScrollWheelEnabled(false);
+    configKnobSlider(mReverbDampingSlider.get());
+    mReverbDampingSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
+    mReverbDampingSlider->setTextBoxIsEditable(true);
+    
+    mReverbDampingAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainReverbDamping, *mReverbDampingSlider);
+
+    mReverbPreDelaySlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::NoTextBox);
+    mReverbPreDelaySlider->setName("revsize");
+    mReverbPreDelaySlider->setSliderSnapsToMousePosition(false);
+    mReverbPreDelaySlider->setScrollWheelEnabled(false);
+    configKnobSlider(mReverbPreDelaySlider.get());
+    mReverbPreDelaySlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
+    mReverbPreDelaySlider->setTextBoxIsEditable(true);
+    
+    mReverbPreDelayAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainReverbPreDelay, *mReverbPreDelaySlider);
+
     
     mIAAHostButton = std::make_unique<SonoDrawableButton>("iaa", DrawableButton::ButtonStyle::ImageFitted);
     mIAAHostButton->addListener(this);
@@ -1005,8 +1089,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mOutGainSlider.get());
     //addAndMakeVisible(mWetLabel.get());
     addAndMakeVisible(mInGainSlider.get());
-    addAndMakeVisible(mMasterMuteButton.get());
-    addAndMakeVisible(mMasterRecvMuteButton.get());
+    addAndMakeVisible(mMainMuteButton.get());
+    addAndMakeVisible(mMainRecvMuteButton.get());
     
     addAndMakeVisible(mPatchbayButton.get());
     addAndMakeVisible(mConnectButton.get());
@@ -1016,7 +1100,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mMetButtonBg.get());
     addAndMakeVisible(mMetEnableButton.get());
     addAndMakeVisible(mMetConfigButton.get());
-
+    addAndMakeVisible(mEffectsButton.get());
 
     
     mMetContainer->addAndMakeVisible(mMetLevelSlider.get());
@@ -1025,6 +1109,19 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMetContainer->addAndMakeVisible(mMetTempoSliderLabel.get());
     mMetContainer->addAndMakeVisible(mMetSendButton.get());
 
+    mEffectsContainer->addAndMakeVisible(mReverbEnabledButton.get());
+    mEffectsContainer->addAndMakeVisible(mReverbModelChoice.get());
+    mEffectsContainer->addAndMakeVisible(mReverbLevelSlider.get());
+    mEffectsContainer->addAndMakeVisible(mReverbSizeSlider.get());
+    mEffectsContainer->addAndMakeVisible(mReverbLevelLabel.get());
+    mEffectsContainer->addAndMakeVisible(mReverbSizeLabel.get());
+    mEffectsContainer->addAndMakeVisible(mReverbDampingLabel.get());
+    mEffectsContainer->addAndMakeVisible(mReverbDampingSlider.get());
+    mEffectsContainer->addAndMakeVisible(mReverbPreDelayLabel.get());
+    mEffectsContainer->addAndMakeVisible(mReverbPreDelaySlider.get());
+    
+    
+    
     addChildComponent(mIAAHostButton.get());
 
 
@@ -1475,6 +1572,9 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
     else if (comp == mOptionsAutosizeDefaultChoice.get()) {
         processor.setDefaultAutoresizeBufferMode((SonobusAudioProcessor::AutoNetBufferMode) index);
     }
+    else if (comp == mReverbModelChoice.get()) {
+        processor.setMainReverbModel((SonobusAudioProcessor::ReverbModel) ident);
+    }
 }
 
 
@@ -1704,7 +1804,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
         
         if (host.isNotEmpty() && port != 0) {
-            if (processor.connectRemotePeer(host, port, "", "", !mMasterRecvMuteButton->getToggleState())) {
+            if (processor.connectRemotePeer(host, port, "", "", !mMainRecvMuteButton->getToggleState())) {
                 showConnectPopup(false);
             }
         }
@@ -1789,22 +1889,29 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showMetConfig(false);
         }        
     }
-    else if (buttonThatWasClicked == mMasterMuteButton.get()) {
+    else if (buttonThatWasClicked == mEffectsButton.get()) {
+        if (!effectsCalloutBox) {
+            showEffectsConfig(true);
+        } else {
+            showEffectsConfig(false);
+        }        
+    }
+    else if (buttonThatWasClicked == mMainMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
 
-        if (mMasterMuteButton->getToggleState()) {
-            showPopTip(TRANS("Not sending your audio anywhere"), 3000, mMasterMuteButton.get());
+        if (mMainMuteButton->getToggleState()) {
+            showPopTip(TRANS("Not sending your audio anywhere"), 3000, mMainMuteButton.get());
         } else {
-            showPopTip(TRANS("Sending your audio to others"), 3000, mMasterMuteButton.get());
+            showPopTip(TRANS("Sending your audio to others"), 3000, mMainMuteButton.get());
         }
     }
-    else if (buttonThatWasClicked == mMasterRecvMuteButton.get()) {
+    else if (buttonThatWasClicked == mMainRecvMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
         
-        if (mMasterRecvMuteButton->getToggleState()) {
-            showPopTip(TRANS("Muted everyone"), 3000, mMasterRecvMuteButton.get());
+        if (mMainRecvMuteButton->getToggleState()) {
+            showPopTip(TRANS("Muted everyone"), 3000, mMainRecvMuteButton.get());
         } else {
-            showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMasterRecvMuteButton.get());
+            showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMainRecvMuteButton.get());
         }
     }
     else if (buttonThatWasClicked == mMetSendButton.get()) {
@@ -2286,7 +2393,7 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMetConfigButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        inPannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        metCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(metCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2299,6 +2406,64 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         }
     }
 }
+
+void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
+{
+    
+    if (flag && effectsCalloutBox == nullptr) {
+        
+        Viewport * wrap = new Viewport();
+        
+        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        
+        if (!dw) {
+            dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
+        }
+        if (!dw) {
+            dw = this->findParentComponentOfClass<Component>();        
+        }
+        if (!dw) {
+            dw = this;
+        }
+        
+#if JUCE_IOS
+        const int defWidth = 260; 
+        const int defHeight = 125;
+#else
+        const int defWidth = 260; 
+        const int defHeight = 125;
+#endif
+        
+        
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+        
+        //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
+        
+        mEffectsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        
+        //wrap->addAndMakeVisible(mSettingsPanel.get());
+        wrap->setViewedComponent(mEffectsContainer.get(), false);
+        mEffectsContainer->setVisible(true);
+        
+        effectsBox.performLayout(mEffectsContainer->getLocalBounds());
+        
+        
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mEffectsButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
+            box->dismiss();
+            effectsCalloutBox = nullptr;
+        }
+    }
+}
+
 
 void SonobusAudioProcessorEditor::showPatchbay(bool flag)
 {
@@ -2459,7 +2624,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
     if (flag && settingsCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
+        //Viewport * wrap = new Viewport();
         
         Component* dw = this->findParentComponentOfClass<DocumentWindow>();
         
@@ -2475,14 +2640,17 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
         
 #if JUCE_IOS
-        const int defWidth = 300;
-        const int defHeight = 420;
+        int defWidth = 300;
+        int defHeight = 420;
 #else
-        const int defWidth = 320;
-        const int defHeight = 360;
+        int defWidth = 320;
+        int defHeight = 360;
 #endif
         
-        wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 20), jmin(defHeight + 8, dw->getHeight() - 24));
+        defWidth = jmin(defWidth + 8, dw->getWidth() - 20);
+        defHeight = jmin(defHeight + 8, dw->getHeight() - 24);
+        
+        //wrap->setSize(jmin(defWidth + 8, dw->getWidth() - 20), jmin(defHeight + 8, dw->getHeight() - 24));
         
         //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
         bool firsttime = false;
@@ -2546,10 +2714,15 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 #if JUCE_IOS
                 mAudioDeviceSelector->setItemHeight(44);
 #endif
+                
+                mAudioOptionsViewport = std::make_unique<Viewport>();
+                mAudioOptionsViewport->setViewedComponent(mAudioDeviceSelector.get(), false);
+
+                
             }
 
             if (firsttime) {
-                mSettingsTab->addTab(TRANS("AUDIO"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mAudioDeviceSelector.get(), false);
+                mSettingsTab->addTab(TRANS("AUDIO"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mAudioOptionsViewport.get(), false);
             }
             
             //mAudioDeviceSelector->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
@@ -2562,15 +2735,25 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
 
         if (firsttime) {
-            mSettingsTab->addTab(TRANS("OPTIONS"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mOptionsComponent.get(), false);
+            mOtherOptionsViewport = std::make_unique<Viewport>();
+            mOtherOptionsViewport->setViewedComponent(mOptionsComponent.get(), false);
+
+            mSettingsTab->addTab(TRANS("OPTIONS"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mOtherOptionsViewport.get(), false);
            // mSettingsTab->addTab(TRANS("HELP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mHelpComponent.get(), false);
         }
         
-        mSettingsTab->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
 
         //wrap->setViewedComponent(mAudioDeviceSelector.get(), false);
-        wrap->setViewedComponent(mSettingsTab.get(), false);
+        //wrap->setViewedComponent(mSettingsTab.get(), false);
 
+        Component * wrap = new Component();
+        wrap->addAndMakeVisible(mSettingsTab.get());
+
+        mSettingsTab->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        mAudioDeviceSelector->setBounds(Rectangle<int>(0,0,defWidth - 10,mAudioDeviceSelector->getHeight()));
+        mOptionsComponent->setBounds(Rectangle<int>(0,0,defWidth - 10, minOptionsHeight));
+
+        wrap->setSize(defWidth,defHeight);
         
         optionsBox.performLayout(mOptionsComponent->getLocalBounds());
 
@@ -2578,6 +2761,9 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
         
         updateOptionsState();
+        
+        
+        
         
         /*
         
@@ -2631,6 +2817,16 @@ void SonobusAudioProcessorEditor::updateState()
         mRecordingButton->setToggleState(processor.isRecordingToFile(), dontSendNotification);
     }
 
+    mReverbModelChoice->setSelectedId(processor.getMainReverbModel(), dontSendNotification);
+    mEffectsButton->setToggleState(processor.getMainReverbEnabled(), dontSendNotification);
+    
+    if (processor.getMainReverbModel() == SonobusAudioProcessor::ReverbModelFreeverb) {
+        mReverbPreDelaySlider->setVisible(false);
+        mReverbPreDelayLabel->setVisible(false);
+    } else {
+        mReverbPreDelaySlider->setVisible(true);
+        mReverbPreDelayLabel->setVisible(true);        
+    }
     
     currGroup = processor.getCurrentJoinedGroup();
     if (!currGroup.isEmpty() && currConnected) {
@@ -2709,14 +2905,14 @@ void SonobusAudioProcessorEditor::updateState()
 void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float newValue)
 {
     
-    if (pname == SonobusAudioProcessor::paramMasterSendMute) {
+    if (pname == SonobusAudioProcessor::paramMainSendMute) {
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
         }
         triggerAsyncUpdate();
     }
-    else if (pname == SonobusAudioProcessor::paramMasterRecvMute) {
+    else if (pname == SonobusAudioProcessor::paramMainRecvMute) {
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -2745,6 +2941,20 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramMainReverbModel) {
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramMainReverbEnabled) {
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -3082,6 +3292,13 @@ void SonobusAudioProcessorEditor::updateLayout()
     outBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mOutGainLabel).withMargin(0).withFlex(0));
     outBox.items.add(FlexItem(minKnobWidth, minitemheight, *mOutGainSlider).withMargin(0).withFlex(1)); //.withAlignSelf(FlexItem::AlignSelf::center));
 
+    knobButtonBox.items.clear();
+    knobButtonBox.flexDirection = FlexBox::Direction::column;
+    knobButtonBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(0));
+    knobButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0));
+    knobButtonBox.items.add(FlexItem(40, minitemheight, *mEffectsButton).withMargin(0).withFlex(1)); //.withAlignSelf(FlexItem::AlignSelf::center));
+
+    
     knobBox.items.clear();
     knobBox.flexDirection = FlexBox::Direction::row;
     knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(isNarrow ? 0.0 : 0.1));
@@ -3091,7 +3308,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
     knobBox.items.add(FlexItem(minKnobWidth, minitemheight, dryBox).withMargin(0).withFlex(1).withMaxWidth(isNarrow ? 160 : 120));
     knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(0));
-    knobBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(54).withMaxHeight(minitemheight).withAlignSelf(FlexItem::AlignSelf::center));
+    //knobBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(54).withMaxHeight(minitemheight).withAlignSelf(FlexItem::AlignSelf::center));
+    knobBox.items.add(FlexItem(40, minitemheight, knobButtonBox).withMargin(0).withFlex(1).withMaxWidth(54)); // .withAlignSelf(FlexItem::AlignSelf::center));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
     knobBox.items.add(FlexItem(minKnobWidth, minitemheight, outBox).withMargin(0).withFlex(1).withMaxWidth(isNarrow ? 160 : 120));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
@@ -3142,7 +3360,10 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsUdpBox).withMargin(2).withFlex(0));
-
+    minOptionsHeight = 0;
+    for (auto & item : optionsBox.items) {
+        minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
+    }
     
     if (outChannels > 1) {
         inPannerMainBox.items.clear();
@@ -3395,6 +3616,56 @@ void SonobusAudioProcessorEditor::updateLayout()
     metBox.items.add(FlexItem(minKnobWidth, minitemheight, metVolBox).withMargin(0).withFlex(1));
     metBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
     metBox.items.add(FlexItem(60, minitemheight, metSendBox).withMargin(2).withFlex(1));
+
+    
+    // effects
+
+    reverbSizeBox.items.clear();
+    reverbSizeBox.flexDirection = FlexBox::Direction::column;
+    reverbSizeBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mReverbSizeLabel).withMargin(0).withFlex(0));
+    reverbSizeBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbSizeSlider).withMargin(0).withFlex(1));
+
+    reverbLevelBox.items.clear();
+    reverbLevelBox.flexDirection = FlexBox::Direction::column;
+    reverbLevelBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mReverbLevelLabel).withMargin(0).withFlex(0));
+    reverbLevelBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbLevelSlider).withMargin(0).withFlex(1));
+
+    reverbDampBox.items.clear();
+    reverbDampBox.flexDirection = FlexBox::Direction::column;
+    reverbDampBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mReverbDampingLabel).withMargin(0).withFlex(0));
+    reverbDampBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbDampingSlider).withMargin(0).withFlex(1));
+
+    reverbPreDelayBox.items.clear();
+    reverbPreDelayBox.flexDirection = FlexBox::Direction::column;
+    reverbPreDelayBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mReverbPreDelayLabel).withMargin(0).withFlex(0));
+    reverbPreDelayBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbPreDelaySlider).withMargin(0).withFlex(1));
+
+    
+    reverbCheckBox.items.clear();
+    reverbCheckBox.flexDirection = FlexBox::Direction::row;
+    reverbCheckBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbEnabledButton).withMargin(0).withFlex(2));
+    reverbCheckBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbModelChoice).withMargin(0).withFlex(1));
+
+
+    
+    reverbKnobBox.items.clear();
+    reverbKnobBox.flexDirection = FlexBox::Direction::row;
+    reverbKnobBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0));
+    reverbKnobBox.items.add(FlexItem(minKnobWidth, minitemheight, reverbPreDelayBox).withMargin(0).withFlex(1));
+    reverbKnobBox.items.add(FlexItem(minKnobWidth, minitemheight, reverbLevelBox).withMargin(0).withFlex(1));
+    reverbKnobBox.items.add(FlexItem(minKnobWidth, minitemheight, reverbSizeBox).withMargin(0).withFlex(1));
+    reverbKnobBox.items.add(FlexItem(minKnobWidth, minitemheight, reverbDampBox).withMargin(0).withFlex(1));
+
+    reverbBox.items.clear();
+    reverbBox.flexDirection = FlexBox::Direction::column;
+    reverbBox.items.add(FlexItem(100, minitemheight, reverbCheckBox).withMargin(0).withFlex(0));
+    reverbBox.items.add(FlexItem(6, 3).withMargin(0).withFlex(0));
+    reverbBox.items.add(FlexItem(100, knoblabelheight + minitemheight, reverbKnobBox).withMargin(0).withFlex(1));
+
+    
+    effectsBox.items.clear();
+    effectsBox.flexDirection = FlexBox::Direction::column;
+    effectsBox.items.add(FlexItem(minKnobWidth, knoblabelheight + minitemheight + 3, reverbBox).withMargin(0).withFlex(1));
     
     
     toolbarBox.items.clear();
@@ -3402,9 +3673,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     //toolbarBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(0));
     //toolbarBox.items.add(FlexItem(120, minitemheight, titleBox).withMargin(0).withFlex(1).withMaxWidth(120));
     toolbarBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
-    toolbarBox.items.add(FlexItem(44, minitemheight, *mMasterMuteButton).withMargin(0).withFlex(0));
+    toolbarBox.items.add(FlexItem(44, minitemheight, *mMainMuteButton).withMargin(0).withFlex(0));
     toolbarBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
-    toolbarBox.items.add(FlexItem(44, minitemheight, *mMasterRecvMuteButton).withMargin(0).withFlex(0));
+    toolbarBox.items.add(FlexItem(44, minitemheight, *mMainRecvMuteButton).withMargin(0).withFlex(0));
     toolbarBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.1));
     toolbarBox.items.add(FlexItem(46, minitemheight, *mMetEnableButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight+2).withAlignSelf(FlexItem::AlignSelf::center));
     toolbarBox.items.add(FlexItem(36, minitemheight, *mMetConfigButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight+2).withAlignSelf(FlexItem::AlignSelf::center));
@@ -3868,11 +4139,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
     switch (info.commandID) {
         case SonobusCommands::MuteAllInput:
             DBG("got mute toggle!");
-            mMasterMuteButton->setToggleState(!mMasterMuteButton->getToggleState(), sendNotification);
+            mMainMuteButton->setToggleState(!mMainMuteButton->getToggleState(), sendNotification);
             break;
         case SonobusCommands::MuteAllPeers:
             DBG("got mute peers toggle!");
-            mMasterRecvMuteButton->setToggleState(!mMasterRecvMuteButton->getToggleState(), sendNotification);
+            mMainRecvMuteButton->setToggleState(!mMainRecvMuteButton->getToggleState(), sendNotification);
             break;
         case SonobusCommands::TogglePlayPause:
             DBG("got play pause!");

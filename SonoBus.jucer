@@ -176,6 +176,7 @@
       <FILE id="qPvWp5" name="Metronome.h" compile="0" resource="0" file="Source/Metronome.h"/>
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
       <FILE id="CTpEGU" name="mtdm.h" compile="0" resource="0" file="Source/mtdm.h"/>
+      <FILE id="WJp4ti" name="MVerb.h" compile="0" resource="0" file="Source/MVerb.h"/>
       <FILE id="HNtjtj" name="PeersContainerView.cpp" compile="1" resource="0"
             file="Source/PeersContainerView.cpp"/>
       <FILE id="ETWAvX" name="PeersContainerView.h" compile="0" resource="0"
@@ -223,6 +224,7 @@
       <FILE id="aIIkPC" name="SonoUtility.h" compile="0" resource="0" file="Source/SonoUtility.h"/>
       <FILE id="jTZSUU" name="WaveformTransportComponent.h" compile="0" resource="0"
             file="Source/WaveformTransportComponent.h"/>
+      <FILE id="wV71IQ" name="zitaRev.h" compile="0" resource="0" file="Source/zitaRev.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
@@ -254,6 +256,7 @@
         <MODULEPATH id="juce_gui_extra" path="../../juce5/modules"/>
         <MODULEPATH id="juce_opengl" path="../../juce5/modules"/>
         <MODULEPATH id="ff_meters" path="deps"/>
+        <MODULEPATH id="juce_dsp" path="../juce5/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
@@ -284,6 +287,7 @@
         <MODULEPATH id="juce_audio_devices"/>
         <MODULEPATH id="juce_audio_basics"/>
         <MODULEPATH id="ff_meters" path="deps"/>
+        <MODULEPATH id="juce_dsp" path="../juce5/modules"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
@@ -310,6 +314,7 @@
         <MODULEPATH id="juce_audio_devices" path="../../juce"/>
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
         <MODULEPATH id="ff_meters" path="deps"/>
+        <MODULEPATH id="juce_dsp" path="../juce5/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES&#10;AOO_STATIC&#10;AOO_TIMEFILTER_CHECK=0&#10;WINVER=0x0601&#10;_WIN32_WINNT=0x0601"
@@ -337,6 +342,7 @@
         <MODULEPATH id="juce_audio_devices"/>
         <MODULEPATH id="juce_audio_basics"/>
         <MODULEPATH id="ff_meters" path="deps"/>
+        <MODULEPATH id="juce_dsp" path="../juce5/modules"/>
       </MODULEPATHS>
     </VS2017>
   </EXPORTFORMATS>
@@ -352,6 +358,7 @@
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

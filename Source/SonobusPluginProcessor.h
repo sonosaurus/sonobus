@@ -7,6 +7,12 @@
 #include "aoo/aoo.hpp"
 #include "aoo/aoo_net.hpp"
 
+#include "MVerb.h"
+
+#include "zitaRev.h"
+
+typedef MVerb<float> MVerbFloat;
+
 namespace SonoAudio {
 class Metronome;
 }
@@ -70,7 +76,12 @@ public:
     
     enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus };
 
-       
+    enum ReverbModel {
+        ReverbModelFreeverb = 0,
+        ReverbModelMVerb,
+        ReverbModelZita
+    };
+    
     struct AudioCodecFormatInfo {
         AudioCodecFormatInfo() {}
         AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_) { computeName(); }
@@ -138,8 +149,8 @@ public:
     static String paramDefaultAutoNetbuf;
     static String paramDefaultNetbufMs;
     static String paramDefaultSendQual;
-    static String paramMasterSendMute;
-    static String paramMasterRecvMute;
+    static String paramMainSendMute;
+    static String paramMainRecvMute;
     static String paramMetEnabled;
     static String paramMetGain;
     static String paramMetTempo;
@@ -147,6 +158,12 @@ public:
     static String paramSendFileAudio;
     static String paramHearLatencyTest;
     static String paramMetIsRecorded;
+    static String paramMainReverbEnabled;
+    static String paramMainReverbLevel;
+    static String paramMainReverbSize;
+    static String paramMainReverbDamping;
+    static String paramMainReverbPreDelay;
+    static String paramMainReverbModel;
 
     struct EndpointState;
     struct RemoteSink;
@@ -326,6 +343,21 @@ public:
         clientListeners.remove(l);
     }
     
+    // effects
+    void setMainReverbEnabled(bool flag);
+    bool getMainReverbEnabled() const { return mMainReverbEnabled.get(); }
+    void  setMainReverbDryLevel(float level);
+    float getMainReverbDryLevel() const;
+    void  setMainReverbWetLevel(float level);
+    float getMainReverbWetLevel() const { return mMainReverbLevel.get(); }
+    void  setMainReverbSize(float value);
+    float getMainReverbSize() const { return mMainReverbSize.get(); }
+    void  setMainReverbPreDelay(float valuemsec);
+    float getMainReverbPreDelay() const { return mMainReverbPreDelay.get(); }
+    void setMainReverbModel(ReverbModel flag);
+    ReverbModel getMainReverbModel() const { return (ReverbModel) mMainReverbModel.get(); }
+    
+    
     // recording stuff
     bool startRecordingToFile(const File & file);
     bool stopRecordingToFile();
@@ -371,6 +403,7 @@ private:
 
     int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
 
+    void ensureBuffers(int samples);
     
     ListenerList<ClientListener> clientListeners;
 
@@ -380,7 +413,10 @@ private:
     AudioSampleBuffer inputBuffer;
     AudioSampleBuffer fileBuffer;
     AudioSampleBuffer metBuffer;
-
+    AudioSampleBuffer mainFxBuffer;
+    int mTempBufferSamples = 0;
+    int mTempBufferChannels = 0;
+    
     Atomic<float>   mInGain    { 1.0 };
     Atomic<float>   mInMonPan1    {   0.0 };
     Atomic<float>   mInMonPan2    {   0.0 };
@@ -394,8 +430,8 @@ private:
     Atomic<float>   mWet    {   1.0 };
     Atomic<double>   mBufferTime     { 0.01 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
-    Atomic<bool>   mMasterSendMute    {   false };
-    Atomic<bool>   mMasterRecvMute    {   false };
+    Atomic<bool>   mMainSendMute    {   false };
+    Atomic<bool>   mMainRecvMute    {   false };
     Atomic<bool>   mMetEnabled  { false };
     Atomic<bool>   mSendMet  { false };
     Atomic<float>   mMetGain    { 0.5f };
@@ -403,6 +439,12 @@ private:
     Atomic<bool>   mSendPlaybackAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };
     Atomic<bool>   mMetIsRecorded  { true };
+    Atomic<bool>   mMainReverbEnabled  { true };
+    Atomic<float>   mMainReverbLevel  { 0.0626f };
+    Atomic<float>   mMainReverbSize  { 0.3f };
+    Atomic<float>   mMainReverbDamping  { 0.5f };
+    Atomic<float>   mMainReverbPreDelay  { 20.0f }; // ms
+    Atomic<int>   mMainReverbModel  { ReverbModelMVerb };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
@@ -410,7 +452,13 @@ private:
     float mLastInMonPan1 = 0.0f;
     float mLastInMonPan2 = 0.0f;
     bool mLastMetEnabled = false;
-
+    bool mLastMainReverbEnabled = false;
+    bool mReverbParamsChanged = false;
+    bool mReverbSizeChanged = false;
+    bool mReverbLevelChanged = false;
+    bool mReverbDampingChanged = false;
+    bool mReverbPredelayChanged = false;
+    bool mLastHasMainFx = false;
     
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
     
@@ -507,6 +555,16 @@ private:
     std::unique_ptr<EventThread> mEventThread;
     std::unique_ptr<ServerThread> mServerThread;
     std::unique_ptr<ClientThread> mClientThread;
+    
+    // Effects
+    std::unique_ptr<Reverb> mMainReverb;
+    Reverb::Parameters mMainReverbParams;
+    MVerbFloat mMReverb;
+    zitaRev mZitaReverb;
+    MapUI  mZitaControl;
+    
+    ReverbModel mLastReverbModel = ReverbModelFreeverb;
+    
     
     // recording stuff
     volatile bool writingPossible = false;
