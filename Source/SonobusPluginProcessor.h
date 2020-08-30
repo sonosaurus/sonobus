@@ -285,6 +285,24 @@ public:
     bool isRemotePeerLatencyTestActive(int index);
     
     
+    struct CompressorParams
+    {
+        bool enabled = false;
+        float thresholdDb = -20.0f;
+        float ratio = 4.0f;
+        float attackMs = 10.0f;
+        float releaseMs = 500.0f;
+        float makeupGainDb = 0.0f;
+        bool  automakeupGain = true;
+    };
+    
+    void setRemotePeerCompressorParams(int index, CompressorParams & params);
+    bool getRemotePeerCompressorParams(int index, CompressorParams & retparams);
+    
+    void setInputCompressorParams(CompressorParams & params);
+    bool getInputCompressorParams(CompressorParams & retparams);
+    
+    
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
     void setDefaultAudioCodecFormat(int formatIndex);
@@ -398,7 +416,9 @@ private:
 
     void adjustRemoteSendMatrix(int index, bool removed);
 
-    
+    void commitCompressorParams(RemotePeer * peer);
+    void commitInputCompressorParams();
+
     int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
 
     int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
@@ -562,6 +582,12 @@ private:
     MVerbFloat mMReverb;
     zitaRev mZitaReverb;
     MapUI  mZitaControl;
+    
+    faustComp mInputCompressor;
+    MapUI  mInputCompressorControl;
+    CompressorParams mInputCompressorParams;
+    bool mInputCompressorParamsChanged = false;
+    bool mLastInputCompressorEnabled = false;
     
     ReverbModel mLastReverbModel = ReverbModelFreeverb;
     

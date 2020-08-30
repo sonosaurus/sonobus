@@ -145,6 +145,8 @@
             file="Source/BeatToggleGrid.cpp"/>
       <FILE id="IeUqt0" name="BeatToggleGrid.h" compile="0" resource="0"
             file="Source/BeatToggleGrid.h"/>
+      <FILE id="zsNFlO" name="CompressorView.h" compile="0" resource="0"
+            file="Source/CompressorView.h"/>
       <FILE id="JhBMID" name="CrossPlatformUtils.h" compile="0" resource="0"
             file="Source/CrossPlatformUtils.h"/>
       <FILE id="Pd0jq9" name="CrossPlatformUtilsAndroid.cpp" compile="1"

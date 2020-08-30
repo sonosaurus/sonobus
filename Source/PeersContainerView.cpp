@@ -11,7 +11,7 @@
 #include "PeersContainerView.h"
 #include "JitterBufferMeter.h"
 
-PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14)
+PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14), sonoSliderLNF(14)
 {
     bgColor = Colour::fromFloatRGBA(0.112f, 0.112f, 0.112f, 1.0f);
     borderColor = Colour::fromFloatRGBA(0.5f, 0.5f, 0.5f, 0.3f);
@@ -124,6 +124,28 @@ void PeersContainerView::configLevelSlider(Slider * slider)
 #endif
 }
 
+void PeersContainerView::configKnobSlider(Slider * slider)
+{
+    slider->setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    slider->setTextBoxStyle(Slider::TextBoxAbove, true, 60, 14);
+    slider->setMouseDragSensitivity(128);
+    slider->setScrollWheelEnabled(false);
+    slider->setTextBoxIsEditable(true);
+    slider->setSliderSnapsToMousePosition(false);
+    //slider->setPopupDisplayEnabled(true, false, this);
+    slider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
+    slider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+
+    //slider->setLookAndFeel(&sonoSliderLNF);
+    
+    //slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
+    //slider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
+#if JUCE_IOS
+    //slider->setPopupDisplayEnabled(true, false, this);
+#endif
+}
 
 void PeersContainerView::configLabel(Label *label, int ltype)
 {
@@ -321,6 +343,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->panButton->addListener(this);
     pvf->panButton->setLookAndFeel(&pvf->medLnf);
 
+    pvf->fxButton = std::make_unique<TextButton>(TRANS("FX"));
+    pvf->fxButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
+    pvf->fxButton->addListener(this);
+    pvf->fxButton->setLookAndFeel(&pvf->medLnf);
+
     //pvf->optionsButton = std::make_unique<TextButton>("");
     //pvf->optionsButton->addListener(this);
 
@@ -438,6 +465,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvMeter->setRefreshRateHz(10);
     pvf->recvMeter->addMouseListener(this, false);
 
+    // compressor stuff
+   
+    pvf->compressorView = std::make_unique<CompressorView>();
+    pvf->compressorView->addListener(this);
+    
     pvf->optionsContainer = std::make_unique<Component>();
 
     Colour statsbgcol = Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0); // 0.08
@@ -510,11 +542,13 @@ void PeersContainerView::rebuildPeerViews()
         pvf->optionsContainer->addAndMakeVisible(pvf->optionsRemoveButton.get());
         pvf->optionsContainer->addAndMakeVisible(pvf->optionsResetDropButton.get());
 
+        
         //pvf->addAndMakeVisible(pvf->sendMeter.get());
         pvf->addAndMakeVisible(pvf->recvMeter.get());
         pvf->addAndMakeVisible(pvf->sendActualBitrateLabel.get());
         pvf->addAndMakeVisible(pvf->recvActualBitrateLabel.get());
         pvf->addAndMakeVisible(pvf->panButton.get());
+        pvf->addAndMakeVisible(pvf->fxButton.get());
 
         pvf->pannersContainer->addAndMakeVisible(pvf->panSlider1.get());
         pvf->pannersContainer->addAndMakeVisible(pvf->panSlider2.get());
@@ -750,6 +784,7 @@ void PeersContainerView::updateLayout()
             pvf->levelSlider->setPopupDisplayEnabled(true, true, getTopLevelComponent());
         }
         pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(2));
+        pvf->recvlevelbox.items.add(FlexItem(42, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0).withMaxWidth(50));
 
         if (processor.getTotalNumOutputChannels() > 1) {
 
@@ -1080,6 +1115,12 @@ void PeersContainerView::updatePeerViews()
         //pvf->panSlider2->setAlpha(recvactive ? 1.0 : disalpha);
         //pvf->autosizeButton->setAlpha(recvactive ? 1.0 : 0.6);
         
+        SonobusAudioProcessor::CompressorParams compParams;
+        if (processor.getRemotePeerCompressorParams(i, compParams)) {
+            pvf->compressorView->updateParams(compParams);
+            pvf->fxButton->setToggleState(compParams.enabled, dontSendNotification);
+        }
+        
         if (pvf->stopLatencyTestTimestampMs > 0.0 && nowstampms > pvf->stopLatencyTestTimestampMs
             && !pvf->latActiveButton->isMouseButtonDown()) {
 
@@ -1260,6 +1301,16 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
 
             break;
         }
+        else if (pvf->fxButton.get() == buttonThatWasClicked) {
+
+            if (!effectsCalloutBox) {
+                showEffects(i, true, pvf->fxButton.get());
+            } else {
+                showEffects(i, false);
+            }
+
+            break;
+        }
         else if (pvf->panButton.get() == buttonThatWasClicked) {
             if (!pannerCalloutBox) {
                 showPanners(i, true);
@@ -1278,10 +1329,12 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         }
         else if (pvf->optionsResetDropButton.get() == buttonThatWasClicked) {
             processor.resetRemotePeerPacketStats(i);
+            break;
         }
         else if (pvf->optionsRemoveButton.get() == buttonThatWasClicked) {
             processor.removeRemotePeer(i);
             showOptions(i, false);
+            break;
         }
     }    
 }
@@ -1401,6 +1454,75 @@ void PeersContainerView::showOptions(int index, bool flag, Component * fromView)
     }
 }
 
+void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
+{
+    
+    if (flag && effectsCalloutBox == nullptr) {
+        
+        Viewport * wrap = new Viewport();
+        
+        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        
+        if (!dw) {
+            dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+        }
+        if (!dw) {
+            dw = this->findParentComponentOfClass<Component>();
+        }
+        if (!dw) {
+            dw = this;
+        }
+        
+        int defWidth = 260;
+#if JUCE_IOS
+        int defHeight = 180;
+#else
+        int defHeight = 156;
+#endif
+        
+        
+        
+        //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
+        
+        auto * pvf = mPeerViews.getUnchecked(index);
+
+        auto minbounds = pvf->compressorView->getMinimumContentBounds();
+        defWidth = minbounds.getWidth();
+        defHeight = minbounds.getHeight();
+        
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+
+        
+        pvf->compressorView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        
+        SonobusAudioProcessor::CompressorParams compParams;
+        if (processor.getRemotePeerCompressorParams(index, compParams)) {
+            pvf->compressorView->updateParams(compParams);
+        }
+
+        
+        wrap->setViewedComponent(pvf->compressorView.get(), false);
+        pvf->compressorView->setVisible(true);
+        
+        //pvf->optionsBox.performLayout(pvf->optionsContainer->getLocalBounds());
+        //pvf->bufferTimeLabel->setBounds(pvf->bufferTimeSlider->getBounds().removeFromLeft(pvf->bufferTimeSlider->getWidth()*0.5));
+
+        
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->fxButton->getScreenBounds());
+        DBG("effect callout bounds: " << bounds.toString());
+        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
+            box->dismiss();
+            effectsCalloutBox = nullptr;
+        }
+    }
+}
 
 void PeersContainerView::mouseUp (const MouseEvent& event) 
 {
@@ -1435,6 +1557,7 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
         //}
         else if (event.eventComponent == pvf->recvMeter.get()) {
             pvf->recvMeter->clearClipIndicator(-1);
+            break;
         }
 
     }
@@ -1527,6 +1650,17 @@ void PeersContainerView::genericItemChooserSelected(GenericItemChooser *comp, in
 
 }
 
+void PeersContainerView::compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) 
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        if (pvf->compressorView.get() == comp) {
+            processor.setRemotePeerCompressorParams(i, params);
+            break;
+        }
+    }
+}
+
 
 void PeersContainerView::sliderValueChanged (Slider* slider)
 {
@@ -1534,17 +1668,21 @@ void PeersContainerView::sliderValueChanged (Slider* slider)
        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
        if (pvf->levelSlider.get() == slider) {
            processor.setRemotePeerLevelGain(i, pvf->levelSlider->getValue());   
+           break;
        }
        else if (pvf->bufferTimeSlider.get() == slider) {
            float buftime = pvf->bufferTimeSlider->getValue();
            processor.setRemotePeerBufferTime(i, buftime);
            pvf->bufferTimeSlider->setValue(buftime, dontSendNotification);
+           break;
        }
        else if (pvf->panSlider1.get() == slider) {
            processor.setRemotePeerChannelPan(i, 0, pvf->panSlider1->getValue());   
+           break;
        }
        else if (pvf->panSlider2.get() == slider) {
            processor.setRemotePeerChannelPan(i, 1, pvf->panSlider2->getValue());   
+           break;
        }
 
    }

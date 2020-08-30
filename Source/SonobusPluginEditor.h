@@ -11,6 +11,7 @@
 #include "SonoTextButton.h"
 #include "SonoUtility.h"
 #include "GenericItemChooser.h"
+#include "CompressorView.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
@@ -35,7 +36,8 @@ public TextEditor::Listener,
 public ApplicationCommandTarget,
 public AsyncUpdater,
 public FileDragAndDropTarget,
-public GenericItemChooser::Listener
+public GenericItemChooser::Listener,
+public CompressorView::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -82,6 +84,8 @@ public:
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
 
+    void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
+
     
     void connectWithInfo(const AooServerConnectionInfo & info);
 
@@ -127,6 +131,7 @@ private:
     void showInPanners(bool flag);
     void showMetConfig(bool flag);
     void showEffectsConfig(bool flag);
+    void showInEffectsConfig(bool flag, Component * fromView=nullptr);
 
     void showConnectPopup(bool flag);
 
@@ -316,7 +321,10 @@ private:
 
     // effects
     std::unique_ptr<TextButton> mEffectsButton;
-
+    std::unique_ptr<TextButton> mInEffectsButton;
+    std::unique_ptr<CompressorView> mInCompressorView;
+    
+    
     std::unique_ptr<ToggleButton> mReverbEnabledButton;
     std::unique_ptr<SonoChoiceButton> mReverbModelChoice;
     std::unique_ptr<Label>  mReverbLevelLabel;
@@ -354,6 +362,7 @@ private:
 
     WeakReference<Component> metCalloutBox;
     WeakReference<Component> effectsCalloutBox;
+    WeakReference<Component> inEffectsCalloutBox;
 
     
     
@@ -523,7 +532,8 @@ private:
     FlexBox transportVBox;
     FlexBox recBox;
     FlexBox knobButtonBox;    
-
+    FlexBox inMeterBox;
+    
     FlexBox metBox;
     FlexBox metVolBox;
     FlexBox metTempoBox;

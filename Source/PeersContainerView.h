@@ -17,6 +17,7 @@
 #include "SonoChoiceButton.h"
 #include "SonoDrawableButton.h"
 #include "GenericItemChooser.h"
+#include "CompressorView.h"
 
 class JitterBufferMeter;
 
@@ -32,6 +33,7 @@ public:
 
     SonoBigTextLookAndFeel smallLnf;
     SonoBigTextLookAndFeel medLnf;
+    SonoBigTextLookAndFeel sonoSliderLNF;
 
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;
@@ -44,6 +46,7 @@ public:
     std::unique_ptr<SonoDrawableButton> latActiveButton;
     std::unique_ptr<SonoDrawableButton> optionsButton;
     std::unique_ptr<SonoDrawableButton> menuButton;
+    std::unique_ptr<TextButton> fxButton;
     std::unique_ptr<TextButton> panButton;
     std::unique_ptr<Label>  statusLabel;
     std::unique_ptr<Label>  levelLabel;
@@ -57,6 +60,10 @@ public:
     std::unique_ptr<TextButton> optionsResetDropButton;
     std::unique_ptr<TextButton> optionsRemoveButton;
 
+    std::unique_ptr<CompressorView> compressorView;
+   
+
+    
     std::unique_ptr<Component> pannersContainer;
     std::unique_ptr<Component> optionsContainer;
 
@@ -109,6 +116,7 @@ public:
     FlexBox optionsbuttbox;
     FlexBox optionsaddrbox;
 
+
     FlexBox squalbox;
     FlexBox netbufbox;
     FlexBox recvstatbox;
@@ -135,6 +143,7 @@ public Button::Listener,
 public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
+public CompressorView::Listener,
 public MultiTimer
 {
 public:
@@ -165,6 +174,8 @@ public:
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
     
+    void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
+
 
     Rectangle<int> getMinimumContentBounds() const;
     
@@ -177,6 +188,7 @@ protected:
     
     void configLevelSlider(Slider * slider);    
     void configLabel(Label *label, int ltype);
+    void configKnobSlider(Slider * slider);    
     
     String generateLatencyMessage(const SonobusAudioProcessor::LatencyInfo &latinfo);
 
@@ -186,6 +198,7 @@ protected:
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showPanners(int index, bool flag);
     void showOptions(int index, bool flag, Component * fromView=nullptr);
+    void showEffects(int index, bool flag, Component * fromView=nullptr);
 
     
     OwnedArray<PeerViewInfo> mPeerViews;
@@ -195,6 +208,7 @@ protected:
 
     WeakReference<Component> pannerCalloutBox;
     WeakReference<Component> optionsCalloutBox;
+    WeakReference<Component> effectsCalloutBox;
 
     FlexBox peersBox;
     int peersMinHeight = 120;

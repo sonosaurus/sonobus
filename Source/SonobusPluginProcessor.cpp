@@ -217,7 +217,12 @@ struct SonobusAudioProcessor::RemotePeer {
     // metering
     foleys::LevelMeterSource sendMeterSource;
     foleys::LevelMeterSource recvMeterSource;
-
+    // compressor
+    CompressorParams compressorParams;
+    std::unique_ptr<faustComp> compressor;
+    std::unique_ptr<MapUI> compressorUI;
+    bool compressorParamsChanged = false;
+    bool lastCompressorEnabled = false;
 };
 
 
@@ -1006,6 +1011,78 @@ void SonobusAudioProcessor::setRemotePeerSendPacketsize(int index, int psize)
     }
     
 }
+
+void SonobusAudioProcessor::setRemotePeerCompressorParams(int index, CompressorParams & params)
+{
+    if (index >= mRemotePeers.size()) return;
+    
+    const ScopedReadLock sl (mCoreLock);        
+
+    auto remote = mRemotePeers.getUnchecked(index);
+
+    // sanity check and compute automakeupgain if necessary    
+    params.ratio = jlimit(1.0f, 120.0f, params.ratio);
+    if (params.automakeupGain) {
+        // makeupgain = (-thresh -  abs(thresh/ratio))/2
+        params.makeupGainDb = (-params.thresholdDb - abs(params.thresholdDb/params.ratio)) * 0.5f;
+    }
+
+    remote->compressorParams = params;
+    remote->compressorParamsChanged = true;
+}
+
+bool SonobusAudioProcessor::getRemotePeerCompressorParams(int index, CompressorParams & retparams)
+{
+    if (index >= mRemotePeers.size()) return false;
+    const ScopedReadLock sl (mCoreLock);        
+    auto remote = mRemotePeers.getUnchecked(index);
+    retparams = remote->compressorParams;
+    return true;
+
+}
+
+void SonobusAudioProcessor::setInputCompressorParams(CompressorParams & params)
+{
+    // sanity check and compute automakeupgain if necessary    
+    params.ratio = jlimit(1.0f, 120.0f, params.ratio);
+    if (params.automakeupGain) {
+        // makeupgain = (-thresh -  abs(thresh/ratio))/2
+        params.makeupGainDb = (-params.thresholdDb - abs(params.thresholdDb/params.ratio)) * 0.5f;
+    }
+
+    mInputCompressorParams = params;
+    mInputCompressorParamsChanged = true;
+}
+
+bool SonobusAudioProcessor::getInputCompressorParams(CompressorParams & retparams)
+{
+    retparams = mInputCompressorParams;
+    return true;
+}
+
+
+
+void SonobusAudioProcessor::commitCompressorParams(RemotePeer * peer)
+{
+    peer->compressorUI->setParamValue("/COMPRESSOR/Bypass", peer->compressorParams.enabled ? 0.0f : 1.0f);
+    peer->compressorUI->setParamValue("/COMPRESSOR/Threshold", peer->compressorParams.thresholdDb);
+    peer->compressorUI->setParamValue("/COMPRESSOR/Ratio", peer->compressorParams.ratio);
+    peer->compressorUI->setParamValue("/COMPRESSOR/Attack", peer->compressorParams.attackMs);
+    peer->compressorUI->setParamValue("/COMPRESSOR/Release", peer->compressorParams.releaseMs);
+    peer->compressorUI->setParamValue("/COMPRESSOR/Makeup_Gain", peer->compressorParams.makeupGainDb);
+}
+
+void SonobusAudioProcessor::commitInputCompressorParams()
+{
+    mInputCompressorControl.setParamValue("/COMPRESSOR/Bypass", mInputCompressorParams.enabled ? 0.0f : 1.0f);
+    mInputCompressorControl.setParamValue("/COMPRESSOR/Threshold", mInputCompressorParams.thresholdDb);
+    mInputCompressorControl.setParamValue("/COMPRESSOR/Ratio", mInputCompressorParams.ratio);
+    mInputCompressorControl.setParamValue("/COMPRESSOR/Attack", mInputCompressorParams.attackMs);
+    mInputCompressorControl.setParamValue("/COMPRESSOR/Release", mInputCompressorParams.releaseMs);
+    mInputCompressorControl.setParamValue("/COMPRESSOR/Makeup_Gain", mInputCompressorParams.makeupGainDb);
+}
+
+
 
 // should use shared pointer
 foleys::LevelMeterSource * SonobusAudioProcessor::getRemotePeerRecvMeterSource(int index)
@@ -3071,6 +3148,16 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->sendAllow = retpeer->sendAllowCache = !mMainSendMute.get();
         retpeer->recvAllow = retpeer->recvAllowCache =  !mMainRecvMute.get();
 
+        // compressor stuff
+        retpeer->compressor = std::make_unique<faustComp>();
+        retpeer->compressorUI = std::make_unique<MapUI>();
+        retpeer->compressor->init(getSampleRate());
+        retpeer->compressor->buildUserInterface(retpeer->compressorUI.get());
+        for(int i=0; i < retpeer->compressorUI->getParamsCount(); i++){
+            DBG(retpeer->compressorUI->getParamAddress(i));
+        }
+        commitCompressorParams(retpeer);
+        
     }
     else {
         DBG("Remote peer already exists");
@@ -3443,7 +3530,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mZitaReverb.buildUserInterface(&mZitaControl);
     
     for(int i=0; i < mZitaControl.getParamsCount(); i++){
-        std::cout << mZitaControl.getParamAddress(i) << "\n";
+        DBG(mZitaControl.getParamAddress(i));
     }
     
     // setting default values for the Faust module parameters
@@ -3451,6 +3538,11 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Low_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
     mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Mid_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
     mZitaControl.setParamValue("/Zita_Rev1/Output/Level", jlimit(-70.0f, 40.0f, Decibels::gainToDecibels(mMainReverbLevel.get()) + 6.0f));
+
+    mInputCompressor.init(sampleRate);
+    mInputCompressor.buildUserInterface(&mInputCompressorControl);
+    commitInputCompressorParams();
+    
     
     mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());
 
@@ -3521,6 +3613,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
         s->recvMeterSource.resize (s->recvChannels, meterRmsWindow);
         s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
+        
+        s->compressor->init(sampleRate);
         
         ++i;
     }
@@ -3665,6 +3759,16 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.applyGain(inGain);
     }
     
+    // apply input compressor
+    if (mInputCompressorParamsChanged) {
+        commitInputCompressorParams();
+        mInputCompressorParamsChanged = false;
+    }
+    if (mLastInputCompressorEnabled || mInputCompressorParams.enabled) {
+        mInputCompressor.compute(numSamples, buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers());
+    }
+    mLastInputCompressorEnabled = mInputCompressorParams.enabled;
+    
     
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
         // used later
@@ -3764,6 +3868,16 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             // get audio data coming in from outside into tempbuf
             remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
 
+
+            // apply compressor
+            if (remote->compressorParamsChanged) {
+                commitCompressorParams(remote);
+                remote->compressorParamsChanged = false;
+            }
+            if (remote->lastCompressorEnabled || remote->compressorParams.enabled) {
+                remote->compressor->compute(numSamples, remote->workBuffer.getArrayOfWritePointers(), remote->workBuffer.getArrayOfWritePointers());
+            }
+            remote->lastCompressorEnabled = remote->compressorParams.enabled;
 
             
             float usegain = remote->gain;

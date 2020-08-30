@@ -76,7 +76,8 @@ SonoLookAndFeel::SonoLookAndFeel()
     setColour (Slider::textBoxOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
     
     setColour (Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.8));
-    setColour (Slider::thumbColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 1.0));
+    setColour (Slider::thumbColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.9));
+    //setColour (Slider::thumbColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 1.0));
     setColour (Slider::rotarySliderFillColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.9));
     
     setColour (TabbedButtonBar::tabOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
@@ -930,7 +931,7 @@ void SonoLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, in
         g.strokePath (valueArc, PathStrokeType (lineW, PathStrokeType::curved, PathStrokeType::rounded));
     }
     
-    const auto thumbWidth = lineW * 1.5f;
+    const auto thumbWidth = lineW ; // * 1.5f;
     const Point<float> thumbPoint (bounds.getCentreX() + arcRadius * std::cos (toAngle - float_Pi * 0.5f),
                                    bounds.getCentreY() + arcRadius * std::sin (toAngle - float_Pi * 0.5f));
     
