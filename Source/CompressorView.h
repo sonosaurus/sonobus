@@ -21,7 +21,7 @@
 class CompressorView    : public Component, public Slider::Listener, public Button::Listener
 {
 public:
-    CompressorView() : sonoSliderLNF(14)
+    CompressorView() : sonoSliderLNF(14), smallLNF(12)
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
@@ -85,11 +85,11 @@ public:
         makeupGainLabel.setText(TRANS("Makeup Gain"), dontSendNotification);
         configLabel(makeupGainLabel);
         
-        enableButton.setButtonText(TRANS("Use Compressor"));
+        enableButton.setButtonText(TRANS("Compressor"));
         enableButton.addListener(this);
         autoMakeupButton.setButtonText(TRANS("Auto"));
         autoMakeupButton.addListener(this);
-        
+        autoMakeupButton.setLookAndFeel(&smallLNF);
            
 
         addAndMakeVisible(thresholdSlider);
@@ -170,9 +170,10 @@ public:
         
         checkBox.items.clear();
         checkBox.flexDirection = FlexBox::Direction::row;
+        checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(100, minitemheight, enableButton).withMargin(0).withFlex(1));
         //knobBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0.1));
-        checkBox.items.add(FlexItem(80, minitemheight, autoMakeupButton).withMargin(0).withFlex(0));
+        checkBox.items.add(FlexItem(66, minitemheight, autoMakeupButton).withMargin(0).withFlex(0));
         
         
         
@@ -218,6 +219,8 @@ public:
         if (mParams.automakeupGain) {
             makeupGainSlider.setValue(mParams.makeupGainDb, dontSendNotification);
         }
+        makeupGainSlider.setEnabled(!mParams.automakeupGain);
+
     }
     
     void sliderValueChanged (Slider* slider) override
@@ -268,6 +271,7 @@ public:
 private:
     
     SonoBigTextLookAndFeel sonoSliderLNF;
+    SonoBigTextLookAndFeel smallLNF;
 
     ListenerList<Listener> listeners;
     Rectangle<int> minBounds;

@@ -296,6 +296,7 @@ private:
     std::unique_ptr<Component> mMetContainer;
 
     std::unique_ptr<Component> mEffectsContainer;
+    std::unique_ptr<Component> mInEffectsContainer;
 
     
     std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
@@ -323,7 +324,11 @@ private:
     std::unique_ptr<TextButton> mEffectsButton;
     std::unique_ptr<TextButton> mInEffectsButton;
     std::unique_ptr<CompressorView> mInCompressorView;
-    
+    std::unique_ptr<DrawableRectangle> mCompressorBg;
+
+    std::unique_ptr<SonoChoiceButton> mSendChannelsChoice;
+    std::unique_ptr<Label>  mSendChannelsLabel;
+
     
     std::unique_ptr<ToggleButton> mReverbEnabledButton;
     std::unique_ptr<SonoChoiceButton> mReverbModelChoice;
@@ -548,6 +553,7 @@ private:
     FlexBox reverbDampBox;
     FlexBox reverbPreDelayBox;
     
+    FlexBox inEffectsBox;
     
     FlexBox connectMainBox;
     FlexBox connectHorizBox;

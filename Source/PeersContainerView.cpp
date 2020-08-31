@@ -458,9 +458,9 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     
     // meters
-    auto flags = foleys::LevelMeter::Horizontal|foleys::LevelMeter::Minimal;
+    auto flags = foleys::LevelMeter::Minimal;
     
-    pvf->recvMeter = std::make_unique<foleys::LevelMeter>(foleys::LevelMeter::Minimal);
+    pvf->recvMeter = std::make_unique<foleys::LevelMeter>(flags);
     pvf->recvMeter->setLookAndFeel(&(pvf->rmeterLnf));
     pvf->recvMeter->setRefreshRateHz(10);
     pvf->recvMeter->addMouseListener(this, false);

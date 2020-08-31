@@ -7,6 +7,9 @@
 #include "aoo/aoo.hpp"
 #include "aoo/aoo_net.hpp"
 
+#include <map>
+#include <string>
+
 #include "MVerb.h"
 
 #include "zitaRev.h"
@@ -145,6 +148,7 @@ public:
     static String paramInMonitorPan2;
     static String paramDry;
     static String paramWet;
+    static String paramSendChannels;
     static String paramBufferTime;
     static String paramDefaultAutoNetbuf;
     static String paramDefaultNetbufMs;
@@ -230,6 +234,9 @@ public:
 
     int getRemotePeerChannelCount(int index) const;
 
+    int getRemotePeerNominalSendChannelCount(int index) const;
+    void setRemotePeerNominalSendChannelCount(int index, int numchans);
+
     int getRemotePeerOverrideSendChannelCount(int index) const;
     void setRemotePeerOverrideSendChannelCount(int index, int numchans);
 
@@ -287,9 +294,12 @@ public:
     
     struct CompressorParams
     {
+        ValueTree getValueTree() const;
+        void setFromValueTree(const ValueTree & val);
+
         bool enabled = false;
         float thresholdDb = -20.0f;
-        float ratio = 4.0f;
+        float ratio = 3.0f;
         float attackMs = 10.0f;
         float releaseMs = 500.0f;
         float makeupGainDb = 0.0f;
@@ -392,6 +402,24 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
     
+    struct PeerStateCache
+    {
+        ValueTree getValueTree() const;
+        void setFromValueTree(const ValueTree & val);
+
+        String name;
+        float level = 1.0f;
+        float monopan = 0.0f;
+        float stereopan1 = -1.0f;
+        float stereopan2 = 1.0f;
+        float netbuf = 10.0f; 
+        int   netbufauto;
+        int   sendFormat = 4;
+        CompressorParams compressorParams;
+    };
+
+    // key is peer name
+    typedef std::map<String, PeerStateCache>  PeerStateCacheMap;
     
     
     void initializeAoo(int udpPort=0);
@@ -409,7 +437,7 @@ private:
     RemotePeer *  findRemotePeerByLatencyId(EndpointState * endpoint, int32_t latId);
     RemotePeer *  findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId);
     RemotePeer *  findRemotePeerByRemoteSinkId(EndpointState * endpoint, int32_t sinkId);
-    RemotePeer *  doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId=AOO_ID_NONE);
+    RemotePeer *  doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId=AOO_ID_NONE, const String & username={}, const String & groupname={});
     bool doRemoveRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId);
     
     bool removeAllRemotePeersWithEndpoint(EndpointState * endpoint);
@@ -419,11 +447,20 @@ private:
     void commitCompressorParams(RemotePeer * peer);
     void commitInputCompressorParams();
 
+    void updateRemotePeerSendChannels(int index, RemotePeer * remote);
+
+    
     int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
 
     int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
 
     void ensureBuffers(int samples);
+
+    void commitCacheForPeer(RemotePeer * peer);
+    bool findAndLoadCacheForPeer(RemotePeer * peer);
+    
+    void loadPeerCacheFromState();
+    void storePeerCacheToState();
     
     ListenerList<ClientListener> clientListeners;
 
@@ -454,6 +491,7 @@ private:
     Atomic<bool>   mMainRecvMute    {   false };
     Atomic<bool>   mMetEnabled  { false };
     Atomic<bool>   mSendMet  { false };
+    Atomic<int>   mSendChannels  { 0 }; // 0 is match inputs
     Atomic<float>   mMetGain    { 0.5f };
     Atomic<double>   mMetTempo    { 100.0f };
     Atomic<bool>   mSendPlaybackAudio  { false };
@@ -474,10 +512,6 @@ private:
     bool mLastMetEnabled = false;
     bool mLastMainReverbEnabled = false;
     bool mReverbParamsChanged = false;
-    bool mReverbSizeChanged = false;
-    bool mReverbLevelChanged = false;
-    bool mReverbDampingChanged = false;
-    bool mReverbPredelayChanged = false;
     bool mLastHasMainFx = false;
     
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
@@ -505,6 +539,8 @@ private:
     AudioProcessorValueTreeState mState;
     UndoManager                  mUndoManager;
 
+    PeerStateCacheMap mPeerStateCacheMap;
+    
     // top level meter sources
     foleys::LevelMeterSource inputMeterSource;
     foleys::LevelMeterSource outputMeterSource;
@@ -588,6 +624,7 @@ private:
     CompressorParams mInputCompressorParams;
     bool mInputCompressorParamsChanged = false;
     bool mLastInputCompressorEnabled = false;
+    float * mInputCompressorOutputGain = nullptr;
     
     ReverbModel mLastReverbModel = ReverbModelFreeverb;
     

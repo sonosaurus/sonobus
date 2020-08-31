@@ -367,7 +367,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInMonPanSlider1->setScrollWheelEnabled(false);
     mInMonPanSlider1->setMouseDragSensitivity(100);
 
-    mInMonPanLabel1 = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("Pan 1"));
+    mInMonPanLabel1 = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Pan 1"));
     configLabel(mInMonPanLabel1.get(), true);
     
     mInMonPanSlider2     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
@@ -379,7 +379,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInMonPanSlider2->setScrollWheelEnabled(false);
     mInMonPanSlider2->setMouseDragSensitivity(100);
 
-    mInMonPanLabel2 = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("Pan 2"));
+    mInMonPanLabel2 = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Pan 2"));
     configLabel(mInMonPanLabel2.get(), true);
     
     
@@ -423,6 +423,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mMetContainer = std::make_unique<Component>();
     mEffectsContainer = std::make_unique<Component>();
+    mInEffectsContainer = std::make_unique<Component>();
 
     
     
@@ -873,11 +874,30 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mInEffectsButton = std::make_unique<TextButton>("mainfx");
     mInEffectsButton->setButtonText(TRANS("In FX"));
+    mInEffectsButton->setLookAndFeel(&smallLNF);
     mInEffectsButton->addListener(this);
     mInEffectsButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
     
+    mSendChannelsChoice = std::make_unique<SonoChoiceButton>();
+    mSendChannelsChoice->addChoiceListener(this);
+    mSendChannelsChoice->addItem(TRANS("Match Inputs"), 0);
+    mSendChannelsChoice->addItem(TRANS("Mono"), 1);
+    mSendChannelsChoice->addItem(TRANS("Stereo"), 2);
+
+    mSendChannelsLabel = std::make_unique<Label>("sendch", TRANS("Send Channels"));
+    configLabel(mSendChannelsLabel.get(), true);
+    mSendChannelsLabel->setJustificationType(Justification::centred);
+
+    
     mInCompressorView =  std::make_unique<CompressorView>();
     mInCompressorView->addListener(this);
+    
+    mCompressorBg = std::make_unique<DrawableRectangle>();
+    mCompressorBg->setCornerSize(Point<float>(6,6));
+    mCompressorBg->setFill (Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0));
+    mCompressorBg->setStrokeFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.25));
+    mCompressorBg->setStrokeThickness(0.5);
+
     
     mReverbLevelLabel = std::make_unique<Label>(SonobusAudioProcessor::paramMainReverbLevel, TRANS("Level"));
     configLabel(mReverbLevelLabel.get(), false);
@@ -1192,7 +1212,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(outputMeter.get());
     //addAndMakeVisible(mPeerContainer.get());
     addAndMakeVisible (mSettingsButton.get());
-    addAndMakeVisible (mPanButton.get());
+    //addAndMakeVisible (mPanButton.get());
     
     addChildComponent(mConnectComponent.get());
 
@@ -1200,11 +1220,17 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addChildComponent(mDragDropBg.get());
 
     
-    inPannersContainer->addAndMakeVisible (mInMonPanLabel1.get());
-    inPannersContainer->addAndMakeVisible (mInMonPanLabel2.get());
-    inPannersContainer->addAndMakeVisible (mInMonPanSlider1.get());
-    inPannersContainer->addAndMakeVisible (mInMonPanSlider2.get());
+    mInEffectsContainer->addAndMakeVisible (mInMonPanLabel1.get());
+    mInEffectsContainer->addAndMakeVisible (mInMonPanLabel2.get());
+    mInEffectsContainer->addAndMakeVisible (mInMonPanSlider1.get());
+    mInEffectsContainer->addAndMakeVisible (mInMonPanSlider2.get());
+    mInEffectsContainer->addAndMakeVisible (mCompressorBg.get());
+    mInEffectsContainer->addAndMakeVisible (mInCompressorView.get());
+    mInEffectsContainer->addAndMakeVisible (mSendChannelsChoice.get());
+    mInEffectsContainer->addAndMakeVisible (mSendChannelsLabel.get());
 
+    //mEffectsContainer->addAndMakeVisible(inPannersContainer.get());
+    
     inChannels = processor.getTotalNumInputChannels();
     outChannels = processor.getTotalNumOutputChannels();
     
@@ -1583,6 +1609,10 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
     }
     else if (comp == mReverbModelChoice.get()) {
         processor.setMainReverbModel((SonobusAudioProcessor::ReverbModel) ident);
+    }
+    else if (comp == mSendChannelsChoice.get()) {
+        float fval = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertTo0to1(ident);
+        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->setValueNotifyingHost(fval);
     }
 }
 
@@ -2511,23 +2541,27 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
         
         auto minbounds = mInCompressorView->getMinimumContentBounds();
-        defWidth = minbounds.getWidth();
-        defHeight = minbounds.getHeight();
+        defWidth = minbounds.getWidth() + 12;
+        defHeight = minbounds.getHeight() + 80;
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
 
         
-        mInCompressorView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        mInEffectsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
         
-        wrap->setViewedComponent(mInCompressorView.get(), false);
-        mInCompressorView->setVisible(true);
+        wrap->setViewedComponent(mInEffectsContainer.get(), false);
+        mInEffectsContainer->setVisible(true);
         
         SonobusAudioProcessor::CompressorParams params;
         processor.getInputCompressorParams(params);
         mInCompressorView->updateParams(params);
         
-        //pvf->optionsBox.performLayout(pvf->optionsContainer->getLocalBounds());
+        inEffectsBox.performLayout(mInEffectsContainer->getLocalBounds().reduced(2, 2));
         //pvf->bufferTimeLabel->setBounds(pvf->bufferTimeSlider->getBounds().removeFromLeft(pvf->bufferTimeSlider->getWidth()*0.5));
+
+        auto compbgbounds = mInCompressorView->getBounds().expanded(2, 2);
+        mCompressorBg->setRectangle (compbgbounds.toFloat());
+
 
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : mInEffectsButton->getScreenBounds());
@@ -2832,7 +2866,10 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         wrap->addAndMakeVisible(mSettingsTab.get());
 
         mSettingsTab->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
-        mAudioDeviceSelector->setBounds(Rectangle<int>(0,0,defWidth - 10,mAudioDeviceSelector->getHeight()));
+        
+        if (mAudioDeviceSelector) {
+            mAudioDeviceSelector->setBounds(Rectangle<int>(0,0,defWidth - 10,mAudioDeviceSelector->getHeight()));
+        }
         mOptionsComponent->setBounds(Rectangle<int>(0,0,defWidth - 10, minOptionsHeight));
 
         wrap->setSize(defWidth,defHeight);
@@ -2901,6 +2938,10 @@ void SonobusAudioProcessorEditor::updateState()
 
     mReverbModelChoice->setSelectedId(processor.getMainReverbModel(), dontSendNotification);
     mEffectsButton->setToggleState(processor.getMainReverbEnabled(), dontSendNotification);
+    
+    int sendchval = (int) processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->getValue());
+    mSendChannelsChoice->setSelectedId(sendchval, dontSendNotification);
+
     
     SonobusAudioProcessor::CompressorParams compParams;
     processor.getInputCompressorParams(compParams);
@@ -3382,13 +3423,13 @@ void SonobusAudioProcessorEditor::updateLayout()
     inMeterBox.items.clear();
     inMeterBox.flexDirection = FlexBox::Direction::column;
     inMeterBox.items.add(FlexItem(meterheight, minitemheight, *inputMeter).withMargin(0).withFlex(1).withMaxWidth(meterheight).withAlignSelf(FlexItem::AlignSelf::center));
-    inMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
-    inMeterBox.items.add(FlexItem(40, minitemheight - 4, *mInEffectsButton).withMargin(0).withFlex(0));
+    //inMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
+    //inMeterBox.items.add(FlexItem(40, minitemheight - 4, *mInEffectsButton).withMargin(0).withFlex(0));
 
     
     knobButtonBox.items.clear();
     knobButtonBox.flexDirection = FlexBox::Direction::column;
-    knobButtonBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(0));
+    knobButtonBox.items.add(FlexItem(40, minitemheight, *mInEffectsButton).withMargin(0).withFlex(1));
     knobButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0));
     knobButtonBox.items.add(FlexItem(40, minitemheight, *mEffectsButton).withMargin(0).withFlex(1)); //.withAlignSelf(FlexItem::AlignSelf::center));
 
@@ -3396,7 +3437,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     knobBox.items.clear();
     knobBox.flexDirection = FlexBox::Direction::row;
     knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(isNarrow ? 0.0 : 0.1));
-    knobBox.items.add(FlexItem(jmax(meterheight,40), minitemheight, inMeterBox).withMargin(0).withFlex(0));
+    knobBox.items.add(FlexItem(meterheight, minitemheight, inMeterBox).withMargin(0).withFlex(0));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
     knobBox.items.add(FlexItem(minKnobWidth, minitemheight, inGainBox).withMargin(0).withFlex(1).withMaxWidth(isNarrow ? 160 : 120));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
@@ -3459,33 +3500,38 @@ void SonobusAudioProcessorEditor::updateLayout()
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
     }
     
+    
+    
     if (outChannels > 1) {
         inPannerMainBox.items.clear();
         inPannerMainBox.flexDirection = FlexBox::Direction::column;
 
+        int pannerMaxW = 120;
+        
         inPannerBox.items.clear();
         inPannerBox.flexDirection = FlexBox::Direction::row;
         inPannerLabelBox.items.clear();
         inPannerLabelBox.flexDirection = FlexBox::Direction::row;
 
         inPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider1).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
-        inPannerLabelBox.items.add(FlexItem(minPannerWidth, 18, *mInMonPanLabel1).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
+        inPannerLabelBox.items.add(FlexItem(minPannerWidth, 16, *mInMonPanLabel1).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
 
         mInMonPanSlider1->setVisible(true);
         mInMonPanLabel1->setVisible(true);
-        
+        int numpan = 1;
         if (inChannels > 1) {
-            inPannerBox.items.add(FlexItem(4, 20).withMargin(1).withFlex(0));
+            inPannerBox.items.add(FlexItem(4, 16).withMargin(1).withFlex(0));
             inPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
 
-            inPannerLabelBox.items.add(FlexItem(4, 18).withMargin(1).withFlex(0));
-            inPannerLabelBox.items.add(FlexItem(minPannerWidth, 18, *mInMonPanLabel2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+            inPannerLabelBox.items.add(FlexItem(4, 16).withMargin(1).withFlex(0));
+            inPannerLabelBox.items.add(FlexItem(minPannerWidth, 16, *mInMonPanLabel2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
 
             mInMonPanSlider2->setVisible(true);
             mInMonPanLabel2->setVisible(true);
             
             mInMonPanSlider1->setDoubleClickReturnValue(true, -1.0);
             mInMonPanSlider2->setDoubleClickReturnValue(true, 1.0);
+            numpan = 2;
         }
         else {
             mInMonPanSlider1->setDoubleClickReturnValue(true, 0.0);
@@ -3494,15 +3540,34 @@ void SonobusAudioProcessorEditor::updateLayout()
             mInMonPanLabel2->setVisible(false);
         }
 
-        inPannerMainBox.items.add(FlexItem(6, 20, inPannerLabelBox).withMargin(1).withFlex(0));
-        inPannerMainBox.items.add(FlexItem(6, minitemheight, inPannerBox).withMargin(1).withFlex(1));
+        inPannerBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //.withMaxWidth(maxPannerWidth));
+        inPannerLabelBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //q.withMaxWidth(maxPannerWidth));
+
+        int choicew = 100;
+        inPannerBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1) ); //.withMaxWidth(maxPannerWidth));
+        inPannerLabelBox.items.add(FlexItem(choicew, 16, *mSendChannelsLabel).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
+
         
-        mPanButton->setVisible(true);
+        inPannerMainBox.items.add(FlexItem(6, 16, inPannerLabelBox).withMargin(0).withFlex(0).withMaxWidth(pannerMaxW*numpan + choicew));
+        inPannerMainBox.items.add(FlexItem(6, minitemheight, inPannerBox).withMargin(0).withFlex(1).withMaxWidth(pannerMaxW*numpan + choicew));
+        
+        //mPanButton->setVisible(true);
     }
     else {
-        mPanButton->setVisible(false);
+        //mPanButton->setVisible(false);
         //mInMonPanSlider1->setVisible(false);
     }
+    
+    auto mincompbounds = mInCompressorView->getMinimumContentBounds();
+
+    inEffectsBox.items.clear();
+    inEffectsBox.flexDirection = FlexBox::Direction::column;
+    inEffectsBox.items.add(FlexItem(100, minitemheight + 16, inPannerMainBox).withMargin(2).withFlex(0));
+    inEffectsBox.items.add(FlexItem(4, 6));
+    inEffectsBox.items.add(FlexItem(mincompbounds.getWidth(), mincompbounds.getHeight(), *mInCompressorView).withMargin(2).withFlex(1));
+    inEffectsBox.items.add(FlexItem(4, 3));
+
+    
     
     //wetBox.items.clear();
     //wetBox.flexDirection = FlexBox::Direction::column;
@@ -3737,6 +3802,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     
     reverbCheckBox.items.clear();
     reverbCheckBox.flexDirection = FlexBox::Direction::row;
+    reverbCheckBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
     reverbCheckBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbEnabledButton).withMargin(0).withFlex(2));
     reverbCheckBox.items.add(FlexItem(minKnobWidth, minitemheight, *mReverbModelChoice).withMargin(0).withFlex(1));
 
