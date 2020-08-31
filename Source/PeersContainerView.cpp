@@ -574,7 +574,7 @@ void PeersContainerView::updateLayout()
     int minPannerWidth = 40;
     int minButtonWidth = 90;
     
-    int mutebuttwidth = 60;
+    int mutebuttwidth = 52;
     
 #if JUCE_IOS
     // make the button heights a bit more for touchscreen purposes
@@ -746,6 +746,8 @@ void PeersContainerView::updateLayout()
             pvf->sendbox.items.add(FlexItem(5, 2));
             pvf->sendbox.items.add(FlexItem(mutebuttwidth, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
             pvf->sendbox.items.add(FlexItem(3, 5).withFlex(0.5));
+            pvf->sendbox.items.add(FlexItem(42, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0).withMaxWidth(50));
+            pvf->sendbox.items.add(FlexItem(6, 2));            
             pvf->sendbox.items.add(FlexItem(90, minitemheight, pvf->netstatbox).withMargin(0).withFlex(1).withMaxWidth(130));
             pvf->sendbox.items.add(FlexItem(3, 5));
         }
@@ -784,7 +786,10 @@ void PeersContainerView::updateLayout()
             pvf->levelSlider->setPopupDisplayEnabled(true, true, getTopLevelComponent());
         }
         pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(2));
-        pvf->recvlevelbox.items.add(FlexItem(42, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0).withMaxWidth(50));
+
+        if (!isNarrow) {
+            pvf->recvlevelbox.items.add(FlexItem(42, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0).withMaxWidth(50));
+        }
 
         if (processor.getTotalNumOutputChannels() > 1) {
 
@@ -824,7 +829,7 @@ void PeersContainerView::updateLayout()
         } else {
             pvf->mainsendbox.items.clear();
             pvf->mainsendbox.flexDirection = FlexBox::Direction::row;
-            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(1).withMaxWidth(160));
+            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(1).withMaxWidth(120));
             pvf->mainsendbox.items.add(FlexItem(3, 3));
             pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(1));
 

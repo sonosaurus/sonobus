@@ -347,7 +347,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMainPersonImage->setImage(ImageCache::getFromMemory(BinaryData::person_png, BinaryData::person_pngSize));
     mMainGroupImage = std::make_unique<ImageComponent>();
     mMainGroupImage->setImage(ImageCache::getFromMemory(BinaryData::people_png, BinaryData::people_pngSize));
-
+    mMainPersonImage->setInterceptsMouseClicks(false, false);
+    mMainGroupImage->setInterceptsMouseClicks(false, false);
     
     
     //mInGainSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
@@ -790,8 +791,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mSettingsButton->addMouseListener(this, false);
 
     mMainLinkButton = std::make_unique<SonoDrawableButton>("link",  DrawableButton::ButtonStyle::ImageFitted);
-    std::unique_ptr<Drawable> linkimg(Drawable::createFromImageData(BinaryData::link_svg, BinaryData::link_svgSize));
-    mMainLinkButton->setImages(linkimg.get());
+    //std::unique_ptr<Drawable> linkimg(Drawable::createFromImageData(BinaryData::link_svg, BinaryData::link_svgSize));
+    //mMainLinkButton->setImages(linkimg.get());
     mMainLinkButton->addListener(this);
     //mMainLinkButton->setAlpha(0.7);
 
@@ -1109,13 +1110,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mTitleLabel.get());
     //addAndMakeVisible(mTitleImage.get());
 
+    addAndMakeVisible(mMainLinkButton.get());
     addAndMakeVisible(mMainGroupLabel.get());
     addAndMakeVisible(mMainPeerLabel.get());
     addAndMakeVisible(mMainMessageLabel.get());
     addAndMakeVisible(mMainUserLabel.get());
     addAndMakeVisible(mMainPersonImage.get());
     addAndMakeVisible(mMainGroupImage.get());
-    addAndMakeVisible(mMainLinkButton.get());
 
     //addAndMakeVisible(mConnectTab.get());    
     addAndMakeVisible(mDrySlider.get());
@@ -3322,6 +3323,9 @@ void SonobusAudioProcessorEditor::resized()
     auto metbgbounds = Rectangle<int>(mMetEnableButton->getX(), mMetEnableButton->getY(), mMetConfigButton->getRight() - mMetEnableButton->getX(),  mMetEnableButton->getHeight()).expanded(2, 2);
     mMetButtonBg->setRectangle (metbgbounds.toFloat());
 
+
+    auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mMainGroupImage->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mMainGroupImage->getHeight()).expanded(2, 2);
+    mMainLinkButton->setBounds(grouptextbounds);
     
     mDragDropBg->setRectangle (getLocalBounds().toFloat());
 
@@ -3702,7 +3706,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2, *mMainGroupLabel).withMargin(2).withFlex(1));
     mainGroupUserBox.items.add(FlexItem(iconwidth, iconheight, *mMainPersonImage).withMargin(0).withFlex(0));
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2, *mMainUserLabel).withMargin(2).withFlex(1));
-    mainGroupUserBox.items.add(FlexItem(iconwidth, iconheight, *mMainLinkButton).withMargin(0).withFlex(0));
+    //mainGroupUserBox.items.add(FlexItem(iconwidth, iconheight, *mMainLinkButton).withMargin(0).withFlex(0));
 
     connectBox.items.clear();
     connectBox.flexDirection = FlexBox::Direction::column;
