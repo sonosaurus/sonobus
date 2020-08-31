@@ -45,15 +45,19 @@ networks if/when the system asks. Please contact me if you have any
 issues, it has only been tested on a few different windows versions so
 far.
 
-If you want to use the VST3 plugin version, copy the SonoBus.vst3
-to your system's VST folder, which is usually at C:\Program
-Files\Common Files\VST3\  folder. If you don't have a VST3 folder at
-the location you can create one first.
-
 It is HIGHLY recommended that you use an ASIO supported audio
 driver. You can install ASIO4ALL to enable ASIO for your built-in
 audio devices or any other that don't have a dedicated ASIO
 driver. Get ASIO4ALL at http://www.asio4all.org.
+
+If you want to use the VST3 plugin version, copy the SonoBus.vst3
+to your system's VST3 folder, which is usually at C:\Program
+Files\Common Files\VST3\  folder. If you don't have a VST3 folder at
+the location you can create one first.
+
+If you want to use the VST2 plugin version, copy the SonoBus.dll
+to your system's VST folder.
+
 
 
 GETTING STARTED (Windows)
