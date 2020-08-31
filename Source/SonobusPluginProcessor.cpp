@@ -524,18 +524,9 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mMainReverbParams.dryLevel = 0.0f;
     mMainReverbParams.wetLevel = mMainReverbLevel.get() * 0.5f;
     mMainReverbParams.damping = mMainReverbDamping.get();
-    mMainReverbParams.roomSize = mMainReverbSize.get() * 0.9f;
+    mMainReverbParams.roomSize = jmap(mMainReverbSize.get(), 0.55f, 1.0f);
     mMainReverb->setParameters(mMainReverbParams);
     
-    mMReverb.setParameter(MVerbFloat::MIX, 1.0f); // full wet
-    mMReverb.setParameter(MVerbFloat::GAIN, mMainReverbLevel.get());
-    mMReverb.setParameter(MVerbFloat::SIZE, mMainReverbSize.get());
-    mMReverb.setParameter(MVerbFloat::EARLYMIX, 0.75f);
-    mMReverb.setParameter(MVerbFloat::PREDELAY, jmap(mMainReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
-    mMReverb.setParameter(MVerbFloat::DAMPINGFREQ, mMainReverbDamping.get());
-    mMReverb.setParameter(MVerbFloat::BANDWIDTHFREQ, 1.0f);
-    mMReverb.setParameter(MVerbFloat::DENSITY, 0.5f);
-    mMReverb.setParameter(MVerbFloat::DECAY, mMainReverbSize.get());
     
     
     mTransportSource.addChangeListener(this);
@@ -3511,7 +3502,6 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramMainReverbPreDelay)
     {
-        //     mMReverb.setParameter(MVerbFloat::PREDELAY, jmap(mMainReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
         mMainReverbPreDelay = newValue;
         mZitaControl.setParamValue("/Zita_Rev1/Input/In_Delay",                                    
                                    jlimit(0.0f, 100.0f, mMainReverbPreDelay.get()));      
@@ -3735,6 +3725,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Low_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
     mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/Mid_RT60", jlimit(1.0f, 8.0f, mMainReverbSize.get() * 7.0f + 1.0f));
     mZitaControl.setParamValue("/Zita_Rev1/Output/Level", jlimit(-70.0f, 40.0f, Decibels::gainToDecibels(mMainReverbLevel.get()) + 6.0f));
+    mZitaControl.setParamValue("/Zita_Rev1/Decay_Times_in_Bands_(see_tooltips)/HF_Damping",                                    
+                               jmap(mMainReverbDamping.get(), 23520.0f, 1500.0f));
 
     mInputCompressor.init(sampleRate);
     mInputCompressor.buildUserInterface(&mInputCompressorControl);
@@ -3743,6 +3735,21 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     for(int i=0; i < mInputCompressorControl.getParamsCount(); i++){
         DBG(mInputCompressorControl.getParamAddress(i));
     }
+
+    mMReverb.setParameter(MVerbFloat::MIX, 1.0f); // full wet
+    mMReverb.setParameter(MVerbFloat::GAIN, jmap(mMainReverbLevel.get(), 0.0f, 0.8f)); 
+    mMReverb.setParameter(MVerbFloat::SIZE, jmap(mMainReverbSize.get(), 0.45f, 0.95f)); 
+    mMReverb.setParameter(MVerbFloat::DECAY, jmap(mMainReverbSize.get(), 0.45f, 0.95f));
+    mMReverb.setParameter(MVerbFloat::EARLYMIX, 0.75f);
+    mMReverb.setParameter(MVerbFloat::PREDELAY, jmap(mMainReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
+    mMReverb.setParameter(MVerbFloat::DAMPINGFREQ, mMainReverbDamping.get());
+    mMReverb.setParameter(MVerbFloat::DAMPINGFREQ, jmap(mMainReverbDamping.get(), 0.0f, 0.85f));                
+    mMReverb.setParameter(MVerbFloat::BANDWIDTHFREQ, 1.0f);
+    mMReverb.setParameter(MVerbFloat::DENSITY, 0.5f);
+
+    
+    mMainReverbParams.roomSize = jmap(mMainReverbSize.get(), 0.55f, 1.0f);
+    mMainReverb->setParameters(mMainReverbParams);
 
     
     mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());

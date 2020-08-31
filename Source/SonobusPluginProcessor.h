@@ -301,7 +301,7 @@ public:
         float thresholdDb = -20.0f;
         float ratio = 3.0f;
         float attackMs = 10.0f;
-        float releaseMs = 500.0f;
+        float releaseMs = 400.0f;
         float makeupGainDb = 0.0f;
         bool  automakeupGain = true;
     };

@@ -42,7 +42,7 @@ public:
         ratioSlider.setRange(2.0f, 20.0f, 1);
         ratioSlider.setSkewFactor(0.5);
         ratioSlider.setTextValueSuffix(" : 1");
-        ratioSlider.setDoubleClickReturnValue(true, 4.0);
+        ratioSlider.setDoubleClickReturnValue(true, 3.0);
         configKnobSlider(ratioSlider);
         ratioSlider.addListener(this);
         
@@ -66,7 +66,7 @@ public:
         releaseSlider.setRange(1.0f, 1000.0f, 1);
         releaseSlider.setSkewFactor(0.5);
         releaseSlider.setTextValueSuffix(" ms");
-        releaseSlider.setDoubleClickReturnValue(true, 500.0);
+        releaseSlider.setDoubleClickReturnValue(true, 400.0);
         configKnobSlider(releaseSlider);
         releaseSlider.addListener(this);
         

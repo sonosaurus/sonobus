@@ -306,6 +306,7 @@ private:
 
     std::unique_ptr<ToggleButton> mOptionsUseSpecificUdpPortButton;
     std::unique_ptr<TextEditor>  mOptionsUdpPortEditor;
+    std::unique_ptr<Label> mVersionLabel;
 
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;

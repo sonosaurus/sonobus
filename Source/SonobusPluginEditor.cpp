@@ -862,6 +862,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     configEditor(mOptionsUdpPortEditor.get());
     //mOptionsUdpPortEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
 
+    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION));
+    configLabel(mVersionLabel.get(), true);
+    mVersionLabel->setJustificationType(Justification::centredRight);
+
 
     // effects
     
@@ -1098,6 +1102,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
+    mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
 
     addAndMakeVisible(mPeerViewport.get());
@@ -3485,7 +3490,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
-    optionsBox.items.add(FlexItem(4, 12));
+    optionsBox.items.add(FlexItem(4, 6));
+    optionsBox.items.add(FlexItem(100, 15, *mVersionLabel).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsSendQualBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
