@@ -326,7 +326,8 @@
                        libraryPath="..\..\deps\opus\x64\Debug" useRuntimeLibDLL="0"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="..\..\deps\opus\x64\Release"
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\opus\x64&#10;..\..\..\asiosdk\common"
-                       useRuntimeLibDLL="0" enablePluginBinaryCopyStep="1" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"/>
+                       useRuntimeLibDLL="0" enablePluginBinaryCopyStep="1" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
+                       vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl"/>
