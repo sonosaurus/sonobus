@@ -497,7 +497,7 @@ private:
     Atomic<bool>   mSendPlaybackAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };
     Atomic<bool>   mMetIsRecorded  { true };
-    Atomic<bool>   mMainReverbEnabled  { true };
+    Atomic<bool>   mMainReverbEnabled  { false };
     Atomic<float>   mMainReverbLevel  { 0.0626f };
     Atomic<float>   mMainReverbSize  { 0.3f };
     Atomic<float>   mMainReverbDamping  { 0.5f };

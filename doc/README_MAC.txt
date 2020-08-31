@@ -39,15 +39,35 @@ the users in a group can find each other.
 INSTALLATION (Mac)
 =======================
 
+There is no installer yet, sorry about that!
+
 The first time you run the SonoBus.app, you may need to
 right click and select Open, from the finder.
 
 If you want to use the AudioUnit plugin version, copy the
-SonoBus.component to your home directory
+SonoBus.component from the Plugins folder to your home directory
 ~/Library/Audio/Plug-Ins/Components/ folder. You can get to this from
 the Finder, by holding down Option as you click the Go menu in
 Finder's menubar, then select Library, then you can browse to the
 folder above.
+
+If you want to use the VST3 plugin version, copy the
+SonoBus.vst3 from the Plugins folder to your home directory
+~/Library/Audio/Plug-Ins/VST3/ folder. You can get to this from
+the Finder, by holding down Option as you click the Go menu in
+Finder's menubar, then select Library, then you can browse to the
+folder above.
+
+If you want to use the VST2 plugin version, copy the
+SonoBus.vst from the Plugins folder to your home directory
+~/Library/Audio/Plug-Ins/VST/ folder. You can get to this from
+the Finder, by holding down Option as you click the Go menu in
+Finder's menubar, then select Library, then you can browse to the
+folder above. Some applications will not find VST2 plugin in your
+own plugin folder, in that case copy the plugin to the main
+/Libary/Audio/Plug-Ins/VST folder instead.
+
+
 
 
 GETTING STARTED (Mac)
@@ -104,7 +124,7 @@ to help the users connect to each other, all audio is sent directly
 between users (peer-to-peer).
 
 PRESS Connect to Group! If others are already in the group you should
-see them show up and you'll be able to hear each other. Otherwise, you will
+see them show up and you'll be able to hear other. Otherwise, you will
 see a message indicating that you are waiting for others to join. You
 can adjust the levels that you hear the others with the volume
 sliders, or adjust the stereo panning with the Pan button (and popup

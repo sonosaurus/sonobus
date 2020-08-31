@@ -647,7 +647,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mServerHostEditor = std::make_unique<TextEditor>("srvaddredit");
     mServerHostEditor->setFont(Font(14));
-    mServerHostEditor->setText( currConnectionInfo.serverHost << ":" << currConnectionInfo.serverPort); // 100.36.128.246 // 23.23.205.37
+    //mServerHostEditor->setText( currConnectionInfo.serverHost << ":" << currConnectionInfo.serverPort); // 100.36.128.246 // 23.23.205.37
     configEditor(mServerHostEditor.get());
     
     mServerUsernameEditor = std::make_unique<TextEditor>("srvaddredit");
@@ -1243,6 +1243,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     updateState();
 
+    updateServerFieldsFromConnectionInfo();
     
     //setResizeLimits(400, 300, 2000, 1000);
 
@@ -1449,7 +1450,7 @@ bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
 
 void SonobusAudioProcessorEditor::updateServerFieldsFromConnectionInfo()
 {
-    if (currConnectionInfo.serverPort == 10998) {
+    if (currConnectionInfo.serverPort == DEFAULT_SERVER_PORT) {
         mServerHostEditor->setText( currConnectionInfo.serverHost);
     } else {
         String hostport;
@@ -1889,7 +1890,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             // parse it
             StringArray toks = StringArray::fromTokens(hostport, ":", "");
             String host = "aoo.sonobus.net";
-            int port = 10998;
+            int port = DEFAULT_SERVER_PORT;
             
             if (toks.size() >= 1) {
                 host = toks[0].trim();
