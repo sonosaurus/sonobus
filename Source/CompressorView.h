@@ -196,7 +196,7 @@ public:
         minBounds.setSize(jmax(180, minKnobWidth * 5 + 16), minitemheight + knobitemheight + knoblabelheight);
     }
 
-    Rectangle<int> getMinimumContentBounds() const {
+    juce::Rectangle<int> getMinimumContentBounds() const {
         return minBounds;
     }
 
@@ -274,7 +274,7 @@ private:
     SonoBigTextLookAndFeel smallLNF;
 
     ListenerList<Listener> listeners;
-    Rectangle<int> minBounds;
+    juce::Rectangle<int> minBounds;
     
     void configKnobSlider(Slider & slider) 
     {
