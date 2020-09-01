@@ -904,6 +904,16 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mCompressorBg->setStrokeFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.25));
     mCompressorBg->setStrokeThickness(0.5);
 
+    mInExpanderView =  std::make_unique<ExpanderView>();
+    mInExpanderView->addListener(this);
+    
+    mExpanderBg = std::make_unique<DrawableRectangle>();
+    mExpanderBg->setCornerSize(Point<float>(6,6));
+    mExpanderBg->setFill (Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0));
+    mExpanderBg->setStrokeFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.25));
+    mExpanderBg->setStrokeThickness(0.5);
+
+    
     
     mReverbLevelLabel = std::make_unique<Label>(SonobusAudioProcessor::paramMainReverbLevel, TRANS("Level"));
     configLabel(mReverbLevelLabel.get(), false);
@@ -1233,6 +1243,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInEffectsContainer->addAndMakeVisible (mInMonPanSlider2.get());
     mInEffectsContainer->addAndMakeVisible (mCompressorBg.get());
     mInEffectsContainer->addAndMakeVisible (mInCompressorView.get());
+    mInEffectsContainer->addAndMakeVisible (mExpanderBg.get());
+    mInEffectsContainer->addAndMakeVisible (mInExpanderView.get());
     mInEffectsContainer->addAndMakeVisible (mSendChannelsChoice.get());
     mInEffectsContainer->addAndMakeVisible (mSendChannelsLabel.get());
 
@@ -2551,6 +2563,9 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         auto minbounds = mInCompressorView->getMinimumContentBounds();
         defWidth = minbounds.getWidth() + 12;
         defHeight = minbounds.getHeight() + 80;
+
+        auto minexpbounds = mInExpanderView->getMinimumContentBounds();        
+        defHeight += minexpbounds.getHeight();
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
 
@@ -2569,6 +2584,9 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
 
         auto compbgbounds = mInCompressorView->getBounds().expanded(2, 2);
         mCompressorBg->setRectangle (compbgbounds.toFloat());
+
+        auto expbgbounds = mInExpanderView->getBounds().expanded(2, 2);
+        mExpanderBg->setRectangle (expbgbounds.toFloat());
 
 
         
@@ -2979,7 +2997,12 @@ void SonobusAudioProcessorEditor::updateState()
     SonobusAudioProcessor::CompressorParams compParams;
     processor.getInputCompressorParams(compParams);
     mInCompressorView->updateParams(compParams);
-    mInEffectsButton->setToggleState(compParams.enabled, dontSendNotification);
+
+    SonobusAudioProcessor::CompressorParams expandParams;
+    processor.getInputExpanderParams(expandParams);
+    mInExpanderView->updateParams(expandParams);
+
+    mInEffectsButton->setToggleState(processor.getInputEffectsActive(), dontSendNotification);
     
     if (processor.getMainReverbModel() == SonobusAudioProcessor::ReverbModelFreeverb) {
         mReverbPreDelaySlider->setVisible(false);
@@ -3580,11 +3603,14 @@ void SonobusAudioProcessorEditor::updateLayout()
     
     
     auto mincompbounds = mInCompressorView->getMinimumContentBounds();
+    auto minexpbounds = mInExpanderView->getMinimumContentBounds();
 
     inEffectsBox.items.clear();
     inEffectsBox.flexDirection = FlexBox::Direction::column;
     inEffectsBox.items.add(FlexItem(100, minitemheight + 16, inPannerMainBox).withMargin(2).withFlex(0));
     inEffectsBox.items.add(FlexItem(4, 6));
+    inEffectsBox.items.add(FlexItem(minexpbounds.getWidth(), minexpbounds.getHeight(), *mInExpanderView).withMargin(2).withFlex(1));
+    inEffectsBox.items.add(FlexItem(4, 3));
     inEffectsBox.items.add(FlexItem(mincompbounds.getWidth(), mincompbounds.getHeight(), *mInCompressorView).withMargin(2).withFlex(1));
     inEffectsBox.items.add(FlexItem(4, 3));
 
@@ -4045,8 +4071,18 @@ void SonobusAudioProcessorEditor::compressorParamsChanged(CompressorView *comp, 
 {
     processor.setInputCompressorParams(params);
     
-    mInEffectsButton->setToggleState(params.enabled, dontSendNotification);
+    bool infxon = processor.getInputEffectsActive();
+    mInEffectsButton->setToggleState(infxon, dontSendNotification);
 }
+
+void SonobusAudioProcessorEditor::expanderParamsChanged(ExpanderView *comp, SonobusAudioProcessor::CompressorParams & params) 
+{
+    processor.setInputExpanderParams(params);
+    
+    bool infxon = processor.getInputEffectsActive();
+    mInEffectsButton->setToggleState(infxon, dontSendNotification);
+}
+
 
 void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser *comp, int index)
 {

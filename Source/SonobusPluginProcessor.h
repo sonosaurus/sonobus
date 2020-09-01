@@ -13,6 +13,8 @@
 #include "MVerb.h"
 
 #include "zitaRev.h"
+#include "faustCompressor.h"
+#include "faustExpander.h"
 
 typedef MVerb<float> MVerbFloat;
 
@@ -294,14 +296,14 @@ public:
     
     struct CompressorParams
     {
-        ValueTree getValueTree() const;
+        ValueTree getValueTree(bool expanderMode=false) const;
         void setFromValueTree(const ValueTree & val);
 
         bool enabled = false;
         float thresholdDb = -20.0f;
         float ratio = 3.0f;
         float attackMs = 10.0f;
-        float releaseMs = 400.0f;
+        float releaseMs = 80.0f;
         float makeupGainDb = 0.0f;
         bool  automakeupGain = true;
     };
@@ -311,7 +313,11 @@ public:
     
     void setInputCompressorParams(CompressorParams & params);
     bool getInputCompressorParams(CompressorParams & retparams);
+
+    void setInputExpanderParams(CompressorParams & params);
+    bool getInputExpanderParams(CompressorParams & retparams);
     
+    bool getInputEffectsActive() const { return mInputCompressorParams.enabled || mInputExpanderParams.enabled; }
     
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
@@ -447,6 +453,10 @@ private:
     void commitCompressorParams(RemotePeer * peer);
     void commitInputCompressorParams();
 
+    //void commitExpanderParams(RemotePeer * peer);
+    void commitInputExpanderParams();
+
+    
     void updateRemotePeerSendChannels(int index, RemotePeer * remote);
 
     
@@ -500,7 +510,7 @@ private:
     Atomic<bool>   mMetIsRecorded  { true };
     Atomic<bool>   mMainReverbEnabled  { false };
     Atomic<float>   mMainReverbLevel  { 0.0626f };
-    Atomic<float>   mMainReverbSize  { 0.3f };
+    Atomic<float>   mMainReverbSize  { 0.15f };
     Atomic<float>   mMainReverbDamping  { 0.5f };
     Atomic<float>   mMainReverbPreDelay  { 20.0f }; // ms
     Atomic<int>   mMainReverbModel  { ReverbModelMVerb };
@@ -620,12 +630,21 @@ private:
     zitaRev mZitaReverb;
     MapUI  mZitaControl;
     
-    faustComp mInputCompressor;
+    //faustComp mInputCompressor;
+    faustCompressor mInputCompressor;
     MapUI  mInputCompressorControl;
     CompressorParams mInputCompressorParams;
     bool mInputCompressorParamsChanged = false;
     bool mLastInputCompressorEnabled = false;
     float * mInputCompressorOutputGain = nullptr;
+
+    faustExpander mInputExpander;
+    MapUI  mInputExpanderControl;
+    CompressorParams mInputExpanderParams;
+    bool mInputExpanderParamsChanged = false;
+    bool mLastInputExpanderEnabled = false;
+    float * mInputExpanderOutputGain = nullptr;
+
     
     ReverbModel mLastReverbModel = ReverbModelFreeverb;
     

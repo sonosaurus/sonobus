@@ -18,23 +18,23 @@
 //==============================================================================
 /*
 */
-class CompressorView    : public Component, public Slider::Listener, public Button::Listener
+class ExpanderView    : public Component, public Slider::Listener, public Button::Listener
 {
 public:
-    CompressorView() : sonoSliderLNF(14), smallLNF(12)
+    ExpanderView() : sonoSliderLNF(14), smallLNF(12)
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
 
         thresholdSlider.setName("thresh");
-        thresholdSlider.setRange(-60.0f, 0.0f, 1);
+        thresholdSlider.setRange(-96.0f, 0.0f, 1);
         thresholdSlider.setSkewFactor(1.5);
         thresholdSlider.setTextValueSuffix(" dB");
-        thresholdSlider.setDoubleClickReturnValue(true, -20.0);
+        thresholdSlider.setDoubleClickReturnValue(true, -60.0);
         configKnobSlider(thresholdSlider);
         thresholdSlider.addListener(this);
 
-        thresholdLabel.setText(TRANS("Threshold"), dontSendNotification);
+        thresholdLabel.setText(TRANS("Noise Floor"), dontSendNotification);
         configLabel(thresholdLabel);
 
            
@@ -42,7 +42,7 @@ public:
         ratioSlider.setRange(1.0f, 20.0f, 0.1);
         ratioSlider.setSkewFactor(0.5);
         ratioSlider.setTextValueSuffix(" : 1");
-        ratioSlider.setDoubleClickReturnValue(true, 3.0);
+        ratioSlider.setDoubleClickReturnValue(true, 2.0);
         configKnobSlider(ratioSlider);
         ratioSlider.addListener(this);
         
@@ -54,7 +54,7 @@ public:
         attackSlider.setRange(1.0f, 1000.0f, 1);
         attackSlider.setSkewFactor(0.5);
         attackSlider.setTextValueSuffix(" ms");
-        attackSlider.setDoubleClickReturnValue(true, 10.0);
+        attackSlider.setDoubleClickReturnValue(true, 1.0);
         configKnobSlider(attackSlider);
         attackSlider.addListener(this);
         
@@ -66,7 +66,7 @@ public:
         releaseSlider.setRange(1.0f, 1000.0f, 1);
         releaseSlider.setSkewFactor(0.5);
         releaseSlider.setTextValueSuffix(" ms");
-        releaseSlider.setDoubleClickReturnValue(true, 80.0);
+        releaseSlider.setDoubleClickReturnValue(true, 200.0);
         configKnobSlider(releaseSlider);
         releaseSlider.addListener(this);
         
@@ -74,22 +74,9 @@ public:
         configLabel(releaseLabel);
 
            
-        makeupGainSlider.setName("makeup");
-        makeupGainSlider.setRange(0.0f, 60.0f, 1);
-        makeupGainSlider.setSkewFactor(0.75);
-        makeupGainSlider.setTextValueSuffix(" dB");
-        makeupGainSlider.setDoubleClickReturnValue(true, 0.0);
-        configKnobSlider(makeupGainSlider);
-        makeupGainSlider.addListener(this);
-
-        makeupGainLabel.setText(TRANS("Makeup Gain"), dontSendNotification);
-        configLabel(makeupGainLabel);
         
-        enableButton.setButtonText(TRANS("Compressor"));
+        enableButton.setButtonText(TRANS("Noise Gate"));
         enableButton.addListener(this);
-        autoMakeupButton.setButtonText(TRANS("Auto Makeup"));
-        autoMakeupButton.addListener(this);
-        autoMakeupButton.setLookAndFeel(&smallLNF);
            
 
         addAndMakeVisible(thresholdSlider);
@@ -100,17 +87,14 @@ public:
         addAndMakeVisible(attackLabel);
         addAndMakeVisible(releaseSlider);
         addAndMakeVisible(releaseLabel);
-        addAndMakeVisible(makeupGainSlider);
-        addAndMakeVisible(makeupGainLabel);
         addAndMakeVisible(enableButton);
-        addAndMakeVisible(autoMakeupButton);
 
         setupLayout();
         
         updateParams(mParams);
     }
 
-    ~CompressorView()
+    ~ExpanderView()
     {
     }
 
@@ -122,7 +106,7 @@ public:
     class Listener {
     public:
         virtual ~Listener() {}
-        virtual void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams &params) {}
+        virtual void expanderParamsChanged(ExpanderView *comp, SonobusAudioProcessor::CompressorParams &params) {}
     };
     
     void addListener(Listener * listener) { listeners.add(listener); }
@@ -162,18 +146,12 @@ public:
         releaseBox.items.add(FlexItem(minKnobWidth, knoblabelheight, releaseLabel).withMargin(0).withFlex(0));
         releaseBox.items.add(FlexItem(minKnobWidth, knobitemheight, releaseSlider).withMargin(0).withFlex(1));
 
-        makeupBox.items.clear();
-        makeupBox.flexDirection = FlexBox::Direction::column;
-        makeupBox.items.add(FlexItem(minKnobWidth, knoblabelheight, makeupGainLabel).withMargin(0).withFlex(0));
-        makeupBox.items.add(FlexItem(minKnobWidth, knobitemheight, makeupGainSlider).withMargin(0).withFlex(1));
         
         
         checkBox.items.clear();
         checkBox.flexDirection = FlexBox::Direction::row;
         checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(100, minitemheight, enableButton).withMargin(0).withFlex(1));
-        //knobBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0.1));
-        checkBox.items.add(FlexItem(72, minitemheight, autoMakeupButton).withMargin(0).withFlex(0));
         
         
         
@@ -184,7 +162,6 @@ public:
         knobBox.items.add(FlexItem(minKnobWidth, knobitemheight + knoblabelheight, ratioBox).withMargin(0).withFlex(1));
         knobBox.items.add(FlexItem(minKnobWidth, knobitemheight + knoblabelheight, attackBox).withMargin(0).withFlex(1));
         knobBox.items.add(FlexItem(minKnobWidth, knobitemheight + knoblabelheight, releaseBox).withMargin(0).withFlex(1));
-        knobBox.items.add(FlexItem(minKnobWidth, knobitemheight + knoblabelheight, makeupBox).withMargin(0).withFlex(1));
         knobBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0));
         
         mainBox.items.clear();
@@ -194,7 +171,7 @@ public:
         mainBox.items.add(FlexItem(100, knoblabelheight + knobitemheight, knobBox).withMargin(0).withFlex(1));
         mainBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(0));
         
-        minBounds.setSize(jmax(180, minKnobWidth * 5 + 16), minitemheight + knobitemheight + knoblabelheight + 2);
+        minBounds.setSize(jmax(180, minKnobWidth * 4 + 16), minitemheight + knobitemheight + knoblabelheight + 2);
     }
 
     juce::Rectangle<int> getMinimumContentBounds() const {
@@ -211,17 +188,8 @@ public:
         if (buttonThatWasClicked == &enableButton) {
             mParams.enabled = enableButton.getToggleState();
         }
-        else if (buttonThatWasClicked == &autoMakeupButton) {
-            mParams.automakeupGain = autoMakeupButton.getToggleState();
-        }
-        listeners.call (&CompressorView::Listener::compressorParamsChanged, this, mParams);
+        listeners.call (&ExpanderView::Listener::expanderParamsChanged, this, mParams);
         
-        // could have been changed
-        if (mParams.automakeupGain) {
-            makeupGainSlider.setValue(mParams.makeupGainDb, dontSendNotification);
-        }
-        makeupGainSlider.setEnabled(!mParams.automakeupGain);
-
     }
     
     void sliderValueChanged (Slider* slider) override
@@ -238,15 +206,8 @@ public:
         else if (slider == &releaseSlider) {
             mParams.releaseMs = slider->getValue();
         }
-        else if (slider == &makeupGainSlider) {
-            mParams.makeupGainDb = slider->getValue();
-        }
-        listeners.call (&CompressorView::Listener::compressorParamsChanged, this, mParams);
+        listeners.call (&ExpanderView::Listener::expanderParamsChanged, this, mParams);
         
-        // could have been changed
-        if (mParams.automakeupGain) {
-            makeupGainSlider.setValue(mParams.makeupGainDb, dontSendNotification);
-        }
     }
 
     void updateParams(const SonobusAudioProcessor::CompressorParams & params) {
@@ -256,11 +217,8 @@ public:
         ratioSlider.setValue(mParams.ratio, dontSendNotification);
         attackSlider.setValue(mParams.attackMs, dontSendNotification);
         releaseSlider.setValue(mParams.releaseMs, dontSendNotification);
-        makeupGainSlider.setValue(mParams.makeupGainDb, dontSendNotification);
         
-        autoMakeupButton.setToggleState(mParams.automakeupGain, dontSendNotification);
         enableButton.setToggleState(mParams.enabled, dontSendNotification);
-        makeupGainSlider.setEnabled(!mParams.automakeupGain);
     }
     
     const SonobusAudioProcessor::CompressorParams & getParams() const { 
@@ -302,19 +260,16 @@ private:
     }
     
     ToggleButton enableButton;
-    ToggleButton autoMakeupButton;
     
     Slider thresholdSlider;
     Slider ratioSlider;
     Slider attackSlider;
     Slider releaseSlider;
-    Slider makeupGainSlider;
 
     Label thresholdLabel;
     Label ratioLabel;
     Label attackLabel;
     Label releaseLabel;
-    Label makeupGainLabel;
 
     
     FlexBox mainBox;
@@ -324,10 +279,9 @@ private:
     FlexBox ratioBox;
     FlexBox attackBox;
     FlexBox releaseBox;
-    FlexBox makeupBox;
 
 
     SonobusAudioProcessor::CompressorParams mParams;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompressorView)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ExpanderView)
 };

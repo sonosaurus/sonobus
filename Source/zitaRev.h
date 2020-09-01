@@ -780,96 +780,95 @@ class zitaRev : public faustdsp {
 	float fConst1;
 	FAUSTFLOAT fVslider2;
 	FAUSTFLOAT fVslider3;
-	FAUSTFLOAT fVslider4;
-	FAUSTFLOAT fVslider5;
 	float fConst2;
 	float fConst3;
+	FAUSTFLOAT fVslider4;
+	FAUSTFLOAT fVslider5;
 	FAUSTFLOAT fVslider6;
-	FAUSTFLOAT fVslider7;
-	FAUSTFLOAT fVslider8;
 	float fConst4;
-	FAUSTFLOAT fVslider9;
-	float fRec15[2];
+	FAUSTFLOAT fVslider7;
 	float fRec14[2];
+	float fRec13[2];
 	float fVec1[32768];
 	float fConst5;
 	int iConst6;
 	float fVec2[16384];
 	float fConst7;
-	FAUSTFLOAT fVslider10;
+	FAUSTFLOAT fVslider8;
 	float fVec3[2048];
 	int iConst8;
-	float fRec12[2];
+	float fRec11[2];
 	float fConst9;
 	float fConst10;
-	float fRec19[2];
 	float fRec18[2];
+	float fRec17[2];
 	float fVec4[32768];
 	float fConst11;
 	int iConst12;
 	float fVec5[4096];
 	int iConst13;
-	float fRec16[2];
+	float fRec15[2];
 	float fConst14;
 	float fConst15;
-	float fRec23[2];
 	float fRec22[2];
+	float fRec21[2];
 	float fVec6[16384];
 	float fConst16;
 	int iConst17;
 	float fVec7[4096];
 	int iConst18;
-	float fRec20[2];
+	float fRec19[2];
 	float fConst19;
 	float fConst20;
-	float fRec27[2];
 	float fRec26[2];
+	float fRec25[2];
 	float fVec8[32768];
 	float fConst21;
 	int iConst22;
 	float fVec9[4096];
 	int iConst23;
-	float fRec24[2];
+	float fRec23[2];
 	float fConst24;
 	float fConst25;
-	float fRec31[2];
 	float fRec30[2];
+	float fRec29[2];
 	float fVec10[16384];
 	float fConst26;
 	int iConst27;
 	float fVec11[2048];
 	int iConst28;
-	float fRec28[2];
+	float fRec27[2];
 	float fConst29;
 	float fConst30;
-	float fRec35[2];
 	float fRec34[2];
+	float fRec33[2];
 	float fVec12[16384];
 	float fConst31;
 	int iConst32;
 	float fVec13[4096];
 	int iConst33;
-	float fRec32[2];
+	float fRec31[2];
 	float fConst34;
 	float fConst35;
-	float fRec39[2];
 	float fRec38[2];
+	float fRec37[2];
 	float fVec14[16384];
 	float fConst36;
 	int iConst37;
 	float fVec15[4096];
 	int iConst38;
-	float fRec36[2];
+	float fRec35[2];
 	float fConst39;
 	float fConst40;
-	float fRec43[2];
 	float fRec42[2];
+	float fRec41[2];
 	float fVec16[16384];
 	float fConst41;
 	int iConst42;
 	float fVec17[2048];
 	int iConst43;
-	float fRec40[2];
+	float fRec39[2];
+	float fRec3[3];
 	float fRec4[3];
 	float fRec5[3];
 	float fRec6[3];
@@ -877,8 +876,9 @@ class zitaRev : public faustdsp {
 	float fRec8[3];
 	float fRec9[3];
 	float fRec10[3];
-	float fRec11[3];
-	float fRec3[3];
+	FAUSTFLOAT fVslider9;
+	FAUSTFLOAT fVslider10;
+	float fRec43[3];
 	float fRec2[3];
 	float fRec45[3];
 	float fRec44[3];
@@ -902,7 +902,7 @@ class zitaRev : public faustdsp {
 		m->declare("filters.lib/iir:author", "Julius O. Smith III");
 		m->declare("filters.lib/iir:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
 		m->declare("filters.lib/iir:license", "MIT-style STK-4.3 license");
-		m->declare("filters.lib/lowpass0_highpass1", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
 		m->declare("filters.lib/lowpass0_highpass1:author", "Julius O. Smith III");
 		m->declare("filters.lib/lowpass:author", "Julius O. Smith III");
 		m->declare("filters.lib/lowpass:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
@@ -1036,13 +1036,13 @@ class zitaRev : public faustdsp {
 		fVslider1 = FAUSTFLOAT(0.0f);
 		fVslider2 = FAUSTFLOAT(1500.0f);
 		fVslider3 = FAUSTFLOAT(0.0f);
-		fVslider4 = FAUSTFLOAT(315.0f);
-		fVslider5 = FAUSTFLOAT(0.0f);
-		fVslider6 = FAUSTFLOAT(2.0f);
-		fVslider7 = FAUSTFLOAT(6000.0f);
-		fVslider8 = FAUSTFLOAT(3.0f);
-		fVslider9 = FAUSTFLOAT(200.0f);
-		fVslider10 = FAUSTFLOAT(60.0f);
+		fVslider4 = FAUSTFLOAT(2.0f);
+		fVslider5 = FAUSTFLOAT(6000.0f);
+		fVslider6 = FAUSTFLOAT(3.0f);
+		fVslider7 = FAUSTFLOAT(200.0f);
+		fVslider8 = FAUSTFLOAT(60.0f);
+		fVslider9 = FAUSTFLOAT(315.0f);
+		fVslider10 = FAUSTFLOAT(0.0f);
 	}
 	
 	virtual void instanceClear() {
@@ -1057,10 +1057,10 @@ class zitaRev : public faustdsp {
 			fRec1[l2] = 0.0f;
 		}
 		for (int l3 = 0; (l3 < 2); l3 = (l3 + 1)) {
-			fRec15[l3] = 0.0f;
+			fRec14[l3] = 0.0f;
 		}
 		for (int l4 = 0; (l4 < 2); l4 = (l4 + 1)) {
-			fRec14[l4] = 0.0f;
+			fRec13[l4] = 0.0f;
 		}
 		for (int l5 = 0; (l5 < 32768); l5 = (l5 + 1)) {
 			fVec1[l5] = 0.0f;
@@ -1072,13 +1072,13 @@ class zitaRev : public faustdsp {
 			fVec3[l7] = 0.0f;
 		}
 		for (int l8 = 0; (l8 < 2); l8 = (l8 + 1)) {
-			fRec12[l8] = 0.0f;
+			fRec11[l8] = 0.0f;
 		}
 		for (int l9 = 0; (l9 < 2); l9 = (l9 + 1)) {
-			fRec19[l9] = 0.0f;
+			fRec18[l9] = 0.0f;
 		}
 		for (int l10 = 0; (l10 < 2); l10 = (l10 + 1)) {
-			fRec18[l10] = 0.0f;
+			fRec17[l10] = 0.0f;
 		}
 		for (int l11 = 0; (l11 < 32768); l11 = (l11 + 1)) {
 			fVec4[l11] = 0.0f;
@@ -1087,13 +1087,13 @@ class zitaRev : public faustdsp {
 			fVec5[l12] = 0.0f;
 		}
 		for (int l13 = 0; (l13 < 2); l13 = (l13 + 1)) {
-			fRec16[l13] = 0.0f;
+			fRec15[l13] = 0.0f;
 		}
 		for (int l14 = 0; (l14 < 2); l14 = (l14 + 1)) {
-			fRec23[l14] = 0.0f;
+			fRec22[l14] = 0.0f;
 		}
 		for (int l15 = 0; (l15 < 2); l15 = (l15 + 1)) {
-			fRec22[l15] = 0.0f;
+			fRec21[l15] = 0.0f;
 		}
 		for (int l16 = 0; (l16 < 16384); l16 = (l16 + 1)) {
 			fVec6[l16] = 0.0f;
@@ -1102,13 +1102,13 @@ class zitaRev : public faustdsp {
 			fVec7[l17] = 0.0f;
 		}
 		for (int l18 = 0; (l18 < 2); l18 = (l18 + 1)) {
-			fRec20[l18] = 0.0f;
+			fRec19[l18] = 0.0f;
 		}
 		for (int l19 = 0; (l19 < 2); l19 = (l19 + 1)) {
-			fRec27[l19] = 0.0f;
+			fRec26[l19] = 0.0f;
 		}
 		for (int l20 = 0; (l20 < 2); l20 = (l20 + 1)) {
-			fRec26[l20] = 0.0f;
+			fRec25[l20] = 0.0f;
 		}
 		for (int l21 = 0; (l21 < 32768); l21 = (l21 + 1)) {
 			fVec8[l21] = 0.0f;
@@ -1117,13 +1117,13 @@ class zitaRev : public faustdsp {
 			fVec9[l22] = 0.0f;
 		}
 		for (int l23 = 0; (l23 < 2); l23 = (l23 + 1)) {
-			fRec24[l23] = 0.0f;
+			fRec23[l23] = 0.0f;
 		}
 		for (int l24 = 0; (l24 < 2); l24 = (l24 + 1)) {
-			fRec31[l24] = 0.0f;
+			fRec30[l24] = 0.0f;
 		}
 		for (int l25 = 0; (l25 < 2); l25 = (l25 + 1)) {
-			fRec30[l25] = 0.0f;
+			fRec29[l25] = 0.0f;
 		}
 		for (int l26 = 0; (l26 < 16384); l26 = (l26 + 1)) {
 			fVec10[l26] = 0.0f;
@@ -1132,13 +1132,13 @@ class zitaRev : public faustdsp {
 			fVec11[l27] = 0.0f;
 		}
 		for (int l28 = 0; (l28 < 2); l28 = (l28 + 1)) {
-			fRec28[l28] = 0.0f;
+			fRec27[l28] = 0.0f;
 		}
 		for (int l29 = 0; (l29 < 2); l29 = (l29 + 1)) {
-			fRec35[l29] = 0.0f;
+			fRec34[l29] = 0.0f;
 		}
 		for (int l30 = 0; (l30 < 2); l30 = (l30 + 1)) {
-			fRec34[l30] = 0.0f;
+			fRec33[l30] = 0.0f;
 		}
 		for (int l31 = 0; (l31 < 16384); l31 = (l31 + 1)) {
 			fVec12[l31] = 0.0f;
@@ -1147,13 +1147,13 @@ class zitaRev : public faustdsp {
 			fVec13[l32] = 0.0f;
 		}
 		for (int l33 = 0; (l33 < 2); l33 = (l33 + 1)) {
-			fRec32[l33] = 0.0f;
+			fRec31[l33] = 0.0f;
 		}
 		for (int l34 = 0; (l34 < 2); l34 = (l34 + 1)) {
-			fRec39[l34] = 0.0f;
+			fRec38[l34] = 0.0f;
 		}
 		for (int l35 = 0; (l35 < 2); l35 = (l35 + 1)) {
-			fRec38[l35] = 0.0f;
+			fRec37[l35] = 0.0f;
 		}
 		for (int l36 = 0; (l36 < 16384); l36 = (l36 + 1)) {
 			fVec14[l36] = 0.0f;
@@ -1162,13 +1162,13 @@ class zitaRev : public faustdsp {
 			fVec15[l37] = 0.0f;
 		}
 		for (int l38 = 0; (l38 < 2); l38 = (l38 + 1)) {
-			fRec36[l38] = 0.0f;
+			fRec35[l38] = 0.0f;
 		}
 		for (int l39 = 0; (l39 < 2); l39 = (l39 + 1)) {
-			fRec43[l39] = 0.0f;
+			fRec42[l39] = 0.0f;
 		}
 		for (int l40 = 0; (l40 < 2); l40 = (l40 + 1)) {
-			fRec42[l40] = 0.0f;
+			fRec41[l40] = 0.0f;
 		}
 		for (int l41 = 0; (l41 < 16384); l41 = (l41 + 1)) {
 			fVec16[l41] = 0.0f;
@@ -1177,34 +1177,34 @@ class zitaRev : public faustdsp {
 			fVec17[l42] = 0.0f;
 		}
 		for (int l43 = 0; (l43 < 2); l43 = (l43 + 1)) {
-			fRec40[l43] = 0.0f;
+			fRec39[l43] = 0.0f;
 		}
 		for (int l44 = 0; (l44 < 3); l44 = (l44 + 1)) {
-			fRec4[l44] = 0.0f;
+			fRec3[l44] = 0.0f;
 		}
 		for (int l45 = 0; (l45 < 3); l45 = (l45 + 1)) {
-			fRec5[l45] = 0.0f;
+			fRec4[l45] = 0.0f;
 		}
 		for (int l46 = 0; (l46 < 3); l46 = (l46 + 1)) {
-			fRec6[l46] = 0.0f;
+			fRec5[l46] = 0.0f;
 		}
 		for (int l47 = 0; (l47 < 3); l47 = (l47 + 1)) {
-			fRec7[l47] = 0.0f;
+			fRec6[l47] = 0.0f;
 		}
 		for (int l48 = 0; (l48 < 3); l48 = (l48 + 1)) {
-			fRec8[l48] = 0.0f;
+			fRec7[l48] = 0.0f;
 		}
 		for (int l49 = 0; (l49 < 3); l49 = (l49 + 1)) {
-			fRec9[l49] = 0.0f;
+			fRec8[l49] = 0.0f;
 		}
 		for (int l50 = 0; (l50 < 3); l50 = (l50 + 1)) {
-			fRec10[l50] = 0.0f;
+			fRec9[l50] = 0.0f;
 		}
 		for (int l51 = 0; (l51 < 3); l51 = (l51 + 1)) {
-			fRec11[l51] = 0.0f;
+			fRec10[l51] = 0.0f;
 		}
 		for (int l52 = 0; (l52 < 3); l52 = (l52 + 1)) {
-			fRec3[l52] = 0.0f;
+			fRec43[l52] = 0.0f;
 		}
 		for (int l53 = 0; (l53 < 3); l53 = (l53 + 1)) {
 			fRec2[l53] = 0.0f;
@@ -1241,52 +1241,52 @@ class zitaRev : public faustdsp {
 		ui_interface->openHorizontalBox("Zita_Rev1");
 		ui_interface->declare(0, "1", "");
 		ui_interface->openHorizontalBox("Input");
-		ui_interface->declare(&fVslider10, "1", "");
-		ui_interface->declare(&fVslider10, "style", "knob");
-		ui_interface->declare(&fVslider10, "tooltip", "Delay in ms   before reverberation begins");
-		ui_interface->declare(&fVslider10, "unit", "ms");
-		ui_interface->addVerticalSlider("In Delay", &fVslider10, 60.0f, 20.0f, 100.0f, 1.0f);
+		ui_interface->declare(&fVslider8, "1", "");
+		ui_interface->declare(&fVslider8, "style", "knob");
+		ui_interface->declare(&fVslider8, "tooltip", "Delay in ms   before reverberation begins");
+		ui_interface->declare(&fVslider8, "unit", "ms");
+		ui_interface->addVerticalSlider("In Delay", &fVslider8, 60.0f, 20.0f, 100.0f, 1.0f);
 		ui_interface->closeBox();
 		ui_interface->declare(0, "2", "");
 		ui_interface->openHorizontalBox("Decay Times in Bands (see tooltips)");
-		ui_interface->declare(&fVslider9, "1", "");
-		ui_interface->declare(&fVslider9, "scale", "log");
-		ui_interface->declare(&fVslider9, "style", "knob");
-		ui_interface->declare(&fVslider9, "tooltip", "Crossover frequency (Hz) separating low and middle frequencies");
-		ui_interface->declare(&fVslider9, "unit", "Hz");
-		ui_interface->addVerticalSlider("LF X", &fVslider9, 200.0f, 50.0f, 1000.0f, 1.0f);
-		ui_interface->declare(&fVslider8, "2", "");
-		ui_interface->declare(&fVslider8, "scale", "log");
-		ui_interface->declare(&fVslider8, "style", "knob");
-		ui_interface->declare(&fVslider8, "tooltip", "T60 = time (in seconds) to decay 60dB in low-frequency band");
-		ui_interface->declare(&fVslider8, "unit", "s");
-		ui_interface->addVerticalSlider("Low RT60", &fVslider8, 3.0f, 1.0f, 8.0f, 0.100000001f);
-		ui_interface->declare(&fVslider6, "3", "");
-		ui_interface->declare(&fVslider6, "scale", "log");
-		ui_interface->declare(&fVslider6, "style", "knob");
-		ui_interface->declare(&fVslider6, "tooltip", "T60 = time (in seconds) to decay 60dB in middle band");
-		ui_interface->declare(&fVslider6, "unit", "s");
-		ui_interface->addVerticalSlider("Mid RT60", &fVslider6, 2.0f, 1.0f, 8.0f, 0.100000001f);
-		ui_interface->declare(&fVslider7, "4", "");
+		ui_interface->declare(&fVslider7, "1", "");
 		ui_interface->declare(&fVslider7, "scale", "log");
 		ui_interface->declare(&fVslider7, "style", "knob");
-		ui_interface->declare(&fVslider7, "tooltip", "Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60");
+		ui_interface->declare(&fVslider7, "tooltip", "Crossover frequency (Hz) separating low and middle frequencies");
 		ui_interface->declare(&fVslider7, "unit", "Hz");
-		ui_interface->addVerticalSlider("HF Damping", &fVslider7, 6000.0f, 1500.0f, 23520.0f, 1.0f);
+		ui_interface->addVerticalSlider("LF X", &fVslider7, 200.0f, 50.0f, 1000.0f, 1.0f);
+		ui_interface->declare(&fVslider6, "2", "");
+		ui_interface->declare(&fVslider6, "scale", "log");
+		ui_interface->declare(&fVslider6, "style", "knob");
+		ui_interface->declare(&fVslider6, "tooltip", "T60 = time (in seconds) to decay 60dB in low-frequency band");
+		ui_interface->declare(&fVslider6, "unit", "s");
+		ui_interface->addVerticalSlider("Low RT60", &fVslider6, 3.0f, 1.0f, 8.0f, 0.100000001f);
+		ui_interface->declare(&fVslider4, "3", "");
+		ui_interface->declare(&fVslider4, "scale", "log");
+		ui_interface->declare(&fVslider4, "style", "knob");
+		ui_interface->declare(&fVslider4, "tooltip", "T60 = time (in seconds) to decay 60dB in middle band");
+		ui_interface->declare(&fVslider4, "unit", "s");
+		ui_interface->addVerticalSlider("Mid RT60", &fVslider4, 2.0f, 1.0f, 8.0f, 0.100000001f);
+		ui_interface->declare(&fVslider5, "4", "");
+		ui_interface->declare(&fVslider5, "scale", "log");
+		ui_interface->declare(&fVslider5, "style", "knob");
+		ui_interface->declare(&fVslider5, "tooltip", "Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60");
+		ui_interface->declare(&fVslider5, "unit", "Hz");
+		ui_interface->addVerticalSlider("HF Damping", &fVslider5, 6000.0f, 1500.0f, 23520.0f, 1.0f);
 		ui_interface->closeBox();
 		ui_interface->declare(0, "3", "");
 		ui_interface->openHorizontalBox("RM Peaking Equalizer 1");
-		ui_interface->declare(&fVslider4, "1", "");
-		ui_interface->declare(&fVslider4, "scale", "log");
-		ui_interface->declare(&fVslider4, "style", "knob");
-		ui_interface->declare(&fVslider4, "tooltip", "Center-frequency of second-order Regalia-Mitra peaking equalizer section 1");
-		ui_interface->declare(&fVslider4, "unit", "Hz");
-		ui_interface->addVerticalSlider("Eq1 Freq", &fVslider4, 315.0f, 40.0f, 2500.0f, 1.0f);
-		ui_interface->declare(&fVslider5, "2", "");
-		ui_interface->declare(&fVslider5, "style", "knob");
-		ui_interface->declare(&fVslider5, "tooltip", "Peak level   in dB of second-order Regalia-Mitra peaking equalizer section 1");
-		ui_interface->declare(&fVslider5, "unit", "dB");
-		ui_interface->addVerticalSlider("Eq1 Level", &fVslider5, 0.0f, -15.0f, 15.0f, 0.100000001f);
+		ui_interface->declare(&fVslider9, "1", "");
+		ui_interface->declare(&fVslider9, "scale", "log");
+		ui_interface->declare(&fVslider9, "style", "knob");
+		ui_interface->declare(&fVslider9, "tooltip", "Center-frequency of second-order Regalia-Mitra peaking equalizer section 1");
+		ui_interface->declare(&fVslider9, "unit", "Hz");
+		ui_interface->addVerticalSlider("Eq1 Freq", &fVslider9, 315.0f, 40.0f, 2500.0f, 1.0f);
+		ui_interface->declare(&fVslider10, "2", "");
+		ui_interface->declare(&fVslider10, "style", "knob");
+		ui_interface->declare(&fVslider10, "tooltip", "Peak level   in dB of second-order Regalia-Mitra peaking equalizer section 1");
+		ui_interface->declare(&fVslider10, "unit", "dB");
+		ui_interface->addVerticalSlider("Eq1 Level", &fVslider10, 0.0f, -15.0f, 15.0f, 0.100000001f);
 		ui_interface->closeBox();
 		ui_interface->declare(0, "4", "");
 		ui_interface->openHorizontalBox("RM Peaking Equalizer 2");
@@ -1329,89 +1329,89 @@ class zitaRev : public faustdsp {
 		float fSlow4 = (fConst1 * (fSlow2 / std::sqrt(std::max<float>(0.0f, fSlow3))));
 		float fSlow5 = ((1.0f - fSlow4) / (fSlow4 + 1.0f));
 		float fSlow6 = float(fVslider4);
-		float fSlow7 = std::pow(10.0f, (0.0500000007f * float(fVslider5)));
-		float fSlow8 = (fConst1 * (fSlow6 / std::sqrt(std::max<float>(0.0f, fSlow7))));
-		float fSlow9 = ((1.0f - fSlow8) / (fSlow8 + 1.0f));
-		float fSlow10 = float(fVslider6);
-		float fSlow11 = std::exp((fConst3 / fSlow10));
-		float fSlow12 = zitaRev_faustpower2_f(fSlow11);
-		float fSlow13 = std::cos((fConst1 * float(fVslider7)));
-		float fSlow14 = (1.0f - (fSlow12 * fSlow13));
-		float fSlow15 = (1.0f - fSlow12);
-		float fSlow16 = (fSlow14 / fSlow15);
-		float fSlow17 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow14) / zitaRev_faustpower2_f(fSlow15)) + -1.0f)));
-		float fSlow18 = (fSlow16 - fSlow17);
-		float fSlow19 = (fSlow11 * (fSlow17 + (1.0f - fSlow16)));
-		float fSlow20 = float(fVslider8);
-		float fSlow21 = ((std::exp((fConst3 / fSlow20)) / fSlow11) + -1.0f);
-		float fSlow22 = (1.0f / std::tan((fConst4 * float(fVslider9))));
-		float fSlow23 = (1.0f / (fSlow22 + 1.0f));
-		float fSlow24 = (1.0f - fSlow22);
-		int iSlow25 = int(std::min<float>(8192.0f, std::max<float>(0.0f, (fConst7 * float(fVslider10)))));
-		float fSlow26 = std::exp((fConst10 / fSlow10));
-		float fSlow27 = zitaRev_faustpower2_f(fSlow26);
-		float fSlow28 = (1.0f - (fSlow27 * fSlow13));
-		float fSlow29 = (1.0f - fSlow27);
-		float fSlow30 = (fSlow28 / fSlow29);
-		float fSlow31 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow28) / zitaRev_faustpower2_f(fSlow29)) + -1.0f)));
-		float fSlow32 = (fSlow30 - fSlow31);
-		float fSlow33 = (fSlow26 * (fSlow31 + (1.0f - fSlow30)));
-		float fSlow34 = ((std::exp((fConst10 / fSlow20)) / fSlow26) + -1.0f);
-		float fSlow35 = std::exp((fConst15 / fSlow10));
-		float fSlow36 = zitaRev_faustpower2_f(fSlow35);
-		float fSlow37 = (1.0f - (fSlow36 * fSlow13));
-		float fSlow38 = (1.0f - fSlow36);
-		float fSlow39 = (fSlow37 / fSlow38);
-		float fSlow40 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow37) / zitaRev_faustpower2_f(fSlow38)) + -1.0f)));
-		float fSlow41 = (fSlow39 - fSlow40);
-		float fSlow42 = (fSlow35 * (fSlow40 + (1.0f - fSlow39)));
-		float fSlow43 = ((std::exp((fConst15 / fSlow20)) / fSlow35) + -1.0f);
-		float fSlow44 = std::exp((fConst20 / fSlow10));
-		float fSlow45 = zitaRev_faustpower2_f(fSlow44);
-		float fSlow46 = (1.0f - (fSlow45 * fSlow13));
-		float fSlow47 = (1.0f - fSlow45);
-		float fSlow48 = (fSlow46 / fSlow47);
-		float fSlow49 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow46) / zitaRev_faustpower2_f(fSlow47)) + -1.0f)));
-		float fSlow50 = (fSlow48 - fSlow49);
-		float fSlow51 = (fSlow44 * (fSlow49 + (1.0f - fSlow48)));
-		float fSlow52 = ((std::exp((fConst20 / fSlow20)) / fSlow44) + -1.0f);
-		float fSlow53 = std::exp((fConst25 / fSlow10));
-		float fSlow54 = zitaRev_faustpower2_f(fSlow53);
-		float fSlow55 = (1.0f - (fSlow54 * fSlow13));
-		float fSlow56 = (1.0f - fSlow54);
-		float fSlow57 = (fSlow55 / fSlow56);
-		float fSlow58 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow55) / zitaRev_faustpower2_f(fSlow56)) + -1.0f)));
-		float fSlow59 = (fSlow57 - fSlow58);
-		float fSlow60 = (fSlow53 * (fSlow58 + (1.0f - fSlow57)));
-		float fSlow61 = ((std::exp((fConst25 / fSlow20)) / fSlow53) + -1.0f);
-		float fSlow62 = std::exp((fConst30 / fSlow10));
-		float fSlow63 = zitaRev_faustpower2_f(fSlow62);
-		float fSlow64 = (1.0f - (fSlow63 * fSlow13));
-		float fSlow65 = (1.0f - fSlow63);
-		float fSlow66 = (fSlow64 / fSlow65);
-		float fSlow67 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow64) / zitaRev_faustpower2_f(fSlow65)) + -1.0f)));
-		float fSlow68 = (fSlow66 - fSlow67);
-		float fSlow69 = (fSlow62 * (fSlow67 + (1.0f - fSlow66)));
-		float fSlow70 = ((std::exp((fConst30 / fSlow20)) / fSlow62) + -1.0f);
-		float fSlow71 = std::exp((fConst35 / fSlow10));
-		float fSlow72 = zitaRev_faustpower2_f(fSlow71);
-		float fSlow73 = (1.0f - (fSlow72 * fSlow13));
-		float fSlow74 = (1.0f - fSlow72);
-		float fSlow75 = (fSlow73 / fSlow74);
-		float fSlow76 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow73) / zitaRev_faustpower2_f(fSlow74)) + -1.0f)));
-		float fSlow77 = (fSlow75 - fSlow76);
-		float fSlow78 = (fSlow71 * (fSlow76 + (1.0f - fSlow75)));
-		float fSlow79 = ((std::exp((fConst35 / fSlow20)) / fSlow71) + -1.0f);
-		float fSlow80 = std::exp((fConst40 / fSlow10));
-		float fSlow81 = zitaRev_faustpower2_f(fSlow80);
-		float fSlow82 = (1.0f - (fSlow81 * fSlow13));
-		float fSlow83 = (1.0f - fSlow81);
-		float fSlow84 = (fSlow82 / fSlow83);
-		float fSlow85 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow82) / zitaRev_faustpower2_f(fSlow83)) + -1.0f)));
-		float fSlow86 = (fSlow84 - fSlow85);
-		float fSlow87 = (fSlow80 * (fSlow85 + (1.0f - fSlow84)));
-		float fSlow88 = ((std::exp((fConst40 / fSlow20)) / fSlow80) + -1.0f);
-		float fSlow89 = (0.0f - (std::cos((fConst1 * fSlow6)) * (fSlow9 + 1.0f)));
+		float fSlow7 = std::exp((fConst3 / fSlow6));
+		float fSlow8 = zitaRev_faustpower2_f(fSlow7);
+		float fSlow9 = std::cos((fConst1 * float(fVslider5)));
+		float fSlow10 = (1.0f - (fSlow8 * fSlow9));
+		float fSlow11 = (1.0f - fSlow8);
+		float fSlow12 = (fSlow10 / fSlow11);
+		float fSlow13 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow10) / zitaRev_faustpower2_f(fSlow11)) + -1.0f)));
+		float fSlow14 = (fSlow12 - fSlow13);
+		float fSlow15 = (fSlow7 * (fSlow13 + (1.0f - fSlow12)));
+		float fSlow16 = float(fVslider6);
+		float fSlow17 = ((std::exp((fConst3 / fSlow16)) / fSlow7) + -1.0f);
+		float fSlow18 = (1.0f / std::tan((fConst4 * float(fVslider7))));
+		float fSlow19 = (1.0f / (fSlow18 + 1.0f));
+		float fSlow20 = (1.0f - fSlow18);
+		int iSlow21 = int(std::min<float>(8192.0f, std::max<float>(0.0f, (fConst7 * float(fVslider8)))));
+		float fSlow22 = std::exp((fConst10 / fSlow6));
+		float fSlow23 = zitaRev_faustpower2_f(fSlow22);
+		float fSlow24 = (1.0f - (fSlow23 * fSlow9));
+		float fSlow25 = (1.0f - fSlow23);
+		float fSlow26 = (fSlow24 / fSlow25);
+		float fSlow27 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow24) / zitaRev_faustpower2_f(fSlow25)) + -1.0f)));
+		float fSlow28 = (fSlow26 - fSlow27);
+		float fSlow29 = (fSlow22 * (fSlow27 + (1.0f - fSlow26)));
+		float fSlow30 = ((std::exp((fConst10 / fSlow16)) / fSlow22) + -1.0f);
+		float fSlow31 = std::exp((fConst15 / fSlow6));
+		float fSlow32 = zitaRev_faustpower2_f(fSlow31);
+		float fSlow33 = (1.0f - (fSlow32 * fSlow9));
+		float fSlow34 = (1.0f - fSlow32);
+		float fSlow35 = (fSlow33 / fSlow34);
+		float fSlow36 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow33) / zitaRev_faustpower2_f(fSlow34)) + -1.0f)));
+		float fSlow37 = (fSlow35 - fSlow36);
+		float fSlow38 = (fSlow31 * (fSlow36 + (1.0f - fSlow35)));
+		float fSlow39 = ((std::exp((fConst15 / fSlow16)) / fSlow31) + -1.0f);
+		float fSlow40 = std::exp((fConst20 / fSlow6));
+		float fSlow41 = zitaRev_faustpower2_f(fSlow40);
+		float fSlow42 = (1.0f - (fSlow41 * fSlow9));
+		float fSlow43 = (1.0f - fSlow41);
+		float fSlow44 = (fSlow42 / fSlow43);
+		float fSlow45 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow42) / zitaRev_faustpower2_f(fSlow43)) + -1.0f)));
+		float fSlow46 = (fSlow44 - fSlow45);
+		float fSlow47 = (fSlow40 * (fSlow45 + (1.0f - fSlow44)));
+		float fSlow48 = ((std::exp((fConst20 / fSlow16)) / fSlow40) + -1.0f);
+		float fSlow49 = std::exp((fConst25 / fSlow6));
+		float fSlow50 = zitaRev_faustpower2_f(fSlow49);
+		float fSlow51 = (1.0f - (fSlow50 * fSlow9));
+		float fSlow52 = (1.0f - fSlow50);
+		float fSlow53 = (fSlow51 / fSlow52);
+		float fSlow54 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow51) / zitaRev_faustpower2_f(fSlow52)) + -1.0f)));
+		float fSlow55 = (fSlow53 - fSlow54);
+		float fSlow56 = (fSlow49 * (fSlow54 + (1.0f - fSlow53)));
+		float fSlow57 = ((std::exp((fConst25 / fSlow16)) / fSlow49) + -1.0f);
+		float fSlow58 = std::exp((fConst30 / fSlow6));
+		float fSlow59 = zitaRev_faustpower2_f(fSlow58);
+		float fSlow60 = (1.0f - (fSlow59 * fSlow9));
+		float fSlow61 = (1.0f - fSlow59);
+		float fSlow62 = (fSlow60 / fSlow61);
+		float fSlow63 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow60) / zitaRev_faustpower2_f(fSlow61)) + -1.0f)));
+		float fSlow64 = (fSlow62 - fSlow63);
+		float fSlow65 = (fSlow58 * (fSlow63 + (1.0f - fSlow62)));
+		float fSlow66 = ((std::exp((fConst30 / fSlow16)) / fSlow58) + -1.0f);
+		float fSlow67 = std::exp((fConst35 / fSlow6));
+		float fSlow68 = zitaRev_faustpower2_f(fSlow67);
+		float fSlow69 = (1.0f - (fSlow68 * fSlow9));
+		float fSlow70 = (1.0f - fSlow68);
+		float fSlow71 = (fSlow69 / fSlow70);
+		float fSlow72 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow69) / zitaRev_faustpower2_f(fSlow70)) + -1.0f)));
+		float fSlow73 = (fSlow71 - fSlow72);
+		float fSlow74 = (fSlow67 * (fSlow72 + (1.0f - fSlow71)));
+		float fSlow75 = ((std::exp((fConst35 / fSlow16)) / fSlow67) + -1.0f);
+		float fSlow76 = std::exp((fConst40 / fSlow6));
+		float fSlow77 = zitaRev_faustpower2_f(fSlow76);
+		float fSlow78 = (1.0f - (fSlow77 * fSlow9));
+		float fSlow79 = (1.0f - fSlow77);
+		float fSlow80 = (fSlow78 / fSlow79);
+		float fSlow81 = std::sqrt(std::max<float>(0.0f, ((zitaRev_faustpower2_f(fSlow78) / zitaRev_faustpower2_f(fSlow79)) + -1.0f)));
+		float fSlow82 = (fSlow80 - fSlow81);
+		float fSlow83 = (fSlow76 * (fSlow81 + (1.0f - fSlow80)));
+		float fSlow84 = ((std::exp((fConst40 / fSlow16)) / fSlow76) + -1.0f);
+		float fSlow85 = float(fVslider9);
+		float fSlow86 = std::pow(10.0f, (0.0500000007f * float(fVslider10)));
+		float fSlow87 = (fConst1 * (fSlow85 / std::sqrt(std::max<float>(0.0f, fSlow86))));
+		float fSlow88 = ((1.0f - fSlow87) / (fSlow87 + 1.0f));
+		float fSlow89 = (0.0f - (std::cos((fConst1 * fSlow85)) * (fSlow88 + 1.0f)));
 		float fSlow90 = (0.0f - (std::cos((fConst1 * fSlow2)) * (fSlow5 + 1.0f)));
 		for (int i = 0; (i < count); i = (i + 1)) {
 			fRec0[0] = (fSlow0 + (0.999000013f * fRec0[1]));
@@ -1420,95 +1420,95 @@ class zitaRev : public faustdsp {
 			fRec1[0] = (fSlow1 + (0.999000013f * fRec1[1]));
 			float fTemp1 = (fRec1[0] + 1.0f);
 			float fTemp2 = (1.0f - (0.5f * fTemp1));
-			fRec15[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec15[1]) - (fRec11[1] + fRec11[2]))));
-			fRec14[0] = ((fSlow18 * fRec14[1]) + (fSlow19 * (fRec11[1] + (fSlow21 * fRec15[0]))));
-			fVec1[(IOTA & 32767)] = ((0.353553385f * fRec14[0]) + 9.99999968e-21f);
+			fRec14[0] = (fSlow19 * ((fRec10[1] + fRec10[2]) - (fSlow20 * fRec14[1])));
+			fRec13[0] = ((fSlow14 * fRec13[1]) + (fSlow15 * (fRec10[1] + (fSlow17 * fRec14[0]))));
+			fVec1[(IOTA & 32767)] = ((0.353553385f * fRec13[0]) + 9.99999968e-21f);
 			float fTemp3 = float(input1[i]);
 			fVec2[(IOTA & 16383)] = fTemp3;
-			float fTemp4 = (0.300000012f * fVec2[((IOTA - iSlow25) & 16383)]);
-			float fTemp5 = (((0.600000024f * fRec12[1]) + fVec1[((IOTA - iConst6) & 32767)]) - fTemp4);
+			float fTemp4 = (0.300000012f * fVec2[((IOTA - iSlow21) & 16383)]);
+			float fTemp5 = (((0.600000024f * fRec11[1]) + fVec1[((IOTA - iConst6) & 32767)]) - fTemp4);
 			fVec3[(IOTA & 2047)] = fTemp5;
-			fRec12[0] = fVec3[((IOTA - iConst8) & 2047)];
-			float fRec13 = (0.0f - (0.600000024f * fTemp5));
-			fRec19[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec19[1]) - (fRec7[1] + fRec7[2]))));
-			fRec18[0] = ((fSlow32 * fRec18[1]) + (fSlow33 * (fRec7[1] + (fSlow34 * fRec19[0]))));
-			fVec4[(IOTA & 32767)] = ((0.353553385f * fRec18[0]) + 9.99999968e-21f);
-			float fTemp6 = (((0.600000024f * fRec16[1]) + fVec4[((IOTA - iConst12) & 32767)]) - fTemp4);
+			fRec11[0] = fVec3[((IOTA - iConst8) & 2047)];
+			float fRec12 = (0.0f - (0.600000024f * fTemp5));
+			fRec18[0] = (0.0f - (fSlow19 * ((fSlow20 * fRec18[1]) - (fRec6[1] + fRec6[2]))));
+			fRec17[0] = ((fSlow28 * fRec17[1]) + (fSlow29 * (fRec6[1] + (fSlow30 * fRec18[0]))));
+			fVec4[(IOTA & 32767)] = ((0.353553385f * fRec17[0]) + 9.99999968e-21f);
+			float fTemp6 = (((0.600000024f * fRec15[1]) + fVec4[((IOTA - iConst12) & 32767)]) - fTemp4);
 			fVec5[(IOTA & 4095)] = fTemp6;
-			fRec16[0] = fVec5[((IOTA - iConst13) & 4095)];
-			float fRec17 = (0.0f - (0.600000024f * fTemp6));
-			fRec23[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec23[1]) - (fRec9[1] + fRec9[2]))));
-			fRec22[0] = ((fSlow41 * fRec22[1]) + (fSlow42 * (fRec9[1] + (fSlow43 * fRec23[0]))));
-			fVec6[(IOTA & 16383)] = ((0.353553385f * fRec22[0]) + 9.99999968e-21f);
-			float fTemp7 = (fVec6[((IOTA - iConst17) & 16383)] + (fTemp4 + (0.600000024f * fRec20[1])));
+			fRec15[0] = fVec5[((IOTA - iConst13) & 4095)];
+			float fRec16 = (0.0f - (0.600000024f * fTemp6));
+			fRec22[0] = (0.0f - (fSlow19 * ((fSlow20 * fRec22[1]) - (fRec8[1] + fRec8[2]))));
+			fRec21[0] = ((fSlow37 * fRec21[1]) + (fSlow38 * (fRec8[1] + (fSlow39 * fRec22[0]))));
+			fVec6[(IOTA & 16383)] = ((0.353553385f * fRec21[0]) + 9.99999968e-21f);
+			float fTemp7 = (fVec6[((IOTA - iConst17) & 16383)] + (fTemp4 + (0.600000024f * fRec19[1])));
 			fVec7[(IOTA & 4095)] = fTemp7;
-			fRec20[0] = fVec7[((IOTA - iConst18) & 4095)];
-			float fRec21 = (0.0f - (0.600000024f * fTemp7));
-			fRec27[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec27[1]) - (fRec5[1] + fRec5[2]))));
-			fRec26[0] = ((fSlow50 * fRec26[1]) + (fSlow51 * (fRec5[1] + (fSlow52 * fRec27[0]))));
-			fVec8[(IOTA & 32767)] = ((0.353553385f * fRec26[0]) + 9.99999968e-21f);
-			float fTemp8 = (fTemp4 + ((0.600000024f * fRec24[1]) + fVec8[((IOTA - iConst22) & 32767)]));
+			fRec19[0] = fVec7[((IOTA - iConst18) & 4095)];
+			float fRec20 = (0.0f - (0.600000024f * fTemp7));
+			fRec26[0] = (0.0f - (fSlow19 * ((fSlow20 * fRec26[1]) - (fRec4[1] + fRec4[2]))));
+			fRec25[0] = ((fSlow46 * fRec25[1]) + (fSlow47 * (fRec4[1] + (fSlow48 * fRec26[0]))));
+			fVec8[(IOTA & 32767)] = ((0.353553385f * fRec25[0]) + 9.99999968e-21f);
+			float fTemp8 = (fTemp4 + ((0.600000024f * fRec23[1]) + fVec8[((IOTA - iConst22) & 32767)]));
 			fVec9[(IOTA & 4095)] = fTemp8;
-			fRec24[0] = fVec9[((IOTA - iConst23) & 4095)];
-			float fRec25 = (0.0f - (0.600000024f * fTemp8));
-			fRec31[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec31[1]) - (fRec10[1] + fRec10[2]))));
-			fRec30[0] = ((fSlow59 * fRec30[1]) + (fSlow60 * (fRec10[1] + (fSlow61 * fRec31[0]))));
-			fVec10[(IOTA & 16383)] = ((0.353553385f * fRec30[0]) + 9.99999968e-21f);
-			float fTemp9 = (0.300000012f * fVec0[((IOTA - iSlow25) & 16383)]);
-			float fTemp10 = (fVec10[((IOTA - iConst27) & 16383)] - (fTemp9 + (0.600000024f * fRec28[1])));
+			fRec23[0] = fVec9[((IOTA - iConst23) & 4095)];
+			float fRec24 = (0.0f - (0.600000024f * fTemp8));
+			fRec30[0] = (0.0f - (fSlow19 * ((fSlow20 * fRec30[1]) - (fRec9[1] + fRec9[2]))));
+			fRec29[0] = ((fSlow55 * fRec29[1]) + (fSlow56 * (fRec9[1] + (fSlow57 * fRec30[0]))));
+			fVec10[(IOTA & 16383)] = ((0.353553385f * fRec29[0]) + 9.99999968e-21f);
+			float fTemp9 = (0.300000012f * fVec0[((IOTA - iSlow21) & 16383)]);
+			float fTemp10 = (fVec10[((IOTA - iConst27) & 16383)] - (fTemp9 + (0.600000024f * fRec27[1])));
 			fVec11[(IOTA & 2047)] = fTemp10;
-			fRec28[0] = fVec11[((IOTA - iConst28) & 2047)];
-			float fRec29 = (0.600000024f * fTemp10);
-			fRec35[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec35[1]) - (fRec6[1] + fRec6[2]))));
-			fRec34[0] = ((fSlow68 * fRec34[1]) + (fSlow69 * (fRec6[1] + (fSlow70 * fRec35[0]))));
-			fVec12[(IOTA & 16383)] = ((0.353553385f * fRec34[0]) + 9.99999968e-21f);
-			float fTemp11 = (fVec12[((IOTA - iConst32) & 16383)] - (fTemp9 + (0.600000024f * fRec32[1])));
+			fRec27[0] = fVec11[((IOTA - iConst28) & 2047)];
+			float fRec28 = (0.600000024f * fTemp10);
+			fRec34[0] = (0.0f - (fSlow19 * ((fSlow20 * fRec34[1]) - (fRec5[1] + fRec5[2]))));
+			fRec33[0] = ((fSlow64 * fRec33[1]) + (fSlow65 * (fRec5[1] + (fSlow66 * fRec34[0]))));
+			fVec12[(IOTA & 16383)] = ((0.353553385f * fRec33[0]) + 9.99999968e-21f);
+			float fTemp11 = (fVec12[((IOTA - iConst32) & 16383)] - (fTemp9 + (0.600000024f * fRec31[1])));
 			fVec13[(IOTA & 4095)] = fTemp11;
-			fRec32[0] = fVec13[((IOTA - iConst33) & 4095)];
-			float fRec33 = (0.600000024f * fTemp11);
-			fRec39[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec39[1]) - (fRec8[1] + fRec8[2]))));
-			fRec38[0] = ((fSlow77 * fRec38[1]) + (fSlow78 * (fRec8[1] + (fSlow79 * fRec39[0]))));
-			fVec14[(IOTA & 16383)] = ((0.353553385f * fRec38[0]) + 9.99999968e-21f);
-			float fTemp12 = ((fTemp9 + fVec14[((IOTA - iConst37) & 16383)]) - (0.600000024f * fRec36[1]));
+			fRec31[0] = fVec13[((IOTA - iConst33) & 4095)];
+			float fRec32 = (0.600000024f * fTemp11);
+			fRec38[0] = (0.0f - (fSlow19 * ((fSlow20 * fRec38[1]) - (fRec7[1] + fRec7[2]))));
+			fRec37[0] = ((fSlow73 * fRec37[1]) + (fSlow74 * (fRec7[1] + (fSlow75 * fRec38[0]))));
+			fVec14[(IOTA & 16383)] = ((0.353553385f * fRec37[0]) + 9.99999968e-21f);
+			float fTemp12 = ((fTemp9 + fVec14[((IOTA - iConst37) & 16383)]) - (0.600000024f * fRec35[1]));
 			fVec15[(IOTA & 4095)] = fTemp12;
-			fRec36[0] = fVec15[((IOTA - iConst38) & 4095)];
-			float fRec37 = (0.600000024f * fTemp12);
-			fRec43[0] = (0.0f - (fSlow23 * ((fSlow24 * fRec43[1]) - (fRec4[1] + fRec4[2]))));
-			fRec42[0] = ((fSlow86 * fRec42[1]) + (fSlow87 * (fRec4[1] + (fSlow88 * fRec43[0]))));
-			fVec16[(IOTA & 16383)] = ((0.353553385f * fRec42[0]) + 9.99999968e-21f);
-			float fTemp13 = ((fVec16[((IOTA - iConst42) & 16383)] + fTemp9) - (0.600000024f * fRec40[1]));
+			fRec35[0] = fVec15[((IOTA - iConst38) & 4095)];
+			float fRec36 = (0.600000024f * fTemp12);
+			fRec42[0] = (0.0f - (fSlow19 * ((fSlow20 * fRec42[1]) - (fRec3[1] + fRec3[2]))));
+			fRec41[0] = ((fSlow82 * fRec41[1]) + (fSlow83 * (fRec3[1] + (fSlow84 * fRec42[0]))));
+			fVec16[(IOTA & 16383)] = ((0.353553385f * fRec41[0]) + 9.99999968e-21f);
+			float fTemp13 = ((fVec16[((IOTA - iConst42) & 16383)] + fTemp9) - (0.600000024f * fRec39[1]));
 			fVec17[(IOTA & 2047)] = fTemp13;
-			fRec40[0] = fVec17[((IOTA - iConst43) & 2047)];
-			float fRec41 = (0.600000024f * fTemp13);
-			float fTemp14 = (fRec40[1] + fRec36[1]);
-			float fTemp15 = (fRec28[1] + (fTemp14 + fRec32[1]));
-			fRec4[0] = (fRec13 + (fRec17 + (fRec21 + (fRec25 + (fRec29 + (fRec33 + (fRec37 + (fRec41 + (fRec12[1] + (fRec16[1] + (fRec20[1] + (fTemp15 + fRec24[1]))))))))))));
-			fRec5[0] = ((fRec29 + (fRec33 + (fRec37 + (fRec41 + fTemp15)))) - (fRec13 + (fRec17 + (fRec21 + (fRec25 + (fRec12[1] + ((fRec24[1] + fRec20[1]) + fRec16[1])))))));
-			float fTemp16 = (fRec32[1] + fRec28[1]);
-			fRec6[0] = ((fRec21 + (fRec25 + (fRec37 + (fRec41 + (fRec20[1] + (fTemp14 + fRec24[1])))))) - (fRec13 + (fRec17 + (fRec29 + (fRec33 + (fRec12[1] + (fTemp16 + fRec16[1])))))));
-			fRec7[0] = ((fRec13 + (fRec17 + (fRec37 + (fRec41 + (fRec12[1] + (fTemp14 + fRec16[1])))))) - (fRec21 + (fRec25 + (fRec29 + (fRec33 + (fRec20[1] + (fTemp16 + fRec24[1])))))));
-			float fTemp17 = (fRec40[1] + fRec32[1]);
-			float fTemp18 = (fRec36[1] + fRec28[1]);
-			fRec8[0] = ((fRec17 + (fRec25 + (fRec33 + (fRec41 + (fRec16[1] + (fRec24[1] + fTemp17)))))) - (fRec13 + (fRec21 + (fRec29 + (fRec37 + (fRec12[1] + (fRec20[1] + fTemp18)))))));
-			fRec9[0] = ((fRec13 + (fRec21 + (fRec33 + (fRec41 + (fRec12[1] + (fRec20[1] + fTemp17)))))) - (fRec17 + (fRec25 + (fRec29 + (fRec37 + (fRec16[1] + (fRec24[1] + fTemp18)))))));
-			float fTemp19 = (fRec40[1] + fRec28[1]);
-			float fTemp20 = (fRec36[1] + fRec32[1]);
-			fRec10[0] = ((fRec13 + (fRec25 + (fRec29 + (fRec41 + (fRec12[1] + (fRec24[1] + fTemp19)))))) - (fRec17 + (fRec21 + (fRec33 + (fRec37 + (fRec16[1] + (fRec20[1] + fTemp20)))))));
-			fRec11[0] = ((fRec17 + (fRec21 + (fRec29 + (fRec41 + (fRec16[1] + (fRec20[1] + fTemp19)))))) - (fRec13 + (fRec25 + (fRec33 + (fRec37 + (fRec12[1] + (fRec24[1] + fTemp20)))))));
-			float fTemp21 = (0.370000005f * (fRec5[0] + fRec6[0]));
-			float fTemp22 = (fSlow89 * fRec3[1]);
-			fRec3[0] = (fTemp21 - (fTemp22 + (fSlow9 * fRec3[2])));
-			float fTemp23 = (fSlow9 * fRec3[0]);
-			float fTemp24 = (0.5f * ((fTemp23 + (fRec3[2] + (fTemp21 + fTemp22))) + (fSlow7 * ((fTemp23 + (fTemp22 + fRec3[2])) - fTemp21))));
+			fRec39[0] = fVec17[((IOTA - iConst43) & 2047)];
+			float fRec40 = (0.600000024f * fTemp13);
+			float fTemp14 = (fRec40 + fRec36);
+			float fTemp15 = (fRec28 + (fRec32 + fTemp14));
+			fRec3[0] = (fRec11[1] + (fRec15[1] + (fRec19[1] + (fRec23[1] + (fRec27[1] + (fRec31[1] + (fRec35[1] + (fRec39[1] + (fRec12 + (fRec16 + (fRec20 + (fRec24 + fTemp15))))))))))));
+			fRec4[0] = ((fRec27[1] + (fRec31[1] + (fRec35[1] + (fRec39[1] + fTemp15)))) - (fRec11[1] + (fRec15[1] + (fRec19[1] + (fRec23[1] + (fRec12 + (fRec16 + (fRec24 + fRec20))))))));
+			float fTemp16 = (fRec32 + fRec28);
+			fRec5[0] = ((fRec19[1] + (fRec23[1] + (fRec35[1] + (fRec39[1] + (fRec20 + (fRec24 + fTemp14)))))) - (fRec11[1] + (fRec15[1] + (fRec27[1] + (fRec31[1] + (fRec12 + (fRec16 + fTemp16)))))));
+			fRec6[0] = ((fRec11[1] + (fRec15[1] + (fRec35[1] + (fRec39[1] + (fRec12 + (fRec16 + fTemp14)))))) - (fRec19[1] + (fRec23[1] + (fRec27[1] + (fRec31[1] + (fRec20 + (fRec24 + fTemp16)))))));
+			float fTemp17 = (fRec40 + fRec32);
+			float fTemp18 = (fRec36 + fRec28);
+			fRec7[0] = ((fRec15[1] + (fRec23[1] + (fRec31[1] + (fRec39[1] + (fRec16 + (fRec24 + fTemp17)))))) - (fRec11[1] + (fRec19[1] + (fRec27[1] + (fRec35[1] + (fRec12 + (fRec20 + fTemp18)))))));
+			fRec8[0] = ((fRec11[1] + (fRec19[1] + (fRec31[1] + (fRec39[1] + (fRec12 + (fRec20 + fTemp17)))))) - (fRec15[1] + (fRec23[1] + (fRec27[1] + (fRec35[1] + (fRec16 + (fRec24 + fTemp18)))))));
+			float fTemp19 = (fRec40 + fRec28);
+			float fTemp20 = (fRec36 + fRec32);
+			fRec9[0] = ((fRec11[1] + (fRec23[1] + (fRec27[1] + (fRec39[1] + (fRec12 + (fRec24 + fTemp19)))))) - (fRec15[1] + (fRec19[1] + (fRec31[1] + (fRec35[1] + (fRec16 + (fRec20 + fTemp20)))))));
+			fRec10[0] = ((fRec15[1] + (fRec19[1] + (fRec27[1] + (fRec39[1] + (fRec16 + (fRec20 + fTemp19)))))) - (fRec11[1] + (fRec23[1] + (fRec31[1] + (fRec35[1] + (fRec12 + (fRec24 + fTemp20)))))));
+			float fTemp21 = (0.370000005f * (fRec4[0] + fRec5[0]));
+			float fTemp22 = (fSlow89 * fRec43[1]);
+			fRec43[0] = (fTemp21 - (fTemp22 + (fSlow88 * fRec43[2])));
+			float fTemp23 = ((fSlow88 * fRec43[0]) + (fTemp22 + fRec43[2]));
+			float fTemp24 = (0.5f * ((fTemp21 + fTemp23) + (fSlow86 * (fTemp23 - fTemp21))));
 			float fTemp25 = (fSlow90 * fRec2[1]);
 			fRec2[0] = (fTemp24 - (fTemp25 + (fSlow5 * fRec2[2])));
 			float fTemp26 = (fSlow5 * fRec2[0]);
 			output0[i] = FAUSTFLOAT((0.5f * (fRec0[0] * ((fTemp0 * fTemp1) + (fTemp2 * ((fTemp26 + (fRec2[2] + (fTemp24 + fTemp25))) + (fSlow3 * ((fTemp26 + (fTemp25 + fRec2[2])) - fTemp24))))))));
-			float fTemp27 = (0.370000005f * (fRec5[0] - fRec6[0]));
+			float fTemp27 = (0.370000005f * (fRec4[0] - fRec5[0]));
 			float fTemp28 = (fSlow89 * fRec45[1]);
-			fRec45[0] = (fTemp27 - (fTemp28 + (fSlow9 * fRec45[2])));
-			float fTemp29 = (fSlow9 * fRec45[0]);
-			float fTemp30 = (0.5f * ((fTemp29 + (fRec45[2] + (fTemp27 + fTemp28))) + (fSlow7 * ((fTemp29 + (fTemp28 + fRec45[2])) - fTemp27))));
+			fRec45[0] = (fTemp27 - (fTemp28 + (fSlow88 * fRec45[2])));
+			float fTemp29 = ((fSlow88 * fRec45[0]) + (fTemp28 + fRec45[2]));
+			float fTemp30 = (0.5f * ((fTemp27 + fTemp29) + (fSlow86 * (fTemp29 - fTemp27))));
 			float fTemp31 = (fSlow90 * fRec44[1]);
 			fRec44[0] = (fTemp30 - (fTemp31 + (fSlow5 * fRec44[2])));
 			float fTemp32 = (fSlow5 * fRec44[0]);
@@ -1516,30 +1516,32 @@ class zitaRev : public faustdsp {
 			fRec0[1] = fRec0[0];
 			IOTA = (IOTA + 1);
 			fRec1[1] = fRec1[0];
-			fRec15[1] = fRec15[0];
 			fRec14[1] = fRec14[0];
-			fRec12[1] = fRec12[0];
-			fRec19[1] = fRec19[0];
+			fRec13[1] = fRec13[0];
+			fRec11[1] = fRec11[0];
 			fRec18[1] = fRec18[0];
-			fRec16[1] = fRec16[0];
-			fRec23[1] = fRec23[0];
+			fRec17[1] = fRec17[0];
+			fRec15[1] = fRec15[0];
 			fRec22[1] = fRec22[0];
-			fRec20[1] = fRec20[0];
-			fRec27[1] = fRec27[0];
+			fRec21[1] = fRec21[0];
+			fRec19[1] = fRec19[0];
 			fRec26[1] = fRec26[0];
-			fRec24[1] = fRec24[0];
-			fRec31[1] = fRec31[0];
+			fRec25[1] = fRec25[0];
+			fRec23[1] = fRec23[0];
 			fRec30[1] = fRec30[0];
-			fRec28[1] = fRec28[0];
-			fRec35[1] = fRec35[0];
+			fRec29[1] = fRec29[0];
+			fRec27[1] = fRec27[0];
 			fRec34[1] = fRec34[0];
-			fRec32[1] = fRec32[0];
-			fRec39[1] = fRec39[0];
+			fRec33[1] = fRec33[0];
+			fRec31[1] = fRec31[0];
 			fRec38[1] = fRec38[0];
-			fRec36[1] = fRec36[0];
-			fRec43[1] = fRec43[0];
+			fRec37[1] = fRec37[0];
+			fRec35[1] = fRec35[0];
 			fRec42[1] = fRec42[0];
-			fRec40[1] = fRec40[0];
+			fRec41[1] = fRec41[0];
+			fRec39[1] = fRec39[0];
+			fRec3[2] = fRec3[1];
+			fRec3[1] = fRec3[0];
 			fRec4[2] = fRec4[1];
 			fRec4[1] = fRec4[0];
 			fRec5[2] = fRec5[1];
@@ -1554,286 +1556,14 @@ class zitaRev : public faustdsp {
 			fRec9[1] = fRec9[0];
 			fRec10[2] = fRec10[1];
 			fRec10[1] = fRec10[0];
-			fRec11[2] = fRec11[1];
-			fRec11[1] = fRec11[0];
-			fRec3[2] = fRec3[1];
-			fRec3[1] = fRec3[0];
+			fRec43[2] = fRec43[1];
+			fRec43[1] = fRec43[0];
 			fRec2[2] = fRec2[1];
 			fRec2[1] = fRec2[0];
 			fRec45[2] = fRec45[1];
 			fRec45[1] = fRec45[0];
 			fRec44[2] = fRec44[1];
 			fRec44[1] = fRec44[0];
-		}
-	}
-
-};
-
-#endif
-/* ------------------------------------------------------------
-author: "JOS, revised by RM"
-name: "compressor"
-version: "0.0"
-Code generated with Faust 2.28.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -scal -ftz 0
------------------------------------------------------------- */
-
-#ifndef  __faustComp_H__
-#define  __faustComp_H__
-
-
-#undef FAUSTCLASS
-#ifndef FAUSTCLASS 
-#define FAUSTCLASS faustComp
-#endif
-
-#ifdef __APPLE__ 
-#define exp10f __exp10f
-#define exp10 __exp10
-#endif
-
-
-class faustComp : public faustdsp {
-	
- private:
-	
-	FAUSTFLOAT fCheckbox0;
-	FAUSTFLOAT fHslider0;
-	float fRec0[2];
-	int fSampleRate;
-	float fConst0;
-	FAUSTFLOAT fHslider1;
-	FAUSTFLOAT fHslider2;
-	FAUSTFLOAT fHslider3;
-	float fRec3[2];
-	float fRec2[2];
-	FAUSTFLOAT fHslider4;
-	float fRec1[2];
-	float fRec6[2];
-	float fRec5[2];
-	float fRec4[2];
-	FAUSTFLOAT fHbargraph0;
-	
- public:
-	
-	void metadata(Meta* m) { 
-		m->declare("analyzers.lib/name", "Faust Analyzer Library");
-		m->declare("analyzers.lib/version", "0.1");
-		m->declare("author", "JOS, revised by RM");
-		m->declare("basics.lib/name", "Faust Basic Element Library");
-		m->declare("basics.lib/version", "0.1");
-		m->declare("compressors.lib/compression_gain_mono:author", "Julius O. Smith III");
-		m->declare("compressors.lib/compression_gain_mono:copyright", "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>");
-		m->declare("compressors.lib/compression_gain_mono:license", "MIT-style STK-4.3 license");
-		m->declare("compressors.lib/compressor_stereo:author", "Julius O. Smith III");
-		m->declare("compressors.lib/compressor_stereo:copyright", "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>");
-		m->declare("compressors.lib/compressor_stereo:license", "MIT-style STK-4.3 license");
-		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
-		m->declare("compressors.lib/version", "0.0");
-		m->declare("description", "Compressor demo application");
-		m->declare("filename", "compressjlc.dsp");
-		m->declare("maths.lib/author", "GRAME");
-		m->declare("maths.lib/copyright", "GRAME");
-		m->declare("maths.lib/license", "LGPL with exception");
-		m->declare("maths.lib/name", "Faust Math Library");
-		m->declare("maths.lib/version", "2.3");
-		m->declare("name", "compressor");
-		m->declare("platform.lib/name", "Generic Platform Library");
-		m->declare("platform.lib/version", "0.1");
-		m->declare("routes.lib/name", "Faust Signal Routing Library");
-		m->declare("routes.lib/version", "0.2");
-		m->declare("signals.lib/name", "Faust Signal Routing Library");
-		m->declare("signals.lib/version", "0.0");
-		m->declare("version", "0.0");
-	}
-
-	virtual int getNumInputs() {
-		return 2;
-	}
-	virtual int getNumOutputs() {
-		return 2;
-	}
-	virtual int getInputRate(int channel) {
-		int rate;
-		switch ((channel)) {
-			case 0: {
-				rate = 1;
-				break;
-			}
-			case 1: {
-				rate = 1;
-				break;
-			}
-			default: {
-				rate = -1;
-				break;
-			}
-		}
-		return rate;
-	}
-	virtual int getOutputRate(int channel) {
-		int rate;
-		switch ((channel)) {
-			case 0: {
-				rate = 1;
-				break;
-			}
-			case 1: {
-				rate = 1;
-				break;
-			}
-			default: {
-				rate = -1;
-				break;
-			}
-		}
-		return rate;
-	}
-	
-	static void classInit(int sample_rate) {
-	}
-	
-	virtual void instanceConstants(int sample_rate) {
-		fSampleRate = sample_rate;
-		fConst0 = (1.0f / std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate))));
-	}
-	
-	virtual void instanceResetUserInterface() {
-		fCheckbox0 = FAUSTFLOAT(0.0f);
-		fHslider0 = FAUSTFLOAT(40.0f);
-		fHslider1 = FAUSTFLOAT(50.0f);
-		fHslider2 = FAUSTFLOAT(5.0f);
-		fHslider3 = FAUSTFLOAT(500.0f);
-		fHslider4 = FAUSTFLOAT(-30.0f);
-	}
-	
-	virtual void instanceClear() {
-		for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
-			fRec0[l0] = 0.0f;
-		}
-		for (int l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
-			fRec3[l1] = 0.0f;
-		}
-		for (int l2 = 0; (l2 < 2); l2 = (l2 + 1)) {
-			fRec2[l2] = 0.0f;
-		}
-		for (int l3 = 0; (l3 < 2); l3 = (l3 + 1)) {
-			fRec1[l3] = 0.0f;
-		}
-		for (int l4 = 0; (l4 < 2); l4 = (l4 + 1)) {
-			fRec6[l4] = 0.0f;
-		}
-		for (int l5 = 0; (l5 < 2); l5 = (l5 + 1)) {
-			fRec5[l5] = 0.0f;
-		}
-		for (int l6 = 0; (l6 < 2); l6 = (l6 + 1)) {
-			fRec4[l6] = 0.0f;
-		}
-	}
-	
-	virtual void init(int sample_rate) {
-		classInit(sample_rate);
-		instanceInit(sample_rate);
-	}
-	virtual void instanceInit(int sample_rate) {
-		instanceConstants(sample_rate);
-		instanceResetUserInterface();
-		instanceClear();
-	}
-	
-	virtual faustComp* clone() {
-		return new faustComp();
-	}
-	
-	virtual int getSampleRate() {
-		return fSampleRate;
-	}
-	
-	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->declare(0, "tooltip", "Reference:                 http://en.wikipedia.org/wiki/Dynamic_range_compression");
-		ui_interface->openVerticalBox("COMPRESSOR");
-		ui_interface->declare(&fCheckbox0, "0", "");
-		ui_interface->declare(&fCheckbox0, "tooltip", "When this is checked, the compressor                 has no effect");
-		ui_interface->addCheckButton("Bypass", &fCheckbox0);
-		ui_interface->declare(&fHbargraph0, "1", "");
-		ui_interface->declare(&fHbargraph0, "tooltip", "Current gain of         the compressor in linear gain");
-		ui_interface->declare(&fHbargraph0, "unit", "gain");
-		ui_interface->addHorizontalBargraph("Compressor Gain Out", &fHbargraph0, 0.0f, 2.0f);
-		ui_interface->declare(&fHslider2, "2", "");
-		ui_interface->declare(&fHslider2, "style", "knob");
-		ui_interface->declare(&fHslider2, "tooltip", "A compression Ratio of N means that for each N dB increase in input         signal level above Threshold, the output level goes up 1 dB");
-		ui_interface->addHorizontalSlider("Ratio", &fHslider2, 5.0f, 1.0f, 20.0f, 0.100000001f);
-		ui_interface->declare(&fHslider4, "3", "");
-		ui_interface->declare(&fHslider4, "style", "knob");
-		ui_interface->declare(&fHslider4, "tooltip", "When the signal level exceeds the Threshold (in dB), its level         is compressed according to the Ratio");
-		ui_interface->declare(&fHslider4, "unit", "dB");
-		ui_interface->addHorizontalSlider("Threshold", &fHslider4, -30.0f, -100.0f, 10.0f, 0.100000001f);
-		ui_interface->declare(&fHslider1, "4", "");
-		ui_interface->declare(&fHslider1, "scale", "log");
-		ui_interface->declare(&fHslider1, "style", "knob");
-		ui_interface->declare(&fHslider1, "tooltip", "Time constant in ms (1/e smoothing time) for the compression gain         to approach (exponentially) a new lower target level (the compression         `kicking in')");
-		ui_interface->declare(&fHslider1, "unit", "ms");
-		ui_interface->addHorizontalSlider("Attack", &fHslider1, 50.0f, 1.0f, 1000.0f, 0.100000001f);
-		ui_interface->declare(&fHslider3, "5", "");
-		ui_interface->declare(&fHslider3, "scale", "log");
-		ui_interface->declare(&fHslider3, "style", "knob");
-		ui_interface->declare(&fHslider3, "tooltip", "Time constant in ms (1/e smoothing time) for the compression gain         to approach (exponentially) a new higher target level (the compression         'releasing')");
-		ui_interface->declare(&fHslider3, "unit", "ms");
-		ui_interface->addHorizontalSlider("Release", &fHslider3, 500.0f, 1.0f, 1000.0f, 0.100000001f);
-		ui_interface->declare(&fHslider0, "6", "");
-		ui_interface->declare(&fHslider0, "tooltip", "The compressed-signal output level is increased by this amount         (in dB) to make up for the level lost due to compression");
-		ui_interface->declare(&fHslider0, "unit", "dB");
-		ui_interface->addHorizontalSlider("Makeup Gain", &fHslider0, 40.0f, -96.0f, 96.0f, 0.100000001f);
-		ui_interface->closeBox();
-	}
-	
-	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {
-		FAUSTFLOAT* input0 = inputs[0];
-		FAUSTFLOAT* input1 = inputs[1];
-		FAUSTFLOAT* output0 = outputs[0];
-		FAUSTFLOAT* output1 = outputs[1];
-		int iSlow0 = int(float(fCheckbox0));
-		float fSlow1 = (0.00100000005f * std::pow(10.0f, (0.0500000007f * float(fHslider0))));
-		float fSlow2 = std::max<float>(fConst0, (0.00100000005f * float(fHslider1)));
-		float fSlow3 = (0.5f * fSlow2);
-		int iSlow4 = (std::fabs(fSlow3) < 1.1920929e-07f);
-		float fSlow5 = (iSlow4 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow4 ? 1.0f : fSlow3)))));
-		float fSlow6 = ((1.0f / std::max<float>(1.00000001e-07f, float(fHslider2))) + -1.0f);
-		int iSlow7 = (std::fabs(fSlow2) < 1.1920929e-07f);
-		float fSlow8 = (iSlow7 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow7 ? 1.0f : fSlow2)))));
-		float fSlow9 = std::max<float>(fConst0, (0.00100000005f * float(fHslider3)));
-		int iSlow10 = (std::fabs(fSlow9) < 1.1920929e-07f);
-		float fSlow11 = (iSlow10 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow10 ? 1.0f : fSlow9)))));
-		float fSlow12 = float(fHslider4);
-		float fSlow13 = (1.0f - fSlow5);
-		for (int i = 0; (i < count); i = (i + 1)) {
-			fRec0[0] = (fSlow1 + (0.999000013f * fRec0[1]));
-			float fTemp0 = float(input0[i]);
-			float fTemp1 = (iSlow0 ? 0.0f : fTemp0);
-			float fTemp2 = float(input1[i]);
-			float fTemp3 = (iSlow0 ? 0.0f : fTemp2);
-			float fTemp4 = std::fabs((std::fabs(fTemp1) + std::fabs(fTemp3)));
-			float fTemp5 = ((fRec2[1] > fTemp4) ? fSlow11 : fSlow8);
-			fRec3[0] = ((fRec3[1] * fTemp5) + (fTemp4 * (1.0f - fTemp5)));
-			fRec2[0] = fRec3[0];
-			fRec1[0] = ((fRec1[1] * fSlow5) + (fSlow6 * (std::max<float>(((20.0f * std::log10(fRec2[0])) - fSlow12), 0.0f) * fSlow13)));
-			float fTemp6 = std::pow(10.0f, (0.0500000007f * fRec1[0]));
-			output0[i] = FAUSTFLOAT((iSlow0 ? fTemp0 : ((fRec0[0] * fTemp1) * fTemp6)));
-			float fTemp7 = (fTemp3 * fTemp6);
-			float fTemp8 = std::fabs((std::fabs((fTemp1 * fTemp6)) + std::fabs(fTemp7)));
-			float fTemp9 = ((fRec5[1] > fTemp8) ? fSlow11 : fSlow8);
-			fRec6[0] = ((fRec6[1] * fTemp9) + (fTemp8 * (1.0f - fTemp9)));
-			fRec5[0] = fRec6[0];
-			fRec4[0] = ((fSlow5 * fRec4[1]) + (fSlow6 * (std::max<float>(((20.0f * std::log10(fRec5[0])) - fSlow12), 0.0f) * fSlow13)));
-			fHbargraph0 = FAUSTFLOAT(std::pow(10.0f, (0.0500000007f * fRec4[0])));
-			output1[i] = FAUSTFLOAT((iSlow0 ? fTemp2 : (fRec0[0] * fTemp7)));
-			fRec0[1] = fRec0[0];
-			fRec3[1] = fRec3[0];
-			fRec2[1] = fRec2[0];
-			fRec1[1] = fRec1[0];
-			fRec6[1] = fRec6[0];
-			fRec5[1] = fRec5[0];
-			fRec4[1] = fRec4[0];
 		}
 	}
 
