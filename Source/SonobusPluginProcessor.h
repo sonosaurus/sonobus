@@ -468,6 +468,7 @@ private:
     AudioSampleBuffer tempBuffer;
     AudioSampleBuffer workBuffer;
     AudioSampleBuffer inputBuffer;
+    AudioSampleBuffer inputWorkBuffer;
     AudioSampleBuffer fileBuffer;
     AudioSampleBuffer metBuffer;
     AudioSampleBuffer mainFxBuffer;

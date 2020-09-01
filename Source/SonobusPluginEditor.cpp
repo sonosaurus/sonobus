@@ -579,6 +579,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbEnabled, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendChannels, this);
 
     
     mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
@@ -2481,7 +2482,7 @@ void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
         
 #if JUCE_IOS
         const int defWidth = 260; 
-        const int defHeight = 125;
+        const int defHeight = 144;
 #else
         const int defWidth = 260; 
         const int defHeight = 125;
@@ -2949,6 +2950,31 @@ void SonobusAudioProcessorEditor::updateState()
     int sendchval = (int) processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->getValue());
     mSendChannelsChoice->setSelectedId(sendchval, dontSendNotification);
 
+    int panChannels = jmax(outChannels, sendchval);
+
+    
+    if (panChannels > 1) {        
+        mInMonPanSlider1->setVisible(true);
+        mInMonPanLabel1->setVisible(true);
+    } else {
+        mInMonPanSlider1->setVisible(false);
+        mInMonPanLabel1->setVisible(false);            
+    }
+
+    if (inChannels > 1) {
+        mInMonPanSlider2->setVisible(true);
+        mInMonPanLabel2->setVisible(true);
+        
+        mInMonPanSlider1->setDoubleClickReturnValue(true, -1.0);
+        mInMonPanSlider2->setDoubleClickReturnValue(true, 1.0);
+    }
+    else {
+        mInMonPanSlider1->setDoubleClickReturnValue(true, 0.0);
+        
+        mInMonPanSlider2->setVisible(false);
+        mInMonPanLabel2->setVisible(false);
+    }
+
     
     SonobusAudioProcessor::CompressorParams compParams;
     processor.getInputCompressorParams(compParams);
@@ -3090,6 +3116,13 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramMainReverbEnabled) {
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramSendChannels) {
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -3514,61 +3547,37 @@ void SonobusAudioProcessorEditor::updateLayout()
     
     
     
-    if (outChannels > 1) {
-        inPannerMainBox.items.clear();
-        inPannerMainBox.flexDirection = FlexBox::Direction::column;
+    inPannerMainBox.items.clear();
+    inPannerMainBox.flexDirection = FlexBox::Direction::column;
+    
+    int pannerMaxW = 120;
+    int numpan = 2;
+    inPannerBox.items.clear();
+    inPannerBox.flexDirection = FlexBox::Direction::row;
+    inPannerLabelBox.items.clear();
+    inPannerLabelBox.flexDirection = FlexBox::Direction::row;
 
-        int pannerMaxW = 120;
+    
+    inPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider1).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+    inPannerLabelBox.items.add(FlexItem(minPannerWidth, 16, *mInMonPanLabel1).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
         
-        inPannerBox.items.clear();
-        inPannerBox.flexDirection = FlexBox::Direction::row;
-        inPannerLabelBox.items.clear();
-        inPannerLabelBox.flexDirection = FlexBox::Direction::row;
-
-        inPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider1).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
-        inPannerLabelBox.items.add(FlexItem(minPannerWidth, 16, *mInMonPanLabel1).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
-
-        mInMonPanSlider1->setVisible(true);
-        mInMonPanLabel1->setVisible(true);
-        int numpan = 1;
-        if (inChannels > 1) {
-            inPannerBox.items.add(FlexItem(4, 16).withMargin(1).withFlex(0));
-            inPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
-
-            inPannerLabelBox.items.add(FlexItem(4, 16).withMargin(1).withFlex(0));
-            inPannerLabelBox.items.add(FlexItem(minPannerWidth, 16, *mInMonPanLabel2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
-
-            mInMonPanSlider2->setVisible(true);
-            mInMonPanLabel2->setVisible(true);
-            
-            mInMonPanSlider1->setDoubleClickReturnValue(true, -1.0);
-            mInMonPanSlider2->setDoubleClickReturnValue(true, 1.0);
-            numpan = 2;
-        }
-        else {
-            mInMonPanSlider1->setDoubleClickReturnValue(true, 0.0);
-
-            mInMonPanSlider2->setVisible(false);
-            mInMonPanLabel2->setVisible(false);
-        }
-
-        inPannerBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //.withMaxWidth(maxPannerWidth));
-        inPannerLabelBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //q.withMaxWidth(maxPannerWidth));
-
-        int choicew = 100;
-        inPannerBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1) ); //.withMaxWidth(maxPannerWidth));
-        inPannerLabelBox.items.add(FlexItem(choicew, 16, *mSendChannelsLabel).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
-
+    inPannerBox.items.add(FlexItem(4, 16).withMargin(1).withFlex(0));
+    inPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanSlider2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+    
+    inPannerLabelBox.items.add(FlexItem(4, 16).withMargin(1).withFlex(0));
+    inPannerLabelBox.items.add(FlexItem(minPannerWidth, 16, *mInMonPanLabel2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
         
-        inPannerMainBox.items.add(FlexItem(6, 16, inPannerLabelBox).withMargin(0).withFlex(0).withMaxWidth(pannerMaxW*numpan + choicew));
-        inPannerMainBox.items.add(FlexItem(6, minitemheight, inPannerBox).withMargin(0).withFlex(1).withMaxWidth(pannerMaxW*numpan + choicew));
-        
-        //mPanButton->setVisible(true);
-    }
-    else {
-        //mPanButton->setVisible(false);
-        //mInMonPanSlider1->setVisible(false);
-    }
+    inPannerBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //.withMaxWidth(maxPannerWidth));
+    inPannerLabelBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //q.withMaxWidth(maxPannerWidth));
+    
+    int choicew = 100;
+    inPannerBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1) ); //.withMaxWidth(maxPannerWidth));
+    inPannerLabelBox.items.add(FlexItem(choicew, 16, *mSendChannelsLabel).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
+    
+    
+    inPannerMainBox.items.add(FlexItem(6, 16, inPannerLabelBox).withMargin(0).withFlex(0).withMaxWidth(pannerMaxW*numpan + choicew));
+    inPannerMainBox.items.add(FlexItem(6, minitemheight, inPannerBox).withMargin(0).withFlex(1).withMaxWidth(pannerMaxW*numpan + choicew));
+    
     
     auto mincompbounds = mInCompressorView->getMinimumContentBounds();
 

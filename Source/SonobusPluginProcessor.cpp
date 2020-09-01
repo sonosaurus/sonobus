@@ -3875,7 +3875,7 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
 {
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    auto maxchans = jmax(totalNumInputChannels, totalNumOutputChannels);
+    auto maxchans = jmax(2, jmax(totalNumInputChannels, totalNumOutputChannels));
 
     if (tempBuffer.getNumSamples() < numSamples || tempBuffer.getNumChannels() != maxchans) {
         tempBuffer.setSize(maxchans, numSamples);
@@ -3885,6 +3885,9 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
     }
     if (inputBuffer.getNumSamples() < numSamples || inputBuffer.getNumChannels() != maxchans) {
         inputBuffer.setSize(maxchans, numSamples);
+    }
+    if (inputWorkBuffer.getNumSamples() < numSamples || inputWorkBuffer.getNumChannels() != maxchans) {
+        inputWorkBuffer.setSize(maxchans, numSamples);
     }
     if (fileBuffer.getNumSamples() < numSamples || fileBuffer.getNumChannels() != maxchans) {
         fileBuffer.setSize(maxchans, numSamples);
@@ -3906,7 +3909,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    auto maxchans = jmax(totalNumInputChannels, totalNumOutputChannels);
+    auto maxchans = jmax(2, jmax(totalNumInputChannels, totalNumOutputChannels));
     
     float inGain = mInGain.get();
     float drynow = mDry.get(); // DB_CO(dry_level);
@@ -3968,13 +3971,23 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         buffer.applyGain(inGain);
     }
 
+    inputWorkBuffer.clear(0, numSamples);
+
+    
     // apply input compressor
     if (mInputCompressorParamsChanged) {
         commitInputCompressorParams();
         mInputCompressorParamsChanged = false;
     }
     if (mLastInputCompressorEnabled || mInputCompressorParams.enabled) {
-        mInputCompressor.compute(numSamples, buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers());
+        if (buffer.getNumChannels() > 1) {
+            mInputCompressor.compute(numSamples, buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers());
+        } else {
+            float *tmpbuf[2];
+            tmpbuf[0] = buffer.getWritePointer(0);
+            tmpbuf[1] = inputWorkBuffer.getWritePointer(0); // just a silent dummy buffer
+            mInputCompressor.compute(numSamples, tmpbuf, tmpbuf);
+        }
     }
     mLastInputCompressorEnabled = mInputCompressorParams.enabled;
 
@@ -3989,11 +4002,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     
     // do the input panning before everything else
+    int panChannels = jmin(inputBuffer.getNumChannels(), jmax(totalNumOutputChannels, mSendChannels.get()));
     
-    if (totalNumInputChannels > 0 && totalNumOutputChannels > 1) {
+    if (totalNumInputChannels > 0 && panChannels > 1 ) {
         inputBuffer.clear(0, numSamples);
 
-        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+        for (int channel = 0; channel < panChannels; ++channel) {
             for (int i=0; i < totalNumInputChannels; ++i) {
                 const float pan = (i==0 ? inmonPan1 : inmonPan2);
                 const float lastpan = (i==0 ? mLastInMonPan1 : mLastInMonPan2);
@@ -4026,31 +4040,19 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     
     // rework the buffer to contain the contents we want going out
-    tempBuffer.clear(0, numSamples);
 
-    for (int channel = 0; channel < totalNumOutputChannels /* && totalNumInputChannels > 0 */ ; ++channel) {
+    for (int channel = 0; channel < panChannels /* && totalNumInputChannels > 0 */ ; ++channel) {
         //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;
         //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;                    
         if (mSendChannels.get() == 1 || (mSendChannels.get() == 0 && totalNumInputChannels == 1)) {
             // add un-panned 1st channel only
-            tempBuffer.addFrom(channel, 0, buffer, 0, 0, numSamples);
+            inputWorkBuffer.addFrom(channel, 0, buffer, 0, 0, numSamples);
         }
         else {
             // add our input that is panned
-            tempBuffer.addFrom(channel, 0, inputBuffer, channel, 0, numSamples);
+            inputWorkBuffer.addFrom(channel, 0, inputBuffer, channel, 0, numSamples);
         }
     }
-    
-    // overwrite buffer
-    for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-        buffer.copyFrom(channel, 0, tempBuffer, channel, 0, numSamples);
-    }
-    
-    //for (int channel = 0; channel < totalNumInputChannels; ++channel) {
-    //    // used later
-    //    inputBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
-    // }
-    
 
 
     
@@ -4067,7 +4069,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if (sendfileaudio) {
             //add to main buffer for going out
             for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-                buffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
+                inputWorkBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
             }
         }
 
@@ -4104,7 +4106,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if (sendmet) {
             //add to main buffer for going out
             for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-                buffer.addFrom(channel, 0, metBuffer, channel, 0, numSamples);
+                inputWorkBuffer.addFrom(channel, 0, metBuffer, channel, 0, numSamples);
             }            
         }
     }
@@ -4243,7 +4245,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     //}
                     //else {
                         // add our input that is panned
-                        workBuffer.addFrom(channel, 0, buffer, channel, 0, numSamples);
+                        workBuffer.addFrom(channel, 0, inputWorkBuffer, channel, 0, numSamples);
                     //}
                 }
 
@@ -4405,6 +4407,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
     */
 
+    // BEGIN MAIN OUTPUT BUFFER WRITING
+    
     // copy from input buffer with dry gain as-is
     bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
     for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
