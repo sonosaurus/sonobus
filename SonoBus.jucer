@@ -107,6 +107,8 @@
       <FILE id="Rp0do6" name="person.png" compile="0" resource="1" file="images/person.png"/>
       <FILE id="u0HeLW" name="person.svg" compile="0" resource="1" file="images/person.svg"/>
       <FILE id="oVahzP" name="play_icon.svg" compile="0" resource="1" file="images/play_icon.svg"/>
+      <FILE id="sDI1Wv" name="power.svg" compile="0" resource="1" file="images/power.svg"/>
+      <FILE id="h66OHd" name="power_sel.svg" compile="0" resource="1" file="images/power_sel.svg"/>
       <FILE id="mmyCfu" name="record.svg" compile="0" resource="1" file="images/record.svg"/>
       <FILE id="NI7XJk" name="record_active.svg" compile="0" resource="1"
             file="images/record_active.svg"/>

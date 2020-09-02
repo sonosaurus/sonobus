@@ -66,7 +66,7 @@ SonoLookAndFeel::SonoLookAndFeel()
     setColour (TextEditor::textColourId, Colour (0xffe9e9e9));
     setColour (TextEditor::highlightColourId, Colour (0xff5959f9));
     setColour (TextEditor::outlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
-    setColour (TextEditor::focusedOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.7));
+    setColour (TextEditor::focusedOutlineColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.7));
 
     setColour (Slider::backgroundColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 1.0));
     setColour (Slider::rotarySliderOutlineColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 1.0));

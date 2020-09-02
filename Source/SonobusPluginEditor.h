@@ -87,7 +87,10 @@ public:
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
 
     void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
+    void compressorHeaderClicked(CompressorView *comp, const MouseEvent & ev) override;
+
     void expanderParamsChanged(ExpanderView *comp, SonobusAudioProcessor::CompressorParams & params) override;
+    void expanderHeaderClicked(ExpanderView *comp, const MouseEvent & ev) override;
 
     
     void connectWithInfo(const AooServerConnectionInfo & info);
@@ -504,6 +507,9 @@ private:
 
     
     std::unique_ptr<RandomSentenceGenerator> mRandomSentence;
+
+
+    std::unique_ptr<ConcertinaPanel> mInEffectsConcertina;
 
     
     FlexBox mainBox;
