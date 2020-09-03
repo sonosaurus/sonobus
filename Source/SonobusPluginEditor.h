@@ -281,6 +281,7 @@ private:
 
     std::unique_ptr<TabbedComponent> mConnectTab;
     std::unique_ptr<Component> mDirectConnectContainer;
+    std::unique_ptr<Viewport> mServerConnectViewport;
     std::unique_ptr<Component> mServerConnectContainer;
     std::unique_ptr<Component> mRecentsContainer;
     std::unique_ptr<GroupComponent> mRecentsGroup;
@@ -300,6 +301,7 @@ private:
     std::unique_ptr<Component> mHelpComponent;
     std::unique_ptr<Component> mOptionsComponent;
     int minOptionsHeight = 0;
+    int minServerConnectHeight = 0;
     
     std::unique_ptr<Component> mMetContainer;
 
@@ -463,6 +465,7 @@ private:
     int peersHeight = 0;
     bool isNarrow = false;
     bool settingsWasShownOnDown = false;
+    bool firstShowInEffects = true;
     WeakReference<Component> settingsCalloutBox;
 
     int inChannels = 0;

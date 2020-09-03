@@ -54,11 +54,13 @@ public:
         
         void paint (Graphics& g) override
         {
-            if (parent.enableButton.getToggleState()) {
-                g.setColour(Colour::fromFloatRGBA(0.2f, 0.5f, 0.7f, 0.5f));                
-            } else {
-                g.setColour(Colour(0xff2a2a2a));                
+            Colour usecolor = parent.enableButton.getToggleState() ? enabledColor : normalColor;
+
+            if (mouseIsOver) {
+                usecolor = usecolor.withMultipliedBrightness(1.3f);
             }
+            
+            g.setColour(usecolor);  
 
             auto bounds = getLocalBounds().withTrimmedTop(2).withTrimmedBottom(2);
             g.fillRoundedRectangle(bounds.toFloat(), 6.0);
@@ -69,8 +71,21 @@ public:
             headerBox.performLayout(bounds);
         }
         
+        void mouseEnter (const MouseEvent& event) override {
+            mouseIsOver = true;
+            repaint();
+        }
+
+        void mouseExit (const MouseEvent& event) override {
+            mouseIsOver = false;            
+            repaint();
+        }
+        
         FlexBox headerBox;
         EffectsBaseView & parent;
+        Colour normalColor = { Colour(0xff2a2a2a) };
+        Colour enabledColor = { Colour::fromFloatRGBA(0.2f, 0.5f, 0.7f, 0.5f) };
+        bool mouseIsOver = false;
     };
     
     virtual Component * getHeaderComponent() {
@@ -86,7 +101,9 @@ public:
         }
     }
 
+    
 
+    
     class HeaderListener {
     public:
         virtual ~HeaderListener() {}

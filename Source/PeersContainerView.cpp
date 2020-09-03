@@ -64,6 +64,7 @@ void PeerViewInfo::resized()
         menuButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), recvActualBitrateLabel->getRight() - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
     }
 
+    
     //Rectangle<int> optbounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), sendQualityLabel->getRight() - staticSendQualLabel->getX(), bufferLabel->getBottom() - sendQualityLabel->getY());
     //optionsButton->setBounds(optbounds);
     
@@ -182,6 +183,29 @@ void PeersContainerView::resized()
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         pvf->resized();
     }
+    
+    Component* dw = this->findParentComponentOfClass<DocumentWindow>();    
+    if (!dw)
+        dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw)
+        dw = this->findParentComponentOfClass<Component>();
+    if (!dw)
+        dw = this;
+
+    if (auto * callout = dynamic_cast<CallOutBox*>(pannerCalloutBox.get())) {
+        callout->dismiss();
+        pannerCalloutBox = nullptr;
+    }
+    if (auto * callout = dynamic_cast<CallOutBox*>(optionsCalloutBox.get())) {
+        callout->dismiss();
+        optionsCalloutBox = nullptr;
+    }
+    if (auto * callout = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
+        callout->dismiss();
+        effectsCalloutBox = nullptr;
+    }
+
+
 }
 
 void PeersContainerView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
@@ -465,6 +489,10 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvMeter->setRefreshRateHz(10);
     pvf->recvMeter->addMouseListener(this, false);
 
+    
+    // effects
+    pvf->effectsContainer = std::make_unique<Component>();
+
     // compressor stuff
    
     pvf->compressorView = std::make_unique<CompressorView>();
@@ -553,6 +581,9 @@ void PeersContainerView::rebuildPeerViews()
         pvf->pannersContainer->addAndMakeVisible(pvf->panSlider1.get());
         pvf->pannersContainer->addAndMakeVisible(pvf->panSlider2.get());
 
+        pvf->effectsContainer->addAndMakeVisible(pvf->compressorView->getHeaderComponent());
+        pvf->effectsContainer->addAndMakeVisible(pvf->compressorView.get());
+        
         addAndMakeVisible(pvf);
     }
     
@@ -731,6 +762,12 @@ void PeersContainerView::updateLayout()
          
         pvf->pannerbox.items.clear();
         pvf->pannerbox.flexDirection = FlexBox::Direction::row;
+        
+        pvf->effectsBox.items.clear();
+        pvf->effectsBox.flexDirection = FlexBox::Direction::column;
+        pvf->effectsBox.items.add(FlexItem(60, pvf->compressorView->getMinimumHeaderBounds().getHeight(), *pvf->compressorView->getHeaderComponent()).withMargin(0).withFlex(0));
+        pvf->effectsBox.items.add(FlexItem(60, pvf->compressorView->getMinimumContentBounds().getHeight(), *pvf->compressorView.get()).withMargin(0).withFlex(0));
+
         
         pvf->sendbox.items.clear();
         pvf->sendbox.flexDirection = FlexBox::Direction::row;
@@ -1492,13 +1529,15 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
         auto * pvf = mPeerViews.getUnchecked(index);
 
         auto minbounds = pvf->compressorView->getMinimumContentBounds();
+        auto minheadbounds = pvf->compressorView->getMinimumHeaderBounds();
         defWidth = minbounds.getWidth();
-        defHeight = minbounds.getHeight();
+        defHeight = minbounds.getHeight() + minheadbounds.getHeight() + 6;
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
 
         
-        pvf->compressorView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        pvf->effectsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));        
+        pvf->effectsBox.performLayout(pvf->effectsContainer->getLocalBounds());
         
         SonobusAudioProcessor::CompressorParams compParams;
         if (processor.getRemotePeerCompressorParams(index, compParams)) {
@@ -1506,8 +1545,8 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
         }
 
         
-        wrap->setViewedComponent(pvf->compressorView.get(), false);
-        pvf->compressorView->setVisible(true);
+        wrap->setViewedComponent(pvf->effectsContainer.get(), false);
+        pvf->effectsContainer->setVisible(true);
         
         //pvf->optionsBox.performLayout(pvf->optionsContainer->getLocalBounds());
         //pvf->bufferTimeLabel->setBounds(pvf->bufferTimeSlider->getBounds().removeFromLeft(pvf->bufferTimeSlider->getWidth()*0.5));

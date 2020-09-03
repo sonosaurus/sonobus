@@ -60,6 +60,8 @@ public:
     std::unique_ptr<TextButton> optionsResetDropButton;
     std::unique_ptr<TextButton> optionsRemoveButton;
 
+    std::unique_ptr<Component> effectsContainer;
+
     std::unique_ptr<CompressorView> compressorView;
    
 
@@ -116,6 +118,8 @@ public:
     FlexBox optionsbuttbox;
     FlexBox optionsaddrbox;
 
+
+    FlexBox effectsBox;
 
     FlexBox squalbox;
     FlexBox netbufbox;

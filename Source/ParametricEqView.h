@@ -43,12 +43,13 @@ public:
 
            
         highShelfFreqSlider.setName("hsfreq");
-        highShelfFreqSlider.setRange(20.0f, 16000.0f, 1);
+        highShelfFreqSlider.setRange(500.0f, 16000.0f, 1);
         highShelfFreqSlider.setSkewFactor(0.5);
         highShelfFreqSlider.setTextValueSuffix(" Hz");
         highShelfFreqSlider.setDoubleClickReturnValue(true, 10000.0);
         configKnobSlider(highShelfFreqSlider);
         //configBarSlider(highShelfFreqSlider);
+        highShelfFreqSlider.setMouseDragSensitivity(160);
         highShelfFreqSlider.addListener(this);
 
         highShelfFreqLabel.setText(TRANS("High Shelf"), dontSendNotification);
@@ -61,7 +62,7 @@ public:
         lowShelfGainSlider.setTextValueSuffix(" dB");
         lowShelfGainSlider.setDoubleClickReturnValue(true, 0.0);
         configKnobSlider(lowShelfGainSlider);
-        //configBarSlider(lowShelfGainSlider);
+        //configBarSlider(lowShelfGainSlider);        
         lowShelfGainSlider.addListener(this);
         lowShelfGainSlider.getProperties().set ("fromCentre", true);
 
@@ -70,11 +71,12 @@ public:
 
            
         lowShelfFreqSlider.setName("lsfreq");
-        lowShelfFreqSlider.setRange(10.0f, 5000.0f, 1);
-        lowShelfFreqSlider.setSkewFactor(0.5);
+        lowShelfFreqSlider.setRange(20.0f, 2000.0f, 1);
+        lowShelfFreqSlider.setSkewFactor(0.25);
         lowShelfFreqSlider.setTextValueSuffix(" Hz");
         lowShelfFreqSlider.setDoubleClickReturnValue(true, 60.0);
         configKnobSlider(lowShelfFreqSlider);
+        lowShelfFreqSlider.setMouseDragSensitivity(160);
         //configBarSlider(lowShelfFreqSlider);        
         lowShelfFreqSlider.addListener(this);
 
@@ -97,11 +99,12 @@ public:
 
            
         para1FreqSlider.setName("para1freq");
-        para1FreqSlider.setRange(20.0f, 10000.0f, 1);
-        para1FreqSlider.setSkewFactor(0.5);
+        para1FreqSlider.setRange(40.0f, 10000.0f, 1);
+        para1FreqSlider.setSkewFactor(0.3);
         para1FreqSlider.setTextValueSuffix(" Hz");
         para1FreqSlider.setDoubleClickReturnValue(true, 90.0);
         configKnobSlider(para1FreqSlider);
+        para1FreqSlider.setMouseDragSensitivity(160);
         //configBarSlider(para1FreqSlider);
         para1FreqSlider.addListener(this);
 
@@ -111,7 +114,7 @@ public:
         
         para1QSlider.setName("para1q");
         para1QSlider.setRange(0.4f, 100.0f, 0.1f);
-        para1QSlider.setSkewFactor(0.5);
+        para1QSlider.setSkewFactor(0.35);
         para1QSlider.setTextValueSuffix("");
         para1QSlider.setDoubleClickReturnValue(true, 1.5);
         //configBarSlider(para1QSlider);
@@ -136,11 +139,12 @@ public:
         
         
         para2FreqSlider.setName("para2freq");
-        para2FreqSlider.setRange(20.0f, 10000.0f, 1);
-        para2FreqSlider.setSkewFactor(0.5);
+        para2FreqSlider.setRange(40.0f, 10000.0f, 1);
+        para2FreqSlider.setSkewFactor(0.3);
         para2FreqSlider.setTextValueSuffix(" Hz");
         para2FreqSlider.setDoubleClickReturnValue(true, 360.0);
         configKnobSlider(para2FreqSlider);
+        para2FreqSlider.setMouseDragSensitivity(160);
         //configBarSlider(para2FreqSlider);
         para2FreqSlider.addListener(this);
         
@@ -150,7 +154,7 @@ public:
         
         para2QSlider.setName("para2q");
         para2QSlider.setRange(0.4f, 100.0f, 0.1);
-        para2QSlider.setSkewFactor(0.5);
+        para2QSlider.setSkewFactor(0.35);
         para2QSlider.setTextValueSuffix("");
         para2QSlider.setDoubleClickReturnValue(true, 4.0);
         configKnobSlider(para2QSlider);
@@ -166,11 +170,7 @@ public:
         
         titleLabel.setText(TRANS("Parametric EQ"), dontSendNotification);
 
-           
-        //Colour bgfillcol = Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0);
-        Colour bgfillcol = Colour::fromFloatRGBA(0.08, 0.08, 0.08, 1.0);
-        Colour bgstrokecol = Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.25);
-        
+                   
         lowShelfBg.setCornerSize(Point<float>(6,6));
         lowShelfBg.setFill (bgfillcol);
         lowShelfBg.setStrokeFill (bgstrokecol);
@@ -538,6 +538,7 @@ public:
         if (buttonThatWasClicked == &enableButton) {
             mParams.enabled = enableButton.getToggleState();
             headerComponent.repaint();
+            updateActiveBgs();
         }
         listeners.call (&ParametricEqView::Listener::parametricEqParamsChanged, this, mParams);
         
@@ -547,18 +548,21 @@ public:
     {
         if (slider == &lowShelfGainSlider) {
             mParams.lowShelfGain = slider->getValue();
+            updateActiveBgs();
         }
         else if (slider == &lowShelfFreqSlider) {
             mParams.lowShelfFreq = slider->getValue();
         }
         else if (slider == &highShelfGainSlider) {
             mParams.highShelfGain = slider->getValue();
+            updateActiveBgs();
         }
         else if (slider == &highShelfFreqSlider) {
             mParams.highShelfFreq = slider->getValue();
         }
         else if (slider == &para1GainSlider) {
             mParams.para1Gain = slider->getValue();
+            updateActiveBgs();
         }
         else if (slider == &para1FreqSlider) {
             mParams.para1Freq = slider->getValue();
@@ -568,6 +572,7 @@ public:
         }
         else if (slider == &para2GainSlider) {
             mParams.para2Gain = slider->getValue();
+            updateActiveBgs();
         }
         else if (slider == &para2FreqSlider) {
             mParams.para2Freq = slider->getValue();
@@ -595,6 +600,40 @@ public:
         para2QSlider.setValue(mParams.para2Q, dontSendNotification);
         
         enableButton.setToggleState(mParams.enabled, dontSendNotification);
+
+        updateActiveBgs();
+    }
+
+    void updateActiveBgs()
+    {
+        bool lsact = mParams.enabled && mParams.lowShelfGain != 0.0f;
+        bool hsact = mParams.enabled && mParams.highShelfGain != 0.0f;
+        bool para1act = mParams.enabled && mParams.para1Gain != 0.0f;
+        bool para2act = mParams.enabled && mParams.para2Gain != 0.0f;
+        
+        if (lsact != lowShelfActive) {
+            lowShelfActive = lsact;
+            lowShelfBg.setFill (lsact ? bgactfillcol : bgfillcol);
+            lowShelfBg.setStrokeFill (lsact ? bgactstrokecol : bgstrokecol);
+        }
+
+        if (hsact != highShelfActive) {
+            highShelfActive = hsact;
+            highShelfBg.setFill (hsact ? bgactfillcol : bgfillcol);
+            highShelfBg.setStrokeFill (hsact ? bgactstrokecol : bgstrokecol);
+        }
+
+        if (para1act != para1Active) {
+            para1Active = para1act;
+            para1Bg.setFill (para1act ? bgactfillcol : bgfillcol);
+            para1Bg.setStrokeFill (para1act ? bgactstrokecol : bgstrokecol);
+        }
+
+        if (para2act != para2Active) {
+            para2Active = para2act;
+            para2Bg.setFill (para2act ? bgactfillcol : bgfillcol);
+            para2Bg.setStrokeFill (para2act ? bgactstrokecol : bgstrokecol);
+        }
     }
     
     const SonobusAudioProcessor::ParametricEqParams & getParams() const { 
@@ -636,6 +675,16 @@ private:
     DrawableRectangle highShelfBg;
     DrawableRectangle para1Bg;
     DrawableRectangle para2Bg;
+
+    bool lowShelfActive = false;
+    bool highShelfActive = false;
+    bool para1Active = false;
+    bool para2Active = false;
+    
+    Colour bgfillcol = { Colour::fromFloatRGBA(0.08, 0.08, 0.08, 1.0) };
+    Colour bgactfillcol = { Colour::fromFloatRGBA(0.08, 0.09, 0.1, 1.0) };
+    Colour bgstrokecol = { Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.25) };
+    Colour bgactstrokecol = { Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.55) };
 
     
     FlexBox mainBox;

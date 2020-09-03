@@ -592,6 +592,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mDirectConnectContainer = std::make_unique<Component>();
     mServerConnectContainer = std::make_unique<Component>();
+    mServerConnectViewport = std::make_unique<Viewport>();
     mRecentsContainer = std::make_unique<Component>();
 
     mRecentsGroup = std::make_unique<GroupComponent>("", TRANS("RECENTS"));
@@ -600,7 +601,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecentsGroup->setTextLabelPosition(Justification::centred);
     
     mConnectTab->addTab(TRANS("RECENTS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecentsContainer.get(), false);
-    mConnectTab->addTab(TRANS("GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectContainer.get(), false);
+    mConnectTab->addTab(TRANS("GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectViewport.get(), false);
     mConnectTab->addTab(TRANS("DIRECT"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mDirectConnectContainer.get(), false);
     
 
@@ -1276,6 +1277,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     // over everything
     addChildComponent(mDragDropBg.get());
 
+    mServerConnectViewport->setViewedComponent(mServerConnectContainer.get());
     
     mInEffectsContainer->addAndMakeVisible (mInMonPanLabel1.get());
     mInEffectsContainer->addAndMakeVisible (mInMonPanLabel2.get());
@@ -2644,12 +2646,25 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         inEffectsBox.performLayout(mInEffectsContainer->getLocalBounds().reduced(2, 2));
         //pvf->bufferTimeLabel->setBounds(pvf->bufferTimeSlider->getBounds().removeFromLeft(pvf->bufferTimeSlider->getWidth()*0.5));
 
-        auto compbgbounds = mInCompressorView->getBounds().expanded(2, 2);
-        mCompressorBg->setRectangle (compbgbounds.toFloat());
+        //auto compbgbounds = mInCompressorView->getBounds().expanded(2, 2);
+        //mCompressorBg->setRectangle (compbgbounds.toFloat());
 
-        auto expbgbounds = mInExpanderView->getBounds().expanded(2, 2);
-        mExpanderBg->setRectangle (expbgbounds.toFloat());
+        //auto expbgbounds = mInExpanderView->getBounds().expanded(2, 2);
+        //mExpanderBg->setRectangle (expbgbounds.toFloat());
 
+        // first time only
+        if (firstShowInEffects) {
+            if (eqparams.enabled && !(params.enabled || expparams.enabled)) {
+                mInEffectsConcertina->expandPanelFully(mInEqView.get(), false);
+            } 
+            else {
+                mInEffectsConcertina->setPanelSize(mInEqView.get(), 0, false);
+                mInEffectsConcertina->expandPanelFully(mInExpanderView.get(), false);
+                mInEffectsConcertina->expandPanelFully(mInCompressorView.get(), false);
+            } 
+
+            firstShowInEffects = false;
+        }
 
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : mInEffectsButton->getScreenBounds());
@@ -3496,6 +3511,11 @@ void SonobusAudioProcessorEditor::resized()
     }
 #endif
     connectMainBox.performLayout(mConnectComponent->getLocalBounds());
+    
+    mServerConnectContainer->setBounds(0,0, 
+                                       mServerConnectViewport->getWidth() - (mServerConnectViewport->getHeight() < minServerConnectHeight ? mServerConnectViewport->getScrollBarThickness() : 0 ),
+                                       jmax(minServerConnectHeight, mServerConnectViewport->getHeight()));
+    
     remoteBox.performLayout(mDirectConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mDirectConnectContainer->getWidth()), mDirectConnectContainer->getHeight()));
     serverBox.performLayout(mServerConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mServerConnectContainer->getWidth()), mServerConnectContainer->getHeight()));
 
@@ -3516,6 +3536,23 @@ void SonobusAudioProcessorEditor::resized()
     if (mConnectComponent->isVisible()) {
         mRecentsListBox->updateContent();
     }
+    
+    Component* dw = this->findParentComponentOfClass<DocumentWindow>();    
+    if (!dw)
+        dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw)
+        dw = this->findParentComponentOfClass<Component>();
+    if (!dw)
+        dw = this;
+
+    if (auto * callout = dynamic_cast<CallOutBox*>(inEffectsCalloutBox.get())) {
+        callout->updatePosition(dw->getLocalArea(nullptr, mInEffectsButton->getScreenBounds()), dw->getLocalBounds());
+    }
+
+    if (auto * callout = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
+        callout->updatePosition(dw->getLocalArea(nullptr, mEffectsButton->getScreenBounds()), dw->getLocalBounds());
+    }
+
     
     //mInGainLabel->setBounds(mInGainSlider->getBounds().removeFromLeft(mInGainSlider->getWidth()*0.5));
     //mDryLabel->setBounds(mDrySlider->getBounds().removeFromLeft(mDrySlider->getWidth()*0.5));
@@ -3802,7 +3839,7 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     
     int maxservboxwidth = 400;
-    
+
     serverBox.items.clear();
     serverBox.flexDirection = FlexBox::Direction::column;
     serverBox.items.add(FlexItem(5, 3).withFlex(0));
@@ -3823,7 +3860,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     serverBox.items.add(FlexItem(5, 8).withFlex(1));
     //remoteBox.items.add(FlexItem(60, minitemheight, *mPatchbayButton).withMargin(2).withFlex(0.5).withMaxWidth(120));
 
+    minServerConnectHeight = 4*minitemheight + 3*minpassheight + 58;
 
+    
     mainGroupUserBox.items.clear();
     mainGroupUserBox.flexDirection = FlexBox::Direction::row;
     mainGroupUserBox.items.add(FlexItem(0, 6).withFlex(0));
