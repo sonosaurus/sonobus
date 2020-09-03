@@ -543,6 +543,17 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mMainReverb->setParameters(mMainReverbParams);
     
     
+    // default expander params
+    mInputExpanderParams.thresholdDb = -60.0f;
+    mInputExpanderParams.releaseMs = 200.0f;
+    mInputExpanderParams.attackMs = 1.0f;
+    mInputExpanderParams.ratio = 2.0f;
+    
+    if (mInputCompressorParams.automakeupGain) {
+        // makeupgain = (-thresh -  abs(thresh/ratio))/2
+        mInputCompressorParams.makeupGainDb = (-mInputCompressorParams.thresholdDb - abs(mInputCompressorParams.thresholdDb/mInputCompressorParams.ratio)) * 0.5f;
+    }
+
     
     mTransportSource.addChangeListener(this);
     
