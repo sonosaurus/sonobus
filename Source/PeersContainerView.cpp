@@ -1568,6 +1568,15 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
     }
 }
 
+void PeersContainerView::clearClipIndicators()
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        pvf->recvMeter->clearClipIndicator(-1);
+    }
+}
+
+
 void PeersContainerView::showPopupMenu(Component * source, int index)
 {
     if (index >= mPeerViews.size()) return;

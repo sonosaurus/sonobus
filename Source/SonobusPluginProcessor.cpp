@@ -71,6 +71,20 @@ static String compressorReleaseKey("release");
 static String compressorMakeupGainKey("makeupgain");
 static String compressorAutoMakeupGainKey("automakeup");
 
+static String eqStateKey("ParametricEqState");
+static String eqEnabledKey("enabled");
+static String eqLowShelfGainKey("lsgain");
+static String eqLowShelfFreqKey("lsfreq");
+static String eqHighShelfGainKey("hsgain");
+static String eqHighShelfFreqKey("hsfreq");
+static String eqPara1GainKey("p1gain");
+static String eqPara1FreqKey("p1freq");
+static String eqPara1QKey("p1q");
+static String eqPara2GainKey("p2gain");
+static String eqPara2FreqKey("p2freq");
+static String eqPara2QKey("p1q");
+
+
 static String inputEffectsStateKey("InputEffects");
 
 static String peerStateCacheMapKey("PeerStateCacheMap");
@@ -1101,6 +1115,18 @@ bool SonobusAudioProcessor::getInputExpanderParams(CompressorParams & retparams)
     return true;
 }
 
+void SonobusAudioProcessor::setInputEqParams(ParametricEqParams & params)
+{
+    mInputEqParams = params;
+    mInputEqParamsChanged = true;
+}
+
+bool SonobusAudioProcessor::getInputEqParams(ParametricEqParams & retparams)
+{
+    retparams = mInputEqParams;
+    return true;
+}
+
 void SonobusAudioProcessor::commitCompressorParams(RemotePeer * peer)
 {   
     peer->compressorUI->setParamValue("/compressor/Bypass", peer->compressorParams.enabled ? 0.0f : 1.0f);
@@ -1152,6 +1178,23 @@ void SonobusAudioProcessor::commitInputExpanderParams()
         mInputExpanderOutputGain = tmp; // pointer
     }
 
+}
+
+void SonobusAudioProcessor::commitInputEqParams()
+{
+    for (int i=0; i < 2; ++i) {
+        mInputEqControl[i].setParamValue("/parametric_eq/low_shelf/gain", mInputEqParams.lowShelfGain);
+        mInputEqControl[i].setParamValue("/parametric_eq/low_shelf/transition_freq", mInputEqParams.lowShelfFreq);
+        mInputEqControl[i].setParamValue("/parametric_eq/para1/peak_gain", mInputEqParams.para1Gain);
+        mInputEqControl[i].setParamValue("/parametric_eq/para1/peak_frequency", mInputEqParams.para1Freq);
+        mInputEqControl[i].setParamValue("/parametric_eq/para1/peak_q", mInputEqParams.para1Q);
+        mInputEqControl[i].setParamValue("/parametric_eq/para2/peak_gain", mInputEqParams.para2Gain);
+        mInputEqControl[i].setParamValue("/parametric_eq/para2/peak_frequency", mInputEqParams.para2Freq);
+        mInputEqControl[i].setParamValue("/parametric_eq/para2/peak_q", mInputEqParams.para2Q);
+        mInputEqControl[i].setParamValue("/parametric_eq/high_shelf/gain", mInputEqParams.highShelfGain);
+        mInputEqControl[i].setParamValue("/parametric_eq/high_shelf/transition_freq", mInputEqParams.highShelfFreq);
+    }
+        
 }
 
 
@@ -3781,10 +3824,23 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         DBG(mInputExpanderControl.getParamAddress(i));
     }
 
+    for (int i=0; i < 2; ++i) {
+        mInputEq[i].init(sampleRate);
+        mInputEq[i].buildUserInterface(&mInputEqControl[i]);
+    }
+
+    DBG("EQ Params:");
+    for(int i=0; i < mInputEqControl[0].getParamsCount(); i++){
+        DBG(mInputEqControl[0].getParamAddress(i));
+    }
+
 
     
     commitInputCompressorParams();
+    commitInputExpanderParams();
+    commitInputEqParams();
 
+    
     
     mMReverb.setParameter(MVerbFloat::MIX, 1.0f); // full wet
     mMReverb.setParameter(MVerbFloat::GAIN, jmap(mMainReverbLevel.get(), 0.0f, 0.8f)); 
@@ -4061,6 +4117,26 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     mLastInputCompressorEnabled = mInputCompressorParams.enabled;
 
 
+    // apply input EQ
+    if (mInputEqParamsChanged) {
+        commitInputEqParams();
+        mInputEqParamsChanged = false;
+    }
+    if (mLastInputEqEnabled || mInputEqParams.enabled) {
+        if (buffer.getNumChannels() > 1) {
+            // only 2 channels support for now... TODO
+            float *tmpbuf[2];
+            tmpbuf[0] = buffer.getWritePointer(0);
+            tmpbuf[1] = buffer.getWritePointer(1);
+            mInputEq[0].compute(numSamples, &tmpbuf[0], &tmpbuf[0]);
+            mInputEq[1].compute(numSamples, &tmpbuf[1], &tmpbuf[1]);
+        } else {
+            float *tmpbuf[2];
+            tmpbuf[0] = buffer.getWritePointer(0);
+            mInputEq[0].compute(numSamples, &tmpbuf[0], &tmpbuf[0]);
+        }
+    }
+    mLastInputEqEnabled = mInputEqParams.enabled;
     
     
     // meter pre-panning, and post compressor
@@ -4749,6 +4825,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     inputEffectsTree.removeAllChildren(nullptr);
     inputEffectsTree.appendChild(mInputCompressorParams.getValueTree(), nullptr); 
     inputEffectsTree.appendChild(mInputExpanderParams.getValueTree(true), nullptr); 
+    inputEffectsTree.appendChild(mInputEqParams.getValueTree(), nullptr); 
 
     
     storePeerCacheToState();
@@ -4796,6 +4873,11 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
                mInputExpanderParams.setFromValueTree(expanderTree);
                commitInputExpanderParams();
            }           
+           ValueTree eqTree = inputEffectsTree.getChildWithName(eqStateKey);
+           if (eqTree.isValid()) {
+               mInputEqParams.setFromValueTree(eqTree);
+               commitInputEqParams();
+           }           
        }
        
         
@@ -4835,6 +4917,41 @@ void SonobusAudioProcessor::CompressorParams::setFromValueTree(const ValueTree &
     releaseMs = item.getProperty(compressorReleaseKey, releaseMs);
     makeupGainDb = item.getProperty(compressorMakeupGainKey, makeupGainDb);
     automakeupGain = item.getProperty(compressorAutoMakeupGainKey, automakeupGain);
+}
+
+ValueTree SonobusAudioProcessor::ParametricEqParams::getValueTree() const
+{
+    ValueTree item(eqStateKey);
+    
+    item.setProperty(eqEnabledKey, enabled, nullptr);
+    item.setProperty(eqLowShelfFreqKey, lowShelfFreq, nullptr);
+    item.setProperty(eqLowShelfGainKey, lowShelfGain, nullptr);
+    item.setProperty(eqHighShelfFreqKey, highShelfFreq, nullptr);
+    item.setProperty(eqHighShelfGainKey, highShelfGain, nullptr);
+    item.setProperty(eqPara1GainKey, para1Gain, nullptr);
+    item.setProperty(eqPara1FreqKey, para1Freq, nullptr);
+    item.setProperty(eqPara1QKey, para1Q, nullptr);
+    item.setProperty(eqPara2GainKey, para2Gain, nullptr);
+    item.setProperty(eqPara2FreqKey, para2Freq, nullptr);
+    item.setProperty(eqPara2QKey, para2Q, nullptr);
+    
+    return item;
+}
+
+void SonobusAudioProcessor::ParametricEqParams::setFromValueTree(const ValueTree & item)
+{    
+    enabled = item.getProperty(eqEnabledKey, enabled);
+    lowShelfFreq = item.getProperty(eqLowShelfFreqKey, lowShelfFreq);
+    lowShelfGain = item.getProperty(eqLowShelfGainKey, lowShelfGain);
+    highShelfFreq = item.getProperty(eqHighShelfFreqKey, highShelfFreq);
+    highShelfGain = item.getProperty(eqHighShelfGainKey, highShelfGain);
+    para1Gain = item.getProperty(eqPara1GainKey, para1Gain);
+    para1Freq = item.getProperty(eqPara1FreqKey, para1Freq);
+    para1Q = item.getProperty(eqPara1QKey, para1Q);
+    para2Gain = item.getProperty(eqPara2GainKey, para2Gain);
+    para2Freq = item.getProperty(eqPara2FreqKey, para2Freq);
+    para2Q = item.getProperty(eqPara2QKey, para2Q);
+
 }
 
 

@@ -162,10 +162,14 @@
       <FILE id="PmOEYR" name="CrossPlatformUtilsWindows.cpp" compile="1"
             resource="0" file="Source/CrossPlatformUtilsWindows.cpp"/>
       <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
+      <FILE id="Lqoz1p" name="EffectsBaseView.h" compile="0" resource="0"
+            file="Source/EffectsBaseView.h"/>
       <FILE id="cEg5VP" name="ExpanderView.h" compile="0" resource="0" file="Source/ExpanderView.h"/>
       <FILE id="NOLvab" name="faustCompressor.h" compile="0" resource="0"
             file="Source/faustCompressor.h"/>
       <FILE id="nGrJXx" name="faustExpander.h" compile="0" resource="0" file="Source/faustExpander.h"/>
+      <FILE id="WlP1FF" name="faustParametricEQ.h" compile="0" resource="0"
+            file="Source/faustParametricEQ.h"/>
       <FILE id="lPT2dw" name="GenericItemChooser.cpp" compile="1" resource="0"
             file="Source/GenericItemChooser.cpp"/>
       <FILE id="ID61Jz" name="GenericItemChooser.h" compile="0" resource="0"
@@ -185,6 +189,8 @@
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
       <FILE id="CTpEGU" name="mtdm.h" compile="0" resource="0" file="Source/mtdm.h"/>
       <FILE id="WJp4ti" name="MVerb.h" compile="0" resource="0" file="Source/MVerb.h"/>
+      <FILE id="gfwKQY" name="ParametricEqView.h" compile="0" resource="0"
+            file="Source/ParametricEqView.h"/>
       <FILE id="HNtjtj" name="PeersContainerView.cpp" compile="1" resource="0"
             file="Source/PeersContainerView.cpp"/>
       <FILE id="ETWAvX" name="PeersContainerView.h" compile="0" resource="0"

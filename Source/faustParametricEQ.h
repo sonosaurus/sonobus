@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------
 name: "parametric_eq"
 Code generated with Faust 2.28.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -scal -ftz 0
+Compilation options: -lang cpp -inpl -scal -ftz 0
 ------------------------------------------------------------ */
 
 #ifndef  __faustParametricEQ_H__
@@ -767,35 +767,41 @@ class faustParametricEQ : public faustdsp {
 	
  private:
 	
+	float fVec0[2];
 	int fSampleRate;
 	float fConst0;
 	float fConst1;
 	FAUSTFLOAT fHslider0;
-	FAUSTFLOAT fHslider1;
-	float fVec0[2];
+	float fRec6[2];
 	float fRec5[2];
 	float fRec4[3];
-	FAUSTFLOAT fHslider2;
-	float fRec7[2];
-	float fRec6[3];
-	float fConst2;
-	FAUSTFLOAT fHslider3;
 	float fRec8[2];
-	FAUSTFLOAT fHslider4;
-	FAUSTFLOAT fHslider5;
-	float fConst3;
-	float fRec3[3];
-	FAUSTFLOAT fHslider6;
+	float fRec7[3];
+	FAUSTFLOAT fHslider1;
 	float fRec9[2];
+	FAUSTFLOAT fHslider2;
+	float fRec10[2];
+	FAUSTFLOAT fHslider3;
+	float fRec11[2];
+	FAUSTFLOAT fHslider4;
+	float fConst2;
+	float fRec3[3];
+	FAUSTFLOAT fHslider5;
+	float fRec12[2];
+	FAUSTFLOAT fHslider6;
+	float fRec13[2];
 	FAUSTFLOAT fHslider7;
-	FAUSTFLOAT fHslider8;
+	float fRec14[2];
 	float fRec2[3];
 	float fVec1[2];
+	FAUSTFLOAT fHslider8;
+	float fRec15[2];
 	float fRec1[2];
 	float fRec0[3];
 	FAUSTFLOAT fHslider9;
-	float fRec11[2];
-	float fRec10[3];
+	float fRec16[2];
+	float fRec18[2];
+	float fRec17[3];
 	
  public:
 	
@@ -900,20 +906,19 @@ class faustParametricEQ : public faustdsp {
 		fSampleRate = sample_rate;
 		fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate)));
 		fConst1 = (3.14159274f / fConst0);
-		fConst2 = (1382.30078f / fConst0);
-		fConst3 = (2764.60156f / fConst0);
+		fConst2 = (6.28318548f / fConst0);
 	}
 	
 	virtual void instanceResetUserInterface() {
-		fHslider0 = FAUSTFLOAT(8000.0f);
-		fHslider1 = FAUSTFLOAT(200.0f);
-		fHslider2 = FAUSTFLOAT(0.0f);
-		fHslider3 = FAUSTFLOAT(49.0f);
-		fHslider4 = FAUSTFLOAT(0.0f);
-		fHslider5 = FAUSTFLOAT(40.0f);
-		fHslider6 = FAUSTFLOAT(49.0f);
-		fHslider7 = FAUSTFLOAT(0.0f);
-		fHslider8 = FAUSTFLOAT(40.0f);
+		fHslider0 = FAUSTFLOAT(200.0f);
+		fHslider1 = FAUSTFLOAT(0.0f);
+		fHslider2 = FAUSTFLOAT(400.0f);
+		fHslider3 = FAUSTFLOAT(0.0f);
+		fHslider4 = FAUSTFLOAT(40.0f);
+		fHslider5 = FAUSTFLOAT(800.0f);
+		fHslider6 = FAUSTFLOAT(0.0f);
+		fHslider7 = FAUSTFLOAT(40.0f);
+		fHslider8 = FAUSTFLOAT(8000.0f);
 		fHslider9 = FAUSTFLOAT(0.0f);
 	}
 	
@@ -922,43 +927,64 @@ class faustParametricEQ : public faustdsp {
 			fVec0[l0] = 0.0f;
 		}
 		for (int l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
-			fRec5[l1] = 0.0f;
+			fRec6[l1] = 0.0f;
 		}
-		for (int l2 = 0; (l2 < 3); l2 = (l2 + 1)) {
-			fRec4[l2] = 0.0f;
+		for (int l2 = 0; (l2 < 2); l2 = (l2 + 1)) {
+			fRec5[l2] = 0.0f;
 		}
-		for (int l3 = 0; (l3 < 2); l3 = (l3 + 1)) {
-			fRec7[l3] = 0.0f;
+		for (int l3 = 0; (l3 < 3); l3 = (l3 + 1)) {
+			fRec4[l3] = 0.0f;
 		}
-		for (int l4 = 0; (l4 < 3); l4 = (l4 + 1)) {
-			fRec6[l4] = 0.0f;
+		for (int l4 = 0; (l4 < 2); l4 = (l4 + 1)) {
+			fRec8[l4] = 0.0f;
 		}
-		for (int l5 = 0; (l5 < 2); l5 = (l5 + 1)) {
-			fRec8[l5] = 0.0f;
+		for (int l5 = 0; (l5 < 3); l5 = (l5 + 1)) {
+			fRec7[l5] = 0.0f;
 		}
-		for (int l6 = 0; (l6 < 3); l6 = (l6 + 1)) {
-			fRec3[l6] = 0.0f;
+		for (int l6 = 0; (l6 < 2); l6 = (l6 + 1)) {
+			fRec9[l6] = 0.0f;
 		}
 		for (int l7 = 0; (l7 < 2); l7 = (l7 + 1)) {
-			fRec9[l7] = 0.0f;
+			fRec10[l7] = 0.0f;
 		}
-		for (int l8 = 0; (l8 < 3); l8 = (l8 + 1)) {
-			fRec2[l8] = 0.0f;
+		for (int l8 = 0; (l8 < 2); l8 = (l8 + 1)) {
+			fRec11[l8] = 0.0f;
 		}
-		for (int l9 = 0; (l9 < 2); l9 = (l9 + 1)) {
-			fVec1[l9] = 0.0f;
+		for (int l9 = 0; (l9 < 3); l9 = (l9 + 1)) {
+			fRec3[l9] = 0.0f;
 		}
 		for (int l10 = 0; (l10 < 2); l10 = (l10 + 1)) {
-			fRec1[l10] = 0.0f;
+			fRec12[l10] = 0.0f;
 		}
-		for (int l11 = 0; (l11 < 3); l11 = (l11 + 1)) {
-			fRec0[l11] = 0.0f;
+		for (int l11 = 0; (l11 < 2); l11 = (l11 + 1)) {
+			fRec13[l11] = 0.0f;
 		}
 		for (int l12 = 0; (l12 < 2); l12 = (l12 + 1)) {
-			fRec11[l12] = 0.0f;
+			fRec14[l12] = 0.0f;
 		}
 		for (int l13 = 0; (l13 < 3); l13 = (l13 + 1)) {
-			fRec10[l13] = 0.0f;
+			fRec2[l13] = 0.0f;
+		}
+		for (int l14 = 0; (l14 < 2); l14 = (l14 + 1)) {
+			fVec1[l14] = 0.0f;
+		}
+		for (int l15 = 0; (l15 < 2); l15 = (l15 + 1)) {
+			fRec15[l15] = 0.0f;
+		}
+		for (int l16 = 0; (l16 < 2); l16 = (l16 + 1)) {
+			fRec1[l16] = 0.0f;
+		}
+		for (int l17 = 0; (l17 < 3); l17 = (l17 + 1)) {
+			fRec0[l17] = 0.0f;
+		}
+		for (int l18 = 0; (l18 < 2); l18 = (l18 + 1)) {
+			fRec16[l18] = 0.0f;
+		}
+		for (int l19 = 0; (l19 < 2); l19 = (l19 + 1)) {
+			fRec18[l19] = 0.0f;
+		}
+		for (int l20 = 0; (l20 < 3); l20 = (l20 + 1)) {
+			fRec17[l20] = 0.0f;
 		}
 	}
 	
@@ -986,55 +1012,55 @@ class faustParametricEQ : public faustdsp {
 		ui_interface->openHorizontalBox("parametric eq");
 		ui_interface->declare(0, "1", "");
 		ui_interface->openVerticalBox("low shelf");
-		ui_interface->declare(&fHslider2, "0", "");
-		ui_interface->declare(&fHslider2, "style", "knob");
-		ui_interface->declare(&fHslider2, "tooltip", "Amount of low-frequency boost or cut in decibels");
-		ui_interface->declare(&fHslider2, "unit", "dB");
-		ui_interface->addHorizontalSlider("low gain", &fHslider2, 0.0f, -40.0f, 40.0f, 0.100000001f);
-		ui_interface->declare(&fHslider1, "1", "");
-		ui_interface->declare(&fHslider1, "scale", "log");
+		ui_interface->declare(&fHslider1, "0", "");
 		ui_interface->declare(&fHslider1, "style", "knob");
-		ui_interface->declare(&fHslider1, "tooltip", "Transition-frequency from boost (cut) to unity gain");
-		ui_interface->declare(&fHslider1, "unit", "Hz");
-		ui_interface->addHorizontalSlider("transition freq", &fHslider1, 200.0f, 1.0f, 5000.0f, 1.0f);
+		ui_interface->declare(&fHslider1, "tooltip", "Amount of low-frequency boost or cut in decibels");
+		ui_interface->declare(&fHslider1, "unit", "dB");
+		ui_interface->addHorizontalSlider("gain", &fHslider1, 0.0f, -40.0f, 40.0f, 0.100000001f);
+		ui_interface->declare(&fHslider0, "1", "");
+		ui_interface->declare(&fHslider0, "scale", "log");
+		ui_interface->declare(&fHslider0, "style", "knob");
+		ui_interface->declare(&fHslider0, "tooltip", "Transition-frequency from boost (cut) to unity gain");
+		ui_interface->declare(&fHslider0, "unit", "Hz");
+		ui_interface->addHorizontalSlider("transition freq", &fHslider0, 200.0f, 1.0f, 5000.0f, 1.0f);
 		ui_interface->closeBox();
 		ui_interface->declare(0, "2", "");
 		ui_interface->declare(0, "tooltip", "Parametric Equalizer                 sections from filters.lib");
 		ui_interface->openVerticalBox("para1");
-		ui_interface->declare(&fHslider4, "0", "");
-		ui_interface->declare(&fHslider4, "style", "knob");
-		ui_interface->declare(&fHslider4, "tooltip", "Amount of                 local boost or cut in decibels");
-		ui_interface->declare(&fHslider4, "unit", "dB");
-		ui_interface->addHorizontalSlider("peak gain", &fHslider4, 0.0f, -40.0f, 40.0f, 0.100000001f);
-		ui_interface->declare(&fHslider3, "1", "");
+		ui_interface->declare(&fHslider3, "0", "");
 		ui_interface->declare(&fHslider3, "style", "knob");
-		ui_interface->declare(&fHslider3, "tooltip", "Peak                 Frequency in Piano Key (PK) units (A440 = 49PK)");
-		ui_interface->declare(&fHslider3, "unit", "PK");
-		ui_interface->addHorizontalSlider("peak frequency", &fHslider3, 49.0f, 1.0f, 100.0f, 1.0f);
-		ui_interface->declare(&fHslider5, "2", "");
-		ui_interface->declare(&fHslider5, "scale", "log");
-		ui_interface->declare(&fHslider5, "style", "knob");
-		ui_interface->declare(&fHslider5, "tooltip", "Quality factor                 (Q) of the peak = center-frequency/bandwidth");
-		ui_interface->addHorizontalSlider("peak q", &fHslider5, 40.0f, 1.0f, 1000.0f, 0.100000001f);
+		ui_interface->declare(&fHslider3, "tooltip", "Amount of                 local boost or cut in decibels");
+		ui_interface->declare(&fHslider3, "unit", "dB");
+		ui_interface->addHorizontalSlider("peak gain", &fHslider3, 0.0f, -40.0f, 40.0f, 0.100000001f);
+		ui_interface->declare(&fHslider2, "1", "");
+		ui_interface->declare(&fHslider2, "style", "knob");
+		ui_interface->declare(&fHslider2, "tooltip", "Peak                 Frequency in Hz");
+		ui_interface->declare(&fHslider2, "unit", "Hz");
+		ui_interface->addHorizontalSlider("peak frequency", &fHslider2, 400.0f, 40.0f, 10000.0f, 1.0f);
+		ui_interface->declare(&fHslider4, "2", "");
+		ui_interface->declare(&fHslider4, "scale", "log");
+		ui_interface->declare(&fHslider4, "style", "knob");
+		ui_interface->declare(&fHslider4, "tooltip", "Quality factor                 (Q) of the peak = center-frequency/bandwidth");
+		ui_interface->addHorizontalSlider("peak q", &fHslider4, 40.0f, 1.0f, 1000.0f, 0.100000001f);
 		ui_interface->closeBox();
 		ui_interface->declare(0, "2", "");
 		ui_interface->declare(0, "tooltip", "Parametric Equalizer                 sections from filters.lib");
 		ui_interface->openVerticalBox("para2");
-		ui_interface->declare(&fHslider7, "0", "");
-		ui_interface->declare(&fHslider7, "style", "knob");
-		ui_interface->declare(&fHslider7, "tooltip", "Amount of                 local boost or cut in decibels");
-		ui_interface->declare(&fHslider7, "unit", "dB");
-		ui_interface->addHorizontalSlider("peak gain", &fHslider7, 0.0f, -40.0f, 40.0f, 0.100000001f);
-		ui_interface->declare(&fHslider6, "1", "");
+		ui_interface->declare(&fHslider6, "0", "");
 		ui_interface->declare(&fHslider6, "style", "knob");
-		ui_interface->declare(&fHslider6, "tooltip", "Peak                 Frequency in Piano Key (PK) units (A440 = 49PK)");
-		ui_interface->declare(&fHslider6, "unit", "PK");
-		ui_interface->addHorizontalSlider("peak frequency", &fHslider6, 49.0f, 1.0f, 100.0f, 1.0f);
-		ui_interface->declare(&fHslider8, "2", "");
-		ui_interface->declare(&fHslider8, "scale", "log");
-		ui_interface->declare(&fHslider8, "style", "knob");
-		ui_interface->declare(&fHslider8, "tooltip", "Quality factor                 (Q) of the peak = center-frequency/bandwidth");
-		ui_interface->addHorizontalSlider("peak q", &fHslider8, 40.0f, 1.0f, 1000.0f, 0.100000001f);
+		ui_interface->declare(&fHslider6, "tooltip", "Amount of                 local boost or cut in decibels");
+		ui_interface->declare(&fHslider6, "unit", "dB");
+		ui_interface->addHorizontalSlider("peak gain", &fHslider6, 0.0f, -40.0f, 40.0f, 0.100000001f);
+		ui_interface->declare(&fHslider5, "1", "");
+		ui_interface->declare(&fHslider5, "style", "knob");
+		ui_interface->declare(&fHslider5, "tooltip", "Peak                 Frequency in Hz");
+		ui_interface->declare(&fHslider5, "unit", "Hz");
+		ui_interface->addHorizontalSlider("peak frequency", &fHslider5, 800.0f, 40.0f, 10000.0f, 1.0f);
+		ui_interface->declare(&fHslider7, "2", "");
+		ui_interface->declare(&fHslider7, "scale", "log");
+		ui_interface->declare(&fHslider7, "style", "knob");
+		ui_interface->declare(&fHslider7, "tooltip", "Quality factor                 (Q) of the peak = center-frequency/bandwidth");
+		ui_interface->addHorizontalSlider("peak q", &fHslider7, 40.0f, 1.0f, 1000.0f, 0.100000001f);
 		ui_interface->closeBox();
 		ui_interface->declare(0, "3", "");
 		ui_interface->declare(0, "tooltip", "A high shelf provides a boost                 or cut above some frequency");
@@ -1043,13 +1069,13 @@ class faustParametricEQ : public faustdsp {
 		ui_interface->declare(&fHslider9, "style", "knob");
 		ui_interface->declare(&fHslider9, "tooltip", "Amount of                 high-frequency boost or cut in decibels");
 		ui_interface->declare(&fHslider9, "unit", "dB");
-		ui_interface->addHorizontalSlider("high gain", &fHslider9, 0.0f, -40.0f, 40.0f, 0.100000001f);
-		ui_interface->declare(&fHslider0, "1", "");
-		ui_interface->declare(&fHslider0, "scale", "log");
-		ui_interface->declare(&fHslider0, "style", "knob");
-		ui_interface->declare(&fHslider0, "tooltip", "Transition-frequency from boost (cut) to unity gain");
-		ui_interface->declare(&fHslider0, "unit", "Hz");
-		ui_interface->addHorizontalSlider("transition freq", &fHslider0, 8000.0f, 20.0f, 10000.0f, 1.0f);
+		ui_interface->addHorizontalSlider("gain", &fHslider9, 0.0f, -40.0f, 40.0f, 0.100000001f);
+		ui_interface->declare(&fHslider8, "1", "");
+		ui_interface->declare(&fHslider8, "scale", "log");
+		ui_interface->declare(&fHslider8, "style", "knob");
+		ui_interface->declare(&fHslider8, "tooltip", "Transition-frequency from boost (cut) to unity gain");
+		ui_interface->declare(&fHslider8, "unit", "Hz");
+		ui_interface->addHorizontalSlider("transition freq", &fHslider8, 8000.0f, 20.0f, 10000.0f, 1.0f);
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 	}
@@ -1057,102 +1083,105 @@ class faustParametricEQ : public faustdsp {
 	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {
 		FAUSTFLOAT* input0 = inputs[0];
 		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = std::tan((fConst1 * float(fHslider0)));
-		float fSlow1 = (1.0f / fSlow0);
-		float fSlow2 = (1.0f / (((fSlow1 + 1.0f) / fSlow0) + 1.0f));
-		float fSlow3 = (fSlow1 + 1.0f);
-		float fSlow4 = (1.0f / fSlow3);
-		float fSlow5 = (1.0f - fSlow1);
-		float fSlow6 = std::tan((fConst1 * float(fHslider1)));
-		float fSlow7 = (1.0f / fSlow6);
-		float fSlow8 = (1.0f / (((fSlow7 + 1.0f) / fSlow6) + 1.0f));
-		float fSlow9 = faustParametricEQ_faustpower2_f(fSlow6);
-		float fSlow10 = (1.0f / fSlow9);
-		float fSlow11 = (fSlow7 + 1.0f);
-		float fSlow12 = (0.0f - (1.0f / (fSlow6 * fSlow11)));
-		float fSlow13 = (1.0f / fSlow11);
-		float fSlow14 = (1.0f - fSlow7);
-		float fSlow15 = (((fSlow7 + -1.0f) / fSlow6) + 1.0f);
-		float fSlow16 = (2.0f * (1.0f - fSlow10));
-		float fSlow17 = (0.0f - (2.0f / fSlow9));
-		float fSlow18 = std::pow(10.0f, (0.0500000007f * float(fHslider2)));
-		float fSlow19 = (0.00100000005f * float(fHslider3));
-		float fSlow20 = float(fHslider4);
-		int iSlow21 = (fSlow20 > 0.0f);
-		float fSlow22 = float(fHslider5);
-		float fSlow23 = (fConst2 * (std::pow(10.0f, (0.0500000007f * std::fabs(fSlow20))) / fSlow22));
-		float fSlow24 = (fConst2 / fSlow22);
-		float fSlow25 = (0.00100000005f * float(fHslider6));
-		float fSlow26 = float(fHslider7);
-		int iSlow27 = (fSlow26 > 0.0f);
-		float fSlow28 = float(fHslider8);
-		float fSlow29 = (fConst2 * (std::pow(10.0f, (0.0500000007f * std::fabs(fSlow26))) / fSlow28));
-		float fSlow30 = (fConst2 / fSlow28);
-		float fSlow31 = (((fSlow1 + -1.0f) / fSlow0) + 1.0f);
-		float fSlow32 = faustParametricEQ_faustpower2_f(fSlow0);
-		float fSlow33 = (1.0f / fSlow32);
-		float fSlow34 = (2.0f * (1.0f - fSlow33));
-		float fSlow35 = std::pow(10.0f, (0.0500000007f * float(fHslider9)));
-		float fSlow36 = (0.0f - (1.0f / (fSlow0 * fSlow3)));
-		float fSlow37 = (0.0f - (2.0f / fSlow32));
+		float fSlow0 = (0.00100000005f * float(fHslider0));
+		float fSlow1 = (0.00100000005f * float(fHslider1));
+		float fSlow2 = (0.00100000005f * float(fHslider2));
+		float fSlow3 = (0.00100000005f * float(fHslider3));
+		float fSlow4 = (fConst1 / float(fHslider4));
+		float fSlow5 = (0.00100000005f * float(fHslider5));
+		float fSlow6 = (0.00100000005f * float(fHslider6));
+		float fSlow7 = (0.00100000005f * float(fHslider7));
+		float fSlow8 = (0.00100000005f * float(fHslider8));
+		float fSlow9 = (0.00100000005f * float(fHslider9));
 		for (int i = 0; (i < count); i = (i + 1)) {
 			float fTemp0 = float(input0[i]);
 			fVec0[0] = fTemp0;
-			fRec5[0] = ((fSlow12 * fVec0[1]) - (fSlow13 * ((fSlow14 * fRec5[1]) - (fSlow7 * fTemp0))));
-			fRec4[0] = (fRec5[0] - (fSlow8 * ((fSlow15 * fRec4[2]) + (fSlow16 * fRec4[1]))));
-			fRec7[0] = (0.0f - (fSlow13 * ((fSlow14 * fRec7[1]) - (fTemp0 + fVec0[1]))));
-			fRec6[0] = (fRec7[0] - (fSlow8 * ((fSlow15 * fRec6[2]) + (fSlow16 * fRec6[1]))));
-			fRec8[0] = (fSlow19 + (0.999000013f * fRec8[1]));
-			float fTemp1 = std::pow(2.0f, (0.0833333358f * (fRec8[0] + -49.0f)));
-			float fTemp2 = std::tan((fConst2 * fTemp1));
-			float fTemp3 = (1.0f / fTemp2);
-			float fTemp4 = (fTemp1 / std::sin((fConst3 * fTemp1)));
-			float fTemp5 = (fSlow23 * fTemp4);
-			float fTemp6 = (fSlow24 * fTemp4);
-			float fTemp7 = (iSlow21 ? fTemp6 : fTemp5);
-			float fTemp8 = (2.0f * (fRec3[1] * (1.0f - (1.0f / faustParametricEQ_faustpower2_f(fTemp2)))));
-			float fTemp9 = (((fTemp3 + fTemp7) / fTemp2) + 1.0f);
-			fRec3[0] = ((fSlow8 * ((((fSlow10 * fRec4[0]) + (fSlow17 * fRec4[1])) + (fSlow10 * fRec4[2])) + (fSlow18 * (fRec6[2] + (fRec6[0] + (2.0f * fRec6[1])))))) - (((fRec3[2] * (((fTemp3 - fTemp7) / fTemp2) + 1.0f)) + fTemp8) / fTemp9));
-			float fTemp10 = (iSlow21 ? fTemp5 : fTemp6);
-			fRec9[0] = (fSlow25 + (0.999000013f * fRec9[1]));
-			float fTemp11 = std::pow(2.0f, (0.0833333358f * (fRec9[0] + -49.0f)));
-			float fTemp12 = std::tan((fConst2 * fTemp11));
-			float fTemp13 = (1.0f / fTemp12);
-			float fTemp14 = (fTemp11 / std::sin((fConst3 * fTemp11)));
-			float fTemp15 = (fSlow29 * fTemp14);
-			float fTemp16 = (fSlow30 * fTemp14);
-			float fTemp17 = (iSlow27 ? fTemp16 : fTemp15);
-			float fTemp18 = (2.0f * (fRec2[1] * (1.0f - (1.0f / faustParametricEQ_faustpower2_f(fTemp12)))));
-			float fTemp19 = (((fTemp13 + fTemp17) / fTemp12) + 1.0f);
-			fRec2[0] = ((((fTemp8 + (fRec3[0] * (((fTemp3 + fTemp10) / fTemp2) + 1.0f))) + (fRec3[2] * (((fTemp3 - fTemp10) / fTemp2) + 1.0f))) / fTemp9) - (((fRec2[2] * (((fTemp13 - fTemp17) / fTemp12) + 1.0f)) + fTemp18) / fTemp19));
-			float fTemp20 = (iSlow27 ? fTemp15 : fTemp16);
-			float fTemp21 = (((fTemp18 + (fRec2[0] * (((fTemp13 + fTemp20) / fTemp12) + 1.0f))) + (fRec2[2] * (((fTemp13 - fTemp20) / fTemp12) + 1.0f))) / fTemp19);
-			fVec1[0] = fTemp21;
-			fRec1[0] = (0.0f - (fSlow4 * ((fSlow5 * fRec1[1]) - (fTemp21 + fVec1[1]))));
-			fRec0[0] = (fRec1[0] - (fSlow2 * ((fSlow31 * fRec0[2]) + (fSlow34 * fRec0[1]))));
-			fRec11[0] = ((fSlow36 * fVec1[1]) - (fSlow4 * ((fSlow5 * fRec11[1]) - (fSlow1 * fTemp21))));
-			fRec10[0] = (fRec11[0] - (fSlow2 * ((fSlow31 * fRec10[2]) + (fSlow34 * fRec10[1]))));
-			output0[i] = FAUSTFLOAT((fSlow2 * ((fRec0[2] + (fRec0[0] + (2.0f * fRec0[1]))) + (fSlow35 * (((fSlow33 * fRec10[0]) + (fSlow37 * fRec10[1])) + (fSlow33 * fRec10[2]))))));
+			fRec6[0] = (fSlow0 + (0.999000013f * fRec6[1]));
+			float fTemp1 = std::tan((fConst1 * fRec6[0]));
+			float fTemp2 = (1.0f / fTemp1);
+			float fTemp3 = (fTemp2 + 1.0f);
+			float fTemp4 = (1.0f - fTemp2);
+			fRec5[0] = ((fVec0[1] * (0.0f - (1.0f / (fTemp1 * fTemp3)))) - (((fRec5[1] * fTemp4) - (fTemp0 / fTemp1)) / fTemp3));
+			float fTemp5 = (((fTemp2 + -1.0f) / fTemp1) + 1.0f);
+			float fTemp6 = faustParametricEQ_faustpower2_f(fTemp1);
+			float fTemp7 = (1.0f - (1.0f / fTemp6));
+			float fTemp8 = (((fTemp2 + 1.0f) / fTemp1) + 1.0f);
+			fRec4[0] = (fRec5[0] - (((fRec4[2] * fTemp5) + (2.0f * (fRec4[1] * fTemp7))) / fTemp8));
+			fRec8[0] = (((fTemp0 + fVec0[1]) - (fTemp4 * fRec8[1])) / fTemp3);
+			fRec7[0] = (fRec8[0] - (((fTemp5 * fRec7[2]) + (2.0f * (fTemp7 * fRec7[1]))) / fTemp8));
+			fRec9[0] = (fSlow1 + (0.999000013f * fRec9[1]));
+			fRec10[0] = (fSlow2 + (0.999000013f * fRec10[1]));
+			float fTemp9 = std::tan((fConst1 * fRec10[0]));
+			float fTemp10 = (1.0f / fTemp9);
+			fRec11[0] = (fSlow3 + (0.999000013f * fRec11[1]));
+			int iTemp11 = (fRec11[0] > 0.0f);
+			float fTemp12 = std::sin((fConst2 * fRec10[0]));
+			float fTemp13 = (fSlow4 * ((fRec10[0] * std::pow(10.0f, (0.0500000007f * std::fabs(fRec11[0])))) / fTemp12));
+			float fTemp14 = (fSlow4 * (fRec10[0] / fTemp12));
+			float fTemp15 = (iTemp11 ? fTemp14 : fTemp13);
+			float fTemp16 = (2.0f * (fRec3[1] * (1.0f - (1.0f / faustParametricEQ_faustpower2_f(fTemp9)))));
+			float fTemp17 = (((fTemp10 + fTemp15) / fTemp9) + 1.0f);
+			fRec3[0] = ((((((fRec4[1] * (0.0f - (2.0f / fTemp6))) + (fRec4[0] / fTemp6)) + (fRec4[2] / fTemp6)) + ((fRec7[2] + (fRec7[0] + (2.0f * fRec7[1]))) * std::pow(10.0f, (0.0500000007f * fRec9[0])))) / fTemp8) - (((fRec3[2] * (((fTemp10 - fTemp15) / fTemp9) + 1.0f)) + fTemp16) / fTemp17));
+			float fTemp18 = (iTemp11 ? fTemp13 : fTemp14);
+			fRec12[0] = (fSlow5 + (0.999000013f * fRec12[1]));
+			float fTemp19 = std::tan((fConst1 * fRec12[0]));
+			float fTemp20 = (1.0f / fTemp19);
+			fRec13[0] = (fSlow6 + (0.999000013f * fRec13[1]));
+			int iTemp21 = (fRec13[0] > 0.0f);
+			fRec14[0] = (fSlow7 + (0.999000013f * fRec14[1]));
+			float fTemp22 = (fRec14[0] * std::sin((fConst2 * fRec12[0])));
+			float fTemp23 = (fConst1 * ((fRec12[0] * std::pow(10.0f, (0.0500000007f * std::fabs(fRec13[0])))) / fTemp22));
+			float fTemp24 = (fConst1 * (fRec12[0] / fTemp22));
+			float fTemp25 = (iTemp21 ? fTemp24 : fTemp23);
+			float fTemp26 = (2.0f * (fRec2[1] * (1.0f - (1.0f / faustParametricEQ_faustpower2_f(fTemp19)))));
+			float fTemp27 = (((fTemp20 + fTemp25) / fTemp19) + 1.0f);
+			fRec2[0] = ((((fTemp16 + (fRec3[0] * (((fTemp10 + fTemp18) / fTemp9) + 1.0f))) + (fRec3[2] * (((fTemp10 - fTemp18) / fTemp9) + 1.0f))) / fTemp17) - (((fRec2[2] * (((fTemp20 - fTemp25) / fTemp19) + 1.0f)) + fTemp26) / fTemp27));
+			float fTemp28 = (iTemp21 ? fTemp23 : fTemp24);
+			float fTemp29 = ((fTemp26 + (fRec2[0] * (((fTemp20 + fTemp28) / fTemp19) + 1.0f))) + (fRec2[2] * (((fTemp20 - fTemp28) / fTemp19) + 1.0f)));
+			float fTemp30 = (fTemp29 / fTemp27);
+			fVec1[0] = fTemp30;
+			fRec15[0] = (fSlow8 + (0.999000013f * fRec15[1]));
+			float fTemp31 = std::tan((fConst1 * fRec15[0]));
+			float fTemp32 = (1.0f / fTemp31);
+			float fTemp33 = (fTemp32 + 1.0f);
+			float fTemp34 = (1.0f - fTemp32);
+			fRec1[0] = ((fVec1[1] * (0.0f - (1.0f / (fTemp31 * fTemp33)))) + (((fTemp29 / (fTemp31 * fTemp27)) - (fRec1[1] * fTemp34)) / fTemp33));
+			float fTemp35 = (((fTemp32 + -1.0f) / fTemp31) + 1.0f);
+			float fTemp36 = faustParametricEQ_faustpower2_f(fTemp31);
+			float fTemp37 = (1.0f - (1.0f / fTemp36));
+			float fTemp38 = (((fTemp32 + 1.0f) / fTemp31) + 1.0f);
+			fRec0[0] = (fRec1[0] - (((fRec0[2] * fTemp35) + (2.0f * (fRec0[1] * fTemp37))) / fTemp38));
+			fRec16[0] = (fSlow9 + (0.999000013f * fRec16[1]));
+			fRec18[0] = (0.0f - (((fTemp34 * fRec18[1]) - (fTemp30 + fVec1[1])) / fTemp33));
+			fRec17[0] = (fRec18[0] - (((fTemp35 * fRec17[2]) + (2.0f * (fTemp37 * fRec17[1]))) / fTemp38));
+			output0[i] = FAUSTFLOAT(((((((fRec0[1] * (0.0f - (2.0f / fTemp36))) + (fRec0[0] / fTemp36)) + (fRec0[2] / fTemp36)) * std::pow(10.0f, (0.0500000007f * fRec16[0]))) + (fRec17[2] + (fRec17[0] + (2.0f * fRec17[1])))) / fTemp38));
 			fVec0[1] = fVec0[0];
+			fRec6[1] = fRec6[0];
 			fRec5[1] = fRec5[0];
 			fRec4[2] = fRec4[1];
 			fRec4[1] = fRec4[0];
-			fRec7[1] = fRec7[0];
-			fRec6[2] = fRec6[1];
-			fRec6[1] = fRec6[0];
 			fRec8[1] = fRec8[0];
+			fRec7[2] = fRec7[1];
+			fRec7[1] = fRec7[0];
+			fRec9[1] = fRec9[0];
+			fRec10[1] = fRec10[0];
+			fRec11[1] = fRec11[0];
 			fRec3[2] = fRec3[1];
 			fRec3[1] = fRec3[0];
-			fRec9[1] = fRec9[0];
+			fRec12[1] = fRec12[0];
+			fRec13[1] = fRec13[0];
+			fRec14[1] = fRec14[0];
 			fRec2[2] = fRec2[1];
 			fRec2[1] = fRec2[0];
 			fVec1[1] = fVec1[0];
+			fRec15[1] = fRec15[0];
 			fRec1[1] = fRec1[0];
 			fRec0[2] = fRec0[1];
 			fRec0[1] = fRec0[0];
-			fRec11[1] = fRec11[0];
-			fRec10[2] = fRec10[1];
-			fRec10[1] = fRec10[0];
+			fRec16[1] = fRec16[0];
+			fRec18[1] = fRec18[0];
+			fRec17[2] = fRec17[1];
+			fRec17[1] = fRec17[0];
 		}
 	}
 

@@ -3,7 +3,7 @@ author: "Albert Graef"
 name: "compressor"
 version: "1.0"
 Code generated with Faust 2.28.3 (https://faust.grame.fr)
-Compilation options: -lang cpp -scal -ftz 0
+Compilation options: -lang cpp -inpl -scal -ftz 0
 ------------------------------------------------------------ */
 
 #ifndef  __faustCompressor_H__
@@ -950,13 +950,13 @@ class faustCompressor : public faustdsp {
 		float fSlow10 = (1.0f / (fSlow2 + 0.00100000005f));
 		for (int i = 0; (i < count); i = (i + 1)) {
 			float fTemp0 = float(input0[i]);
+			float fTemp1 = float(input1[i]);
 			fRec0[0] = (fSlow0 + (0.999000013f * fRec0[1]));
-			float fTemp1 = std::fabs(fTemp0);
-			float fTemp2 = ((fRec1[1] > fTemp1) ? fSlow8 : fSlow5);
-			fRec2[0] = ((fRec2[1] * fTemp2) + (fTemp1 * (1.0f - fTemp2)));
+			float fTemp2 = std::fabs(fTemp0);
+			float fTemp3 = ((fRec1[1] > fTemp2) ? fSlow8 : fSlow5);
+			fRec2[0] = ((fRec2[1] * fTemp3) + (fTemp2 * (1.0f - fTemp3)));
 			fRec1[0] = fRec2[0];
-			float fTemp3 = float(input1[i]);
-			float fTemp4 = std::fabs(fTemp3);
+			float fTemp4 = std::fabs(fTemp1);
 			float fTemp5 = ((fRec3[1] > fTemp4) ? fSlow8 : fSlow5);
 			fRec4[0] = ((fRec4[1] * fTemp5) + (fTemp4 * (1.0f - fTemp5)));
 			fRec3[0] = fRec4[0];
@@ -966,7 +966,7 @@ class faustCompressor : public faustdsp {
 			fHbargraph0 = FAUSTFLOAT(fTemp8);
 			float fTemp9 = std::pow(10.0f, (0.0500000007f * (fRec0[0] + fTemp8)));
 			output0[i] = FAUSTFLOAT((fTemp0 * fTemp9));
-			output1[i] = FAUSTFLOAT((fTemp3 * fTemp9));
+			output1[i] = FAUSTFLOAT((fTemp1 * fTemp9));
 			fRec0[1] = fRec0[0];
 			fRec2[1] = fRec2[0];
 			fRec1[1] = fRec1[0];

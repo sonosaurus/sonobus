@@ -10,19 +10,20 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 
 #include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
 #include "SonoDrawableButton.h"
+#include "EffectsBaseView.h"
 
 //==============================================================================
 /*
 */
-class CompressorView    : public Component, public Slider::Listener, public Button::Listener
+class CompressorView    : public EffectsBaseView, public Slider::Listener, public Button::Listener
 {
 public:
-    CompressorView() : sonoSliderLNF(14), smallLNF(12)
+    CompressorView() 
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
@@ -88,20 +89,10 @@ public:
 
         titleLabel.setText(TRANS("Compressor"), dontSendNotification);
         
-        std::unique_ptr<Drawable> powerimg(Drawable::createFromImageData(BinaryData::power_svg, BinaryData::power_svgSize));
-        std::unique_ptr<Drawable> powerselimg(Drawable::createFromImageData(BinaryData::power_sel_svg, BinaryData::power_sel_svgSize));
-        enableButton.setImages(powerimg.get(), nullptr, nullptr, nullptr, powerselimg.get());
         enableButton.addListener(this);
-        enableButton.setClickingTogglesState(true);
-        //enableButton.setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.8));
-        //enableButton.setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
-        enableButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        enableButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
-        enableButton.setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-        enableButton.setColour(DrawableButton::backgroundOnColourId, Colours::transparentBlack);
 
 
-        autoMakeupButton.setButtonText(TRANS("Auto Makeup"));
+        autoMakeupButton.setButtonText(TRANS("Autocalc Makeup"));
         autoMakeupButton.addListener(this);
         autoMakeupButton.setLookAndFeel(&smallLNF);
            
@@ -132,64 +123,18 @@ public:
     {
     }
 
-    void paint (Graphics& g) override
-    {
-       
-    }
     
     class Listener {
     public:
         virtual ~Listener() {}
         virtual void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams &params) {}
-        virtual void compressorHeaderClicked(CompressorView *comp, const MouseEvent & ev) {}
     };
     
     void addListener(Listener * listener) { listeners.add(listener); }
     void removeListener(Listener * listener) { listeners.remove(listener); }
     
     
-    class HeaderComponent : public Component
-    {
-    public:
-        HeaderComponent(CompressorView & parent_) : parent(parent_) {
-            
-        }
-        ~HeaderComponent() {}
-        
-        void paint (Graphics& g) override
-        {
-            if (parent.enableButton.getToggleState()) {
-                g.setColour(Colour::fromFloatRGBA(0.2f, 0.5f, 0.7f, 0.5f));                
-            } else {
-                g.setColour(Colour(0xff2a2a2a));                
-            }
-
-            auto bounds = getLocalBounds().withTrimmedTop(2).withTrimmedBottom(2);
-            g.fillRoundedRectangle(bounds.toFloat(), 6.0);
-        }
-        
-        void resized() override {
-            auto bounds = getLocalBounds().withTrimmedTop(4).withTrimmedBottom(4);
-            headerBox.performLayout(bounds);
-        }
-        
-        FlexBox headerBox;
-        CompressorView & parent;
-    };
-    
-    Component * getHeaderComponent() {
-        
-        return &headerComponent;
-    }
-    
-    void mouseUp (const MouseEvent& event) override {
-        if (event.eventComponent == &headerComponent) {
-            if (!event.mouseWasDraggedSinceMouseDown()) {                
-                listeners.call (&CompressorView::Listener::compressorHeaderClicked, this, event);
-            }
-        }
-    }
-
+   
     
     void setupLayout()
     {
@@ -197,6 +142,7 @@ public:
         int minitemheight = 32;
         int knoblabelheight = 18;
         int knobitemheight = 62;
+        int enablewidth = 44;
 
 #if JUCE_IOS
         // make the button heights a bit more for touchscreen purposes
@@ -232,8 +178,8 @@ public:
         
         checkBox.items.clear();
         checkBox.flexDirection = FlexBox::Direction::row;
-        checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
-        checkBox.items.add(FlexItem(minitemheight, minitemheight, enableButton).withMargin(0).withFlex(0));
+        //checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
+        checkBox.items.add(FlexItem(enablewidth, minitemheight, enableButton).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1));
         //knobBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0.1));
@@ -267,14 +213,6 @@ public:
         minHeaderBounds.setSize(jmax(180, minKnobWidth * 5 + 16),  minitemheight + 8);
     }
 
-    juce::Rectangle<int> getMinimumContentBounds() const {
-        return minBounds;
-    }
-    
-    juce::Rectangle<int> getMinimumHeaderBounds() const {
-
-        return minHeaderBounds;
-    }
 
     void resized() override
     {
@@ -347,38 +285,8 @@ public:
     
 private:
     
-    SonoBigTextLookAndFeel sonoSliderLNF;
-    SonoBigTextLookAndFeel smallLNF;
-
     ListenerList<Listener> listeners;
-    juce::Rectangle<int> minBounds;
-    juce::Rectangle<int> minHeaderBounds;
-    
-    void configKnobSlider(Slider & slider) 
-    {
-        slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-        slider.setTextBoxStyle(Slider::TextBoxAbove, true, 60, 14);
-        slider.setMouseDragSensitivity(128);
-        slider.setScrollWheelEnabled(false);
-        slider.setTextBoxIsEditable(true);
-        slider.setSliderSnapsToMousePosition(false);
-        //slider->setPopupDisplayEnabled(true, false, this);
-        slider.setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
-        slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-        slider.setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
-        slider.setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
-        slider.setLookAndFeel(&sonoSliderLNF);
-    }
-    
-    void configLabel(Label & label) 
-    {
-        label.setFont(12);
-        label.setColour(Label::textColourId, Colour(0xa0eeeeee));
-        label.setJustificationType(Justification::centred);
-        label.setMinimumHorizontalScale(0.3);
-    }
-    
-    SonoDrawableButton enableButton = { "enable", DrawableButton::ButtonStyle::ImageFitted };
+
     ToggleButton autoMakeupButton;
     
     Slider thresholdSlider;
@@ -387,15 +295,12 @@ private:
     Slider releaseSlider;
     Slider makeupGainSlider;
 
-    Label titleLabel;
     Label thresholdLabel;
     Label ratioLabel;
     Label attackLabel;
     Label releaseLabel;
     Label makeupGainLabel;
 
-    HeaderComponent headerComponent = { *this };
-    
     FlexBox mainBox;
     FlexBox checkBox;
     FlexBox knobBox;

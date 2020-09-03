@@ -15,6 +15,7 @@
 #include "zitaRev.h"
 #include "faustCompressor.h"
 #include "faustExpander.h"
+#include "faustParametricEQ.h"
 
 typedef MVerb<float> MVerbFloat;
 
@@ -308,6 +309,7 @@ public:
         bool  automakeupGain = true;
     };
     
+    
     void setRemotePeerCompressorParams(int index, CompressorParams & params);
     bool getRemotePeerCompressorParams(int index, CompressorParams & retparams);
     
@@ -317,7 +319,29 @@ public:
     void setInputExpanderParams(CompressorParams & params);
     bool getInputExpanderParams(CompressorParams & retparams);
     
-    bool getInputEffectsActive() const { return mInputCompressorParams.enabled || mInputExpanderParams.enabled; }
+    struct ParametricEqParams
+    {
+        ValueTree getValueTree() const;
+        void setFromValueTree(const ValueTree & val);
+
+        bool enabled = false;
+        float lowShelfGain = 0.0f; // db
+        float lowShelfFreq = 60.0f; // Hz
+        float para1Gain = 0.0f; // db
+        float para1Freq = 90.0f; // Hz
+        float para1Q = 1.5f;
+        float para2Gain = 0.0f; // db
+        float para2Freq = 360.0; // Hz
+        float para2Q = 4.0f;
+        float highShelfGain = 0.0f; // db
+        float highShelfFreq = 12000.0f; // Hz
+    };
+
+    void setInputEqParams(ParametricEqParams & params);
+    bool getInputEqParams(ParametricEqParams & retparams);
+    
+    
+    bool getInputEffectsActive() const { return mInputCompressorParams.enabled || mInputExpanderParams.enabled || mInputEqParams.enabled; }
     
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
@@ -455,6 +479,8 @@ private:
 
     //void commitExpanderParams(RemotePeer * peer);
     void commitInputExpanderParams();
+
+    void commitInputEqParams();
 
     
     void updateRemotePeerSendChannels(int index, RemotePeer * remote);
@@ -644,6 +670,12 @@ private:
     bool mInputExpanderParamsChanged = false;
     bool mLastInputExpanderEnabled = false;
     float * mInputExpanderOutputGain = nullptr;
+
+    faustParametricEQ mInputEq[2]; // left and right ; todo 
+    MapUI  mInputEqControl[2];
+    ParametricEqParams mInputEqParams;
+    bool mInputEqParamsChanged = false;
+    bool mLastInputEqEnabled = false;
 
     
     ReverbModel mLastReverbModel = ReverbModelFreeverb;

@@ -13,6 +13,7 @@
 #include "GenericItemChooser.h"
 #include "CompressorView.h"
 #include "ExpanderView.h"
+#include "ParametricEqView.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
@@ -39,7 +40,9 @@ public AsyncUpdater,
 public FileDragAndDropTarget,
 public GenericItemChooser::Listener,
 public CompressorView::Listener,
-public ExpanderView::Listener
+public ExpanderView::Listener,
+public ParametricEqView::Listener,
+public EffectsBaseView::HeaderListener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -87,10 +90,9 @@ public:
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
 
     void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void compressorHeaderClicked(CompressorView *comp, const MouseEvent & ev) override;
-
     void expanderParamsChanged(ExpanderView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void expanderHeaderClicked(ExpanderView *comp, const MouseEvent & ev) override;
+    void parametricEqParamsChanged(ParametricEqView *comp, SonobusAudioProcessor::ParametricEqParams & params) override;
+    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
 
     
     void connectWithInfo(const AooServerConnectionInfo & info);
@@ -332,16 +334,20 @@ private:
     std::unique_ptr<TextButton> mInEffectsButton;
     std::unique_ptr<CompressorView> mInCompressorView;
     std::unique_ptr<DrawableRectangle> mCompressorBg;
+    std::unique_ptr<DrawableRectangle> mReverbHeaderBg;
 
     std::unique_ptr<ExpanderView> mInExpanderView;
     std::unique_ptr<DrawableRectangle> mExpanderBg;
+
+    std::unique_ptr<ParametricEqView> mInEqView;
 
     
     std::unique_ptr<SonoChoiceButton> mSendChannelsChoice;
     std::unique_ptr<Label>  mSendChannelsLabel;
 
     
-    std::unique_ptr<ToggleButton> mReverbEnabledButton;
+    std::unique_ptr<SonoDrawableButton> mReverbEnabledButton;
+    std::unique_ptr<Label>  mReverbTitleLabel;
     std::unique_ptr<SonoChoiceButton> mReverbModelChoice;
     std::unique_ptr<Label>  mReverbLevelLabel;
     std::unique_ptr<Slider> mReverbLevelSlider;

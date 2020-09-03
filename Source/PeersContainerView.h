@@ -177,6 +177,8 @@ public:
     void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
 
 
+    void clearClipIndicators();
+    
     Rectangle<int> getMinimumContentBounds() const;
     
     void updateLayout();
