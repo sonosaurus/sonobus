@@ -334,7 +334,7 @@ public:
         float para2Freq = 360.0; // Hz
         float para2Q = 4.0f;
         float highShelfGain = 0.0f; // db
-        float highShelfFreq = 12000.0f; // Hz
+        float highShelfFreq = 10000.0f; // Hz
     };
 
     void setInputEqParams(ParametricEqParams & params);
