@@ -1167,6 +1167,39 @@ Button* SonoBigTextLookAndFeel::createSliderButton (Slider&, const bool isIncrem
 }
 
 
+void SonoBigTextLookAndFeel::drawToggleButton (Graphics& g, ToggleButton& button,
+                                       bool isMouseOverButton, bool isButtonDown)
+{
+    /*
+    if (button.hasKeyboardFocus (true))
+    {
+        g.setColour (button.findColour (TextEditor::focusedOutlineColourId));
+        g.drawRect (0, 0, button.getWidth(), button.getHeight());
+    }
+     */
 
+    float fontSize = jmin (maxSize, button.getHeight() * 0.75f) * fontScale;
+    const float tickWidth = fontSize * 1.1f;
+
+    drawTickBox (g, button, 4.0f, (button.getHeight() - tickWidth) * 0.5f,
+                 tickWidth, tickWidth,
+                 button.getToggleState(),
+                 button.isEnabled(),
+                 isMouseOverButton,
+                 isButtonDown);
+
+    g.setColour (button.findColour (ToggleButton::textColourId));
+    g.setFont (myFont.withHeight(fontSize));
+
+    if (! button.isEnabled())
+        g.setOpacity (0.5f);
+
+    const int textX = (int) tickWidth + 10;
+
+    g.drawFittedText (button.getButtonText(),
+                      textX, 0,
+                      button.getWidth() - textX - 2, button.getHeight(),
+                      Justification::centredLeft, 10);
+}
 
 #endif

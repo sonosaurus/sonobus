@@ -406,7 +406,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMainMuteButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     mMainMuteButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mMainMuteButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    mMainMuteButton->setTooltip(TRANS("Mutes/Unmutes your Input, none of your audio will be sent to users when muted"));
+    mMainMuteButton->setTooltip(TRANS("Silences your Input, none of your audio will be sent to users when you are silenced"));
 
     mMainRecvMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> recvallowimg(Drawable::createFromImageData(BinaryData::speaker_svg, BinaryData::speaker_svgSize));
@@ -855,6 +855,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
     mOptionsUseSpecificUdpPortButton->addListener(this);
 
+    mOptionsChangeAllFormatButton = std::make_unique<ToggleButton>(TRANS("Change all connected"));
+    mOptionsChangeAllFormatButton->addListener(this);
+    mOptionsChangeAllFormatButton->setLookAndFeel(&smallLNF);
+
     mOptionsUdpPortEditor = std::make_unique<TextEditor>("udp");
     mOptionsUdpPortEditor->addListener(this);
     mOptionsUdpPortEditor->setFont(Font(16));
@@ -1153,6 +1157,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
 
@@ -1738,6 +1743,8 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
     mOptionsFormatChoiceDefaultChoice->setSelectedItemIndex(processor.getDefaultAudioCodecFormat(), dontSendNotification);
     mOptionsAutosizeDefaultChoice->setSelectedItemIndex((int)processor.getDefaultAutoresizeBufferMode(), dontSendNotification);
 
+    mOptionsChangeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
+    
     int port = processor.getUseSpecificUdpPort();
     if (port > 0) {
         mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
@@ -1820,11 +1827,13 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
 #if 0
         if (JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
         {
-            int inlat = getAudioDeviceManager()->getCurrentAudioDevice()->getInputLatencyInSamples();
-            int outlat = getAudioDeviceManager()->getCurrentAudioDevice()->getOutputLatencyInSamples();
-            int bufsize = getAudioDeviceManager()->getCurrentAudioDevice()->getCurrentBufferSizeSamples();
-
-            DBG("InLat: " << inlat << "  OutLat: " << outlat << "  bufsize: " << bufsize);
+            if (auto * ad = getAudioDeviceManager()->getCurrentAudioDevice()) {
+                int inlat = ad->getInputLatencyInSamples();
+                int outlat = ad->getOutputLatencyInSamples();
+                int bufsize = ad->getCurrentBufferSizeSamples();
+                
+                DBG("InLat: " << inlat << "  OutLat: " << outlat << "  bufsize: " << bufsize);
+            }
         }
 #endif
         
@@ -2259,6 +2268,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         mConnectComponent->setVisible(false);
         mConnectButton->setTextJustification(Justification::centred);
         updateState();
+    }
+    else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
+        processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());
     }
     else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
         if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {
@@ -3679,6 +3691,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsUdpBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsUseSpecificUdpPortButton).withMargin(0).withFlex(1));
     optionsUdpBox.items.add(FlexItem(90, minitemheight, *mOptionsUdpPortEditor).withMargin(0).withFlex(0));
 
+    optionsChangeAllQualBox.items.clear();
+    optionsChangeAllQualBox.flexDirection = FlexBox::Direction::row;
+    optionsChangeAllQualBox.items.add(FlexItem(10, 12).withFlex(1));
+    optionsChangeAllQualBox.items.add(FlexItem(180, minitemheight - 10, *mOptionsChangeAllFormatButton).withMargin(0).withFlex(0));
+
     
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
@@ -3686,6 +3703,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, 15, *mVersionLabel).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsSendQualBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 2));
@@ -4172,8 +4190,9 @@ void SonobusAudioProcessorEditor::showPopTip(const String & message, int timeout
     popTip->setAllowedPlacement(BubbleMessageComponent::BubblePlacement::above | BubbleMessageComponent::BubblePlacement::below);
     
     if (target) {
-        if (auto * parent = findParentComponentOfClass<AudioProcessorEditor>()) {
+        if (auto * parent = target->findParentComponentOfClass<AudioProcessorEditor>()) {
             parent->addChildComponent (popTip.get());
+            parent->toFront(false);
         }
         else {
             addChildComponent(popTip.get());            
@@ -4794,3 +4813,4 @@ void SonobusAudioProcessorEditor::RecentsListModel::selectedRowsChanged(int rowN
 {
 
 }
+

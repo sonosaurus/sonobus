@@ -317,6 +317,7 @@ private:
     std::unique_ptr<ToggleButton> mOptionsUseSpecificUdpPortButton;
     std::unique_ptr<TextEditor>  mOptionsUdpPortEditor;
     std::unique_ptr<Label> mVersionLabel;
+    std::unique_ptr<ToggleButton> mOptionsChangeAllFormatButton;
 
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
@@ -595,6 +596,7 @@ private:
     FlexBox optionsHearlatBox;
     FlexBox optionsMetRecordBox;
     FlexBox optionsUdpBox;
+    FlexBox optionsChangeAllQualBox;
 
     Image iaaHostIcon;
 

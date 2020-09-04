@@ -62,8 +62,15 @@ void PeerViewInfo::resized()
     if (latActiveButton) {
         latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
     }
-    if (menuButton) {
-        menuButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), recvActualBitrateLabel->getRight() - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
+    
+    if (recvOptionsButton) {
+        auto leftedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) + 2;
+        recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), recvActualBitrateLabel->getRight() - leftedge, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
+    }
+
+    if (sendOptionsButton) {
+        auto rightedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) - 3;
+        sendOptionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), rightedge - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
     }
 
     
@@ -74,14 +81,17 @@ void PeerViewInfo::resized()
         jitterBufferMeter->setBounds(bufferLabel->getBounds().reduced(0, 1));
     }
               
-    if (statsBg) {
-        auto statsbounds = menuButton->getBounds();
-        statsBg->setRectangle (statsbounds.toFloat().expanded(1.0f));
+    if (sendStatsBg) {
+        auto sendbounds = sendOptionsButton->getBounds();
+        sendStatsBg->setRectangle (sendbounds.toFloat().expanded(1.0f));
+
+        auto recvbounds = recvOptionsButton->getBounds();
+        recvStatsBg->setRectangle (recvbounds.toFloat().expanded(1.0f));
 
         auto pingbounds = latActiveButton->getBounds();
-        if (pingbounds.getBottom() < statsbounds.getY()) {
-            pingbounds.setBottom(statsbounds.getY() + 10);
-        }
+        //if (pingbounds.getBottom() < recvbounds.getY()) {
+        //    pingbounds.setBottom(recvbounds.getY() + 10);
+        //}
         pingBg->setRectangle (pingbounds.toFloat().expanded(1.0f));
     }
     
@@ -94,6 +104,7 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
     mutedTextColor = Colour::fromFloatRGBA(0.8, 0.5, 0.2, 1.0);
     regularTextColor = Colour(0xa0eeeeee);; //Colour(0xc0eeeeee);
     dimTextColor = Colour(0xa0aaaaaa); //Colour(0xc0aaaaaa);
+    soloColor = Colour::fromFloatRGBA(0.2, 0.5, 0.8, 1.0);
     
     droppedTextColor = Colour(0xc0ee8888);
 
@@ -198,9 +209,13 @@ void PeersContainerView::resized()
         callout->dismiss();
         pannerCalloutBox = nullptr;
     }
-    if (auto * callout = dynamic_cast<CallOutBox*>(optionsCalloutBox.get())) {
+    if (auto * callout = dynamic_cast<CallOutBox*>(sendOptionsCalloutBox.get())) {
         callout->dismiss();
-        optionsCalloutBox = nullptr;
+        sendOptionsCalloutBox = nullptr;
+    }
+    if (auto * callout = dynamic_cast<CallOutBox*>(recvOptionsCalloutBox.get())) {
+        callout->dismiss();
+        recvOptionsCalloutBox = nullptr;
     }
     if (auto * callout = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
         callout->dismiss();
@@ -282,6 +297,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     configLabel(pvf->staticAddrLabel.get(), LabelTypeSmallDim);
     pvf->staticAddrLabel->setFont(13);
     
+    
+    pvf->sendMutedButton = std::make_unique<ToggleButton>(TRANS("Disable Sending"));
+    pvf->sendMutedButton->addListener(this);
+
+    /*
     pvf->sendMutedButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     std::unique_ptr<Drawable> sendallowimg(Drawable::createFromImageData(BinaryData::mic_svg, BinaryData::mic_svgSize));
     std::unique_ptr<Drawable> senddisallowimg(Drawable::createFromImageData(BinaryData::mic_disabled_svg, BinaryData::mic_disabled_svgSize));
@@ -292,18 +312,29 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->sendMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     pvf->sendMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     pvf->sendMutedButton->setTooltip(TRANS("Toggles input muting, preventing or allowing your audio to be sent to this user"));
+     */
+    
+    //pvf->recvMutedButton = std::make_unique<SonoDrawableButton>("recvmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    //std::unique_ptr<Drawable> recvallowimg(Drawable::createFromImageData(BinaryData::speaker_svg, BinaryData::speaker_svgSize));
+    //std::unique_ptr<Drawable> recvdisallowimg(Drawable::createFromImageData(BinaryData::speaker_disabled_svg, BinaryData::speaker_disabled_svgSize));
+    //pvf->recvMutedButton->setImages(recvallowimg.get(), nullptr, nullptr, nullptr, recvdisallowimg.get());
+    pvf->recvMutedButton = std::make_unique<TextButton>(TRANS("MUTE"));
+    pvf->recvMutedButton->addListener(this);
+    pvf->recvMutedButton->setLookAndFeel(&pvf->medLnf);
+    pvf->recvMutedButton->setClickingTogglesState(true);
+    pvf->recvMutedButton->setColour(TextButton::buttonOnColourId, mutedTextColor.withAlpha(0.5f));
+    pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    pvf->recvMutedButton->setTooltip(TRANS("Toggles receive muting, preventing audio from being heard for this user"));
+
+    pvf->recvSoloButton = std::make_unique<TextButton>(TRANS("SOLO"));
+    pvf->recvSoloButton->addListener(this);
+    pvf->recvSoloButton->setLookAndFeel(&pvf->medLnf);
+    pvf->recvSoloButton->setClickingTogglesState(true);
+    pvf->recvSoloButton->setColour(TextButton::buttonOnColourId, soloColor.withAlpha(0.5f));
+    pvf->recvSoloButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    pvf->recvSoloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
 
     
-    pvf->recvMutedButton = std::make_unique<SonoDrawableButton>("recvmute", DrawableButton::ButtonStyle::ImageOnButtonBackground);
-    std::unique_ptr<Drawable> recvallowimg(Drawable::createFromImageData(BinaryData::speaker_svg, BinaryData::speaker_svgSize));
-    std::unique_ptr<Drawable> recvdisallowimg(Drawable::createFromImageData(BinaryData::speaker_disabled_svg, BinaryData::speaker_disabled_svgSize));
-    pvf->recvMutedButton->setImages(recvallowimg.get(), nullptr, nullptr, nullptr, recvdisallowimg.get());
-    pvf->recvMutedButton->addListener(this);
-    pvf->recvMutedButton->setClickingTogglesState(true);
-    pvf->recvMutedButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
-    pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
-    pvf->recvMutedButton->setTooltip(TRANS("Toggles receive muting, preventing or allowing audio to be heard from this user"));
-
     pvf->latActiveButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
     pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
@@ -389,14 +420,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     //pvf->optionsButton = std::make_unique<TextButton>("");
     //pvf->optionsButton->addListener(this);
 
-    pvf->optionsButton = std::make_unique<SonoDrawableButton>("settings",  DrawableButton::ButtonStyle::ImageFitted);
-    std::unique_ptr<Drawable> setimg(Drawable::createFromImageData(BinaryData::settings_icon_svg, BinaryData::settings_icon_svgSize));
-    pvf->optionsButton->setImages(setimg.get());
-    pvf->optionsButton->addListener(this);
-    pvf->optionsButton->setAlpha(0.7);
-   // pvf->optionsButton->addMouseListener(this, false);
-
-    
+  
     
     pvf->bufferTimeSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
     pvf->bufferTimeSlider->setName("buffer");
@@ -426,15 +450,31 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Safety Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
 
-    pvf->menuButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageFitted);
+    pvf->recvOptionsButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageFitted);
     //DrawableImage dotimg;
     //dotimg.setImage(ImageCache::getFromMemory (BinaryData::dots_icon_png, BinaryData::dots_icon_pngSize));
     //pvf->menuButton->setImages(&dotimg);
-    pvf->menuButton->addListener(this);
-    pvf->menuButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
-    pvf->menuButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
-    pvf->menuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    pvf->recvOptionsButton->addListener(this);
+    pvf->recvOptionsButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
+    pvf->recvOptionsButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
+    pvf->recvOptionsButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
+    
+    pvf->sendOptionsButton = std::make_unique<SonoDrawableButton>("settings",  DrawableButton::ButtonStyle::ImageFitted);
+    //std::unique_ptr<Drawable> setimg(Drawable::createFromImageData(BinaryData::settings_icon_svg, BinaryData::settings_icon_svgSize));
+    //pvf->optionsButton->setImages(setimg.get());
+    pvf->sendOptionsButton->addListener(this);
+    pvf->sendOptionsButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
+    pvf->sendOptionsButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
+    pvf->sendOptionsButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+     // pvf->optionsButton->addMouseListener(this, false);
+
+
+    pvf->changeAllFormatButton = std::make_unique<ToggleButton>(TRANS("Change for all"));
+    pvf->changeAllFormatButton->addListener(this);
+    pvf->changeAllFormatButton->setLookAndFeel(&pvf->smallLnf);
+
+    
     pvf->formatChoiceButton = std::make_unique<SonoChoiceButton>();
     pvf->formatChoiceButton->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
@@ -492,7 +532,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->optionsRemoveButton = std::make_unique<TextButton>(TRANS("Remove"));
     pvf->optionsRemoveButton->addListener(this);
-    pvf->optionsRemoveButton->setLookAndFeel(&pvf->medLnf);
+    pvf->optionsRemoveButton->setLookAndFeel(&pvf->smallLnf);
+    pvf->optionsRemoveButton->setTooltip(TRANS("Removes user from your own connections, does not affect the whole group"));
 
     
     // meters
@@ -512,16 +553,24 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->compressorView = std::make_unique<CompressorView>();
     pvf->compressorView->addListener(this);
     
-    pvf->optionsContainer = std::make_unique<Component>();
+    pvf->sendOptionsContainer = std::make_unique<Component>();
+    pvf->recvOptionsContainer = std::make_unique<Component>();
 
     Colour statsbgcol = Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0); // 0.08
     Colour statsbordcol = Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.0); // 0.25
-    pvf->statsBg = std::make_unique<DrawableRectangle>();
-    pvf->statsBg->setCornerSize(Point<float>(6,6));
-    pvf->statsBg->setFill (statsbgcol);
-    pvf->statsBg->setStrokeFill (statsbordcol);
-    pvf->statsBg->setStrokeThickness(0.5);
+    pvf->sendStatsBg = std::make_unique<DrawableRectangle>();
+    pvf->sendStatsBg->setCornerSize(Point<float>(6,6));
+    pvf->sendStatsBg->setFill (statsbgcol);
+    pvf->sendStatsBg->setStrokeFill (statsbordcol);
+    pvf->sendStatsBg->setStrokeThickness(0.5);
 
+    pvf->recvStatsBg = std::make_unique<DrawableRectangle>();
+    pvf->recvStatsBg->setCornerSize(Point<float>(6,6));
+    pvf->recvStatsBg->setFill (statsbgcol);
+    pvf->recvStatsBg->setStrokeFill (statsbordcol);
+    pvf->recvStatsBg->setStrokeThickness(0.5);
+
+    
     pvf->pingBg = std::make_unique<DrawableRectangle>();
     pvf->pingBg->setCornerSize(Point<float>(6,6));
     pvf->pingBg->setFill (statsbgcol);
@@ -541,7 +590,8 @@ void PeersContainerView::rebuildPeerViews()
 {
     int numpeers = processor.getNumberRemotePeers();
     
-    showOptions(0, false);
+    showSendOptions(0, false);
+    showRecvOptions(0, false);
     
     while (mPeerViews.size() < numpeers) {
         mPeerViews.add(createPeerViewInfo());        
@@ -553,14 +603,17 @@ void PeersContainerView::rebuildPeerViews()
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
 
-        pvf->addAndMakeVisible(pvf->statsBg.get());
+        pvf->addAndMakeVisible(pvf->sendStatsBg.get());
+        pvf->addAndMakeVisible(pvf->recvStatsBg.get());
         pvf->addAndMakeVisible(pvf->pingBg.get());
-        pvf->addAndMakeVisible(pvf->sendMutedButton.get());
+        //pvf->addAndMakeVisible(pvf->sendMutedButton.get());
         pvf->addAndMakeVisible(pvf->recvMutedButton.get());
+        pvf->addAndMakeVisible(pvf->recvSoloButton.get());
         pvf->addAndMakeVisible(pvf->latActiveButton.get());
         pvf->addAndMakeVisible(pvf->levelSlider.get());
         //pvf->addAndMakeVisible(pvf->levelLabel.get());
-        pvf->addAndMakeVisible(pvf->menuButton.get());
+        pvf->addAndMakeVisible(pvf->sendOptionsButton.get());
+        pvf->addAndMakeVisible(pvf->recvOptionsButton.get());
         pvf->addAndMakeVisible(pvf->staticLatencyLabel.get());
         pvf->addAndMakeVisible(pvf->staticPingLabel.get());
         pvf->addAndMakeVisible(pvf->latencyLabel.get());
@@ -568,22 +621,23 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->nameLabel.get());
         pvf->addAndMakeVisible(pvf->statusLabel.get());
         pvf->addAndMakeVisible(pvf->jitterBufferMeter.get());
-        //pvf->addAndMakeVisible(pvf->optionsButton.get());
         pvf->addAndMakeVisible(pvf->staticSendQualLabel.get());
         pvf->addAndMakeVisible(pvf->staticBufferLabel.get());
         pvf->addAndMakeVisible(pvf->sendQualityLabel.get());
         pvf->addAndMakeVisible(pvf->bufferLabel.get());
 
-        pvf->optionsContainer->addAndMakeVisible(pvf->addrLabel.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->staticAddrLabel.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->autosizeButton.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->formatChoiceButton.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->staticFormatChoiceLabel.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->bufferTimeSlider.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->bufferTimeLabel.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->optionsRemoveButton.get());
-        pvf->optionsContainer->addAndMakeVisible(pvf->optionsResetDropButton.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->addrLabel.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->staticAddrLabel.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->autosizeButton.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferTimeSlider.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferTimeLabel.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->optionsResetDropButton.get());
 
+        pvf->sendOptionsContainer->addAndMakeVisible(pvf->formatChoiceButton.get());
+        pvf->sendOptionsContainer->addAndMakeVisible(pvf->changeAllFormatButton.get());
+        pvf->sendOptionsContainer->addAndMakeVisible(pvf->staticFormatChoiceLabel.get());
+        pvf->sendOptionsContainer->addAndMakeVisible(pvf->sendMutedButton.get());
+        pvf->sendOptionsContainer->addAndMakeVisible(pvf->optionsRemoveButton.get());
         
         //pvf->addAndMakeVisible(pvf->sendMeter.get());
         pvf->addAndMakeVisible(pvf->recvMeter.get());
@@ -734,18 +788,31 @@ void PeersContainerView::updateLayout()
         pvf->optionsSendQualBox.items.add(FlexItem(100, minitemheight, *pvf->staticFormatChoiceLabel).withMargin(0).withFlex(0));
         pvf->optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(2));
 
+        pvf->optionsSendMutedBox.items.clear();
+        pvf->optionsSendMutedBox.flexDirection = FlexBox::Direction::row;
+        pvf->optionsSendMutedBox.items.add(FlexItem(5, 12));
+        pvf->optionsSendMutedBox.items.add(FlexItem(100, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(1));
+        //if (!servconnected) {
+            pvf->optionsSendMutedBox.items.add(FlexItem(minButtonWidth -20, minitemheight, *pvf->optionsRemoveButton).withMargin(0).withFlex(0));
+            //pvf->optionsSendMutedBox.items.add(FlexItem(12, 12).withFlex(1));
+            //pvf->optionsSendMutedBox->setVisible(true);
+        //} //else {
+        //    pvf->optionsRemoveButton->setVisible(false);
+        //}
+        
+        
+        pvf->optionsChangeAllQualBox.items.clear();
+        pvf->optionsChangeAllQualBox.flexDirection = FlexBox::Direction::row;
+        pvf->optionsChangeAllQualBox.items.add(FlexItem(10, minitemheight-10).withMargin(0).withFlex(1));
+        pvf->optionsChangeAllQualBox.items.add(FlexItem(150, minitemheight-10, *pvf->changeAllFormatButton).withMargin(0).withFlex(0));
+
+        
         pvf->optionsbuttbox.items.clear();
         pvf->optionsbuttbox.flexDirection = FlexBox::Direction::row;
         pvf->optionsbuttbox.items.add(FlexItem(12, 12).withFlex(1));
         pvf->optionsbuttbox.items.add(FlexItem(100, minitemheight, *pvf->optionsResetDropButton).withMargin(0).withFlex(0));
         pvf->optionsbuttbox.items.add(FlexItem(12, 12).withFlex(1));
-        if (!servconnected) {
-            pvf->optionsbuttbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->optionsRemoveButton).withMargin(0).withFlex(0));
-            pvf->optionsbuttbox.items.add(FlexItem(12, 12).withFlex(1));
-            pvf->optionsRemoveButton->setVisible(true);
-        } else {
-            pvf->optionsRemoveButton->setVisible(false);
-        }
+        
         
         pvf->optionsaddrbox.items.clear();
         pvf->optionsaddrbox.flexDirection = FlexBox::Direction::row;
@@ -754,16 +821,25 @@ void PeersContainerView::updateLayout()
         pvf->optionsaddrbox.items.add(FlexItem(100, 14, *pvf->addrLabel).withMargin(0).withFlex(2));
 
         
-        pvf->optionsBox.items.clear();
-        pvf->optionsBox.flexDirection = FlexBox::Direction::column;
-        pvf->optionsBox.items.add(FlexItem(4, 4));
-        pvf->optionsBox.items.add(FlexItem(100, 14,  pvf->optionsaddrbox).withMargin(2).withFlex(0));
-        pvf->optionsBox.items.add(FlexItem(4, 4));
-        pvf->optionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsSendQualBox).withMargin(2).withFlex(0));
-        pvf->optionsBox.items.add(FlexItem(4, 2));
-        pvf->optionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsNetbufBox).withMargin(2).withFlex(0));
-        pvf->optionsBox.items.add(FlexItem(4, 8));
-        pvf->optionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsbuttbox).withMargin(2).withFlex(0));
+        pvf->recvOptionsBox.items.clear();
+        pvf->recvOptionsBox.flexDirection = FlexBox::Direction::column;
+        pvf->recvOptionsBox.items.add(FlexItem(4, 4));
+        pvf->recvOptionsBox.items.add(FlexItem(100, 14,  pvf->optionsaddrbox).withMargin(2).withFlex(0));
+        pvf->recvOptionsBox.items.add(FlexItem(4, 2));
+        pvf->recvOptionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsNetbufBox).withMargin(2).withFlex(0));
+        pvf->recvOptionsBox.items.add(FlexItem(4, 8));
+        pvf->recvOptionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsbuttbox).withMargin(2).withFlex(0));
+
+
+        pvf->sendOptionsBox.items.clear();
+        pvf->sendOptionsBox.flexDirection = FlexBox::Direction::column;
+        pvf->sendOptionsBox.items.add(FlexItem(4, 4));
+        pvf->sendOptionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsSendQualBox).withMargin(2).withFlex(0));
+        //pvf->sendOptionsBox.items.add(FlexItem(4, 4));
+        pvf->sendOptionsBox.items.add(FlexItem(100, minitemheight-10,  pvf->optionsChangeAllQualBox).withMargin(2).withFlex(0));
+        pvf->sendOptionsBox.items.add(FlexItem(4, 4));
+        pvf->sendOptionsBox.items.add(FlexItem(100, minitemheight, pvf->optionsSendMutedBox).withMargin(0).withFlex(0));
+
         
         /*
         pvf->recvnetbox.items.clear();
@@ -794,9 +870,9 @@ void PeersContainerView::updateLayout()
            // pvf->sendbox.items.add(FlexItem(3, 2).withFlex(1));
         } else {
             pvf->sendbox.items.add(FlexItem(3, 2).withFlex(0.5));
-            pvf->sendbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
-            pvf->sendbox.items.add(FlexItem(5, 2));
             pvf->sendbox.items.add(FlexItem(mutebuttwidth, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
+            pvf->sendbox.items.add(FlexItem(5, 2));
+            pvf->sendbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->recvSoloButton).withMargin(0).withFlex(0));
             pvf->sendbox.items.add(FlexItem(3, 5).withFlex(0.5));
             pvf->sendbox.items.add(FlexItem(42, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0).withMaxWidth(50));
             pvf->sendbox.items.add(FlexItem(6, 2));            
@@ -825,16 +901,17 @@ void PeersContainerView::updateLayout()
         pvf->recvlevelbox.flexDirection = FlexBox::Direction::row;
 
         if (!isNarrow) {
-            pvf->recvlevelbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(0));
-            pvf->recvlevelbox.items.add(FlexItem(5, 2));
             pvf->recvlevelbox.items.add(FlexItem(mutebuttwidth, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
+            pvf->recvlevelbox.items.add(FlexItem(5, 2));
+            pvf->recvlevelbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->recvSoloButton).withMargin(0).withFlex(0));
             pvf->recvlevelbox.items.add(FlexItem(3, 5));
 
             pvf->levelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 90, 12);
             pvf->levelSlider->setPopupDisplayEnabled(false, false, findParentComponentOfClass<AudioProcessorEditor>());
         }
         else {
-            pvf->levelSlider->setTextBoxStyle(Slider::NoTextBox, true, 50, 10);
+            pvf->levelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 90, 12);
+            // pvf->levelSlider->setTextBoxStyle(Slider::NoTextBox, true, 50, 10);
             pvf->levelSlider->setPopupDisplayEnabled(true, true, findParentComponentOfClass<AudioProcessorEditor>());
         }
         pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(2));
@@ -1051,7 +1128,7 @@ void PeersContainerView::updatePeerViews()
             pvf->sendActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
         }
         else {
-            sendtext += TRANS("Self-muted");
+            sendtext += TRANS("SEND DISABLED");
             pvf->sendActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
         }
         
@@ -1100,7 +1177,8 @@ void PeersContainerView::updatePeerViews()
         }
 
 
-        
+        pvf->changeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
+
         pvf->sendActualBitrateLabel->setText(sendtext, dontSendNotification);
         pvf->recvActualBitrateLabel->setText(recvtext, dontSendNotification);
 
@@ -1125,6 +1203,7 @@ void PeersContainerView::updatePeerViews()
         
         pvf->sendMutedButton->setToggleState(!processor.getRemotePeerSendAllow(i) , dontSendNotification);
         pvf->recvMutedButton->setToggleState(!processor.getRemotePeerRecvAllow(i) , dontSendNotification);
+        pvf->recvSoloButton->setToggleState(processor.getRemotePeerSoloed(i) , dontSendNotification);
 
         pvf->latActiveButton->setToggleState(latactive, dontSendNotification);
 
@@ -1330,7 +1409,15 @@ void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index,
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         if (pvf->formatChoiceButton.get() == comp) {
-            processor.setRemotePeerAudioCodecFormat(i, index);
+            // set them all if this option is selected
+            if (processor.getChangingDefaultAudioCodecSetsExisting()) {
+                for (int j=0; j < mPeerViews.size(); ++j) {
+                    processor.setRemotePeerAudioCodecFormat(j, index);                    
+                }
+            }
+            else {
+                processor.setRemotePeerAudioCodecFormat(i, index);
+            }
             break;
         }        
         else if (pvf->autosizeButton.get() == comp) {
@@ -1385,6 +1472,24 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             }
             break;
         }
+        else if (pvf->recvSoloButton.get() == buttonThatWasClicked) {
+            if (ModifierKeys::currentModifiers.isAltDown()) {
+                // exclusive solo this one
+                for (int j=0; j < mPeerViews.size(); ++j) {
+                    if (buttonThatWasClicked->getToggleState()) {
+                        processor.setRemotePeerSoloed(j, i == j);                         
+                    }
+                    else {
+                        processor.setRemotePeerSoloed(j, false); 
+                    }
+                }
+                    
+                updatePeerViews();
+            } else {
+                processor.setRemotePeerSoloed(i, buttonThatWasClicked->getToggleState()); 
+            }
+            break;
+        }
         else if (pvf->latActiveButton.get() == buttonThatWasClicked) {
             if (pvf->latActiveButton->getToggleState()) {
                 startLatencyTest(i);
@@ -1403,12 +1508,12 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             //processor.setRemotePeerAutoresizeBufferMode(i, (SonobusAudioProcessor::AutoNetBufferMode) pvf->autosizeButton->getSelectedItemIndex());
         //}
         
-        else if (pvf->menuButton.get() == buttonThatWasClicked) {
+        else if (pvf->recvOptionsButton.get() == buttonThatWasClicked) {
 
-            if (!optionsCalloutBox) {
-                showOptions(i, true, pvf->menuButton.get());
+            if (!recvOptionsCalloutBox) {
+                showRecvOptions(i, true, pvf->recvOptionsButton.get());
             } else {
-                showOptions(i, false);
+                showRecvOptions(i, false);
             }
 
             break;
@@ -1431,11 +1536,11 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             }
             break;
         }
-        else if (pvf->optionsButton.get() == buttonThatWasClicked) {
-            if (!optionsCalloutBox) {
-                showOptions(i, true);
+        else if (pvf->sendOptionsButton.get() == buttonThatWasClicked) {
+            if (!sendOptionsCalloutBox) {
+                showSendOptions(i, true, pvf->sendOptionsButton.get());
             } else {
-                showOptions(i, false);
+                showSendOptions(i, false);
             }
             break;
         }
@@ -1443,9 +1548,13 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             processor.resetRemotePeerPacketStats(i);
             break;
         }
+        else if (pvf->changeAllFormatButton.get() == buttonThatWasClicked) {
+            processor.setChangingDefaultAudioCodecSetsExisting(buttonThatWasClicked->getToggleState());
+            break;
+        }
         else if (pvf->optionsRemoveButton.get() == buttonThatWasClicked) {
             processor.removeRemotePeer(i);
-            showOptions(i, false);
+            showSendOptions(i, false);
             break;
         }
     }    
@@ -1508,10 +1617,10 @@ void PeersContainerView::showPanners(int index, bool flag)
     }
 }
 
-void PeersContainerView::showOptions(int index, bool flag, Component * fromView)
+void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromView)
 {
     
-    if (flag && optionsCalloutBox == nullptr) {
+    if (flag && recvOptionsCalloutBox == nullptr) {
         
         Viewport * wrap = new Viewport();
         
@@ -1529,9 +1638,9 @@ void PeersContainerView::showOptions(int index, bool flag, Component * fromView)
         
         const int defWidth = 260;
 #if JUCE_IOS
-        const int defHeight = 180;
+        const int defHeight = 140;
 #else
-        const int defHeight = 156;
+        const int defHeight = 116;
 #endif
         
         
@@ -1541,27 +1650,84 @@ void PeersContainerView::showOptions(int index, bool flag, Component * fromView)
         
         auto * pvf = mPeerViews.getUnchecked(index);
         
-        pvf->optionsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        pvf->recvOptionsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
         
-        wrap->setViewedComponent(pvf->optionsContainer.get(), false);
-        pvf->optionsContainer->setVisible(true);
+        wrap->setViewedComponent(pvf->recvOptionsContainer.get(), false);
+        pvf->recvOptionsContainer->setVisible(true);
         
-        pvf->optionsBox.performLayout(pvf->optionsContainer->getLocalBounds());
+        pvf->recvOptionsBox.performLayout(pvf->recvOptionsContainer->getLocalBounds());
         pvf->bufferTimeLabel->setBounds(pvf->bufferTimeSlider->getBounds().removeFromLeft(pvf->bufferTimeSlider->getWidth()*0.5));
 
         
-        Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->menuButton->getScreenBounds());
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->recvOptionsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        optionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
-        if (CallOutBox * box = dynamic_cast<CallOutBox*>(optionsCalloutBox.get())) {
+        recvOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(recvOptionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
     }
     else {
         // dismiss it
-        if (CallOutBox * box = dynamic_cast<CallOutBox*>(optionsCalloutBox.get())) {
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(recvOptionsCalloutBox.get())) {
             box->dismiss();
-            optionsCalloutBox = nullptr;
+            recvOptionsCalloutBox = nullptr;
+        }
+    }
+}
+
+void PeersContainerView::showSendOptions(int index, bool flag, Component * fromView)
+{
+    
+    if (flag && sendOptionsCalloutBox == nullptr) {
+        
+        Viewport * wrap = new Viewport();
+        
+        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        
+        if (!dw) {
+            dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+        }
+        if (!dw) {
+            dw = this->findParentComponentOfClass<Component>();
+        }
+        if (!dw) {
+            dw = this;
+        }
+        
+        const int defWidth = 245;
+#if JUCE_IOS
+        const int defHeight = 144;
+#else
+        const int defHeight = 116;
+#endif
+        
+        
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+        
+        //Rectangle<int> setbounds = Rectangle<int>(5, mTitleImage->getBottom() + 2, std::min(100, getLocalBounds().getWidth() - 10), 80);
+        
+        auto * pvf = mPeerViews.getUnchecked(index);
+        
+        pvf->sendOptionsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        
+        wrap->setViewedComponent(pvf->sendOptionsContainer.get(), false);
+        pvf->sendOptionsContainer->setVisible(true);
+        
+        pvf->sendOptionsBox.performLayout(pvf->sendOptionsContainer->getLocalBounds());
+
+        
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->sendOptionsButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        sendOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(sendOptionsCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(sendOptionsCalloutBox.get())) {
+            box->dismiss();
+            sendOptionsCalloutBox = nullptr;
         }
     }
 }

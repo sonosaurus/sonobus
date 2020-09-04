@@ -60,6 +60,7 @@ static String recentsItemKey("ServerConnectionInfo");
 
 static String extraStateCollectionKey("ExtraState");
 static String useSpecificUdpPortKey("UseUdpPort");
+static String changeQualForAllKey("ChangeQualForAll");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -226,6 +227,7 @@ struct SonobusAudioProcessor::RemotePeer {
     bool recvAllow = true;
     bool recvAllowCache = false; // used for recvmute all state
     bool sendAllowCache = false; // used for sendmute all state
+    bool soloed = false;
     bool invitedPeer = false;
     int  formatIndex = -1; // default
     AudioCodecFormatInfo recvFormat;
@@ -2802,7 +2804,7 @@ bool SonobusAudioProcessor::getRemotePeerSendAllow(int index, bool cached) const
 
 void SonobusAudioProcessor::setRemotePeerRecvAllow(int index, bool allow, bool cached)
 {
-     const ScopedReadLock sl (mCoreLock);        
+    const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
 
@@ -2827,6 +2829,26 @@ bool SonobusAudioProcessor::getRemotePeerRecvAllow(int index, bool cached) const
         return cached ? remote->recvAllowCache : remote->recvAllow;
     }
     return false;        
+}
+
+void SonobusAudioProcessor::setRemotePeerSoloed(int index, bool soloed)
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        
+        remote->soloed = soloed;            
+    }
+}
+
+bool SonobusAudioProcessor::getRemotePeerSoloed(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);        
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return  remote->soloed;
+    }
+    return false;            
 }
 
 
@@ -3715,6 +3737,13 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramDefaultSendQual) {
         mDefaultAudioFormatIndex = (int) newValue;
+        
+        if (mChangingDefaultAudioCodecChangesAll) {
+            for (int i=0; i < getNumberRemotePeers(); ++i) {
+                setRemotePeerAudioCodecFormat(i, mDefaultAudioFormatIndex);
+            }
+        }
+        
     }
     else if (parameterID == paramDefaultNetbufMs) {
         mBufferTime = newValue;
@@ -4279,6 +4308,14 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         
         //mAooSource->process( buffer.getArrayOfReadPointers(), numSamples, t);
         
+        bool anysoloed = false;
+        for (auto & remote : mRemotePeers) 
+        {
+            if (remote->soloed) {
+                anysoloed = true;
+                break;
+            }
+        }
         
         tempBuffer.clear(0, numSamples);
         
@@ -4316,8 +4353,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             
             float usegain = remote->gain;
             
-            // we get the stuff, but ignore it TODO smooth
-            if (!remote->recvActive) {
+            // we get the stuff, but ignore it (either muted or others soloed)
+            if (!remote->recvActive || (anysoloed && !remote->soloed)) {
                 if (remote->_lastgain > 0.0f) {
                     // fade out
                     usegain = 0.0f;
@@ -4831,6 +4868,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     // update state with our recents info
     extraTree.removeAllChildren(nullptr);
     extraTree.setProperty(useSpecificUdpPortKey, mUseSpecificUdpPort, nullptr);
+    extraTree.setProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll, nullptr);
 
     ValueTree inputEffectsTree = mState.state.getOrCreateChildWithName(inputEffectsStateKey, nullptr);
     inputEffectsTree.removeAllChildren(nullptr);
@@ -4869,6 +4907,9 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
         if (extraTree.isValid()) {
             int port = extraTree.getProperty(useSpecificUdpPortKey, mUseSpecificUdpPort);
             setUseSpecificUdpPort(port);
+
+            bool chqual = extraTree.getProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll);
+            setChangingDefaultAudioCodecSetsExisting(chqual);
         }
         
        ValueTree inputEffectsTree = mState.state.getChildWithName(inputEffectsStateKey);

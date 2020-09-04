@@ -41,11 +41,12 @@ public:
     std::unique_ptr<Label> nameLabel;
     std::unique_ptr<Label> addrLabel;
     std::unique_ptr<Label> staticAddrLabel;
-    std::unique_ptr<SonoDrawableButton> sendMutedButton;
-    std::unique_ptr<SonoDrawableButton> recvMutedButton;
+    std::unique_ptr<ToggleButton> sendMutedButton;
+    std::unique_ptr<TextButton> recvMutedButton;
+    std::unique_ptr<TextButton> recvSoloButton;
     std::unique_ptr<SonoDrawableButton> latActiveButton;
-    std::unique_ptr<SonoDrawableButton> optionsButton;
-    std::unique_ptr<SonoDrawableButton> menuButton;
+    std::unique_ptr<SonoDrawableButton> sendOptionsButton;
+    std::unique_ptr<SonoDrawableButton> recvOptionsButton;
     std::unique_ptr<TextButton> fxButton;
     std::unique_ptr<TextButton> panButton;
     std::unique_ptr<Label>  statusLabel;
@@ -57,6 +58,7 @@ public:
     std::unique_ptr<Slider> bufferTimeSlider;        
     std::unique_ptr<SonoChoiceButton> autosizeButton;
     std::unique_ptr<SonoChoiceButton> formatChoiceButton;
+    std::unique_ptr<ToggleButton> changeAllFormatButton;
     std::unique_ptr<TextButton> optionsResetDropButton;
     std::unique_ptr<TextButton> optionsRemoveButton;
 
@@ -67,7 +69,8 @@ public:
 
     
     std::unique_ptr<Component> pannersContainer;
-    std::unique_ptr<Component> optionsContainer;
+    std::unique_ptr<Component> sendOptionsContainer;
+    std::unique_ptr<Component> recvOptionsContainer;
 
     std::unique_ptr<Label>  staticLatencyLabel;
     std::unique_ptr<Label>  latencyLabel;
@@ -88,7 +91,8 @@ public:
     double fillRatio = 0.0;
     std::unique_ptr<JitterBufferMeter> jitterBufferMeter;
 
-    std::unique_ptr<DrawableRectangle> statsBg;
+    std::unique_ptr<DrawableRectangle> sendStatsBg;
+    std::unique_ptr<DrawableRectangle> recvStatsBg;
     std::unique_ptr<DrawableRectangle> pingBg;
 
     std::unique_ptr<foleys::LevelMeter> recvMeter;
@@ -111,14 +115,18 @@ public:
     FlexBox recvlevelbox;
     FlexBox pannerbox;
     
-    FlexBox optionsBox;
+    FlexBox recvOptionsBox;
     FlexBox optionsNetbufBox;
-    FlexBox optionsSendQualBox;
     FlexBox optionsstatbox;
     FlexBox optionsbuttbox;
     FlexBox optionsaddrbox;
 
-
+    FlexBox sendOptionsBox;
+    FlexBox optionsSendQualBox;
+    FlexBox optionsChangeAllQualBox;
+    FlexBox optionsSendMutedBox;
+    
+    
     FlexBox effectsBox;
 
     FlexBox squalbox;
@@ -205,7 +213,8 @@ protected:
     
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showPanners(int index, bool flag);
-    void showOptions(int index, bool flag, Component * fromView=nullptr);
+    void showSendOptions(int index, bool flag, Component * fromView=nullptr);
+    void showRecvOptions(int index, bool flag, Component * fromView=nullptr);
     void showEffects(int index, bool flag, Component * fromView=nullptr);
 
     
@@ -215,7 +224,8 @@ protected:
     std::unique_ptr<BubbleMessageComponent> popTip;
 
     WeakReference<Component> pannerCalloutBox;
-    WeakReference<Component> optionsCalloutBox;
+    WeakReference<Component> recvOptionsCalloutBox;
+    WeakReference<Component> sendOptionsCalloutBox;
     WeakReference<Component> effectsCalloutBox;
 
     FlexBox peersBox;
@@ -227,6 +237,7 @@ protected:
     uint32 lastUpdateTimestampMs = 0;
     
     Colour mutedTextColor;
+    Colour soloColor;
     Colour regularTextColor;
     Colour droppedTextColor;
     Colour dimTextColor;

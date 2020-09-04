@@ -265,6 +265,9 @@ public:
     void setRemotePeerRecvAllow(int index, bool allow, bool cached=false);
     bool getRemotePeerRecvAllow(int index, bool cached=false) const;
 
+    void setRemotePeerSoloed(int index, bool soloed);
+    bool getRemotePeerSoloed(int index) const;
+
     
     int64_t getRemotePeerPacketsReceived(int index) const;
     int64_t getRemotePeerPacketsSent(int index) const;
@@ -348,6 +351,10 @@ public:
     void setDefaultAudioCodecFormat(int formatIndex);
     int getDefaultAudioCodecFormat() const { return mDefaultAudioFormatIndex; }
 
+    void setChangingDefaultAudioCodecSetsExisting(bool flag) { mChangingDefaultAudioCodecChangesAll = flag; }
+    bool getChangingDefaultAudioCodecSetsExisting() const { return mChangingDefaultAudioCodecChangesAll;}
+    
+    
     String getAudioCodeFormatName(int formatIndex) const;
 
     void setDefaultAutoresizeBufferMode(AutoNetBufferMode flag);
@@ -552,6 +559,8 @@ private:
     bool mLastHasMainFx = false;
     
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
+    
+    bool mChangingDefaultAudioCodecChangesAll = false;
     
     RangedAudioParameter * mDefaultAutoNetbufModeParam;
     RangedAudioParameter * mTempoParameter;

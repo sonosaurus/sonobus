@@ -123,9 +123,12 @@ class SonoBigTextLookAndFeel   : public SonoLookAndFeel
 public:
     SonoBigTextLookAndFeel(float maxTextSize=32.0f);
     
-    Font getTextButtonFont (TextButton&, int buttonHeight);
-    Button* createSliderButton (Slider&, const bool isIncrement);
-    Label* createSliderTextBox (Slider&);
+    Font getTextButtonFont (TextButton&, int buttonHeight) override;
+    Button* createSliderButton (Slider&, const bool isIncrement) override;
+    Label* createSliderTextBox (Slider&) override;
+
+    void drawToggleButton (Graphics& g, ToggleButton& button,
+                           bool isMouseOverButton, bool isButtonDown) override;
 
     Justification textJustification = Justification::centred;
     
