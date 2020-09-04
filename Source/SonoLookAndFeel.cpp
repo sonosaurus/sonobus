@@ -1154,7 +1154,8 @@ Label* SonoBigTextLookAndFeel::createSliderTextBox (Slider& slider)
 {
     Label * lab = LookAndFeel_V4::createSliderTextBox(slider);
     lab->setFont(myFont.withHeight(maxSize * fontScale));
-    lab->setJustificationType(Justification::centred);
+    lab->setJustificationType(textJustification);
+
     return lab;
 }
 

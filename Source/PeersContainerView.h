@@ -135,6 +135,8 @@ public:
     bool wasRecvActiveAtLatencyTest = false;
     bool wasSendActiveAtLatencyTest = false;
     
+    bool singlePanner = true;
+    
     Colour bgColor;
     Colour borderColor;
     Colour itemColor;

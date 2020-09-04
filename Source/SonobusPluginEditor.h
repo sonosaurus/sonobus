@@ -394,7 +394,6 @@ private:
     //std::unique_ptr<DialogWindow> mPatchbayWindow;
     WeakReference<Component> patchbayCalloutBox;
 
-    std::unique_ptr<BubbleMessageComponent> popTip;
 
     File lastRecordedFile;
     
@@ -638,7 +637,9 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbDampingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbPreDelayAttachment;
 
-    
+    // keep this down here, so it gets destroyed early
+    std::unique_ptr<BubbleMessageComponent> popTip;
+
     bool iaaConnected = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)

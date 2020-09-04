@@ -1394,6 +1394,21 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 #endif
     }
     
+    popTip.reset();
+    
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainSendMute, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetEnabled, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbEnabled, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendChannels, this);
+
+
+    
     processor.removeClientListener(this);
     processor.getTransportSource().removeChangeListener(this);
     
@@ -4150,14 +4165,22 @@ void SonobusAudioProcessorEditor::updateLayout()
 
 void SonobusAudioProcessorEditor::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
 {
-
-    popTip = std::make_unique<BubbleMessageComponent>();
+    if (!popTip) {
+        popTip = std::make_unique<BubbleMessageComponent>();
+    }
+    
     popTip->setAllowedPlacement(BubbleMessageComponent::BubblePlacement::above | BubbleMessageComponent::BubblePlacement::below);
     
     if (target) {
-        target->getTopLevelComponent()->addChildComponent (popTip.get());
+        if (auto * parent = findParentComponentOfClass<AudioProcessorEditor>()) {
+            parent->addChildComponent (popTip.get());
+        }
+        else {
+            addChildComponent(popTip.get());            
+        }
     }
-    else {
+    else 
+    {
         addChildComponent(popTip.get());
     }
     

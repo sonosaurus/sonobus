@@ -127,6 +127,8 @@ public:
     Button* createSliderButton (Slider&, const bool isIncrement);
     Label* createSliderTextBox (Slider&);
 
+    Justification textJustification = Justification::centred;
+    
 protected:
     float maxSize;
     

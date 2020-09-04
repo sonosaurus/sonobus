@@ -11,11 +11,13 @@
 #include "PeersContainerView.h"
 #include "JitterBufferMeter.h"
 
-PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14), sonoSliderLNF(14)
+PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14), sonoSliderLNF(12)
 {
     bgColor = Colour::fromFloatRGBA(0.112f, 0.112f, 0.112f, 1.0f);
     borderColor = Colour::fromFloatRGBA(0.5f, 0.5f, 0.5f, 0.3f);
 
+    sonoSliderLNF.textJustification = Justification::centredLeft;
+    
     //Random rcol;
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
 }
@@ -110,7 +112,7 @@ void PeersContainerView::configLevelSlider(Slider * slider)
     slider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
 
     
-    slider->setTextBoxStyle(Slider::TextBoxRight, true, 60, 14);
+    slider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 12);
 
     slider->setRange(0.0, 2.0, 0.0);
     slider->setSkewFactor(0.25);
@@ -119,7 +121,7 @@ void PeersContainerView::configLevelSlider(Slider * slider)
     slider->setSliderSnapsToMousePosition(false);
     slider->setScrollWheelEnabled(false);
     slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
-    slider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
+    slider->textFromValueFunction = [](float v) -> String { return String(TRANS("Level: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
 #if JUCE_IOS
     //slider->setPopupDisplayEnabled(true, false, this);
 #endif
@@ -214,7 +216,11 @@ void PeersContainerView::showPopTip(const String & message, int timeoutMs, Compo
     popTip->setAllowedPlacement(BubbleComponent::above);
     
     if (target) {
-        target->getTopLevelComponent()->addChildComponent (popTip.get());
+        if (auto * parent = target->findParentComponentOfClass<AudioProcessorEditor>()) {
+            parent->addChildComponent (popTip.get());
+        } else {
+            addChildComponent(popTip.get());            
+        }
     }
     else {
         addChildComponent(popTip.get());
@@ -318,7 +324,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->levelSlider->addListener(this);
 
     configLevelSlider(pvf->levelSlider.get());
-    //pvf->levelSlider->setLookAndFeel(&pvf->smallLnf);
+    pvf->levelSlider->setLookAndFeel(&pvf->sonoSliderLNF);
+
 
     //pvf->levelLabel = std::make_unique<Label>("level", TRANS("Level"));
     //configLabel(pvf->levelLabel.get(), LabelTypeRegular);
@@ -326,7 +333,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     
     pvf->pannersContainer = std::make_unique<Component>();
     
-    pvf->panSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
+    pvf->panSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxAbove);
+    //pvf->panSlider1->setTextBoxStyle(Slider::TextBoxBelow, true, 60, 12);
     pvf->panSlider1->setName("pan1");
     pvf->panSlider1->addListener(this);
     pvf->panSlider1->getProperties().set ("fromCentre", true);
@@ -337,10 +345,16 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->panSlider1->setSliderSnapsToMousePosition(false);
     pvf->panSlider1->setScrollWheelEnabled(false);
     pvf->panSlider1->setMouseDragSensitivity(100);
-    pvf->panSlider1->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
+    //pvf->panSlider1->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+    //pvf->panSlider1->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+    //pvf->panSlider1->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
+    //pvf->panSlider1->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+
+    pvf->panSlider1->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return String(TRANS("Pan: C")); return String(TRANS("Pan: ")) +  String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
     pvf->panSlider1->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
     pvf->panSlider1->setValue(0.1, dontSendNotification);
     pvf->panSlider1->setValue(0.0, dontSendNotification);
+    pvf->panSlider1->setLookAndFeel(&pvf->sonoSliderLNF);
 
     
     pvf->panSlider2     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
@@ -578,8 +592,9 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->panButton.get());
         pvf->addAndMakeVisible(pvf->fxButton.get());
 
-        pvf->pannersContainer->addAndMakeVisible(pvf->panSlider1.get());
-        pvf->pannersContainer->addAndMakeVisible(pvf->panSlider2.get());
+        pvf->addAndMakeVisible(pvf->panSlider1.get());
+        //pvf->pannersContainer->addAndMakeVisible(pvf->panSlider1.get());
+        //pvf->pannersContainer->addAndMakeVisible(pvf->panSlider2.get());
 
         pvf->effectsContainer->addAndMakeVisible(pvf->compressorView->getHeaderComponent());
         pvf->effectsContainer->addAndMakeVisible(pvf->compressorView.get());
@@ -602,7 +617,7 @@ void PeersContainerView::updateLayout()
 {
     int minitemheight = 36;
     int mincheckheight = 32;
-    int minPannerWidth = 40;
+    int minPannerWidth = 58;
     int minButtonWidth = 90;
     
     int mutebuttwidth = 52;
@@ -815,32 +830,60 @@ void PeersContainerView::updateLayout()
             pvf->recvlevelbox.items.add(FlexItem(mutebuttwidth, mincheckheight, *pvf->recvMutedButton).withMargin(0).withFlex(0));
             pvf->recvlevelbox.items.add(FlexItem(3, 5));
 
-            pvf->levelSlider->setTextBoxStyle(Slider::TextBoxRight, true, 60, 14);
-            pvf->levelSlider->setPopupDisplayEnabled(false, false, getTopLevelComponent());
+            pvf->levelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 90, 12);
+            pvf->levelSlider->setPopupDisplayEnabled(false, false, findParentComponentOfClass<AudioProcessorEditor>());
         }
         else {
             pvf->levelSlider->setTextBoxStyle(Slider::NoTextBox, true, 50, 10);
-            pvf->levelSlider->setPopupDisplayEnabled(true, true, getTopLevelComponent());
+            pvf->levelSlider->setPopupDisplayEnabled(true, true, findParentComponentOfClass<AudioProcessorEditor>());
         }
         pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(2));
 
-        if (!isNarrow) {
-            pvf->recvlevelbox.items.add(FlexItem(42, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0).withMaxWidth(50));
-        }
 
         if (processor.getTotalNumOutputChannels() > 1) {
 
             pvf->recvlevelbox.items.add(FlexItem(3, 5));
-            pvf->recvlevelbox.items.add(FlexItem(40, minitemheight, *pvf->panButton).withMargin(0).withFlex(1).withMaxWidth(50));
 
-            pvf->pannerbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+            pvf->recvlevelbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(1).withMaxWidth(minPannerWidth+10)); //.withMaxWidth(maxPannerWidth));
 
+#if 0
             if (processor.getRemotePeerChannelCount(i) > 1) {
+                // two panners 
+                if (pvf->panSlider1->getParentComponent() != pvf->pannersContainer.get()) {
+                    pvf->pannersContainer->addAndMakeVisible( pvf->panSlider1.get());
+                }
+                pvf->recvlevelbox.items.add(FlexItem(40, minitemheight, *pvf->panButton).withMargin(0).withFlex(1).withMaxWidth(50));
+
+                pvf->pannerbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+
                 pvf->pannerbox.items.add(FlexItem(2, 5));
                 pvf->pannerbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+                pvf->singlePanner = false;
+                
+                pvf->panSlider1->setSliderStyle(Slider::TwoValueHorizontal);
+                
             }
+            else {
+                // single panner show at toplevel
+                if (pvf->panSlider1->getParentComponent() != pvf) {
+                    pvf->addAndMakeVisible(pvf->panSlider1.get());
+                }
+
+                pvf->panSlider1->setSliderStyle(Slider::LinearBar);
+
+                
+                pvf->recvlevelbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(1).withMaxWidth(minPannerWidth+10)); //.withMaxWidth(maxPannerWidth));
+                pvf->singlePanner = true;
+            }
+#endif
         }
 
+        if (!isNarrow) {
+            pvf->recvlevelbox.items.add(FlexItem(3, 5));
+            pvf->recvlevelbox.items.add(FlexItem(42, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0).withMaxWidth(50));
+        }
+
+        
         pvf->recvlevelbox.items.add(FlexItem(3, 5));
 
         /*
@@ -952,7 +995,8 @@ Rectangle<int> PeersContainerView::getMinimumContentBounds() const
 void PeersContainerView::updatePeerViews()
 {
     uint32 nowstampms = Time::getMillisecondCounter();
-    
+    bool needsUpdateLayout = false;
+
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         String hostname;
@@ -1109,9 +1153,6 @@ void PeersContainerView::updatePeerViews()
         pvf->recvMeter->setMeterSource (processor.getRemotePeerRecvMeterSource(i));        
         //pvf->sendMeter->setMeterSource (processor.getRemotePeerSendMeterSource(i));
 
-        pvf->panSlider1->setValue(processor.getRemotePeerChannelPan(i, 0), dontSendNotification);
-        pvf->panSlider2->setValue(processor.getRemotePeerChannelPan(i, 1), dontSendNotification);
-        
         
         if (processor.getTotalNumOutputChannels() == 1) {
             pvf->panSlider1->setVisible(false);
@@ -1122,14 +1163,39 @@ void PeersContainerView::updatePeerViews()
             pvf->panSlider1->setVisible(true);
             pvf->panSlider1->setDoubleClickReturnValue(true, 0.0);
             pvf->panSlider2->setVisible(false);
-            pvf->panButton->setVisible(true);
+            pvf->panButton->setVisible(false);
+
+            if (!pvf->singlePanner) {
+                pvf->panSlider1->setSliderStyle(Slider::LinearBar);
+                pvf->panSlider1->setTextBoxStyle(Slider::TextBoxAbove, true, 10, 2);
+                
+                pvf->singlePanner = true;
+            }
+                        
         } else {
-            pvf->panSlider1->setDoubleClickReturnValue(true, -1.0);
-            pvf->panSlider2->setDoubleClickReturnValue(true, 1.0);
+            pvf->panSlider1->setDoubleClickReturnValue(false, -1.0);
+            //pvf->panSlider2->setDoubleClickReturnValue(true, 1.0);
             pvf->panSlider1->setVisible(true);
-            pvf->panSlider2->setVisible(true);
-            pvf->panButton->setVisible(true);
+            pvf->panSlider2->setVisible(false);
+            pvf->panButton->setVisible(false);
+
+            if (pvf->singlePanner) {
+                pvf->panSlider1->setSliderStyle(Slider::TwoValueHorizontal);
+                pvf->panSlider1->setTextBoxStyle(Slider::NoTextBox, true, 60, 12);
+
+                pvf->singlePanner = false;
+            }
         }
+        
+        if (pvf->panSlider1->isTwoValue()) {
+            pvf->panSlider1->setMinAndMaxValues(processor.getRemotePeerChannelPan(i, 0), processor.getRemotePeerChannelPan(i, 1), dontSendNotification);            
+        }
+        else {        
+            pvf->panSlider1->setValue(processor.getRemotePeerChannelPan(i, 0), dontSendNotification);
+        }
+        pvf->panSlider2->setValue(processor.getRemotePeerChannelPan(i, 1), dontSendNotification);
+        
+
         
         //pvf->packetsizeSlider->setValue(findHighestSetBit(processor.getRemotePeerSendPacketsize(i)), dontSendNotification);
         
@@ -1179,6 +1245,10 @@ void PeersContainerView::updatePeerViews()
                 //}
             }
         }
+    }
+    
+    if (needsUpdateLayout) {
+        updateLayout();
     }
     
     lastUpdateTimestampMs = nowstampms;
@@ -1730,7 +1800,15 @@ void PeersContainerView::sliderValueChanged (Slider* slider)
            break;
        }
        else if (pvf->panSlider1.get() == slider) {
-           processor.setRemotePeerChannelPan(i, 0, pvf->panSlider1->getValue());   
+           if (pvf->panSlider1->isTwoValue()) {
+               float pan1 = pvf->panSlider1->getMinValue();
+               float pan2 = pvf->panSlider1->getMaxValue();
+               processor.setRemotePeerChannelPan(i, 0, pan1);   
+               processor.setRemotePeerChannelPan(i, 1, pan2);
+           }
+           else {
+               processor.setRemotePeerChannelPan(i, 0, pvf->panSlider1->getValue());   
+           }
            break;
        }
        else if (pvf->panSlider2.get() == slider) {
