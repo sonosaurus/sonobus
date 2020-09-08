@@ -913,7 +913,8 @@ private:
 
                 notification.setColour (Label::textColourId, Colours::black);
 
-                settingsButton.setColour (TextButton::textColourOffId, Colours::black);
+                settingsButton.setColour (TextButton::textColourOffId, Colours::white);
+                settingsButton.setColour (TextButton::buttonColourId, Colours::red);
 
                 settingsButton.addListener (settingsButtonListener);
 
