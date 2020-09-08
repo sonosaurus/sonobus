@@ -231,6 +231,7 @@ struct SonobusAudioProcessor::RemotePeer {
     bool invitedPeer = false;
     int  formatIndex = -1; // default
     AudioCodecFormatInfo recvFormat;
+    int reqRemoteSendFormatIndex = -1; // no pref
     int packetsize = 600;
     int sendChannels = 2; // actual current send channel count
     int nominalSendChannels = 0; // 0 matches input
@@ -972,6 +973,14 @@ String SonobusAudioProcessor::getAudioCodeFormatName(int formatIndex) const
     return info.name;    
 }
 
+bool SonobusAudioProcessor::getAudioCodeFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const
+{
+    if (formatIndex >= mAudioFormats.size() || formatIndex < 0) return false;
+    retinfo = mAudioFormats.getReference(formatIndex);
+    return true;    
+}
+
+
 void SonobusAudioProcessor::setDefaultAudioCodecFormat(int formatIndex)
 {
     if (formatIndex < mAudioFormats.size() && formatIndex >= 0) {
@@ -1032,6 +1041,45 @@ bool SonobusAudioProcessor::getRemotePeerReceiveAudioCodecFormat(int index, Audi
     auto remote = mRemotePeers.getUnchecked(index);
     retinfo = remote->recvFormat;
     return true;
+}
+
+bool SonobusAudioProcessor::setRequestRemotePeerSendAudioCodecFormat(int index, int formatIndex)
+{
+    if (formatIndex >= mAudioFormats.size() || index >= mRemotePeers.size()) return false;
+    
+
+    const ScopedReadLock sl (mCoreLock);
+    auto remote = mRemotePeers.getUnchecked(index);
+
+    aoo_format_storage fmt;
+    
+    
+    if (formatIndex >= 0) {
+        const AudioCodecFormatInfo & info = mAudioFormats.getReference(formatIndex);
+
+        if (formatInfoToAooFormat(info, remote->recvChannels, fmt)) {
+            remote->oursink->request_source_codec_change(remote->endpoint, remote->remoteSourceId, fmt.header);
+
+            remote->reqRemoteSendFormatIndex = formatIndex; 
+            return true;
+        }
+        else {
+            return false;
+        }
+    } else {
+        remote->reqRemoteSendFormatIndex = -1; // no preference
+        return true;
+    }
+}
+
+int SonobusAudioProcessor::getRequestRemotePeerSendAudioCodecFormat(int index) const
+{
+    if (index >= mRemotePeers.size()) return -1;
+    
+    const ScopedReadLock sl (mCoreLock);
+    auto remote = mRemotePeers.getUnchecked(index);
+
+    return remote->reqRemoteSendFormatIndex;    
 }
 
 
@@ -1778,6 +1826,42 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
             }
 
             break;
+        }
+        case AOO_CHANGECODEC_EVENT:
+        {
+            aoo_source_event *e = (aoo_source_event *)events[i];
+            DBG("Change codec received from sink " << e->id);
+            
+            EndpointState * es = (EndpointState *)e->endpoint;
+            RemotePeer * peer = findRemotePeerByRemoteSinkId(es, e->id);
+            
+            if (peer) {
+                // now we need to set our latency and echo source to match our main source's format
+                aoo_format_storage fmt;
+                if (peer->oursource->get_format(fmt) > 0) {
+                    peer->latencysource->set_format(fmt.header);
+                    peer->echosource->set_format(fmt.header);
+
+                    AudioCodecFormatCodec codec = String(fmt.header.codec) == AOO_CODEC_OPUS ? CodecOpus : CodecPCM;
+                    if (codec == CodecOpus) {
+                        aoo_format_opus *ofmt = (aoo_format_opus *)&fmt;
+                        int retindex = findFormatIndex(codec, ofmt->bitrate / ofmt->header.nchannels, 0);
+                        if (retindex >= 0) {
+                            peer->formatIndex = retindex; // new sending format index
+                        }
+                    }
+                    else if (codec == CodecPCM) {
+                        aoo_format_pcm *pfmt = (aoo_format_pcm *)&fmt;
+                        int bdepth = pfmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : pfmt->bitdepth == AOO_PCM_INT24 ? 3 : pfmt->bitdepth == AOO_PCM_FLOAT64 ? 8 : 2;
+                        int retindex = findFormatIndex(codec, 0, bdepth);
+                        if (retindex >= 0) {
+                            peer->formatIndex = retindex; // new sending format index
+                        }                        
+                    }
+                }
+                
+
+            }
         }
         default:
             break;
@@ -3294,7 +3378,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         setupSourceFormat(retpeer, retpeer->oursource.get());
         retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, retpeer->sendChannels);
         retpeer->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
-        retpeer->oursource->set_packetsize(retpeer->packetsize);
+        retpeer->oursource->set_packetsize(retpeer->packetsize);        
 
         setupSourceFormat(retpeer, retpeer->latencysource.get(), true);
         retpeer->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
@@ -3316,6 +3400,10 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->oursource->set_ping_interval(2000);
         retpeer->latencysource->set_ping_interval(2000);
         retpeer->echosource->set_ping_interval(2000);
+
+        retpeer->oursource->set_respect_codec_change_requests(1);
+        retpeer->latencysource->set_respect_codec_change_requests(1);
+        retpeer->echosource->set_respect_codec_change_requests(1);
         
         retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
         retpeer->latencyMeasurer.reset(new LatencyMeasurer());
@@ -3515,6 +3603,37 @@ bool SonobusAudioProcessor::isAnythingRoutedToPeer(int index) const
 
 ////
 
+bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, aoo_format_storage & retformat) {
+                
+        if (info.codec == CodecPCM) {
+            aoo_format_pcm *fmt = (aoo_format_pcm *)&retformat;
+            fmt->header.codec = AOO_CODEC_PCM;
+            fmt->header.blocksize = lastSamplesPerBlock >= info.min_preferred_blocksize ? lastSamplesPerBlock : info.min_preferred_blocksize;
+            fmt->header.samplerate = getSampleRate();
+            fmt->header.nchannels = channels;
+            fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT16;
+
+            return true;
+        } 
+        else if (info.codec == CodecOpus) {
+            aoo_format_opus *fmt = (aoo_format_opus *)&retformat;
+            fmt->header.codec = AOO_CODEC_OPUS;
+            fmt->header.blocksize = lastSamplesPerBlock >= info.min_preferred_blocksize ? lastSamplesPerBlock : info.min_preferred_blocksize;
+            fmt->header.samplerate = getSampleRate();
+            fmt->header.nchannels = channels;
+            fmt->bitrate = info.bitrate * fmt->header.nchannels;
+            fmt->complexity = info.complexity;
+            fmt->signal_type = info.signal_type;
+            fmt->application_type = OPUS_APPLICATION_RESTRICTED_LOWDELAY;
+            //fmt->application_type = OPUS_APPLICATION_AUDIO;
+            
+            return true;
+        }
+    
+    return false;
+}
+    
+    
 void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer * peer, aoo::isource * source, bool latencymode)
 {
     // have choice and parameters
@@ -3523,31 +3642,10 @@ void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer 
     const AudioCodecFormatInfo & info =  mAudioFormats.getReference(formatIndex);
     
     aoo_format_storage f;
-    
     int channels = latencymode ? 1  :  peer ? peer->sendChannels : getTotalNumInputChannels();
     
-    if (info.codec == CodecPCM) {
-        aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
-        fmt->header.codec = AOO_CODEC_PCM;
-        fmt->header.blocksize = lastSamplesPerBlock; // peer ? peer->packetsize : lastSamplesPerBlock; // lastSamplesPerBlock;
-        fmt->header.samplerate = getSampleRate();
-        fmt->header.nchannels = channels;
-        fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT16;
-        source->set_format(fmt->header);
-    } 
-    else if (info.codec == CodecOpus) {
-        aoo_format_opus *fmt = (aoo_format_opus *)&f;
-        fmt->header.codec = AOO_CODEC_OPUS;
-        fmt->header.blocksize = lastSamplesPerBlock >= info.min_preferred_blocksize ? lastSamplesPerBlock : info.min_preferred_blocksize;
-        fmt->header.samplerate = getSampleRate();
-        fmt->header.nchannels = channels;
-        fmt->bitrate = info.bitrate * fmt->header.nchannels;
-        fmt->complexity = info.complexity;
-        fmt->signal_type = info.signal_type;
-        fmt->application_type = OPUS_APPLICATION_RESTRICTED_LOWDELAY;
-        //fmt->application_type = OPUS_APPLICATION_AUDIO;
-        
-        source->set_format(fmt->header);        
+    if (formatInfoToAooFormat(info, channels, f)) {        
+        source->set_format(f.header);        
     }
 }
 

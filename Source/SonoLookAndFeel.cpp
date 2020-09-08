@@ -43,8 +43,8 @@ SonoLookAndFeel::SonoLookAndFeel()
     setColour(ResizableWindow::backgroundColourId, Colour(0xff111111));
     
     //setColour (TextButton::buttonColourId, Colour (0xff363636));
-    //setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7)); // old one
-    setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.0));
+    setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7)); // old one
+    //setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.0));
     //setColour (TextButton::buttonOnColourId, Colour (0xff3d70c8));
     setColour (TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.8));
     setColour (TextButton::textColourOnId, Colour (0xddcccccc));
@@ -942,6 +942,10 @@ void SonoLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, in
 //==============================================================================
 int SonoLookAndFeel::getSliderThumbRadius (Slider& slider)
 {
+    if (slider.isTwoValue() || slider.isThreeValue()) {
+        return jmin (14, slider.isHorizontal() ? static_cast<int> (slider.getHeight() * 0.25f)
+                                               : static_cast<int> (slider.getWidth()  * 0.5f));        
+    }
     return jmin (16, slider.isHorizontal() ? static_cast<int> (slider.getHeight() * 0.5f)
                                            : static_cast<int> (slider.getWidth()  * 0.5f));
 }
@@ -1042,10 +1046,11 @@ void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, in
             auto sr = jmin (trackWidth, (slider.isHorizontal() ? height : width) * 0.4f);
             auto pointerColour = slider.findColour (Slider::thumbColourId);
             
-            auto wscale = 2.0f;
+            auto wscale = 1.5f;
             
             if (slider.isHorizontal())
             {
+                /*
                 drawPointer (g, minSliderPos - sr,
                              height * 0.5f - trackWidth*wscale*0.5, //jmax (0.0f, y + height * 0.5f - trackWidth * 0.5f),
                              trackWidth * wscale, pointerColour, 1); // 2
@@ -1053,6 +1058,15 @@ void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, in
                 drawPointer (g, maxSliderPos - trackWidth,
                              height * 0.5f - trackWidth*wscale*0.5, //jmin (y + height - trackWidth * 2.0f, (float)y + height * 0.5f),
                              trackWidth * wscale, pointerColour, 3); // 4
+                */
+                
+                drawPointer (g, minSliderPos - sr,
+                             jmax (0.0f, y + height * 0.5f - trackWidth * wscale),
+                             trackWidth * wscale, pointerColour, 2); // 2
+                
+                drawPointer (g, maxSliderPos - trackWidth*0.5*wscale,
+                             jmin (y + height - trackWidth * wscale, (float)y + height * 0.5f),
+                             trackWidth * wscale, pointerColour, 4); // 4
             }
             else
             {

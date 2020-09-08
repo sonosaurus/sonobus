@@ -61,6 +61,8 @@ public:
     std::unique_ptr<ToggleButton> changeAllFormatButton;
     std::unique_ptr<TextButton> optionsResetDropButton;
     std::unique_ptr<TextButton> optionsRemoveButton;
+    std::unique_ptr<SonoChoiceButton> remoteSendFormatChoiceButton;
+    std::unique_ptr<SonoDrawableButton> bufferMinButton;
 
     std::unique_ptr<Component> effectsContainer;
 
@@ -84,6 +86,7 @@ public:
 
     
     std::unique_ptr<Label>  staticFormatChoiceLabel;
+    std::unique_ptr<Label>  staticRemoteSendFormatChoiceLabel;
 
     std::unique_ptr<Label>  sendActualBitrateLabel;
     std::unique_ptr<Label>  recvActualBitrateLabel;
@@ -120,6 +123,7 @@ public:
     FlexBox optionsstatbox;
     FlexBox optionsbuttbox;
     FlexBox optionsaddrbox;
+    FlexBox optionsRemoteQualityBox;
 
     FlexBox sendOptionsBox;
     FlexBox optionsSendQualBox;

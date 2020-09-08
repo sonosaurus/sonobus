@@ -92,7 +92,7 @@ public:
         enableButton.addListener(this);
 
 
-        autoMakeupButton.setButtonText(TRANS("Autocalc Makeup"));
+        autoMakeupButton.setButtonText(TRANS("Autoset Makeup"));
         autoMakeupButton.addListener(this);
         autoMakeupButton.setLookAndFeel(&smallLNF);
            

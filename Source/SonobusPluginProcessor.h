@@ -90,7 +90,7 @@ public:
     
     struct AudioCodecFormatInfo {
         AudioCodecFormatInfo() {}
-        AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_) { computeName(); }
+        AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_), min_preferred_blocksize(16)  { computeName(); }
         AudioCodecFormatInfo(int bitrate_, int complexity_, int signaltype, int minblocksize=120) :  codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype), min_preferred_blocksize(minblocksize) { computeName(); }
         void computeName();
         
@@ -356,16 +356,21 @@ public:
     
     
     String getAudioCodeFormatName(int formatIndex) const;
+    bool getAudioCodeFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const;
 
     void setDefaultAutoresizeBufferMode(AutoNetBufferMode flag);
     AutoNetBufferMode getDefaultAutoresizeBufferMode() const { return (AutoNetBufferMode) defaultAutoNetbufMode; }
     
     bool getSendingFilePlaybackAudio() const { return mSendPlaybackAudio.get(); }
     
+    // sets and gets the format we send out
     void setRemotePeerAudioCodecFormat(int index, int formatIndex);
     int getRemotePeerAudioCodecFormat(int index) const;
 
+    // gets and requests the format that we are receiving from the remote end
     bool getRemotePeerReceiveAudioCodecFormat(int index, AudioCodecFormatInfo & retinfo) const;
+    bool setRequestRemotePeerSendAudioCodecFormat(int index, int formatIndex);
+    int getRequestRemotePeerSendAudioCodecFormat(int index) const; // -1 is no preferences
     
     int getRemotePeerSendPacketsize(int index) const;
     void setRemotePeerSendPacketsize(int index, int psize);
@@ -467,6 +472,7 @@ private:
     void handleEvents();
     
     void setupSourceFormat(RemotePeer * peer, aoo::isource * source, bool latencymode=false);
+    bool formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, aoo_format_storage & retformat);
 
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);

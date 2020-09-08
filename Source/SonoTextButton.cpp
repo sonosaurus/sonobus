@@ -44,7 +44,7 @@ void SonoTextButton::drawButtonBackground(Graphics& g, bool isMouseOverButton, b
     g.fillPath(fillPath);
     
     g.setColour(bordcolor);
-    g.strokePath(borderPath, PathStrokeType(1.0f));
+    g.strokePath(borderPath, PathStrokeType(1.0));
     
 }
 
@@ -85,7 +85,7 @@ void SonoTextButton::resized()
 
 void SonoTextButton::setupPath() {
 
-    float borderOffset = 0.0; // _borderWidth*1.5f;
+    float borderOffset = 0.5; // _borderWidth*1.5f;
     float width = getWidth();
     float height = getHeight();
     fillPath.clear();
@@ -406,8 +406,9 @@ void SonoTextButton::setupPath() {
     }
     else
     {
-        fillPath.addRoundedRectangle(getLocalBounds().toFloat(), cornerRadius);
-        borderPath.addRoundedRectangle(getLocalBounds().toFloat(), cornerRadius);
+        auto bounds = getLocalBounds().toFloat().reduced(borderOffset);
+        fillPath.addRoundedRectangle(bounds, cornerRadius);
+        borderPath.addRoundedRectangle(bounds, cornerRadius);
     }
 
     

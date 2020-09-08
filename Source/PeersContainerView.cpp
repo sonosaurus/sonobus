@@ -323,7 +323,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvMutedButton->setLookAndFeel(&pvf->medLnf);
     pvf->recvMutedButton->setClickingTogglesState(true);
     pvf->recvMutedButton->setColour(TextButton::buttonOnColourId, mutedTextColor.withAlpha(0.5f));
-    pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    //pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     pvf->recvMutedButton->setTooltip(TRANS("Toggles receive muting, preventing audio from being heard for this user"));
 
     pvf->recvSoloButton = std::make_unique<TextButton>(TRANS("SOLO"));
@@ -331,7 +331,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvSoloButton->setLookAndFeel(&pvf->medLnf);
     pvf->recvSoloButton->setClickingTogglesState(true);
     pvf->recvSoloButton->setColour(TextButton::buttonOnColourId, soloColor.withAlpha(0.5f));
-    pvf->recvSoloButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    //pvf->recvSoloButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     pvf->recvSoloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
 
     
@@ -445,7 +445,19 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->autosizeButton->addItem(TRANS("Auto"), 1);
     pvf->autosizeButton->addListener(this);
 
-
+    pvf->bufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
+    std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::skipback_icon_svg, BinaryData::skipback_icon_svgSize));
+    pvf->bufferMinButton->setImages(backimg.get());
+    //pvf->bufferMinButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
+    //pvf->bufferMinButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
+    //pvf->bufferMinButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    //pvf->bufferMinButton->setClickingTogglesState(true);
+    //pvf->bufferMinButton->setTriggeredOnMouseDown(true);
+    //pvf->bufferMinButton->setLookAndFeel(&pvf->smallLnf);
+    pvf->bufferMinButton->addListener(this);
+    pvf->bufferMinButton->setTooltip(TRANS("Resets safety buffer to the minimum. Hold Alt key to reset for all (with auto)."));
+    pvf->bufferMinButton->setAlpha(0.8f);
+    
     
     pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Safety Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
@@ -479,12 +491,22 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->formatChoiceButton->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
-        pvf->formatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i+1);
+        pvf->formatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i);
     }
 
     pvf->staticFormatChoiceLabel = std::make_unique<Label>("fmt", TRANS("Send Quality"));
     configLabel(pvf->staticFormatChoiceLabel.get(), LabelTypeRegular);
 
+
+    pvf->remoteSendFormatChoiceButton = std::make_unique<SonoChoiceButton>();
+    pvf->remoteSendFormatChoiceButton->addChoiceListener(this);
+    pvf->remoteSendFormatChoiceButton->addItem(TRANS("No Preference"), -1);
+    for (int i=0; i < numformats; ++i) {
+        pvf->remoteSendFormatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i);
+    }
+
+    pvf->staticRemoteSendFormatChoiceLabel = std::make_unique<Label>("fmt", TRANS("Preferred Recv Quality"));
+    configLabel(pvf->staticRemoteSendFormatChoiceLabel.get(), LabelTypeRegular);
     
     pvf->staticLatencyLabel = std::make_unique<Label>("lat", TRANS("Latency:"));
     configLabel(pvf->staticLatencyLabel.get(), LabelTypeSmallDim);
@@ -498,7 +520,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->staticSendQualLabel = std::make_unique<Label>("lat", TRANS("Send Quality:"));
     configLabel(pvf->staticSendQualLabel.get(), LabelTypeSmallDim);
-    pvf->staticBufferLabel = std::make_unique<Label>("ping", TRANS("Safety Buffer:"));
+    pvf->staticBufferLabel = std::make_unique<Label>("ping", TRANS("Recv Safety Buffer:"));
     configLabel(pvf->staticBufferLabel.get(), LabelTypeSmallDim);
     
     pvf->sendQualityLabel = std::make_unique<Label>("qual", "");
@@ -557,7 +579,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvOptionsContainer = std::make_unique<Component>();
 
     Colour statsbgcol = Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0); // 0.08
-    Colour statsbordcol = Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.0); // 0.25
+    Colour statsbordcol = Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.0); // 0.5 alpha 0.25
     pvf->sendStatsBg = std::make_unique<DrawableRectangle>();
     pvf->sendStatsBg->setCornerSize(Point<float>(6,6));
     pvf->sendStatsBg->setFill (statsbgcol);
@@ -630,8 +652,11 @@ void PeersContainerView::rebuildPeerViews()
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->staticAddrLabel.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->autosizeButton.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferTimeSlider.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferMinButton.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferTimeLabel.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->optionsResetDropButton.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->remoteSendFormatChoiceButton.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->staticRemoteSendFormatChoiceLabel.get());
 
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->formatChoiceButton.get());
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->changeAllFormatButton.get());
@@ -710,9 +735,9 @@ void PeersContainerView::updateLayout()
 
         pvf->nameaddrbox.items.clear();
         pvf->nameaddrbox.flexDirection = FlexBox::Direction::column;
-        pvf->nameaddrbox.items.add(FlexItem(100, 18, *pvf->nameLabel).withMargin(0).withFlex(1));
+        pvf->nameaddrbox.items.add(FlexItem(100, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
         //pvf->nameaddrbox.items.add(FlexItem(100, 14, *pvf->addrLabel).withMargin(0).withFlex(0));
-        pvf->nameaddrbox.items.add(FlexItem(3, 4));
+        //pvf->nameaddrbox.items.add(FlexItem(3, 4));
 
         pvf->namebox.items.clear();
         pvf->namebox.flexDirection = FlexBox::Direction::row;
@@ -757,7 +782,7 @@ void PeersContainerView::updateLayout()
         pvf->netbufbox.items.clear();
         pvf->netbufbox.flexDirection = FlexBox::Direction::row;
         pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
-        pvf->netbufbox.items.add(FlexItem(80, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(0));
+        pvf->netbufbox.items.add(FlexItem(88, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(1).withMaxWidth(105));
         pvf->netbufbox.items.add(FlexItem(40, textheight, *pvf->bufferLabel).withMargin(0).withFlex(3).withMaxWidth(120));
         pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
 
@@ -779,6 +804,8 @@ void PeersContainerView::updateLayout()
         pvf->optionsNetbufBox.flexDirection = FlexBox::Direction::row;
         //optionsNetbufBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsAutosizeStaticLabel).withMargin(0).withFlex(1));
         //pvf->optionsNetbufBox.items.add(FlexItem(12, 12));
+        pvf->optionsNetbufBox.items.add(FlexItem(36, minitemheight, *pvf->bufferMinButton).withMargin(0).withFlex(0));
+        pvf->optionsNetbufBox.items.add(FlexItem(3, 12));
         pvf->optionsNetbufBox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->bufferTimeSlider).withMargin(0).withFlex(1));
         pvf->optionsNetbufBox.items.add(FlexItem(4, 12));
         pvf->optionsNetbufBox.items.add(FlexItem(80, minitemheight, *pvf->autosizeButton).withMargin(0).withFlex(0));
@@ -788,6 +815,12 @@ void PeersContainerView::updateLayout()
         pvf->optionsSendQualBox.items.add(FlexItem(100, minitemheight, *pvf->staticFormatChoiceLabel).withMargin(0).withFlex(0));
         pvf->optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->formatChoiceButton).withMargin(0).withFlex(2));
 
+        pvf->optionsRemoteQualityBox.items.clear();
+        pvf->optionsRemoteQualityBox.flexDirection = FlexBox::Direction::row;
+        pvf->optionsRemoteQualityBox.items.add(FlexItem(100, minitemheight, *pvf->staticRemoteSendFormatChoiceLabel).withMargin(0).withFlex(0));
+        pvf->optionsRemoteQualityBox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->remoteSendFormatChoiceButton).withMargin(0).withFlex(2));
+
+        
         pvf->optionsSendMutedBox.items.clear();
         pvf->optionsSendMutedBox.flexDirection = FlexBox::Direction::row;
         pvf->optionsSendMutedBox.items.add(FlexItem(5, 12));
@@ -827,6 +860,8 @@ void PeersContainerView::updateLayout()
         pvf->recvOptionsBox.items.add(FlexItem(100, 14,  pvf->optionsaddrbox).withMargin(2).withFlex(0));
         pvf->recvOptionsBox.items.add(FlexItem(4, 2));
         pvf->recvOptionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsNetbufBox).withMargin(2).withFlex(0));
+        pvf->recvOptionsBox.items.add(FlexItem(4, 2));
+        pvf->recvOptionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsRemoteQualityBox).withMargin(2).withFlex(0));
         pvf->recvOptionsBox.items.add(FlexItem(4, 8));
         pvf->recvOptionsBox.items.add(FlexItem(100, minitemheight,  pvf->optionsbuttbox).withMargin(2).withFlex(0));
 
@@ -986,7 +1021,7 @@ void PeersContainerView::updateLayout()
         } else {
             pvf->mainsendbox.items.clear();
             pvf->mainsendbox.flexDirection = FlexBox::Direction::row;
-            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(1).withMaxWidth(120));
+            pvf->mainsendbox.items.add(FlexItem(110, minitemheight, pvf->namebox).withMargin(0).withFlex(1).withMaxWidth(130));
             pvf->mainsendbox.items.add(FlexItem(3, 3));
             pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(1));
 
@@ -1222,6 +1257,8 @@ void PeersContainerView::updatePeerViews()
             pvf->bufferTimeSlider->setValue(buftimeMs, dontSendNotification);
         }
 
+        pvf->remoteSendFormatChoiceButton->setSelectedId(processor.getRequestRemotePeerSendAudioCodecFormat(i), dontSendNotification);
+        
         
         int formatindex = processor.getRemotePeerAudioCodecFormat(i);
         //if (formatindex != pvf->formatChoiceButton->getSelectedItemIndex()) {
@@ -1412,11 +1449,25 @@ void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index,
             // set them all if this option is selected
             if (processor.getChangingDefaultAudioCodecSetsExisting()) {
                 for (int j=0; j < mPeerViews.size(); ++j) {
-                    processor.setRemotePeerAudioCodecFormat(j, index);                    
+                    processor.setRemotePeerAudioCodecFormat(j, ident);                    
                 }
             }
             else {
-                processor.setRemotePeerAudioCodecFormat(i, index);
+                processor.setRemotePeerAudioCodecFormat(i, ident);
+            }
+            break;
+        }        
+        else if (pvf->remoteSendFormatChoiceButton.get() == comp) {
+            // set them all if this option is selected
+
+            if (processor.getChangingDefaultAudioCodecSetsExisting()) {
+                for (int j=0; j < mPeerViews.size(); ++j) {
+
+                    processor.setRequestRemotePeerSendAudioCodecFormat(i, ident); 
+                }
+            }
+            else {
+                processor.setRequestRemotePeerSendAudioCodecFormat(i, ident); 
             }
             break;
         }        
@@ -1557,6 +1608,28 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             showSendOptions(i, false);
             break;
         }
+        else if (pvf->bufferMinButton.get() == buttonThatWasClicked) {
+            // force to minimum
+            if (ModifierKeys::currentModifiers.isAltDown()) {
+                // do it for everyone (who's on auto, maybe?)
+                for (int j=0; j < mPeerViews.size(); ++j) {
+                    if (processor.getRemotePeerAutoresizeBufferMode(j) != SonobusAudioProcessor::AutoNetBufferModeOff) {
+                        float buftime = 0.0;
+                        processor.setRemotePeerBufferTime(j, buftime);
+                        if (i==j) {
+                            pvf->bufferTimeSlider->setValue(buftime, dontSendNotification);
+                        }                            
+                    }
+                }
+            } else {
+                float buftime = 0.0;
+                processor.setRemotePeerBufferTime(i, buftime);
+                pvf->bufferTimeSlider->setValue(buftime, dontSendNotification);
+            }
+            
+            updatePeerViews();
+            break;
+        }
     }    
 }
 
@@ -1636,11 +1709,11 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
             dw = this;
         }
         
-        const int defWidth = 260;
+        const int defWidth = 280;
 #if JUCE_IOS
-        const int defHeight = 140;
+        const int defHeight = 180;
 #else
-        const int defHeight = 116;
+        const int defHeight = 152;
 #endif
         
         
