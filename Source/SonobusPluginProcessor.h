@@ -205,6 +205,7 @@ public:
     String getCurrentJoinedGroup() const ;
     
     void addRecentServerConnectionInfo(const AooServerConnectionInfo & cinfo);
+    void removeRecentServerConnectionInfo(int index);
     int getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray);
     void clearRecentServerConnectionInfos();
     
@@ -400,7 +401,9 @@ public:
         virtual void aooClientLoginResult(SonobusAudioProcessor *comp, bool success, const String & errmesg="") {}
         virtual void aooClientGroupJoined(SonobusAudioProcessor *comp, bool success, const String & group,  const String & errmesg="") {}
         virtual void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") {}
+        virtual void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) {}
+        virtual void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) {}
         virtual void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) {}

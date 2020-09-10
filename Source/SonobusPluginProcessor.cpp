@@ -107,6 +107,8 @@ static String peerSendFormatKey("sendformat");
 #define ECHO_SINKSOURCE_ID 12321
 #define DEFAULT_UDP_PORT 11000
 
+#define UDP_OVERHEAD_BYTES 0 // 28
+
 // get sockaddr, IPv4 or IPv6:
 static void *get_in_addr(struct sockaddr *sa)
 {
@@ -288,7 +290,8 @@ static int32_t endpoint_send(void *e, const char *data, int32_t size)
     }
     
     if (result > 0) {
-        endpoint->sentBytes += result;
+        // include UDP overhead
+        endpoint->sentBytes += result + UDP_OVERHEAD_BYTES;
     }
     else if (result < 0) {
         DBG("Error sending bytes to endpoint " << endpoint->ipaddr);
@@ -308,7 +311,7 @@ static int32_t client_send(void *e, const char *data, int32_t size, void *raddr)
     }
     
     if (result > 0) {
-        endpoint->sentBytes += result;
+        endpoint->sentBytes += result + UDP_OVERHEAD_BYTES;
     }
     
     return result;
@@ -857,6 +860,15 @@ void SonobusAudioProcessor::clearRecentServerConnectionInfos()
     mRecentConnectionInfos.clear();
 }
 
+void SonobusAudioProcessor::removeRecentServerConnectionInfo(int index)
+{
+    const ScopedLock sl (mRecentsLock);
+    if (index < mRecentConnectionInfos.size()) {
+        mRecentConnectionInfos.remove(index);
+    }
+}
+
+
 
 void SonobusAudioProcessor::setAutoconnectToGroupPeers(bool flag)
 {
@@ -1337,7 +1349,7 @@ void SonobusAudioProcessor::doReceiveData()
     // find endpoint from sender info
     EndpointState * endpoint = findOrAddEndpoint(senderIP, senderPort);
     
-    endpoint->recvBytes += nbytes;
+    endpoint->recvBytes += nbytes + UDP_OVERHEAD_BYTES;
     
     // parse packet for AOO events
     
@@ -2248,6 +2260,21 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
 
             break;
         }
+        case AOONET_CLIENT_PEER_PREJOIN_EVENT:
+        {
+            aoonet_client_peer_event *e = (aoonet_client_peer_event *)events[i];
+            
+            if (e->result > 0){
+                DBG("Peer attempting to join group " <<  e->group << " - user " << e->user);
+                
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerPendingJoin, this, e->group, e->user);
+                
+            } else {
+                DBG("bug bad result on join event");
+            }
+                        
+            break;
+        }
         case AOONET_CLIENT_PEER_JOIN_EVENT:
         {
             aoonet_client_peer_event *e = (aoonet_client_peer_event *)events[i];
@@ -2269,6 +2296,21 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             }
             
 
+            break;
+        }
+        case AOONET_CLIENT_PEER_JOINFAIL_EVENT:
+        {
+            aoonet_client_peer_event *e = (aoonet_client_peer_event *)events[i];
+            
+            if (e->result > 0){
+                DBG("Peer failed to join group " <<  e->group << " - user " << e->user);
+                
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoinFailed, this, e->group, e->user);
+                
+            } else {
+                DBG("bug bad result on join event");
+            }
+                        
             break;
         }
         case AOONET_CLIENT_PEER_LEAVE_EVENT:

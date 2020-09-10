@@ -156,6 +156,23 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeerViewInfo)
 };
 
+class PendingPeerViewInfo : public Component {
+public:
+    PendingPeerViewInfo();
+    virtual ~PendingPeerViewInfo();
+    
+    void paint(Graphics& g) override;
+    void resized() override;
+    
+    std::unique_ptr<Label>  nameLabel;
+    std::unique_ptr<Label>  messageLabel;
+
+    FlexBox mainbox;
+
+    Colour bgColor;
+    Colour borderColor;
+};
+
 class PeersContainerView : public Component,
 public Button::Listener,
 public Slider::Listener,
@@ -181,6 +198,11 @@ public:
     
     
     int getPeerViewCount() const { return mPeerViews.size(); }
+    
+    void resetPendingUsers();
+    void peerPendingJoin(String & group, String & user);
+    void peerFailedJoin(String & group, String & user);
+    int getPendingPeerCount() const { return mPendingUsers.size(); }
     
     void rebuildPeerViews();
     void updatePeerViews();
@@ -214,6 +236,8 @@ protected:
 
     
     PeerViewInfo * createPeerViewInfo();
+
+    PendingPeerViewInfo * createPendingPeerViewInfo();
     
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showPanners(int index, bool flag);
@@ -224,9 +248,22 @@ protected:
     
     OwnedArray<PeerViewInfo> mPeerViews;
     SonobusAudioProcessor& processor;
+
     
     std::unique_ptr<BubbleMessageComponent> popTip;
 
+    struct PendingUserInfo {
+        PendingUserInfo(const String & group_="", const String & user_="") : group(group_), user(user_) {}
+        String group;
+        String user;
+        bool failed = false;
+    };
+    
+    std::map<String,PendingUserInfo> mPendingUsers;
+
+    OwnedArray<PendingPeerViewInfo> mPendingPeerViews;
+
+    
     WeakReference<Component> pannerCalloutBox;
     WeakReference<Component> recvOptionsCalloutBox;
     WeakReference<Component> sendOptionsCalloutBox;

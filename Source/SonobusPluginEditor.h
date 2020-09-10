@@ -69,6 +69,9 @@ public:
 
     void changeListenerCallback (ChangeBroadcaster* source) override;
 
+    void parentHierarchyChanged() override;
+
+    
     // ApplicationCommandTarget
     void getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) override;
     void getAllCommands (Array<CommandID>& cmds) override;
@@ -113,6 +116,8 @@ public:
     void aooClientGroupJoined(SonobusAudioProcessor *comp, bool success, const String & group,  const String & errmesg="") override;
     void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") override;
     void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) override;
+    void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) override;
+    void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) override;
     void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) override;
@@ -123,6 +128,8 @@ public:
     std::function<void()> switchToHostApplication; // = []() { return 0; };
 
     void handleURL(const String & urlstr);
+    
+    void updateRecents();
     
 private:
 
@@ -411,6 +418,8 @@ private:
             PeerJoinEvent,
             PeerLeaveEvent,
             PeerChangedState,
+            PeerPendingJoinEvent,
+            PeerFailedJoinEvent,
             Error
         };
         
@@ -443,6 +452,10 @@ private:
 
         Image groupImage;
         Image personImage;
+        std::unique_ptr<Drawable> removeImage;
+        
+        int cachedWidth = 0;
+        int removeButtonX = 0;
         
         Array<AooServerConnectionInfo> recents;
     };
@@ -454,7 +467,9 @@ private:
     uint32 settingsClosedTimestamp = 0;
 
     std::unique_ptr<ListBox> mRecentsListBox;
+    std::unique_ptr<SonoTextButton> mClearRecentsButton;
 
+    
     
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
@@ -585,6 +600,7 @@ private:
     FlexBox connectBox;
 
     FlexBox recentsBox;
+    FlexBox clearRecentsBox;
     
     FlexBox inPannerMainBox;
     FlexBox inPannerLabelBox;
@@ -603,7 +619,7 @@ private:
     class CustomTooltipWindow : public TooltipWindow
     {
     public:
-        CustomTooltipWindow(SonobusAudioProcessorEditor * parent_) : TooltipWindow(parent_), parent(parent_) {}
+        CustomTooltipWindow(SonobusAudioProcessorEditor * parent_, Component * viewparent) : TooltipWindow(viewparent), parent(parent_) {}
         
         String getTipFor (Component& c) override
         {
@@ -616,7 +632,7 @@ private:
         SonobusAudioProcessorEditor * parent;
     };
     
-    CustomTooltipWindow tooltipWindow{ this };
+    std::unique_ptr<CustomTooltipWindow> tooltipWindow;
     
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan1Attachment;

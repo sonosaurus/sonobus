@@ -659,11 +659,24 @@ public:
         {
             const int x = props->getIntValue ("windowX", -100);
             const int y = props->getIntValue ("windowY", -100);
+            const int w = props->getIntValue ("windowW", -100);
+            const int h = props->getIntValue ("windowH", -100);
 
-            if (x != -100 && y != -100)
-                setBoundsConstrained ({ x, y, getWidth(), getHeight() });
-            else
-                centreWithSize (getWidth(), getHeight());
+            if (x != -100 && y != -100) {
+                if (w != -100 && h != -100) {
+                    setBoundsConstrained ({ x, y, w, h });
+                }
+                else {
+                    setBoundsConstrained ({ x, y, getWidth(), getHeight() });
+                }
+            }
+            else {
+                if (w != -100 && h != -100) {
+                    centreWithSize (w, h);
+                } else {
+                    centreWithSize (getWidth(), getHeight());                    
+                }
+            }
         }
         else
         {
@@ -683,6 +696,8 @@ public:
         {
             props->setValue ("windowX", getX());
             props->setValue ("windowY", getY());
+            props->setValue ("windowW", getWidth());
+            props->setValue ("windowH", getHeight());
         }
        #endif
 

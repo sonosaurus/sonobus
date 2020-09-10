@@ -97,6 +97,43 @@ void PeerViewInfo::resized()
     
 }
 
+/// --------------------------------------------
+#pragma PendingPeerViewInfo
+
+
+PendingPeerViewInfo::PendingPeerViewInfo()
+{
+    bgColor = Colour::fromFloatRGBA(0.112f, 0.112f, 0.112f, 1.0f);
+    borderColor = Colour::fromFloatRGBA(0.5f, 0.5f, 0.5f, 0.3f);
+
+    //Random rcol;
+    //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
+}
+
+PendingPeerViewInfo::~PendingPeerViewInfo()
+{
+    
+}
+
+void PendingPeerViewInfo::paint(Graphics& g) 
+{
+    //g.fillAll (Colour(0xff111111));
+    //g.fillAll (Colour(0xff202020));
+    
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+
+    g.setColour(borderColor);
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.0f, 0.5f);
+
+}
+
+void PendingPeerViewInfo::resized()
+{
+    
+    mainbox.performLayout(getLocalBounds());
+}
+
 
 PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
  : Component("pcv"),  processor(proc)
@@ -252,6 +289,7 @@ void PeersContainerView::showPopTip(const String & message, int timeoutMs, Compo
         Rectangle<int> topbox(getWidth()/2 - maxwidth/2, 0, maxwidth, 2);
         popTip->showAt(topbox, text, timeoutMs);
     }
+    popTip->toFront(false);
 }
 
 void PeersContainerView::paint(Graphics & g)
@@ -271,16 +309,6 @@ void PeersContainerView::paint(Graphics & g)
 
 PeerViewInfo * PeersContainerView::createPeerViewInfo()
 {
-    /*
-    struct PeerViewInfo {
-        std::unique_ptr<TextButton> activeButton;
-        std::unique_ptr<Label>  levelLabel;
-        std::unique_ptr<Slider> levelSlider;
-        std::unique_ptr<Label>  bufferTimeLabel;
-        std::unique_ptr<Slider> bufferTimeSlider;        
-    };
-*/
-    
     PeerViewInfo * pvf = new PeerViewInfo();
 
     pvf->nameLabel = std::make_unique<Label>("name", "");
@@ -606,6 +634,41 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     return pvf;
 }
     
+PendingPeerViewInfo * PeersContainerView::createPendingPeerViewInfo()
+{
+    auto * pvf = new PendingPeerViewInfo();
+
+    pvf->nameLabel = std::make_unique<Label>("name", "");
+    pvf->nameLabel->setJustificationType(Justification::centredLeft);
+    pvf->nameLabel->setFont(16);
+
+    pvf->messageLabel = std::make_unique<Label>("msg", "");
+    pvf->messageLabel->setJustificationType(Justification::centredLeft);
+    //configLabel(pvf->messageLabel.get(), LabelTypeSmallDim);
+    pvf->messageLabel->setFont(13);
+
+    return pvf;
+}
+
+void PeersContainerView::resetPendingUsers()
+{
+    mPendingUsers.clear();
+}
+
+void PeersContainerView::peerPendingJoin(String & group, String & user)
+{
+    mPendingUsers[user] = PendingUserInfo(group, user);
+    rebuildPeerViews();    
+}
+
+void PeersContainerView::peerFailedJoin(String & group, String & user)
+{
+    auto found = mPendingUsers.find(user);
+    if (found != mPendingUsers.end()) {
+        found->second.failed = true;
+        updatePeerViews();
+    }    
+}
 
 
 void PeersContainerView::rebuildPeerViews()
@@ -624,7 +687,10 @@ void PeersContainerView::rebuildPeerViews()
     
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
-
+        String username = processor.getRemotePeerUserName(i);
+        // remove from pending if necessary
+        mPendingUsers.erase(username);
+        
         pvf->addAndMakeVisible(pvf->sendStatsBg.get());
         pvf->addAndMakeVisible(pvf->recvStatsBg.get());
         pvf->addAndMakeVisible(pvf->pingBg.get());
@@ -681,6 +747,20 @@ void PeersContainerView::rebuildPeerViews()
         addAndMakeVisible(pvf);
     }
     
+    while (mPendingPeerViews.size() < mPendingUsers.size()) {
+        mPendingPeerViews.add(createPendingPeerViewInfo());
+    }
+    while (mPendingPeerViews.size() > mPendingUsers.size()) {
+        mPendingPeerViews.removeLast();
+    }
+
+    for (int i=0; i < mPendingPeerViews.size(); ++i) {
+        PendingPeerViewInfo * ppvf = mPendingPeerViews.getUnchecked(i);
+        ppvf->addAndMakeVisible(ppvf->nameLabel.get());
+        ppvf->addAndMakeVisible(ppvf->messageLabel.get());
+        addAndMakeVisible(ppvf);
+    }
+    
     if (mPeerViews.size() > 0) {
         startTimer(FillRatioUpdateTimerId, 100);
     } else {
@@ -722,6 +802,28 @@ void PeersContainerView::updateLayout()
     peersBox.items.add(FlexItem(8, 2).withMargin(0));
     peersheight += 2;
 
+
+    // Pending connection peerviews
+    
+    int ppheight = minitemheight;
+    int ppw = 120;
+    
+    for (int i=0; i < mPendingPeerViews.size(); ++i) {
+
+        peersBox.items.add(FlexItem(8, 4).withMargin(0));
+        peersheight += 4;
+        
+        PendingPeerViewInfo * ppvf = mPendingPeerViews.getUnchecked(i);
+        ppvf->mainbox.items.clear();        
+        ppvf->mainbox.flexDirection = FlexBox::Direction::row;
+        ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->nameLabel).withMargin(0).withFlex(0));
+        ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->messageLabel).withMargin(0).withFlex(1));
+        
+        peersBox.items.add(FlexItem(ppw, ppheight + 5, *ppvf).withMargin(1).withFlex(0));
+        peersheight += ppheight + 5;
+    }
+    
+    // Main connected peer views
     
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
@@ -1086,7 +1188,8 @@ void PeersContainerView::updateLayout()
 
     }
 
-
+    
+    
     if (isNarrow) {
         peersMinHeight = std::max(singleph*2 + 14,  peersheight);
         peersMinWidth = 300;
@@ -1119,6 +1222,8 @@ void PeersContainerView::updatePeerViews()
         String username = processor.getRemotePeerUserName(i);
         String addrname;
         addrname << hostname << " : " << port;
+        
+        DBG("Got username: '" << username << "'");
         
         if (username.isNotEmpty()) {
             pvf->nameLabel->setText(username, dontSendNotification);
@@ -1363,6 +1468,24 @@ void PeersContainerView::updatePeerViews()
         }
     }
     
+    int i=0;
+    for (auto & pinfo : mPendingUsers) {
+        if (i>= mPendingPeerViews.size()) {
+            break; // shouldn't happen
+        }
+        
+        PendingPeerViewInfo * ppvf = mPendingPeerViews.getUnchecked(i);
+        ppvf->nameLabel->setText(pinfo.second.user, dontSendNotification);
+        
+        if (pinfo.second.failed) {
+            ppvf->messageLabel->setText(TRANS("Could not connect with user, one or both of you may have network routers incompatible with SonoBus by default. See documentation to enable port forwarding on your router."), dontSendNotification);
+        }
+        else {
+            ppvf->messageLabel->setText(TRANS("Connecting..."), dontSendNotification);
+        }
+        ++i;
+    }
+    
     if (needsUpdateLayout) {
         updateLayout();
     }
@@ -1463,7 +1586,7 @@ void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index,
             if (processor.getChangingDefaultAudioCodecSetsExisting()) {
                 for (int j=0; j < mPeerViews.size(); ++j) {
 
-                    processor.setRequestRemotePeerSendAudioCodecFormat(i, ident); 
+                    processor.setRequestRemotePeerSendAudioCodecFormat(j, ident); 
                 }
             }
             else {
