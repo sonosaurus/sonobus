@@ -3,7 +3,7 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" jucerVersion="5.4.7"
               companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
               companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
-              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.0b23&quot;"
+              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.0b24&quot;"
               pluginDesc="Network Audio" version="1.0" cppLanguageStandard="17">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
@@ -78,6 +78,7 @@
       <FILE id="wSd24I" name="dots.svg" compile="0" resource="1" file="images/dots.svg"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
       <FILE id="zGzv4L" name="folder_icon.svg" compile="0" resource="1" file="images/folder_icon.svg"/>
+      <FILE id="Ef5mFO" name="hear-others.svg" compile="0" resource="1" file="images/hear-others.svg"/>
       <FILE id="esS2r1" name="incoming_allowed.svg" compile="0" resource="1"
             file="images/incoming_allowed.svg"/>
       <FILE id="WK94yG" name="incoming_allowed_active.svg" compile="0" resource="1"
@@ -94,6 +95,9 @@
       <FILE id="NKBZSH" name="mic.svg" compile="0" resource="1" file="images/mic.svg"/>
       <FILE id="cOUMJd" name="mic_disabled.svg" compile="0" resource="1"
             file="images/mic_disabled.svg"/>
+      <FILE id="MtcWSM" name="mic_pointing.svg" compile="0" resource="1"
+            file="images/mic_pointing.svg"/>
+      <FILE id="OmtN5U" name="mute-others.svg" compile="0" resource="1" file="images/mute-others.svg"/>
       <FILE id="C2rj32" name="outgoing_allowed.svg" compile="0" resource="1"
             file="images/outgoing_allowed.svg"/>
       <FILE id="QMiY36" name="outgoing_allowed_active.svg" compile="0" resource="1"
@@ -143,6 +147,8 @@
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
+      <FILE id="iPS8ca" name="AutoUpdater.cpp" compile="1" resource="0" file="Source/AutoUpdater.cpp"/>
+      <FILE id="OnDXWG" name="AutoUpdater.h" compile="0" resource="0" file="Source/AutoUpdater.h"/>
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
             file="Source/BeatToggleGrid.cpp"/>
       <FILE id="IeUqt0" name="BeatToggleGrid.h" compile="0" resource="0"
@@ -236,6 +242,8 @@
       <FILE id="JCcqcC" name="SonoTextButton.h" compile="0" resource="0"
             file="Source/SonoTextButton.h"/>
       <FILE id="aIIkPC" name="SonoUtility.h" compile="0" resource="0" file="Source/SonoUtility.h"/>
+      <FILE id="r0HD7I" name="VersionInfo.cpp" compile="1" resource="0" file="Source/VersionInfo.cpp"/>
+      <FILE id="D6RA4p" name="VersionInfo.h" compile="0" resource="0" file="Source/VersionInfo.h"/>
       <FILE id="jTZSUU" name="WaveformTransportComponent.h" compile="0" resource="0"
             file="Source/WaveformTransportComponent.h"/>
       <FILE id="wV71IQ" name="zitaRev.h" compile="0" resource="0" file="Source/zitaRev.h"/>
@@ -245,7 +253,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
                extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                smallIcon="ZWiivf" bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D"
-               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;23&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;24&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                prebuildCommand="../../scripts/mac_prebuild.sh">
       <CONFIGURATIONS>
@@ -274,7 +282,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;23&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;24&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                   extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                   externalLibraries="opus" smallIcon="tb00W2" bigIcon="rlxTrd"
                   UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="images/LaunchScreen.storyboard">

@@ -171,6 +171,7 @@ public:
     static String paramMainReverbDamping;
     static String paramMainReverbPreDelay;
     static String paramMainReverbModel;
+    static String paramDynamicResampling;
 
     struct EndpointState;
     struct RemoteSink;
@@ -498,7 +499,8 @@ private:
 
     void commitInputEqParams();
 
-    
+    void updateDynamicResampling();
+
     void updateRemotePeerSendChannels(int index, RemotePeer * remote);
 
     
@@ -556,6 +558,7 @@ private:
     Atomic<float>   mMainReverbDamping  { 0.5f };
     Atomic<float>   mMainReverbPreDelay  { 20.0f }; // ms
     Atomic<int>   mMainReverbModel  { ReverbModelMVerb };
+    Atomic<bool>   mDynamicResampling  { false };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;

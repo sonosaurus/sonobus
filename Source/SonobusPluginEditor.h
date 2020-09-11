@@ -72,6 +72,9 @@ public:
     void parentHierarchyChanged() override;
 
     
+    bool keyPressed (const KeyPress & key) override;
+    bool keyStateChanged (bool isKeyDown) override;
+    
     // ApplicationCommandTarget
     void getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) override;
     void getAllCommands (Array<CommandID>& cmds) override;
@@ -267,6 +270,7 @@ private:
     
     std::unique_ptr<SonoDrawableButton> mMainMuteButton;
     std::unique_ptr<SonoDrawableButton> mMainRecvMuteButton;
+    std::unique_ptr<SonoDrawableButton> mMainPushToTalkButton;
 
     std::unique_ptr<SonoDrawableButton> mMetConfigButton;
     std::unique_ptr<SonoDrawableButton> mMetEnableButton;
@@ -328,6 +332,7 @@ private:
 
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
+    std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
 
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
@@ -354,6 +359,8 @@ private:
     
     std::unique_ptr<SonoChoiceButton> mSendChannelsChoice;
     std::unique_ptr<Label>  mSendChannelsLabel;
+
+    std::unique_ptr<SonoTextButton> mSetupAudioButton;
 
     
     std::unique_ptr<SonoDrawableButton> mReverbEnabledButton;
@@ -491,6 +498,9 @@ private:
     
     bool mSendChannelsOverridden = false;
     
+    bool mPushToTalkKeyDown = false;
+    bool mPushToTalkWasMuted = true;
+    
     AooServerConnectionInfo currConnectionInfo;
     
     std::unique_ptr<TableListBox> mRemoteSinkListBox;
@@ -612,6 +622,7 @@ private:
     FlexBox optionsHearlatBox;
     FlexBox optionsMetRecordBox;
     FlexBox optionsUdpBox;
+    FlexBox optionsDynResampleBox;
     FlexBox optionsChangeAllQualBox;
 
     Image iaaHostIcon;
@@ -654,6 +665,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbDampingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbPreDelayAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mDynamicResamplingAttachment;
 
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;

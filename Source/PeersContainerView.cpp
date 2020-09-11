@@ -73,6 +73,9 @@ void PeerViewInfo::resized()
         sendOptionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), rightedge - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
     }
 
+    if (levelSlider) {
+        levelSlider->setMouseDragSensitivity(jmax(128, levelSlider->getWidth()));
+    }
     
     //Rectangle<int> optbounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), sendQualityLabel->getRight() - staticSendQualLabel->getX(), bufferLabel->getBottom() - sendQualityLabel->getY());
     //optionsButton->setBounds(optbounds);
@@ -1223,7 +1226,7 @@ void PeersContainerView::updatePeerViews()
         String addrname;
         addrname << hostname << " : " << port;
         
-        DBG("Got username: '" << username << "'");
+        //DBG("Got username: '" << username << "'");
         
         if (username.isNotEmpty()) {
             pvf->nameLabel->setText(username, dontSendNotification);

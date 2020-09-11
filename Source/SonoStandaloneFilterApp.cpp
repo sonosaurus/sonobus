@@ -59,10 +59,10 @@ namespace juce
 {
 
 //==============================================================================
-class StandaloneFilterApp  : public JUCEApplication
+class SonobusStandaloneFilterApp  : public JUCEApplication
 {
 public:
-    StandaloneFilterApp()
+    SonobusStandaloneFilterApp()
     {
         PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
 
@@ -279,6 +279,6 @@ Image JUCE_CALLTYPE juce_getIAAHostIcon (int size)
 #endif
 #endif
 
-START_JUCE_APPLICATION (StandaloneFilterApp);
+START_JUCE_APPLICATION (SonobusStandaloneFilterApp);
 
 //#endif

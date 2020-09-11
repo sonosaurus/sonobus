@@ -54,6 +54,7 @@ String SonobusAudioProcessor::paramMainReverbSize  ("mainreverbsize");
 String SonobusAudioProcessor::paramMainReverbDamping  ("mainreverbdamp");
 String SonobusAudioProcessor::paramMainReverbPreDelay  ("mainreverbpredelay");
 String SonobusAudioProcessor::paramMainReverbModel  ("mainreverbmodel");
+String SonobusAudioProcessor::paramDynamicResampling  ("dynamicresampling");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -496,7 +497,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full"}), defaultAutoNetbufMode),
 
-    std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex)
+    std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
+    std::make_unique<AudioParameterBool>(paramDynamicResampling, TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
 })
 {
     mState.addParameterListener (paramInGain, this);
@@ -523,12 +525,15 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramMainReverbPreDelay, this);
     mState.addParameterListener (paramMainReverbModel, this);
     mState.addParameterListener (paramSendChannels, this);
+    mState.addParameterListener (paramDynamicResampling, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
             mRemoteSendMatrix[i][j] = false;
         }
     }
+    
+    initFormats();
     
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
@@ -599,7 +604,6 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
         
     aoo_initialize();
     
-    initFormats();
 
     const ScopedWriteLock sl (mCoreLock);        
 
@@ -2724,6 +2728,20 @@ void SonobusAudioProcessor::setRemotePeerNominalSendChannelCount(int index, int 
     }
 }
 
+void SonobusAudioProcessor::updateDynamicResampling()
+{
+    const ScopedReadLock sl (mCoreLock);
+    bool newval = mDynamicResampling.get();
+    for (int i=0; i < mRemotePeers.size(); ++i) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(i);
+        remote->oursink->set_dynamic_resampling(newval ? 1 : 0);
+        remote->oursource->set_dynamic_resampling(newval ? 1 : 0);
+    }
+}
+
+
+
+
 int SonobusAudioProcessor::getRemotePeerOverrideSendChannelCount(int index) const
 {
     int ret = 0;
@@ -2902,7 +2920,7 @@ bool SonobusAudioProcessor::getRemotePeerRecvActive(int index) const
 void SonobusAudioProcessor::setRemotePeerSendAllow(int index, bool allow, bool cached)
 {
     const ScopedReadLock sl (mCoreLock);        
-    if (index < mRemotePeers.size()) {
+    if (index < mRemotePeers.size() && index >= 0) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         if (cached) {
             remote->sendAllowCache = allow;
@@ -2931,7 +2949,7 @@ bool SonobusAudioProcessor::getRemotePeerSendAllow(int index, bool cached) const
 void SonobusAudioProcessor::setRemotePeerRecvAllow(int index, bool allow, bool cached)
 {
     const ScopedReadLock sl (mCoreLock);        
-    if (index < mRemotePeers.size()) {
+    if (index < mRemotePeers.size() && index >= 0) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
 
         if (cached) {
@@ -3439,6 +3457,13 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->latencysink->set_buffersize(retpeer->buffertimeMs);
         retpeer->echosink->set_buffersize(retpeer->buffertimeMs);
 
+        // never dynamic resampling the latency and echo ones
+        retpeer->latencysink->set_dynamic_resampling(0);
+        retpeer->echosink->set_dynamic_resampling(0);
+        retpeer->latencysource->set_dynamic_resampling(0);
+        retpeer->echosource->set_dynamic_resampling(0);
+
+        
         retpeer->oursource->set_ping_interval(2000);
         retpeer->latencysource->set_ping_interval(2000);
         retpeer->echosource->set_ping_interval(2000);
@@ -3450,7 +3475,9 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
         retpeer->latencyMeasurer.reset(new LatencyMeasurer());
         
-        
+        retpeer->oursink->set_dynamic_resampling(mDynamicResampling.get() ? 1 : 0);
+        retpeer->oursource->set_dynamic_resampling(mDynamicResampling.get() ? 1 : 0);
+
         
         retpeer->workBuffer.setSize(2, currSamplesPerBlock);
 
@@ -3708,6 +3735,10 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramMetEnabled) {
         mMetEnabled = newValue > 0;
+    }
+    else if (parameterID == paramDynamicResampling) {
+        mDynamicResampling = newValue > 0;
+        updateDynamicResampling();
     }
     else if (parameterID == paramSendChannels) {
         mSendChannels = (int) newValue;

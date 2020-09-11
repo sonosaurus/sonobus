@@ -27,7 +27,7 @@ public:
         ShowOptions,
         OpenFile,
         RecordToggle,
-        
+        CheckForNewVersion
     };
     
 };
