@@ -1458,6 +1458,10 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 #endif
     }
     
+    if (tooltipWindow) {
+        tooltipWindow->parent = nullptr;
+    }
+    
     popTip.reset();
     
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainSendMute, this);

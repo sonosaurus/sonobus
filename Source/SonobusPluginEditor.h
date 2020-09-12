@@ -631,6 +631,12 @@ private:
     {
     public:
         CustomTooltipWindow(SonobusAudioProcessorEditor * parent_, Component * viewparent) : TooltipWindow(viewparent), parent(parent_) {}
+        virtual ~CustomTooltipWindow() {
+            if (parent) {
+                // reset our smart pointer without a delete! someone else is deleting it
+                parent->tooltipWindow.release();
+            }
+        }
         
         String getTipFor (Component& c) override
         {
