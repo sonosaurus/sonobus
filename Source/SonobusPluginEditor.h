@@ -134,6 +134,9 @@ public:
     
     void updateRecents();
     
+    // if returns true signifies go ahead and quit now, otherwise we'll handle it
+    bool requestedQuit();
+    
 private:
 
     void updateLayout();
@@ -333,6 +336,8 @@ private:
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
     std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
+
+    std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
 
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
@@ -624,6 +629,7 @@ private:
     FlexBox optionsUdpBox;
     FlexBox optionsDynResampleBox;
     FlexBox optionsChangeAllQualBox;
+    FlexBox optionsInputLimitBox;
 
     Image iaaHostIcon;
 

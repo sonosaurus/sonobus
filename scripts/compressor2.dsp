@@ -12,22 +12,22 @@ an = library("analyzers.lib");
 /* Controls. */
 
 // partition the controls into these three groups
-comp_group(x)	= hgroup("[1] comp", x);
-env_group(x)	= vgroup("[2] env", x);
-gain_group(x)	= vgroup("[3] gain", x);
+//comp_group(x)	= hgroup("[1] comp", x);
+//env_group(x)	= vgroup("[2] env", x);
+//gain_group(x)	= vgroup("[3] gain", x);
 
 // compressor controls: ratio, threshold and knee size
-ratio		= comp_group(nentry("ratio", 2, 1, 20, 0.1));
-threshold	= comp_group(nentry("threshold", -20, -96, 10, 0.1));
-knee		= comp_group(nentry("knee", 3, 0, 20, 0.1));
+ratio		= hslider("ratio", 2, 1, 20, 0.1);
+threshold	= hslider("threshold", -20, -96, 10, 0.1);
+knee		= hslider("knee", 3, 0, 20, 0.1);
 
 // attack and release controls; clamped to a minimum of 1 sample
-attack		= env_group(hslider("attack", 0.002, 0, 1, 0.001)) : max(1/SR);
-release		= env_group(hslider("release", 0.5, 0, 10, 0.01)) : max(1/SR);
+attack		= hslider("attack", 0.002, 0, 1, 0.001) : max(1/SR);
+release		= hslider("release", 0.5, 0, 10, 0.01) : max(1/SR);
 
 // gain controls: make-up gain, compression gain meter
-makeup_gain	= gain_group(hslider("makeup gain", 0, -96, 96, 0.1)) : si.smoo ;
-gain(x)		= attach(x, x : gain_group(hbargraph("outgain", -96, 0)));
+makeup_gain	= hslider("makeup gain", 0, -96, 96, 0.1) : si.smoo ;
+gain(x)		= attach(x, x : hbargraph("outgain", -96, 0));
 
 /* Envelop detector. This is basically the same as in amp.dsp. */
 

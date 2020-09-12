@@ -32,7 +32,7 @@ public:
         thresholdSlider.setRange(-60.0f, 0.0f, 1);
         thresholdSlider.setSkewFactor(1.5);
         thresholdSlider.setTextValueSuffix(" dB");
-        thresholdSlider.setDoubleClickReturnValue(true, -20.0);
+        thresholdSlider.setDoubleClickReturnValue(true, -16.0);
         configKnobSlider(thresholdSlider);
         thresholdSlider.addListener(this);
 
@@ -44,7 +44,7 @@ public:
         ratioSlider.setRange(1.0f, 20.0f, 0.1);
         ratioSlider.setSkewFactor(0.5);
         ratioSlider.setTextValueSuffix(" : 1");
-        ratioSlider.setDoubleClickReturnValue(true, 3.0);
+        ratioSlider.setDoubleClickReturnValue(true, 2.0);
         configKnobSlider(ratioSlider);
         ratioSlider.addListener(this);
         
@@ -92,7 +92,9 @@ public:
         enableButton.addListener(this);
 
 
-        autoMakeupButton.setButtonText(TRANS("Autoset Makeup"));
+        //autoMakeupButton.setButtonText(TRANS("Autoset Makeup"));
+        autoMakeupButton.setButtonText(TRANS("Auto"));
+        autoMakeupButton.setClickingTogglesState(true);
         autoMakeupButton.addListener(this);
         autoMakeupButton.setLookAndFeel(&smallLNF);
            
@@ -107,10 +109,11 @@ public:
         addAndMakeVisible(releaseLabel);
         addAndMakeVisible(makeupGainSlider);
         addAndMakeVisible(makeupGainLabel);
+        addAndMakeVisible(autoMakeupButton);
 
         headerComponent.addAndMakeVisible(enableButton);
         headerComponent.addAndMakeVisible(titleLabel);
-        headerComponent.addAndMakeVisible(autoMakeupButton);
+        //headerComponent.addAndMakeVisible(autoMakeupButton);
 
         headerComponent.addMouseListener(this, true);
         
@@ -143,11 +146,13 @@ public:
         int knoblabelheight = 18;
         int knobitemheight = 62;
         int enablewidth = 44;
-
+        int makeupenableheight = 22;
+        
 #if JUCE_IOS
         // make the button heights a bit more for touchscreen purposes
         minitemheight = 40;
         knobitemheight = 80;
+        makeupenableheight = 28;
 #endif
         
         threshBox.items.clear();
@@ -173,7 +178,8 @@ public:
         makeupBox.items.clear();
         makeupBox.flexDirection = FlexBox::Direction::column;
         makeupBox.items.add(FlexItem(minKnobWidth, knoblabelheight, makeupGainLabel).withMargin(0).withFlex(0));
-        makeupBox.items.add(FlexItem(minKnobWidth, knobitemheight, makeupGainSlider).withMargin(0).withFlex(1));
+        makeupBox.items.add(FlexItem(minKnobWidth, knobitemheight-makeupenableheight, makeupGainSlider).withMargin(0).withFlex(1));
+        makeupBox.items.add(FlexItem(minKnobWidth, makeupenableheight, autoMakeupButton).withMargin(0).withFlex(0));
         
         
         checkBox.items.clear();
@@ -181,9 +187,12 @@ public:
         //checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(enablewidth, minitemheight, enableButton).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
-        checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1));
+        checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1).withMaxWidth(120));
+        //checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
+        checkBox.items.add(FlexItem(24, minitemheight, dragButton).withMargin(0).withFlex(0));
+        checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
         //knobBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0.1));
-        checkBox.items.add(FlexItem(84, minitemheight, autoMakeupButton).withMargin(0).withFlex(0));
+        //checkBox.items.add(FlexItem(84, minitemheight, autoMakeupButton).withMargin(0).withFlex(0));
         
         
         headerComponent.headerBox.items.clear();
@@ -275,6 +284,8 @@ public:
         autoMakeupButton.setToggleState(mParams.automakeupGain, dontSendNotification);
         enableButton.setToggleState(mParams.enabled, dontSendNotification);
         makeupGainSlider.setEnabled(!mParams.automakeupGain);
+
+        headerComponent.repaint();
     }
     
     const SonobusAudioProcessor::CompressorParams & getParams() const { 
@@ -287,7 +298,7 @@ private:
     
     ListenerList<Listener> listeners;
 
-    ToggleButton autoMakeupButton;
+    TextButton autoMakeupButton;
     
     Slider thresholdSlider;
     Slider ratioSlider;

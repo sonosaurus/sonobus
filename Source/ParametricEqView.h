@@ -352,7 +352,10 @@ public:
         //checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(enablewidth, minitemheight, enableButton).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
-        checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1));
+        checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1).withMaxWidth(120));
+        //checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
+        checkBox.items.add(FlexItem(24, minitemheight, dragButton).withMargin(0).withFlex(0));
+        checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
 
         headerComponent.headerBox.items.clear();
         headerComponent.headerBox.flexDirection = FlexBox::Direction::column;
@@ -600,6 +603,8 @@ public:
         para2QSlider.setValue(mParams.para2Q, dontSendNotification);
         
         enableButton.setToggleState(mParams.enabled, dontSendNotification);
+
+        headerComponent.repaint();
 
         updateActiveBgs();
     }

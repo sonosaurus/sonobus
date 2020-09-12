@@ -16,6 +16,7 @@
 #include "faustCompressor.h"
 #include "faustExpander.h"
 #include "faustParametricEQ.h"
+#include "faustLimiter.h"
 
 typedef MVerb<float> MVerbFloat;
 
@@ -302,12 +303,12 @@ public:
     
     struct CompressorParams
     {
-        ValueTree getValueTree(bool expanderMode=false) const;
+        ValueTree getValueTree(const String & stateKey) const;
         void setFromValueTree(const ValueTree & val);
 
         bool enabled = false;
-        float thresholdDb = -20.0f;
-        float ratio = 3.0f;
+        float thresholdDb = -16.0f;
+        float ratio = 2.0f;
         float attackMs = 10.0f;
         float releaseMs = 80.0f;
         float makeupGainDb = 0.0f;
@@ -323,6 +324,9 @@ public:
 
     void setInputExpanderParams(CompressorParams & params);
     bool getInputExpanderParams(CompressorParams & retparams);
+
+    void setInputLimiterParams(CompressorParams & params);
+    bool getInputLimiterParams(CompressorParams & retparams);
     
     struct ParametricEqParams
     {
@@ -496,6 +500,7 @@ private:
 
     //void commitExpanderParams(RemotePeer * peer);
     void commitInputExpanderParams();
+    void commitInputLimiterParams();
 
     void commitInputEqParams();
 
@@ -685,6 +690,7 @@ private:
     bool mLastInputCompressorEnabled = false;
     float * mInputCompressorOutputGain = nullptr;
 
+    // gate/expander
     faustExpander mInputExpander;
     MapUI  mInputExpanderControl;
     CompressorParams mInputExpanderParams;
@@ -692,14 +698,22 @@ private:
     bool mLastInputExpanderEnabled = false;
     float * mInputExpanderOutputGain = nullptr;
 
+    // EQ
     faustParametricEQ mInputEq[2]; // left and right ; todo 
     MapUI  mInputEqControl[2];
     ParametricEqParams mInputEqParams;
     bool mInputEqParamsChanged = false;
     bool mLastInputEqEnabled = false;
 
-    
-    ReverbModel mLastReverbModel = ReverbModelFreeverb;
+    // limiter
+    //faustLimiter mInputLimiter;
+    faustCompressor mInputLimiter;
+    MapUI  mInputLimiterControl;
+    CompressorParams mInputLimiterParams;
+    bool mInputLimiterParamsChanged = false;
+    bool mLastInputLimiterEnabled = false;
+
+    ReverbModel mLastReverbModel = ReverbModelMVerb;
     
     
     // recording stuff

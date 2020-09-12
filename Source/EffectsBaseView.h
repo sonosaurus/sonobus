@@ -26,6 +26,7 @@ public:
     {
         headerComponent.addAndMakeVisible(enableButton);
         headerComponent.addAndMakeVisible(titleLabel);
+        headerComponent.addAndMakeVisible(dragButton);
 
         headerComponent.addMouseListener(this, true);
         
@@ -38,6 +39,10 @@ public:
         enableButton.setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
         enableButton.setColour(DrawableButton::backgroundOnColourId, Colours::transparentBlack);
 
+        std::unique_ptr<Drawable> dragimg(Drawable::createFromImageData(BinaryData::move_updown_svg, BinaryData::move_updown_svgSize));
+        dragButton.setImages(dragimg.get());
+        dragButton.setInterceptsMouseClicks(false, false);
+        dragButton.setAlpha(0.3);
     }
 
     virtual ~EffectsBaseView()
@@ -134,7 +139,7 @@ protected:
     ListenerList<HeaderListener> headerListeners;
     juce::Rectangle<int> minHeaderBounds;
     juce::Rectangle<int> minBounds;
-
+    
     void configKnobSlider(Slider & slider) 
     {
         slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -186,6 +191,7 @@ protected:
     SonoDrawableButton enableButton = { "enable", DrawableButton::ButtonStyle::ImageFitted };    
     HeaderComponent headerComponent = { *this };
     Label titleLabel;
+    SonoDrawableButton dragButton = { "drag", DrawableButton::ButtonStyle::ImageFitted };
 
         
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EffectsBaseView)

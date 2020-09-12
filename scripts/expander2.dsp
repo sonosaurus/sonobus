@@ -14,18 +14,18 @@ an = library("analyzers.lib");
 
 /* Controls. */
 
-exp_group(x)	= hgroup("[1] exp", x);
-env_group(x)	= vgroup("[2] env", x);
-gain_group(x)	= vgroup("[3] gain", x);
+//exp_group(x)	= hgroup("[1] exp", x);
+//env_group(x)	= vgroup("[2] env", x);
+//gain_group(x)	= vgroup("[3] gain", x);
 
-ratio		= exp_group(nentry("ratio", 2, 1, 20, 0.1));
-threshold	= exp_group(nentry("threshold", -40, -96, 10, 0.1));
-knee		= exp_group(nentry("knee", 3, 0, 20, 0.1));
+ratio		= hslider("ratio", 2, 1, 20, 0.1);
+threshold	= hslider("threshold", -40, -96, 10, 0.1);
+knee		= hslider("knee", 3, 0, 20, 0.1);
 
-attack		= env_group(hslider("attack", 0.001, 0, 1, 0.001)) : max(1/SR);
-release		= env_group(hslider("release", 0.1, 0, 10, 0.01)) : max(1/SR);
+attack		= hslider("attack", 0.001, 0, 1, 0.001) : max(1/SR);
+release		= hslider("release", 0.1, 0, 10, 0.01) : max(1/SR);
 
-gain(x)		= attach(x, x : gain_group(hbargraph("gain", -96, 0)));
+gain(x)		= attach(x, x : hbargraph("gain", -96, 0));
 
 t		= 0.1;
 g		= exp(-1/(SR*t));

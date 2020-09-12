@@ -706,6 +706,14 @@ public:
         pluginHolder = nullptr;
     }
 
+    AudioProcessorEditor * getEditor() const {
+        auto maincontent = dynamic_cast<MainContentComponent *>(getContentComponent());
+        if (maincontent) {
+            return maincontent->getEditor();
+        }
+        return nullptr;
+    }
+    
     //==============================================================================
     AudioProcessor* getAudioProcessor() const noexcept      { return pluginHolder->processor.get(); }
     AudioDeviceManager& getDeviceManager() const noexcept   { return pluginHolder->deviceManager; }
@@ -761,7 +769,7 @@ public:
     {
         pluginHolder->savePluginState();
 
-        JUCEApplicationBase::quit();
+        JUCEApplicationBase::getInstance()->systemRequestedQuit();
     }
 
     void buttonClicked (Button*) override
@@ -905,6 +913,8 @@ private:
             editor->setBounds (r);
         }
 
+        AudioProcessorEditor * getEditor() const { return editor.get(); }
+        
     private:
         
         bool isPortrait = false;

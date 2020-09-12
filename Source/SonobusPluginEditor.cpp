@@ -441,7 +441,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMainPushToTalkButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     String pttmessage = TRANS("When pressed, mutes others and unmutes you momentarily (push to talk).");
 #if (!JUCE_IOS)
-    pttmessage += TRANS(" Use the 'P' key as a shortcut.");
+    pttmessage += TRANS(" Use the 'T' key as a shortcut.");
 #endif
     mMainPushToTalkButton->setTooltip(pttmessage);
     
@@ -904,6 +904,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     //mOptionsUseSpecificUdpPortButton->addListener(this);
     mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
 
+    mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
+    mOptionsInputLimiterButton->addListener(this);
+
     mOptionsChangeAllFormatButton = std::make_unique<ToggleButton>(TRANS("Change all connected"));
     mOptionsChangeAllFormatButton->addListener(this);
     mOptionsChangeAllFormatButton->setLookAndFeel(&smallLNF);
@@ -1207,6 +1210,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsInputLimiterButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
@@ -1485,6 +1489,32 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     }
 
 }
+
+static void doActuallyQuit (int result, SonobusAudioProcessorEditor* editor)
+{
+    if (result != 0) {
+        JUCEApplicationBase::quit();
+    }
+}
+
+bool SonobusAudioProcessorEditor::requestedQuit()
+{
+    // allow quit if we are not connected
+    if (currConnected) {
+        // pop up confirmation
+        AlertWindow::showOkCancelBox (AlertWindow::WarningIcon,
+        TRANS("Quit Confirmation"),
+        TRANS("You are connected, are you sure you want to quit?"),
+        TRANS ("Quit"),
+        String(),
+        nullptr,
+        ModalCallbackFunction::create (doActuallyQuit, this));
+        
+        return false;
+    }
+    return true;
+}
+
 
 bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * retmessage)
 {
@@ -2332,6 +2362,12 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         updateLayout();
         resized();
     }
+    else if (buttonThatWasClicked == mOptionsInputLimiterButton.get()) {
+        SonobusAudioProcessor::CompressorParams params;
+        processor.getInputLimiterParams(params);
+        params.enabled = mOptionsInputLimiterButton->getToggleState();
+        processor.setInputLimiterParams(params);        
+    }
     else if (buttonThatWasClicked == mPlayButton.get()) {
         if (mPlayButton->getToggleState()) {
             //processor.getTransportSource().setLooping(mLoopButton->getToggleState());
@@ -3002,11 +3038,11 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
 
 bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
 {
-    bool pttdown = KeyPress::isKeyCurrentlyDown('P');
+    bool pttdown = KeyPress::isKeyCurrentlyDown('T');
     
     if (!pttdown && mPushToTalkKeyDown) {
         // release
-        DBG("P release");
+        DBG("T release");
         // mute self again, send to others
         processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(mPushToTalkWasMuted ? 1.0 : 0.0);
         processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(0.0);            
@@ -3015,7 +3051,7 @@ bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
     }
     else if (pttdown && !mPushToTalkKeyDown) {
         // press
-        DBG("P press");
+        DBG("T press");
         // mute others, send self
         mPushToTalkWasMuted = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue() > 0;
         processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(1.0);            
@@ -3274,8 +3310,8 @@ void SonobusAudioProcessorEditor::updateState()
     }
 
     bool sendmute = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue();
-    if (!mMainPushToTalkButton->isMouseButtonDown()) {
-        mMainPushToTalkButton->setEnabled(sendmute);
+    if (!mMainPushToTalkButton->isMouseButtonDown() && !mPushToTalkKeyDown) {
+        mMainPushToTalkButton->setVisible(sendmute);
     }
     
     SonobusAudioProcessor::CompressorParams compParams;
@@ -3290,6 +3326,9 @@ void SonobusAudioProcessorEditor::updateState()
     processor.getInputEqParams(eqParams);
     mInEqView->updateParams(eqParams);
 
+    SonobusAudioProcessor::CompressorParams limparams;
+    processor.getInputLimiterParams(limparams);
+    mOptionsInputLimiterButton->setToggleState(limparams.enabled, dontSendNotification);
     
     mInEffectsButton->setToggleState(processor.getInputEffectsActive(), dontSendNotification);
     
@@ -3893,12 +3932,17 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsDynResampleBox.items.clear();
     optionsDynResampleBox.flexDirection = FlexBox::Direction::row;
     optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
-    optionsDynResampleBox.items.add(FlexItem(180, minitemheight - 10, *mOptionsDynamicResamplingButton).withMargin(0).withFlex(1));
+    optionsDynResampleBox.items.add(FlexItem(180, minpassheight, *mOptionsDynamicResamplingButton).withMargin(0).withFlex(1));
+
+    optionsInputLimitBox.items.clear();
+    optionsInputLimitBox.flexDirection = FlexBox::Direction::row;
+    optionsInputLimitBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsInputLimitBox.items.add(FlexItem(180, minpassheight, *mOptionsInputLimiterButton).withMargin(0).withFlex(1));
 
     optionsChangeAllQualBox.items.clear();
     optionsChangeAllQualBox.flexDirection = FlexBox::Direction::row;
     optionsChangeAllQualBox.items.add(FlexItem(10, 12).withFlex(1));
-    optionsChangeAllQualBox.items.add(FlexItem(180, minitemheight - 10, *mOptionsChangeAllFormatButton).withMargin(0).withFlex(0));
+    optionsChangeAllQualBox.items.add(FlexItem(180, minpassheight, *mOptionsChangeAllFormatButton).withMargin(0).withFlex(0));
 
     
     optionsBox.items.clear();
@@ -3912,12 +3956,14 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 2));
+    //optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 2));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsUdpBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 2));
+    //optionsBox.items.add(FlexItem(4, 2));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
+    //optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
+    //optionsBox.items.add(FlexItem(4, 2));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
@@ -4265,9 +4311,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     toolbarBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
     toolbarBox.items.add(FlexItem(44, minitemheight, *mMainMuteButton).withMargin(0).withFlex(0));
     toolbarBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1).withMaxWidth(8));
-    toolbarBox.items.add(FlexItem(44, minitemheight, *mMainPushToTalkButton).withMargin(0).withFlex(0));
-    toolbarBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1).withMaxWidth(8));
     toolbarBox.items.add(FlexItem(44, minitemheight, *mMainRecvMuteButton).withMargin(0).withFlex(0));
+    toolbarBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1).withMaxWidth(8));
+    toolbarBox.items.add(FlexItem(44, minitemheight, *mMainPushToTalkButton).withMargin(0).withFlex(0));
     toolbarBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
     toolbarBox.items.add(FlexItem(44, minitemheight, *mMetEnableButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight+2).withAlignSelf(FlexItem::AlignSelf::center));
     toolbarBox.items.add(FlexItem(36, minitemheight, *mMetConfigButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight+2).withAlignSelf(FlexItem::AlignSelf::center));
@@ -4495,17 +4541,41 @@ void SonobusAudioProcessorEditor::parametricEqParamsChanged(ParametricEqView *co
 void SonobusAudioProcessorEditor::effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) 
 {
     if (comp == mInCompressorView.get()) {
-        mInEffectsConcertina->setPanelSize(mInEqView.get(), 0, true);
-        mInEffectsConcertina->expandPanelFully(mInExpanderView.get(), true);
-        mInEffectsConcertina->expandPanelFully(mInCompressorView.get(), true);
+        bool changed = mInEffectsConcertina->setPanelSize(mInEqView.get(), 0, true);
+        changed |= mInEffectsConcertina->expandPanelFully(mInExpanderView.get(), true);
+        changed |= mInEffectsConcertina->expandPanelFully(mInCompressorView.get(), true);
+        if (!changed) {
+            // toggle it
+            SonobusAudioProcessor::CompressorParams params;
+            processor.getInputCompressorParams(params);
+            params.enabled = !params.enabled;
+            processor.setInputCompressorParams(params);
+            updateState();
+        }
     } 
     else if (comp == mInExpanderView.get()) {
-        mInEffectsConcertina->setPanelSize(mInEqView.get(), 0, true);
-        mInEffectsConcertina->expandPanelFully(mInCompressorView.get(), true);
-        mInEffectsConcertina->expandPanelFully(mInExpanderView.get(), true);
+        bool changed = mInEffectsConcertina->setPanelSize(mInEqView.get(), 0, true);
+        changed |= mInEffectsConcertina->expandPanelFully(mInCompressorView.get(), true);
+        changed |= mInEffectsConcertina->expandPanelFully(mInExpanderView.get(), true);
+        if (!changed) {
+            // toggle it
+            SonobusAudioProcessor::CompressorParams params;
+            processor.getInputExpanderParams(params);
+            params.enabled = !params.enabled;
+            processor.setInputExpanderParams(params);
+            updateState();
+        }
     } 
     else if (comp == mInEqView.get()) {
-        mInEffectsConcertina->expandPanelFully(mInEqView.get(), true);
+        bool changed = mInEffectsConcertina->expandPanelFully(mInEqView.get(), true);
+        if (!changed) {
+            // toggle it
+            SonobusAudioProcessor::ParametricEqParams params;
+            processor.getInputEqParams(params);
+            params.enabled = !params.enabled;
+            processor.setInputEqParams(params);            
+            updateState();
+        }
     } 
 }
 

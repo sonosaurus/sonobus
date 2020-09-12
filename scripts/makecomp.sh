@@ -14,3 +14,5 @@ faust $OPTS -a arch.cpp -i -O ../Source -o faustCompressor.h -scn faustdsp -cn f
 #faust -a arch.cpp -i -O ../Source -o faustExpander.h -scn faustdsp -cn faustExpander  expander.dsp
 faust $OPTS -a arch.cpp -i -O ../Source -o faustExpander.h -scn faustdsp -cn faustExpander  expander2.dsp
 
+faust $OPTS -a arch.cpp -i -O ../Source -o faustLimiter.h -scn faustdsp -cn faustLimiter  limiter.dsp
+

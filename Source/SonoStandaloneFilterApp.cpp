@@ -55,6 +55,8 @@ extern juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
 #include "SonoStandaloneFilterWindow.h"
 #include "SonoLookAndFeel.h"
 
+#include "SonobusPluginEditor.h"
+
 namespace juce
 {
 
@@ -219,11 +221,25 @@ public:
     void systemRequestedQuit() override
     {
         DBG("Requested quit");
-        if (mainWindow.get() != nullptr)
+        if (mainWindow.get() != nullptr) {
             mainWindow->pluginHolder->savePluginState();
+
+        }
 
         appProperties.saveIfNeeded();
 
+        
+        if (mainWindow.get() != nullptr) {
+            if (auto * editor = mainWindow->getEditor()) {
+                if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(editor)) {
+                    if (!sonoeditor->requestedQuit()) {
+                        // they'll handle it
+                        return;
+                    }
+                }
+            }
+        }
+        
         if (ModalComponentManager::getInstance()->cancelAllModalComponents())
         {
             Timer::callAfterDelay (100, []()

@@ -768,17 +768,17 @@ class faustCompressor : public faustdsp {
 	
 	FAUSTFLOAT fHslider0;
 	float fRec0[2];
-	FAUSTFLOAT fEntry0;
-	FAUSTFLOAT fEntry1;
-	int fSampleRate;
-	float fConst0;
 	FAUSTFLOAT fHslider1;
 	FAUSTFLOAT fHslider2;
+	int fSampleRate;
+	float fConst0;
+	FAUSTFLOAT fHslider3;
+	FAUSTFLOAT fHslider4;
 	float fRec2[2];
 	float fRec1[2];
 	float fRec4[2];
 	float fRec3[2];
-	FAUSTFLOAT fEntry2;
+	FAUSTFLOAT fHslider5;
 	FAUSTFLOAT fHbargraph0;
 	
  public:
@@ -868,11 +868,11 @@ class faustCompressor : public faustdsp {
 	
 	virtual void instanceResetUserInterface() {
 		fHslider0 = FAUSTFLOAT(0.0f);
-		fEntry0 = FAUSTFLOAT(2.0f);
-		fEntry1 = FAUSTFLOAT(3.0f);
-		fHslider1 = FAUSTFLOAT(0.002f);
-		fHslider2 = FAUSTFLOAT(0.5f);
-		fEntry2 = FAUSTFLOAT(-20.0f);
+		fHslider1 = FAUSTFLOAT(2.0f);
+		fHslider2 = FAUSTFLOAT(3.0f);
+		fHslider3 = FAUSTFLOAT(0.002f);
+		fHslider4 = FAUSTFLOAT(0.5f);
+		fHslider5 = FAUSTFLOAT(-20.0f);
 	}
 	
 	virtual void instanceClear() {
@@ -913,22 +913,13 @@ class faustCompressor : public faustdsp {
 	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("compressor");
-		ui_interface->declare(0, "1", "");
-		ui_interface->openHorizontalBox("comp");
-		ui_interface->addNumEntry("knee", &fEntry1, 3.0f, 0.0f, 20.0f, 0.100000001f);
-		ui_interface->addNumEntry("ratio", &fEntry0, 2.0f, 1.0f, 20.0f, 0.100000001f);
-		ui_interface->addNumEntry("threshold", &fEntry2, -20.0f, -96.0f, 10.0f, 0.100000001f);
-		ui_interface->closeBox();
-		ui_interface->declare(0, "2", "");
-		ui_interface->openVerticalBox("env");
-		ui_interface->addHorizontalSlider("attack", &fHslider1, 0.00200000009f, 0.0f, 1.0f, 0.00100000005f);
-		ui_interface->addHorizontalSlider("release", &fHslider2, 0.5f, 0.0f, 10.0f, 0.00999999978f);
-		ui_interface->closeBox();
-		ui_interface->declare(0, "3", "");
-		ui_interface->openVerticalBox("gain");
+		ui_interface->addHorizontalSlider("attack", &fHslider3, 0.00200000009f, 0.0f, 1.0f, 0.00100000005f);
+		ui_interface->addHorizontalSlider("knee", &fHslider2, 3.0f, 0.0f, 20.0f, 0.100000001f);
 		ui_interface->addHorizontalSlider("makeup gain", &fHslider0, 0.0f, -96.0f, 96.0f, 0.100000001f);
 		ui_interface->addHorizontalBargraph("outgain", &fHbargraph0, -96.0f, 0.0f);
-		ui_interface->closeBox();
+		ui_interface->addHorizontalSlider("ratio", &fHslider1, 2.0f, 1.0f, 20.0f, 0.100000001f);
+		ui_interface->addHorizontalSlider("release", &fHslider4, 0.5f, 0.0f, 10.0f, 0.00999999978f);
+		ui_interface->addHorizontalSlider("threshold", &fHslider5, -20.0f, -96.0f, 10.0f, 0.100000001f);
 		ui_interface->closeBox();
 	}
 	
@@ -938,15 +929,15 @@ class faustCompressor : public faustdsp {
 		FAUSTFLOAT* output0 = outputs[0];
 		FAUSTFLOAT* output1 = outputs[1];
 		float fSlow0 = (0.00100000005f * float(fHslider0));
-		float fSlow1 = (1.0f - float(fEntry0));
-		float fSlow2 = float(fEntry1);
-		float fSlow3 = std::max<float>(fConst0, float(fHslider1));
+		float fSlow1 = (1.0f - float(fHslider1));
+		float fSlow2 = float(fHslider2);
+		float fSlow3 = std::max<float>(fConst0, float(fHslider3));
 		int iSlow4 = (std::fabs(fSlow3) < 1.1920929e-07f);
 		float fSlow5 = (iSlow4 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow4 ? 1.0f : fSlow3)))));
-		float fSlow6 = std::max<float>(fConst0, float(fHslider2));
+		float fSlow6 = std::max<float>(fConst0, float(fHslider4));
 		int iSlow7 = (std::fabs(fSlow6) < 1.1920929e-07f);
 		float fSlow8 = (iSlow7 ? 0.0f : std::exp((0.0f - (fConst0 / (iSlow7 ? 1.0f : fSlow6)))));
-		float fSlow9 = float(fEntry2);
+		float fSlow9 = float(fHslider5);
 		float fSlow10 = (1.0f / (fSlow2 + 0.00100000005f));
 		for (int i = 0; (i < count); i = (i + 1)) {
 			float fTemp0 = float(input0[i]);

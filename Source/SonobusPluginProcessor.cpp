@@ -65,6 +65,7 @@ static String changeQualForAllKey("ChangeQualForAll");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
+static String limiterStateKey("LimiterState");
 static String compressorEnabledKey("enabled");
 static String compressorThresholdKey("threshold");
 static String compressorRatioKey("ratio");
@@ -438,7 +439,7 @@ SonobusAudioProcessor::SonobusAudioProcessor()
 #endif
 mState (*this, &mUndoManager, "SonoBusAoO",
 {
-    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 2.0, 0.0, 0.25), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.25), mInGain.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
@@ -565,6 +566,11 @@ mState (*this, &mUndoManager, "SonoBusAoO",
         mInputCompressorParams.makeupGainDb = (-mInputCompressorParams.thresholdDb - abs(mInputCompressorParams.thresholdDb/mInputCompressorParams.ratio)) * 0.5f;
     }
 
+    mInputLimiterParams.enabled = true; // XXX
+    mInputLimiterParams.thresholdDb = -1.0f;
+    mInputLimiterParams.ratio = 4.0f;
+    mInputLimiterParams.attackMs = 0.01;
+    mInputLimiterParams.releaseMs = 100.0;
     
     mTransportSource.addChangeListener(this);
     
@@ -1177,6 +1183,22 @@ bool SonobusAudioProcessor::getInputCompressorParams(CompressorParams & retparam
     return true;
 }
 
+void SonobusAudioProcessor::setInputLimiterParams(CompressorParams & params)
+{
+    // sanity check and compute automakeupgain if necessary    
+    params.ratio = jlimit(1.0f, 120.0f, params.ratio);
+
+    mInputLimiterParams = params;
+    mInputLimiterParamsChanged = true;
+}
+
+bool SonobusAudioProcessor::getInputLimiterParams(CompressorParams & retparams)
+{
+    retparams = mInputLimiterParams;
+    return true;
+}
+
+
 void SonobusAudioProcessor::setInputExpanderParams(CompressorParams & params)
 {
     // sanity check and compute automakeupgain if necessary    
@@ -1207,14 +1229,14 @@ bool SonobusAudioProcessor::getInputEqParams(ParametricEqParams & retparams)
 void SonobusAudioProcessor::commitCompressorParams(RemotePeer * peer)
 {   
     peer->compressorUI->setParamValue("/compressor/Bypass", peer->compressorParams.enabled ? 0.0f : 1.0f);
-    peer->compressorUI->setParamValue("/compressor/comp/knee", 2.0f);
-    peer->compressorUI->setParamValue("/compressor/comp/threshold", peer->compressorParams.thresholdDb);
-    peer->compressorUI->setParamValue("/compressor/comp/ratio", peer->compressorParams.ratio);
-    peer->compressorUI->setParamValue("/compressor/env/attack", peer->compressorParams.attackMs * 1e-3);
-    peer->compressorUI->setParamValue("/compressor/env/release", peer->compressorParams.releaseMs * 1e-3);
-    peer->compressorUI->setParamValue("/compressor/gain/makeup_gain", peer->compressorParams.makeupGainDb);
+    peer->compressorUI->setParamValue("/compressor/knee", 2.0f);
+    peer->compressorUI->setParamValue("/compressor/threshold", peer->compressorParams.thresholdDb);
+    peer->compressorUI->setParamValue("/compressor/ratio", peer->compressorParams.ratio);
+    peer->compressorUI->setParamValue("/compressor/attack", peer->compressorParams.attackMs * 1e-3);
+    peer->compressorUI->setParamValue("/compressor/release", peer->compressorParams.releaseMs * 1e-3);
+    peer->compressorUI->setParamValue("/compressor/makeup_gain", peer->compressorParams.makeupGainDb);
     
-    float * tmp = peer->compressorUI->getParamZone("/compressor/gain/outgain");
+    float * tmp = peer->compressorUI->getParamZone("/compressor/outgain");
     if (tmp != peer->compressorOutputLevel) {
         peer->compressorOutputLevel = tmp; // pointer
     }
@@ -1223,14 +1245,14 @@ void SonobusAudioProcessor::commitCompressorParams(RemotePeer * peer)
 void SonobusAudioProcessor::commitInputCompressorParams()
 {   
     mInputCompressorControl.setParamValue("/compressor/Bypass", mInputCompressorParams.enabled ? 0.0f : 1.0f);
-    mInputCompressorControl.setParamValue("/compressor/comp/knee", 2.0f);
-    mInputCompressorControl.setParamValue("/compressor/comp/threshold", mInputCompressorParams.thresholdDb);
-    mInputCompressorControl.setParamValue("/compressor/comp/ratio", mInputCompressorParams.ratio);
-    mInputCompressorControl.setParamValue("/compressor/env/attack", mInputCompressorParams.attackMs * 1e-3);
-    mInputCompressorControl.setParamValue("/compressor/env/release", mInputCompressorParams.releaseMs * 1e-3);
-    mInputCompressorControl.setParamValue("/compressor/gain/makeup_gain", mInputCompressorParams.makeupGainDb);
+    mInputCompressorControl.setParamValue("/compressor/knee", 2.0f);
+    mInputCompressorControl.setParamValue("/compressor/threshold", mInputCompressorParams.thresholdDb);
+    mInputCompressorControl.setParamValue("/compressor/ratio", mInputCompressorParams.ratio);
+    mInputCompressorControl.setParamValue("/compressor/attack", mInputCompressorParams.attackMs * 1e-3);
+    mInputCompressorControl.setParamValue("/compressor/release", mInputCompressorParams.releaseMs * 1e-3);
+    mInputCompressorControl.setParamValue("/compressor/makeup_gain", mInputCompressorParams.makeupGainDb);
 
-    float * tmp = mInputCompressorControl.getParamZone("/compressor/gain/outgain");
+    float * tmp = mInputCompressorControl.getParamZone("/compressor/outgain");
     
     if (tmp != mInputCompressorOutputGain) {
         mInputCompressorOutputGain = tmp; // pointer
@@ -1242,13 +1264,13 @@ void SonobusAudioProcessor::commitInputExpanderParams()
 {
    
     //mInputCompressorControl.setParamValue("/compressor/Bypass", mInputCompressorParams.enabled ? 0.0f : 1.0f);
-    mInputExpanderControl.setParamValue("/expander/exp/knee", 3.0f);
-    mInputExpanderControl.setParamValue("/expander/exp/threshold", mInputExpanderParams.thresholdDb);
-    mInputExpanderControl.setParamValue("/expander/exp/ratio", mInputExpanderParams.ratio);
-    mInputExpanderControl.setParamValue("/expander/env/attack", mInputExpanderParams.attackMs * 1e-3);
-    mInputExpanderControl.setParamValue("/expander/env/release", mInputExpanderParams.releaseMs * 1e-3);
+    mInputExpanderControl.setParamValue("/expander/knee", 3.0f);
+    mInputExpanderControl.setParamValue("/expander/threshold", mInputExpanderParams.thresholdDb);
+    mInputExpanderControl.setParamValue("/expander/ratio", mInputExpanderParams.ratio);
+    mInputExpanderControl.setParamValue("/expander/attack", mInputExpanderParams.attackMs * 1e-3);
+    mInputExpanderControl.setParamValue("/expander/release", mInputExpanderParams.releaseMs * 1e-3);
 
-    float * tmp = mInputExpanderControl.getParamZone("/expander/gain/outgain");
+    float * tmp = mInputExpanderControl.getParamZone("/expander/outgain");
 
     
     if (tmp != mInputExpanderOutputGain) {
@@ -1256,6 +1278,23 @@ void SonobusAudioProcessor::commitInputExpanderParams()
     }
 
 }
+
+void SonobusAudioProcessor::commitInputLimiterParams()
+{   
+    //mInputLimiterControl.setParamValue("/limiter/Bypass", mInputLimiterParams.enabled ? 0.0f : 1.0f);
+    //mInputLimiterControl.setParamValue("/limiter/threshold", mInputLimiterParams.thresholdDb);
+    //mInputLimiterControl.setParamValue("/limiter/ratio", mInputLimiterParams.ratio);
+    //mInputLimiterControl.setParamValue("/limiter/attack", mInputLimiterParams.attackMs * 1e-3);
+    //mInputLimiterControl.setParamValue("/limiter/release", mInputLimiterParams.releaseMs * 1e-3);
+
+    mInputLimiterControl.setParamValue("/compressor/Bypass", mInputLimiterParams.enabled ? 0.0f : 1.0f);
+    mInputLimiterControl.setParamValue("/compressor/threshold", mInputLimiterParams.thresholdDb);
+    mInputLimiterControl.setParamValue("/compressor/ratio", mInputLimiterParams.ratio);
+    mInputLimiterControl.setParamValue("/compressor/attack", mInputLimiterParams.attackMs * 1e-3);
+    mInputLimiterControl.setParamValue("/compressor/release", mInputLimiterParams.releaseMs * 1e-3);
+
+}
+
 
 void SonobusAudioProcessor::commitInputEqParams()
 {
@@ -4045,12 +4084,20 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         DBG(mInputEqControl[0].getParamAddress(i));
     }
 
+    mInputLimiter.init(sampleRate);
+    mInputLimiter.buildUserInterface(&mInputLimiterControl);
+
+    DBG("Limiter Params:");
+    for(int i=0; i < mInputLimiterControl.getParamsCount(); i++){
+        DBG(mInputLimiterControl.getParamAddress(i));
+    }
+
 
     
     commitInputCompressorParams();
     commitInputExpanderParams();
     commitInputEqParams();
-
+    commitInputLimiterParams();
     
     
     mMReverb.setParameter(MVerbFloat::MIX, 1.0f); // full wet
@@ -4348,6 +4395,25 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
     }
     mLastInputEqEnabled = mInputEqParams.enabled;
+    
+    
+    // apply input limiter
+    if (mInputLimiterParamsChanged) {
+        commitInputLimiterParams();
+        mInputLimiterParamsChanged = false;
+    }
+    if (mLastInputLimiterEnabled || mInputLimiterParams.enabled) {
+        if (buffer.getNumChannels() > 1) {
+            mInputLimiter.compute(numSamples, buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers());
+        } else {
+            float *tmpbuf[2];
+            tmpbuf[0] = buffer.getWritePointer(0);
+            tmpbuf[1] = inputWorkBuffer.getWritePointer(0); // just a silent dummy buffer
+            mInputLimiter.compute(numSamples, tmpbuf, tmpbuf);
+        }
+    }
+    mLastInputLimiterEnabled = mInputLimiterParams.enabled;
+
     
     
     // meter pre-panning, and post compressor
@@ -5043,8 +5109,9 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
 
     ValueTree inputEffectsTree = mState.state.getOrCreateChildWithName(inputEffectsStateKey, nullptr);
     inputEffectsTree.removeAllChildren(nullptr);
-    inputEffectsTree.appendChild(mInputCompressorParams.getValueTree(), nullptr); 
-    inputEffectsTree.appendChild(mInputExpanderParams.getValueTree(true), nullptr); 
+    inputEffectsTree.appendChild(mInputCompressorParams.getValueTree(compressorStateKey), nullptr); 
+    inputEffectsTree.appendChild(mInputExpanderParams.getValueTree(expanderStateKey), nullptr); 
+    inputEffectsTree.appendChild(mInputLimiterParams.getValueTree(limiterStateKey), nullptr); 
     inputEffectsTree.appendChild(mInputEqParams.getValueTree(), nullptr); 
 
     
@@ -5095,7 +5162,13 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
            if (expanderTree.isValid()) {
                mInputExpanderParams.setFromValueTree(expanderTree);
                commitInputExpanderParams();
-           }           
+           }               
+           ValueTree limiterTree = inputEffectsTree.getChildWithName(limiterStateKey);
+           if (limiterTree.isValid()) {
+               mInputLimiterParams.setFromValueTree(limiterTree);
+               commitInputLimiterParams();
+           } 
+           
            ValueTree eqTree = inputEffectsTree.getChildWithName(eqStateKey);
            if (eqTree.isValid()) {
                mInputEqParams.setFromValueTree(eqTree);
@@ -5116,9 +5189,9 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
     }
 }
 
-ValueTree SonobusAudioProcessor::CompressorParams::getValueTree(bool expanderMode) const
+ValueTree SonobusAudioProcessor::CompressorParams::getValueTree(const String & stateKey) const
 {
-    ValueTree item(expanderMode ? expanderStateKey : compressorStateKey);
+    ValueTree item(stateKey);
     
     item.setProperty(compressorEnabledKey, enabled, nullptr);
     item.setProperty(compressorThresholdKey, thresholdDb, nullptr);
@@ -5191,7 +5264,7 @@ ValueTree SonobusAudioProcessor::PeerStateCache::getValueTree() const
     item.setProperty(peerNetbufAutoKey, netbufauto, nullptr);
     item.setProperty(peerSendFormatKey, sendFormat, nullptr);
     
-    item.appendChild(compressorParams.getValueTree(), nullptr);  
+    item.appendChild(compressorParams.getValueTree(compressorStateKey), nullptr);  
 
     return item;
 }
