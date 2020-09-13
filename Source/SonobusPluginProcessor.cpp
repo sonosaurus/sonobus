@@ -4131,7 +4131,11 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     inputMeterSource.resize (inchannels, meterRmsWindow);
     outputMeterSource.resize (outchannels, meterRmsWindow);
 
-    if (lastInputChannels != inchannels || lastOutputChannels != outchannels) {
+    if (lastInputChannels == 0 || lastOutputChannels == 0) {
+        lastInputChannels = inchannels;
+        lastOutputChannels = outchannels;        
+    }
+    else if (lastInputChannels != inchannels || lastOutputChannels != outchannels) {
         if (inchannels < outchannels) {
             // center pan it
             mState.getParameter(paramInMonitorPan1)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan1)->convertTo0to1(0.0));
