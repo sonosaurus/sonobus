@@ -467,6 +467,7 @@ void restartProcess (const File& targetFolder)
                     + targetFolder.getChildFile ("SonoBus.exe").getFullPathName().quoted() + " & exit /b ) else ( timeout /t 10 >nul ) ) )\"";
    #endif
 
+#if (!JUCE_IOS)
     if (newProcess.existsAsFile())
     {
         ChildProcess restartProcess;
@@ -475,6 +476,7 @@ void restartProcess (const File& targetFolder)
         JUCEApplicationBase::getInstance()->systemRequestedQuit();
         //StandaloneFilterApp::getApp().systemRequestedQuit();
     }
+#endif
 }
 
 void LatestVersionCheckerAndUpdater::downloadAndInstall (const VersionInfo::Asset& asset, const File& targetFolder)
