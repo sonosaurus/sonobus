@@ -363,6 +363,16 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInGainSlider->setTextBoxIsEditable(true);
     mInGainSlider->setScrollWheelEnabled(false);
 
+
+    mInMonPanMonoSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
+    mInMonPanMonoSlider->setName("inpanmono");
+    mInMonPanMonoSlider->getProperties().set ("fromCentre", true);
+    mInMonPanMonoSlider->getProperties().set ("noFill", true);
+    mInMonPanMonoSlider->setSliderSnapsToMousePosition(false);
+    mInMonPanMonoSlider->setTextBoxIsEditable(false);
+    mInMonPanMonoSlider->setScrollWheelEnabled(false);
+    mInMonPanMonoSlider->setMouseDragSensitivity(100);
+    mInMonPanMonoSlider->setDoubleClickReturnValue(true, 0.0);
     
     mInMonPanSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
     mInMonPanSlider1->setName("inpan1");
@@ -388,6 +398,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInMonPanLabel2 = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Pan 2"));
     configLabel(mInMonPanLabel2.get(), true);
     
+    mInMonPanSlider1->setDoubleClickReturnValue(true, -1.0);
+    mInMonPanSlider2->setDoubleClickReturnValue(true, 1.0);
+
     
     inPannersContainer = std::make_unique<Component>();
     
@@ -588,6 +601,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mDryAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDry, *mDrySlider);
     mWetAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramWet, *mOutGainSlider);
     mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
+    mInMonPanMonoAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorMonoPan, *mInMonPanMonoSlider);
     mInMonPan1Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan1, *mInMonPanSlider1);
     mInMonPan2Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan2, *mInMonPanSlider2);
     mMainSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainSendMute, *mMainMuteButton);
@@ -930,6 +944,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mEffectsButton = std::make_unique<TextButton>("mainfx");
     mEffectsButton->setButtonText(TRANS("Main FX"));
+    mEffectsButton->setLookAndFeel(&smallLNF);
     mEffectsButton->addListener(this);
     mEffectsButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
     //mEffectsButton->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
@@ -947,7 +962,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mSendChannelsChoice->addItem(TRANS("Mono"), 1);
     mSendChannelsChoice->addItem(TRANS("Stereo"), 2);
 
-    mSendChannelsLabel = std::make_unique<Label>("sendch", TRANS("Send Channels"));
+    mSendChannelsLabel = std::make_unique<Label>("sendch", TRANS("# Send Channels"));
     configLabel(mSendChannelsLabel.get(), true);
     mSendChannelsLabel->setJustificationType(Justification::centred);
 
@@ -1017,6 +1032,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mReverbTitleLabel = std::make_unique<Label>("revtitle", TRANS("Reverb"));
     //configLabel(mReverbTitleLabel.get(), false);
     mReverbTitleLabel->setJustificationType(Justification::centredLeft);
+    mReverbTitleLabel->setInterceptsMouseClicks(true, false);
+    mReverbTitleLabel->addMouseListener(this, false);
     
     mReverbEnabledButton = std::make_unique<SonoDrawableButton>("reven", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> powerimg(Drawable::createFromImageData(BinaryData::power_svg, BinaryData::power_svgSize));
@@ -1334,7 +1351,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(outputMeter.get());
     //addAndMakeVisible(mPeerContainer.get());
     addAndMakeVisible (mSettingsButton.get());
-    //addAndMakeVisible (mPanButton.get());
+    addAndMakeVisible (mPanButton.get());
     
     addChildComponent(mConnectComponent.get());
 
@@ -1343,12 +1360,15 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mServerConnectViewport->setViewedComponent(mServerConnectContainer.get());
     
-    mInEffectsContainer->addAndMakeVisible (mInMonPanLabel1.get());
-    mInEffectsContainer->addAndMakeVisible (mInMonPanLabel2.get());
-    mInEffectsContainer->addAndMakeVisible (mInMonPanSlider1.get());
-    mInEffectsContainer->addAndMakeVisible (mInMonPanSlider2.get());
-    mInEffectsContainer->addAndMakeVisible (mSendChannelsChoice.get());
-    mInEffectsContainer->addAndMakeVisible (mSendChannelsLabel.get());
+    inPannersContainer->addAndMakeVisible (mInMonPanLabel1.get());
+    inPannersContainer->addAndMakeVisible (mInMonPanLabel2.get());
+    inPannersContainer->addAndMakeVisible (mInMonPanMonoSlider.get());
+    inPannersContainer->addAndMakeVisible (mInMonPanSlider1.get());
+    inPannersContainer->addAndMakeVisible (mInMonPanSlider2.get());
+    inPannersContainer->addAndMakeVisible (mSendChannelsChoice.get());
+    inPannersContainer->addAndMakeVisible (mSendChannelsLabel.get());
+    
+    
     mInEffectsContainer->addAndMakeVisible (mInEffectsConcertina.get());
 
     //mInEffectsContainer->addAndMakeVisible (mCompressorBg.get());
@@ -1940,7 +1960,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
 
 
         if (!tooltipWindow && getParentComponent()) {
-               Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+            Component* dw = this; //this->findParentComponentOfClass<DocumentWindow>();
                if (!dw)
                    dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
                if (!dw)
@@ -2587,7 +2607,7 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; //this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
@@ -2599,9 +2619,8 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
             dw = this;
         }
         
-        // calculate based on how many peers we have
-        const int defWidth = 140; 
-        const int defHeight = 70;
+        const int defWidth = 260; 
+        const int defHeight = 60;
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
@@ -2618,7 +2637,7 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mPanButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        inPannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        inPannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(inPannerCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2639,14 +2658,15 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
-        
+        Component* dw = nullptr; //this->findParentComponentOfClass<DocumentWindow>();
+        /*
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
         }
         if (!dw) {
             dw = this->findParentComponentOfClass<Component>();        
         }
+         */
         if (!dw) {
             dw = this;
         }
@@ -2675,7 +2695,7 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMetConfigButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        metCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        metCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(metCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2696,14 +2716,17 @@ void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
         
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
+        
+        /*
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
         }
         if (!dw) {
             dw = this->findParentComponentOfClass<Component>();        
         }
+         */
         if (!dw) {
             dw = this;
         }
@@ -2735,7 +2758,7 @@ void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mEffectsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2756,14 +2779,16 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; //this->findParentComponentOfClass<DocumentWindow>();
         
+        /*
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();
         }
         if (!dw) {
             dw = this->findParentComponentOfClass<Component>();
         }
+         */
         if (!dw) {
             dw = this;
         }
@@ -2787,7 +2812,7 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         auto headerheight = minheadbounds.getHeight();
         
         defWidth = jmax(minbounds.getWidth(), minexpbounds.getWidth(), mineqbounds.getWidth()) + 12;
-        defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight()) + 3*headerheight  + 64;
+        defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight()) + 3*headerheight + 8;
         
         int extrawidth = 0;
         if (defHeight > dw->getHeight() - 24) {
@@ -2841,7 +2866,7 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : mInEffectsButton->getScreenBounds());
         DBG("in effect callout bounds: " << bounds.toString());
-        inEffectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        inEffectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(inEffectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2866,14 +2891,16 @@ void SonobusAudioProcessorEditor::showPatchbay(bool flag)
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
+        /*
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
         }
         if (!dw) {
             dw = this->findParentComponentOfClass<Component>();        
         }
+         */
         if (!dw) {
             dw = this;
         }
@@ -2899,7 +2926,7 @@ void SonobusAudioProcessorEditor::showPatchbay(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mPatchbayButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        patchbayCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        patchbayCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(patchbayCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -3011,6 +3038,9 @@ void SonobusAudioProcessorEditor::mouseUp (const MouseEvent& event)
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(0.0);
         }
     }
+    else if (event.eventComponent == mReverbTitleLabel.get()) {
+        mReverbEnabledButton->setToggleState(!mReverbEnabledButton->getToggleState(), sendNotification);
+    }
 }
 
 void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& component)
@@ -3072,14 +3102,16 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         
         //Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
+        /*
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
         }
         if (!dw) {
             dw = this->findParentComponentOfClass<Component>();        
         }
+         */
         if (!dw) {
             dw = this;
         }
@@ -3226,7 +3258,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mTitleLabel->getScreenBounds().reduced(10));
         DBG("callout bounds: " << bounds.toString());
-        settingsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        settingsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -3288,23 +3320,27 @@ void SonobusAudioProcessorEditor::updateState()
 
     
     if (panChannels > 1) {        
-        mInMonPanSlider1->setVisible(true);
         mInMonPanLabel1->setVisible(true);
+        if (inChannels > 1) {
+            mInMonPanSlider1->setVisible(true);
+            mInMonPanMonoSlider->setVisible(false);  
+        }
+        else {
+            mInMonPanSlider1->setVisible(false);
+            mInMonPanMonoSlider->setVisible(true);            
+        }
     } else {
         mInMonPanSlider1->setVisible(false);
         mInMonPanLabel1->setVisible(false);            
+        mInMonPanMonoSlider->setVisible(false);
     }
 
     if (inChannels > 1) {
         mInMonPanSlider2->setVisible(true);
         mInMonPanLabel2->setVisible(true);
         
-        mInMonPanSlider1->setDoubleClickReturnValue(true, -1.0);
-        mInMonPanSlider2->setDoubleClickReturnValue(true, 1.0);
     }
-    else {
-        mInMonPanSlider1->setDoubleClickReturnValue(true, 0.0);
-        
+    else {        
         mInMonPanSlider2->setVisible(false);
         mInMonPanLabel2->setVisible(false);
     }
@@ -3797,16 +3833,20 @@ void SonobusAudioProcessorEditor::resized()
         mFileRecordingLabel->setBounds(mRecordingButton->getBounds().removeFromBottom(14).translated(0, 1));
     }
 
-
+    mInMonPanMonoSlider->setBounds(mInMonPanSlider1->getBounds().withRight(mInMonPanSlider2->getRight()));    
+    mInMonPanMonoSlider->setMouseDragSensitivity(jmax(128, mInMonPanMonoSlider->getWidth()));
+    
     if (mConnectComponent->isVisible()) {
         mRecentsListBox->updateContent();
     }
     
-    Component* dw = this->findParentComponentOfClass<DocumentWindow>();    
+    Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();    
+    /*
     if (!dw)
         dw = this->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw)
         dw = this->findParentComponentOfClass<Component>();
+     */
     if (!dw)
         dw = this;
 
@@ -3818,6 +3858,9 @@ void SonobusAudioProcessorEditor::resized()
         callout->updatePosition(dw->getLocalArea(nullptr, mEffectsButton->getScreenBounds()), dw->getLocalBounds());
     }
 
+    if (auto * callout = dynamic_cast<CallOutBox*>(inPannerCalloutBox.get())) {
+        callout->updatePosition(dw->getLocalArea(nullptr, mPanButton->getScreenBounds()), dw->getLocalBounds());
+    }
     
     //mInGainLabel->setBounds(mInGainSlider->getBounds().removeFromLeft(mInGainSlider->getWidth()*0.5));
     //mDryLabel->setBounds(mDrySlider->getBounds().removeFromLeft(mDrySlider->getWidth()*0.5));
@@ -3841,12 +3884,14 @@ void SonobusAudioProcessorEditor::updateLayout()
     int iconheight = 24;
     int iconwidth = iconheight;
     int knoblabelheight = 18;
+    int panbuttwidth = 26;
     
 #if JUCE_IOS
     // make the button heights a bit more for touchscreen purposes
     minitemheight = 44;
     knobitemheight = 90;
     minpassheight = 38;
+    panbuttwidth = 32;
 #endif
     
     inGainBox.items.clear();
@@ -3870,8 +3915,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     inMeterBox.items.clear();
     inMeterBox.flexDirection = FlexBox::Direction::column;
     inMeterBox.items.add(FlexItem(meterheight, minitemheight, *inputMeter).withMargin(0).withFlex(1).withMaxWidth(meterheight).withAlignSelf(FlexItem::AlignSelf::center));
-    //inMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
-    //inMeterBox.items.add(FlexItem(40, minitemheight - 4, *mInEffectsButton).withMargin(0).withFlex(0));
+    inMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
+    inMeterBox.items.add(FlexItem(panbuttwidth, minitemheight - 6, *mPanButton).withMargin(0).withFlex(0));
+    //knobBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(54).withMaxHeight(minitemheight).withAlignSelf(FlexItem::AlignSelf::center));
 
     
     knobButtonBox.items.clear();
@@ -3884,7 +3930,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     knobBox.items.clear();
     knobBox.flexDirection = FlexBox::Direction::row;
     knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(isNarrow ? 0.0 : 0.1));
-    knobBox.items.add(FlexItem(meterheight, minitemheight, inMeterBox).withMargin(0).withFlex(0));
+    knobBox.items.add(FlexItem(jmax(panbuttwidth,meterheight), minitemheight, inMeterBox).withMargin(0).withFlex(1).withMaxWidth(40));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
     knobBox.items.add(FlexItem(minKnobWidth, minitemheight, inGainBox).withMargin(0).withFlex(1).withMaxWidth(isNarrow ? 160 : 120));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
@@ -4012,7 +4058,7 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     inEffectsBox.items.clear();
     inEffectsBox.flexDirection = FlexBox::Direction::column;
-    inEffectsBox.items.add(FlexItem(100, minitemheight + 16, inPannerMainBox).withMargin(2).withFlex(0));
+    //inEffectsBox.items.add(FlexItem(100, minitemheight + 16, inPannerMainBox).withMargin(2).withFlex(0));
     inEffectsBox.items.add(FlexItem(4, 2));
     inEffectsBox.items.add(FlexItem(minexpbounds.getWidth(), jmax(minexpbounds.getHeight(), mincompbounds.getHeight(), mineqbounds.getHeight()) + 3*minitemheight, *mInEffectsConcertina).withMargin(1).withFlex(1));
     //inEffectsBox.items.add(FlexItem(4, 3));
@@ -4497,14 +4543,18 @@ void SonobusAudioProcessorEditor::showFilePopupMenu(Component * source)
     items.add(GenericItemChooserItem(TRANS("Reveal File")));
 #endif
     
-    Component* dw = source->findParentComponentOfClass<DocumentWindow>();
+    Component* dw = nullptr; //source->findParentComponentOfClass<DocumentWindow>();
 
+    /*
     if (!dw) {
         dw = source->findParentComponentOfClass<AudioProcessorEditor>();        
     }
     if (!dw) {
         dw = source->findParentComponentOfClass<Component>();        
     }
+    */
+    
+    dw = this;
     
     //chooser->setSize(jmin(chooser->getWidth(), dw->getWidth() - 16), jmin(chooser->getHeight(), dw->getHeight() - 20));
     

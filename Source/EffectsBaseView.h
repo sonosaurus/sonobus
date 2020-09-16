@@ -129,7 +129,8 @@ public:
         return minHeaderBounds;
     }
 
-    
+    void setDragButtonVisible(bool flag) { dragButton.setVisible(flag); }
+    bool getDragButtonVisible() const  { return dragButton.isVisible(); }
     
    
     

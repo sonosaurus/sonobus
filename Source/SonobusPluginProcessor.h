@@ -148,6 +148,7 @@ public:
     AudioProcessorValueTreeState& getValueTreeState();
 
     static String paramInGain;
+    static String paramInMonitorMonoPan;
     static String paramInMonitorPan1;
     static String paramInMonitorPan2;
     static String paramDry;
@@ -535,8 +536,9 @@ private:
     int mTempBufferChannels = 0;
     
     Atomic<float>   mInGain    { 1.0 };
-    Atomic<float>   mInMonPan1    {   0.0 };
-    Atomic<float>   mInMonPan2    {   0.0 };
+    Atomic<float>   mInMonMonoPan    {   0.0 };
+    Atomic<float>   mInMonPan1    {   -1.0 };
+    Atomic<float>   mInMonPan2    {   1.0 };
     Atomic<float>   mDry    {
 #if JUCE_IOS
         0.0 
@@ -568,8 +570,9 @@ private:
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
     float mLastWet    = 0.0f;
-    float mLastInMonPan1 = 0.0f;
-    float mLastInMonPan2 = 0.0f;
+    float mLastInMonMonoPan = 0.0f;
+    float mLastInMonPan1 = -1.0f;
+    float mLastInMonPan2 = 1.0f;
     bool mLastMetEnabled = false;
     bool mLastMainReverbEnabled = false;
     bool mReverbParamsChanged = false;

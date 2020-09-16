@@ -263,6 +263,7 @@ private:
 
     std::unique_ptr<TextButton> mPanButton;
 
+    std::unique_ptr<Slider> mInMonPanMonoSlider;
     std::unique_ptr<Slider> mInMonPanSlider1;
     std::unique_ptr<Slider> mInMonPanSlider2;
     std::unique_ptr<Label> mInMonPanLabel1;
@@ -658,6 +659,7 @@ private:
     std::unique_ptr<CustomTooltipWindow> tooltipWindow;
     
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPanMonoAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan1Attachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan2Attachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;

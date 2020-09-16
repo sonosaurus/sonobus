@@ -31,6 +31,7 @@ typedef int socklen_t;
 
 String SonobusAudioProcessor::paramInGain     ("ingain");
 String SonobusAudioProcessor::paramDry     ("dry");
+String SonobusAudioProcessor::paramInMonitorMonoPan     ("inmonmonopan");
 String SonobusAudioProcessor::paramInMonitorPan1     ("inmonpan1");
 String SonobusAudioProcessor::paramInMonitorPan2     ("inmonpan2");
 String SonobusAudioProcessor::paramWet     ("wet");
@@ -443,11 +444,15 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorPan1,     TRANS ("In Mon Pan 1"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan1.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(paramInMonitorMonoPan,     TRANS ("In Pan"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonMonoPan.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorPan2,     TRANS ("In Mon Pan 2"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan2.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(paramInMonitorPan1,     TRANS ("In Pan 1"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan1.get(), "", AudioProcessorParameter::genericParameter, 
+                                          [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
+                                          [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
+
+    std::make_unique<AudioParameterFloat>(paramInMonitorPan2,     TRANS ("In Pan 2"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan2.get(), "", AudioProcessorParameter::genericParameter, 
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
@@ -505,6 +510,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramInGain, this);
     mState.addParameterListener (paramDry, this);
     mState.addParameterListener (paramWet, this);
+    mState.addParameterListener (paramInMonitorMonoPan, this);
     mState.addParameterListener (paramInMonitorPan1, this);
     mState.addParameterListener (paramInMonitorPan2, this);
     mState.addParameterListener (paramDefaultAutoNetbuf, this);
@@ -3939,6 +3945,9 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramWet) {
         mWet = newValue;
     }
+    else if (parameterID == paramInMonitorMonoPan) {
+        mInMonMonoPan = newValue;
+    }
     else if (parameterID == paramInMonitorPan1) {
         mInMonPan1 = newValue;
     }
@@ -4136,6 +4145,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         lastOutputChannels = outchannels;        
     }
     else if (lastInputChannels != inchannels || lastOutputChannels != outchannels) {
+        /*
         if (inchannels < outchannels) {
             // center pan it
             mState.getParameter(paramInMonitorPan1)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan1)->convertTo0to1(0.0));
@@ -4146,6 +4156,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
             mState.getParameter(paramInMonitorPan1)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan1)->convertTo0to1(-1.0));
             mState.getParameter(paramInMonitorPan2)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan2)->convertTo0to1(1.0));
         }
+         */
 
         lastInputChannels = inchannels;
         lastOutputChannels = outchannels;
@@ -4282,6 +4293,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     float inGain = mInGain.get();
     float drynow = mDry.get(); // DB_CO(dry_level);
     float wetnow = mWet.get(); // DB_CO(wet_level);
+    float inmonMonoPan = mInMonMonoPan.get();
     float inmonPan1 = mInMonPan1.get();
     float inmonPan2 = mInMonPan2.get();
     
@@ -4437,8 +4449,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
         for (int channel = 0; channel < panChannels; ++channel) {
             for (int i=0; i < totalNumInputChannels; ++i) {
-                const float pan = (i==0 ? inmonPan1 : inmonPan2);
-                const float lastpan = (i==0 ? mLastInMonPan1 : mLastInMonPan2);
+                const float pan = (totalNumInputChannels == 1 ? inmonMonoPan : i==0 ? inmonPan1 : inmonPan2);
+                const float lastpan = (totalNumInputChannels == 1 ? mLastInMonMonoPan : i==0 ? mLastInMonPan1 : mLastInMonPan2);
                 
                 // apply pan law
                 // -1 is left, 1 is right
@@ -5045,6 +5057,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     mLastInputGain = inGain;
     mLastInMonPan1 = inmonPan1;
     mLastInMonPan2 = inmonPan2;
+    mLastInMonMonoPan = inmonMonoPan;
 }
 
 //==============================================================================

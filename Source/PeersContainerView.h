@@ -179,6 +179,7 @@ public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
 public CompressorView::Listener,
+public EffectsBaseView::HeaderListener,
 public MultiTimer
 {
 public:
@@ -215,6 +216,7 @@ public:
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
     
     void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
+    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) override;
 
 
     void clearClipIndicators();

@@ -237,7 +237,7 @@ void PeersContainerView::resized()
         pvf->resized();
     }
     
-    Component* dw = this->findParentComponentOfClass<DocumentWindow>();    
+    Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();    
     if (!dw)
         dw = this->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw)
@@ -604,8 +604,10 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     // compressor stuff
    
     pvf->compressorView = std::make_unique<CompressorView>();
+    pvf->compressorView->setDragButtonVisible(false);
     pvf->compressorView->addListener(this);
-    
+    pvf->compressorView->addHeaderListener(this);
+
     pvf->sendOptionsContainer = std::make_unique<Component>();
     pvf->recvOptionsContainer = std::make_unique<Component>();
 
@@ -997,7 +999,7 @@ void PeersContainerView::updateLayout()
         pvf->effectsBox.items.clear();
         pvf->effectsBox.flexDirection = FlexBox::Direction::column;
         pvf->effectsBox.items.add(FlexItem(60, pvf->compressorView->getMinimumHeaderBounds().getHeight(), *pvf->compressorView->getHeaderComponent()).withMargin(0).withFlex(0));
-        pvf->effectsBox.items.add(FlexItem(60, pvf->compressorView->getMinimumContentBounds().getHeight(), *pvf->compressorView.get()).withMargin(0).withFlex(0));
+        pvf->effectsBox.items.add(FlexItem(60, pvf->compressorView->getMinimumContentBounds().getHeight(), *pvf->compressorView.get()).withMargin(0).withFlex(1));
 
         
         pvf->sendbox.items.clear();
@@ -1766,7 +1768,7 @@ void PeersContainerView::showPanners(int index, bool flag)
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();
@@ -1802,7 +1804,7 @@ void PeersContainerView::showPanners(int index, bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, pvf->panButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        pannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        pannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(pannerCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -1823,7 +1825,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();
@@ -1860,7 +1862,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->recvOptionsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        recvOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        recvOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(recvOptionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -1881,7 +1883,7 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();
@@ -1917,7 +1919,7 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->sendOptionsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        sendOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        sendOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(sendOptionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -1938,7 +1940,7 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();
@@ -1989,7 +1991,7 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->fxButton->getScreenBounds());
         DBG("effect callout bounds: " << bounds.toString());
-        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw);
+        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2074,7 +2076,7 @@ void PeersContainerView::showPopupMenu(Component * source, int index)
     }
     items.add(GenericItemChooserItem(TRANS("Remove")));
     
-    Component* dw = source->findParentComponentOfClass<DocumentWindow>();
+    Component* dw = nullptr; // source->findParentComponentOfClass<DocumentWindow>();
 
     if (!dw) {
         dw = source->findParentComponentOfClass<AudioProcessorEditor>();        
@@ -2144,11 +2146,27 @@ void PeersContainerView::compressorParamsChanged(CompressorView *comp, SonobusAu
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         if (pvf->compressorView.get() == comp) {
             processor.setRemotePeerCompressorParams(i, params);
+            pvf->fxButton->setToggleState(params.enabled, dontSendNotification);
             break;
         }
     }
 }
 
+void PeersContainerView::effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event)
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        if (pvf->compressorView.get() == comp) {
+            SonobusAudioProcessor::CompressorParams params;
+            processor.getRemotePeerCompressorParams(i, params);
+            params.enabled = !params.enabled;
+            processor.setRemotePeerCompressorParams(i, params);
+            pvf->compressorView->updateParams(params);
+            pvf->fxButton->setToggleState(params.enabled, dontSendNotification);
+            break;
+        }
+    }
+}
 
 void PeersContainerView::sliderValueChanged (Slider* slider)
 {
