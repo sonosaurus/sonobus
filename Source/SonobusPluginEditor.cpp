@@ -2607,7 +2607,7 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
         
         Viewport * wrap = new Viewport();
         
-        Component* dw = nullptr; //this->findParentComponentOfClass<DocumentWindow>();
+        Component* dw = this; // nullptr; //this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
             dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
