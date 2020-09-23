@@ -34,6 +34,7 @@ public:
     SonoBigTextLookAndFeel smallLnf;
     SonoBigTextLookAndFeel medLnf;
     SonoBigTextLookAndFeel sonoSliderLNF;
+    SonoPanSliderLookAndFeel panSliderLNF;
 
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;

@@ -11,12 +11,13 @@
 #include "PeersContainerView.h"
 #include "JitterBufferMeter.h"
 
-PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14), sonoSliderLNF(12)
+PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14), sonoSliderLNF(12), panSliderLNF(12)
 {
     bgColor = Colour::fromFloatRGBA(0.112f, 0.112f, 0.112f, 1.0f);
     borderColor = Colour::fromFloatRGBA(0.5f, 0.5f, 0.5f, 0.3f);
 
     sonoSliderLNF.textJustification = Justification::centredLeft;
+    panSliderLNF.textJustification = Justification::centredLeft;
     
     //Random rcol;
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
@@ -395,7 +396,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     
     pvf->pannersContainer = std::make_unique<Component>();
     
-    pvf->panSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxAbove);
+    //pvf->panSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxAbove);
+    pvf->panSlider1     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::NoTextBox);
     //pvf->panSlider1->setTextBoxStyle(Slider::TextBoxBelow, true, 60, 12);
     pvf->panSlider1->setName("pan1");
     pvf->panSlider1->addListener(this);
@@ -412,11 +414,12 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     //pvf->panSlider1->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
     //pvf->panSlider1->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
 
-    pvf->panSlider1->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return String(TRANS("Pan: C")); return String(TRANS("Pan: ")) +  String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
+    pvf->panSlider1->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return String(TRANS("Pan: Center")); return String(TRANS("Pan: ")) +  String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
     pvf->panSlider1->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
     pvf->panSlider1->setValue(0.1, dontSendNotification);
     pvf->panSlider1->setValue(0.0, dontSendNotification);
-    pvf->panSlider1->setLookAndFeel(&pvf->sonoSliderLNF);
+    pvf->panSlider1->setLookAndFeel(&pvf->panSliderLNF);
+    pvf->panSlider1->setPopupDisplayEnabled(true, true, this);
 
     
     pvf->panSlider2     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
@@ -1392,8 +1395,8 @@ void PeersContainerView::updatePeerViews()
             pvf->panButton->setVisible(false);
 
             if (!pvf->singlePanner) {
-                pvf->panSlider1->setSliderStyle(Slider::LinearBar);
-                pvf->panSlider1->setTextBoxStyle(Slider::TextBoxAbove, true, 10, 2);
+                pvf->panSlider1->setSliderStyle(Slider::LinearHorizontal); // LinearBar
+                pvf->panSlider1->setTextBoxStyle(Slider::NoTextBox, true, 10, 2); // TextBoxAbove
                 
                 pvf->singlePanner = true;
             }
@@ -1426,11 +1429,11 @@ void PeersContainerView::updatePeerViews()
         //pvf->packetsizeSlider->setValue(findHighestSetBit(processor.getRemotePeerSendPacketsize(i)), dontSendNotification);
         
         //pvf->removeButton->setEnabled(connected);
-        pvf->levelSlider->setEnabled(recvactive);
+    //    pvf->levelSlider->setEnabled(recvactive);
         //pvf->bufferTimeSlider->setEnabled(recvactive);
         //pvf->autosizeButton->setEnabled(recvactive);
-        pvf->panSlider1->setEnabled(recvactive);
-        pvf->panSlider2->setEnabled(recvactive);
+    //    pvf->panSlider1->setEnabled(recvactive);
+    //    pvf->panSlider2->setEnabled(recvactive);
         //pvf->formatChoiceButton->setEnabled(sendactive);
 
         const float disalpha = 0.4;

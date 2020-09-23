@@ -137,4 +137,28 @@ protected:
     
 };
 
+class SonoPanSliderLookAndFeel   : public SonoLookAndFeel
+{
+public:
+    SonoPanSliderLookAndFeel(float maxTextSize=14.0f);
+    
+    Font getSliderPopupFont (Slider&) override;
+    int getSliderPopupPlacement (Slider&) override;
+
+    Button* createSliderButton (Slider&, const bool isIncrement) override;
+    Label* createSliderTextBox (Slider&) override;
+    int getSliderThumbRadius (Slider& slider) override;
+
+    void drawLinearSlider (Graphics&, int x, int y, int width, int height,
+                           float sliderPos, float minSliderPos, float maxSliderPos,
+                           const Slider::SliderStyle, Slider&) override;
+
+    Justification textJustification = Justification::centred;
+    
+protected:
+    float maxSize;
+    
+};
+
+
 #endif
