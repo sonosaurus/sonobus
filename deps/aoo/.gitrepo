@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/essej/aoo.git
+	branch = sono
+	commit = 739d6f5fb83e2b77dabbd70292c815f2c801d749
+	parent = 69cd78489a28c5c6d22b8d5bd1a9aa970e380afd
+	method = merge
+	cmdver = 0.4.1

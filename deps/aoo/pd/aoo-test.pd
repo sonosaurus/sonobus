@@ -1,0 +1,108 @@
+#N canvas 640 52 730 802 12;
+#X declare -lib zexy -path iemnet;
+#X obj 35 400 spigot;
+#X obj 74 378 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 35 431 print;
+#X obj 133 89 osc~ 440;
+#X msg 67 83 set \$1;
+#X obj 70 11 hradio 15 1 0 8 empty empty empty 0 -8 0 10 -262144 -1
+-1 1;
+#X msg 82 58 symbol *;
+#X obj 103 418 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 118 501 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
+10 -262144 -1 -1 10 256;
+#X obj 146 415 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 79 36 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 0 256;
+#X obj 98 381 aoo_route 1 2;
+#X obj 183 420 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 18 87 clear;
+#X obj 198 624 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 67 148 aoo_pack~ 1 2;
+#X obj 247 572 line~;
+#X msg 247 538 \$1 50;
+#X obj 95 646 *~;
+#X obj 132 648 *~;
+#X obj 248 347 vsl 15 128 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 1;
+#X obj 247 507 t f f;
+#X obj 293 557 - 100;
+#X floatatom 293 581 5 0 0 0 - - -;
+#X obj 293 533 rmstodb;
+#X obj 247 483 pow 2;
+#X obj 94 679 dac~;
+#X obj 200 89 osc~ 600;
+#X obj 160 54 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
+10 -262144 -1 -1 410 256;
+#X msg 114 528 bufsize \$1;
+#X obj 316 51 loadbang;
+#X msg 316 75 \; pd dsp 1;
+#X obj 408 42 declare -lib zexy -path iemnet;
+#X obj 67 200 demux;
+#X obj 98 175 hradio 15 1 0 2 empty empty empty 0 -8 0 10 -262144 -1
+-1 1;
+#X obj 99 266 udpsend;
+#X msg 124 237 connect localhost 9999;
+#X obj 123 208 loadbang;
+#X obj 98 306 udpreceive 9999;
+#X obj 79 114 r \$0-back;
+#X obj 70 344 t a a;
+#X obj 97 462 spigot;
+#X obj 134 440 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 240 634 s \$0-back;
+#X obj 97 585 aoo_unpack~ 1 2;
+#X msg 218 146 channel \$1;
+#X obj 217 122 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
+10 -262144 -1 -1 0 256;
+#X connect 0 0 2 0;
+#X connect 1 0 0 1;
+#X connect 3 0 15 0;
+#X connect 4 0 15 0;
+#X connect 5 0 4 0;
+#X connect 6 0 4 0;
+#X connect 8 0 29 0;
+#X connect 10 0 4 0;
+#X connect 11 0 7 0;
+#X connect 11 0 41 0;
+#X connect 11 1 9 0;
+#X connect 11 2 12 0;
+#X connect 13 0 15 0;
+#X connect 15 0 33 0;
+#X connect 16 0 18 1;
+#X connect 16 0 19 1;
+#X connect 17 0 16 0;
+#X connect 18 0 26 0;
+#X connect 19 0 26 1;
+#X connect 20 0 25 0;
+#X connect 21 0 17 0;
+#X connect 21 1 24 0;
+#X connect 22 0 23 0;
+#X connect 24 0 22 0;
+#X connect 25 0 21 0;
+#X connect 27 0 15 1;
+#X connect 28 0 3 0;
+#X connect 29 0 44 0;
+#X connect 30 0 31 0;
+#X connect 33 0 40 0;
+#X connect 33 1 35 0;
+#X connect 34 0 33 1;
+#X connect 36 0 35 0;
+#X connect 37 0 36 0;
+#X connect 38 0 40 0;
+#X connect 39 0 15 0;
+#X connect 40 0 0 0;
+#X connect 40 1 11 0;
+#X connect 41 0 44 0;
+#X connect 42 0 41 1;
+#X connect 44 0 18 0;
+#X connect 44 1 19 0;
+#X connect 44 2 14 0;
+#X connect 44 2 43 0;
+#X connect 45 0 15 0;
+#X connect 46 0 45 0;

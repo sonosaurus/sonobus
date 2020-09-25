@@ -1,0 +1,6 @@
+---
+variables:
+  SRCDIR: pd/
+
+include:
+  - https://git.iem.at/pd/iem-ci/raw/master/pd-lib-builder/gitlab-iem.yml
