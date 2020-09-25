@@ -1,7 +1,3 @@
-[submodule "deps/aoo"]
-	path = deps/aoo
-	url = https://github.com/essej/aoo
-	branch = sono
 [submodule "deps/ff_meters"]
 	path = deps/ff_meters
 	url = https://github.com/ffAudio/ff_meters.git
