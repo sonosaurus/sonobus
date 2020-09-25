@@ -1,3 +1,0 @@
-[submodule "deps/ff_meters"]
-	path = deps/ff_meters
-	url = https://github.com/ffAudio/ff_meters.git
