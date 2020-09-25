@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/ffAudio/ff_meters.git
+	branch = master
+	commit = 71e05b8f93ec3643fc7268b8da65d7b98bdefdf8
+	parent = 774bc39fc42d9362fccd85ecfeea862be70d8614
+	method = merge
+	cmdver = 0.4.1
