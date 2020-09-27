@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2020 Jesse Chappell
+
 /*
   ==============================================================================
 
@@ -927,7 +930,9 @@ private:
             enum { height = 60 };
 
             NotificationArea (Button::Listener* settingsButtonListener)
-                : notification ("notification", "Audio input is muted to avoid\nfeedback loop.\nHeadphones recommended!"),
+                : notification ("notification", "Audio input is muted to avoid
+feedback loop.
+Headphones recommended!"),
                  //#if JUCE_IOS || JUCE_ANDROID
                   settingsButton ("Unmute Input")
                  //#else

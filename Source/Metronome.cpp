@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2020 Jesse Chappell
+
 /*
  *  Metronome.cpp
  *  ThumbJam
@@ -103,7 +106,8 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
 
                 mBarState.sampleRemain = mBarState.sampleLength;
                 mBarState.samplePos = 0;
-                //printf("Starting bar playout for tempo %g  TS: %ld\n", mTempo, iTimestamp);
+                //printf("Starting bar playout for tempo %g  TS: %ld
+", mTempo, iTimestamp);
             }
         }
         
@@ -114,7 +118,8 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
             
             mBeatState.sampleRemain = mBeatState.sampleLength;
             mBeatState.samplePos = 0;            
-            //printf("Starting beat playout  for tempo %g   TS: %ld \n", mTempo, iTimestamp);            
+            //printf("Starting beat playout  for tempo %g   TS: %ld 
+", mTempo, iTimestamp);            
         }
         
         // run enough samples to get to start of next beat/bar or what's left
@@ -241,4 +246,3 @@ void Metronome::loadBarSoundFromBinaryData(const void* data, size_t sizeBytes)
         mBarState.sampleRemain = 0;
     }
 }
-

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2020 Jesse Chappell
+
 #include "RandomSentenceGenerator.h"
 
 #include <iostream>
@@ -67,7 +70,8 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
 {
 
     string rule, sentence;
-    string delimiters = " \t\n\r;";
+    string delimiters = " 	
+;";
     string line = "";
 
     capEveryWord = false;
@@ -192,4 +196,3 @@ void RandomSentenceGenerator::capFirst(string & s)
       s[0] = toupper(s[0], loc);
   }
 }
-

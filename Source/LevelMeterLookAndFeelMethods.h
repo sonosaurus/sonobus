@@ -27,7 +27,7 @@
  
  ==============================================================================
 
-    \file LevelMeterLookAndFeelMethods.h
+    ile LevelMeterLookAndFeelMethods.h
     Author:  Daniel Walz
 
     To use the default implementation of your LevelMeter in your LookAndFeel,
@@ -870,5 +870,3 @@ private:
 
 juce::ColourGradient horizontalGradient;
 juce::ColourGradient verticalGradient;
-
-

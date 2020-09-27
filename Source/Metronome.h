@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2020 Jesse Chappell
+
 /*
  *  Metronome.h
  *  ThumbJam
@@ -100,4 +103,3 @@ namespace SonoAudio
     
 
 }
-

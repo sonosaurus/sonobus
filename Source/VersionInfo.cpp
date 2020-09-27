@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2020 Jesse Chappell
+
 
 #include "JuceHeader.h"
 #include "VersionInfo.h"

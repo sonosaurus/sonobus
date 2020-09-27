@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2020 Jesse Chappell
+
 #pragma once
 
 #include "RunCumulantor.h"
@@ -62,4 +65,3 @@ private:
     bool skipMeasure = false;
     bool playing = false;
 };
-

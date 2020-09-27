@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2020 Jesse Chappell
+
 #ifndef RUNINGCUMULANT_H_
 #define RUNINGCUMULANT_H_
 
