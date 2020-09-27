@@ -1,15 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-//
-//  CrossPlatformUtilsMac.m
-//  SonoBus
-//
-//  Created by Jesse Chappell on 8/11/20.
-//  Copyright © 2020 Sonosaurus. All rights reserved.
-//
-
-
 
 #include "CrossPlatformUtils.h"
 

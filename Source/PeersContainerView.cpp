@@ -1,16 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-/*
-  ==============================================================================
-
-    PeersContainerView.cpp
-    Created: 27 Jun 2020 12:42:15pm
-    Author:  Jesse Chappell
-
-  ==============================================================================
-*/
-
 #include "PeersContainerView.h"
 #include "JitterBufferMeter.h"
 
@@ -370,8 +360,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvSoloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
 
     
-    pvf->latActiveButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency
-Test"));
+    pvf->latActiveButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
     pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -483,8 +472,7 @@ Test"));
     pvf->autosizeButton->addItem(TRANS("Auto"), 1);
     pvf->autosizeButton->addListener(this);
 
-    pvf->bufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency
-Test"));
+    pvf->bufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
     std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::skipback_icon_svg, BinaryData::skipback_icon_svgSize));
     pvf->bufferMinButton->setImages(backimg.get());
     //pvf->bufferMinButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
@@ -1555,12 +1543,9 @@ void PeersContainerView::stopLatencyTest(int i)
 String PeersContainerView::generateLatencyMessage(const SonobusAudioProcessor::LatencyInfo &latinfo)
 {
     String messagestr = String::formatted(TRANS("Measured actual round-trip latency: %d ms"), (int) lrintf(latinfo.totalRoundtripMs));
-    messagestr += String::formatted(TRANS("
-Est. Outgoing: %.1f ms"), (latinfo.outgoingMs));
-    messagestr += String::formatted(TRANS("
-Est. Incoming: %.1f ms"), (latinfo.incomingMs));
-    //messagestr += String::formatted(TRANS("
-Jitter: %.1f ms"), (latinfo.jitterMs));
+    messagestr += String::formatted(TRANS("\nEst. Outgoing: %.1f ms"), (latinfo.outgoingMs));
+    messagestr += String::formatted(TRANS("\nEst. Incoming: %.1f ms"), (latinfo.incomingMs));
+    //messagestr += String::formatted(TRANS("\nJitter: %.1f ms"), (latinfo.jitterMs));
     return messagestr;
 }
 

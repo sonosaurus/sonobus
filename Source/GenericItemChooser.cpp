@@ -1,18 +1,8 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-//
-//  ScaleTableList.cpp
-//  ThumbJamJuce
-//
-//  Created by Jesse Chappell on 6/4/14.
-//
-//
 
 #include "GenericItemChooser.h"
-//#include "AppState.h"
-
-//using namespace SonoAudio;
 
 enum {
     nameTextColourId = 0x1002830,

@@ -38,11 +38,8 @@ void LatestVersionCheckerAndUpdater::run()
         if (showAlertWindows)
             AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
                                               "Update Server Communication Error",
-                                              "Failed to communicate with the SonoBus update server.
-"
-                                              "Please try again in a few minutes.
-
-"
+                                              "Failed to communicate with the SonoBus update server.\n"
+                                              "Please try again in a few minutes.\n\n"
                                               "If this problem persists you can download the latest version of SonoBus from beta.sonobus.com");
 
         return;
@@ -257,23 +254,13 @@ void LatestVersionCheckerAndUpdater::askUserForLocationToDownload (const Version
             if (targetFolder.getChildFile (".git").isDirectory())
             {
                 AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon, "Downloading New JUCE Version",
-                                                  targetFolderPath + "
-
-is a GIT repository!
-
-You should use a \"git pull\" to update it to the latest version.");
+                                                  targetFolderPath + "\n\nis a GIT repository!\n\nYou should use a \"git pull\" to update it to the latest version.");
 
                 return;
             }
 
             if (! AlertWindow::showOkCancelBox (AlertWindow::WarningIcon, "Overwrite Existing JUCE Folder?",
-                                                "Do you want to replace the folder
-
-" + targetFolderPath + "
-
-with the latest version from juce.com?
-
-"
+                                                "Do you want to replace the folder\n\n" + targetFolderPath + "\n\nwith the latest version from juce.com?\n\n"
                                                 "This will move the existing folder to " + targetFolderPath + "_old."))
             {
                 return;
@@ -284,13 +271,7 @@ with the latest version from juce.com?
         if (targetFolder.exists())
         {
             if (! AlertWindow::showOkCancelBox (AlertWindow::WarningIcon, "Existing File Or Directory",
-                                                "Do you want to move
-
-" + targetFolderPath + "
-
-to
-
-" + targetFolderPath + "_old?"))
+                                                "Do you want to move\n\n" + targetFolderPath + "\n\nto\n\n" + targetFolderPath + "_old?"))
             {
                 return;
             }
@@ -431,20 +412,14 @@ private:
             auto oldFolder = targetFolder.getSiblingFile (targetFolder.getFileNameWithoutExtension() + "_old").getNonexistentSibling();
 
             if (! targetFolder.moveFileTo (oldFolder))
-                return Result::fail ("Could not remove the existing folder!
-
-"
-                                     "This may happen if you are trying to download into a directory that requires administrator privileges to modify.
-"
+                return Result::fail ("Could not remove the existing folder!\n\n"
+                                     "This may happen if you are trying to download into a directory that requires administrator privileges to modify.\n"
                                      "Please select a folder that is writable by the current user.");
         }
 
         if (! unzipTarget.folder.getChildFile ("SonoBus").moveFileTo (targetFolder))
-            return Result::fail ("Could not overwrite the existing folder!
-
-"
-                                 "This may happen if you are trying to download into a directory that requires administrator privileges to modify.
-"
+            return Result::fail ("Could not overwrite the existing folder!\n\n"
+                                 "This may happen if you are trying to download into a directory that requires administrator privileges to modify.\n"
                                  "Please select a folder that is writable by the current user.");
 
         return Result::ok();

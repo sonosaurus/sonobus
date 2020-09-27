@@ -1,15 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-/*
-  ==============================================================================
-
-    SonoTextButton.cpp
-    Created: 18 May 2017 1:22:22pm
-    Author:  Jesse Chappell
-
-  ==============================================================================
-*/
 
 #include "SonoTextButton.h"
 #include "SonoLookAndFeel.h"

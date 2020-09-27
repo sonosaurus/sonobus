@@ -2,19 +2,10 @@
 // Copyright (C) 2020 Jesse Chappell
 
 
-//
-//  ActionBridge.cpp
-//  ThumbJamJuce
-//
-//  Created by Jesse Chappell on 6/5/14.
-//
-//
-
 #include "SonoLookAndFeel.h"
 #include "SonoDrawableButton.h"
 //#include "ConfigurationRowView.h"
 #include "SonoTextButton.h"
-//#include "AppState.h"
 
 //==============================================================================
 SonoLookAndFeel::SonoLookAndFeel()

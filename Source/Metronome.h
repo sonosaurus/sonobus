@@ -1,15 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-/*
- *  Metronome.h
- *  ThumbJam
- *
- *  Created by Jesse Chappell on 3/27/10.
- *  Copyright 2010 Sonosaurus. All rights reserved.
- *
- */
-
 #pragma once
 
 #include "JuceHeader.h"

@@ -1,15 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-/*
-  ==============================================================================
-
-    SonoDrawableButton.cpp
-    Created: 18 May 2017 1:22:05pm
-    Author:  Jesse Chappell
-
-  ==============================================================================
-*/
 
 #include "SonoDrawableButton.h"
 

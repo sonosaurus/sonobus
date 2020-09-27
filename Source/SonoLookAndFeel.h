@@ -1,16 +1,8 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-//
-//  ActionBridge.h
-//  ThumbJamJuce
-//
-//  Created by Jesse Chappell on 6/5/14.
-//
-//
+#pragma once
 
-#ifndef __TonalEnergyTuner__TETLookAndFeel__
-#define __TonalEnergyTuner__TETLookAndFeel__
 
 #include "JuceHeader.h"
 

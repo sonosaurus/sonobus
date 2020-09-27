@@ -70,8 +70,7 @@ bool RandomSentenceGenerator::readGrammar(std::istream & inFile)
 {
 
     string rule, sentence;
-    string delimiters = " 	
-;";
+    string delimiters = " \t\n\r;";
     string line = "";
 
     capEveryWord = false;

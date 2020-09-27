@@ -1,15 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-/*
-  ==============================================================================
-
-    BeatToggleGrid.h
-    Created: 18 May 2017 5:29:12pm
-    Author:  Jesse Chappell
-
-  ==============================================================================
-*/
 
 #pragma once
 

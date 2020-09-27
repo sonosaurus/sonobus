@@ -930,9 +930,7 @@ private:
             enum { height = 60 };
 
             NotificationArea (Button::Listener* settingsButtonListener)
-                : notification ("notification", "Audio input is muted to avoid
-feedback loop.
-Headphones recommended!"),
+                : notification ("notification", "Audio input is muted to avoid\nfeedback loop.\nHeadphones recommended!"),
                  //#if JUCE_IOS || JUCE_ANDROID
                   settingsButton ("Unmute Input")
                  //#else

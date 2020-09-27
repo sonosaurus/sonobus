@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-/*
- *  DebugLogC.h
- *  ThumbJam
- *
- *  Created by Jesse Chappell on 4/8/10.
- *  Copyright 2010 Sonosaurus. All rights reserved.
- *
- */
 #ifndef DEBUGLOGC_H
 #define DEBUGLOGC_H
 

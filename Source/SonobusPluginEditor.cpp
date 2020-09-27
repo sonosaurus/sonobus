@@ -1541,9 +1541,7 @@ bool SonobusAudioProcessorEditor::requestedQuit()
 
 bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * retmessage)
 {
-    String message = TRANS("Use this URL to launch SonoBus if you already have it installed:
-
-");
+    String message = TRANS("Share this link with others to connect with SonoBus: \n\n");
 
     String hostport = mServerHostEditor->getText();        
     if (hostport.isEmpty()) {
@@ -1570,17 +1568,12 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * r
             url2 = url2.withParameter("p", groupPassword);
         }
         
-        message += url.toString(true);
-        message += "
+        //message += url.toString(true);
+        //message += "\n\n";
 
-";
-
-        message += TRANS("Or share this link:
-
-");
+        //message += TRANS("Or share this link:\n");
         message += url2.toString(true);
-        message += "
-";
+        message += "\n";
 
         if (singleURL) {
             message = url2.toString(true);
@@ -1634,8 +1627,7 @@ bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
         String urlpart = clip.fromFirstOccurrenceOf("sonobus://", true, true);
         if (urlpart.isNotEmpty()) {
             // find the end (whitespace) and strip it out
-            urlpart = urlpart.upToFirstOccurrenceOf("
-", false, true).trim();
+            urlpart = urlpart.upToFirstOccurrenceOf("\n", false, true).trim();
             urlpart = urlpart.upToFirstOccurrenceOf(" ", false, true).trim();
             URL url(urlpart);
 
@@ -3436,9 +3428,7 @@ void SonobusAudioProcessorEditor::updateState()
 
         if (processor.getNumberRemotePeers() == 0 /* || !currConnected */ ) {
             String message;
-            message += TRANS("Press Connect button to start.
-
-Please use headphones if you are using a microphone!");
+            message += TRANS("Press Connect button to start.\n\nPlease use headphones if you are using a microphone!");
             mMainMessageLabel->setText(message, dontSendNotification);
         } else {
             mMainMessageLabel->setText("", dontSendNotification);
@@ -4702,14 +4692,16 @@ public:
         
         File sourcefile = File(file);
         File outputfile = sourcefile.getParentDirectory().getNonexistentChildFile(sourcefile.getFileNameWithoutExtension() + "-trim", sourcefile.getFileExtension());
-        ScopedPointer<AudioFormatReader> reader = parent->processor.getFormatManager().createReaderFor (sourcefile);
+        std::unique_ptr<AudioFormatReader> reader;
+        reader.reset(parent->processor.getFormatManager().createReaderFor (sourcefile));
+        
         bool success = false;
         
         if (reader != nullptr) {
             
             String pathname = outputfile.getFullPathName();
             
-            ScopedPointer<FileOutputStream> fos (outputfile.createOutputStream());
+            std::unique_ptr<FileOutputStream> fos (outputfile.createOutputStream());
             
             if (fos != nullptr) {
                 // Now create a writer object that writes to our output stream...
@@ -4728,7 +4720,8 @@ public:
                     audioFormat = std::make_unique<FlacAudioFormat>();
                 }
 
-                ScopedPointer<AudioFormatWriter> writer = audioFormat->createWriterFor (fos, reader->sampleRate, reader->numChannels, 16, {}, qualindex);
+                std::unique_ptr<AudioFormatWriter> writer;
+                writer.reset(audioFormat->createWriterFor (fos.get(), reader->sampleRate, reader->numChannels, 16, {}, qualindex));
                 
                 if (writer != nullptr)
                 {
@@ -5074,10 +5067,6 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             break;
             
         case MenuHelpIndex:
-#if JUCE_WINDOWS
-            //retval.addCommandItem (&commandManager, aboutTonalEnergyTuner);
-#endif
-            //retval.addCommandItem (&commandManager, SonobusCommands::ShowHelp);
             break;
     }
     
@@ -5090,7 +5079,7 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
     if (topLevelMenuIndex == -1) {
         switch (menuItemID) {
             case 1:
-                //commandManager.invokeDirectly(aboutTonalEnergyTuner, true);
+                // about
                 break;
             case 2:
                 parent.commandManager.invokeDirectly(SonobusCommands::ShowOptions, true);

@@ -1,20 +1,8 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-//
-//  ScaleTableList.cpp
-//  ThumbJamJuce
-//
-//  Created by Jesse Chappell on 6/4/14.
-//
-//
 
 #include "SonoChoiceButton.h"
-//#include "AppState.h"
-
-//using namespace SonoAudio;
-
-
 
 SonoChoiceButton::SonoChoiceButton()
 {

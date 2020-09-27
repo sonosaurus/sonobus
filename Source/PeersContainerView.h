@@ -1,15 +1,6 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-/*
-  ==============================================================================
-
-    PeersContainerView.h
-    Created: 27 Jun 2020 12:42:15pm
-    Author:  Jesse Chappell
-
-  ==============================================================================
-*/
 
 #pragma once
 
