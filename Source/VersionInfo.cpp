@@ -19,9 +19,16 @@ std::unique_ptr<InputStream> VersionInfo::createInputStreamForAsset (const Asset
 {
     URL downloadUrl (asset.url);
     StringPairArray responseHeaders;
-
+    String extraHeaders;   
+    extraHeaders += "Accept: application/octet-stream\r\n";
+    
+    String authuserpass = SystemStats::getEnvironmentVariable("GITUSERPASS", "");    
+    if (authuserpass.isNotEmpty()) {
+        extraHeaders += "Authorization: Basic " + Base64::toBase64(authuserpass) + "\r\n";
+    }
+    
     return std::unique_ptr<InputStream> (downloadUrl.createInputStream (false, nullptr, nullptr,
-                                                                        "Accept: application/octet-stream",
+                                                                        extraHeaders,
                                                                         0, &responseHeaders, &statusCode, 1));
 }
 
@@ -32,14 +39,27 @@ bool VersionInfo::isNewerVersionThanCurrent()
     auto currentTokens = StringArray::fromTokens (ProjectInfo::versionString, ".", {});
     auto thisTokens    = StringArray::fromTokens (versionString, ".", {});
 
-    jassert (thisTokens.size() == 3 && thisTokens.size() == 3);
+    jassert (thisTokens.size() >= 2 && thisTokens.size() >= 2);
 
     if (currentTokens[0].getIntValue() == thisTokens[0].getIntValue())
     {
-        if (currentTokens[1].getIntValue() == thisTokens[1].getIntValue())
-            return currentTokens[2].getIntValue() < thisTokens[2].getIntValue();
-
-        return currentTokens[1].getIntValue() < thisTokens[1].getIntValue();
+        // check for 'b' in second token
+        if (thisTokens[1].contains("b")) {            
+            return currentTokens[1].compareIgnoreCase(thisTokens[1]); 
+        }
+        else {
+            if (currentTokens[1].getIntValue() == thisTokens[1].getIntValue()) {
+                if (currentTokens.size() > 2 && thisTokens.size() > 2) {
+                    return currentTokens[2].getIntValue() < thisTokens[2].getIntValue();
+                } else if (thisTokens.size() > 2) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            
+            return currentTokens[1].getIntValue() < thisTokens[1].getIntValue();
+        }
     }
 
     return currentTokens[0].getIntValue() < thisTokens[0].getIntValue();
@@ -48,7 +68,14 @@ bool VersionInfo::isNewerVersionThanCurrent()
 std::unique_ptr<VersionInfo> VersionInfo::fetch (const String& endpoint)
 {
     URL latestVersionURL ("https://api.github.com/repos/essej/sonobus/releases/" + endpoint);
-    std::unique_ptr<InputStream> inStream (latestVersionURL.createInputStream (false));
+    String extraHeaders;      
+    String authuserpass = SystemStats::getEnvironmentVariable("GITUSERPASS", "");
+    
+    if (authuserpass.isNotEmpty()) {
+        extraHeaders = "Authorization: Basic " + Base64::toBase64(authuserpass) + "\r\n";
+    }
+
+    std::unique_ptr<InputStream> inStream (latestVersionURL.createInputStream (false, nullptr, nullptr, extraHeaders));
 
     if (inStream == nullptr)
         return nullptr;

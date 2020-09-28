@@ -3439,11 +3439,13 @@ void SonobusAudioProcessorEditor::updateState()
 #if JUCE_IOS
         mPatchbayButton->setVisible(false);
         mSetupAudioButton->setVisible(false);
-
 #else
 
         if (JUCEApplication::isStandaloneApp()) {
-            mSetupAudioButton->setVisible(true);
+
+            if (processor.getNumberRemotePeers() > 0) {
+                mSetupAudioButton->setVisible(false);
+            }
         }
 
         
@@ -5043,8 +5045,9 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
 #endif
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::TrimSelectionToNewFile);
-        //  retval.addSeparator();
-        //   retval.addCommandItem (&parent.commandManager, SonobusCommands::CheckForNewVersion);
+
+            retval.addSeparator();
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::CheckForNewVersion);
 
 #if JUCE_WINDOWS
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ShowOptions);
