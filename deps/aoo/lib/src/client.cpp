@@ -1325,6 +1325,10 @@ void peer::handle_message(const osc::ReceivedMessage &msg, int onset,
                 client_->push_event(std::move(e));
 
                 LOG_VERBOSE("aoo_client: successfully established connection with " << *this);
+                
+                // force last_pingtime_ to zero to make sure we ping them back immediately, avoiding race condition
+                last_pingtime_ = 0;
+                
             } else {
                 LOG_DEBUG("aoo_client: got ping from " << *this);
                 // maybe handle ping?
