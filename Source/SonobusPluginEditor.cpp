@@ -3441,11 +3441,12 @@ void SonobusAudioProcessorEditor::updateState()
         mSetupAudioButton->setVisible(false);
 #else
 
+
         if (JUCEApplication::isStandaloneApp()) {
 
-            if (processor.getNumberRemotePeers() > 0) {
-                mSetupAudioButton->setVisible(false);
-            }
+            mSetupAudioButton->setVisible(processor.getNumberRemotePeers() == 0);
+        } else {
+            mSetupAudioButton->setVisible(false);            
         }
 
         
