@@ -913,7 +913,7 @@ void source::update(){
         nbuffers = std::max<int32_t>(nbuffers, 1); // need at least 1 buffer!
         audioqueue_.resize(nbuffers * nsamples, nsamples);
         srqueue_.resize(nbuffers, 1);
-        LOG_DEBUG("aoo::source::update: nbuffers = " << nbuffers << " dquot: " << d.quot << " drem: " << d.rem <<  " bufsize: " << bufsize << " bs: " << encoder_->blocksize());
+        LOG_DEBUG("aoo::source::update: id: " << id_ << " nbuffers = " << nbuffers << " dquot: " << d.quot << " drem: " << d.rem <<  " bufsize: " << bufsize << " bs: " << encoder_->blocksize() << " reqbufms: " << buffersize_);
 
         // resampler
        // if (blocksize_ != encoder_->blocksize() || samplerate_ != encoder_->samplerate()){

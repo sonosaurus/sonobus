@@ -198,7 +198,7 @@ int32_t aoo::net::client::run(){
                     msg << osc::BeginMessage(AOONET_MSG_SERVER_PING)
                         << osc::EndMessage;
 
-                    send_server_message_tcp(msg.Data(), msg.Size());
+                    send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
                 } else {
                     LOG_ERROR("aoo_client: bug send_ping()");
                 }
@@ -429,7 +429,7 @@ int32_t aoo::net::client::send(){
                 osc::OutboundPacketStream msg(buf, sizeof(buf));
                 msg << osc::BeginMessage(AOONET_MSG_SERVER_REQUEST) << osc::EndMessage;
 
-                send_server_message_udp(msg.Data(), msg.Size());
+                send_server_message_udp(msg.Data(), (int32_t) msg.Size());
                 last_udp_ping_time_ = elapsed_time;
             }
         } else if (state == client_state::connected){
@@ -440,7 +440,7 @@ int32_t aoo::net::client::send(){
                 msg << osc::BeginMessage(AOONET_MSG_SERVER_PING)
                     << osc::EndMessage;
 
-                send_server_message_udp(msg.Data(), msg.Size());
+                send_server_message_udp(msg.Data(), (int32_t) msg.Size());
                 last_udp_ping_time_ = elapsed_time;
             }
         } else {
@@ -642,7 +642,7 @@ void client::do_login(){
         << token_
         << osc::EndMessage;
 
-    send_server_message_tcp(msg.Data(), msg.Size());
+    send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
 }
 
 void client::do_group_join(const std::string &group, const std::string &pwd){
@@ -651,7 +651,7 @@ void client::do_group_join(const std::string &group, const std::string &pwd){
     msg << osc::BeginMessage(AOONET_MSG_SERVER_GROUP_JOIN)
         << group.c_str() << pwd.c_str() << osc::EndMessage;
 
-    send_server_message_tcp(msg.Data(), msg.Size());
+    send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
 }
 
 void client::do_group_leave(const std::string &group){
@@ -660,7 +660,7 @@ void client::do_group_leave(const std::string &group){
     msg << osc::BeginMessage(AOONET_MSG_SERVER_GROUP_LEAVE)
         << group.c_str() << osc::EndMessage;
 
-    send_server_message_tcp(msg.Data(), msg.Size());
+    send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
 }
 
 void client::send_message_udp(const char *data, int32_t size, const ip_address& addr)
@@ -790,7 +790,7 @@ void client::receive_data(){
         char buffer[AOO_MAXPACKETSIZE];
         auto result = recv(tcpsocket_, buffer, sizeof(buffer), 0);
         if (result > 0){
-            recvbuffer_.write_bytes((uint8_t *)buffer, result);
+            recvbuffer_.write_bytes((uint8_t *)buffer, (int32_t) result);
 
             // handle packets
             uint8_t buf[AOO_MAXPACKETSIZE];
@@ -866,7 +866,7 @@ void client::send_server_message_tcp(const char *data, int32_t size){
                 // first try to send pending data
                 if (!pending_send_data_.empty()){
                      std::copy(pending_send_data_.begin(), pending_send_data_.end(), buf);
-                     total = pending_send_data_.size();
+                     total = (int32_t) pending_send_data_.size();
                      pending_send_data_.clear();
                 } else if (sendbuffer_.read_available()){
                      total = sendbuffer_.read_bytes(buf, sizeof(buf));
@@ -921,7 +921,7 @@ void client::send_server_message_udp(const char *data, int32_t size)
 
 void client::handle_server_message_tcp(const osc::ReceivedMessage& msg){
     // first check main pattern
-    int32_t len = strlen(msg.AddressPattern());
+    int32_t len = (int32_t) strlen(msg.AddressPattern());
     int32_t onset = AOO_MSG_DOMAIN_LEN + AOONET_MSG_CLIENT_LEN;
 
     if ((len < onset) ||
@@ -1255,13 +1255,14 @@ void peer::send(time_tag now){
 
     auto real_addr = address_.load();
     if (real_addr){
-        // send regular ping
-        if (delta >= client_->ping_interval()){
+        // send regular ping if it is time, or if we have never sent one (handles race condition on initial peer join)
+        if (delta >= client_->ping_interval() || last_pingtime_ <= 0){
             char buf[64];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
             msg << osc::BeginMessage(AOONET_MSG_PEER_PING) << osc::EndMessage;
 
-            client_->send_message_udp(msg.Data(), msg.Size(), *real_addr);
+            client_->send_message_udp(msg.Data(), (int32_t) msg.Size(), *real_addr);
+            LOG_DEBUG("send regular ping to " << *this);
 
             last_pingtime_ = elapsed_time;
         }
@@ -1280,14 +1281,7 @@ void peer::send(time_tag now){
                         AOONET_CLIENT_PEER_JOINFAIL_EVENT,
                         group().c_str(), user().c_str(), nullptr, 0);
             client_->push_event(std::move(e));
-
-            //std::stringstream ss;
-            //ss << "couldn't establish connection with peer " << *this;
-            //
-            //auto e = std::make_unique<client::event>(
-            //            AOONET_CLIENT_ERROR_EVENT, 0, ss.str().c_str());
-            //client_->push_event(std::move(e));
-
+           
             return;
         }
         // send handshakes in fast succession to *both* addresses
@@ -1297,8 +1291,8 @@ void peer::send(time_tag now){
             osc::OutboundPacketStream msg(buf, sizeof(buf));
             msg << osc::BeginMessage(AOONET_MSG_PEER_PING) << client_->get_token() << osc::EndMessage;
 
-            client_->send_message_udp(msg.Data(), msg.Size(), local_address_);
-            client_->send_message_udp(msg.Data(), msg.Size(), public_address_);
+            client_->send_message_udp(msg.Data(), (int32_t) msg.Size(), local_address_);
+            client_->send_message_udp(msg.Data(), (int32_t) msg.Size(), public_address_);
 
             LOG_DEBUG("send ping to " << *this);
 

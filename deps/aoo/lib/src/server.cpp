@@ -393,7 +393,7 @@ void server::on_user_joined_group(user& usr, group& grp){
                     << e->token
                     << osc::EndMessage;
 
-                dest->send_message(msg.Data(), msg.Size());
+                dest->send_message(msg.Data(), (int32_t) msg.Size());
             };
 
             // notify new member
@@ -419,7 +419,7 @@ void server::on_user_left_group(user& usr, group& grp){
                   << grp.name.c_str() << usr.name.c_str()
                   << osc::EndMessage;
 
-            peer->endpoint->send_message(msg.Data(), msg.Size());
+            peer->endpoint->send_message(msg.Data(), (int32_t) msg.Size());
         }
     }
 
@@ -507,13 +507,13 @@ void server::wait_for_event(){
     }
 #else
     // allocate three extra slots for master TCP socket, UDP socket and wait pipe
-    int numfds = (clients_.size() + 3);
+    int numfds = (int)(clients_.size() + 3);
     auto fds = (struct pollfd *)alloca(numfds * sizeof(struct pollfd));
     for (int i = 0; i < numfds; ++i){
         fds[i].events = POLLIN;
         fds[i].revents = 0;
     }
-    int numclients = clients_.size();
+    int numclients = (int)clients_.size();
     for (int i = 0; i < numclients; ++i){
         fds[i].fd = clients_[i]->socket;
     }
@@ -668,7 +668,7 @@ void server::receive_udp(){
 void server::send_udp_message(const char *msg, int32_t size,
                               const ip_address &addr)
 {
-    int result = ::sendto(udpsocket_, msg, size, 0,
+    auto result = ::sendto(udpsocket_, msg, size, 0,
                           (struct sockaddr *)&addr.address, addr.length);
     if (result < 0){
         int err = socket_errno();
@@ -700,7 +700,7 @@ void server::handle_udp_message(const osc::ReceivedMessage &msg, int onset,
             reply << osc::BeginMessage(AOONET_MSG_CLIENT_PING)
                   << osc::EndMessage;
 
-            send_udp_message(reply.Data(), reply.Size(), addr);
+            send_udp_message(reply.Data(), (int32_t) reply.Size(), addr);
         } else if (!strcmp(pattern, AOONET_MSG_REQUEST)){
             // reply with /reply message
             char buf[512];
@@ -708,7 +708,7 @@ void server::handle_udp_message(const osc::ReceivedMessage &msg, int onset,
             reply << osc::BeginMessage(AOONET_MSG_CLIENT_REPLY)
                   << addr.name().c_str() << addr.port() << osc::EndMessage;
 
-            send_udp_message(reply.Data(), reply.Size(), addr);
+            send_udp_message(reply.Data(), (int32_t) reply.Size(), addr);
         } else {
             LOG_ERROR("aoo_server: unknown message " << pattern);
         }
@@ -856,7 +856,7 @@ void client_endpoint::send_message(const char *msg, int32_t size){
             // first try to send pending data
             if (!pending_send_data_.empty()){
                  std::copy(pending_send_data_.begin(), pending_send_data_.end(), buf);
-                 total = pending_send_data_.size();
+                 total = (int32_t) pending_send_data_.size();
                  pending_send_data_.clear();
             } else if (sendbuffer_.read_available()){
                  total = sendbuffer_.read_bytes(buf, sizeof(buf));
@@ -927,7 +927,7 @@ bool client_endpoint::receive_data(){
             }
         }
 
-        recvbuffer_.write_bytes((uint8_t *)buffer, result);
+        recvbuffer_.write_bytes((uint8_t *)buffer, (int32_t)result);
 
         // handle packets
         uint8_t buf[AOO_MAXPACKETSIZE];
@@ -975,7 +975,7 @@ bool client_endpoint::receive_data(){
 
 void client_endpoint::handle_message(const osc::ReceivedMessage &msg){
     // first check main pattern
-    int32_t len = strlen(msg.AddressPattern());
+    int32_t len = (int32_t) strlen(msg.AddressPattern());
     int32_t onset = AOO_MSG_DOMAIN_LEN + AOONET_MSG_SERVER_LEN;
 
     if ((len < onset) ||
@@ -1014,7 +1014,7 @@ void client_endpoint::handle_ping(const osc::ReceivedMessage& msg){
     osc::OutboundPacketStream reply(buf, sizeof(buf));
     reply << osc::BeginMessage(AOONET_MSG_CLIENT_PING) << osc::EndMessage;
 
-    send_message(reply.Data(), reply.Size());
+    send_message(reply.Data(), (int32_t)reply.Size());
 }
 
 void client_endpoint::handle_login(const osc::ReceivedMessage& msg)
@@ -1065,7 +1065,7 @@ void client_endpoint::handle_login(const osc::ReceivedMessage& msg)
     reply << osc::BeginMessage(AOONET_MSG_CLIENT_LOGIN)
           << result << errmsg.c_str() << osc::EndMessage;
 
-    send_message(reply.Data(), reply.Size());
+    send_message(reply.Data(), (int32_t)reply.Size());
 }
 
 void client_endpoint::handle_group_join(const osc::ReceivedMessage& msg)
@@ -1101,7 +1101,7 @@ void client_endpoint::handle_group_join(const osc::ReceivedMessage& msg)
     reply << osc::BeginMessage(AOONET_MSG_CLIENT_GROUP_JOIN)
           << name.c_str() << result << errmsg.c_str() << osc::EndMessage;
 
-    send_message(reply.Data(), reply.Size());
+    send_message(reply.Data(), (int32_t)reply.Size());
 }
 
 void client_endpoint::handle_group_leave(const osc::ReceivedMessage& msg){
@@ -1134,7 +1134,7 @@ void client_endpoint::handle_group_leave(const osc::ReceivedMessage& msg){
     reply << osc::BeginMessage(AOONET_MSG_CLIENT_GROUP_LEAVE)
           << name.c_str() << result << errmsg.c_str() << osc::EndMessage;
 
-    send_message(reply.Data(), reply.Size());
+    send_message(reply.Data(), (int32_t)reply.Size());
 }
 
 /*///////////////////// events ////////////////////////*/
