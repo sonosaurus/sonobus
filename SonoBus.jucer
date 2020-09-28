@@ -344,7 +344,7 @@
             externalLibraries="opus.lib" smallIcon="ZWiivf" bigIcon="cVyJ9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
-                       libraryPath="..\..\deps\windows\Debug" useRuntimeLibDLL="0"/>
+                       libraryPath="..\..\deps\windows\Debug" useRuntimeLibDLL="0" defines="LOGLEVEL=2"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="..\..\deps\windows\Release"
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        useRuntimeLibDLL="0" enablePluginBinaryCopyStep="1" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
