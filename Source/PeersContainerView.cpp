@@ -647,6 +647,7 @@ PendingPeerViewInfo * PeersContainerView::createPendingPeerViewInfo()
     pvf->messageLabel->setJustificationType(Justification::centredLeft);
     //configLabel(pvf->messageLabel.get(), LabelTypeSmallDim);
     pvf->messageLabel->setFont(13);
+    pvf->messageLabel->setMinimumHorizontalScale(0.8);
 
     return pvf;
 }
@@ -1479,7 +1480,7 @@ void PeersContainerView::updatePeerViews()
         ppvf->nameLabel->setText(pinfo.second.user, dontSendNotification);
         
         if (pinfo.second.failed) {
-            ppvf->messageLabel->setText(TRANS("Could not connect with user, one or both of you may have network routers incompatible with SonoBus by default. See documentation to enable port forwarding on your router."), dontSendNotification);
+            ppvf->messageLabel->setText(TRANS("Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router."), dontSendNotification);
         }
         else {
             ppvf->messageLabel->setText(TRANS("Connecting..."), dontSendNotification);
