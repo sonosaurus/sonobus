@@ -1751,8 +1751,18 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     if (peer) {
                         // we already have a peer for this, interesting
                         DBG("Already had remote peer for " <<   es->ipaddr << ":" << es->port << "  ourId: " << peer->ourId);
-                    } else {
+                    } else if (!mIsConnectedToServer) {
                         peer = doAddRemotePeerIfNecessary(es);
+                    }
+                    else {
+                        // connected to server, don't just respond to anyone
+                        peer = findRemotePeer(es, -1);
+                        if (!peer) {
+                            DBG("Not reacting to invite from a peer not known in the group");
+                            break;
+                        }
+
+                        DBG("Got invite from peer in the group");
                     }
 
                     const ScopedReadLock sl (mCoreLock);        
@@ -2281,11 +2291,11 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             if (e->result > 0){
                 DBG("Joined group - " << e->name);
                 const ScopedLock sl (mClientLock);        
-                mCurrentJoinedGroup = e->name;
+                mCurrentJoinedGroup = CharPointer_UTF8 (e->name);
             } else {
                 DBG("Couldn't join group " << e->name << " - " << e->errormsg);
             }
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, this, e->result > 0, e->name, e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, this, e->result > 0, CharPointer_UTF8 (e->name), e->errormsg);
             break;
         }
         case AOONET_CLIENT_GROUP_LEAVE_EVENT:
@@ -2308,7 +2318,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 DBG("Couldn't leave group " << e->name << " - " << e->errormsg);
             }
 
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, this, e->result > 0, e->name, e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, this, e->result > 0, CharPointer_UTF8 (e->name), e->errormsg);
 
             break;
         }
@@ -2319,7 +2329,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             if (e->result > 0){
                 DBG("Peer attempting to join group " <<  e->group << " - user " << e->user);
                 
-                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerPendingJoin, this, e->group, e->user);
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerPendingJoin, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
                 
             } else {
                 DBG("bug bad result on join event");
@@ -2335,13 +2345,13 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 DBG("Peer joined group " <<  e->group << " - user " << e->user);
 
                 if (mAutoconnectGroupPeers) {
-                    connectRemotePeerRaw(e->address, e->user, e->group, !mMainRecvMute.get());
+                    connectRemotePeerRaw(e->address, CharPointer_UTF8 (e->user), CharPointer_UTF8 (e->group), !mMainRecvMute.get());
                 }
                 
                 //aoo_node_add_peer(x->x_node, gensym(e->group), gensym(e->user),
                 //                  (const struct sockaddr *)e->address, e->length);
 
-                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoined, this, e->group, e->user);
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoined, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
                 
             } else {
                 DBG("bug bad result on join event");
@@ -2357,7 +2367,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             if (e->result > 0){
                 DBG("Peer failed to join group " <<  e->group << " - user " << e->user);
                 
-                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoinFailed, this, e->group, e->user);
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoinFailed, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
                 
             } else {
                 DBG("bug bad result on join event");
@@ -2380,7 +2390,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 }
                 
                 //aoo_node_remove_peer(x->x_node, gensym(e->group), gensym(e->user));
-                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerLeft, this, e->group, e->user);
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerLeft, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
 
             } else {
                 DBG("bug bad result on leave event");
@@ -3355,7 +3365,7 @@ SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeer(Endpo
     RemotePeer * retpeer = 0;
 
     for (auto s : mRemotePeers) {
-        if (s->endpoint == endpoint && s->ourId == ourId) {
+        if (s->endpoint == endpoint && (ourId < 0 || s->ourId == ourId)) {
             retpeer = s;
             break;
         }
