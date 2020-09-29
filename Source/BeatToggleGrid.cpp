@@ -437,14 +437,14 @@ void BeatToggleGrid::refreshGrid(bool reset)
             bgiv->setCornerSize(Point<float>(12.0f, 12.0f));
             bgiv->setFill(FillType(offColor));
             pad->addAndMakeVisible(bgiv);
-            pad->bgrect = bgiv;
+            pad->bgrect.reset(bgiv);
             bgiv->setInterceptsMouseClicks(false, false);
 
             DrawableRectangle * iv = new DrawableRectangle();
             iv->setRectangle(Rectangle<float>(5, 0, pad->getWidth() - 10, pad->getHeight()-20));
             iv->setCornerSize(Point<float>(12.0f, 12.0f));
             pad->addAndMakeVisible(iv);
-            pad->rect = iv;
+            pad->rect.reset(iv);
             pad->rect->setVisible(false);
             iv->setInterceptsMouseClicks(false, false);
 
@@ -461,7 +461,7 @@ void BeatToggleGrid::refreshGrid(bool reset)
             label->setMinimumHorizontalScale(0.3);
             
             pad->addAndMakeVisible(label);
-            pad->label = label;
+            pad->label.reset(label);
             pad->setInterceptsMouseClicks(false, false);
 
             addAndMakeVisible(pad);

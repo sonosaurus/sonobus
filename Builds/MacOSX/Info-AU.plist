@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleVersion</key>
+    <string>29</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>net.sonobus</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>sonobus</string>
+        </array>
+      </dict>
+    </array>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app requires audio input. If you do not have an audio interface connected it will use the built-in microphone.</string>
+    <key>CFBundleExecutable</key>
+    <string>${EXECUTABLE_NAME}</string>
+    <key>CFBundleIconFile</key>
+    <string>Icon.icns</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.Sonosaurus.SonoBus</string>
+    <key>CFBundleName</key>
+    <string>SonoBus</string>
+    <key>CFBundleDisplayName</key>
+    <string>SonoBus</string>
+    <key>CFBundlePackageType</key>
+    <string>BNDL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>2020 Sonosaurus LLC</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>AudioComponents</key>
+    <array>
+      <dict>
+        <key>name</key>
+        <string>Sonosaurus: SonoBus</string>
+        <key>description</key>
+        <string>Network Audio</string>
+        <key>factoryFunction</key>
+        <string>SonoBusAUFactory</string>
+        <key>manufacturer</key>
+        <string>Sono</string>
+        <key>type</key>
+        <string>aufx</string>
+        <key>subtype</key>
+        <string>NBus</string>
+        <key>version</key>
+        <integer>65536</integer>
+        <key>resourceUsage</key>
+        <dict>
+          <key>network.client</key>
+          <true/>
+          <key>temporary-exception.files.all.read-write</key>
+          <true/>
+        </dict>
+      </dict>
+    </array>
+  </dict>
+</plist>

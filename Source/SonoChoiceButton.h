@@ -63,7 +63,7 @@ public:
 protected:
     ListenerList<Listener> listeners;
 
-    ScopedPointer<Label> textLabel;
+    std::unique_ptr<Label> textLabel;
 
     Array<GenericItemChooserItem> items;
     Array<int> idList;

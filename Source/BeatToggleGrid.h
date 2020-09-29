@@ -18,9 +18,9 @@ public:
     bool selected;
     bool accented;
 
-    ScopedPointer<Label> label;
-    ScopedPointer<DrawableRectangle> rect;
-    ScopedPointer<DrawableRectangle> bgrect;
+    std::unique_ptr<Label> label;
+    std::unique_ptr<DrawableRectangle> rect;
+    std::unique_ptr<DrawableRectangle> bgrect;
 };
 
 class BeatToggleGrid  :  public Component
@@ -72,7 +72,7 @@ protected:
     void refreshSizes();
     int findTouchPad(Point<int>touchPoint);
 
-    ScopedPointer<Label> mInfoText;
+    std::unique_ptr<Label> mInfoText;
     
     OwnedArray<BeatPad> gridLabels;
     

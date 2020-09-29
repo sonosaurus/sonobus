@@ -6,7 +6,8 @@
 
 SonoChoiceButton::SonoChoiceButton()
 {
-    addAndMakeVisible(textLabel = new Label());
+    textLabel = std::make_unique<Label>();
+    addAndMakeVisible(textLabel.get());
     textLabel->setJustificationType(Justification::centredLeft);
     
     selIndex = 0;
