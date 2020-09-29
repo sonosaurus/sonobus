@@ -917,7 +917,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
     mOptionsUseSpecificUdpPortButton->addListener(this);
 
-    mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Dynamic Resampling"));
+    mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction"));
     //mOptionsUseSpecificUdpPortButton->addListener(this);
     mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
 
@@ -1591,15 +1591,8 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * r
 
 bool SonobusAudioProcessorEditor::handleSonobusURL(const URL & url)
 {
-    // use domain part as host:port, look for 'g' and 'p' parameters for group and password
-    String hostpart = url.getDomain();
-    currConnectionInfo.serverHost =  hostpart.upToFirstOccurrenceOf(":", false, true);
-    int port = url.getPort();
-    if (port > 0) {
-        currConnectionInfo.serverPort = port;
-    } else {
-        currConnectionInfo.serverPort = DEFAULT_SERVER_PORT;
-    }
+    // look for either  http://go.sonobus.net/sblaunch?  style url
+    // or sonobus://host:port/? style
     
     auto & pnames = url.getParameterNames();
     auto & pvals = url.getParameterValues();
@@ -1615,6 +1608,32 @@ bool SonobusAudioProcessorEditor::handleSonobusURL(const URL & url)
         }
     }
 
+    if (url.getScheme() == "sonobus") {
+        // use domain part as host:port
+        String hostpart = url.getDomain();
+        currConnectionInfo.serverHost =  hostpart.upToFirstOccurrenceOf(":", false, true);
+        int port = url.getPort();
+        if (port > 0) {
+            currConnectionInfo.serverPort = port;
+        } else {
+            currConnectionInfo.serverPort = DEFAULT_SERVER_PORT;
+        }
+    }
+    else {
+        if ((ind = pnames.indexOf("s", true)) >= 0) {
+            String hostpart = pvals[ind];
+            currConnectionInfo.serverHost =  hostpart.upToFirstOccurrenceOf(":", false, true);
+            String portpart = hostpart.fromFirstOccurrenceOf(":", false, false);
+            int port = portpart.getIntValue();
+            if (port > 0) {
+                currConnectionInfo.serverPort = port;
+            } else {
+                currConnectionInfo.serverPort = DEFAULT_SERVER_PORT;                
+            }
+        }
+    }
+
+    
     return true;
 }
 
@@ -1635,6 +1654,23 @@ bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
                 DBG("Got good sonobus URL: " << urlpart);
 
                 return handleSonobusURL(url);                
+            }
+        }
+        else {
+            // look for go.sonobus.net/sblaunch  url
+            urlpart = clip.fromFirstOccurrenceOf("http://go.sonobus.net/sblaunch?", true, false);
+            if (urlpart.isEmpty()) urlpart = clip.fromFirstOccurrenceOf("https://go.sonobus.net/sblaunch?", true, false);
+            
+            if (urlpart.isNotEmpty()) {
+                urlpart = urlpart.upToFirstOccurrenceOf("\n", false, true).trim();
+                urlpart = urlpart.upToFirstOccurrenceOf(" ", false, true).trim();
+                URL url(urlpart);
+
+                if (url.isWellFormed()) {
+                    DBG("Got good http sonobus URL: " << urlpart);
+
+                    return handleSonobusURL(url);                
+                }
             }
         }
     }
@@ -4007,15 +4043,15 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 2));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
+    //optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
     //optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
     //optionsBox.items.add(FlexItem(4, 2));
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
-    //optionsBox.items.add(FlexItem(4, 2));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
     //optionsBox.items.add(FlexItem(4, 2));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
