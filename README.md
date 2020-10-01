@@ -18,7 +18,9 @@ There are binary releases for macOS and Windows available at [beta.sonobus.net](
 
 # Building
 
-To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. On Linux, you'll just need to have `libopus` installed.
+To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. 
+On Linux, you'll just need to have `libopus` and `libjack` installed, as
+well as their appropriate development packages.
 
 ### On macOS
 
@@ -32,8 +34,8 @@ Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.
 
 Make sure you have `libopus` and the `libopus` development package (if necessary). 
 
-`cd Builds/LinuxMakefile
-make`
+    cd Builds/LinuxMakefile
+    make
 
 # License and 3rd Party Software
 
