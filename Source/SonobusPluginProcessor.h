@@ -177,6 +177,8 @@ public:
     static String paramMainReverbPreDelay;
     static String paramMainReverbModel;
     static String paramDynamicResampling;
+    static String paramMainInMute;
+    static String paramMainMonitorSolo;
 
     struct EndpointState;
     struct RemoteSink;
@@ -402,6 +404,8 @@ public:
     
     bool isAnythingRoutedToPeer(int index) const;
     
+    bool isAnythingSoloed() const { return mAnythingSoloed.get(); }
+    
     class ClientListener {
     public:
         virtual ~ClientListener() {}
@@ -542,18 +546,14 @@ private:
     Atomic<float>   mInMonMonoPan    {   0.0 };
     Atomic<float>   mInMonPan1    {   -1.0 };
     Atomic<float>   mInMonPan2    {   1.0 };
-    Atomic<float>   mDry    {
-#if JUCE_IOS
-        0.0 
-#else
-        1.0
-#endif        
-    };
+    Atomic<float>   mDry    { 0.0 };
     Atomic<float>   mWet    {   1.0 };
     Atomic<double>   mBufferTime     { 0.01 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
     Atomic<bool>   mMainSendMute    {   false };
     Atomic<bool>   mMainRecvMute    {   false };
+    Atomic<bool>   mMainInMute    {   false };
+    Atomic<bool>   mMainMonitorSolo    {   false };
     Atomic<bool>   mMetEnabled  { false };
     Atomic<bool>   mSendMet  { false };
     Atomic<int>   mSendChannels  { 0 }; // 0 is match inputs
@@ -580,6 +580,9 @@ private:
     bool mLastMainReverbEnabled = false;
     bool mReverbParamsChanged = false;
     bool mLastHasMainFx = false;
+    
+    Atomic<bool>   mAnythingSoloed  { false };
+
     
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
     

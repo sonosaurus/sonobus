@@ -44,6 +44,8 @@ String SonobusAudioProcessor::paramDefaultAutoNetbuf ("defnetauto");
 String SonobusAudioProcessor::paramDefaultSendQual ("defsendqual");
 String SonobusAudioProcessor::paramMainSendMute ("mastsendmute");
 String SonobusAudioProcessor::paramMainRecvMute ("mastrecvmute");
+String SonobusAudioProcessor::paramMainInMute ("mastinmute");
+String SonobusAudioProcessor::paramMainMonitorSolo ("mastmonsolo");
 String SonobusAudioProcessor::paramMetEnabled ("metenabled");
 String SonobusAudioProcessor::paramMetGain     ("metgain");
 String SonobusAudioProcessor::paramMetTempo     ("mettempo");
@@ -470,7 +472,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(paramDefaultNetbufMs,     TRANS ("Default Net Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
-    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match Inputs", "Mono", "Stereo"}), 0),
+    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), 0),
 
     std::make_unique<AudioParameterBool>(paramMetEnabled, TRANS ("Metronome Enabled"), mMetEnabled.get()),
     std::make_unique<AudioParameterBool>(paramSendMetAudio, TRANS ("Send Metronome Audio"), mSendMet.get()),
@@ -503,6 +505,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     std::make_unique<AudioParameterBool>(paramMainSendMute, TRANS ("Main Send Mute"), mMainSendMute.get()),
     std::make_unique<AudioParameterBool>(paramMainRecvMute, TRANS ("Main Receive Mute"), mMainRecvMute.get()),
+    std::make_unique<AudioParameterBool>(paramMainInMute, TRANS ("Main In Mute"), mMainInMute.get()),
+    std::make_unique<AudioParameterBool>(paramMainMonitorSolo, TRANS ("Main Monitor Solo"), mMainMonitorSolo.get()),
 
     std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full"}), defaultAutoNetbufMode),
 
@@ -536,6 +540,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramMainReverbModel, this);
     mState.addParameterListener (paramSendChannels, this);
     mState.addParameterListener (paramDynamicResampling, this);
+    mState.addParameterListener (paramMainInMute, this);
+    mState.addParameterListener (paramMainMonitorSolo, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -548,6 +554,16 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
 
+    if (!JUCEApplicationBase::isStandaloneApp()) {
+        // default dry to 1.0 if plugin
+        mDry = 1.0;
+    } else {
+        mDry = 0.0;
+    }
+
+    mState.getParameter(paramDry)->setValue(mDry.get());
+
+    
     mTempoParameter = mState.getParameter(paramMetTempo);
     
     mMetronome = std::make_unique<SonoAudio::Metronome>();
@@ -3041,6 +3057,16 @@ void SonobusAudioProcessor::setRemotePeerSoloed(int index, bool soloed)
         
         remote->soloed = soloed;            
     }
+    
+    bool anysoloed = mMainMonitorSolo.get();
+    for (auto & remote : mRemotePeers) 
+    {
+        if (remote->soloed) {
+            anysoloed = true;
+            break;
+        }
+    }
+    mAnythingSoloed = anysoloed;
 }
 
 bool SonobusAudioProcessor::getRemotePeerSoloed(int index) const
@@ -3728,6 +3754,7 @@ bool SonobusAudioProcessor::isAnythingRoutedToPeer(int index) const
 }
 
 
+
 ////
 
 bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, aoo_format_storage & retformat) {
@@ -3878,6 +3905,21 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramSendMetAudio) {
         mSendMet = newValue > 0;
+    }
+    else if (parameterID == paramMainInMute) {
+        mMainInMute = newValue > 0;
+    }
+    else if (parameterID == paramMainMonitorSolo) {
+        mMainMonitorSolo = newValue > 0;
+
+        bool anysoloed = mMainMonitorSolo.get();
+        for (int i=0; i < getNumberRemotePeers(); ++i) {
+            if (getRemotePeerSoloed(i)) {
+                anysoloed = true;
+                break;
+            }
+        }
+        mAnythingSoloed = anysoloed;
     }
     else if (parameterID == paramMainSendMute) {
         // allow or disallow sending to all peers
@@ -4310,6 +4352,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     float inmonPan1 = mInMonPan1.get();
     float inmonPan2 = mInMonPan2.get();
     
+    inGain = mMainInMute.get() ? 0.0f : inGain;
+    
     int numSamples = buffer.getNumSamples();
     
     // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case.
@@ -4568,13 +4612,14 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     bool hearlatencytest = mHearLatencyTest.get();
 
+    bool anysoloed = mMainMonitorSolo.get();
+
     // push data for going out
     {
         const ScopedReadLock sl (mCoreLock);        
         
         //mAooSource->process( buffer.getArrayOfReadPointers(), numSamples, t);
         
-        bool anysoloed = false;
         for (auto & remote : mRemotePeers) 
         {
             if (remote->soloed) {
@@ -4808,67 +4853,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
 
     
-    // apply dry (input monitor) gain to original buf
-    // and panning
-    
-    // TODO FIX!
-    
-    
-    /*
-    if (totalNumInputChannels > 0 && totalNumOutputChannels > 1 && ( drynow > 0.0f || mLastDry > 0.0f )) {
-        
-        // copy input into workbuffer
-        workBuffer.clear(0, numSamples);
-        
-        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            for (int i=0; i < totalNumInputChannels; ++i) {
-                const float pan = (i==0 ? inmonPan1 : inmonPan2);
-                const float lastpan = (i==0 ? mLastInMonPan1 : mLastInMonPan2);
-                
-                // apply pan law
-                // -1 is left, 1 is right
-                float pgain = channel == 0 ? (pan >= 0.0f ? (1.0f - pan) : 1.0f) : (pan >= 0.0f ? 1.0f : (1.0f+pan)) ;
-                
-                if (fabsf(pan - lastpan) > 0.00001f) {
-                    float plastgain = channel == 0 ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
-                    
-                    workBuffer.addFromWithRamp(channel, 0, inputBuffer.getReadPointer(i), numSamples, plastgain, pgain);
-                } else {
-                    workBuffer.addFrom (channel, 0, inputBuffer, i, 0, numSamples, pgain);
-                }
-            }
-        }
-        
-        // now copy workbuffer into buffer with gain
-        bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
-        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            if (rampit) {
-                buffer.copyFromWithRamp(channel, 0, workBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);                
-            }
-            else {
-                buffer.copyFrom(channel, 0, workBuffer.getReadPointer(channel), numSamples, drynow);
-            }
-        }
-        
-        
-    } else 
-    {
-        
-        // copy from input buffer with gain
-        bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
-        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : 0;
-            if (rampit) {
-                buffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, mLastDry, drynow);
-            }
-            else {
-                buffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, drynow);
-            }
-        }
-    }
-    */
 
     // BEGIN MAIN OUTPUT BUFFER WRITING
+    
+    drynow = (anysoloed && !mMainMonitorSolo.get()) ? 0.0f : drynow;
     
     // copy from input buffer with dry gain as-is
     bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
@@ -5071,6 +5059,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     mLastInMonPan1 = inmonPan1;
     mLastInMonPan2 = inmonPan2;
     mLastInMonMonoPan = inmonMonoPan;
+    mAnythingSoloed =  anysoloed;
+
 }
 
 //==============================================================================
@@ -5216,6 +5206,9 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
         // don't recover the recv mute either
         mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
 
+        // don't recover main solo
+        mState.getParameter(paramMainMonitorSolo)->setValueNotifyingHost(0.0f);
+        
     }
 }
 

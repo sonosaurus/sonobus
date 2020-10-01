@@ -4,7 +4,7 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleVersion</key>
-    <string>30</string>
+    <string>31</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>UIStatusBarHidden</key>
@@ -45,7 +45,7 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.1</string>
+    <string>1.0.2</string>
     <key>NSHumanReadableCopyright</key>
     <string>2020 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
@@ -78,7 +78,7 @@
         <key>subtype</key>
         <string>NBus</string>
         <key>version</key>
-        <integer>65537</integer>
+        <integer>65538</integer>
       </dict>
     </array>
   </dict>

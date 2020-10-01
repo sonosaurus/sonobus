@@ -274,7 +274,9 @@ protected:
 
     uint32 lastUpdateTimestampMs = 0;
     
+    Colour mutedBySoloColor;
     Colour mutedTextColor;
+    Colour mutedColor;
     Colour soloColor;
     Colour regularTextColor;
     Colour droppedTextColor;

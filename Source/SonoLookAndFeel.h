@@ -87,7 +87,8 @@ public:
 
     int getSliderThumbRadius (Slider& slider) override;
 
-    
+    Slider::SliderLayout getSliderLayout (Slider& slider) override;
+
     void drawDrawableButton (Graphics& g, DrawableButton& button,
                              bool /*isMouseOverButton*/, bool /*isButtonDown*/) override;
 
@@ -99,6 +100,9 @@ public:
     void drawLabel (Graphics& g, Label& label) override;
     
 
+    Justification sliderTextJustification = Justification::centred;
+
+    
 protected:
     
     Font myFont;

@@ -274,7 +274,7 @@ void SonobusAudioProcessorEditor::configEditor(TextEditor *editor, bool passwd)
 
 //==============================================================================
 SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor& p)
-    : AudioProcessorEditor (&p), processor (p),  sonoSliderLNF(14), smallLNF(14), teensyLNF(11),
+    : AudioProcessorEditor (&p), processor (p),  sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12),
 recentsListModel(this),
 recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsInfoFont(13, Font::plain)
 {
@@ -288,7 +288,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mWorkPool = std::make_unique<ThreadPool>(1);
     
-    
+    sonoSliderLNF.textJustification = Justification::centredRight;
+    sonoSliderLNF.sliderTextJustification = Justification::centredRight;
     
     
     Array<AooServerConnectionInfo> recents;
@@ -360,14 +361,15 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     
     //mInGainSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
-    mInGainSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxAbove);
+    //mInGainSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxAbove);
+    mInGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mInGainSlider->setName("ingain");
     mInGainSlider->setSliderSnapsToMousePosition(false);
     mInGainSlider->setTextBoxIsEditable(true);
     mInGainSlider->setScrollWheelEnabled(false);
 
 
-    mInMonPanMonoSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
+    mInMonPanMonoSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::NoTextBox); 
     mInMonPanMonoSlider->setName("inpanmono");
     mInMonPanMonoSlider->getProperties().set ("fromCentre", true);
     mInMonPanMonoSlider->getProperties().set ("noFill", true);
@@ -375,7 +377,39 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInMonPanMonoSlider->setTextBoxIsEditable(false);
     mInMonPanMonoSlider->setScrollWheelEnabled(false);
     mInMonPanMonoSlider->setMouseDragSensitivity(100);
+    mInMonPanMonoSlider->addListener(this);
+    
+    // just create it to set the range stuff, then remove it
+    mInMonPanMonoAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorMonoPan, *mInMonPanMonoSlider);
+    mInMonPanMonoAttachment.reset();
+    
     mInMonPanMonoSlider->setDoubleClickReturnValue(true, 0.0);
+    mInMonPanMonoSlider->setLookAndFeel(&panSliderLNF);
+    mInMonPanMonoSlider->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return String(TRANS("Pan: Center")); return String(TRANS("Pan: ")) +  String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
+    mInMonPanMonoSlider->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
+    mInMonPanMonoSlider->setValue(0.1, dontSendNotification);
+    mInMonPanMonoSlider->setValue(0.0, dontSendNotification);
+    mInMonPanMonoSlider->setPopupDisplayEnabled(true, true, this);
+
+    
+    mInMonPanStereoSlider     = std::make_unique<Slider>(Slider::TwoValueHorizontal,  Slider::NoTextBox); 
+    mInMonPanStereoSlider->setName("inpanstereo");
+    mInMonPanStereoSlider->getProperties().set ("fromCentre", true);
+    mInMonPanStereoSlider->getProperties().set ("noFill", true);
+    mInMonPanStereoSlider->setSliderSnapsToMousePosition(false);
+    mInMonPanStereoSlider->setRange(mInMonPanMonoSlider->getMinimum(), mInMonPanMonoSlider->getMaximum(), mInMonPanMonoSlider->getInterval());
+    mInMonPanStereoSlider->setSkewFactor(mInMonPanMonoSlider->getSkewFactor());
+    mInMonPanStereoSlider->setTextBoxIsEditable(false);
+    mInMonPanStereoSlider->setScrollWheelEnabled(false);
+    mInMonPanStereoSlider->setMouseDragSensitivity(100);
+    //mInMonPanStereoSlider->setDoubleClickReturnValue(true, 0.0);
+    mInMonPanStereoSlider->setLookAndFeel(&panSliderLNF);            
+    mInMonPanStereoSlider->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return String(TRANS("Pan: Center")); return String(TRANS("Pan: ")) +  String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
+    mInMonPanStereoSlider->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
+    mInMonPanStereoSlider->setMinAndMaxValues(-1, 1, dontSendNotification);
+    mInMonPanStereoSlider->setPopupDisplayEnabled(true, true, this);
+    mInMonPanStereoSlider->addListener(this);
+    
     
     mInMonPanSlider1     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
     mInMonPanSlider1->setName("inpan1");
@@ -386,7 +420,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInMonPanSlider1->setScrollWheelEnabled(false);
     mInMonPanSlider1->setMouseDragSensitivity(100);
 
-    mInMonPanLabel1 = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Pan 1"));
+    mInMonPanLabel1 = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Pan"));
     configLabel(mInMonPanLabel1.get(), true);
     
     mInMonPanSlider2     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow); 
@@ -411,7 +445,28 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mPanButton->setButtonText(TRANS("In Pan"));
     mPanButton->setLookAndFeel(&smallLNF);
     mPanButton->addListener(this);
-    
+
+    mInMuteButton = std::make_unique<TextButton>("mute");
+    mInMuteButton->setButtonText(TRANS("MUTE"));
+    mInMuteButton->setLookAndFeel(&smallLNF);
+    mInMuteButton->addListener(this);
+    mInMuteButton->setClickingTogglesState(true);
+    mInMuteButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 0.3, 0.1, 1.0));
+    mInMuteButton->setTooltip(TRANS("Mutes your input preventing everyone from hearing you"));
+    mInMonMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainInMute, *mInMuteButton);
+
+    mInSoloButton = std::make_unique<TextButton>("solo");
+    mInSoloButton->setButtonText(TRANS("SOLO"));
+    mInSoloButton->setLookAndFeel(&smallLNF);
+    mInSoloButton->addListener(this);
+    mInSoloButton->setClickingTogglesState(true);
+    mInSoloButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(1.0, 1.0, 0.6, 0.7f));
+    mInSoloButton->setColour(TextButton::textColourOnId, Colours::darkblue);
+
+    //pvf->recvSoloButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    mInSoloButton->setTooltip(TRANS("Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself."));
+    mInMonSoloAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainMonitorSolo, *mInSoloButton);
+
     
     
     
@@ -542,19 +597,25 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     
     //mDrySlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
-    mDrySlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxAbove);
+    //mDrySlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxAbove);
+    mDrySlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mDrySlider->setName("dry");
     mDrySlider->setSliderSnapsToMousePosition(false);
     mDrySlider->setScrollWheelEnabled(false);
 
-    mOutGainSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
+    //mOutGainSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
+    mOutGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxRight);
     mOutGainSlider->setName("wet");
     mOutGainSlider->setSliderSnapsToMousePosition(false);
     mOutGainSlider->setScrollWheelEnabled(false);
 
-    configKnobSlider(mInGainSlider.get());
-    configKnobSlider(mDrySlider.get());
-    configKnobSlider(mOutGainSlider.get());
+    //configKnobSlider(mInGainSlider.get());
+    //configKnobSlider(mDrySlider.get());
+    //configKnobSlider(mOutGainSlider.get());
+
+    configLevelSlider(mInGainSlider.get());
+    configLevelSlider(mDrySlider.get());
+    configLevelSlider(mOutGainSlider.get());
 
     mOutGainSlider->setTextBoxIsEditable(true);
     mDrySlider->setTextBoxIsEditable(true);
@@ -572,13 +633,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mInGainLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Level"));
     configLabel(mInGainLabel.get(), false);
-    mInGainLabel->setJustificationType(Justification::centred);
+    mInGainLabel->setJustificationType(Justification::topLeft);
     mInGainLabel->setTooltip(TRANS("This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring"));
     mInGainLabel->setInterceptsMouseClicks(true, false);
     
-    mDryLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Monitor"));
+    mDryLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("Monitor"));
     configLabel(mDryLabel.get(), false);
-    mDryLabel->setJustificationType(Justification::centred);
+    mDryLabel->setJustificationType(Justification::topLeft);
     mDryLabel->setTooltip(TRANS("This adjusts the level of the monitoring of your input, that only you hear"));
     mDryLabel->setInterceptsMouseClicks(true, false);
 
@@ -587,7 +648,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mOutGainLabel = std::make_unique<Label>("outgain", TRANS("Main Out"));
     configLabel(mOutGainLabel.get(), false);
-    mOutGainLabel->setJustificationType(Justification::centred);
+    mOutGainLabel->setJustificationType(Justification::topLeft);
     mOutGainLabel->setTooltip(TRANS("This is the main volume control which affects everything you hear"));
     mOutGainLabel->setInterceptsMouseClicks(true, false);
 
@@ -604,9 +665,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mDryAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDry, *mDrySlider);
     mWetAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramWet, *mOutGainSlider);
     mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
-    mInMonPanMonoAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorMonoPan, *mInMonPanMonoSlider);
-    mInMonPan1Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan1, *mInMonPanSlider1);
-    mInMonPan2Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan2, *mInMonPanSlider2);
+    //mInMonPanMonoAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorMonoPan, *mInMonPanMonoSlider);
+    //mInMonPan1Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan1, *mInMonPanSlider1);
+    //mInMonPan2Attachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInMonitorPan2, *mInMonPanSlider2);
     mMainSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainSendMute, *mMainMuteButton);
     mMainRecvMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainRecvMute, *mMainRecvMuteButton);
 
@@ -626,6 +687,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbEnabled, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendChannels, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
 
     
     mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
@@ -961,9 +1025,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mSendChannelsChoice = std::make_unique<SonoChoiceButton>();
     mSendChannelsChoice->addChoiceListener(this);
-    mSendChannelsChoice->addItem(TRANS("Match Inputs"), 0);
-    mSendChannelsChoice->addItem(TRANS("Mono"), 1);
-    mSendChannelsChoice->addItem(TRANS("Stereo"), 2);
+    mSendChannelsChoice->addItem(TRANS("Match # Inputs"), 0);
+    mSendChannelsChoice->addItem(TRANS("Send Mono"), 1);
+    mSendChannelsChoice->addItem(TRANS("Send Stereo"), 2);
+    mSendChannelsChoice->setLookAndFeel(&smallLNF);
 
     mSendChannelsLabel = std::make_unique<Label>("sendch", TRANS("# Send Channels"));
     configLabel(mSendChannelsLabel.get(), true);
@@ -1255,6 +1320,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addAndMakeVisible(mMainMuteButton.get());
     addAndMakeVisible(mMainRecvMuteButton.get());
     addAndMakeVisible(mMainPushToTalkButton.get());
+    addAndMakeVisible(mInMuteButton.get());
+    addAndMakeVisible(mInSoloButton.get());
+    //addAndMakeVisible(mInMonPanStereoSlider.get());
+    //addAndMakeVisible(mInMonPanMonoSlider.get());
     
     addAndMakeVisible(mPatchbayButton.get());
     addAndMakeVisible(mConnectButton.get());
@@ -1355,7 +1424,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     //addAndMakeVisible(mPeerContainer.get());
     addAndMakeVisible (mSettingsButton.get());
     addAndMakeVisible (mPanButton.get());
-    
+    //addAndMakeVisible (mSendChannelsChoice.get());
+
     addChildComponent(mConnectComponent.get());
 
     // over everything
@@ -1366,8 +1436,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     inPannersContainer->addAndMakeVisible (mInMonPanLabel1.get());
     inPannersContainer->addAndMakeVisible (mInMonPanLabel2.get());
     inPannersContainer->addAndMakeVisible (mInMonPanMonoSlider.get());
-    inPannersContainer->addAndMakeVisible (mInMonPanSlider1.get());
-    inPannersContainer->addAndMakeVisible (mInMonPanSlider2.get());
+    inPannersContainer->addAndMakeVisible (mInMonPanStereoSlider.get());
+    //inPannersContainer->addAndMakeVisible (mInMonPanSlider1.get());
+    //inPannersContainer->addAndMakeVisible (mInMonPanSlider2.get());
     inPannersContainer->addAndMakeVisible (mSendChannelsChoice.get());
     inPannersContainer->addAndMakeVisible (mSendChannelsLabel.get());
     
@@ -1501,6 +1572,9 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbEnabled, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendChannels, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
 
 
     
@@ -1735,6 +1809,24 @@ void SonobusAudioProcessorEditor::configKnobSlider(Slider * slider)
     slider->setLookAndFeel(&sonoSliderLNF);
 }
 
+void SonobusAudioProcessorEditor::configLevelSlider(Slider * slider)
+{
+    //slider->setVelocityBasedMode(true);
+    //slider->setVelocityModeParameters(2.5, 1, 0.05);
+    //slider->setTextBoxStyle(Slider::NoTextBox, true, 40, 18);
+    slider->setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+    slider->setTextBoxStyle(Slider::TextBoxAbove, true, 50, 14);
+    slider->setMouseDragSensitivity(128);
+    slider->setScrollWheelEnabled(false);
+    //slider->setPopupDisplayEnabled(true, false, this);
+    slider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
+    slider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+
+    slider->setLookAndFeel(&sonoSliderLNF);
+}
+
 
 //////////////////
 // these client listener callbacks will be from a different thread
@@ -1876,6 +1968,8 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
 
 bool SonobusAudioProcessorEditor::updatePeerState(bool force)
 {
+    if (!mPeerContainer) return false;
+    
     if (force || mPeerContainer->getPeerViewCount() != processor.getNumberRemotePeers()) {
         mPeerContainer->rebuildPeerViews();
         updateLayout();
@@ -2232,6 +2326,15 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         } else {
             showPopTip(TRANS("Sending your audio to others"), 3000, mMainMuteButton.get());
         }
+    }
+    else if (buttonThatWasClicked == mInSoloButton.get()) {
+        if (ModifierKeys::currentModifiers.isAltDown()) {
+            // exclusive solo this one
+            for (int j=0; j < processor.getNumberRemotePeers(); ++j) {
+                processor.setRemotePeerSoloed(j, false);
+            }
+        }
+        updatePeerState();
     }
     else if (buttonThatWasClicked == mMainRecvMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
@@ -3022,7 +3125,19 @@ void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
 
 void SonobusAudioProcessorEditor::sliderValueChanged (Slider* slider)
 {
-
+    if (slider == mInMonPanMonoSlider.get()) {
+        float panval = slider->getValue();
+        float fval = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorMonoPan)->convertTo0to1(panval);
+        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorMonoPan)->setValueNotifyingHost(fval);
+    }
+    else if (slider == mInMonPanStereoSlider.get()) {
+        float panval1 = slider->getMinValue();
+        float panval2 = slider->getMaxValue();
+        float fval1 = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan1)->convertTo0to1(panval1);
+        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan1)->setValueNotifyingHost(fval1);
+        float fval2 = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan2)->convertTo0to1(panval2);
+        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan2)->setValueNotifyingHost(fval2);
+    }
 }
 
 void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event) 
@@ -3358,6 +3473,7 @@ void SonobusAudioProcessorEditor::updateState()
     int panChannels = jmax(outChannels, sendchval);
 
     
+#if 0
     if (panChannels > 1) {        
         mInMonPanLabel1->setVisible(true);
         if (inChannels > 1) {
@@ -3383,7 +3499,34 @@ void SonobusAudioProcessorEditor::updateState()
         mInMonPanSlider2->setVisible(false);
         mInMonPanLabel2->setVisible(false);
     }
+#else
+    
+    if (panChannels > 1) {        
+        if (inChannels > 1) {
+            mInMonPanMonoSlider->setVisible(false);  
+            mInMonPanStereoSlider->setVisible(true);  
+        }
+        else {
+            mInMonPanStereoSlider->setVisible(false);  
+            mInMonPanMonoSlider->setVisible(true);            
+        }
+    } else {
+        mInMonPanStereoSlider->setVisible(false);  
+        mInMonPanMonoSlider->setVisible(false);
+    }
 
+    float monopan = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorMonoPan)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorMonoPan)->getValue());
+    mInMonPanMonoSlider->setValue(monopan, dontSendNotification);
+
+    float span1 = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan1)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan1)->getValue());
+    mInMonPanSlider1->setValue(span1, dontSendNotification);
+
+    float span2 = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan2)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan2)->getValue());
+    mInMonPanSlider1->setValue(span2, dontSendNotification);
+
+    
+#endif
+    
     bool sendmute = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue();
     if (!mMainPushToTalkButton->isMouseButtonDown() && !mPushToTalkKeyDown) {
         mMainPushToTalkButton->setVisible(sendmute);
@@ -3569,6 +3712,14 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         }
         triggerAsyncUpdate();
     }
+    else if (pname == SonobusAudioProcessor::paramInMonitorPan1 
+             || pname == SonobusAudioProcessor::paramInMonitorPan2
+             || pname == SonobusAudioProcessor::paramInMonitorMonoPan
+             ) 
+    {
+        mPanChanged = true;
+        triggerAsyncUpdate();
+    }
 
     
     /*
@@ -3631,6 +3782,19 @@ String SonobusAudioProcessorEditor::generateNewUsername(const AooServerConnectio
 
 void SonobusAudioProcessorEditor::handleAsyncUpdate()
 {
+    if (mPanChanged) {
+        float monopan = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorMonoPan)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorMonoPan)->getValue());
+        mInMonPanMonoSlider->setValue(monopan, dontSendNotification);
+
+        float span1 = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan1)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan1)->getValue());
+        mInMonPanSlider1->setValue(span1, dontSendNotification);
+
+        float span2 = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan2)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInMonitorPan2)->getValue());
+        mInMonPanSlider1->setValue(span2, dontSendNotification);
+
+        mPanChanged = false;
+    }
+    
     Array<ClientEvent> newevents;
     {
         const ScopedLock sl (clientStateLock);
@@ -3823,6 +3987,7 @@ void SonobusAudioProcessorEditor::resized()
     mDragDropBg->setRectangle (getLocalBounds().toFloat());
 
     
+    
     // connect component stuff
     mConnectComponent->setBounds(getLocalBounds());
     mConnectComponentBg->setRectangle (mConnectComponent->getLocalBounds().toFloat());
@@ -3875,8 +4040,20 @@ void SonobusAudioProcessorEditor::resized()
         mFileRecordingLabel->setBounds(mRecordingButton->getBounds().removeFromBottom(14).translated(0, 1));
     }
 
-    mInMonPanMonoSlider->setBounds(mInMonPanSlider1->getBounds().withRight(mInMonPanSlider2->getRight()));    
+    //mInMonPanMonoSlider->setBounds(mInMonPanSlider1->getBounds().withRight(mInMonPanSlider2->getRight()));    
+    mInMonPanMonoSlider->setBounds(mInMonPanStereoSlider->getBounds());
     mInMonPanMonoSlider->setMouseDragSensitivity(jmax(128, mInMonPanMonoSlider->getWidth()));
+
+    mInMonPanStereoSlider->setMouseDragSensitivity(jmax(128, mInMonPanStereoSlider->getWidth()));
+
+    mDrySlider->setMouseDragSensitivity(jmax(128, mDrySlider->getWidth()));
+    mOutGainSlider->setMouseDragSensitivity(jmax(128, mOutGainSlider->getWidth()));
+    mInGainSlider->setMouseDragSensitivity(jmax(128, mInGainSlider->getWidth()));
+
+    mDryLabel->setBounds(mDrySlider->getBounds().removeFromTop(14).removeFromLeft(mDrySlider->getWidth() - mDrySlider->getTextBoxWidth() + 3).translated(4, 0));
+    mInGainLabel->setBounds(mInGainSlider->getBounds().removeFromTop(14).removeFromLeft(mInGainSlider->getWidth() - mInGainSlider->getTextBoxWidth() + 3).translated(4, 0));
+    mOutGainLabel->setBounds(mOutGainSlider->getBounds().removeFromTop(14).removeFromLeft(mOutGainSlider->getWidth() - mOutGainSlider->getTextBoxWidth() + 3).translated(4, 0));
+
     
     if (mConnectComponent->isVisible()) {
         mRecentsListBox->updateContent();
@@ -3913,8 +4090,9 @@ void SonobusAudioProcessorEditor::resized()
 void SonobusAudioProcessorEditor::updateLayout()
 {
     int minKnobWidth = 50;
+    int minSliderWidth = 50;
     int minPannerWidth = 40;
-    int maxPannerWidth = 80;
+    int maxPannerWidth = 100;
     int minitemheight = 36;
     int knobitemheight = 80;
     int minpassheight = 30;
@@ -3935,6 +4113,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     minpassheight = 38;
     panbuttwidth = 32;
 #endif
+    
+    
+#if 0
     
     inGainBox.items.clear();
     inGainBox.flexDirection = FlexBox::Direction::column;
@@ -3957,35 +4138,146 @@ void SonobusAudioProcessorEditor::updateLayout()
     inMeterBox.items.clear();
     inMeterBox.flexDirection = FlexBox::Direction::column;
     inMeterBox.items.add(FlexItem(meterheight, minitemheight, *inputMeter).withMargin(0).withFlex(1).withMaxWidth(meterheight).withAlignSelf(FlexItem::AlignSelf::center));
-    inMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
-    inMeterBox.items.add(FlexItem(panbuttwidth, minitemheight - 6, *mPanButton).withMargin(0).withFlex(0));
+    //inMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
+    //knobBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(54).withMaxHeight(minitemheight).withAlignSelf(FlexItem::AlignSelf::center));
+
+    mainMeterBox.items.clear();
+    mainMeterBox.flexDirection = FlexBox::Direction::column;
+    mainMeterBox.items.add(FlexItem(panbuttwidth, minitemheight - 4, *mEffectsButton).withMargin(0).withFlex(0)); 
+    mainMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
+    mainMeterBox.items.add(FlexItem(meterheight, minitemheight, *outputMeter).withMargin(0).withFlex(1).withMaxWidth(meterheight).withAlignSelf(FlexItem::AlignSelf::center));
+    //mainMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
+    //mainMeterBox.items.add(FlexItem(panbuttwidth, minitemheight - 6, *mPanButton).withMargin(0).withFlex(0));
+    //.withAlignSelf(FlexItem::AlignSelf::center));
     //knobBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(54).withMaxHeight(minitemheight).withAlignSelf(FlexItem::AlignSelf::center));
 
     
     knobButtonBox.items.clear();
     knobButtonBox.flexDirection = FlexBox::Direction::column;
-    knobButtonBox.items.add(FlexItem(40, minitemheight, *mInEffectsButton).withMargin(0).withFlex(1));
+    knobButtonBox.items.add(FlexItem(38, minitemheight, *mPanButton).withMargin(0).withFlex(1));
     knobButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0));
-    knobButtonBox.items.add(FlexItem(40, minitemheight, *mEffectsButton).withMargin(0).withFlex(1)); //.withAlignSelf(FlexItem::AlignSelf::center));
+    knobButtonBox.items.add(FlexItem(38, minitemheight, *mInEffectsButton).withMargin(0).withFlex(1));
+    //knobButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0));
+    //knobButtonBox.items.add(FlexItem(40, minitemheight, *mEffectsButton).withMargin(0).withFlex(1)); //.withAlignSelf(FlexItem::AlignSelf::center));
 
     
     knobBox.items.clear();
     knobBox.flexDirection = FlexBox::Direction::row;
     knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(isNarrow ? 0.0 : 0.1));
-    knobBox.items.add(FlexItem(jmax(panbuttwidth,meterheight), minitemheight, inMeterBox).withMargin(0).withFlex(1).withMaxWidth(40));
-    knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
     knobBox.items.add(FlexItem(minKnobWidth, minitemheight, inGainBox).withMargin(0).withFlex(1).withMaxWidth(isNarrow ? 160 : 120));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
+    knobBox.items.add(FlexItem(38, minitemheight, knobButtonBox).withMargin(0).withFlex(1).withMaxWidth(50)); // //.withAlignSelf(FlexItem::AlignSelf::center));
+    knobBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0.1).withMaxWidth(20));
+    knobBox.items.add(FlexItem(meterheight, minitemheight, inMeterBox).withMargin(0).withFlex(0));
+    knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1).withMaxWidth(20));
     knobBox.items.add(FlexItem(minKnobWidth, minitemheight, dryBox).withMargin(0).withFlex(1).withMaxWidth(isNarrow ? 160 : 120));
-    knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(0));
     //knobBox.items.add(FlexItem(40, minitemheight, *mPanButton).withMargin(0).withFlex(1).withMaxWidth(54).withMaxHeight(minitemheight).withAlignSelf(FlexItem::AlignSelf::center));
-    knobBox.items.add(FlexItem(40, minitemheight, knobButtonBox).withMargin(0).withFlex(1).withMaxWidth(54)); // .withAlignSelf(FlexItem::AlignSelf::center));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
     knobBox.items.add(FlexItem(minKnobWidth, minitemheight, outBox).withMargin(0).withFlex(1).withMaxWidth(isNarrow ? 160 : 120));
     knobBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
-    knobBox.items.add(FlexItem(meterheight, minitemheight, *outputMeter).withMargin(0).withFlex(0)); //.withAlignSelf(FlexItem::AlignSelf::center));
+    knobBox.items.add(FlexItem(jmax(panbuttwidth,meterheight), minitemheight, mainMeterBox).withMargin(0).withFlex(1).withMaxWidth(42)); //.withAlignSelf(FlexItem::AlignSelf::center));
     knobBox.items.add(FlexItem(isNarrow ? 14 : 16, 5).withMargin(0).withFlex(0));
 
+    paramsBox.items.clear();
+    paramsBox.flexDirection = FlexBox::Direction::column;
+    paramsBox.items.add(FlexItem(minKnobWidth*4 + 2*meterheight, knobitemheight, knobBox).withMargin(2).withFlex(0));
+    
+#else
+
+    inGainBox.items.clear();
+    inGainBox.flexDirection = FlexBox::Direction::row;
+    //inGainBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mInGainLabel).withMargin(0).withFlex(0));
+    inGainBox.items.add(FlexItem(minKnobWidth, minitemheight, *mInGainSlider).withMargin(0).withFlex(1));
+
+    int choicew = 60;
+    int mutew = 56;
+
+    dryBox.items.clear();
+    dryBox.flexDirection = FlexBox::Direction::row;
+    //dryBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mDryLabel).withMargin(0).withFlex(0));
+    dryBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+    //dryBox.items.add(FlexItem(mutew, minitemheight, *mInMuteButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    //dryBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0));
+    dryBox.items.add(FlexItem(minKnobWidth, minitemheight, *mDrySlider).withMargin(0).withFlex(1));
+
+    
+    outBox.items.clear();
+    outBox.flexDirection = FlexBox::Direction::column;
+    //outBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mOutGainLabel).withMargin(0).withFlex(0));
+    outBox.items.add(FlexItem(minKnobWidth, minitemheight, *mOutGainSlider).withMargin(0).withFlex(1)); //.withAlignSelf(FlexItem::AlignSelf::center));
+
+    inMeterBox.items.clear();
+    inMeterBox.flexDirection = FlexBox::Direction::column;
+    inMeterBox.items.add(FlexItem(meterheight, minitemheight, *inputMeter).withMargin(0).withFlex(1).withMaxWidth(meterheight).withAlignSelf(FlexItem::AlignSelf::center));
+
+    mainMeterBox.items.clear();
+    mainMeterBox.flexDirection = FlexBox::Direction::column;
+    //mainMeterBox.items.add(FlexItem(panbuttwidth, minitemheight - 4, *mEffectsButton).withMargin(0).withFlex(0)); 
+    //mainMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
+    mainMeterBox.items.add(FlexItem(meterheight, minitemheight, *outputMeter).withMargin(0).withFlex(1).withMaxWidth(meterheight).withAlignSelf(FlexItem::AlignSelf::center));
+    //mainMeterBox.items.add(FlexItem(2, 2).withMargin(0).withFlex(0));
+    //mainMeterBox.items.add(FlexItem(panbuttwidth, minitemheight - 6, *mPanButton).withMargin(0).withFlex(0));
+    //.withAlignSelf(FlexItem::AlignSelf::center));
+    //knobBox.items.add(FlexItem
+    
+    inputPannerBox.items.clear();
+    inputPannerBox.flexDirection = FlexBox::Direction::row;
+    inputPannerBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
+    //inputPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanStereoSlider).withMargin(0).withFlex(1).withMaxHeight(minpassheight).withMaxWidth(maxPannerWidth));
+    inputPannerBox.items.add(FlexItem(mutew, minitemheight, *mPanButton).withMargin(0).withFlex(0));
+    inputPannerBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+    inputPannerBox.items.add(FlexItem(mutew, minitemheight, *mInEffectsButton).withMargin(0).withFlex(0));
+    inputPannerBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
+
+    inputLeftBox.items.clear();
+    inputLeftBox.flexDirection = FlexBox::Direction::column;
+    inputLeftBox.items.add(FlexItem(minSliderWidth, minitemheight, inGainBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
+    inputLeftBox.items.add(FlexItem(4, 2).withMargin(0).withFlex(0));
+    inputLeftBox.items.add(FlexItem(2*mutew + 10, minitemheight, inputPannerBox).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+
+    inputButtonBox.items.clear();
+    inputButtonBox.flexDirection = FlexBox::Direction::row;
+    inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
+    inputButtonBox.items.add(FlexItem(mutew, minpassheight, *mInMuteButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+    inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mInSoloButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
+    //inputButtonBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1).withMaxWidth(120));
+    //inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+
+    inputRightBox.items.clear();
+    inputRightBox.flexDirection = FlexBox::Direction::column;
+    inputRightBox.items.add(FlexItem(minSliderWidth, minitemheight, dryBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
+    inputRightBox.items.add(FlexItem(4, 2).withMargin(0).withFlex(0));
+    inputRightBox.items.add(FlexItem(2*mutew + 10, minitemheight, inputButtonBox).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+
+    inputMainBox.items.clear();
+    inputMainBox.flexDirection = FlexBox::Direction::row;
+    inputMainBox.items.add(FlexItem(jmax(minSliderWidth, 2*mutew + 16), minitemheight + minitemheight, inputLeftBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
+    inputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+    inputMainBox.items.add(FlexItem(meterheight, minitemheight, inMeterBox).withMargin(0).withFlex(0));
+    inputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+    inputMainBox.items.add(FlexItem(jmax(minSliderWidth, 2*mutew + 16), minitemheight + minitemheight, inputRightBox).withMargin(0).withFlex(1)) ; //.withMaxWidth(isNarrow ? 160 : 120));
+
+    int minmainw = jmax(minPannerWidth, 2*mutew + 8) + meterheight + jmax(minPannerWidth, 2*mutew + 8);
+    
+    outputMainBox.items.clear();
+    outputMainBox.flexDirection = FlexBox::Direction::row;
+    outputMainBox.items.add(FlexItem(12, 6).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(50, minitemheight, *mEffectsButton).withMargin(0).withFlex(0)); 
+    outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(minSliderWidth, minitemheight, outBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
+    outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(meterheight, minitemheight, mainMeterBox).withMargin(0).withFlex(0)); 
+    outputMainBox.items.add(FlexItem(16, 6).withMargin(0).withFlex(0));
+
+    
+    paramsBox.items.clear();
+    paramsBox.flexDirection = FlexBox::Direction::column;
+    paramsBox.items.add(FlexItem(minmainw, minitemheight + minitemheight, inputMainBox).withMargin(2).withFlex(0));
+
+    
+#endif
     
     // options
     optionsNetbufBox.items.clear();
@@ -4059,6 +4351,34 @@ void SonobusAudioProcessorEditor::updateLayout()
     
     
     
+#if 1
+
+    inPannerMainBox.items.clear();
+    inPannerMainBox.flexDirection = FlexBox::Direction::column;
+    
+    int pannerMaxW = 240;
+    int numpan = 1;
+    inPannerBox.items.clear();
+    inPannerBox.flexDirection = FlexBox::Direction::row;
+    inPannerLabelBox.items.clear();
+    inPannerLabelBox.flexDirection = FlexBox::Direction::row;
+
+    
+    inPannerBox.items.add(FlexItem(minPannerWidth, minitemheight, *mInMonPanStereoSlider).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
+    inPannerLabelBox.items.add(FlexItem(minPannerWidth, 16, *mInMonPanLabel1).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
+                
+    inPannerBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //.withMaxWidth(maxPannerWidth));
+    inPannerLabelBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //q.withMaxWidth(maxPannerWidth));
+    
+    //int choicew = 100;
+    inPannerBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1).withMaxWidth(120) ); //.withMaxWidth(maxPannerWidth));
+    inPannerLabelBox.items.add(FlexItem(choicew, 16, *mSendChannelsLabel).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
+    
+    
+    inPannerMainBox.items.add(FlexItem(6, 16, inPannerLabelBox).withMargin(0).withFlex(0).withMaxWidth(pannerMaxW*numpan + 120));
+    inPannerMainBox.items.add(FlexItem(6, minitemheight, inPannerBox).withMargin(0).withFlex(1).withMaxWidth(pannerMaxW*numpan + 120));
+    
+#else
     inPannerMainBox.items.clear();
     inPannerMainBox.flexDirection = FlexBox::Direction::column;
     
@@ -4082,14 +4402,14 @@ void SonobusAudioProcessorEditor::updateLayout()
     inPannerBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //.withMaxWidth(maxPannerWidth));
     inPannerLabelBox.items.add(FlexItem(6,5).withMargin(0).withFlex(0)); //q.withMaxWidth(maxPannerWidth));
     
-    int choicew = 100;
+    //int choicew = 100;
     inPannerBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1) ); //.withMaxWidth(maxPannerWidth));
     inPannerLabelBox.items.add(FlexItem(choicew, 16, *mSendChannelsLabel).withMargin(0).withFlex(1)); //q.withMaxWidth(maxPannerWidth));
     
     
     inPannerMainBox.items.add(FlexItem(6, 16, inPannerLabelBox).withMargin(0).withFlex(0).withMaxWidth(pannerMaxW*numpan + choicew));
     inPannerMainBox.items.add(FlexItem(6, minitemheight, inPannerBox).withMargin(0).withFlex(1).withMaxWidth(pannerMaxW*numpan + choicew));
-    
+#endif
     
     auto mincompbounds = mInCompressorView->getMinimumContentBounds();
     auto mincompheadbounds = mInCompressorView->getMinimumHeaderBounds();
@@ -4133,16 +4453,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     //titleBox.items.add(FlexItem(3, 20).withMargin(1).withFlex(0.2));
     //titleBox.items.add(FlexItem(40, 20, *mDummyVisual).withMargin(1).withFlex(4).withMaxWidth(200.0f));
     
-    paramsBox.items.clear();
-    paramsBox.flexDirection = FlexBox::Direction::column;
-    //paramsBox.items.add(FlexItem(minKnobWidth, minitemheight, titleBox).withMargin(2).withFlex(0));
-    //paramsBox.items.add(FlexItem(minKnobWidth, minitemheight, inGainBox).withMargin(2).withFlex(0));
-    paramsBox.items.add(FlexItem(minKnobWidth*4 + 2*meterheight, knobitemheight, knobBox).withMargin(2).withFlex(0));
-    //paramsBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(0));
-    //paramsBox.items.add(FlexItem(100, meterheight, *inputMeter).withMargin(2).withFlex(0));
-    //paramsBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(0));
-    //paramsBox.items.add(FlexItem(minKnobWidth, minitemheight, dryBox).withMargin(2).withFlex(0));
-
+  
     localAddressBox.items.clear();
     localAddressBox.flexDirection = FlexBox::Direction::row;
     localAddressBox.items.add(FlexItem(60, 18, *mLocalAddressStaticLabel).withMargin(2).withFlex(1).withMaxWidth(110));
@@ -4295,7 +4606,8 @@ void SonobusAudioProcessorEditor::updateLayout()
         middleBox.flexDirection = FlexBox::Direction::column;
         middleBox.items.add(FlexItem(150, minitemheight*1.5 + 8, connectBox).withMargin(2).withFlex(0));
         middleBox.items.add(FlexItem(5, 2));
-        middleBox.items.add(FlexItem(100, knobitemheight + 6, paramsBox).withMargin(2).withFlex(0));
+        //middleBox.items.add(FlexItem(100, knobitemheight + 6, paramsBox).withMargin(2).withFlex(0));
+        middleBox.items.add(FlexItem(100, minitemheight + minitemheight + 6, paramsBox).withMargin(2).withFlex(0));
         middleBox.items.add(FlexItem(6, 2));
 
         midboxminheight = (minitemheight*1.5 + knobitemheight + 18);
@@ -4304,7 +4616,8 @@ void SonobusAudioProcessorEditor::updateLayout()
         middleBox.flexDirection = FlexBox::Direction::row;        
         middleBox.items.add(FlexItem(280, minitemheight*1.5 , connectBox).withMargin(2).withFlex(1).withMaxWidth(440));
         middleBox.items.add(FlexItem(1, 1).withMaxWidth(3).withFlex(0.5));
-        middleBox.items.add(FlexItem(minKnobWidth*4 + meterheight*2, knobitemheight, paramsBox).withMargin(2).withFlex(4));
+        //middleBox.items.add(FlexItem(minKnobWidth*4 + meterheight*2, knobitemheight, paramsBox).withMargin(2).withFlex(4));
+        middleBox.items.add(FlexItem(minKnobWidth*4 + meterheight*2, minitemheight + minitemheight, paramsBox).withMargin(2).withFlex(4));
     }
 
 
@@ -4407,6 +4720,12 @@ void SonobusAudioProcessorEditor::updateLayout()
     toolbarBox.items.add(FlexItem(36, minitemheight, *mMetConfigButton).withMargin(0).withFlex(0).withMaxHeight(minitemheight+2).withAlignSelf(FlexItem::AlignSelf::center));
     toolbarBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
 
+    if (!isNarrow) {
+        toolbarBox.items.add(FlexItem(100, minitemheight, outputMainBox).withMargin(0).withFlex(1).withMaxWidth(350));
+        toolbarBox.items.add(FlexItem(1, 5).withMargin(0).withFlex(0.1));
+    }
+
+    
     //toolbarBox.items.add(FlexItem(100, minitemheight, *mOutGainSlider).withMargin(2).withFlex(1));
     //toolbarBox.items.add(FlexItem(100, meterheight, *outputMeter).withMargin(2).withFlex(1).withMaxHeight(meterheight).withAlignSelf(FlexItem::AlignSelf::center));
     //toolbarBox.items.add(FlexItem(100, meterheight, outmeterBox).withMargin(2).withFlex(1));
@@ -4444,7 +4763,7 @@ void SonobusAudioProcessorEditor::updateLayout()
         if ( ! isNarrow) {
             transportBox.items.add(FlexItem(3, 6, transportWaveBox).withMargin(0).withFlex(1));  
 
-            transportVBox.items.add(FlexItem(3, minitemheight, transportBox).withMargin(0).withFlex(0));  
+            transportVBox.items.add(FlexItem(3, minitemheight, transportBox).withMargin(0).withFlex(0));              
         }
         else {
             transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0.1));
@@ -4506,6 +4825,11 @@ void SonobusAudioProcessorEditor::updateLayout()
         mainBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(0));
     }
     
+    if (isNarrow) {
+        mainBox.items.add(FlexItem(100, minitemheight + 4, outputMainBox).withMargin(0).withFlex(0)); 
+        mainBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+        minheight += minitemheight + 8;
+    }
     mainBox.items.add(FlexItem(100, minitemheight + 4, toolbarBox).withMargin(0).withFlex(0)); minheight += minitemheight + 10;
     mainBox.items.add(FlexItem(10, 6).withFlex(0));
         

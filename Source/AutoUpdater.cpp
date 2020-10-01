@@ -165,7 +165,7 @@ public:
                                                   BinaryData::sonobus_logo_96_pngSize);
         lookAndFeelChanged();
 
-        setSize (500, 280);
+        setSize (500, 300);
     }
 
     void resized() override
@@ -179,11 +179,12 @@ public:
         topSlice.removeFromTop (5);
         contentLabel.setBounds (topSlice.removeFromTop (25));
 
-        auto buttonBounds = b.removeFromBottom (60);
-        buttonBounds.removeFromBottom (25);
+        auto buttonBounds = b.removeFromBottom (40); // 60
+        //buttonBounds.removeFromBottom (8); // 25
+
         chooseButton.setBounds (buttonBounds.removeFromLeft (buttonBounds.getWidth() / 2).reduced (20, 0));
         cancelButton.setBounds (buttonBounds.reduced (20, 0));
-        dontAskAgainButton.setBounds (cancelButton.getBounds().withY (cancelButton.getBottom() + 5).withHeight (20));
+        //dontAskAgainButton.setBounds (cancelButton.getBounds().withY (cancelButton.getBottom() + 5).withHeight (20));
 
         releaseNotesEditor.setBounds (b.reduced (0, 10));
     }
@@ -247,9 +248,14 @@ private:
 
 void LatestVersionCheckerAndUpdater::askUserForLocationToDownload (const VersionInfo::Asset& asset)
 {
-    FileChooser chooser ("Please select the location into which you would like to install the new version",
+    File dloadLoc = File::getSpecialLocation(File::userHomeDirectory).getChildFile("Downloads");
+    if (!dloadLoc.exists()) {
+        dloadLoc = File::getSpecialLocation(File::userDesktopDirectory);
+    }
+    
+    FileChooser chooser ("Please select the location into which you would like to download the new version",
                          //{ getAppSettings().getStoredPath (Ids::jucePath, TargetOS::getThisOS()).get() });
-                         { File::getSpecialLocation(File::globalApplicationsDirectory) });                         
+                         { dloadLoc });                         
 
     if (chooser.browseForDirectory())
     {
@@ -267,33 +273,13 @@ void LatestVersionCheckerAndUpdater::askUserForLocationToDownload (const Version
 
             return isJUCEFolder (targetFolder);
         }();
-#endif
 
         targetFolder = targetFolder.getChildFile ("SonoBus");
 
-        
-        auto targetFolderPath = targetFolder.getFullPathName();
-
-#if 0
-        if (willOverwriteJuceFolder)
-        {
-            if (targetFolder.getChildFile (".git").isDirectory())
-            {
-                AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon, "Downloading New JUCE Version",
-                                                  targetFolderPath + "\n\nis a GIT repository!\n\nYou should use a \"git pull\" to update it to the latest version.");
-
-                return;
-            }
-
-            if (! AlertWindow::showOkCancelBox (AlertWindow::WarningIcon, "Overwrite Existing JUCE Folder?",
-                                                "Do you want to replace the folder\n\n" + targetFolderPath + "\n\nwith the latest version from juce.com?\n\n"
-                                                "This will move the existing folder to " + targetFolderPath + "_old."))
-            {
-                return;
-            }
-        }
-        else 
 #endif
+        
+#if 0
+        auto targetFolderPath = targetFolder.getFullPathName();
         if (targetFolder.exists())
         {
             if (! AlertWindow::showOkCancelBox (AlertWindow::WarningIcon, "Existing File Or Directory",
@@ -302,7 +288,7 @@ void LatestVersionCheckerAndUpdater::askUserForLocationToDownload (const Version
                 return;
             }
         }
-
+#endif
         downloadAndInstall (asset, targetFolder);
     }
 }
@@ -336,6 +322,109 @@ public:
     }
 
 private:
+    
+    File dloadfile;
+    
+#if 1
+    
+    void run() override
+    {
+        setProgress (-1.0);
+
+        //MemoryBlock zipData;
+        auto result = download ();
+
+        if (result.wasOk() && ! threadShouldExit())
+            result = install ();
+
+        if (result.failed())
+            MessageManager::callAsync ([result] { AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
+                                                                                    "Installation Failed",
+                                                                                    result.getErrorMessage()); });
+        else
+            MessageManager::callAsync (completionCallback);
+    }
+    
+    Result download ()
+    {
+        setStatusMessage ("Downloading...");
+
+        int statusCode = 0;
+        auto inStream = VersionInfo::createInputStreamForAsset (asset, statusCode);
+
+        if (inStream != nullptr && statusCode == 200)
+        {
+            int64 total = 0;
+
+            struct ScopedDownloadFile
+            {
+                ScopedDownloadFile (const File& dloadfile)
+                {
+                    file = dloadfile.getSiblingFile (dloadfile.getFileNameWithoutExtension() + "_download").getNonexistentSibling();
+                    //jassert (folder.createDirectory());
+                }
+
+                ~ScopedDownloadFile()   { file.deleteFile(); }
+
+                File file;
+            };
+            
+            DBG("asset name: " << asset.name << "  url: " << asset.url);
+            dloadfile = targetFolder.getChildFile(asset.name).getNonexistentSibling();
+
+            ScopedDownloadFile sdload(dloadfile);
+
+            {
+                FileOutputStream fo (sdload.file);
+                
+                if (fo.openedOk())
+                {
+                    fo.setPosition (0);
+                    fo.truncate();
+                } else {
+                    return Result::fail ("Failed to write download from: " + asset.url);
+                }
+                
+                for (;;)
+                {
+                    if (threadShouldExit())
+                        return Result::fail ("Cancelled");
+                    
+                    auto written = fo.writeFromInputStream (*inStream, 8192);
+                    
+                    if (written == 0)
+                        break;
+                    
+                    total += written;
+                    
+                    setStatusMessage ("Downloading... " + File::descriptionOfSizeInBytes (total));
+                }
+
+            }                
+
+            // completed, now move to final name
+            sdload.file.moveFileTo(dloadfile);
+            
+            return Result::ok();
+        }
+
+        return Result::fail ("Failed to download from: " + asset.url);
+    }
+
+    Result install ()
+    {
+        //setStatusMessage ("Installing...");
+
+        // "show file"
+        File dfile(dloadfile);
+        MessageManager::callAsync ([dfile] { dfile.revealToUser(); });
+        
+
+        return Result::ok();
+    }
+    
+#else
+    
     void run() override
     {
         setProgress (-1.0);
@@ -353,7 +442,7 @@ private:
         else
             MessageManager::callAsync (completionCallback);
     }
-
+    
     Result download (MemoryBlock& dest)
     {
         setStatusMessage ("Downloading...");
@@ -450,7 +539,8 @@ private:
 
         return Result::ok();
     }
-
+#endif
+    
     Result setFilePermissions (const File& root, const ZipFile& zip)
     {
         constexpr uint32 executableFlag = (1 << 22);
@@ -514,7 +604,7 @@ void LatestVersionCheckerAndUpdater::downloadAndInstall (const VersionInfo::Asse
                                                    [this, targetFolder]
                                                    {
                                                        installer.reset();
-                                                       restartProcess (targetFolder);
+                                                       //restartProcess (targetFolder);
                                                    }));
 }
 

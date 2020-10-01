@@ -90,7 +90,11 @@ public:
 
         : settings (settingsToUse, takeOwnershipOfSettings),
           channelConfiguration (channels),
+#if JUCE_IOS
           shouldMuteInput (! isInterAppAudioConnected()),
+#else
+          shouldMuteInput (false),    
+#endif
           autoOpenMidiDevices (shouldAutoOpenMidiDevices)
     {
         createPlugin();
@@ -150,7 +154,9 @@ public:
         int outChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts
                                                            : processor->getMainBusNumOutputChannels());
 
+#if (JUCE_IOS || JUCE_ANDROID)
         processorHasPotentialFeedbackLoop = (inChannels > 0 && outChannels > 0);
+#endif
     }
 
     virtual void deletePlugin()
@@ -325,7 +331,7 @@ public:
             settings->setValue ("audioSetup", xml.get());
 
            #if ! (JUCE_IOS || JUCE_ANDROID)
-            settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
+          //  settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
            #endif
         }
     }
@@ -341,7 +347,7 @@ public:
             savedState = settings->getXmlValue ("audioSetup");
 
            #if ! (JUCE_IOS || JUCE_ANDROID)
-            shouldMuteInput.setValue (settings->getBoolValue ("shouldMuteInput", true));
+            shouldMuteInput.setValue (settings->getBoolValue ("shouldMuteInput", false));
            #endif
         }
 
@@ -428,8 +434,8 @@ public:
     AudioProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
 
-    // avoid feedback loop by default
-    bool processorHasPotentialFeedbackLoop = true;
+    // don't avoid feedback loop by default
+    bool processorHasPotentialFeedbackLoop = false;
     Value shouldMuteInput;
     AudioBuffer<float> emptyBuffer;
     bool autoOpenMidiDevices;

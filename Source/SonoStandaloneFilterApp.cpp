@@ -153,6 +153,7 @@ public:
                 if (sonoproc->hasEditor()) {
                     if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded())) {
                         sonoeditor->handleURL(url.toString(true));
+                        mainWindow->toFront(true);
                     }
                 }
             }
@@ -169,6 +170,7 @@ public:
                 if (sonoproc->hasEditor()) {
                     if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded())) {
                         sonoeditor->handleURL(url);
+                        mainWindow->toFront(true);
                     }
                 }
             }

@@ -148,7 +148,7 @@ private:
     
     void configKnobSlider(Slider *);
     //void configLabel(Label * lab, bool val);
-    //void configLevelSlider(Slider *);
+    void configLevelSlider(Slider *);
     void configEditor(TextEditor *editor, bool passwd = false);
 
     void showPatchbay(bool flag);
@@ -202,6 +202,7 @@ private:
     SonoBigTextLookAndFeel sonoSliderLNF;
     SonoBigTextLookAndFeel smallLNF;
     SonoBigTextLookAndFeel teensyLNF;
+    SonoPanSliderLookAndFeel panSliderLNF;
 
     class PatchMatrixView;
 
@@ -267,11 +268,16 @@ private:
     std::unique_ptr<TextButton> mPanButton;
 
     std::unique_ptr<Slider> mInMonPanMonoSlider;
+    std::unique_ptr<Slider> mInMonPanStereoSlider;
     std::unique_ptr<Slider> mInMonPanSlider1;
     std::unique_ptr<Slider> mInMonPanSlider2;
     std::unique_ptr<Label> mInMonPanLabel1;
     std::unique_ptr<Label> mInMonPanLabel2;
 
+    std::unique_ptr<TextButton> mInMuteButton;
+    std::unique_ptr<TextButton> mInSoloButton;
+
+    
     std::unique_ptr<Slider> mDrySlider;
     std::unique_ptr<Slider> mOutGainSlider;
     
@@ -360,6 +366,7 @@ private:
     std::unique_ptr<DrawableRectangle> mCompressorBg;
     std::unique_ptr<DrawableRectangle> mReverbHeaderBg;
 
+    
     std::unique_ptr<ExpanderView> mInExpanderView;
     std::unique_ptr<DrawableRectangle> mExpanderBg;
 
@@ -418,6 +425,8 @@ private:
     //std::unique_ptr<DialogWindow> mPatchbayWindow;
     WeakReference<Component> patchbayCalloutBox;
 
+    bool mPanChanged = false;
+    
 
     File lastRecordedFile;
     
@@ -595,6 +604,16 @@ private:
     FlexBox recBox;
     FlexBox knobButtonBox;    
     FlexBox inMeterBox;
+    FlexBox mainMeterBox;
+
+    FlexBox inputMainBox;
+    FlexBox inputButtonBox;
+    FlexBox inputRightBox;
+    FlexBox inputLeftBox;
+    FlexBox inputPannerBox;
+
+    FlexBox outputMainBox;
+    
     
     FlexBox metBox;
     FlexBox metVolBox;
@@ -683,6 +702,8 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbDampingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbPreDelayAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mDynamicResamplingAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonSoloAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonMuteAttachment;
 
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;

@@ -138,7 +138,10 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
     mutedTextColor = Colour::fromFloatRGBA(0.8, 0.5, 0.2, 1.0);
     regularTextColor = Colour(0xa0eeeeee);; //Colour(0xc0eeeeee);
     dimTextColor = Colour(0xa0aaaaaa); //Colour(0xc0aaaaaa);
-    soloColor = Colour::fromFloatRGBA(0.2, 0.5, 0.8, 1.0);
+    //soloColor = Colour::fromFloatRGBA(0.2, 0.5, 0.8, 1.0);
+    mutedColor = Colour::fromFloatRGBA(0.6, 0.3, 0.1, 1.0);
+    soloColor = Colour::fromFloatRGBA(1.0, 1.0, 0.6, 1.0);
+    mutedBySoloColor = Colour::fromFloatRGBA(0.25, 0.125, 0.0, 1.0);
     
     droppedTextColor = Colour(0xc0ee8888);
 
@@ -347,7 +350,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvMutedButton->addListener(this);
     pvf->recvMutedButton->setLookAndFeel(&pvf->medLnf);
     pvf->recvMutedButton->setClickingTogglesState(true);
-    pvf->recvMutedButton->setColour(TextButton::buttonOnColourId, mutedTextColor.withAlpha(0.5f));
+    pvf->recvMutedButton->setColour(TextButton::buttonOnColourId, mutedColor);
     //pvf->recvMutedButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     pvf->recvMutedButton->setTooltip(TRANS("Toggles receive muting, preventing audio from being heard for this user"));
 
@@ -355,7 +358,8 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvSoloButton->addListener(this);
     pvf->recvSoloButton->setLookAndFeel(&pvf->medLnf);
     pvf->recvSoloButton->setClickingTogglesState(true);
-    pvf->recvSoloButton->setColour(TextButton::buttonOnColourId, soloColor.withAlpha(0.5f));
+    pvf->recvSoloButton->setColour(TextButton::buttonOnColourId, soloColor.withAlpha(0.7f));
+    pvf->recvSoloButton->setColour(TextButton::textColourOnId, Colours::darkblue);
     //pvf->recvSoloButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     pvf->recvSoloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
 
@@ -1342,11 +1346,20 @@ void PeersContainerView::updatePeerViews()
 
         
         //pvf->statusLabel->setText(statustext, dontSendNotification);
+        bool aresoloed = processor.getRemotePeerSoloed(i);
+        bool aremuted = !processor.getRemotePeerRecvAllow(i);
         
-        pvf->sendMutedButton->setToggleState(!processor.getRemotePeerSendAllow(i) , dontSendNotification);
-        pvf->recvMutedButton->setToggleState(!processor.getRemotePeerRecvAllow(i) , dontSendNotification);
-        pvf->recvSoloButton->setToggleState(processor.getRemotePeerSoloed(i) , dontSendNotification);
+        if (processor.isAnythingSoloed() && !aresoloed && !aremuted) {
+            pvf->recvMutedButton->setColour(TextButton::buttonColourId, mutedBySoloColor);
+        } else {
+            pvf->recvMutedButton->removeColour(TextButton::buttonColourId);
+        }
 
+        pvf->sendMutedButton->setToggleState(!processor.getRemotePeerSendAllow(i) , dontSendNotification);
+        pvf->recvMutedButton->setToggleState(aremuted , dontSendNotification);
+        pvf->recvSoloButton->setToggleState(aresoloed , dontSendNotification);
+
+        
         pvf->latActiveButton->setToggleState(latactive, dontSendNotification);
 
         
@@ -1660,9 +1673,13 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                     }
                 }
                     
+                // disable solo for main monitor too
+                processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainMonitorSolo)->setValueNotifyingHost(0.0);
+                
                 updatePeerViews();
             } else {
                 processor.setRemotePeerSoloed(i, buttonThatWasClicked->getToggleState()); 
+                updatePeerViews();
             }
             break;
         }

@@ -944,6 +944,82 @@ int SonoLookAndFeel::getSliderThumbRadius (Slider& slider)
                                            : static_cast<int> (slider.getWidth()  * 0.5f));
 }
 
+
+Slider::SliderLayout SonoLookAndFeel::getSliderLayout (Slider& slider)
+{
+    // 1. compute the actually visible textBox size from the slider textBox size and some additional constraints
+
+    int minXSpace = 0;
+    int minYSpace = 0;
+
+    auto textBoxPos = slider.getTextBoxPosition();
+
+    if (textBoxPos == Slider::TextBoxLeft || textBoxPos == Slider::TextBoxRight)
+        minXSpace = 30;
+    else
+        minYSpace = 15;
+
+    auto localBounds = slider.getLocalBounds();
+
+    auto textBoxWidth  = jmax (0, jmin (slider.getTextBoxWidth(),  localBounds.getWidth() - minXSpace));
+    auto textBoxHeight = jmax (0, jmin (slider.getTextBoxHeight(), localBounds.getHeight() - minYSpace));
+
+    Slider::SliderLayout layout;
+
+    // 2. set the textBox bounds
+
+    if (textBoxPos != Slider::NoTextBox)
+    {
+        if (slider.isBar())
+        {
+            layout.textBoxBounds = localBounds;
+        }
+        else
+        {
+            layout.textBoxBounds.setWidth (textBoxWidth);
+            layout.textBoxBounds.setHeight (textBoxHeight);
+
+            const int thumbIndent = getSliderThumbRadius (slider);
+
+            if (textBoxPos == Slider::TextBoxLeft)           layout.textBoxBounds.setX (0);
+            else if (textBoxPos == Slider::TextBoxRight)     layout.textBoxBounds.setX (localBounds.getWidth() - textBoxWidth);
+            else if (sliderTextJustification.testFlags(Justification::right))/* above or below -> right */ layout.textBoxBounds.setX ((localBounds.getWidth() - textBoxWidth - 1));
+            else if (sliderTextJustification.testFlags(Justification::left))/* above or below -> left */ layout.textBoxBounds.setX (1);
+            else /* above or below -> centre horizontally */ layout.textBoxBounds.setX ((localBounds.getWidth() - textBoxWidth) / 2);
+
+            if (textBoxPos == Slider::TextBoxAbove)          layout.textBoxBounds.setY (0);
+            else if (textBoxPos == Slider::TextBoxBelow)     layout.textBoxBounds.setY (localBounds.getHeight() - textBoxHeight);
+            else if (sliderTextJustification.testFlags(Justification::top))/* left or right -> top */ layout.textBoxBounds.setY (0);
+            else if (sliderTextJustification.testFlags(Justification::bottom))/* left or right -> bottom */ layout.textBoxBounds.setY (localBounds.getHeight() - textBoxHeight);
+            else /* left or right -> centre vertically */    layout.textBoxBounds.setY ((localBounds.getHeight() - textBoxHeight) / 2);
+        }
+    }
+
+    // 3. set the slider bounds
+
+    layout.sliderBounds = localBounds;
+
+    if (slider.isBar())
+    {
+        layout.sliderBounds.reduce (1, 1);   // bar border
+    }
+    else
+    {
+        if (textBoxPos == Slider::TextBoxLeft)       layout.sliderBounds.removeFromLeft (textBoxWidth);
+        else if (textBoxPos == Slider::TextBoxRight) layout.sliderBounds.removeFromRight (textBoxWidth);
+        else if (textBoxPos == Slider::TextBoxAbove) layout.sliderBounds.removeFromTop (textBoxHeight);
+        else if (textBoxPos == Slider::TextBoxBelow) layout.sliderBounds.removeFromBottom (textBoxHeight);
+
+        const int thumbIndent = getSliderThumbRadius (slider);
+
+        if (slider.isHorizontal())    layout.sliderBounds.reduce (thumbIndent, 0);
+        else if (slider.isVertical()) layout.sliderBounds.reduce (0, thumbIndent);
+    }
+
+    return layout;
+}
+
+
 void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, int height,
                                        float sliderPos,
                                        float minSliderPos,
@@ -1161,8 +1237,10 @@ Font SonoBigTextLookAndFeel::getTextButtonFont (TextButton& button, int buttonHe
 Label* SonoBigTextLookAndFeel::createSliderTextBox (Slider& slider)
 {
     Label * lab = LookAndFeel_V4::createSliderTextBox(slider);
+    lab->setKeyboardType(TextInputTarget::decimalKeyboard);
     lab->setFont(myFont.withHeight(maxSize * fontScale));
     lab->setJustificationType(textJustification);
+    lab->setMinimumHorizontalScale(0.5);
 
     return lab;
 }
@@ -1223,8 +1301,10 @@ SonoPanSliderLookAndFeel::SonoPanSliderLookAndFeel(float maxTextSize)
 Label* SonoPanSliderLookAndFeel::createSliderTextBox (Slider& slider)
 {
     Label * lab = LookAndFeel_V4::createSliderTextBox(slider);
+    lab->setKeyboardType(TextInputTarget::decimalKeyboard);
     lab->setFont(myFont.withHeight(maxSize * fontScale));
     lab->setJustificationType(textJustification);
+    lab->setMinimumHorizontalScale(0.5);
 
     return lab;
 }
@@ -1301,7 +1381,7 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
         auto isTwoVal   = (style == Slider::SliderStyle::TwoValueVertical   || style == Slider::SliderStyle::TwoValueHorizontal);
         auto isThreeVal = (style == Slider::SliderStyle::ThreeValueVertical || style == Slider::SliderStyle::ThreeValueHorizontal);
         
-        auto trackWidth = jmin (10.0f, slider.isHorizontal() ? height * 0.25f : width * 0.25f);
+        auto trackWidth = jmin (7.0f, slider.isHorizontal() ? height * 0.25f : width * 0.25f);
         
         Point<float> startPoint (slider.isHorizontal() ? x : x + width * 0.5f,
                                  slider.isHorizontal() ? y + height * 0.5f : height + y);
