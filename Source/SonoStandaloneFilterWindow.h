@@ -93,7 +93,7 @@ public:
 #if JUCE_IOS
           shouldMuteInput (! isInterAppAudioConnected()),
 #else
-          shouldMuteInput (false),    
+          shouldMuteInput (var(false)),    
 #endif
           autoOpenMidiDevices (shouldAutoOpenMidiDevices)
     {

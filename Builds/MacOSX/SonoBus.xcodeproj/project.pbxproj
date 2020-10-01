@@ -2331,8 +2331,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2401,8 +2400,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2472,8 +2470,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2542,8 +2539,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2613,8 +2609,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2684,8 +2679,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2753,8 +2747,7 @@
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2817,8 +2810,7 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2883,8 +2875,7 @@
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",
@@ -2947,8 +2938,7 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"$(HOME)/SDKs/VST_SDK/VST3_SDK",
 					"../../JuceLibraryCode",
 					"../../deps",
 					"../../deps/juce/modules",

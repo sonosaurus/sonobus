@@ -341,7 +341,8 @@
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES&#10;AOO_STATIC&#10;AOO_TIMEFILTER_CHECK=0&#10;WINVER=0x0601&#10;_WIN32_WINNT=0x0601"
-            externalLibraries="opus.lib" smallIcon="ZWiivf" bigIcon="cVyJ9b">
+            externalLibraries="opus.lib" smallIcon="ZWiivf" bigIcon="cVyJ9b"
+            vstLegacyFolder="C:\Users\jesse\src\VST2_SDK">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        libraryPath="..\..\deps\windows\Debug" useRuntimeLibDLL="0" defines="LOGLEVEL=2"/>
