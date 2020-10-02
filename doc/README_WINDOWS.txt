@@ -15,6 +15,26 @@ sessions, podcasts, etc.
 Available for macOS, Windows, iOS and Linux.
 
 
+INSTALLATION (Windows)
+=======================
+
+Install the software by running 'SonoBus Installer' executable. It will 
+allow you to install the standalone application and the VST plugins at 
+your discretion.
+
+When you first launch SonoBus, if Windows Gatekeeper prompts you
+to allow it access to both local and internet
+networks, give it permission. 
+
+Please contact us at support@sonobus.net if you have any issues.
+
+
+It is HIGHLY recommended that you use an ASIO supported audio
+driver. You can install ASIO4ALL to enable ASIO for your built-in
+audio devices or any other that don't have a dedicated ASIO
+driver. Get ASIO4ALL at http://www.asio4all.org.
+
+
 IMPORTANT TIPS
 ==================
 
@@ -35,28 +55,6 @@ intercepted, please keep that in mind. All audio is sent directly
 between users peer-to-peer, the connection server is only used so that
 the users in a group can find each other.
 
-
-INSTALLATION (Windows)
-=======================
-
-You should be able to just launch the standalone SonoBus.exe to get
-started. You should allow it access to both local and internet
-networks if/when the system asks. Please contact me if you have any
-issues, it has only been tested on a few different windows versions so
-far.
-
-It is HIGHLY recommended that you use an ASIO supported audio
-driver. You can install ASIO4ALL to enable ASIO for your built-in
-audio devices or any other that don't have a dedicated ASIO
-driver. Get ASIO4ALL at http://www.asio4all.org.
-
-If you want to use the VST3 plugin version, copy the SonoBus.vst3
-to your system's VST3 folder, which is usually at C:\Program
-Files\Common Files\VST3\  folder. If you don't have a VST3 folder at
-the location you can create one first.
-
-If you want to use the VST2 plugin version, copy the SonoBus.dll
-to your system's VST folder.
 
 
 
