@@ -94,11 +94,11 @@ void LatestVersionCheckerAndUpdater::run()
        #endif
     }();
 
-    String requiredFilename ("sonobus-" + info->versionString + "-" + osString + ".zip");
+    String requiredFilename ("sonobus-" + info->versionString + "-" + osString + "."); // to end with any extension
 
     for (auto& asset : info->assets)
     {
-        if (asset.name == requiredFilename)
+        if (asset.name.startsWith(requiredFilename))
         {
             auto versionString = info->versionString;
             auto releaseNotes  = info->releaseNotes;
