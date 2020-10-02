@@ -1382,9 +1382,10 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
         auto isThreeVal = (style == Slider::SliderStyle::ThreeValueVertical || style == Slider::SliderStyle::ThreeValueHorizontal);
         
         auto trackWidth = jmin (7.0f, slider.isHorizontal() ? height * 0.25f : width * 0.25f);
+        auto voffset = (isTwoVal || isThreeVal) ? trackWidth*0.75f : 0.0f;
         
         Point<float> startPoint (slider.isHorizontal() ? x : x + width * 0.5f,
-                                 slider.isHorizontal() ? y + height * 0.5f : height + y);
+                                 slider.isHorizontal() ? y + height * 0.5f + voffset: height + y);
         
         Point<float> endPoint (slider.isHorizontal() ? width + x : startPoint.x,
                                slider.isHorizontal() ? startPoint.y : y);
@@ -1401,19 +1402,19 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
         if (isTwoVal || isThreeVal)
         {
             minPoint = { slider.isHorizontal() ? minSliderPos : width * 0.5f,
-                slider.isHorizontal() ? height * 0.5f : minSliderPos };
+                slider.isHorizontal() ? height * 0.5f + voffset : minSliderPos };
             
             if (isThreeVal)
                 thumbPoint = { slider.isHorizontal() ? sliderPos : width * 0.5f,
-                    slider.isHorizontal() ? height * 0.5f : sliderPos };
+                    slider.isHorizontal() ? height * 0.5f + voffset: sliderPos };
             
             maxPoint = { slider.isHorizontal() ? maxSliderPos : width * 0.5f,
-                slider.isHorizontal() ? height * 0.5f : maxSliderPos };
+                slider.isHorizontal() ? height * 0.5f + voffset : maxSliderPos };
         }
         else
         {
             auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
-            auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
+            auto ky = slider.isHorizontal() ? (y + height * 0.5f + voffset) : sliderPos;
          
             if (slider.getProperties().contains ("fromCentre")) {
                 if (kx > startPoint.x + width/2) {
@@ -1469,7 +1470,7 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
                 //             trackWidth * wscale, pointerColour, 2); // 2
                 
                 drawPointer (g, sliderPos - trackWidth*0.5*wscale,
-                             jmin (y + height - trackWidth * wscale, (float)y + height * 0.5f),
+                             jmin (y + height - trackWidth * wscale, (float)y + height * 0.5f + voffset),
                              trackWidth * wscale, pointerColour, 4); // 4
             }
             else
@@ -1503,11 +1504,11 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
                 */
                 
                 drawPointer (g, minSliderPos - sr,
-                             jmax (0.0f, y + height * 0.5f - trackWidth * wscale),
+                             jmax (0.0f, y + height * 0.5f  + voffset - trackWidth * wscale),
                              trackWidth * wscale, pointerColour, 2); // 2
                 
                 drawPointer (g, maxSliderPos - trackWidth*0.5*wscale,
-                             jmin (y + height - trackWidth * wscale, (float)y + height * 0.5f),
+                             jmin (y + height - trackWidth * wscale, (float)y + height * 0.5f + voffset),
                              trackWidth * wscale, pointerColour, 4); // 4
             }
             else

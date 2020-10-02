@@ -597,6 +597,7 @@ public:
         para2QSlider.setValue(mParams.para2Q, dontSendNotification);
         
         enableButton.setToggleState(mParams.enabled, dontSendNotification);
+        enableButton.setAlpha(mParams.enabled ? 1.0 : 0.5);
 
         headerComponent.repaint();
 

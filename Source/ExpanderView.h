@@ -225,6 +225,7 @@ public:
         attackSlider.setValue(mParams.attackMs, dontSendNotification);
         releaseSlider.setValue(mParams.releaseMs, dontSendNotification);
         
+        enableButton.setAlpha(mParams.enabled ? 1.0 : 0.5);
         enableButton.setToggleState(mParams.enabled, dontSendNotification);
         headerComponent.repaint();
     }

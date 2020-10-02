@@ -296,6 +296,8 @@ private:
 
     std::unique_ptr<DrawableRectangle> mDragDropBg;
 
+    std::unique_ptr<DrawableRectangle> mFileAreaBg;
+
     std::unique_ptr<Slider> mBufferTimeSlider;
     
     std::unique_ptr<Label> mInGainLabel;

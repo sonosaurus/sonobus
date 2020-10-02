@@ -4855,8 +4855,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
 
     // BEGIN MAIN OUTPUT BUFFER WRITING
-    
     drynow = (anysoloed && !mMainMonitorSolo.get()) ? 0.0f : drynow;
+
+    bool inrevdirect = !(anysoloed && !mMainMonitorSolo.get()) && drynow == 0.0;
     
     // copy from input buffer with dry gain as-is
     bool rampit =  (fabsf(drynow - mLastDry) > 0.00001);
@@ -4868,14 +4869,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         else {
             buffer.copyFrom(channel, 0, inputBuffer.getReadPointer(channel), numSamples, drynow);
         }
-    }
-    
-    
-    
-    // add from tempBuffer (audio from remote peers)
-    for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-
-        buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
     }
     
     
@@ -4899,15 +4892,41 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
         
         for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            mainFxBuffer.addFromWithRamp(channel, 0, buffer.getReadPointer(channel), numSamples, sgain, egain);
+            // others
+            mainFxBuffer.addFromWithRamp(channel, 0, tempBuffer.getReadPointer(channel), numSamples, sgain, egain);
+
+            // input
+            if (inrevdirect) {
+                mainFxBuffer.addFromWithRamp(channel, 0, inputBuffer.getReadPointer(channel), numSamples, sgain, egain);
+            } else {
+                mainFxBuffer.addFromWithRamp(channel, 0, buffer.getReadPointer(channel), numSamples, sgain, egain);                
+            }
         }                    
     }
     else if (mainReverbEnabled){
         for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            mainFxBuffer.addFrom(channel, 0, buffer, channel, 0, numSamples);
+            // others
+            mainFxBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+
+            // input
+            if (inrevdirect) {
+                mainFxBuffer.addFrom(channel, 0, inputBuffer, channel, 0, numSamples);
+            } else {
+                mainFxBuffer.addFrom(channel, 0, buffer, channel, 0, numSamples);                
+            }
         }            
 
     }
+    
+    
+    // add from tempBuffer (audio from remote peers)
+    for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+
+        buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
+    }
+    
+    
+ 
 
     if (doreverb) {
         // assumes reverb is NO dry

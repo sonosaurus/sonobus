@@ -280,6 +280,8 @@ public:
         enableButton.setToggleState(mParams.enabled, dontSendNotification);
         makeupGainSlider.setEnabled(!mParams.automakeupGain);
 
+        enableButton.setAlpha(mParams.enabled ? 1.0 : 0.5);
+
         headerComponent.repaint();
     }
     

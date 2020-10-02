@@ -47,6 +47,7 @@ public:
     std::unique_ptr<Label>  statusLabel;
     std::unique_ptr<Label>  levelLabel;
     std::unique_ptr<Slider> levelSlider;
+    std::unique_ptr<Label>  panLabel;
     std::unique_ptr<Slider> panSlider1;
     std::unique_ptr<Slider> panSlider2;
     std::unique_ptr<Label>  bufferTimeLabel;
