@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<dict>
+		<key>identifier</key>
+		<string>Layout.DC9F0889-F80B-4EE8-ABC1-2FDA627C87BF</string>
+		<key>options</key>
+		<dict>
+			<key>backgroundImageName</key>
+			<string>dmg_background.pdf</string>
+			<key>fontSize</key>
+			<integer>13</integer>
+			<key>iconSize</key>
+			<integer>64</integer>
+			<key>layoutItems</key>
+			<array>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.B979D689-6113-43D1-AD94-5CA458BE8FCA</string>
+					<key>position</key>
+					<string>{77.8828125, 19.99609375}</string>
+					<key>rtf</key>
+					<string>{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cspthree\c100000\c100000\c100000;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs28 \cf2 $\{APP_VERSION\}}</string>
+					<key>size</key>
+					<string>{137.765625, 21.9921875}</string>
+					<key>type</key>
+					<string>text</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.27ADA528-E5B9-48CF-B424-37B9B5B0C172</string>
+					<key>name</key>
+					<string>README_MAC.txt</string>
+					<key>position</key>
+					<string>{544, 48}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.E7A4BEB2-AC0A-4490-92C8-1E47B256C0F6</string>
+					<key>name</key>
+					<string>SonoBus.app</string>
+					<key>position</key>
+					<string>{112, 208}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.22420AE3-0B22-4380-802C-2579AEDA756C</string>
+					<key>name</key>
+					<string>Applications</string>
+					<key>position</key>
+					<string>{112, 368}</string>
+					<key>type</key>
+					<string>applications</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.25D3A305-E6AE-4000-9CE4-D616D0DF22A7</string>
+					<key>name</key>
+					<string>SonoBus.component</string>
+					<key>position</key>
+					<string>{288, 208}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.0F3579EF-C06B-4563-90DB-5A7DF7BAC32B</string>
+					<key>name</key>
+					<string>SonoBus.vst3</string>
+					<key>position</key>
+					<string>{416, 208}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.FD8ED432-C7D4-4775-96BA-4BC525133960</string>
+					<key>name</key>
+					<string>SonoBus.vst</string>
+					<key>position</key>
+					<string>{544, 208}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.EE4CB04C-E62E-4C0B-9776-9CF54E1B2758</string>
+					<key>name</key>
+					<string>VST</string>
+					<key>position</key>
+					<string>{544, 368}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.F9C43AA5-6BB5-448A-A00D-B3C71EB8EDB8</string>
+					<key>name</key>
+					<string>VST3</string>
+					<key>position</key>
+					<string>{416, 368}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.E4E0AF01-0BD8-44B7-8E8D-848354E130E6</string>
+					<key>name</key>
+					<string>Components</string>
+					<key>position</key>
+					<string>{288, 368}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+			</array>
+			<key>windowInsets</key>
+			<string>{0, 0}</string>
+			<key>windowOriginTopLeft</key>
+			<string>{100, 100}</string>
+		</dict>
+	</dict>
+	<key>documentCreator</key>
+	<string>DropDMG 3.5.10</string>
+	<key>documentType</key>
+	<string>com.c-command.DropDMG.Layout</string>
+	<key>formatVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>
