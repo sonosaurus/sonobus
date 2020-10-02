@@ -66,7 +66,7 @@ void LatestVersionCheckerAndUpdater::run()
                                               "Update Server Communication Error",
                                               "Failed to communicate with the SonoBus update server.\n"
                                               "Please try again in a few minutes.\n\n"
-                                              "If this problem persists you can download the latest version of SonoBus from beta.sonobus.net");
+                                              "If this problem persists you can download the latest version of SonoBus from sonobus.net");
 
         return;
     }
