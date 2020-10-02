@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cp ../doc/README_MAC.txt sonobus/
+cp ../doc/README_MAC.txt SonoBus/

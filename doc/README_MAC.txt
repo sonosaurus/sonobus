@@ -39,10 +39,17 @@ the users in a group can find each other.
 INSTALLATION (Mac)
 =======================
 
-There is no installer yet, sorry about that!
+The software is distributed as a DMG disk image. Once you've double-clicked
+it you will be able to install the standalone application or whichever
+plugin varieties you want by simply dragging them to the folder aliases
+directly below each item in the DMG's window.
 
-The first time you run the SonoBus.app, you may need to
-right click and select Open, from the finder.
+
+More information about the plugin folder locations is below in case you need
+it. But simply dragging them into the appropriate folder in the DMG should
+be all you need.
+
+---------------
 
 If you want to use the AudioUnit plugin version, copy the
 SonoBus.component from the Plugins folder to your home directory

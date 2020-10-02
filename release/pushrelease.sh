@@ -12,7 +12,7 @@ if [ -d "$1" ] ; then
   	exit 1
   fi
   
-  for f in *.zip; do
+  for f in *.zip *.dmg; do
 
     ## Check if the glob gets expanded to existing files.
     ## If not, f here will be exactly the pattern above
@@ -28,10 +28,10 @@ if [ -d "$1" ] ; then
 	exit 1
   fi
   
-  FILES=`echo *.zip`
+  FILES=`echo *.zip *.dmg`
   
   echo "Making release $1 with assets: ${FILES}"
-  gitrelease.sh essej/sonobus $1 -- *.zip < notes.md
+  gitrelease.sh essej/sonobus $1 -- *.zip *.dmg < notes.md
 
   echo
   echo "Done!"
