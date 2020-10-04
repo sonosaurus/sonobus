@@ -35,7 +35,8 @@ Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.
 Make sure you have `libopus` and the `libopus` development package (if necessary). 
 
     cd Builds/LinuxMakefile
-    make
+    CONFIG=Release make Standalone
+
 
 # License and 3rd Party Software
 
