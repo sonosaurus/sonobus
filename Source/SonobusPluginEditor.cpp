@@ -935,7 +935,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     configEditor(mOptionsUdpPortEditor.get());
 
-    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION));
+    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + ProjectInfo::versionString);
     configLabel(mVersionLabel.get(), true);
     mVersionLabel->setJustificationType(Justification::centredRight);
 
