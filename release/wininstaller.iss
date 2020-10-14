@@ -13,6 +13,8 @@ ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=SonoBus Installer
 ;LicenseFile=license.rtf
 SetupLogging=yes
+SignTool=signtool $f
+SignedUninstaller=yes
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -33,10 +35,10 @@ Name: "vst3_64"; Description: "64-bit VST3 Plugin (.vst3)"; Types: full custom; 
 
 
 [Files]
-Source: "SonoBus\SonoBus.exe";  DestDir: "{app}" ; Check: Is64BitInstallMode; Components:app; Flags: ignoreversion;
-;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: {code:GetVST2Dir_64}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion;
-Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: "{autopf64}\Steinberg\VSTPlugins\"; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion;
-Source: "SonoBus\Plugins\SonoBus.vst3"; DestDir: "{commoncf64}\VST3\"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion;
+Source: "SonoBus\SonoBus.exe";  DestDir: "{app}" ; Check: Is64BitInstallMode; Components:app; Flags: ignoreversion signonce;
+;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: {code:GetVST2Dir_64}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce ;
+Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: "{autopf64}\Steinberg\VSTPlugins\"; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce;
+Source: "SonoBus\Plugins\SonoBus.vst3"; DestDir: "{commoncf64}\VST3\"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce ;
 Source: "SonoBus\README.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: isreadme
 
 
