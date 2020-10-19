@@ -9,10 +9,22 @@ Connects multiple users together to send and receive audio among all in a group,
 
 Works as a standalone application on macOS, Windows, iOS, and Linux, and as an audio plugin (AU, VST) on macOS and Windows. Use it on your desktop or in your DAW, or on your mobile device.
 
-Easy to setup and use, yet still provides all the details that audio nerds want to see. Audio quality can be instantly adjusted from full uncompressed PCM 32bit float down through various compressed bitrates using the low-latency Opus codec.
+Easy to setup and use, yet still provides all the details that audio nerds want to see. Audio quality can be instantly adjusted from full uncompressed PCM (16, 24, or 32 bit) or with various compressed bitrates (16-256 kbps per channel) using the low-latency Opus codec, and you can do this independently for any of the users you are connected with in a group.
 
 
 <img src="https://sonobus.net/assets/images/sonobus_screenshot.png" width="871" />
+
+**IMPORTANT TIPS**
+
+SonoBus does not use any echo cancellation, or automatic noise
+reduction in order to maintain the highest audio quality. As a result, if you have a live microphone signal you will need to also use headphones to prevent echos and/or feedback.
+
+For best results, and to achieve the lowest latencies, connect your computer with wired ethernet to your router if you can. Although it will work with WiFi, the added network jitter and packet loss will require you to use a bigger safety buffer to maintain a quality audio signal, which results in higher latencies.
+
+SonoBus does NOT currently use any encryption for the data
+communication, so while it is unlikely that it will be
+intercepted, please keep that in mind. All audio is sent directly between users peer-to-peer, the connection server is only used so that the users in a group can find each other.
+
 
 
 # Installing
