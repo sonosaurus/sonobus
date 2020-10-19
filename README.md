@@ -12,7 +12,8 @@ Works as a standalone application on macOS, Windows, iOS, and Linux, and as an a
 Easy to setup and use, yet still provides all the details that audio nerds want to see. Audio quality can be instantly adjusted from full uncompressed PCM 32bit float down through various compressed bitrates using the low-latency Opus codec.
 
 
-![SonoBus][images/sonobus_screenshot.png]
+<img src="https://sonobus.net/assets/images/sonobus_screenshot.png" width="871" />
+
 
 # Installing
 
