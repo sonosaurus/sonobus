@@ -47,10 +47,11 @@ Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.
 
 ### On Linux
 
-Make sure you have `libopus` and the `libopus` development package (if necessary). 
+Make sure you have `libopus` and the `libopus` development package (if
+necessary), as well as JACK and its development package. 
 
     cd Builds/LinuxMakefile
-    CONFIG=Release make Standalone
+    ./build.sh
 
 When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`, which you can copy elsewhere for use (/usr/local/bin, etc)
 
@@ -63,7 +64,16 @@ It is built using JUCE 5 (slightly modified on a public fork), and AOO (Audio ov
 
 My github forks of these that are referenced via `git-subrepo` in this repository are:
 
-> [https://github.com/essej/JUCE](https://github.com/essej/JUCE) in the sono branch.
+> https://github.com/essej/JUCE  in the sono branch.
  
-> [https://github.com/essej/aoo.git](https://github.com/essej/aoo.git) in the sono branch.
+> https://github.com/essej/aoo.git   in the sono branch.
 
+
+If you want to run your own connection server instead of using the default
+one at aoo.sonobus.net, you can build the headless aooserver code at
+
+> https://github.com/essej/aooserver
+
+The standalone SonoBus application also provides a connection server internally,
+which you can connect to on port 10998, or port forward TCP/UDP 10998 from your internet
+router to the machine you are running it on.
