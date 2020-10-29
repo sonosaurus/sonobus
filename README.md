@@ -47,8 +47,11 @@ Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.
 
 ### On Linux
 
-Make sure you have `libopus` and the `libopus` development package (if
-necessary), as well as JACK and its development package. 
+Make sure you have `libopus` and the `libopus` development package
+(libopus-dev), as well as JACK (jackd) and its development package. Also
+libasound2-dev , libx11-dev, libxext-dev, libxinerama-dev, libxrandr-dev,
+libxcursor-dev, libgl-dev, libfreetype-dev,
+libcurl4-dev.
 
     cd Builds/LinuxMakefile
     ./build.sh
