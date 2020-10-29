@@ -1225,7 +1225,7 @@ bool source::send_data(){
     } else {
         // LOG_DEBUG("couldn't send");       
         if (!play_.load() && flushingout_.load() ) {
-            LOG_WARNING("finished flushing out");
+            LOG_VERBOSE("finished flushing out");
             activeplay_ = 0;
             flushingout_ = 0;
         }
