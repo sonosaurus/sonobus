@@ -1297,7 +1297,7 @@ void source_desc::process_blocks(){
         }
         else if (dofadein) {
             // fade the samples in
-            LOG_WARNING("fading in block");
+            LOG_VERBOSE("fading in block");
             auto nchannels = decoder_->nchannels();
             const int sframes = nsamples/nchannels;
             for (int i = 0; i < nchannels; ++i){
