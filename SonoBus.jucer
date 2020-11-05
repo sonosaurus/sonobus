@@ -316,7 +316,7 @@
     </XCODE_IPHONE>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                 externalLibraries="opus" smallIcon="ZWiivf" bigIcon="cVyJ9b"
-                linuxExtraPkgConfig="opus">
+                linuxExtraPkgConfig="opus" extraCompilerFlags="-march=native">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
                        defines="LOGLEVEL=2"/>
