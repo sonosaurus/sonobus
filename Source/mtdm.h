@@ -24,7 +24,7 @@
 
 
 //#include <unistd.h>
-
+#include <stddef.h>
 
 class Freq
 {
