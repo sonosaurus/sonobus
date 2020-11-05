@@ -2,17 +2,16 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2017 - ROLI Ltd.
+   Copyright (c) 2020 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 5 End-User License
-   Agreement and JUCE 5 Privacy Policy (both updated and effective as of the
-   27th April 2017).
+   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
+   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
 
-   End User License Agreement: www.juce.com/juce-5-licence
-   Privacy Policy: www.juce.com/juce-5-privacy-policy
+   End User License Agreement: www.juce.com/juce-6-licence
+   Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
    www.gnu.org/licenses).
@@ -230,7 +229,7 @@ Range<float> MidiKeyboardComponent::getKeyPosition (int midiNoteNumber, float ta
     auto octave = midiNoteNumber / 12;
     auto note   = midiNoteNumber % 12;
 
-    auto start = octave * 7.0f * targetKeyWidth + notePos[note] * targetKeyWidth;
+    auto start = (float) octave * 7.0f * targetKeyWidth + notePos[note] * targetKeyWidth;
     auto width = MidiMessage::isMidiNoteBlack (note) ? blackNoteWidthRatio * targetKeyWidth : targetKeyWidth;
 
     return { start, start + width };
@@ -258,8 +257,8 @@ Rectangle<float> MidiKeyboardComponent::getRectangleForKey (int note) const
         switch (orientation)
         {
             case horizontalKeyboard:            return { x, 0, w, blackNoteLength };
-            case verticalKeyboardFacingLeft:    return { getWidth() - blackNoteLength, x, blackNoteLength, w };
-            case verticalKeyboardFacingRight:   return { 0, getHeight() - x - w, blackNoteLength, w };
+            case verticalKeyboardFacingLeft:    return { (float) getWidth() - blackNoteLength, x, blackNoteLength, w };
+            case verticalKeyboardFacingRight:   return { 0, (float) getHeight() - x - w, blackNoteLength, w };
             default:                            jassertfalse; break;
         }
     }
@@ -269,7 +268,7 @@ Rectangle<float> MidiKeyboardComponent::getRectangleForKey (int note) const
         {
             case horizontalKeyboard:            return { x, 0, w, (float) getHeight() };
             case verticalKeyboardFacingLeft:    return { 0, x, (float) getWidth(), w };
-            case verticalKeyboardFacingRight:   return { 0, getHeight() - x - w, (float) getWidth(), w };
+            case verticalKeyboardFacingRight:   return { 0, (float) getHeight() - x - w, (float) getWidth(), w };
             default:                            jassertfalse; break;
         }
     }
@@ -305,9 +304,9 @@ int MidiKeyboardComponent::xyToNote (Point<float> pos, float& mousePositionVeloc
         p = { p.y, p.x };
 
         if (orientation == verticalKeyboardFacingLeft)
-            p = { p.x, getWidth() - p.y };
+            p = { p.x, (float) getWidth() - p.y };
         else
-            p = { getHeight() - p.x, p.y };
+            p = { (float) getHeight() - p.x, p.y };
     }
 
     return remappedXYToNote (p + Point<float> (xOffset, 0), mousePositionVelocity);
@@ -392,8 +391,8 @@ void MidiKeyboardComponent::paint (Graphics& g)
 
     if (orientation == verticalKeyboardFacingLeft)
     {
-        x1 = width - 1.0f;
-        x2 = width - 5.0f;
+        x1 = (float) width - 1.0f;
+        x2 = (float) width - 5.0f;
     }
     else if (orientation == verticalKeyboardFacingRight)
         x2 = 5.0f;
@@ -410,7 +409,7 @@ void MidiKeyboardComponent::paint (Graphics& g)
         switch (orientation)
         {
             case horizontalKeyboard:            g.fillRect (0.0f, 0.0f, x, 5.0f); break;
-            case verticalKeyboardFacingLeft:    g.fillRect (width - 5.0f, 0.0f, 5.0f, x); break;
+            case verticalKeyboardFacingLeft:    g.fillRect ((float) width - 5.0f, 0.0f, 5.0f, x); break;
             case verticalKeyboardFacingRight:   g.fillRect (0.0f, 0.0f, 5.0f, x); break;
             default: break;
         }
@@ -422,9 +421,9 @@ void MidiKeyboardComponent::paint (Graphics& g)
 
         switch (orientation)
         {
-            case horizontalKeyboard:            g.fillRect (0.0f, height - 1.0f, x, 1.0f); break;
+            case horizontalKeyboard:            g.fillRect (0.0f, (float) height - 1.0f, x, 1.0f); break;
             case verticalKeyboardFacingLeft:    g.fillRect (0.0f, 0.0f, 1.0f, x); break;
-            case verticalKeyboardFacingRight:   g.fillRect (width - 1.0f, 0.0f, 1.0f, x); break;
+            case verticalKeyboardFacingRight:   g.fillRect ((float) width - 1.0f, 0.0f, 1.0f, x); break;
             default: break;
         }
     }
@@ -571,7 +570,7 @@ void MidiKeyboardComponent::drawUpDownButton (Graphics& g, int w, int h,
     g.setColour (findColour (upDownButtonArrowColourId)
                   .withAlpha (buttonDown ? 1.0f : (mouseOver ? 0.6f : 0.4f)));
 
-    g.fillPath (path, path.getTransformToScaleToFit (1.0f, 1.0f, w - 2.0f, h - 2.0f, true));
+    g.fillPath (path, path.getTransformToScaleToFit (1.0f, 1.0f, (float) w - 2.0f, (float) h - 2.0f, true));
 }
 
 void MidiKeyboardComponent::setBlackNoteLengthProportion (float ratio) noexcept
@@ -588,7 +587,7 @@ void MidiKeyboardComponent::setBlackNoteLengthProportion (float ratio) noexcept
 float MidiKeyboardComponent::getBlackNoteLength() const noexcept
 {
     auto whiteNoteLength = orientation == horizontalKeyboard ? getHeight() : getWidth();
-    return whiteNoteLength * blackNoteLengthRatio;
+    return (float) whiteNoteLength * blackNoteLengthRatio;
 }
 
 void MidiKeyboardComponent::setBlackNoteWidthProportion (float ratio) noexcept
@@ -618,7 +617,7 @@ void MidiKeyboardComponent::resized()
         {
             auto kx1 = getKeyPos (rangeStart).getStart();
 
-            if (kx2 - kx1 <= w)
+            if (kx2 - kx1 <= (float) w)
             {
                 firstKey = (float) rangeStart;
                 sendChangeMessage();
@@ -655,7 +654,7 @@ void MidiKeyboardComponent::resized()
 
             float mousePositionVelocity;
             auto spaceAvailable = w;
-            auto lastStartKey = remappedXYToNote ({ endOfLastKey - spaceAvailable, 0 }, mousePositionVelocity) + 1;
+            auto lastStartKey = remappedXYToNote ({ endOfLastKey - (float) spaceAvailable, 0 }, mousePositionVelocity) + 1;
 
             if (lastStartKey >= 0 && ((int) firstKey) > lastStartKey)
             {
@@ -670,7 +669,7 @@ void MidiKeyboardComponent::resized()
             firstKey = (float) rangeStart;
         }
 
-        scrollUp->setVisible (canScroll && getKeyPos (rangeEnd).getStart() > w);
+        scrollUp->setVisible (canScroll && getKeyPos (rangeEnd).getStart() > (float) w);
         repaint();
     }
 }

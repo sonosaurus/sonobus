@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2017 - ROLI Ltd.
+   Copyright (c) 2020 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -72,8 +72,8 @@ namespace
         {
             if (ifa->ifa_addr->sa_family == AF_INET)
             {
-                auto interfaceAddressInfo = reinterpret_cast<sockaddr_in*> (ifa->ifa_addr);
-                auto broadcastAddressInfo = reinterpret_cast<sockaddr_in*> (ifa->ifa_dstaddr);
+                auto interfaceAddressInfo = unalignedPointerCast<sockaddr_in*> (ifa->ifa_addr);
+                auto broadcastAddressInfo = unalignedPointerCast<sockaddr_in*> (ifa->ifa_dstaddr);
 
                 if (interfaceAddressInfo->sin_addr.s_addr != INADDR_NONE)
                 {
@@ -85,8 +85,8 @@ namespace
             }
             else if (ifa->ifa_addr->sa_family == AF_INET6)
             {
-                interfaceInfo.interfaceAddress = makeAddress (reinterpret_cast<sockaddr_in6*> (ifa->ifa_addr));
-                interfaceInfo.broadcastAddress = makeAddress (reinterpret_cast<sockaddr_in6*> (ifa->ifa_dstaddr));
+                interfaceInfo.interfaceAddress = makeAddress (unalignedPointerCast<sockaddr_in6*> (ifa->ifa_addr));
+                interfaceInfo.broadcastAddress = makeAddress (unalignedPointerCast<sockaddr_in6*> (ifa->ifa_dstaddr));
                 interfaceInfo.name = ifa->ifa_name;
                 return true;
             }

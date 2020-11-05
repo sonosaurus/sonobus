@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2017 - ROLI Ltd.
+   Copyright (c) 2020 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -24,7 +24,7 @@ namespace juce
 {
 
 MemoryAudioSource::MemoryAudioSource (AudioBuffer<float>& bufferToUse, bool copyMemory, bool shouldLoop)
-    : isLooping (shouldLoop)
+    : isCurrentlyLooping (shouldLoop), loopStartPos(0), loopLen(bufferToUse.getNumSamples())
 {
     if (copyMemory)
         buffer.makeCopyOf (bufferToUse);
@@ -49,8 +49,10 @@ void MemoryAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     auto max = 0, pos = 0;
     auto n = buffer.getNumSamples(), m = bufferToFill.numSamples;
 
+    // TODO JLC handle looping properly with loopstart/pos
+    
     int i;
-    for (i = position; (i < n || isLooping) && (pos < m); i += max)
+    for (i = position; (i < n || isCurrentlyLooping) && (pos < m); i += max)
     {
         max = jmin (m - pos, n - (i % n));
 
@@ -68,6 +70,45 @@ void MemoryAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         dst.clear (bufferToFill.startSample + pos, m - pos);
 
     position = (i % n);
+}
+
+//==============================================================================
+void MemoryAudioSource::setNextReadPosition (int64 newPosition)
+{
+    position = (int) newPosition;
+}
+
+int64 MemoryAudioSource::getNextReadPosition() const
+{
+    return position;
+}
+
+int64 MemoryAudioSource::getTotalLength() const
+{
+    return buffer.getNumSamples();
+}
+
+//==============================================================================
+bool MemoryAudioSource::isLooping() const
+{
+    return isCurrentlyLooping;
+}
+
+void MemoryAudioSource::setLooping (bool shouldLoop)
+{
+    isCurrentlyLooping = shouldLoop;
+}
+
+void MemoryAudioSource::getLoopRange (int64 & loopStart, int64 & loopLength) const
+{
+    loopStart = loopStartPos;
+    loopLength = loopLen;
+}
+
+void MemoryAudioSource::setLoopRange (int64 loopStart, int64 loopLength)
+{
+    loopStartPos = jlimit((int64)0, (int64) (buffer.getNumSamples()-1) , loopStart);
+    loopLen =  jlimit((int64)1, (int64) (buffer.getNumSamples() - loopStartPos), loopLength);
 }
 
 } // namespace juce
