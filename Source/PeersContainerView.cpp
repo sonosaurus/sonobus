@@ -1611,8 +1611,8 @@ void PeersContainerView::showPanners(int index, bool flag)
     
     if (flag && pannerCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
@@ -1647,7 +1647,7 @@ void PeersContainerView::showPanners(int index, bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, pvf->panButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        pannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        pannerCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(pannerCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -1666,8 +1666,8 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
     
     if (flag && recvOptionsCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
@@ -1703,7 +1703,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->recvOptionsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        recvOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        recvOptionsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(recvOptionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -1722,7 +1722,8 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
     
     if (flag && sendOptionsCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
+        auto wrap = std::make_unique<Viewport>();
+
         
         Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
@@ -1758,7 +1759,7 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->sendOptionsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        sendOptionsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        sendOptionsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(sendOptionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -1777,8 +1778,8 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
     
     if (flag && effectsCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
@@ -1823,7 +1824,7 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->fxButton->getScreenBounds());
         DBG("effect callout bounds: " << bounds.toString());
-        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        effectsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }

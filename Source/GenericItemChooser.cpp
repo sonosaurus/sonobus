@@ -13,7 +13,9 @@ enum {
 
 CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChooserItem> & items, Rectangle<int> targetBounds, Component * targetComponent, GenericItemChooser::Listener * listener, int tag, int selectedIndex, int maxheight)
 {
-    GenericItemChooser * chooser = new GenericItemChooser(items, tag);
+    
+    auto chooser = std::make_unique<GenericItemChooser>(items, tag);
+
     if (selectedIndex >= 0) {
         chooser->setCurrentRow(selectedIndex);
     }
@@ -25,7 +27,7 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     }
     
     
-    CallOutBox & box = CallOutBox::launchAsynchronously (chooser, targetBounds, targetComponent);
+    CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     // box.setArrowSize(0);
     return box;

@@ -147,7 +147,8 @@ void SonoChoiceButton::paint(Graphics & g)
 
 void SonoChoiceButton::buttonClicked (Button* buttonThatWasClicked)
 {
-    GenericItemChooser * chooser = new GenericItemChooser(items);
+    auto chooser = std::make_unique<GenericItemChooser>(items);
+
     chooser->setRowHeight(std::min(getHeight(), 40));
     chooser->addListener(this);
     chooser->setCurrentRow(selIndex);
@@ -166,7 +167,7 @@ void SonoChoiceButton::buttonClicked (Button* buttonThatWasClicked)
     
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, getScreenBounds());
     
-    CallOutBox & box = CallOutBox::launchAsynchronously (chooser, bounds , dw);
+    CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), bounds , dw);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     //box.setArrowSize(0);
 }

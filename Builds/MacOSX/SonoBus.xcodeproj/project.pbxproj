@@ -1577,6 +1577,13 @@
 			path = "../../images/incoming_disallowed.svg";
 			sourceTree = "SOURCE_ROOT";
 		};
+		C1F04940EF29448710143F65 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = JucePluginDefines.h;
+			path = ../../JuceLibraryCode/JucePluginDefines.h;
+			sourceTree = "SOURCE_ROOT";
+		};
 		C537CAF9479F86EA82779604 = {
 			isa = PBXFileReference;
 			lastKnownFileType = file.svg;
@@ -2210,6 +2217,7 @@
 				4F3702146FA00E6E55E7FC8C,
 				781FDC317867A21C53B65070,
 				50DA45EF02F11085FEC1884A,
+				C1F04940EF29448710143F65,
 			);
 			name = "JUCE Library Code";
 			sourceTree = "<group>";
@@ -2273,6 +2281,42 @@
 			);
 			name = Source;
 			sourceTree = "<group>";
+		};
+		609462E5207516F926FEFE00 = {
+			isa = PBXTargetDependency;
+			target = 15D5E5234DCAB2C5AF1B4DB9;
+		};
+		B2A69C429BFEA4D34EAECA61 = {
+			isa = PBXTargetDependency;
+			target = EF965BC0BE89CA8E99C68A7E;
+		};
+		96E524DE2B17D50D98C15B5F = {
+			isa = PBXTargetDependency;
+			target = BD6C05E9155F047D37500B43;
+		};
+		2ECA8C60C4B9F79BA596079F = {
+			isa = PBXTargetDependency;
+			target = E67987C2A08C277E99344B7B;
+		};
+		7DDD301C8665DEC8C922C175 = {
+			isa = PBXTargetDependency;
+			target = 9D0A9977558C639D0B18A276;
+		};
+		ACDECE11E8824756CFE0AD94 = {
+			isa = PBXTargetDependency;
+			target = 9D0A9977558C639D0B18A276;
+		};
+		2DDD9D6D5480400E2827D7DF = {
+			isa = PBXTargetDependency;
+			target = 9D0A9977558C639D0B18A276;
+		};
+		2AF4F272A94BDAA9A55B9F81 = {
+			isa = PBXTargetDependency;
+			target = 9D0A9977558C639D0B18A276;
+		};
+		A468A2C74541BC37E7DFB025 = {
+			isa = PBXTargetDependency;
+			target = 9D0A9977558C639D0B18A276;
 		};
 		FF0B755F5A9B7F9E15C08054 = {
 			isa = XCBuildConfiguration;
@@ -2351,11 +2395,23 @@
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst;
 			};
 			name = Debug;
@@ -2397,7 +2453,6 @@
 					"JucePlugin_Build_Standalone=0",
 					"JucePlugin_Build_Unity=0",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -2422,11 +2477,23 @@
 				LIBRARY_STYLE = Bundle;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst;
 			};
 			name = Release;
@@ -2492,11 +2559,23 @@
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst3;
 			};
 			name = Debug;
@@ -2538,7 +2617,6 @@
 					"JucePlugin_Build_Standalone=0",
 					"JucePlugin_Build_Unity=0",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -2563,11 +2641,23 @@
 				LIBRARY_STYLE = Bundle;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst3;
 			};
 			name = Release;
@@ -2633,12 +2723,24 @@
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
 				OTHER_REZFLAGS = "-d ppc_$ppc -d i386_$i386 -d ppc64_$ppc64 -d x86_64_$x86_64 -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I \"$(DEVELOPER_DIR)/Extras/CoreAudio/AudioUnits/AUPublic/AUBase\" -I \"$(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AudioUnit.framework/Headers\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = component;
 			};
 			name = Debug;
@@ -2680,7 +2782,6 @@
 					"JucePlugin_Build_Standalone=0",
 					"JucePlugin_Build_Unity=0",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -2705,12 +2806,24 @@
 				LIBRARY_STYLE = Bundle;
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
 				OTHER_REZFLAGS = "-d ppc_$ppc -d i386_$i386 -d ppc64_$ppc64 -d x86_64_$x86_64 -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I \"$(DEVELOPER_DIR)/Extras/CoreAudio/AudioUnits/AUPublic/AUBase\" -I \"$(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AudioUnit.framework/Headers\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = component;
 			};
 			name = Release;
@@ -2771,11 +2884,23 @@
 					"\"../../deps/mac/lib\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -2814,7 +2939,6 @@
 					"JucePlugin_Build_Standalone=1",
 					"JucePlugin_Build_Unity=0",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
@@ -2836,11 +2960,23 @@
 				);
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2900,11 +3036,23 @@
 					"\"../../deps/mac/lib\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Debug;
 		};
@@ -2944,7 +3092,6 @@
 					"JucePlugin_Build_Unity=0",
 					"JUCE_SHARED_CODE=1",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
@@ -2965,11 +3112,23 @@
 				);
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
+					"/Users/jesse/src/VST2_SDK",
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/mac/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Release;
 		};
@@ -2998,11 +3157,12 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
+				ENABLE_TESTABILITY = NO;
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
@@ -3046,10 +3206,12 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = NO;
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
@@ -3066,26 +3228,6 @@
 				ZERO_LINK = NO;
 			};
 			name = Release;
-		};
-		F457D5EE79444890BBFA9FB3 = {
-			isa = PBXTargetDependency;
-			target = 15D5E5234DCAB2C5AF1B4DB9;
-		};
-		2403DE21F97D333041C96247 = {
-			isa = PBXTargetDependency;
-			target = EF965BC0BE89CA8E99C68A7E;
-		};
-		DF0E7780A1EE0A627F27364B = {
-			isa = PBXTargetDependency;
-			target = BD6C05E9155F047D37500B43;
-		};
-		40FC0CA8E5732A64A8B64EBC = {
-			isa = PBXTargetDependency;
-			target = E67987C2A08C277E99344B7B;
-		};
-		FDF4E2D94BA24A10C81CF6A1 = {
-			isa = PBXTargetDependency;
-			target = 9D0A9977558C639D0B18A276;
 		};
 		C161EEE4441215F266B9B619 = {
 			isa = XCConfigurationList;
@@ -3122,11 +3264,11 @@
 			);
 			buildRules = ( );
 			dependencies = (
-				F457D5EE79444890BBFA9FB3,
-				2403DE21F97D333041C96247,
-				DF0E7780A1EE0A627F27364B,
-				40FC0CA8E5732A64A8B64EBC,
-				FDF4E2D94BA24A10C81CF6A1,
+				609462E5207516F926FEFE00,
+				B2A69C429BFEA4D34EAECA61,
+				96E524DE2B17D50D98C15B5F,
+				2ECA8C60C4B9F79BA596079F,
+				7DDD301C8665DEC8C922C175,
 			);
 			name = "SonoBus - All";
 			productName = SonoBus;
@@ -3198,7 +3340,7 @@
 			);
 			buildRules = ( );
 			dependencies = (
-				FDF4E2D94BA24A10C81CF6A1,
+				ACDECE11E8824756CFE0AD94,
 			);
 			name = "SonoBus - VST";
 			productName = SonoBus;
@@ -3272,7 +3414,7 @@
 			);
 			buildRules = ( );
 			dependencies = (
-				FDF4E2D94BA24A10C81CF6A1,
+				2DDD9D6D5480400E2827D7DF,
 			);
 			name = "SonoBus - VST3";
 			productName = SonoBus;
@@ -3357,7 +3499,7 @@
 			);
 			buildRules = ( );
 			dependencies = (
-				FDF4E2D94BA24A10C81CF6A1,
+				2AF4F272A94BDAA9A55B9F81,
 			);
 			name = "SonoBus - AU";
 			productName = SonoBus;
@@ -3431,7 +3573,7 @@
 			);
 			buildRules = ( );
 			dependencies = (
-				FDF4E2D94BA24A10C81CF6A1,
+				A468A2C74541BC37E7DFB025,
 			);
 			name = "SonoBus - Standalone Plugin";
 			productName = SonoBus;
@@ -3537,7 +3679,7 @@
 		748D9ADBE1AB46D7ECDA1324 = {
 			isa = PBXProject;
 			buildConfigurationList = C161EEE4441215F266B9B619;
-			attributes = { LastUpgradeCheck = 1100; ORGANIZATIONNAME = "Sonosaurus"; TargetAttributes = { AFDD2455B41B23961F3B8586 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };15D5E5234DCAB2C5AF1B4DB9 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };EF965BC0BE89CA8E99C68A7E = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };BD6C05E9155F047D37500B43 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };E67987C2A08C277E99344B7B = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };9D0A9977558C639D0B18A276 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; }; }; };
+			attributes = { LastUpgradeCheck = 1200; ORGANIZATIONNAME = "Sonosaurus"; TargetAttributes = { AFDD2455B41B23961F3B8586 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };15D5E5234DCAB2C5AF1B4DB9 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };EF965BC0BE89CA8E99C68A7E = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };BD6C05E9155F047D37500B43 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };E67987C2A08C277E99344B7B = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; };9D0A9977558C639D0B18A276 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 1; }; }; }; }; };
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 0;
 			mainGroup = B35F0356EB9D7158AD49A61B;

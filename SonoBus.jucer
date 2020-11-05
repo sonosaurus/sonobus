@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" jucerVersion="5.4.7"
-              companyName="Sonosaurus" companyCopyright="2020 Sonosaurus LLC"
-              companyEmail="support@sonosaurus.com" pluginFormats="buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
+<JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
+              companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
+              pluginFormats="buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
               pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.0.3-32&quot;"
               pluginDesc="Network Audio" version="1.0.3" cppLanguageStandard="17"
-              projectLineFeed="&#10;">
+              projectLineFeed="&#10;" jucerFormatVersion="1">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
       <GROUP id="{81488E5D-9CA2-F73A-62B1-4376F46E70B1}" name="aoo">

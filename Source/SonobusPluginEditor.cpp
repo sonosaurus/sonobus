@@ -2641,8 +2641,8 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
     
     if (flag && inPannerCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         Component* dw = this; // nullptr; //this->findParentComponentOfClass<DocumentWindow>();
         
         if (!dw) {
@@ -2670,7 +2670,7 @@ void SonobusAudioProcessorEditor::showInPanners(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mPanButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        inPannerCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        inPannerCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(inPannerCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2689,8 +2689,8 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
     
     if (flag && metCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         Component* dw = this; 
         
 #if JUCE_IOS
@@ -2715,7 +2715,7 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMetConfigButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        metCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        metCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(metCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2734,8 +2734,8 @@ void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
     
     if (flag && effectsCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         
         Component* dw = this; 
         
@@ -2764,7 +2764,7 @@ void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mEffectsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        effectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        effectsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2783,8 +2783,8 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
     
     if (flag && inEffectsCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         Component* dw = this; 
         
         int defWidth = 260;
@@ -2852,7 +2852,7 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : mInEffectsButton->getScreenBounds());
         DBG("in effect callout bounds: " << bounds.toString());
-        inEffectsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        inEffectsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(inEffectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -2875,8 +2875,8 @@ void SonobusAudioProcessorEditor::showPatchbay(bool flag)
     
     if (flag && patchbayCalloutBox == nullptr) {
         
-        Viewport * wrap = new Viewport();
-        
+        auto wrap = std::make_unique<Viewport>();
+
         Component* dw = this;
         
         // calculate based on how many peers we have
@@ -2895,7 +2895,7 @@ void SonobusAudioProcessorEditor::showPatchbay(bool flag)
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mPatchbayButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        patchbayCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        patchbayCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(patchbayCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
@@ -3180,7 +3180,8 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         }
         
 
-        Component * wrap = new Component();
+        auto wrap = std::make_unique<Component>();
+
         wrap->addAndMakeVisible(mSettingsTab.get());
 
         mSettingsTab->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
@@ -3202,7 +3203,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
        
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mTitleLabel->getScreenBounds().reduced(10));
         DBG("callout bounds: " << bounds.toString());
-        settingsCalloutBox = & CallOutBox::launchAsynchronously (wrap, bounds , dw, false);
+        settingsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
