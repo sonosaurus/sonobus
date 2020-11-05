@@ -16,7 +16,12 @@
   #define CPU_INTEL
   #include <immintrin.h>
 // ARM
-#elif defined(__arm__) || defined(_M_ARM) || defined(__aarch64__)
+#elif (defined(__ARM_ARCH_7__) || \
+         defined(__ARM_ARCH_7A__) || \
+         defined(__ARM_ARCH_7R__) || \
+         defined(__ARM_ARCH_7M__) || \
+         defined(__ARM_ARCH_7S__) || \
+         defined(__aarch64__))
   #define CPU_ARM
 #else
 // fallback
@@ -31,7 +36,8 @@ void pause_cpu(){
 #elif defined(CPU_ARM)
     __asm__ __volatile__("yield");
 #else // fallback
-    std::this_thread::sleep_for(std::chrono::microseconds(0));
+    //std::this_thread::sleep_for(std::chrono::microseconds(0));
+    std::this_thread::yield();
 #endif
 }
 
