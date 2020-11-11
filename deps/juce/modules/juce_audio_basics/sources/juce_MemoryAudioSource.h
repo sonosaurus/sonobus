@@ -70,10 +70,10 @@ public:
     void setLooping (bool shouldLoop) override;
 
     /** Sets the start position of the looping in samples. */
-    void setLoopRange (int64 loopStart, int64 loopLength);
+    void setLoopRange (int64 loopStart, int64 loopLength) override;
     
     /** Returns the position where the loop playback starts.  */
-    void getLoopRange(int64 & loopStart, int64 & loopLength) const;
+    void getLoopRange(int64 & loopStart, int64 & loopLength) const override;
     
 private:
     //==============================================================================
