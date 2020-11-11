@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
-              pluginFormats="buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
+              pluginFormats="buildAAX,buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
               pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.0.3-32&quot;"
               pluginDesc="Network Audio" version="1.0.3" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1">
