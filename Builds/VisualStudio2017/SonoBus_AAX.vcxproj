@@ -167,8 +167,7 @@ if not exist &quot;$(OutDir)\SonoBus.aaxplugin\Contents\x64&quot; mkdir &quot;$(
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>copy /Y &quot;$(OutDir)\SonoBus.aaxdll&quot; &quot;$(OutDir)\SonoBus.aaxplugin\Contents\x64\SonoBus.aaxplugin&quot;
-call &quot;..\\..\\..\\AAX_SDK_2p3p2\\Utilities\\CreatePackage.bat&quot; &quot;$(OutDir)\SonoBus.aaxplugin\Contents\x64&quot; &quot;icon.ico&quot;
-xcopy &quot;$(OutDir)\SonoBus.aaxplugin&quot; &quot;%CommonProgramW6432%\Avid\Audio\Plug-Ins\SonoBus.aaxplugin\&quot; /E /H /K /R /Y</Command>
+call &quot;..\\..\\..\\AAX_SDK_2p3p2\\Utilities\\CreatePackage.bat&quot; &quot;$(OutDir)\SonoBus.aaxplugin\Contents\x64&quot; &quot;icon.ico&quot;</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -149,9 +149,6 @@
       <AdditionalDependencies>opus.lib;SonoBus.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\deps\windows\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
-    <PostBuildEvent>
-      <Command>copy /Y &quot;$(OutDir)$(TargetFileName)&quot; &quot;&quot;C:\Users\jesse\VST2&quot;\$(TargetFileName)&quot;</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_plugin_client\VST\juce_VST_Wrapper.cpp">
