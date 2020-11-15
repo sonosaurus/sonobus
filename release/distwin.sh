@@ -9,17 +9,30 @@ VERSION=$1
 
 CERTPASS=$2
 
-CERTFILE='C:\Users\jesse\src\cert\SonosaurusCodeSigningSectigoCert.p12'
+if [ -z "$CERTFILE" ] ; then
+  echo You need to define CERTFILE env variable to sign anything
+  exit 2
+fi
+
+BUILDDIR='../Builds/VisualStudio2017/x64/Release'
 
 mkdir -p SonoBus/Plugins
 
 cp -v ../doc/README_WINDOWS.txt SonoBus/README.txt
-cp -v ../Builds/VisualStudio2017/x64/Release/Standalone\ Plugin/SonoBus.exe SonoBus/
-cp -v ../Builds/VisualStudio2017/x64/Release/VST3/SonoBus.vst3 SonoBus/Plugins/
-cp -v ../Builds/VisualStudio2017/x64/Release/VST/SonoBus.dll SonoBus/Plugins/
+cp -v ${BUILDDIR}/Standalone\ Plugin/SonoBus.exe SonoBus/
+cp -v ${BUILDDIR}/VST3/SonoBus.vst3 SonoBus/Plugins/
+cp -v ${BUILDDIR}/VST/SonoBus.dll SonoBus/Plugins/
+cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins/
+
+# sign AAX
+if [ -n "${AAXSIGNCMD}" ]; then
+  echo "Signing AAX plugin"
+  ${AAXSIGNCMD} --keypassword "${CERTPASS}"  --in 'SonoBus\Plugins\Sonobus.aaxplugin' --out 'SonoBus\Plugins\Sonobus.aaxplugin'
+fi
+
 
 # sign executable
-#signtool.exe sign /v /t "http://timestamp.digicert.com" /f SonosaurusCodeSigningSectigoCert.p12 /p "$CERTPASS" SonoBus/SonoBus.exe
+#signtool.exe sign /v /t "http://timestamp.digicert.com" /f "$CERTFILE" /p "$CERTPASS" SonoBus/SonoBus.exe
 
 mkdir -p instoutput
 rm -f instoutput/*
