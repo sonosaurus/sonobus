@@ -257,7 +257,8 @@
                smallIcon="ZWiivf" bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D"
                customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;32&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
-               prebuildCommand="../../scripts/mac_prebuild.sh" vstLegacyFolder="/Users/jesse/src/VST2_SDK">
+               prebuildCommand="../../scripts/mac_prebuild.sh" vstLegacyFolder="../VST2_SDK"
+               aaxFolder="../AAX_SDK_2p3p2">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
@@ -344,7 +345,7 @@
     </LINUX_MAKE>
     <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="USE_CODEC_OPUS=1&#10;_USE_MATH_DEFINES&#10;AOO_STATIC&#10;AOO_TIMEFILTER_CHECK=0&#10;WINVER=0x0601&#10;_WIN32_WINNT=0x0601"
             externalLibraries="opus.lib" smallIcon="ZWiivf" bigIcon="cVyJ9b"
-            vstLegacyFolder="C:\Users\jesse\src\VST2_SDK">
+            vstLegacyFolder="..\VST2_SDK" aaxFolder="..\AAX_SDK_2p3p2">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        libraryPath="..\..\deps\windows\Debug" useRuntimeLibDLL="0" defines="LOGLEVEL=2"/>

@@ -2423,11 +2423,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2447,11 +2447,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2510,11 +2510,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2535,11 +2535,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2599,11 +2599,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2623,11 +2623,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2686,11 +2686,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2711,11 +2711,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2775,11 +2775,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2793,18 +2793,18 @@
 				INSTALL_PATH = "/Library/Application Support/Avid/Audio/Plug-Ins/";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"/Users/jesse/src/AAX_SDK_2p3p2/Libs/Debug\"",
+					"\"../../../sonobus/../AAX_SDK_2p3p2/Libs/Debug\"",
 					"\"../../deps/mac/lib\"",
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2863,11 +2863,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2881,7 +2881,7 @@
 				INSTALL_PATH = "/Library/Application Support/Avid/Audio/Plug-Ins/";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"/Users/jesse/src/AAX_SDK_2p3p2/Libs/Release\"",
+					"\"../../../sonobus/../AAX_SDK_2p3p2/Libs/Release\"",
 					"\"../../deps/mac/lib\"",
 				);
 				LIBRARY_STYLE = Bundle;
@@ -2889,11 +2889,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2953,11 +2953,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -2977,11 +2977,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3041,11 +3041,11 @@
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3066,11 +3066,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3128,11 +3128,11 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3150,11 +3150,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3209,11 +3209,11 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3232,11 +3232,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3293,11 +3293,11 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3314,11 +3314,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3374,11 +3374,11 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
@@ -3396,11 +3396,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_HEADER_SEARCH_PATHS = (
 					"../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"/Users/jesse/src/VST2_SDK",
+					"../../../VST2_SDK",
 					"../../JuceLibraryCode",
-					"/Users/jesse/src/AAX_SDK_2p3p2",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces",
-					"/Users/jesse/src/AAX_SDK_2p3p2/Interfaces/ACF",
+					"../../../AAX_SDK_2p3p2",
+					"../../../AAX_SDK_2p3p2/Interfaces",
+					"../../../AAX_SDK_2p3p2/Interfaces/ACF",
 					"../../deps",
 					"../../deps/juce/modules",
 					"../../deps/aoo/lib",
