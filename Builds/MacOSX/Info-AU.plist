@@ -44,7 +44,7 @@
         <key>name</key>
         <string>Sonosaurus: SonoBus</string>
         <key>description</key>
-        <string>Network Audio</string>
+        <string>SonoBus - Network Audio</string>
         <key>factoryFunction</key>
         <string>SonoBusAUFactory</string>
         <key>manufacturer</key>

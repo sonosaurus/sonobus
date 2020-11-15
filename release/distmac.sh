@@ -21,10 +21,12 @@ cp -pLRv ${BUILDDIR}/SonoBus.app  SonoBus/
 cp -pLRv ${BUILDDIR}/SonoBus.component  SonoBus/
 cp -pLRv ${BUILDDIR}/SonoBus.vst3 SonoBus/
 cp -pLRv ${BUILDDIR}/SonoBus.vst  SonoBus/
+cp -pLRv ${BUILDDIR}/SonoBus.aaxplugin  SonoBus/
 
 ln -sf /Library/Audio/Plug-Ins/Components SonoBus/
 ln -sf /Library/Audio/Plug-Ins/VST3 SonoBus/
 ln -sf /Library/Audio/Plug-Ins/VST SonoBus/
+ln -sf /Library/Application\ Support/Avid/Audio/Plug-Ins SonoBus/
 
 
 # this codesigns and notarizes everything

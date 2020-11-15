@@ -380,7 +380,7 @@ public:
 
         while (!threadShouldExit()) {
          
-            sleep(20);
+            Thread::sleep(20);
             
             _processor.handleEvents();                       
         }

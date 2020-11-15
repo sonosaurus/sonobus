@@ -41,7 +41,7 @@
  #define JucePlugin_Name                   "SonoBus"
 #endif
 #ifndef  JucePlugin_Desc
- #define JucePlugin_Desc                   "Network Audio"
+ #define JucePlugin_Desc                   "SonoBus - Network Audio"
 #endif
 #ifndef  JucePlugin_Manufacturer
  #define JucePlugin_Manufacturer           "Sonosaurus"

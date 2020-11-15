@@ -1,3 +1,3 @@
 #!/bin/bash
 
-CONFIG=Release make Standalone
+CONFIG=Release make -j2 Standalone VST3
