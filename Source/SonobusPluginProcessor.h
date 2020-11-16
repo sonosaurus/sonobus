@@ -159,6 +159,9 @@ public:
     const String getProgramName (int index) override;
     void changeProgramName (int index, const String& newName) override;
 
+    //bool canAddBus    (bool isInput) const override   { return (! isInput && getBusCount (false) < 10); }
+    //bool canRemoveBus (bool isInput) const override   { return (! isInput && getBusCount (false) > 1); }
+    
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
