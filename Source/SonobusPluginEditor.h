@@ -321,12 +321,14 @@ private:
     std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
     std::unique_ptr<Viewport> mAudioOptionsViewport;
     std::unique_ptr<Viewport> mOtherOptionsViewport;
+    std::unique_ptr<Viewport> mRecordOptionsViewport;
 
     std::unique_ptr<TabbedComponent> mSettingsTab;
 
-    std::unique_ptr<Component> mHelpComponent;
     std::unique_ptr<Component> mOptionsComponent;
+    std::unique_ptr<Component> mRecOptionsComponent;
     int minOptionsHeight = 0;
+    int minRecOptionsHeight = 0;
     int minServerConnectHeight = 0;
     
     std::unique_ptr<Component> mMetContainer;
@@ -351,6 +353,15 @@ private:
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
 
+    std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
+    std::unique_ptr<ToggleButton> mOptionsRecMixButton;
+    std::unique_ptr<ToggleButton> mOptionsRecMixMinusButton;
+    std::unique_ptr<ToggleButton> mOptionsRecSelfButton;
+    std::unique_ptr<ToggleButton> mOptionsRecOthersButton;
+    std::unique_ptr<SonoChoiceButton> mRecFormatChoice;
+    std::unique_ptr<Label> mRecFormatStaticLabel;
+
+    
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
     std::unique_ptr<SonoDrawableButton> mPlayButton;
@@ -650,11 +661,18 @@ private:
     FlexBox optionsNetbufBox;
     FlexBox optionsSendQualBox;
     FlexBox optionsHearlatBox;
-    FlexBox optionsMetRecordBox;
     FlexBox optionsUdpBox;
     FlexBox optionsDynResampleBox;
     FlexBox optionsChangeAllQualBox;
     FlexBox optionsInputLimitBox;
+
+    FlexBox recOptionsBox;
+    FlexBox optionsRecordFormatBox;
+    FlexBox optionsRecMixBox;
+    FlexBox optionsRecSelfBox;
+    FlexBox optionsRecMixMinusBox;
+    FlexBox optionsRecOthersBox;
+    FlexBox optionsMetRecordBox;
 
     Image iaaHostIcon;
 

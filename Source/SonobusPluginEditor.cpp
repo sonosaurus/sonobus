@@ -425,7 +425,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mInMuteButton->addListener(this);
     mInMuteButton->setClickingTogglesState(true);
     mInMuteButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 0.3, 0.1, 1.0));
-    mInMuteButton->setTooltip(TRANS("Mutes your input preventing everyone from hearing you"));
+    mInMuteButton->setTooltip(TRANS("Mutes your input preventing everyone from hearing you, without any indicator"));
     mInMonMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainInMute, *mInMuteButton);
 
     mInSoloButton = std::make_unique<TextButton>("solo");
@@ -453,7 +453,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMainMuteButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     mMainMuteButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mMainMuteButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    mMainMuteButton->setTooltip(TRANS("Silences your Input, none of your audio will be sent to users when you are silenced"));
+    mMainMuteButton->setTooltip(TRANS("Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator"));
 
     mMainRecvMuteButton = std::make_unique<SonoDrawableButton>("recvmute", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> recvallowimg(Drawable::createFromImageData(BinaryData::hearothers_svg, BinaryData::hearothers_svgSize));
@@ -865,7 +865,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mPeerViewport = std::make_unique<Viewport>();
     mPeerViewport->setViewedComponent(mPeerContainer.get(), false);
     
-    mHelpComponent = std::make_unique<Component>();
+    mRecOptionsComponent = std::make_unique<Component>();
     mOptionsComponent = std::make_unique<Component>();
     mConnectComponent = std::make_unique<Component>();
     mConnectComponent->setWantsKeyboardFocus(true);
@@ -909,10 +909,40 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsHearLatencyButton->addListener(this);
     mHearLatencyTestAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramHearLatencyTest, *mOptionsHearLatencyButton);
 
-    mOptionsMetRecordedButton = std::make_unique<ToggleButton>(TRANS("Metronome output recorded"));
+    mOptionsMetRecordedButton = std::make_unique<ToggleButton>(TRANS("Metronome output recorded in full mix"));
     mOptionsMetRecordedButton->addListener(this);
     mMetRecordedAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetIsRecorded, *mOptionsMetRecordedButton);
 
+    
+    mOptionsRecFilesStaticLabel = std::make_unique<Label>("", TRANS("Record feature creates the following files:"));
+    configLabel(mOptionsRecFilesStaticLabel.get(), false);
+    mOptionsRecFilesStaticLabel->setJustificationType(Justification::centredLeft);
+
+    mOptionsRecMixButton = std::make_unique<ToggleButton>(TRANS("Full Mix"));
+    mOptionsRecMixButton->addListener(this);
+
+    mOptionsRecMixMinusButton = std::make_unique<ToggleButton>(TRANS("Full Mix without yourself"));
+    mOptionsRecMixMinusButton->addListener(this);
+
+    mOptionsRecSelfButton = std::make_unique<ToggleButton>(TRANS("Yourself Only"));
+    mOptionsRecSelfButton->addListener(this);
+
+    mOptionsRecOthersButton = std::make_unique<ToggleButton>(TRANS("Each Connected User"));
+    mOptionsRecOthersButton->addListener(this);
+
+    mRecFormatChoice = std::make_unique<SonoChoiceButton>();
+    mRecFormatChoice->addChoiceListener(this);
+    mRecFormatChoice->addItem(TRANS("FLAC"), SonobusAudioProcessor::FileFormatFLAC);
+    mRecFormatChoice->addItem(TRANS("WAV"), SonobusAudioProcessor::FileFormatWAV);
+    mRecFormatChoice->addItem(TRANS("OGG"), SonobusAudioProcessor::FileFormatOGG);
+
+    mRecFormatStaticLabel = std::make_unique<Label>("", TRANS("Audio File Format:"));
+    configLabel(mRecFormatStaticLabel.get(), false);
+    mRecFormatStaticLabel->setJustificationType(Justification::centredRight);
+
+    
+    
+    
     mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
     mOptionsUseSpecificUdpPortButton->addListener(this);
 
@@ -1204,7 +1234,6 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
@@ -1213,6 +1242,16 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
 
+    mRecOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecFilesStaticLabel.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixMinusButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecOthersButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
+    
+    
     addAndMakeVisible(mPeerViewport.get());
     addAndMakeVisible(mTitleLabel.get());
     //addAndMakeVisible(mTitleImage.get());
@@ -1856,6 +1895,9 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
     else if (comp == mOptionsAutosizeDefaultChoice.get()) {
         processor.setDefaultAutoresizeBufferMode((SonobusAudioProcessor::AutoNetBufferMode) index);
     }
+    else if (comp == mRecFormatChoice.get()) {
+        processor.setDefaultRecordingFormat((SonobusAudioProcessor::RecordFileFormat) ident);
+    }
     else if (comp == mReverbModelChoice.get()) {
         processor.setMainReverbModel((SonobusAudioProcessor::ReverbModel) ident);
     }
@@ -1931,6 +1973,16 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
         }
     }
 
+    uint32 recmask = processor.getDefaultRecordingOptions();
+    
+    mOptionsRecOthersButton->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, dontSendNotification);
+    mOptionsRecMixButton->setToggleState((recmask & SonobusAudioProcessor::RecordMix) != 0, dontSendNotification);
+    mOptionsRecMixMinusButton->setToggleState((recmask & SonobusAudioProcessor::RecordMixMinusSelf) != 0, dontSendNotification);
+    mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
+    
+    mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat());
+    
+    
 }
 
 
@@ -2362,20 +2414,35 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             parentDir.createDirectory();
 #endif
 
-            const File file (parentDir.getNonexistentChildFile (filename, ".flac"));
+            File file (parentDir.getNonexistentChildFile (filename, ".flac"));
 
             if (processor.startRecordingToFile(file)) {
                 mRecordingButton->setToggleState(true, dontSendNotification);
                 //updateServerStatusLabel("Started recording...");
                 lastRecordedFile = file;
                 String filepath;
+
 #if (JUCE_IOS)
                 showPopTip(TRANS("Started recording output"), 2000, mRecordingButton.get());
-                filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
-#else
-                filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
 #endif
-                mRecordingButton->setTooltip(TRANS("Recording audio to: ") + filepath);
+                if (processor.getDefaultRecordingOptions() == SonobusAudioProcessor::RecordMix) {
+                    
+#if (JUCE_IOS)
+                    filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+#else
+                    filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+#endif
+
+                    mRecordingButton->setTooltip(TRANS("Recording audio to: ") + filepath);
+                } else 
+                {
+#if (JUCE_IOS)
+                    filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+#else
+                    filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+#endif
+                    mRecordingButton->setTooltip(TRANS("Recording multi-track audio to: ") + filepath);
+                }
             }
             
             mFileRecordingLabel->setText("", dontSendNotification);
@@ -2465,6 +2532,25 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         mConnectComponent->setVisible(false);
         mConnectButton->setTextJustification(Justification::centred);
         updateState();
+    }
+    else if (buttonThatWasClicked == mOptionsRecMixButton.get()
+             || buttonThatWasClicked == mOptionsRecSelfButton.get()
+             || buttonThatWasClicked == mOptionsRecOthersButton.get()
+             || buttonThatWasClicked == mOptionsRecMixMinusButton.get()
+             ) {
+        uint32 recmask = 0;        
+        recmask |= (mOptionsRecMixButton->getToggleState() ? SonobusAudioProcessor::RecordMix : 0);
+        recmask |= (mOptionsRecOthersButton->getToggleState() ? SonobusAudioProcessor::RecordIndividualUsers : 0);
+        recmask |= (mOptionsRecSelfButton->getToggleState() ? SonobusAudioProcessor::RecordSelf : 0);
+        recmask |= (mOptionsRecMixMinusButton->getToggleState() ? SonobusAudioProcessor::RecordMixMinusSelf : 0);
+
+        // ensure at least one is selected
+        if (recmask == 0) { 
+            recmask = SonobusAudioProcessor::RecordMix;
+            mOptionsRecMixButton->setToggleState(true, dontSendNotification);
+        }
+        
+        processor.setDefaultRecordingOptions(recmask);
     }
     else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
         processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());
@@ -3177,6 +3263,12 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
             mSettingsTab->addTab(TRANS("OPTIONS"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mOtherOptionsViewport.get(), false);
            // mSettingsTab->addTab(TRANS("HELP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mHelpComponent.get(), false);
+
+            mRecordOptionsViewport = std::make_unique<Viewport>();
+            mRecordOptionsViewport->setViewedComponent(mRecOptionsComponent.get(), false);
+
+            mSettingsTab->addTab(TRANS("RECORDING"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecordOptionsViewport.get(), false);
+
         }
         
 
@@ -3190,10 +3282,13 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
             mAudioDeviceSelector->setBounds(Rectangle<int>(0,0,defWidth - 10,mAudioDeviceSelector->getHeight()));
         }
         mOptionsComponent->setBounds(Rectangle<int>(0,0,defWidth - 10, minOptionsHeight));
+        mRecOptionsComponent->setBounds(Rectangle<int>(0,0,defWidth - 10, minRecOptionsHeight));
 
         wrap->setSize(defWidth,defHeight);
         
         optionsBox.performLayout(mOptionsComponent->getLocalBounds());
+
+        recOptionsBox.performLayout(mRecOptionsComponent->getLocalBounds());
 
         mOptionsAutosizeStaticLabel->setBounds(mBufferTimeSlider->getBounds().removeFromLeft(mBufferTimeSlider->getWidth()*0.75));
 
@@ -3822,6 +3917,8 @@ void SonobusAudioProcessorEditor::resized()
         mRecentsListBox->updateContent();
     }
     
+    
+    
     Component* dw = this; 
     
     if (auto * callout = dynamic_cast<CallOutBox*>(inEffectsCalloutBox.get())) {
@@ -4028,10 +4125,6 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsHearlatBox.items.add(FlexItem(10, 12));
     optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
 
-    optionsMetRecordBox.items.clear();
-    optionsMetRecordBox.flexDirection = FlexBox::Direction::row;
-    optionsMetRecordBox.items.add(FlexItem(10, 12));
-    optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
 
     optionsUdpBox.items.clear();
     optionsUdpBox.flexDirection = FlexBox::Direction::row;
@@ -4064,15 +4157,67 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 2));
+    optionsBox.items.add(FlexItem(4, 6));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
+    }
+
+    // record options
+    
+    optionsMetRecordBox.items.clear();
+    optionsMetRecordBox.flexDirection = FlexBox::Direction::row;
+    optionsMetRecordBox.items.add(FlexItem(10, 12));
+
+    optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
+
+    int indentw = 40;
+    
+    optionsRecordFormatBox.items.clear();
+    optionsRecordFormatBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(1));
+    optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatChoice).withMargin(0).withFlex(1));
+
+    optionsRecMixBox.items.clear();
+    optionsRecMixBox.flexDirection = FlexBox::Direction::row;
+    optionsRecMixBox.items.add(FlexItem(indentw, 12));
+    optionsRecMixBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecMixButton).withMargin(0).withFlex(1));
+
+    optionsRecMixMinusBox.items.clear();
+    optionsRecMixMinusBox.flexDirection = FlexBox::Direction::row;
+    optionsRecMixMinusBox.items.add(FlexItem(indentw, 12));
+    optionsRecMixMinusBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecMixMinusButton).withMargin(0).withFlex(1));
+
+    optionsRecSelfBox.items.clear();
+    optionsRecSelfBox.flexDirection = FlexBox::Direction::row;
+    optionsRecSelfBox.items.add(FlexItem(indentw, 12));
+    optionsRecSelfBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfButton).withMargin(0).withFlex(1));
+
+    optionsRecOthersBox.items.clear();
+    optionsRecOthersBox.flexDirection = FlexBox::Direction::row;
+    optionsRecOthersBox.items.add(FlexItem(indentw, 12));
+    optionsRecOthersBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecOthersButton).withMargin(0).withFlex(1));
+
+    
+    recOptionsBox.items.clear();
+    recOptionsBox.flexDirection = FlexBox::Direction::column;
+    recOptionsBox.items.add(FlexItem(4, 6));
+    recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordFormatBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(4, 4));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, *mOptionsRecFilesStaticLabel).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecMixBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecMixMinusBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecSelfBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecOthersBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(4, 4));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
+    minRecOptionsHeight = 0;
+    for (auto & item : recOptionsBox.items) {
+        minRecOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
     }
     
     

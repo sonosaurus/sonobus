@@ -68,6 +68,8 @@ static String recentsItemKey("ServerConnectionInfo");
 static String extraStateCollectionKey("ExtraState");
 static String useSpecificUdpPortKey("UseUdpPort");
 static String changeQualForAllKey("ChangeQualForAll");
+static String defRecordOptionsKey("DefaultRecordingOptions");
+static String defRecordFormatKey("DefaultRecordingFormat");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -336,10 +338,10 @@ public:
     void run() override {
         
         while (!threadShouldExit()) {
-         
-            if (_processor.mSendWaitable.wait(10)) {
-                _processor.doSendData();
-            }            
+            // don't overcall it, but make sure it runs consistently
+            // if we are notified to send, the wait will return sooner than the timeout
+            _processor.mSendWaitable.wait(50);
+            _processor.doSendData();
         }
         DBG("Send thread finishing");
     }
@@ -4630,10 +4632,15 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         
         tempBuffer.clear(0, numSamples);
         
+        int rindex = 0;
+        
         for (auto & remote : mRemotePeers) 
         {
             
-            if (!remote->oursink) continue;
+            if (!remote->oursink) { 
+                ++rindex;
+                continue;                
+            }
             
             remote->workBuffer.clear(0, numSamples);
 
@@ -4650,6 +4657,20 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             // get audio data coming in from outside into tempbuf
             remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
 
+            
+            // record individual tracks pre-compressor/level/pan, ignoring muting/solo, raw material
+
+            if (userWritingPossible) {
+                const ScopedTryLock sl (writerLock);
+                if (sl.isLocked())
+                {
+                    if (rindex < activeUserWriters.size() && activeUserWriters[rindex] != nullptr) {
+
+                        activeUserWriters[rindex]->write (remote->workBuffer.getArrayOfReadPointers(), numSamples);
+
+                    }
+                }                
+            }
 
             // apply compressor
             if (remote->compressorParamsChanged) {
@@ -4662,16 +4683,18 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             remote->lastCompressorEnabled = remote->compressorParams.enabled;
 
             
+            
+            
             float usegain = remote->gain;
+            bool wasSilent = false;
             
             // we get the stuff, but ignore it (either muted or others soloed)
             if (!remote->recvActive || (anysoloed && !remote->soloed)) {
-                if (remote->_lastgain > 0.0f) {
-                    // fade out
-                    usegain = 0.0f;
-                }
-                else {
-                    continue;
+
+                usegain = 0.0f;
+
+                if (remote->_lastgain <= 0.0f) {
+                    wasSilent = true;
                 }
             } 
 
@@ -4679,10 +4702,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             // apply wet gain for this to tempbuf
             if (fabsf(usegain - remote->_lastgain) > 0.00001) {
                 remote->workBuffer.applyGainRamp(0, numSamples, remote->_lastgain, usegain);
-                remote->_lastgain = usegain;
             } else {
-                remote->workBuffer.applyGain(remote->gain);
+                remote->workBuffer.applyGain(usegain);
             }
+
+            remote->_lastgain = usegain;
 
             remote->recvMeterSource.measureBlock (remote->workBuffer);
             float redlev = 1.0f;
@@ -4690,9 +4714,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 redlev = jlimit(0.0f, 1.0f, Decibels::decibelsToGain(*(remote->compressorOutputLevel)));
             }
             remote->recvMeterSource.setReductionLevel(redlev);
+            
 
-
-
+            ++rindex;
+            
+            if (wasSilent) continue; // can skip the rest, already fully muted/absent
+            
             
             for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
 
@@ -5019,18 +5046,37 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         const ScopedTryLock sl (writerLock);
         if (sl.isLocked())
         {
-            if (activeWriter.load() != nullptr)
+            if (activeMixWriter.load() != nullptr 
+                || activeMixMinusWriter.load() != nullptr
+                || activeSelfWriter.load() != nullptr
+                )
             {
                 // we need to mix the input, audio from remote peers, and the file playback together here
                 //workBuffer.clear(0, numSamples);
                 
-                bool rampit =  (fabsf(wetnow - mLastWet) > 0.00001);
-                for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+                for (int channel = 0; channel < totalRecordingChannels; ++channel) {
                     int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : 0;
 
                     // copy input as-is
                     workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
 
+                }
+
+                // record self only
+                if (activeSelfWriter.load() != nullptr) {
+                    activeSelfWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                }
+
+                if (activeMixMinusWriter.load() != nullptr) {
+                    // clear workbuffer 
+                    workBuffer.clear();
+                }
+                
+
+                bool rampit =  (fabsf(wetnow - mLastWet) > 0.00001);
+                
+                for (int channel = 0; channel < totalRecordingChannels; ++channel) {
+                    
                     // apply Main out gain to audio from remote peers and file playback (should we?)
                     if (rampit) {
                         workBuffer.addFromWithRamp(channel, 0, tempBuffer.getReadPointer(channel), numSamples, mLastWet, wetnow);
@@ -5059,7 +5105,26 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     }
                 }
                 
-                activeWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                if (activeMixMinusWriter.load() != nullptr) {
+                    activeMixMinusWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                
+                    if (activeMixWriter.load() != nullptr) {
+                        // put input back into work buffer
+                        for (int channel = 0; channel < totalRecordingChannels; ++channel) {
+                            int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : 0;
+
+                            // copy input as-is
+                            workBuffer.addFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
+                        }
+
+                        // write out full mix
+                        activeMixWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);                        
+                    }
+                }
+                else if (activeMixWriter.load() != nullptr) {                
+                    // write out full mix
+                    activeMixWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                }
                 
                 mElapsedRecordSamples += numSamples;
             }
@@ -5145,6 +5210,8 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     extraTree.removeAllChildren(nullptr);
     extraTree.setProperty(useSpecificUdpPortKey, mUseSpecificUdpPort, nullptr);
     extraTree.setProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll, nullptr);
+    extraTree.setProperty(defRecordOptionsKey, var((int)mDefaultRecordingOptions), nullptr);
+    extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
 
     ValueTree inputEffectsTree = mState.state.getOrCreateChildWithName(inputEffectsStateKey, nullptr);
     inputEffectsTree.removeAllChildren(nullptr);
@@ -5187,6 +5254,12 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
 
             bool chqual = extraTree.getProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll);
             setChangingDefaultAudioCodecSetsExisting(chqual);
+
+            uint32 opts = (uint32)(int) extraTree.getProperty(defRecordOptionsKey, (int)mDefaultRecordingOptions);
+            setDefaultRecordingOptions(opts);
+
+            uint32 fmt = (uint32)(int) extraTree.getProperty(defRecordFormatKey, (int)mDefaultRecordingFormat);
+            setDefaultRecordingFormat((RecordFileFormat)fmt);
         }
         
        ValueTree inputEffectsTree = mState.state.getChildWithName(inputEffectsStateKey);
@@ -5353,66 +5426,218 @@ void SonobusAudioProcessor::storePeerCacheToState()
 
 }
 
-bool SonobusAudioProcessor::startRecordingToFile(const File & file)
+bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptions, RecordFileFormat fileformat)
 {
     if (!recordingThread) {
         recordingThread = std::make_unique<TimeSliceThread>("Recording Thread");
-        recordingThread->startThread();
-        
-        writingPossible = true;
+        recordingThread->startThread();        
     }
     
     stopRecordingToFile();
 
     bool ret = false;
     
-    if (getSampleRate() > 0)
+    // Now create a WAV writer object that writes to our output stream...
+    //WavAudioFormat audioFormat;
+    std::unique_ptr<AudioFormat> audioFormat;
+    int qualindex = 0;
+    
+
+    if (getSampleRate() <= 0)
     {
+        return false;
+    }
+    
+    File usefile = file;
+    
+    if (fileformat == FileFormatDefault) {
+        fileformat = mDefaultRecordingFormat;
+    }
+    
+    if (recordOptions == RecordDefaultOptions) {
+        recordOptions = mDefaultRecordingOptions;
+    }
+    
+    if (fileformat == FileFormatFLAC || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".flac")) {
+        audioFormat = std::make_unique<FlacAudioFormat>();
+        usefile = file.withFileExtension(".flac");
+    }
+    else if (fileformat == FileFormatWAV || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".wav")) {
+        audioFormat = std::make_unique<WavAudioFormat>();
+        usefile = file.withFileExtension(".wav");
+    }
+    else if (fileformat == FileFormatOGG || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".ogg")) {
+        audioFormat = std::make_unique<OggVorbisAudioFormat>();
+        qualindex = 8; // 256k
+        usefile = file.withFileExtension(".ogg");
+    }
+    else {
+        DBG("Could not find format for filename");
+        return false;
+    }
+    
+    totalRecordingChannels = getMainBusNumOutputChannels();
+    
+    if (recordOptions == RecordMix) {
+
         // Create an OutputStream to write to our destination file...
-        file.deleteFile();
+        usefile.deleteFile();
         
-        if (auto fileStream = std::unique_ptr<FileOutputStream> (file.createOutputStream()))
+        if (auto fileStream = std::unique_ptr<FileOutputStream> (usefile.createOutputStream()))
         {
-            // Now create a WAV writer object that writes to our output stream...
-            //WavAudioFormat audioFormat;
-            std::unique_ptr<AudioFormat> audioFormat;
-            int qualindex = 0;
             
-            if (file.getFileExtension().toLowerCase() == ".flac") {
-                audioFormat = std::make_unique<FlacAudioFormat>();
-            }
-            else if (file.getFileExtension().toLowerCase() == ".wav") {
-                audioFormat = std::make_unique<WavAudioFormat>();
-            }
-            else if (file.getFileExtension().toLowerCase() == ".ogg") {
-                audioFormat = std::make_unique<OggVorbisAudioFormat>();
-                qualindex = 8; // 256k
-            }
-            else {
-                DBG("Could not find format for filename");
-                return false;
-            }
-            
-            if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), getMainBusNumOutputChannels(), 16, {}, qualindex))
+            if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
             {
                 fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                 
                 // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
                 // write the data to disk on our background thread.
-                threadedWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
-                                
-                // And now, swap over our active writer pointer so that the audio callback will start using it..
-                const ScopedLock sl (writerLock);
-                mElapsedRecordSamples = 0;
-                activeWriter = threadedWriter.get();
-                DBG("Started recording file " << file.getFullPathName());
+                threadedMixWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
+                
+                DBG("Started recording only mix file " << usefile.getFullPathName());
                 ret = true;
             } else {
-                DBG("Error creating writer for " << file.getFullPathName());
+                DBG("Error creating writer for " << usefile.getFullPathName());
             }
         } else {
-            DBG("Error creating output file: " << file.getFullPathName());
+            DBG("Error creating output file: " << usefile.getFullPathName());
         }
+        
+    }
+    else {
+        // make directory from the filename
+        File recdir = usefile.getParentDirectory().getChildFile(usefile.getFileNameWithoutExtension()).getNonexistentSibling();
+        if (!recdir.createDirectory()) {
+            DBG("Error creating directory for recording: " << recdir.getFullPathName());
+            return false;
+        }
+
+        // create writers for all appropriate things
+
+        if (recordOptions & RecordMixMinusSelf) {
+            File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-MIXMINUS" + usefile.getFileExtension()).getNonexistentSibling();
+            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+            {                
+                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                {
+                    fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+                    
+                    // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
+                    // write the data to disk on our background thread.
+                    threadedMixMinusWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
+
+                    DBG("Created mix minus output file: " << thefile.getFullPathName());
+             
+                    file = thefile;
+                    ret = true;
+                } else {
+                    DBG("Error creating mix minus writer for " << thefile.getFullPathName());
+                }
+            } else {
+                DBG("Error creating mix minus output file: " << thefile.getFullPathName());
+            }
+        }
+        
+        if (recordOptions & RecordSelf) {
+            File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-SELF" + usefile.getFileExtension()).getNonexistentSibling();
+            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+            {                
+                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                {
+                    fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+                    
+                    // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
+                    // write the data to disk on our background thread.
+                    threadedSelfWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
+                    
+                    DBG("Created self output file: " << thefile.getFullPathName());
+
+                    file = thefile;
+                    ret = true;
+
+                } else {
+                    DBG("Error creating self writer for " << thefile.getFullPathName());
+                }
+            } else {
+                DBG("Error creating self output file: " << thefile.getFullPathName());
+            }
+        }
+
+        if (recordOptions & RecordMix) {
+            File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-MIX" + usefile.getFileExtension()).getNonexistentSibling();
+            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+            {                
+                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                {
+                    fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+                    
+                    // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
+                    // write the data to disk on our background thread.
+                    threadedMixWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
+
+                    DBG("Created mix output file: " << thefile.getFullPathName());
+
+                    file = thefile;  
+                    ret = true;
+                } else {
+                    DBG("Error creating mix writer for " << thefile.getFullPathName());
+                }
+            } else {
+                DBG("Error creating mix output file: " << thefile.getFullPathName());
+            }
+        }
+
+        
+       
+
+        
+        if (recordOptions & RecordIndividualUsers) {
+            const ScopedReadLock sl (mCoreLock);        
+
+            threadedUserWriters.clear();
+            
+            for (auto & remote : mRemotePeers) {
+                
+                File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-" + remote->userName + usefile.getFileExtension()).getNonexistentSibling();
+                if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+                {                
+                    if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                    {
+                        fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+                        
+                        // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
+                        // write the data to disk on our background thread.
+                        threadedUserWriters.add (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
+                        
+                        DBG("Created user output file: " << thefile.getFullPathName());
+                        ret = true;
+                    } else {
+                        DBG("Error user writer for " << thefile.getFullPathName());
+                    }
+                } else {
+                    DBG("Error creating user output file: " << thefile.getFullPathName());
+                }
+            }
+        }
+    }
+    
+    if (ret) {
+        // And now, swap over our active writer pointer so that the audio callback will start using it..
+        const ScopedLock sl (writerLock);
+        mElapsedRecordSamples = 0;
+        activeMixWriter = threadedMixWriter.get();
+        activeSelfWriter = threadedSelfWriter.get();
+        activeMixMinusWriter = threadedMixMinusWriter.get();
+
+        writingPossible = (activeMixWriter || activeSelfWriter || activeMixMinusWriter);
+        activeUserWriters.clear();
+        userWritingPossible = false;
+        for (int i=0; i < threadedUserWriters.size(); ++i) {
+            activeUserWriters.push_back(threadedUserWriters[i]);
+            userWritingPossible = true;
+        }
+        
+        //DBG("Started recording file " << usefile.getFullPathName());
     }
     
     return ret;
@@ -5423,27 +5648,61 @@ bool SonobusAudioProcessor::stopRecordingToFile()
     // First, clear this pointer to stop the audio callback from using our writer object..
     {
         const ScopedLock sl (writerLock);
-        activeWriter = nullptr;
+        activeMixWriter = nullptr;
+        activeSelfWriter = nullptr;
+        activeMixMinusWriter = nullptr;
+        for (int i=0; i < activeUserWriters.size(); ++i) {
+            activeUserWriters[i] = nullptr;
+        }
+        activeUserWriters.clear();
+        writingPossible = false;
+        userWritingPossible = false;
     }
     
-    if (threadedWriter) {
+    bool didit = false;
+    
+    if (threadedMixWriter) {
         
         // Now we can delete the writer object. It's done in this order because the deletion could
         // take a little time while remaining data gets flushed to disk, and we can't be blocking
         // the audio callback while this happens.
-        threadedWriter.reset();
+        threadedMixWriter.reset();
         
-        DBG("Stopped recording file");
-        return true;
+        DBG("Stopped recording mix file");
+        didit = true;
     }
-    else {
-        return false;
+
+    if (threadedSelfWriter) {
+        threadedSelfWriter.reset();
+        
+        DBG("Stopped recording self file");
+        didit = true;
     }
+
+    if (threadedMixMinusWriter) {
+        threadedMixMinusWriter.reset();
+        
+        DBG("Stopped recording mix-minus file");
+        didit = true;
+    }
+
+    if (!threadedUserWriters.isEmpty()) {
+        threadedUserWriters.clear();
+        DBG("Stopped recording user files");
+    }
+    
+
+    
+    return didit;
 }
 
 bool SonobusAudioProcessor::isRecordingToFile()
 {
-    return activeWriter.load() != nullptr;
+    return (activeMixWriter.load() != nullptr 
+            || activeSelfWriter.load() != nullptr 
+            || activeMixMinusWriter.load() != nullptr 
+            || activeUserWriters.size() > 0 
+            );
 }
 
  bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)

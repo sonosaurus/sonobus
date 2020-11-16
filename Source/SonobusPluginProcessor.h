@@ -92,6 +92,23 @@ public:
         ReverbModelZita
     };
     
+    // treated as bitmask options
+    enum RecordFileOptions {
+        RecordDefaultOptions = 0,
+        RecordMix = 1,
+        RecordSelf = 2,
+        RecordMixMinusSelf = 4,
+        RecordIndividualUsers = 8
+    };
+    
+    enum RecordFileFormat {
+        FileFormatDefault = 0,
+        FileFormatAuto,
+        FileFormatFLAC,
+        FileFormatWAV,
+        FileFormatOGG
+    };
+    
     struct AudioCodecFormatInfo {
         AudioCodecFormatInfo() {}
         AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_), min_preferred_blocksize(16)  { computeName(); }
@@ -444,12 +461,19 @@ public:
     ReverbModel getMainReverbModel() const { return (ReverbModel) mMainReverbModel.get(); }
     
     
-    // recording stuff
-    bool startRecordingToFile(const File & file);
+    // recording stuff, if record options are RecordMixOnly, or RecordSelf  (only) the file refers to the name of the file
+    //   otherwise it refers to a directory where the files will be recorded (and also the prefix for the recorded files)
+    bool startRecordingToFile(File & file, uint32 recordOptions=RecordDefaultOptions, RecordFileFormat fileformat=FileFormatDefault);
     bool stopRecordingToFile();
     bool isRecordingToFile();
     double getElapsedRecordTime() const { return mElapsedRecordSamples / getSampleRate(); }
 
+    uint32 getDefaultRecordingOptions() const { return mDefaultRecordingOptions; }
+    void setDefaultRecordingOptions(uint32 opts) { mDefaultRecordingOptions = opts; }
+
+    RecordFileFormat getDefaultRecordingFormat() const { return mDefaultRecordingFormat; }
+    void setDefaultRecordingFormat(RecordFileFormat fmt) { mDefaultRecordingFormat = fmt; }
+    
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
     AudioTransportSource & getTransportSource() { return mTransportSource; }
@@ -726,12 +750,25 @@ private:
     
     
     // recording stuff
+    
+    uint32 mDefaultRecordingOptions = RecordMix;
+    RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
+    
     volatile bool writingPossible = false;
+    volatile bool userWritingPossible = false;
+    int totalRecordingChannels = 2;
     int64 mElapsedRecordSamples = 0;
     std::unique_ptr<TimeSliceThread> recordingThread;
-    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
+    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixWriter; // the FIFO used to buffer the incoming data
+    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixMinusWriter; // the FIFO used to buffer the incoming data
+    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedSelfWriter; // the FIFO used to buffer the incoming data
+    OwnedArray<AudioFormatWriter::ThreadedWriter> threadedUserWriters;
+
     CriticalSection writerLock;
-    std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter { nullptr };
+    std::atomic<AudioFormatWriter::ThreadedWriter*> activeMixWriter { nullptr };
+    std::atomic<AudioFormatWriter::ThreadedWriter*> activeMixMinusWriter { nullptr };
+    std::atomic<AudioFormatWriter::ThreadedWriter*> activeSelfWriter { nullptr };
+    std::vector<AudioFormatWriter::ThreadedWriter*> activeUserWriters;
   
     // playing stuff
     AudioTransportSource mTransportSource;
