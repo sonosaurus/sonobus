@@ -81,7 +81,8 @@ public:
     enum AutoNetBufferMode {
         AutoNetBufferModeOff = 0,
         AutoNetBufferModeAutoIncreaseOnly,
-        AutoNetBufferModeAutoFull        
+        AutoNetBufferModeAutoFull,        
+        AutoNetBufferModeInitAuto
     };
     
     enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus };
@@ -575,7 +576,7 @@ private:
     Atomic<float>   mInMonPan2    {   1.0 };
     Atomic<float>   mDry    { 0.0 };
     Atomic<float>   mWet    {   1.0 };
-    Atomic<double>   mBufferTime     { 0.01 };
+    Atomic<double>   mBufferTime     { 0.001 };
     Atomic<double>   mMaxBufferTime     { 1.0 };
     Atomic<bool>   mMainSendMute    {   false };
     Atomic<bool>   mMainRecvMute    {   false };

@@ -444,9 +444,10 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->autosizeButton = std::make_unique<SonoChoiceButton>();
     pvf->autosizeButton->addChoiceListener(this);
-    pvf->autosizeButton->addItem(TRANS("Manual"), 1);
-    pvf->autosizeButton->addItem(TRANS("Auto Up"), 1);
-    pvf->autosizeButton->addItem(TRANS("Auto"), 1);
+    pvf->autosizeButton->addItem(TRANS("Manual"), SonobusAudioProcessor::AutoNetBufferModeOff);
+    pvf->autosizeButton->addItem(TRANS("Auto Up"), SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly);
+    pvf->autosizeButton->addItem(TRANS("Auto"), SonobusAudioProcessor::AutoNetBufferModeAutoFull);
+    pvf->autosizeButton->addItem(TRANS("Initial Auto"), SonobusAudioProcessor::AutoNetBufferModeInitAuto);    
     pvf->autosizeButton->addListener(this);
 
     pvf->bufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
@@ -1248,8 +1249,8 @@ void PeersContainerView::updatePeerViews()
         int autobufmode = (int)processor.getRemotePeerAutoresizeBufferMode(i);
         float buftimeMs = processor.getRemotePeerBufferTime(i);
         
-        pvf->autosizeButton->setSelectedItemIndex(autobufmode, dontSendNotification);
-        pvf->bufferLabel->setText(String::formatted("%d ms", (int) lrintf(buftimeMs)) + (autobufmode == 0 ? "" : autobufmode == 1 ? " (Auto+)" : " (Auto)"), dontSendNotification);
+        pvf->autosizeButton->setSelectedId(autobufmode, dontSendNotification);
+        pvf->bufferLabel->setText(String::formatted("%d ms", (int) lrintf(buftimeMs)) + (autobufmode == SonobusAudioProcessor::AutoNetBufferModeOff ? "" : autobufmode == SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly ? " (Auto+)" :  autobufmode == SonobusAudioProcessor::AutoNetBufferModeInitAuto ?  " (I-Auto)"  : " (Auto)"), dontSendNotification);
 
         
         if (!pvf->levelSlider->isMouseOverOrDragging()) {
@@ -1452,7 +1453,7 @@ void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index,
             break;
         }        
         else if (pvf->autosizeButton.get() == comp) {
-            processor.setRemotePeerAutoresizeBufferMode(i, (SonobusAudioProcessor::AutoNetBufferMode) index);
+            processor.setRemotePeerAutoresizeBufferMode(i, (SonobusAudioProcessor::AutoNetBufferMode) ident);
             break;
         }        
     }

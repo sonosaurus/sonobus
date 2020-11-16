@@ -886,9 +886,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mOptionsAutosizeDefaultChoice = std::make_unique<SonoChoiceButton>();
     mOptionsAutosizeDefaultChoice->addChoiceListener(this);
-    mOptionsAutosizeDefaultChoice->addItem(TRANS("Manual"), 1);
-    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto Up"), 2);
-    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto"), 3);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Manual"), SonobusAudioProcessor::AutoNetBufferModeOff);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto Up"), SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto"), SonobusAudioProcessor::AutoNetBufferModeAutoFull);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Initial Auto"), SonobusAudioProcessor::AutoNetBufferModeInitAuto);
     
     mOptionsFormatChoiceDefaultChoice = std::make_unique<SonoChoiceButton>();
     mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
@@ -1893,7 +1894,7 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
         processor.setDefaultAudioCodecFormat(index);
     }
     else if (comp == mOptionsAutosizeDefaultChoice.get()) {
-        processor.setDefaultAutoresizeBufferMode((SonobusAudioProcessor::AutoNetBufferMode) index);
+        processor.setDefaultAutoresizeBufferMode((SonobusAudioProcessor::AutoNetBufferMode) ident);
     }
     else if (comp == mRecFormatChoice.get()) {
         processor.setDefaultRecordingFormat((SonobusAudioProcessor::RecordFileFormat) ident);
@@ -1950,7 +1951,7 @@ void SonobusAudioProcessorEditor::updateChannelState(bool force)
 void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
 {
     mOptionsFormatChoiceDefaultChoice->setSelectedItemIndex(processor.getDefaultAudioCodecFormat(), dontSendNotification);
-    mOptionsAutosizeDefaultChoice->setSelectedItemIndex((int)processor.getDefaultAutoresizeBufferMode(), dontSendNotification);
+    mOptionsAutosizeDefaultChoice->setSelectedId((int)processor.getDefaultAutoresizeBufferMode(), dontSendNotification);
 
     mOptionsChangeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
     

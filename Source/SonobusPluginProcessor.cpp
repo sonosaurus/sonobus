@@ -231,7 +231,7 @@ struct SonobusAudioProcessor::RemotePeer {
     std::unique_ptr<LatencyMeasurer> latencyMeasurer;
 
     float gain = 1.0f;
-    float buffertimeMs = 15.0f;
+    float buffertimeMs = 0.0f;
     AutoNetBufferMode  autosizeBufferMode = AutoNetBufferModeAutoFull;
     bool sendActive = false;
     bool recvActive = false;
@@ -264,6 +264,7 @@ struct SonobusAudioProcessor::RemotePeer {
     int64_t lastDropCount = 0;
     double lastNetBufDecrTime = 0;
     float netBufAutoBaseline = 0.0f;
+    bool autoNetbufInitCompleted = false;
     float pingTime = 0.0f; // ms
     stats::RunCumulantor1D  smoothPingTime; // ms
     stats::RunCumulantor1D  fillRatio;
@@ -523,7 +524,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterBool>(paramMainInMute, TRANS ("Main In Mute"), mMainInMute.get()),
     std::make_unique<AudioParameterBool>(paramMainMonitorSolo, TRANS ("Main Monitor Solo"), mMainMonitorSolo.get()),
 
-    std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full"}), defaultAutoNetbufMode),
+    std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full", "Initial-Auto"}), defaultAutoNetbufMode),
 
     std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
     std::make_unique<AudioParameterBool>(paramDynamicResampling, TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
@@ -1717,7 +1718,18 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
                 }
 
-                if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {                    
+                if (peer->autosizeBufferMode == AutoNetBufferModeInitAuto) {   
+                    if (!peer->autoNetbufInitCompleted && peer->lastDroptime > 0) {
+                        double nowtime = Time::getMillisecondCounterHiRes();
+                        double deltatime = (nowtime - peer->lastDroptime) * 1e-3; 
+                        const float nodropsthresh = 4.0; // no drops in 4 seconds
+                        if (deltatime > nodropsthresh) {
+                            peer->autoNetbufInitCompleted = true;
+                            DBG("Netbuf Initial auto time is done after no drops in " << nodropsthresh);
+                        }
+                    }
+                }
+                else if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {                    
                     // possibly adjust net buffer down, if it has been longer than threshold since last drop
                     double nowtime = Time::getMillisecondCounterHiRes();
                     const float nodropsthresh = 10.0; // no drops in 10 seconds
@@ -1725,10 +1737,11 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
 
                     if (peer->lastNetBufDecrTime > 0 && peer->buffertimeMs > peer->netBufAutoBaseline) {
                         double deltatime = (nowtime - peer->lastNetBufDecrTime) * 1e-3;  
+                        double deltadroptime = (nowtime - peer->lastDroptime) * 1e-3;  
                         if (deltatime > adjustlimit) {
                             //float droprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltatime;
                             //if (droprate < dropratethresh) {
-                            if (nowtime - peer->lastDroptime > nodropsthresh) {
+                            if (deltadroptime > nodropsthresh) {
                                 float adjms = 1000.0f * currSamplesPerBlock / getSampleRate();
                                 peer->buffertimeMs -= adjms;
                                 
@@ -2122,13 +2135,16 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                 if (peer->autosizeBufferMode != AutoNetBufferModeOff) {
                     // see if our drop rate exceeds threshold, and increase buffersize if so
                     double nowtime = Time::getMillisecondCounterHiRes();
-                    const float dropratethresh = 1.0/30.0; // 1 every 30 seconds
-                    const float adjustlimit = 0.5; // don't adjust more often than once every 0.5 seconds
+                    const float dropratethresh = peer->autosizeBufferMode == AutoNetBufferModeInitAuto ? 1.0f : 1.0f/10.0f; // 1 every 10 seconds
+                    const float adjustlimit = 0.5f; // don't adjust more often than once every 0.5 seconds
 
-                    if (peer->lastDroptime > 0) {
+                    bool autoinitdone = peer->autosizeBufferMode == AutoNetBufferModeInitAuto && peer->autoNetbufInitCompleted;
+                    
+                    if (peer->lastDroptime > 0 && !autoinitdone) {
                         double deltatime = (nowtime - peer->lastDroptime) * 1e-3;  
                         if (deltatime > adjustlimit) {
-                            float droprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltatime;
+                            //float droprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltatime;
+                            float droprate =  1.0f / deltatime; // treat any drops as one instance
                             if (droprate > dropratethresh) {
                                 float adjms = 1000.0f * currSamplesPerBlock / getSampleRate();
                                 peer->buffertimeMs += adjms;
@@ -2914,6 +2930,8 @@ void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
         remote->fillRatio.reset();
         remote->netBufAutoBaseline = (1e3*currSamplesPerBlock/getSampleRate()); // at least a process block
         remote->latencyDirty = true;
+        remote->autoNetbufInitCompleted = false;
+        remote->lastDroptime = Time::getMillisecondCounterHiRes();
         if (remote->hasRealLatency) {
             remote->totalEstLatency = remote->totalLatency + (remote->buffertimeMs - remote->bufferTimeAtRealLatency);
         }
@@ -2943,6 +2961,8 @@ void SonobusAudioProcessor::setRemotePeerAutoresizeBufferMode(int index, Sonobus
         
         if (flag == AutoNetBufferModeAutoFull) {
             remote->netBufAutoBaseline = (1e3*currSamplesPerBlock/getSampleRate()); // at least a process block
+        } else if (flag == AutoNetBufferModeInitAuto) {
+            setRemotePeerBufferTime(index, 0.0f); // reset to zero and start it over
         }
     }
 }
@@ -3523,8 +3543,12 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->buffertimeMs = mBufferTime.get() * 1000.0f;
         retpeer->formatIndex = mDefaultAudioFormatIndex;
         retpeer->autosizeBufferMode = (AutoNetBufferMode) defaultAutoNetbufMode;
-        
+                
         findAndLoadCacheForPeer(retpeer);
+
+        if (retpeer->autosizeBufferMode == AutoNetBufferModeInitAuto) {
+            retpeer->buffertimeMs = 0;
+        }
         
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getMainBusNumOutputChannels());
         retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
@@ -3691,8 +3715,8 @@ bool SonobusAudioProcessor::findAndLoadCacheForPeer(RemotePeer * retpeer)
     if (found != mPeerStateCacheMap.end()) {
         const PeerStateCache & cache = found->second;
         retpeer->compressorParams = cache.compressorParams;
-        retpeer->buffertimeMs = cache.netbuf;
         retpeer->autosizeBufferMode = (AutoNetBufferMode) cache.netbufauto;
+        retpeer->buffertimeMs = cache.netbuf;
         retpeer->recvPan[0] = cache.monopan;
         retpeer->recvStereoPan[0] = cache.stereopan1;
         retpeer->recvStereoPan[1] = cache.stereopan2;
