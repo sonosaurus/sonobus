@@ -4343,7 +4343,7 @@ bool SonobusAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
     // other output buses can be mono or stereo
     for (int i=1; i < layouts.outputBuses.size(); ++i) {
         int chans = layouts.getNumChannels(false, i);
-        if (chans != 1 && chans != 2) {
+        if (chans != 1 && chans != 2 && chans != 0) {
             //DBG("sidechain outputs not mono or stereo bus: " << i << "  chans: " << chans);
             return false;
         }

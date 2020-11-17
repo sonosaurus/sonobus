@@ -5,6 +5,10 @@
 	};
 	objectVersion = 46;
 	objects = {
+		66B461447FC86E7E97E60B80 = {
+			isa = PBXBuildFile;
+			fileRef = 39B19482CAE1F62C09C6C8E1;
+		};
 		E0B205409B8B856A7A96FA88 = {
 			isa = PBXBuildFile;
 			fileRef = 5D6B0E5E3CB1868E696C3A68;
@@ -268,6 +272,10 @@
 		6616BFD4F4DAC38A30E86CFB = {
 			isa = PBXBuildFile;
 			fileRef = DCC58A61382509AB1AB97723;
+		};
+		2886F722004CC4108FEEC834 = {
+			isa = PBXBuildFile;
+			fileRef = 5F809C5F6621B872366C851D;
 		};
 		0FA8C1335FFD74BD04230904 = {
 			isa = PBXBuildFile;
@@ -640,6 +648,13 @@
 			path = ../../Source/CompressorView.h;
 			sourceTree = "SOURCE_ROOT";
 		};
+		39B19482CAE1F62C09C6C8E1 = {
+			isa = PBXFileReference;
+			explicitFileType = "wrapper.app-extension";
+			includeInIndex = 0;
+			path = SonoBus.appex;
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
 		3E3B798DA2C8DE415AE4C564 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -729,6 +744,13 @@
 			lastKnownFileType = sourcecode.cpp.cpp;
 			name = Metronome.cpp;
 			path = ../../Source/Metronome.cpp;
+			sourceTree = "SOURCE_ROOT";
+		};
+		4A64686EC85E93D113558A76 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			name = "Info-AUv3_AppExtension.plist";
+			path = "Info-AUv3_AppExtension.plist";
 			sourceTree = "SOURCE_ROOT";
 		};
 		4B285F886B9D0FB75C2B6145 = {
@@ -871,13 +893,6 @@
 			path = ../../Source/SonoUtility.h;
 			sourceTree = "SOURCE_ROOT";
 		};
-		5BC195B4A17567562F5E1C83 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.cpp.cpp;
-			name = OscOutboundPacketStream.cpp;
-			path = ../../deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp;
-			sourceTree = "SOURCE_ROOT";
-		};
 		5BC3101B3C0129A9667DC565 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -899,11 +914,25 @@
 			path = libSonoBus.a;
 			sourceTree = "BUILT_PRODUCTS_DIR";
 		};
+		5BC195B4A17567562F5E1C83 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = OscOutboundPacketStream.cpp;
+			path = ../../deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp;
+			sourceTree = "SOURCE_ROOT";
+		};
 		5D7CD864B0AA14FA5A453FBA = {
 			isa = PBXFileReference;
 			lastKnownFileType = file.svg;
 			name = dots.svg;
 			path = ../../images/dots.svg;
+			sourceTree = "SOURCE_ROOT";
+		};
+		5F809C5F6621B872366C851D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.objcpp;
+			name = "include_juce_audio_plugin_client_AUv3.mm";
+			path = "../../JuceLibraryCode/include_juce_audio_plugin_client_AUv3.mm";
 			sourceTree = "SOURCE_ROOT";
 		};
 		5FA2A095311A62D5AF88CA96 = {
@@ -2086,6 +2115,7 @@
 				4B285F886B9D0FB75C2B6145,
 				32236041CD0595B513AA95B6,
 				DCC58A61382509AB1AB97723,
+				5F809C5F6621B872366C851D,
 				2389570162279B0CA0BFD47D,
 				8197704B6F67CEDAF82C3DD8,
 				0AA9729AFEB32A0246FAD80B,
@@ -2109,6 +2139,7 @@
 		571BFB1B4C1F6A90AB1923FB = {
 			isa = PBXGroup;
 			children = (
+				4A64686EC85E93D113558A76,
 				82713E29D7F5444426914EC8,
 				983E790D2F2D7033319BB321,
 				778EBB11407A49234CCCAB0E,
@@ -2144,6 +2175,7 @@
 		C8550A7EF6E32296F30F273B = {
 			isa = PBXGroup;
 			children = (
+				39B19482CAE1F62C09C6C8E1,
 				5D6B0E5E3CB1868E696C3A68,
 				5B2C7AE6B6D711AC95214BF9,
 			);
@@ -2163,6 +2195,10 @@
 			name = Source;
 			sourceTree = "<group>";
 		};
+		E671AF6A2DAD8A27C9DC9EA7 = {
+			isa = PBXTargetDependency;
+			target = 682C787A7ABF2AAC57AF5600;
+		};
 		2ECA8C60C4B9F79BA596079F = {
 			isa = PBXTargetDependency;
 			target = E67987C2A08C277E99344B7B;
@@ -2170,6 +2206,14 @@
 		7DDD301C8665DEC8C922C175 = {
 			isa = PBXTargetDependency;
 			target = 9D0A9977558C639D0B18A276;
+		};
+		55FAF75F6588E6666475041E = {
+			isa = PBXTargetDependency;
+			target = 9D0A9977558C639D0B18A276;
+		};
+		71489E88420BB0BA75643CA6 = {
+			isa = PBXTargetDependency;
+			target = 682C787A7ABF2AAC57AF5600;
 		};
 		A468A2C74541BC37E7DFB025 = {
 			isa = PBXTargetDependency;
@@ -2306,6 +2350,147 @@
 				);
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
+				PRODUCT_NAME = "SonoBus";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				USE_HEADERMAP = NO;
+			};
+			name = Release;
+		};
+		6E5A95CBB164DEC2461FB25B = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = XCS435894D;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_DEBUG=1",
+					"DEBUG=1",
+					"JUCE_CONTENT_SHARING=1",
+					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
+					"SONOBUS_BUILD_VERSION=\\\"1.0.4-33\\\"",
+					"LOGLEVEL=2",
+					"JUCE_IOS_AUDIO_LOGGING=1",
+					"USE_CODEC_OPUS=1",
+					"AOO_TIMEFILTER_CHECK=0",
+					"AOO_STATIC",
+					"JUCER_XCODE_IPHONE_5BC26AE3=1",
+					"JUCE_APP_VERSION=1.0.4",
+					"JUCE_APP_VERSION_HEX=0x10004",
+					"JucePlugin_Build_VST=0",
+					"JucePlugin_Build_VST3=0",
+					"JucePlugin_Build_AU=0",
+					"JucePlugin_Build_AUv3=1",
+					"JucePlugin_Build_RTAS=0",
+					"JucePlugin_Build_AAX=0",
+					"JucePlugin_Build_Standalone=0",
+					"JucePlugin_Build_Unity=0",
+				);
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = (
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/ios/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = Info-AUv3_AppExtension.plist;
+				INFOPLIST_PREPROCESS = NO;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"../../deps/ios/lib\"",
+				);
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/ios/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
+				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus.SonoBusAUv3;
+				PRODUCT_NAME = "SonoBus";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				USE_HEADERMAP = NO;
+			};
+			name = Debug;
+		};
+		37CFE1D759B404E32156D5C2 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = XCS435894D;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_NDEBUG=1",
+					"NDEBUG=1",
+					"JUCE_CONTENT_SHARING=1",
+					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
+					"SONOBUS_BUILD_VERSION=\\\"1.0.4-33\\\"",
+					"USE_CODEC_OPUS=1",
+					"AOO_TIMEFILTER_CHECK=0",
+					"AOO_STATIC",
+					"JUCER_XCODE_IPHONE_5BC26AE3=1",
+					"JUCE_APP_VERSION=1.0.4",
+					"JUCE_APP_VERSION_HEX=0x10004",
+					"JucePlugin_Build_VST=0",
+					"JucePlugin_Build_VST3=0",
+					"JucePlugin_Build_AU=0",
+					"JucePlugin_Build_AUv3=1",
+					"JucePlugin_Build_RTAS=0",
+					"JucePlugin_Build_AAX=0",
+					"JucePlugin_Build_Standalone=0",
+					"JucePlugin_Build_Unity=0",
+				);
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = (
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/ios/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = Info-AUv3_AppExtension.plist;
+				INFOPLIST_PREPROCESS = NO;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"../../deps/ios/lib\"",
+				);
+				LLVM_LTO = YES;
+				MTL_HEADER_SEARCH_PATHS = (
+					"../../JuceLibraryCode",
+					"../../deps",
+					"../../deps/juce/modules",
+					"../../deps/aoo/lib",
+					"../../deps/aoo/deps",
+					"../../deps/ios/include",
+					"../../deps/juce/modules/juce_audio_plugin_client",
+				);
+				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus.SonoBusAUv3;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
@@ -2486,7 +2671,7 @@
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
-					"JucePlugin_Build_AUv3=0",
+					"JucePlugin_Build_AUv3=1",
 					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=1",
@@ -2555,7 +2740,7 @@
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
-					"JucePlugin_Build_AUv3=0",
+					"JucePlugin_Build_AUv3=1",
 					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=1",
@@ -2721,11 +2906,80 @@
 			buildPhases = ( );
 			buildRules = ( );
 			dependencies = (
+				E671AF6A2DAD8A27C9DC9EA7,
 				2ECA8C60C4B9F79BA596079F,
 				7DDD301C8665DEC8C922C175,
 			);
 			name = "SonoBus - All";
 			productName = SonoBus;
+		};
+		498CBE02B879C5FC6578C0F7 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E5A95CBB164DEC2461FB25B,
+				37CFE1D759B404E32156D5C2,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		25682D2F8EB563668AC0C575 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4ADDF3100FED442E80EA56B2,
+				72CF4D04A58C1448398FEAE5,
+				C574C533729517574836EFD7,
+				FB34F18C6223731F88329C09,
+				540B4E84E7CEDF6A8F977DEA,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F55EA4D1CDC8B94D5EB549D = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2886F722004CC4108FEEC834,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		58783FE5349EA5882DA08D2F = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3F0E4384B6E2C394A27154DA,
+				0D7E503398C94EFCBF9E396C,
+				0D19B92520AAEF1B3CC1E823,
+				1C0A38DA5951F3CE316C0FA5,
+				AA2A2BB5E1F18ED8E1D0C64B,
+				AC8FBB84DA43EEE27BFF71FB,
+				4DD71D0AF5D19CA3955FD785,
+				9976D9A05571F9105DC0D84A,
+				1E3F9E3FF36F223C7B7E61C4,
+				4B45DA9A737E5AD255CF9E72,
+				0E025ED2B9EF033C74973366,
+				B2946FC73F6B5D64EECFC590,
+				9502DD290687C4FF0DCC6495,
+				ED2A2414FF69987111EA37C4,
+				72DB798AA1319628E8DF8631,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		682C787A7ABF2AAC57AF5600 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 498CBE02B879C5FC6578C0F7;
+			buildPhases = (
+				25682D2F8EB563668AC0C575,
+				5F55EA4D1CDC8B94D5EB549D,
+				58783FE5349EA5882DA08D2F,
+			);
+			buildRules = ( );
+			dependencies = (
+				55FAF75F6588E6666475041E,
+			);
+			name = "SonoBus - AUv3 AppExtension";
+			productName = SonoBus;
+			productReference = 39B19482CAE1F62C09C6C8E1;
+			productType = "com.apple.product-type.app-extension";
 		};
 		E5ABFB0C93362AC7323164B7 = {
 			isa = XCConfigurationList;
@@ -2778,6 +3032,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2C9F8BEAD5FD6243950B675B = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				66B461447FC86E7E97E60B80,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			name = "Embed App Extensions";
+			dstPath = "";
+			dstSubfolderSpec = 13;
+		};
 		E67987C2A08C277E99344B7B = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E5ABFB0C93362AC7323164B7;
@@ -2785,9 +3050,11 @@
 				38145137DDBC211D14EA5BB8,
 				31C594DA20F06AB5A93D7C34,
 				183408ED1721AA0C4AF388C6,
+				2C9F8BEAD5FD6243950B675B,
 			);
 			buildRules = ( );
 			dependencies = (
+				71489E88420BB0BA75643CA6,
 				A468A2C74541BC37E7DFB025,
 			);
 			name = "SonoBus - Standalone Plugin";
@@ -2884,13 +3151,13 @@
 		748D9ADBE1AB46D7ECDA1324 = {
 			isa = PBXProject;
 			buildConfigurationList = C161EEE4441215F266B9B619;
-			attributes = { LastUpgradeCheck = 1200; ORGANIZATIONNAME = "Sonosaurus"; TargetAttributes = { AFDD2455B41B23961F3B8586 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; };E67987C2A08C277E99344B7B = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 1; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; };9D0A9977558C639D0B18A276 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; }; }; };
+			attributes = { LastUpgradeCheck = 1200; ORGANIZATIONNAME = "Sonosaurus"; TargetAttributes = { AFDD2455B41B23961F3B8586 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; };682C787A7ABF2AAC57AF5600 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 1; }; com.apple.HardenedRuntime = { enabled = 0; }; }; };E67987C2A08C277E99344B7B = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 1; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; };9D0A9977558C639D0B18A276 = { DevelopmentTeam = XCS435894D; ProvisioningStyle = Automatic; SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; }; }; };
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 0;
 			mainGroup = B35F0356EB9D7158AD49A61B;
 			projectDirPath = "";
 			projectRoot = "";
-			targets = (AFDD2455B41B23961F3B8586, E67987C2A08C277E99344B7B, 9D0A9977558C639D0B18A276);
+			targets = (AFDD2455B41B23961F3B8586, 682C787A7ABF2AAC57AF5600, E67987C2A08C277E99344B7B, 9D0A9977558C639D0B18A276);
 			knownRegions = (en, Base);
 		};
 	};
