@@ -4816,6 +4816,7 @@ void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser 
             // reveal
             if (mCurrentAudioFile.getFileName().isNotEmpty()) {
                 mCurrentAudioFile.getLocalFile().revealToUser();
+                return; // needed in case we are already gone (weird windows issue)
             }
 #endif
 
