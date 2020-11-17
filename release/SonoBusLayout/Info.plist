@@ -18,6 +18,56 @@
 			<array>
 				<dict>
 					<key>identifier</key>
+					<string>LayoutItem.EA196D2A-1104-43F8-82C3-FE8286FF5BA4</string>
+					<key>name</key>
+					<string>Plug-Ins</string>
+					<key>position</key>
+					<string>{672, 368}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.1C6673E6-B165-43BC-B5BD-D533B438609A</string>
+					<key>name</key>
+					<string>Sonobus.aaxplugin</string>
+					<key>position</key>
+					<string>{672, 208}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.FD8ED432-C7D4-4775-96BA-4BC525133960</string>
+					<key>name</key>
+					<string>SonoBus.vst</string>
+					<key>position</key>
+					<string>{544, 208}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.0F3579EF-C06B-4563-90DB-5A7DF7BAC32B</string>
+					<key>name</key>
+					<string>SonoBus.vst3</string>
+					<key>position</key>
+					<string>{416, 208}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
+					<string>LayoutItem.27ADA528-E5B9-48CF-B424-37B9B5B0C172</string>
+					<key>name</key>
+					<string>README_MAC.txt</string>
+					<key>position</key>
+					<string>{680, 50}</string>
+					<key>type</key>
+					<string>file</string>
+				</dict>
+				<dict>
+					<key>identifier</key>
 					<string>LayoutItem.B979D689-6113-43D1-AD94-5CA458BE8FCA</string>
 					<key>position</key>
 					<string>{77.8828125, 19.99609375}</string>
@@ -33,16 +83,6 @@
 					<string>{137.765625, 21.9921875}</string>
 					<key>type</key>
 					<string>text</string>
-				</dict>
-				<dict>
-					<key>identifier</key>
-					<string>LayoutItem.27ADA528-E5B9-48CF-B424-37B9B5B0C172</string>
-					<key>name</key>
-					<string>README_MAC.txt</string>
-					<key>position</key>
-					<string>{544, 48}</string>
-					<key>type</key>
-					<string>file</string>
 				</dict>
 				<dict>
 					<key>identifier</key>
@@ -71,26 +111,6 @@
 					<string>SonoBus.component</string>
 					<key>position</key>
 					<string>{288, 208}</string>
-					<key>type</key>
-					<string>file</string>
-				</dict>
-				<dict>
-					<key>identifier</key>
-					<string>LayoutItem.0F3579EF-C06B-4563-90DB-5A7DF7BAC32B</string>
-					<key>name</key>
-					<string>SonoBus.vst3</string>
-					<key>position</key>
-					<string>{416, 208}</string>
-					<key>type</key>
-					<string>file</string>
-				</dict>
-				<dict>
-					<key>identifier</key>
-					<string>LayoutItem.FD8ED432-C7D4-4775-96BA-4BC525133960</string>
-					<key>name</key>
-					<string>SonoBus.vst</string>
-					<key>position</key>
-					<string>{544, 208}</string>
 					<key>type</key>
 					<string>file</string>
 				</dict>
@@ -132,7 +152,7 @@
 		</dict>
 	</dict>
 	<key>documentCreator</key>
-	<string>DropDMG 3.5.10</string>
+	<string>DropDMG 3.6</string>
 	<key>documentType</key>
 	<string>com.c-command.DropDMG.Layout</string>
 	<key>formatVersion</key>
