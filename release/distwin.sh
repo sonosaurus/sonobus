@@ -21,7 +21,7 @@ mkdir -p SonoBus/Plugins
 cp -v ../doc/README_WINDOWS.txt SonoBus/README.txt
 cp -v ${BUILDDIR}/Standalone\ Plugin/SonoBus.exe SonoBus/
 cp -v ${BUILDDIR}/VST3/SonoBus.vst3 SonoBus/Plugins/
-cp -v ${BUILDDIR}/VST/SonoBus.dll SonoBus/Plugins/
+cp -v ${BUILDDIR}VST2/VST/SonoBus.dll SonoBus/Plugins/
 cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins/
 
 # sign AAX
