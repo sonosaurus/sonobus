@@ -57,7 +57,8 @@ void PeerViewInfo::resized()
     }
     
     if (latActiveButton) {
-        latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
+        //latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
+        latActiveButton->setBounds(staticLatencyLabel->getX(), staticLatencyLabel->getY(), pingLabel->getRight() - staticLatencyLabel->getX(), latencyLabel->getBottom() - staticLatencyLabel->getY());
     }
 
     int triwidth = 10;
@@ -534,13 +535,17 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->staticRemoteSendFormatChoiceLabel = std::make_unique<Label>("fmt", TRANS("Preferred Recv Quality"));
     configLabel(pvf->staticRemoteSendFormatChoiceLabel.get(), LabelTypeRegular);
     
-    pvf->staticLatencyLabel = std::make_unique<Label>("lat", TRANS("Latency:"));
+    pvf->staticLatencyLabel = std::make_unique<Label>("lat", TRANS("Latency (ms)"));
     configLabel(pvf->staticLatencyLabel.get(), LabelTypeSmallDim);
-    pvf->staticPingLabel = std::make_unique<Label>("ping", TRANS("Ping:"));
+    pvf->staticLatencyLabel->setJustificationType(Justification::centred);
+    
+    pvf->staticPingLabel = std::make_unique<Label>("ping", TRANS("Ping"));
     configLabel(pvf->staticPingLabel.get(), LabelTypeSmallDim);
 
     pvf->latencyLabel = std::make_unique<Label>("lat", TRANS("PRESS"));
     configLabel(pvf->latencyLabel.get(), LabelTypeSmall);
+    pvf->latencyLabel->setJustificationType(Justification::centred);
+
     pvf->pingLabel = std::make_unique<Label>("ping");
     configLabel(pvf->pingLabel.get(), LabelTypeSmall);
 
@@ -846,7 +851,7 @@ void PeersContainerView::updateLayout()
         pvf->sendmeterbox.flexDirection = FlexBox::Direction::row;
 
       
-        
+#if 0        
         pvf->pingbox.items.clear();
         pvf->pingbox.flexDirection = FlexBox::Direction::row;
         pvf->pingbox.items.add(FlexItem(40, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0.5));
@@ -862,7 +867,24 @@ void PeersContainerView::updateLayout()
         pvf->netstatbox.flexDirection = FlexBox::Direction::column;
         pvf->netstatbox.items.add(FlexItem(80, textheight, pvf->pingbox).withMargin(0).withFlex(0));
         pvf->netstatbox.items.add(FlexItem(80, textheight, pvf->latencybox).withMargin(0).withFlex(0));
+#else
+        pvf->pingbox.items.clear();
+        pvf->pingbox.flexDirection = FlexBox::Direction::column;
+        pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0.5));
+        pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->pingLabel).withMargin(0).withFlex(0.5));
 
+        pvf->latencybox.items.clear();
+        pvf->latencybox.flexDirection = FlexBox::Direction::column;
+        pvf->latencybox.items.add(FlexItem(60, textheight, *pvf->staticLatencyLabel).withMargin(0).withFlex(0.5));
+        pvf->latencybox.items.add(FlexItem(60, textheight, *pvf->latencyLabel).withMargin(0).withFlex(0.5));
+
+        
+        pvf->netstatbox.items.clear();
+        pvf->netstatbox.flexDirection = FlexBox::Direction::row;
+        pvf->netstatbox.items.add(FlexItem(60, textheight, pvf->latencybox).withMargin(0).withFlex(3));
+        pvf->netstatbox.items.add(FlexItem(20, textheight, pvf->pingbox).withMargin(0).withFlex(1));
+#endif
+        
         
         pvf->squalbox.items.clear();
         pvf->squalbox.flexDirection = FlexBox::Direction::row;
@@ -1138,12 +1160,14 @@ Rectangle<int> PeersContainerView::getMinimumContentBounds() const
 }
 
 
-void PeersContainerView::updatePeerViews()
+void PeersContainerView::updatePeerViews(int specific)
 {
     uint32 nowstampms = Time::getMillisecondCounter();
     bool needsUpdateLayout = false;
 
     for (int i=0; i < mPeerViews.size(); ++i) {
+        if (specific >= 0 && specific != i) continue;
+        
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         String hostname;
         int port = 0;
@@ -1252,7 +1276,8 @@ void PeersContainerView::updatePeerViews()
         SonobusAudioProcessor::LatencyInfo latinfo;
         processor.getRemotePeerLatencyInfo(i, latinfo);
         
-        pvf->pingLabel->setText(String::formatted("%d ms", (int)latinfo.pingMs ), dontSendNotification);
+        //pvf->pingLabel->setText(String::formatted("%d ms", (int)latinfo.pingMs ), dontSendNotification);
+        pvf->pingLabel->setText(String::formatted("%d", (int)lrintf(latinfo.pingMs) ), dontSendNotification);
         
         if (!latinfo.isreal) {
             if (pvf->stopLatencyTestTimestampMs > 0) {
@@ -1261,7 +1286,18 @@ void PeersContainerView::updatePeerViews()
                 pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
             }
         } else {
-            pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : ""), dontSendNotification);
+            //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : ""), dontSendNotification);
+            String latlab = juce::CharPointer_UTF8 ("\xe2\x86\x91");
+            latlab << (int)lrintf(latinfo.outgoingMs) << "   "; 
+            //latlab << String::formatted(TRANS("%.1f"), latinfo.outgoingMs) << "   ";
+            //latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")) << (int)lrintf(latinfo.incomingMs);
+            latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93"));
+            latlab << (int)lrintf(latinfo.incomingMs) ;
+            //latlab << String::formatted("%.1f", latinfo.incomingMs) ;
+            ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)             
+            latlab << (latinfo.estimated ? " *" : "");
+            
+            pvf->latencyLabel->setText(latlab, dontSendNotification);
         }
 
         
@@ -1370,7 +1406,7 @@ void PeersContainerView::updatePeerViews()
                 stopLatencyTest(i);
                 
                 String messagestr = generateLatencyMessage(latinfo);
-                showPopTip(messagestr, 0, pvf->latActiveButton.get(), 140);
+                showPopTip(messagestr, 5000, pvf->latActiveButton.get(), 140);
 
             }
         }
@@ -1431,7 +1467,8 @@ void PeersContainerView::stopLatencyTest(int i)
     if (!latinfo.isreal) {
         pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
     } else {
-        pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : "") , dontSendNotification);
+        //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : "") , dontSendNotification);
+        updatePeerViews(i);
     }
 }
 
@@ -1895,7 +1932,7 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
                 
                 String messagestr = generateLatencyMessage(latinfo);
 
-                showPopTip(messagestr, 0, pvf->latActiveButton.get(), 140);
+                showPopTip(messagestr, 5000, pvf->latActiveButton.get(), 140);
 
             }
             break;

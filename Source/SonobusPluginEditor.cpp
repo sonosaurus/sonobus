@@ -1483,7 +1483,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     defHeight = 470;
 #endif
     
-    setSize (720, defHeight);
+    setSize (760, defHeight);
        
 }
 

@@ -205,7 +205,7 @@ public:
     int getPendingPeerCount() const { return mPendingUsers.size(); }
     
     void rebuildPeerViews();
-    void updatePeerViews();
+    void updatePeerViews(int specific=-1);
     
     void setNarrowMode(bool flag) { isNarrow = flag; updateLayout(); }
     bool setNarrowMode() const { return isNarrow; }
