@@ -85,7 +85,6 @@ public:
         appProperties.setStorageParameters (options);
 
         LookAndFeel::setDefaultLookAndFeel(&sonoLNF);
-        
     }
 
     const String getApplicationName() override              { return JucePlugin_Name; }

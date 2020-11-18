@@ -2964,6 +2964,9 @@
     <ClInclude Include="..\..\Source\LevelMeterLookAndFeelMethods.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\LocalLatencyMeasurer.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Metronome.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>

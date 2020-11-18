@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
+              companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
+              pluginFormats="buildAUv3,buildStandalone,enableIAA" pluginManufacturerCode="Sono"
+              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.0.4-33&quot;"
+              pluginDesc="SonoBus - Network Audio" version="1.0.4" cppLanguageStandard="17"
+              projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'"
+              pluginAUIsSandboxSafe="1">
+  <MAINGROUP id="i87g34" name="SonoBus">
+    <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
+      <GROUP id="{81488E5D-9CA2-F73A-62B1-4376F46E70B1}" name="aoo">
+        <FILE id="CXCcNv" name="aoo.h" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo.h"/>
+        <FILE id="KsAYo0" name="aoo.hpp" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo.hpp"/>
+        <FILE id="oGmcZz" name="aoo_net.h" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo_net.h"/>
+        <FILE id="K9e2rX" name="aoo_net.hpp" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo_net.hpp"/>
+        <FILE id="K5dggG" name="aoo_opus.h" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo_opus.h"/>
+        <FILE id="pXeQTi" name="aoo_pcm.h" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo_pcm.h"/>
+        <FILE id="b9NaJv" name="aoo_types.h" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo_types.h"/>
+        <FILE id="o3BEea" name="aoo_utils.hpp" compile="0" resource="0" file="../deps/aoo/lib/aoo/aoo_utils.hpp"/>
+      </GROUP>
+      <GROUP id="{E5AFC4C8-A0A7-B0F4-A69E-CFDB0B320E38}" name="aoo_source">
+        <FILE id="haNxDa" name="client.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/client.cpp"/>
+        <FILE id="LImbGg" name="client.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/client.hpp"/>
+        <FILE id="bftdbU" name="codec_opus.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/codec_opus.cpp"/>
+        <FILE id="ZCju9A" name="codec_pcm.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/codec_pcm.cpp"/>
+        <FILE id="uCZ3sZ" name="common.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/common.cpp"/>
+        <FILE id="yHRnJs" name="common.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/common.hpp"/>
+        <FILE id="p8sifr" name="lockfree.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/lockfree.hpp"/>
+        <FILE id="douMr0" name="net_utils.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/net_utils.cpp"/>
+        <FILE id="GtE9uV" name="net_utils.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/net_utils.hpp"/>
+        <FILE id="BXeAp6" name="server.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/server.cpp"/>
+        <FILE id="auHV1g" name="server.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/server.hpp"/>
+        <FILE id="BXxcs8" name="sink.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/sink.cpp"/>
+        <FILE id="BTG69z" name="sink.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/sink.hpp"/>
+        <FILE id="YdSsAe" name="SLIP.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/SLIP.hpp"/>
+        <FILE id="ekvKE6" name="source.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/source.cpp"/>
+        <FILE id="J6tW6e" name="source.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/source.hpp"/>
+        <FILE id="rImC26" name="sync.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/sync.cpp"/>
+        <FILE id="AZX8fA" name="sync.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/sync.hpp"/>
+        <FILE id="J9l9Fn" name="time.cpp" compile="1" resource="0" file="../deps/aoo/lib/src/time.cpp"/>
+        <FILE id="n36AJF" name="time.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/time.hpp"/>
+        <FILE id="bcqhDS" name="time_dll.hpp" compile="0" resource="0" file="../deps/aoo/lib/src/time_dll.hpp"/>
+      </GROUP>
+      <GROUP id="{9AC6513B-2710-657C-2315-852FA6D3B5ED}" name="md5">
+        <FILE id="e3l4tq" name="md5.c" compile="1" resource="0" file="../deps/aoo/deps/md5/md5.c"/>
+        <FILE id="vlwWfU" name="md5.h" compile="0" resource="0" file="../deps/aoo/deps/md5/md5.h"/>
+      </GROUP>
+      <GROUP id="{7491F91C-7028-FD78-C4DF-16BA24EA05FB}" name="osc">
+        <FILE id="YVJwWs" name="MessageMappingOscPacketListener.h" compile="0"
+              resource="0" file="../deps/aoo/deps/oscpack/osc/MessageMappingOscPacketListener.h"/>
+        <FILE id="wudfp1" name="OscException.h" compile="0" resource="0" file="../deps/aoo/deps/oscpack/osc/OscException.h"/>
+        <FILE id="r6vfLx" name="OscHostEndianness.h" compile="0" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscHostEndianness.h"/>
+        <FILE id="U47Hul" name="OscOutboundPacketStream.cpp" compile="1" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp"/>
+        <FILE id="yAdHA8" name="OscOutboundPacketStream.h" compile="0" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.h"/>
+        <FILE id="STrZZK" name="OscPacketListener.h" compile="0" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscPacketListener.h"/>
+        <FILE id="OVpzdi" name="OscPrintReceivedElements.cpp" compile="1" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp"/>
+        <FILE id="Uw3Ebz" name="OscPrintReceivedElements.h" compile="0" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.h"/>
+        <FILE id="OAOct3" name="OscReceivedElements.cpp" compile="1" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscReceivedElements.cpp"/>
+        <FILE id="zWkCYF" name="OscReceivedElements.h" compile="0" resource="0"
+              file="../deps/aoo/deps/oscpack/osc/OscReceivedElements.h"/>
+        <FILE id="aNEtYV" name="OscTypes.cpp" compile="1" resource="0" file="../deps/aoo/deps/oscpack/osc/OscTypes.cpp"/>
+        <FILE id="ABDX07" name="OscTypes.h" compile="0" resource="0" file="../deps/aoo/deps/oscpack/osc/OscTypes.h"/>
+      </GROUP>
+    </GROUP>
+    <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
+      <FILE id="xiA07t" name="bar_click.wav" compile="0" resource="1" file="../images/bar_click.wav"/>
+      <FILE id="fRSnh7" name="beat_click.wav" compile="0" resource="1" file="../images/beat_click.wav"/>
+      <FILE id="uAKgXJ" name="copy_icon.svg" compile="0" resource="1" file="../images/copy_icon.svg"/>
+      <FILE id="kz3BRe" name="DejaVuSans.ttf" compile="0" resource="1" file="../Source/DejaVuSans.ttf"/>
+      <FILE id="Fm4Fga" name="dice_icon_128.png" compile="0" resource="1"
+            file="../images/dice_icon_128.png"/>
+      <FILE id="c8VUXh" name="dots.svg" compile="0" resource="1" file="../images/dots.svg"/>
+      <FILE id="FHmMgZ" name="dots_icon.png" compile="0" resource="1" file="../images/dots_icon.png"/>
+      <FILE id="POLysK" name="folder_icon.svg" compile="0" resource="1" file="../images/folder_icon.svg"/>
+      <FILE id="wCjBZE" name="hear-others.svg" compile="0" resource="1" file="../images/hear-others.svg"/>
+      <FILE id="qMD4fK" name="incoming_allowed.svg" compile="0" resource="1"
+            file="../images/incoming_allowed.svg"/>
+      <FILE id="ofLXkF" name="incoming_allowed_active.svg" compile="0" resource="1"
+            file="../images/incoming_allowed_active.svg"/>
+      <FILE id="fl99tM" name="incoming_disallowed.svg" compile="0" resource="1"
+            file="../images/incoming_disallowed.svg"/>
+      <FILE id="A49mBq" name="launchicon@2x.png" compile="0" resource="0"
+            file="../images/launchicon@2x.png" xcodeResource="1"/>
+      <FILE id="OJpF4k" name="lgc_bar.wav" compile="0" resource="1" file="../images/lgc_bar.wav"/>
+      <FILE id="YbShOM" name="link.svg" compile="0" resource="1" file="../images/link.svg"/>
+      <FILE id="qJixJa" name="loop_icon.svg" compile="0" resource="1" file="../images/loop_icon.svg"/>
+      <FILE id="GIpd7j" name="met.svg" compile="0" resource="1" file="../images/met.svg"/>
+      <FILE id="pUqtix" name="mic.svg" compile="0" resource="1" file="../images/mic.svg"/>
+      <FILE id="ZeI5Mg" name="mic_disabled.svg" compile="0" resource="1"
+            file="../images/mic_disabled.svg"/>
+      <FILE id="g1nMC4" name="mic_pointing.svg" compile="0" resource="1"
+            file="../images/mic_pointing.svg"/>
+      <FILE id="fpuUKr" name="move_updown.svg" compile="0" resource="1" file="../images/move_updown.svg"/>
+      <FILE id="KDamww" name="mute-others.svg" compile="0" resource="1" file="../images/mute-others.svg"/>
+      <FILE id="oqDUZR" name="outgoing_allowed.svg" compile="0" resource="1"
+            file="../images/outgoing_allowed.svg"/>
+      <FILE id="JVcaCU" name="outgoing_allowed_active.svg" compile="0" resource="1"
+            file="../images/outgoing_allowed_active.svg"/>
+      <FILE id="py1rJM" name="outgoing_disallowed.svg" compile="0" resource="1"
+            file="../images/outgoing_disallowed.svg"/>
+      <FILE id="qLOTGt" name="paste_icon.svg" compile="0" resource="1" file="../images/paste_icon.svg"/>
+      <FILE id="yov3DL" name="pause_icon.svg" compile="0" resource="1" file="../images/pause_icon.svg"/>
+      <FILE id="aKJDQ9" name="people.png" compile="0" resource="1" file="../images/people.png"/>
+      <FILE id="cQzT1x" name="people.svg" compile="0" resource="1" file="../images/people.svg"/>
+      <FILE id="j1Mze0" name="person.png" compile="0" resource="1" file="../images/person.png"/>
+      <FILE id="r0BTkg" name="person.svg" compile="0" resource="1" file="../images/person.svg"/>
+      <FILE id="GAUhzL" name="play_icon.svg" compile="0" resource="1" file="../images/play_icon.svg"/>
+      <FILE id="ZyIQwe" name="power.svg" compile="0" resource="1" file="../images/power.svg"/>
+      <FILE id="cWw1Bb" name="power_sel.svg" compile="0" resource="1" file="../images/power_sel.svg"/>
+      <FILE id="HnNcyd" name="record.svg" compile="0" resource="1" file="../images/record.svg"/>
+      <FILE id="cgsh7t" name="record_active.svg" compile="0" resource="1"
+            file="../images/record_active.svg"/>
+      <FILE id="QUforj" name="record_active_alt.svg" compile="0" resource="1"
+            file="../images/record_active_alt.svg"/>
+      <FILE id="VFKIt9" name="reset_buffer_icon.svg" compile="0" resource="1"
+            file="../images/reset_buffer_icon.svg"/>
+      <FILE id="bq1pq6" name="send_group.svg" compile="0" resource="1" file="../images/send_group.svg"/>
+      <FILE id="YJbZr5" name="send_group_small.svg" compile="0" resource="1"
+            file="../images/send_group_small.svg"/>
+      <FILE id="bz606s" name="settings_icon.svg" compile="0" resource="1"
+            file="../images/settings_icon.svg"/>
+      <FILE id="Op0YnA" name="skipback_icon.svg" compile="0" resource="1"
+            file="../images/skipback_icon.svg"/>
+      <FILE id="gFXJgn" name="sonobus_icon_ios_256.png" compile="0" resource="0"
+            file="../images/sonobus_icon_ios_256.png"/>
+      <FILE id="kMrPPT" name="sonobus_icon_ios_1024.png" compile="0" resource="0"
+            file="../images/sonobus_icon_ios_1024.png"/>
+      <FILE id="kOmbNh" name="sonobus_logo@2x.png" compile="0" resource="0"
+            file="../images/sonobus_logo@2x.png" xcodeResource="1"/>
+      <FILE id="O8neg6" name="sonobus_logo_96.png" compile="0" resource="1"
+            file="../images/sonobus_logo_96.png"/>
+      <FILE id="nu70Xg" name="sonobus_title_small.png" compile="0" resource="1"
+            file="../images/sonobus_title_small.png"/>
+      <FILE id="VrdLC9" name="speaker.svg" compile="0" resource="1" file="../images/speaker.svg"/>
+      <FILE id="QlpOmj" name="speaker_disabled.svg" compile="0" resource="1"
+            file="../images/speaker_disabled.svg"/>
+      <FILE id="ugPUxN" name="triangle_disclosure.svg" compile="0" resource="1"
+            file="../images/triangle_disclosure.svg"/>
+      <FILE id="v307Tj" name="urei_main.wav" compile="0" resource="1" file="../images/urei_main.wav"/>
+      <FILE id="yF2qUb" name="wordmaker.g" compile="0" resource="1" file="../Source/wordmaker.g"/>
+      <FILE id="t7l3zq" name="x_icon.svg" compile="0" resource="1" file="../images/x_icon.svg"/>
+    </GROUP>
+    <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
+      <FILE id="iYcp68" name="AutoUpdater.cpp" compile="1" resource="0" file="../Source/AutoUpdater.cpp"/>
+      <FILE id="TcpTNU" name="AutoUpdater.h" compile="0" resource="0" file="../Source/AutoUpdater.h"/>
+      <FILE id="Rs48Iv" name="BeatToggleGrid.cpp" compile="1" resource="0"
+            file="../Source/BeatToggleGrid.cpp"/>
+      <FILE id="A7Js2L" name="BeatToggleGrid.h" compile="0" resource="0"
+            file="../Source/BeatToggleGrid.h"/>
+      <FILE id="g1gcnX" name="CompressorView.h" compile="0" resource="0"
+            file="../Source/CompressorView.h"/>
+      <FILE id="T1YaHs" name="CrossPlatformUtils.h" compile="0" resource="0"
+            file="../Source/CrossPlatformUtils.h"/>
+      <FILE id="HPh3Oo" name="CrossPlatformUtilsAndroid.cpp" compile="1"
+            resource="0" file="../Source/CrossPlatformUtilsAndroid.cpp"/>
+      <FILE id="JpwNEr" name="CrossPlatformUtilsIOS.mm" compile="1" resource="0"
+            file="../Source/CrossPlatformUtilsIOS.mm"/>
+      <FILE id="z3g3XG" name="CrossPlatformUtilsLinux.cpp" compile="1" resource="0"
+            file="../Source/CrossPlatformUtilsLinux.cpp"/>
+      <FILE id="s2lkPs" name="CrossPlatformUtilsMac.mm" compile="1" resource="0"
+            file="../Source/CrossPlatformUtilsMac.mm"/>
+      <FILE id="gJfPyI" name="CrossPlatformUtilsWindows.cpp" compile="1"
+            resource="0" file="../Source/CrossPlatformUtilsWindows.cpp"/>
+      <FILE id="ylWcYu" name="DebugLogC.h" compile="0" resource="0" file="../Source/DebugLogC.h"/>
+      <FILE id="g9yEBK" name="EffectsBaseView.h" compile="0" resource="0"
+            file="../Source/EffectsBaseView.h"/>
+      <FILE id="Po7hA6" name="ExpanderView.h" compile="0" resource="0" file="../Source/ExpanderView.h"/>
+      <FILE id="gNWF4i" name="faustCompressor.h" compile="0" resource="0"
+            file="../Source/faustCompressor.h"/>
+      <FILE id="S4UsXf" name="faustExpander.h" compile="0" resource="0" file="../Source/faustExpander.h"/>
+      <FILE id="JdAZfs" name="faustLimiter.h" compile="0" resource="0" file="../Source/faustLimiter.h"/>
+      <FILE id="LUgGcY" name="faustParametricEQ.h" compile="0" resource="0"
+            file="../Source/faustParametricEQ.h"/>
+      <FILE id="i6EPwY" name="GenericItemChooser.cpp" compile="1" resource="0"
+            file="../Source/GenericItemChooser.cpp"/>
+      <FILE id="YQ4jbg" name="GenericItemChooser.h" compile="0" resource="0"
+            file="../Source/GenericItemChooser.h"/>
+      <FILE id="R6XCcF" name="JitterBufferMeter.cpp" compile="1" resource="0"
+            file="../Source/JitterBufferMeter.cpp"/>
+      <FILE id="K7PT1u" name="JitterBufferMeter.h" compile="0" resource="0"
+            file="../Source/JitterBufferMeter.h"/>
+      <FILE id="r9eEzq" name="LatencyMeasurer.cpp" compile="1" resource="0"
+            file="../Source/LatencyMeasurer.cpp"/>
+      <FILE id="FGMTbi" name="LatencyMeasurer.h" compile="0" resource="0"
+            file="../Source/LatencyMeasurer.h"/>
+      <FILE id="Tb9xl4" name="LevelMeterLookAndFeelMethods.h" compile="0"
+            resource="0" file="../Source/LevelMeterLookAndFeelMethods.h"/>
+      <FILE id="NeaBod" name="Metronome.cpp" compile="1" resource="0" file="../Source/Metronome.cpp"/>
+      <FILE id="WKHMl1" name="Metronome.h" compile="0" resource="0" file="../Source/Metronome.h"/>
+      <FILE id="SrhLZZ" name="mtdm.cc" compile="1" resource="0" file="../Source/mtdm.cc"/>
+      <FILE id="h7qrAm" name="mtdm.h" compile="0" resource="0" file="../Source/mtdm.h"/>
+      <FILE id="SdZGA6" name="MVerb.h" compile="0" resource="0" file="../Source/MVerb.h"/>
+      <FILE id="B4nZqy" name="ParametricEqView.h" compile="0" resource="0"
+            file="../Source/ParametricEqView.h"/>
+      <FILE id="DeK0oj" name="PeersContainerView.cpp" compile="1" resource="0"
+            file="../Source/PeersContainerView.cpp"/>
+      <FILE id="kOjhnM" name="PeersContainerView.h" compile="0" resource="0"
+            file="../Source/PeersContainerView.h"/>
+      <FILE id="hfA5YX" name="RandomSentenceGenerator.cpp" compile="1" resource="0"
+            file="../Source/RandomSentenceGenerator.cpp"/>
+      <FILE id="e5pe8M" name="RandomSentenceGenerator.h" compile="0" resource="0"
+            file="../Source/RandomSentenceGenerator.h"/>
+      <FILE id="K4fw2S" name="RunCumulantor.cpp" compile="1" resource="0"
+            file="../Source/RunCumulantor.cpp"/>
+      <FILE id="rnucPD" name="RunCumulantor.h" compile="0" resource="0" file="../Source/RunCumulantor.h"/>
+      <FILE id="kwzk3r" name="RunningCumulant.c" compile="1" resource="0"
+            file="../Source/RunningCumulant.c"/>
+      <FILE id="u8Lj3E" name="RunningCumulant.h" compile="0" resource="0"
+            file="../Source/RunningCumulant.h"/>
+      <FILE id="Q95ttR" name="SonobusPluginEditor.cpp" compile="1" resource="0"
+            file="../Source/SonobusPluginEditor.cpp"/>
+      <FILE id="AILfu9" name="SonobusPluginEditor.h" compile="0" resource="0"
+            file="../Source/SonobusPluginEditor.h"/>
+      <FILE id="CObzfd" name="SonobusPluginProcessor.cpp" compile="1" resource="0"
+            file="../Source/SonobusPluginProcessor.cpp"/>
+      <FILE id="xG20yE" name="SonobusPluginProcessor.h" compile="0" resource="0"
+            file="../Source/SonobusPluginProcessor.h"/>
+      <FILE id="Mf9gt1" name="SonobusTypes.h" compile="0" resource="0" file="../Source/SonobusTypes.h"/>
+      <FILE id="MwSKP0" name="SonoChoiceButton.cpp" compile="1" resource="0"
+            file="../Source/SonoChoiceButton.cpp"/>
+      <FILE id="ITl3P6" name="SonoChoiceButton.h" compile="0" resource="0"
+            file="../Source/SonoChoiceButton.h"/>
+      <FILE id="QZQAVp" name="SonoDrawableButton.cpp" compile="1" resource="0"
+            file="../Source/SonoDrawableButton.cpp"/>
+      <FILE id="chZNwZ" name="SonoDrawableButton.h" compile="0" resource="0"
+            file="../Source/SonoDrawableButton.h"/>
+      <FILE id="zVQRf2" name="SonoLookAndFeel.cpp" compile="1" resource="0"
+            file="../Source/SonoLookAndFeel.cpp"/>
+      <FILE id="c8GbyR" name="SonoLookAndFeel.h" compile="0" resource="0"
+            file="../Source/SonoLookAndFeel.h"/>
+      <FILE id="ezIXi1" name="SonoStandaloneFilterApp.cpp" compile="1" resource="0"
+            file="../Source/SonoStandaloneFilterApp.cpp"/>
+      <FILE id="XXRZJQ" name="SonoStandaloneFilterWindow.h" compile="0" resource="0"
+            file="../Source/SonoStandaloneFilterWindow.h"/>
+      <FILE id="v0LfWs" name="SonoTextButton.cpp" compile="1" resource="0"
+            file="../Source/SonoTextButton.cpp"/>
+      <FILE id="AO7Mz9" name="SonoTextButton.h" compile="0" resource="0"
+            file="../Source/SonoTextButton.h"/>
+      <FILE id="yA0fU7" name="SonoUtility.h" compile="0" resource="0" file="../Source/SonoUtility.h"/>
+      <FILE id="bmDRNP" name="VersionInfo.cpp" compile="1" resource="0" file="../Source/VersionInfo.cpp"/>
+      <FILE id="xTwj0w" name="VersionInfo.h" compile="0" resource="0" file="../Source/VersionInfo.h"/>
+      <FILE id="MhDj8V" name="WaveformTransportComponent.cpp" compile="1"
+            resource="0" file="../Source/WaveformTransportComponent.cpp"/>
+      <FILE id="ENU7rn" name="WaveformTransportComponent.h" compile="0" resource="0"
+            file="../Source/WaveformTransportComponent.h"/>
+      <FILE id="GylxQB" name="zitaRev.h" compile="0" resource="0" file="../Source/zitaRev.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <XCODE_IPHONE targetFolder="../Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;33&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;key&gt;NSLocalNetworkUsageDescription&lt;/key&gt;&#10;&#9;&lt;string&gt;SonoBus uses networking to communicate with other local services&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
+                  externalLibraries="opus" smallIcon="tb00W2" bigIcon="rlxTrd"
+                  UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="images/LaunchScreen.storyboard">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/ios/include&#10;"
+                       libraryPath="../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"
+                       iosCompatibility="11.0"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/ios/include&#10;"
+                       libraryPath="../../deps/ios/lib" iosCompatibility="11.0"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_graphics" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_events" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_core" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../deps/juce/modules"/>
+        <MODULEPATH id="ff_meters" path="../deps"/>
+        <MODULEPATH id="juce_dsp" path="../deps/juce/modules"/>
+      </MODULEPATHS>
+    </XCODE_IPHONE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="ff_meters" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <OSX/>
+    <LINUX/>
+    <WINDOWS/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
+               FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"
+               JUCE_JACK="1" JUCE_ASIO="1"/>
+</JUCERPROJECT>

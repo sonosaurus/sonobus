@@ -577,13 +577,6 @@
 			path = "Info-VST.plist";
 			sourceTree = "SOURCE_ROOT";
 		};
-		2389570162279B0CA0BFD47D = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.cpp.cpp;
-			name = "include_juce_audio_plugin_client_Standalone.cpp";
-			path = "../../JuceLibraryCode/include_juce_audio_plugin_client_Standalone.cpp";
-			sourceTree = "SOURCE_ROOT";
-		};
 		26AC25335D05B8B0971F81D6 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.objcpp;
@@ -666,6 +659,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = SonoDrawableButton.h;
 			path = ../../Source/SonoDrawableButton.h;
+			sourceTree = "SOURCE_ROOT";
+		};
+		3491905B0D458039A56098E1 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_audio_basics";
+			path = "../../deps/juce/modules/juce_audio_basics";
 			sourceTree = "SOURCE_ROOT";
 		};
 		34E7B88EE4048F137E3B476E = {
@@ -759,6 +759,13 @@
 			path = "../../JuceLibraryCode/include_juce_audio_plugin_client_VST2.cpp";
 			sourceTree = "SOURCE_ROOT";
 		};
+		2389570162279B0CA0BFD47D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = "include_juce_audio_plugin_client_Standalone.cpp";
+			path = "../../JuceLibraryCode/include_juce_audio_plugin_client_Standalone.cpp";
+			sourceTree = "SOURCE_ROOT";
+		};
 		2C2AAC5ED9D5FFB77BF9DCA7 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
@@ -771,13 +778,6 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = Metronome.h;
 			path = ../../Source/Metronome.h;
-			sourceTree = "SOURCE_ROOT";
-		};
-		3491905B0D458039A56098E1 = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_audio_basics";
-			path = "../../deps/juce/modules/juce_audio_basics";
 			sourceTree = "SOURCE_ROOT";
 		};
 		3EF663FECADF1AE820231957 = {
@@ -988,6 +988,13 @@
 			lastKnownFileType = file.svg;
 			name = "reset_buffer_icon.svg";
 			path = "../../images/reset_buffer_icon.svg";
+			sourceTree = "SOURCE_ROOT";
+		};
+		5D2D2B39D5D0C72BE8F7E00C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = LocalLatencyMeasurer.h;
+			path = ../../Source/LocalLatencyMeasurer.h;
 			sourceTree = "SOURCE_ROOT";
 		};
 		5D6B0E5E3CB1868E696C3A68 = {
@@ -2168,6 +2175,7 @@
 				9A7EAB5145EA1D51837DCE05,
 				467B6C650D505890D2CF4934,
 				14B5A911A3A1AAEDBBBEAA95,
+				5D2D2B39D5D0C72BE8F7E00C,
 				4A4AF1909DF6EF2529F887B9,
 				346979A4DBBFE92B79655A9D,
 				07AFC24FDD26FBB824C3D8F1,

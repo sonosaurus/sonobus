@@ -2334,6 +2334,7 @@
     <ClInclude Include="..\..\Source\JitterBufferMeter.h"/>
     <ClInclude Include="..\..\Source\LatencyMeasurer.h"/>
     <ClInclude Include="..\..\Source\LevelMeterLookAndFeelMethods.h"/>
+    <ClInclude Include="..\..\Source\LocalLatencyMeasurer.h"/>
     <ClInclude Include="..\..\Source\Metronome.h"/>
     <ClInclude Include="..\..\Source\mtdm.h"/>
     <ClInclude Include="..\..\Source\MVerb.h"/>

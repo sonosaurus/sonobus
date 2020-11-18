@@ -196,6 +196,8 @@
             file="Source/LatencyMeasurer.h"/>
       <FILE id="fqZMTM" name="LevelMeterLookAndFeelMethods.h" compile="0"
             resource="0" file="Source/LevelMeterLookAndFeelMethods.h"/>
+      <FILE id="VoFrI5" name="LocalLatencyMeasurer.h" compile="0" resource="0"
+            file="Source/LocalLatencyMeasurer.h"/>
       <FILE id="JIOwEt" name="Metronome.cpp" compile="1" resource="0" file="Source/Metronome.cpp"/>
       <FILE id="qPvWp5" name="Metronome.h" compile="0" resource="0" file="Source/Metronome.h"/>
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
