@@ -655,6 +655,13 @@
 			path = SonoBus.appex;
 			sourceTree = "BUILT_PRODUCTS_DIR";
 		};
+		3CA5320CE1922585FBEB602B = {
+			isa = PBXFileReference;
+			lastKnownFileType = file.svg;
+			name = "triangle_disclosure.svg";
+			path = "../../images/triangle_disclosure.svg";
+			sourceTree = "SOURCE_ROOT";
+		};
 		3E3B798DA2C8DE415AE4C564 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -891,6 +898,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = SonoUtility.h;
 			path = ../../Source/SonoUtility.h;
+			sourceTree = "SOURCE_ROOT";
+		};
+		5AAB31C21BFB2D518ECFBF53 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file.svg;
+			name = "reset_buffer_icon.svg";
+			path = "../../images/reset_buffer_icon.svg";
 			sourceTree = "SOURCE_ROOT";
 		};
 		5BC3101B3C0129A9667DC565 = {
@@ -1988,6 +2002,7 @@
 				2F3D258ACECB14217C54DFD4,
 				371CE29C40C1223E7CC70DB4,
 				CA2052614D466A3F22C8C54F,
+				5AAB31C21BFB2D518ECFBF53,
 				861AECE913C2D820005F5D2D,
 				745A7F064CCBD34B8D18745A,
 				9FA8173AFDDD2EBDC97B9E5B,
@@ -2000,6 +2015,7 @@
 				9419D5F06208DD276B6E223D,
 				6706FA685F09B264D07384CE,
 				9F065C49ED17409BB2B2CA20,
+				3CA5320CE1922585FBEB602B,
 				1905894A57C4F7CCFEC984DE,
 				05B0C41347FC0115D9494A6D,
 				AEB2DDBB2BEA9870912C1E70,

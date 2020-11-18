@@ -59,6 +59,9 @@ public:
     std::unique_ptr<TextButton> optionsRemoveButton;
     std::unique_ptr<SonoChoiceButton> remoteSendFormatChoiceButton;
     std::unique_ptr<SonoDrawableButton> bufferMinButton;
+    std::unique_ptr<SonoDrawableButton> bufferMinFrontButton;
+    std::unique_ptr<Drawable> recvButtonImage;
+    std::unique_ptr<Drawable> sendButtonImage;
 
     std::unique_ptr<Component> effectsContainer;
 

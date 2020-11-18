@@ -925,7 +925,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsRecMixMinusButton = std::make_unique<ToggleButton>(TRANS("Full Mix without yourself"));
     mOptionsRecMixMinusButton->addListener(this);
 
-    mOptionsRecSelfButton = std::make_unique<ToggleButton>(TRANS("Yourself Only"));
+    mOptionsRecSelfButton = std::make_unique<ToggleButton>(TRANS("Yourself"));
     mOptionsRecSelfButton->addListener(this);
 
     mOptionsRecOthersButton = std::make_unique<ToggleButton>(TRANS("Each Connected User"));
@@ -3828,8 +3828,13 @@ void SonobusAudioProcessorEditor::resized()
     Rectangle<int> peersminbounds = mPeerContainer->getMinimumContentBounds();
     
     mPeerContainer->setBounds(Rectangle<int>(0, 0, std::max(peersminbounds.getWidth(), mPeerViewport->getWidth() - 10), std::max(peersminbounds.getHeight() + 5, mPeerViewport->getHeight())));
-    
-    mSetupAudioButton->setSize(150, 50);
+
+#if JUCE_IOS
+    mSetupAudioButton->setSize(150, 1);
+#else
+    mSetupAudioButton->setSize(150, 50);	
+#endif
+	
     mSetupAudioButton->setCentrePosition(mPeerViewport->getX() + 0.5*mPeerViewport->getWidth(), mPeerViewport->getY() + 45);
     
     mMainMessageLabel->setBounds(mPeerViewport->getX() + 10, mSetupAudioButton->getBottom() + 10, mPeerViewport->getRight() - mPeerViewport->getX() - 20, jmin(120, mPeerViewport->getBottom() - (mSetupAudioButton->getBottom() + 10)));

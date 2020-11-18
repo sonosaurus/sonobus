@@ -441,6 +441,12 @@ enum {
     OutUserLastBusIndex = 9
 };
 
+#if JUCE_IOS
+#define ALTBUS_ACTIVE true
+#else
+#define ALTBUS_ACTIVE false
+#endif
+
 
 //==============================================================================
 SonobusAudioProcessor::SonobusAudioProcessor()
@@ -448,15 +454,17 @@ SonobusAudioProcessor::SonobusAudioProcessor()
      : AudioProcessor (BusesProperties()
                        .withInput  ("Input",  AudioChannelSet::stereo(), true)
                        .withOutput ("Mix Output", AudioChannelSet::stereo(), true)
-                       .withOutput ("Self Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 1 Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 2 Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 3 Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 4 Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 5 Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 6 Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 7 Output", AudioChannelSet::stereo(), false)
-                       .withOutput ("User 8 Output", AudioChannelSet::stereo(), false)                       
+#ifndef DONT_USE_MULTIBUS
+                       .withOutput ("Self Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 1 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 2 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 3 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 4 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 5 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 6 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 7 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+                       .withOutput ("User 8 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)                       
+#endif
                        ),
 #endif
 mState (*this, &mUndoManager, "SonoBusAoO",
@@ -1722,7 +1730,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     if (!peer->autoNetbufInitCompleted && peer->lastDroptime > 0) {
                         double nowtime = Time::getMillisecondCounterHiRes();
                         double deltatime = (nowtime - peer->lastDroptime) * 1e-3; 
-                        const float nodropsthresh = 4.0; // no drops in 4 seconds
+                        const float nodropsthresh = 7.0; // no drops in 7 seconds
                         if (deltatime > nodropsthresh) {
                             peer->autoNetbufInitCompleted = true;
                             DBG("Netbuf Initial auto time is done after no drops in " << nodropsthresh);
@@ -4742,9 +4750,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 if (sl.isLocked())
                 {
                     if (rindex < activeUserWriters.size() && activeUserWriters[rindex] != nullptr) {
-
-                        activeUserWriters[rindex]->write (remote->workBuffer.getArrayOfReadPointers(), numSamples);
-
+                        float *tmpbuf[totalRecordingChannels];
+                        for (int i = 0; i < totalRecordingChannels; ++i) {
+                            tmpbuf[i] = remote->workBuffer.getWritePointer(i < remote->recvChannels ? i : std::max(0, remote->recvChannels - 1));
+                        }
+                        activeUserWriters[rindex]->write (tmpbuf, numSamples);
                     }
                 }                
             }

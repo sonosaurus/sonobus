@@ -5600,6 +5600,9 @@
     <None Include="..\..\images\record_active_alt.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\reset_buffer_icon.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\send_group.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
@@ -5634,6 +5637,9 @@
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\speaker_disabled.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\triangle_disclosure.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\urei_main.wav">

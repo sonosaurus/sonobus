@@ -12,6 +12,10 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseVST2|x64">
+      <Configuration>ReleaseVST2</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8E20377A-F257-714B-E170-4F93CF6AC187}</ProjectGuid>
@@ -26,6 +30,14 @@
     <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'"
+                 Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v141</PlatformToolset>
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'"
                  Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
@@ -51,6 +63,10 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\Shared Code\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SonoBus</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">$(SolutionDir)$(Platform)\$(Configuration)\Shared Code\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">$(Platform)\$(Configuration)\Shared Code\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">SonoBus</TargetName>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">true</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -105,6 +121,49 @@
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.0.4-33&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.0.4;JUCE_APP_VERSION_HEX=0x10004;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)\</ProgramDataBaseFileName>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <OutputFile>$(OutDir)\SonoBus.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)\SonoBus.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LargeAddressAware>true</LargeAddressAware>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>$(IntDir)\SonoBus.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <HeaderFileName/>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.0.4-33&quot;;DONT_USE_MULTIBUS;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.0.4;JUCE_APP_VERSION_HEX=0x10004;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -3155,6 +3214,7 @@
     <None Include="..\..\images\record.svg"/>
     <None Include="..\..\images\record_active.svg"/>
     <None Include="..\..\images\record_active_alt.svg"/>
+    <None Include="..\..\images\reset_buffer_icon.svg"/>
     <None Include="..\..\images\send_group.svg"/>
     <None Include="..\..\images\send_group_small.svg"/>
     <None Include="..\..\images\settings_icon.svg"/>
@@ -3167,6 +3227,7 @@
     <None Include="..\..\images\sonobus_title_small.png"/>
     <None Include="..\..\images\speaker.svg"/>
     <None Include="..\..\images\speaker_disabled.svg"/>
+    <None Include="..\..\images\triangle_disclosure.svg"/>
     <None Include="..\..\images\urei_main.wav"/>
     <None Include="..\..\Source\wordmaker.g"/>
     <None Include="..\..\images\x_icon.svg"/>

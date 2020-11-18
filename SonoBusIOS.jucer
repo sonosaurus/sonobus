@@ -121,6 +121,8 @@
             file="images/record_active.svg"/>
       <FILE id="KcXBdG" name="record_active_alt.svg" compile="0" resource="1"
             file="images/record_active_alt.svg"/>
+      <FILE id="UxnKwN" name="reset_buffer_icon.svg" compile="0" resource="1"
+            file="images/reset_buffer_icon.svg"/>
       <FILE id="zhDqf1" name="send_group.svg" compile="0" resource="1" file="images/send_group.svg"/>
       <FILE id="Oc1M6j" name="send_group_small.svg" compile="0" resource="1"
             file="images/send_group_small.svg"/>
@@ -145,6 +147,8 @@
       <FILE id="A2rpsw" name="speaker.svg" compile="0" resource="1" file="images/speaker.svg"/>
       <FILE id="cp7a8H" name="speaker_disabled.svg" compile="0" resource="1"
             file="images/speaker_disabled.svg"/>
+      <FILE id="idEiqH" name="triangle_disclosure.svg" compile="0" resource="1"
+            file="images/triangle_disclosure.svg"/>
       <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>

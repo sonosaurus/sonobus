@@ -120,6 +120,8 @@
             file="images/record_active.svg"/>
       <FILE id="KcXBdG" name="record_active_alt.svg" compile="0" resource="1"
             file="images/record_active_alt.svg"/>
+      <FILE id="Oh0fU2" name="reset_buffer_icon.svg" compile="0" resource="1"
+            file="images/reset_buffer_icon.svg"/>
       <FILE id="zhDqf1" name="send_group.svg" compile="0" resource="1" file="images/send_group.svg"/>
       <FILE id="Oc1M6j" name="send_group_small.svg" compile="0" resource="1"
             file="images/send_group_small.svg"/>
@@ -144,6 +146,8 @@
       <FILE id="A2rpsw" name="speaker.svg" compile="0" resource="1" file="images/speaker.svg"/>
       <FILE id="cp7a8H" name="speaker_disabled.svg" compile="0" resource="1"
             file="images/speaker_disabled.svg"/>
+      <FILE id="LQviC0" name="triangle_disclosure.svg" compile="0" resource="1"
+            file="images/triangle_disclosure.svg"/>
       <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>
@@ -264,6 +268,9 @@
                        libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"/>
+        <CONFIGURATION isDebug="0" name="ReleaseVST2" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
+                       libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"
+                       defines="DONT_USE_MULTIBUS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="deps/juce/modules"/>
@@ -292,6 +299,8 @@
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
                        defines="LOGLEVEL=2"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"/>
+        <CONFIGURATION isDebug="0" name="ReleaseVST2" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
+                       defines="DONT_USE_MULTIBUS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
@@ -322,6 +331,10 @@
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
                        vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;"/>
+        <CONFIGURATION isDebug="0" name="ReleaseVST2" libraryPath="..\..\deps\windows\Release"
+                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
+                       useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
+                       vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;" defines="DONT_USE_MULTIBUS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>

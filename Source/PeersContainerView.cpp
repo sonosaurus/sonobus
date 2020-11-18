@@ -59,17 +59,35 @@ void PeerViewInfo::resized()
     if (latActiveButton) {
         latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
     }
+
+    int triwidth = 10;
+    int triheight = 6;
     
     if (recvOptionsButton) {
         auto leftedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) + 2;
         recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), recvActualBitrateLabel->getRight() - leftedge, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
+
+        if (recvOptionsButton->getWidth() > 280) {
+            int buttw = recvOptionsButton->getHeight() - 4;
+            bufferMinFrontButton->setBounds(recvOptionsButton->getRight() - buttw - 2, recvOptionsButton->getY() + 2, buttw, buttw);
+            bufferMinFrontButton->setVisible(true);
+        } else {
+            bufferMinFrontButton->setVisible(false);            
+        }
+        
+        auto rect = Rectangle<int>(recvOptionsButton->getX() +  3, recvOptionsButton->getBottom() - triheight - 1, triwidth, triheight);
+        recvButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
     }
 
     if (sendOptionsButton) {
         auto rightedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) - 3;
         sendOptionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), rightedge - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
+
+        auto rect = Rectangle<int>(sendOptionsButton->getX() + 3, sendOptionsButton->getBottom() - triheight - 1, triwidth, triheight);        
+        sendButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
     }
 
+    
     if (levelSlider) {
         levelSlider->setMouseDragSensitivity(jmax(128, levelSlider->getWidth()));
     }
@@ -449,14 +467,29 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->autosizeButton->addItem(TRANS("Auto"), SonobusAudioProcessor::AutoNetBufferModeAutoFull);
     pvf->autosizeButton->addItem(TRANS("Initial Auto"), SonobusAudioProcessor::AutoNetBufferModeInitAuto);    
     pvf->autosizeButton->addListener(this);
-
-    pvf->bufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
-    std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::skipback_icon_svg, BinaryData::skipback_icon_svgSize));
+    
+    pvf->bufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::reset_buffer_icon_svg, BinaryData::reset_buffer_icon_svgSize));
     pvf->bufferMinButton->setImages(backimg.get());
     pvf->bufferMinButton->addListener(this);
     pvf->bufferMinButton->setTooltip(TRANS("Resets safety buffer to the minimum. Hold Alt key to reset for all (with auto)."));
     pvf->bufferMinButton->setAlpha(0.8f);
+
+    pvf->bufferMinFrontButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
+    pvf->bufferMinFrontButton->setImages(backimg.get());
+    pvf->bufferMinFrontButton->addListener(this);
+    pvf->bufferMinFrontButton->setTooltip(TRANS("Resets safety buffer to the minimum. Hold Alt key to reset for all (with auto)."));
+    pvf->bufferMinFrontButton->setAlpha(0.8f);
     
+    pvf->recvButtonImage = Drawable::createFromImageData(BinaryData::triangle_disclosure_svg, BinaryData::triangle_disclosure_svgSize);
+    pvf->recvButtonImage->setInterceptsMouseClicks(false, false);
+    pvf->recvButtonImage->setAlpha(0.7f);
+    
+    
+    pvf->sendButtonImage = Drawable::createFromImageData(BinaryData::triangle_disclosure_svg, BinaryData::triangle_disclosure_svgSize);
+    pvf->sendButtonImage->setInterceptsMouseClicks(false, false);
+    pvf->sendButtonImage->setAlpha(0.7f);
+
     
     pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Safety Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
@@ -674,6 +707,9 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->staticBufferLabel.get());
         pvf->addAndMakeVisible(pvf->sendQualityLabel.get());
         pvf->addAndMakeVisible(pvf->bufferLabel.get());
+        pvf->addAndMakeVisible(pvf->bufferMinFrontButton.get());
+        pvf->addAndMakeVisible(pvf->recvButtonImage.get());
+        pvf->addAndMakeVisible(pvf->sendButtonImage.get());
 
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->addrLabel.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->staticAddrLabel.get());
@@ -1252,6 +1288,8 @@ void PeersContainerView::updatePeerViews()
         pvf->autosizeButton->setSelectedId(autobufmode, dontSendNotification);
         pvf->bufferLabel->setText(String::formatted("%d ms", (int) lrintf(buftimeMs)) + (autobufmode == SonobusAudioProcessor::AutoNetBufferModeOff ? "" : autobufmode == SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly ? " (Auto+)" :  autobufmode == SonobusAudioProcessor::AutoNetBufferModeInitAuto ?  " (I-Auto)"  : " (Auto)"), dontSendNotification);
 
+        pvf->bufferMinButton->setEnabled(autobufmode != SonobusAudioProcessor::AutoNetBufferModeOff);
+        pvf->bufferMinFrontButton->setEnabled(autobufmode != SonobusAudioProcessor::AutoNetBufferModeOff);
         
         if (!pvf->levelSlider->isMouseOverOrDragging()) {
             pvf->levelSlider->setValue(processor.getRemotePeerLevelGain(i), dontSendNotification);
@@ -1582,7 +1620,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             showSendOptions(i, false);
             break;
         }
-        else if (pvf->bufferMinButton.get() == buttonThatWasClicked) {
+        else if (pvf->bufferMinButton.get() == buttonThatWasClicked || pvf->bufferMinFrontButton.get() == buttonThatWasClicked) {
             // force to minimum
             if (ModifierKeys::currentModifiers.isAltDown()) {
                 // do it for everyone (who's on auto, maybe?)
