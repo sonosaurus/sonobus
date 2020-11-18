@@ -726,8 +726,9 @@ void AudioDeviceManager::updateXml()
     {
         lastExplicitSettings->setAttribute ("audioDeviceRate", currentAudioDevice->getCurrentSampleRate());
 
-        if (currentAudioDevice->getDefaultBufferSize() != currentAudioDevice->getCurrentBufferSizeSamples())
-            lastExplicitSettings->setAttribute ("audioDeviceBufferSize", currentAudioDevice->getCurrentBufferSizeSamples());
+        //if (currentAudioDevice->getDefaultBufferSize() != currentAudioDevice->getCurrentBufferSizeSamples())
+        // always store buffersize, some audio drivers change their "default/preferred" every time meaning this never gets actually restored
+        lastExplicitSettings->setAttribute ("audioDeviceBufferSize", currentAudioDevice->getCurrentBufferSizeSamples());
 
         if (! currentSetup.useDefaultInputChannels)
             lastExplicitSettings->setAttribute ("audioDeviceInChans", currentSetup.inputChannels.toString (2));
