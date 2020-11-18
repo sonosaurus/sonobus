@@ -4750,8 +4750,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 if (sl.isLocked())
                 {
                     if (rindex < activeUserWriters.size() && activeUserWriters[rindex] != nullptr) {
-                        float *tmpbuf[totalRecordingChannels];
-                        for (int i = 0; i < totalRecordingChannels; ++i) {
+                        float *tmpbuf[16];
+                        for (int i = 0; i < totalRecordingChannels && i < 16; ++i) {
                             tmpbuf[i] = remote->workBuffer.getWritePointer(i < remote->recvChannels ? i : std::max(0, remote->recvChannels - 1));
                         }
                         activeUserWriters[rindex]->write (tmpbuf, numSamples);
