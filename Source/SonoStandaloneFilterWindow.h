@@ -96,7 +96,7 @@ public:
           shouldMuteInput (var(false)),    
 #endif
           autoOpenMidiDevices (shouldAutoOpenMidiDevices),
-          shouldOverrideSampleRate (var(false))
+          shouldOverrideSampleRate (var(true))
     {
         createPlugin();
 
@@ -394,7 +394,7 @@ public:
                                   savedState.get(),
                                   true,
                                   preferredDefaultDeviceName,
-                                  preferredSetupOptions);
+                                  prefSetupOptions.get());
     }
 
     //==============================================================================
