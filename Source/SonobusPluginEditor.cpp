@@ -950,6 +950,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction"));
     mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
 
+    mOptionsOverrideSamplerateButton = std::make_unique<ToggleButton>(TRANS("Override Device Sample Rate"));
+    mOptionsOverrideSamplerateButton->addListener(this);
+    
     mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
     mOptionsInputLimiterButton->addListener(this);
 
@@ -1242,6 +1245,11 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
+    }
+
+
 
     mRecOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecFilesStaticLabel.get());
@@ -1974,6 +1982,12 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
         }
     }
 
+    
+    if (JUCEApplication::isStandaloneApp() && getShouldOverrideSampleRateValue) {
+        Value * val = getShouldOverrideSampleRateValue();
+        mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+    }
+    
     uint32 recmask = processor.getDefaultRecordingOptions();
     
     mOptionsRecOthersButton->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, dontSendNotification);
@@ -2567,6 +2581,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mClearRecentsButton.get()) {
         processor.clearRecentServerConnectionInfos();
         updateRecents();
+    }
+    else if (buttonThatWasClicked == mOptionsOverrideSamplerateButton.get()) {
+
+        if (JUCEApplicationBase::isStandaloneApp() && getShouldOverrideSampleRateValue) {
+            Value * val = getShouldOverrideSampleRateValue();
+            val->setValue((bool)mOptionsOverrideSamplerateButton->getToggleState());
+        }
     }
     else {
         
@@ -3442,7 +3463,7 @@ void SonobusAudioProcessorEditor::updateState()
         mReverbPreDelaySlider->setVisible(true);
         mReverbPreDelayLabel->setVisible(true);        
     }
-    
+  
     currGroup = processor.getCurrentJoinedGroup();
     if (!currGroup.isEmpty() && currConnected) 
     {
@@ -3506,6 +3527,11 @@ void SonobusAudioProcessorEditor::updateState()
         if (JUCEApplication::isStandaloneApp()) {
 
             mSetupAudioButton->setVisible(processor.getNumberRemotePeers() == 0);
+            
+            if (getShouldOverrideSampleRateValue) {
+                Value * val = getShouldOverrideSampleRateValue();
+                mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+            }
         } else {
             mSetupAudioButton->setVisible(false);            
         }
@@ -4143,6 +4169,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsDynResampleBox.items.add(FlexItem(180, minpassheight, *mOptionsDynamicResamplingButton).withMargin(0).withFlex(1));
 
+    optionsOverrideSamplerateBox.items.clear();
+    optionsOverrideSamplerateBox.flexDirection = FlexBox::Direction::row;
+    optionsOverrideSamplerateBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsOverrideSamplerateBox.items.add(FlexItem(180, minpassheight, *mOptionsOverrideSamplerateButton).withMargin(0).withFlex(1));
+
     optionsInputLimitBox.items.clear();
     optionsInputLimitBox.flexDirection = FlexBox::Direction::row;
     optionsInputLimitBox.items.add(FlexItem(10, 12).withFlex(0));
@@ -4167,6 +4198,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
+    }
     optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {

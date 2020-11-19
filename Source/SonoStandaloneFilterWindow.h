@@ -95,7 +95,8 @@ public:
 #else
           shouldMuteInput (var(false)),    
 #endif
-          autoOpenMidiDevices (shouldAutoOpenMidiDevices)
+          autoOpenMidiDevices (shouldAutoOpenMidiDevices),
+          shouldOverrideSampleRate (var(false))
     {
         createPlugin();
 
@@ -177,6 +178,9 @@ public:
     Value& getMuteInputValue()                           { return shouldMuteInput; }
     bool getProcessorHasPotentialFeedbackLoop() const    { return processorHasPotentialFeedbackLoop; }
 
+    Value& getShouldOverrideSampleRateValue()                           { return shouldOverrideSampleRate; }
+
+    
     //==============================================================================
     File getLastFile() const
     {
@@ -330,9 +334,11 @@ public:
 
             settings->setValue ("audioSetup", xml.get());
 
-           #if ! (JUCE_IOS || JUCE_ANDROID)
-          //  settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
-           #endif
+            settings->setValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue());
+
+#if ! (JUCE_IOS || JUCE_ANDROID)
+            //  settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
+#endif
         }
     }
 
@@ -342,15 +348,37 @@ public:
     {
         std::unique_ptr<XmlElement> savedState;
 
+        std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> prefSetupOptions;
+        
+        if (preferredSetupOptions) {
+            prefSetupOptions = std::make_unique<AudioDeviceManager::AudioDeviceSetup>(*preferredSetupOptions);
+        }
+
+        
         if (settings != nullptr)
         {
             savedState = settings->getXmlValue ("audioSetup");
 
+            shouldOverrideSampleRate.setValue (settings->getBoolValue ("shouldOverrideSampleRate", false));
+
            #if ! (JUCE_IOS || JUCE_ANDROID)
             shouldMuteInput.setValue (settings->getBoolValue ("shouldMuteInput", false));
            #endif
+
+            // now remove samplerate from saved state if necessary
+            // as well as preferredSetupOptions
+            if (!((bool)shouldOverrideSampleRate.getValue())) {
+                DBG("NOT OVERRIDING SAMPLERATE");
+                if (savedState && savedState->hasAttribute("audioDeviceRate")) {
+                    savedState->removeAttribute("audioDeviceRate");
+                }
+                if (prefSetupOptions) {
+                    prefSetupOptions->sampleRate = 0;
+                }
+            }
         }
 
+        
         auto totalInChannels  = processor->getMainBusNumInputChannels();
         auto totalOutChannels = processor->getMainBusNumOutputChannels();
 
@@ -439,6 +467,8 @@ public:
     Value shouldMuteInput;
     AudioBuffer<float> emptyBuffer;
     bool autoOpenMidiDevices;
+
+    Value shouldOverrideSampleRate;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     StringArray lastMidiDevices;
@@ -850,6 +880,7 @@ private:
                     sonoeditor->isInterAppAudioConnected = [this]() { return owner.pluginHolder->isInterAppAudioConnected();  };
                     sonoeditor->getIAAHostIcon = [this](int size) { return owner.pluginHolder->getIAAHostIcon(size);  };
                     sonoeditor->switchToHostApplication = [this]() { return owner.pluginHolder->switchToHostApplication(); };
+                    sonoeditor->getShouldOverrideSampleRateValue = [this]() { return &(owner.pluginHolder->getShouldOverrideSampleRateValue()); };
                 }
                 
                 editor->addComponentListener (this);

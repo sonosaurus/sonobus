@@ -132,6 +132,7 @@ public:
     std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
     std::function<Image(int)> getIAAHostIcon; // = []() { return 0; };
     std::function<void()> switchToHostApplication; // = []() { return 0; };
+    std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };
 
     void handleURL(const String & urlstr);
     
@@ -350,6 +351,7 @@ private:
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
     std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
+    std::unique_ptr<ToggleButton> mOptionsOverrideSamplerateButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
 
@@ -663,6 +665,7 @@ private:
     FlexBox optionsHearlatBox;
     FlexBox optionsUdpBox;
     FlexBox optionsDynResampleBox;
+    FlexBox optionsOverrideSamplerateBox;
     FlexBox optionsChangeAllQualBox;
     FlexBox optionsInputLimitBox;
 
