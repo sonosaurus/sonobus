@@ -1418,13 +1418,15 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     //setResizeLimits(400, 300, 2000, 1000);
 
     commandManager.registerAllCommandsForTarget (this);
-      
-    
+
     if (JUCEApplicationBase::isStandaloneApp()) {
 #if !JUCE_IOS
         processor.startAooServer();
 #endif
         setResizable(true, false);
+
+
+        commandManager.registerAllCommandsForTarget (JUCEApplication::getInstance());
 
         menuBarModel = std::make_unique<SonobusMenuBarModel>(*this);
 
@@ -1438,7 +1440,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         MenuBarModel::setMacMainMenu(menuBarModel.get(), &extraAppleMenuItems);
 #endif
 
-#if JUCE_WINDOWS
+#if (JUCE_WINDOWS || JUCE_LINUX)
         mMenuBar = std::make_unique<MenuBarComponent>(menuBarModel.get());
         addAndMakeVisible(mMenuBar.get());
 #endif
@@ -5295,7 +5297,7 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::CheckForNewVersion);
 
-#if JUCE_WINDOWS
+#if (JUCE_WINDOWS || JUCE_LINUX)
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ShowOptions);
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, StandardApplicationCommandIDs::quit);
