@@ -96,7 +96,8 @@ public:
           shouldMuteInput (var(false)),    
 #endif
           autoOpenMidiDevices (shouldAutoOpenMidiDevices),
-          shouldOverrideSampleRate (var(true))
+          shouldOverrideSampleRate (var(true)),
+          shouldCheckForNewVersion (var(true))
     {
         createPlugin();
 
@@ -179,6 +180,7 @@ public:
     bool getProcessorHasPotentialFeedbackLoop() const    { return processorHasPotentialFeedbackLoop; }
 
     Value& getShouldOverrideSampleRateValue()                           { return shouldOverrideSampleRate; }
+    Value& getShouldCheckForNewVersionValue()                           { return shouldCheckForNewVersion; }
 
     
     //==============================================================================
@@ -335,6 +337,7 @@ public:
             settings->setValue ("audioSetup", xml.get());
 
             settings->setValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue());
+            settings->setValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue());
 
 #if ! (JUCE_IOS || JUCE_ANDROID)
             //  settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
@@ -359,7 +362,8 @@ public:
         {
             savedState = settings->getXmlValue ("audioSetup");
 
-            shouldOverrideSampleRate.setValue (settings->getBoolValue ("shouldOverrideSampleRate", false));
+            shouldOverrideSampleRate.setValue (settings->getBoolValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue()));
+            shouldCheckForNewVersion.setValue (settings->getBoolValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue()));
 
            #if ! (JUCE_IOS || JUCE_ANDROID)
             shouldMuteInput.setValue (settings->getBoolValue ("shouldMuteInput", false));
@@ -469,6 +473,9 @@ public:
     bool autoOpenMidiDevices;
 
     Value shouldOverrideSampleRate;
+
+    Value shouldCheckForNewVersion;
+
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     StringArray lastMidiDevices;
@@ -881,6 +888,7 @@ private:
                     sonoeditor->getIAAHostIcon = [this](int size) { return owner.pluginHolder->getIAAHostIcon(size);  };
                     sonoeditor->switchToHostApplication = [this]() { return owner.pluginHolder->switchToHostApplication(); };
                     sonoeditor->getShouldOverrideSampleRateValue = [this]() { return &(owner.pluginHolder->getShouldOverrideSampleRateValue()); };
+                    sonoeditor->getShouldCheckForNewVersionValue = [this]() { return &(owner.pluginHolder->getShouldCheckForNewVersionValue()); };
                 }
                 
                 editor->addComponentListener (this);

@@ -133,6 +133,7 @@ public:
     std::function<Image(int)> getIAAHostIcon; // = []() { return 0; };
     std::function<void()> switchToHostApplication; // = []() { return 0; };
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };
+    std::function<Value*()> getShouldCheckForNewVersionValue; // = []() { return 0; };
 
     void handleURL(const String & urlstr);
     
@@ -352,6 +353,7 @@ private:
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
     std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
     std::unique_ptr<ToggleButton> mOptionsOverrideSamplerateButton;
+    std::unique_ptr<ToggleButton> mOptionsShouldCheckForUpdateButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
 
@@ -666,6 +668,7 @@ private:
     FlexBox optionsUdpBox;
     FlexBox optionsDynResampleBox;
     FlexBox optionsOverrideSamplerateBox;
+    FlexBox optionsCheckForUpdateBox;
     FlexBox optionsChangeAllQualBox;
     FlexBox optionsInputLimitBox;
 

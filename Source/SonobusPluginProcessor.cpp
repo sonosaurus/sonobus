@@ -4156,10 +4156,10 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mZitaReverb.init(sampleRate);
     mZitaReverb.buildUserInterface(&mZitaControl);
 
-    DBG("Zita Reverb Params:");    
-    for(int i=0; i < mZitaControl.getParamsCount(); i++){
-        DBG(mZitaControl.getParamAddress(i));
-    }
+    //DBG("Zita Reverb Params:");
+    //for(int i=0; i < mZitaControl.getParamsCount(); i++){
+    //    DBG(mZitaControl.getParamAddress(i));
+    //}
     
     // setting default values for the Faust module parameters
     mZitaControl.setParamValue("/Zita_Rev1/Output/Dry/Wet_Mix", -1.0f);
@@ -4172,36 +4172,36 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mInputCompressor.init(sampleRate);
     mInputCompressor.buildUserInterface(&mInputCompressorControl);
 
-    DBG("Compressor Params:");
-    for(int i=0; i < mInputCompressorControl.getParamsCount(); i++){
-        DBG(mInputCompressorControl.getParamAddress(i));
-    }
+    //DBG("Compressor Params:");
+    //for(int i=0; i < mInputCompressorControl.getParamsCount(); i++){
+    //    DBG(mInputCompressorControl.getParamAddress(i));
+    //}
 
     mInputExpander.init(sampleRate);
     mInputExpander.buildUserInterface(&mInputExpanderControl);
 
-    DBG("Expander Params:");
-    for(int i=0; i < mInputExpanderControl.getParamsCount(); i++){
-        DBG(mInputExpanderControl.getParamAddress(i));
-    }
+    //DBG("Expander Params:");
+    //for(int i=0; i < mInputExpanderControl.getParamsCount(); i++){
+    //    DBG(mInputExpanderControl.getParamAddress(i));
+    //}
 
     for (int i=0; i < 2; ++i) {
         mInputEq[i].init(sampleRate);
         mInputEq[i].buildUserInterface(&mInputEqControl[i]);
     }
 
-    DBG("EQ Params:");
-    for(int i=0; i < mInputEqControl[0].getParamsCount(); i++){
-        DBG(mInputEqControl[0].getParamAddress(i));
-    }
+    //DBG("EQ Params:");
+    //for(int i=0; i < mInputEqControl[0].getParamsCount(); i++){
+    //    DBG(mInputEqControl[0].getParamAddress(i));
+    //}
 
     mInputLimiter.init(sampleRate);
     mInputLimiter.buildUserInterface(&mInputLimiterControl);
 
-    DBG("Limiter Params:");
-    for(int i=0; i < mInputLimiterControl.getParamsCount(); i++){
-        DBG(mInputLimiterControl.getParamAddress(i));
-    }
+    //DBG("Limiter Params:");
+    //for(int i=0; i < mInputLimiterControl.getParamsCount(); i++){
+    //    DBG(mInputLimiterControl.getParamAddress(i));
+    //}
 
 
     

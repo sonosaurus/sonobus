@@ -19,7 +19,8 @@
 #include <sstream>
 
 enum {
-    PeriodicUpdateTimerId = 0
+    PeriodicUpdateTimerId = 0,
+    CheckForNewVersionTimerId
 };
 
 
@@ -952,7 +953,11 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mOptionsOverrideSamplerateButton = std::make_unique<ToggleButton>(TRANS("Override Device Sample Rate"));
     mOptionsOverrideSamplerateButton->addListener(this);
-    
+
+    mOptionsShouldCheckForUpdateButton = std::make_unique<ToggleButton>(TRANS("Automatically check for updates"));
+    mOptionsShouldCheckForUpdateButton->addListener(this);
+
+
     mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
     mOptionsInputLimiterButton->addListener(this);
 
@@ -1247,6 +1252,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
     if (JUCEApplicationBase::isStandaloneApp()) {
         mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
+        mOptionsComponent->addAndMakeVisible(mOptionsShouldCheckForUpdateButton.get());
     }
 
 
@@ -1482,7 +1488,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     setWantsKeyboardFocus(true);
     
     startTimer(PeriodicUpdateTimerId, 1000);
-    
+
+#if (JUCE_WINDOWS || JUCE_MAC)
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        startTimer(CheckForNewVersionTimerId, 5000);
+    }
+#endif
+
    // Make sure that before the constructor has finished, you've set the
    // editor's size to whatever you need it to be.
 
@@ -1983,9 +1995,15 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
     }
 
     
-    if (JUCEApplication::isStandaloneApp() && getShouldOverrideSampleRateValue) {
-        Value * val = getShouldOverrideSampleRateValue();
-        mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+    if (JUCEApplication::isStandaloneApp()) {
+        if (getShouldOverrideSampleRateValue) {
+            Value * val = getShouldOverrideSampleRateValue();
+            mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+        }
+        if (getShouldCheckForNewVersionValue) {
+            Value * val = getShouldCheckForNewVersionValue();
+            mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+        }
     }
     
     uint32 recmask = processor.getDefaultRecordingOptions();
@@ -2106,6 +2124,16 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             
         }
 #endif
+    }
+    else if (timerid == CheckForNewVersionTimerId) {
+        if (getShouldCheckForNewVersionValue) {
+            Value * val = getShouldCheckForNewVersionValue();
+            if (val && (bool)val->getValue()) {
+                DBG("Checking for new version");
+                LatestVersionCheckerAndUpdater::getInstance()->checkForNewVersion (false);
+            }
+        }
+        stopTimer(CheckForNewVersionTimerId);
     }
 }
 
@@ -2587,6 +2615,17 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         if (JUCEApplicationBase::isStandaloneApp() && getShouldOverrideSampleRateValue) {
             Value * val = getShouldOverrideSampleRateValue();
             val->setValue((bool)mOptionsOverrideSamplerateButton->getToggleState());
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsShouldCheckForUpdateButton.get()) {
+
+        if (JUCEApplicationBase::isStandaloneApp() && getShouldCheckForNewVersionValue) {
+            Value * val = getShouldCheckForNewVersionValue();
+            val->setValue((bool)mOptionsShouldCheckForUpdateButton->getToggleState());
+
+            if (mOptionsShouldCheckForUpdateButton->getToggleState()) {
+                startTimer(CheckForNewVersionTimerId, 3000);
+            }
         }
     }
     else {
@@ -3532,6 +3571,10 @@ void SonobusAudioProcessorEditor::updateState()
                 Value * val = getShouldOverrideSampleRateValue();
                 mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
             }
+            if (getShouldCheckForNewVersionValue) {
+                Value * val = getShouldCheckForNewVersionValue();
+                mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+            }
         } else {
             mSetupAudioButton->setVisible(false);            
         }
@@ -4184,6 +4227,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsChangeAllQualBox.items.add(FlexItem(10, 12).withFlex(1));
     optionsChangeAllQualBox.items.add(FlexItem(180, minpassheight, *mOptionsChangeAllFormatButton).withMargin(0).withFlex(0));
 
+    optionsCheckForUpdateBox.items.clear();
+    optionsCheckForUpdateBox.flexDirection = FlexBox::Direction::row;
+    optionsCheckForUpdateBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsCheckForUpdateBox.items.add(FlexItem(180, minpassheight, *mOptionsShouldCheckForUpdateButton).withMargin(0).withFlex(1));
+
     
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
@@ -4200,6 +4248,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
+        optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
     optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
     minOptionsHeight = 0;
