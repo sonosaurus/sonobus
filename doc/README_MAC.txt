@@ -42,8 +42,12 @@ INSTALLATION (Mac)
 The software is distributed as a DMG disk image. Once you've double-clicked
 it you will be able to install the standalone application or whichever
 plugin varieties you want by simply dragging them to the folder aliases
-directly below each item in the DMG's window.
+directly below each item in the DMG's window. 
 
+Note: You may be asked for permission when dragging some of the plugins, 
+or it may not work at all, if you don't already have those particular 
+plugin sytem folders created yet. The folder names are listed below for
+each plugin type, in case you need to create them first yourself.
 
 More information about the plugin folder locations is below in case you need
 it. But simply dragging them into the appropriate folder in the DMG should
@@ -51,29 +55,16 @@ be all you need.
 
 ---------------
 
-If you want to use the AudioUnit plugin version, copy the
-SonoBus.component from the Plugins folder to your home directory
-~/Library/Audio/Plug-Ins/Components/ folder. You can get to this from
+If you have trouble dragging them from the DMG, copy the
+appropriate plugin one of the locations below. You can get to this from
 the Finder, by holding down Option as you click the Go menu in
 Finder's menubar, then select Library, then you can browse to the
-folder above.
+folder or create the folder if necessary.
 
-If you want to use the VST3 plugin version, copy the
-SonoBus.vst3 from the Plugins folder to your home directory
-~/Library/Audio/Plug-Ins/VST3/ folder. You can get to this from
-the Finder, by holding down Option as you click the Go menu in
-Finder's menubar, then select Library, then you can browse to the
-folder above.
-
-If you want to use the VST2 plugin version, copy the
-SonoBus.vst from the Plugins folder to your home directory
-~/Library/Audio/Plug-Ins/VST/ folder. You can get to this from
-the Finder, by holding down Option as you click the Go menu in
-Finder's menubar, then select Library, then you can browse to the
-folder above. Some applications will not find VST2 plugin in your
-own plugin folder, in that case copy the plugin to the main
-/Libary/Audio/Plug-Ins/VST folder instead.
-
+Audio Unit  /Library/Audio/Plug-Ins/Components
+VST2        /Library/Audio/Plug-Ins/VST
+VST3        /Library/Audio/Plug-Ins/VST3
+AAX         /Library/Application Support/Avid/Audio/Plug-Ins
 
 
 

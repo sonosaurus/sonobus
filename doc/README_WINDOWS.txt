@@ -19,17 +19,16 @@ INSTALLATION (Windows)
 =======================
 
 Install the software by running 'SonoBus Installer' executable. It will 
-allow you to install the standalone application and the VST plugins at 
-your discretion.
+allow you to install the standalone application and the VST2, VST3, and AAX
+ plugins at your discretion.
 
 When you first launch SonoBus, if Windows Gatekeeper prompts you
-to allow it access to both local and internet
-networks, give it permission. 
+to allow it access to both local and internet networks, give it permission. 
 
 Please contact us at support@sonobus.net if you have any issues.
 
 
-It is HIGHLY recommended that you use an ASIO supported audio
+It is **HIGHLY** recommended that you use an ASIO supported audio
 driver. You can install ASIO4ALL to enable ASIO for your built-in
 audio devices or any other that don't have a dedicated ASIO
 driver. Get ASIO4ALL at http://www.asio4all.org.
