@@ -278,7 +278,7 @@ public:
     float getRemotePeerBufferTime(int index) const;
 
     void setRemotePeerAutoresizeBufferMode(int index, AutoNetBufferMode flag);
-    AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index) const;
+    AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index, bool & initCompleted) const;
 
     bool getRemotePeerReceiveBufferFillRatio(int index, float & retratio, float & retstddev) const;
 

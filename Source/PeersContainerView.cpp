@@ -1317,12 +1317,17 @@ void PeersContainerView::updatePeerViews(int specific)
         
         pvf->latActiveButton->setToggleState(latactive, dontSendNotification);
 
-        
-        int autobufmode = (int)processor.getRemotePeerAutoresizeBufferMode(i);
+
+        bool initCompleted = false;
+        int autobufmode = (int)processor.getRemotePeerAutoresizeBufferMode(i, initCompleted);
         float buftimeMs = processor.getRemotePeerBufferTime(i);
         
         pvf->autosizeButton->setSelectedId(autobufmode, dontSendNotification);
-        pvf->bufferLabel->setText(String::formatted("%d ms", (int) lrintf(buftimeMs)) + (autobufmode == SonobusAudioProcessor::AutoNetBufferModeOff ? "" : autobufmode == SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly ? " (Auto+)" :  autobufmode == SonobusAudioProcessor::AutoNetBufferModeInitAuto ?  " (I-Auto)"  : " (Auto)"), dontSendNotification);
+        String buflab = (autobufmode == SonobusAudioProcessor::AutoNetBufferModeOff ? "" :
+                         autobufmode == SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly ? " (Auto+)" :
+                         autobufmode == SonobusAudioProcessor::AutoNetBufferModeInitAuto ? ( initCompleted ? " (IA-Man)" : " (IA-Auto)"  ) :
+                         " (Auto)");
+        pvf->bufferLabel->setText(String::formatted("%d ms", (int) lrintf(buftimeMs)) + buflab, dontSendNotification);
 
         pvf->bufferMinButton->setEnabled(autobufmode != SonobusAudioProcessor::AutoNetBufferModeOff);
         pvf->bufferMinFrontButton->setEnabled(autobufmode != SonobusAudioProcessor::AutoNetBufferModeOff);
@@ -1661,8 +1666,9 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             // force to minimum
             if (ModifierKeys::currentModifiers.isAltDown()) {
                 // do it for everyone (who's on auto, maybe?)
+                bool initCompleted = false;
                 for (int j=0; j < mPeerViews.size(); ++j) {
-                    if (processor.getRemotePeerAutoresizeBufferMode(j) != SonobusAudioProcessor::AutoNetBufferModeOff) {
+                    if (processor.getRemotePeerAutoresizeBufferMode(j, initCompleted) != SonobusAudioProcessor::AutoNetBufferModeOff) {
                         float buftime = 0.0;
                         processor.setRemotePeerBufferTime(j, buftime);
                         if (i==j) {
