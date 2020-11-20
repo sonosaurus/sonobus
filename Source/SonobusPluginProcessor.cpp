@@ -1734,6 +1734,11 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                         if (deltatime > nodropsthresh) {
                             peer->autoNetbufInitCompleted = true;
                             DBG("Netbuf Initial auto time is done after no drops in " << nodropsthresh);
+                            // clear drop count
+                            peer->dataPacketsResent = 0;
+                            peer->dataPacketsDropped = 0;
+                            peer->lastDropCount = 0;
+                            //peer->lastDroptime = 0;
                         }
                     }
                 }
@@ -2940,6 +2945,14 @@ void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
         remote->latencyDirty = true;
         remote->autoNetbufInitCompleted = false;
         remote->lastDroptime = Time::getMillisecondCounterHiRes();
+
+        //if (remote->autosizeBufferMode == AutoNetBufferModeOff) {
+        // clear drop count
+        remote->dataPacketsResent = 0;
+        remote->dataPacketsDropped = 0;
+        remote->lastDropCount = 0;
+        //}
+
         if (remote->hasRealLatency) {
             remote->totalEstLatency = remote->totalLatency + (remote->buffertimeMs - remote->bufferTimeAtRealLatency);
         }
@@ -2972,6 +2985,12 @@ void SonobusAudioProcessor::setRemotePeerAutoresizeBufferMode(int index, Sonobus
         } else if (flag == AutoNetBufferModeInitAuto) {
             setRemotePeerBufferTime(index, 0.0f); // reset to zero and start it over
         }
+
+        // clear drop count
+        remote->dataPacketsResent = 0;
+        remote->dataPacketsDropped = 0;
+        remote->lastDropCount = 0;
+        //remote->lastDroptime = 0;
     }
 }
 
