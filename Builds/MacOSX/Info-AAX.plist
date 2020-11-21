@@ -4,7 +4,7 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleVersion</key>
-    <string>33</string>
+    <string>34</string>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -33,7 +33,7 @@
     <key>CFBundleSignature</key>
     <string>PTul</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.4</string>
+    <string>1.1.0</string>
     <key>NSHumanReadableCopyright</key>
     <string>2020 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
