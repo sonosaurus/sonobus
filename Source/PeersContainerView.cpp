@@ -473,13 +473,13 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::reset_buffer_icon_svg, BinaryData::reset_buffer_icon_svgSize));
     pvf->bufferMinButton->setImages(backimg.get());
     pvf->bufferMinButton->addListener(this);
-    pvf->bufferMinButton->setTooltip(TRANS("Resets safety buffer to the minimum. Hold Alt key to reset for all (with auto)."));
+    pvf->bufferMinButton->setTooltip(TRANS("Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto)."));
     pvf->bufferMinButton->setAlpha(0.8f);
 
     pvf->bufferMinFrontButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
     pvf->bufferMinFrontButton->setImages(backimg.get());
     pvf->bufferMinFrontButton->addListener(this);
-    pvf->bufferMinFrontButton->setTooltip(TRANS("Resets safety buffer to the minimum. Hold Alt key to reset for all (with auto)."));
+    pvf->bufferMinFrontButton->setTooltip(TRANS("Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto)."));
     pvf->bufferMinFrontButton->setAlpha(0.8f);
     
     pvf->recvButtonImage = Drawable::createFromImageData(BinaryData::triangle_disclosure_svg, BinaryData::triangle_disclosure_svgSize);
@@ -492,7 +492,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->sendButtonImage->setAlpha(0.7f);
 
     
-    pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Safety Buffer"));
+    pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Jitter Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
 
     pvf->recvOptionsButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageFitted);
@@ -551,7 +551,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->staticSendQualLabel = std::make_unique<Label>("lat", TRANS("Send Quality:"));
     configLabel(pvf->staticSendQualLabel.get(), LabelTypeSmallDim);
-    pvf->staticBufferLabel = std::make_unique<Label>("ping", TRANS("Recv Safety Buffer:"));
+    pvf->staticBufferLabel = std::make_unique<Label>("ping", TRANS("Recv Jitter Buffer:"));
     configLabel(pvf->staticBufferLabel.get(), LabelTypeSmallDim);
     
     pvf->sendQualityLabel = std::make_unique<Label>("qual", "");
@@ -1215,7 +1215,8 @@ void PeersContainerView::updatePeerViews(int specific)
                 
         if (sendactive) {
             //sendtext += String::formatted("%Ld sent", processor.getRemotePeerPacketsSent(i) );
-            sendtext += String::formatted("%.d kb/s", lrintf(sendrate * 8 * 1e-3) );
+            sendtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x91")); // up arrow
+            sendtext << String::formatted(" %.d kb/s", lrintf(sendrate * 8 * 1e-3) );
             pvf->sendActualBitrateLabel->setColour(Label::textColourId, regularTextColor);
         }
         else if (sendallow) {
@@ -1232,7 +1233,9 @@ void PeersContainerView::updatePeerViews(int specific)
         processor.getRemotePeerReceiveAudioCodecFormat(i, recvfinfo);
 
         if (recvactive) {
-            recvtext += recvfinfo.name + String::formatted(" | %d kb/s", lrintf(recvrate * 8 * 1e-3));
+            recvtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x93 ")) // down arrow
+            << recvfinfo.name
+            << String::formatted(" | %d kb/s", lrintf(recvrate * 8 * 1e-3));
 
             int64_t dropped = processor.getRemotePeerPacketsDropped(i);
             if (dropped > 0) {
@@ -1287,11 +1290,11 @@ void PeersContainerView::updatePeerViews(int specific)
             }
         } else {
             //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : ""), dontSendNotification);
-            String latlab = juce::CharPointer_UTF8 ("\xe2\x86\x91");
+            String latlab = juce::CharPointer_UTF8 ("\xe2\x86\x91"); // up arrow
             latlab << (int)lrintf(latinfo.outgoingMs) << "   "; 
             //latlab << String::formatted(TRANS("%.1f"), latinfo.outgoingMs) << "   ";
             //latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")) << (int)lrintf(latinfo.incomingMs);
-            latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93"));
+            latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")); // down arrow
             latlab << (int)lrintf(latinfo.incomingMs) ;
             //latlab << String::formatted("%.1f", latinfo.incomingMs) ;
             ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)             

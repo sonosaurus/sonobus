@@ -899,7 +899,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
     }
 
-    mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Safety Buffer"));
+    mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
     configLabel(mOptionsAutosizeStaticLabel.get(), false);
     mOptionsAutosizeStaticLabel->setJustificationType(Justification::centredLeft);
     
