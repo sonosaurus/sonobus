@@ -587,6 +587,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     }
 
     mState.getParameter(paramDry)->setValue(mDry.get());
+    mState.getParameter(paramSendChannels)->setValue(mState.getParameter(paramSendChannels)->convertTo0to1(mSendChannels.get()));
 
     
     mTempoParameter = mState.getParameter(paramMetTempo);
