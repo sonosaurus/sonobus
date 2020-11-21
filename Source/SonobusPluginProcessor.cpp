@@ -496,7 +496,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(paramDefaultNetbufMs,     TRANS ("Default Net Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
-    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), 0),
+    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), mSendChannels.get()),
 
     std::make_unique<AudioParameterBool>(paramMetEnabled, TRANS ("Metronome Enabled"), mMetEnabled.get()),
     std::make_unique<AudioParameterBool>(paramSendMetAudio, TRANS ("Send Metronome Audio"), mSendMet.get()),
@@ -1726,7 +1726,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
                 }
 
-                if (peer->autosizeBufferMode == AutoNetBufferModeInitAuto) {   
+                if (peer->autosizeBufferMode != AutoNetBufferModeOff) {
                     if (!peer->autoNetbufInitCompleted && peer->lastDroptime > 0) {
                         double nowtime = Time::getMillisecondCounterHiRes();
                         double deltatime = (nowtime - peer->lastDroptime) * 1e-3; 
@@ -3583,9 +3583,10 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
 
         int32_t flags = AOO_PROTOCOL_FLAG_COMPACT_DATA;
         retpeer->oursink->set_option(aoo_opt_protocol_flags, &flags, sizeof(int32_t));
-        
+
+        retpeer->nominalSendChannels = mSendChannels.get();
         retpeer->sendChannels =  mSendChannels.get() <= 0 ?  getMainBusNumInputChannels() : mSendChannels.get();
-        
+
         setupSourceFormat(retpeer, retpeer->oursource.get());
         retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, retpeer->sendChannels);
         retpeer->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
@@ -3863,7 +3864,7 @@ void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer 
     const AudioCodecFormatInfo & info =  mAudioFormats.getReference(formatIndex);
     
     aoo_format_storage f;
-    int channels = latencymode ? 1  :  peer ? peer->sendChannels : getTotalNumInputChannels();
+    int channels = latencymode ? 1  :  peer ? peer->sendChannels : getMainBusNumInputChannels();
     
     if (formatInfoToAooFormat(info, channels, f)) {        
         source->set_format(f.header);        
@@ -3957,7 +3958,7 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
         if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
             // override sending
             int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
-            setRemotePeerOverrideSendChannelCount(-1, jmax(getTotalNumInputChannels(), srcchans)); // should be something different?
+            setRemotePeerOverrideSendChannelCount(-1, jmax(getMainBusNumInputChannels(), srcchans)); // should be something different?
         }
         else if (!mSendPlaybackAudio.get()) {
             // remove override
@@ -4649,8 +4650,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;
         //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;                    
         if (mSendChannels.get() == 1 || (mSendChannels.get() == 0 && totalNumInputChannels == 1)) {
-            // add un-panned 1st channel only
-            inputWorkBuffer.addFrom(channel, 0, buffer, 0, 0, numSamples);
+            // sum all incoming channels into the first channel of the inputworkbuffer
+            // TODO - with individual channel input gains
+            float tgain = totalNumInputChannels > 1 ? 0.707f : 1.0f;
+            inputWorkBuffer.addFrom(0, 0, buffer, channel, 0, numSamples, tgain);
         }
         else {
             // add our input that is panned
