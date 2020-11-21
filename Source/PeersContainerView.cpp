@@ -68,7 +68,7 @@ void PeerViewInfo::resized()
         auto leftedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) + 2;
         recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), recvActualBitrateLabel->getRight() - leftedge, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
 
-        if (recvOptionsButton->getWidth() > 280) {
+        if (recvOptionsButton->getWidth() > 260) {
             int buttw = recvOptionsButton->getHeight() - 4;
             bufferMinFrontButton->setBounds(recvOptionsButton->getRight() - buttw - 2, recvOptionsButton->getY() + 2, buttw, buttw);
             bufferMinFrontButton->setVisible(true);
@@ -895,8 +895,8 @@ void PeersContainerView::updateLayout()
         pvf->netbufbox.flexDirection = FlexBox::Direction::row;
         pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
         pvf->netbufbox.items.add(FlexItem(88, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(1).withMaxWidth(105));
-        pvf->netbufbox.items.add(FlexItem(40, textheight, *pvf->bufferLabel).withMargin(0).withFlex(3).withMaxWidth(120));
-        pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
+        pvf->netbufbox.items.add(FlexItem(40, textheight, *pvf->bufferLabel).withMargin(0).withFlex(3).withMaxWidth(116));
+        pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1.5));
 
         
         pvf->optionsstatbox.items.clear();

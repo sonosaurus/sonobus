@@ -245,8 +245,8 @@ struct SonobusAudioProcessor::RemotePeer {
     AudioCodecFormatInfo recvFormat;
     int reqRemoteSendFormatIndex = -1; // no pref
     int packetsize = 600;
-    int sendChannels = 2; // actual current send channel count
-    int nominalSendChannels = 0; // 0 matches input
+    int sendChannels = 1; // actual current send channel count
+    int nominalSendChannels = 1; // 0 matches input, 1 is 1, 2 is 2
     int sendChannelsOverride = -1; // -1 don't override
     int recvChannels = 0;
     float recvPan[MAX_PANNERS];
@@ -581,6 +581,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     if (!JUCEApplicationBase::isStandaloneApp()) {
         // default dry to 1.0 if plugin
         mDry = 1.0;
+        mSendChannels = 0; // match inputs default for plugin
     } else {
         mDry = 0.0;
     }
