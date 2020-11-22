@@ -67,7 +67,7 @@ It is built using JUCE 5 (slightly modified on a public fork), and AOO (Audio ov
 
 My github forks of these that are referenced via `git-subrepo` in this repository are:
 
-> https://github.com/essej/JUCE  in the sono branch.
+> https://github.com/essej/JUCE  in the sono6 branch.
  
 > https://github.com/essej/aoo.git   in the sono branch.
 
