@@ -1085,13 +1085,13 @@ void SonobusAudioProcessor::setRemotePeerAudioCodecFormat(int index, int formatI
     
     if (remote->oursource) {
         setupSourceFormat(remote, remote->oursource.get());
-        remote->oursource->setup(getSampleRate(), lastSamplesPerBlock, remote->sendChannels);        
+        remote->oursource->setup(getSampleRate(), currSamplesPerBlock, remote->sendChannels);
         //remote->oursource->setup(getSampleRate(), remote->packetsize    , getTotalNumOutputChannels());        
         
         setupSourceFormat(remote, remote->latencysource.get(), true);
-        remote->latencysource->setup(getSampleRate(), lastSamplesPerBlock, 1);
+        remote->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
         setupSourceFormat(remote, remote->echosource.get(), true);
-        remote->echosource->setup(getSampleRate(), lastSamplesPerBlock, 1);
+        remote->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
         
         remote->latencyDirty = true;
     }
@@ -1600,7 +1600,12 @@ void SonobusAudioProcessor::doSendData()
             }
 
         }
-        
+    }
+
+    if (mNeedsSampleSetup.get()) {
+        DBG("Doing sample setup for all");
+        setupSourceFormatsForAll();
+        mNeedsSampleSetup = false;
     }
 }
 
@@ -3832,7 +3837,7 @@ bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & i
         if (info.codec == CodecPCM) {
             aoo_format_pcm *fmt = (aoo_format_pcm *)&retformat;
             fmt->header.codec = AOO_CODEC_PCM;
-            fmt->header.blocksize = lastSamplesPerBlock >= info.min_preferred_blocksize ? lastSamplesPerBlock : info.min_preferred_blocksize;
+            fmt->header.blocksize = currSamplesPerBlock >= info.min_preferred_blocksize ? currSamplesPerBlock : info.min_preferred_blocksize;
             fmt->header.samplerate = getSampleRate();
             fmt->header.nchannels = channels;
             fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT16;
@@ -3842,7 +3847,7 @@ bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & i
         else if (info.codec == CodecOpus) {
             aoo_format_opus *fmt = (aoo_format_opus *)&retformat;
             fmt->header.codec = AOO_CODEC_OPUS;
-            fmt->header.blocksize = lastSamplesPerBlock >= info.min_preferred_blocksize ? lastSamplesPerBlock : info.min_preferred_blocksize;
+            fmt->header.blocksize = currSamplesPerBlock >= info.min_preferred_blocksize ? currSamplesPerBlock : info.min_preferred_blocksize;
             fmt->header.samplerate = getSampleRate();
             fmt->header.nchannels = channels;
             fmt->bitrate = info.bitrate * fmt->header.nchannels;
@@ -4286,50 +4291,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         lastInputChannels = inchannels;
         lastOutputChannels = outchannels;
     }
-    
-    int i=0;
-    for (auto s : mRemotePeers) {
-        if (s->workBuffer.getNumSamples() < samplesPerBlock) {
-            s->workBuffer.setSize(2, samplesPerBlock);
-        }
 
-        s->sendChannels = isAnythingRoutedToPeer(i) ? outchannels : s->nominalSendChannels <= 0 ? inchannels : s->nominalSendChannels;
-        if (s->sendChannelsOverride > 0) {
-            s->sendChannels = jmin(outchannels, s->sendChannelsOverride);
-        }
-        
-        if (s->oursource) {
-            setupSourceFormat(s, s->oursource.get());
-            s->oursource->setup(sampleRate, samplesPerBlock, s->sendChannels);  // todo use inchannels maybe?
-            s->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
-        }
-        if (s->oursink) {
-            s->oursink->setup(sampleRate, samplesPerBlock, outchannels);
-        }
-        
-        if (s->latencysource) {
-            setupSourceFormat(s, s->latencysource.get(), true);
-            s->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
-            setupSourceFormat(s, s->echosource.get(), true);
-            s->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
-            s->echosource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
+    setupSourceFormatsForAll();
 
-            s->netBufAutoBaseline = (1e3*samplesPerBlock/getSampleRate()); // at least a process block
-
-            s->latencysink->setup(sampleRate, samplesPerBlock, 1);
-            s->echosink->setup(sampleRate, samplesPerBlock, 1);
-            
-            s->latencyProcessor.reset(new MTDM(sampleRate));
-            s->latencyMeasurer.reset(new LatencyMeasurer());
-        }
-
-        s->recvMeterSource.resize (s->recvChannels, meterRmsWindow);
-        s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
-        
-        s->compressor->init(sampleRate);
-        
-        ++i;
-    }
     
     if (samplesPerBlock > mTempBufferSamples || maxchans > mTempBufferChannels) {
         ensureBuffers(samplesPerBlock);
@@ -4337,6 +4301,60 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
    
     
 }
+
+void SonobusAudioProcessor::setupSourceFormatsForAll()
+{
+    const ScopedReadLock sl (mCoreLock);
+
+    double sampleRate = getSampleRate();
+    int inchannels = getMainBusNumInputChannels();
+    int outchannels = getMainBusNumOutputChannels();
+
+    int i=0;
+    for (auto s : mRemotePeers) {
+        if (s->workBuffer.getNumSamples() < currSamplesPerBlock) {
+            s->workBuffer.setSize(2, currSamplesPerBlock);
+        }
+
+        s->sendChannels = isAnythingRoutedToPeer(i) ? outchannels : s->nominalSendChannels <= 0 ? inchannels : s->nominalSendChannels;
+        if (s->sendChannelsOverride > 0) {
+            s->sendChannels = jmin(outchannels, s->sendChannelsOverride);
+        }
+
+        if (s->oursource) {
+            setupSourceFormat(s, s->oursource.get());
+            s->oursource->setup(sampleRate, currSamplesPerBlock, s->sendChannels);  // todo use inchannels maybe?
+            s->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
+        }
+        if (s->oursink) {
+            s->oursink->setup(sampleRate, currSamplesPerBlock, outchannels);
+        }
+
+        if (s->latencysource) {
+            setupSourceFormat(s, s->latencysource.get(), true);
+            s->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
+            setupSourceFormat(s, s->echosource.get(), true);
+            s->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
+            s->echosource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
+
+            s->netBufAutoBaseline = (1e3*currSamplesPerBlock/getSampleRate()); // at least a process block
+
+            s->latencysink->setup(sampleRate, currSamplesPerBlock, 1);
+            s->echosink->setup(sampleRate, currSamplesPerBlock, 1);
+
+            s->latencyProcessor.reset(new MTDM(sampleRate));
+            s->latencyMeasurer.reset(new LatencyMeasurer());
+        }
+
+        s->recvMeterSource.resize (s->recvChannels, meterRmsWindow);
+        s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
+
+        s->compressor->init(sampleRate);
+
+        ++i;
+    }
+}
+
 
 void SonobusAudioProcessor::releaseResources()
 {
@@ -4446,7 +4464,24 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     inGain = mMainInMute.get() ? 0.0f : inGain;
     
     int numSamples = buffer.getNumSamples();
-    
+
+    if (numSamples != lastSamplesPerBlock) {
+        DBG("blocksize changed from " << lastSamplesPerBlock << " to " << numSamples);
+        blocksizeCounter = 0;
+    }
+    else if (blocksizeCounter >= 0) {
+        ++blocksizeCounter;
+
+        if (blocksizeCounter > 5) { // change currblocksize if stable
+            DBG("sample frames stabilized at: " << numSamples);
+            currSamplesPerBlock = numSamples;
+            blocksizeCounter = -1;
+            mNeedsSampleSetup = true;
+        }
+    }
+
+
+
     // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case.
     // I know this isn't RT safe.
     if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels) {
@@ -5261,10 +5296,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             }
         }
     }
-    
-    //if (needsblockchange) {
-    //lastSamplesPerBlock = numSamples;
-    //}
+
+    lastSamplesPerBlock = numSamples;
 
     notifySendThread();
     

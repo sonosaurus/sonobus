@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "JuceHeader.h"
 
 #include "aoo/aoo.hpp"
 #include "aoo/aoo_net.hpp"
@@ -544,7 +544,8 @@ private:
 
     void updateRemotePeerSendChannels(int index, RemotePeer * remote);
 
-    
+    void setupSourceFormatsForAll();
+
     int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
 
     int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
@@ -630,7 +631,10 @@ private:
     
     int currSamplesPerBlock = 256;
     int lastSamplesPerBlock = 256;
-    
+
+    int blocksizeCounter = -1;
+    Atomic<bool> mNeedsSampleSetup  { false };
+
     float meterRmsWindow = 0.0f;
     
     int lastInputChannels = 0;
