@@ -795,6 +795,24 @@ void SonoLookAndFeel::layoutFileBrowserComponent (FileBrowserComponent& browserC
 }
 
 
+PopupMenu::Options SonoLookAndFeel::getOptionsForComboBoxPopupMenu (ComboBox& box, Label& label)
+{
+    auto options = PopupMenu::Options().withTargetComponent (&box)
+                               .withItemThatMustBeVisible (box.getSelectedId())
+                               .withMinimumWidth (box.getWidth())
+                               .withMaximumNumColumns (1)
+                               .withStandardItemHeight (label.getHeight());
+
+#if JUCE_IOS
+    auto * dw = box.findParentComponentOfClass<AudioProcessorEditor>();
+    if (dw) {
+        options = options.withParentComponent(dw);
+    }
+#endif
+
+    return options;
+}
+
 void SonoLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float>& area,
                                                Colour backgroundColour, bool isOpen, bool isMouseOver)
 {

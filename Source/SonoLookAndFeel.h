@@ -99,6 +99,7 @@ public:
     Font getLabelFont (Label& label) override;
     void drawLabel (Graphics& g, Label& label) override;
     
+    PopupMenu::Options getOptionsForComboBoxPopupMenu (ComboBox&, Label&) override;
 
     Justification sliderTextJustification = Justification::centred;
 
