@@ -31,7 +31,7 @@
 #define NOMINMAX
 
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "JuceHeader.h"
 
 #include "juce_core/system/juce_TargetPlatform.h"
 #include "juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
