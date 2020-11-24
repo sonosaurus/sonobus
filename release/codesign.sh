@@ -14,7 +14,7 @@ codesign ${POPTS} --entitlements ../Builds/MacOSX/VST.entitlements  SonoBus/Sono
 # AAX is special
 if [ -n "${AAXSIGNCMD}" ]; then
  echo "Signing AAX plugin"
- ${AAXSIGNCMD}  --in SonoBus/Sonobus.aaxplugin --out SonoBus/Sonobus.aaxplugin
+ ${AAXSIGNCMD}  --in SonoBus/SonoBus.aaxplugin --out SonoBus/SonoBus.aaxplugin
 fi
 
 # notarize them

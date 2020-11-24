@@ -267,12 +267,14 @@
                aaxFolder="../AAX_SDK_2p3p2">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
-                       libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"/>
+                       libraryPath="../../deps/mac/lib" defines="LOGLEVEL=2" osxCompatibility="10.9 SDK"
+                       aaxBinaryLocation="$(HOME)/Library/Application Support/Avid/Audio/Plug-Ins/"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
-                       libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"/>
+                       libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"
+                       enablePluginBinaryCopyStep="0"/>
         <CONFIGURATION isDebug="0" name="ReleaseVST2" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"
-                       defines="DONT_USE_MULTIBUS"/>
+                       defines="DONT_USE_MULTIBUS" enablePluginBinaryCopyStep="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="deps/juce/modules"/>
