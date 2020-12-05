@@ -131,6 +131,8 @@ public:
         mainWindow->setVisible (true);
         
         Desktop::getInstance().setScreenSaverEnabled(false);
+
+        disableAppNap();
     }
 
     void shutdown() override
