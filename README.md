@@ -31,8 +31,6 @@ intercepted, please keep that in mind. All audio is sent directly between users 
 
 There are binary releases for macOS and Windows available at [sonobus.net](https://sonobus.net) or in the releases of this repository on GitHub.
 
-For Linux, read the [build instructions](#content-on-linux) below.
-
 # Building
 
 To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. 
@@ -53,18 +51,12 @@ Make sure you have `libopus` and the `libopus` development package
 (libopus-dev), as well as JACK (jackd) and its development package. Also
 libasound2-dev , libx11-dev, libxext-dev, libxinerama-dev, libxrandr-dev,
 libxcursor-dev, libgl-dev, libfreetype-dev,
-libcurl4-dev, libcurlpp-dev.
+libcurl4-dev.
 
     cd Builds/LinuxMakefile
     ./build.sh
 
-When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`. You can install it using the installation script.
-
-    sudo ./install.sh
-
-If you wish to uninstall you can run the uninstall script in the same directory.
-
-    sudo ./uninstall.sh
+When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`, which you can copy elsewhere for use (/usr/local/bin, etc)
 
 # License and 3rd Party Software
 
