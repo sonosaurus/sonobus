@@ -70,6 +70,7 @@ static String useSpecificUdpPortKey("UseUdpPort");
 static String changeQualForAllKey("ChangeQualForAll");
 static String defRecordOptionsKey("DefaultRecordingOptions");
 static String defRecordFormatKey("DefaultRecordingFormat");
+static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -485,7 +486,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramDry,     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.25), mDry.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(paramDry,     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.25), JUCEApplicationBase::isStandaloneApp() ? mDry.get() : 1.0f, "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
@@ -496,7 +497,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(paramDefaultNetbufMs,     TRANS ("Default Net Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
-    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), mSendChannels.get()),
+    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), JUCEApplicationBase::isStandaloneApp() ? mSendChannels.get() : 0),
 
     std::make_unique<AudioParameterBool>(paramMetEnabled, TRANS ("Metronome Enabled"), mMetEnabled.get()),
     std::make_unique<AudioParameterBool>(paramSendMetAudio, TRANS ("Send Metronome Audio"), mSendMet.get()),
@@ -578,18 +579,6 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
 
-    if (!JUCEApplicationBase::isStandaloneApp()) {
-        // default dry to 1.0 if plugin
-        mDry = 1.0;
-        mSendChannels = 0; // match inputs default for plugin
-    } else {
-        mDry = 0.0;
-    }
-
-    mState.getParameter(paramDry)->setValue(mDry.get());
-    mState.getParameter(paramSendChannels)->setValue(mState.getParameter(paramSendChannels)->convertTo0to1(mSendChannels.get()));
-
-    
     mTempoParameter = mState.getParameter(paramMetTempo);
     
     mMetronome = std::make_unique<SonoAudio::Metronome>();
@@ -5376,6 +5365,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     extraTree.setProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll, nullptr);
     extraTree.setProperty(defRecordOptionsKey, var((int)mDefaultRecordingOptions), nullptr);
     extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
+    extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
 
     ValueTree inputEffectsTree = mState.state.getOrCreateChildWithName(inputEffectsStateKey, nullptr);
     inputEffectsTree.removeAllChildren(nullptr);
@@ -5424,6 +5414,10 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
 
             uint32 fmt = (uint32)(int) extraTree.getProperty(defRecordFormatKey, (int)mDefaultRecordingFormat);
             setDefaultRecordingFormat((RecordFileFormat)fmt);
+
+            int bps = (uint32)(int) extraTree.getProperty(defRecordBitsKey, (int)mDefaultRecordingBitsPerSample);
+            setDefaultRecordingBitsPerSample(bps);
+
         }
         
        ValueTree inputEffectsTree = mState.state.getChildWithName(inputEffectsStateKey);
@@ -5606,6 +5600,7 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
     std::unique_ptr<AudioFormat> audioFormat;
     int qualindex = 0;
     
+    int bitsPerSample = mDefaultRecordingBitsPerSample;
 
     if (getSampleRate() <= 0)
     {
@@ -5650,7 +5645,7 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         if (auto fileStream = std::unique_ptr<FileOutputStream> (usefile.createOutputStream()))
         {
             
-            if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+            if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
             {
                 fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                 
@@ -5659,6 +5654,8 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 threadedMixWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
                 
                 DBG("Started recording only mix file " << usefile.getFullPathName());
+
+                file = usefile;
                 ret = true;
             } else {
                 DBG("Error creating writer for " << usefile.getFullPathName());
@@ -5682,7 +5679,7 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
             File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-MIXMINUS" + usefile.getFileExtension()).getNonexistentSibling();
             if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {                
-                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                     
@@ -5706,7 +5703,7 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
             File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-SELF" + usefile.getFileExtension()).getNonexistentSibling();
             if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {                
-                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                     
@@ -5731,7 +5728,7 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
             File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-MIX" + usefile.getFileExtension()).getNonexistentSibling();
             if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {                
-                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                     
@@ -5765,7 +5762,7 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-" + remote->userName + usefile.getFileExtension()).getNonexistentSibling();
                 if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {                
-                    if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, 16, {}, qualindex))
+                    if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                     {
                         fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                         

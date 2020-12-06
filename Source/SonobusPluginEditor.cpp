@@ -938,6 +938,12 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecFormatChoice->addItem(TRANS("WAV"), SonobusAudioProcessor::FileFormatWAV);
     mRecFormatChoice->addItem(TRANS("OGG"), SonobusAudioProcessor::FileFormatOGG);
 
+    mRecBitsChoice = std::make_unique<SonoChoiceButton>();
+    mRecBitsChoice->addChoiceListener(this);
+    mRecBitsChoice->addItem(TRANS("16 bit"), 16);
+    mRecBitsChoice->addItem(TRANS("24 bit"), 24);
+
+
     mRecFormatStaticLabel = std::make_unique<Label>("", TRANS("Audio File Format:"));
     configLabel(mRecFormatStaticLabel.get(), false);
     mRecFormatStaticLabel->setJustificationType(Justification::centredRight);
@@ -1264,6 +1270,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixMinusButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecOthersButton.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
     
     
@@ -1921,6 +1928,9 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
     else if (comp == mRecFormatChoice.get()) {
         processor.setDefaultRecordingFormat((SonobusAudioProcessor::RecordFileFormat) ident);
     }
+    else if (comp == mRecBitsChoice.get()) {
+        processor.setDefaultRecordingBitsPerSample(ident);
+    }
     else if (comp == mReverbModelChoice.get()) {
         processor.setMainReverbModel((SonobusAudioProcessor::ReverbModel) ident);
     }
@@ -2015,8 +2025,9 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
     mOptionsRecMixMinusButton->setToggleState((recmask & SonobusAudioProcessor::RecordMixMinusSelf) != 0, dontSendNotification);
     mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
     
-    mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat());
-    
+    mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
+    mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
+
     
 }
 
@@ -4272,6 +4283,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsRecordFormatBox.flexDirection = FlexBox::Direction::row;
     optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(1));
     optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatChoice).withMargin(0).withFlex(1));
+    optionsRecordFormatBox.items.add(FlexItem(2, 4));
+    optionsRecordFormatBox.items.add(FlexItem(80, minitemheight, *mRecBitsChoice).withMargin(0).withFlex(0.25));
 
     optionsRecMixBox.items.clear();
     optionsRecMixBox.flexDirection = FlexBox::Direction::row;
@@ -4950,25 +4963,30 @@ public:
         if (reader != nullptr) {
             
             String pathname = outputfile.getFullPathName();
-            
+
+            std::unique_ptr<AudioFormat> audioFormat;
+            int qualindex = 0;
+
+            if (outputfile.getFileExtension().toLowerCase() == ".wav") {
+                audioFormat = std::make_unique<WavAudioFormat>();
+            }
+            else if (outputfile.getFileExtension().toLowerCase() == ".ogg") {
+                audioFormat = std::make_unique<OggVorbisAudioFormat>();
+                qualindex = 8; // 256k
+            }
+            else {
+                // default to flac
+                audioFormat = std::make_unique<FlacAudioFormat>();
+                if (outputfile.getFileExtension().toLowerCase() != ".flac") {
+                    // force name to end in flac
+                    outputfile = outputfile.getParentDirectory().getNonexistentChildFile(outputfile.getFileNameWithoutExtension(), ".flac");
+                }
+            }
+
             std::unique_ptr<FileOutputStream> fos (outputfile.createOutputStream());
             
             if (fos != nullptr) {
                 // Now create a writer object that writes to our output stream...
-                std::unique_ptr<AudioFormat> audioFormat;
-                int qualindex = 0;
-                
-                if (outputfile.getFileExtension().toLowerCase() == ".wav") {
-                    audioFormat = std::make_unique<WavAudioFormat>();
-                }
-                else if (outputfile.getFileExtension().toLowerCase() == ".ogg") {
-                    audioFormat = std::make_unique<OggVorbisAudioFormat>();
-                    qualindex = 8; // 256k
-                }
-                else {
-                    // default to flac
-                    audioFormat = std::make_unique<FlacAudioFormat>();
-                }
 
                 std::unique_ptr<AudioFormatWriter> writer;
                 writer.reset(audioFormat->createWriterFor (fos.get(), reader->sampleRate, reader->numChannels, 16, {}, qualindex));

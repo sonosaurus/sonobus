@@ -477,7 +477,10 @@ public:
 
     RecordFileFormat getDefaultRecordingFormat() const { return mDefaultRecordingFormat; }
     void setDefaultRecordingFormat(RecordFileFormat fmt) { mDefaultRecordingFormat = fmt; }
-    
+
+    int getDefaultRecordingBitsPerSample() const { return mDefaultRecordingBitsPerSample; }
+    void setDefaultRecordingBitsPerSample(int fmt) { mDefaultRecordingBitsPerSample = fmt; }
+
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
     AudioTransportSource & getTransportSource() { return mTransportSource; }
@@ -761,7 +764,8 @@ private:
     
     uint32 mDefaultRecordingOptions = RecordMix;
     RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
-    
+    int mDefaultRecordingBitsPerSample = 16;
+
     volatile bool writingPossible = false;
     volatile bool userWritingPossible = false;
     int totalRecordingChannels = 2;

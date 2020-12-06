@@ -363,6 +363,7 @@ private:
     std::unique_ptr<ToggleButton> mOptionsRecSelfButton;
     std::unique_ptr<ToggleButton> mOptionsRecOthersButton;
     std::unique_ptr<SonoChoiceButton> mRecFormatChoice;
+    std::unique_ptr<SonoChoiceButton> mRecBitsChoice;
     std::unique_ptr<Label> mRecFormatStaticLabel;
 
     
