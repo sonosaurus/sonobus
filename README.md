@@ -50,8 +50,24 @@ Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.
 Make sure you have `libopus` and the `libopus` development package
 (libopus-dev), as well as JACK (jackd) and its development package. Also
 libasound2-dev , libx11-dev, libxext-dev, libxinerama-dev, libxrandr-dev,
-libxcursor-dev, libgl-dev, libfreetype-dev,
-libcurl4-dev.
+libxcursor-dev, libgl-dev, libfreetype6-dev,
+libcurl4-openssl-dev.
+
+For Ubuntu, the command to make sure all these are installed is:
+
+    sudo apt update
+    sudo apt install libasound2-dev libjack-jackd2-dev \
+       libopus-dev \
+       libcurl4-openssl-dev  \
+       libfreetype6-dev \
+       libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
+       libgl-dev
+       
+
+Other distributions may have slightly different package names for these, for
+instance in Debian, you might substitute libcurl4-gnutls-dev.
+
+After they are installed, build SonoBus with the following:
 
     cd Builds/LinuxMakefile
     ./build.sh
@@ -62,7 +78,7 @@ When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`
 
 SonoBus was written by Jesse Chappell, and it is licensed under the GPLv3, the full license text is in the LICENSE file. Some of the dependencies have their own more permissive licenses.
 
-It is built using JUCE 5 (slightly modified on a public fork), and AOO (Audio over OSC), which also uses the Opus codec. I'm using the very handy tool `git-subrepo` to include the source code for my forks of those software libraries in this repository.
+It is built using JUCE 6 (slightly modified on a public fork), and AOO (Audio over OSC), which also uses the Opus codec. I'm using the very handy tool `git-subrepo` to include the source code for my forks of those software libraries in this repository.
 
 
 My github forks of these that are referenced via `git-subrepo` in this repository are:
