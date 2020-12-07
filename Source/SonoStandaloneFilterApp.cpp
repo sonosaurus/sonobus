@@ -132,7 +132,9 @@ public:
         
         Desktop::getInstance().setScreenSaverEnabled(false);
 
+#if JUCE_MAC
         disableAppNap();
+#endif
     }
 
     void shutdown() override
