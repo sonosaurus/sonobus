@@ -31,6 +31,8 @@ intercepted, please keep that in mind. All audio is sent directly between users 
 
 There are binary releases for macOS and Windows available at [sonobus.net](https://sonobus.net) or in the releases of this repository on GitHub.
 
+For Linux, read the [build instructions](#on-linux) below.
+
 # Building
 
 To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. 
@@ -62,7 +64,6 @@ For Ubuntu, the command to make sure all these are installed is:
        libfreetype6-dev \
        libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
        libgl-dev
-       
 
 Other distributions may have slightly different package names for these, for
 instance in Debian, you might substitute libcurl4-gnutls-dev.
@@ -72,7 +73,13 @@ After they are installed, build SonoBus with the following:
     cd Builds/LinuxMakefile
     ./build.sh
 
-When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`, which you can copy elsewhere for use (/usr/local/bin, etc)
+When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`. You can install it using the installation script.
+
+    sudo ./install.sh
+
+If you wish to uninstall you can run the uninstall script in the same directory.
+
+    sudo ./uninstall.sh
 
 # License and 3rd Party Software
 
@@ -84,7 +91,7 @@ It is built using JUCE 6 (slightly modified on a public fork), and AOO (Audio ov
 My github forks of these that are referenced via `git-subrepo` in this repository are:
 
 > https://github.com/essej/JUCE  in the sono6 branch.
- 
+
 > https://github.com/essej/aoo.git   in the sono branch.
 
 
