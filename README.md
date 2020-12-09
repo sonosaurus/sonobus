@@ -36,8 +36,6 @@ For Linux, read the [build instructions](#on-linux) below.
 # Building
 
 To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. 
-On Linux, you'll just need to have `libopus` and `libjack` installed, as
-well as their appropriate development packages.
 
 ### On macOS
 
@@ -49,37 +47,41 @@ Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.
 
 ### On Linux
 
+The first thing to do in a terminal is go to the Linux build directory:
+
+    cd Builds/LinuxMakefile
+
+
 Make sure you have `libopus` and the `libopus` development package
 (libopus-dev), as well as JACK (jackd) and its development package. Also
 libasound2-dev , libx11-dev, libxext-dev, libxinerama-dev, libxrandr-dev,
 libxcursor-dev, libgl-dev, libfreetype6-dev,
 libcurl4-openssl-dev.
 
-For Ubuntu, the command to make sure all these are installed is:
-
-    sudo apt update
-    sudo apt install libasound2-dev libjack-jackd2-dev \
-       libopus-dev \
-       libcurl4-openssl-dev  \
-       libfreetype6-dev \
-       libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
-       libgl-dev
-
 Other distributions may have slightly different package names for these, for
 instance in Debian, you might substitute libcurl4-gnutls-dev.
 
-After they are installed, build SonoBus with the following:
+If you are using Ubuntu, you can run the following script to install all the
+prequisites (scripts for other distributions wanted, please contribute them
+if you can):
 
-    cd Builds/LinuxMakefile
+    ./ubuntu_get_prereqs.sh
+
+After they are installed, build SonoBus with the following command, both the
+standalone application and the VST3 plugin will be built:
+
     ./build.sh
 
 When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`. You can install it using the installation script.
 
     sudo ./install.sh
 
+It defaults to installing in /usr/local, but if you want to install it
+elsewhere, just specify it as the first argument on the commandline of the script.
 If you wish to uninstall you can run the uninstall script in the same directory.
 
     sudo ./uninstall.sh
+
 
 # License and 3rd Party Software
 
