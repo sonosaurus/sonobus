@@ -948,7 +948,17 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     configLabel(mRecFormatStaticLabel.get(), false);
     mRecFormatStaticLabel->setJustificationType(Justification::centredRight);
 
-    
+
+    mRecLocationStaticLabel = std::make_unique<Label>("", TRANS("Record Location:"));
+    configLabel(mRecLocationStaticLabel.get(), false);
+    mRecLocationStaticLabel->setJustificationType(Justification::centredRight);
+
+    mRecLocationButton = std::make_unique<TextButton>("fileloc");
+    mRecLocationButton->setButtonText("");
+    mRecLocationButton->setLookAndFeel(&smallLNF);
+    mRecLocationButton->addListener(this);
+
+
     
     
     mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
@@ -980,7 +990,11 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     configEditor(mOptionsUdpPortEditor.get());
 
+#if JUCE_IOS
+    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
+#else
     mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + ProjectInfo::versionString);
+#endif
     configLabel(mVersionLabel.get(), true);
     mVersionLabel->setJustificationType(Justification::centredRight);
 
@@ -1272,7 +1286,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
-    
+    mRecOptionsComponent->addAndMakeVisible(mRecLocationButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecLocationStaticLabel.get());
+
     
     addAndMakeVisible(mPeerViewport.get());
     addAndMakeVisible(mTitleLabel.get());
@@ -2028,6 +2044,10 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
     mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
     mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
 
+    File recdir = File(processor.getDefaultRecordingDirectory());
+    String dispath = recdir.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+    if (dispath.startsWith(".")) dispath = processor.getDefaultRecordingDirectory();
+    mRecLocationButton->setButtonText(dispath);
     
 }
 
@@ -2305,6 +2325,23 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showInPanners(false);
         }        
     }
+    else if (buttonThatWasClicked == mRecLocationButton.get()) {
+        // browse folder chooser
+        SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+        if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
+        {
+            RuntimePermissions::request (RuntimePermissions::readExternalStorage,
+                                         [safeThis] (bool granted) mutable
+                                         {
+                if (granted)
+                    safeThis->buttonClicked (safeThis->mRecLocationButton.get());
+            });
+            return;
+        }
+
+        chooseRecDirBrowser();
+    }
     else if (buttonThatWasClicked == mMetConfigButton.get()) {
         if (!metCalloutBox) {
             showMetConfig(true);
@@ -2459,16 +2496,25 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             resized();
             
         } else {
+
+            SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+            if (! RuntimePermissions::isGranted (RuntimePermissions::writeExternalStorage))
+            {
+                RuntimePermissions::request (RuntimePermissions::writeExternalStorage,
+                                             [safeThis] (bool granted) mutable
+                                             {
+                    if (granted)
+                        safeThis->buttonClicked (safeThis->mRecordingButton.get());
+                });
+                return;
+            }
+
             // create new timestamped filename
             String filename = Time::getCurrentTime().formatted("SonoBusSession_%Y-%m-%d_%H.%M.%S");
 
-#if (JUCE_IOS)
-            auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
-#else
-            auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
-            parentDir = parentDir.getChildFile("SonoBus");
+            auto parentDir = File(processor.getDefaultRecordingDirectory());
             parentDir.createDirectory();
-#endif
 
             File file (parentDir.getNonexistentChildFile (filename, ".flac"));
 
@@ -2500,6 +2546,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                     mRecordingButton->setTooltip(TRANS("Recording multi-track audio to: ") + filepath);
                 }
             }
+            else {
+                // show error starting record
+                String lasterr = processor.getLastErrorMessage();
+                showPopTip(lasterr, 0, mRecordingButton.get());
+            }
             
             mFileRecordingLabel->setText("", dontSendNotification);
 
@@ -2528,7 +2579,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 }
                 else {
                     if (mCurrOpenDir.getFullPathName().isEmpty()) {
-                        mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+                        mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
                         DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
                     }
                     mCurrOpenDir.revealToUser();
@@ -2655,7 +2706,7 @@ void SonobusAudioProcessorEditor::openFileBrowser()
     {
 #if !(JUCE_IOS)
         if (mCurrOpenDir.getFullPathName().isEmpty()) {
-            mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+            mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
             DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
             
         }
@@ -2698,6 +2749,55 @@ void SonobusAudioProcessorEditor::openFileBrowser()
             
         }, nullptr);
         
+    }
+    else {
+        DBG("Need to enable code signing");
+    }
+}
+
+void SonobusAudioProcessorEditor::chooseRecDirBrowser()
+{
+    SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+    if (FileChooser::isPlatformDialogAvailable())
+    {
+        File recdir = File(processor.getDefaultRecordingDirectory());
+
+        mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
+                                           recdir,
+                                           "",
+                                           true, false, getTopLevelComponent()));
+
+
+
+        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                                   [safeThis] (const FileChooser& chooser) mutable
+                                   {
+            auto results = chooser.getURLResults();
+            if (safeThis != nullptr && results.size() > 0)
+            {
+                auto url = results.getReference (0);
+
+                DBG("Chose directory: " <<  url.toString(false));
+
+                if (url.isLocalFile()) {
+                    File lfile = url.getLocalFile();
+                    if (lfile.isDirectory()) {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getFullPathName());
+                    } else {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
+                    }
+
+                    safeThis->updateOptionsState();
+                }
+            }
+
+            if (safeThis) {
+                safeThis->mFileChooser.reset();
+            }
+
+        }, nullptr);
+
     }
     else {
         DBG("Need to enable code signing");
@@ -3250,7 +3350,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         int defHeight = 420;
 #else
         int defWidth = 320;
-        int defHeight = 360;
+        int defHeight = 390;
 #endif
         
         defWidth = jmin(defWidth + 8, dw->getWidth() - 20);
@@ -4278,10 +4378,15 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
 
     int indentw = 40;
-    
+
+    optionsRecordDirBox.items.clear();
+    optionsRecordDirBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordDirBox.items.add(FlexItem(115, minitemheight, *mRecLocationStaticLabel).withMargin(0).withFlex(0));
+    optionsRecordDirBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecLocationButton).withMargin(0).withFlex(3));
+
     optionsRecordFormatBox.items.clear();
     optionsRecordFormatBox.flexDirection = FlexBox::Direction::row;
-    optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(1));
+    optionsRecordFormatBox.items.add(FlexItem(115, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(0));
     optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatChoice).withMargin(0).withFlex(1));
     optionsRecordFormatBox.items.add(FlexItem(2, 4));
     optionsRecordFormatBox.items.add(FlexItem(80, minitemheight, *mRecBitsChoice).withMargin(0).withFlex(0.25));
@@ -4310,6 +4415,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
     recOptionsBox.items.add(FlexItem(4, 6));
+#if !JUCE_IOS
+    recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordDirBox).withMargin(2).withFlex(0));
+#endif
     recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordFormatBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(4, 4));
     recOptionsBox.items.add(FlexItem(100, minpassheight, *mOptionsRecFilesStaticLabel).withMargin(2).withFlex(0));
@@ -5231,7 +5339,7 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             }
             else {
                 if (mCurrOpenDir.getFullPathName().isEmpty()) {
-                    mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+                    mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
                 }
                 mCurrOpenDir.revealToUser();
             }

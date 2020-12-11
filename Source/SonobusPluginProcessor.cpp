@@ -71,6 +71,7 @@ static String changeQualForAllKey("ChangeQualForAll");
 static String defRecordOptionsKey("DefaultRecordingOptions");
 static String defRecordFormatKey("DefaultRecordingFormat");
 static String defRecordBitsKey("DefaultRecordingBitsPerSample");
+static String defRecordDirKey("DefaultRecordDir");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -573,7 +574,16 @@ mState (*this, &mUndoManager, "SonoBusAoO",
             mRemoteSendMatrix[i][j] = false;
         }
     }
-    
+
+#if (JUCE_IOS)
+    mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
+#else
+    auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
+    parentDir = parentDir.getChildFile("SonoBus");
+    mDefaultRecordDir = parentDir.getFullPathName();
+#endif
+
+
     initFormats();
     
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
@@ -5366,6 +5376,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     extraTree.setProperty(defRecordOptionsKey, var((int)mDefaultRecordingOptions), nullptr);
     extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
+    extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
 
     ValueTree inputEffectsTree = mState.state.getOrCreateChildWithName(inputEffectsStateKey, nullptr);
     inputEffectsTree.removeAllChildren(nullptr);
@@ -5418,6 +5429,7 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
             int bps = (uint32)(int) extraTree.getProperty(defRecordBitsKey, (int)mDefaultRecordingBitsPerSample);
             setDefaultRecordingBitsPerSample(bps);
 
+            setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
         }
         
        ValueTree inputEffectsTree = mState.state.getChildWithName(inputEffectsStateKey);
@@ -5631,7 +5643,8 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         usefile = file.withFileExtension(".ogg");
     }
     else {
-        DBG("Could not find format for filename");
+        mLastError = TRANS("Could not find format for filename");
+        DBG(mLastError);
         return false;
     }
     
@@ -5658,10 +5671,12 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 file = usefile;
                 ret = true;
             } else {
-                DBG("Error creating writer for " << usefile.getFullPathName());
+                mLastError << TRANS("Error creating writer for ") << usefile.getFullPathName();
+                DBG(mLastError);
             }
         } else {
-            DBG("Error creating output file: " << usefile.getFullPathName());
+            mLastError << TRANS("Error creating output file: ") << usefile.getFullPathName();
+            DBG(mLastError);
         }
         
     }
@@ -5669,7 +5684,8 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         // make directory from the filename
         File recdir = usefile.getParentDirectory().getChildFile(usefile.getFileNameWithoutExtension()).getNonexistentSibling();
         if (!recdir.createDirectory()) {
-            DBG("Error creating directory for recording: " << recdir.getFullPathName());
+            mLastError << TRANS("Error creating directory for recording: ") << recdir.getFullPathName();
+            DBG(mLastError);
             return false;
         }
 

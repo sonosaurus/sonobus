@@ -471,6 +471,10 @@ public:
     bool stopRecordingToFile();
     bool isRecordingToFile();
     double getElapsedRecordTime() const { return mElapsedRecordSamples / getSampleRate(); }
+    String getLastErrorMessage() const { return mLastError; }
+
+    void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
+    String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
 
     uint32 getDefaultRecordingOptions() const { return mDefaultRecordingOptions; }
     void setDefaultRecordingOptions(uint32 opts) { mDefaultRecordingOptions = opts; }
@@ -765,6 +769,8 @@ private:
     uint32 mDefaultRecordingOptions = RecordMix;
     RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
     int mDefaultRecordingBitsPerSample = 16;
+    String mDefaultRecordDir;
+    String mLastError;
 
     volatile bool writingPossible = false;
     volatile bool userWritingPossible = false;

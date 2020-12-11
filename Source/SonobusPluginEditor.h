@@ -183,6 +183,7 @@ private:
     void updateServerFieldsFromConnectionInfo();
 
     void openFileBrowser();
+    void chooseRecDirBrowser();
 
     bool loadAudioFromURL(URL fileurl);
     
@@ -365,6 +366,8 @@ private:
     std::unique_ptr<SonoChoiceButton> mRecFormatChoice;
     std::unique_ptr<SonoChoiceButton> mRecBitsChoice;
     std::unique_ptr<Label> mRecFormatStaticLabel;
+    std::unique_ptr<Label> mRecLocationStaticLabel;
+    std::unique_ptr<TextButton> mRecLocationButton;
 
     
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
@@ -680,6 +683,7 @@ private:
     FlexBox optionsRecMixMinusBox;
     FlexBox optionsRecOthersBox;
     FlexBox optionsMetRecordBox;
+    FlexBox optionsRecordDirBox;
 
     Image iaaHostIcon;
 
