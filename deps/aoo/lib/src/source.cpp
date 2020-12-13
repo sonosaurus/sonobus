@@ -646,6 +646,7 @@ int32_t aoo::source::process(const aoo_sample **data, int32_t n, uint64_t t){
             resampler_.write(pbuf, usesamples);
 
             samplesleft -= usesamples;
+            pbuf += usesamples;
             
             bool didconsume = false;
             

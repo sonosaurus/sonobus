@@ -937,6 +937,40 @@ bool source_desc::process(const sink& s, aoo_sample *buffer, int32_t stride, int
         return false;
     }
 
+    // record stream state
+    int32_t lost = streamstate_.get_lost();
+    int32_t reordered = streamstate_.get_reordered();
+    int32_t resent = streamstate_.get_resent();
+    int32_t gap = streamstate_.get_gap();
+
+    event e;
+    e.source.endpoint = endpoint_;
+    e.source.id = id_;
+    if (lost > 0){
+        // push packet loss event
+        e.type = AOO_BLOCK_LOST_EVENT;
+        e.block_loss.count = lost;
+        push_event(e);
+    }
+    if (reordered > 0){
+        // push packet reorder event
+        e.type = AOO_BLOCK_REORDERED_EVENT;
+        e.block_reorder.count = reordered;
+        push_event(e);
+    }
+    if (resent > 0){
+        // push packet resend event
+        e.type = AOO_BLOCK_RESENT_EVENT;
+        e.block_resend.count = resent;
+        push_event(e);
+    }
+    if (gap > 0){
+        // push packet gap event
+        e.type = AOO_BLOCK_GAP_EVENT;
+        e.block_gap.count = gap;
+        push_event(e);
+    }
+
     // don't process anything until the first few blocks are recv'd into the blockqueue
     // after a reset to keep the jitter buffer as full as possible at the start
     //if (streamstate_.get_blocks_recvd() <  std::min(infoqueue_.capacity()/2, 10)) {
@@ -946,13 +980,20 @@ bool source_desc::process(const sink& s, aoo_sample *buffer, int32_t stride, int
     
     int32_t nsamples = audioqueue_.blocksize();
 
+    // read samples from resampler
+    auto nchannels = decoder_->nchannels();
+    // we need to respect the sample frame size passed in this method
+    // because it may be less than the sink blocksize
+    auto readsamples = numsampleframes * nchannels;
+
 #if 0
     auto capacity = audioqueue_.capacity() / audioqueue_.blocksize();
     DO_LOG("audioqueue: " << audioqueue_.read_available() << " / " << capacity);
 #endif
 
     while (audioqueue_.read_available() && infoqueue_.read_available()
-           && resampler_.write_available() >= nsamples){
+           && readsamples > resampler_.read_available() && resampler_.write_available() >= nsamples){
+
         // get block info and set current channel + samplerate
         block_info info;
         infoqueue_.read(info);
@@ -961,51 +1002,16 @@ bool source_desc::process(const sink& s, aoo_sample *buffer, int32_t stride, int
 
         // write audio into resampler
         resampler_.write(audioqueue_.read_data(), nsamples);
+
         audioqueue_.read_commit();
 
-        // record stream state
-        int32_t lost = streamstate_.get_lost();
-        int32_t reordered = streamstate_.get_reordered();
-        int32_t resent = streamstate_.get_resent();
-        int32_t gap = streamstate_.get_gap();
 
-        event e;
-        e.source.endpoint = endpoint_;
-        e.source.id = id_;
-        if (lost > 0){
-            // push packet loss event
-            e.type = AOO_BLOCK_LOST_EVENT;
-            e.block_loss.count = lost;
-            push_event(e);
-        }
-        if (reordered > 0){
-            // push packet reorder event
-            e.type = AOO_BLOCK_REORDERED_EVENT;
-            e.block_reorder.count = reordered;
-            push_event(e);
-        }
-        if (resent > 0){
-            // push packet resend event
-            e.type = AOO_BLOCK_RESENT_EVENT;
-            e.block_resend.count = resent;
-            push_event(e);
-        }
-        if (gap > 0){
-            // push packet gap event
-            e.type = AOO_BLOCK_GAP_EVENT;
-            e.block_gap.count = gap;
-            push_event(e);
-        }
     }
     // update resampler
     resampler_.update(samplerate_, s.real_samplerate());
     // read samples from resampler
-    auto nchannels = decoder_->nchannels();
-    // we need to respect the sample frame size passed in this method
-    // because it may be less than the sink blocksize
-    auto readsamples = numsampleframes * nchannels;
     
-    //LOG_VERBOSE("s.blocksize: " << s.blocksize() << "  size: " << nframes << "  stride: " << stride);
+    //LOG_VERBOSE("s.blocksize: " << s.blocksize() << "  size: " << numsampleframes << "  stride: " << stride << " readsamp: " << readsamples << " ravail: " << resampler_.read_available() << " wavail: " << resampler_.write_available());
     
     if (resampler_.read_available() >= readsamples){
         auto buf = (aoo_sample *)alloca(readsamples * sizeof(aoo_sample));
@@ -1048,6 +1054,8 @@ bool source_desc::process(const sink& s, aoo_sample *buffer, int32_t stride, int
             e.source_state.id = id_;
             e.source_state.state = AOO_SOURCE_STATE_STOP;
             push_event(e);
+
+            LOG_VERBOSE("UNDERRUN resampler avail " << resampler_.read_available() << "  readsamp: " << readsamples);
 
             // this doesn't do anything if the stream simply stopped
             streamstate_.set_underrun();
@@ -1130,7 +1138,7 @@ bool source_desc::check_packet(const data_packet &d){
         while (audioqueue_.write_available() > 1 && infoqueue_.write_available() > 1){
             auto ptr = audioqueue_.write_data();
             if (!decoder_->decode(nullptr, 0, ptr, nsamples)) {
-                LOG_WARNING("decode failed nsamples: " << nsamples);
+                LOG_WARNING("decode failed nsamples: " << nsamples << " audioqavail: " << audioqueue_.write_available());
             }
             audioqueue_.write_commit();
             // push nominal samplerate + current channel
