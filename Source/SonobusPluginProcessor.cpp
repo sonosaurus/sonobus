@@ -1605,6 +1605,14 @@ void SonobusAudioProcessor::doSendData()
         DBG("Doing sample setup for all");
         setupSourceFormatsForAll();
         mNeedsSampleSetup = false;
+
+        // reset all incoming by toggling muting
+        if (!mMainRecvMute.get()) {
+            DBG("Toggling main recv mute");
+            mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(1.0f);
+            mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
+        }
+
     }
 }
 
@@ -4169,10 +4177,11 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    
+    bool blocksizechanged = lastSamplesPerBlock != samplesPerBlock;
+
     lastSamplesPerBlock = currSamplesPerBlock = samplesPerBlock;
 
-    DBG("Prepare to play: SR " <<  sampleRate << "  blocksize: " <<  samplesPerBlock << "  inch: " << getMainBusNumInputChannels() << "  outch: " << getMainBusNumOutputChannels());
+    DBG("Prepare to play: SR " <<  sampleRate << "  prevrate: " << mPrevSampleRate <<  "  blocksize: " <<  samplesPerBlock << "  inch: " << getMainBusNumInputChannels() << "  outch: " << getMainBusNumOutputChannels());
 
     const ScopedReadLock sl (mCoreLock);        
     
@@ -4297,7 +4306,19 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     if (samplesPerBlock > mTempBufferSamples || maxchans > mTempBufferChannels) {
         ensureBuffers(samplesPerBlock);
     }
-   
+
+
+    if (lrintf(mPrevSampleRate) != lrintf(sampleRate) || blocksizechanged) {
+
+        // reset all incoming by toggling muting
+        if (!mMainRecvMute.get()) {
+            DBG("Toggling main recv mute");
+            mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(1.0f);
+            mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
+        }
+
+        mPrevSampleRate = sampleRate;
+    }
     
 }
 

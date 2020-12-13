@@ -669,6 +669,8 @@ private:
     String mCurrentJoinedGroup;
     double mSessionConnectionStamp = 0.0;
 
+    double mPrevSampleRate = 0.0;
+
     // we will add sinks for any peer we invite, as part of a RemoteSource
     
     
