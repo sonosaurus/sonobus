@@ -2383,11 +2383,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mMainRecvMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
-        
-        if (mMainRecvMuteButton->getToggleState()) {
-            showPopTip(TRANS("Muted everyone"), 3000, mMainRecvMuteButton.get());
-        } else {
-            showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMainRecvMuteButton.get());
+
+        if (processor.getNumberRemotePeers() > 0) {
+            if (mMainRecvMuteButton->getToggleState()) {
+                showPopTip(TRANS("Muted everyone"), 3000, mMainRecvMuteButton.get());
+            } else {
+                showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMainRecvMuteButton.get());
+            }
         }
     }
     else if (buttonThatWasClicked == mMetSendButton.get()) {
