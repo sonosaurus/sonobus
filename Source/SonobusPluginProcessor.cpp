@@ -1601,6 +1601,13 @@ void SonobusAudioProcessor::doSendData()
         }
     }
 
+    if (mPendingUnmute.get() && mPendingUnmuteAtStamp < Time::getMillisecondCounter() ) {
+        DBG("UNMUTING ALL");
+        mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
+
+        mPendingUnmute = false;
+    }
+
     if (mNeedsSampleSetup.get()) {
         DBG("Doing sample setup for all");
         setupSourceFormatsForAll();
@@ -1610,10 +1617,13 @@ void SonobusAudioProcessor::doSendData()
         if (!mMainRecvMute.get()) {
             DBG("Toggling main recv mute");
             mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(1.0f);
-            mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
+            mPendingUnmuteAtStamp = Time::getMillisecondCounter() + 250;
+            mPendingUnmute = true;
         }
 
     }
+
+
 }
 
 struct ProcessorIdPair
@@ -4314,7 +4324,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         if (!mMainRecvMute.get()) {
             DBG("Toggling main recv mute");
             mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(1.0f);
-            mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
+            mPendingUnmuteAtStamp = Time::getMillisecondCounter() + 250;
+            mPendingUnmute = true;
         }
 
         mPrevSampleRate = sampleRate;

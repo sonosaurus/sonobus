@@ -670,6 +670,8 @@ private:
     double mSessionConnectionStamp = 0.0;
 
     double mPrevSampleRate = 0.0;
+    Atomic<bool> mPendingUnmute {false}; // jlc
+    uint32 mPendingUnmuteAtStamp = 0;
 
     // we will add sinks for any peer we invite, as part of a RemoteSource
     
