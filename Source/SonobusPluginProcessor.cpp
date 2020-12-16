@@ -589,6 +589,17 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
 
+    if (!JUCEApplicationBase::isStandaloneApp()) {
+        // default dry to 1.0 if plugin
+        mDry = 1.0;
+        mSendChannels = 0; // match inputs default for plugin
+    } else {
+        mDry = 0.0;
+    }
+
+    mState.getParameter(paramDry)->setValue(mDry.get());
+    mState.getParameter(paramSendChannels)->setValue(mState.getParameter(paramSendChannels)->convertTo0to1(mSendChannels.get()));
+
     mTempoParameter = mState.getParameter(paramMetTempo);
     
     mMetronome = std::make_unique<SonoAudio::Metronome>();
