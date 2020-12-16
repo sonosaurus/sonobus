@@ -761,7 +761,7 @@ void source_desc::do_update(const sink &s){
         resampler_.setup(decoder_->blocksize(), s.blocksize(),
                             decoder_->samplerate(), s.samplerate(), decoder_->nchannels());
         // resize block queue
-        blockqueue_.resize(nbuffers + 4); // (32) extra capacity for network jitter (allows lower buffersizes) (should be option?)
+        blockqueue_.resize(nbuffers + 8); // (32) extra capacity for network jitter (allows lower buffersizes) (should be option?)
         newest_ = 0;
         next_ = -1;
         nextneedsfadein_ = 0;
