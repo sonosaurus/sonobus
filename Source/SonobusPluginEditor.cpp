@@ -2384,7 +2384,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mMainRecvMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
 
-        if (processor.getNumberRemotePeers() > 0) {
+        if (processor.getNumberRemotePeers() > 0 && settingsCalloutBox == nullptr) {
             if (mMainRecvMuteButton->getToggleState()) {
                 showPopTip(TRANS("Muted everyone"), 3000, mMainRecvMuteButton.get());
             } else {
