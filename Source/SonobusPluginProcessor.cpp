@@ -1738,8 +1738,8 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
 
                 // smooth it
                 peer->pingTime = rtt; // * 0.5;
-                if (rtt < 800.0 ) {
-                    peer->smoothPingTime.Z *= 0.9f;
+                if (rtt < 600.0 ) {
+                    peer->smoothPingTime.Z *= 0.5f;
                     peer->smoothPingTime.push(peer->pingTime);
                 }
 
