@@ -766,7 +766,7 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
     mSendThread = std::make_unique<SendThread>(*this);
     mSendThread->setPriority(9);
     mRecvThread = std::make_unique<RecvThread>(*this);
-    mRecvThread->setPriority(7);
+    mRecvThread->setPriority(9);
     mEventThread = std::make_unique<EventThread>(*this);
 
     if (mAooClient) {
