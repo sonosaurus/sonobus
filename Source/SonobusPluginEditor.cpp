@@ -967,6 +967,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction"));
     mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
 
+    mOptionsAutoReconnectButton = std::make_unique<ToggleButton>(TRANS("Auto-Reconnect to Last Group"));
+    mAutoReconnectAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramAutoReconnectLast, *mOptionsAutoReconnectButton);
+
     mOptionsOverrideSamplerateButton = std::make_unique<ToggleButton>(TRANS("Override Device Sample Rate"));
     mOptionsOverrideSamplerateButton->addListener(this);
 
@@ -1266,6 +1269,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsAutoReconnectButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsInputLimiterButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
@@ -1529,7 +1533,14 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 #endif
     
     setSize (760, defHeight);
-       
+
+
+    if (processor.getAutoReconnectToLast()) {
+        updateRecents();
+        connectWithInfo(recents.getReference(0));
+    }
+
+
 }
 
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
@@ -3480,7 +3491,19 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         }
         
         settingsClosedTimestamp = 0;
-        
+
+
+#if JUCE_WINDOWS
+        if (firsttime) {
+            // on windows, if current audio device type isn't ASIO, prompt them that it should be
+            auto devtype = getAudioDeviceManager()->getCurrentAudioDeviceType();
+            if (!devtype.equalsIgnoreCase("ASIO")) {
+                auto mesg = String(TRANS("Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first."));
+                showPopTip(mesg, 0, mSettingsTab->getTabbedButtonBar().getTabButton(0), 320);
+            }
+        }
+#endif
+
     }
     else {
         // dismiss it
@@ -4327,6 +4350,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsDynResampleBox.items.add(FlexItem(180, minpassheight, *mOptionsDynamicResamplingButton).withMargin(0).withFlex(1));
 
+    optionsAutoReconnectBox.items.clear();
+    optionsAutoReconnectBox.flexDirection = FlexBox::Direction::row;
+    optionsAutoReconnectBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsAutoReconnectBox.items.add(FlexItem(180, minpassheight, *mOptionsAutoReconnectButton).withMargin(0).withFlex(1));
+
     optionsOverrideSamplerateBox.items.clear();
     optionsOverrideSamplerateBox.flexDirection = FlexBox::Direction::row;
     optionsOverrideSamplerateBox.items.add(FlexItem(10, 12).withFlex(0));
@@ -4361,6 +4389,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));

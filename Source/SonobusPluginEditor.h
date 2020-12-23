@@ -355,6 +355,7 @@ private:
     std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
     std::unique_ptr<ToggleButton> mOptionsOverrideSamplerateButton;
     std::unique_ptr<ToggleButton> mOptionsShouldCheckForUpdateButton;
+    std::unique_ptr<ToggleButton> mOptionsAutoReconnectButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
 
@@ -675,6 +676,7 @@ private:
     FlexBox optionsCheckForUpdateBox;
     FlexBox optionsChangeAllQualBox;
     FlexBox optionsInputLimitBox;
+    FlexBox optionsAutoReconnectBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;
@@ -735,6 +737,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mDynamicResamplingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonSoloAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonMuteAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mAutoReconnectAttachment;
 
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;

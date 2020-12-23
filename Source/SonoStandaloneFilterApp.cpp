@@ -102,8 +102,12 @@ public:
 
         AudioDeviceManager::AudioDeviceSetup setupOptions;
         setupOptions.sampleRate = 48000;
+#if JUCE_MAC
+        setupOptions.bufferSize = 128;
+#else
         setupOptions.bufferSize = 256;
-        
+#endif
+
         return new StandaloneFilterWindow (getApplicationName(),
                                            LookAndFeel::getDefaultLookAndFeel().findColour (ResizableWindow::backgroundColourId),
                                            appProperties.getUserSettings(),

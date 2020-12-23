@@ -119,6 +119,10 @@ public:
 
     void init (bool enableAudioInput, const String& preferredDefaultDeviceName)
     {
+#if JUCE_WINDOWS
+        // use ASIO as default.. the options will override
+        deviceManager.setCurrentAudioDeviceType("ASIO", false);
+#endif
         setupAudioDevices (enableAudioInput, preferredDefaultDeviceName, options.get());
         reloadPluginState();
         startPlaying();

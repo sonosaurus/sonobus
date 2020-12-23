@@ -1234,6 +1234,7 @@ void PeersContainerView::updatePeerViews(int specific)
 
         if (recvactive) {
             recvtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x93 ")) // down arrow
+            << processor.getRemotePeerChannelCount(i) << "ch "
             << recvfinfo.name
             << String::formatted(" | %d kb/s", lrintf(recvrate * 8 * 1e-3));
 
@@ -1347,7 +1348,9 @@ void PeersContainerView::updatePeerViews(int specific)
         
         int formatindex = processor.getRemotePeerAudioCodecFormat(i);
         pvf->formatChoiceButton->setSelectedItemIndex(formatindex >= 0 ? formatindex : processor.getDefaultAudioCodecFormat(), dontSendNotification);
-        pvf->sendQualityLabel->setText(processor.getAudioCodeFormatName(formatindex), dontSendNotification);
+        String sendqual;
+        sendqual << processor.getRemotePeerActualSendChannelCount(i) << "ch " << processor.getAudioCodeFormatName(formatindex);
+        pvf->sendQualityLabel->setText(sendqual, dontSendNotification);
         
         pvf->recvMeter->setMeterSource (processor.getRemotePeerRecvMeterSource(i));        
 

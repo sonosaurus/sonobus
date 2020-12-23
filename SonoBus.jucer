@@ -3,8 +3,8 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAAX,buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
-              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.2.0-36&quot;"
-              pluginDesc="SonoBus - Network Audio" version="1.2.0" cppLanguageStandard="17"
+              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.2.1-37&quot;"
+              pluginDesc="SonoBus - Network Audio" version="1.2.1" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
@@ -386,5 +386,5 @@
   </LIVE_SETTINGS>
   <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
                FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"
-               JUCE_JACK="1" JUCE_ASIO="1"/>
+               JUCE_JACK="1" JUCE_ASIO="1" JUCE_DIRECTSOUND="0"/>
 </JUCERPROJECT>

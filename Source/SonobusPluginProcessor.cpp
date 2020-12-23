@@ -61,6 +61,7 @@ String SonobusAudioProcessor::paramMainReverbDamping  ("mainreverbdamp");
 String SonobusAudioProcessor::paramMainReverbPreDelay  ("mainreverbpredelay");
 String SonobusAudioProcessor::paramMainReverbModel  ("mainreverbmodel");
 String SonobusAudioProcessor::paramDynamicResampling  ("dynamicresampling");
+String SonobusAudioProcessor::paramAutoReconnectLast  ("reconnectlast");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -340,11 +341,22 @@ public:
     
     void run() override {
         
+        bool shouldwait = false;
+
         while (!threadShouldExit()) {
             // don't overcall it, but make sure it runs consistently
             // if we are notified to send, the wait will return sooner than the timeout
-            _processor.mSendWaitable.wait(50);
+
+            if (shouldwait) {
+                _processor.mSendWaitable.wait(50);
+            }
+
+            auto sentinel = _processor.mNeedSendSentinel.get();
+
             _processor.doSendData();
+
+            shouldwait = (sentinel == _processor.mNeedSendSentinel.get());
+
         }
         DBG("Send thread finishing");
     }
@@ -538,6 +550,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
     std::make_unique<AudioParameterBool>(paramDynamicResampling, TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
+    std::make_unique<AudioParameterBool>(paramAutoReconnectLast, TRANS ("Reconnect Last"), mAutoReconnectLast.get()),
 })
 {
     mState.addParameterListener (paramInGain, this);
@@ -566,6 +579,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramMainReverbModel, this);
     mState.addParameterListener (paramSendChannels, this);
     mState.addParameterListener (paramDynamicResampling, this);
+    mState.addParameterListener (paramAutoReconnectLast, this);
     mState.addParameterListener (paramMainInMute, this);
     mState.addParameterListener (paramMainMonitorSolo, this);
 
@@ -2881,6 +2895,18 @@ void SonobusAudioProcessor::setRemotePeerNominalSendChannelCount(int index, int 
     }
 }
 
+int SonobusAudioProcessor::getRemotePeerActualSendChannelCount(int index) const
+{
+    int ret = 0;
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        ret = remote->sendChannels;
+    }
+    return ret;
+}
+
+
 void SonobusAudioProcessor::updateDynamicResampling()
 {
     const ScopedReadLock sl (mCoreLock);
@@ -3927,6 +3953,9 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramDynamicResampling) {
         mDynamicResampling = newValue > 0;
         updateDynamicResampling();
+    }
+    else if (parameterID == paramAutoReconnectLast) {
+        mAutoReconnectLast = newValue > 0;
     }
     else if (parameterID == paramSendChannels) {
         mSendChannels = (int) newValue;

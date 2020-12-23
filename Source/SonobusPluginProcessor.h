@@ -200,6 +200,7 @@ public:
     static String paramDynamicResampling;
     static String paramMainInMute;
     static String paramMainMonitorSolo;
+    static String paramAutoReconnectLast;
 
     struct EndpointState;
     struct RemoteSink;
@@ -272,6 +273,8 @@ public:
 
     int getRemotePeerOverrideSendChannelCount(int index) const;
     void setRemotePeerOverrideSendChannelCount(int index, int numchans);
+
+    int getRemotePeerActualSendChannelCount(int index) const;
 
     
     void setRemotePeerBufferTime(int index, float bufferMs);
@@ -395,7 +398,9 @@ public:
     AutoNetBufferMode getDefaultAutoresizeBufferMode() const { return (AutoNetBufferMode) defaultAutoNetbufMode; }
     
     bool getSendingFilePlaybackAudio() const { return mSendPlaybackAudio.get(); }
-    
+
+    bool getAutoReconnectToLast() const { return mAutoReconnectLast.get(); }
+
     // sets and gets the format we send out
     void setRemotePeerAudioCodecFormat(int index, int formatIndex);
     int getRemotePeerAudioCodecFormat(int index) const;
@@ -605,6 +610,7 @@ private:
     Atomic<float>   mMainReverbPreDelay  { 20.0f }; // ms
     Atomic<int>   mMainReverbModel  { ReverbModelMVerb };
     Atomic<bool>   mDynamicResampling  { false };
+    Atomic<bool>   mAutoReconnectLast  { false };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
@@ -619,7 +625,7 @@ private:
     
     Atomic<bool>   mAnythingSoloed  { false };
 
-    
+
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
     
     bool mChangingDefaultAudioCodecChangesAll = false;
@@ -714,13 +720,14 @@ private:
     
     
     void notifySendThread() {
-        mHasStuffToSend = true;
+        mNeedSendSentinel += 1;
         mSendWaitable.signal();
     }
     
     WaitableEvent  mSendWaitable;
-    volatile bool mHasStuffToSend = false;
-    
+    Atomic<int>   mNeedSendSentinel  { 0 };
+
+
     std::unique_ptr<SendThread> mSendThread;
     std::unique_ptr<RecvThread> mRecvThread;
     std::unique_ptr<EventThread> mEventThread;
