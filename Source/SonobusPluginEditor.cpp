@@ -2823,10 +2823,14 @@ void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
     if (url.isWellFormed()) {
         if (!currConnected) {
             if (handleSonobusURL(url)) {
-                showConnectPopup(true);
+
+                // connect immediately
+                connectWithInfo(currConnectionInfo);
+
+                //showConnectPopup(true);
                 // switch to group page
-                mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
-                updateServerStatusLabel(TRANS("Filled in Group from link! Press 'Connect to Group' to join..."), false);
+                //mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+                //updateServerStatusLabel(TRANS("Filled in Group from link! Press 'Connect to Group' to join..."), false);
             }
         }
     }
