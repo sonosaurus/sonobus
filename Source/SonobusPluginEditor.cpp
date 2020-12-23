@@ -3771,23 +3771,34 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
                  */
                 
                 if (auto* bus = processor.getBus (true, 0)) {
+                    auto maxsup = bus->getMaxSupportedChannels();
+                    updateMinAndMax (maxsup, minNumInputs, maxNumInputs);
                     updateMinAndMax (bus->getDefaultLayout().size(), minNumInputs, maxNumInputs);
                     if (bus->isNumberOfChannelsSupported(1)) {
                         updateMinAndMax (1, minNumInputs, maxNumInputs);                
                     }
+                    if (bus->isNumberOfChannelsSupported(0)) {
+                        updateMinAndMax (0, minNumInputs, maxNumInputs);
+                    }
                 }
                 
                 if (auto* bus = processor.getBus (false, 0)) {
+                    auto maxsup = bus->getMaxSupportedChannels();
+                    updateMinAndMax (maxsup, minNumOutputs, maxNumOutputs);
                     updateMinAndMax (bus->getDefaultLayout().size(), minNumOutputs, maxNumOutputs);
                     if (bus->isNumberOfChannelsSupported(1)) {
                         updateMinAndMax (1, minNumOutputs, maxNumOutputs);                
+                    }
+                    if (bus->isNumberOfChannelsSupported(0)) {
+                        updateMinAndMax (0, minNumOutputs, maxNumOutputs);
                     }
                 }
                 
                 
                 minNumInputs  = jmin (minNumInputs,  maxNumInputs);
                 minNumOutputs = jmin (minNumOutputs, maxNumOutputs);
-                
+
+
             
                 mAudioDeviceSelector = std::make_unique<AudioDeviceSelectorComponent>(*getAudioDeviceManager(),
                                                                                       minNumInputs, maxNumInputs,
