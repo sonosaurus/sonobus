@@ -3498,7 +3498,8 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
 
 #if JUCE_WINDOWS
-        if (firsttime) {
+        if (firsttime && JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
+        {
             // on windows, if current audio device type isn't ASIO, prompt them that it should be
             auto devtype = getAudioDeviceManager()->getCurrentAudioDeviceType();
             if (!devtype.equalsIgnoreCase("ASIO")) {
