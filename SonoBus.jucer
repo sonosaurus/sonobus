@@ -3,8 +3,8 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAAX,buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
-              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.2.1-37&quot;"
-              pluginDesc="SonoBus - Network Audio" version="1.2.1" cppLanguageStandard="17"
+              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.2.2-38&quot;"
+              pluginDesc="SonoBus - Network Audio" version="1.2.2" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
@@ -261,7 +261,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
                extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                smallIcon="ZWiivf" bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D"
-               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;36&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;38&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                prebuildCommand="../../scripts/mac_prebuild.sh" vstLegacyFolder="../VST2_SDK"
                aaxFolder="../AAX_SDK_2p3p2">
