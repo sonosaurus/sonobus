@@ -707,6 +707,14 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
     mUdpSocket->setSendBufferSize(1048576);
     mUdpSocket->setReceiveBufferSize(1048576);
 
+    /*
+    int tos_local = 0x38; // QOS realtime DSCP
+    int opterr = setsockopt(mUdpSocket->getRawSocketHandle(), IPPROTO_IP, IP_TOS,  &tos_local, sizeof(tos_local));
+    if (opterr != 0) {
+        DBG("Error setting QOS on socket: " << opterr);
+    }
+     */
+
     if (udpport > 0) {
         int attempts = 100;
         while (attempts > 0) {
@@ -900,12 +908,22 @@ bool SonobusAudioProcessor::disconnectFromServer()
     // disconnect from everything else!
     removeAllRemotePeers();
 
-    const ScopedLock sl (mClientLock);        
-    
-    mIsConnectedToServer = false;
-    mSessionConnectionStamp = 0.0;
+    {
+        const ScopedLock sl (mClientLock);
 
-    mCurrentJoinedGroup.clear();
+        mIsConnectedToServer = false;
+        mSessionConnectionStamp = 0.0;
+
+        mCurrentJoinedGroup.clear();
+    }
+
+    {
+        const ScopedLock sl (mPublicGroupsLock);
+
+        mPublicGroupInfos.clear();
+    }
+
+
 
     return true;
 }
@@ -953,6 +971,17 @@ void SonobusAudioProcessor::removeRecentServerConnectionInfo(int index)
     }
 }
 
+int SonobusAudioProcessor::getPublicGroupInfos(Array<AooPublicGroupInfo> & retarray)
+{
+    retarray.clearQuick();
+
+    const ScopedLock sl (mPublicGroupsLock);
+    for (auto & item : mPublicGroupInfos) {
+        retarray.add(item.second);
+    }
+    return retarray.size();
+}
+
 
 
 void SonobusAudioProcessor::setAutoconnectToGroupPeers(bool flag)
@@ -961,11 +990,33 @@ void SonobusAudioProcessor::setAutoconnectToGroupPeers(bool flag)
 }
 
 
-bool SonobusAudioProcessor::joinServerGroup(const String & group, const String & groupsecret)
+bool SonobusAudioProcessor::setWatchPublicGroups(bool flag)
 {
     if (!mAooClient) return false;
 
-    int32_t retval = mAooClient->group_join(group.toRawUTF8(), groupsecret.toRawUTF8());
+    mWatchPublicGroups = flag;
+
+    int32_t retval = mAooClient->group_watch_public(flag);
+
+    const ScopedLock sl (mPublicGroupsLock);
+
+    mPublicGroupInfos.clear();
+
+
+    if (retval < 0) {
+        DBG("Error watching public groups: " << retval);
+    }
+
+    return retval >= 0;
+
+}
+
+
+bool SonobusAudioProcessor::joinServerGroup(const String & group, const String & groupsecret, bool isPublic)
+{
+    if (!mAooClient) return false;
+
+    int32_t retval = mAooClient->group_join(group.toRawUTF8(), groupsecret.toRawUTF8(), isPublic);
     
     if (retval < 0) {
         DBG("Error joining group " << group << " : " << retval);
@@ -2401,6 +2452,10 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 DBG("Joined group - " << e->name);
                 const ScopedLock sl (mClientLock);        
                 mCurrentJoinedGroup = CharPointer_UTF8 (e->name);
+
+                mSessionConnectionStamp = Time::getMillisecondCounterHiRes();
+
+
             } else {
                 DBG("Couldn't join group " << e->name << " - " << e->errormsg);
             }
@@ -2431,6 +2486,36 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
 
             break;
         }
+        case AOONET_CLIENT_GROUP_PUBLIC_ADD_EVENT:
+        {
+            aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
+            DBG("Public group add/changed - " << e->name << " count: " << e->result);
+            {
+                const ScopedLock sl (mPublicGroupsLock);
+                String group = CharPointer_UTF8 (e->name);
+                AooPublicGroupInfo & ginfo = mPublicGroupInfos[group];
+                ginfo.groupName = group;
+                ginfo.activeCount = e->result;
+                ginfo.timestamp = Time::getCurrentTime().toMilliseconds();
+            }
+
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPublicGroupModified, this, CharPointer_UTF8 (e->name), e->result,  e->errormsg);
+            break;
+        }
+        case AOONET_CLIENT_GROUP_PUBLIC_DEL_EVENT:
+        {
+            aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
+            DBG("Public group deleted - " << e->name);
+            {
+                const ScopedLock sl (mPublicGroupsLock);
+                String group = CharPointer_UTF8 (e->name);
+                mPublicGroupInfos.erase(group);
+            }
+
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPublicGroupDeleted, this, CharPointer_UTF8 (e->name), e->errormsg);
+            break;
+        }
+
         case AOONET_CLIENT_PEER_PREJOIN_EVENT:
         {
             aoonet_client_peer_event *e = (aoonet_client_peer_event *)events[i];
@@ -5409,7 +5494,8 @@ ValueTree AooServerConnectionInfo::getValueTree() const
     item.setProperty("serverHost", serverHost, nullptr);
     item.setProperty("serverPort", serverPort, nullptr);
     item.setProperty("timestamp", timestamp, nullptr);
-    
+    item.setProperty("groupIsPublic", groupIsPublic, nullptr);
+
     return item;
 }
 
@@ -5422,6 +5508,7 @@ void AooServerConnectionInfo::setFromValueTree(const ValueTree & item)
     serverHost = item.getProperty("serverHost", serverHost);
     serverPort = item.getProperty("serverPort", serverPort);
     timestamp = item.getProperty("timestamp", timestamp);
+    groupIsPublic = item.getProperty("groupIsPublic", groupIsPublic);
 }
 
 

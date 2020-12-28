@@ -34,6 +34,24 @@ enum {
 #define DEFAULT_SERVER_HOST "aoo.sonobus.net"
 #define SONOBUS_SCHEME "sonobus"
 
+class SonobusConnectTabbedComponent : public TabbedComponent
+{
+public:
+    SonobusConnectTabbedComponent(TabbedButtonBar::Orientation orientation, SonobusAudioProcessorEditor & editor_) : TabbedComponent(orientation), editor(editor_) {
+
+    }
+
+    void currentTabChanged (int newCurrentTabIndex, const String& newCurrentTabName) override {
+
+        editor.connectTabChanged(newCurrentTabIndex);
+    }
+
+protected:
+    SonobusAudioProcessorEditor & editor;
+
+};
+
+
 class SonobusAudioProcessorEditor::PatchMatrixView : public Component, public BeatToggleGridDelegate
 {
 public:
@@ -258,7 +276,8 @@ void SonobusAudioProcessorEditor::configEditor(TextEditor *editor, bool passwd)
 SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p),  sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12),
 recentsListModel(this),
-recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsInfoFont(13, Font::plain)
+recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsInfoFont(13, Font::plain),
+publicGroupsListModel(this)
 {
     LookAndFeel::setDefaultLookAndFeel(&sonoLookAndFeel);
     
@@ -644,7 +663,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
 
     
-    mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
+    mConnectTab = std::make_unique<SonobusConnectTabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop, *this);
     mConnectTab->setOutline(0);
     mConnectTab->setTabBarDepth(36);
     mConnectTab->getTabbedButtonBar().setMinimumTabScaleFactor(0.1f);
@@ -654,7 +673,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mDirectConnectContainer = std::make_unique<Component>();
     mServerConnectContainer = std::make_unique<Component>();
+    mPublicServerConnectContainer = std::make_unique<Component>();
     mServerConnectViewport = std::make_unique<Viewport>();
+    mPublicServerConnectViewport = std::make_unique<Viewport>();
     mRecentsContainer = std::make_unique<Component>();
 
     mRecentsGroup = std::make_unique<GroupComponent>("", TRANS("RECENTS"));
@@ -663,7 +684,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecentsGroup->setTextLabelPosition(Justification::centred);
     
     mConnectTab->addTab(TRANS("RECENTS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecentsContainer.get(), false);
-    mConnectTab->addTab(TRANS("GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectViewport.get(), false);
+    mConnectTab->addTab(TRANS("PRIVATE GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectViewport.get(), false);
+    mConnectTab->addTab(TRANS("PUBLIC GROUPS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mPublicServerConnectContainer.get(), false);
     mConnectTab->addTab(TRANS("DIRECT"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mDirectConnectContainer.get(), false);
     
 
@@ -736,13 +758,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mServerGroupPassStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Password:"));
     configServerLabel(mServerGroupPassStaticLabel.get());
 
-    mServerHostStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Using Server:"));
+    mServerHostStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Connection Server:"));
     configServerLabel(mServerHostStaticLabel.get());
     
 
     mServerGroupEditor = std::make_unique<TextEditor>("groupedit");
     mServerGroupEditor->setFont(Font(16));
-    mServerGroupEditor->setText(currConnectionInfo.groupName);
+    mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "");
     configEditor(mServerGroupEditor.get());
 
     mServerGroupPasswordEditor = std::make_unique<TextEditor>("grouppass"); // 0x25cf
@@ -787,7 +809,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mServerInfoLabel->setColour(Label::textColourId, Colour(0x99dddddd));
     mServerInfoLabel->setMinimumHorizontalScale(0.85);
 
-    mServerAudioInfoLabel = std::make_unique<Label>("servinfo", TRANS("The server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer)."));
+    String servinfo = TRANS("The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).");
+    mServerAudioInfoLabel = std::make_unique<Label>("servinfo", servinfo);
     mServerAudioInfoLabel->setJustificationType(Justification::centredTop);
     mServerAudioInfoLabel->setFont(14);
     mServerAudioInfoLabel->setColour(Label::textColourId, Colour(0x99aaaaaa));
@@ -824,6 +847,67 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecentsListBox->setRowSelectedOnMouseDown(true);
     mRecentsListBox->setRowClickedOnMouseDown(false);
     
+
+    mPublicGroupsListBox = std::make_unique<ListBox>("publicgroupslist");
+    mPublicGroupsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
+    mPublicGroupsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
+    mPublicGroupsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
+    mPublicGroupsListBox->setOutlineThickness (1);
+#if JUCE_IOS
+    mPublicGroupsListBox->getViewport()->setScrollOnDragEnabled(true);
+#endif
+    mPublicGroupsListBox->getViewport()->setScrollBarsShown(true, false);
+    mPublicGroupsListBox->setMultipleSelectionEnabled (false);
+    mPublicGroupsListBox->setRowHeight(38);
+    mPublicGroupsListBox->setModel (&publicGroupsListModel);
+    mPublicGroupsListBox->setRowSelectedOnMouseDown(true);
+    mPublicGroupsListBox->setRowClickedOnMouseDown(false);
+
+
+    mPublicServerHostEditor = std::make_unique<TextEditor>("pubsrvaddredit");
+    mPublicServerHostEditor->setFont(Font(14));
+    configEditor(mPublicServerHostEditor.get());
+    mPublicServerHostEditor->setTooltip(servinfo);
+
+    mPublicServerHostStaticLabel = std::make_unique<Label>("pubaddrst", TRANS("Connection Server:"));
+    configServerLabel(mPublicServerHostStaticLabel.get());
+
+    mPublicServerUserStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Your Displayed Name:"));
+    configServerLabel(mPublicServerUserStaticLabel.get());
+    mPublicServerUserStaticLabel->setMinimumHorizontalScale(0.8);
+
+    mPublicServerStatusInfoLabel = std::make_unique<Label>("pubsrvinfo", "");
+    configServerLabel(mPublicServerStatusInfoLabel.get());
+
+
+    mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
+    mPublicServerUsernameEditor->setFont(Font(16));
+    mPublicServerUsernameEditor->setText(currConnectionInfo.userName);
+    configEditor(mPublicServerUsernameEditor.get());
+
+    mPublicGroupComponent = std::make_unique<GroupComponent>("", TRANS("Active Public Groups"));
+    mPublicGroupComponent->setColour(GroupComponent::textColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.8));
+    mPublicGroupComponent->setColour(GroupComponent::outlineColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.1));
+    mPublicGroupComponent->setTextLabelPosition(Justification::centred);
+
+    mPublicServerInfoStaticLabel = std::make_unique<Label>("pubinfo", TRANS("Select existing group below OR "));
+    configServerLabel(mPublicServerInfoStaticLabel.get());
+    mPublicServerInfoStaticLabel->setFont(16);
+    mPublicServerInfoStaticLabel->setMinimumHorizontalScale(0.8);
+
+    mPublicServerAddGroupButton = std::make_unique<TextButton>("addgroup");
+    mPublicServerAddGroupButton->setButtonText(TRANS("Create Group..."));
+    mPublicServerAddGroupButton->addListener(this);
+    mPublicServerAddGroupButton->setColour(TextButton::buttonColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.6));
+    //mPublicServerAddGroupButton->setWantsKeyboardFocus(true);
+
+    mPublicServerGroupEditor = std::make_unique<TextEditor>("pubgroupedit");
+    mPublicServerGroupEditor->setFont(Font(16));
+    mPublicServerGroupEditor->setText(currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "");
+    configEditor(mPublicServerGroupEditor.get());
+    mPublicServerGroupEditor->setTextToShowWhenEmpty(TRANS("enter group name"), Colour(0x44ffffff));
+    mPublicServerGroupEditor->setTooltip(TRANS("Choose a descriptive group name that includes geographic information and genre"));
+
 
     mPatchbayButton = std::make_unique<TextButton>("patch");
     mPatchbayButton->setButtonText(TRANS("Patchbay"));
@@ -1401,6 +1485,19 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecentsContainer->addAndMakeVisible(mRecentsListBox.get());
     mRecentsContainer->addAndMakeVisible(mClearRecentsButton.get());
 
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicGroupComponent.get());
+    mPublicGroupComponent->addAndMakeVisible(mPublicGroupsListBox.get());
+
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerHostEditor.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerHostStaticLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerUserStaticLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerUsernameEditor.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerAddGroupButton.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerInfoStaticLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerStatusInfoLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerGroupEditor.get());
+
+
     mConnectComponent->addAndMakeVisible(mConnectComponentBg.get());
     mConnectComponent->addAndMakeVisible(mConnectTab.get());
     mConnectComponent->addAndMakeVisible(mConnectTitle.get());
@@ -1420,7 +1517,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addChildComponent(mDragDropBg.get());
 
     mServerConnectViewport->setViewedComponent(mServerConnectContainer.get());
-    
+
+    //mPublicServerConnectViewport->setViewedComponent(mPublicServerConnectContainer.get());
+
+
     inPannersContainer->addAndMakeVisible (mInMonPanLabel1.get());
     inPannersContainer->addAndMakeVisible (mInMonPanLabel2.get());
     inPannersContainer->addAndMakeVisible (mInMonPanMonoSlider.get());
@@ -1477,7 +1577,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
             // show connect immediately
             showConnectPopup(true);
             // switch to group page
-            mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+            mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 1 : 0);
 
             updateServerStatusLabel(TRANS("Filled in Group information from clipboard! Press 'Connect to Group' to join..."), false);
         }
@@ -1593,7 +1693,7 @@ static void doActuallyQuit (int result, SonobusAudioProcessorEditor* editor)
 bool SonobusAudioProcessorEditor::requestedQuit()
 {
     // allow quit if we are not connected
-    if (currConnected) {
+    if (currConnected && currGroup.isNotEmpty()) {
         // pop up confirmation
         AlertWindow::showOkCancelBox (AlertWindow::WarningIcon,
         TRANS("Quit Confirmation"),
@@ -1618,8 +1718,18 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * r
         hostport = "aoo.sonobus.net";
     }
     
-    String groupName = mServerGroupEditor->getText();
-    String groupPassword = mServerGroupPasswordEditor->getText();
+    String groupName;
+    String groupPassword;
+
+    if (!currConnected) {
+        if (mConnectTab->getCurrentContentComponent() == mServerConnectViewport.get()) {
+            groupName = mServerGroupEditor->getText();
+            groupPassword = mServerGroupPasswordEditor->getText();
+        }
+    } else {
+        groupName = currConnectionInfo.groupName;
+        groupPassword = currConnectionInfo.groupPassword;
+    }
 
     String urlstr1;
     urlstr1 << String("sonobus://") << hostport << String("/");
@@ -1637,7 +1747,12 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * r
             url = url.withParameter("p", groupPassword);
             url2 = url2.withParameter("p", groupPassword);
         }
-        
+
+        if (currConnected && currConnectionInfo.groupIsPublic) {
+            url = url.withParameter("public", "1");
+            url2 = url2.withParameter("public", "1");
+        }
+
         //message += url.toString(true);
         //message += "\n\n";
 
@@ -1676,6 +1791,13 @@ bool SonobusAudioProcessorEditor::handleSonobusURL(const URL & url)
         } else {
             currConnectionInfo.groupPassword = "";                    
         }
+
+        if ((ind = pnames.indexOf("public", true)) >= 0) {
+            currConnectionInfo.groupIsPublic = pvals[ind].getIntValue() > 0;
+        } else {
+            currConnectionInfo.groupIsPublic = false;
+        }
+
     }
 
     if (url.getScheme() == "sonobus") {
@@ -1751,15 +1873,22 @@ bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
 void SonobusAudioProcessorEditor::updateServerFieldsFromConnectionInfo()
 {
     if (currConnectionInfo.serverPort == DEFAULT_SERVER_PORT) {
-        mServerHostEditor->setText( currConnectionInfo.serverHost);
+        mServerHostEditor->setText( currConnectionInfo.serverHost, false);
+        mPublicServerHostEditor->setText( currConnectionInfo.serverHost, false);
     } else {
         String hostport;
         hostport << currConnectionInfo.serverHost << ":" << currConnectionInfo.serverPort;
-        mServerHostEditor->setText( hostport);
+        mServerHostEditor->setText( hostport, false);
+        mPublicServerHostEditor->setText( hostport, false);
     }
-    mServerUsernameEditor->setText(currConnectionInfo.userName);
-    mServerGroupEditor->setText(currConnectionInfo.groupName);
-    mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword);
+    mServerUsernameEditor->setText(currConnectionInfo.userName, false);
+    mPublicServerUsernameEditor->setText(currConnectionInfo.userName, false);
+    if (currConnectionInfo.groupIsPublic) {
+        mPublicServerGroupEditor->setText(currConnectionInfo.groupName, false);
+    } else {
+        mServerGroupEditor->setText(currConnectionInfo.groupName, false);
+    }
+    mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
 }
 
 bool SonobusAudioProcessorEditor::isInterestedInFileDrag (const StringArray& /*files*/) 
@@ -1823,6 +1952,18 @@ void SonobusAudioProcessorEditor::configLevelSlider(Slider * slider)
     slider->setLookAndFeel(&sonoSliderLNF);
 }
 
+void SonobusAudioProcessorEditor::connectTabChanged (int newCurrentTabIndex)
+{
+    // normaliza index to have recents as 0
+    int adjindex = mConnectTab->getNumTabs() < 4 ? newCurrentTabIndex + 1 : newCurrentTabIndex;
+
+    // public groups
+    if (adjindex == 2) {
+        publicGroupLogin();
+    }
+}
+
+
 
 //////////////////
 // these client listener callbacks will be from a different thread
@@ -1876,6 +2017,27 @@ void SonobusAudioProcessorEditor::aooClientGroupLeft(SonobusAudioProcessor *comp
     }
     triggerAsyncUpdate();
 }
+
+void SonobusAudioProcessorEditor::aooClientPublicGroupModified(SonobusAudioProcessor *comp, const String & group, int count, const String & errmesg)
+{
+    DBG("Public group add/modified " << group << " count: " << (int)count << "   mesg: " << errmesg);
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PublicGroupModifiedEvent, group, true, errmesg));
+    }
+    triggerAsyncUpdate();
+}
+
+void SonobusAudioProcessorEditor::aooClientPublicGroupDeleted(SonobusAudioProcessor *comp, const String & group,  const String & errmesg)
+{
+    DBG("Public group delete " << group << "   mesg: " << errmesg);
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PublicGroupDeletedEvent, group, true, errmesg));
+    }
+    triggerAsyncUpdate();
+}
+
 
 void SonobusAudioProcessorEditor::aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user)  
 {
@@ -2118,7 +2280,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             mFileRecordingLabel->setText(SonoUtility::durationToString(processor.getElapsedRecordTime(), true), dontSendNotification);
         }
 
-        if (processor.isConnectedToServer()) {
+        if (processor.isConnectedToServer() && processor.getCurrentJoinedGroup().isNotEmpty()) {
             mConnectionTimeLabel->setText(SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
         }
 
@@ -2181,6 +2343,43 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
     }
 }
 
+void SonobusAudioProcessorEditor::publicGroupLogin()
+{
+    String hostport = mPublicServerHostEditor->getText();
+    DBG("Public host enter pressed");
+    // parse it
+    StringArray toks = StringArray::fromTokens(hostport, ":", "");
+    String host = "aoo.sonobus.net";
+    int port = DEFAULT_SERVER_PORT;
+
+    if (toks.size() >= 1) {
+        host = toks[0].trim();
+    }
+    if (toks.size() >= 2) {
+        port = toks[1].trim().getIntValue();
+    }
+
+    AooServerConnectionInfo info;
+    info.userName = mPublicServerUsernameEditor->getText();
+    info.serverHost = host;
+    info.serverPort = port;
+
+    if (info.serverHost != currConnectionInfo.serverHost
+        || info.serverPort != currConnectionInfo.serverPort
+        || info.userName != currConnectionInfo.userName
+        || !processor.getWatchPublicGroups()
+        || !processor.isConnectedToServer()
+        ) {
+
+        processor.disconnectFromServer();
+
+        Timer::callAfterDelay(100, [this,info] {
+            connectWithInfo(info, true);
+            updatePublicGroups();
+        });
+    }
+}
+
 void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
 {
     DBG("Return pressed");
@@ -2189,9 +2388,16 @@ void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
         int port = mOptionsUdpPortEditor->getText().getIntValue();
         changeUdpPort(port);
     }
+    else if (&ed == mPublicServerHostEditor.get() || &ed == mPublicServerUsernameEditor.get()) {
+        publicGroupLogin();
+    }
+    else if (&ed == mPublicServerGroupEditor.get()) {
+        buttonClicked(mPublicServerAddGroupButton.get());
+    }
+
 
     
-    if (mConnectComponent->isVisible()) {
+    if (mConnectComponent->isVisible() && mServerConnectButton->isShowing()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
         mServerConnectButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
@@ -2221,6 +2427,10 @@ void SonobusAudioProcessorEditor::textEditorFocusLost (TextEditor& ed)
         int port = mOptionsUdpPortEditor->getText().getIntValue();
         changeUdpPort(port);
     }
+    else if (&ed == mPublicServerHostEditor.get() || &ed == mPublicServerUsernameEditor.get()) {
+        publicGroupLogin();
+    }
+
 }
 
 void SonobusAudioProcessorEditor::changeUdpPort(int port)
@@ -2261,11 +2471,16 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mConnectButton.get()) {
         
-        if (processor.isConnectedToServer()) {
+        if (processor.isConnectedToServer() && processor.getCurrentJoinedGroup().isNotEmpty()) {
             mConnectionTimeLabel->setText(TRANS("Last Session: ") + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
             mConnectButton->setTextJustification(Justification::centredTop);
 
-            processor.disconnectFromServer();
+            if (processor.getWatchPublicGroups()) {
+                processor.leaveServerGroup(processor.getCurrentJoinedGroup());
+            }
+            else {
+                processor.disconnectFromServer();
+            }
             updateState();
         }
         else {
@@ -2281,40 +2496,70 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         
     }
     else if (buttonThatWasClicked == mServerConnectButton.get()) {
-
+        bool wasconnected = false;
         if (processor.isConnectedToServer()) {
             mConnectionTimeLabel->setText(TRANS("Total: ") + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
 
             processor.disconnectFromServer();    
             updateState();
+            wasconnected = true;
         }
-        else {
-            String hostport = mServerHostEditor->getText();        
 
-            // parse it
-            StringArray toks = StringArray::fromTokens(hostport, ":", "");
-            String host = "aoo.sonobus.net";
-            int port = DEFAULT_SERVER_PORT;
-            
-            if (toks.size() >= 1) {
-                host = toks[0].trim();
-            }
-            if (toks.size() >= 2) {
-                port = toks[1].trim().getIntValue();
-            }
-            
-            AooServerConnectionInfo info;
-            info.userName = mServerUsernameEditor->getText();
-            info.groupName = mServerGroupEditor->getText();
-            info.groupPassword = mServerGroupPasswordEditor->getText();
-            info.serverHost = host;
-            info.serverPort = port;
-            
-            connectWithInfo(info);                       
-            
-            mConnectionTimeLabel->setText("", dontSendNotification);
+        String hostport = mServerHostEditor->getText();
 
+        // parse it
+        StringArray toks = StringArray::fromTokens(hostport, ":", "");
+        String host = "aoo.sonobus.net";
+        int port = DEFAULT_SERVER_PORT;
+
+        if (toks.size() >= 1) {
+            host = toks[0].trim();
         }
+        if (toks.size() >= 2) {
+            port = toks[1].trim().getIntValue();
+        }
+
+        AooServerConnectionInfo info;
+        info.userName = mServerUsernameEditor->getText();
+        info.groupName = mServerGroupEditor->getText();
+        info.groupPassword = mServerGroupPasswordEditor->getText();
+        info.groupIsPublic = false;
+        info.serverHost = host;
+        info.serverPort = port;
+
+        connectWithInfo(info);
+
+        mConnectionTimeLabel->setText("", dontSendNotification);
+
+    }
+    else if (buttonThatWasClicked == mPublicServerAddGroupButton.get()) {
+
+        String hostport = mPublicServerHostEditor->getText();
+
+        // parse it
+        StringArray toks = StringArray::fromTokens(hostport, ":", "");
+        String host = "aoo.sonobus.net";
+        int port = DEFAULT_SERVER_PORT;
+
+        if (toks.size() >= 1) {
+            host = toks[0].trim();
+        }
+        if (toks.size() >= 2) {
+            port = toks[1].trim().getIntValue();
+        }
+
+        AooServerConnectionInfo info;
+        info.userName = mPublicServerUsernameEditor->getText();
+        info.groupName = mPublicServerGroupEditor->getText();
+        info.groupPassword = "";
+        info.groupIsPublic = true;
+        info.serverHost = host;
+        info.serverPort = port;
+
+        connectWithInfo(info);
+
+        mConnectionTimeLabel->setText("", dontSendNotification);
+
     }
     else if (buttonThatWasClicked == mSetupAudioButton.get()) {
         if (!settingsCalloutBox) {
@@ -2431,8 +2676,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
     }
     else if (buttonThatWasClicked == mServerCopyButton.get()) {
-        copyInfoToClipboard();
-        showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
+        if (copyInfoToClipboard()) {
+            showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
+        }
     }
     else if (buttonThatWasClicked == mMainLinkButton.get()) {
 #if JUCE_IOS
@@ -2449,8 +2695,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
         }        
 #else
-        copyInfoToClipboard();
-        showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, mMainLinkButton.get());
+        if (copyInfoToClipboard()) {
+            showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, mMainLinkButton.get());
+        }
 #endif
     }
     else if (buttonThatWasClicked == mServerShareButton.get()) {
@@ -2651,6 +2898,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mConnectCloseButton.get()) {
         mConnectComponent->setVisible(false);
         mConnectButton->setTextJustification(Justification::centred);
+
+        processor.setWatchPublicGroups(false);
+        
         updateState();
     }
     else if (buttonThatWasClicked == mOptionsRecMixButton.get()
@@ -2821,7 +3071,7 @@ void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
 {
     URL url(urlstr);
     if (url.isWellFormed()) {
-        if (!currConnected) {
+        if (!currConnected || currGroup.isEmpty()) {
             if (handleSonobusURL(url)) {
 
                 // connect immediately
@@ -2861,27 +3111,46 @@ bool SonobusAudioProcessorEditor::loadAudioFromURL(URL fileurl)
 }
 
 
-void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo & info)
+void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup)
 {
     currConnectionInfo = info;
     
-    if (currConnectionInfo.groupName.isEmpty()) {
-        mServerStatusLabel->setText(TRANS("You need to specify a group name!"), dontSendNotification);
-        mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
-        mServerGroupEditor->repaint();
-        mServerInfoLabel->setVisible(false);
-        mServerStatusLabel->setVisible(true);
+    if (currConnectionInfo.groupName.isEmpty() && !allowEmptyGroup) {
+        if (info.groupIsPublic) {
+            mPublicServerStatusInfoLabel->setText(TRANS("You need to specify a group name!"), dontSendNotification);
+            mPublicServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mPublicServerGroupEditor->repaint();
+            mPublicServerStatusInfoLabel->setVisible(true);
+        }
+        else {
+            mServerStatusLabel->setText(TRANS("You need to specify a group name!"), dontSendNotification);
+            mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mServerGroupEditor->repaint();
+            mServerInfoLabel->setVisible(false);
+            mServerStatusLabel->setVisible(true);
+        }
         return;
     }
     else {
         mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
         mServerGroupEditor->repaint();
+        mPublicServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mPublicServerGroupEditor->repaint();
     }
     
     if (currConnectionInfo.userName.isEmpty()) {
-        mServerStatusLabel->setText(TRANS("You need to specify a user name!"), dontSendNotification);
-        mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
-        mServerUsernameEditor->repaint();
+        String mesg = TRANS("You need to specify a user name!");
+
+        if (info.groupIsPublic) {
+            mPublicServerStatusInfoLabel->setText(mesg, dontSendNotification);
+            mPublicServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mPublicServerUsernameEditor->repaint();
+        } else {
+            mServerStatusLabel->setText(mesg, dontSendNotification);
+            mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mServerUsernameEditor->repaint();
+        }
+
         mServerInfoLabel->setVisible(false);
         mServerStatusLabel->setVisible(true);
         return;
@@ -2889,6 +3158,8 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
     else {
         mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
         mServerUsernameEditor->repaint();
+        mPublicServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mPublicServerUsernameEditor->repaint();
     }
     
     //mServerGroupPasswordEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
@@ -2897,16 +3168,31 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
     
     if (currConnectionInfo.serverHost.isNotEmpty() && currConnectionInfo.serverPort != 0) 
     {
-        processor.connectToServer(currConnectionInfo.serverHost, currConnectionInfo.serverPort, currConnectionInfo.userName, currConnectionInfo.userPassword);
-        updateState();
+        processor.disconnectFromServer();
+
+        Timer::callAfterDelay(100, [this] {
+            processor.connectToServer(currConnectionInfo.serverHost, currConnectionInfo.serverPort, currConnectionInfo.userName, currConnectionInfo.userPassword);
+            updateState();
+        });
 
         mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
         mServerHostEditor->repaint();
+
+        mPublicServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mPublicServerHostEditor->repaint();
     }
     else {
-        mServerStatusLabel->setText(TRANS("Server address is invalid!"), dontSendNotification);
-        mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
-        mServerHostEditor->repaint();
+        String mesg = TRANS("Server address is invalid!");
+        if (info.groupIsPublic) {
+            mPublicServerStatusInfoLabel->setText(mesg, dontSendNotification);
+            mPublicServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mPublicServerHostEditor->repaint();
+        } else {
+            mServerStatusLabel->setText(mesg, dontSendNotification);
+            mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mServerHostEditor->repaint();
+        }
+
         mServerInfoLabel->setVisible(false);
         mServerStatusLabel->setVisible(true);
     }
@@ -3193,6 +3479,14 @@ void SonobusAudioProcessorEditor::updateRecents()
     mRecentsListBox->deselectAllRows();
 }
 
+void SonobusAudioProcessorEditor::updatePublicGroups()
+{
+    publicGroupsListModel.updateState();
+    mPublicGroupsListBox->updateContent();
+    mPublicGroupsListBox->repaint();
+    mPublicGroupsListBox->deselectAllRows();
+}
+
 void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
 {
     if (flag) {
@@ -3207,7 +3501,7 @@ void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
         updateRecents();
         
         if (firstTimeConnectShow) {
-            if (mConnectTab->getNumTabs() > 2) {
+            if (mConnectTab->getNumTabs() > 3) {
                 if (recentsListModel.getNumRows() > 0) {
                     // show recents tab first
                     mConnectTab->setCurrentTabIndex(0);
@@ -3217,7 +3511,11 @@ void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
             }
             firstTimeConnectShow = false;
         }
-        
+
+        if (mConnectTab->getCurrentContentComponent() == mPublicServerConnectContainer.get()) {
+            publicGroupLogin();
+        }
+
         mConnectComponent->setVisible(true);
     }
     else {
@@ -3526,7 +3824,9 @@ void SonobusAudioProcessorEditor::updateState()
     mLocalAddressLabel->setText(locstr, dontSendNotification);
 
     currConnected = processor.isConnectedToServer();
-    if (currConnected) {
+    currGroup = processor.getCurrentJoinedGroup();
+
+    if (currConnected && currGroup.isNotEmpty()) {
         mConnectButton->setButtonText(TRANS("Disconnect"));
         mConnectButton->setTextJustification(Justification::centredTop);
         mConnectButton->setToggleState(true, dontSendNotification);
@@ -3646,10 +3946,11 @@ void SonobusAudioProcessorEditor::updateState()
         mReverbPreDelayLabel->setVisible(true);        
     }
   
-    currGroup = processor.getCurrentJoinedGroup();
-    if (!currGroup.isEmpty() && currConnected) 
+    if (!currGroup.isEmpty() && currConnected)
     {
-        mMainGroupLabel->setText(currGroup, dontSendNotification);
+        String grouptext;
+        grouptext << (currConnectionInfo.groupIsPublic ? TRANS("[P] ") : "") << currGroup;
+        mMainGroupLabel->setText(grouptext, dontSendNotification);
         String userstr;
 
         if (processor.getNumberRemotePeers() > 0) {
@@ -3825,8 +4126,10 @@ void SonobusAudioProcessorEditor::updateServerStatusLabel(const String & mesg, b
     
     if (!mainonly) {
         mServerStatusLabel->setText(mesg, dontSendNotification);
+        mPublicServerStatusInfoLabel->setText(mesg, dontSendNotification);
         mServerInfoLabel->setVisible(false);
         mServerStatusLabel->setVisible(true);
+        mPublicServerStatusInfoLabel->setVisible(true);
     }
 }
 
@@ -3899,7 +4202,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                     currConnectionInfo.userName = generateNewUsername(currConnectionInfo);
 
                     DBG("Trying again with name: " << currConnectionInfo.userName);
-                    connectWithInfo(currConnectionInfo);
+                    connectWithInfo(currConnectionInfo, true);
                     
                     return;
                     
@@ -3911,14 +4214,34 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             
             // now attempt to join group
             if (ev.success) {
-                currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
-                processor.addRecentServerConnectionInfo(currConnectionInfo);
 
-                processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword);                
+                if (currConnectionInfo.groupName.isNotEmpty()) {
+
+                    currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
+                    processor.addRecentServerConnectionInfo(currConnectionInfo);
+
+                    processor.setWatchPublicGroups(false);
+
+                    processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword, currConnectionInfo.groupIsPublic);
+                }
+                else {
+                    // we've connected but have not specified group, assume we want to see public groups
+                    processor.setWatchPublicGroups(true);
+                    updatePublicGroups();
+                }
+
+                updateServerFieldsFromConnectionInfo();
             }
             else {
                 // switch to group page
-                mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+                int adjindex = mConnectTab->getCurrentTabIndex() + (mConnectTab->getNumTabs() > 3 ? 0 : 1);
+                if (adjindex != 1 && adjindex != 2) {
+                    if (currConnectionInfo.groupIsPublic) {
+                        mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 2 : 1);
+                    } else {
+                        mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 1 : 0);
+                    }
+                }
             }
             
             updateServerStatusLabel(statstr, false);
@@ -3966,6 +4289,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             updateServerStatusLabel(statstr);
             updatePeerState(true);
             updateState();
+        }
+        else if (ev.type == ClientEvent::PublicGroupModifiedEvent) {
+            updatePublicGroups();
+        }
+        else if (ev.type == ClientEvent::PublicGroupDeletedEvent) {
+            updatePublicGroups();
         }
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
@@ -4072,23 +4401,25 @@ void SonobusAudioProcessorEditor::resized()
     mConnectComponentBg->setRectangle (mConnectComponent->getLocalBounds().toFloat());
 
     if (getWidth() > 700) {
-        if (mConnectTab->getNumTabs() > 2) {
+        if (mConnectTab->getNumTabs() > 3) {
             // move recents to main connect component, out of tab
+            int adjcurrtab = jmax(0, mConnectTab->getCurrentTabIndex() - 1);
+
             mConnectTab->removeTab(0);
             mRecentsGroup->addAndMakeVisible(mRecentsContainer.get());
             mConnectComponent->addAndMakeVisible(mRecentsGroup.get());
 
-            mConnectTab->setCurrentTabIndex(0);
+            mConnectTab->setCurrentTabIndex(adjcurrtab);
             updateLayout();
         }
     } else {
-        if (mConnectTab->getNumTabs() < 3) {
+        if (mConnectTab->getNumTabs() < 4) {
             int tabsel = mConnectTab->getCurrentTabIndex();
             mRecentsGroup->removeChildComponent(mRecentsContainer.get());
             mRecentsGroup->setVisible(false);
             
             mConnectTab->addTab(TRANS("RECENTS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecentsContainer.get(), false);
-            mConnectTab->moveTab(2, 0);
+            mConnectTab->moveTab(3, 0);
             mConnectTab->setCurrentTabIndex(tabsel + 1);
             updateLayout();
         }
@@ -4103,7 +4434,17 @@ void SonobusAudioProcessorEditor::resized()
     remoteBox.performLayout(mDirectConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mDirectConnectContainer->getWidth()), mDirectConnectContainer->getHeight()));
     serverBox.performLayout(mServerConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mServerConnectContainer->getWidth()), mServerConnectContainer->getHeight()));
 
-    if (mConnectTab->getNumTabs() < 3) {
+    //mPublicServerConnectContainer->setBounds(0,0,
+    //                                   mPublicServerConnectViewport->getWidth() - (mPublicServerConnectViewport->getHeight() < minServerConnectHeight ? mPublicServerConnectViewport->getScrollBarThickness() : 0 ),
+    //                                   jmax(minServerConnectHeight, mPublicServerConnectViewport->getHeight()));
+
+
+    publicGroupsBox.performLayout(mPublicServerConnectContainer->getLocalBounds());
+
+    mPublicGroupsListBox->setBounds(mPublicGroupComponent->getLocalBounds().reduced(4).withTrimmedTop(10));
+
+
+    if (mConnectTab->getNumTabs() < 4) {
         mRecentsContainer->setBounds(mRecentsGroup->getLocalBounds().reduced(4).withTrimmedTop(10));
     }
     recentsBox.performLayout(mRecentsContainer->getLocalBounds());
@@ -4632,14 +4973,47 @@ void SonobusAudioProcessorEditor::updateLayout()
     serverBox.items.add(FlexItem(180, minitemheight, servUserBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
     serverBox.items.add(FlexItem(5, 6).withFlex(1).withMaxHeight(14));
     serverBox.items.add(FlexItem(minButtonWidth, minitemheight, servButtonBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
-    serverBox.items.add(FlexItem(5, 10).withFlex(0));
+    serverBox.items.add(FlexItem(5, 10).withFlex(1));
     serverBox.items.add(FlexItem(100, minitemheight, servAddressBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
     serverBox.items.add(FlexItem(80, minpassheight, *mServerAudioInfoLabel).withMargin(2).withFlex(1).withMaxWidth(maxservboxwidth).withMaxHeight(60));
-    serverBox.items.add(FlexItem(5, 8).withFlex(1));
+    serverBox.items.add(FlexItem(5, 8).withFlex(0));
 
     minServerConnectHeight = 4*minitemheight + 3*minpassheight + 58;
 
-    
+    // public groups stuff
+
+    publicServAddressBox.items.clear();
+    publicServAddressBox.flexDirection = FlexBox::Direction::row;
+    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerHostStaticLabel).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(172, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerStatusInfoLabel).withMargin(2).withFlex(1));
+
+    publicServUserBox.items.clear();
+    publicServUserBox.flexDirection = FlexBox::Direction::row;
+    publicServUserBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerUserStaticLabel).withMargin(2).withFlex(1));
+    publicServUserBox.items.add(FlexItem(172, minitemheight, *mPublicServerUsernameEditor).withMargin(2).withFlex(1));
+
+    publicAddGroupBox.items.clear();
+    publicAddGroupBox.flexDirection = FlexBox::Direction::row;
+    publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerInfoStaticLabel).withMargin(2).withFlex(0.5));
+    publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerAddGroupButton).withMargin(2).withFlex(1).withMaxWidth(180));
+    //publicAddGroupBox.items.add(FlexItem(4, 8).withFlex(0.25));
+    publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerGroupEditor).withMargin(2).withFlex(1));
+
+
+    publicGroupsBox.items.clear();
+    publicGroupsBox.flexDirection = FlexBox::Direction::column;
+    publicGroupsBox.items.add(FlexItem(5, 3).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(100, minitemheight, publicServAddressBox).withMargin(2).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicServUserBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
+    publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicAddGroupBox).withMargin(2).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(5, 7).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(100, minitemheight, *mPublicGroupComponent).withMargin(2).withFlex(1));
+
+
+
     mainGroupUserBox.items.clear();
     mainGroupUserBox.flexDirection = FlexBox::Direction::row;
     mainGroupUserBox.items.add(FlexItem(0, 6).withFlex(0));
@@ -4908,7 +5282,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     connectHorizBox.items.clear();
     connectHorizBox.flexDirection = FlexBox::Direction::row;
     connectHorizBox.items.add(FlexItem(100, 100, *mConnectTab).withMargin(3).withFlex(1));
-    if (mConnectTab->getNumTabs() < 3) {
+    if (mConnectTab->getNumTabs() < 4) {
         connectHorizBox.items.add(FlexItem(335, 100, *mRecentsGroup).withMargin(3).withFlex(0));
     }
 
@@ -5279,14 +5653,14 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
                           TRANS("Popup"), 0);
-            info.setActive(!currConnected);
+            info.setActive(!currConnected || currGroup.isEmpty());
             info.addDefaultKeypress ('n', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::Disconnect:
             info.setInfo (TRANS("Disconnect"),
                           TRANS("Disconnect"),
                           TRANS("Popup"), 0);
-            info.setActive(currConnected);
+            info.setActive(currConnected && currGroup.isNotEmpty());
             info.addDefaultKeypress ('d', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::ShowOptions:
@@ -5387,14 +5761,14 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::Connect:
             DBG("got connect!");
-            if (!currConnected) {
+            if (!currConnected || currGroup.isEmpty()) {
                 buttonClicked(mConnectButton.get());
             }
             break;
         case SonobusCommands::Disconnect:
             DBG("got disconnect!");
             
-            if (currConnected) {
+            if (currConnected && currGroup.isNotEmpty()) {
                 buttonClicked(mConnectButton.get());
             }
 
@@ -5559,8 +5933,13 @@ void SonobusAudioProcessorEditor::RecentsListModel::paintListBoxItem (int rowNum
     g.drawFittedText (info.userName, adjwidth*xratio + iconsize, 0, adjwidth*(1.0f - xratio) - 4 - iconsize, groupheight, Justification::centredLeft, true);
 
     String infostr;
+
+    if (info.groupIsPublic) {
+        infostr += TRANS("PUBLIC ");
+    }
+
     if (info.groupPassword.isNotEmpty()) {
-        infostr = TRANS("password protected, ");
+        infostr += TRANS("password protected, ");
     }
 
     infostr += TRANS("on ") + Time(info.timestamp).toString(true, true, false) + " " ;
@@ -5595,6 +5974,108 @@ void SonobusAudioProcessorEditor::RecentsListModel::listBoxItemClicked (int rowN
 }
 
 void SonobusAudioProcessorEditor::RecentsListModel::selectedRowsChanged(int rowNumber)
+{
+
+}
+
+#pragma PublicGroupsListModel
+
+SonobusAudioProcessorEditor::PublicGroupsListModel::PublicGroupsListModel(SonobusAudioProcessorEditor * parent_) : parent(parent_)
+{
+    groupImage = ImageCache::getFromMemory(BinaryData::people_png, BinaryData::people_pngSize);
+    personImage = ImageCache::getFromMemory(BinaryData::person_png, BinaryData::person_pngSize);
+}
+
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::updateState()
+{
+    groups.clear();
+    parent->processor.getPublicGroupInfos(groups);
+}
+
+int SonobusAudioProcessorEditor::PublicGroupsListModel::getNumRows()
+{
+    return groups.size();
+}
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
+{
+    if (rowNumber >= groups.size()) return;
+
+    if (rowIsSelected) {
+        g.setColour (parent->findColour(selectedColourId));
+        g.fillRect(Rectangle<int>(0,0,width,height));
+    }
+
+    g.setColour(parent->findColour(separatorColourId));
+    g.drawLine(0, height-1, width, height);
+
+
+    g.setColour (parent->findColour(nameTextColourId));
+    g.setFont (parent->recentsGroupFont);
+
+    AooPublicGroupInfo & info = groups.getReference(rowNumber);
+
+    float xratio = 0.7;
+    int removewidth = 0 ; // jmin(36, height - 6);
+    float yratio = 1.0; // 0.6
+    float adjwidth = width - removewidth;
+
+    // DebugLogC("Paint %s", text.toRawUTF8());
+    float iconsize = height*yratio;
+    float groupheight = height*yratio;
+    g.drawImageWithin(groupImage, 0, 0, iconsize, iconsize, RectanglePlacement::fillDestination);
+    g.drawFittedText (info.groupName, iconsize + 4, 0, adjwidth*xratio - 8 - iconsize, groupheight, Justification::centredLeft, true);
+
+    g.setFont (parent->recentsNameFont);
+    g.setColour (parent->findColour(nameTextColourId).withAlpha(0.8f));
+    g.drawImageWithin(personImage, adjwidth*xratio, 0, iconsize, iconsize, RectanglePlacement::fillDestination);
+    String usertext;
+    usertext << info.activeCount << (info.activeCount > 1 ? TRANS(" active users") : TRANS(" active user"));
+    g.drawFittedText (usertext, adjwidth*xratio + iconsize, 0, adjwidth*(1.0f - xratio) - 4 - iconsize, groupheight, Justification::centredLeft, true);
+
+
+    //g.setColour (parent->findColour(nameTextColourId).withAlpha(0.5f));
+    //g.setFont (parent->recentsInfoFont);
+    //g.drawFittedText (infostr, 14, height * yratio, adjwidth - 24, height * (1.0f - yratio), Justification::centredTop, true);
+
+    cachedWidth = width;
+}
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::listBoxItemClicked (int rowNumber, const MouseEvent& e)
+{
+    // use this
+    DBG("Clicked " << rowNumber << "  x: " << e.getPosition().x << "  width: " << cachedWidth);
+
+    auto & ginfo = groups.getReference(rowNumber);
+
+    if (parent->processor.isConnectedToServer()) {
+        parent->currConnectionInfo.groupName = ginfo.groupName;
+        parent->currConnectionInfo.groupPassword.clear();
+        parent->currConnectionInfo.groupIsPublic = true;
+        parent->currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
+        parent->processor.addRecentServerConnectionInfo(parent->currConnectionInfo);
+
+        bool isPublic = true;
+        parent->processor.joinServerGroup(parent->currConnectionInfo.groupName, parent->currConnectionInfo.groupPassword, isPublic);
+
+        parent->processor.setWatchPublicGroups(false);
+    }
+    else {
+
+        AooServerConnectionInfo cinfo;
+        cinfo.userName = parent->mPublicServerUsernameEditor->getText();
+        cinfo.groupName = ginfo.groupName;
+        cinfo.groupIsPublic = true;
+        cinfo.serverHost = parent->currConnectionInfo.serverHost;
+        cinfo.serverPort = parent->currConnectionInfo.serverPort;
+
+        parent->connectWithInfo(cinfo);
+    }
+
+}
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::selectedRowsChanged(int rowNumber)
 {
 
 }

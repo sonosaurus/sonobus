@@ -42,11 +42,23 @@ struct AooServerConnectionInfo
     String userPassword;
     String groupName;
     String groupPassword;
+    bool   groupIsPublic = false;
     String serverHost;
     int    serverPort;
     
     int64 timestamp; // milliseconds since 1970
 };
+
+struct AooPublicGroupInfo
+{
+    AooPublicGroupInfo() {}
+
+    String groupName;
+    int    activeCount = 0;
+
+    int64 timestamp = 0; // milliseconds since 1970
+};
+
 
 inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs) {
     // compare all except timestamp
@@ -230,10 +242,14 @@ public:
     void setAutoconnectToGroupPeers(bool flag);
     bool getAutoconnectToGroupPeers() const { return mAutoconnectGroupPeers; }
 
-    bool joinServerGroup(const String & group, const String & groupsecret = "");
+    bool joinServerGroup(const String & group, const String & groupsecret = "", bool isPublic=false);
     bool leaveServerGroup(const String & group);
     String getCurrentJoinedGroup() const ;
-    
+    bool setWatchPublicGroups(bool flag);
+    bool getWatchPublicGroups() const { return mWatchPublicGroups; }
+
+    int getPublicGroupInfos(Array<AooPublicGroupInfo> & retarray);
+
     void addRecentServerConnectionInfo(const AooServerConnectionInfo & cinfo);
     void removeRecentServerConnectionInfo(int index);
     int getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray);
@@ -440,6 +456,8 @@ public:
         virtual void aooClientLoginResult(SonobusAudioProcessor *comp, bool success, const String & errmesg="") {}
         virtual void aooClientGroupJoined(SonobusAudioProcessor *comp, bool success, const String & group,  const String & errmesg="") {}
         virtual void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") {}
+        virtual void aooClientPublicGroupModified(SonobusAudioProcessor *comp, const String & group, int count, const String & errmesg="") {}
+        virtual void aooClientPublicGroupDeleted(SonobusAudioProcessor *comp, const String & group,  const String & errmesg="") {}
         virtual void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) {}
@@ -674,6 +692,7 @@ private:
     bool mIsConnectedToServer = false;
     String mCurrentJoinedGroup;
     double mSessionConnectionStamp = 0.0;
+    bool mWatchPublicGroups = false;
 
     double mPrevSampleRate = 0.0;
     Atomic<bool> mPendingUnmute {false}; // jlc
@@ -705,6 +724,9 @@ private:
     CriticalSection  mRecentsLock;
     
     CriticalSection  mRemotesLock;
+
+    std::map<String,AooPublicGroupInfo> mPublicGroupInfos;
+    CriticalSection  mPublicGroupsLock;
 
     
     
