@@ -17,6 +17,16 @@
 #define AOONET_MSG_CLIENT_REPLY \
     AOO_MSG_DOMAIN AOONET_MSG_CLIENT AOONET_MSG_REPLY
 
+#define AOONET_MSG_CLIENT_GROUP_PUBLIC \
+    AOO_MSG_DOMAIN AOONET_MSG_CLIENT AOONET_MSG_GROUP AOONET_MSG_PUBLIC
+
+#define AOONET_MSG_CLIENT_GROUP_PUBLIC_ADD \
+    AOO_MSG_DOMAIN AOONET_MSG_CLIENT AOONET_MSG_GROUP AOONET_MSG_PUBLIC AOONET_MSG_ADD
+
+#define AOONET_MSG_CLIENT_GROUP_PUBLIC_DEL \
+    AOO_MSG_DOMAIN AOONET_MSG_CLIENT AOONET_MSG_GROUP AOONET_MSG_PUBLIC AOONET_MSG_DEL
+
+
 #define AOONET_MSG_CLIENT_GROUP_JOIN \
     AOO_MSG_DOMAIN AOONET_MSG_CLIENT AOONET_MSG_GROUP AOONET_MSG_JOIN
 
@@ -34,6 +44,10 @@
 
 #define AOONET_MSG_GROUP_LEAVE \
     AOONET_MSG_GROUP AOONET_MSG_LEAVE
+
+#define AOONET_MSG_GROUP_PUBLIC \
+    AOONET_MSG_GROUP AOONET_MSG_PUBLIC
+
 
 namespace aoo {
 namespace net {
@@ -317,7 +331,9 @@ std::shared_ptr<user> server::find_user(const std::string& name)
 }
 
 std::shared_ptr<group> server::get_group(const std::string& name,
-                                         const std::string& pwd, error& e)
+                                         const std::string& pwd,
+                                         bool is_public,
+                                         error& e)
 {
     auto grp = find_group(name);
     if (grp){
@@ -332,7 +348,7 @@ std::shared_ptr<group> server::get_group(const std::string& name,
     } else {
         // create new group (LATER add option to disallow this)
         if (true){
-            grp = std::make_shared<group>(name, pwd);
+            grp = std::make_shared<group>(name, pwd, is_public);
             groups_.push_back(grp);
             e = error::none;
             return grp;
@@ -401,7 +417,12 @@ void server::on_user_joined_group(user& usr, group& grp){
 
             // notify existing member
             notify(peer->endpoint, usr);
+
         }
+    }
+
+    if (grp.is_public) {
+        on_public_group_modified(grp);
     }
 
     auto e = std::make_unique<group_event>(AOONET_SERVER_GROUP_JOIN_EVENT,
@@ -423,10 +444,68 @@ void server::on_user_left_group(user& usr, group& grp){
         }
     }
 
+    if (grp.is_public) {
+        on_public_group_modified(grp);
+    }
+
     auto e = std::make_unique<group_event>(AOONET_SERVER_GROUP_LEAVE_EVENT,
                                            grp.name.c_str(), usr.name.c_str());
     push_event(std::move(e));
 }
+
+void server::on_user_wants_public_groups(user& usr){
+    // 1) send all existing public groups to the user
+    for (auto& grp : groups_){
+        if (!grp->is_public) continue;
+
+        char buf[AOO_MAXPACKETSIZE];
+
+        osc::OutboundPacketStream msg(buf, sizeof(buf));
+        msg << osc::BeginMessage(AOONET_MSG_CLIENT_GROUP_PUBLIC_ADD)
+        << grp->name.c_str()
+        << (int32_t) grp->users().size()
+        << osc::EndMessage;
+
+        usr.endpoint->send_message(msg.Data(), (int32_t) msg.Size());
+    }
+}
+
+void server::on_public_group_modified(group& grp)
+{
+    char buf[AOO_MAXPACKETSIZE];
+
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+    msg << osc::BeginMessage(AOONET_MSG_CLIENT_GROUP_PUBLIC_ADD)
+    << grp.name.c_str()
+    << (int32_t) grp.users().size()
+    << osc::EndMessage;
+
+    // notify all users who care
+    for (auto & peer : users_) {
+        if (peer->watch_public_groups) {
+            peer->endpoint->send_message(msg.Data(), (int32_t) msg.Size());
+        }
+    }
+}
+
+void server::on_public_group_removed(group& grp)
+{
+    // notify all users who care
+    char buf[AOO_MAXPACKETSIZE];
+
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+    msg << osc::BeginMessage(AOONET_MSG_CLIENT_GROUP_PUBLIC_DEL)
+    << grp.name.c_str()
+    << osc::EndMessage;
+
+    // notify all users who care
+    for (auto & peer : users_) {
+        if (peer->watch_public_groups) {
+            peer->endpoint->send_message(msg.Data(), (int32_t) msg.Size());
+        }
+    }
+}
+
 
 void server::wait_for_event(){
     bool didclose = false;
@@ -605,6 +684,10 @@ void server::update(){
     // LATER add an option so that groups will persist
     for (auto it = groups_.begin(); it != groups_.end(); ){
         if ((*it)->num_users() == 0){
+            if ((*it)->is_public) {
+                on_public_group_removed(*(*it));
+            }
+
             it = groups_.erase(it);
         } else {
             ++it;
@@ -999,6 +1082,8 @@ void client_endpoint::handle_message(const osc::ReceivedMessage &msg){
             handle_group_join(msg);
         } else if (!strcmp(pattern, AOONET_MSG_GROUP_LEAVE)){
             handle_group_leave(msg);
+        } else if (!strcmp(pattern, AOONET_MSG_GROUP_PUBLIC)){
+            handle_group_public(msg);
         } else {
             LOG_ERROR("aoo_server: unknown message " << msg.AddressPattern());
         }
@@ -1077,9 +1162,14 @@ void client_endpoint::handle_group_join(const osc::ReceivedMessage& msg)
     std::string name = (it++)->AsString();
     std::string password = (it++)->AsString();
 
+    bool is_public = false;
+    if (msg.ArgumentCount() > 2) {
+        is_public = (it++)->AsBool();
+    }
+
     server::error err;
     if (user_){
-        auto grp = server_->get_group(name, password, err);
+        auto grp = server_->get_group(name, password, is_public, err);
         if (grp){
             if (user_->add_group(grp)){
                 grp->add_user(user_);
@@ -1133,6 +1223,36 @@ void client_endpoint::handle_group_leave(const osc::ReceivedMessage& msg){
     osc::OutboundPacketStream reply(buf, sizeof(buf));
     reply << osc::BeginMessage(AOONET_MSG_CLIENT_GROUP_LEAVE)
           << name.c_str() << result << errmsg.c_str() << osc::EndMessage;
+
+    send_message(reply.Data(), (int32_t)reply.Size());
+}
+
+void client_endpoint::handle_group_public(const osc::ReceivedMessage& msg)
+{
+    int result = 0;
+    std::string errmsg;
+
+    auto it = msg.ArgumentsBegin();
+    bool shouldWatch = (it++)->AsBool();
+
+    server::error err;
+    if (user_){
+        // register interest in seeing public groups
+        user_->watch_public_groups = shouldWatch;
+
+        if (shouldWatch) {
+            // send current batch
+            server_->on_user_wants_public_groups(*user_);
+        }
+    } else {
+        errmsg = "not logged in";
+    }
+
+    // send reply
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream reply(buf, sizeof(buf));
+    reply << osc::BeginMessage(AOONET_MSG_CLIENT_GROUP_PUBLIC)
+          << shouldWatch << result << errmsg.c_str() << osc::EndMessage;
 
     send_message(reply.Data(), (int32_t)reply.Size());
 }

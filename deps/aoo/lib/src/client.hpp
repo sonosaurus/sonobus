@@ -122,9 +122,12 @@ public:
 
     int32_t disconnect() override;
 
-    int32_t group_join(const char *group, const char *pwd) override;
+    int32_t group_join(const char *group, const char *pwd, bool is_public) override;
 
     int32_t group_leave(const char *group) override;
+
+    int32_t group_watch_public(bool watch) override;
+
 
     int32_t handle_message(const char *data, int32_t n, void *addr) override;
 
@@ -142,9 +145,11 @@ public:
 
     void do_login();
 
-    void do_group_join(const std::string& group, const std::string& pwd);
+    void do_group_join(const std::string& group, const std::string& pwd, bool is_public);
 
     void do_group_leave(const std::string& group);
+
+    void do_group_watch_public(bool watch);
 
     double ping_interval() const { return ping_interval_.load(); }
 
@@ -231,6 +236,11 @@ private:
 
     void handle_group_leave(const osc::ReceivedMessage& msg);
 
+    void handle_public_group_add(const osc::ReceivedMessage& msg);
+
+    void handle_public_group_del(const osc::ReceivedMessage& msg);
+
+
     void handle_peer_add(const osc::ReceivedMessage& msg);
 
     void handle_peer_remove(const osc::ReceivedMessage& msg);
@@ -296,14 +306,15 @@ private:
 
     struct group_join_cmd : icommand
     {
-        group_join_cmd(const std::string& _group, const std::string& _pwd)
-            : group(_group), password(_pwd){}
+        group_join_cmd(const std::string& _group, const std::string& _pwd, bool _is_public=false)
+            : group(_group), password(_pwd), is_public(_is_public){}
 
         void perform(client &obj) override {
-            obj.do_group_join(group, password);
+            obj.do_group_join(group, password, is_public);
         }
         std::string group;
         std::string password;
+        bool is_public;
     };
 
     struct group_leave_cmd : icommand
@@ -315,6 +326,17 @@ private:
             obj.do_group_leave(group);
         }
         std::string group;
+    };
+
+    struct group_watchpublic_cmd : icommand
+    {
+        group_watchpublic_cmd(bool _watch)
+            : watch(_watch){}
+
+        void perform(client &obj) override {
+            obj.do_group_watch_public(watch);
+        }
+        bool watch;
     };
 };
 

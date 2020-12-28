@@ -115,10 +115,13 @@ public:
     virtual int32_t disconnect() = 0;
 
     // join an AOO group
-    virtual int32_t group_join(const char *group, const char *pwd) = 0;
+    virtual int32_t group_join(const char *group, const char *pwd, bool is_public=false) = 0;
 
     // leave an AOO group
     virtual int32_t group_leave(const char *group) = 0;
+
+    // register interest in public groups
+    virtual int32_t group_watch_public(bool watch) = 0;
 
     // handle messages from peers (threadsafe, but not reentrant)
     // 'addr' should be sockaddr *
