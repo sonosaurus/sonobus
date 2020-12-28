@@ -338,7 +338,11 @@ std::shared_ptr<group> server::get_group(const std::string& name,
     auto grp = find_group(name);
     if (grp){
         // check password for existing group
-        if (grp->password == pwd){
+        if (grp->is_public != is_public) {
+            e = error::permission_denied;
+            return nullptr;
+        }
+        else if (grp->password == pwd){
             e = error::none;
             return grp;
         } else {
@@ -446,6 +450,8 @@ void server::on_user_left_group(user& usr, group& grp){
 
     if (grp.is_public) {
         on_public_group_modified(grp);
+
+        update(); // possibly prune empty
     }
 
     auto e = std::make_unique<group_event>(AOONET_SERVER_GROUP_LEAVE_EVENT,
