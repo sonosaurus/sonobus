@@ -698,6 +698,7 @@ publicGroupsListModel(this)
 
     mRemoteAddressStaticLabel = std::make_unique<Label>("remaddrst", TRANS("Host: "));
     mRemoteAddressStaticLabel->setJustificationType(Justification::centredRight);
+    mRemoteAddressStaticLabel->setWantsKeyboardFocus(true);
 
     mDirectConnectDescriptionLabel = std::make_unique<Label>("remaddrst", TRANS("Connect directly to other instances of SonoBus on your local network with the local address that they advertise."));
     mDirectConnectDescriptionLabel->setJustificationType(Justification::topLeft);
@@ -871,6 +872,7 @@ publicGroupsListModel(this)
 
     mPublicServerHostStaticLabel = std::make_unique<Label>("pubaddrst", TRANS("Connection Server:"));
     configServerLabel(mPublicServerHostStaticLabel.get());
+    mPublicServerHostStaticLabel->setWantsKeyboardFocus(true);
 
     mPublicServerUserStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Your Displayed Name:"));
     configServerLabel(mPublicServerUserStaticLabel.get());
@@ -899,7 +901,7 @@ publicGroupsListModel(this)
     mPublicServerAddGroupButton->setButtonText(TRANS("Create Group..."));
     mPublicServerAddGroupButton->addListener(this);
     mPublicServerAddGroupButton->setColour(TextButton::buttonColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.6));
-    //mPublicServerAddGroupButton->setWantsKeyboardFocus(true);
+    mPublicServerAddGroupButton->setWantsKeyboardFocus(true);
 
     mPublicServerGroupEditor = std::make_unique<TextEditor>("pubgroupedit");
     mPublicServerGroupEditor->setFont(Font(16));
@@ -2414,6 +2416,16 @@ void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
     if (mConnectComponent->isVisible() && mServerConnectButton->isShowing()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
         mServerConnectButton->grabKeyboardFocus();
+        //mServerConnectButton->setWantsKeyboardFocus(false);
+    }
+    else if (mConnectComponent->isVisible() && mPublicServerAddGroupButton->isShowing()) {
+        //mServerConnectButton->setWantsKeyboardFocus(true);
+        mPublicServerAddGroupButton->grabKeyboardFocus();
+        //mServerConnectButton->setWantsKeyboardFocus(false);
+    }
+    else if (mConnectComponent->isVisible() && mDirectConnectButton->isShowing()) {
+        //mServerConnectButton->setWantsKeyboardFocus(true);
+        mDirectConnectButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
     }
 }
@@ -5005,8 +5017,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     publicServAddressBox.items.clear();
     publicServAddressBox.flexDirection = FlexBox::Direction::row;
     publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerHostStaticLabel).withMargin(2).withFlex(1));
-    publicServAddressBox.items.add(FlexItem(172, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1));
-    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerStatusInfoLabel).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(150, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerStatusInfoLabel).withMargin(2).withFlex(0.75));
 
     publicServUserBox.items.clear();
     publicServUserBox.flexDirection = FlexBox::Direction::row;
