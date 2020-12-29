@@ -943,7 +943,7 @@ publicGroupsListModel(this)
 
     mMainLinkButton = std::make_unique<SonoDrawableButton>("link",  DrawableButton::ButtonStyle::ImageFitted);
     mMainLinkButton->addListener(this);
-
+    mMainLinkButton->setTooltip(TRANS("Press to copy/share link to group"));
     
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
     
@@ -1961,6 +1961,10 @@ void SonobusAudioProcessorEditor::connectTabChanged (int newCurrentTabIndex)
     if (adjindex == 2) {
         publicGroupLogin();
     }
+    else if (adjindex == 1) {
+        // private groups
+        resetPrivateGroupLabels();
+    }
 }
 
 
@@ -2364,19 +2368,29 @@ void SonobusAudioProcessorEditor::publicGroupLogin()
     info.serverHost = host;
     info.serverPort = port;
 
-    if (info.serverHost != currConnectionInfo.serverHost
-        || info.serverPort != currConnectionInfo.serverPort
-        || info.userName != currConnectionInfo.userName
+    bool connchanged = (info.serverHost != currConnectionInfo.serverHost
+                        || info.serverPort != currConnectionInfo.serverPort
+                        || info.userName != currConnectionInfo.userName);
+
+    if (connchanged
         || !processor.getWatchPublicGroups()
         || !processor.isConnectedToServer()
         ) {
 
-        processor.disconnectFromServer();
+        if (connchanged && processor.isConnectedToServer()) {
+            processor.disconnectFromServer();
+        }
+        else if (!processor.getWatchPublicGroups() && processor.isConnectedToServer()) {
+            processor.setWatchPublicGroups(true);
+        }
 
-        Timer::callAfterDelay(100, [this,info] {
-            connectWithInfo(info, true);
-            updatePublicGroups();
-        });
+        if (!processor.isConnectedToServer()) {
+
+            Timer::callAfterDelay(100, [this,info] {
+                connectWithInfo(info, true);
+                updatePublicGroups();
+            });
+        }
     }
 }
 
@@ -3487,15 +3501,21 @@ void SonobusAudioProcessorEditor::updatePublicGroups()
     mPublicGroupsListBox->deselectAllRows();
 }
 
+void SonobusAudioProcessorEditor::resetPrivateGroupLabels()
+{
+    if (!mServerInfoLabel) return;
+
+    mServerInfoLabel->setText(TRANS("All who join the same Group will be able to connect with each other."), dontSendNotification);
+    mServerInfoLabel->setVisible(true);
+    mServerStatusLabel->setVisible(false);
+}
+
 void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
 {
     if (flag) {
         mConnectComponent->toFront(true);
         
-        mServerInfoLabel->setText(TRANS("All who join the same Group will be able to connect with each other."), dontSendNotification);
-        mServerInfoLabel->setVisible(true);
-        mServerStatusLabel->setVisible(false);
-
+        resetPrivateGroupLabels();
         updateServerFieldsFromConnectionInfo();
         
         updateRecents();

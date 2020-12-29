@@ -142,6 +142,7 @@ public:
     void updateRecents();
 
     void updatePublicGroups();
+    void resetPrivateGroupLabels();
 
     // if returns true signifies go ahead and quit now, otherwise we'll handle it
     bool requestedQuit();
