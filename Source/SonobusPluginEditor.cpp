@@ -283,6 +283,8 @@ publicGroupsListModel(this)
     
     sonoLookAndFeel.setUsingNativeAlertWindows(true);
 
+    setupLocalisation();
+
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
     setColour (separatorColourId, Colour::fromFloatRGBA(0.3f, 0.3f, 0.3f, 0.3f));
@@ -357,7 +359,7 @@ publicGroupsListModel(this)
     
     mInGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mInGainSlider->setName("ingain");
-    mInGainSlider->setSliderSnapsToMousePosition(false);
+    mInGainSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mInGainSlider->setTextBoxIsEditable(true);
     mInGainSlider->setScrollWheelEnabled(false);
 
@@ -580,12 +582,12 @@ publicGroupsListModel(this)
     
     mDrySlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mDrySlider->setName("dry");
-    mDrySlider->setSliderSnapsToMousePosition(false);
+    mDrySlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mDrySlider->setScrollWheelEnabled(false);
 
     mOutGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxRight);
     mOutGainSlider->setName("wet");
-    mOutGainSlider->setSliderSnapsToMousePosition(false);
+    mOutGainSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mOutGainSlider->setScrollWheelEnabled(false);
 
     configLevelSlider(mInGainSlider.get());
@@ -1062,6 +1064,9 @@ publicGroupsListModel(this)
     mOptionsShouldCheckForUpdateButton = std::make_unique<ToggleButton>(TRANS("Automatically check for updates"));
     mOptionsShouldCheckForUpdateButton->addListener(this);
 
+    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Mouse Click"));
+    mOptionsSliderSnapToMouseButton->addListener(this);
+
 
     mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
     mOptionsInputLimiterButton->addListener(this);
@@ -1364,6 +1369,7 @@ publicGroupsListModel(this)
         mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
         mOptionsComponent->addAndMakeVisible(mOptionsShouldCheckForUpdateButton.get());
     }
+    mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
 
 
 
@@ -2212,7 +2218,9 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
             mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
         }
     }
-    
+
+    mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
+
     uint32 recmask = processor.getDefaultRecordingOptions();
     
     mOptionsRecOthersButton->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, dontSendNotification);
@@ -2981,6 +2989,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
         }
     }
+    else if (buttonThatWasClicked == mOptionsSliderSnapToMouseButton.get()) {
+        processor.setSlidersSnapToMousePosition(mOptionsSliderSnapToMouseButton->getToggleState());
+        updateSliderSnap();
+    }
     else {
         
        
@@ -3092,6 +3104,29 @@ void SonobusAudioProcessorEditor::chooseRecDirBrowser()
         DBG("Need to enable code signing");
     }
 }
+
+void SonobusAudioProcessorEditor::updateSliderSnap()
+{
+    // set level slider snap to mouse property based on processor state and size of slider
+    auto snap = processor.getSlidersSnapToMousePosition();
+
+    int minsize = 60;
+
+    std::function<void(Slider *)> snapset = [&](Slider * slider){
+        slider->setSliderSnapsToMousePosition(slider->getWidth() > minsize && snap);
+    };
+
+    snapset(mInGainSlider.get());
+    snapset(mOutGainSlider.get());
+    snapset(mDrySlider.get());
+    snapset(mInMonPanSlider1.get());
+    snapset(mInMonPanSlider2.get());
+    snapset(mInMonPanStereoSlider.get());
+    snapset(mInMonPanMonoSlider.get());
+
+    mPeerContainer->applyToAllSliders(snapset);
+}
+
 
 void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
 {
@@ -3697,7 +3732,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         int defHeight = 420;
 #else
         int defWidth = 320;
-        int defHeight = 390;
+        int defHeight = 400;
 #endif
         
         defWidth = jmin(defWidth + 8, dw->getWidth() - 20);
@@ -4523,7 +4558,9 @@ void SonobusAudioProcessorEditor::resized()
     if (auto * callout = dynamic_cast<CallOutBox*>(inPannerCalloutBox.get())) {
         callout->updatePosition(dw->getLocalArea(nullptr, mPanButton->getScreenBounds()), dw->getLocalBounds());
     }
-    
+
+    updateSliderSnap();
+
 }
 
 
@@ -4753,6 +4790,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsCheckForUpdateBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsCheckForUpdateBox.items.add(FlexItem(180, minpassheight, *mOptionsShouldCheckForUpdateButton).withMargin(0).withFlex(1));
 
+    optionsSnapToMouseBox.items.clear();
+    optionsSnapToMouseBox.flexDirection = FlexBox::Direction::row;
+    optionsSnapToMouseBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsSnapToMouseBox.items.add(FlexItem(180, minpassheight, *mOptionsSliderSnapToMouseButton).withMargin(0).withFlex(1));
+
     
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
@@ -4768,11 +4810,12 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
@@ -5614,6 +5657,70 @@ void SonobusAudioProcessorEditor::trimAudioFile(const String & fname, double sta
 
 }
 
+
+bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
+{
+    String displang = SystemStats::getDisplayLanguage();
+    String lang = SystemStats::getDisplayLanguage();
+
+    if (overrideLang.isNotEmpty()) {
+        displang = lang = overrideLang;
+    }
+
+    LocalisedStrings::setCurrentMappings(nullptr);
+
+    bool retval = false;
+
+    int retbytes = 0;
+    int retfbytes = 0;
+    String region = SystemStats::getUserRegion();
+
+    String sflang = lang.initialSectionNotContaining("_").toLowerCase().replace("-", "");
+    String slang = lang.initialSectionNotContaining("_").initialSectionNotContaining("-").toLowerCase();
+
+    String resname = String::formatted("localized_%s_strings", slang.toRawUTF8());
+    String resfname = String::formatted("localized_%s_strings", sflang.toRawUTF8());
+
+    const char * rawdata = BinaryData::getNamedResource(resname.toRawUTF8(), retbytes);
+    const char * rawdataf = BinaryData::getNamedResource(resfname.toRawUTF8(), retfbytes);
+
+    if (rawdataf) {
+        DBG("Found fulldisp localization for language: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resfname);
+        LocalisedStrings * lstrings = new LocalisedStrings(String::createStringFromData(rawdataf, retfbytes), true);
+
+        LocalisedStrings::setCurrentMappings(lstrings);
+        retval = true;
+    }
+    else if (rawdata) {
+        DBG("Found localization for language: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resname);
+        LocalisedStrings * lstrings = new LocalisedStrings(String::createStringFromData(rawdata, retbytes), true);
+
+        LocalisedStrings::setCurrentMappings(lstrings);
+        retval = true;
+    }
+    else if (lang.startsWith("en")) {
+        // special case, since untranslated is english
+        retval = true;
+    }
+    else {
+        DBG("Couldn't find mapping for lang: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resname);
+        retval = false;
+    }
+
+#ifdef JUCE_ANDROID
+   // Font::setFallbackFontName("Droid Sans Fallback");
+#endif
+
+    if (retval) {
+        mActiveLanguageCode = displang.toStdString();
+    } else {
+        mActiveLanguageCode = "en-us"; // indicates we are using english
+    }
+
+    return retval;
+}
+
+
 #pragma mark - ApplicationCommandTarget
 
 void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) {
@@ -6078,6 +6185,11 @@ void SonobusAudioProcessorEditor::PublicGroupsListModel::listBoxItemClicked (int
 {
     // use this
     DBG("Clicked " << rowNumber << "  x: " << e.getPosition().x << "  width: " << cachedWidth);
+
+    if (rowNumber >= groups.size() || rowNumber < 0) {
+        DBG("Clicked out of bounds row!");
+        return;
+    }
 
     auto & ginfo = groups.getReference(rowNumber);
 

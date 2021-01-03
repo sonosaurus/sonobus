@@ -207,7 +207,12 @@ private:
 
     void showFilePopupMenu(Component * source);
 
-    
+
+    void updateSliderSnap();
+
+    bool setupLocalisation(const String & overrideLang = {});
+
+
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SonobusAudioProcessor& processor;
@@ -380,6 +385,7 @@ private:
     std::unique_ptr<ToggleButton> mOptionsOverrideSamplerateButton;
     std::unique_ptr<ToggleButton> mOptionsShouldCheckForUpdateButton;
     std::unique_ptr<ToggleButton> mOptionsAutoReconnectButton;
+    std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
 
@@ -475,7 +481,9 @@ private:
     
 
     File lastRecordedFile;
-    
+
+    String mActiveLanguageCode;
+
     // client state stuff
     CriticalSection clientStateLock;
     struct ClientEvent {
@@ -734,6 +742,7 @@ private:
     FlexBox optionsChangeAllQualBox;
     FlexBox optionsInputLimitBox;
     FlexBox optionsAutoReconnectBox;
+    FlexBox optionsSnapToMouseBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;

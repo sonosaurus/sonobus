@@ -73,6 +73,7 @@ static String defRecordOptionsKey("DefaultRecordingOptions");
 static String defRecordFormatKey("DefaultRecordingFormat");
 static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String defRecordDirKey("DefaultRecordDir");
+static String sliderSnapKey("SliderSnapToMouse");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -4840,12 +4841,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // rework the buffer to contain the contents we want going out
 
     for (int channel = 0; channel < panChannels /* && totalNumInputChannels > 0 */ ; ++channel) {
-        //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;
-        //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;                    
         if (mSendChannels.get() == 1 || (mSendChannels.get() == 0 && totalNumInputChannels == 1)) {
             // sum all incoming channels into the first channel of the inputworkbuffer
             // TODO - with individual channel input gains
-            float tgain = totalNumInputChannels > 1 ? 0.707f : 1.0f;
+            float tgain = totalNumInputChannels > 1 ? 1.0f/(float)totalNumInputChannels : 1.0f;
             inputWorkBuffer.addFrom(0, 0, buffer, channel, 0, numSamples, tgain);
         }
         else {
@@ -5536,6 +5535,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
+    extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
 
     ValueTree inputEffectsTree = mState.state.getOrCreateChildWithName(inputEffectsStateKey, nullptr);
     inputEffectsTree.removeAllChildren(nullptr);
@@ -5589,6 +5589,8 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
             setDefaultRecordingBitsPerSample(bps);
 
             setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
+
+            setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
         }
         
        ValueTree inputEffectsTree = mState.state.getChildWithName(inputEffectsStateKey);

@@ -417,6 +417,13 @@ public:
 
     bool getAutoReconnectToLast() const { return mAutoReconnectLast.get(); }
 
+    // misc settings
+    bool getSlidersSnapToMousePosition() const { return mSliderSnapToMouse; }
+    void setSlidersSnapToMousePosition(bool flag) {  mSliderSnapToMouse = flag; }
+
+
+
+
     // sets and gets the format we send out
     void setRemotePeerAudioCodecFormat(int index, int formatIndex);
     int getRemotePeerAudioCodecFormat(int index) const;
@@ -830,6 +837,8 @@ private:
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    
+    // misc
+    bool mSliderSnapToMouse = false;
 
 
 
