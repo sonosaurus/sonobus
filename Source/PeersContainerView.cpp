@@ -1159,6 +1159,15 @@ Rectangle<int> PeersContainerView::getMinimumContentBounds() const
     return Rectangle<int>(0,0,peersMinWidth, peersMinHeight);
 }
 
+void PeersContainerView::applyToAllSliders(std::function<void(Slider *)> & routine)
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        routine(pvf->levelSlider.get());
+        routine(pvf->panSlider1.get());
+        routine(pvf->panSlider2.get());
+    }
+}
 
 void PeersContainerView::updatePeerViews(int specific)
 {
@@ -1293,11 +1302,9 @@ void PeersContainerView::updatePeerViews(int specific)
             //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : ""), dontSendNotification);
             String latlab = juce::CharPointer_UTF8 ("\xe2\x86\x91"); // up arrow
             latlab << (int)lrintf(latinfo.outgoingMs) << "   "; 
-            //latlab << String::formatted(TRANS("%.1f"), latinfo.outgoingMs) << "   ";
             //latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")) << (int)lrintf(latinfo.incomingMs);
             latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")); // down arrow
             latlab << (int)lrintf(latinfo.incomingMs) ;
-            //latlab << String::formatted("%.1f", latinfo.incomingMs) ;
             ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)             
             latlab << (latinfo.estimated ? " *" : "");
             

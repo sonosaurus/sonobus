@@ -17,6 +17,9 @@
     <Filter Include="SonoBus\deps">
       <UniqueIdentifier>{9039B206-C888-2DFC-E5E5-7F2D469D6361}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SonoBus\Resources\localization">
+      <UniqueIdentifier>{320C05D9-9018-266E-B11E-37F71E781795}</UniqueIdentifier>
+    </Filter>
     <Filter Include="SonoBus\Resources">
       <UniqueIdentifier>{9714E930-7F84-44CB-3191-0295B18EAAD4}</UniqueIdentifier>
     </Filter>
@@ -5492,6 +5495,18 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\localization\localized_de.strings">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_es.strings">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_fr.strings">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_it.strings">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
     <None Include="..\..\images\bar_click.wav">
       <Filter>SonoBus\Resources</Filter>
     </None>
