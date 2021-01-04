@@ -32,6 +32,8 @@ typedef int socklen_t;
 #include <netdb.h>
 #endif
 
+#define SENDBUFSIZE_SCALAR 2.0f
+
 String SonobusAudioProcessor::paramInGain     ("ingain");
 String SonobusAudioProcessor::paramDry     ("dry");
 String SonobusAudioProcessor::paramInMonitorMonoPan     ("inmonmonopan");
@@ -3735,8 +3737,9 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->sendChannels =  mSendChannels.get() <= 0 ?  getMainBusNumInputChannels() : mSendChannels.get();
 
         setupSourceFormat(retpeer, retpeer->oursource.get());
+        float sendbufsize = jmax(10.0, SENDBUFSIZE_SCALAR * 1000.0f * currSamplesPerBlock / getSampleRate());
         retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, retpeer->sendChannels);
-        retpeer->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
+        retpeer->oursource->set_buffersize(sendbufsize);
         retpeer->oursource->set_packetsize(retpeer->packetsize);        
 
         setupSourceFormat(retpeer, retpeer->latencysource.get(), true);
@@ -4481,7 +4484,8 @@ void SonobusAudioProcessor::setupSourceFormatsForAll()
         if (s->oursource) {
             setupSourceFormat(s, s->oursource.get());
             s->oursource->setup(sampleRate, currSamplesPerBlock, s->sendChannels);  // todo use inchannels maybe?
-            s->oursource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
+            float sendbufsize = jmax(10.0, SENDBUFSIZE_SCALAR * 1000.0f * currSamplesPerBlock / getSampleRate());
+            s->oursource->set_buffersize(sendbufsize);
         }
         if (s->oursink) {
             s->oursink->setup(sampleRate, currSamplesPerBlock, outchannels);
@@ -4492,7 +4496,8 @@ void SonobusAudioProcessor::setupSourceFormatsForAll()
             s->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
             setupSourceFormat(s, s->echosource.get(), true);
             s->echosource->setup(getSampleRate(), currSamplesPerBlock, 1);
-            s->echosource->set_buffersize(1000.0f * currSamplesPerBlock / getSampleRate());
+            float sendbufsize = jmax(10.0, SENDBUFSIZE_SCALAR * 1000.0f * currSamplesPerBlock / getSampleRate());
+            s->echosource->set_buffersize(sendbufsize);
 
             s->netBufAutoBaseline = (1e3*currSamplesPerBlock/getSampleRate()); // at least a process block
 
