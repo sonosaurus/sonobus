@@ -71,14 +71,8 @@
     </GROUP>
     <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
       <GROUP id="{27D9C081-01A6-D1FA-EE85-8BB5B06DEC98}" name="localization">
-        <FILE id="dYSlWQ" name="localized_de.strings" compile="0" resource="1"
-              file="localization/localized_de.strings"/>
-        <FILE id="Gblmol" name="localized_es.strings" compile="0" resource="1"
-              file="localization/localized_es.strings"/>
-        <FILE id="ZDxYcN" name="localized_fr.strings" compile="0" resource="1"
-              file="localization/localized_fr.strings"/>
-        <FILE id="mAxeo4" name="localized_it.strings" compile="0" resource="1"
-              file="localization/localized_it.strings"/>
+        <FILE id="EW6KtM" name="localized_es.txt" compile="0" resource="1"
+              file="localization/localized_es.txt"/>
       </GROUP>
       <FILE id="O1xtq9" name="bar_click.wav" compile="0" resource="1" file="images/bar_click.wav"/>
       <FILE id="dmiruB" name="beat_click.wav" compile="0" resource="1" file="images/beat_click.wav"/>

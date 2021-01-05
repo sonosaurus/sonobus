@@ -283,7 +283,7 @@ publicGroupsListModel(this)
     
     sonoLookAndFeel.setUsingNativeAlertWindows(true);
 
-    setupLocalisation();
+    // setupLocalisation();  // NOT YET!
 
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
@@ -1719,7 +1719,7 @@ bool SonobusAudioProcessorEditor::requestedQuit()
 
 bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * retmessage)
 {
-    String message = TRANS("Share this link with others to connect with SonoBus: \n\n");
+    String message = TRANS("Share this link with others to connect with SonoBus:") + " \n\n";
 
     String hostport = mServerHostEditor->getText();        
     if (hostport.isEmpty()) {
@@ -1764,7 +1764,7 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * r
         //message += url.toString(true);
         //message += "\n\n";
 
-        //message += TRANS("Or share this link:\n");
+        //message += TRANS("Or share this link:") + "\n";
         message += url2.toString(true);
         message += "\n";
 
@@ -4060,7 +4060,7 @@ void SonobusAudioProcessorEditor::updateState()
 
         if (processor.getNumberRemotePeers() == 0 /* || !currConnected */ ) {
             String message;
-            message += TRANS("Press Connect button to start.\n\nPlease use headphones if you are using a microphone!");
+            message += TRANS("Press Connect button to start.") + "\n\n" + TRANS("Please use headphones if you are using a microphone!");
             mMainMessageLabel->setText(message, dontSendNotification);
         } else {
             mMainMessageLabel->setText("", dontSendNotification);
@@ -5678,8 +5678,8 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
     String sflang = lang.initialSectionNotContaining("_").toLowerCase().replace("-", "");
     String slang = lang.initialSectionNotContaining("_").initialSectionNotContaining("-").toLowerCase();
 
-    String resname = String::formatted("localized_%s_strings", slang.toRawUTF8());
-    String resfname = String::formatted("localized_%s_strings", sflang.toRawUTF8());
+    String resname = String::formatted("localized_%s_txt", slang.toRawUTF8());
+    String resfname = String::formatted("localized_%s_txt", sflang.toRawUTF8());
 
     const char * rawdata = BinaryData::getNamedResource(resname.toRawUTF8(), retbytes);
     const char * rawdataf = BinaryData::getNamedResource(resfname.toRawUTF8(), retfbytes);
@@ -6074,17 +6074,17 @@ void SonobusAudioProcessorEditor::RecentsListModel::paintListBoxItem (int rowNum
     String infostr;
 
     if (info.groupIsPublic) {
-        infostr += TRANS("PUBLIC ");
+        infostr += TRANS("PUBLIC") + " ";
     }
 
     if (info.groupPassword.isNotEmpty()) {
-        infostr += TRANS("password protected, ");
+        infostr += TRANS("password protected,") + " ";
     }
 
-    infostr += TRANS("on ") + Time(info.timestamp).toString(true, true, false) + " " ;
+    infostr += TRANS("on") + " " + Time(info.timestamp).toString(true, true, false) + " " ;
     
     if (info.serverHost != "aoo.sonobus.net") {
-        infostr += TRANS("to ") +  info.serverHost;
+        infostr += TRANS("to") + " " +  info.serverHost;
     }
 
     g.setColour (parent->findColour(nameTextColourId).withAlpha(0.5f));

@@ -7,1167 +7,321 @@
 namespace BinaryData
 {
 
-//================== localized_de.strings ==================
+//================== localized_es.txt ==================
 static const unsigned char temp_binary_data_0[] =
-"language: German\n"
-"countries: de\n"
-"\n"
-"\"Noise Floor\" = \"L\xc3\xa4rmboden\"\n"
-"\"Ratio\" = \"Verh\xc3\xa4ltnis\"\n"
-"\"Attack\" = \"Attacke\"\n"
-"\"Release\" = \"Freisetzung\"\n"
-"\"Noise Gate\" = \"Noise Gate\"\n"
-"\"In Gain\" = \"In Gain\"\n"
-"\"In Pan\" = \"In Pan\"\n"
-"\"C\" = \"C.\"\n"
-"\"In Pan 1\" = \"In Pan 1\"\n"
-"\"In Pan 2\" = \"In Pan 2\"\n"
-"\"Dry Level\" = \"Trockenheit\"\n"
-"\"Output Level\" = \"Ausgabelautst\xc3\xa4rke\"\n"
-"\"Default Net Buffer Time\" = \"Standard-Nettopufferzeit\"\n"
-"\"Send Channels\" = \"Kan\xc3\xa4le senden\"\n"
-"\"Metronome Enabled\" = \"Metronom aktiviert\"\n"
-"\"Send Metronome Audio\" = \"Senden Sie Metronom-Audio\"\n"
-"\"Metronome Gain\" = \"Metronomgewinn\"\n"
-"\"Metronome Tempo\" = \"Metronom Tempo\"\n"
-"\"Send Playback Audio\" = \"Wiedergabe-Audio senden\"\n"
-"\"Hear Latency Test\" = \"H\xc3\xb6ren Sie den Latenztest\"\n"
-"\"Record Metronome to File\" = \"Metronom in Datei aufnehmen\"\n"
-"\"Main Reverb Enabled\" = \"Haupthall aktiviert\"\n"
-"\"Main Reverb Level\" = \"Haupthallpegel\"\n"
-"\"Main Reverb Size\" = \"Haupthallgr\xc3\xb6\xc3\x9f""e\"\n"
-"\"Main Reverb Damping\" = \"Reverb-D\xc3\xa4mpfung\"\n"
-"\"Pre-Delay Time\" = \"Vorverz\xc3\xb6gerungszeit\"\n"
-"\"Main Reverb Model\" = \"Haupthallmodell\"\n"
-"\"Main Send Mute\" = \"Main Send Mute\"\n"
-"\"Main Receive Mute\" = \"Hauptempfangsstummschaltung\"\n"
-"\"Main In Mute\" = \"Main In Mute\"\n"
-"\"Main Monitor Solo\" = \"Hauptmonitor Solo\"\n"
-"\"Def Auto Net Buffer Mode\" = \"Def Auto Net Buffer Mode\"\n"
-"\"Def Send Format\" = \"Def Sendeformat\"\n"
-"\"Dynamic Resampling\" = \"Dynamisches Resampling\"\n"
-"\"Reconnect Last\" = \"Zuletzt wieder anschlie\xc3\x9f""en\"\n"
-"\"Could not find format for filename\" = \"Format f\xc3\xbcr Dateiname konnte nicht gefunden werden\"\n"
-"\"Error creating writer for \" = \"Fehler beim Erstellen des Writers f\xc3\xbcr\"\n"
-"\"Error creating output file: \" = \"Fehler beim Erstellen der Ausgabedatei:\"\n"
-"\"Error creating directory for recording: \" = \"Fehler beim Erstellen des Verzeichnisses f\xc3\xbcr die Aufzeichnung:\"\n"
-"\"SonoBus\" = \"SonoBus\"\n"
-"\"Pan: Center\" = \"Pan: Mitte\"\n"
-"\"Pan: \" = \"Pfanne:\"\n"
-"\"MUTE\" = \"STUMM\"\n"
-"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Schaltet Ihre Eingabe stumm und verhindert, dass jeder Sie h\xc3\xb6rt, ohne dass ein Indikator vorhanden ist\"\n"
-"\"SOLO\" = \"SOLO\"\n"
-"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"H\xc3\xb6ren Sie nur sich selbst und anderen Einzelbenutzern zu. Alt-Klick, um sich ausschlie\xc3\x9flich solo zu machen.\"\n"
-"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Wenn Sie Ihre Eingabe stumm schalten, wird kein Audio (einschlie\xc3\x9flich der Wiedergabe von Dateien) an Benutzer g"
-"esendet, und diese sehen eine stummgeschaltete Anzeige\"\n"
-"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Stummschalten / Stummschalten aller Benutzer. Beim Stummschalten der Benutzer werden keine Audiodaten empfangen\"\n"
-"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Wenn diese Taste gedr\xc3\xbc""ckt wird, werden andere stummgeschaltet und die Stummschaltung f\xc3\xbcr einen Moment aufgehoben (zum Sprechen dr\xc3\xbc""cken).\"\n"
-"\" Use the \\'T\\' key as a shortcut.\" = \" Verwenden Sie die Taste \\'T\\' als Verkn\xc3\xbcpfung.\"\n"
-"\"Metronome On/Off\" = \"Metronom Ein / Aus\"\n"
-"\"Metronome Options\" = \"Metronomoptionen\"\n"
-"\"Level\" = \"Niveau\"\n"
-"\"Tempo\" = \"Tempo\"\n"
-"\"Send Metronome to All\" = \"Metronom an alle senden\"\n"
-"\"In Level\" = \"In Level\"\n"
-"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Dies verringert oder erh\xc3\xb6ht den Pegel Ihres eigenen Audioeingangs und wirkt sich auf den "
-"Pegel Ihres an andere gesendeten Audios und auf Ihre eigene \xc3\x9c""berwachung aus\"\n"
-"\"Monitor\" = \"Monitor\"\n"
-"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Dies passt den Pegel der \xc3\x9c""berwachung Ihres Eingangs an, den nur Sie h\xc3\xb6ren\"\n"
-"\"Out Level\" = \"Out Level\"\n"
-"\"This is the main volume control which affects everything you hear\" = \"Dies ist der Hauptlautst\xc3\xa4rkeregler, der alles beeinflusst, was Sie h\xc3\xb6ren\"\n"
-"\"RECENTS\" = \"LETZTE\"\n"
-"\"PRIVATE GROUP\" = \"PRIVATE GRUPPE\"\n"
-"\"PUBLIC GROUPS\" = \"\xc3\x96""FFENTLICHE GRUPPEN\"\n"
-"\"DIRECT\" = \"DIREKTE\"\n"
-"\"--\" = \"- -\"\n"
-"\"Local Address:\" = \"Lokale Adresse:\"\n"
-"\"Host: \" = \"Gastgeber:\"\n"
-"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Stellen Sie mit der von ihnen angek\xc3\xbcndigten lokalen Adresse eine direkte Verbindung zu anderen SonoBus-Instanzen in Ihrem "
-"lokalen Netzwerk her.\"\n"
-"\"IPaddress:port\" = \"IP-Adresse: Port\"\n"
-"\"Connect...\" = \"Verbinden...\"\n"
-"\"Direct Connect\" = \"Direkte Verbindung\"\n"
-"\"Connect to Group\" = \"Verbindung zur Gruppe herstellen\"\n"
-"\"optional\" = \"Optional\"\n"
-"\"Your Displayed Name:\" = \"Ihr angezeigter Name:\"\n"
-"\"Password:\" = \"Passwort:\"\n"
-"\"Group Name:\" = \"Gruppenname:\"\n"
-"\"Connection Server:\" = \"Verbindungsserver:\"\n"
-"\"Generate a random group name\" = \"Generieren Sie einen zuf\xc3\xa4lligen Gruppennamen\"\n"
-"\"Copy connection information to the clipboard to share\" = \"Kopieren Sie die Verbindungsinformationen in die Zwischenablage, um sie freizugeben\"\n"
-"\"Paste connection information from the clipboard\" = \"F\xc3\xbcgen Sie Verbindungsinformationen aus der Zwischenablage ein\"\n"
-"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"Der Verbindungsserver wird nur verwendet, um Benutzern das Auffinden zu erleichtern. Es wir"
-"d kein Audio \xc3\xbc""bertragen. Alle Audiodaten werden direkt zwischen Benutzern gesendet (Peer-to-Peer).\"\n"
-"\"Clear All\" = \"Alles l\xc3\xb6schen\"\n"
-"\"Active Public Groups\" = \"Aktive \xc3\xb6""ffentliche Gruppen\"\n"
-"\"Select existing group below OR \" = \"W\xc3\xa4hlen Sie eine vorhandene Gruppe unter ODER aus\"\n"
-"\"Create Group...\" = \"Gruppe erstellen...\"\n"
-"\"enter group name\" = \"Geben Sie den Gruppennamen ein\"\n"
-"\"Choose a descriptive group name that includes geographic information and genre\" = \"W\xc3\xa4hlen Sie einen beschreibenden Gruppennamen, der geografische Informationen und das Genre enth\xc3\xa4lt\"\n"
-"\"Patchbay\" = \"Patchbay\"\n"
-"\"Setup Audio\" = \"Audio einrichten\"\n"
-"\"Press to copy/share link to group\" = \"Dr\xc3\xbc""cken Sie, um den Link zur Gruppe zu kopieren / freizugeben\"\n"
-"\"Connect\" = \"Verbinden\"\n"
-"\"Manual\" = \"Handbuch\"\n"
-"\"Auto Up\" = \"Auto Up\"\n"
-"\"Auto\" = \"Auto\"\n"
-"\"Initial Auto\" = \"Anf\xc3\xa4ngliches Auto\"\n"
-"\"Default Jitter Buffer\" = \"Standard-Jitter-Puffer\"\n"
-"\"Default Send Quality:\" = \"Standard-Sendequalit\xc3\xa4t:\"\n"
-"\"Make Latency Test Audible\" = \"Latenztest h\xc3\xb6rbar machen\"\n"
-"\"Metronome output recorded in full mix\" = \"Metronomausgang in voller Mischung aufgezeichnet\"\n"
-"\"Record feature creates the following files:\" = \"Die Aufnahmefunktion erstellt die folgenden Dateien:\"\n"
-"\"Full Mix\" = \"Voller Mix\"\n"
-"\"Full Mix without yourself\" = \"Full Mix ohne dich\"\n"
-"\"Yourself\" = \"Du selber\"\n"
-"\"Each Connected User\" = \"Jeder verbundene Benutzer\"\n"
-"\"FLAC\" = \"FLAC\"\n"
-"\"WAV\" = \"WAV\"\n"
-"\"OGG\" = \"OGG\"\n"
-"\"16 bit\" = \"16 Bit\"\n"
-"\"24 bit\" = \"24 Bit\"\n"
-"\"Audio File Format:\" = \"Audiodateiformat:\"\n"
-"\"Record Location:\" = \"Aufzeichnungsort:\"\n"
-"\"Use Specific UDP Port\" = \"Verwenden Sie einen bestimmten UDP-Port\"\n"
-"\"Use Drift Correction\" = \"Verwenden Sie die Driftkorrektur\"\n"
-"\"Auto-Reconnect to Last Group\" = \"Automatische Verbindung zur letzten Gruppe wiederherstellen\"\n"
-"\"Override Device Sample Rate\" = \"Abtastrate des Ger\xc3\xa4ts \xc3\xbc""berschreiben\"\n"
-"\"Automatically check for updates\" = \"Automatisch nach Aktualisierungen suchen\"\n"
-"\"Sliders Snap to Mouse Click\" = \"Schieberegler am Mausklick ausrichten\"\n"
-"\"Use Input FX Limiter\" = \"Verwenden Sie den Input FX Limiter\"\n"
-"\"Change all connected\" = \"\xc3\x84ndern Sie alle verbundenen\"\n"
-"\"Version: \" = \"Ausf\xc3\xbchrung:\"\n"
-"\"FX\" = \"FX\"\n"
-"\"In FX\" = \"In FX\"\n"
-"\"Match # Inputs\" = \"Match # Inputs\"\n"
-"\"Send Mono\" = \"Senden Sie Mono\"\n"
-"\"Send Stereo\" = \"Senden Sie Stereo\"\n"
-"\"# Send Channels\" = \"# Kan\xc3\xa4le senden\"\n"
-"\"Size\" = \"Gr\xc3\xb6\xc3\x9f""e\"\n"
-"\"Damping\" = \"D\xc3\xa4mpfung\"\n"
-"\"Pre-Delay\" = \"Vorverz\xc3\xb6gerung\"\n"
-"\"Reverb\" = \"Reverb\"\n"
-"\"Freeverb\" = \"Freeverb\"\n"
-"\"MVerb\" = \"MVerb\"\n"
-"\"Zita\" = \"Zita\"\n"
-"\"Start/Stop recording audio to file\" = \"Starten / Beenden der Audioaufnahme in eine Datei\"\n"
-"\"Load audio file for playback\" = \"Laden Sie die Audiodatei f\xc3\xbcr die Wiedergabe\"\n"
-"\"Send File Playback to All\" = \"Datei-Wiedergabe an alle senden\"\n"
-"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Gruppeninformationen aus der Zwischenablage eingeben! Dr\xc3\xbc""cken Sie \\'Mit Gruppe verbinden\\', um sich anzumelden ...\"\n"
-"\"Quit Confirmation\" = \"Beenden Sie die Best\xc3\xa4tigung\"\n"
-"\"You are connected, are you sure you want to quit?\" = \"Sie sind verbunden, m\xc3\xb6""chten Sie wirklich beenden?\"\n"
-"\"Quit\" = \"Verlassen\"\n"
-"\"Share this link with others to connect with SonoBus: \\r\\n\\r\\n\" = \"Teilen Sie diesen Link mit anderen, um eine Verbindung mit SonoBus herzustellen:\\r\\n\\r\\n\"\n"
-"\"Or share this link:\\r\\n\" = \"Oder teilen Sie diesen Link:\\r\\n\"\n"
-"\"Last Session: \" = \"Letzte Sitzung:\"\n"
-"\"Total: \" = \"Gesamt:\"\n"
-"\"Not sending your audio anywhere\" = \"Nicht senden Audio \xc3\xbc""berall hin\"\n"
-"\"Sending your audio to others\" = \"Senden Sie Ihre Audiodaten an andere\"\n"
-"\"Muted everyone\" = \"Alle stumm geschaltet\"\n"
-"\"Unmuted all who were not muted previously\" = \"Nicht stummgeschaltet alle, die zuvor nicht stummgeschaltet wurden\"\n"
-"\"Sending your metronome to all users\" = \"Senden Sie Ihr Metronom an alle Benutzer\"\n"
-"\"Now only you will hear your metronome\" = \"Jetzt h\xc3\xb6ren nur Sie Ihr Metronom\"\n"
-"\"Sending file playback to all users\" = \"Senden der Dateiwiedergabe an alle Benutzer\"\n"
-"\"Now only you will hear the file playback\" = \"Jetzt h\xc3\xb6ren nur Sie die Dateiwiedergabe\"\n"
-"\"Copied connection info to clipboard for you to share with others\" = \"Kopierte Verbindungsinformationen in die Zwischenablage, damit Sie sie mit anderen teilen k\xc3\xb6nnen\"\n"
-"\"Copied group connection info to clipboard for you to share with others\" = \"Kopierte Gruppenverbindungsinformationen in die Zwischenablage, damit Sie sie mit anderen teilen k\xc3\xb6nnen\"\n"
-"\"Finished recording to \" = \"Fertige Aufnahme zu\"\n"
-"\"Last recorded file: \" = \"Zuletzt aufgenommene Datei:\"\n"
-"\"Started recording output\" = \"Aufnahmeausgabe gestartet\"\n"
-"\"Recording audio to: \" = \"Audio aufnehmen an:\"\n"
-"\"Recording multi-track audio to: \" = \"Mehrspur-Audio aufnehmen auf:\"\n"
-"\"Choose an audio file to open...\" = \"W\xc3\xa4hlen Sie eine Audiodatei zum \xc3\x96""ffnen ...\"\n"
-"\"Choose the folder for new recordings\" = \"W\xc3\xa4hlen Sie den Ordner f\xc3\xbcr neue Aufnahmen\"\n"
-"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Gruppe vom Link ausgef\xc3\xbcllt! Dr\xc3\xbc""cken Sie \\'Mit Gruppe verbinden\\', um sich anzumelden ...\"\n"
-"\"You need to specify a group name!\" = \"Sie m\xc3\xbcssen einen Gruppennamen angeben!\"\n"
-"\"You need to specify a user name!\" = \"Sie m\xc3\xbcssen einen Benutzernamen angeben!\"\n"
-"\"Server address is invalid!\" = \"Serveradresse ist ung\xc3\xbcltig!\"\n"
-"\"All who join the same Group will be able to connect with each other.\" = \"Alle, die derselben Gruppe beitreten, k\xc3\xb6nnen sich miteinander verbinden.\"\n"
-"\"AUDIO\" = \"AUDIO\"\n"
-"\"OPTIONS\" = \"OPTIONEN\"\n"
-"\"HELP\" = \"HILFE\"\n"
-"\"RECORDING\" = \"AUFZEICHNUNG\"\n"
-"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Die Verwendung eines ASIO-Audioger\xc3\xa4tetyps wird dringend empfohlen. W"
-"enn Ihr Audio-Interface nicht mit einem geliefert wurde, installieren Sie bitte ASIO4ALL (asio4all.org) und konfigurieren Sie es zuerst.\"\n"
-"\"Disconnect\" = \"Trennen\"\n"
-"\"[P] \" = \"[P]\"\n"
-"\"Waiting for other users to join group \\\"\" = \"Warten auf den Beitritt anderer Benutzer zur Gruppe \\\"\"\n"
-"\"Press Connect button to start.\\r\\n\\r\\nPlease use headphones if you are using a microphone!\" = \"Dr\xc3\xbc""cken Sie die Connect-Taste, um zu starten.\\r\\n\\r\\nBitte verwenden Sie Kopfh\xc3\xb6rer, wenn Sie ein Mikrofon verwenden!\"\n"
-"\"Connected to server\" = \"Mit Server verbunden\"\n"
-"\"Already connected with this user name\" = \"Bereits mit diesem Benutzernamen verbunden\"\n"
-"\"Connect failed: \" = \"Verbindung fehlgeschlagen:\"\n"
-"\"Disconnected from server\" = \"Vom Server getrennt\"\n"
-"\"Disconnect failed: \" = \"Trennung fehlgeschlagen:\"\n"
-"\"Joined Group: \" = \"Beitritt zur Gruppe:\"\n"
-"\"Failed to join group: \" = \"Gruppe konnte nicht beitreten:\"\n"
-"\"Left Group: \" = \"Linke Gruppe:\"\n"
-"\"Failed to leave group: \" = \"Gruppe konnte nicht verlassen werden:\"\n"
-"\"Trim to New\" = \"Auf Neu zuschneiden\"\n"
-"\"Share File\" = \"Datei teilen\"\n"
-"\"Reveal File\" = \"Datei anzeigen\"\n"
-"\"Mute All Input\" = \"Alle Eingaben stumm schalten\"\n"
-"\"Toggle Mute all input\" = \"Umschalten Alle Eingaben stumm schalten\"\n"
-"\"Popup\" = \"Aufpoppen\"\n"
-"\"Mute All Users\" = \"Alle Benutzer stumm schalten\"\n"
-"\"Toggle Mute all users\" = \"Schalten Sie alle Benutzer stumm\"\n"
-"\"Play/Pause\" = \"Spielpause\"\n"
-"\"Toggle file playback\" = \"Dateiwiedergabe umschalten\"\n"
-"\"Loop\" = \"Schleife\"\n"
-"\"Toggle file looping\" = \"Dateischleifen umschalten\"\n"
-"\"Trim file from selection to new file\" = \"Trimmen Sie die Datei von der Auswahl in die neue Datei\"\n"
-"\"Close File\" = \"Datei schlie\xc3\x9f""en\"\n"
-"\"Close file\" = \"Datei schlie\xc3\x9f""en\"\n"
-"\"Open File\" = \"Datei \xc3\xb6""ffnen\"\n"
-"\"Open Audio file\" = \"\xc3\x96""ffnen Sie die Audiodatei\"\n"
-"\"Share file\" = \"Datei teilen\"\n"
-"\"Reveal file\" = \"Datei anzeigen\"\n"
-"\"Show Options\" = \"Optionen anzeigen\"\n"
-"\"Record\" = \"Aufzeichnung\"\n"
-"\"Toggle Record\" = \"Aufnahme umschalten\"\n"
-"\"Check For New Version\" = \"Nach neuer Version suchen\"\n"
-"\"Check for New Version\" = \"Suchen Sie nach neuer Version\"\n"
-"\"File\" = \"Datei\"\n"
-"\"Transport\" = \"Transport\"\n"
-"\"Help\" = \"Hilfe\"\n"
-"\"PUBLIC \" = \"\xc3\x96""FFENTLICHKEIT\"\n"
-"\"password protected, \" = \"passwortgesch\xc3\xbctzt,\"\n"
-"\"on \" = \"auf\"\n"
-"\"to \" = \"zu\"\n"
-"\" active users\" = \" aktive Benutzer\"\n"
-"\" active user\" = \" aktiver Nutzer\"\n"
-"\"Save current state\" = \"Aktuellen Status speichern\"\n"
-"\"Error whilst saving\" = \"Fehler beim Speichern\"\n"
-"\"Couldn\\'t write to the specified file!\" = \"Konnte nicht in die angegebene Datei schreiben!\"\n"
-"\"Load a saved state\" = \"Laden Sie einen gespeicherten Status\"\n"
-"\"Error whilst loading\" = \"Fehler beim Laden\"\n"
-"\"Couldn\\'t read from the specified file!\" = \"Konnte nicht aus der angegebenen Datei lesen!\"\n"
-"\"Audio/MIDI Settings\" = \"Audio / MIDI-Einstellungen\"\n"
-"\"Audio Settings\" = \"Audio Einstellungen\"\n"
-"\"Audio/MIDI Settings...\" = \"Audio / MIDI Einstellungen ...\"\n"
-"\"Save current state...\" = \"Aktuellen Status speichern ...\"\n"
-"\"Load a saved state...\" = \"Laden Sie einen gespeicherten Status ...\"\n"
-"\"Reset to default state\" = \"Auf Standardzustand zur\xc3\xbc""cksetzen\"\n"
-"\"Threshold\" = \"Schwelle\"\n"
-"\"Makeup Gain\" = \"Make-up gewinnen\"\n"
-"\"Compressor\" = \"Kompressor\"\n"
-"\"Autoset Makeup\" = \"Autoset Makeup\"\n"
-"\"Gain\" = \"Dazugewinnen\"\n"
-"\"High Shelf\" = \"Hochregal\"\n"
-"\"Low Shelf\" = \"Niedriges Regal\"\n"
-"\"Freq 1\" = \"Frequenz 1\"\n"
-"\"Q\" = \"Q.\"\n"
-"\"Freq 2\" = \"Frequenz 2\"\n"
-"\"Parametric EQ\" = \"Parametrischer EQ\"\n"
-"\"Level: \" = \"Niveau:\"\n"
-"\"Remote address:\" = \"Remote-Adresse:\"\n"
-"\"Disable Sending\" = \"Senden deaktivieren\"\n"
-"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Das Umschalten wird stummgeschaltet, sodass f\xc3\xbcr diesen Benutzer kein Audio zu h\xc3\xb6ren ist\"\n"
-"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"H\xc3\xb6ren Sie nur diesen Benutzer und andere Solo-Benutzer. Klicken Sie bei gedr\xc3\xbc""ckter Alt-Taste, um diesen Benutzer exklusiv zu solo zu sc"
-"halten.\"\n"
-"\"Latency\\r\\nTest\" = \"Latenz\\r\\nPr\xc3\xbc""fung\"\n"
-"\"Pan\" = \"Pfanne\"\n"
-"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Setzt den Jitterpuffer auf das Minimum zur\xc3\xbc""ck. Halten Sie die Alt-Taste gedr\xc3\xbc""ckt, um f\xc3\xbcr alle zur\xc3\xbc""ckzusetzen (mit Auto).\"\n"
-"\"Jitter Buffer\" = \"Jitter Buffer\"\n"
-"\"Change for all\" = \"Ver\xc3\xa4nderung f\xc3\xbcr alle\"\n"
-"\"Send Quality\" = \"Qualit\xc3\xa4t senden\"\n"
-"\"No Preference\" = \"Keine Pr\xc3\xa4""ferenz\"\n"
-"\"Preferred Recv Quality\" = \"Bevorzugte Recv-Qualit\xc3\xa4t\"\n"
-"\"Latency (ms)\" = \"Latenz (ms)\"\n"
-"\"Ping\" = \"Klingeln\"\n"
-"\"PRESS\" = \"DR\xc3\x9c""CKEN SIE\"\n"
-"\"Send Quality:\" = \"Sendequalit\xc3\xa4t:\"\n"
-"\"Recv Jitter Buffer:\" = \"Recv Jitter Buffer:\"\n"
-"\"Reset Dropped\" = \"Zur\xc3\xbc""ckgesetzt fallen gelassen\"\n"
-"\"Remove\" = \"Entfernen\"\n"
-"\"Removes user from your own connections, does not affect the whole group\" = \"Entfernt Benutzer aus Ihren eigenen Verbindungen, wirkt sich nicht auf die gesamte Gruppe aus\"\n"
-"\"Other end muted us\" = \"Das andere Ende hat uns stumm geschaltet\"\n"
-"\"SEND DISABLED\" = \"SENDEN SIE DEAKTIVIERT\"\n"
-"\"Other side is muted\" = \"Die andere Seite ist stummgeschaltet\"\n"
-"\"You muted them\" = \"Du hast sie stumm geschaltet\"\n"
-"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"Es konnte keine Verbindu"
-"ng mit dem Benutzer hergestellt werden. M\xc3\xb6glicherweise m\xc3\xbcssen einer oder beide Ihre interne Firewall oder Ihren Netzwerkrouter konfigurieren, damit SonoBus zwischen Ihnen arbeiten kann. Informationen zum Aktivieren der Portweiterleitung"
-" auf Ihrem Router finden Sie in der Hilfedokumentation.\"\n"
-"\"Connecting...\" = \"Anschlie\xc3\x9f""en ...\"\n"
-"\"Measured actual round-trip latency: %d ms\" = \"Gemessene tats\xc3\xa4""chliche Roundtrip-Latenz: %d ms\"\n"
-"\"Est. Outgoing: %.1f ms\" = \"Europ\xc3\xa4ische Sommerzeit. Ausgehend: %.1f ms\"\n"
-"\"Est. Incoming: %.1f ms\" = \"Europ\xc3\xa4ische Sommerzeit. Eingehend: %.1f ms\"\n"
-"\"Jitter: %.1f ms\" = \"Jitter: %.1f ms\"\n"
-"\"Measuring actual round-trip latency\" = \"Messung der tats\xc3\xa4""chlichen Roundtrip-Latenz\"\n"
-"\"Mute All\" = \"Alle stummschalten\"\n"
-"\"Unmute All\" = \"Alle stumm schalten\"\n";
-
-const char* localized_de_strings = (const char*) temp_binary_data_0;
-
-//================== localized_es.strings ==================
-static const unsigned char temp_binary_data_1[] =
-"language: Spanish\n"
-"countries: es\n"
-"\n"
-"\"Noise Floor\" = \"Piso de ruido\"\n"
-"\"Ratio\" = \"Proporci\xc3\xb3n\"\n"
-"\"Attack\" = \"Ataque\"\n"
-"\"Release\" = \"Lanzamiento\"\n"
-"\"Noise Gate\" = \"Puerta de ruido\"\n"
-"\"In Gain\" = \"En ganancia\"\n"
-"\"In Pan\" = \"En pan\"\n"
-"\"C\" = \"C\"\n"
-"\"In Pan 1\" = \"En Pan 1\"\n"
-"\"In Pan 2\" = \"En Pan 2\"\n"
-"\"Dry Level\" = \"Nivel seco\"\n"
-"\"Output Level\" = \"Nivel de salida\"\n"
-"\"Default Net Buffer Time\" = \"Tiempo de b\xc3\xba""fer neto predeterminado\"\n"
-"\"Send Channels\" = \"Enviar canales\"\n"
-"\"Metronome Enabled\" = \"Metr\xc3\xb3nomo habilitado\"\n"
-"\"Send Metronome Audio\" = \"Enviar audio de metr\xc3\xb3nomo\"\n"
-"\"Metronome Gain\" = \"Ganancia del metr\xc3\xb3nomo\"\n"
-"\"Metronome Tempo\" = \"Tempo del metr\xc3\xb3nomo\"\n"
-"\"Send Playback Audio\" = \"Enviar audio de reproducci\xc3\xb3n\"\n"
-"\"Hear Latency Test\" = \"Prueba de latencia auditiva\"\n"
-"\"Record Metronome to File\" = \"Grabar metr\xc3\xb3nomo en archivo\"\n"
-"\"Main Reverb Enabled\" = \"Reverberaci\xc3\xb3n principal habilitada\"\n"
-"\"Main Reverb Level\" = \"Nivel de reverberaci\xc3\xb3n principal\"\n"
-"\"Main Reverb Size\" = \"Tama\xc3\xb1o de reverberaci\xc3\xb3n principal\"\n"
-"\"Main Reverb Damping\" = \"Amortiguaci\xc3\xb3n de reverberaci\xc3\xb3n principal\"\n"
-"\"Pre-Delay Time\" = \"Tiempo de pre-retardo\"\n"
-"\"Main Reverb Model\" = \"Modelo de reverberaci\xc3\xb3n principal\"\n"
-"\"Main Send Mute\" = \"Silenciar env\xc3\xado principal\"\n"
-"\"Main Receive Mute\" = \"Recepci\xc3\xb3n principal Mute\"\n"
-"\"Main In Mute\" = \"Principal en silencio\"\n"
-"\"Main Monitor Solo\" = \"Monitor principal Solo\"\n"
-"\"Def Auto Net Buffer Mode\" = \"Def Auto Net Buffer Mode\"\n"
-"\"Def Send Format\" = \"Formato de env\xc3\xado definido\"\n"
-"\"Dynamic Resampling\" = \"Remuestreo din\xc3\xa1mico\"\n"
-"\"Reconnect Last\" = \"Volver a conectar por \xc3\xbaltimo\"\n"
-"\"Could not find format for filename\" = \"No se pudo encontrar el formato para el nombre de archivo\"\n"
-"\"Error creating writer for \" = \"Error al crear el escritor para\"\n"
-"\"Error creating output file: \" = \"Error al crear el archivo de salida:\"\n"
-"\"Error creating directory for recording: \" = \"Error al crear el directorio para grabar:\"\n"
-"\"SonoBus\" = \"SonoBus\"\n"
-"\"Pan: Center\" = \"Pan: Centro\"\n"
-"\"Pan: \" = \"Pan:\"\n"
-"\"MUTE\" = \"MUDO\"\n"
-"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Silencia su entrada evitando que todos lo escuchen, sin ning\xc3\xban indicador\"\n"
-"\"SOLO\" = \"SOLO\"\n"
-"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Esc\xc3\xba""chate solo a ti mismo y a otros usuarios en solitario. Alt-clic para solo t\xc3\xba mismo.\"\n"
-"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silencia su entrada, nada de su audio (incluida la reproducci\xc3\xb3n de archivos) se enviar\xc3\xa1 a los usuarios y"
-" ver\xc3\xa1n un indicador de silencio\"\n"
-"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Silencia / activa el sonido a todos los usuarios, no se recibir\xc3\xa1n datos de audio cuando los usuarios est\xc3\xa9n silenciados\"\n"
-"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Cuando se presiona, silencia a otros y lo activa moment\xc3\xa1neamente (presionar para hablar).\"\n"
-"\" Use the \\'T\\' key as a shortcut.\" = \" Utilice la tecla \\'T\\' como atajo.\"\n"
-"\"Metronome On/Off\" = \"Metr\xc3\xb3nomo encendido / apagado\"\n"
-"\"Metronome Options\" = \"Opciones de metr\xc3\xb3nomo\"\n"
-"\"Level\" = \"Nivel\"\n"
-"\"Tempo\" = \"Tempo\"\n"
-"\"Send Metronome to All\" = \"Enviar metr\xc3\xb3nomo a todos\"\n"
-"\"In Level\" = \"En nivel\"\n"
-"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Esto reduce o aumenta el nivel de su propia entrada de audio, y afectar\xc3\xa1 el nivel de su a"
-"udio que se env\xc3\xad""a a otros y su propio monitoreo.\"\n"
-"\"Monitor\" = \"Monitor\"\n"
-"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Esto ajusta el nivel de monitoreo de su entrada, que solo usted escucha\"\n"
-"\"Out Level\" = \"Nivel de salida\"\n"
-"\"This is the main volume control which affects everything you hear\" = \"Este es el control de volumen principal que afecta todo lo que escuchas\"\n"
-"\"RECENTS\" = \"RECIENTES\"\n"
-"\"PRIVATE GROUP\" = \"GRUPO PRIVADO\"\n"
-"\"PUBLIC GROUPS\" = \"GRUPOS P\xc3\x9a""BLICOS\"\n"
-"\"DIRECT\" = \"DIRECTO\"\n"
-"\"--\" = \"-\"\n"
-"\"Local Address:\" = \"Direcci\xc3\xb3n local:\"\n"
-"\"Host: \" = \"Anfitri\xc3\xb3n:\"\n"
-"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Con\xc3\xa9""ctese directamente a otras instancias de SonoBus en su red local con la direcci\xc3\xb3n local que anuncian.\"\n"
-"\"IPaddress:port\" = \"Direcci\xc3\xb3n IP: puerto\"\n"
-"\"Connect...\" = \"Conectar...\"\n"
-"\"Direct Connect\" = \"Conexi\xc3\xb3n directa\"\n"
-"\"Connect to Group\" = \"Conectarse al grupo\"\n"
-"\"optional\" = \"Opcional\"\n"
-"\"Your Displayed Name:\" = \"Su nombre mostrado:\"\n"
-"\"Password:\" = \"Contrase\xc3\xb1""a:\"\n"
-"\"Group Name:\" = \"Nombre del grupo:\"\n"
-"\"Connection Server:\" = \"Servidor de conexi\xc3\xb3n:\"\n"
-"\"Generate a random group name\" = \"Genera un nombre de grupo aleatorio\"\n"
-"\"Copy connection information to the clipboard to share\" = \"Copie la informaci\xc3\xb3n de conexi\xc3\xb3n al portapapeles para compartir\"\n"
-"\"Paste connection information from the clipboard\" = \"Pegar la informaci\xc3\xb3n de conexi\xc3\xb3n del portapapeles\"\n"
+"language: Spanish\r\n"
+"countries: es\r\n"
+"\r\n"
+"\"Noise Floor\" = \"Ruido de fondo\"\r\n"
+"\"Ratio\" = \"Proporci\xc3\xb3n\"\r\n"
+"\"Attack\" = \"Ataque\"\r\n"
+"\"Release\" = \"Relajaci\xc3\xb3n\"\r\n"
+"\"Noise Gate\" = \"Compuerta de ruido\"\r\n"
+"\"In Gain\" = \"Ganancia de entrada\"\r\n"
+"\"In Pan\" = \"Paneo de entrada\"\r\n"
+"\"C\" = \"C\"\r\n"
+"\"In Pan 1\" = \"Paneo de entrada 1\"\r\n"
+"\"In Pan 2\" = \"Paneo de entrada2\"\r\n"
+"\"Dry Level\" = \"Nivel seco\"\r\n"
+"\"Output Level\" = \"Nivel de salida\"\r\n"
+"\"Default Net Buffer Time\" = \"Tiempo neto predeterminado del b\xc3\xba""fer\"\r\n"
+"\"Send Channels\" = \"Canales de env\xc3\xado\"\r\n"
+"\"Metronome Enabled\" = \"Metr\xc3\xb3nomo habilitado\"\r\n"
+"\"Send Metronome Audio\" = \"Env\xc3\xado del audio del metr\xc3\xb3nomo\"\r\n"
+"\"Metronome Gain\" = \"Ganancia del metr\xc3\xb3nomo\"\r\n"
+"\"Metronome Tempo\" = \"Tempo del metr\xc3\xb3nomo\"\r\n"
+"\"Send Playback Audio\" = \"Env\xc3\xado del audio de reproducci\xc3\xb3n\"\r\n"
+"\"Hear Latency Test\" = \"Escuchar prueba de latencia\"\r\n"
+"\"Record Metronome to File\" = \"Grabar metr\xc3\xb3nomo en el archivo\"\r\n"
+"\"Main Reverb Enabled\" = \"Reverberaci\xc3\xb3n principal habilitada\"\r\n"
+"\"Main Reverb Level\" = \"Nivel de la reverberaci\xc3\xb3n principal\"\r\n"
+"\"Main Reverb Size\" = \"Talla de la reverberaci\xc3\xb3n principal\"\r\n"
+"\"Main Reverb Damping\" = \"Amortiguaci\xc3\xb3n de la reverberaci\xc3\xb3n principal\"\r\n"
+"\"Pre-Delay Time\" = \"Tiempo de pre-retardo\"\r\n"
+"\"Main Reverb Model\" = \"Modelo de la reverberaci\xc3\xb3n principal\"\r\n"
+"\"Main Send Mute\" = \"Silenciar env\xc3\xado principal\"\r\n"
+"\"Main Receive Mute\" = \"Silenciar el retorno principal\"\r\n"
+"\"Main In Mute\" = \"Silenciar entrada\"\r\n"
+"\"Main Monitor Solo\" = \"Monitor principal de Solo\"\r\n"
+"\"Def Auto Net Buffer Mode\" = \"Modalidad predefinida del b\xc3\xba""fer\"\r\n"
+"\"Def Send Format\" = \"Formato predefinido de env\xc3\xado\"\r\n"
+"\"Dynamic Resampling\" = \"Re-muestreo din\xc3\xa1mico\"\r\n"
+"\"Reconnect Last\" = \"Reconectar lo anterior\"\r\n"
+"\"Could not find format for filename\" = \"No se pudo nombrar el archivo\"\r\n"
+"\"Error creating writer for \" = \"Error de escritura para\"\r\n"
+"\"Error creating output file: \" = \"Error al crear el archivo de salida:\"\r\n"
+"\"Error creating directory for recording: \" = \"Error al crear el directorio de grabaci\xc3\xb3n:\"\r\n"
+"\"SonoBus\" = \"SonoBus\"\r\n"
+"\"Pan: Center\" = \"Paneo: Centro\"\r\n"
+"\"Pan: \" = \"Paneo:\"\r\n"
+"\"MUTE\" = \"SILENCIO\"\r\n"
+"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Silencia la entrada evitando que todos te escuchen, sin indicaci\xc3\xb3n\"\r\n"
+"\"SOLO\" = \"SOLO\"\r\n"
+"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Escucharse s\xc3\xb3lo a si mismo y a los dem\xc3\xa1s usuarios. Alt-clic para escucharse s\xc3\xb3lo a si mismo.\"\r\n"
+"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silencia la entrada, no se enviar\xc3\xa1 el audio a otros usuarios (incluida la reproducci\xc3\xb3n de archivos) ni v"
+"er\xc3\xa1n un indicador de silencio\"\r\n"
+"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Silencia / activa a todos los usuarios, no se recibir\xc3\xa1 audio cuando los usuarios est\xc3\xa9n silenciados\"\r\n"
+"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Cuando esta presionado, se silencia o activa a otros moment\xc3\xa1neamente (presiona para hablar).\"\r\n"
+"\" Use the \\'T\\' key as a shortcut.\" = \" Utilice la tecla \\'T\\' como atajo.\"\r\n"
+"\"Metronome On/Off\" = \"Metr\xc3\xb3nomo encendido / apagado\"\r\n"
+"\"Metronome Options\" = \"Opciones del metr\xc3\xb3nomo\"\r\n"
+"\"Level\" = \"Nivel\"\r\n"
+"\"Tempo\" = \"Tempo\"\r\n"
+"\"Send Metronome to All\" = \"Enviar metr\xc3\xb3nomo a todos\"\r\n"
+"\"In Level\" = \"Nivel de entrada\"\r\n"
+"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Reduce o aumenta el nivel de tu entrada de audio, y afectar\xc3\xa1 el nivel del audio que se en"
+"v\xc3\xad""a a otros y tu propio monitoreo.\"\r\n"
+"\"Monitor\" = \"Monitor\"\r\n"
+"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Ajusta el nivel de monitoreo de entrada, que solo tu escuchas\"\r\n"
+"\"Out Level\" = \"Nivel de salida\"\r\n"
+"\"This is the main volume control which affects everything you hear\" = \"Este es el control principal de volumen y afecta todo lo que escuchas\"\r\n"
+"\"RECENTS\" = \"RECIENTES\"\r\n"
+"\"PRIVATE GROUP\" = \"GRUPO PRIVADO\"\r\n"
+"\"PUBLIC GROUPS\" = \"GRUPOS P\xc3\x9a""BLICOS\"\r\n"
+"\"DIRECT\" = \"DIRECTO\"\r\n"
+"\"--\" = \"-\"\r\n"
+"\"Local Address:\" = \"Direcci\xc3\xb3n local:\"\r\n"
+"\"Host: \" = \"Anfitri\xc3\xb3n:\"\r\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Con\xc3\xa9""ctese directamente a otras instancias de SonoBus en su red local con la direcci\xc3\xb3n local que anuncian.\"\r\n"
+"\"IPaddress:port\" = \"Direcci\xc3\xb3n IP: puerto\"\r\n"
+"\"Connect...\" = \"Conectar...\"\r\n"
+"\"Direct Connect\" = \"Conexi\xc3\xb3n directa\"\r\n"
+"\"Connect to Group\" = \"Conectarse al grupo\"\r\n"
+"\"optional\" = \"Opcional\"\r\n"
+"\"Your Displayed Name:\" = \"Su nombre aparecer\xc3\xa1 como:\"\r\n"
+"\"Password:\" = \"Contrase\xc3\xb1""a:\"\r\n"
+"\"Group Name:\" = \"Nombre del grupo:\"\r\n"
+"\"Connection Server:\" = \"Servidor de conexi\xc3\xb3n:\"\r\n"
+"\"Generate a random group name\" = \"Genera un nombre de grupo aleatorio\"\r\n"
+"\"Copy connection information to the clipboard to share\" = \"Copiar la informaci\xc3\xb3n de conexi\xc3\xb3n al portapapeles para compartir\"\r\n"
+"\"Paste connection information from the clipboard\" = \"Pegar la informaci\xc3\xb3n de conexi\xc3\xb3n guardada en el portapapeles\"\r\n"
 "\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"El servidor de conexi\xc3\xb3n solo se usa para ayudar a los usuarios a encontrarse, no pas"
-"a audio a trav\xc3\xa9s de \xc3\xa9l. Todo el audio se env\xc3\xad""a directamente entre usuarios (peer to peer).\"\n"
-"\"Clear All\" = \"Limpiar todo\"\n"
-"\"Active Public Groups\" = \"Grupos p\xc3\xba""blicos activos\"\n"
-"\"Select existing group below OR \" = \"Seleccione el grupo existente a continuaci\xc3\xb3n O\"\n"
-"\"Create Group...\" = \"Crea un grupo...\"\n"
-"\"enter group name\" = \"ingrese el nombre del grupo\"\n"
-"\"Choose a descriptive group name that includes geographic information and genre\" = \"Elija un nombre de grupo descriptivo que incluya informaci\xc3\xb3n geogr\xc3\xa1""fica y g\xc3\xa9nero\"\n"
-"\"Patchbay\" = \"Patchbay\"\n"
-"\"Setup Audio\" = \"Configurar audio\"\n"
-"\"Press to copy/share link to group\" = \"Presione para copiar / compartir el enlace al grupo\"\n"
-"\"Connect\" = \"Conectar\"\n"
-"\"Manual\" = \"Manual\"\n"
-"\"Auto Up\" = \"Auto Up\"\n"
-"\"Auto\" = \"Auto\"\n"
-"\"Initial Auto\" = \"Autom\xc3\xa1tico inicial\"\n"
-"\"Default Jitter Buffer\" = \"B\xc3\xba""fer de fluctuaci\xc3\xb3n predeterminado\"\n"
-"\"Default Send Quality:\" = \"Calidad de env\xc3\xado predeterminada:\"\n"
-"\"Make Latency Test Audible\" = \"Hacer audible la prueba de latencia\"\n"
-"\"Metronome output recorded in full mix\" = \"Salida de metr\xc3\xb3nomo grabada en mezcla completa\"\n"
-"\"Record feature creates the following files:\" = \"La funci\xc3\xb3n de registro crea los siguientes archivos:\"\n"
-"\"Full Mix\" = \"Mezcla completa\"\n"
-"\"Full Mix without yourself\" = \"Mezcla completa sin ti\"\n"
-"\"Yourself\" = \"Usted mismo\"\n"
-"\"Each Connected User\" = \"Cada usuario conectado\"\n"
-"\"FLAC\" = \"FLAC\"\n"
-"\"WAV\" = \"WAV\"\n"
-"\"OGG\" = \"OGG\"\n"
-"\"16 bit\" = \"16 bits\"\n"
-"\"24 bit\" = \"24 bits\"\n"
-"\"Audio File Format:\" = \"Formato de archivo de audio:\"\n"
-"\"Record Location:\" = \"Ubicaci\xc3\xb3n de registro:\"\n"
-"\"Use Specific UDP Port\" = \"Usar puerto UDP espec\xc3\xad""fico\"\n"
-"\"Use Drift Correction\" = \"Usar correcci\xc3\xb3n de deriva\"\n"
-"\"Auto-Reconnect to Last Group\" = \"Reconexi\xc3\xb3n autom\xc3\xa1tica al \xc3\xbaltimo grupo\"\n"
-"\"Override Device Sample Rate\" = \"Anular frecuencia de muestreo del dispositivo\"\n"
-"\"Automatically check for updates\" = \"Buscar actualizaciones autom\xc3\xa1ticamente\"\n"
-"\"Sliders Snap to Mouse Click\" = \"Los controles deslizantes se ajustan al clic del mouse\"\n"
-"\"Use Input FX Limiter\" = \"Usar limitador de efectos de entrada\"\n"
-"\"Change all connected\" = \"Cambiar todos los conectados\"\n"
-"\"Version: \" = \"Versi\xc3\xb3n:\"\n"
-"\"FX\" = \"FX\"\n"
-"\"In FX\" = \"En FX\"\n"
-"\"Match # Inputs\" = \"Coincidir # entradas\"\n"
-"\"Send Mono\" = \"Enviar mono\"\n"
-"\"Send Stereo\" = \"Enviar est\xc3\xa9reo\"\n"
-"\"# Send Channels\" = \"# Enviar canales\"\n"
-"\"Size\" = \"Talla\"\n"
-"\"Damping\" = \"Mojadura\"\n"
-"\"Pre-Delay\" = \"Pre-retardo\"\n"
-"\"Reverb\" = \"Reverberaci\xc3\xb3n\"\n"
-"\"Freeverb\" = \"Freeverb\"\n"
-"\"MVerb\" = \"MVerb\"\n"
-"\"Zita\" = \"Zita\"\n"
-"\"Start/Stop recording audio to file\" = \"Iniciar / detener la grabaci\xc3\xb3n de audio en un archivo\"\n"
-"\"Load audio file for playback\" = \"Cargar archivo de audio para reproducir\"\n"
-"\"Send File Playback to All\" = \"Enviar reproducci\xc3\xb3n de archivos a todos\"\n"
-"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Se complet\xc3\xb3 la informaci\xc3\xb3n del grupo desde el portapapeles. Presione \\'Conectar al grupo\\' para unirse ...\"\n"
-"\"Quit Confirmation\" = \"Salir de confirmaci\xc3\xb3n\"\n"
-"\"You are connected, are you sure you want to quit?\" = \"Est\xc3\xa1s conectado, \xc2\xbf""est\xc3\xa1s seguro de que quieres salir?\"\n"
-"\"Quit\" = \"Dejar\"\n"
-"\"Share this link with others to connect with SonoBus: \\n\\n\" = \"Comparta este enlace con otros para conectarse con SonoBus:\\n\\n\"\n"
-"\"Or share this link:\\n\" = \"O comparte este enlace:\\n\"\n"
-"\"Last Session: \" = \"\xc3\x9altima sesi\xc3\xb3n:\"\n"
-"\"Total: \" = \"Total:\"\n"
-"\"Not sending your audio anywhere\" = \"No enviadoing su audio en cualquier lugar\"\n"
-"\"Sending your audio to others\" = \"Enviar su audio a otros\"\n"
-"\"Muted everyone\" = \"Silenciado a todos\"\n"
-"\"Unmuted all who were not muted previously\" = \"Se activ\xc3\xb3 el sonido de todos los que no se hab\xc3\xad""an silenciado anteriormente.\"\n"
-"\"Sending your metronome to all users\" = \"Env\xc3\xado de su metr\xc3\xb3nomo a todos los usuarios\"\n"
-"\"Now only you will hear your metronome\" = \"Ahora solo tu oir\xc3\xa1s tu metr\xc3\xb3nomo\"\n"
-"\"Sending file playback to all users\" = \"Env\xc3\xado de reproducci\xc3\xb3n de archivos a todos los usuarios\"\n"
-"\"Now only you will hear the file playback\" = \"Ahora solo usted escuchar\xc3\xa1 la reproducci\xc3\xb3n del archivo\"\n"
-"\"Copied connection info to clipboard for you to share with others\" = \"Informaci\xc3\xb3n de conexi\xc3\xb3n copiada al portapapeles para que la comparta con otros\"\n"
-"\"Copied group connection info to clipboard for you to share with others\" = \"Se copi\xc3\xb3 la informaci\xc3\xb3n de conexi\xc3\xb3n del grupo al portapapeles para que la comparta con otros\"\n"
-"\"Finished recording to \" = \"Grabaci\xc3\xb3n terminada en\"\n"
-"\"Last recorded file: \" = \"\xc3\x9altimo archivo grabado:\"\n"
-"\"Started recording output\" = \"Salida de grabaci\xc3\xb3n iniciada\"\n"
-"\"Recording audio to: \" = \"Grabaci\xc3\xb3n de audio en:\"\n"
-"\"Recording multi-track audio to: \" = \"Grabaci\xc3\xb3n de audio multipista en:\"\n"
-"\"Choose an audio file to open...\" = \"Elija un archivo de audio para abrir ...\"\n"
-"\"Choose the folder for new recordings\" = \"Elija la carpeta para nuevas grabaciones\"\n"
-"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"\xc2\xa1""Completado en Grupo desde el enlace! Presione \\'Conectar al grupo\\' para unirse ...\"\n"
-"\"You need to specify a group name!\" = \"\xc2\xa1Necesitas especificar un nombre de grupo!\"\n"
-"\"You need to specify a user name!\" = \"\xc2\xa1Necesita especificar un nombre de usuario!\"\n"
-"\"Server address is invalid!\" = \"\xc2\xa1La direcci\xc3\xb3n del servidor no es v\xc3\xa1lida!\"\n"
-"\"All who join the same Group will be able to connect with each other.\" = \"Todos los que se unan al mismo grupo podr\xc3\xa1n conectarse entre s\xc3\xad.\"\n"
-"\"AUDIO\" = \"AUDIO\"\n"
-"\"OPTIONS\" = \"OPCIONES\"\n"
-"\"HELP\" = \"AYUDA\"\n"
-"\"RECORDING\" = \"GRABACI\xc3\x93N\"\n"
-"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Se recomienda encarecidamente utilizar un tipo de dispositivo de audio ASIO"
-". Si su interfaz de audio no viene con una, instale ASIO4ALL (asio4all.org) y config\xc3\xbarelo primero.\"\n"
-"\"Disconnect\" = \"Desconectar\"\n"
-"\"[P] \" = \"[PAGS]\"\n"
-"\"Waiting for other users to join group \\\"\" = \"Esperando a que otros usuarios se unan al grupo \\\"\"\n"
-"\"Press Connect button to start.\\n\\nPlease use headphones if you are using a microphone!\" = \"Presione el bot\xc3\xb3n Conectar para comenzar.\\n\\n\xc2\xa1Utilice auriculares si est\xc3\xa1 utilizando un micr\xc3\xb3""fono!\"\n"
-"\"Connected to server\" = \"Conectado al servidor\"\n"
-"\"Already connected with this user name\" = \"Ya conectado con este nombre de usuario\"\n"
-"\"Connect failed: \" = \"Conexi\xc3\xb3n fallida:\"\n"
-"\"Disconnected from server\" = \"Desconectado del servidor\"\n"
-"\"Disconnect failed: \" = \"Desconexi\xc3\xb3n fallida:\"\n"
-"\"Joined Group: \" = \"Grupo unido:\"\n"
-"\"Failed to join group: \" = \"No se pudo unir al grupo:\"\n"
-"\"Left Group: \" = \"Grupo izquierdo:\"\n"
-"\"Failed to leave group: \" = \"No se pudo salir del grupo:\"\n"
-"\"Trim to New\" = \"Recortar a nuevo\"\n"
-"\"Share File\" = \"Recurso compartido de archivos\"\n"
-"\"Reveal File\" = \"Revelar archivo\"\n"
-"\"Mute All Input\" = \"Silenciar todas las entradas\"\n"
-"\"Toggle Mute all input\" = \"Alternar silenciar todas las entradas\"\n"
-"\"Popup\" = \"Surgir\"\n"
-"\"Mute All Users\" = \"Silenciar a todos los usuarios\"\n"
-"\"Toggle Mute all users\" = \"Alternar Silenciar a todos los usuarios\"\n"
-"\"Play/Pause\" = \"Reproducir pausar\"\n"
-"\"Toggle file playback\" = \"Alternar reproducci\xc3\xb3n de archivos\"\n"
-"\"Loop\" = \"Lazo\"\n"
-"\"Toggle file looping\" = \"Alternar bucle de archivos\"\n"
-"\"Trim file from selection to new file\" = \"Recortar archivo de la selecci\xc3\xb3n a un archivo nuevo\"\n"
-"\"Close File\" = \"Cerrar el archivo\"\n"
-"\"Close file\" = \"Cerrar el archivo\"\n"
-"\"Open File\" = \"Abrir documento\"\n"
-"\"Open Audio file\" = \"Abrir archivo de audio\"\n"
-"\"Share file\" = \"Recurso compartido de archivos\"\n"
-"\"Reveal file\" = \"Revelar archivo\"\n"
-"\"Show Options\" = \"Mostrar opciones\"\n"
-"\"Record\" = \"Grabar\"\n"
-"\"Toggle Record\" = \"Alternar registro\"\n"
-"\"Check For New Version\" = \"Buscar nueva versi\xc3\xb3n\"\n"
-"\"Check for New Version\" = \"Compruebe si hay nueva versi\xc3\xb3n\"\n"
-"\"File\" = \"Archivo\"\n"
-"\"Transport\" = \"Transporte\"\n"
-"\"Help\" = \"Ayuda\"\n"
-"\"PUBLIC \" = \"P\xc3\x9a""BLICO\"\n"
-"\"password protected, \" = \"contrase\xc3\xb1""a protegida,\"\n"
-"\"on \" = \"en\"\n"
-"\"to \" = \"a\"\n"
-"\" active users\" = \" usuarios activos\"\n"
-"\" active user\" = \" usuario activo\"\n"
-"\"Save current state\" = \"Guardar el estado actual\"\n"
-"\"Error whilst saving\" = \"Error al guardar\"\n"
-"\"Couldn\\'t write to the specified file!\" = \"\xc2\xa1No se pudo escribir en el archivo especificado!\"\n"
-"\"Load a saved state\" = \"Cargar un estado guardado\"\n"
-"\"Error whilst loading\" = \"Error al cargar\"\n"
-"\"Couldn\\'t read from the specified file!\" = \"\xc2\xa1No se pudo leer el archivo especificado!\"\n"
-"\"Audio/MIDI Settings\" = \"Configuraci\xc3\xb3n de audio / MIDI\"\n"
-"\"Audio Settings\" = \"Configuraciones de audio\"\n"
-"\"Audio/MIDI Settings...\" = \"Configuraci\xc3\xb3n de audio / MIDI ...\"\n"
-"\"Save current state...\" = \"Guardar estado actual ...\"\n"
-"\"Load a saved state...\" = \"Cargar un estado guardado ...\"\n"
-"\"Reset to default state\" = \"Restablecer al estado predeterminado\"\n"
-"\"Threshold\" = \"L\xc3\xadmite\"\n"
-"\"Makeup Gain\" = \"Ganancia de maquillaje\"\n"
-"\"Compressor\" = \"Compresor\"\n"
-"\"Autoset Makeup\" = \"Maquillaje Autoset\"\n"
-"\"Gain\" = \"Ganancia\"\n"
-"\"High Shelf\" = \"Estante alto\"\n"
-"\"Low Shelf\" = \"Estante bajo\"\n"
-"\"Freq 1\" = \"Frecuencia 1\"\n"
-"\"Q\" = \"Q\"\n"
-"\"Freq 2\" = \"Frecuencia 2\"\n"
-"\"Parametric EQ\" = \"Ecualizador param\xc3\xa9trico\"\n"
-"\"Level: \" = \"Nivel:\"\n"
-"\"Remote address:\" = \"Direcci\xc3\xb3n remota:\"\n"
-"\"Disable Sending\" = \"Deshabilitar el env\xc3\xado\"\n"
-"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Alterna la recepci\xc3\xb3n en silencio, lo que evita que este usuario escuche el audio\"\n"
-"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Escuche solo a este usuario y a otros usuarios en solitario. Alt-clic para solo este usuario exclusivamente.\"\n"
-"\"Latency\\nTest\" = \"Latencia\\nPrueba\"\n"
-"\"Pan\" = \"Pan\"\n"
-"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Restablece el b\xc3\xba""fer de fluctuaci\xc3\xb3n al m\xc3\xadnimo. Mantenga presionada la tecla Alt para restablecer para todos (con autom\xc3\xa1tico).\"\n"
-"\"Jitter Buffer\" = \"B\xc3\xba""fer de fluctuaci\xc3\xb3n\"\n"
-"\"Change for all\" = \"Cambio para todos\"\n"
-"\"Send Quality\" = \"Calidad de env\xc3\xado\"\n"
-"\"No Preference\" = \"Sin preferencias\"\n"
-"\"Preferred Recv Quality\" = \"Calidad de recepci\xc3\xb3n preferida\"\n"
-"\"Latency (ms)\" = \"Latencia (ms)\"\n"
-"\"Ping\" = \"Silbido\"\n"
-"\"PRESS\" = \"PRENSA\"\n"
-"\"Send Quality:\" = \"Calidad de env\xc3\xado:\"\n"
-"\"Recv Jitter Buffer:\" = \"Recv Jitter Buffer:\"\n"
-"\"Reset Dropped\" = \"Restablecer ca\xc3\xad""do\"\n"
-"\"Remove\" = \"Eliminar\"\n"
-"\"Removes user from your own connections, does not affect the whole group\" = \"Elimina al usuario de sus propias conexiones, no afecta a todo el grupo\"\n"
-"\"Other end muted us\" = \"El otro extremo nos silenci\xc3\xb3\"\n"
-"\"SEND DISABLED\" = \"ENVIAR DISCAPACITADOS\"\n"
-"\"Other side is muted\" = \"El otro lado est\xc3\xa1 silenciado\"\n"
-"\"You muted them\" = \"Los silenciaste\"\n"
-"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"No se pudo conectar con "
-"el usuario, uno o ambos pueden necesitar configurar su firewall interno o enrutador de red para permitir que SonoBus funcione entre ustedes. Consulte la documentaci\xc3\xb3n de ayuda para habilitar el reenv\xc3\xado de puertos en su enrutador.\"\n"
-"\"Connecting...\" = \"Conectando ...\"\n"
-"\"Measured actual round-trip latency: %d ms\" = \"Latencia de ida y vuelta real medida: %d ms\"\n"
-"\"Est. Outgoing: %.1f ms\" = \"Est. Saliente: %.1f ms\"\n"
-"\"Est. Incoming: %.1f ms\" = \"Est. Entrante: %.1f ms\"\n"
-"\"Jitter: %.1f ms\" = \"Jitter: %.1f ms\"\n"
-"\"Measuring actual round-trip latency\" = \"Medir la latencia real de ida y vuelta\"\n"
-"\"Mute All\" = \"Silenciar todo\"\n"
-"\"Unmute All\" = \"Activar silencio de todo\"\n";
+"a audio a trav\xc3\xa9s de \xc3\xa9l. El audio s\xc3\xb3lo se env\xc3\xad""a directamente entre usuarios (peer to peer).\"\r\n"
+"\"Clear All\" = \"Limpiar todo\"\r\n"
+"\"Active Public Groups\" = \"Grupos p\xc3\xba""blicos activos\"\r\n"
+"\"Select existing group below OR \" = \"Seleccione el grupo existente a continuaci\xc3\xb3n o\"\r\n"
+"\"Create Group...\" = \"Crea un grupo...\"\r\n"
+"\"enter group name\" = \"ingrese el nombre del grupo\"\r\n"
+"\"Choose a descriptive group name that includes geographic information and genre\" = \"Elija un nombre de grupo descriptivo que incluya informaci\xc3\xb3n geogr\xc3\xa1""fica y g\xc3\xa9nero\"\r\n"
+"\"Patchbay\" = \"Patchbay\"\r\n"
+"\"Setup Audio\" = \"Configurar audio\"\r\n"
+"\"Press to copy/share link to group\" = \"Presione para copiar / compartir el enlace al grupo\"\r\n"
+"\"Connect\" = \"Conectar\"\r\n"
+"\"Manual\" = \"Manual\"\r\n"
+"\"Auto Up\" = \"Auto Up\"\r\n"
+"\"Auto\" = \"Auto\"\r\n"
+"\"Initial Auto\" = \"Autom\xc3\xa1tico de inicio\"\r\n"
+"\"Default Jitter Buffer\" = \"Bufer predeterminado de fluctuaci\xc3\xb3n\"\r\n"
+"\"Default Send Quality:\" = \"Calidad de env\xc3\xado predeterminada:\"\r\n"
+"\"Make Latency Test Audible\" = \"Hacer audible la prueba de latencia\"\r\n"
+"\"Metronome output recorded in full mix\" = \"Audio de metr\xc3\xb3nomo grabado en mezcla completa\"\r\n"
+"\"Record feature creates the following files:\" = \"La funci\xc3\xb3n de registro crea los siguientes archivos:\"\r\n"
+"\"Full Mix\" = \"Mezcla completa\"\r\n"
+"\"Full Mix without yourself\" = \"Mezcla completa sin ti\"\r\n"
+"\"Yourself\" = \"T\xc3\xba mismo\"\r\n"
+"\"Each Connected User\" = \"Cada usuario conectado\"\r\n"
+"\"FLAC\" = \"FLAC\"\r\n"
+"\"WAV\" = \"WAV\"\r\n"
+"\"OGG\" = \"OGG\"\r\n"
+"\"16 bit\" = \"16 bits\"\r\n"
+"\"24 bit\" = \"24 bits\"\r\n"
+"\"Audio File Format:\" = \"Formato del archivo de audio:\"\r\n"
+"\"Record Location:\" = \"Ubicaci\xc3\xb3n de grabaci\xc3\xb3n:\"\r\n"
+"\"Use Specific UDP Port\" = \"Usar puerto UDP espec\xc3\xad""fico\"\r\n"
+"\"Use Drift Correction\" = \"Usar correcci\xc3\xb3n de deriva\"\r\n"
+"\"Auto-Reconnect to Last Group\" = \"Reconectar autom\xc3\xa1ticamente al \xc3\xbaltimo grupo\"\r\n"
+"\"Override Device Sample Rate\" = \"Anular frecuencia de muestreo del dispositivo\"\r\n"
+"\"Automatically check for updates\" = \"Buscar actualizaciones autom\xc3\xa1ticamente\"\r\n"
+"\"Sliders Snap to Mouse Click\" = \"Los potenci\xc3\xb3metros se ajustan al clic del mouse\"\r\n"
+"\"Use Input FX Limiter\" = \"Usar limitador de efectos de entrada\"\r\n"
+"\"Change all connected\" = \"Cambiar a todos los conectados\"\r\n"
+"\"Version: \" = \"Versi\xc3\xb3n:\"\r\n"
+"\"FX\" = \"FX\"\r\n"
+"\"In FX\" = \"FX de entrada\"\r\n"
+"\"Match # Inputs\" = \"Empatar # entradas\"\r\n"
+"\"Send Mono\" = \"Enviar mono\"\r\n"
+"\"Send Stereo\" = \"Enviar est\xc3\xa9reo\"\r\n"
+"\"# Send Channels\" = \"# Enviar canales\"\r\n"
+"\"Size\" = \"Talla\"\r\n"
+"\"Damping\" = \"Amortiguamiento\"\r\n"
+"\"Pre-Delay\" = \"Pre-retardo\"\r\n"
+"\"Reverb\" = \"Reverberaci\xc3\xb3n\"\r\n"
+"\"Freeverb\" = \"Freeverb\"\r\n"
+"\"MVerb\" = \"MVerb\"\r\n"
+"\"Zita\" = \"Zita\"\r\n"
+"\"Start/Stop recording audio to file\" = \"Iniciar / detener la grabaci\xc3\xb3n del archivo de audio\"\r\n"
+"\"Load audio file for playback\" = \"Cargar archivo para reproducir\"\r\n"
+"\"Send File Playback to All\" = \"Enviar reproducci\xc3\xb3n a todos\"\r\n"
+"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Se agreg\xc3\xb3 la informaci\xc3\xb3n del grupo almacenada en el portapapeles. Presione \\'Conectar al grupo\\' para unirse ...\"\r\n"
+"\"Quit Confirmation\" = \"Confirmar salida de la aplicaci\xc3\xb3n\"\r\n"
+"\"You are connected, are you sure you want to quit?\" = \"Est\xc3\xa1s conectado, \xc2\xbfseguro quieres salir?\"\r\n"
+"\"Quit\" = \"Salir\"\r\n"
+"\"Share this link with others to connect with SonoBus:\" = \"Compartir el enlace con otros para conectarse con SonoBus:\"\r\n"
+"\"Or share this link:\" = \"O comparte este enlace:\"\r\n"
+"\"Last Session: \" = \"\xc3\x9altima sesi\xc3\xb3n:\"\r\n"
+"\"Total: \" = \"Total:\"\r\n"
+"\"Not sending your audio anywhere\" = \"No se est\xc3\xa1 enviando el audio\"\r\n"
+"\"Sending your audio to others\" = \"Enviando tu audio a otros\"\r\n"
+"\"Muted everyone\" = \"Todos silenciados\"\r\n"
+"\"Unmuted all who were not muted previously\" = \"Se activ\xc3\xb3 el sonido de todos los que no se hab\xc3\xad""an silenciado anteriormente.\"\r\n"
+"\"Sending your metronome to all users\" = \"Enviando tu metr\xc3\xb3nomo a todos los usuarios\"\r\n"
+"\"Now only you will hear your metronome\" = \"Ahora solo tu oir\xc3\xa1s tu metr\xc3\xb3nomo\"\r\n"
+"\"Sending file playback to all users\" = \"Env\xc3\xado la reproducci\xc3\xb3n del archivo a todos los usuarios\"\r\n"
+"\"Now only you will hear the file playback\" = \"Ahora solo usted escuchar\xc3\xa1 la reproducci\xc3\xb3n del archivo\"\r\n"
+"\"Copied connection info to clipboard for you to share with others\" = \"Informaci\xc3\xb3n de conexi\xc3\xb3n copiada al portapapeles para compartir\"\r\n"
+"\"Copied group connection info to clipboard for you to share with others\" = \"Se copi\xc3\xb3 la informaci\xc3\xb3n de conexi\xc3\xb3n del grupo al portapapeles para compartir\"\r\n"
+"\"Finished recording to \" = \"Finaliz\xc3\xb3 la grabaci\xc3\xb3n en\"\r\n"
+"\"Last recorded file: \" = \"\xc3\x9altimo archivo grabado:\"\r\n"
+"\"Started recording output\" = \"Se inici\xc3\xb3 la grabaci\xc3\xb3n del audio de salida\"\r\n"
+"\"Recording audio to: \" = \"Grabando audio en:\"\r\n"
+"\"Recording multi-track audio to: \" = \"Grabando audio multi-pista en:\"\r\n"
+"\"Choose an audio file to open...\" = \"Elegir un archivo de audio para abrir ...\"\r\n"
+"\"Choose the folder for new recordings\" = \"Elija la carpeta para nuevas grabaciones\"\r\n"
+"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"\xc2\xa1""Completado el Grupo de entrada desde el enlace! Presione \\'Conectar al grupo\\' para unirse ...\"\r\n"
+"\"You need to specify a group name!\" = \"\xc2\xa1Necesitas especificar un nombre de grupo!\"\r\n"
+"\"You need to specify a user name!\" = \"\xc2\xa1Necesita especificar un nombre de usuario!\"\r\n"
+"\"Server address is invalid!\" = \"\xc2\xa1La direcci\xc3\xb3n del servidor no es v\xc3\xa1lida!\"\r\n"
+"\"All who join the same Group will be able to connect with each other.\" = \"Todos los que se unan al mismo grupo podr\xc3\xa1n conectarse entre s\xc3\xad.\"\r\n"
+"\"AUDIO\" = \"AUDIO\"\r\n"
+"\"OPTIONS\" = \"OPCIONES\"\r\n"
+"\"HELP\" = \"AYUDA\"\r\n"
+"\"RECORDING\" = \"GRABACI\xc3\x93N\"\r\n"
+"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Se recomienda encarecidamente utilizar un dispositivo de audio ASIO. Si su "
+"interfaz de audio no lo incluye, instale ASIO4ALL (asio4all.org) y config\xc3\xbarelo primero.\"\r\n"
+"\"Disconnect\" = \"Desconectar\"\r\n"
+"\"[P] \" = \"[PAGS]\"\r\n"
+"\"Waiting for other users to join group \\\"\" = \"Esperando a que otros usuarios se unan al grupo \\\"\"\r\n"
+"\"Press Connect button to start.\" = \"Presione el bot\xc3\xb3n Conectar para comenzar.\" \r\n"
+"\"Please use headphones if you are using a microphone!\" = \"\xc2\xa1Utilice auriculares si est\xc3\xa1 utilizando un micr\xc3\xb3""fono!\"\r\n"
+"\"Connected to server\" = \"Conectado al servidor\"\r\n"
+"\"Already connected with this user name\" = \"Ya conectado con este nombre de usuario\"\r\n"
+"\"Connect failed: \" = \"Conexi\xc3\xb3n fallida:\"\r\n"
+"\"Disconnected from server\" = \"Desconectado del servidor\"\r\n"
+"\"Disconnect failed: \" = \"Desconexi\xc3\xb3n fallida:\"\r\n"
+"\"Joined Group: \" = \"Unido al Grupo:\"\r\n"
+"\"Failed to join group: \" = \"No se pudo unir al grupo:\"\r\n"
+"\"Left Group: \" = \"Te saliste del Grupo:\"\r\n"
+"\"Failed to leave group: \" = \"No se pudo salir del grupo:\"\r\n"
+"\"Trim to New\" = \"Recortar a Nuevo\"\r\n"
+"\"Share File\" = \"Compartir archivo\"\r\n"
+"\"Reveal File\" = \"Revelar archivo\"\r\n"
+"\"Mute All Input\" = \"Silenciar todas las entradas\"\r\n"
+"\"Toggle Mute all input\" = \"Alternar silenciado de las entradas\"\r\n"
+"\"Popup\" = \"Ventana emergente\"\r\n"
+"\"Mute All Users\" = \"Silenciar todos los usuarios\"\r\n"
+"\"Toggle Mute all users\" = \"Alternar silenciado de todos los usuarios\"\r\n"
+"\"Play/Pause\" = \"Reproducir/Pausar\"\r\n"
+"\"Toggle file playback\" = \"Alternar reproducci\xc3\xb3n de archivos\"\r\n"
+"\"Loop\" = \"Bucle\"\r\n"
+"\"Toggle file looping\" = \"Alternar bucle del archivo\"\r\n"
+"\"Trim file from selection to new file\" = \"Recortar la selecci\xc3\xb3n a un archivo nuevo\"\r\n"
+"\"Close File\" = \"Cerrar el archivo\"\r\n"
+"\"Close file\" = \"Cerrar el archivo\"\r\n"
+"\"Open File\" = \"Abrir archivo\"\r\n"
+"\"Open Audio file\" = \"Abrir archivo de audio\"\r\n"
+"\"Share file\" = \"Compartir archivo\"\r\n"
+"\"Reveal file\" = \"Revelar archivo\"\r\n"
+"\"Show Options\" = \"Mostrar opciones\"\r\n"
+"\"Record\" = \"Grabar\"\r\n"
+"\"Toggle Record\" = \"Alternar activado de la grabaci\xc3\xb3n\"\r\n"
+"\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\r\n"
+"\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\r\n"
+"\"File\" = \"Archivo\"\r\n"
+"\"Transport\" = \"Transporte\"\r\n"
+"\"Help\" = \"Ayuda\"\r\n"
+"\"PUBLIC\" = \"P\xc3\x9a""BLICO\"\r\n"
+"\"password protected,\" = \"contrase\xc3\xb1""a protegida,\"\r\n"
+"\"on\" = \"en\"\r\n"
+"\"to\" = \"a\"\r\n"
+"\" active users\" = \" usuarios activos\"\r\n"
+"\" active user\" = \" usuario activo\"\r\n"
+"\"Save current state\" = \"Guardar el estado actual\"\r\n"
+"\"Error whilst saving\" = \"Error al guardar\"\r\n"
+"\"Couldn\\'t write to the specified file!\" = \"\xc2\xa1No se pudo escribir el archivo especificado!\"\r\n"
+"\"Load a saved state\" = \"Cargar un estado guardado\"\r\n"
+"\"Error whilst loading\" = \"Error al cargar\"\r\n"
+"\"Couldn\\'t read from the specified file!\" = \"\xc2\xa1No se pudo leer el archivo especificado!\"\r\n"
+"\"Audio/MIDI Settings\" = \"Configuraci\xc3\xb3n de audio / MIDI\"\r\n"
+"\"Audio Settings\" = \"Configuraciones de audio\"\r\n"
+"\"Audio/MIDI Settings...\" = \"Configuraci\xc3\xb3n de audio / MIDI ...\"\r\n"
+"\"Save current state...\" = \"Guardar estado actual ...\"\r\n"
+"\"Load a saved state...\" = \"Cargar un estado guardado ...\"\r\n"
+"\"Reset to default state\" = \"Restablecer al estado por defecto\"\r\n"
+"\"Threshold\" = \"L\xc3\xadmite\"\r\n"
+"\"Makeup Gain\" = \"Ganancia complementaria \"\r\n"
+"\"Compressor\" = \"Compresor\"\r\n"
+"\"Autoset Makeup\" = \"Configuraci\xc3\xb3n autom\xc3\xa1tica de la ganancia complementaria\"\r\n"
+"\"Gain\" = \"Ganancia\"\r\n"
+"\"High Shelf\" = \"Banda alta\"\r\n"
+"\"Low Shelf\" = \"banda baja\"\r\n"
+"\"Freq 1\" = \"Frecuencia 1\"\r\n"
+"\"Q\" = \"Q\"\r\n"
+"\"Freq 2\" = \"Frecuencia 2\"\r\n"
+"\"Parametric EQ\" = \"Ecualizador param\xc3\xa9trico\"\r\n"
+"\"Level: \" = \"Nivel:\"\r\n"
+"\"Remote address:\" = \"Direcci\xc3\xb3n remota:\"\r\n"
+"\"Disable Sending\" = \"Deshabilitar el env\xc3\xado\"\r\n"
+"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Alterna la recepci\xc3\xb3n en silencio, lo que evita que este usuario escuche el audio\"\r\n"
+"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Escucha solo a este usuario y a otros usuarios seleccionados en solo. Alt-clic para escuchar  exclusivamente a este usuario.\"\r\n"
+"\"Pan\" = \"Paneo\"\r\n"
+"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Restablece el b\xc3\xba""fer de fluctuaci\xc3\xb3n al m\xc3\xadnimo. Mantenga presionada la tecla Alt para restablecer para todos (en autom\xc3\xa1tico).\"\r\n"
+"\"Jitter Buffer\" = \"B\xc3\xba""fer de fluctuaci\xc3\xb3n\"\r\n"
+"\"Change for all\" = \"Cambiar para todos\"\r\n"
+"\"Send Quality\" = \"Calidad de env\xc3\xado\"\r\n"
+"\"No Preference\" = \"Sin preferencias\"\r\n"
+"\"Preferred Recv Quality\" = \"Calidad preferida de recepci\xc3\xb3n\"\r\n"
+"\"Latency (ms)\" = \"Latencia (ms)\"\r\n"
+"\"Ping\" = \"Silbido\"\r\n"
+"\"PRESS\" = \"PRENSA\"\r\n"
+"\"Send Quality:\" = \"Calidad de env\xc3\xado:\"\r\n"
+"\"Recv Jitter Buffer:\" = \"Recibir el b\xc3\xba""fer de fluctuaci\xc3\xb3n:\"\r\n"
+"\"Reset Dropped\" = \"Restablecer data perdida\"\r\n"
+"\"Remove\" = \"Eliminar\"\r\n"
+"\"Removes user from your own connections, does not affect the whole group\" = \"Elimina al usuario de tus conexiones, no afecta a todo el grupo\"\r\n"
+"\"Other end muted us\" = \"El otro extremo te silenci\xc3\xb3\"\r\n"
+"\"SEND DISABLED\" = \"ENVIO DESACTIVADO\"\r\n"
+"\"Other side is muted\" = \"El otro lado est\xc3\xa1 silenciado\"\r\n"
+"\"You muted them\" = \"Los silenciaste\"\r\n"
+"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"No fue posible conectar "
+"con el usuario, uno o ambos necesitan configurar su firewall o enrutador de red para permitir que SonoBus funcione entre ambos. Consulte la documentaci\xc3\xb3n de ayuda para habilitar el reenv\xc3\xado de puertos en su enrutador.\"\r\n"
+"\"Connecting...\" = \"Conectando ...\"\r\n"
+"\"Measured actual round-trip latency:\" = \"Medici\xc3\xb3n de latencia de ida y vuelta real:\"\r\n"
+"\"Est. Outgoing:\" = \"Est. Saliente:\"\r\n"
+"\"Est. Incoming:\" = \"Est. Entrante:\"\r\n"
+"\"Jitter:\" = \"Fluctuaci\xc3\xb3n:\"\r\n"
+"\"Measuring actual round-trip latency\" = \"Midiendo la latencia real de ida y vuelta\"\r\n"
+"\"Mute All\" = \"Silenciar todo\"\r\n"
+"\"Unmute All\" = \"Desactivar silencio\"\r\n"
+"\"none\" = \"ninguna\"\r\n"
+"\"Show advanced settings...\" = \"Mostrar configuraci\xc3\xb3n avanzada...\"\r\n"
+"\"Error when trying to open audio device!\" = \"\xc2\xa1""Error al intentar abrir el dispositivo de audio!\"\r\n"
+"\"(no audio output channels found)\" = \"(no se encontraron canales de salida de audio)\"\r\n"
+"\"Active Output Channels:\" = \"Canales de salida activos:\"\r\n"
+"\"(no audio input channels found)\" = \"(no se encontraron canales de entrada de audio)\"\r\n"
+"\"Active Input Channels:\" = \"Canales de entrada activos:\"\r\n"
+"\"Control Panel\" = \"Panel de control\"\r\n"
+"\"Opens the device\\'s own control panel\" = \"Abre el propio panel de control del dispositivo\"\r\n"
+"\"Reset Device\" = \"Reiniciar el dispositivo\"\r\n"
+"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"Restablece la interfaz de audio, a veces necesaria despu\xc3\xa9s de cambiar las propiedades de un dispositivo en su panel de con"
+"trol personalizado\"\r\n"
+"\"Output:\" = \"Salida:\"\r\n"
+"\"Device:\" = \"Dispositivo:\"\r\n"
+"\"Test\" = \"Prueba\"\r\n"
+"\"Plays a test tone\" = \"Reproduce un tono de prueba\"\r\n"
+"\"Input:\" = \"Entrada:\"\r\n"
+"\"Sample rate:\" = \"Frecuencia de muestreo:\"\r\n"
+"\"Audio Buffer Size:\" = \"Tama\xc3\xb1o del b\xc3\xba""fer de audio:\"\r\n"
+"\"Audio device type:\" = \"Tipo de dispositivo de audio:\"\r\n"
+"\"No MIDI inputs available\" = \"No hay entradas MIDI disponibles\"\r\n"
+"\"Active MIDI inputs:\" = \"Entradas MIDI activas:\"\r\n"
+"\"Bluetooth MIDI\" = \"MIDI Bluetooth\"\r\n"
+"\"Scan for bluetooth MIDI devices\" = \"Buscar dispositivos MIDI bluetooth\"\r\n"
+"\"MIDI Output:\" = \"Salida MIDI:\"\r\n";
 
-const char* localized_es_strings = (const char*) temp_binary_data_1;
-
-//================== localized_fr.strings ==================
-static const unsigned char temp_binary_data_2[] =
-"language: French\n"
-"countries: fr\n"
-"\n"
-"\"Noise Floor\" = \"Plancher de bruit\"\n"
-"\"Ratio\" = \"Rapport\"\n"
-"\"Attack\" = \"Attaque\"\n"
-"\"Release\" = \"Lib\xc3\xa9ration\"\n"
-"\"Noise Gate\" = \"Noise Gate\"\n"
-"\"In Gain\" = \"En gain\"\n"
-"\"In Pan\" = \"Dans Pan\"\n"
-"\"C\" = \"C\"\n"
-"\"In Pan 1\" = \"Dans la casserole 1\"\n"
-"\"In Pan 2\" = \"Dans la casserole 2\"\n"
-"\"Dry Level\" = \"Niveau sec\"\n"
-"\"Output Level\" = \"Niveau de sortie\"\n"
-"\"Default Net Buffer Time\" = \"Temps de tampon net par d\xc3\xa9""faut\"\n"
-"\"Send Channels\" = \"Envoyer des cha\xc3\xaenes\"\n"
-"\"Metronome Enabled\" = \"M\xc3\xa9tronome activ\xc3\xa9\"\n"
-"\"Send Metronome Audio\" = \"Envoyer l\\'audio du m\xc3\xa9tronome\"\n"
-"\"Metronome Gain\" = \"Gain du m\xc3\xa9tronome\"\n"
-"\"Metronome Tempo\" = \"Tempo du m\xc3\xa9tronome\"\n"
-"\"Send Playback Audio\" = \"Envoyer l\\'audio de lecture\"\n"
-"\"Hear Latency Test\" = \"Entendre le test de latence\"\n"
-"\"Record Metronome to File\" = \"Enregistrer le m\xc3\xa9tronome dans un fichier\"\n"
-"\"Main Reverb Enabled\" = \"R\xc3\xa9verb\xc3\xa9ration principale activ\xc3\xa9""e\"\n"
-"\"Main Reverb Level\" = \"Niveau de r\xc3\xa9verb\xc3\xa9ration principal\"\n"
-"\"Main Reverb Size\" = \"Taille de la r\xc3\xa9verb\xc3\xa9ration principale\"\n"
-"\"Main Reverb Damping\" = \"Amortissement de la r\xc3\xa9verb\xc3\xa9ration principale\"\n"
-"\"Pre-Delay Time\" = \"Temps de pr\xc3\xa9-d\xc3\xa9lai\"\n"
-"\"Main Reverb Model\" = \"Mod\xc3\xa8le de r\xc3\xa9verb\xc3\xa9ration principale\"\n"
-"\"Main Send Mute\" = \"Muet d\\'envoi principal\"\n"
-"\"Main Receive Mute\" = \"Recevoir principal muet\"\n"
-"\"Main In Mute\" = \"Main In Mute\"\n"
-"\"Main Monitor Solo\" = \"Moniteur principal Solo\"\n"
-"\"Def Auto Net Buffer Mode\" = \"Def Auto Net Buffer Mode\"\n"
-"\"Def Send Format\" = \"D\xc3\xa9""finir le format d\\'envoi\"\n"
-"\"Dynamic Resampling\" = \"R\xc3\xa9\xc3\xa9""chantillonnage dynamique\"\n"
-"\"Reconnect Last\" = \"Se reconnecter en dernier\"\n"
-"\"Could not find format for filename\" = \"Impossible de trouver le format du nom de fichier\"\n"
-"\"Error creating writer for \" = \"Erreur lors de la cr\xc3\xa9""ation du r\xc3\xa9""dacteur pour\"\n"
-"\"Error creating output file: \" = \"Erreur lors de la cr\xc3\xa9""ation du fichier de sortie:\"\n"
-"\"Error creating directory for recording: \" = \"Erreur lors de la cr\xc3\xa9""ation du r\xc3\xa9pertoire pour l\\'enregistrement:\"\n"
-"\"SonoBus\" = \"SonoBus\"\n"
-"\"Pan: Center\" = \"Pan: Centre\"\n"
-"\"Pan: \" = \"La po\xc3\xaale:\"\n"
-"\"MUTE\" = \"MUET\"\n"
-"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Coupe votre entr\xc3\xa9""e en emp\xc3\xaa""chant tout le monde de vous entendre, sans aucun indicateur\"\n"
-"\"SOLO\" = \"SOLO\"\n"
-"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"\xc3\x89""coutez uniquement vous-m\xc3\xaame et les autres utilisateurs en solo. Cliquez sur Alt pour vous solo exclusivement.\"\n"
-"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silence votre entr\xc3\xa9""e, aucun de vos fichiers audio (y compris la lecture de fichiers) ne sera envoy\xc3\xa9 au"
-"x utilisateurs et ils verront un indicateur muet\"\n"
-"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Coupe / active le son de tous les utilisateurs, aucune donn\xc3\xa9""e audio ne sera re\xc3\xa7ue lorsque les utilisateurs sont coup\xc3\xa9s\"\n"
-"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Lorsque vous appuyez dessus, coupe le son des autres et active momentan\xc3\xa9ment le son (push to talk).\"\n"
-"\" Use the \\'T\\' key as a shortcut.\" = \" Utilisez la touche \xc2\xabT\xc2\xbb comme raccourci.\"\n"
-"\"Metronome On/Off\" = \"M\xc3\xa9tronome activ\xc3\xa9 / d\xc3\xa9sactiv\xc3\xa9\"\n"
-"\"Metronome Options\" = \"Options du m\xc3\xa9tronome\"\n"
-"\"Level\" = \"Niveau\"\n"
-"\"Tempo\" = \"Tempo\"\n"
-"\"Send Metronome to All\" = \"Envoyer le m\xc3\xa9tronome \xc3\xa0 tous\"\n"
-"\"In Level\" = \"Au niveau\"\n"
-"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Cela r\xc3\xa9""duit ou augmente le niveau de votre propre entr\xc3\xa9""e audio, et cela affect"
-"era le niveau de votre audio envoy\xc3\xa9 aux autres et votre propre surveillance.\"\n"
-"\"Monitor\" = \"Moniteur\"\n"
-"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Ceci ajuste le niveau du monitoring de votre entr\xc3\xa9""e, que vous seul entendez\"\n"
-"\"Out Level\" = \"Niveau de sortie\"\n"
-"\"This is the main volume control which affects everything you hear\" = \"Il s\\'agit du contr\xc3\xb4le de volume principal qui affecte tout ce que vous entendez\"\n"
-"\"RECENTS\" = \"R\xc3\x89""CENTS\"\n"
-"\"PRIVATE GROUP\" = \"GROUPE PRIV\xc3\x89\"\n"
-"\"PUBLIC GROUPS\" = \"GROUPES PUBLICS\"\n"
-"\"DIRECT\" = \"DIRECT\"\n"
-"\"--\" = \"-\"\n"
-"\"Local Address:\" = \"Adresse locale:\"\n"
-"\"Host: \" = \"H\xc3\xb4te:\"\n"
-"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Connectez-vous directement \xc3\xa0 d\\'autres instances de SonoBus sur votre r\xc3\xa9seau local avec l\\'adresse locale qu\\'il"
-"s annoncent.\"\n"
-"\"IPaddress:port\" = \"Adresse IP: port\"\n"
-"\"Connect...\" = \"Relier...\"\n"
-"\"Direct Connect\" = \"Connection directe\"\n"
-"\"Connect to Group\" = \"Se connecter au groupe\"\n"
-"\"optional\" = \"optionnel\"\n"
-"\"Your Displayed Name:\" = \"Votre nom affich\xc3\xa9:\"\n"
-"\"Password:\" = \"Mot de passe:\"\n"
-"\"Group Name:\" = \"Nom de groupe:\"\n"
-"\"Connection Server:\" = \"Serveur de connexion:\"\n"
-"\"Generate a random group name\" = \"G\xc3\xa9n\xc3\xa9rer un nom de groupe al\xc3\xa9""atoire\"\n"
-"\"Copy connection information to the clipboard to share\" = \"Copier les informations de connexion dans le presse-papiers pour les partager\"\n"
-"\"Paste connection information from the clipboard\" = \"Coller les informations de connexion \xc3\xa0 partir du presse-papiers\"\n"
-"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"Le serveur de connexion est uniquement utilis\xc3\xa9 pour aider les utilisateurs \xc3\xa0 "
-"se trouver, aucun son ne le traverse. Tout l\\'audio est envoy\xc3\xa9 directement entre les utilisateurs (peer to peer).\"\n"
-"\"Clear All\" = \"Tout effacer\"\n"
-"\"Active Public Groups\" = \"Groupes publics actifs\"\n"
-"\"Select existing group below OR \" = \"S\xc3\xa9lectionnez un groupe existant ci-dessous OU\"\n"
-"\"Create Group...\" = \"Cr\xc3\xa9""er un groupe...\"\n"
-"\"enter group name\" = \"entrez le nom du groupe\"\n"
-"\"Choose a descriptive group name that includes geographic information and genre\" = \"Choisissez un nom de groupe descriptif comprenant des informations g\xc3\xa9ographiques et un genre\"\n"
-"\"Patchbay\" = \"Patchbay\"\n"
-"\"Setup Audio\" = \"Configurer l\\'audio\"\n"
-"\"Press to copy/share link to group\" = \"Appuyez pour copier / partager le lien vers le groupe\"\n"
-"\"Connect\" = \"Relier\"\n"
-"\"Manual\" = \"Manuel\"\n"
-"\"Auto Up\" = \"Mont\xc3\xa9""e automatique\"\n"
-"\"Auto\" = \"Auto\"\n"
-"\"Initial Auto\" = \"Auto initial\"\n"
-"\"Default Jitter Buffer\" = \"Tampon de gigue par d\xc3\xa9""faut\"\n"
-"\"Default Send Quality:\" = \"Qualit\xc3\xa9 d\\'envoi par d\xc3\xa9""faut:\"\n"
-"\"Make Latency Test Audible\" = \"Rendre le test de latence audible\"\n"
-"\"Metronome output recorded in full mix\" = \"Sortie m\xc3\xa9tronome enregistr\xc3\xa9""e en mixage complet\"\n"
-"\"Record feature creates the following files:\" = \"La fonction d\\'enregistrement cr\xc3\xa9""e les fichiers suivants:\"\n"
-"\"Full Mix\" = \"M\xc3\xa9lange complet\"\n"
-"\"Full Mix without yourself\" = \"Full Mix sans vous-m\xc3\xaame\"\n"
-"\"Yourself\" = \"Toi m\xc3\xaame\"\n"
-"\"Each Connected User\" = \"Chaque utilisateur connect\xc3\xa9\"\n"
-"\"FLAC\" = \"FLAC\"\n"
-"\"WAV\" = \"WAV\"\n"
-"\"OGG\" = \"OGG\"\n"
-"\"16 bit\" = \"16 bits\"\n"
-"\"24 bit\" = \"24 bits\"\n"
-"\"Audio File Format:\" = \"Format de fichier audio:\"\n"
-"\"Record Location:\" = \"Emplacement d\\'enregistrement:\"\n"
-"\"Use Specific UDP Port\" = \"Utiliser un port UDP sp\xc3\xa9""cifique\"\n"
-"\"Use Drift Correction\" = \"Utiliser la correction de la d\xc3\xa9rive\"\n"
-"\"Auto-Reconnect to Last Group\" = \"Reconnexion automatique au dernier groupe\"\n"
-"\"Override Device Sample Rate\" = \"Remplacer la fr\xc3\xa9quence d\\'\xc3\xa9""chantillonnage de l\\'appareil\"\n"
-"\"Automatically check for updates\" = \"Rechercher automatiquement les mises \xc3\xa0 jour\"\n"
-"\"Sliders Snap to Mouse Click\" = \"Les curseurs s\\'alignent sur un clic de souris\"\n"
-"\"Use Input FX Limiter\" = \"Utiliser le limiteur d\\'effet d\\'entr\xc3\xa9""e\"\n"
-"\"Change all connected\" = \"Changer tout connect\xc3\xa9\"\n"
-"\"Version: \" = \"Version:\"\n"
-"\"FX\" = \"FX\"\n"
-"\"In FX\" = \"Dans FX\"\n"
-"\"Match # Inputs\" = \"Match # entr\xc3\xa9""es\"\n"
-"\"Send Mono\" = \"Envoyer mono\"\n"
-"\"Send Stereo\" = \"Envoyer en st\xc3\xa9r\xc3\xa9o\"\n"
-"\"# Send Channels\" = \"# Envoyer des cha\xc3\xaenes\"\n"
-"\"Size\" = \"Taille\"\n"
-"\"Damping\" = \"Amortissement\"\n"
-"\"Pre-Delay\" = \"Pr\xc3\xa9-d\xc3\xa9lai\"\n"
-"\"Reverb\" = \"R\xc3\xa9verb\xc3\xa9ration\"\n"
-"\"Freeverb\" = \"Freeverb\"\n"
-"\"MVerb\" = \"MVerb\"\n"
-"\"Zita\" = \"Zita\"\n"
-"\"Start/Stop recording audio to file\" = \"D\xc3\xa9marrer / arr\xc3\xaater l\\'enregistrement audio dans un fichier\"\n"
-"\"Load audio file for playback\" = \"Charger le fichier audio pour la lecture\"\n"
-"\"Send File Playback to All\" = \"Envoyer la lecture de fichiers \xc3\xa0 tous\"\n"
-"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Rempli dans les informations de groupe du presse-papiers! Appuyez sur \\'Se connecter au groupe\\' pour rejoindre ...\"\n"
-"\"Quit Confirmation\" = \"Confirmation de l\\'arr\xc3\xaat\"\n"
-"\"You are connected, are you sure you want to quit?\" = \"Vous \xc3\xaates connect\xc3\xa9, \xc3\xaates-vous s\xc3\xbbr de vouloir quitter?\"\n"
-"\"Quit\" = \"Quitter\"\n"
-"\"Share this link with others to connect with SonoBus: \\r\\n\\r\\n\" = \"Partagez ce lien avec d\\'autres pour vous connecter avec SonoBus:\\r\\n\\r\\n\"\n"
-"\"Or share this link:\\r\\n\" = \"Ou partagez ce lien:\\r\\n\"\n"
-"\"Last Session: \" = \"Derni\xc3\xa8re session:\"\n"
-"\"Total: \" = \"Total:\"\n"
-"\"Not sending your audio anywhere\" = \"Pas envoy\xc3\xa9 votre audio n\\'importe o\xc3\xb9\"\n"
-"\"Sending your audio to others\" = \"Envoi de votre audio \xc3\xa0 d\\'autres\"\n"
-"\"Muted everyone\" = \"Tout le monde en sourdine\"\n"
-"\"Unmuted all who were not muted previously\" = \"Activer le son de tous ceux qui n\\'\xc3\xa9taient pas muets auparavant\"\n"
-"\"Sending your metronome to all users\" = \"Envoi de votre m\xc3\xa9tronome \xc3\xa0 tous les utilisateurs\"\n"
-"\"Now only you will hear your metronome\" = \"Maintenant seulement vous entendrez votre m\xc3\xa9tronome\"\n"
-"\"Sending file playback to all users\" = \"Envoi de la lecture de fichiers \xc3\xa0 tous les utilisateurs\"\n"
-"\"Now only you will hear the file playback\" = \"Maintenant, vous seul entendrez la lecture du fichier\"\n"
-"\"Copied connection info to clipboard for you to share with others\" = \"Copie des informations de connexion dans le presse-papiers pour que vous puissiez les partager avec d\\'autres\"\n"
-"\"Copied group connection info to clipboard for you to share with others\" = \"Copie des informations de connexion de groupe dans le presse-papiers pour que vous puissiez les partager avec d\\'autres\"\n"
-"\"Finished recording to \" = \"Enregistrement termin\xc3\xa9 sur\"\n"
-"\"Last recorded file: \" = \"Dernier fichier enregistr\xc3\xa9:\"\n"
-"\"Started recording output\" = \"Sortie d\\'enregistrement d\xc3\xa9marr\xc3\xa9""e\"\n"
-"\"Recording audio to: \" = \"Enregistrement audio sur:\"\n"
-"\"Recording multi-track audio to: \" = \"Enregistrement audio multipiste sur:\"\n"
-"\"Choose an audio file to open...\" = \"Choisissez un fichier audio \xc3\xa0 ouvrir ...\"\n"
-"\"Choose the folder for new recordings\" = \"Choisissez le dossier pour les nouveaux enregistrements\"\n"
-"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Rempli en groupe \xc3\xa0 partir du lien! Appuyez sur \\'Se connecter au groupe\\' pour rejoindre ...\"\n"
-"\"You need to specify a group name!\" = \"Vous devez sp\xc3\xa9""cifier un nom de groupe!\"\n"
-"\"You need to specify a user name!\" = \"Vous devez sp\xc3\xa9""cifier un nom d\\'utilisateur!\"\n"
-"\"Server address is invalid!\" = \"L\\'adresse du serveur n\\'est pas valide!\"\n"
-"\"All who join the same Group will be able to connect with each other.\" = \"Tous ceux qui rejoignent le m\xc3\xaame groupe pourront se connecter les uns aux autres.\"\n"
-"\"AUDIO\" = \"L\\'AUDIO\"\n"
-"\"OPTIONS\" = \"OPTIONS\"\n"
-"\"HELP\" = \"AIDEZ-MOI\"\n"
-"\"RECORDING\" = \"ENREGISTREMENT\"\n"
-"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"L\\'utilisation d\\'un type de p\xc3\xa9riph\xc3\xa9rique audio ASIO est fo"
-"rtement recommand\xc3\xa9""e. Si votre interface audio n\\'en est pas fournie, installez ASIO4ALL (asio4all.org) et configurez-la d\\'abord.\"\n"
-"\"Disconnect\" = \"D\xc3\xa9""connecter\"\n"
-"\"[P] \" = \"[P]\"\n"
-"\"Waiting for other users to join group \\\"\" = \"En attente que d\\'autres utilisateurs rejoignent le groupe \\\"\"\n"
-"\"Press Connect button to start.\\r\\n\\r\\nPlease use headphones if you are using a microphone!\" = \"Appuyez sur le bouton Connect pour d\xc3\xa9marrer.\\r\\n\\r\\nVeuillez utiliser des \xc3\xa9""couteurs si vous utilisez un microphone!\"\n"
-"\"Connected to server\" = \"Connect\xc3\xa9 au serveur\"\n"
-"\"Already connected with this user name\" = \"D\xc3\xa9j\xc3\xa0 connect\xc3\xa9 avec ce nom d\\'utilisateur\"\n"
-"\"Connect failed: \" = \"Echec de connexion:\"\n"
-"\"Disconnected from server\" = \"D\xc3\xa9""connect\xc3\xa9 du serveur\"\n"
-"\"Disconnect failed: \" = \"\xc3\x89""chec de la d\xc3\xa9""connexion:\"\n"
-"\"Joined Group: \" = \"Groupe rejoint:\"\n"
-"\"Failed to join group: \" = \"Impossible de rejoindre le groupe:\"\n"
-"\"Left Group: \" = \"Groupe de gauche:\"\n"
-"\"Failed to leave group: \" = \"\xc3\x89""chec de la sortie du groupe:\"\n"
-"\"Trim to New\" = \"Couper \xc3\xa0 nouveau\"\n"
-"\"Share File\" = \"Partager le fichier\"\n"
-"\"Reveal File\" = \"R\xc3\xa9v\xc3\xa9ler le fichier\"\n"
-"\"Mute All Input\" = \"Couper toutes les entr\xc3\xa9""es\"\n"
-"\"Toggle Mute all input\" = \"Activer / d\xc3\xa9sactiver toutes les entr\xc3\xa9""es\"\n"
-"\"Popup\" = \"Apparaitre\"\n"
-"\"Mute All Users\" = \"Mettre en sourdine tous les utilisateurs\"\n"
-"\"Toggle Mute all users\" = \"Toggle D\xc3\xa9sactivation de tous les utilisateurs\"\n"
-"\"Play/Pause\" = \"Jouer pause\"\n"
-"\"Toggle file playback\" = \"Basculer la lecture des fichiers\"\n"
-"\"Loop\" = \"Boucle\"\n"
-"\"Toggle file looping\" = \"Basculer la boucle de fichier\"\n"
-"\"Trim file from selection to new file\" = \"D\xc3\xa9""couper le fichier de la s\xc3\xa9lection au nouveau fichier\"\n"
-"\"Close File\" = \"Fermer le fichier\"\n"
-"\"Close file\" = \"Fermer le fichier\"\n"
-"\"Open File\" = \"Fichier ouvert\"\n"
-"\"Open Audio file\" = \"Ouvrir le fichier audio\"\n"
-"\"Share file\" = \"Partager le fichier\"\n"
-"\"Reveal file\" = \"R\xc3\xa9v\xc3\xa9ler le fichier\"\n"
-"\"Show Options\" = \"Afficher les options\"\n"
-"\"Record\" = \"Record\"\n"
-"\"Toggle Record\" = \"Toggle Record\"\n"
-"\"Check For New Version\" = \"Rechercher une nouvelle version\"\n"
-"\"Check for New Version\" = \"Rechercher une nouvelle version\"\n"
-"\"File\" = \"Fichier\"\n"
-"\"Transport\" = \"Transport\"\n"
-"\"Help\" = \"Aidez-moi\"\n"
-"\"PUBLIC \" = \"PUBLIQUE\"\n"
-"\"password protected, \" = \"prot\xc3\xa9g\xc3\xa9 par mot de passe,\"\n"
-"\"on \" = \"sur\"\n"
-"\"to \" = \"\xc3\xa0\"\n"
-"\" active users\" = \" utilisateurs actifs\"\n"
-"\" active user\" = \" utilisateur actif\"\n"
-"\"Save current state\" = \"Enregistrer l\\'\xc3\xa9tat actuel\"\n"
-"\"Error whilst saving\" = \"Erreur lors de l\\'enregistrement\"\n"
-"\"Couldn\\'t write to the specified file!\" = \"Impossible d\\'\xc3\xa9""crire dans le fichier sp\xc3\xa9""cifi\xc3\xa9!\"\n"
-"\"Load a saved state\" = \"Charger un \xc3\xa9tat enregistr\xc3\xa9\"\n"
-"\"Error whilst loading\" = \"Erreur lors du chargement\"\n"
-"\"Couldn\\'t read from the specified file!\" = \"Impossible de lire \xc3\xa0 partir du fichier sp\xc3\xa9""cifi\xc3\xa9!\"\n"
-"\"Audio/MIDI Settings\" = \"Param\xc3\xa8tres audio / MIDI\"\n"
-"\"Audio Settings\" = \"Les param\xc3\xa8tres audio\"\n"
-"\"Audio/MIDI Settings...\" = \"Param\xc3\xa8tres audio / MIDI ...\"\n"
-"\"Save current state...\" = \"Enregistrer l\\'\xc3\xa9tat actuel ...\"\n"
-"\"Load a saved state...\" = \"Charger un \xc3\xa9tat enregistr\xc3\xa9 ...\"\n"
-"\"Reset to default state\" = \"R\xc3\xa9initialiser \xc3\xa0 l\\'\xc3\xa9tat par d\xc3\xa9""faut\"\n"
-"\"Threshold\" = \"Seuil\"\n"
-"\"Makeup Gain\" = \"Gain de maquillage\"\n"
-"\"Compressor\" = \"Compresseur\"\n"
-"\"Autoset Makeup\" = \"Maquillage Autoset\"\n"
-"\"Gain\" = \"Gain\"\n"
-"\"High Shelf\" = \"\xc3\x89tag\xc3\xa8re haute\"\n"
-"\"Low Shelf\" = \"Etag\xc3\xa8re basse\"\n"
-"\"Freq 1\" = \"Fr\xc3\xa9q 1\"\n"
-"\"Q\" = \"Q\"\n"
-"\"Freq 2\" = \"Fr\xc3\xa9q 2\"\n"
-"\"Parametric EQ\" = \"\xc3\x89galiseur param\xc3\xa9trique\"\n"
-"\"Level: \" = \"Niveau:\"\n"
-"\"Remote address:\" = \"Adresse distante:\"\n"
-"\"Disable Sending\" = \"D\xc3\xa9sactiver l\\'envoi\"\n"
-"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Active / d\xc3\xa9sactive la mise en sourdine, emp\xc3\xaa""chant l\\'audio d\\'\xc3\xaatre entendu pour cet utilisateur\"\n"
-"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"N\\'\xc3\xa9""coutez que cet utilisateur et les autres utilisateurs en solo. Appuyez sur Alt pour mettre en solo cet utilisateur exclusivement.\"\n"
-"\"Latency\\r\\nTest\" = \"Latence\\r\\nTester\"\n"
-"\"Pan\" = \"La po\xc3\xaale\"\n"
-"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"R\xc3\xa9initialise le tampon de gigue au minimum. Maintenez la touche Alt enfonc\xc3\xa9""e pour r\xc3\xa9initialiser pour tous (avec auto).\"\n"
-"\"Jitter Buffer\" = \"Tampon de gigue\"\n"
-"\"Change for all\" = \"Changement pour tous\"\n"
-"\"Send Quality\" = \"Envoyer la qualit\xc3\xa9\"\n"
-"\"No Preference\" = \"Pas de pr\xc3\xa9""f\xc3\xa9rence\"\n"
-"\"Preferred Recv Quality\" = \"Qualit\xc3\xa9 de r\xc3\xa9""ception pr\xc3\xa9""f\xc3\xa9r\xc3\xa9""e\"\n"
-"\"Latency (ms)\" = \"Latence (ms)\"\n"
-"\"Ping\" = \"Ping\"\n"
-"\"PRESS\" = \"PRESSE\"\n"
-"\"Send Quality:\" = \"Envoyer la qualit\xc3\xa9:\"\n"
-"\"Recv Jitter Buffer:\" = \"Tampon de gigue Recv:\"\n"
-"\"Reset Dropped\" = \"R\xc3\xa9initialiser abandonn\xc3\xa9\"\n"
-"\"Remove\" = \"Retirer\"\n"
-"\"Removes user from your own connections, does not affect the whole group\" = \"Supprime l\\'utilisateur de vos propres connexions, n\\'affecte pas l\\'ensemble du groupe\"\n"
-"\"Other end muted us\" = \"L\\'autre fin nous a \xc3\xa9touff\xc3\xa9s\"\n"
-"\"SEND DISABLED\" = \"ENVOYER D\xc3\x89SACTIV\xc3\x89\"\n"
-"\"Other side is muted\" = \"L\\'autre c\xc3\xb4t\xc3\xa9 est muet\"\n"
-"\"You muted them\" = \"Vous les avez mis en sourdine\"\n"
-"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"Impossible de se connect"
-"er avec l\\'utilisateur, l\\'un ou les deux d\\'entre vous peuvent avoir besoin de configurer votre pare-feu interne ou votre routeur r\xc3\xa9seau pour permettre \xc3\xa0 SonoBus de fonctionner entre vous. Consultez la documentation d\\'aide pour ac"
-"tiver la redirection de port sur votre routeur.\"\n"
-"\"Connecting...\" = \"De liaison...\"\n"
-"\"Measured actual round-trip latency: %d ms\" = \"Latence aller-retour r\xc3\xa9""elle mesur\xc3\xa9""e:% d ms\"\n"
-"\"Est. Outgoing: %.1f ms\" = \"Est. Sortant: %.1f ms\"\n"
-"\"Est. Incoming: %.1f ms\" = \"Est. Entrant: %.1f ms\"\n"
-"\"Jitter: %.1f ms\" = \"Jitter: %.1f ms\"\n"
-"\"Measuring actual round-trip latency\" = \"Mesure de la latence aller-retour r\xc3\xa9""elle\"\n"
-"\"Mute All\" = \"Rendre tout silencieux\"\n"
-"\"Unmute All\" = \"Tout r\xc3\xa9""activer\"\n";
-
-const char* localized_fr_strings = (const char*) temp_binary_data_2;
-
-//================== localized_it.strings ==================
-static const unsigned char temp_binary_data_3[] =
-"language: Italian\n"
-"countries: it\n"
-"\n"
-"\"Noise Floor\" = \"Noise Floor\"\n"
-"\"Ratio\" = \"Rapporto\"\n"
-"\"Attack\" = \"attacco\"\n"
-"\"Release\" = \"pubblicazione\"\n"
-"\"Noise Gate\" = \"Noise Gate\"\n"
-"\"In Gain\" = \"In guadagno\"\n"
-"\"In Pan\" = \"In Pan\"\n"
-"\"C\" = \"C\"\n"
-"\"In Pan 1\" = \"In padella 1\"\n"
-"\"In Pan 2\" = \"In padella 2\"\n"
-"\"Dry Level\" = \"Livello a secco\"\n"
-"\"Output Level\" = \"Livello di uscita\"\n"
-"\"Default Net Buffer Time\" = \"Tempo di buffer netto predefinito\"\n"
-"\"Send Channels\" = \"Invia canali\"\n"
-"\"Metronome Enabled\" = \"Metronomo abilitato\"\n"
-"\"Send Metronome Audio\" = \"Invia audio metronomo\"\n"
-"\"Metronome Gain\" = \"Guadagno metronomo\"\n"
-"\"Metronome Tempo\" = \"Metronome Tempo\"\n"
-"\"Send Playback Audio\" = \"Invia audio di riproduzione\"\n"
-"\"Hear Latency Test\" = \"Ascolta il test di latenza\"\n"
-"\"Record Metronome to File\" = \"Registra metronomo su file\"\n"
-"\"Main Reverb Enabled\" = \"Riverbero principale abilitato\"\n"
-"\"Main Reverb Level\" = \"Livello di riverbero principale\"\n"
-"\"Main Reverb Size\" = \"Dimensione del riverbero principale\"\n"
-"\"Main Reverb Damping\" = \"Smorzamento del riverbero principale\"\n"
-"\"Pre-Delay Time\" = \"Tempo di pre-ritardo\"\n"
-"\"Main Reverb Model\" = \"Modello di riverbero principale\"\n"
-"\"Main Send Mute\" = \"Muto principale di invio\"\n"
-"\"Main Receive Mute\" = \"Muto di ricezione principale\"\n"
-"\"Main In Mute\" = \"Main In Mute\"\n"
-"\"Main Monitor Solo\" = \"Main Monitor Solo\"\n"
-"\"Def Auto Net Buffer Mode\" = \"Modalit\xc3\xa0 Def Auto Net Buffer\"\n"
-"\"Def Send Format\" = \"Formato di invio predefinito\"\n"
-"\"Dynamic Resampling\" = \"Ricampionamento dinamico\"\n"
-"\"Reconnect Last\" = \"Riconnetti per ultimo\"\n"
-"\"Could not find format for filename\" = \"Impossibile trovare il formato per il nome del file\"\n"
-"\"Error creating writer for \" = \"Errore durante la creazione del writer per\"\n"
-"\"Error creating output file: \" = \"Errore durante la creazione del file di output:\"\n"
-"\"Error creating directory for recording: \" = \"Errore durante la creazione della directory per la registrazione:\"\n"
-"\"SonoBus\" = \"SonoBus\"\n"
-"\"Pan: Center\" = \"Pan: centro\"\n"
-"\"Pan: \" = \"Padella:\"\n"
-"\"MUTE\" = \"MUTE\"\n"
-"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Disattiva il tuo input impedendo a tutti di sentirti, senza alcun indicatore\"\n"
-"\"SOLO\" = \"ASSOLO\"\n"
-"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Ascolta solo te stesso e altri utenti in solo. Alt-clic per solo solo te stesso.\"\n"
-"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silenzia il tuo ingresso, nessuno dei tuoi audio (inclusa la riproduzione del file) verr\xc3\xa0 inviato agli utenti e"
-" vedranno un indicatore disattivato\"\n"
-"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Disattiva / ripristina l\\'audio di tutti gli utenti, nessun dato audio verr\xc3\xa0 ricevuto quando gli utenti vengono disattivati\"\n"
-"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Quando viene premuto, disattiva l\\'audio degli altri e ti riattiva momentaneamente (premi per parlare).\"\n"
-"\" Use the \\'T\\' key as a shortcut.\" = \" Usa il tasto \\\"T\\\" come scorciatoia.\"\n"
-"\"Metronome On/Off\" = \"Metronomo On / Off\"\n"
-"\"Metronome Options\" = \"Opzioni metronomo\"\n"
-"\"Level\" = \"Livello\"\n"
-"\"Tempo\" = \"Tempo\"\n"
-"\"Send Metronome to All\" = \"Invia metronomo a tutti\"\n"
-"\"In Level\" = \"In Level\"\n"
-"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Questo riduce o aumenta il livello del tuo ingresso audio e influenzer\xc3\xa0 il livello del tu"
-"o audio inviato agli altri e il tuo monitoraggio\"\n"
-"\"Monitor\" = \"Tenere sotto controllo\"\n"
-"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Questo regola il livello del monitoraggio del tuo ingresso, che solo tu senti\"\n"
-"\"Out Level\" = \"Livello di uscita\"\n"
-"\"This is the main volume control which affects everything you hear\" = \"Questo \xc3\xa8 il controllo del volume principale che influenza tutto ci\xc3\xb2 che senti\"\n"
-"\"RECENTS\" = \"RECENTI\"\n"
-"\"PRIVATE GROUP\" = \"GRUPPO PRIVATO\"\n"
-"\"PUBLIC GROUPS\" = \"GRUPPI PUBBLICI\"\n"
-"\"DIRECT\" = \"DIRETTO\"\n"
-"\"--\" = \"-\"\n"
-"\"Local Address:\" = \"Indirizzo locale:\"\n"
-"\"Host: \" = \"Ospite:\"\n"
-"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Collegati direttamente ad altre istanze di SonoBus sulla tua rete locale con l\\'indirizzo locale che pubblicizzano.\"\n"
-"\"IPaddress:port\" = \"Indirizzo IP: porta\"\n"
-"\"Connect...\" = \"Collegare...\"\n"
-"\"Direct Connect\" = \"Collegamento diretto\"\n"
-"\"Connect to Group\" = \"Connetti al gruppo\"\n"
-"\"optional\" = \"opzionale\"\n"
-"\"Your Displayed Name:\" = \"Il tuo nome visualizzato:\"\n"
-"\"Password:\" = \"Parola d\\'ordine:\"\n"
-"\"Group Name:\" = \"Nome del gruppo:\"\n"
-"\"Connection Server:\" = \"Connection Server:\"\n"
-"\"Generate a random group name\" = \"Genera un nome di gruppo casuale\"\n"
-"\"Copy connection information to the clipboard to share\" = \"Copia le informazioni di connessione negli appunti per condividerle\"\n"
-"\"Paste connection information from the clipboard\" = \"Incolla le informazioni di connessione dagli appunti\"\n"
-"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"Il server di connessione viene utilizzato solo per aiutare gli utenti a ritrovarsi, nessun "
-"audio lo attraversa. Tutto l\\'audio viene inviato direttamente tra gli utenti (peer to peer).\"\n"
-"\"Clear All\" = \"Cancella tutto\"\n"
-"\"Active Public Groups\" = \"Gruppi pubblici attivi\"\n"
-"\"Select existing group below OR \" = \"Seleziona il gruppo esistente sotto OR\"\n"
-"\"Create Group...\" = \"Creare un gruppo...\"\n"
-"\"enter group name\" = \"immettere il nome del gruppo\"\n"
-"\"Choose a descriptive group name that includes geographic information and genre\" = \"Scegli un nome di gruppo descrittivo che includa informazioni geografiche e genere\"\n"
-"\"Patchbay\" = \"Patchbay\"\n"
-"\"Setup Audio\" = \"Imposta audio\"\n"
-"\"Press to copy/share link to group\" = \"Premere per copiare / condividere il collegamento al gruppo\"\n"
-"\"Connect\" = \"Collegare\"\n"
-"\"Manual\" = \"Manuale\"\n"
-"\"Auto Up\" = \"Auto Up\"\n"
-"\"Auto\" = \"Auto\"\n"
-"\"Initial Auto\" = \"Auto iniziale\"\n"
-"\"Default Jitter Buffer\" = \"Buffer jitter predefinito\"\n"
-"\"Default Send Quality:\" = \"Qualit\xc3\xa0 di invio predefinita:\"\n"
-"\"Make Latency Test Audible\" = \"Rendi udibile il test di latenza\"\n"
-"\"Metronome output recorded in full mix\" = \"Uscita metronomo registrata in full mix\"\n"
-"\"Record feature creates the following files:\" = \"La funzione di registrazione crea i seguenti file:\"\n"
-"\"Full Mix\" = \"Mix completo\"\n"
-"\"Full Mix without yourself\" = \"Mix completo senza te stesso\"\n"
-"\"Yourself\" = \"Te stesso\"\n"
-"\"Each Connected User\" = \"Ogni utente connesso\"\n"
-"\"FLAC\" = \"FLAC\"\n"
-"\"WAV\" = \"WAV\"\n"
-"\"OGG\" = \"OGG\"\n"
-"\"16 bit\" = \"16 bit\"\n"
-"\"24 bit\" = \"24 bit\"\n"
-"\"Audio File Format:\" = \"Formato file audio:\"\n"
-"\"Record Location:\" = \"Posizione della registrazione:\"\n"
-"\"Use Specific UDP Port\" = \"Usa porta UDP specifica\"\n"
-"\"Use Drift Correction\" = \"Usa la correzione della deriva\"\n"
-"\"Auto-Reconnect to Last Group\" = \"Riconnessione automatica all\\'ultimo gruppo\"\n"
-"\"Override Device Sample Rate\" = \"Ignora frequenza di campionamento del dispositivo\"\n"
-"\"Automatically check for updates\" = \"Controlla automaticamente gli aggiornamenti\"\n"
-"\"Sliders Snap to Mouse Click\" = \"I cursori si agganciano al clic del mouse\"\n"
-"\"Use Input FX Limiter\" = \"Usa Input FX Limiter\"\n"
-"\"Change all connected\" = \"Cambia tutto connesso\"\n"
-"\"Version: \" = \"Versione:\"\n"
-"\"FX\" = \"FX\"\n"
-"\"In FX\" = \"In FX\"\n"
-"\"Match # Inputs\" = \"Abbina # input\"\n"
-"\"Send Mono\" = \"Invia Mono\"\n"
-"\"Send Stereo\" = \"Invia Stereo\"\n"
-"\"# Send Channels\" = \"# Invia canali\"\n"
-"\"Size\" = \"Taglia\"\n"
-"\"Damping\" = \"Smorzamento\"\n"
-"\"Pre-Delay\" = \"Pre-ritardo\"\n"
-"\"Reverb\" = \"Riverbero\"\n"
-"\"Freeverb\" = \"Freeverb\"\n"
-"\"MVerb\" = \"MVerb\"\n"
-"\"Zita\" = \"Zita\"\n"
-"\"Start/Stop recording audio to file\" = \"Avvia / interrompe la registrazione dell\\'audio su file\"\n"
-"\"Load audio file for playback\" = \"Carica il file audio per la riproduzione\"\n"
-"\"Send File Playback to All\" = \"Invia riproduzione file a tutti\"\n"
-"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Informazioni di gruppo compilate dagli appunti! Premi \\\"Connetti al gruppo\\\" per partecipare ...\"\n"
-"\"Quit Confirmation\" = \"Esci dalla conferma\"\n"
-"\"You are connected, are you sure you want to quit?\" = \"Sei connesso, sei sicuro di voler uscire?\"\n"
-"\"Quit\" = \"Smettere\"\n"
-"\"Share this link with others to connect with SonoBus: \\r\\n\\r\\n\" = \"Condividi questo collegamento con altri per connetterti con SonoBus:\\r\\n\\r\\n\"\n"
-"\"Or share this link:\\r\\n\" = \"Oppure condividi questo link:\\r\\n\"\n"
-"\"Last Session: \" = \"Ultima sessione:\"\n"
-"\"Total: \" = \"Totale:\"\n"
-"\"Not sending your audio anywhere\" = \"Non inviare il tuo audio ovunque\"\n"
-"\"Sending your audio to others\" = \"Invio del tuo audio ad altri\"\n"
-"\"Muted everyone\" = \"Silenziato tutti\"\n"
-"\"Unmuted all who were not muted previously\" = \"Riattiva tutti quelli che non erano stati disattivati \xe2\x80\x8b\xe2\x80\x8bin precedenza\"\n"
-"\"Sending your metronome to all users\" = \"Invio del metronomo a tutti gli utenti\"\n"
-"\"Now only you will hear your metronome\" = \"Ora solo tu ascolterai il tuo metronomo\"\n"
-"\"Sending file playback to all users\" = \"Invio della riproduzione del file a tutti gli utenti\"\n"
-"\"Now only you will hear the file playback\" = \"Ora solo tu ascolterai la riproduzione del file\"\n"
-"\"Copied connection info to clipboard for you to share with others\" = \"Informazioni di connessione copiate negli appunti per condividerle con altri\"\n"
-"\"Copied group connection info to clipboard for you to share with others\" = \"Copiate le informazioni sulla connessione del gruppo negli appunti per condividerle con altri\"\n"
-"\"Finished recording to \" = \"Registrazione terminata su\"\n"
-"\"Last recorded file: \" = \"Ultimo file registrato:\"\n"
-"\"Started recording output\" = \"Uscita registrazione avviata\"\n"
-"\"Recording audio to: \" = \"Registrazione dell\\'audio su:\"\n"
-"\"Recording multi-track audio to: \" = \"Registrazione di audio multitraccia su:\"\n"
-"\"Choose an audio file to open...\" = \"Scegli un file audio da aprire ...\"\n"
-"\"Choose the folder for new recordings\" = \"Scegli la cartella per le nuove registrazioni\"\n"
-"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Gruppo compilato dal link! Premi \\\"Connetti al gruppo\\\" per partecipare ...\"\n"
-"\"You need to specify a group name!\" = \"Devi specificare un nome di gruppo!\"\n"
-"\"You need to specify a user name!\" = \"Devi specificare un nome utente!\"\n"
-"\"Server address is invalid!\" = \"L\\'indirizzo del server non \xc3\xa8 valido!\"\n"
-"\"All who join the same Group will be able to connect with each other.\" = \"Tutti coloro che si uniscono allo stesso gruppo potranno connettersi tra loro.\"\n"
-"\"AUDIO\" = \"AUDIO\"\n"
-"\"OPTIONS\" = \"OPZIONI\"\n"
-"\"HELP\" = \"AIUTO\"\n"
-"\"RECORDING\" = \"REGISTRAZIONE\"\n"
-"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Si consiglia vivamente di utilizzare un tipo di dispositivo audio ASIO. Se "
-"la tua interfaccia audio non ne \xc3\xa8 stata fornita, installa ASIO4ALL (asio4all.org) e configuralo prima.\"\n"
-"\"Disconnect\" = \"Disconnetti\"\n"
-"\"[P] \" = \"[P]\"\n"
-"\"Waiting for other users to join group \\\"\" = \"In attesa che altri utenti si uniscano al gruppo \\\"\"\n"
-"\"Press Connect button to start.\\r\\n\\r\\nPlease use headphones if you are using a microphone!\" = \"Premere il pulsante Connetti per iniziare.\\r\\n\\r\\nSi prega di utilizzare le cuffie se si utilizza un microfono!\"\n"
-"\"Connected to server\" = \"Collegato al server\"\n"
-"\"Already connected with this user name\" = \"Gi\xc3\xa0 connesso con questo nome utente\"\n"
-"\"Connect failed: \" = \"Connessione fallita:\"\n"
-"\"Disconnected from server\" = \"Disconnesso dal server\"\n"
-"\"Disconnect failed: \" = \"Disconnessione non riuscita:\"\n"
-"\"Joined Group: \" = \"Gruppo unito:\"\n"
-"\"Failed to join group: \" = \"Impossibile partecipare al gruppo:\"\n"
-"\"Left Group: \" = \"Gruppo di Sinistra:\"\n"
-"\"Failed to leave group: \" = \"Impossibile lasciare il gruppo:\"\n"
-"\"Trim to New\" = \"Ritaglia a nuovo\"\n"
-"\"Share File\" = \"Condividi file\"\n"
-"\"Reveal File\" = \"Rivela file\"\n"
-"\"Mute All Input\" = \"Disattiva tutti gli ingressi\"\n"
-"\"Toggle Mute all input\" = \"Attiva Disattiva tutti gli input\"\n"
-"\"Popup\" = \"Apparire\"\n"
-"\"Mute All Users\" = \"Disattiva tutti gli utenti\"\n"
-"\"Toggle Mute all users\" = \"Attiva Disattiva tutti gli utenti\"\n"
-"\"Play/Pause\" = \"Play pausa\"\n"
-"\"Toggle file playback\" = \"Attiva / disattiva la riproduzione del file\"\n"
-"\"Loop\" = \"Ciclo continuo\"\n"
-"\"Toggle file looping\" = \"Attiva / disattiva il ciclo di file\"\n"
-"\"Trim file from selection to new file\" = \"Taglia il file dalla selezione al nuovo file\"\n"
-"\"Close File\" = \"Chiudi file\"\n"
-"\"Close file\" = \"Chiudi file\"\n"
-"\"Open File\" = \"Apri il file\"\n"
-"\"Open Audio file\" = \"Apri file audio\"\n"
-"\"Share file\" = \"Condividi file\"\n"
-"\"Reveal file\" = \"Rivela file\"\n"
-"\"Show Options\" = \"Mostra opzioni\"\n"
-"\"Record\" = \"Disco\"\n"
-"\"Toggle Record\" = \"Attiva / disattiva registrazione\"\n"
-"\"Check For New Version\" = \"Controlla la nuova versione\"\n"
-"\"Check for New Version\" = \"Verifica la presenza di una nuova versione\"\n"
-"\"File\" = \"File\"\n"
-"\"Transport\" = \"Trasporto\"\n"
-"\"Help\" = \"Aiuto\"\n"
-"\"PUBLIC \" = \"PUBBLICO\"\n"
-"\"password protected, \" = \"protetto da password,\"\n"
-"\"on \" = \"sopra\"\n"
-"\"to \" = \"per\"\n"
-"\" active users\" = \" utenti attivi\"\n"
-"\" active user\" = \" utente attivo\"\n"
-"\"Save current state\" = \"Salva lo stato corrente\"\n"
-"\"Error whilst saving\" = \"Errore durante il salvataggio\"\n"
-"\"Couldn\\'t write to the specified file!\" = \"Impossibile scrivere nel file specificato!\"\n"
-"\"Load a saved state\" = \"Carica uno stato salvato\"\n"
-"\"Error whilst loading\" = \"Errore durante il caricamento\"\n"
-"\"Couldn\\'t read from the specified file!\" = \"Impossibile leggere dal file specificato!\"\n"
-"\"Audio/MIDI Settings\" = \"Impostazioni audio / MIDI\"\n"
-"\"Audio Settings\" = \"Impostazioni audio\"\n"
-"\"Audio/MIDI Settings...\" = \"Impostazioni audio / MIDI ...\"\n"
-"\"Save current state...\" = \"Salva stato corrente ...\"\n"
-"\"Load a saved state...\" = \"Carica uno stato salvato ...\"\n"
-"\"Reset to default state\" = \"Ripristina lo stato predefinito\"\n"
-"\"Threshold\" = \"Soglia\"\n"
-"\"Makeup Gain\" = \"Guadagno di trucco\"\n"
-"\"Compressor\" = \"Compressore\"\n"
-"\"Autoset Makeup\" = \"Trucco Autoset\"\n"
-"\"Gain\" = \"Guadagno\"\n"
-"\"High Shelf\" = \"Ripiano alto\"\n"
-"\"Low Shelf\" = \"Ripiano basso\"\n"
-"\"Freq 1\" = \"Freq 1\"\n"
-"\"Q\" = \"Q\"\n"
-"\"Freq 2\" = \"Freq 2\"\n"
-"\"Parametric EQ\" = \"EQ parametrico\"\n"
-"\"Level: \" = \"Livello:\"\n"
-"\"Remote address:\" = \"Indirizzo remoto:\"\n"
-"\"Disable Sending\" = \"Disabilita l\\'invio\"\n"
-"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Attiva / disattiva il silenziamento della ricezione, impedendo l\\'ascolto dell\\'audio per questo utente\"\n"
-"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Ascolta solo questo utente e altri utenti in solo. Alt-clic per isolare esclusivamente questo utente.\"\n"
-"\"Latency\\r\\nTest\" = \"Latenza\\r\\nTest\"\n"
-"\"Pan\" = \"Padella\"\n"
-"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Ripristina il jitter buffer al minimo. Tenere premuto il tasto Alt per ripristinare per tutti (con auto).\"\n"
-"\"Jitter Buffer\" = \"Buffer jitter\"\n"
-"\"Change for all\" = \"Cambia per tutti\"\n"
-"\"Send Quality\" = \"Invia qualit\xc3\xa0\"\n"
-"\"No Preference\" = \"Nessuna preferenza\"\n"
-"\"Preferred Recv Quality\" = \"Qualit\xc3\xa0 di ricezione preferita\"\n"
-"\"Latency (ms)\" = \"Latenza (ms)\"\n"
-"\"Ping\" = \"Ping\"\n"
-"\"PRESS\" = \"STAMPA\"\n"
-"\"Send Quality:\" = \"Invia qualit\xc3\xa0:\"\n"
-"\"Recv Jitter Buffer:\" = \"Buffer Jitter Recv:\"\n"
-"\"Reset Dropped\" = \"Reset interrotto\"\n"
-"\"Remove\" = \"Rimuovere\"\n"
-"\"Removes user from your own connections, does not affect the whole group\" = \"Rimuove l\\'utente dalle proprie connessioni, non influisce sull\\'intero gruppo\"\n"
-"\"Other end muted us\" = \"L\\'altra estremit\xc3\xa0 ci ha disattivato\"\n"
-"\"SEND DISABLED\" = \"INVIO DISABILITATO\"\n"
-"\"Other side is muted\" = \"L\\'altro lato \xc3\xa8 disattivato\"\n"
-"\"You muted them\" = \"Li hai disattivati\"\n"
-"\"****\" = \"****\"\n"
-"\"%.1f\" = \"% .1f\"\n"
-"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"Impossibile connettersi "
-"con l\\'utente, uno o entrambi potrebbero dover configurare il firewall interno o il router di rete per consentire a SonoBus di lavorare tra di voi. Vedere la documentazione della guida per abilitare il port forwarding sul router.\"\n"
-"\"Connecting...\" = \"Collegamento ...\"\n"
-"\"Measured actual round-trip latency: %d ms\" = \"Latenza di andata e ritorno effettiva misurata:% d ms\"\n"
-"\"Est. Outgoing: %.1f ms\" = \"Est. In uscita:% .1f ms\"\n"
-"\"Est. Incoming: %.1f ms\" = \"Est. In arrivo:% .1f ms\"\n"
-"\"Jitter: %.1f ms\" = \"Jitter:% .1f ms\"\n"
-"\"Measuring actual round-trip latency\" = \"Misurazione della latenza di andata e ritorno effettiva\"\n"
-"\"Mute All\" = \"Disattiva tutto\"\n"
-"\"Unmute All\" = \"Riattiva tutto\"\n";
-
-const char* localized_it_strings = (const char*) temp_binary_data_3;
+const char* localized_es_txt = (const char*) temp_binary_data_0;
 
 //================== bar_click.wav ==================
-static const unsigned char temp_binary_data_4[] =
+static const unsigned char temp_binary_data_1[] =
 { 82,73,70,70,22,11,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,242,10,0,0,106,255,178,254,205,253,132,254,61,255,155,253,134,252,106,250,68,251,238,3,59,9,135,5,24,253,10,243,65,241,161,254,192,19,220,34,
 171,37,57,30,73,11,214,236,192,209,33,205,212,224,83,252,182,1,230,226,117,194,242,205,49,5,160,68,193,109,209,114,146,86,103,41,151,249,25,218,122,222,23,243,179,239,53,208,59,175,103,158,211,162,30,191,61,237,214,31,142,66,246,67,202,52,191,55,28,79,
 180,95,73,88,177,55,98,4,132,205,140,161,89,140,101,151,57,182,68,205,194,211,52,216,170,233,237,12,5,59,84,98,63,120,120,120,172,91,3,43,189,1,67,237,16,228,130,215,116,193,80,169,106,156,104,157,195,172,195,210,36,7,11,47,116,62,4,63,161,62,52,70,152,
@@ -1208,10 +362,10 @@ static const unsigned char temp_binary_data_4[] =
 57,0,36,0,32,0,24,0,23,0,4,0,237,255,211,255,197,255,204,255,212,255,236,255,245,255,1,0,4,0,7,0,12,0,25,0,31,0,39,0,26,0,12,0,251,255,242,255,242,255,250,255,2,0,9,0,2,0,254,255,247,255,246,255,250,255,254,255,0,0,2,0,251,255,251,255,247,255,0,0,3,0,
 10,0,6,0,4,0,252,255,252,255,0,0,4,0,10,0,6,0,4,0,252,255,254,255,250,255,0,0,254,255,255,255,255,255,255,255,0,0,0,0,0,0 };
 
-const char* bar_click_wav = (const char*) temp_binary_data_4;
+const char* bar_click_wav = (const char*) temp_binary_data_1;
 
 //================== beat_click.wav ==================
-static const unsigned char temp_binary_data_5[] =
+static const unsigned char temp_binary_data_2[] =
 { 82,73,70,70,140,10,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,104,10,0,0,28,249,58,6,151,72,207,101,199,104,160,116,88,110,95,98,168,79,136,50,103,21,4,248,170,222,75,201,157,181,156,163,71,148,120,139,
 249,140,201,154,41,179,20,209,25,241,172,17,229,47,195,71,245,87,7,98,217,104,112,109,238,106,141,91,140,64,129,32,16,0,243,224,213,196,7,174,48,159,232,153,116,157,217,168,140,186,46,205,54,219,172,229,52,243,196,8,64,37,155,67,142,92,65,104,148,97,
 158,75,248,49,22,33,105,29,220,32,25,32,218,18,193,247,206,212,230,180,6,161,164,154,246,158,81,171,159,188,236,207,53,228,101,249,247,14,15,36,9,54,179,66,231,74,169,80,99,85,112,88,93,84,153,66,113,35,157,254,191,221,122,199,26,189,243,186,45,187,49,
@@ -1249,10 +403,10 @@ static const unsigned char temp_binary_data_5[] =
 250,255,255,255,7,0,8,0,7,0,11,0,11,0,18,0,19,0,16,0,11,0,1,0,248,255,244,255,236,255,244,255,242,255,252,255,250,255,1,0,252,255,255,255,2,0,5,0,6,0,13,0,4,0,12,0,0,0,2,0,253,255,253,255,250,255,252,255,251,255,253,255,254,255,253,255,0,0,0,0,2,0,4,
 0,2,0,3,0,1,0,254,255,2,0,0,0,1,0,1,0,253,255,0,0,251,255,0,0,253,255,3,0,255,255,2,0,2,0,254,255,1,0,254,255,2,0,2,0,2,0,0,0,1,0,255,255,254,255,1,0,252,255,1,0,0,0,0,0,0,0,0,0,255,255,1,0,0,0,255,255,3,0,252,255,3,0,254,255,0,0 };
 
-const char* beat_click_wav = (const char*) temp_binary_data_5;
+const char* beat_click_wav = (const char*) temp_binary_data_2;
 
 //================== copy_icon.svg ==================
-static const unsigned char temp_binary_data_6[] =
+static const unsigned char temp_binary_data_3[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -1327,10 +481,10 @@ static const unsigned char temp_binary_data_6[] =
 "     d=\"M383.5,128l.5-24a56.16,56.16,0,0,0-56-56H112a64.19,64.19,0,0,0-64,64V328a56.16,56.16,0,0,0,56,56h24\" />\n"
 "</svg>\n";
 
-const char* copy_icon_svg = (const char*) temp_binary_data_6;
+const char* copy_icon_svg = (const char*) temp_binary_data_3;
 
 //================== DejaVuSans.ttf ==================
-static const unsigned char temp_binary_data_7[] =
+static const unsigned char temp_binary_data_4[] =
 { 0,1,0,0,0,20,1,0,0,4,0,64,70,70,84,77,115,193,244,240,0,0,1,76,0,0,0,28,71,68,69,70,148,207,142,230,0,0,1,104,0,0,2,148,71,80,79,83,86,128,196,53,0,0,3,252,0,0,158,138,71,83,85,66,193,208,64,89,0,0,162,136,0,0,21,222,77,65,84,72,167,50,56,125,0,0,184,
 104,0,0,6,62,79,83,47,50,89,45,118,45,0,0,190,168,0,0,0,86,99,109,97,112,192,73,38,0,0,0,191,0,0,0,23,26,99,118,116,32,0,105,29,57,0,0,214,28,0,0,1,254,102,112,103,109,113,52,118,106,0,0,216,28,0,0,0,171,103,97,115,112,0,7,0,7,0,0,216,200,0,0,0,12,103,
 108,121,102,97,12,247,6,0,0,216,212,0,8,123,228,104,101,97,100,12,230,1,214,0,9,84,184,0,0,0,54,104,104,101,97,13,159,31,203,0,9,84,240,0,0,0,36,104,109,116,120,37,161,223,173,0,9,85,20,0,0,97,150,107,101,114,110,12,153,8,59,0,9,182,172,0,0,63,252,108,
@@ -10333,10 +9487,10 @@ static const unsigned char temp_binary_data_7[] =
 43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,
 43,43,43,29,0,0 };
 
-const char* DejaVuSans_ttf = (const char*) temp_binary_data_7;
+const char* DejaVuSans_ttf = (const char*) temp_binary_data_4;
 
 //================== dice_icon_128.png ==================
-static const unsigned char temp_binary_data_8[] =
+static const unsigned char temp_binary_data_5[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,128,0,0,0,128,8,6,0,0,0,195,62,97,203,0,0,0,6,98,75,71,68,0,59,0,0,0,85,52,179,151,147,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,7,12,20,59,33,210,3,100,86,
 0,0,14,94,73,68,65,84,120,218,237,157,121,144,20,213,29,199,63,179,23,179,130,44,114,136,23,106,98,44,145,132,160,136,138,43,38,26,53,152,50,40,200,17,47,226,129,23,81,2,138,150,85,106,76,162,198,28,94,139,70,87,84,76,208,120,1,70,100,181,4,35,30,81,
 81,99,66,129,90,10,165,4,49,32,107,68,34,176,202,236,53,147,63,126,223,174,157,218,218,21,119,167,167,167,187,231,125,171,182,106,119,122,182,251,189,223,251,245,251,221,191,7,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,113,70,
@@ -10392,10 +9546,10 @@ static const unsigned char temp_binary_data_8[] =
 138,214,86,255,134,232,91,96,165,170,170,138,225,195,135,83,90,90,138,67,30,157,31,173,173,44,95,190,156,45,91,182,56,98,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,236,16,255,7,76,189,120,76,223,155,3,94,0,0,0,0,73,69,78,68,
 174,66,96,130,0,0 };
 
-const char* dice_icon_128_png = (const char*) temp_binary_data_8;
+const char* dice_icon_128_png = (const char*) temp_binary_data_5;
 
 //================== dots.svg ==================
-static const unsigned char temp_binary_data_9[] =
+static const unsigned char temp_binary_data_6[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10496,20 +9650,20 @@ static const unsigned char temp_binary_data_9[] =
 "     cy=\"378.0148\"\n"
 "     r=\"20\" /></svg>\n";
 
-const char* dots_svg = (const char*) temp_binary_data_9;
+const char* dots_svg = (const char*) temp_binary_data_6;
 
 //================== dots_icon.png ==================
-static const unsigned char temp_binary_data_10[] =
+static const unsigned char temp_binary_data_7[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,55,0,0,0,55,8,6,0,0,0,168,219,210,70,0,0,0,6,98,75,71,68,0,0,0,0,0,0,249,67,187,127,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,6,27,19,11,49,229,19,18,210,
 0,0,0,247,73,68,65,84,104,222,237,151,59,14,65,65,24,70,15,81,18,165,210,163,102,31,18,61,91,176,4,86,32,118,192,14,36,122,196,30,238,30,60,10,81,162,162,210,140,78,184,133,43,70,206,223,76,49,95,50,57,153,226,255,78,46,73,18,254,117,242,252,241,8,39,
 156,112,194,9,247,43,112,13,96,10,236,129,107,56,39,64,45,235,135,115,25,47,241,54,48,7,138,79,238,46,64,23,88,197,248,115,245,23,96,0,37,96,6,84,99,132,27,190,0,123,76,25,24,196,8,215,78,153,235,196,8,87,249,112,238,167,224,142,41,115,135,24,225,150,
 41,115,139,24,225,70,192,249,77,230,4,140,99,132,219,0,189,176,207,158,205,57,236,185,109,172,13,101,5,52,67,67,217,1,183,112,78,128,22,176,206,242,241,194,23,234,215,14,232,91,156,133,211,10,180,2,173,64,43,208,10,180,2,173,64,43,208,10,180,2,139,179,
 112,90,129,86,160,21,104,5,90,129,86,160,21,104,5,90,129,86,96,113,22,78,56,225,132,19,238,203,115,7,251,83,94,163,113,150,91,80,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* dots_icon_png = (const char*) temp_binary_data_10;
+const char* dots_icon_png = (const char*) temp_binary_data_7;
 
 //================== folder_icon.svg ==================
-static const unsigned char temp_binary_data_11[] =
+static const unsigned char temp_binary_data_8[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10635,10 +9789,10 @@ static const unsigned char temp_binary_data_11[] =
 "     y=\"0\" />\n"
 "</svg>\n";
 
-const char* folder_icon_svg = (const char*) temp_binary_data_11;
+const char* folder_icon_svg = (const char*) temp_binary_data_8;
 
 //================== hear-others.svg ==================
-static const unsigned char temp_binary_data_12[] =
+static const unsigned char temp_binary_data_9[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10745,10 +9899,10 @@ static const unsigned char temp_binary_data_12[] =
 "         id=\"path901\"\n"
 "         inkscape:connector-curvature=\"0\" /></g></g></svg>\n";
 
-const char* hearothers_svg = (const char*) temp_binary_data_12;
+const char* hearothers_svg = (const char*) temp_binary_data_9;
 
 //================== incoming_allowed.svg ==================
-static const unsigned char temp_binary_data_13[] =
+static const unsigned char temp_binary_data_10[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10855,10 +10009,10 @@ static const unsigned char temp_binary_data_13[] =
 "1 2.4,2.8 2.4,5.7 0,2.9 -1.6,4.9 -2.4,5.7 -0.8,0.8 -80.00003,88 -80.00003,88 -1.5,1.5 -3.6,2.3 -5.7,2.3 -2.1,0 -4.1,-0.8 -5.7,-2.3 z\"\n"
 "     style=\"fill:#e6e6e6\" /></svg>\n";
 
-const char* incoming_allowed_svg = (const char*) temp_binary_data_13;
+const char* incoming_allowed_svg = (const char*) temp_binary_data_10;
 
 //================== incoming_allowed_active.svg ==================
-static const unsigned char temp_binary_data_14[] =
+static const unsigned char temp_binary_data_11[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10964,10 +10118,10 @@ static const unsigned char temp_binary_data_14[] =
 "2 6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* incoming_allowed_active_svg = (const char*) temp_binary_data_14;
+const char* incoming_allowed_active_svg = (const char*) temp_binary_data_11;
 
 //================== incoming_disallowed.svg ==================
-static const unsigned char temp_binary_data_15[] =
+static const unsigned char temp_binary_data_12[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11063,10 +10217,10 @@ static const unsigned char temp_binary_data_15[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7305\" /></svg>\n";
 
-const char* incoming_disallowed_svg = (const char*) temp_binary_data_15;
+const char* incoming_disallowed_svg = (const char*) temp_binary_data_12;
 
 //================== lgc_bar.wav ==================
-static const unsigned char temp_binary_data_16[] =
+static const unsigned char temp_binary_data_13[] =
 { 82,73,70,70,30,3,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,250,2,0,0,0,0,0,0,149,33,255,62,19,87,14,105,118,116,67,121,174,119,75,112,225,99,117,83,28,64,12,43,106,21,86,0,213,236,182,219,179,205,51,
 195,133,188,172,185,135,186,198,190,232,197,110,207,152,218,214,230,93,243,154,255,245,10,225,20,21,29,43,35,29,39,198,40,87,40,225,37,203,33,69,28,209,21,184,14,114,7,90,0,191,249,250,243,52,239,164,235,88,233,89,232,152,232,253,233,90,236,139,239,70,
 243,102,247,156,251,187,255,145,3,236,6,181,9,198,11,37,13,178,13,156,13,196,12,112,11,148,9,107,7,8,5,151,2,49,0,249,253,2,252,101,250,47,249,101,248,11,248,31,248,143,248,95,249,105,250,175,251,13,253,122,254,222,255,39,1,79,2,57,3,245,3,103,4,155,
@@ -11078,10 +10232,10 @@ static const unsigned char temp_binary_data_16[] =
 4,0,252,255,4,0,252,255,3,0,253,255,1,0,0,0,255,255,0,0,0,0,255,255,2,0,253,255,2,0,255,255,2,0,253,255,3,0,254,255,2,0,255,255,1,0,254,255,3,0,254,255,1,0,0,0,255,255,2,0,253,255,4,0,252,255,2,0,255,255,0,0,1,0,255,255,0,0,255,255,1,0,0,0,0,0,0,0,255,
 255,1,0,0,0,0,0,1,0,255,255,0,0,1,0,254,255,3,0,254,255,1,0,0,0,254,255,3,0,254,255,0,0,2,0,252,255,5,0,252,255,2,0,255,255,0,0,1,0,254,255,3,0,253,255,2,0,255,255,0,0,0,0,2,0,252,255,5,0,251,255,3,0,0,0,255,255,0,0,1,0,254,255,0,0 };
 
-const char* lgc_bar_wav = (const char*) temp_binary_data_16;
+const char* lgc_bar_wav = (const char*) temp_binary_data_13;
 
 //================== link.svg ==================
-static const unsigned char temp_binary_data_17[] =
+static const unsigned char temp_binary_data_14[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11159,10 +10313,10 @@ static const unsigned char temp_binary_data_17[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* link_svg = (const char*) temp_binary_data_17;
+const char* link_svg = (const char*) temp_binary_data_14;
 
 //================== list_icon1.png ==================
-static const unsigned char temp_binary_data_18[] =
+static const unsigned char temp_binary_data_15[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,80,0,0,0,66,8,6,0,0,0,192,15,81,61,0,0,0,4,103,65,77,65,0,0,177,143,11,252,97,5,0,0,10,59,105,67,67,80,80,104,111,116,111,115,104,111,112,32,73,67,67,32,112,114,111,102,105,108,101,0,0,72,137,157,150,
 119,84,83,217,22,135,207,189,55,189,80,146,16,138,148,208,107,104,82,2,72,13,189,72,145,46,42,49,9,16,74,192,144,0,34,54,68,84,112,68,81,145,166,8,50,40,224,128,163,67,145,177,34,138,133,1,81,177,235,4,25,68,212,113,112,20,27,150,73,100,173,25,223,188,
 121,239,205,155,223,31,247,126,107,159,189,207,221,103,239,125,214,186,0,144,252,131,5,194,76,88,9,128,12,161,88,20,225,231,197,136,141,139,103,96,7,1,12,240,0,3,108,0,224,112,179,179,66,22,248,70,2,153,2,124,216,140,108,153,19,248,23,189,186,14,32,249,
@@ -11215,10 +10369,10 @@ static const unsigned char temp_binary_data_18[] =
 13,184,67,125,156,53,6,28,144,52,147,235,219,27,218,234,35,209,7,96,72,210,120,93,33,189,156,102,113,86,43,208,191,59,242,165,176,171,137,19,89,76,146,220,166,195,228,94,216,1,58,64,7,232,0,93,127,20,224,108,195,50,102,18,248,84,168,214,167,128,207,145,
 178,122,71,238,111,94,42,173,156,153,237,5,70,128,249,138,114,229,146,164,39,1,27,183,21,56,26,97,253,119,91,210,173,37,53,216,30,103,185,92,46,87,103,233,27,11,230,64,135,215,3,163,141,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* list_icon1_png = (const char*) temp_binary_data_18;
+const char* list_icon1_png = (const char*) temp_binary_data_15;
 
 //================== loop_icon.svg ==================
-static const unsigned char temp_binary_data_19[] =
+static const unsigned char temp_binary_data_16[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11357,10 +10511,10 @@ static const unsigned char temp_binary_data_19[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* loop_icon_svg = (const char*) temp_binary_data_19;
+const char* loop_icon_svg = (const char*) temp_binary_data_16;
 
 //================== met.svg ==================
-static const unsigned char temp_binary_data_20[] =
+static const unsigned char temp_binary_data_17[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11454,10 +10608,10 @@ static const unsigned char temp_binary_data_20[] =
 "     d=\"M 272.02882,378.01479 391.67282,150.47536 407.40159,121.313\"\n"
 "     style=\"fill:none;stroke:#cccccc;stroke-width:22;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#TriangleInS)\" /></svg>\n";
 
-const char* met_svg = (const char*) temp_binary_data_20;
+const char* met_svg = (const char*) temp_binary_data_17;
 
 //================== mic.svg ==================
-static const unsigned char temp_binary_data_21[] =
+static const unsigned char temp_binary_data_18[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11532,10 +10686,10 @@ static const unsigned char temp_binary_data_21[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7563\" /></svg>\n";
 
-const char* mic_svg = (const char*) temp_binary_data_21;
+const char* mic_svg = (const char*) temp_binary_data_18;
 
 //================== mic_disabled.svg ==================
-static const unsigned char temp_binary_data_22[] =
+static const unsigned char temp_binary_data_19[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11611,10 +10765,10 @@ static const unsigned char temp_binary_data_22[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7573\" /></svg>\n";
 
-const char* mic_disabled_svg = (const char*) temp_binary_data_22;
+const char* mic_disabled_svg = (const char*) temp_binary_data_19;
 
 //================== mic_pointing.svg ==================
-static const unsigned char temp_binary_data_23[] =
+static const unsigned char temp_binary_data_20[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11743,10 +10897,10 @@ static const unsigned char temp_binary_data_23[] =
 "       d=\"m 154.00949,66.298434 c -4.18442,-4.18442 -4.18442,-10.966085 0,-15.140885 4.18443,-4.18443 10.95647,-4.18443 15.1409,0 L 456.30795,338.31512 c 4.18444,4.18442 4.18444,10.95646 0,15.1409 -4.1748,4.18442 -10.95647,4.18442 -15.14089,0\"\n"
 "       style=\"display:inline;fill:#ff5555;fill-opacity:1;fill-rule:nonzero;stroke-width:8.06606885;stroke:#ff5555;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none\" /></g></svg>\n";
 
-const char* mic_pointing_svg = (const char*) temp_binary_data_23;
+const char* mic_pointing_svg = (const char*) temp_binary_data_20;
 
 //================== move_updown.svg ==================
-static const unsigned char temp_binary_data_24[] =
+static const unsigned char temp_binary_data_21[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11884,10 +11038,10 @@ static const unsigned char temp_binary_data_24[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* move_updown_svg = (const char*) temp_binary_data_24;
+const char* move_updown_svg = (const char*) temp_binary_data_21;
 
 //================== mute-others.svg ==================
-static const unsigned char temp_binary_data_25[] =
+static const unsigned char temp_binary_data_22[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11991,10 +11145,10 @@ static const unsigned char temp_binary_data_25[] =
 "         inkscape:connector-curvature=\"0\"\n"
 "         sodipodi:nodetypes=\"ccsccc\" /></g></g></svg>\n";
 
-const char* muteothers_svg = (const char*) temp_binary_data_25;
+const char* muteothers_svg = (const char*) temp_binary_data_22;
 
 //================== outgoing_allowed.svg ==================
-static const unsigned char temp_binary_data_26[] =
+static const unsigned char temp_binary_data_23[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12097,10 +11251,10 @@ static const unsigned char temp_binary_data_26[] =
 "6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_allowed_svg = (const char*) temp_binary_data_26;
+const char* outgoing_allowed_svg = (const char*) temp_binary_data_23;
 
 //================== outgoing_allowed_active.svg ==================
-static const unsigned char temp_binary_data_27[] =
+static const unsigned char temp_binary_data_24[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12177,10 +11331,10 @@ static const unsigned char temp_binary_data_27[] =
 "       id=\"path7039\"\n"
 "       d=\"m 367,192 v 79.7 c 0,60.2 -49.8,109.2 -110,109.2 -60.2,0 -110,-49 -110,-109.2 V 192 h -19 v 79.7 c 0,67.2 53,122.6 120,127.5 V 462 h -73 v 18 h 161 v -18 h -69 v -62.8 c 66,-4.9 117,-60.3 117,-127.5 V 192 Z\" /></g></svg>\n";
 
-const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_27;
+const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_24;
 
 //================== outgoing_disallowed.svg ==================
-static const unsigned char temp_binary_data_28[] =
+static const unsigned char temp_binary_data_25[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12279,10 +11433,10 @@ static const unsigned char temp_binary_data_28[] =
 "062 -19.86549,54.19122 6.33,5.09225 10.38879,12.90972 10.38879,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_disallowed_svg = (const char*) temp_binary_data_28;
+const char* outgoing_disallowed_svg = (const char*) temp_binary_data_25;
 
 //================== paste_icon.svg ==================
-static const unsigned char temp_binary_data_29[] =
+static const unsigned char temp_binary_data_26[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12357,10 +11511,10 @@ static const unsigned char temp_binary_data_29[] =
 "     x=\"176\" />\n"
 "</svg>\n";
 
-const char* paste_icon_svg = (const char*) temp_binary_data_29;
+const char* paste_icon_svg = (const char*) temp_binary_data_26;
 
 //================== pause_icon.svg ==================
-static const unsigned char temp_binary_data_30[] =
+static const unsigned char temp_binary_data_27[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12491,10 +11645,10 @@ static const unsigned char temp_binary_data_30[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* pause_icon_svg = (const char*) temp_binary_data_30;
+const char* pause_icon_svg = (const char*) temp_binary_data_27;
 
 //================== people.png ==================
-static const unsigned char temp_binary_data_31[] =
+static const unsigned char temp_binary_data_28[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,6,106,73,68,65,84,104,129,237,152,109,140,92,101,21,128,159,243,222,187,187,109,55,181,161,235,206,206,220,217,45,149,18,208,93,81,139,31,80,164,104,170,96,20,149,63,146,136,74,76,109,76,44,160,72,2,13,38,126,70,82,136,52,45,34,
 63,42,152,104,248,168,10,126,166,137,223,245,163,5,137,18,9,138,27,91,74,217,214,221,123,222,105,183,221,33,105,75,157,238,220,123,252,49,119,54,227,118,102,118,27,183,250,103,158,63,51,247,220,243,158,143,251,222,247,188,231,190,208,161,67,135,14,29,
@@ -12521,10 +11675,10 @@ static const unsigned char temp_binary_data_31[] =
 155,45,202,179,37,251,190,184,75,85,83,239,253,119,255,91,123,109,201,42,143,197,113,188,105,161,109,171,234,231,84,213,84,245,202,133,182,61,67,28,199,59,85,245,128,153,45,216,113,76,157,108,33,191,232,189,255,233,217,140,59,171,131,45,85,61,74,173,
 249,58,151,148,163,40,90,62,95,229,182,167,18,141,152,153,120,239,31,18,145,115,114,28,57,203,151,91,200,211,187,14,29,58,116,232,208,161,195,185,226,223,191,160,18,11,195,92,207,96,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* people_png = (const char*) temp_binary_data_31;
+const char* people_png = (const char*) temp_binary_data_28;
 
 //================== people.svg ==================
-static const unsigned char temp_binary_data_32[] =
+static const unsigned char temp_binary_data_29[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12606,10 +11760,10 @@ static const unsigned char temp_binary_data_32[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* people_svg = (const char*) temp_binary_data_32;
+const char* people_svg = (const char*) temp_binary_data_29;
 
 //================== person.png ==================
-static const unsigned char temp_binary_data_33[] =
+static const unsigned char temp_binary_data_30[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,3,82,73,68,65,84,104,129,237,152,77,104,92,101,20,134,159,51,51,25,77,34,34,193,76,38,55,18,41,152,133,63,75,211,212,186,40,232,34,32,136,224,34,96,23,181,186,146,174,138,32,88,92,74,192,157,27,197,46,68,218,133,46,138,224,207,202,
 223,66,55,213,166,117,89,151,70,195,220,115,111,162,17,196,140,237,152,153,121,93,56,133,18,19,103,198,156,22,132,251,172,46,247,188,223,247,158,119,238,207,220,239,131,130,130,130,130,130,130,255,49,22,61,97,154,166,135,205,236,69,51,59,34,41,1,48,51,
@@ -12625,10 +11779,10 @@ static const unsigned char temp_binary_data_33[] =
 146,78,37,73,114,218,204,218,255,165,233,189,144,52,146,101,217,9,96,25,88,55,179,67,131,252,48,3,5,112,247,179,192,49,224,67,73,87,246,215,106,159,134,204,14,2,207,74,58,51,51,51,243,66,95,253,32,147,186,251,38,48,177,223,230,134,228,151,36,73,38,111,
 179,103,65,65,65,65,65,193,237,229,47,213,25,86,225,205,242,241,224,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* person_png = (const char*) temp_binary_data_33;
+const char* person_png = (const char*) temp_binary_data_30;
 
 //================== person.svg ==================
-static const unsigned char temp_binary_data_34[] =
+static const unsigned char temp_binary_data_31[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12698,10 +11852,10 @@ static const unsigned char temp_binary_data_34[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* person_svg = (const char*) temp_binary_data_34;
+const char* person_svg = (const char*) temp_binary_data_31;
 
 //================== play_icon.svg ==================
-static const unsigned char temp_binary_data_35[] =
+static const unsigned char temp_binary_data_32[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12823,10 +11977,10 @@ static const unsigned char temp_binary_data_35[] =
 "     id=\"path4930\" />\n"
 "</svg>\n";
 
-const char* play_icon_svg = (const char*) temp_binary_data_35;
+const char* play_icon_svg = (const char*) temp_binary_data_32;
 
 //================== power.svg ==================
-static const unsigned char temp_binary_data_36[] =
+static const unsigned char temp_binary_data_33[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12901,10 +12055,10 @@ static const unsigned char temp_binary_data_36[] =
 "       id=\"path4471\"\n"
 "       style=\"stroke:none;stroke-opacity:1;fill:#b2b2b2;fill-opacity:1\" /></g></svg>\n";
 
-const char* power_svg = (const char*) temp_binary_data_36;
+const char* power_svg = (const char*) temp_binary_data_33;
 
 //================== power_sel.svg ==================
-static const unsigned char temp_binary_data_37[] =
+static const unsigned char temp_binary_data_34[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12979,10 +12133,10 @@ static const unsigned char temp_binary_data_37[] =
 "       id=\"path4471\"\n"
 "       d=\"m 354.9038,193.4519 a 22,22 0 0 1 -22,-22 V -8.5480978 a 22,22 0 0 1 44,0 V 171.4519 a 22,22 0 0 1 -22,22 z\" /></g></svg>\n";
 
-const char* power_sel_svg = (const char*) temp_binary_data_37;
+const char* power_sel_svg = (const char*) temp_binary_data_34;
 
 //================== record.svg ==================
-static const unsigned char temp_binary_data_38[] =
+static const unsigned char temp_binary_data_35[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13106,10 +12260,10 @@ static const unsigned char temp_binary_data_38[] =
 "     r=\"10.826572\" />\n"
 "</svg>\n";
 
-const char* record_svg = (const char*) temp_binary_data_38;
+const char* record_svg = (const char*) temp_binary_data_35;
 
 //================== record_active.svg ==================
-static const unsigned char temp_binary_data_39[] =
+static const unsigned char temp_binary_data_36[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13233,10 +12387,10 @@ static const unsigned char temp_binary_data_39[] =
 "     r=\"10.826573\" />\n"
 "</svg>\n";
 
-const char* record_active_svg = (const char*) temp_binary_data_39;
+const char* record_active_svg = (const char*) temp_binary_data_36;
 
 //================== record_active_alt.svg ==================
-static const unsigned char temp_binary_data_40[] =
+static const unsigned char temp_binary_data_37[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13360,10 +12514,10 @@ static const unsigned char temp_binary_data_40[] =
 "     style=\"fill:#f74848;fill-opacity:1;stroke:#cccccc;stroke-width:1.03096;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" />\n"
 "</svg>\n";
 
-const char* record_active_alt_svg = (const char*) temp_binary_data_40;
+const char* record_active_alt_svg = (const char*) temp_binary_data_37;
 
 //================== reset_buffer_icon.svg ==================
-static const unsigned char temp_binary_data_41[] =
+static const unsigned char temp_binary_data_38[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13435,10 +12589,10 @@ static const unsigned char temp_binary_data_41[] =
 "     d=\"M 96.73077,88.727418 93.56857,411.27258\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:24;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" /></svg>\n";
 
-const char* reset_buffer_icon_svg = (const char*) temp_binary_data_41;
+const char* reset_buffer_icon_svg = (const char*) temp_binary_data_38;
 
 //================== send_group.svg ==================
-static const unsigned char temp_binary_data_42[] =
+static const unsigned char temp_binary_data_39[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13533,10 +12687,10 @@ static const unsigned char temp_binary_data_42[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_svg = (const char*) temp_binary_data_42;
+const char* send_group_svg = (const char*) temp_binary_data_39;
 
 //================== send_group_small.svg ==================
-static const unsigned char temp_binary_data_43[] =
+static const unsigned char temp_binary_data_40[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13631,10 +12785,10 @@ static const unsigned char temp_binary_data_43[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_small_svg = (const char*) temp_binary_data_43;
+const char* send_group_small_svg = (const char*) temp_binary_data_40;
 
 //================== settings_icon.svg ==================
-static const unsigned char temp_binary_data_44[] =
+static const unsigned char temp_binary_data_41[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13702,10 +12856,10 @@ static const unsigned char temp_binary_data_44[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>";
 
-const char* settings_icon_svg = (const char*) temp_binary_data_44;
+const char* settings_icon_svg = (const char*) temp_binary_data_41;
 
 //================== skipback_icon.svg ==================
-static const unsigned char temp_binary_data_45[] =
+static const unsigned char temp_binary_data_42[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13778,10 +12932,10 @@ static const unsigned char temp_binary_data_45[] =
 "     x1=\"112\" />\n"
 "</svg>\n";
 
-const char* skipback_icon_svg = (const char*) temp_binary_data_45;
+const char* skipback_icon_svg = (const char*) temp_binary_data_42;
 
 //================== sonobus_logo_96.png ==================
-static const unsigned char temp_binary_data_46[] =
+static const unsigned char temp_binary_data_43[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,96,0,0,0,96,8,6,0,0,0,226,152,119,56,0,0,0,9,112,72,89,115,0,0,5,137,0,0,5,137,1,109,104,157,250,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,
 111,114,103,155,238,60,26,0,0,19,120,73,68,65,84,120,156,237,157,121,124,28,197,149,199,191,213,61,35,141,102,116,75,22,178,45,11,219,128,108,99,203,54,62,98,59,118,240,193,97,3,159,128,179,16,7,18,47,11,187,192,230,19,178,9,36,155,108,178,217,108,112,
 14,18,242,225,78,54,108,178,201,2,27,236,112,132,195,24,135,144,64,240,250,36,1,108,131,111,19,31,178,37,91,178,14,235,154,123,186,107,255,40,205,120,70,26,205,244,28,58,252,89,253,230,83,154,86,117,119,85,247,123,85,239,189,122,245,170,6,70,48,130,17,
@@ -13855,10 +13009,10 @@ static const unsigned char temp_binary_data_46[] =
 215,244,70,151,105,2,219,80,214,205,179,64,235,224,189,78,102,24,234,8,229,98,212,50,216,101,168,213,152,147,176,182,128,163,19,229,185,220,133,10,17,217,196,32,76,158,12,4,134,154,1,241,80,138,10,89,44,64,109,118,228,66,141,51,220,168,13,191,27,56,143,
 90,248,8,70,48,130,17,140,96,4,35,24,193,8,70,48,12,241,127,224,50,254,113,39,185,17,225,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_logo_96_png = (const char*) temp_binary_data_46;
+const char* sonobus_logo_96_png = (const char*) temp_binary_data_43;
 
 //================== sonobus_title_small.png ==================
-static const unsigned char temp_binary_data_47[] =
+static const unsigned char temp_binary_data_44[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,1,157,0,0,0,96,8,6,0,0,0,198,164,175,209,0,0,0,9,112,72,89,115,0,0,1,118,0,0,1,118,1,233,206,71,139,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,
 46,111,114,103,155,238,60,26,0,0,32,0,73,68,65,84,120,156,237,157,119,96,19,229,255,199,223,151,61,155,166,77,210,116,179,10,66,25,181,101,200,158,178,17,197,34,163,8,226,15,183,248,69,17,5,17,5,190,184,253,226,0,199,215,9,50,100,40,10,42,10,2,50,101,
 151,34,20,40,133,238,54,163,105,218,140,38,77,147,187,251,253,113,45,22,104,51,218,148,22,191,247,42,71,175,119,207,61,207,115,151,220,125,238,249,60,159,1,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
@@ -14091,10 +13245,10 @@ static const unsigned char temp_binary_data_47[] =
 171,217,70,130,177,58,51,130,49,12,200,70,112,179,135,178,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
 176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,220,82,254,31,201,193,32,51,22,181,193,39,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_title_small_png = (const char*) temp_binary_data_47;
+const char* sonobus_title_small_png = (const char*) temp_binary_data_44;
 
 //================== speaker.svg ==================
-static const unsigned char temp_binary_data_48[] =
+static const unsigned char temp_binary_data_45[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14171,10 +13325,10 @@ static const unsigned char temp_binary_data_48[] =
 " 2523,887 2380,823 2221,823 Z\"\n"
 "       style=\"fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-opacity:1\" /></g></svg>\n";
 
-const char* speaker_svg = (const char*) temp_binary_data_48;
+const char* speaker_svg = (const char*) temp_binary_data_45;
 
 //================== speaker_disabled.svg ==================
-static const unsigned char temp_binary_data_49[] =
+static const unsigned char temp_binary_data_46[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14245,10 +13399,10 @@ static const unsigned char temp_binary_data_49[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7431\" /></svg>\n";
 
-const char* speaker_disabled_svg = (const char*) temp_binary_data_49;
+const char* speaker_disabled_svg = (const char*) temp_binary_data_46;
 
 //================== triangle_disclosure.svg ==================
-static const unsigned char temp_binary_data_50[] =
+static const unsigned char temp_binary_data_47[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14327,10 +13481,10 @@ static const unsigned char temp_binary_data_50[] =
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:23.9998;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:type=\"star\" /></svg>\n";
 
-const char* triangle_disclosure_svg = (const char*) temp_binary_data_50;
+const char* triangle_disclosure_svg = (const char*) temp_binary_data_47;
 
 //================== urei_main.wav ==================
-static const unsigned char temp_binary_data_51[] =
+static const unsigned char temp_binary_data_48[] =
 { 82,73,70,70,112,2,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,76,2,0,0,24,255,34,1,177,206,124,146,140,144,94,144,113,144,31,145,103,144,174,145,135,144,16,146,213,144,70,146,72,145,96,146,211,145,98,146,
 121,146,79,146,46,147,55,146,227,147,48,146,128,148,73,146,249,148,145,146,72,149,168,146,93,155,215,235,234,18,48,11,3,16,147,12,226,14,78,13,34,14,204,13,163,13,17,14,93,13,35,14,71,13,17,14,78,13,226,13,111,13,171,13,142,13,128,13,160,13,99,13,162,
 13,86,13,152,13,82,13,132,13,89,13,105,13,94,13,85,13,96,13,73,13,90,13,67,13,81,13,59,13,72,13,52,13,58,13,52,13,49,13,44,13,41,13,40,13,32,13,32,13,23,13,22,13,19,13,16,13,12,13,9,13,0,13,255,12,253,12,250,12,246,12,242,12,239,12,235,12,234,12,226,
@@ -14341,10 +13495,10 @@ static const unsigned char temp_binary_data_51[] =
 10,141,10,135,10,123,10,125,10,110,10,105,10,97,10,86,10,81,10,69,10,62,10,53,10,42,10,32,10,25,10,13,10,0,10,248,9,231,9,221,9,211,9,192,9,183,9,164,9,148,9,134,9,113,9,97,9,75,9,52,9,30,9,4,9,233,8,207,8,172,8,133,8,103,8,51,8,13,8,211,7,158,7,94,7,
 27,7,212,6,135,6,64,6,234,5,0,0 };
 
-const char* urei_main_wav = (const char*) temp_binary_data_51;
+const char* urei_main_wav = (const char*) temp_binary_data_48;
 
 //================== wordmaker.g ==================
-static const unsigned char temp_binary_data_52[] =
+static const unsigned char temp_binary_data_49[] =
 { 123,10,60,115,116,97,114,116,62,10,60,118,101,114,98,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,
 99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,118,101,114,98,62,60,97,100,118,101,114,98,62,59,10,125,10,10,123,10,60,97,100,106,101,99,116,105,118,101,62,10,97,98,97,115,105,99,59,10,97,98,97,116,105,99,
 59,10,97,98,105,101,110,116,59,10,97,98,106,101,99,116,59,10,97,98,108,97,122,101,59,10,97,98,108,101,59,10,97,98,108,111,111,109,59,10,97,98,111,114,97,108,59,10,97,98,111,117,116,59,10,97,98,111,118,101,59,10,97,98,114,111,97,100,59,10,97,98,114,117,
@@ -16141,10 +15295,10 @@ static const unsigned char temp_binary_data_52[] =
 59,10,119,105,100,101,59,10,119,105,100,101,108,121,59,10,119,105,108,100,59,10,119,105,108,100,108,121,59,10,119,105,115,101,108,121,59,10,119,105,116,104,97,108,59,10,119,105,116,104,105,110,59,10,119,111,114,115,101,59,10,119,111,114,115,116,59,10,
 119,114,111,110,103,59,10,119,114,121,108,121,59,10,121,101,97,59,10,121,101,97,104,59,10,121,101,97,114,108,121,59,10,121,101,116,59,10,121,111,110,59,10,121,111,110,100,101,114,59,10,122,105,103,122,97,103,59,10,125,10,0,0 };
 
-const char* wordmaker_g = (const char*) temp_binary_data_52;
+const char* wordmaker_g = (const char*) temp_binary_data_49;
 
 //================== x_icon.svg ==================
-static const unsigned char temp_binary_data_53[] =
+static const unsigned char temp_binary_data_50[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16275,7 +15429,7 @@ static const unsigned char temp_binary_data_53[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* x_icon_svg = (const char*) temp_binary_data_53;
+const char* x_icon_svg = (const char*) temp_binary_data_50;
 
 
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
@@ -16288,10 +15442,7 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
     switch (hash)
     {
-        case 0x86336c08:  numBytes = 16793; return localized_de_strings;
-        case 0x963aef35:  numBytes = 16452; return localized_es_strings;
-        case 0xf63ff153:  numBytes = 17172; return localized_fr_strings;
-        case 0xfba522b2:  numBytes = 16386; return localized_it_strings;
+        case 0xfb1660a3:  numBytes = 18131; return localized_es_txt;
         case 0xb8757689:  numBytes = 2846; return bar_click_wav;
         case 0x24af1e6c:  numBytes = 2708; return beat_click_wav;
         case 0x06e55b28:  numBytes = 2218; return copy_icon_svg;
@@ -16351,10 +15502,7 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
 const char* namedResourceList[] =
 {
-    "localized_de_strings",
-    "localized_es_strings",
-    "localized_fr_strings",
-    "localized_it_strings",
+    "localized_es_txt",
     "bar_click_wav",
     "beat_click_wav",
     "copy_icon_svg",
@@ -16409,10 +15557,7 @@ const char* namedResourceList[] =
 
 const char* originalFilenames[] =
 {
-    "localized_de.strings",
-    "localized_es.strings",
-    "localized_fr.strings",
-    "localized_it.strings",
+    "localized_es.txt",
     "bar_click.wav",
     "beat_click.wav",
     "copy_icon.svg",

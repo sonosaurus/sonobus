@@ -367,7 +367,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvSoloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
 
     
-    pvf->latActiveButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
+    pvf->latActiveButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
     pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -1305,7 +1305,7 @@ void PeersContainerView::updatePeerViews(int specific)
             //latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")) << (int)lrintf(latinfo.incomingMs);
             latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")); // down arrow
             latlab << (int)lrintf(latinfo.incomingMs) ;
-            ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)             
+            ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)
             latlab << (latinfo.estimated ? " *" : "");
             
             pvf->latencyLabel->setText(latlab, dontSendNotification);
@@ -1492,10 +1492,10 @@ void PeersContainerView::stopLatencyTest(int i)
 
 String PeersContainerView::generateLatencyMessage(const SonobusAudioProcessor::LatencyInfo &latinfo)
 {
-    String messagestr = String::formatted(TRANS("Measured actual round-trip latency: %d ms"), (int) lrintf(latinfo.totalRoundtripMs));
-    messagestr += String::formatted(TRANS("\nEst. Outgoing: %.1f ms"), (latinfo.outgoingMs));
-    messagestr += String::formatted(TRANS("\nEst. Incoming: %.1f ms"), (latinfo.incomingMs));
-    //messagestr += String::formatted(TRANS("\nJitter: %.1f ms"), (latinfo.jitterMs));
+    String messagestr = TRANS("Measured actual round-trip latency:") + String::formatted(" %d ms", (int) lrintf(latinfo.totalRoundtripMs));
+    messagestr += "\n" + TRANS("Est. Outgoing:") + String::formatted(" %.1f ms", (latinfo.outgoingMs));
+    messagestr += "\n" + TRANS("Est. Incoming:") + String::formatted(" %.1f ms", (latinfo.incomingMs));
+    //messagestr += TRANS("\nJitter:") + String::formatted(" %.1f ms", (latinfo.jitterMs));
     return messagestr;
 }
 

@@ -177,7 +177,7 @@ protected:
             label.setColour(Label::textColourId, Colour(0xc0eeeeee));            
         }
         label.setJustificationType(Justification::centred);
-        label.setMinimumHorizontalScale(0.3);
+        label.setMinimumHorizontalScale(0.5);
     }
     
     SonoBigTextLookAndFeel sonoSliderLNF;

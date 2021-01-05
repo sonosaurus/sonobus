@@ -3178,10 +3178,7 @@
     <ClInclude Include="..\..\JuceLibraryCode\JucePluginDefines.h"/>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\localization\localized_de.strings"/>
-    <None Include="..\..\localization\localized_es.strings"/>
-    <None Include="..\..\localization\localized_fr.strings"/>
-    <None Include="..\..\localization\localized_it.strings"/>
+    <None Include="..\..\localization\localized_es.txt"/>
     <None Include="..\..\images\bar_click.wav"/>
     <None Include="..\..\images\beat_click.wav"/>
     <None Include="..\..\images\copy_icon.svg"/>

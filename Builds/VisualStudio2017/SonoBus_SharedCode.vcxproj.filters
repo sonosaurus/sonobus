@@ -5495,16 +5495,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\localization\localized_de.strings">
-      <Filter>SonoBus\Resources\localization</Filter>
-    </None>
-    <None Include="..\..\localization\localized_es.strings">
-      <Filter>SonoBus\Resources\localization</Filter>
-    </None>
-    <None Include="..\..\localization\localized_fr.strings">
-      <Filter>SonoBus\Resources\localization</Filter>
-    </None>
-    <None Include="..\..\localization\localized_it.strings">
+    <None Include="..\..\localization\localized_es.txt">
       <Filter>SonoBus\Resources\localization</Filter>
     </None>
     <None Include="..\..\images\bar_click.wav">
