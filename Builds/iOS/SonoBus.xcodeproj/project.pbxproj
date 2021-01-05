@@ -1165,6 +1165,13 @@
 			path = ../../Source/PeersContainerView.cpp;
 			sourceTree = "SOURCE_ROOT";
 		};
+		889E7D3C43AA2B239037F8AC = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.txt;
+			name = "localized_es.txt";
+			path = "../../localization/localized_es.txt";
+			sourceTree = "SOURCE_ROOT";
+		};
 		8908589664E087E8840AF952 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -1926,9 +1933,18 @@
 			name = deps;
 			sourceTree = "<group>";
 		};
+		5B5CCF5136D99B632D740AA5 = {
+			isa = PBXGroup;
+			children = (
+				889E7D3C43AA2B239037F8AC,
+			);
+			name = localization;
+			sourceTree = "<group>";
+		};
 		F836C3240E08DD29F5CFA902 = {
 			isa = PBXGroup;
 			children = (
+				5B5CCF5136D99B632D740AA5,
 				ECB25AAE2E734CAF20B6BE7B,
 				68079251C527B4E44F06B79B,
 				915BE408C4522E6066E15CEB,
@@ -2214,7 +2230,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -2283,7 +2299,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -2351,7 +2367,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -2422,7 +2438,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -2493,7 +2509,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -2565,7 +2581,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -2635,7 +2651,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -2706,7 +2722,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.0-39\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.1-40\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",

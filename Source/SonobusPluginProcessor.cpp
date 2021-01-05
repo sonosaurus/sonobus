@@ -4849,7 +4849,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if (mSendChannels.get() == 1 || (mSendChannels.get() == 0 && totalNumInputChannels == 1)) {
             // sum all incoming channels into the first channel of the inputworkbuffer
             // TODO - with individual channel input gains
-            float tgain = totalNumInputChannels > 1 ? 1.0f/(float)totalNumInputChannels : 1.0f;
+            float tgain = totalNumInputChannels > 1 ? 1.0f/(float)totalNumInputChannels : (panChannels > 1) ? 1.0f/(float)panChannels : 1.0f;
             inputWorkBuffer.addFrom(0, 0, buffer, channel, 0, numSamples, tgain);
         }
         else {
