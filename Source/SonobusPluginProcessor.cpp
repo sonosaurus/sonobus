@@ -4698,8 +4698,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
 
     
-    // apply input gain
-    for (auto i = 0; i < totalNumInputChannels; ++i) {
+    // apply input gain (apply to all channels through main bus output which may be replicated input)
+    for (auto i = 0; i < jmax(totalNumInputChannels, mainBusOutputChannels); ++i) {
         if (fabsf(inGain - mLastInputGain) > 0.00001) {
             buffer.applyGainRamp(i, 0, numSamples, mLastInputGain, inGain);
         } else {
