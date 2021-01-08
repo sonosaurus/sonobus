@@ -21,6 +21,7 @@
 #include <vector>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cassert>
 
 #ifndef MCR_USE_KAISER
 // It appears from the spectrogram that the HyperbolicCosine window leads to fewer artifacts.
