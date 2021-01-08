@@ -781,7 +781,7 @@ void PeersContainerView::updateLayout()
     
     int mutebuttwidth = 52;
     
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
     minitemheight = 44;
     mincheckheight = 40;
@@ -1721,7 +1721,7 @@ void PeersContainerView::showPanners(int index, bool flag)
         }
         
         const int defWidth = 140;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 50;
 #else
         const int defHeight = 42;
@@ -1776,7 +1776,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
         }
         
         const int defWidth = 280;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 180;
 #else
         const int defHeight = 152;
@@ -1833,7 +1833,7 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
         }
         
         const int defWidth = 245;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 144;
 #else
         const int defHeight = 116;
@@ -1888,7 +1888,7 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
         }
         
         int defWidth = 260;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int defHeight = 180;
 #else
         int defHeight = 156;

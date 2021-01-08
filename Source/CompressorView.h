@@ -143,7 +143,7 @@ public:
         int enablewidth = 44;
         int makeupenableheight = 22;
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         // make the button heights a bit more for touchscreen purposes
         minitemheight = 40;
         knobitemheight = 80;

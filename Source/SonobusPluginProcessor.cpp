@@ -595,7 +595,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 #if (JUCE_IOS)
     mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
 #else
-    auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
+    auto parentDir = File::getSpecialLocation (File::userMusicDirectory);
     parentDir = parentDir.getChildFile("SonoBus");
     mDefaultRecordDir = parentDir.getFullPathName();
 #endif
@@ -5593,8 +5593,9 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
             int bps = (uint32)(int) extraTree.getProperty(defRecordBitsKey, (int)mDefaultRecordingBitsPerSample);
             setDefaultRecordingBitsPerSample(bps);
 
+#if !(JUCE_IOS || JUCE_ANDROID)
             setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
-
+#endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
         }
         

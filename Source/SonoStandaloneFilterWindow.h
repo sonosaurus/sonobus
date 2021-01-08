@@ -152,6 +152,7 @@ public:
         jassert (processor != nullptr); // Your createPluginFilter() function must return a valid object!
 
         processor->disableNonMainBuses();
+
         processor->setRateAndBufferSizeDetails (48000, 256);
 
         int inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns
@@ -856,6 +857,8 @@ public:
 
     void resized() override
     {
+        DBG("resized: " << getWidth() << "  " << getHeight());
+
         DocumentWindow::resized();
         //if (getTitleBarHeight() <= 0) {
         //    optionsButton.setBounds (8, 6, 60, 34);            

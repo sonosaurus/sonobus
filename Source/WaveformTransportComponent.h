@@ -288,7 +288,7 @@ public:
         if (true || transportSource.isLooping())
         {
             
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             const int touchthresh = 50;
 #else
             const int touchthresh = 25;
@@ -603,7 +603,9 @@ private:
         menu.addCommandItem(&commandManager, SonobusCommands::ShareFile);
         menu.addCommandItem(&commandManager, SonobusCommands::CloseFile);
 
-        menu.showAt(bounds);
+
+        menu.showMenuAsync(PopupMenu::Options().withTargetScreenArea(bounds));
+        //menu.showAt(bounds);
     }
     
     void timerCallback() override

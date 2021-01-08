@@ -501,7 +501,7 @@ publicGroupsListModel(this)
     mMainPushToTalkButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mMainPushToTalkButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     String pttmessage = TRANS("When pressed, mutes others and unmutes you momentarily (push to talk).");
-#if (!JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
     pttmessage += TRANS(" Use the 'T' key as a shortcut.");
 #endif
     mMainPushToTalkButton->setTooltip(pttmessage);
@@ -629,7 +629,7 @@ publicGroupsListModel(this)
     int largeEditorFontsize = 16;
     int smallerEditorFontsize = 14;
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     largeEditorFontsize = 18;
     smallerEditorFontsize = 16;
 #endif
@@ -840,7 +840,7 @@ publicGroupsListModel(this)
     mRecentsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mRecentsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
     mRecentsListBox->setOutlineThickness (1);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     mRecentsListBox->getViewport()->setScrollOnDragEnabled(true);
 #endif
     mRecentsListBox->getViewport()->setScrollBarsShown(true, false);
@@ -856,7 +856,7 @@ publicGroupsListModel(this)
     mPublicGroupsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mPublicGroupsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
     mPublicGroupsListBox->setOutlineThickness (1);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     mPublicGroupsListBox->getViewport()->setScrollOnDragEnabled(true);
 #endif
     mPublicGroupsListBox->getViewport()->setScrollBarsShown(true, false);
@@ -1064,7 +1064,7 @@ publicGroupsListModel(this)
     mOptionsShouldCheckForUpdateButton = std::make_unique<ToggleButton>(TRANS("Automatically check for updates"));
     mOptionsShouldCheckForUpdateButton->addListener(this);
 
-    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Mouse Click"));
+    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Click Position"));
     mOptionsSliderSnapToMouseButton->addListener(this);
 
 
@@ -1347,7 +1347,7 @@ publicGroupsListModel(this)
         
     }
     
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     mPeerViewport->setScrollOnDragEnabled(true);
 #endif
     
@@ -1476,7 +1476,7 @@ publicGroupsListModel(this)
     mServerConnectContainer->addAndMakeVisible(mServerUserStaticLabel.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupEditor.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupRandomButton.get());
-#if ! JUCE_IOS
+#if ! (JUCE_IOS || JUCE_ANDROID)
     mServerConnectContainer->addAndMakeVisible(mServerPasteButton.get());
     mServerConnectContainer->addAndMakeVisible(mServerCopyButton.get());
 #else
@@ -1555,7 +1555,7 @@ publicGroupsListModel(this)
     commandManager.registerAllCommandsForTarget (this);
 
     if (JUCEApplicationBase::isStandaloneApp()) {
-#if !JUCE_IOS
+#if !(JUCE_IOS || JUCE_ANDROID)
         processor.startAooServer();
 #endif
         setResizable(true, false);
@@ -2715,7 +2715,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
     }
     else if (buttonThatWasClicked == mMainLinkButton.get()) {
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         String message;
         bool singleurl = true;
         if (copyInfoToClipboard(singleurl, &message)) {
@@ -2737,7 +2737,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mServerShareButton.get()) {
         String message;
         bool singleurl = false;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         singleurl = true;
 #endif
         if (copyInfoToClipboard(singleurl, &message)) {
@@ -2772,7 +2772,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             //updateServerStatusLabel("Stopped Recording");
 
             String filepath;
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
             filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
             //showPopTip(TRANS("Finished recording to ") + filepath, 4000, mRecordingButton.get(), 130);
 #else
@@ -2818,12 +2818,12 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 lastRecordedFile = file;
                 String filepath;
 
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
                 showPopTip(TRANS("Started recording output"), 2000, mRecordingButton.get());
 #endif
                 if (processor.getDefaultRecordingOptions() == SonobusAudioProcessor::RecordMix) {
                     
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
                     filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
 #else
                     filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
@@ -2832,7 +2832,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                     mRecordingButton->setTooltip(TRANS("Recording audio to: ") + filepath);
                 } else 
                 {
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
                     filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
 #else
                     filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
@@ -3005,7 +3005,7 @@ void SonobusAudioProcessorEditor::openFileBrowser()
 
     if (FileChooser::isPlatformDialogAvailable())
     {
-#if !(JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
         if (mCurrOpenDir.getFullPathName().isEmpty()) {
             mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
             DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
@@ -3317,7 +3317,7 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
 
         Component* dw = this; 
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defWidth = 230; 
         const int defHeight = 96;
 #else
@@ -3363,7 +3363,7 @@ void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
         
         Component* dw = this; 
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defWidth = 260; 
         const int defHeight = 154;
 #else
@@ -3412,7 +3412,7 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         Component* dw = this; 
         
         int defWidth = 260;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int defHeight = 180;
 #else
         int defHeight = 156;
@@ -3727,7 +3727,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         
         Component* dw = this; 
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int defWidth = 300;
         int defHeight = 420;
 #else
@@ -3796,7 +3796,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
                                                                                       false,
                                                                                       false, false);
                 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
                 mAudioDeviceSelector->setItemHeight(44);
 #endif
                 
@@ -4068,7 +4068,7 @@ void SonobusAudioProcessorEditor::updateState()
 
         
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         mPatchbayButton->setVisible(false);
         mSetupAudioButton->setVisible(false);
 #else
@@ -4406,7 +4406,7 @@ void SonobusAudioProcessorEditor::resized()
 
     Component::resized();
  
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     const int narrowthresh = 480; //520;
 #else
     const int narrowthresh = 588; //520;
@@ -4437,7 +4437,7 @@ void SonobusAudioProcessorEditor::resized()
     
     mPeerContainer->setBounds(Rectangle<int>(0, 0, std::max(peersminbounds.getWidth(), mPeerViewport->getWidth() - 10), std::max(peersminbounds.getHeight() + 5, mPeerViewport->getHeight())));
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     mSetupAudioButton->setSize(150, 1);
 #else
     mSetupAudioButton->setSize(150, 50);	
@@ -4583,7 +4583,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     int knoblabelheight = 18;
     int panbuttwidth = 26;
     
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
     minitemheight = 44;
     knobitemheight = 90;
@@ -4867,7 +4867,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
     recOptionsBox.items.add(FlexItem(4, 6));
-#if !JUCE_IOS
+#if !(JUCE_IOS || JUCE_ANDROID)
     recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordDirBox).withMargin(2).withFlex(0));
 #endif
     recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordFormatBox).withMargin(2).withFlex(0));
@@ -5017,11 +5017,11 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     servStatusBox.items.clear();
     servStatusBox.flexDirection = FlexBox::Direction::row;
-#if (!JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerPasteButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));
 #endif
     servStatusBox.items.add(FlexItem(servLabelWidth, minpassheight, *mServerStatusLabel).withMargin(2).withFlex(1));
-#if (!JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerCopyButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));
 #else
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerShareButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));    
@@ -5248,7 +5248,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     toolbarBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
 
    
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
 #else
     if (processor.getCurrentJoinedGroup().isEmpty() && processor.getNumberRemotePeers() > 1) {
         toolbarBox.items.add(FlexItem(6, 6).withMargin(1).withFlex(0.2));
@@ -5296,7 +5296,7 @@ void SonobusAudioProcessorEditor::updateLayout()
         transportBox.items.add(FlexItem(44, minitemheight, *mFileSendAudioButton).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(44, minitemheight, *mDismissTransportButton).withMargin(0).withFlex(0));
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         transportBox.items.add(FlexItem(6, 6).withMargin(1).withFlex(0));
 #else
         transportBox.items.add(FlexItem(14, 6).withMargin(1).withFlex(0));        
@@ -5411,7 +5411,7 @@ void SonobusAudioProcessorEditor::showFilePopupMenu(Component * source)
 {
     Array<GenericItemChooserItem> items;
     items.add(GenericItemChooserItem(TRANS("Trim to New")));
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     items.add(GenericItemChooserItem(TRANS("Share File")));    
 #else
     items.add(GenericItemChooserItem(TRANS("Reveal File")));
@@ -5503,7 +5503,7 @@ void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser 
             trimCurrentAudioFile(false);
         }
         else if (index == 1) {
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             // share
             Array<URL> urlarray;
             urlarray.add(mCurrentAudioFile);
@@ -5961,7 +5961,7 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
         case MenuFileIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::OpenFile);
             retval.addCommandItem (&parent.commandManager, SonobusCommands::CloseFile);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ShareFile);
 #else
             retval.addCommandItem (&parent.commandManager, SonobusCommands::RevealFile);            
