@@ -19,8 +19,8 @@ mkdir -p ${PREFIX}/share/applications
 cp  sonobus.desktop ${PREFIX}/share/applications/sonobus.desktop
 chmod +x ${PREFIX}/share/applications/sonobus.desktop
 
-mkdir -p ${PREFIX}/pixmaps
-cp  ../../images/sonobus_logo@2x.png ${PREFIX}/pixmaps/sonobus.png
+mkdir -p ${PREFIX}/share/pixmaps
+cp  ../../images/sonobus_logo@2x.png ${PREFIX}/share/pixmaps/sonobus.png
 
 if [ -d build/SonoBus.vst3 ] ; then
   mkdir -p ${PREFIX}/lib/lxvst
