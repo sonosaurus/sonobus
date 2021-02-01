@@ -16,6 +16,6 @@ fi
 
 rm -f ${PREFIX}/share/applications/sonobus.desktop
 rm -f ${PREFIX}/pixmaps/sonobus.png
-rm -rf ${PREFIX}/lib/lxvst/SonoBus.vst3
+rm -rf ${PREFIX}/lib/vst3/SonoBus.vst3
 
 echo "SonoBus uninstalled"

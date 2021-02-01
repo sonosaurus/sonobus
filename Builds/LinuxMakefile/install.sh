@@ -23,8 +23,8 @@ mkdir -p ${PREFIX}/share/pixmaps
 cp  ../../images/sonobus_logo@2x.png ${PREFIX}/share/pixmaps/sonobus.png
 
 if [ -d build/SonoBus.vst3 ] ; then
-  mkdir -p ${PREFIX}/lib/lxvst
-  cp -a build/SonoBus.vst3 ${PREFIX}/lib/lxvst/
+  mkdir -p ${PREFIX}/lib/vst3
+  cp -a build/SonoBus.vst3 ${PREFIX}/lib/vst3/
 
   echo "SonoBus VST3 plugin installed"
 fi
