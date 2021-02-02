@@ -25,7 +25,5 @@ echo ""
 
 sudo dnf update
 sudo dnf -y groupinstall "Development Tools" "Development Libraries"
-sudo dnf -y install git $PREREQS 
-
-
+sudo dnf -y install git $PREREQS
 
