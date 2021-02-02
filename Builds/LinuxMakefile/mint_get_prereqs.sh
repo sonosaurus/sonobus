@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Install prerequisite packages for SonoBus build on Ubuntu
+# Install prerequisite packages for SonoBus build on Mint
 
 GITREPO="https://github.com/essej/sonobus.git"
 
