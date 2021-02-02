@@ -62,7 +62,7 @@ Other distributions may have slightly different package names for these, for
 instance in Debian, you might substitute libcurl4-gnutls-dev.
 
 If you are using Ubuntu, you can run the following script to install all the
-prequisites (scripts for other distributions wanted, please contribute them
+prerequisites (scripts for other distributions wanted, please contribute them
 if you can):
 
     ./ubuntu_get_prereqs.sh
