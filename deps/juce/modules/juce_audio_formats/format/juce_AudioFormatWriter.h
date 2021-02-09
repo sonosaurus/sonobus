@@ -237,6 +237,10 @@ public:
         */
         void setFlushInterval (int numSamplesPerFlush) noexcept;
 
+        /** Get AudioFormatWriter passed into constructor
+         */
+        AudioFormatWriter * getWriter() const;
+
     private:
         class Buffer;
         std::unique_ptr<Buffer> buffer;

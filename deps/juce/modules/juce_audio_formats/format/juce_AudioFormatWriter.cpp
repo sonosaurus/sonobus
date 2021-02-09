@@ -210,6 +210,7 @@ bool AudioFormatWriter::flush()
     return false;
 }
 
+
 //==============================================================================
 class AudioFormatWriter::ThreadedWriter::Buffer   : private TimeSliceClient
 {
@@ -231,6 +232,8 @@ public:
         while (writePendingData() == 0)
         {}
     }
+
+    AudioFormatWriter * getWriter() const { return writer.get(); }
 
     bool write (const float* const* data, int numSamples)
     {
@@ -358,5 +361,11 @@ void AudioFormatWriter::ThreadedWriter::setFlushInterval (int numSamplesPerFlush
 {
     buffer->setFlushInterval (numSamplesPerFlush);
 }
+
+AudioFormatWriter * AudioFormatWriter::ThreadedWriter::getWriter() const
+{
+    return buffer->getWriter();
+}
+
 
 } // namespace juce
