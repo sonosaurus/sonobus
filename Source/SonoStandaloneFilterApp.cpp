@@ -62,6 +62,11 @@ extern juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
 
 #if JUCE_ANDROID
 #include "android/SonoBusActivity.h"
+
+#if JUCE_USE_ANDROID_OPENSLES || JUCE_USE_ANDROID_OBOE
+ #include "juce_audio_devices/native/juce_android_HighPerformanceAudioHelpers.h"
+#endif
+
 #endif
 
 namespace juce
@@ -117,6 +122,7 @@ public:
         setupOptions.bufferSize = 128;
 #elif JUCE_ANDROID
         setupOptions.bufferSize = 192;
+        setupOptions.sampleRate = AndroidHighPerformanceAudioHelpers::getNativeSampleRate();
 #else
         setupOptions.bufferSize = 256;
 #endif

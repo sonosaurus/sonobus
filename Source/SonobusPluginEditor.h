@@ -17,13 +17,14 @@
 #include "CompressorView.h"
 #include "ExpanderView.h"
 #include "ParametricEqView.h"
+#include "EffectParams.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
 
 class SonobusAudioProcessorEditor;
-
+class ChannelGroupsView;
 
 
 //==============================================================================
@@ -41,11 +42,7 @@ public TextEditor::Listener,
 public ApplicationCommandTarget,
 public AsyncUpdater,
 public FileDragAndDropTarget,
-public GenericItemChooser::Listener,
-public CompressorView::Listener,
-public ExpanderView::Listener,
-public ParametricEqView::Listener,
-public EffectsBaseView::HeaderListener
+public GenericItemChooser::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -98,12 +95,7 @@ public:
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
 
-    void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void expanderParamsChanged(ExpanderView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void parametricEqParamsChanged(ParametricEqView *comp, SonobusAudioProcessor::ParametricEqParams & params) override;
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
 
-    
     void connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup = false);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
@@ -162,10 +154,8 @@ private:
     void configEditor(TextEditor *editor, bool passwd = false);
 
     void showPatchbay(bool flag);
-    void showInPanners(bool flag);
     void showMetConfig(bool flag);
     void showEffectsConfig(bool flag);
-    void showInEffectsConfig(bool flag, Component * fromView=nullptr);
 
     void showConnectPopup(bool flag);
 
@@ -295,14 +285,8 @@ private:
 
     std::unique_ptr<Slider> mInGainSlider;
 
-    std::unique_ptr<TextButton> mPanButton;
+    std::unique_ptr<TextButton> mInMixerButton;
 
-    std::unique_ptr<Slider> mInMonPanMonoSlider;
-    std::unique_ptr<Slider> mInMonPanStereoSlider;
-    std::unique_ptr<Slider> mInMonPanSlider1;
-    std::unique_ptr<Slider> mInMonPanSlider2;
-    std::unique_ptr<Label> mInMonPanLabel1;
-    std::unique_ptr<Label> mInMonPanLabel2;
 
     std::unique_ptr<TextButton> mInMuteButton;
     std::unique_ptr<TextButton> mInSoloButton;
@@ -366,7 +350,6 @@ private:
     std::unique_ptr<Component> mMetContainer;
 
     std::unique_ptr<Component> mEffectsContainer;
-    std::unique_ptr<Component> mInEffectsContainer;
 
     
     std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
@@ -413,16 +396,9 @@ private:
 
     // effects
     std::unique_ptr<TextButton> mEffectsButton;
-    std::unique_ptr<TextButton> mInEffectsButton;
-    std::unique_ptr<CompressorView> mInCompressorView;
-    std::unique_ptr<DrawableRectangle> mCompressorBg;
+
     std::unique_ptr<DrawableRectangle> mReverbHeaderBg;
 
-    
-    std::unique_ptr<ExpanderView> mInExpanderView;
-    std::unique_ptr<DrawableRectangle> mExpanderBg;
-
-    std::unique_ptr<ParametricEqView> mInEqView;
 
     
     std::unique_ptr<SonoChoiceButton> mSendChannelsChoice;
@@ -460,16 +436,12 @@ private:
     std::unique_ptr<foleys::LevelMeter> inputMeter;
     std::unique_ptr<foleys::LevelMeter> outputMeter;
 
-    
-    std::unique_ptr<Component> inPannersContainer;
-    WeakReference<Component> inPannerCalloutBox;
 
     //std::unique_ptr<Component> serverContainer;
     WeakReference<Component> serverCalloutBox;
 
     WeakReference<Component> metCalloutBox;
     WeakReference<Component> effectsCalloutBox;
-    WeakReference<Component> inEffectsCalloutBox;
 
     
     
@@ -580,13 +552,16 @@ private:
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
     
-    std::unique_ptr<Viewport> mPeerViewport;
+    std::unique_ptr<Viewport> mMainViewport;
+    std::unique_ptr<Component> mMainContainer;
     std::unique_ptr<PeersContainerView> mPeerContainer;
+
+    std::unique_ptr<Viewport> mInputChannelsViewport;
+    std::unique_ptr<ChannelGroupsView> mInputChannelsContainer;
 
     int peersHeight = 0;
     bool isNarrow = false;
     bool settingsWasShownOnDown = false;
-    bool firstShowInEffects = true;
     WeakReference<Component> settingsCalloutBox;
 
     int inChannels = 0;
@@ -642,9 +617,7 @@ private:
     std::unique_ptr<RandomSentenceGenerator> mRandomSentence;
 
 
-    std::unique_ptr<ConcertinaPanel> mInEffectsConcertina;
 
-    
     FlexBox mainBox;
     FlexBox titleBox;
     FlexBox titleVBox;
@@ -716,8 +689,6 @@ private:
     FlexBox reverbDampBox;
     FlexBox reverbPreDelayBox;
     
-    FlexBox inEffectsBox;
-    
     FlexBox connectMainBox;
     FlexBox connectHorizBox;
     FlexBox connectTitleBox;
@@ -780,9 +751,6 @@ private:
     std::unique_ptr<CustomTooltipWindow> tooltipWindow;
     
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPanMonoAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan1Attachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan2Attachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;

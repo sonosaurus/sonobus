@@ -13,6 +13,8 @@
 #include "GenericItemChooser.h"
 #include "CompressorView.h"
 
+#include "ChannelGroupsView.h"
+
 class JitterBufferMeter;
 
 class PeerViewInfo : public Component{
@@ -63,10 +65,6 @@ public:
     std::unique_ptr<Drawable> recvButtonImage;
     std::unique_ptr<Drawable> sendButtonImage;
 
-    std::unique_ptr<Component> effectsContainer;
-
-    std::unique_ptr<CompressorView> compressorView;
-   
 
     
     std::unique_ptr<Component> pannersContainer;
@@ -177,8 +175,7 @@ public Button::Listener,
 public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
-public CompressorView::Listener,
-public EffectsBaseView::HeaderListener,
+public ChannelGroupEffectsView::Listener,
 public MultiTimer
 {
 public:
@@ -202,7 +199,7 @@ public:
     void resetPendingUsers();
     void peerPendingJoin(String & group, String & user);
     void peerFailedJoin(String & group, String & user);
-    int getPendingPeerCount() const { return mPendingUsers.size(); }
+    int getPendingPeerCount() const { return (int)mPendingUsers.size(); }
     
     void rebuildPeerViews();
     void updatePeerViews(int specific=-1);
@@ -214,8 +211,7 @@ public:
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
     
-    void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) override;
+    void effectsEnableChanged(ChannelGroupEffectsView *comp) override;
 
 
     void clearClipIndicators();
@@ -265,6 +261,9 @@ protected:
     std::map<String,PendingUserInfo> mPendingUsers;
 
     OwnedArray<PendingPeerViewInfo> mPendingPeerViews;
+
+    std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
+
 
     
     WeakReference<Component> pannerCalloutBox;

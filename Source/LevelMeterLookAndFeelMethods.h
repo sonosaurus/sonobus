@@ -356,12 +356,16 @@ void drawMeterBars (juce::Graphics& g,
     {
         if (meterType & foleys::LevelMeter::Horizontal)
         {
-            const float height = (innerBounds.getHeight() / ( numChannels));
+            const int numDrawnChannels = fixedNumChannels < 0 ? numChannels : fixedNumChannels;
+            const int startCh = selectedChannel < 0 ? 0 : selectedChannel;
+
+            const float height = (innerBounds.getHeight() / ( numDrawnChannels));
             juce::Rectangle<float> meter = innerBounds.withHeight (height);
             //juce::Rectangle<float> ticksbox = innerBounds.withHeight (height*0.25).withY(meter.getBottom());
-            for (int channel=0; channel < numChannels; ++channel)
+            int dispch = 0;
+            for (int channel=startCh; channel < numChannels && dispch < numDrawnChannels; ++channel, ++dispch)
             {
-                meter.setY (height * channel);
+                meter.setY (height * dispch);
                 {
                     juce::Rectangle<float> meterBarBounds = getMeterBarBounds (meter, meterType);
                     drawMeterBar (g, meterType, meterBarBounds,
@@ -393,10 +397,14 @@ void drawMeterBars (juce::Graphics& g,
         }
         else
         {
-            const float width = innerBounds.getWidth() / (numChannels );
+            const int numDrawnChannels = fixedNumChannels < 0 ? numChannels : fixedNumChannels;
+            const int startCh = selectedChannel < 0 ? 0 : selectedChannel;
+            const float width = innerBounds.getWidth() / (numDrawnChannels );
             juce::Rectangle<float> meter = innerBounds.withWidth(width);
-            for (int channel=0; channel < numChannels; ++channel) {
-                meter.setX (width * channel);
+
+            int dispch = 0;
+            for (int channel=startCh; channel < numChannels && dispch < numDrawnChannels; ++channel, ++dispch) {
+                meter.setX (width * dispch);
                 {
                     juce::Rectangle<float> meterBarBounds = getMeterBarBounds (meter, meterType);
                     drawMeterBar (g, meterType, getMeterBarBounds (meter, meterType),
@@ -411,7 +419,7 @@ void drawMeterBars (juce::Graphics& g,
                 juce::Rectangle<float> clip = getMeterClipIndicatorBounds (meter, meterType);
                 if (! clip.isEmpty())
                     drawClipIndicator (g, meterType, clip, source->getClipFlag (channel));
-                juce::Rectangle<float> maxNum = getMeterMaxNumberBounds (innerBounds.withWidth (innerBounds.getWidth() / numChannels).withX (innerBounds.getX() + channel * (innerBounds.getWidth() / numChannels)), meterType);
+                juce::Rectangle<float> maxNum = getMeterMaxNumberBounds (innerBounds.withWidth (innerBounds.getWidth() / numDrawnChannels).withX (innerBounds.getX() + channel * (innerBounds.getWidth() / numDrawnChannels)), meterType);
                 if (! maxNum.isEmpty())
                     drawMaxNumber(g, meterType, maxNum, source->getMaxOverallLevel (channel));
 
@@ -450,9 +458,10 @@ void drawMeterBarsBackground (juce::Graphics& g,
     if (meterType & foleys::LevelMeter::Minimal) {
         if (meterType & foleys::LevelMeter::Horizontal) {
             //const float height = innerBounds.getHeight() / (2 * numChannels - 1);
-            const float height = innerBounds.getHeight() / (numChannels);
+            const int numDrawnChannels = fixedNumChannels < 0 ? numChannels : fixedNumChannels;
+            const float height = innerBounds.getHeight() / (numDrawnChannels);
             juce::Rectangle<float> meter = innerBounds.withHeight (height);
-            for (int channel=0; channel < numChannels; ++channel) {
+            for (int channel=0; channel < numDrawnChannels; ++channel) {
                 //meter.setY (height * channel * 2);
                 meter.setY (height * channel);
                 drawMeterBarBackground (g, meterType, getMeterBarBounds (meter, meterType));
@@ -471,9 +480,10 @@ void drawMeterBarsBackground (juce::Graphics& g,
             }
         }
         else {
-            const float width = innerBounds.getWidth() / (numChannels);
+            const int numDrawnChannels = fixedNumChannels < 0 ? numChannels : fixedNumChannels;
+            const float width = innerBounds.getWidth() / (numDrawnChannels);
             juce::Rectangle<float> meter = innerBounds.withWidth(width);
-            for (int channel=0; channel < numChannels; ++channel) {
+            for (int channel=0; channel < numDrawnChannels; ++channel) {
                 //meter.setX (width * channel * 2);
                 meter.setX (width * channel);
                 drawMeterBarBackground (g, meterType, getMeterBarBounds (meter, meterType));

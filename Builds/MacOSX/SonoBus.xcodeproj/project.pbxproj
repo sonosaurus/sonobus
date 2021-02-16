@@ -169,6 +169,14 @@
 			isa = PBXBuildFile;
 			fileRef = 89CF67A82AEB481A256E036C;
 		};
+		21C98C88F34A835AA042CB90 = {
+			isa = PBXBuildFile;
+			fileRef = CBECF8B4EAD5AFFA9A614658;
+		};
+		93589D1C4AA4CEB5FB6FA9A2 = {
+			isa = PBXBuildFile;
+			fileRef = B1D0AAD037A09676BE0676D0;
+		};
 		E08ACFCB7F4E8F36BE8B339D = {
 			isa = PBXBuildFile;
 			fileRef = D2A604B7BEEFCEB439F6DAF4;
@@ -188,6 +196,10 @@
 		DB9F4B724E238A4480FA2D52 = {
 			isa = PBXBuildFile;
 			fileRef = D57D9AFF12F10AD96735FB29;
+		};
+		F30FC1347851AAE5F7A36B1A = {
+			isa = PBXBuildFile;
+			fileRef = EA7B811305AE6872DB4EA4E8;
 		};
 		EBB5DEA9B0F3BDD40EE36F91 = {
 			isa = PBXBuildFile;
@@ -455,11 +467,32 @@
 			path = "../../images/folder_icon.svg";
 			sourceTree = "SOURCE_ROOT";
 		};
-		11C463763953CFD72F2DFB4E = {
+		11521D5C1F70EEC3394713E1 = {
 			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.cpp.cpp;
-			name = SonoStandaloneFilterApp.cpp;
-			path = ../../Source/SonoStandaloneFilterApp.cpp;
+			lastKnownFileType = sourcecode.c.h;
+			name = PeersContainerView.h;
+			path = ../../Source/PeersContainerView.h;
+			sourceTree = "SOURCE_ROOT";
+		};
+		121FB5C6FC48C12F64D24157 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.objcpp;
+			name = "include_juce_audio_plugin_client_AU_2.mm";
+			path = "../../JuceLibraryCode/include_juce_audio_plugin_client_AU_2.mm";
+			sourceTree = "SOURCE_ROOT";
+		};
+		14B5A911A3A1AAEDBBBEAA95 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = LevelMeterLookAndFeelMethods.h;
+			path = ../../Source/LevelMeterLookAndFeelMethods.h;
+			sourceTree = "SOURCE_ROOT";
+		};
+		15C50030286A7CD8E23A2BC6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = EffectParams.h;
+			path = ../../Source/EffectParams.h;
 			sourceTree = "SOURCE_ROOT";
 		};
 		194E42EA4D12D016298D0153 = {
@@ -504,11 +537,11 @@
 			path = "../../images/incoming_allowed.svg";
 			sourceTree = "SOURCE_ROOT";
 		};
-		11521D5C1F70EEC3394713E1 = {
+		11C463763953CFD72F2DFB4E = {
 			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = PeersContainerView.h;
-			path = ../../Source/PeersContainerView.h;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = SonoStandaloneFilterApp.cpp;
+			path = ../../Source/SonoStandaloneFilterApp.cpp;
 			sourceTree = "SOURCE_ROOT";
 		};
 		12135355EE798F5D51A94E91 = {
@@ -518,25 +551,11 @@
 			path = ../../images/met.svg;
 			sourceTree = "SOURCE_ROOT";
 		};
-		121FB5C6FC48C12F64D24157 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.cpp.objcpp;
-			name = "include_juce_audio_plugin_client_AU_2.mm";
-			path = "../../JuceLibraryCode/include_juce_audio_plugin_client_AU_2.mm";
-			sourceTree = "SOURCE_ROOT";
-		};
 		1480A31457A96E5D64922EB2 = {
 			isa = PBXFileReference;
 			lastKnownFileType = file.svg;
 			name = mic.svg;
 			path = ../../images/mic.svg;
-			sourceTree = "SOURCE_ROOT";
-		};
-		14B5A911A3A1AAEDBBBEAA95 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = LevelMeterLookAndFeelMethods.h;
-			path = ../../Source/LevelMeterLookAndFeelMethods.h;
 			sourceTree = "SOURCE_ROOT";
 		};
 		17CAABF982427E0CBE2FC0BE = {
@@ -616,6 +635,13 @@
 			path = ../../deps/aoo/deps/oscpack/osc/OscException.h;
 			sourceTree = "SOURCE_ROOT";
 		};
+		2B5EF6FD0E77910D139F590C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = ChannelGroup.h;
+			path = ../../Source/ChannelGroup.h;
+			sourceTree = "SOURCE_ROOT";
+		};
 		2B7EAA61FFE6446F552029EE = {
 			isa = PBXFileReference;
 			lastKnownFileType = file;
@@ -663,13 +689,6 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = SonoDrawableButton.h;
 			path = ../../Source/SonoDrawableButton.h;
-			sourceTree = "SOURCE_ROOT";
-		};
-		346979A4DBBFE92B79655A9D = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = Metronome.h;
-			path = ../../Source/Metronome.h;
 			sourceTree = "SOURCE_ROOT";
 		};
 		3491905B0D458039A56098E1 = {
@@ -782,6 +801,13 @@
 			lastKnownFileType = sourcecode.cpp.cpp;
 			name = client.cpp;
 			path = ../../deps/aoo/lib/src/client.cpp;
+			sourceTree = "SOURCE_ROOT";
+		};
+		346979A4DBBFE92B79655A9D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = Metronome.h;
+			path = ../../Source/Metronome.h;
 			sourceTree = "SOURCE_ROOT";
 		};
 		3EF663FECADF1AE820231957 = {
@@ -1225,6 +1251,13 @@
 			path = "../../JuceLibraryCode/include_juce_core.mm";
 			sourceTree = "SOURCE_ROOT";
 		};
+		812D1487188455E396DE72BE = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = ChannelGroupsView.h;
+			path = ../../Source/ChannelGroupsView.h;
+			sourceTree = "SOURCE_ROOT";
+		};
 		8197704B6F67CEDAF82C3DD8 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.cpp;
@@ -1561,6 +1594,13 @@
 			path = ../../Source/SonobusTypes.h;
 			sourceTree = "SOURCE_ROOT";
 		};
+		B1D0AAD037A09676BE0676D0 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = ChannelGroupsView.cpp;
+			path = ../../Source/ChannelGroupsView.cpp;
+			sourceTree = "SOURCE_ROOT";
+		};
 		B1E45D1F602E1D42571E1AA0 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -1692,6 +1732,13 @@
 			lastKnownFileType = sourcecode.cpp.cpp;
 			name = source.cpp;
 			path = ../../deps/aoo/lib/src/source.cpp;
+			sourceTree = "SOURCE_ROOT";
+		};
+		CBECF8B4EAD5AFFA9A614658 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = ChannelGroup.cpp;
+			path = ../../Source/ChannelGroup.cpp;
 			sourceTree = "SOURCE_ROOT";
 		};
 		CBEDB946DBC95B3D006D18F9 = {
@@ -1916,6 +1963,13 @@
 			lastKnownFileType = sourcecode.cpp.cpp;
 			name = SonoBusActivity.cpp;
 			path = ../../Source/android/SonoBusActivity.cpp;
+			sourceTree = "SOURCE_ROOT";
+		};
+		EA7B811305AE6872DB4EA4E8 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = EffectParams.cpp;
+			path = ../../Source/EffectParams.cpp;
 			sourceTree = "SOURCE_ROOT";
 		};
 		ECB25AAE2E734CAF20B6BE7B = {
@@ -2199,6 +2253,10 @@
 				1A903EB9C084C2E194E43F4D,
 				89CF67A82AEB481A256E036C,
 				FC57DB8D38D42604BB56757E,
+				CBECF8B4EAD5AFFA9A614658,
+				2B5EF6FD0E77910D139F590C,
+				B1D0AAD037A09676BE0676D0,
+				812D1487188455E396DE72BE,
 				3972617268D9765CC8EEB158,
 				528943C0EA064ADB7C3DF924,
 				D2A604B7BEEFCEB439F6DAF4,
@@ -2207,6 +2265,8 @@
 				00EB2622E84EBE58751B2C4F,
 				D57D9AFF12F10AD96735FB29,
 				0D24767476929EA02292BD42,
+				EA7B811305AE6872DB4EA4E8,
+				15C50030286A7CD8E23A2BC6,
 				E9B5D696282427F86579BD24,
 				4C4812D311A1F582A69FE6DD,
 				D432397A1C64E6EC91F4D148,
@@ -2478,14 +2538,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -2564,13 +2624,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -2649,14 +2709,14 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"DONT_USE_MULTIBUS",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -2737,14 +2797,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=0",
@@ -2823,13 +2883,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=0",
@@ -2908,14 +2968,14 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"DONT_USE_MULTIBUS",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=0",
@@ -2996,14 +3056,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -3083,13 +3143,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -3169,14 +3229,14 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"DONT_USE_MULTIBUS",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -3258,14 +3318,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=1",
@@ -3345,13 +3405,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=1",
@@ -3431,14 +3491,14 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"DONT_USE_MULTIBUS",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=1",
@@ -3518,14 +3578,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -3600,13 +3660,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -3682,14 +3742,14 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"DONT_USE_MULTIBUS",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -3765,14 +3825,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=1",
@@ -3847,13 +3907,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=1",
@@ -3929,14 +3989,14 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.3-43\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.4-44\\\"",
 					"DONT_USE_MULTIBUS",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.3",
-					"JUCE_APP_VERSION_HEX=0x10303",
+					"JUCE_APP_VERSION=1.3.4",
+					"JUCE_APP_VERSION_HEX=0x10304",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=1",
@@ -4612,11 +4672,14 @@
 				4A18595CCBDCA2DDB820FDAD,
 				8E7DF3BE49879A9F88FFE7D6,
 				8D9B638028CB7369029B1786,
+				21C98C88F34A835AA042CB90,
+				93589D1C4AA4CEB5FB6FA9A2,
 				E08ACFCB7F4E8F36BE8B339D,
 				295A4EF4F2E3AB3187977073,
 				AF2FBB3F401DE863C3C72430,
 				B841851CCE5556273BB441BD,
 				DB9F4B724E238A4480FA2D52,
+				F30FC1347851AAE5F7A36B1A,
 				EBB5DEA9B0F3BDD40EE36F91,
 				7F7A72BC96B1413463F800FF,
 				4C7C1EF53342A6D9A6CECEEF,

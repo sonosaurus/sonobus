@@ -6,10 +6,10 @@
 
 #include "JuceHeader.h"
 
-#include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
 #include "SonoDrawableButton.h"
 #include "EffectsBaseView.h"
+#include "EffectParams.h"
 
 //==============================================================================
 /*
@@ -226,7 +226,7 @@ public:
     class Listener {
     public:
         virtual ~Listener() {}
-        virtual void parametricEqParamsChanged(ParametricEqView *comp, SonobusAudioProcessor::ParametricEqParams &params) {}
+        virtual void parametricEqParamsChanged(ParametricEqView *comp, SonoAudio::ParametricEqParams &params) {}
     };
     
     void addListener(Listener * listener) { listeners.add(listener); }
@@ -582,7 +582,7 @@ public:
         
     }
 
-    void updateParams(const SonobusAudioProcessor::ParametricEqParams & params) {
+    void updateParams(const SonoAudio::ParametricEqParams & params) {
         mParams = params;
         
         lowShelfGainSlider.setValue(mParams.lowShelfGain, dontSendNotification);
@@ -636,7 +636,7 @@ public:
         }
     }
     
-    const SonobusAudioProcessor::ParametricEqParams & getParams() const { 
+    const SonoAudio::ParametricEqParams & getParams() const {
         return mParams;         
     }
     
@@ -712,7 +712,7 @@ private:
     FlexBox para2QBox;
 
 
-    SonobusAudioProcessor::ParametricEqParams mParams;
+    SonoAudio::ParametricEqParams mParams;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParametricEqView)
 };

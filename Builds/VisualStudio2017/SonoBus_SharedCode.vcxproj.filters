@@ -565,6 +565,12 @@
     <ClCompile Include="..\..\Source\BeatToggleGrid.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ChannelGroup.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ChannelGroupsView.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsAndroid.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
@@ -578,6 +584,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsWindows.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\EffectParams.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\GenericItemChooser.cpp">
@@ -2940,6 +2949,12 @@
     <ClInclude Include="..\..\Source\BeatToggleGrid.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\ChannelGroup.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ChannelGroupsView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\CompressorView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
@@ -2947,6 +2962,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\DebugLogC.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\EffectParams.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\EffectsBaseView.h">

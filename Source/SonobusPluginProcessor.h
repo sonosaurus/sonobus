@@ -15,11 +15,10 @@
 
 #include "MVerb.h"
 
+#include "EffectParams.h"
+#include "ChannelGroup.h"
+
 #include "zitaRev.h"
-#include "faustCompressor.h"
-#include "faustExpander.h"
-#include "faustParametricEQ.h"
-#include "faustLimiter.h"
 
 typedef MVerb<float> MVerbFloat;
 
@@ -29,6 +28,7 @@ class Metronome;
 
 
 #define MAX_PEERS 32
+#define MAX_CHANGROUPS 32
 
 
 struct AooServerConnectionInfo
@@ -218,7 +218,7 @@ public:
     struct RemoteSink;
     struct RemoteSource;
     struct RemotePeer;
-    
+
     int32_t handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId);
     int32_t handleSinkEvents(const aoo_event ** events, int32_t n, int32_t sinkId);
     int32_t handleServerEvents(const aoo_event ** events, int32_t n);
@@ -273,16 +273,33 @@ public:
     
     int getNumberRemotePeers() const;
 
-    void setRemotePeerLevelGain(int index, float levelgain);
-    float getRemotePeerLevelGain(int index) const;
+    void setRemotePeerLevelGain(int index, int changroup, float levelgain);
+    float getRemotePeerLevelGain(int index, int changroup) const;
 
-    void setRemotePeerChannelPan(int index, int chan, float pan);
-    float getRemotePeerChannelPan(int index, int chan) const;
+    void setRemotePeerChannelPan(int index, int changroup, int chan, float pan);
+    float getRemotePeerChannelPan(int index, int changroup, int chan) const;
+
+    void setRemotePeerChannelMuted(int index, int changroup, bool muted);
+    bool getRemotePeerChannelMuted(int index, int changroup) const;
+
+    void setRemotePeerChannelSoloed(int index, int changroup, bool soloed);
+    bool getRemotePeerChannelSoloed(int index, int changroup) const;
+
 
     void setRemotePeerUserName(int index, const String & name);
     String getRemotePeerUserName(int index) const;
 
-    int getRemotePeerChannelCount(int index) const;
+
+    int getRemotePeerChannelGroupCount(int index) const;
+
+    int getRemotePeerRecvChannelCount(int index) const;
+
+    int getRemotePeerChannelGroupChannelCount(int index, int changroup) const;
+    void setRemotePeerChannelGroupChannelCount(int index, int changroup, int count);
+
+    String getRemotePeerChannelGroupName(int index, int changroup) const;
+    void setRemotePeerChannelGroupName(int index, int changroup, const String & name);
+
 
     int getRemotePeerNominalSendChannelCount(int index) const;
     void setRemotePeerNominalSendChannelCount(int index, int numchans);
@@ -327,7 +344,9 @@ public:
     int64_t getRemotePeerPacketsDropped(int index) const;
     int64_t getRemotePeerPacketsResent(int index) const;
     void    resetRemotePeerPacketStats(int index);
-    
+
+    bool getRemotePeerSafetyMuted(int index) const;
+
 
     struct LatencyInfo
     {
@@ -346,57 +365,67 @@ public:
     bool stopRemotePeerLatencyTest(int index);
     bool isRemotePeerLatencyTestActive(int index);
     
-    
-    struct CompressorParams
-    {
-        ValueTree getValueTree(const String & stateKey) const;
-        void setFromValueTree(const ValueTree & val);
 
-        bool enabled = false;
-        float thresholdDb = -16.0f;
-        float ratio = 2.0f;
-        float attackMs = 10.0f;
-        float releaseMs = 80.0f;
-        float makeupGainDb = 0.0f;
-        bool  automakeupGain = true;
-    };
     
-    
-    void setRemotePeerCompressorParams(int index, CompressorParams & params);
-    bool getRemotePeerCompressorParams(int index, CompressorParams & retparams);
-    
-    void setInputCompressorParams(CompressorParams & params);
-    bool getInputCompressorParams(CompressorParams & retparams);
+    void setRemotePeerCompressorParams(int index, int changroup, SonoAudio::CompressorParams & params);
+    bool getRemotePeerCompressorParams(int index, int changroup, SonoAudio::CompressorParams & retparams);
 
-    void setInputExpanderParams(CompressorParams & params);
-    bool getInputExpanderParams(CompressorParams & retparams);
+    void setRemotePeerExpanderParams(int index, int changroup, SonoAudio::CompressorParams & params);
+    bool getRemotePeerExpanderParams(int index, int changroup, SonoAudio::CompressorParams & retparams);
 
-    void setInputLimiterParams(CompressorParams & params);
-    bool getInputLimiterParams(CompressorParams & retparams);
-    
-    struct ParametricEqParams
-    {
-        ValueTree getValueTree() const;
-        void setFromValueTree(const ValueTree & val);
+    void setRemotePeerEqParams(int index, int changroup, SonoAudio::ParametricEqParams & params);
+    bool getRemotePeerEqParams(int index, int changroup, SonoAudio::ParametricEqParams & retparams);
 
-        bool enabled = false;
-        float lowShelfGain = 0.0f; // db
-        float lowShelfFreq = 60.0f; // Hz
-        float para1Gain = 0.0f; // db
-        float para1Freq = 90.0f; // Hz
-        float para1Q = 1.5f;
-        float para2Gain = 0.0f; // db
-        float para2Freq = 360.0; // Hz
-        float para2Q = 4.0f;
-        float highShelfGain = 0.0f; // db
-        float highShelfFreq = 10000.0f; // Hz
-    };
+    bool getRemotePeerEffectsActive(int index, int changroup);
 
-    void setInputEqParams(ParametricEqParams & params);
-    bool getInputEqParams(ParametricEqParams & retparams);
+
+
+    void setInputCompressorParams(int changroup, SonoAudio::CompressorParams & params);
+    bool getInputCompressorParams(int changroup, SonoAudio::CompressorParams & retparams);
+
+    void setInputExpanderParams(int changroup, SonoAudio::CompressorParams & params);
+    bool getInputExpanderParams(int changroup, SonoAudio::CompressorParams & retparams);
+
+    void setInputLimiterParams(int changroup, SonoAudio::CompressorParams & params);
+    bool getInputLimiterParams(int changroup, SonoAudio::CompressorParams & retparams);
+
+    
+    // input channel group stuff
+
+    void setInputGroupCount(int count);
+    int getInputGroupCount() const { return mInputChannelGroupCount; }
+
+    void setInputGroupChannelStartAndCount(int changroup, int start, int count);
+    bool getInputGroupChannelStartAndCount(int changroup, int & retstart, int & retcount);
+
+    void setInputGroupName(int changroup, const String & name);
+    String getInputGroupName(int changroup);
+
+    void setInputChannelPan(int changroup, int chan, float pan);
+    float getInputChannelPan(int changroup, int chan);
+
+    void setInputGroupGain(int changroup, float gain);
+    float getInputGroupGain(int changroup);
+
+    void setInputMonitor(int changroup, float mgain);
+    float getInputMonitor(int changroup);
+
+    void setInputGroupMuted(int changroup, bool muted);
+    bool getInputGroupMuted(int changroup);
+
+    void setInputGroupSoloed(int changroup, bool muted);
+    bool getInputGroupSoloed(int changroup);
+
+
+    void setInputReverbSend(int changroup, float rgain);
+    float getInputReverbSend(int changroup);
+
+
+    void setInputEqParams(int changroup, SonoAudio::ParametricEqParams & params);
+    bool getInputEqParams(int changroup, SonoAudio::ParametricEqParams & retparams);
     
     
-    bool getInputEffectsActive() const { return mInputCompressorParams.enabled || mInputExpanderParams.enabled || mInputEqParams.enabled; }
+    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].compressorParams.enabled || mInputChannelGroups[changroup].expanderParams.enabled || mInputChannelGroups[changroup].eqParams.enabled; }
     
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
@@ -449,6 +478,7 @@ public:
     void setPatchMatrixValue(int srcindex, int destindex, bool value);
     
     foleys::LevelMeterSource & getInputMeterSource() { return inputMeterSource; }
+    foleys::LevelMeterSource & getSendMeterSource() { return sendMeterSource; }
     foleys::LevelMeterSource & getOutputMeterSource() { return outputMeterSource; }
     
     bool isAnythingRoutedToPeer(int index) const;
@@ -527,23 +557,24 @@ private:
     
     struct PeerStateCache
     {
+        PeerStateCache();
         ValueTree getValueTree() const;
         void setFromValueTree(const ValueTree & val);
 
         String name;
-        float level = 1.0f;
-        float monopan = 0.0f;
-        float stereopan1 = -1.0f;
-        float stereopan2 = 1.0f;
-        float netbuf = 10.0f; 
+        float netbuf = 10.0f;
         int   netbufauto;
         int   sendFormat = 4;
-        CompressorParams compressorParams;
+
+        SonoAudio::ChannelGroup channelGroups[MAX_CHANGROUPS];
+        int numChanGroups = 1;
     };
 
     // key is peer name
     typedef std::map<String, PeerStateCache>  PeerStateCacheMap;
-    
+
+
+
     
     void initializeAoo(int udpPort=0);
     void cleanupAoo();
@@ -568,14 +599,14 @@ private:
 
     void adjustRemoteSendMatrix(int index, bool removed);
 
-    void commitCompressorParams(RemotePeer * peer);
-    void commitInputCompressorParams();
+    void commitCompressorParams(RemotePeer * peer, int changroup);
+    void commitInputCompressorParams(int changroup);
 
     //void commitExpanderParams(RemotePeer * peer);
-    void commitInputExpanderParams();
-    void commitInputLimiterParams();
+    void commitInputExpanderParams(int changroup);
+    void commitInputLimiterParams(int changroup);
 
-    void commitInputEqParams();
+    void commitInputEqParams(int changroup);
 
     void updateDynamicResampling();
 
@@ -601,10 +632,12 @@ private:
     AudioSampleBuffer tempBuffer;
     AudioSampleBuffer workBuffer;
     AudioSampleBuffer inputBuffer;
+    AudioSampleBuffer monitorBuffer;
     AudioSampleBuffer inputWorkBuffer;
     AudioSampleBuffer fileBuffer;
     AudioSampleBuffer metBuffer;
     AudioSampleBuffer mainFxBuffer;
+    AudioSampleBuffer silentBuffer; // only ever has one channel
     int mTempBufferSamples = 0;
     int mTempBufferChannels = 0;
     
@@ -685,6 +718,7 @@ private:
     
     // top level meter sources
     foleys::LevelMeterSource inputMeterSource;
+    foleys::LevelMeterSource sendMeterSource;
     foleys::LevelMeterSource outputMeterSource;
     
     // AOO stuff
@@ -762,7 +796,12 @@ private:
     std::unique_ptr<EventThread> mEventThread;
     std::unique_ptr<ServerThread> mServerThread;
     std::unique_ptr<ClientThread> mClientThread;
-    
+
+
+    // Input channelgroups
+    SonoAudio::ChannelGroup mInputChannelGroups[MAX_CHANGROUPS];
+    int mInputChannelGroupCount = 0;
+
     // Effects
     std::unique_ptr<Reverb> mMainReverb;
     Reverb::Parameters mMainReverbParams;
@@ -770,36 +809,6 @@ private:
     zitaRev mZitaReverb;
     MapUI  mZitaControl;
     
-    //faustComp mInputCompressor;
-    faustCompressor mInputCompressor;
-    MapUI  mInputCompressorControl;
-    CompressorParams mInputCompressorParams;
-    bool mInputCompressorParamsChanged = false;
-    bool mLastInputCompressorEnabled = false;
-    float * mInputCompressorOutputGain = nullptr;
-
-    // gate/expander
-    faustExpander mInputExpander;
-    MapUI  mInputExpanderControl;
-    CompressorParams mInputExpanderParams;
-    bool mInputExpanderParamsChanged = false;
-    bool mLastInputExpanderEnabled = false;
-    float * mInputExpanderOutputGain = nullptr;
-
-    // EQ
-    faustParametricEQ mInputEq[2]; // left and right ; todo 
-    MapUI  mInputEqControl[2];
-    ParametricEqParams mInputEqParams;
-    bool mInputEqParamsChanged = false;
-    bool mLastInputEqEnabled = false;
-
-    // limiter
-    //faustLimiter mInputLimiter;
-    faustCompressor mInputLimiter;
-    MapUI  mInputLimiterControl;
-    CompressorParams mInputLimiterParams;
-    bool mInputLimiterParamsChanged = false;
-    bool mLastInputLimiterEnabled = false;
 
     ReverbModel mLastReverbModel = ReverbModelMVerb;
     
@@ -812,21 +821,19 @@ private:
     String mDefaultRecordDir;
     String mLastError;
 
-    volatile bool writingPossible = false;
-    volatile bool userWritingPossible = false;
+    std::atomic<bool> writingPossible = { false };
+    std::atomic<bool> userWritingPossible = { false };
     int totalRecordingChannels = 2;
     int64 mElapsedRecordSamples = 0;
     std::unique_ptr<TimeSliceThread> recordingThread;
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixWriter; // the FIFO used to buffer the incoming data
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixMinusWriter; // the FIFO used to buffer the incoming data
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedSelfWriter; // the FIFO used to buffer the incoming data
-    OwnedArray<AudioFormatWriter::ThreadedWriter> threadedUserWriters;
 
     CriticalSection writerLock;
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeMixWriter { nullptr };
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeMixMinusWriter { nullptr };
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeSelfWriter { nullptr };
-    std::vector<AudioFormatWriter::ThreadedWriter*> activeUserWriters;
   
     // playing stuff
     AudioTransportSource mTransportSource;
