@@ -178,6 +178,8 @@
             file="Source/ChannelGroupsView.h"/>
       <FILE id="zsNFlO" name="CompressorView.h" compile="0" resource="0"
             file="Source/CompressorView.h"/>
+      <FILE id="Q31sYW" name="ConnectView.cpp" compile="1" resource="0" file="Source/ConnectView.cpp"/>
+      <FILE id="jHErvF" name="ConnectView.h" compile="0" resource="0" file="Source/ConnectView.h"/>
       <FILE id="JhBMID" name="CrossPlatformUtils.h" compile="0" resource="0"
             file="Source/CrossPlatformUtils.h"/>
       <FILE id="Pd0jq9" name="CrossPlatformUtilsAndroid.cpp" compile="1"

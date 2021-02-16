@@ -216,6 +216,7 @@
     <ClCompile Include="..\..\Source\BeatToggleGrid.cpp"/>
     <ClCompile Include="..\..\Source\ChannelGroup.cpp"/>
     <ClCompile Include="..\..\Source\ChannelGroupsView.cpp"/>
+    <ClCompile Include="..\..\Source\ConnectView.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsAndroid.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsLinux.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsWindows.cpp"/>
@@ -2330,6 +2331,7 @@
     <ClInclude Include="..\..\Source\ChannelGroup.h"/>
     <ClInclude Include="..\..\Source\ChannelGroupsView.h"/>
     <ClInclude Include="..\..\Source\CompressorView.h"/>
+    <ClInclude Include="..\..\Source\ConnectView.h"/>
     <ClInclude Include="..\..\Source\CrossPlatformUtils.h"/>
     <ClInclude Include="..\..\Source\DebugLogC.h"/>
     <ClInclude Include="..\..\Source\EffectParams.h"/>

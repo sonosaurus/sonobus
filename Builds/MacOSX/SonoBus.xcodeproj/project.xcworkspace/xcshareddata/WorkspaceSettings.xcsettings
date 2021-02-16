@@ -6,7 +6,5 @@
 	<string>Original</string>
 	<key>DisableBuildSystemDeprecationWarning</key>
 	<true/>
-	<key>PreviewsEnabled</key>
-	<false/>
 </dict>
 </plist>

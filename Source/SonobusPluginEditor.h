@@ -18,6 +18,7 @@
 #include "ExpanderView.h"
 #include "ParametricEqView.h"
 #include "EffectParams.h"
+#include "ConnectView.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
@@ -42,7 +43,8 @@ public TextEditor::Listener,
 public ApplicationCommandTarget,
 public AsyncUpdater,
 public FileDragAndDropTarget,
-public GenericItemChooser::Listener
+public GenericItemChooser::Listener,
+public ConnectView::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -83,7 +85,9 @@ public:
         return findFirstTargetParentComponent();
     }
 
-    
+    // connectview
+    void connectionsChanged(ConnectView *comp) override;
+
 
     
     void textEditorReturnKeyPressed (TextEditor&) override;
@@ -131,15 +135,10 @@ public:
 
     void handleURL(const String & urlstr);
     
-    void updateRecents();
-
-    void updatePublicGroups();
-    void resetPrivateGroupLabels();
 
     // if returns true signifies go ahead and quit now, otherwise we'll handle it
     bool requestedQuit();
 
-    void connectTabChanged (int newCurrentTabIndex);
 
 
 private:
@@ -159,8 +158,6 @@ private:
 
     void showConnectPopup(bool flag);
 
-    bool handleSonobusURL(const URL & url);
-
     void showFormatChooser(int peerindex);
     
     void showSettings(bool flag);
@@ -176,11 +173,6 @@ private:
     
     String generateNewUsername(const AooServerConnectionInfo & info);
 
-    bool attemptToPasteConnectionFromClipboard();
-    bool copyInfoToClipboard(bool singleURL=false, String * retmessage = nullptr);
-    void updateServerFieldsFromConnectionInfo();
-
-    void publicGroupLogin();
 
 
     void openFileBrowser();
@@ -219,12 +211,8 @@ private:
     std::unique_ptr<ImageComponent> mTitleImage;
     
 
-    std::unique_ptr<Label> mLocalAddressStaticLabel;
-    std::unique_ptr<Label> mLocalAddressLabel;
-
-    std::unique_ptr<TextButton> mDirectConnectButton;
-
     std::unique_ptr<SonoTextButton> mConnectButton;
+    std::unique_ptr<SonoDrawableButton> mAltConnectButton;
 
     std::unique_ptr<Label> mMainGroupLabel;
     std::unique_ptr<Label> mMainUserLabel;
@@ -233,47 +221,14 @@ private:
     std::unique_ptr<ImageComponent> mMainPersonImage;
     std::unique_ptr<Label> mMainMessageLabel;
 
-    
-    std::unique_ptr<Label> mRemoteAddressStaticLabel;
-    std::unique_ptr<TextEditor> mAddRemoteHostEditor;
-    std::unique_ptr<Label> mDirectConnectDescriptionLabel;
-
-    std::unique_ptr<TextButton> mServerConnectButton;
-
-    std::unique_ptr<Label> mServerHostStaticLabel;
-    std::unique_ptr<TextEditor> mServerHostEditor;
-
-    std::unique_ptr<Label> mPublicServerHostStaticLabel;
-    std::unique_ptr<TextEditor> mPublicServerHostEditor;
-    std::unique_ptr<TextEditor> mPublicServerUsernameEditor;
-    std::unique_ptr<Label> mPublicServerStatusInfoLabel;
-    std::unique_ptr<Label> mPublicServerUserStaticLabel;
-    std::unique_ptr<GroupComponent> mPublicGroupComponent;
-    std::unique_ptr<Label> mPublicServerInfoStaticLabel;
-    std::unique_ptr<TextButton> mPublicServerAddGroupButton;
-    std::unique_ptr<TextEditor> mPublicServerGroupEditor;
-
-
-    std::unique_ptr<Label> mServerUserStaticLabel;
-    std::unique_ptr<TextEditor> mServerUsernameEditor;
-    std::unique_ptr<Label> mServerUserPassStaticLabel;
-    std::unique_ptr<TextEditor> mServerUserPasswordEditor;
-
-    std::unique_ptr<Label> mServerGroupStaticLabel;
-    std::unique_ptr<TextEditor> mServerGroupEditor;
-    std::unique_ptr<Label> mServerGroupPassStaticLabel;
-    std::unique_ptr<TextEditor> mServerGroupPasswordEditor;
-
-    std::unique_ptr<SonoDrawableButton> mServerGroupRandomButton;
-    std::unique_ptr<SonoDrawableButton> mServerPasteButton;
-    std::unique_ptr<SonoDrawableButton> mServerCopyButton;
-    std::unique_ptr<SonoDrawableButton> mServerShareButton;
-    std::unique_ptr<Label> mServerAudioInfoLabel;
 
 
     std::unique_ptr<Label> mServerStatusLabel;
     std::unique_ptr<Label> mServerInfoLabel;
     std::unique_ptr<Label> mMainStatusLabel;
+
+
+
 
     std::unique_ptr<Label> mConnectionTimeLabel;
     std::unique_ptr<Label> mFileRecordingLabel;
@@ -319,19 +274,10 @@ private:
     std::unique_ptr<Label> mWetLabel;
     std::unique_ptr<Label> mOutGainLabel;
 
-    std::unique_ptr<TabbedComponent> mConnectTab;
-    std::unique_ptr<Component> mDirectConnectContainer;
-    std::unique_ptr<Viewport> mServerConnectViewport;
-    std::unique_ptr<Component> mServerConnectContainer;
-    std::unique_ptr<Viewport> mPublicServerConnectViewport;
-    std::unique_ptr<Component> mPublicServerConnectContainer;
-    std::unique_ptr<Component> mRecentsContainer;
-    std::unique_ptr<GroupComponent> mRecentsGroup;
+    std::unique_ptr<ConnectView> mConnectView;
 
-    std::unique_ptr<Component> mConnectComponent;
-    std::unique_ptr<DrawableRectangle> mConnectComponentBg;
-    std::unique_ptr<Label> mConnectTitle;
-    std::unique_ptr<SonoDrawableButton> mConnectCloseButton;
+
+    std::unique_ptr<TabbedComponent> mSettingsTab;
 
     
     std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
@@ -339,14 +285,15 @@ private:
     std::unique_ptr<Viewport> mOtherOptionsViewport;
     std::unique_ptr<Viewport> mRecordOptionsViewport;
 
-    std::unique_ptr<TabbedComponent> mSettingsTab;
 
     std::unique_ptr<Component> mOptionsComponent;
     std::unique_ptr<Component> mRecOptionsComponent;
     int minOptionsHeight = 0;
     int minRecOptionsHeight = 0;
     int minServerConnectHeight = 0;
-    
+
+    uint32 settingsClosedTimestamp = 0;
+
     std::unique_ptr<Component> mMetContainer;
 
     std::unique_ptr<Component> mEffectsContainer;
@@ -488,65 +435,7 @@ private:
         String group;
     };
     Array<ClientEvent> clientEvents;
-    
-    class RecentsListModel : public ListBoxModel
-    {
-    public:
-        RecentsListModel(SonobusAudioProcessorEditor * parent_);
-        int getNumRows() override;
-        void     paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
-        void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
-        void selectedRowsChanged(int lastRowSelected) override;
 
-        void updateState();
-
-    protected:
-        SonobusAudioProcessorEditor * parent;
-
-        Image groupImage;
-        Image personImage;
-        std::unique_ptr<Drawable> removeImage;
-        
-        int cachedWidth = 0;
-        int removeButtonX = 0;
-        
-        Array<AooServerConnectionInfo> recents;
-    };
-    RecentsListModel recentsListModel;
-    Font recentsGroupFont;
-    Font recentsNameFont;
-    Font recentsInfoFont;
-    bool firstTimeConnectShow = true;
-    uint32 settingsClosedTimestamp = 0;
-
-    std::unique_ptr<ListBox> mRecentsListBox;
-    std::unique_ptr<SonoTextButton> mClearRecentsButton;
-
-    // public groups stuff
-    class PublicGroupsListModel : public ListBoxModel
-    {
-    public:
-        PublicGroupsListModel(SonobusAudioProcessorEditor * parent_);
-        int getNumRows() override;
-        void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
-        void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
-        void selectedRowsChanged(int lastRowSelected) override;
-
-        void updateState();
-
-    protected:
-        SonobusAudioProcessorEditor * parent;
-
-        Image groupImage;
-        Image personImage;
-
-        int cachedWidth = 0;
-
-        Array<AooPublicGroupInfo> groups;
-    };
-    PublicGroupsListModel publicGroupsListModel;
-
-    std::unique_ptr<ListBox> mPublicGroupsListBox;
 
 
     bool peerStateUpdated = false;
@@ -630,22 +519,7 @@ private:
     FlexBox inputBox;
     FlexBox addressBox;
 
-    FlexBox serverBox;
-    FlexBox servStatusBox;
-    FlexBox servGroupBox;
-    FlexBox servGroupPassBox;
-    FlexBox servUserBox;
-    FlexBox servUserPassBox;
-    //FlexBox inputBox;
-    FlexBox servAddressBox;
-    FlexBox servButtonBox;
-    FlexBox localAddressBox;
-
-    FlexBox publicGroupsBox;
-    FlexBox publicServAddressBox;
-    FlexBox publicServUserBox;
-    FlexBox publicAddGroupBox;
-
+    FlexBox connectBox;
 
     FlexBox middleBox;
 
@@ -688,16 +562,8 @@ private:
     FlexBox reverbSizeBox;
     FlexBox reverbDampBox;
     FlexBox reverbPreDelayBox;
-    
-    FlexBox connectMainBox;
-    FlexBox connectHorizBox;
-    FlexBox connectTitleBox;
 
-    FlexBox connectBox;
 
-    FlexBox recentsBox;
-    FlexBox clearRecentsBox;
-    
     FlexBox inPannerMainBox;
     FlexBox inPannerLabelBox;
     FlexBox inPannerBox;

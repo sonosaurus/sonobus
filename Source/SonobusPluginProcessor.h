@@ -29,6 +29,7 @@ class Metronome;
 
 #define MAX_PEERS 32
 #define MAX_CHANGROUPS 32
+#define DEFAULT_SERVER_PORT 10998
 
 
 struct AooServerConnectionInfo

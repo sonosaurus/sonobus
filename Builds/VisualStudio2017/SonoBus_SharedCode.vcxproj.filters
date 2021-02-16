@@ -571,6 +571,9 @@
     <ClCompile Include="..\..\Source\ChannelGroupsView.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ConnectView.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsAndroid.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
@@ -2956,6 +2959,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\CompressorView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ConnectView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\CrossPlatformUtils.h">
