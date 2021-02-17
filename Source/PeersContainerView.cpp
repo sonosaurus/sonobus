@@ -536,7 +536,12 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->staticRemoteSendFormatChoiceLabel = std::make_unique<Label>("fmt", TRANS("Preferred Recv Quality"));
     configLabel(pvf->staticRemoteSendFormatChoiceLabel.get(), LabelTypeRegular);
-    
+
+    pvf->changeAllRecvFormatButton = std::make_unique<ToggleButton>(TRANS("Change all"));
+    pvf->changeAllRecvFormatButton->addListener(this);
+    pvf->changeAllRecvFormatButton->setLookAndFeel(&pvf->smallLnf);
+
+
     pvf->staticLatencyLabel = std::make_unique<Label>("lat", TRANS("Latency (ms)"));
     configLabel(pvf->staticLatencyLabel.get(), LabelTypeSmallDim);
     pvf->staticLatencyLabel->setJustificationType(Justification::centred);
@@ -717,6 +722,7 @@ void PeersContainerView::rebuildPeerViews()
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->optionsResetDropButton.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->remoteSendFormatChoiceButton.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->staticRemoteSendFormatChoiceLabel.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->changeAllRecvFormatButton.get());
 
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->formatChoiceButton.get());
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->changeAllFormatButton.get());
@@ -916,8 +922,9 @@ void PeersContainerView::updateLayout()
 
         pvf->optionsRemoteQualityBox.items.clear();
         pvf->optionsRemoteQualityBox.flexDirection = FlexBox::Direction::row;
-        pvf->optionsRemoteQualityBox.items.add(FlexItem(100, minitemheight, *pvf->staticRemoteSendFormatChoiceLabel).withMargin(0).withFlex(0));
+        pvf->optionsRemoteQualityBox.items.add(FlexItem(80, minitemheight, *pvf->staticRemoteSendFormatChoiceLabel).withMargin(0).withFlex(0));
         pvf->optionsRemoteQualityBox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->remoteSendFormatChoiceButton).withMargin(0).withFlex(2));
+        pvf->optionsRemoteQualityBox.items.add(FlexItem(60, minitemheight, *pvf->changeAllRecvFormatButton).withMargin(0).withFlex(0));
 
         
         pvf->optionsSendMutedBox.items.clear();
@@ -1529,13 +1536,13 @@ void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index,
         else if (pvf->remoteSendFormatChoiceButton.get() == comp) {
             // set them all if this option is selected
 
-            if (processor.getChangingDefaultAudioCodecSetsExisting()) {
+            if (processor.getChangingDefaultRecvAudioCodecSetsExisting()) {
                 for (int j=0; j < mPeerViews.size(); ++j) {
-
-                    processor.setRequestRemotePeerSendAudioCodecFormat(j, ident); 
+                    processor.setRequestRemotePeerSendAudioCodecFormat(j, ident);
                 }
             }
-            else {
+            else
+            {
                 processor.setRequestRemotePeerSendAudioCodecFormat(i, ident); 
             }
             break;
@@ -1663,6 +1670,10 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         }
         else if (pvf->changeAllFormatButton.get() == buttonThatWasClicked) {
             processor.setChangingDefaultAudioCodecSetsExisting(buttonThatWasClicked->getToggleState());
+            break;
+        }
+        else if (pvf->changeAllRecvFormatButton.get() == buttonThatWasClicked) {
+            processor.setChangingDefaultRecvAudioCodecSetsExisting(buttonThatWasClicked->getToggleState());
             break;
         }
         else if (pvf->optionsRemoveButton.get() == buttonThatWasClicked) {

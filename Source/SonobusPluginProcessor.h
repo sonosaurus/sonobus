@@ -214,6 +214,7 @@ public:
     static String paramMainInMute;
     static String paramMainMonitorSolo;
     static String paramAutoReconnectLast;
+    static String paramDefaultPeerLevel;
 
     struct EndpointState;
     struct RemoteSink;
@@ -448,7 +449,10 @@ public:
 
     void setChangingDefaultAudioCodecSetsExisting(bool flag) { mChangingDefaultAudioCodecChangesAll = flag; }
     bool getChangingDefaultAudioCodecSetsExisting() const { return mChangingDefaultAudioCodecChangesAll;}
-    
+
+    void setChangingDefaultRecvAudioCodecSetsExisting(bool flag) { mChangingDefaultRecvAudioCodecChangesAll = flag; }
+    bool getChangingDefaultRecvAudioCodecSetsExisting() const { return mChangingDefaultRecvAudioCodecChangesAll;}
+
     
     String getAudioCodeFormatName(int formatIndex) const;
     bool getAudioCodeFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const;
@@ -683,6 +687,7 @@ private:
     Atomic<int>   mMainReverbModel  { ReverbModelMVerb };
     Atomic<bool>   mDynamicResampling  { false };
     Atomic<bool>   mAutoReconnectLast  { false };
+    Atomic<float>   mDefUserLevel    { 1.0f };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
@@ -701,7 +706,8 @@ private:
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
     
     bool mChangingDefaultAudioCodecChangesAll = false;
-    
+    bool mChangingDefaultRecvAudioCodecChangesAll = false;
+
     RangedAudioParameter * mDefaultAutoNetbufModeParam;
     RangedAudioParameter * mTempoParameter;
 

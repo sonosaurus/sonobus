@@ -5603,6 +5603,9 @@
     <None Include="..\..\images\mute-others.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\network.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\outgoing_allowed.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>

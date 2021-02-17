@@ -83,6 +83,9 @@ namespace BinaryData
     extern const char*   muteothers_svg;
     const int            muteothers_svgSize = 8680;
 
+    extern const char*   network_svg;
+    const int            network_svgSize = 8054;
+
     extern const char*   outgoing_allowed_svg;
     const int            outgoing_allowed_svgSize = 10153;
 
@@ -168,7 +171,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 53;
+    const int namedResourceListSize = 54;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

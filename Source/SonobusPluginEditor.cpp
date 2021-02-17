@@ -583,7 +583,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 
     mAltConnectButton = std::make_unique<SonoDrawableButton>("altconn", DrawableButton::ButtonStyle::ImageOnButtonBackground);
-    std::unique_ptr<Drawable> dotsimg(Drawable::createFromImageData(BinaryData::dots_svg, BinaryData::dots_svgSize));
+    std::unique_ptr<Drawable> dotsimg(Drawable::createFromImageData(BinaryData::network_svg, BinaryData::network_svgSize));
     mAltConnectButton->setImages(dotsimg.get(), nullptr, nullptr, nullptr, nullptr);
     mAltConnectButton->addListener(this);
     //mAltConnectButton->setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
@@ -747,7 +747,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
     mOptionsUseSpecificUdpPortButton->addListener(this);
 
-    mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction"));
+    mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction (NOT RECOMMENDED)"));
     mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
 
     mOptionsAutoReconnectButton = std::make_unique<ToggleButton>(TRANS("Auto-Reconnect to Last Group"));
@@ -759,7 +759,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mOptionsShouldCheckForUpdateButton = std::make_unique<ToggleButton>(TRANS("Automatically check for updates"));
     mOptionsShouldCheckForUpdateButton->addListener(this);
 
-    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Click Position"));
+    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Clicked Position"));
     mOptionsSliderSnapToMouseButton->addListener(this);
 
 
@@ -778,6 +778,28 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mOptionsUdpPortEditor->setInputRestrictions(5, "0123456789");
     
     configEditor(mOptionsUdpPortEditor.get());
+
+
+    mOptionsDefaultLevelSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
+    mOptionsDefaultLevelSlider->setName("uservol");
+    mOptionsDefaultLevelSlider->setSliderSnapsToMousePosition(false);
+    mOptionsDefaultLevelSlider->setScrollWheelEnabled(false);
+    configLevelSlider(mOptionsDefaultLevelSlider.get());
+    mOptionsDefaultLevelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
+    mOptionsDefaultLevelSlider->setTextBoxIsEditable(true);
+    //mOptionsDefaultLevelSlider->setSliderStyle(Slider::SliderStyle::LinearBar);
+
+    mDefaultLevelAttachment =  std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultPeerLevel, *mOptionsDefaultLevelSlider);
+
+
+    mOptionsDefaultLevelSliderLabel = std::make_unique<Label>("", TRANS("Default User Level"));
+    configLabel(mOptionsDefaultLevelSliderLabel.get(), false);
+    mOptionsDefaultLevelSliderLabel->setJustificationType(Justification::centredLeft);
+
+
+
+
+
 
 #if JUCE_IOS
     mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
@@ -1006,6 +1028,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoReconnectButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsInputLimiterButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDefaultLevelSlider.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDefaultLevelSliderLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
@@ -2767,6 +2791,11 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 
         mOptionsAutosizeStaticLabel->setBounds(mBufferTimeSlider->getBounds().removeFromLeft(mBufferTimeSlider->getWidth()*0.75));
 
+        auto deflabbounds = mOptionsDefaultLevelSlider->getBounds().removeFromLeft(mOptionsDefaultLevelSlider->getWidth()*0.75);
+        deflabbounds.removeFromBottom(mOptionsDefaultLevelSlider->getHeight()*0.4);
+        mOptionsDefaultLevelSliderLabel->setBounds(deflabbounds);
+        mOptionsDefaultLevelSlider->setMouseDragSensitivity(jmax(128, mOptionsDefaultLevelSlider->getWidth()));
+
         
         updateOptionsState();
         
@@ -3503,6 +3532,12 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsHearlatBox.items.add(FlexItem(10, 12));
     optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
 
+    optionsDefaultLevelBox.flexDirection = FlexBox::Direction::row;
+    optionsDefaultLevelBox.items.add(FlexItem(12, 12));
+    //optionsDefaultLevelBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsDefaultLevelSliderLabel).withMargin(0).withFlex(1));
+    //optionsDefaultLevelBox.items.add(FlexItem(4, 12));
+    optionsDefaultLevelBox.items.add(FlexItem(100, minitemheight, *mOptionsDefaultLevelSlider).withMargin(0).withFlex(1));
+
 
     optionsUdpBox.items.clear();
     optionsUdpBox.flexDirection = FlexBox::Direction::row;
@@ -3555,6 +3590,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 6));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 6));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));

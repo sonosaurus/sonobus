@@ -106,6 +106,7 @@
             file="images/mic_pointing.svg"/>
       <FILE id="qzYa50" name="move_updown.svg" compile="0" resource="1" file="images/move_updown.svg"/>
       <FILE id="OmtN5U" name="mute-others.svg" compile="0" resource="1" file="images/mute-others.svg"/>
+      <FILE id="EGsWAe" name="network.svg" compile="0" resource="1" file="images/network.svg"/>
       <FILE id="C2rj32" name="outgoing_allowed.svg" compile="0" resource="1"
             file="images/outgoing_allowed.svg"/>
       <FILE id="QMiY36" name="outgoing_allowed_active.svg" compile="0" resource="1"

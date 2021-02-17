@@ -832,13 +832,13 @@ void ChannelGroupsView::updateLayout()
         pvf->inbox.items.add(FlexItem(100, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
         if (!isNarrow) {
             pvf->inbox.items.add(FlexItem(6, 3));
-            pvf->inbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+            pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
             pvf->inbox.items.add(FlexItem(3, 3));
-            pvf->inbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+            pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
         }
         pvf->inbox.items.add(FlexItem(3, 3));
         pvf->inbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(1));
-        pvf->inbox.items.add(FlexItem(3, 3));
+        pvf->inbox.items.add(FlexItem(1, 3));
         pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
 
         ipw = 0;
@@ -852,11 +852,11 @@ void ChannelGroupsView::updateLayout()
         //pvf->monbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(1));
         if (isNarrow) {
             pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
-            pvf->monbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
             pvf->monbox.items.add(FlexItem(3, 3));
-            pvf->monbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
             pvf->monbox.items.add(FlexItem(3, 3));
-            pvf->monbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
             pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
             pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth));
             pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
@@ -864,7 +864,7 @@ void ChannelGroupsView::updateLayout()
         else {
             pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(0.25).withMaxWidth(maxPannerWidth));
             pvf->monbox.items.add(FlexItem(3, 3));
-            pvf->monbox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
         }
 
         mpw = 0;
@@ -900,7 +900,7 @@ void ChannelGroupsView::updateLayout()
             pvf->maincontentbox.items.add(FlexItem(3, 2));
             pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(2));
             pvf->maincontentbox.items.add(FlexItem(6, 2));
-            pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1));
+            pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + 10));
 
 
             pvf->mainbox.items.add(FlexItem(60, iph, pvf->maincontentbox).withMargin(0).withFlex(0));
@@ -977,6 +977,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         sendcnt = processor.getMainBusNumInputChannels();
     }
 
+    int totalchans = processor.getMainBusNumInputChannels();
     int changroups = processor.getInputGroupCount();
     int chi = 0;
 
@@ -1031,6 +1032,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         bool infxon = processor.getInputEffectsActive(changroup);
         pvf->fxButton->setToggleState(infxon, dontSendNotification);
 
+
         if (!pvf->levelSlider->isMouseOverOrDragging()) {
             pvf->levelSlider->setValue(processor.getInputGroupGain(changroup), dontSendNotification);
         }
@@ -1083,7 +1085,11 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         pvf->soloButton->setVisible(isprimary);
         pvf->muteButton->setVisible(isprimary);
         pvf->nameLabel->setVisible(isprimary);
-        pvf->fxButton->setVisible(isprimary);
+
+        // effects aren't used if channel count is above 2, right now
+        pvf->fxButton->setVisible(isprimary && chcnt <= 2);
+
+        pvf->linkButton->setVisible(totalchans > 1);
 
         pvf->repaint();
     }
@@ -1104,7 +1110,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     int changroups = processor.getRemotePeerChannelGroupCount(mPeerIndex);
     int chi = 0;
 
-    //int recvchans = processor.getRemotePeerRecvChannelCount(mPeerIndex);
+    int totalchans = processor.getRemotePeerRecvChannelCount(mPeerIndex);
 
     int chstart = 0;
     int chcnt = 0;
@@ -1161,6 +1167,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         pvf->meter->setMeterSource (processor.getRemotePeerRecvMeterSource(mPeerIndex));
         pvf->meter->setSelectedChannel(i);
 
+        pvf->linkButton->setVisible(totalchans > 1); // XXX
 
         if (processor.getMainBusNumOutputChannels() != 2 && chcnt <= processor.getMainBusNumOutputChannels()) {
             pvf->panSlider->setVisible(false);

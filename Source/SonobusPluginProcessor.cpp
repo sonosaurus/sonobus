@@ -66,6 +66,7 @@ String SonobusAudioProcessor::paramMainReverbPreDelay  ("mainreverbpredelay");
 String SonobusAudioProcessor::paramMainReverbModel  ("mainreverbmodel");
 String SonobusAudioProcessor::paramDynamicResampling  ("dynamicresampling");
 String SonobusAudioProcessor::paramAutoReconnectLast  ("reconnectlast");
+String SonobusAudioProcessor::paramDefaultPeerLevel  ("defPeerLevel");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -73,6 +74,7 @@ static String recentsItemKey("ServerConnectionInfo");
 static String extraStateCollectionKey("ExtraState");
 static String useSpecificUdpPortKey("UseUdpPort");
 static String changeQualForAllKey("ChangeQualForAll");
+static String changeRecvQualForAllKey("ChangeRecvQualForAll");
 static String defRecordOptionsKey("DefaultRecordingOptions");
 static String defRecordFormatKey("DefaultRecordingFormat");
 static String defRecordBitsKey("DefaultRecordingBitsPerSample");
@@ -548,6 +550,10 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
     std::make_unique<AudioParameterBool>(paramDynamicResampling, TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
     std::make_unique<AudioParameterBool>(paramAutoReconnectLast, TRANS ("Reconnect Last"), mAutoReconnectLast.get()),
+    std::make_unique<AudioParameterFloat>(paramDefaultPeerLevel,     TRANS ("Default User Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), mDefUserLevel.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
+                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+
 })
 {
     mState.addParameterListener (paramInGain, this);
@@ -579,6 +585,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramAutoReconnectLast, this);
     mState.addParameterListener (paramMainInMute, this);
     mState.addParameterListener (paramMainMonitorSolo, this);
+    mState.addParameterListener (paramDefaultPeerLevel, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -4177,12 +4184,19 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->resetDroptime = Time::getMillisecondCounterHiRes();
         retpeer->fastDropRate.resetInitVal(0.0f);
 
+        // default
+        retpeer->numChanGroups = 1;
+        retpeer->chanGroups[0].numChannels = 2;
+        retpeer->chanGroups[0].gain = mDefUserLevel.get();
+
         findAndLoadCacheForPeer(retpeer);
 
         if (retpeer->autosizeBufferMode == AutoNetBufferModeInitAuto) {
             retpeer->buffertimeMs = 0;
         }
-        
+
+        retpeer->resetSafetyMuted = retpeer->buffertimeMs < 3.0f;
+
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getMainBusNumOutputChannels());
         retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
 
@@ -4250,9 +4264,6 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->recvAllow = !mMainRecvMute.get();
         retpeer->recvAllowCache = true;
         
-        // default
-        retpeer->numChanGroups = 1;
-        retpeer->chanGroups[0].numChannels = 2;
 
         retpeer->chanGroups[0].init(getSampleRate());
 
@@ -4275,8 +4286,10 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
                 retpeer->latencysink->set_buffersize(retpeer->buffertimeMs);
                 retpeer->echosink->set_buffersize(retpeer->buffertimeMs);
                 
-                for (auto i=0; i < retpeer->numChanGroups; ++i) {
-                    commitCompressorParams(retpeer, i);
+                for (auto i=0; i < retpeer->numChanGroups && i < MAX_CHANGROUPS; ++i) {
+                    retpeer->chanGroups[i].commitCompressorParams();
+                    retpeer->chanGroups[i].commitExpanderParams();
+                    retpeer->chanGroups[i].commitEqParams();
                 }
             }
 
@@ -4300,7 +4313,7 @@ void SonobusAudioProcessor::commitCacheForPeer(RemotePeer * retpeer)
     newcache.sendFormat = retpeer->formatIndex;
     newcache.numChanGroups = retpeer->numChanGroups;
 
-    for (int i=0; i < MAX_CHANGROUPS; ++i) {
+    for (int i=0; i < retpeer->numChanGroups && i < MAX_CHANGROUPS; ++i) {
         newcache.channelGroups[i] = retpeer->chanGroups[i];
     }
 
@@ -4352,7 +4365,7 @@ bool SonobusAudioProcessor::findAndLoadCacheForPeer(RemotePeer * retpeer)
         retpeer->formatIndex = cache.sendFormat;
         retpeer->numChanGroups = cache.numChanGroups; // restore this?
 
-        for (int i=0; i < MAX_CHANGROUPS; ++i) {
+        for (int i=0; i < retpeer->numChanGroups  && i < MAX_CHANGROUPS; ++i) {
             retpeer->chanGroups[i] = cache.channelGroups[i];
         }
 
@@ -4482,7 +4495,8 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
         mDry = newValue;
     }
     else if (parameterID == paramInGain) {
-        mInGain = newValue;
+        //mInGain = newValue; // NO LONGER USE GLOBAL mInGain
+        // for now just apply it to the first input channel group
         mInputChannelGroups[0].gain = newValue;
     }
     else if (parameterID == paramMetGain) {
@@ -4500,6 +4514,9 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramAutoReconnectLast) {
         mAutoReconnectLast = newValue > 0;
+    }
+    else if (parameterID == paramDefaultPeerLevel) {
+        mDefUserLevel = newValue;
     }
     else if (parameterID == paramSendChannels) {
         mSendChannels = (int) newValue;
@@ -4929,6 +4946,18 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
 
     if (lrintf(mPrevSampleRate) != lrintf(sampleRate) || blocksizechanged) {
+
+
+        // reset all initial auto if blocksize changed
+        if (blocksizechanged) {
+            for (int i = 0; i < mRemotePeers.size(); ++i) {
+                bool initCompleted;
+                if (getRemotePeerAutoresizeBufferMode(i, initCompleted) == SonobusAudioProcessor::AutoNetBufferModeInitAuto) {
+                    float buftime = 0.0;
+                    setRemotePeerBufferTime(i, buftime);
+                }
+            }
+        }
 
         // reset all incoming by toggling muting
         if (!mMainRecvMute.get()) {
@@ -6079,6 +6108,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     extraTree.removeAllChildren(nullptr);
     extraTree.setProperty(useSpecificUdpPortKey, mUseSpecificUdpPort, nullptr);
     extraTree.setProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll, nullptr);
+    extraTree.setProperty(changeRecvQualForAllKey, mChangingDefaultRecvAudioCodecChangesAll, nullptr);
     extraTree.setProperty(defRecordOptionsKey, var((int)mDefaultRecordingOptions), nullptr);
     extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
@@ -6135,6 +6165,9 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
 
             bool chqual = extraTree.getProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll);
             setChangingDefaultAudioCodecSetsExisting(chqual);
+
+            bool chrqual = extraTree.getProperty(changeRecvQualForAllKey, mChangingDefaultRecvAudioCodecChangesAll);
+            setChangingDefaultRecvAudioCodecSetsExisting(chrqual);
 
             uint32 opts = (uint32)(int) extraTree.getProperty(defRecordOptionsKey, (int)mDefaultRecordingOptions);
             setDefaultRecordingOptions(opts);

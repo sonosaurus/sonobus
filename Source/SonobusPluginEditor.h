@@ -318,6 +318,10 @@ private:
     std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
+    std::unique_ptr<Label> mOptionsDefaultLevelSliderLabel;
+    std::unique_ptr<Slider> mOptionsDefaultLevelSlider;
+
+
 
     std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
     std::unique_ptr<ToggleButton> mOptionsRecMixButton;
@@ -580,6 +584,7 @@ private:
     FlexBox optionsInputLimitBox;
     FlexBox optionsAutoReconnectBox;
     FlexBox optionsSnapToMouseBox;
+    FlexBox optionsDefaultLevelBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;
@@ -638,6 +643,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonSoloAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mAutoReconnectAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDefaultLevelAttachment;
 
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;

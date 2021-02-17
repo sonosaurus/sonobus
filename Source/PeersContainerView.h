@@ -60,6 +60,7 @@ public:
     std::unique_ptr<TextButton> optionsResetDropButton;
     std::unique_ptr<TextButton> optionsRemoveButton;
     std::unique_ptr<SonoChoiceButton> remoteSendFormatChoiceButton;
+    std::unique_ptr<ToggleButton> changeAllRecvFormatButton;
     std::unique_ptr<SonoDrawableButton> bufferMinButton;
     std::unique_ptr<SonoDrawableButton> bufferMinFrontButton;
     std::unique_ptr<Drawable> recvButtonImage;

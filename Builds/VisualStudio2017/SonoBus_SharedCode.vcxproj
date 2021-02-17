@@ -3213,6 +3213,7 @@
     <None Include="..\..\images\mic_pointing.svg"/>
     <None Include="..\..\images\move_updown.svg"/>
     <None Include="..\..\images\mute-others.svg"/>
+    <None Include="..\..\images\network.svg"/>
     <None Include="..\..\images\outgoing_allowed.svg"/>
     <None Include="..\..\images\outgoing_allowed_active.svg"/>
     <None Include="..\..\images\outgoing_disallowed.svg"/>
