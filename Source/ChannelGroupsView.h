@@ -214,7 +214,10 @@ protected:
     void updateInputModeChannelViews(int specific=-1);
     void updatePeerModeChannelViews(int specific=-1);
 
-    ChannelGroupView * createChannelGroupView();
+    void linkButtonPressed(int index, bool newlinkstate);
+
+
+    ChannelGroupView * createChannelGroupView(bool first=false);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showEffects(int index, bool flag, Component * fromView=nullptr);
@@ -226,6 +229,8 @@ protected:
     std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
 
 
+    std::unique_ptr<Slider> mInGainSlider;
+
     std::unique_ptr<BubbleMessageComponent> popTip;
 
     WeakReference<Component> effectsCalloutBox;
@@ -235,6 +240,7 @@ protected:
     int channelMinWidth = 400;
     
     bool isNarrow = false;
+    bool metersActive = false;
 
     bool mPeerMode = false;
     int mPeerIndex = 0;

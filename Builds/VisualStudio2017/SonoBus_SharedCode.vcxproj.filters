@@ -5573,6 +5573,12 @@
     <None Include="..\..\images\link.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\link_all.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\link_up.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\list_icon1.png">
       <Filter>SonoBus\Resources</Filter>
     </None>

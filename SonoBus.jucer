@@ -94,6 +94,8 @@
             file="images/launchicon@2x.png" xcodeResource="1"/>
       <FILE id="sjyJRV" name="lgc_bar.wav" compile="0" resource="1" file="images/lgc_bar.wav"/>
       <FILE id="MghBBn" name="link.svg" compile="0" resource="1" file="images/link.svg"/>
+      <FILE id="eRRGU0" name="link_all.svg" compile="0" resource="1" file="images/link_all.svg"/>
+      <FILE id="TeqH5W" name="link_up.svg" compile="0" resource="1" file="images/link_up.svg"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
       <FILE id="QOhFEr" name="loop_icon.svg" compile="0" resource="1" file="images/loop_icon.svg"/>
       <FILE id="V0RVkS" name="met.svg" compile="0" resource="1" file="images/met.svg"/>

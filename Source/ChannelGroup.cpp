@@ -239,7 +239,16 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, AudioBuffer<float
                 }
             }
         }
-    } else if (frombuffer.getNumChannels() > 0){
+    }
+    else if (frombuffer.getNumChannels() > 0 && destNumChans == 1){
+        // sum all into destChan
+        int channel = destStartChan;
+        for (int srcchan = chanStartIndex; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
+
+            tobuffer.addFrom(channel, 0, frombuffer, srcchan, 0, numSamples, gainfactor);
+        }
+    }
+    else if (frombuffer.getNumChannels() > 0){
         // straight thru to dests - no panning
         int srcchan = chanStartIndex;
         for (int channel = destStartChan; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {

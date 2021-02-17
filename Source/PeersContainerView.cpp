@@ -187,7 +187,7 @@ void PeersContainerView::configLevelSlider(Slider * slider)
     slider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 12);
 
     slider->setRange(0.0, 2.0, 0.0);
-    slider->setSkewFactor(0.25);
+    slider->setSkewFactor(0.4);
     slider->setDoubleClickReturnValue(true, 1.0);
     slider->setTextBoxIsEditable(true);
     slider->setSliderSnapsToMousePosition(false);

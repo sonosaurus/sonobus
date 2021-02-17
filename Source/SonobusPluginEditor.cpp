@@ -955,7 +955,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         
         mPlaybackSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
         mPlaybackSlider->setRange(0.0, 2.0, 0.0);
-        mPlaybackSlider->setSkewFactor(0.25);
+        mPlaybackSlider->setSkewFactor(0.5);
         mPlaybackSlider->setName("plevel");
         mPlaybackSlider->setSliderSnapsToMousePosition(false);
         mPlaybackSlider->setDoubleClickReturnValue(true, 1.0);
@@ -2532,11 +2532,17 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
         inputMeter->clearClipIndicator(-1);
         outputMeter->clearClipIndicator(-1);
         mPeerContainer->clearClipIndicators();
+        if (mInputChannelsContainer) {
+            mInputChannelsContainer->clearClipIndicators();
+        }
     }
     else if (event.eventComponent == outputMeter.get()) {
         outputMeter->clearClipIndicator(-1);
         inputMeter->clearClipIndicator(-1);
         mPeerContainer->clearClipIndicators();
+        if (mInputChannelsContainer) {
+            mInputChannelsContainer->clearClipIndicators();
+        }
     }
     else if (event.eventComponent == mMainPushToTalkButton.get()) {
         // mute others/recv, send self

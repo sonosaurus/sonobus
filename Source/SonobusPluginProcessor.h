@@ -295,8 +295,16 @@ public:
 
     int getRemotePeerRecvChannelCount(int index) const;
 
-    int getRemotePeerChannelGroupChannelCount(int index, int changroup) const;
-    void setRemotePeerChannelGroupChannelCount(int index, int changroup, int count);
+    //int getRemotePeerChannelGroupChannelCount(int index, int changroup) const;
+    //void setRemotePeerChannelGroupChannelCount(int index, int changroup, int count);
+
+    void setRemotePeerChannelGroupStartAndCount(int index, int changroup, int start, int count);
+    bool getRemotePeerChannelGroupStartAndCount(int index, int changroup, int & retstart, int & retcount);
+
+    bool insertRemotePeerChannelGroup(int index, int atgroup, int chstart, int chcount);
+    bool removeRemotePeerChannelGroup(int index, int atgroup);
+
+    bool copyRemotePeerChannelGroup(int index, int fromgroup, int togroup);
 
     String getRemotePeerChannelGroupName(int index, int changroup) const;
     void setRemotePeerChannelGroupName(int index, int changroup, const String & name);
@@ -398,6 +406,11 @@ public:
 
     void setInputGroupChannelStartAndCount(int changroup, int start, int count);
     bool getInputGroupChannelStartAndCount(int changroup, int & retstart, int & retcount);
+
+    
+    // pushes existing groups around
+    bool insertInputChannelGroup(int atgroup, int chstart, int chcount);
+    bool removeInputChannelGroup(int atgroup);
 
     void setInputGroupName(int changroup, const String & name);
     String getInputGroupName(int changroup);

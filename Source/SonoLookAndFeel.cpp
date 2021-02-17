@@ -1400,7 +1400,7 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
         auto isThreeVal = (style == Slider::SliderStyle::ThreeValueVertical || style == Slider::SliderStyle::ThreeValueHorizontal);
         
         auto trackWidth = jmin (7.0f, slider.isHorizontal() ? height * 0.25f : width * 0.25f);
-        auto voffset = (isTwoVal || isThreeVal) ? trackWidth*0.75f : 0.0f;
+        auto voffset = (isTwoVal || isThreeVal) ? trackWidth*0.75f : trackWidth*0.5f;
         
         Point<float> startPoint (slider.isHorizontal() ? x : x + width * 0.5f,
                                  slider.isHorizontal() ? y + height * 0.5f + voffset: height + y);

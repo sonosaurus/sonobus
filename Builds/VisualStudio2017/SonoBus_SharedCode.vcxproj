@@ -3203,6 +3203,8 @@
     <None Include="..\..\images\incoming_disallowed.svg"/>
     <None Include="..\..\images\lgc_bar.wav"/>
     <None Include="..\..\images\link.svg"/>
+    <None Include="..\..\images\link_all.svg"/>
+    <None Include="..\..\images\link_up.svg"/>
     <None Include="..\..\images\list_icon1.png"/>
     <None Include="..\..\images\loop_icon.svg"/>
     <None Include="..\..\images\met.svg"/>
