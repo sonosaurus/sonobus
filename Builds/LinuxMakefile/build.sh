@@ -1,3 +1,3 @@
 #!/bin/bash
 
-CONFIG=Release make -j2 Standalone VST3
+CONFIG=Release make -j$(nproc) Standalone VST3
