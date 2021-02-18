@@ -1489,8 +1489,10 @@ bool SonobusAudioProcessor::insertInputChannelGroup(int atgroup, int chstart, in
         mInputChannelGroups[atgroup].numChannels = std::max(1, std::min(chcount, MAX_CHANNELS));
 
         // todo some defaults
-    }
 
+        return true;
+    }
+    return false;
 }
 
 bool SonobusAudioProcessor::removeInputChannelGroup(int atgroup)
@@ -1504,8 +1506,9 @@ bool SonobusAudioProcessor::removeInputChannelGroup(int atgroup)
             //mInputChannelGroups[i-1].numChannels = std::max(1, std::min(count, MAX_CHANNELS));
         }
 
+        return true;
     }
-
+    return false;
 }
 
 
