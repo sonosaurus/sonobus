@@ -338,7 +338,7 @@ public:
         void * getAddrInfo() const { return addrInfo; }
         
     private:
-        void * addrInfo = 0;
+        void * addrInfo = nullptr;
 
         JUCE_DECLARE_NON_COPYABLE (RemoteAddrInfo)
     };

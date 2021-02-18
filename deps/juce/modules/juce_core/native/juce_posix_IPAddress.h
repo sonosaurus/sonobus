@@ -28,6 +28,7 @@ namespace
     struct InterfaceInfo
     {
         IPAddress interfaceAddress, broadcastAddress;
+        String name;
     };
 
     inline bool operator== (const InterfaceInfo& lhs, const InterfaceInfo& rhs)
@@ -65,19 +66,7 @@ namespace
 
         return IPAddress (ntohl (addr_in->sin_addr.s_addr));
     }
-
-    struct InterfaceInfo
-    {
-        IPAddress interfaceAddress, broadcastAddress;
-        String name;
-    };
-
-    bool operator== (const InterfaceInfo& lhs, const InterfaceInfo& rhs)
-    {
-        return lhs.interfaceAddress == rhs.interfaceAddress
-            && lhs.broadcastAddress == rhs.broadcastAddress;
-    }
-
+    
     bool populateInterfaceInfo (struct ifaddrs* ifa, InterfaceInfo& interfaceInfo)
     {
         if (ifa->ifa_addr != nullptr)
