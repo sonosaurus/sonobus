@@ -2558,6 +2558,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                             peer->autoNetbufInitCompleted = true;
                             peer->resetSafetyMuted = false;
                             DBG("Netbuf Initial auto time is done after no drops in " << nodropsthresh);
+
                             // clear drop count
                             peer->dataPacketsResent = 0;
                             peer->dataPacketsDropped = 0;
@@ -3506,16 +3507,20 @@ void SonobusAudioProcessor::changeListenerCallback (ChangeBroadcaster* source)
             // at end, return to start
             mTransportSource.setPosition(0.0);
         }
-        
-        if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
-            // override sending
-            int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
-            setRemotePeerOverrideSendChannelCount(-1, jmax(getTotalNumInputChannels(), srcchans));
+
+#if 0
+        if (mSendChannels.get() == 0) {
+            if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
+                // override sending
+                int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
+                setRemotePeerOverrideSendChannelCount(-1, jmax(getMainBusNumInputChannels(), srcchans));
+            }
+            else if (!mTransportSource.isPlaying()) {
+                // remove override
+                setRemotePeerOverrideSendChannelCount(-1, -1);
+            }
         }
-        else if (!mTransportSource.isPlaying()) {
-            // remove override
-            setRemotePeerOverrideSendChannelCount(-1, -1); 
-        }
+#endif
     }
 }
 
@@ -4579,7 +4584,8 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramSendFileAudio) {
         mSendPlaybackAudio = newValue > 0;
-        
+
+#if 0
         if (mTransportSource.isPlaying() && mSendPlaybackAudio.get()) {
             // override sending
             int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
@@ -4589,6 +4595,7 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
             // remove override
             setRemotePeerOverrideSendChannelCount(-1, -1); 
         }
+#endif
     }
     else if (parameterID == paramHearLatencyTest) {
         mHearLatencyTest = newValue > 0;
@@ -4865,11 +4872,17 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         lastOutputChannels = outchannels;
 
         if (mInputChannelGroupCount == 0) {
-            // initialize it to all separate
-            mInputChannelGroupCount = inchannels;
-            for (int i=0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
-                mInputChannelGroups[i].chanStartIndex = i;
-                mInputChannelGroups[i].numChannels = 1;
+            // initialize it to all separate if inchannels > 2, otherwise one
+            if (inchannels > 2) {
+                mInputChannelGroupCount = inchannels;
+                for (int i=0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
+                    mInputChannelGroups[i].chanStartIndex = i;
+                    mInputChannelGroups[i].numChannels = 1;
+                }
+            } else {
+                mInputChannelGroupCount = inchannels;
+                mInputChannelGroups[0].chanStartIndex = 0;
+                mInputChannelGroups[0].numChannels = inchannels;
             }
         }
     }
@@ -4890,15 +4903,22 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         if (lastInputChannels != inchannels) {
             // adjust input channel groups
             if (inchannels > lastInputChannels) {
-                // just add a new single channel groups to the end
-                int delta = inchannels - lastInputChannels;
-                int chstart = lastInputChannels;
-                for (int i=mInputChannelGroupCount; i < mInputChannelGroupCount + delta && i < MAX_CHANGROUPS; ++i) {
-                    mInputChannelGroups[i].chanStartIndex = chstart++;
-                    mInputChannelGroups[i].numChannels = 1;
-                }
+                if (inchannels > 2 || mInputChannelGroupCount > 1) {
+                    // just add a new single channel groups to the end
+                    int delta = inchannels - lastInputChannels;
+                    int chstart = lastInputChannels;
+                    for (int i=mInputChannelGroupCount; i < mInputChannelGroupCount + delta && i < MAX_CHANGROUPS; ++i) {
+                        mInputChannelGroups[i].chanStartIndex = chstart++;
+                        mInputChannelGroups[i].numChannels = 1;
+                    }
 
-                mInputChannelGroupCount += delta;
+                    mInputChannelGroupCount += delta;
+                }
+                else {
+                    // just increase size of existing single one
+                    int delta = inchannels - lastInputChannels;
+                    mInputChannelGroups[0].numChannels += delta;
+                }
             }
             else {
                 // fewer channels, need to start pulling channels off from the last group
@@ -5253,7 +5273,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     //int sendPanChannels = sendCh == 0 ?  inputBuffer.getNumChannels() : jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
     int sendPanChannels = sendCh == 0 ?  inputWorkBuffer.getNumChannels() : jmin(inputWorkBuffer.getNumChannels(), sendCh);
     //int panChannels = jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
-    float tgain = sendPanChannels == 1 && mainBusInputChannels > 0 ? 1.0f/(float)mainBusInputChannels : 1.0f;
+    // if sending as mono, split the difference about applying gain attentuation for the number of input channels
+    float tgain = sendPanChannels == 1 && mainBusInputChannels > 0 ? (1.0f/std::max(1.0f, (float)(mainBusInputChannels * 0.5f))) : 1.0f;
 
     if (sendPanChannels > 2) {
         // copy straight-thru
@@ -5286,7 +5307,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
 
     int monPanChannels = jmin(inputBuffer.getNumChannels(), mainBusOutputChannels);
-    float tmgain = monPanChannels == 1 && mainBusInputChannels > 0 ? 1.0f/(float)mainBusInputChannels : 1.0f;
+    float tmgain = monPanChannels == 1 && mainBusInputChannels > 0 ? (1.0f/std::max(1.0f, (float)(mainBusInputChannels * 0.5f))): 1.0f;
     for (auto i = 0; i < mInputChannelGroupCount; ++i)
     {
         float utmgain = anyinputsoloed && !mInputChannelGroups[i].soloed ? 0.0f : tmgain;
@@ -5295,41 +5316,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
 
 
-
-#if 0
-    if (mainBusInputChannels > 0 && panChannels == 2) {
-        inputBuffer.clear(0, numSamples);
-
-        for (int channel = 0; channel < panChannels; ++channel) {
-            for (int i=0; i < mainBusInputChannels; ++i) {
-                const float pan = (mainBusInputChannels == 1 ? inmonMonoPan : i==0 ? inmonPan1 : inmonPan2);
-                const float lastpan = (mainBusInputChannels == 1 ? mLastInMonMonoPan : i==0 ? mLastInMonPan1 : mLastInMonPan2);
-                
-                // apply pan law
-                // -1 is left, 1 is right
-                float pgain = channel == 0 ? (pan >= 0.0f ? (1.0f - pan) : 1.0f) : (pan >= 0.0f ? 1.0f : (1.0f+pan)) ;
-                
-                if (fabsf(pan - lastpan) > 0.00001f) {
-                    float plastgain = channel == 0 ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
-                    
-                    inputBuffer.addFromWithRamp(channel, 0, buffer.getReadPointer(i), numSamples, plastgain, pgain);
-                } else {
-                    inputBuffer.addFrom (channel, 0, buffer, i, 0, numSamples, pgain);
-                }
-            }
-        }
-    } else if (mainBusInputChannels > 0){
-        for (int channel = 0; channel < mainBusOutputChannels; ++channel) {
-            // used later
-            int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
-            inputBuffer.copyFrom(channel, 0, buffer, srcchan, 0, numSamples);
-        }
-    }
-    else {
-        inputBuffer.clear(0, numSamples);
-        
-    }
-#endif
 
     // write out self-only output bus
     if (auto selfbus = getBus(false, OutSelfBusIndex)) {
@@ -5342,27 +5328,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             }
         }
     }
-    
-
-#if 0
-    // rework the buffer to contain the contents we want going out
-
-    for (int channel = 0; channel < sendPanChannels /* && totalNumInputChannels > 0 */ ; ++channel) {
-        if (mSendChannels.get() == 1 || (mSendChannels.get() == 0 && mainBusInputChannels == 1)) {
-            // sum all incoming channels into the first channel of the inputworkbuffer
-            // TODO - with individual channel input gains
-            float tgain = mainBusInputChannels > 1 ? 1.0f/(float)mainBusInputChannels : (sendPanChannels > 1) ? 1.0f/(float)sendPanChannels : 1.0f;
-            inputWorkBuffer.addFrom(0, 0, inputBuffer, channel, 0, numSamples, tgain);
-        }
-        else {
-            // add our input that is panned
-            inputWorkBuffer.addFrom(channel, 0, inputBuffer, channel, 0, numSamples);
-        }
-    }
-#endif
-
-    // send meter post panning
-    sendMeterSource.measureBlock (inputWorkBuffer);
 
 
     
@@ -5377,9 +5342,20 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         hasfiledata = true;
         
         if (sendfileaudio) {
-            //add to main buffer for going out
-            for (int channel = 0; channel < mainBusOutputChannels; ++channel) {
-                inputWorkBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
+            int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
+
+            //add to main buffer for going out, mix as appropriate depending on how many channels being sent
+            if (sendPanChannels == 1) {
+                float fgain = sendPanChannels == 1 && srcchans > 0 ? (1.0f/std::max(1.0f, (float)(srcchans))): 1.0f;
+                for (int channel = 0; channel < srcchans; ++channel) {
+                    inputWorkBuffer.addFrom(0, 0, fileBuffer, channel, 0, numSamples, fgain);
+                }
+            }
+            else {
+                // straight-thru
+                for (int channel = 0; channel < srcchans && channel < sendPanChannels; ++channel) {
+                    inputWorkBuffer.addFrom(channel, 0, fileBuffer, channel, 0, numSamples);
+                }
             }
         }
 
@@ -5422,7 +5398,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
     mLastMetEnabled = metenabled;
 
-    
+
+    // send meter post panning (and post file and met)
+    sendMeterSource.measureBlock (inputWorkBuffer);
+
+
     bool hearlatencytest = mHearLatencyTest.get();
 
     bool anysoloed = mMainMonitorSolo.get();
@@ -5581,40 +5561,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 int dstch = 0;
                 remote->chanGroups[i].processPan(remote->workBuffer, tempBuffer, dstch, mainBusOutputChannels, numSamples, tgain);
             }
-
-#if 0
-            for (int channel = 0; channel < mainBusOutputChannels; ++channel) {
-
-                // now apply panning if mono or stereo, otherwise assume this is special purpose and leave it alone
-
-                if (remote->recvChannels > 0 && mainBusOutputChannels > 1 && remote->recvChannels <= 2) {
-                    // only pan to first two of our output channels for now
-                    if (channel < 2) {
-                        for (int i=0; i < remote->recvChannels; ++i) {
-                            const float pan = remote->recvChannels == 2 ? remote->recvStereoPan[i] : remote->recvPan[i];
-                            const float lastpan = remote->recvPanLast[i];
-
-                            // apply pan law
-                            // -1 is left, 1 is right
-                            float pgain = channel == 0 ? (pan >= 0.0f ? (1.0f - pan) : 1.0f) : (pan >= 0.0f ? 1.0f : (1.0f+pan)) ;
-
-                            if (pan != lastpan) {
-                                float plastgain = channel == 0 ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
-
-                                tempBuffer.addFromWithRamp(channel, 0, remote->workBuffer.getReadPointer(i), numSamples, plastgain, pgain);
-                            } else {
-                                tempBuffer.addFrom (channel, 0, remote->workBuffer, i, 0, numSamples, pgain);
-                            }
-
-                            //remote->recvPanLast[i] = pan;
-                        }
-                    }
-                } else if (channel < remote->workBuffer.getNumChannels()){
-                    
-                    tempBuffer.addFrom(channel, 0, remote->workBuffer, channel, 0, numSamples);
-                }
-            }
-#endif
 
         }
         

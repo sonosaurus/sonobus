@@ -19,6 +19,7 @@
 #include "ParametricEqView.h"
 #include "EffectParams.h"
 #include "ConnectView.h"
+#include "ChannelGroupsView.h"
 
 class PeersContainerView;
 class RandomSentenceGenerator;
@@ -44,7 +45,8 @@ public ApplicationCommandTarget,
 public AsyncUpdater,
 public FileDragAndDropTarget,
 public GenericItemChooser::Listener,
-public ConnectView::Listener
+public ConnectView::Listener,
+public ChannelGroupsView::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -88,8 +90,10 @@ public:
     // connectview
     void connectionsChanged(ConnectView *comp) override;
 
+    // channelgroupsview
+    void channelLayoutChanged(ChannelGroupsView *comp) override;
 
-    
+
     void textEditorReturnKeyPressed (TextEditor&) override;
     void textEditorEscapeKeyPressed (TextEditor&) override;
     void textEditorTextChanged (TextEditor&) override;

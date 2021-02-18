@@ -654,6 +654,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     mInputChannelsContainer = std::make_unique<ChannelGroupsView>(processor, false);
     mMainContainer->addChildComponent(mInputChannelsContainer.get());
+    mInputChannelsContainer->addListener(this);
 
     //mInputChannelsViewport = std::make_unique<Viewport>();
     //mInputChannelsViewport->setViewedComponent(mInputChannelsContainer.get(), false);
@@ -1327,6 +1328,10 @@ void SonobusAudioProcessorEditor::connectionsChanged(ConnectView *comp)
     updateState();
 }
 
+void SonobusAudioProcessorEditor::channelLayoutChanged(ChannelGroupsView *comp)
+{
+    resized();
+}
 
 bool SonobusAudioProcessorEditor::isInterestedInFileDrag (const StringArray& /*files*/) 
 {
@@ -1553,6 +1558,7 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
     else if (comp == mSendChannelsChoice.get()) {
         float fval = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertTo0to1(ident);
         processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->setValueNotifyingHost(fval);
+        updateLayout();
     }
 }
 
@@ -2867,7 +2873,7 @@ void SonobusAudioProcessorEditor::updateState()
     mReverbEnabledButton->setAlpha(mReverbEnabledButton->getToggleState() ? 1.0 : 0.5);
 
     
-    int sendchval = (int) processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->getValue());
+    int sendchval = (int) processor.getSendChannels();
     mSendChannelsChoice->setSelectedId(sendchval, dontSendNotification);
 
 
@@ -3309,6 +3315,13 @@ void SonobusAudioProcessorEditor::resized()
     
     mainBox.performLayout(mainBounds);    
 
+    int inchantargwidth = mMainViewport->getWidth() - 10;
+
+    if (mInputChannelsContainer->getEstimatedWidth() != inchantargwidth && mInputChannelsContainer->isVisible()) {
+        mInputChannelsContainer->setEstimatedWidth(inchantargwidth);
+        mInputChannelsContainer->updateLayout(false);
+    }
+
     Rectangle<int> peersminbounds = mPeerContainer->getMinimumContentBounds();
     Rectangle<int> inmixminbounds = mInputChannelsContainer->getMinimumContentBounds();
 
@@ -3316,7 +3329,7 @@ void SonobusAudioProcessorEditor::resized()
 
     if (mInputChannelsContainer->isVisible()) {
         inmixactualbounds = Rectangle<int>(0, 0,
-                                           std::max(inmixminbounds.getWidth(), mMainViewport->getWidth() - 10),
+                                           std::max(inmixminbounds.getWidth(), inchantargwidth),
                                            inmixminbounds.getHeight() + 5);
 
         mInputChannelsContainer->setBounds(inmixactualbounds);
@@ -3417,11 +3430,11 @@ void SonobusAudioProcessorEditor::updateLayout()
 #endif
 
     // adjust max meterwidth if channel count > 2
-    if (processor.getMainBusNumInputChannels() > 2) {
-        inmeterwidth = 6 * processor.getMainBusNumInputChannels();
+    if (processor.getMainBusNumInputChannels() > 2 && processor.getSendChannels() == 0) {
+        inmeterwidth = 5 * processor.getMainBusNumInputChannels();
     }
     if (processor.getMainBusNumOutputChannels() > 2) {
-        outmeterwidth = 6 * processor.getMainBusNumOutputChannels();
+        outmeterwidth = 5 * processor.getMainBusNumOutputChannels();
     }
 
     int mutew = 56;

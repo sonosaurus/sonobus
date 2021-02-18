@@ -265,7 +265,9 @@ public:
     int getUdpLocalPort() const { return mUdpLocalPort; }
     IPAddress getLocalIPAddress() const { return mLocalIPAddress; }
     
-  
+
+    int getSendChannels() const { return mSendChannels.get(); }
+
     int connectRemotePeer(const String & host, int port, const String & username = "", const String & groupname = "",  bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
     bool disconnectRemotePeer(int index);

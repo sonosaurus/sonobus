@@ -660,7 +660,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->panSlider->setPopupDisplayEnabled(true, true, this);
 
 
-    pvf->linkButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
+    pvf->linkButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageRightOfTextLabel);
     if (first) {
         std::unique_ptr<Drawable> linkimg(Drawable::createFromImageData(BinaryData::link_all_svg, BinaryData::link_all_svgSize));
         pvf->linkButton->setImages(linkimg.get());
@@ -669,6 +669,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
         pvf->linkButton->setImages(linkimg.get());
     }
 
+    pvf->linkButton->setForegroundImageRatio(0.5f);
     pvf->linkButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->linkButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.6, 0.4, 0.6, 0.7));
     pvf->linkButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -770,17 +771,19 @@ void ChannelGroupsView::rebuildChannelViews()
     resized();
 }
 
-void ChannelGroupsView::updateLayout()
+void ChannelGroupsView::updateLayout(bool notify)
 {
     int minitemheight = 30;
     int mincheckheight = 32;
-    int minPannerWidth = 58;
+    int minPannerWidth = 64;
     int minButtonWidth = 60;
     int maxPannerWidth = 130;
+    int compactMaxPannerWidth = 90;
     int minSliderWidth = 100;
     int meterwidth = 10;
     int mutebuttwidth = 52;
-    
+    int linkbuttwidth = 50;
+
 #if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
     minitemheight = 40;
@@ -809,123 +812,243 @@ void ChannelGroupsView::updateLayout()
     int mph = 0;
     int mbh = 0;
 
+
+    int chi = 0;
+    int changroup = 0;
+    int sendcnt = 0;
+    int totalchans = 0;
+    int changroups = 0;
+
+    int chstart = 0;
+    int chcnt = 1;
+
+    bool pannervisible = true;
+
+    int estwidth = mEstimatedWidth > 13 ? mEstimatedWidth - 13 : 320;
+
+    if (mPeerMode) {
+        changroups = processor.getRemotePeerChannelGroupCount(mPeerIndex);
+
+        totalchans = processor.getRemotePeerRecvChannelCount(mPeerIndex);
+
+        processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+
+        if (processor.getMainBusNumOutputChannels() != 2 && chcnt <= processor.getMainBusNumOutputChannels()) {
+            pannervisible = false;
+        }
+    }
+    else {
+        sendcnt = (int) processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->getValue());
+
+        if (sendcnt == 0) {
+            sendcnt = processor.getMainBusNumInputChannels();
+        }
+
+        totalchans = processor.getMainBusNumInputChannels();
+        changroups = processor.getInputGroupCount();
+
+        processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+
+        if (sendcnt != 2 && processor.getMainBusNumOutputChannels() != 2) {
+            pannervisible = false;
+        }
+    }
+
+
+
     // Main connected peer views
-    
-    for (int i=0; i < mChannelViews.size(); ++i) {
+
+    ChannelGroupView * pripvf = nullptr;
+
+
+    for (int i=0; i < mChannelViews.size(); ++i, ++chi) {
+
+        if (i >= chstart+chcnt && changroup < changroups-1) {
+            changroup++;
+            if (mPeerMode) {
+                processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+            } else {
+                processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+            }
+            chi = 0;
+        }
+
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 
         //pvf->updateLayout();
-        
 
 
-        pvf->namebox.items.clear();
-        pvf->namebox.flexDirection = FlexBox::Direction::row;
-//.withAlignSelf(FlexItem::AlignSelf::center));
-        pvf->namebox.items.add(FlexItem(100, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
+        if (chi == 0) {
+            // first in a group is fully populated
+            pripvf = pvf;
+            pripvf->linkedchannelsbox.items.clear();
+            //pripvf->linkedchannelsbox.flexDirection = FlexBox::Direction::column;
+            //pripvf->linkedchannelsbox.flexWrap = FlexBox::Wrap::wrap;
+            //pripvf->linkedchannelsbox.alignItems = FlexBox::AlignItems::flexStart;
+            //pripvf->linkedchannelsbox.alignContent = FlexBox::AlignContent::stretch;
+            //pripvf->linkedchannelsbox.justifyContent = FlexBox::JustifyContent::spaceBetween;
 
-        pvf->inbox.items.clear();
-        pvf->inbox.flexDirection = FlexBox::Direction::row;
-        pvf->inbox.items.add(FlexItem(20, minitemheight, *pvf->chanLabel).withMargin(0).withFlex(0));
-        pvf->inbox.items.add(FlexItem(3, 3));
-        pvf->inbox.items.add(FlexItem(32, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
-        pvf->inbox.items.add(FlexItem(3, 3));
-        pvf->inbox.items.add(FlexItem(100, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
-        if (!isNarrow) {
-            pvf->inbox.items.add(FlexItem(6, 3));
-            pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+            pripvf->linkedchannelsbox.flexDirection = FlexBox::Direction::row;
+            pripvf->linkedchannelsbox.flexWrap = FlexBox::Wrap::wrap;
+            pripvf->linkedchannelsbox.alignItems = FlexBox::AlignItems::flexStart;
+            pripvf->linkedchannelsbox.alignContent = FlexBox::AlignContent::flexStart;
+            pripvf->linkedchannelsbox.justifyContent = FlexBox::JustifyContent::flexStart;
+
+            pvf->namebox.items.clear();
+            pvf->namebox.flexDirection = FlexBox::Direction::row;
+            //.withAlignSelf(FlexItem::AlignSelf::center));
+            pvf->namebox.items.add(FlexItem(100, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
+
+            pvf->inbox.items.clear();
+            pvf->inbox.flexDirection = FlexBox::Direction::row;
+            // pvf->inbox.items.add(FlexItem(20, minitemheight, *pvf->chanLabel).withMargin(0).withFlex(0));
+            // pvf->inbox.items.add(FlexItem(3, 3));
+            pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
             pvf->inbox.items.add(FlexItem(3, 3));
-            pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
-        }
-        pvf->inbox.items.add(FlexItem(3, 3));
-        pvf->inbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(1));
-        pvf->inbox.items.add(FlexItem(1, 3));
-        pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+            pvf->inbox.items.add(FlexItem(100, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
+            if (!isNarrow) {
+                pvf->inbox.items.add(FlexItem(6, 3));
+                pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+                pvf->inbox.items.add(FlexItem(3, 3));
+                pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+            }
+            pvf->inbox.items.add(FlexItem(3, 3));
+            pvf->inbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(1));
+            pvf->inbox.items.add(FlexItem(1, 3));
+            pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
 
-        ipw = 0;
-        iph = minitemheight;
-        for (auto & item : pvf->inbox.items) {
-            ipw += item.minWidth;
-        }
-
-        pvf->monbox.items.clear();
-        pvf->monbox.flexDirection = FlexBox::Direction::row;
-        //pvf->monbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(1));
-        if (isNarrow) {
-            pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
-            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
-            pvf->monbox.items.add(FlexItem(3, 3));
-            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
-            pvf->monbox.items.add(FlexItem(3, 3));
-            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
-            pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
-            pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth));
-            pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
-        }
-        else {
-            pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(0.25).withMaxWidth(maxPannerWidth));
-            pvf->monbox.items.add(FlexItem(3, 3));
-            pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
-        }
-
-        mpw = 0;
-        mph = minitemheight;
-        for (auto & item : pvf->monbox.items) {
-            mpw += item.minWidth;
-        }
-
-        pvf->maincontentbox.items.clear();
-
-        pvf->mainbox.items.clear();
-        pvf->mainbox.flexDirection = FlexBox::Direction::column;
-
-        // gap at top
-        pvf->mainbox.items.add(FlexItem(3, 6));
-
-        if (isNarrow) {
-            pvf->maincontentbox.flexDirection = FlexBox::Direction::column;
-            pvf->maincontentbox.items.add(FlexItem(3, 2));
-            pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(0));
-            pvf->maincontentbox.items.add(FlexItem(2, 2));
-            pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(0));
-
-            int mch = 0;
-            for (auto & item : pvf->maincontentbox.items) {
-                mch += item.minHeight;
+            ipw = 0;
+            iph = minitemheight;
+            for (auto & item : pvf->inbox.items) {
+                ipw += item.minWidth;
             }
 
-            pvf->mainbox.items.add(FlexItem(60, mch, pvf->maincontentbox).withMargin(0).withFlex(0));
+            pvf->monbox.items.clear();
+            pvf->monbox.flexDirection = FlexBox::Direction::row;
+            //pvf->monbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(1));
+            if (isNarrow) {
+                pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
+                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(3, 3));
+                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(3, 3));
+                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
+                if (pannervisible) {
+                    pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth));
+                    pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
+                }
+            }
+            else {
+                if (pannervisible) {
+                    pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(0.25).withMaxWidth(maxPannerWidth));
+                    pvf->monbox.items.add(FlexItem(3, 3));
+                }
+                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+            }
 
-        } else {
-            pvf->maincontentbox.flexDirection = FlexBox::Direction::row;
-            pvf->maincontentbox.items.add(FlexItem(3, 2));
-            pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(2));
-            pvf->maincontentbox.items.add(FlexItem(6, 2));
-            pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + 10));
+            mpw = 0;
+            mph = minitemheight;
+            for (auto & item : pvf->monbox.items) {
+                mpw += item.minWidth;
+            }
+
+            pvf->maincontentbox.items.clear();
+
+            pvf->mainbox.items.clear();
+            pvf->mainbox.flexDirection = FlexBox::Direction::column;
+
+            // gap at top
+            pvf->mainbox.items.add(FlexItem(3, 6));
+
+            if (isNarrow) {
+                pvf->maincontentbox.flexDirection = FlexBox::Direction::column;
+                pvf->maincontentbox.items.add(FlexItem(3, 2));
+                pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(0));
+                pvf->maincontentbox.items.add(FlexItem(2, 2));
+                pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(0));
+
+                int mch = 0;
+                for (auto & item : pvf->maincontentbox.items) {
+                    mch += item.minHeight;
+                }
+
+                pvf->mainbox.items.add(FlexItem(60, mch, pvf->maincontentbox).withMargin(0).withFlex(0));
+
+            } else {
+                pvf->maincontentbox.flexDirection = FlexBox::Direction::row;
+                pvf->maincontentbox.items.add(FlexItem(3, 2));
+                pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(2));
+                pvf->maincontentbox.items.add(FlexItem(6, 2));
+                pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + 10));
 
 
-            pvf->mainbox.items.add(FlexItem(60, iph, pvf->maincontentbox).withMargin(0).withFlex(0));
+                pvf->mainbox.items.add(FlexItem(60, iph, pvf->maincontentbox).withMargin(0).withFlex(0));
+            }
+
+            mbh = 0;
+            for (auto & item : pvf->mainbox.items) {
+                mbh += item.minHeight;
+            }
+
+
+            channelsBox.items.add(FlexItem(8, 3).withMargin(0));
+            peersheight += 4;
+
+
+            if (isNarrow) {
+                channelsBox.items.add(FlexItem(ipw, mbh, *pvf).withMargin(0).withFlex(0));
+                //peersheight += ph*2 + 6;
+                peersheight += mbh + 2;
+            } else {
+                channelsBox.items.add(FlexItem(ipw+mpw + 6, mbh, *pvf).withMargin(1).withFlex(0));
+                //peersheight += ph + 11;
+                peersheight += mbh + 2;
+            }
         }
+        else if (pripvf) {
+            // linked channels are minimal, only linkbutton, meter, and optional panner
 
-        mbh = 0;
-        for (auto & item : pvf->mainbox.items) {
-            mbh += item.minHeight;
+
+            pvf->mainbox.items.clear();
+            pvf->mainbox.flexDirection = FlexBox::Direction::row;
+
+            pvf->mainbox.items.clear();
+            pvf->mainbox.flexDirection = FlexBox::Direction::row;
+            pvf->mainbox.items.add(FlexItem(2, 2));
+            pvf->mainbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
+            pvf->mainbox.items.add(FlexItem(3, 3));
+            pvf->mainbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+            if (pannervisible) {
+                pvf->mainbox.items.add(FlexItem(3, 3));
+                pvf->mainbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(0.25).withMaxWidth(maxPannerWidth));
+            }
+            pvf->mainbox.items.add(FlexItem(6, 3));
+
+            int mcw = 0;
+            for (auto & item : pvf->mainbox.items) {
+                mcw += item.minWidth;
+            }
+
+            pripvf->linkedchannelsbox.items.add(FlexItem(mcw, minitemheight, *pvf).withMargin(2).withFlex(0));
+
+            if (chi == chcnt-1) {
+                // this is the last, measure the estimated height of linkedchannelsbox and add it to channelsBox
+                int maxperrow = jmax(1, estwidth / (mcw+4));
+
+                int numrows =  jmax(1, (int)lrintf(ceilf( (chcnt-1) / (float)maxperrow)));
+                mbh = (4 + minitemheight) * (numrows);
+                DBG("Maxperrow: " << maxperrow <<  "  Num rows: " << numrows << "  mbh: " << mbh);
+
+                channelsBox.items.add(FlexItem(8, 2).withMargin(0));
+                peersheight += 2;
+
+                channelsBox.items.add(FlexItem(ipw, mbh, pripvf->linkedchannelsbox).withMargin(0).withFlex(0));
+                //peersheight += ph*2 + 6;
+                peersheight += mbh;
+            }
+
         }
-
-
-        channelsBox.items.add(FlexItem(8, 3).withMargin(0));
-        peersheight += 4;
-
-
-        if (isNarrow) {
-            channelsBox.items.add(FlexItem(ipw, mbh, *pvf).withMargin(0).withFlex(0));
-            //peersheight += ph*2 + 6;
-            peersheight += mbh + 2;
-        } else {
-            channelsBox.items.add(FlexItem(ipw+mpw + 6, mbh, *pvf).withMargin(1).withFlex(0));
-            //peersheight += ph + 11;
-            peersheight += mbh + 2;
-        }
-
 
     }
 
@@ -938,7 +1061,11 @@ void ChannelGroupsView::updateLayout()
         channelMinHeight = std::max(mbh + 18,  peersheight);
         channelMinWidth = ipw + mpw + 50;
     }
-    
+
+    if (notify) {
+        listeners.call (&ChannelGroupsView::Listener::channelLayoutChanged, this);
+    }
+
 }
 
 Rectangle<int> ChannelGroupsView::getMinimumContentBounds() const
@@ -1001,7 +1128,12 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         //DBG("Got username: '" << username << "'");
 
         pvf->nameLabel->setText(name, dontSendNotification);
-        pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
+
+        String chantext;
+        chantext << i+1;
+        //pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
+
+        pvf->linkButton->setButtonText(chantext);
 
         bool aresoloed = processor.getInputGroupSoloed(changroup);
         bool aremuted = processor.getInputGroupMuted(changroup);
@@ -1585,7 +1717,10 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
 
         }
 
+
         updateChannelViews();
+        updateLayout();
+        resized();
 
         break;
     }

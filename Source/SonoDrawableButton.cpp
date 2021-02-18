@@ -55,7 +55,18 @@ Rectangle<float> SonoDrawableButton::getImageBounds() const
         {
             r = r.withTrimmedBottom (jmin (14, proportionOfHeight (0.2f)));
         }
-        
+        else if (getStyle() == ImageBelowTextLabel)
+        {
+            r = r.withTrimmedTop (jmin (14, proportionOfHeight (0.25f)));
+        }
+        else if (getStyle() == ImageLeftOfTextLabel)
+        {
+            r = r.withTrimmedRight (proportionOfWidth (fgImageRatio));
+        }
+        else if (getStyle() == ImageRightOfTextLabel)
+        {
+            r = r.withTrimmedLeft (proportionOfWidth (fgImageRatio));
+        }
         r = r.reduced (indentX, indentY);
     }
     

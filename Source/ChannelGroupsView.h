@@ -136,6 +136,8 @@ public:
     FlexBox levelbox;
     FlexBox pannerbox;
 
+    FlexBox linkedchannelsbox;
+
     
 
     Colour bgColor;
@@ -159,7 +161,19 @@ public MultiTimer
 public:
     ChannelGroupsView(SonobusAudioProcessor&, bool peerMode, int peerIndex=0);
     virtual ~ChannelGroupsView();
-    
+
+
+    class Listener {
+    public:
+        virtual ~Listener() {}
+        virtual void channelLayoutChanged(ChannelGroupsView *comp) {}
+    };
+
+    void addListener(Listener * listener) { listeners.add(listener); }
+    void removeListener(Listener * listener) { listeners.remove(listener); }
+
+
+
     void paint(Graphics & g) override;
     
     void resized() override;
@@ -198,12 +212,15 @@ public:
     
 
     void clearClipIndicators();
-    
+
+    void setEstimatedWidth(int estwidth) { mEstimatedWidth = estwidth; }
+    int getEstimatedWidth() const { return mEstimatedWidth;}
+
     Rectangle<int> getMinimumContentBounds() const;
 
     void applyToAllSliders(std::function<void(Slider *)> & routine);
 
-    void updateLayout();
+    void updateLayout(bool notify=true);
     
 protected:
 
@@ -222,7 +239,9 @@ protected:
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showEffects(int index, bool flag, Component * fromView=nullptr);
 
-    
+
+    ListenerList<Listener> listeners;
+
     OwnedArray<ChannelGroupView> mChannelViews;
     SonobusAudioProcessor& processor;
 
@@ -238,7 +257,8 @@ protected:
     FlexBox channelsBox;
     int channelMinHeight = 60;
     int channelMinWidth = 400;
-    
+    int mEstimatedWidth = 0;
+
     bool isNarrow = false;
     bool metersActive = false;
 

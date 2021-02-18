@@ -1030,7 +1030,7 @@ void PeersContainerView::updateLayout()
 
         int chcnt = processor.getRemotePeerRecvChannelCount(i);
         if (chcnt > 2) {
-            meterwidth = 6 * chcnt;
+            meterwidth = 5 * chcnt;
         }
 
         if (processor.getTotalNumOutputChannels() > 1 && chcnt <= 2) {

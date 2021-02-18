@@ -1200,10 +1200,22 @@ void SonoLookAndFeel::drawDrawableButton (Graphics& g, DrawableButton& button,
     //g.fillAll (button.findColour (toggleState ? DrawableButton::backgroundOnColourId
     //                              : DrawableButton::backgroundColourId));
     
-    const int textH = (button.getStyle() == DrawableButton::ImageAboveTextLabel)
-    ? jmin (14, button.proportionOfHeight (0.2f))
-    : 0;
-    
+    int textH = 0;
+    int textW = 0;
+    float imageratio = 0.75f;
+
+    if (SonoDrawableButton* const sonobutt = dynamic_cast<SonoDrawableButton*> (&button)) {
+        imageratio = sonobutt->getForegroundImageRatio();
+    }
+
+    if (button.getStyle() == DrawableButton::ImageAboveTextLabel || button.getStyle() == DrawableButton::ImageBelowTextLabel) {
+        textH = jmin (14, button.proportionOfHeight (0.2f));
+    } else if (button.getStyle() == DrawableButton::ImageLeftOfTextLabel || button.getStyle() == DrawableButton::ImageRightOfTextLabel) {
+        textH = jmin (14, button.proportionOfHeight (0.8f));
+        textW = jmax (20, button.proportionOfWidth (1.0f - imageratio));
+    }
+
+
     if (textH > 0)
     {
         g.setFont (myFont.withHeight((float) textH * fontScale));
@@ -1211,11 +1223,32 @@ void SonoLookAndFeel::drawDrawableButton (Graphics& g, DrawableButton& button,
         g.setColour (button.findColour (toggleState ? DrawableButton::textColourOnId
                                         : DrawableButton::textColourId)
                      .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.4f));
-        
-        g.drawFittedText (button.getButtonText(),
-                          2, button.getHeight() - textH - 1,
-                          button.getWidth() - 4, textH,
-                          Justification::centred, 1);
+
+        if (button.getStyle() == DrawableButton::ImageAboveTextLabel) {
+
+            g.drawFittedText (button.getButtonText(),
+                              2, button.getHeight() - textH - 1,
+                              button.getWidth() - 4, textH,
+                              Justification::centred, 1);
+        }
+        else if (button.getStyle() == DrawableButton::ImageBelowTextLabel) {
+            g.drawFittedText (button.getButtonText(),
+                              2, 1,
+                              button.getWidth() - 4, textH,
+                              Justification::centred, 1);
+        }
+        else if (button.getStyle() == DrawableButton::ImageRightOfTextLabel) {
+            g.drawFittedText (button.getButtonText(),
+                              2, 1,
+                              textW , button.getHeight() - 2,
+                              Justification::centred, 2, 0.6f);
+        }
+        else if (button.getStyle() == DrawableButton::ImageLeftOfTextLabel) {
+            g.drawFittedText (button.getButtonText(),
+                              button.getWidth() - textW - 4 , 1,
+                              textW , button.getHeight() - 2,
+                              Justification::centred, 2, 0.6f);
+        }
     }
 }
 
