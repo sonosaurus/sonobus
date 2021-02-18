@@ -410,7 +410,7 @@ void AudioProcessor::setLatencySamples (int newLatency)
     if (latencySamples != newLatency)
     {
         latencySamples = newLatency;
-        updateHostDisplay();
+        updateHostDisplay (AudioProcessorListener::ChangeDetails().withLatencyChanged (true));
     }
 }
 
@@ -421,11 +421,11 @@ AudioProcessorListener* AudioProcessor::getListenerLocked (int index) const noex
     return listeners[index];
 }
 
-void AudioProcessor::updateHostDisplay()
+void AudioProcessor::updateHostDisplay (const AudioProcessorListener::ChangeDetails& details)
 {
     for (int i = listeners.size(); --i >= 0;)
         if (auto l = getListenerLocked (i))
-            l->audioProcessorChanged (this);
+            l->audioProcessorChanged (this, details);
 }
 
 void AudioProcessor::checkForDuplicateParamID (AudioProcessorParameter* param)
@@ -438,6 +438,24 @@ void AudioProcessor::checkForDuplicateParamID (AudioProcessorParameter* param)
         auto insertResult = paramIDs.insert (withID->paramID);
 
         // If you hit this assertion then the parameter ID is not unique
+        jassert (insertResult.second);
+    }
+   #endif
+}
+
+void AudioProcessor::checkForDuplicateGroupIDs (const AudioProcessorParameterGroup& newGroup)
+{
+    ignoreUnused (newGroup);
+
+   #if JUCE_DEBUG
+    auto groups = newGroup.getSubgroups (true);
+    groups.add (&newGroup);
+
+    for (auto* group : groups)
+    {
+        auto insertResult = groupIDs.insert (group->getID());
+
+        // If you hit this assertion then a group ID is not unique
         jassert (insertResult.second);
     }
    #endif
@@ -461,6 +479,7 @@ void AudioProcessor::addParameter (AudioProcessorParameter* param)
 void AudioProcessor::addParameterGroup (std::unique_ptr<AudioProcessorParameterGroup> group)
 {
     jassert (group != nullptr);
+    checkForDuplicateGroupIDs (*group);
 
     auto oldSize = flatParameterList.size();
     flatParameterList.addArray (group->getParameters (true));
@@ -481,9 +500,12 @@ void AudioProcessor::setParameterTree (AudioProcessorParameterGroup&& newTree)
 {
    #if JUCE_DEBUG
     paramIDs.clear();
+    groupIDs.clear();
    #endif
 
     parameterTree = std::move (newTree);
+    checkForDuplicateGroupIDs (parameterTree);
+
     flatParameterList = parameterTree.getParameters (true);
 
     for (int i = 0; i < flatParameterList.size(); ++i)

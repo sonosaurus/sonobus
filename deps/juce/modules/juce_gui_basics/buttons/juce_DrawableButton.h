@@ -52,10 +52,7 @@ public:
                                                      Note that if you use this style, the colour IDs that control the button colour are
                                                      TextButton::buttonColourId and TextButton::buttonOnColourId. */
         ImageOnButtonBackgroundOriginalSize,    /** Same as ImageOnButtonBackground, but keeps the original image size. */
-        ImageStretched,                          /**< Fills the button with a stretched version of the image. */
-        ImageLeftOfTextLabel,                    /**< Draws the button as a text label on the right with the image resized and scaled to fit next to it. */
-        ImageRightOfTextLabel,                    /**< Draws the button as a text label on the left with the image resized and scaled to fit next to it. */
-        ImageBelowTextLabel                   /**< Draws the button as a text label on the right with the image resized and scaled to fit below it. */
+        ImageStretched                          /**< Fills the button with a stretched version of the image. */
     };
 
     //==============================================================================

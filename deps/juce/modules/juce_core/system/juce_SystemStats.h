@@ -51,6 +51,7 @@ public:
         Linux           = 0x0400,
         Android         = 0x0800,
         iOS             = 0x1000,
+        WASM            = 0x2000,
 
         MacOSX_10_7     = MacOSX | 7,
         MacOSX_10_8     = MacOSX | 8,
@@ -61,7 +62,7 @@ public:
         MacOSX_10_13    = MacOSX | 13,
         MacOSX_10_14    = MacOSX | 14,
         MacOSX_10_15    = MacOSX | 15,
-        MacOSX_11_0     = MacOSX | 16,
+        MacOS_11        = MacOSX | 16,
 
         Win2000         = Windows | 1,
         WinXP           = Windows | 2,

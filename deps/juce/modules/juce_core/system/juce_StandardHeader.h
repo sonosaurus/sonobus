@@ -29,7 +29,7 @@
 */
 #define JUCE_MAJOR_VERSION      6
 #define JUCE_MINOR_VERSION      0
-#define JUCE_BUILDNUMBER        4
+#define JUCE_BUILDNUMBER        7
 
 /** Current JUCE version number.
 
@@ -44,6 +44,7 @@
 
 //==============================================================================
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <condition_variable>
@@ -79,9 +80,7 @@ JUCE_BEGIN_IGNORE_WARNINGS_MSVC (4514 4245 4100)
 #if JUCE_MAC || JUCE_IOS
  #include <libkern/OSAtomic.h>
  #include <xlocale.h>
- #if JUCE_IOS
-  #include <signal.h>
- #endif
+ #include <signal.h>
 #endif
 
 #if JUCE_LINUX
@@ -110,7 +109,6 @@ JUCE_END_IGNORE_WARNINGS_MSVC
 
 #if JUCE_ANDROID
  #include <cstring>
- #include <atomic>
  #include <byteswap.h>
 #endif
 

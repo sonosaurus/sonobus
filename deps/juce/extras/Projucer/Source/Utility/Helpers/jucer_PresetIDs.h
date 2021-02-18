@@ -109,6 +109,7 @@ namespace Ids
     DECLARE_ID (UIFileSharingEnabled);
     DECLARE_ID (UISupportsDocumentBrowser);
     DECLARE_ID (UIStatusBarHidden);
+    DECLARE_ID (UIRequiresFullScreen);
     DECLARE_ID (documentExtensions);
     DECLARE_ID (keepCustomXcodeSchemes);
     DECLARE_ID (useHeaderMap);
@@ -216,7 +217,6 @@ namespace Ids
     DECLARE_ID (androidCustomApplicationClass);
     DECLARE_ID (androidVersionCode);
     DECLARE_ID (androidSDKPath);
-    DECLARE_ID (androidNDKPath);
     DECLARE_ID (androidOboeRepositoryPath);
     DECLARE_ID (androidInternetNeeded);
     DECLARE_ID (androidArchitectures);
@@ -358,6 +358,8 @@ namespace Ids
     DECLARE_ID (pluginAAXDisableMultiMono);
     DECLARE_ID (pluginVSTNumMidiInputs);
     DECLARE_ID (pluginVSTNumMidiOutputs);
+    DECLARE_ID (suppressPlistResourceUsage);
+    DECLARE_ID (useLegacyBuildSystem);
     DECLARE_ID (exporters);
     DECLARE_ID (website);
     DECLARE_ID (mainClass);

@@ -362,7 +362,9 @@ static void setDPIAwareness()
     if (! JUCEApplicationBase::isStandaloneApp())
         return;
 
-    HMODULE shcoreModule = GetModuleHandleA ("SHCore.dll");
+    const auto shcore = "SHCore.dll";
+    LoadLibraryA (shcore);
+    const auto shcoreModule = GetModuleHandleA (shcore);
 
     if (shcoreModule != nullptr)
     {
@@ -1048,11 +1050,11 @@ namespace IconConverters
 }
 
 //==============================================================================
-JUCE_COMCLASS (ITipInvocation, "37c994e7-432b-4834-a2f7-dce1f13b834b")  : public IUnknown
+JUCE_IUNKNOWNCLASS (ITipInvocation, "37c994e7-432b-4834-a2f7-dce1f13b834b")
 {
     static CLSID getCLSID() noexcept   { return { 0x4ce576fa, 0x83dc, 0x4f88, { 0x95, 0x1c, 0x9d, 0x07, 0x82, 0xb4, 0xe3, 0x76 } }; }
 
-    virtual HRESULT STDMETHODCALLTYPE Toggle (HWND) = 0;
+    JUCE_COMCALL Toggle (HWND) = 0;
 };
 
 struct OnScreenKeyboard   : public DeletedAtShutdown,
@@ -1148,14 +1150,14 @@ typedef HSTRING_PRIVATE* HSTRING;
 
 struct IInspectable : public IUnknown
 {
-    virtual HRESULT STDMETHODCALLTYPE GetIids (ULONG* ,IID**) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetRuntimeClassName (HSTRING*) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetTrustLevel (void*) = 0;
+    JUCE_COMCALL GetIids (ULONG* ,IID**) = 0;
+    JUCE_COMCALL GetRuntimeClassName (HSTRING*) = 0;
+    JUCE_COMCALL GetTrustLevel (void*) = 0;
 };
 
 JUCE_COMCLASS (IUIViewSettingsInterop, "3694dbf9-8f68-44be-8ff5-195c98ede8a6")  : public IInspectable
 {
-    virtual HRESULT STDMETHODCALLTYPE GetForWindow (HWND, REFIID, void**) = 0;
+    JUCE_COMCALL GetForWindow (HWND, REFIID, void**) = 0;
 };
 
 JUCE_COMCLASS (IUIViewSettings, "c63657f6-8850-470d-88f8-455e16ea2c26")  : public IInspectable
@@ -1166,7 +1168,7 @@ JUCE_COMCLASS (IUIViewSettings, "c63657f6-8850-470d-88f8-455e16ea2c26")  : publi
         Touch = 1
     };
 
-    virtual HRESULT STDMETHODCALLTYPE GetUserInteractionMode (UserInteractionMode*) = 0;
+    JUCE_COMCALL GetUserInteractionMode (UserInteractionMode*) = 0;
 };
 
 
@@ -1414,9 +1416,8 @@ public:
 
         if (auto parentH = GetParent (hwnd))
         {
-            auto r = getWindowRect (parentH);
-            auto localBounds = Rectangle<int>::leftTopRightBottom (bounds.left, bounds.top,
-                                                                   bounds.right, bounds.bottom).translated (-r.left, -r.top);
+            MapWindowPoints (HWND_DESKTOP, parentH, (LPPOINT) &bounds, 2);
+            auto localBounds = rectangleFromRECT (bounds);
 
            #if JUCE_WIN_PER_MONITOR_DPI_AWARE
             if (isPerMonitorDPIAwareWindow (hwnd))
@@ -1795,31 +1796,11 @@ public:
             return peer.getComponent().getLocalPoint (nullptr, screenPos);
         }
 
-        template <typename CharType>
-        void parseFileList (const CharType* names, const SIZE_T totalLen)
-        {
-            for (unsigned int i = 0;;)
-            {
-                unsigned int len = 0;
-
-                while (i + len < totalLen && names[i + len] != 0)
-                    ++len;
-
-                if (len == 0)
-                    break;
-
-                dragInfo.files.add (String (names + i, len));
-                i += len + 1;
-            }
-        }
-
         struct DroppedData
         {
             DroppedData (IDataObject* dataObject, CLIPFORMAT type)
             {
                 FORMATETC format = { type, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
-                STGMEDIUM resetMedium = { TYMED_HGLOBAL, { nullptr }, nullptr };
-                medium = resetMedium;
 
                 if (SUCCEEDED (error = dataObject->GetData (&format, &medium)))
                 {
@@ -1835,10 +1816,32 @@ public:
             }
 
             HRESULT error;
-            STGMEDIUM medium;
+            STGMEDIUM medium { TYMED_HGLOBAL, { nullptr }, nullptr };
             void* data = {};
             SIZE_T dataSize;
         };
+
+        void parseFileList (HDROP dropFiles)
+        {
+            dragInfo.files.clearQuick();
+
+            std::vector<TCHAR> nameBuffer;
+
+            const auto numFiles = DragQueryFile (dropFiles, ~(UINT) 0, nullptr, 0);
+
+            for (UINT i = 0; i < numFiles; ++i)
+            {
+                const auto bufferSize = DragQueryFile (dropFiles, i, nullptr, 0);
+                nameBuffer.clear();
+                nameBuffer.resize (bufferSize + 1, 0); // + 1 for the null terminator
+
+                const auto readCharacters = DragQueryFile (dropFiles, i, nameBuffer.data(), (UINT) nameBuffer.size());
+                ignoreUnused (readCharacters);
+                jassert (readCharacters == bufferSize);
+
+                dragInfo.files.add (String (nameBuffer.data()));
+            }
+        }
 
         HRESULT updateFileList (IDataObject* const dataObject)
         {
@@ -1852,14 +1855,7 @@ public:
 
                 if (SUCCEEDED (fileData.error))
                 {
-                    auto dropFiles = static_cast<const LPDROPFILES> (fileData.data);
-                    const void* const names = addBytesToPointer (dropFiles, sizeof (DROPFILES));
-
-                    if (dropFiles->fWide)
-                        parseFileList (static_cast<const WCHAR*> (names), fileData.dataSize);
-                    else
-                        parseFileList (static_cast<const char*>  (names), fileData.dataSize);
-
+                    parseFileList (static_cast<HDROP> (fileData.data));
                     return S_OK;
                 }
             }
@@ -2190,7 +2186,7 @@ private:
             // This is needed so that our plugin window gets notified of WM_SETTINGCHANGE messages
             // and can respond to display scale changes
             if (! JUCEApplication::isStandaloneApp())
-                settingChangeCallback = forceDisplayUpdate;
+                settingChangeCallback = ComponentPeer::forceDisplayUpdate;
 
             // Calling this function here is (for some reason) necessary to make Windows
             // correctly enable the menu items that we specify in the wm_initmenu message.
@@ -3423,11 +3419,6 @@ private:
                           SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOSENDCHANGING);
     }
 
-    static void forceDisplayUpdate()
-    {
-        const_cast<Displays&> (Desktop::getInstance().getDisplays()).refresh();
-    }
-
     //==============================================================================
   #if JUCE_MODULE_AVAILABLE_juce_audio_plugin_client
     void setModifierKeyProvider (ModifierKeyProvider* provider) override
@@ -3845,15 +3836,13 @@ private:
 
     bool sendInputAttemptWhenModalMessage()
     {
-        if (component.isCurrentlyBlockedByAnotherModalComponent())
-        {
-            if (Component* const current = Component::getCurrentlyModalComponent())
-                current->inputAttemptWhenModal();
+        if (! component.isCurrentlyBlockedByAnotherModalComponent())
+            return false;
 
-            return true;
-        }
+        if (auto* current = Component::getCurrentlyModalComponent())
+            current->inputAttemptWhenModal();
 
-        return false;
+        return true;
     }
 
     //==============================================================================
@@ -4078,6 +4067,74 @@ private:
         stopTimer();
     }
 
+    static bool isAncestor (HWND outer, HWND inner)
+    {
+        if (outer == nullptr || inner == nullptr)
+            return false;
+
+        if (outer == inner)
+            return true;
+
+        return isAncestor (outer, GetAncestor (inner, GA_PARENT));
+    }
+
+    void windowShouldDismissModals (HWND originator)
+    {
+        if (isAncestor (originator, hwnd))
+            sendInputAttemptWhenModalMessage();
+    }
+
+    // Unfortunately SetWindowsHookEx only allows us to register a static function as a hook.
+    // To get around this, we keep a static list of listeners which are interested in
+    // top-level window events, and notify all of these listeners from the callback.
+    class TopLevelModalDismissBroadcaster
+    {
+    public:
+        TopLevelModalDismissBroadcaster()
+            : hook (SetWindowsHookEx (WH_CALLWNDPROC,
+                                      callWndProc,
+                                      (HINSTANCE) juce::Process::getCurrentModuleInstanceHandle(),
+                                      GetCurrentThreadId()))
+        {}
+
+        ~TopLevelModalDismissBroadcaster() noexcept
+        {
+            UnhookWindowsHookEx (hook);
+        }
+
+    private:
+        static void processMessage (int nCode, const CWPSTRUCT* info)
+        {
+            if (nCode < 0 || info == nullptr)
+                return;
+
+            constexpr UINT events[] { WM_MOVE,
+                                      WM_SIZE,
+                                      WM_NCPOINTERDOWN,
+                                      WM_NCLBUTTONDOWN,
+                                      WM_NCRBUTTONDOWN,
+                                      WM_NCMBUTTONDOWN };
+
+            if (std::find (std::begin (events), std::end (events), info->message) == std::end (events))
+                return;
+
+            // windowMayDismissModals could affect the number of active ComponentPeer instances
+            for (auto i = ComponentPeer::getNumPeers(); --i >= 0;)
+                if (i < ComponentPeer::getNumPeers())
+                    if (auto* hwndPeer = dynamic_cast<HWNDComponentPeer*> (ComponentPeer::getPeer (i)))
+                        hwndPeer->windowShouldDismissModals (info->hwnd);
+        }
+
+        static LRESULT CALLBACK callWndProc (int nCode, WPARAM wParam, LPARAM lParam)
+        {
+            processMessage (nCode, reinterpret_cast<CWPSTRUCT*> (lParam));
+            return CallNextHookEx ({}, nCode, wParam, lParam);
+        }
+
+        HHOOK hook;
+    };
+
+    SharedResourcePointer<TopLevelModalDismissBroadcaster> modalDismissBroadcaster;
     IMEHandler imeHandler;
 
     //==============================================================================
@@ -4514,15 +4571,20 @@ static const Displays::Display* getCurrentDisplayFromScaleFactor (HWND hwnd)
 //==============================================================================
 struct MonitorInfo
 {
-    MonitorInfo (bool main, RECT rect, double d) noexcept
-        : isMain (main), bounds (rect), dpi (d) {}
+    MonitorInfo (bool main, RECT totalArea, RECT workArea, double d) noexcept
+        : isMain (main),
+          totalAreaRect (totalArea),
+          workAreaRect (workArea),
+          dpi (d)
+    {
+    }
 
     bool isMain;
-    RECT bounds;
+    RECT totalAreaRect, workAreaRect;
     double dpi;
 };
 
-static BOOL CALLBACK enumMonitorsProc (HMONITOR hm, HDC, LPRECT r, LPARAM userInfo)
+static BOOL CALLBACK enumMonitorsProc (HMONITOR hm, HDC, LPRECT, LPARAM userInfo)
 {
     MONITORINFO info = {};
     info.cbSize = sizeof (info);
@@ -4539,7 +4601,7 @@ static BOOL CALLBACK enumMonitorsProc (HMONITOR hm, HDC, LPRECT r, LPARAM userIn
             dpi = (dpiX + dpiY) / 2.0;
     }
 
-    ((Array<MonitorInfo>*) userInfo)->add ({ isMain, *r, dpi });
+    ((Array<MonitorInfo>*) userInfo)->add ({ isMain, info.rcMonitor, info.rcWork, dpi });
     return TRUE;
 }
 
@@ -4553,7 +4615,10 @@ void Displays::findDisplays (float masterScale)
     auto globalDPI = getGlobalDPI();
 
     if (monitors.size() == 0)
-        monitors.add ({ true, getWindowRect (GetDesktopWindow()), globalDPI });
+    {
+        auto windowRect = getWindowRect (GetDesktopWindow());
+        monitors.add ({ true, windowRect, windowRect, globalDPI });
+    }
 
     // make sure the first in the list is the main monitor
     for (int i = 1; i < monitors.size(); ++i)
@@ -4577,30 +4642,24 @@ void Displays::findDisplays (float masterScale)
             d.scale = (d.dpi / USER_DEFAULT_SCREEN_DPI) * (masterScale / Desktop::getDefaultMasterScale());
         }
 
-        d.userArea = d.totalArea = Rectangle<int>::leftTopRightBottom (monitor.bounds.left, monitor.bounds.top,
-                                                                       monitor.bounds.right, monitor.bounds.bottom);
-
-        if (d.isMain)
-        {
-            RECT workArea;
-            SystemParametersInfo (SPI_GETWORKAREA, 0, &workArea, 0);
-
-            d.userArea = d.userArea.getIntersection (Rectangle<int>::leftTopRightBottom (workArea.left, workArea.top,
-                                                                                         workArea.right, workArea.bottom));
-        }
+        d.totalArea = rectangleFromRECT (monitor.totalAreaRect);
+        d.userArea  = rectangleFromRECT (monitor.workAreaRect);
 
         displays.add (d);
     }
 
    #if JUCE_WIN_PER_MONITOR_DPI_AWARE
-    updateToLogical();
-   #else
-    for (auto& d : displays)
-    {
-        d.totalArea /= masterScale;
-        d.userArea  /= masterScale;
-    }
+    if (isPerMonitorDPIAwareThread())
+        updateToLogical();
+    else
    #endif
+    {
+        for (auto& d : displays)
+        {
+            d.totalArea /= masterScale;
+            d.userArea  /= masterScale;
+        }
+    }
 }
 
 //==============================================================================
