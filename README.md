@@ -34,7 +34,7 @@ There are binary releases for macOS and Windows available at [sonobus.net](https
 
 ## Linux
 For Linux there is a Snap installation available at [snapcraft.io/sonobus](https://snapcraft.io/sonobus) which should let you install it easily 
-on many different distributions. You can install it from with graphical snap-store, or using the following command line assuming snap is already installed:
+on many different distributions. You can install it from the graphical snap-store, or using the following command line assuming snap is already installed:
 
     sudo snap install sonobus
 
@@ -65,7 +65,7 @@ Open the Xcode project at `Builds/MacOSX/SonoBus.xcodeproj`, choose the target y
 
 ### On Windows
 
-Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.sln`, choose the target you want to build and go for it.
+Using Visual Studio 2017, open the solution at `Builds\VisualStudio2017\SonoBus.sln`, choose the target you want to build and go for it.
 
 ### On Linux
 
@@ -115,7 +115,7 @@ It is built using JUCE 6 (slightly modified on a public fork), and AOO (Audio ov
 
 My github forks of these that are referenced via `git-subrepo` in this repository are:
 
-> https://github.com/essej/JUCE  in the sono6 branch.
+> https://github.com/essej/JUCE  in the sono6good branch.
 
 > https://github.com/essej/aoo.git   in the sono branch.
 
