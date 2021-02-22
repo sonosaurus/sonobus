@@ -218,7 +218,7 @@ public:
     void setEstimatedWidth(int estwidth) { mEstimatedWidth = estwidth; }
     int getEstimatedWidth() const { return mEstimatedWidth;}
 
-    Rectangle<int> getMinimumContentBounds() const;
+    juce::Rectangle<int> getMinimumContentBounds() const;
 
     void applyToAllSliders(std::function<void(Slider *)> & routine);
 
