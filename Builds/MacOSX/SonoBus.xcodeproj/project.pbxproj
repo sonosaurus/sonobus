@@ -365,6 +365,7 @@
 		F1BE495186932DCDCB02F166 /* outgoing_allowed_active.svg */ /* outgoing_allowed_active.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = outgoing_allowed_active.svg; path = ../../images/outgoing_allowed_active.svg; sourceTree = SOURCE_ROOT; };
 		F39E715C2C7562918314E42C /* list_icon1.png */ /* list_icon1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = list_icon1.png; path = ../../images/list_icon1.png; sourceTree = SOURCE_ROOT; };
 		F52D880204FD888380B95510 /* AAX.entitlements */ /* AAX.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = AAX.entitlements; path = AAX.entitlements; sourceTree = SOURCE_ROOT; };
+		F71D02AE352CA5F312A77E76 /* chevron_forward.svg */ /* chevron_forward.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = chevron_forward.svg; path = ../../images/chevron_forward.svg; sourceTree = SOURCE_ROOT; };
 		F86BC7D818C3DAD819FA7EE6 /* RunCumulantor.cpp */ /* RunCumulantor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = RunCumulantor.cpp; path = ../../Source/RunCumulantor.cpp; sourceTree = SOURCE_ROOT; };
 		F8808E7CAE7F7FAF07A9DF5A /* dots_icon.png */ /* dots_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = dots_icon.png; path = ../../images/dots_icon.png; sourceTree = SOURCE_ROOT; };
 		F880C8C2C761F4E673AE11A4 /* person.png */ /* person.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = person.png; path = ../../images/person.png; sourceTree = SOURCE_ROOT; };
@@ -793,6 +794,7 @@
 				0CAA43DBBBE23393552742F0,
 				ECB25AAE2E734CAF20B6BE7B,
 				68079251C527B4E44F06B79B,
+				F71D02AE352CA5F312A77E76,
 				915BE408C4522E6066E15CEB,
 				B97A3A91F751F71A95F27248,
 				194E42EA4D12D016298D0153,

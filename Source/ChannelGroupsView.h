@@ -122,8 +122,10 @@ public:
     std::unique_ptr<Label>  panLabel;
     std::unique_ptr<Slider> panSlider;
     std::unique_ptr<SonoDrawableButton> linkButton;
+    std::unique_ptr<SonoDrawableButton> destButton;
 
 
+    bool singlePanner = true;
 
     std::unique_ptr<foleys::LevelMeter> meter;
 
@@ -203,10 +205,10 @@ public:
     void rebuildChannelViews();
     void updateChannelViews(int specific=-1);
     
-    void setNarrowMode(bool flag) { if (isNarrow != flag) { isNarrow = flag; updateLayout(); resized(); } }
+    void setNarrowMode(bool flag, bool update=false) { if (isNarrow != flag) { isNarrow = flag; if (update) { updateLayout(); resized(); }} }
     bool setNarrowMode() const { return isNarrow; }
     
-    void showPopupMenu(Component * source, int index);
+    void showDestSelectionMenu(Component * source, int index);
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
     
@@ -221,7 +223,7 @@ public:
     void applyToAllSliders(std::function<void(Slider *)> & routine);
 
     void updateLayout(bool notify=true);
-    
+
 protected:
 
     void configLevelSlider(Slider * slider, bool monmode=false);    
@@ -238,6 +240,8 @@ protected:
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showEffects(int index, bool flag, Component * fromView=nullptr);
+
+    int getChanGroupFromIndex(int index);
 
 
     ListenerList<Listener> listeners;

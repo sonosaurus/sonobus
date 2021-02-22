@@ -92,6 +92,9 @@ public:
     double fillRatio = 0.0;
     std::unique_ptr<JitterBufferMeter> jitterBufferMeter;
 
+    std::unique_ptr<ChannelGroupsView> channelGroups;
+
+
     std::unique_ptr<DrawableRectangle> sendStatsBg;
     std::unique_ptr<DrawableRectangle> recvStatsBg;
     std::unique_ptr<DrawableRectangle> pingBg;
@@ -146,6 +149,7 @@ public:
     bool wasSendActiveAtLatencyTest = false;
     
     bool singlePanner = true;
+    bool isNarrow = false;
     
     Colour bgColor;
     Colour borderColor;
@@ -164,6 +168,7 @@ public:
     
     std::unique_ptr<Label>  nameLabel;
     std::unique_ptr<Label>  messageLabel;
+    std::unique_ptr<TextButton>  removeButton;
 
     FlexBox mainbox;
 
@@ -177,11 +182,20 @@ public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
 public ChannelGroupEffectsView::Listener,
+public ChannelGroupsView::Listener,
 public MultiTimer
 {
 public:
     PeersContainerView(SonobusAudioProcessor&);
-    
+
+    class Listener {
+    public:
+        virtual ~Listener() {}
+        virtual void internalSizesChanged(PeersContainerView *comp) {}
+    };
+    void addListener(Listener * listener) { listeners.add(listener); }
+    void removeListener(Listener * listener) { listeners.remove(listener); }
+
     void paint(Graphics & g) override;
     
     void resized() override;
@@ -214,6 +228,8 @@ public:
     
     void effectsEnableChanged(ChannelGroupEffectsView *comp) override;
 
+    // channelgroupsview
+    void channelLayoutChanged(ChannelGroupsView *comp) override;
 
     void clearClipIndicators();
     
@@ -245,7 +261,9 @@ protected:
     void showRecvOptions(int index, bool flag, Component * fromView=nullptr);
     void showEffects(int index, bool flag, Component * fromView=nullptr);
 
-    
+
+    ListenerList<Listener> listeners;
+
     OwnedArray<PeerViewInfo> mPeerViews;
     SonobusAudioProcessor& processor;
 
@@ -275,7 +293,8 @@ protected:
     FlexBox peersBox;
     int peersMinHeight = 120;
     int peersMinWidth = 400;
-    
+
+    int mLastWidth = 0;
     bool isNarrow = false;
 
     uint32 lastUpdateTimestampMs = 0;

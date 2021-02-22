@@ -20,8 +20,8 @@
 #include "EffectParams.h"
 #include "ConnectView.h"
 #include "ChannelGroupsView.h"
+#include "PeersContainerView.h"
 
-class PeersContainerView;
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
 
@@ -46,7 +46,8 @@ public AsyncUpdater,
 public FileDragAndDropTarget,
 public GenericItemChooser::Listener,
 public ConnectView::Listener,
-public ChannelGroupsView::Listener
+public ChannelGroupsView::Listener,
+public PeersContainerView::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -93,6 +94,8 @@ public:
     // channelgroupsview
     void channelLayoutChanged(ChannelGroupsView *comp) override;
 
+    // PeerContainerView
+    void internalSizesChanged(PeersContainerView *comp) override;
 
     void textEditorReturnKeyPressed (TextEditor&) override;
     void textEditorEscapeKeyPressed (TextEditor&) override;

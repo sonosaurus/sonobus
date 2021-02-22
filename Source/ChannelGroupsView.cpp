@@ -6,6 +6,16 @@
 
 using namespace SonoAudio;
 
+struct DestChannelListItemData : public GenericItemChooserItem::UserData
+{
+public:
+    DestChannelListItemData(const DestChannelListItemData & other) : startIndex(other.startIndex), count(other.count) {}
+    DestChannelListItemData(int start, int cnt) : startIndex(start), count(cnt) {}
+
+    int startIndex;
+    int count;
+};
+
 
 ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bool peermode)
 : Component(), peerMode(peermode), processor(proc)
@@ -443,7 +453,7 @@ void ChannelGroupsView::configLevelSlider(Slider * slider, bool monmode)
     slider->setSkewFactor(0.5);
     slider->setDoubleClickReturnValue(true, 1.0);
     slider->setTextBoxIsEditable(true);
-    slider->setSliderSnapsToMousePosition(false);
+    slider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     slider->setScrollWheelEnabled(false);
     slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
 
@@ -514,13 +524,25 @@ void ChannelGroupsView::configLabel(Label *label, int ltype)
 }
 
 
+void ChannelGroupsView::setPeerMode(bool peermode, int index)
+{
+    if (mPeerMode != peermode || index != mPeerIndex) {
+        mPeerMode = peermode;
+        mPeerIndex = index;
+        updateLayout();
+    }
+}
 
 
 
 void ChannelGroupsView::resized()
 {
-    Rectangle<int> bounds = getLocalBounds().reduced(5, 0);
-    bounds.removeFromLeft(3);
+    Rectangle<int> bounds = getLocalBounds();
+
+    if (!mPeerMode) {
+        bounds = bounds.reduced(5, 0);
+        bounds.removeFromLeft(3);
+    }
     channelsBox.performLayout(bounds);
     
     for (int i=0; i < mChannelViews.size(); ++i) {
@@ -579,14 +601,15 @@ void ChannelGroupsView::paint(Graphics & g)
     //g.fillAll (Colours::black);
     Rectangle<int> bounds = getLocalBounds();
 
-    bounds.reduce(1, 1);
-    bounds.removeFromLeft(3);
-    
-    g.setColour(bgColor);
-    g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
-    g.setColour(outlineColor);
-    g.drawRoundedRectangle(bounds.toFloat(), 6.0f, 0.5f);
+    if (!mPeerMode) {
+        bounds.reduce(1, 1);
+        bounds.removeFromLeft(3);
 
+        g.setColour(bgColor);
+        g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
+        g.setColour(outlineColor);
+        g.drawRoundedRectangle(bounds.toFloat(), 6.0f, 0.5f);
+    }
 }
 
 ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
@@ -595,10 +618,14 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
 
     pvf->nameLabel = std::make_unique<Label>("name", "");
     pvf->nameLabel->setJustificationType(Justification::centredLeft);
-    pvf->nameLabel->setFont(16);
-    pvf->nameLabel->setEditable(true);
+    pvf->nameLabel->setFont(15);
+    pvf->nameLabel->setEditable(!mPeerMode);
     pvf->nameLabel->addListener(this);
-    pvf->nameLabel->setColour(Label::backgroundColourId, Colours::black);
+    if (!mPeerMode) {
+        pvf->nameLabel->setColour(Label::backgroundColourId, Colours::black);
+    }
+
+
 
     pvf->muteButton = std::make_unique<TextButton>(TRANS("MUTE"));
     pvf->muteButton->addListener(this);
@@ -657,7 +684,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->panSlider->setValue(0.1, dontSendNotification);
     pvf->panSlider->setValue(0.0, dontSendNotification);
     pvf->panSlider->setLookAndFeel(&pvf->panSliderLNF);
-    pvf->panSlider->setPopupDisplayEnabled(true, true, this);
+
 
 
     pvf->linkButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageRightOfTextLabel);
@@ -667,14 +694,16 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     } else {
         std::unique_ptr<Drawable> linkimg(Drawable::createFromImageData(BinaryData::link_up_svg, BinaryData::link_up_svgSize));
         pvf->linkButton->setImages(linkimg.get());
+        //std::unique_ptr<Drawable> linkupimg(Drawable::createFromImageData(BinaryData::link_up_svg, BinaryData::link_up_svgSize));
+        //pvf->linkButton->setImages(linkimg.get(), nullptr, nullptr, nullptr, linkupimg.get());
     }
 
     pvf->linkButton->setForegroundImageRatio(0.5f);
     pvf->linkButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
-    pvf->linkButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.6, 0.4, 0.6, 0.7));
-    pvf->linkButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    pvf->linkButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.35, 0.4, 0.7));
+    pvf->linkButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.6));
     pvf->linkButton->setClickingTogglesState(true);
-    pvf->linkButton->setTriggeredOnMouseDown(true);
+    pvf->linkButton->setTriggeredOnMouseDown(false);
     pvf->linkButton->setLookAndFeel(&pvf->smallLnf);
     pvf->linkButton->addListener(this);
     pvf->linkButton->addMouseListener(this, false);
@@ -684,6 +713,24 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     } else {
         pvf->linkButton->setTooltip(TRANS("Link with previous channel"));
     }
+
+
+    pvf->destButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageLeftOfTextLabel);
+    std::unique_ptr<Drawable> destimg(Drawable::createFromImageData(BinaryData::chevron_forward_svg, BinaryData::chevron_forward_svgSize));
+    pvf->destButton->setImages(destimg.get());
+
+    pvf->destButton->setForegroundImageRatio(0.5f);
+    //pvf->destButton->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.4, 0.4, 0.4, 0.6));
+    //pvf->destButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.35, 0.4, 0.7));
+    pvf->destButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.6));
+    pvf->destButton->setLookAndFeel(&pvf->smallLnf);
+    pvf->destButton->addListener(this);
+    if (mPeerMode) {
+        pvf->destButton->setTooltip(TRANS("Choose destination output channels"));
+    } else {
+        pvf->destButton->setTooltip(TRANS("Choose destination monitoring channels"));
+    }
+
 
     
 
@@ -742,13 +789,18 @@ void ChannelGroupsView::rebuildChannelViews()
     while (mChannelViews.size() > numchans) {
         mChannelViews.removeLast();
     }
-    
+
+    Component* dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = this->findParentComponentOfClass<Component>();
+    if (!dw) dw = this;
+
     for (int i=0; i < mChannelViews.size(); ++i) {
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 
         String username = processor.getRemotePeerUserName(i);
 
         pvf->addAndMakeVisible(pvf->linkButton.get());
+        pvf->addAndMakeVisible(pvf->destButton.get());
         pvf->addAndMakeVisible(pvf->muteButton.get());
         pvf->addAndMakeVisible(pvf->soloButton.get());
         pvf->addAndMakeVisible(pvf->levelSlider.get());
@@ -763,6 +815,8 @@ void ChannelGroupsView::rebuildChannelViews()
 
         pvf->addAndMakeVisible(pvf->panSlider.get());
 
+        pvf->panSlider->setPopupDisplayEnabled(true, true, dw);
+
         addAndMakeVisible(pvf);
     }
     
@@ -773,20 +827,22 @@ void ChannelGroupsView::rebuildChannelViews()
 
 void ChannelGroupsView::updateLayout(bool notify)
 {
-    int minitemheight = 30;
+    int minitemheight = mPeerMode ? 34 : 30;
     int mincheckheight = 32;
-    int minPannerWidth = 64;
+    int minPannerWidth = isNarrow ? 56 : 64;
     int minButtonWidth = 60;
     int maxPannerWidth = 130;
     int compactMaxPannerWidth = 90;
-    int minSliderWidth = 100;
+    int minSliderWidth = isNarrow ? 90 : 100;
     int meterwidth = 10;
     int mutebuttwidth = 52;
     int linkbuttwidth = 50;
+    int destbuttwidth = 44;
+    int namewidth = isNarrow ? 88 : mPeerMode ? 110 : 100;
 
 #if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
-    minitemheight = 40;
+    minitemheight = mPeerMode ? 42 : 38;
     mincheckheight = 40;
     minPannerWidth = 60;
 #endif
@@ -822,6 +878,9 @@ void ChannelGroupsView::updateLayout(bool notify)
     int chstart = 0;
     int chcnt = 1;
 
+    int deststart = 0;
+    int destcnt = 1;
+
     bool pannervisible = true;
 
     int estwidth = mEstimatedWidth > 13 ? mEstimatedWidth - 13 : 320;
@@ -832,8 +891,10 @@ void ChannelGroupsView::updateLayout(bool notify)
         totalchans = processor.getRemotePeerRecvChannelCount(mPeerIndex);
 
         processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+        processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
+        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
 
-        if (processor.getMainBusNumOutputChannels() != 2 && chcnt <= processor.getMainBusNumOutputChannels()) {
+        if (destcnt != 2 && chcnt <= destcnt) {
             pannervisible = false;
         }
     }
@@ -848,8 +909,10 @@ void ChannelGroupsView::updateLayout(bool notify)
         changroups = processor.getInputGroupCount();
 
         processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+        processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
 
-        if (sendcnt != 2 && processor.getMainBusNumOutputChannels() != 2) {
+        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+        if (sendcnt != 2 && destcnt != 2) {
             pannervisible = false;
         }
     }
@@ -867,8 +930,26 @@ void ChannelGroupsView::updateLayout(bool notify)
             changroup++;
             if (mPeerMode) {
                 processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+                processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
+                destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+
+                if (destcnt != 2 && chcnt <= destcnt) {
+                    pannervisible = false;
+                }
+                else {
+                    pannervisible = true;
+                }
             } else {
                 processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+
+                processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
+
+                destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+                if (sendcnt != 2 && destcnt != 2) {
+                    pannervisible = false;
+                } else {
+                    pannervisible = true;
+                }
             }
             chi = 0;
         }
@@ -892,30 +973,52 @@ void ChannelGroupsView::updateLayout(bool notify)
             pripvf->linkedchannelsbox.flexWrap = FlexBox::Wrap::wrap;
             pripvf->linkedchannelsbox.alignItems = FlexBox::AlignItems::flexStart;
             pripvf->linkedchannelsbox.alignContent = FlexBox::AlignContent::flexStart;
-            pripvf->linkedchannelsbox.justifyContent = FlexBox::JustifyContent::flexStart;
+            pripvf->linkedchannelsbox.justifyContent = /*mPeerMode ? FlexBox::JustifyContent::flexEnd : */ FlexBox::JustifyContent::flexStart;
 
             pvf->namebox.items.clear();
             pvf->namebox.flexDirection = FlexBox::Direction::row;
             //.withAlignSelf(FlexItem::AlignSelf::center));
-            pvf->namebox.items.add(FlexItem(100, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
+            pvf->namebox.items.add(FlexItem(namewidth, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
 
             pvf->inbox.items.clear();
             pvf->inbox.flexDirection = FlexBox::Direction::row;
             // pvf->inbox.items.add(FlexItem(20, minitemheight, *pvf->chanLabel).withMargin(0).withFlex(0));
             // pvf->inbox.items.add(FlexItem(3, 3));
-            pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
-            pvf->inbox.items.add(FlexItem(3, 3));
-            pvf->inbox.items.add(FlexItem(100, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
+
+            if (/*!mPeerMode && */ totalchans > 1) {
+                pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
+                pvf->inbox.items.add(FlexItem(3, 3));
+            }
+
+            pvf->inbox.items.add(FlexItem(namewidth, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
             if (!isNarrow) {
                 pvf->inbox.items.add(FlexItem(6, 3));
                 pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
                 pvf->inbox.items.add(FlexItem(3, 3));
                 pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+
+                /*
+                if (mPeerMode && totalchans > 1) {
+                    pvf->inbox.items.add(FlexItem(3, 3));
+                    pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
+                }
+                 */
             }
             pvf->inbox.items.add(FlexItem(3, 3));
             pvf->inbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(1));
             pvf->inbox.items.add(FlexItem(1, 3));
-            pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+
+            if (mPeerMode && totalchans == 2) {
+                pvf->inbox.items.add(FlexItem(2*meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+            }
+            else {
+                pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+            }
+
+            if (isNarrow) {
+                pvf->inbox.items.add(FlexItem(2, 3));
+            }
+
 
             ipw = 0;
             iph = minitemheight;
@@ -932,9 +1035,16 @@ void ChannelGroupsView::updateLayout(bool notify)
                 pvf->monbox.items.add(FlexItem(3, 3));
                 pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
                 pvf->monbox.items.add(FlexItem(3, 3));
+                //if (mPeerMode) {
+                //    pvf->monbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
+                //    pvf->monbox.items.add(FlexItem(3, 3));
+                //}
                 pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
                 pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
+                pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
+
                 if (pannervisible) {
+                    pvf->monbox.items.add(FlexItem(2, 3));
                     pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth));
                     pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
                 }
@@ -945,6 +1055,9 @@ void ChannelGroupsView::updateLayout(bool notify)
                     pvf->monbox.items.add(FlexItem(3, 3));
                 }
                 pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(2, 3));
+                pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(2, 3));
             }
 
             mpw = 0;
@@ -958,8 +1071,13 @@ void ChannelGroupsView::updateLayout(bool notify)
             pvf->mainbox.items.clear();
             pvf->mainbox.flexDirection = FlexBox::Direction::column;
 
-            // gap at top
-            pvf->mainbox.items.add(FlexItem(3, 6));
+            if (mPeerMode && i == 0) {
+                pvf->mainbox.items.add(FlexItem(3, 3));
+            }
+            else {
+                // gap at top
+                pvf->mainbox.items.add(FlexItem(3, 6));
+            }
 
             if (isNarrow) {
                 pvf->maincontentbox.flexDirection = FlexBox::Direction::column;
@@ -980,7 +1098,11 @@ void ChannelGroupsView::updateLayout(bool notify)
                 pvf->maincontentbox.items.add(FlexItem(3, 2));
                 pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(2));
                 pvf->maincontentbox.items.add(FlexItem(6, 2));
-                pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + 10));
+                if (pannervisible) {
+                    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + destbuttwidth  + 4));
+                } else {
+                    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth + destbuttwidth + 4));
+                }
 
 
                 pvf->mainbox.items.add(FlexItem(60, iph, pvf->maincontentbox).withMargin(0).withFlex(0));
@@ -1006,9 +1128,9 @@ void ChannelGroupsView::updateLayout(bool notify)
                 peersheight += mbh + 2;
             }
         }
-        else if (pripvf) {
+        else if (pripvf && (!mPeerMode || totalchans > 2)) {
             // linked channels are minimal, only linkbutton, meter, and optional panner
-
+            bool onlyone = /*!mPeerMode && */ chcnt == 2;
 
             pvf->mainbox.items.clear();
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
@@ -1017,20 +1139,35 @@ void ChannelGroupsView::updateLayout(bool notify)
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
             pvf->mainbox.items.add(FlexItem(2, 2));
             pvf->mainbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
-            pvf->mainbox.items.add(FlexItem(3, 3));
-            pvf->mainbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+            pvf->mainbox.items.add(FlexItem(3, 3).withFlex(onlyone ? 2 : 0)); // if only one let it grow
+
+            if (/*!mPeerMode && */(!isNarrow || !onlyone)) {
+                pvf->mainbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+            }
+
             if (pannervisible) {
-                pvf->mainbox.items.add(FlexItem(3, 3));
+                pvf->mainbox.items.add(FlexItem(onlyone ? 5 : 3, 3));
                 pvf->mainbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(0.25).withMaxWidth(maxPannerWidth));
             }
-            pvf->mainbox.items.add(FlexItem(6, 3));
+
+            //if (!mPeerMode)
+            {
+                if (isNarrow && onlyone) {
+                    pvf->mainbox.items.add(FlexItem( 5 , 3));
+                    pvf->mainbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+                    pvf->mainbox.items.add(FlexItem(1, 3));
+                }
+                else {
+                    pvf->mainbox.items.add(FlexItem(onlyone && !isNarrow ? mutebuttwidth + destbuttwidth + (pannervisible ? 5 : 10) : 6, 3));
+                }
+            }
 
             int mcw = 0;
             for (auto & item : pvf->mainbox.items) {
                 mcw += item.minWidth;
             }
 
-            pripvf->linkedchannelsbox.items.add(FlexItem(mcw, minitemheight, *pvf).withMargin(2).withFlex(0));
+            pripvf->linkedchannelsbox.items.add(FlexItem(mcw, minitemheight, *pvf).withMargin(2).withFlex(onlyone ? 1 : 0));
 
             if (chi == chcnt-1) {
                 // this is the last, measure the estimated height of linkedchannelsbox and add it to channelsBox
@@ -1058,7 +1195,11 @@ void ChannelGroupsView::updateLayout(bool notify)
         channelMinWidth = ipw + 12;
     }
     else {
-        channelMinHeight = std::max(mbh + 18,  peersheight);
+        if (!mPeerMode) {
+            channelMinHeight = std::max(mbh + 18,  peersheight);
+        } else {
+            channelMinHeight = std::max(mbh,  peersheight);
+        }
         channelMinWidth = ipw + mpw + 50;
     }
 
@@ -1130,7 +1271,11 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         pvf->nameLabel->setText(name, dontSendNotification);
 
         String chantext;
-        chantext << i+1;
+        if (chi == 0 && chcnt > 1) {
+            chantext << i+1 << "-" << i+chcnt;
+        } else {
+            chantext << i+1;
+        }
         //pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
 
         pvf->linkButton->setButtonText(chantext);
@@ -1174,8 +1319,22 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         pvf->meter->setSelectedChannel(i);
         pvf->meter->setFixedNumChannels(1);
 
+        int deststart = 0;
+        int destcnt = 2;
+        processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
+        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
 
-        if (sendcnt != 2 && processor.getMainBusNumOutputChannels() != 2) {
+        String desttext;
+        if (destcnt == 1) {
+            desttext << deststart + 1;
+        } else if (destcnt == 2) {
+            desttext << deststart + 1 << "/" << deststart+destcnt;
+        } else {
+            desttext << deststart + 1 << "-" << deststart+destcnt;
+        }
+        pvf->destButton->setButtonText(desttext);
+
+        if (sendcnt != 2 && destcnt != 2) {
             pvf->panSlider->setVisible(false);
             pvf->panLabel->setVisible(false);
         }
@@ -1217,6 +1376,8 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         pvf->soloButton->setVisible(isprimary);
         pvf->muteButton->setVisible(isprimary);
         pvf->nameLabel->setVisible(isprimary);
+        pvf->destButton->setVisible(isprimary);
+
 
         // effects aren't used if channel count is above 2, right now
         pvf->fxButton->setVisible(isprimary && chcnt <= 2);
@@ -1263,26 +1424,55 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
 
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 
+        bool connected = processor.getRemotePeerConnected(i);
+
+        String username = processor.getRemotePeerUserName(i);
         String name = processor.getRemotePeerChannelGroupName (mPeerIndex, changroup);
 
         //DBG("Got username: '" << username << "'");
-        
-        pvf->nameLabel->setText(name, dontSendNotification);
-        pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
+        String dispname = username;
+        if (name.isNotEmpty()) {
+            dispname << " | " << name;
+        }
+
+        pvf->nameLabel->setText(dispname, dontSendNotification);
+
+        //pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
+
+        String chantext;
+        if (chi == 0 && chcnt > 1) {
+            chantext << i+1 << "-" << i+chcnt;
+        } else {
+            chantext << i+1;
+        }
+        pvf->linkButton->setButtonText(chantext);
+
 
         int chstart=0, chcnt=0;
         processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
 
-        bool aresoloed = processor.getRemotePeerChannelSoloed(mPeerIndex, changroup);
-        bool aremuted = processor.getRemotePeerChannelMuted(mPeerIndex, changroup);
+        bool aresoloed = processor.getRemotePeerChannelSoloed(mPeerIndex, changroup) /* || processor.getRemotePeerSoloed(mPeerIndex) */;
+        bool aremuted = !processor.getRemotePeerRecvAllow(mPeerIndex) || processor.getRemotePeerChannelMuted(mPeerIndex, changroup);
+        bool safetymuted = processor.getRemotePeerSafetyMuted(mPeerIndex);
+        bool recvactive = processor.getRemotePeerRecvActive(mPeerIndex);
+        bool recvallow = processor.getRemotePeerRecvAllow(mPeerIndex);
 
-        /*
         if (safetymuted || (processor.isAnythingSoloed() && !aresoloed && !aremuted)) {
-            pvf->mutedButton->setColour(TextButton::buttonColourId, mutedBySoloColor);
+            pvf->muteButton->setColour(TextButton::buttonColourId, mutedBySoloColor);
         } else {
-            pvf->mutedButton->removeColour(TextButton::buttonColourId);
+            pvf->muteButton->removeColour(TextButton::buttonColourId);
         }
-         */
+
+        pvf->linked = chi > 0 || i == 0;
+
+        if (i == 0) {
+            // only if all are linked
+            pvf->linkButton->setToggleState(chcnt == mChannelViews.size(), dontSendNotification);
+            //pvf->linkButton->setVisible(false);
+        } else {
+            pvf->linkButton->setToggleState(pvf->linked, dontSendNotification);
+            //pvf->linkButton->setVisible(true);
+        }
 
         pvf->muteButton->setToggleState(aremuted , dontSendNotification);
         pvf->soloButton->setToggleState(aresoloed , dontSendNotification);
@@ -1298,10 +1488,30 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
 
         pvf->meter->setMeterSource (processor.getRemotePeerRecvMeterSource(mPeerIndex));
         pvf->meter->setSelectedChannel(i);
+        if (mPeerMode && totalchans == 2 && chi == 0) {
+            pvf->meter->setFixedNumChannels(2);
+        } else {
+            pvf->meter->setFixedNumChannels(1);
+        }
 
         pvf->linkButton->setVisible(totalchans > 1); // XXX
 
-        if (processor.getMainBusNumOutputChannels() != 2 && chcnt <= processor.getMainBusNumOutputChannels()) {
+        int deststart = 0;
+        int destcnt = 2;
+        processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
+        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+
+        String desttext;
+        if (destcnt == 1) {
+            desttext << deststart + 1;
+        } else if (destcnt == 2) {
+            desttext << deststart + 1 << "/" << deststart+destcnt;
+        } else {
+            desttext << deststart + 1 << "-" << deststart+destcnt;
+        }
+        pvf->destButton->setButtonText(desttext);
+
+        if (destcnt != 2 && chcnt <= destcnt) {
             pvf->panSlider->setVisible(false);
             pvf->panLabel->setVisible(false);
         }
@@ -1310,24 +1520,29 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
             pvf->panSlider->setVisible(true);
             pvf->panSlider->setDoubleClickReturnValue(true, 0.0);
 
-            //if (!pvf->singlePanner) {
-            //    pvf->panSlider->setSliderStyle(Slider::LinearHorizontal); // LinearBar
-            //    pvf->panSlider->setTextBoxStyle(Slider::NoTextBox, true, 10, 2); // TextBoxAbove
-            //
-            //    pvf->singlePanner = true;
-            //}
+            if (!pvf->singlePanner) {
+                pvf->panSlider->setSliderStyle(Slider::LinearHorizontal); // LinearBar
+                pvf->panSlider->setTextBoxStyle(Slider::NoTextBox, true, 10, 2); // TextBoxAbove
+
+                pvf->singlePanner = true;
+            }
                         
         } else {
             pvf->panLabel->setVisible(true);
-            pvf->panSlider->setDoubleClickReturnValue(true, (chi & 2) ? 1.0f: -1.0f);
             pvf->panSlider->setVisible(true);
+            pvf->panSlider->setDoubleClickReturnValue(true, (chi & 2) ? 1.0f: -1.0f);
 
-            //if (pvf->singlePanner) {
-            //    pvf->panSlider1->setSliderStyle(Slider::TwoValueHorizontal);
-            //    pvf->panSlider1->setTextBoxStyle(Slider::NoTextBox, true, 60, 12);
-            //
-            //    pvf->singlePanner = false;
-            //}
+            if (pvf->singlePanner && totalchans == 2) {
+                pvf->panSlider->setSliderStyle(Slider::TwoValueHorizontal);
+                pvf->panSlider->setTextBoxStyle(Slider::NoTextBox, true, 60, 12);
+
+                pvf->singlePanner = false;
+            } else if (!pvf->singlePanner && totalchans != 2) {
+                pvf->panSlider->setSliderStyle(Slider::LinearHorizontal); // LinearBar
+                pvf->panSlider->setTextBoxStyle(Slider::NoTextBox, true, 10, 2); // TextBoxAbove
+
+                pvf->singlePanner = true;
+            }
         }
         
         if (pvf->panSlider->isTwoValue()) {
@@ -1337,6 +1552,21 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
             pvf->panSlider->setValue(processor.getRemotePeerChannelPan(mPeerIndex, changroup, chi), dontSendNotification);
         }
 
+        bool isprimary = chi == 0;
+        pvf->levelSlider->setVisible(isprimary);
+        pvf->soloButton->setVisible(isprimary);
+        pvf->muteButton->setVisible(isprimary);
+        pvf->nameLabel->setVisible(isprimary);
+        pvf->destButton->setVisible(isprimary);
+
+        const float disalpha = 0.4;
+        pvf->nameLabel->setAlpha(connected ? 1.0 : 0.8);
+        pvf->levelSlider->setAlpha((recvactive && !safetymuted) ? 1.0 : disalpha);
+
+        // effects aren't used if channel count is above 2, right now
+        pvf->fxButton->setVisible(isprimary && chcnt <= 2);
+
+        pvf->repaint();
     }
     
     if (needsUpdateLayout) {
@@ -1345,7 +1575,6 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     
     lastUpdateTimestampMs = nowstampms;
 }
-
 
 
 
@@ -1422,8 +1651,6 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
 
             if (i >= chstart+chcnt && changroup < changroups-1) {
                 changroup++;
-                chstart += chcnt;
-                //chcnt =
                 processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
                 chi = 0;
             }
@@ -1431,7 +1658,32 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
             ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 
             if (pvf->muteButton.get() == buttonThatWasClicked) {
-                processor.setRemotePeerChannelMuted (mPeerIndex, changroup, buttonThatWasClicked->getToggleState());
+
+                bool newmute = buttonThatWasClicked->getToggleState();
+
+                processor.setRemotePeerChannelMuted (mPeerIndex, changroup, newmute);
+
+                // see if any are muted
+                bool anysubmute = false;
+                bool allsubmute = true;
+                for (int gi=0; gi < changroups; ++gi) {
+                    if (processor.getRemotePeerChannelMuted(mPeerIndex, gi)) {
+                        anysubmute = true;
+                    } else {
+                        allsubmute = false;
+                    }
+                }
+
+                bool recvactive = processor.getRemotePeerRecvActive(mPeerIndex);
+
+                if (!recvactive && !allsubmute) {
+                    // allows receiving and invites
+                    processor.setRemotePeerRecvActive(mPeerIndex, true);
+                } else if (allsubmute && recvactive) {
+                    // turns off receiving and allow
+                    processor.setRemotePeerRecvAllow(mPeerIndex, false);
+                }
+
                 updateChannelViews();
                 break;
             }
@@ -1443,21 +1695,41 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
 
                 break;
             }
+            else if (pvf->destButton.get() == buttonThatWasClicked) {
+                //processor.setRemotePeerChannelMuted (mPeerIndex, changroup, buttonThatWasClicked->getToggleState());
+                //updateChannelViews();
+
+                showDestSelectionMenu(buttonThatWasClicked, i);
+
+                break;
+            }
             else if (pvf->soloButton.get() == buttonThatWasClicked) {
                 if (ModifierKeys::currentModifiers.isAltDown()) {
                     // exclusive solo this one
 
                     bool newsolo = buttonThatWasClicked->getToggleState();
 
-                    for (int j=0; j < changroups; ++j) {
+                    // exclusive solo this one XX
+
+                    for (int gi=0; gi < changroups; ++gi) {
                         if (newsolo) {
-                            processor.setRemotePeerChannelSoloed(mPeerIndex, j, changroup == j);
+                            processor.setRemotePeerChannelSoloed(mPeerIndex, gi, changroup == gi);
                         }
                         else {
-                            processor.setRemotePeerChannelSoloed(mPeerIndex, j, false);
+                            processor.setRemotePeerChannelSoloed(mPeerIndex, gi, false);
                         }
                     }
-                    
+
+                    for (int j=0; j < processor.getNumberRemotePeers(); ++j) {
+                        if (newsolo) {
+                            processor.setRemotePeerSoloed(j, mPeerIndex == j);
+                        }
+                        else {
+                            processor.setRemotePeerSoloed(j, false);
+                        }
+                    }
+
+
                     // disable solo for main monitor too
                     processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainMonitorSolo)->setValueNotifyingHost(0.0);
 
@@ -1466,6 +1738,20 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
                     bool newsolo = buttonThatWasClicked->getToggleState();
 
                     processor.setRemotePeerChannelSoloed (mPeerIndex, changroup, newsolo);
+
+                    bool anysolo = false;
+                    for (int j=0; j < changroups; ++j) {
+                        if (processor.getRemotePeerChannelSoloed(mPeerIndex, j)) {
+                            anysolo = true;
+                        }
+                    }
+
+                    if (newsolo) {
+                        processor.setRemotePeerSoloed(mPeerIndex, newsolo);
+                    } else if (!anysolo) {
+                        processor.setRemotePeerSoloed(mPeerIndex, false);
+                    }
+
 
                     updateChannelViews();
                 }
@@ -1513,6 +1799,14 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
                 //updateChannelViews();
 
                 linkButtonPressed(i, buttonThatWasClicked->getToggleState());
+
+                break;
+            }
+            else if (pvf->destButton.get() == buttonThatWasClicked) {
+                //processor.setRemotePeerChannelMuted (mPeerIndex, changroup, buttonThatWasClicked->getToggleState());
+                //updateChannelViews();
+
+                showDestSelectionMenu(buttonThatWasClicked, i);
 
                 break;
             }
@@ -1564,7 +1858,7 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
     }
 }
 
-void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
+int ChannelGroupsView::getChanGroupFromIndex(int index)
 {
     int changroup = 0;
     int changroups = 0;
@@ -1592,8 +1886,53 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
 
         if (i >= chstart+chcnt && changroup < changroups-1) {
             changroup++;
-            chstart += chcnt;
-            //chcnt = processor.getRemotePeerChannelGroupChannelCount(mPeerIndex, changroup);
+            if (mPeerMode) {
+                processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+            } else {
+                processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+            }
+            chi = 0;
+        }
+
+        if (i < index) {
+            continue;
+        }
+
+        // got here we're done
+        return changroup;
+    }
+
+    return 0; // failed, return something safe
+}
+
+void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
+{
+    int changroup = 0;
+    int changroups = 0;
+    int totalchans = 0;
+    int chi = 0;
+
+    if (mPeerMode) {
+        changroups = processor.getRemotePeerChannelGroupCount(mPeerIndex);
+        totalchans = processor.getRemotePeerRecvChannelCount(mPeerIndex);
+    } else {
+        changroups = processor.getInputGroupCount();
+        totalchans = processor.getMainBusNumInputChannels();
+    }
+
+    int totalouts = processor.getMainBusNumOutputChannels();
+    int chstart = 0;
+    int chcnt = 0;
+    if (mPeerMode) {
+        processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+    } else {
+        processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+    }
+
+    for (int i=0; i < mChannelViews.size(); ++i, ++chi) {
+
+        if (i >= chstart+chcnt && changroup < changroups-1) {
+            changroup++;
             if (mPeerMode) {
                 processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
             } else {
@@ -1613,8 +1952,11 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
                 // first channel is special, means link all
                 if (mPeerMode) {
                     processor.setRemotePeerChannelGroupStartAndCount(mPeerIndex, 0, 0, totalchans); // add all from this group
+                    processor.setRemotePeerChannelGroupDestStartAndCount(mPeerIndex, 0, 0, totalchans); // add all from this group
+                    processor.setRemotePeerChannelGroupCount(mPeerIndex, 1);
                 } else {
                     processor.setInputGroupChannelStartAndCount(0, 0, totalchans); // add all from this group
+                    processor.setInputGroupChannelDestStartAndCount(0, 0, totalchans);
                     processor.setInputGroupCount(1);
                 }
             }
@@ -1625,15 +1967,26 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
                     if (mPeerMode) {
                         processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup-1, prevst, prevcnt);
                         processor.setRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup-1, prevst, prevcnt+chcnt); // add all from this group
+
+                        int prevdest, prevdestcnt;
+                        processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup-1, prevdest, prevdestcnt);
+                        processor.setRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup-1, prevdest, jmin(prevcnt+chcnt, prevdestcnt+chcnt));
+
                     } else {
                         processor.getInputGroupChannelStartAndCount(changroup-1, prevst, prevcnt);
                         processor.setInputGroupChannelStartAndCount(changroup-1, prevst, prevcnt+chcnt); // add all from this group
+
+                        int prevdest, prevdestcnt;
+                        processor.getInputGroupChannelDestStartAndCount(changroup-1, prevdest, prevdestcnt);
+                        processor.setInputGroupChannelDestStartAndCount(changroup-1, prevdest, jmin(prevcnt+chcnt, prevdestcnt+chcnt));
                     }
                 }
 
                 // remove this group, move all the next ones up
                 if (mPeerMode) {
                     processor.removeRemotePeerChannelGroup(mPeerIndex, changroup);
+                    --changroups;
+                    processor.setRemotePeerChannelGroupCount(mPeerIndex, changroups);
                 } else {
                     processor.removeInputChannelGroup(changroup);
                     --changroups;
@@ -1653,10 +2006,25 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
                 if (mPeerMode) {
                     for (int chan=0; chan < totalchans; ++chan) {
                         processor.setRemotePeerChannelGroupStartAndCount(mPeerIndex, chan, chan, 1);
+
+                        if (totalouts == 2) {
+                            processor.setRemotePeerChannelGroupDestStartAndCount(mPeerIndex, chan, 0, 2);
+                        } else {
+                            processor.setRemotePeerChannelGroupDestStartAndCount(mPeerIndex, chan, jmin(chan, totalouts-1), 1);
+                        }
                     }
+                    processor.setRemotePeerChannelGroupCount(mPeerIndex, totalchans);
                 } else {
                     for (int chan=0; chan < totalchans; ++chan) {
                         processor.setInputGroupChannelStartAndCount(chan, chan, 1); // add all from this group
+
+                        if (totalouts == 2) {
+                            processor.setInputGroupChannelDestStartAndCount(chan, 0, 2);
+                        }
+                        else {
+                            processor.setInputGroupChannelDestStartAndCount(chan, jmax(0, jmin(chan, totalouts-1)), 1);
+                        }
+
                     }
                     processor.setInputGroupCount(totalchans);
                 }
@@ -1669,8 +2037,17 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
                 // reduce the count of this one
                 if (mPeerMode) {
                     processor.setRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt-1); // remove one (us!)
+
+                    int prevdest, prevdestcnt;
+                    processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, prevdest, prevdestcnt);
+                    processor.setRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, prevdest, jmax(2, prevdestcnt-1));
+
                 } else {
                     processor.setInputGroupChannelStartAndCount(changroup, chstart, chcnt-1); // remove one (us!)
+
+                    int prevdest, prevdestcnt;
+                    processor.getInputGroupChannelDestStartAndCount(changroup, prevdest, prevdestcnt);
+                    processor.setInputGroupChannelDestStartAndCount(changroup, prevdest, jmax(2,prevdestcnt-1)); // add all from this group
                 }
 
                 // we just insert new one at changroup+1
@@ -1678,6 +2055,8 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
                     if (mPeerMode) {
                         processor.insertRemotePeerChannelGroup(mPeerIndex, changroup+1, i, 1);
                         processor.setRemotePeerChannelGroupName(mPeerIndex, changroup+1, processor.getRemotePeerChannelGroupName(mPeerIndex, changroup));
+                        changroups++;
+                        processor.setRemotePeerChannelGroupCount(mPeerIndex, changroups);
                     } else {
                         processor.insertInputChannelGroup(changroup+1, i, 1);
                         processor.setInputGroupName(changroup+1, processor.getInputGroupName(changroup));
@@ -1695,8 +2074,16 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
                 // reduce the count of this one by newcnt
                 if (mPeerMode) {
                     processor.setRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt-newcnt); // remove one (us!)
+
+                    int prevdest, prevdestcnt;
+                    processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, prevdest, prevdestcnt);
+                    processor.setRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, prevdest, jmax(2, prevdestcnt-newcnt));
                 } else {
                     processor.setInputGroupChannelStartAndCount(changroup, chstart, chcnt-newcnt); // remove one (us!)
+
+                    int prevdest, prevdestcnt;
+                    processor.getInputGroupChannelDestStartAndCount(changroup, prevdest, prevdestcnt);
+                    processor.setInputGroupChannelDestStartAndCount(changroup, prevdest, jmax(2,prevdestcnt-newcnt));
                 }
 
 
@@ -1705,6 +2092,8 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
                 if (changroup < MAX_CHANGROUPS - 1) {
                     if (mPeerMode) {
                         processor.insertRemotePeerChannelGroup(mPeerIndex, changroup+1, i, newcnt);
+                        changroups++;
+                        processor.setRemotePeerChannelGroupCount(mPeerIndex, changroups);
                     } else {
                         processor.insertInputChannelGroup(changroup+1, i, newcnt);
                         changroups++;
@@ -1716,7 +2105,6 @@ void ChannelGroupsView::linkButtonPressed(int index, bool newlinkstate)
             }
 
         }
-
 
         updateChannelViews();
         updateLayout();
@@ -1817,41 +2205,95 @@ void ChannelGroupsView::clearClipIndicators()
 }
 
 
-void ChannelGroupsView::showPopupMenu(Component * source, int index)
+void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
 {
     if (index >= mChannelViews.size()) return;
     
     ChannelGroupView * pvf = mChannelViews.getUnchecked(index);
-    bool isGroupPeer = processor.getRemotePeerUserName(index).isNotEmpty();
 
     Array<GenericItemChooserItem> items;
-    if (isGroupPeer) {
-        if (processor.getRemotePeerRecvAllow(index) && processor.getRemotePeerSendAllow(index)) {
-            items.add(GenericItemChooserItem(TRANS("Mute All")));
-        } else {
-            items.add(GenericItemChooserItem(TRANS("Unmute All")));
-        }
-    } else {
-        if (processor.getRemotePeerConnected(index)) {
-            items.add(GenericItemChooserItem(TRANS("Mute All")));
-        } else {
-            items.add(GenericItemChooserItem(TRANS("Unmute All")));        
-        }        
-    }
-    items.add(GenericItemChooserItem(TRANS("Remove")));
-    
-    Component* dw = nullptr; // source->findParentComponentOfClass<DocumentWindow>();
 
-    if (!dw) {
-        dw = source->findParentComponentOfClass<AudioProcessorEditor>();        
+    int chstart=0, chcnt=0;
+    int totalouts = 0;
+    int destst=0, destcnt=0;
+
+    int changroup =  getChanGroupFromIndex(index);
+
+    if (mPeerMode) {
+        totalouts = processor.getMainBusNumOutputChannels();
+        processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+        processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, destst, destcnt);
     }
-    if (!dw) {
-        dw = source->findParentComponentOfClass<Component>();        
+    else {
+        totalouts = processor.getMainBusNumOutputChannels();
+        processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+        processor.getInputGroupChannelDestStartAndCount(changroup, destst, destcnt);
     }
+
+    // for each number of channel counts possible (1-chcnt)
+    int selindex = -1;
+
+    int ind = 0;
+    for (int cc=chcnt; cc <= jmin( jmax(2, chcnt), totalouts); ++cc) {
+        for (int i=0; i < totalouts - (cc - 1); ++i) {
+            String name;
+            if (cc == 1) {
+                name << i+1;
+            } else if (cc == 2){
+                name << i+1 << " / " << i+cc;
+            } else {
+                name << i+1 << " - " << i+cc;
+            }
+            auto udata = std::make_shared<DestChannelListItemData>(i, cc);
+            items.add(GenericItemChooserItem(name, Image(), udata));
+
+            if (i == destst && cc == destcnt) {
+                selindex = ind;
+            }
+            ++ind;
+        }
+    }
+
+
+    Component* dw = source->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = source->findParentComponentOfClass<Component>();
+
     
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, source->getScreenBounds());
     
-    GenericItemChooser::launchPopupChooser(items, bounds, dw, this, index+1);
+    GenericItemChooser::launchPopupChooser(items, bounds, dw, this, changroup, selindex);
+}
+
+void ChannelGroupsView::genericItemChooserSelected(GenericItemChooser *comp, int index)
+{
+    int changroup = comp->getTag();
+
+    auto & items = comp->getItems();
+    auto & selitem = items.getReference(index);
+
+    auto dclitem = std::dynamic_pointer_cast<DestChannelListItemData>(selitem.userdata);
+
+    if (!dclitem) {
+        DBG("Error getting user data");
+        return;
+    }
+
+    // change dest chan stuff
+
+    if (mPeerMode) {
+        processor.setRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, dclitem->startIndex, dclitem->count);
+    }
+    else {
+        processor.setInputGroupChannelDestStartAndCount(changroup, dclitem->startIndex, dclitem->count);
+    }
+
+    if (CallOutBox* const cb = comp->findParentComponentOfClass<CallOutBox>()) {
+        cb->dismiss();
+    }
+
+    updateChannelViews();
+    updateLayout();
+    resized();
 }
 
 void ChannelGroupsView::labelTextChanged (Label* labelThatHasChanged)
@@ -1912,10 +2354,7 @@ void ChannelGroupsView::labelTextChanged (Label* labelThatHasChanged)
     }
 }
 
-void ChannelGroupsView::genericItemChooserSelected(GenericItemChooser *comp, int index)
-{
 
-}
 
 void ChannelGroupsView::effectsEnableChanged(ChannelGroupEffectsView *comp)
 {

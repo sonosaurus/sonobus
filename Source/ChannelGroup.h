@@ -48,7 +48,7 @@ public:
 
     // group info
     String name;
-    int chanStartIndex = 0;
+    int chanStartIndex = 0; // source channel
     int numChannels = 1;
 
     bool muted = false;
@@ -64,6 +64,9 @@ public:
     // used when numChannels == 2
     float panStereo[2] = {-1.0f, 1.0f }; // only use 2
     float centerPanLaw = 0.596f; // center pan attentuation (default -4.5dB)
+
+    int panDestStartIndex = 0; // destination channel index
+    int panDestChannels = 2; // destination number of channels
 
     float _lastpan[MAX_CHANNELS] = { 0.0f };
     float _laststereopan[2] = { 0.0f };
@@ -107,6 +110,9 @@ public:
 
     // monitoring level
     float monitor = 1.0f;
+    int monDestStartIndex = 0; // destination channel index
+    int monDestChannels = 2; // destination number of channels
+
     float _lastmonitor = 0.0f;
 
 

@@ -76,6 +76,8 @@
       </GROUP>
       <FILE id="O1xtq9" name="bar_click.wav" compile="0" resource="1" file="images/bar_click.wav"/>
       <FILE id="dmiruB" name="beat_click.wav" compile="0" resource="1" file="images/beat_click.wav"/>
+      <FILE id="j4WSQR" name="chevron_forward.svg" compile="0" resource="1"
+            file="images/chevron_forward.svg"/>
       <FILE id="N4OxEE" name="copy_icon.svg" compile="0" resource="1" file="images/copy_icon.svg"/>
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
       <FILE id="vgfrLE" name="dice_icon_128.png" compile="0" resource="1"

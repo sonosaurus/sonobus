@@ -3230,6 +3230,7 @@
     <None Include="..\..\localization\localized_es.txt"/>
     <None Include="..\..\images\bar_click.wav"/>
     <None Include="..\..\images\beat_click.wav"/>
+    <None Include="..\..\images\chevron_forward.svg"/>
     <None Include="..\..\images\copy_icon.svg"/>
     <None Include="..\..\Source\DejaVuSans.ttf"/>
     <None Include="..\..\images\dice_icon_128.png"/>

@@ -14,6 +14,10 @@ static String monitorLevelKey("monitorlev");
 static String peerMonoPanKey("pan");
 static String peerPan1Key("span1");
 static String peerPan2Key("span2");
+static String panDestStartKey("pandeststart");
+static String panDestChannelsKey("pandestchans");
+static String monDestStartKey("mondeststart");
+static String monDestChannelsKey("mondestchans");
 
 static String stereoPanListKey("StereoPanners");
 
@@ -272,7 +276,6 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, AudioBuffer<f
 
     // apply monitor level
 
-    int srcchan = chanStartIndex;
     float targmon = monitor * gainfactor;
 
     int fromNumChan = frombuffer.getNumChannels();
@@ -305,10 +308,20 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, AudioBuffer<f
                 }
             }
         }
-    } else if (frombuffer.getNumChannels() > 0){
+    }
+    else if (frombuffer.getNumChannels() > 0 && destNumChans == 1){
+        // sum all into destChan
+        int channel = destStartChan;
+        for (int srcchan = chanStartIndex; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
+
+            tobuffer.addFrom(channel, 0, frombuffer, srcchan, 0, numSamples, targmon);
+        }
+    }
+    else if (frombuffer.getNumChannels() > 0){
         // straight thru to dests - no panning
         int srcchan = chanStartIndex;
-        for (int channel = destStartChan + chanStartIndex; channel < destStartChan + destNumChans && srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+        for (int channel = destStartChan; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+//        for (int channel = destStartChan + chanStartIndex; channel < destStartChan + destNumChans && srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
 
@@ -345,6 +358,11 @@ ValueTree ChannelGroup::getValueTree() const
     channelGroupTree.setProperty(reverbSendKey, reverbSend, nullptr);
     channelGroupTree.setProperty(monitorLevelKey, monitor, nullptr);
 
+    channelGroupTree.setProperty(monDestStartKey, monDestStartIndex, nullptr);
+    channelGroupTree.setProperty(monDestChannelsKey, monDestChannels, nullptr);
+    channelGroupTree.setProperty(panDestStartKey, panDestStartIndex, nullptr);
+    channelGroupTree.setProperty(panDestChannelsKey, panDestChannels, nullptr);
+
     channelGroupTree.setProperty(nameKey, name, nullptr);
 
     ValueTree panListTree(stereoPanListKey);
@@ -375,6 +393,13 @@ void ChannelGroup::setFromValueTree(const ValueTree & channelGroupTree)
     panStereo[1] = channelGroupTree.getProperty(peerPan2Key, panStereo[1]);
     reverbSend = channelGroupTree.getProperty(reverbSendKey, reverbSend);
     monitor = channelGroupTree.getProperty(monitorLevelKey, monitor);
+
+    panDestStartIndex = channelGroupTree.getProperty(panDestStartKey, panDestStartIndex);
+    panDestChannels = channelGroupTree.getProperty(panDestChannelsKey, panDestChannels);
+
+    monDestStartIndex = channelGroupTree.getProperty(monDestStartKey, monDestStartIndex);
+    monDestChannels = channelGroupTree.getProperty(monDestChannelsKey, monDestChannels);
+
 
     name = channelGroupTree.getProperty(nameKey, name);
 

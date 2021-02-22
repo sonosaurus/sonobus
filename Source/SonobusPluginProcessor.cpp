@@ -1475,6 +1475,25 @@ bool SonobusAudioProcessor::getInputGroupChannelStartAndCount(int changroup, int
     return false;
 }
 
+void SonobusAudioProcessor::setInputGroupChannelDestStartAndCount(int changroup, int start, int count)
+{
+    if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
+        mInputChannelGroups[changroup].monDestStartIndex = start;
+        mInputChannelGroups[changroup].monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
+    }
+}
+
+bool SonobusAudioProcessor::getInputGroupChannelDestStartAndCount(int changroup, int & retstart, int & retcount)
+{
+    if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
+        retstart = mInputChannelGroups[changroup].monDestStartIndex;
+        retcount = mInputChannelGroups[changroup].monDestChannels;
+        return true;
+    }
+    return false;
+}
+
+
 bool SonobusAudioProcessor::insertInputChannelGroup(int atgroup, int chstart, int chcount)
 {
     if (atgroup >= 0 && atgroup < MAX_CHANGROUPS) {
@@ -1487,6 +1506,8 @@ bool SonobusAudioProcessor::insertInputChannelGroup(int atgroup, int chstart, in
         }
         mInputChannelGroups[atgroup].chanStartIndex = chstart;
         mInputChannelGroups[atgroup].numChannels = std::max(1, std::min(chcount, MAX_CHANNELS));
+        mInputChannelGroups[atgroup].monDestStartIndex = jmax(0, jmin(2 * (chstart / 2), getMainBusNumOutputChannels()-1));
+        mInputChannelGroups[atgroup].monDestChannels = std::max(1, std::min(2, getMainBusNumOutputChannels() - mInputChannelGroups[atgroup].monDestStartIndex));
 
         // todo some defaults
 
@@ -3251,6 +3272,16 @@ void SonobusAudioProcessor::setRemotePeerChannelGroupName(int index, int changro
     }
 }
 
+void SonobusAudioProcessor::setRemotePeerChannelGroupCount(int index, int count)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        int newcnt = std::max(0, std::min(count, MAX_CHANGROUPS-1));
+        remote->numChanGroups = newcnt;
+    }
+}
+
 
 void SonobusAudioProcessor::setRemotePeerUserName(int index, const String & name)
 {
@@ -3326,8 +3357,30 @@ bool SonobusAudioProcessor::getRemotePeerChannelGroupStartAndCount(int index, in
         retcount = remote->chanGroups[changroup].numChannels;
     }
     return 0;
-
 }
+
+void SonobusAudioProcessor::setRemotePeerChannelGroupDestStartAndCount(int index, int changroup, int start, int count)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->chanGroups[changroup].panDestStartIndex = start;
+        remote->chanGroups[changroup].panDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
+    }
+}
+
+bool SonobusAudioProcessor::getRemotePeerChannelGroupDestStartAndCount(int index, int changroup, int & retstart, int & retcount)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+
+        retstart = remote->chanGroups[changroup].panDestStartIndex;
+        retcount = remote->chanGroups[changroup].panDestChannels;
+    }
+    return 0;
+}
+
 
 
 bool SonobusAudioProcessor::insertRemotePeerChannelGroup(int index, int atgroup, int chstart, int chcount)
@@ -3344,6 +3397,8 @@ bool SonobusAudioProcessor::insertRemotePeerChannelGroup(int index, int atgroup,
         }
         remote->chanGroups[atgroup].chanStartIndex = chstart;
         remote->chanGroups[atgroup].numChannels = std::max(1, std::min(chcount, MAX_CHANNELS));
+        remote->chanGroups[atgroup].panDestStartIndex = 0;
+        remote->chanGroups[atgroup].panDestChannels = std::max(1, std::min(2, getMainBusNumOutputChannels()));
 
         // todo some defaults
     }
@@ -4273,8 +4328,10 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->recvAllowCache = true;
         
 
-        retpeer->chanGroups[0].init(getSampleRate());
-
+        //retpeer->chanGroups[0].init(getSampleRate());
+        for (auto chgrpi = 0; /*chgrpi < s->numChanGroups && */ chgrpi < MAX_CHANGROUPS; ++chgrpi) {
+            retpeer->chanGroups[chgrpi].init(getSampleRate());
+        };
 
     }
     else if (retpeer) {
@@ -4881,11 +4938,15 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
                 for (int i=0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
                     mInputChannelGroups[i].chanStartIndex = i;
                     mInputChannelGroups[i].numChannels = 1;
+                    mInputChannelGroups[i].monDestStartIndex = 0;
+                    mInputChannelGroups[i].monDestChannels = jmin(2, outchannels);
                 }
             } else {
                 mInputChannelGroupCount = inchannels;
                 mInputChannelGroups[0].chanStartIndex = 0;
                 mInputChannelGroups[0].numChannels = inchannels;
+                mInputChannelGroups[0].monDestStartIndex = 0;
+                mInputChannelGroups[0].monDestChannels = jmin(inchannels, outchannels);
             }
         }
     }
@@ -4913,6 +4974,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
                     for (int i=mInputChannelGroupCount; i < mInputChannelGroupCount + delta && i < MAX_CHANGROUPS; ++i) {
                         mInputChannelGroups[i].chanStartIndex = chstart++;
                         mInputChannelGroups[i].numChannels = 1;
+                        mInputChannelGroups[i].monDestStartIndex = 0;
+                        mInputChannelGroups[i].monDestChannels = jmin(2, outchannels);
                     }
 
                     mInputChannelGroupCount += delta;
@@ -5046,13 +5109,13 @@ void SonobusAudioProcessor::setupSourceFormatsForAll()
         s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
 
         // XXX
-        //for (auto chgrpi = 0; chgrpi < s->numChanGroups && chgrpi < MAX_CHANGROUPS; ++chgrpi) {
-        //    s->chanGroups[chgrpi].init(sampleRate)
-        //};
+        for (auto chgrpi = 0; /*chgrpi < s->numChanGroups && */ chgrpi < MAX_CHANGROUPS; ++chgrpi) {
+            s->chanGroups[chgrpi].init(sampleRate);
+        };
 
         // for now the first channel group has them all
-        s->chanGroups[0].init(sampleRate);
-        s->chanGroups[0].numChannels = s->recvChannels;
+        //s->chanGroups[0].init(sampleRate);
+        //s->chanGroups[0].numChannels = s->recvChannels;
 
         ++i;
     }
@@ -5288,12 +5351,13 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     else {
         inputWorkBuffer.clear(0, numSamples);
 
-        int dstch = 0;
-
         for (auto i = 0; i < mInputChannelGroupCount; ++i)
         {
             // todo change dest ch target
-            mInputChannelGroups[i].processPan(buffer, inputWorkBuffer, dstch, sendPanChannels, numSamples, tgain);
+            int dstch = mInputChannelGroups[i].panDestStartIndex;  // todo change dest ch target
+            int dstcnt = jmin(sendPanChannels, mInputChannelGroups[i].panDestChannels);
+
+            mInputChannelGroups[i].processPan(buffer, inputWorkBuffer, dstch, dstcnt, numSamples, tgain);
         }
     }
 
@@ -5314,8 +5378,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     for (auto i = 0; i < mInputChannelGroupCount; ++i)
     {
         float utmgain = anyinputsoloed && !mInputChannelGroups[i].soloed ? 0.0f : tmgain;
-        int dstch = 0;  // todo change dest ch target
-        mInputChannelGroups[i].processMonitor(buffer, inputBuffer, dstch, monPanChannels, numSamples, utmgain);
+        int dstch = mInputChannelGroups[i].monDestStartIndex;
+        int dstcnt = jmin(monPanChannels, mInputChannelGroups[i].monDestChannels);
+
+        mInputChannelGroups[i].processMonitor(buffer, inputBuffer, dstch, dstcnt, numSamples, utmgain);
     }
 
 
@@ -5504,7 +5570,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             
             // apply effects
 
-            //float usegain = remote->gain;
+            float usegain = 1.0f; // remote->gain;
             bool wasSilent = false;
 
             bool forceSilent = false;
@@ -5512,14 +5578,21 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             // we get the stuff, but ignore it (either muted or others soloed)
             if (!remote->recvActive || (anysoloed && !remote->soloed) || remote->resetSafetyMuted) {
 
-                //usegain = 0.0f;
+                usegain = 0.0f;
                 forceSilent = true;
 
-                if (remote->chanGroups[0]._lastmonitor <= 0.0f) {
+                if (remote->chanGroups[0]._lastgain <= 0.0f) {
                     wasSilent = true;
                 }
             }
 
+            bool anysubsolo = false;
+            for (auto cgi = 0; cgi < remote->numChanGroups; ++cgi) {
+                if (remote->chanGroups[cgi].soloed) {
+                    anysubsolo = true;
+                    break;
+                }
+            }
 
             for (auto cgi = 0; cgi < remote->numChanGroups; ++cgi) {
                 remote->chanGroups[cgi].processBlock(remote->workBuffer, silentBuffer, numSamples, 1.0f);
@@ -5557,12 +5630,17 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             if (wasSilent) continue; // can skip the rest, already fully muted/absent
             
             float tgain = mainBusOutputChannels == 1 && remote->recvChannels > 0 ? 1.0f/(float)remote->recvChannels : 1.0f;
+            tgain *= usegain; // handles main solo
+
 
             for (auto i = 0; i < remote->numChanGroups; ++i)
             {
+                // apply solo muting to the gain here
+                float adjgain = anysubsolo && !remote->chanGroups[i].soloed ? 0.0f : tgain;
                 // todo change dest ch target
-                int dstch = 0;
-                remote->chanGroups[i].processPan(remote->workBuffer, tempBuffer, dstch, mainBusOutputChannels, numSamples, tgain);
+                int dstch = remote->chanGroups[i].panDestStartIndex;
+                int dstcnt = jmin(mainBusOutputChannels, remote->chanGroups[i].panDestChannels);
+                remote->chanGroups[i].processPan(remote->workBuffer, tempBuffer, dstch, dstcnt, numSamples, adjgain);
             }
 
         }

@@ -295,6 +295,7 @@ public:
 
 
     int getRemotePeerChannelGroupCount(int index) const;
+    void setRemotePeerChannelGroupCount(int index, int count);
 
     int getRemotePeerRecvChannelCount(int index) const;
 
@@ -303,6 +304,10 @@ public:
 
     void setRemotePeerChannelGroupStartAndCount(int index, int changroup, int start, int count);
     bool getRemotePeerChannelGroupStartAndCount(int index, int changroup, int & retstart, int & retcount);
+
+    void setRemotePeerChannelGroupDestStartAndCount(int index, int changroup, int start, int count);
+    bool getRemotePeerChannelGroupDestStartAndCount(int index, int changroup, int & retstart, int & retcount);
+
 
     bool insertRemotePeerChannelGroup(int index, int atgroup, int chstart, int chcount);
     bool removeRemotePeerChannelGroup(int index, int atgroup);
@@ -409,6 +414,10 @@ public:
 
     void setInputGroupChannelStartAndCount(int changroup, int start, int count);
     bool getInputGroupChannelStartAndCount(int changroup, int & retstart, int & retcount);
+
+    void setInputGroupChannelDestStartAndCount(int changroup, int start, int count);
+    bool getInputGroupChannelDestStartAndCount(int changroup, int & retstart, int & retcount);
+
 
     
     // pushes existing groups around
@@ -867,7 +876,7 @@ private:
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    
     // misc
-    bool mSliderSnapToMouse = false;
+    bool mSliderSnapToMouse = true;
 
 
 

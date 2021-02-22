@@ -644,6 +644,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMainLinkButton->setTooltip(TRANS("Press to copy/share link to group"));
     
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
+    mPeerContainer->addListener(this);
 
     mMainContainer = std::make_unique<Component>();
 
@@ -1332,6 +1333,12 @@ void SonobusAudioProcessorEditor::channelLayoutChanged(ChannelGroupsView *comp)
 {
     resized();
 }
+
+void SonobusAudioProcessorEditor::internalSizesChanged(PeersContainerView *comp)
+{
+    resized();
+}
+
 
 bool SonobusAudioProcessorEditor::isInterestedInFileDrag (const StringArray& /*files*/) 
 {
@@ -2325,6 +2332,7 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
     snapset(mDrySlider.get());
 
     mPeerContainer->applyToAllSliders(snapset);
+    mInputChannelsContainer->applyToAllSliders(snapset);
 }
 
 
@@ -3133,9 +3141,9 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
     for (auto & ev : newevents) {
         if (ev.type == ClientEvent::PeerChangedState) {
             peerStateUpdated = true;
-            mPeerContainer->updateLayout();
-            mPeerContainer->resized();
-            updatePeerState();
+            //mPeerContainer->updateLayout();
+            //mPeerContainer->resized();
+            updatePeerState(true);
             updateState();
         }
         else if (ev.type == ClientEvent::ConnectEvent) {
@@ -3246,8 +3254,11 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         }
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
-            updatePeerState(true);
-            updateState();
+            // delay update
+            Timer::callAfterDelay(200, [this] {
+                updatePeerState(true);
+                updateState();
+            });
         }
         else if (ev.type == ClientEvent::PeerLeaveEvent) {
             updatePeerState(true);
@@ -3290,7 +3301,7 @@ void SonobusAudioProcessorEditor::resized()
 #if JUCE_IOS || JUCE_ANDROID
     const int narrowthresh = 480; //520;
 #else
-    const int narrowthresh = 588; //520;
+    const int narrowthresh = 644; // 588; //520;
 #endif
     bool nownarrow = getWidth() < narrowthresh;
     if (nownarrow != isNarrow) {

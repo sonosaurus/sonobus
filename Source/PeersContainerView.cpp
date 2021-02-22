@@ -48,9 +48,19 @@ void PeerViewInfo::paint(Graphics& g)
 
 void PeerViewInfo::resized()
 {
-    
-    mainbox.performLayout(getLocalBounds());
-    
+    auto localbounds = getLocalBounds();
+
+    int chantargwidth = localbounds.getWidth() + 8;
+
+    if (channelGroups->getEstimatedWidth() != chantargwidth && channelGroups->isVisible()) {
+        channelGroups->setEstimatedWidth(chantargwidth);
+        channelGroups->updateLayout(false);
+    }
+
+    mainbox.performLayout(localbounds);
+
+
+
     //if (levelLabel) {
     //    levelLabel->setBounds(levelSlider->getBounds().removeFromLeft(levelSlider->getWidth()*0.5));
     //}
@@ -68,7 +78,9 @@ void PeerViewInfo::resized()
     
     if (recvOptionsButton) {
         auto leftedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) + 2;
+        if (isNarrow) leftedge = 4;
         recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), recvActualBitrateLabel->getRight() - leftedge, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
+
 
         if (recvOptionsButton->getWidth() > 260) {
             int buttw = recvOptionsButton->getHeight() - 4;
@@ -84,6 +96,7 @@ void PeerViewInfo::resized()
 
     if (sendOptionsButton) {
         auto rightedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) - 3;
+        if (isNarrow) rightedge = (sendActualBitrateLabel->getRight() + (latActiveButton->getX() - sendActualBitrateLabel->getRight()) / 2) - 3;
         sendOptionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), rightedge - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
 
         auto rect = Rectangle<int>(sendOptionsButton->getX() + 3, sendOptionsButton->getBottom() - triheight - 1, triwidth, triheight);        
@@ -251,6 +264,13 @@ void PeersContainerView::resized()
 {
     Rectangle<int> bounds = getLocalBounds().reduced(5, 0);
     bounds.removeFromLeft(3);
+
+    // if the width has changed, need to rebuild layout potentially
+    if (mLastWidth != bounds.getWidth()) {
+        mLastWidth = bounds.getWidth();
+        updateLayout();
+    }
+
     peersBox.performLayout(bounds);
     
     for (int i=0; i < mPeerViews.size(); ++i) {
@@ -580,7 +600,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvActualBitrateLabel->setJustificationType(Justification::centred);
     pvf->recvActualBitrateLabel->setMinimumHorizontalScale(0.75);
     
-    
+
+    pvf->channelGroups = std::make_unique<ChannelGroupsView>(processor, true);
+    pvf->channelGroups->addListener(this);
+
+
     pvf->jitterBufferMeter = std::make_unique<JitterBufferMeter>();
     
     pvf->optionsResetDropButton = std::make_unique<TextButton>(TRANS("Reset Dropped"));
@@ -598,7 +622,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     
     pvf->recvMeter = std::make_unique<foleys::LevelMeter>(flags);
     pvf->recvMeter->setLookAndFeel(&(pvf->rmeterLnf));
-    pvf->recvMeter->setRefreshRateHz(8);
+    pvf->recvMeter->setRefreshRateHz(0); // XXX
     pvf->recvMeter->addMouseListener(this, false);
 
 
@@ -642,7 +666,20 @@ PendingPeerViewInfo * PeersContainerView::createPendingPeerViewInfo()
     pvf->messageLabel->setFont(13);
     pvf->messageLabel->setMinimumHorizontalScale(0.8);
 
+    pvf->removeButton = std::make_unique<TextButton>(TRANS("Remove"));
+    pvf->removeButton->addListener(this);
+    pvf->removeButton->setTooltip(TRANS("Removes pending user from list"));
+
     return pvf;
+}
+
+void PeersContainerView::channelLayoutChanged(ChannelGroupsView *comp)
+{
+    updateLayout();
+
+    listeners.call (&PeersContainerView::Listener::internalSizesChanged, this);
+
+    resized();
 }
 
 void PeersContainerView::resetPendingUsers()
@@ -685,6 +722,13 @@ void PeersContainerView::rebuildPeerViews()
         String username = processor.getRemotePeerUserName(i);
         // remove from pending if necessary
         mPendingUsers.erase(username);
+
+
+        pvf->addAndMakeVisible(pvf->channelGroups.get());
+        pvf->channelGroups->setPeerMode(true, i);
+        pvf->channelGroups->setNarrowMode(isNarrow);
+        pvf->channelGroups->rebuildChannelViews();
+
         
         pvf->addAndMakeVisible(pvf->sendStatsBg.get());
         pvf->addAndMakeVisible(pvf->recvStatsBg.get());
@@ -693,16 +737,24 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->recvMutedButton.get());
         pvf->addAndMakeVisible(pvf->recvSoloButton.get());
         pvf->addAndMakeVisible(pvf->latActiveButton.get());
+
+#if 0
+        pvf->addAndMakeVisible(pvf->nameLabel.get());
         pvf->addAndMakeVisible(pvf->levelSlider.get());
         //pvf->addAndMakeVisible(pvf->levelLabel.get());
         pvf->addAndMakeVisible(pvf->panLabel.get());
+        pvf->addAndMakeVisible(pvf->panButton.get());
+        pvf->addAndMakeVisible(pvf->fxButton.get());
+        pvf->addAndMakeVisible(pvf->panSlider1.get());
+#endif
+
         pvf->addAndMakeVisible(pvf->sendOptionsButton.get());
         pvf->addAndMakeVisible(pvf->recvOptionsButton.get());
         pvf->addAndMakeVisible(pvf->staticLatencyLabel.get());
         pvf->addAndMakeVisible(pvf->staticPingLabel.get());
         pvf->addAndMakeVisible(pvf->latencyLabel.get());
         pvf->addAndMakeVisible(pvf->pingLabel.get());
-        pvf->addAndMakeVisible(pvf->nameLabel.get());
+
         pvf->addAndMakeVisible(pvf->statusLabel.get());
         pvf->addAndMakeVisible(pvf->jitterBufferMeter.get());
         pvf->addAndMakeVisible(pvf->staticSendQualLabel.get());
@@ -730,13 +782,9 @@ void PeersContainerView::rebuildPeerViews()
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->sendMutedButton.get());
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->optionsRemoveButton.get());
         
-        pvf->addAndMakeVisible(pvf->recvMeter.get());
+        //pvf->addAndMakeVisible(pvf->recvMeter.get());
         pvf->addAndMakeVisible(pvf->sendActualBitrateLabel.get());
         pvf->addAndMakeVisible(pvf->recvActualBitrateLabel.get());
-        pvf->addAndMakeVisible(pvf->panButton.get());
-        pvf->addAndMakeVisible(pvf->fxButton.get());
-
-        pvf->addAndMakeVisible(pvf->panSlider1.get());
 
         addAndMakeVisible(pvf);
     }
@@ -752,6 +800,7 @@ void PeersContainerView::rebuildPeerViews()
         PendingPeerViewInfo * ppvf = mPendingPeerViews.getUnchecked(i);
         ppvf->addAndMakeVisible(ppvf->nameLabel.get());
         ppvf->addAndMakeVisible(ppvf->messageLabel.get());
+        ppvf->addChildComponent(ppvf->removeButton.get());
         addAndMakeVisible(ppvf);
     }
     
@@ -798,25 +847,6 @@ void PeersContainerView::updateLayout()
     peersheight += 2;
 
 
-    // Pending connection peerviews
-    
-    int ppheight = minitemheight;
-    int ppw = 120;
-    
-    for (int i=0; i < mPendingPeerViews.size(); ++i) {
-
-        peersBox.items.add(FlexItem(8, 4).withMargin(0));
-        peersheight += 4;
-        
-        PendingPeerViewInfo * ppvf = mPendingPeerViews.getUnchecked(i);
-        ppvf->mainbox.items.clear();        
-        ppvf->mainbox.flexDirection = FlexBox::Direction::row;
-        ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->nameLabel).withMargin(0).withFlex(0));
-        ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->messageLabel).withMargin(0).withFlex(1));
-        
-        peersBox.items.add(FlexItem(ppw, ppheight + 5, *ppvf).withMargin(1).withFlex(0));
-        peersheight += ppheight + 5;
-    }
     
     // Main connected peer views
     
@@ -973,9 +1003,40 @@ void PeersContainerView::updateLayout()
         pvf->sendOptionsBox.items.add(FlexItem(4, 4));
         pvf->sendOptionsBox.items.add(FlexItem(100, minitemheight, pvf->optionsSendMutedBox).withMargin(0).withFlex(0));
 
+
+        pvf->recvbox.items.clear();
+        pvf->recvbox.flexDirection = FlexBox::Direction::row;
+
+        pvf->sendbox.items.clear();
+        pvf->sendbox.flexDirection = FlexBox::Direction::row;
+
+        if (isNarrow) {
+
+            pvf->recvbox.items.add(FlexItem(1, 5));
+            pvf->recvbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1));
+            pvf->recvbox.items.add(FlexItem(3, 5));
+            pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(1).withMaxWidth(130));
+            pvf->recvbox.items.add(FlexItem(3, 5));
+
+            pvf->sendbox.items.add(FlexItem(5, 2).withFlex(0));
+            pvf->sendbox.items.add(FlexItem(100, minitemheight, pvf->recvstatbox).withMargin(0).withFlex(1));
+            pvf->sendbox.items.add(FlexItem(3, 5));
+
+        }
+        else {
+            pvf->recvbox.items.add(FlexItem(1, 5));
+            pvf->recvbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1).withMaxWidth(300));
+            pvf->recvbox.items.add(FlexItem(3, 5));
+            pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->recvstatbox).withMargin(0).withFlex(1));
+            pvf->recvbox.items.add(FlexItem(5, 5));
+            pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(1).withMaxWidth(130));
+            pvf->recvbox.items.add(FlexItem(3, 2).withFlex(0));
+        }
+
+
+#if 0
         pvf->pannerbox.items.clear();
         pvf->pannerbox.flexDirection = FlexBox::Direction::row;
-        
 
         pvf->sendbox.items.clear();
         pvf->sendbox.flexDirection = FlexBox::Direction::row;
@@ -994,18 +1055,7 @@ void PeersContainerView::updateLayout()
             pvf->sendbox.items.add(FlexItem(3, 5));
         }
         
-        pvf->recvbox.items.clear();
-        pvf->recvbox.flexDirection = FlexBox::Direction::row;
-        pvf->recvbox.items.add(FlexItem(1, 5));
-        pvf->recvbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1).withMaxWidth(300));
-        pvf->recvbox.items.add(FlexItem(3, 5));
-        pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->recvstatbox).withMargin(0).withFlex(1));
-        pvf->recvbox.items.add(FlexItem(3, 5));
-        if ( ! isNarrow) {            
-            pvf->recvbox.items.add(FlexItem(2, 2).withFlex(0));
-            pvf->recvbox.items.add(FlexItem(100, minitemheight, pvf->netstatbox).withMargin(0).withFlex(1).withMaxWidth(130));
-            pvf->recvbox.items.add(FlexItem(3, 2).withFlex(0));
-        }
+
         
         pvf->recvlevelbox.items.clear();
         pvf->recvlevelbox.flexDirection = FlexBox::Direction::row;
@@ -1026,49 +1076,11 @@ void PeersContainerView::updateLayout()
         pvf->recvlevelbox.items.add(FlexItem(80, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(4));
 
 
-        int meterwidth = 22;
-
-        int chcnt = processor.getRemotePeerRecvChannelCount(i);
-        if (chcnt > 2) {
-            meterwidth = 5 * chcnt;
-        }
-
         if (processor.getTotalNumOutputChannels() > 1 && chcnt <= 2) {
 
             pvf->recvlevelbox.items.add(FlexItem(3, 5));
 
             pvf->recvlevelbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth)); //.withMaxWidth(maxPannerWidth));
-
-#if 0
-            if (processor.getRemotePeerRecvChannelCount(i) > 1) {
-                // two panners 
-                if (pvf->panSlider1->getParentComponent() != pvf->pannersContainer.get()) {
-                    pvf->pannersContainer->addAndMakeVisible( pvf->panSlider1.get());
-                }
-                pvf->recvlevelbox.items.add(FlexItem(40, minitemheight, *pvf->panButton).withMargin(0).withFlex(1).withMaxWidth(50));
-
-                pvf->pannerbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
-
-                pvf->pannerbox.items.add(FlexItem(2, 5));
-                pvf->pannerbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider2).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
-                pvf->singlePanner = false;
-                
-                pvf->panSlider1->setSliderStyle(Slider::TwoValueHorizontal);
-                
-            }
-            else {
-                // single panner show at toplevel
-                if (pvf->panSlider1->getParentComponent() != pvf) {
-                    pvf->addAndMakeVisible(pvf->panSlider1.get());
-                }
-
-                pvf->panSlider1->setSliderStyle(Slider::LinearBar);
-
-                
-                pvf->recvlevelbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider1).withMargin(0).withFlex(1).withMaxWidth(minPannerWidth+10)); //.withMaxWidth(maxPannerWidth));
-                pvf->singlePanner = true;
-            }
-#endif
         }
 
         if (!isNarrow) {
@@ -1094,53 +1106,106 @@ void PeersContainerView::updateLayout()
             pvf->mainsendbox.items.add(FlexItem(100 + mincheckheight, minitemheight, pvf->recvlevelbox).withMargin(0).withFlex(1));
         }
         
-        
+#endif
+
+        int meterwidth = 22;
+
+        int chcnt = processor.getRemotePeerRecvChannelCount(i);
+        if (chcnt > 2) {
+            meterwidth = 5 * chcnt;
+        }
+
         pvf->mainbox.items.clear();
         pvf->mainnarrowbox.items.clear();
 
+        pvf->isNarrow = isNarrow;
+
+        pvf->channelGroups->setNarrowMode(isNarrow, false);
+        pvf->channelGroups->updateLayout(false);
+
+        auto changroupminbounds = pvf->channelGroups->getMinimumContentBounds();
 
         if (isNarrow) {
             pvf->mainnarrowbox.flexDirection = FlexBox::Direction::column;
             pvf->mainnarrowbox.items.add(FlexItem(2, 3));
-            pvf->mainnarrowbox.items.add(FlexItem(100, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
+            //pvf->mainnarrowbox.items.add(FlexItem(100, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(changroupminbounds.getWidth(), changroupminbounds.getHeight(), *pvf->channelGroups).withMargin(0).withFlex(0));
             pvf->mainnarrowbox.items.add(FlexItem(2, 4));
-            pvf->mainnarrowbox.items.add(FlexItem(120, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(260, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
             pvf->mainnarrowbox.items.add(FlexItem(2, 4));
-            pvf->mainnarrowbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(260, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
+
+            int nbh = 0;
+            for (auto & item : pvf->mainnarrowbox.items) {
+                nbh += item.minHeight;
+            }
 
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
             pvf->mainbox.items.add(FlexItem(3, 2));
-            pvf->mainbox.items.add(FlexItem(150, singleph*2 - minitemheight , pvf->mainnarrowbox).withMargin(0).withFlex(1));
-            pvf->mainbox.items.add(FlexItem(2, 2));
-            pvf->mainbox.items.add(FlexItem(meterwidth, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
+            pvf->mainbox.items.add(FlexItem(150, nbh, pvf->mainnarrowbox).withMargin(0).withFlex(1));
+            //pvf->mainbox.items.add(FlexItem(2, 2));
+            //pvf->mainbox.items.add(FlexItem(meterwidth, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
         } else {
             pvf->mainnarrowbox.flexDirection = FlexBox::Direction::column;
-            pvf->mainnarrowbox.items.add(FlexItem(2, 3));
-            pvf->mainnarrowbox.items.add(FlexItem(100, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
+            //pvf->mainnarrowbox.items.add(FlexItem(2, 3));
+
+            //pvf->mainnarrowbox.items.add(FlexItem(100, minitemheight, pvf->mainsendbox).withMargin(0).withFlex(0));
+            pvf->mainnarrowbox.items.add(FlexItem(changroupminbounds.getWidth(), changroupminbounds.getHeight(), *pvf->channelGroups).withMargin(0).withFlex(0));
+
             pvf->mainnarrowbox.items.add(FlexItem(2, 4));
             pvf->mainnarrowbox.items.add(FlexItem(150, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
 
+            int nbh = 0;
+            for (auto & item : pvf->mainnarrowbox.items) {
+                nbh += item.minHeight;
+            }
+
             pvf->mainbox.flexDirection = FlexBox::Direction::row;
             pvf->mainbox.items.add(FlexItem(3, 2));
-            pvf->mainbox.items.add(FlexItem(150, singleph, pvf->mainnarrowbox).withMargin(0).withFlex(1));
-            pvf->mainbox.items.add(FlexItem(2, 2));
-            pvf->mainbox.items.add(FlexItem(meterwidth, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
+            pvf->mainbox.items.add(FlexItem(150, nbh, pvf->mainnarrowbox).withMargin(0).withFlex(1));
+            //pvf->mainbox.items.add(FlexItem(2, 2));
+            //pvf->mainbox.items.add(FlexItem(meterwidth, 50, *pvf->recvMeter).withMargin(3).withFlex(0));
         }
 
         peersBox.items.add(FlexItem(8, 4).withMargin(0));
         peersheight += 4;
-        
+
+        int mch = 0;
+        for (auto & item : pvf->mainbox.items) {
+            mch = jmax(mch, (int)item.minHeight);
+        }
+
         if (isNarrow) {
-            peersBox.items.add(FlexItem(pw, ph*2 - minitemheight + 2, *pvf).withMargin(0).withFlex(0));
-            peersheight += ph*2-minitemheight + 2;
+            peersBox.items.add(FlexItem(pw, mch + 3, *pvf).withMargin(0).withFlex(0));
+            peersheight += mch + 3;
         } else {
-            peersBox.items.add(FlexItem(pw, ph + 5, *pvf).withMargin(1).withFlex(0));
-            peersheight += ph + 5;
+            peersBox.items.add(FlexItem(pw, mch + 5, *pvf).withMargin(1).withFlex(0));
+            peersheight += mch + 5;
         }
 
     }
 
-    
+
+    // Pending connection peerviews
+
+    int ppheight = minitemheight;
+    int ppw = 120;
+
+    for (int i=0; i < mPendingPeerViews.size(); ++i) {
+
+        peersBox.items.add(FlexItem(8, 4).withMargin(0));
+        peersheight += 4;
+
+        PendingPeerViewInfo * ppvf = mPendingPeerViews.getUnchecked(i);
+        ppvf->mainbox.items.clear();
+        ppvf->mainbox.flexDirection = FlexBox::Direction::row;
+        ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->nameLabel).withMargin(0).withFlex(0));
+        ppvf->mainbox.items.add(FlexItem(minButtonWidth-14, minitemheight, *ppvf->removeButton).withMargin(0).withFlex(0));
+        ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->messageLabel).withMargin(0).withFlex(1));
+
+        peersBox.items.add(FlexItem(ppw, ppheight + 5, *ppvf).withMargin(1).withFlex(0));
+        peersheight += ppheight + 5;
+    }
     
     if (isNarrow) {
         peersMinHeight = std::max(singleph*2 + 14,  peersheight);
@@ -1165,6 +1230,7 @@ void PeersContainerView::applyToAllSliders(std::function<void(Slider *)> & routi
         routine(pvf->levelSlider.get());
         routine(pvf->panSlider1.get());
         routine(pvf->panSlider2.get());
+        pvf->channelGroups->applyToAllSliders(routine);
     }
 }
 
@@ -1177,10 +1243,13 @@ void PeersContainerView::updatePeerViews(int specific)
         if (specific >= 0 && specific != i) continue;
         
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+
+        bool connected = processor.getRemotePeerConnected(i);
+
+#if 0
         String hostname;
         int port = 0;
         processor.getRemotePeerAddressInfo(i, hostname, port);
-        bool connected = processor.getRemotePeerConnected(i);
 
         String username = processor.getRemotePeerUserName(i);
         String addrname;
@@ -1196,6 +1265,7 @@ void PeersContainerView::updatePeerViews(int specific)
             //pvf->addrLabel->setVisible(false);
             pvf->nameLabel->setText(addrname, dontSendNotification);
         }
+#endif
 
         String sendtext;
         bool sendactive = processor.getRemotePeerSendActive(i);
@@ -1312,7 +1382,7 @@ void PeersContainerView::updatePeerViews(int specific)
             pvf->latencyLabel->setText(latlab, dontSendNotification);
         }
 
-        
+#if 0
         bool aresoloed = processor.getRemotePeerSoloed(i);
         bool aremuted = !processor.getRemotePeerRecvAllow(i);
         
@@ -1325,7 +1395,7 @@ void PeersContainerView::updatePeerViews(int specific)
         pvf->sendMutedButton->setToggleState(!processor.getRemotePeerSendAllow(i) , dontSendNotification);
         pvf->recvMutedButton->setToggleState(aremuted , dontSendNotification);
         pvf->recvSoloButton->setToggleState(aresoloed , dontSendNotification);
-
+#endif
         
         pvf->latActiveButton->setToggleState(latactive, dontSendNotification);
 
@@ -1343,10 +1413,13 @@ void PeersContainerView::updatePeerViews(int specific)
 
         pvf->bufferMinButton->setEnabled(autobufmode != SonobusAudioProcessor::AutoNetBufferModeOff);
         pvf->bufferMinFrontButton->setEnabled(autobufmode != SonobusAudioProcessor::AutoNetBufferModeOff);
-        
+
+#if 0
         if (!pvf->levelSlider->isMouseOverOrDragging()) {
             pvf->levelSlider->setValue(processor.getRemotePeerLevelGain(i, 0), dontSendNotification);
         }
+#endif
+
         if (!pvf->bufferTimeSlider->isMouseButtonDown()) {
             pvf->bufferTimeSlider->setValue(buftimeMs, dontSendNotification);
         }
@@ -1360,9 +1433,16 @@ void PeersContainerView::updatePeerViews(int specific)
         sendqual << processor.getRemotePeerActualSendChannelCount(i) << "ch " << processor.getAudioCodeFormatName(formatindex);
         pvf->sendQualityLabel->setText(sendqual, dontSendNotification);
         
-        pvf->recvMeter->setMeterSource (processor.getRemotePeerRecvMeterSource(i));        
+        // pvf->recvMeter->setMeterSource (processor.getRemotePeerRecvMeterSource(i));
 
+        if (chcnt != pvf->channelGroups->getGroupViewsCount()) {
+            pvf->channelGroups->rebuildChannelViews();
+            needsUpdateLayout = true;
+        } else {
+            pvf->channelGroups->updateChannelViews();
+        }
 
+#if 0
         if (processor.getTotalNumOutputChannels() == 1 || chcnt > 2) {
             pvf->panSlider1->setVisible(false);
             pvf->panSlider2->setVisible(false);
@@ -1405,7 +1485,7 @@ void PeersContainerView::updatePeerViews(int specific)
             pvf->panSlider1->setValue(processor.getRemotePeerChannelPan(i, 0, 0), dontSendNotification);
         }
         pvf->panSlider2->setValue(processor.getRemotePeerChannelPan(i, 0, 1), dontSendNotification);
-        
+#endif
 
         
         const float disalpha = 0.4;
@@ -1443,15 +1523,18 @@ void PeersContainerView::updatePeerViews(int specific)
         
         if (pinfo.second.failed) {
             ppvf->messageLabel->setText(TRANS("Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router."), dontSendNotification);
+            ppvf->removeButton->setVisible(true);
         }
         else {
             ppvf->messageLabel->setText(TRANS("Connecting..."), dontSendNotification);
+            ppvf->removeButton->setVisible(false);
         }
         ++i;
     }
     
     if (needsUpdateLayout) {
         updateLayout();
+        listeners.call (&PeersContainerView::Listener::internalSizesChanged, this);
     }
     
     lastUpdateTimestampMs = nowstampms;
@@ -1576,7 +1659,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                     processor.setRemotePeerSendAllow(i, false);
                 }
             }
-            break;
+            return;
         }
         else if (pvf->recvMutedButton.get() == buttonThatWasClicked) {
             if (!connected && !isGroupPeer) {
@@ -1593,7 +1676,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                     processor.setRemotePeerRecvAllow(i, false);             
                 }
             }
-            break;
+            return;
         }
         else if (pvf->recvSoloButton.get() == buttonThatWasClicked) {
             if (ModifierKeys::currentModifiers.isAltDown()) {
@@ -1615,7 +1698,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                 processor.setRemotePeerSoloed(i, buttonThatWasClicked->getToggleState()); 
                 updatePeerViews();
             }
-            break;
+            return;
         }
         else if (pvf->latActiveButton.get() == buttonThatWasClicked) {
             if (pvf->latActiveButton->getToggleState()) {
@@ -1624,7 +1707,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             } else {
                 stopLatencyTest(i);
             }
-            break;
+            return;
         }
 
         
@@ -1636,7 +1719,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                 showRecvOptions(i, false);
             }
 
-            break;
+            return;
         }
         else if (pvf->fxButton.get() == buttonThatWasClicked) {
 
@@ -1646,7 +1729,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                 showEffects(i, false);
             }
 
-            break;
+            return;
         }
         else if (pvf->panButton.get() == buttonThatWasClicked) {
             if (!pannerCalloutBox) {
@@ -1654,7 +1737,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             } else {
                 showPanners(i, false);
             }
-            break;
+            return;
         }
         else if (pvf->sendOptionsButton.get() == buttonThatWasClicked) {
             if (!sendOptionsCalloutBox) {
@@ -1662,24 +1745,24 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             } else {
                 showSendOptions(i, false);
             }
-            break;
+            return;
         }
         else if (pvf->optionsResetDropButton.get() == buttonThatWasClicked) {
             processor.resetRemotePeerPacketStats(i);
-            break;
+            return;
         }
         else if (pvf->changeAllFormatButton.get() == buttonThatWasClicked) {
             processor.setChangingDefaultAudioCodecSetsExisting(buttonThatWasClicked->getToggleState());
-            break;
+            return;
         }
         else if (pvf->changeAllRecvFormatButton.get() == buttonThatWasClicked) {
             processor.setChangingDefaultRecvAudioCodecSetsExisting(buttonThatWasClicked->getToggleState());
-            break;
+            return;
         }
         else if (pvf->optionsRemoveButton.get() == buttonThatWasClicked) {
             processor.removeRemotePeer(i);
             showSendOptions(i, false);
-            break;
+            return;
         }
         else if (pvf->bufferMinButton.get() == buttonThatWasClicked || pvf->bufferMinFrontButton.get() == buttonThatWasClicked) {
             // force to minimum
@@ -1702,9 +1785,25 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             }
             
             updatePeerViews();
-            break;
+            return;
         }
-    }    
+    }
+
+    int i = 0;
+    for (auto & pinfo : mPendingUsers) {
+        if (i>= mPendingPeerViews.size()) {
+            break; // shouldn't happen
+        }
+
+        PendingPeerViewInfo * ppvf = mPendingPeerViews.getUnchecked(i);
+        if (ppvf->removeButton.get() == buttonThatWasClicked) {
+            mPendingUsers.erase(pinfo.first);
+            rebuildPeerViews();
+            return;
+        }
+        ++i;
+    }
+
 }
 
 void PeersContainerView::showPanners(int index, bool flag)
@@ -2042,6 +2141,7 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
         }
         else if (event.eventComponent == pvf->recvMeter.get()) {
             pvf->recvMeter->clearClipIndicator(-1);
+            pvf->channelGroups->clearClipIndicators();
             break;
         }
 
@@ -2053,6 +2153,7 @@ void PeersContainerView::clearClipIndicators()
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         pvf->recvMeter->clearClipIndicator(-1);
+        pvf->channelGroups->clearClipIndicators();
     }
 }
 

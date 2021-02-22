@@ -39,7 +39,11 @@ GenericItemChooser::GenericItemChooser(const Array<GenericItemChooserItem> & ite
 
 {
     currentIndex = -1;
+#if JUCE_IOS || JUCE_ANDROID
     rowHeight = 42;
+#else
+    rowHeight = 32;
+#endif
     numRows = items.size();
     
     // Create our table component and add it to this component..

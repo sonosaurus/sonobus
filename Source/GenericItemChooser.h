@@ -12,10 +12,16 @@ class KeyListBox;
 
 struct GenericItemChooserItem
 {
+    struct UserData {
+        virtual ~UserData() {}
+    };
+
     GenericItemChooserItem() : image(Image()) {}
-    GenericItemChooserItem(const String & name_, const Image & image_=Image()) : name(name_), image(image_) {}
+    GenericItemChooserItem(const String & name_, const Image & image_=Image(), std::shared_ptr<UserData> udata = nullptr) : name(name_), image(image_), userdata(udata) {}
     String name;
     Image image;
+
+    std::shared_ptr<UserData> userdata;
 };
 
 class GenericItemChooser : public Component, public ListBoxModel, public Button::Listener
