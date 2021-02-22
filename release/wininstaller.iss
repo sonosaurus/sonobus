@@ -48,6 +48,13 @@ Name: "{group}\SonoBus"; Filename: "{app}\SonoBus.exe"
 Name: "{group}\README"; Filename: "{app}\README.txt"
 Name: "{group}\Uninstall SonoBus"; Filename: "{app}\unins000.exe"
 
+[Registry]
+Root: HKCR; Subkey: "sonobus"; ValueType: "string"; ValueData: "URL:sonobus Protocol"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "sonobus"; ValueType: "string"; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCR; Subkey: "sonobus\DefaultIcon"; ValueType: "string"; ValueData: "{app}\SonoBus.exe,0"
+Root: HKCR; Subkey: "sonobus\shell\open\command"; ValueType: "string"; ValueData: """{app}\SonoBus.exe"" ""%1"""
+
+
 [Code]
 var
   OkToCopyLog : Boolean;
