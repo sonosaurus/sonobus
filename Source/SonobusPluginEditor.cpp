@@ -784,7 +784,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     mOptionsDefaultLevelSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mOptionsDefaultLevelSlider->setName("uservol");
-    mOptionsDefaultLevelSlider->setSliderSnapsToMousePosition(false);
+    mOptionsDefaultLevelSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mOptionsDefaultLevelSlider->setScrollWheelEnabled(false);
     configLevelSlider(mOptionsDefaultLevelSlider.get());
     mOptionsDefaultLevelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
@@ -792,6 +792,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //mOptionsDefaultLevelSlider->setSliderStyle(Slider::SliderStyle::LinearBar);
 
     mDefaultLevelAttachment =  std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultPeerLevel, *mOptionsDefaultLevelSlider);
+
 
 
     mOptionsDefaultLevelSliderLabel = std::make_unique<Label>("", TRANS("Default User Level"));
@@ -2330,6 +2331,7 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
     snapset(mInGainSlider.get());
     snapset(mOutGainSlider.get());
     snapset(mDrySlider.get());
+    snapset(mOptionsDefaultLevelSlider.get());
 
     mPeerContainer->applyToAllSliders(snapset);
     mInputChannelsContainer->applyToAllSliders(snapset);
@@ -3556,6 +3558,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsHearlatBox.items.add(FlexItem(10, 12));
     optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
 
+    optionsDefaultLevelBox.items.clear();
     optionsDefaultLevelBox.flexDirection = FlexBox::Direction::row;
     optionsDefaultLevelBox.items.add(FlexItem(12, 12));
     //optionsDefaultLevelBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsDefaultLevelSliderLabel).withMargin(0).withFlex(1));
@@ -3615,7 +3618,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 6));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 6));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));

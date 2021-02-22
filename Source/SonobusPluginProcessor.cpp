@@ -6372,6 +6372,9 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
     }
 
     totalRecordingChannels = getMainBusNumOutputChannels();
+    if (totalRecordingChannels == 0) {
+        totalRecordingChannels = 2;
+    }
 
     if (fileformat == FileFormatFLAC && totalRecordingChannels > 8) {
         // flac doesn't support > 8 channels

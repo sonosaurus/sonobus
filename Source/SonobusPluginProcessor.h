@@ -742,9 +742,6 @@ private:
     int lastInputChannels = 0;
     int lastOutputChannels = 0;
     
-    AudioProcessorValueTreeState mState;
-    UndoManager                  mUndoManager;
-
     PeerStateCacheMap mPeerStateCacheMap;
     
     // top level meter sources
@@ -878,6 +875,8 @@ private:
     // misc
     bool mSliderSnapToMouse = true;
 
-
+    // main state
+    AudioProcessorValueTreeState mState;
+    UndoManager                  mUndoManager;
 
 };
