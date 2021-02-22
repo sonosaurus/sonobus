@@ -419,7 +419,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->pannersContainer = std::make_unique<Component>();
     
     pvf->panSlider1     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::NoTextBox);
-    pvf->panSlider1->setName("pan1");
+    pvf->panSlider1->setName("pan1old");
     pvf->panSlider1->addListener(this);
     pvf->panSlider1->getProperties().set ("fromCentre", true);
     pvf->panSlider1->getProperties().set ("noFill", true);

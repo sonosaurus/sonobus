@@ -219,7 +219,7 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, AudioBuffer<float
     if (frombuffer.getNumChannels() > 0 && destNumChans == 2) {
         //tobuffer.clear(0, numSamples);
 
-        for (int channel = destStartChan; channel < destStartChan + destNumChans; ++channel) {
+        for (int channel = destStartChan; channel < destStartChan + destNumChans && channel < toNumChan; ++channel) {
             int pani = 0;
             for (int i=chanStartIndex; i < chanStartIndex + numChannels && i < fromNumChan; ++i, ++pani) {
                 const float upan = (numChannels != 2 ? pan[pani] : i==chanStartIndex ? panStereo[0] : panStereo[1]);

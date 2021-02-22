@@ -3439,7 +3439,6 @@ void SonobusAudioProcessorEditor::updateLayout()
     minitemheight = 44;
     knobitemheight = 90;
     minpassheight = 38;
-    panbuttwidth = 32;
 #endif
 
     // adjust max meterwidth if channel count > 2

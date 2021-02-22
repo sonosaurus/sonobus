@@ -2329,7 +2329,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
 
                     if (peer->recvAllow) {
                         peer->oursink->invite_source(es, peer->remoteSourceId, endpoint_send);
-                        peer->recvActive = true;
+                        //peer->recvActive = true;
                     } else {
                         DBG("we aren't accepting recv right now, politely decline it");
                         peer->oursink->uninvite_source(es, peer->remoteSourceId, endpoint_send);
@@ -2944,7 +2944,7 @@ int SonobusAudioProcessor::connectRemotePeerRaw(void * sockaddr, const String & 
         DBG("Successfully invited remote peer at " << endpoint->ipaddr << ":" << endpoint->port << " - ourId " << remote->ourId);
         remote->connected = true;
         remote->invitedPeer = reciprocate;
-        remote->recvActive = reciprocate;
+        //remote->recvActive = reciprocate;
         if (!mMainSendMute.get()) {
             remote->sendActive = true;
             remote->oursource->start();
@@ -2976,7 +2976,7 @@ int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, cons
         DBG("Successfully invited remote peer at " <<  host << ":" << port << " - ourId " << remote->ourId);
         remote->connected = true;
         remote->invitedPeer = reciprocate;
-        remote->recvActive = reciprocate;
+        //remote->recvActive = reciprocate;
         if (!mMainSendMute.get()) {
             remote->sendActive = true;
             remote->oursource->start();
@@ -3683,9 +3683,10 @@ void SonobusAudioProcessor::setRemotePeerRecvActive(int index, bool active)
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        remote->recvActive = active;
 
-        if (remote->recvActive) {
+        //remote->recvActive = active;
+
+        if (active) {
             remote->recvAllow = true;
             remote->recvAllowCache = true;            
         }

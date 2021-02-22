@@ -9,314 +9,312 @@ namespace BinaryData
 
 //================== localized_es.txt ==================
 static const unsigned char temp_binary_data_0[] =
-"language: Spanish\r\n"
-"countries: es\r\n"
-"\r\n"
-"\"Noise Floor\" = \"Ruido de fondo\"\r\n"
-"\"Ratio\" = \"Proporci\xc3\xb3n\"\r\n"
-"\"Attack\" = \"Ataque\"\r\n"
-"\"Release\" = \"Relajaci\xc3\xb3n\"\r\n"
-"\"Noise Gate\" = \"Compuerta de ruido\"\r\n"
-"\"In Gain\" = \"Ganancia de entrada\"\r\n"
-"\"In Pan\" = \"Paneo de entrada\"\r\n"
-"\"C\" = \"C\"\r\n"
-"\"In Pan 1\" = \"Paneo de entrada 1\"\r\n"
-"\"In Pan 2\" = \"Paneo de entrada2\"\r\n"
-"\"Dry Level\" = \"Nivel seco\"\r\n"
-"\"Output Level\" = \"Nivel de salida\"\r\n"
-"\"Default Net Buffer Time\" = \"Tiempo neto predeterminado del b\xc3\xba""fer\"\r\n"
-"\"Send Channels\" = \"Canales de env\xc3\xado\"\r\n"
-"\"Metronome Enabled\" = \"Metr\xc3\xb3nomo habilitado\"\r\n"
-"\"Send Metronome Audio\" = \"Env\xc3\xado del audio del metr\xc3\xb3nomo\"\r\n"
-"\"Metronome Gain\" = \"Ganancia del metr\xc3\xb3nomo\"\r\n"
-"\"Metronome Tempo\" = \"Tempo del metr\xc3\xb3nomo\"\r\n"
-"\"Send Playback Audio\" = \"Env\xc3\xado del audio de reproducci\xc3\xb3n\"\r\n"
-"\"Hear Latency Test\" = \"Escuchar prueba de latencia\"\r\n"
-"\"Record Metronome to File\" = \"Grabar metr\xc3\xb3nomo en el archivo\"\r\n"
-"\"Main Reverb Enabled\" = \"Reverberaci\xc3\xb3n principal habilitada\"\r\n"
-"\"Main Reverb Level\" = \"Nivel de la reverberaci\xc3\xb3n principal\"\r\n"
-"\"Main Reverb Size\" = \"Talla de la reverberaci\xc3\xb3n principal\"\r\n"
-"\"Main Reverb Damping\" = \"Amortiguaci\xc3\xb3n de la reverberaci\xc3\xb3n principal\"\r\n"
-"\"Pre-Delay Time\" = \"Tiempo de pre-retardo\"\r\n"
-"\"Main Reverb Model\" = \"Modelo de la reverberaci\xc3\xb3n principal\"\r\n"
-"\"Main Send Mute\" = \"Silenciar env\xc3\xado principal\"\r\n"
-"\"Main Receive Mute\" = \"Silenciar el retorno principal\"\r\n"
-"\"Main In Mute\" = \"Silenciar entrada\"\r\n"
-"\"Main Monitor Solo\" = \"Monitor principal de Solo\"\r\n"
-"\"Def Auto Net Buffer Mode\" = \"Modalidad predefinida del b\xc3\xba""fer\"\r\n"
-"\"Def Send Format\" = \"Formato predefinido de env\xc3\xado\"\r\n"
-"\"Dynamic Resampling\" = \"Re-muestreo din\xc3\xa1mico\"\r\n"
-"\"Reconnect Last\" = \"Reconectar lo anterior\"\r\n"
-"\"Could not find format for filename\" = \"No se pudo nombrar el archivo\"\r\n"
-"\"Error creating writer for \" = \"Error de escritura para\"\r\n"
-"\"Error creating output file: \" = \"Error al crear el archivo de salida:\"\r\n"
-"\"Error creating directory for recording: \" = \"Error al crear el directorio de grabaci\xc3\xb3n:\"\r\n"
-"\"SonoBus\" = \"SonoBus\"\r\n"
-"\"Pan: Center\" = \"Paneo: Centro\"\r\n"
-"\"Pan: \" = \"Paneo:\"\r\n"
-"\"MUTE\" = \"SILENCIO\"\r\n"
-"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Silencia la entrada evitando que todos te escuchen, sin indicaci\xc3\xb3n\"\r\n"
-"\"SOLO\" = \"SOLO\"\r\n"
-"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Escucharse s\xc3\xb3lo a si mismo y a los dem\xc3\xa1s usuarios. Alt-clic para escucharse s\xc3\xb3lo a si mismo.\"\r\n"
-"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silencia la entrada, no se enviar\xc3\xa1 el audio a otros usuarios (incluida la reproducci\xc3\xb3n de archivos) ni v"
-"er\xc3\xa1n un indicador de silencio\"\r\n"
-"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Silencia / activa a todos los usuarios, no se recibir\xc3\xa1 audio cuando los usuarios est\xc3\xa9n silenciados\"\r\n"
-"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Cuando esta presionado, se silencia o activa a otros moment\xc3\xa1neamente (presiona para hablar).\"\r\n"
-"\" Use the \\'T\\' key as a shortcut.\" = \" Utilice la tecla \\'T\\' como atajo.\"\r\n"
-"\"Metronome On/Off\" = \"Metr\xc3\xb3nomo encendido / apagado\"\r\n"
-"\"Metronome Options\" = \"Opciones del metr\xc3\xb3nomo\"\r\n"
-"\"Level\" = \"Nivel\"\r\n"
-"\"Tempo\" = \"Tempo\"\r\n"
-"\"Send Metronome to All\" = \"Enviar metr\xc3\xb3nomo a todos\"\r\n"
-"\"In Level\" = \"Nivel de entrada\"\r\n"
+"language: Spanish\n"
+"countries: es\n"
+"\n"
+"\"Noise Floor\" = \"Ruido de fondo\"\n"
+"\"Ratio\" = \"Proporci\xc3\xb3n\"\n"
+"\"Attack\" = \"Ataque\"\n"
+"\"Release\" = \"Relajaci\xc3\xb3n\"\n"
+"\"Noise Gate\" = \"Compuerta de ruido\"\n"
+"\"In Gain\" = \"Ganancia de entrada\"\n"
+"\"In Pan\" = \"Paneo de entrada\"\n"
+"\"C\" = \"C\"\n"
+"\"In Pan 1\" = \"Paneo de entrada 1\"\n"
+"\"In Pan 2\" = \"Paneo de entrada2\"\n"
+"\"Dry Level\" = \"Nivel seco\"\n"
+"\"Output Level\" = \"Nivel de salida\"\n"
+"\"Default Net Buffer Time\" = \"Tiempo neto predeterminado del b\xc3\xba""fer\"\n"
+"\"Send Channels\" = \"Canales de env\xc3\xado\"\n"
+"\"Metronome Enabled\" = \"Metr\xc3\xb3nomo habilitado\"\n"
+"\"Send Metronome Audio\" = \"Env\xc3\xado del audio del metr\xc3\xb3nomo\"\n"
+"\"Metronome Gain\" = \"Ganancia del metr\xc3\xb3nomo\"\n"
+"\"Metronome Tempo\" = \"Tempo del metr\xc3\xb3nomo\"\n"
+"\"Send Playback Audio\" = \"Env\xc3\xado del audio de reproducci\xc3\xb3n\"\n"
+"\"Hear Latency Test\" = \"Escuchar prueba de latencia\"\n"
+"\"Record Metronome to File\" = \"Grabar metr\xc3\xb3nomo en el archivo\"\n"
+"\"Main Reverb Enabled\" = \"Reverberaci\xc3\xb3n principal habilitada\"\n"
+"\"Main Reverb Level\" = \"Nivel de la reverberaci\xc3\xb3n principal\"\n"
+"\"Main Reverb Size\" = \"Espacio de la reverberaci\xc3\xb3n principal\"\n"
+"\"Main Reverb Damping\" = \"Amortiguaci\xc3\xb3n de la reverberaci\xc3\xb3n principal\"\n"
+"\"Pre-Delay Time\" = \"Tiempo de pre-retardo\"\n"
+"\"Main Reverb Model\" = \"Modelo de la reverberaci\xc3\xb3n principal\"\n"
+"\"Main Send Mute\" = \"Silenciar env\xc3\xado principal\"\n"
+"\"Main Receive Mute\" = \"Silenciar recepci\xc3\xb3n principal\"\n"
+"\"Main In Mute\" = \"Silenciar entrada\"\n"
+"\"Main Monitor Solo\" = \"Escuchar Solo Monitor principal\"\n"
+"\"Def Auto Net Buffer Mode\" = \"Modalidad predefinida del b\xc3\xba""fer\"\n"
+"\"Def Send Format\" = \"Formato predefinido de env\xc3\xado\"\n"
+"\"Dynamic Resampling\" = \"Re-muestreo din\xc3\xa1mico\"\n"
+"\"Reconnect Last\" = \"Reconectar lo anterior\"\n"
+"\"Could not find format for filename\" = \"No se pudo nombrar el archivo\"\n"
+"\"Error creating writer for \" = \"Error de escritura para\"\n"
+"\"Error creating output file: \" = \"Error al crear el archivo de salida:\"\n"
+"\"Error creating directory for recording: \" = \"Error al crear el directorio de grabaci\xc3\xb3n:\"\n"
+"\"SonoBus\" = \"SonoBus\"\n"
+"\"Pan: Center\" = \"Paneo: Centro\"\n"
+"\"Pan: \" = \"Paneo:\"\n"
+"\"MUTE\" = \"SILENCIO\"\n"
+"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Silencia la entrada evitando que todos te escuchen, sin indicaci\xc3\xb3n\"\n"
+"\"SOLO\" = \"SOLO\"\n"
+"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Escucharse s\xc3\xb3lo a si mismo, y a otros usuarios que tengan Solo activado. Alt+clic para escucharse exclusivamente a si mismo.\"\n"
+"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silencia su entrada, no se enviar\xc3\xa1 su audio a ning\xc3\xban usuario (ni siquiera la reproducci\xc3\xb3n de arch"
+"ivos). Ellos no ver\xc3\xa1n ning\xc3\xban indicador de silenciado\"\n"
+"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Silencia / activa a todos los usuarios, no se recibir\xc3\xa1 audio cuando los usuarios est\xc3\xa9n silenciados\"\n"
+"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Cuando esta presionado, se activa su audio y se silencia a otros moment\xc3\xa1neamente (presiona para hablar).\"\n"
+"\" Use the \\'T\\' key as a shortcut.\" = \" Utilice la tecla \\'T\\' como atajo.\"\n"
+"\"Metronome On/Off\" = \"Metr\xc3\xb3nomo encendido / apagado\"\n"
+"\"Metronome Options\" = \"Opciones del metr\xc3\xb3nomo\"\n"
+"\"Level\" = \"Nivel\"\n"
+"\"Tempo\" = \"Tempo\"\n"
+"\"Send Metronome to All\" = \"Enviar metr\xc3\xb3nomo a todos\"\n"
+"\"In Level\" = \"Nivel de entrada\"\n"
 "\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Reduce o aumenta el nivel de tu entrada de audio, y afectar\xc3\xa1 el nivel del audio que se en"
-"v\xc3\xad""a a otros y tu propio monitoreo.\"\r\n"
-"\"Monitor\" = \"Monitor\"\r\n"
-"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Ajusta el nivel de monitoreo de entrada, que solo tu escuchas\"\r\n"
-"\"Out Level\" = \"Nivel de salida\"\r\n"
-"\"This is the main volume control which affects everything you hear\" = \"Este es el control principal de volumen y afecta todo lo que escuchas\"\r\n"
-"\"RECENTS\" = \"RECIENTES\"\r\n"
-"\"PRIVATE GROUP\" = \"GRUPO PRIVADO\"\r\n"
-"\"PUBLIC GROUPS\" = \"GRUPOS P\xc3\x9a""BLICOS\"\r\n"
-"\"DIRECT\" = \"DIRECTO\"\r\n"
-"\"--\" = \"-\"\r\n"
-"\"Local Address:\" = \"Direcci\xc3\xb3n local:\"\r\n"
-"\"Host: \" = \"Anfitri\xc3\xb3n:\"\r\n"
-"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Con\xc3\xa9""ctese directamente a otras instancias de SonoBus en su red local con la direcci\xc3\xb3n local que anuncian.\"\r\n"
-"\"IPaddress:port\" = \"Direcci\xc3\xb3n IP: puerto\"\r\n"
-"\"Connect...\" = \"Conectar...\"\r\n"
-"\"Direct Connect\" = \"Conexi\xc3\xb3n directa\"\r\n"
-"\"Connect to Group\" = \"Conectarse al grupo\"\r\n"
-"\"optional\" = \"Opcional\"\r\n"
-"\"Your Displayed Name:\" = \"Su nombre aparecer\xc3\xa1 como:\"\r\n"
-"\"Password:\" = \"Contrase\xc3\xb1""a:\"\r\n"
-"\"Group Name:\" = \"Nombre del grupo:\"\r\n"
-"\"Connection Server:\" = \"Servidor de conexi\xc3\xb3n:\"\r\n"
-"\"Generate a random group name\" = \"Genera un nombre de grupo aleatorio\"\r\n"
-"\"Copy connection information to the clipboard to share\" = \"Copiar la informaci\xc3\xb3n de conexi\xc3\xb3n al portapapeles para compartir\"\r\n"
-"\"Paste connection information from the clipboard\" = \"Pegar la informaci\xc3\xb3n de conexi\xc3\xb3n guardada en el portapapeles\"\r\n"
+"v\xc3\xad""a a otros y tu propio monitoreo.\"\n"
+"\"Monitor\" = \"Monitor\"\n"
+"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Ajusta el nivel de monitoreo de entrada, que solo tu escuchas\"\n"
+"\"Out Level\" = \"Nivel de salida\"\n"
+"\"This is the main volume control which affects everything you hear\" = \"Este es el control principal de volumen y afecta todo lo que escuchas\"\n"
+"\"RECENTS\" = \"RECIENTES\"\n"
+"\"PRIVATE GROUP\" = \"GRUPO PRIVADO\"\n"
+"\"PUBLIC GROUPS\" = \"GRUPOS P\xc3\x9a""BLICOS\"\n"
+"\"DIRECT\" = \"DIRECTO\"\n"
+"\"Local Address:\" = \"Direcci\xc3\xb3n local:\"\n"
+"\"Host: \" = \"Anfitri\xc3\xb3n:\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Con\xc3\xa9""ctese directamente a otras instancias de SonoBus en su red local con la direcci\xc3\xb3n local que anuncian.\"\n"
+"\"IPaddress:port\" = \"Direcci\xc3\xb3n IP: puerto\"\n"
+"\"Connect...\" = \"Conectar...\"\n"
+"\"Direct Connect\" = \"Conexi\xc3\xb3n directa\"\n"
+"\"Connect to Group\" = \"Conectarse al grupo\"\n"
+"\"optional\" = \"Opcional\"\n"
+"\"Your Displayed Name:\" = \"Su nombre aparecer\xc3\xa1 como:\"\n"
+"\"Password:\" = \"Contrase\xc3\xb1""a:\"\n"
+"\"Group Name:\" = \"Nombre del grupo:\"\n"
+"\"Connection Server:\" = \"Servidor de conexi\xc3\xb3n:\"\n"
+"\"Generate a random group name\" = \"Genera un nombre de grupo aleatorio\"\n"
+"\"Copy connection information to the clipboard to share\" = \"Copiar la informaci\xc3\xb3n de conexi\xc3\xb3n al portapapeles para compartir\"\n"
+"\"Paste connection information from the clipboard\" = \"Pegar la informaci\xc3\xb3n de conexi\xc3\xb3n guardada en el portapapeles\"\n"
 "\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"El servidor de conexi\xc3\xb3n solo se usa para ayudar a los usuarios a encontrarse, no pas"
-"a audio a trav\xc3\xa9s de \xc3\xa9l. El audio s\xc3\xb3lo se env\xc3\xad""a directamente entre usuarios (peer to peer).\"\r\n"
-"\"Clear All\" = \"Limpiar todo\"\r\n"
-"\"Active Public Groups\" = \"Grupos p\xc3\xba""blicos activos\"\r\n"
-"\"Select existing group below OR \" = \"Seleccione el grupo existente a continuaci\xc3\xb3n o\"\r\n"
-"\"Create Group...\" = \"Crea un grupo...\"\r\n"
-"\"enter group name\" = \"ingrese el nombre del grupo\"\r\n"
-"\"Choose a descriptive group name that includes geographic information and genre\" = \"Elija un nombre de grupo descriptivo que incluya informaci\xc3\xb3n geogr\xc3\xa1""fica y g\xc3\xa9nero\"\r\n"
-"\"Patchbay\" = \"Patchbay\"\r\n"
-"\"Setup Audio\" = \"Configurar audio\"\r\n"
-"\"Press to copy/share link to group\" = \"Presione para copiar / compartir el enlace al grupo\"\r\n"
-"\"Connect\" = \"Conectar\"\r\n"
-"\"Manual\" = \"Manual\"\r\n"
-"\"Auto Up\" = \"Auto Up\"\r\n"
-"\"Auto\" = \"Auto\"\r\n"
-"\"Initial Auto\" = \"Autom\xc3\xa1tico de inicio\"\r\n"
-"\"Default Jitter Buffer\" = \"Bufer predeterminado de fluctuaci\xc3\xb3n\"\r\n"
-"\"Default Send Quality:\" = \"Calidad de env\xc3\xado predeterminada:\"\r\n"
-"\"Make Latency Test Audible\" = \"Hacer audible la prueba de latencia\"\r\n"
-"\"Metronome output recorded in full mix\" = \"Audio de metr\xc3\xb3nomo grabado en mezcla completa\"\r\n"
-"\"Record feature creates the following files:\" = \"La funci\xc3\xb3n de registro crea los siguientes archivos:\"\r\n"
-"\"Full Mix\" = \"Mezcla completa\"\r\n"
-"\"Full Mix without yourself\" = \"Mezcla completa sin ti\"\r\n"
-"\"Yourself\" = \"T\xc3\xba mismo\"\r\n"
-"\"Each Connected User\" = \"Cada usuario conectado\"\r\n"
-"\"FLAC\" = \"FLAC\"\r\n"
-"\"WAV\" = \"WAV\"\r\n"
-"\"OGG\" = \"OGG\"\r\n"
-"\"16 bit\" = \"16 bits\"\r\n"
-"\"24 bit\" = \"24 bits\"\r\n"
-"\"Audio File Format:\" = \"Formato del archivo de audio:\"\r\n"
-"\"Record Location:\" = \"Ubicaci\xc3\xb3n de grabaci\xc3\xb3n:\"\r\n"
-"\"Use Specific UDP Port\" = \"Usar puerto UDP espec\xc3\xad""fico\"\r\n"
-"\"Use Drift Correction\" = \"Usar correcci\xc3\xb3n de deriva\"\r\n"
-"\"Auto-Reconnect to Last Group\" = \"Reconectar autom\xc3\xa1ticamente al \xc3\xbaltimo grupo\"\r\n"
-"\"Override Device Sample Rate\" = \"Anular frecuencia de muestreo del dispositivo\"\r\n"
-"\"Automatically check for updates\" = \"Buscar actualizaciones autom\xc3\xa1ticamente\"\r\n"
-"\"Sliders Snap to Mouse Click\" = \"Los potenci\xc3\xb3metros se ajustan al clic del mouse\"\r\n"
-"\"Use Input FX Limiter\" = \"Usar limitador de efectos de entrada\"\r\n"
-"\"Change all connected\" = \"Cambiar a todos los conectados\"\r\n"
-"\"Version: \" = \"Versi\xc3\xb3n:\"\r\n"
-"\"FX\" = \"FX\"\r\n"
-"\"In FX\" = \"FX de entrada\"\r\n"
-"\"Match # Inputs\" = \"Empatar # entradas\"\r\n"
-"\"Send Mono\" = \"Enviar mono\"\r\n"
-"\"Send Stereo\" = \"Enviar est\xc3\xa9reo\"\r\n"
-"\"# Send Channels\" = \"# Enviar canales\"\r\n"
-"\"Size\" = \"Talla\"\r\n"
-"\"Damping\" = \"Amortiguamiento\"\r\n"
-"\"Pre-Delay\" = \"Pre-retardo\"\r\n"
-"\"Reverb\" = \"Reverberaci\xc3\xb3n\"\r\n"
-"\"Freeverb\" = \"Freeverb\"\r\n"
-"\"MVerb\" = \"MVerb\"\r\n"
-"\"Zita\" = \"Zita\"\r\n"
-"\"Start/Stop recording audio to file\" = \"Iniciar / detener la grabaci\xc3\xb3n del archivo de audio\"\r\n"
-"\"Load audio file for playback\" = \"Cargar archivo para reproducir\"\r\n"
-"\"Send File Playback to All\" = \"Enviar reproducci\xc3\xb3n a todos\"\r\n"
-"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Se agreg\xc3\xb3 la informaci\xc3\xb3n del grupo almacenada en el portapapeles. Presione \\'Conectar al grupo\\' para unirse ...\"\r\n"
-"\"Quit Confirmation\" = \"Confirmar salida de la aplicaci\xc3\xb3n\"\r\n"
-"\"You are connected, are you sure you want to quit?\" = \"Est\xc3\xa1s conectado, \xc2\xbfseguro quieres salir?\"\r\n"
-"\"Quit\" = \"Salir\"\r\n"
-"\"Share this link with others to connect with SonoBus:\" = \"Compartir el enlace con otros para conectarse con SonoBus:\"\r\n"
-"\"Or share this link:\" = \"O comparte este enlace:\"\r\n"
-"\"Last Session: \" = \"\xc3\x9altima sesi\xc3\xb3n:\"\r\n"
-"\"Total: \" = \"Total:\"\r\n"
-"\"Not sending your audio anywhere\" = \"No se est\xc3\xa1 enviando el audio\"\r\n"
-"\"Sending your audio to others\" = \"Enviando tu audio a otros\"\r\n"
-"\"Muted everyone\" = \"Todos silenciados\"\r\n"
-"\"Unmuted all who were not muted previously\" = \"Se activ\xc3\xb3 el sonido de todos los que no se hab\xc3\xad""an silenciado anteriormente.\"\r\n"
-"\"Sending your metronome to all users\" = \"Enviando tu metr\xc3\xb3nomo a todos los usuarios\"\r\n"
-"\"Now only you will hear your metronome\" = \"Ahora solo tu oir\xc3\xa1s tu metr\xc3\xb3nomo\"\r\n"
-"\"Sending file playback to all users\" = \"Env\xc3\xado la reproducci\xc3\xb3n del archivo a todos los usuarios\"\r\n"
-"\"Now only you will hear the file playback\" = \"Ahora solo usted escuchar\xc3\xa1 la reproducci\xc3\xb3n del archivo\"\r\n"
-"\"Copied connection info to clipboard for you to share with others\" = \"Informaci\xc3\xb3n de conexi\xc3\xb3n copiada al portapapeles para compartir\"\r\n"
-"\"Copied group connection info to clipboard for you to share with others\" = \"Se copi\xc3\xb3 la informaci\xc3\xb3n de conexi\xc3\xb3n del grupo al portapapeles para compartir\"\r\n"
-"\"Finished recording to \" = \"Finaliz\xc3\xb3 la grabaci\xc3\xb3n en\"\r\n"
-"\"Last recorded file: \" = \"\xc3\x9altimo archivo grabado:\"\r\n"
-"\"Started recording output\" = \"Se inici\xc3\xb3 la grabaci\xc3\xb3n del audio de salida\"\r\n"
-"\"Recording audio to: \" = \"Grabando audio en:\"\r\n"
-"\"Recording multi-track audio to: \" = \"Grabando audio multi-pista en:\"\r\n"
-"\"Choose an audio file to open...\" = \"Elegir un archivo de audio para abrir ...\"\r\n"
-"\"Choose the folder for new recordings\" = \"Elija la carpeta para nuevas grabaciones\"\r\n"
-"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"\xc2\xa1""Completado el Grupo de entrada desde el enlace! Presione \\'Conectar al grupo\\' para unirse ...\"\r\n"
-"\"You need to specify a group name!\" = \"\xc2\xa1Necesitas especificar un nombre de grupo!\"\r\n"
-"\"You need to specify a user name!\" = \"\xc2\xa1Necesita especificar un nombre de usuario!\"\r\n"
-"\"Server address is invalid!\" = \"\xc2\xa1La direcci\xc3\xb3n del servidor no es v\xc3\xa1lida!\"\r\n"
-"\"All who join the same Group will be able to connect with each other.\" = \"Todos los que se unan al mismo grupo podr\xc3\xa1n conectarse entre s\xc3\xad.\"\r\n"
-"\"AUDIO\" = \"AUDIO\"\r\n"
-"\"OPTIONS\" = \"OPCIONES\"\r\n"
-"\"HELP\" = \"AYUDA\"\r\n"
-"\"RECORDING\" = \"GRABACI\xc3\x93N\"\r\n"
+"a audio a trav\xc3\xa9s de \xc3\xa9l. El audio s\xc3\xb3lo se env\xc3\xad""a directamente entre usuarios (peer to peer).\"\n"
+"\"Clear All\" = \"Limpiar todo\"\n"
+"\"Active Public Groups\" = \"Grupos p\xc3\xba""blicos activos\"\n"
+"\"Select existing group below OR \" = \"Seleccione un grupo de la lista, O\"\n"
+"\"Create Group...\" = \"Crea un grupo...\"\n"
+"\"enter group name\" = \"ingrese el nombre del grupo\"\n"
+"\"Choose a descriptive group name that includes geographic information and genre\" = \"Elija un nombre de grupo descriptivo, que incluya informaci\xc3\xb3n geogr\xc3\xa1""fica y g\xc3\xa9nero\"\n"
+"\"Patchbay\" = \"Patchbay\"\n"
+"\"Setup Audio\" = \"Configurar audio\"\n"
+"\"Press to copy/share link to group\" = \"Presione para copiar / compartir el enlace al grupo\"\n"
+"\"Connect\" = \"Conectar\"\n"
+"\"Manual\" = \"Manual\"\n"
+"\"Auto Up\" = \"Auto Up\"\n"
+"\"Auto\" = \"Auto\"\n"
+"\"Initial Auto\" = \"Auto inicial\"\n"
+"\"Default Jitter Buffer\" = \"Bufer de fluctuaci\xc3\xb3n predeterminado\"\n"
+"\"Default Send Quality:\" = \"Calidad de env\xc3\xado predeterminada:\"\n"
+"\"Make Latency Test Audible\" = \"Hacer audible la prueba de latencia\"\n"
+"\"Metronome output recorded in full mix\" = \"Audio de metr\xc3\xb3nomo grabado en mezcla completa\"\n"
+"\"Record feature creates the following files:\" = \"La funci\xc3\xb3n de grabaci\xc3\xb3n crea los siguientes archivos:\"\n"
+"\"Full Mix\" = \"Mezcla completa\"\n"
+"\"Full Mix without yourself\" = \"Mezcla completa sin ti\"\n"
+"\"Yourself\" = \"T\xc3\xba mismo\"\n"
+"\"Each Connected User\" = \"Cada usuario conectado\"\n"
+"\"FLAC\" = \"FLAC\"\n"
+"\"WAV\" = \"WAV\"\n"
+"\"OGG\" = \"OGG\"\n"
+"\"16 bit\" = \"16 bits\"\n"
+"\"24 bit\" = \"24 bits\"\n"
+"\"Audio File Format:\" = \"Formato del archivo de audio:\"\n"
+"\"Record Location:\" = \"Ubicaci\xc3\xb3n de grabaci\xc3\xb3n:\"\n"
+"\"Use Specific UDP Port\" = \"Usar puerto UDP espec\xc3\xad""fico\"\n"
+"\"Use Drift Correction\" = \"Usar correcci\xc3\xb3n de deriva\"\n"
+"\"Auto-Reconnect to Last Group\" = \"Reconectar autom\xc3\xa1ticamente al \xc3\xbaltimo grupo\"\n"
+"\"Override Device Sample Rate\" = \"Forzar frecuencia de muestreo del dispositivo\"\n"
+"\"Automatically check for updates\" = \"Buscar actualizaciones autom\xc3\xa1ticamente\"\n"
+"\"Sliders Snap to Mouse Click\" = \"Los potenci\xc3\xb3metros se ajustan al clic del mouse\"\n"
+"\"Use Input FX Limiter\" = \"Usar FX Limitador de nivel de entrada\"\n"
+"\"Change all connected\" = \"Cambiar para todas las conexiones\"\n"
+"\"Version: \" = \"Versi\xc3\xb3n:\"\n"
+"\"FX\" = \"FX\"\n"
+"\"In FX\" = \"FX de entrada\"\n"
+"\"Match # Inputs\" = \"Igual a # de entradas\"\n"
+"\"Send Mono\" = \"Enviar mono\"\n"
+"\"Send Stereo\" = \"Enviar est\xc3\xa9reo\"\n"
+"\"# Send Channels\" = \"# de canales enviados\"\n"
+"\"Size\" = \"Espacio\"\n"
+"\"Damping\" = \"Amortiguamiento\"\n"
+"\"Pre-Delay\" = \"Pre-retardo\"\n"
+"\"Reverb\" = \"Reverberaci\xc3\xb3n\"\n"
+"\"Freeverb\" = \"Freeverb\"\n"
+"\"MVerb\" = \"MVerb\"\n"
+"\"Zita\" = \"Zita\"\n"
+"\"Start/Stop recording audio to file\" = \"Iniciar / detener la grabaci\xc3\xb3n del archivo de audio\"\n"
+"\"Load audio file for playback\" = \"Cargar archivo para reproducir\"\n"
+"\"Send File Playback to All\" = \"Enviar reproducci\xc3\xb3n a todos\"\n"
+"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Se agreg\xc3\xb3 la informaci\xc3\xb3n del grupo almacenada en el portapapeles. Presione \\'Conectar al grupo\\' para unirse ...\"\n"
+"\"Quit Confirmation\" = \"Confirmar salida de la aplicaci\xc3\xb3n\"\n"
+"\"You are connected, are you sure you want to quit?\" = \"Est\xc3\xa1s conectado, \xc2\xbfseguro quieres salir?\"\n"
+"\"Quit\" = \"Salir\"\n"
+"\"Share this link with others to connect with SonoBus:\" = \"Compartir el enlace con otros para conectarse a trav\xc3\xa9s de SonoBus:\"\n"
+"\"Or share this link:\" = \"O comparte este enlace:\"\n"
+"\"Last Session: \" = \"\xc3\x9altima sesi\xc3\xb3n:\"\n"
+"\"Total: \" = \"Total:\"\n"
+"\"Not sending your audio anywhere\" = \"No se est\xc3\xa1 enviando el audio\"\n"
+"\"Sending your audio to others\" = \"Enviando tu audio a otros\"\n"
+"\"Muted everyone\" = \"Todos silenciados\"\n"
+"\"Unmuted all who were not muted previously\" = \"Se activ\xc3\xb3 el sonido de todos los que no se hab\xc3\xad""an silenciado anteriormente.\"\n"
+"\"Sending your metronome to all users\" = \"Enviando tu metr\xc3\xb3nomo a todos los usuarios\"\n"
+"\"Now only you will hear your metronome\" = \"Ahora solo t\xc3\xba oir\xc3\xa1s tu metr\xc3\xb3nomo\"\n"
+"\"Sending file playback to all users\" = \"Enviando tu reproducci\xc3\xb3n de archivo a todos los usuarios\"\n"
+"\"Now only you will hear the file playback\" = \"Ahora solo usted escuchar\xc3\xa1 la reproducci\xc3\xb3n del archivo\"\n"
+"\"Copied connection info to clipboard for you to share with others\" = \"Informaci\xc3\xb3n de conexi\xc3\xb3n copiada al portapapeles para compartir\"\n"
+"\"Copied group connection info to clipboard for you to share with others\" = \"Se copi\xc3\xb3 la informaci\xc3\xb3n de conexi\xc3\xb3n del grupo al portapapeles para compartir\"\n"
+"\"Finished recording to \" = \"Finaliz\xc3\xb3 la grabaci\xc3\xb3n en\"\n"
+"\"Last recorded file: \" = \"\xc3\x9altimo archivo grabado:\"\n"
+"\"Started recording output\" = \"Se inici\xc3\xb3 la grabaci\xc3\xb3n del audio de salida\"\n"
+"\"Recording audio to: \" = \"Grabando audio en:\"\n"
+"\"Recording multi-track audio to: \" = \"Grabando audio multi-pista en:\"\n"
+"\"Choose an audio file to open...\" = \"Elegir un archivo de audio para abrir ...\"\n"
+"\"Choose the folder for new recordings\" = \"Elija la carpeta para nuevas grabaciones\"\n"
+"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"\xc2\xa1Se importaron los datos de Grupo del link! Presione \\'Conectar al grupo\\' para unirse ...\"\n"
+"\"You need to specify a group name!\" = \"\xc2\xa1Necesitas especificar un nombre de grupo!\"\n"
+"\"You need to specify a user name!\" = \"\xc2\xa1Necesita especificar un nombre de usuario!\"\n"
+"\"Server address is invalid!\" = \"\xc2\xa1La direcci\xc3\xb3n del servidor no es v\xc3\xa1lida!\"\n"
+"\"All who join the same Group will be able to connect with each other.\" = \"Todos los que se unan al mismo grupo podr\xc3\xa1n conectarse entre s\xc3\xad.\"\n"
+"\"AUDIO\" = \"AUDIO\"\n"
+"\"OPTIONS\" = \"OPCIONES\"\n"
+"\"HELP\" = \"AYUDA\"\n"
+"\"RECORDING\" = \"GRABACI\xc3\x93N\"\n"
 "\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Se recomienda encarecidamente utilizar un dispositivo de audio ASIO. Si su "
-"interfaz de audio no lo incluye, instale ASIO4ALL (asio4all.org) y config\xc3\xbarelo primero.\"\r\n"
-"\"Disconnect\" = \"Desconectar\"\r\n"
-"\"[P] \" = \"[PAGS]\"\r\n"
-"\"Waiting for other users to join group \\\"\" = \"Esperando a que otros usuarios se unan al grupo \\\"\"\r\n"
-"\"Press Connect button to start.\" = \"Presione el bot\xc3\xb3n Conectar para comenzar.\" \r\n"
-"\"Please use headphones if you are using a microphone!\" = \"\xc2\xa1Utilice auriculares si est\xc3\xa1 utilizando un micr\xc3\xb3""fono!\"\r\n"
-"\"Connected to server\" = \"Conectado al servidor\"\r\n"
-"\"Already connected with this user name\" = \"Ya conectado con este nombre de usuario\"\r\n"
-"\"Connect failed: \" = \"Conexi\xc3\xb3n fallida:\"\r\n"
-"\"Disconnected from server\" = \"Desconectado del servidor\"\r\n"
-"\"Disconnect failed: \" = \"Desconexi\xc3\xb3n fallida:\"\r\n"
-"\"Joined Group: \" = \"Unido al Grupo:\"\r\n"
-"\"Failed to join group: \" = \"No se pudo unir al grupo:\"\r\n"
-"\"Left Group: \" = \"Te saliste del Grupo:\"\r\n"
-"\"Failed to leave group: \" = \"No se pudo salir del grupo:\"\r\n"
-"\"Trim to New\" = \"Recortar a Nuevo\"\r\n"
-"\"Share File\" = \"Compartir archivo\"\r\n"
-"\"Reveal File\" = \"Revelar archivo\"\r\n"
-"\"Mute All Input\" = \"Silenciar todas las entradas\"\r\n"
-"\"Toggle Mute all input\" = \"Alternar silenciado de las entradas\"\r\n"
-"\"Popup\" = \"Ventana emergente\"\r\n"
-"\"Mute All Users\" = \"Silenciar todos los usuarios\"\r\n"
-"\"Toggle Mute all users\" = \"Alternar silenciado de todos los usuarios\"\r\n"
-"\"Play/Pause\" = \"Reproducir/Pausar\"\r\n"
-"\"Toggle file playback\" = \"Alternar reproducci\xc3\xb3n de archivos\"\r\n"
-"\"Loop\" = \"Bucle\"\r\n"
-"\"Toggle file looping\" = \"Alternar bucle del archivo\"\r\n"
-"\"Trim file from selection to new file\" = \"Recortar la selecci\xc3\xb3n a un archivo nuevo\"\r\n"
-"\"Close File\" = \"Cerrar el archivo\"\r\n"
-"\"Close file\" = \"Cerrar el archivo\"\r\n"
-"\"Open File\" = \"Abrir archivo\"\r\n"
-"\"Open Audio file\" = \"Abrir archivo de audio\"\r\n"
-"\"Share file\" = \"Compartir archivo\"\r\n"
-"\"Reveal file\" = \"Revelar archivo\"\r\n"
-"\"Show Options\" = \"Mostrar opciones\"\r\n"
-"\"Record\" = \"Grabar\"\r\n"
-"\"Toggle Record\" = \"Alternar activado de la grabaci\xc3\xb3n\"\r\n"
-"\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\r\n"
-"\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\r\n"
-"\"File\" = \"Archivo\"\r\n"
-"\"Transport\" = \"Transporte\"\r\n"
-"\"Help\" = \"Ayuda\"\r\n"
-"\"PUBLIC\" = \"P\xc3\x9a""BLICO\"\r\n"
-"\"password protected,\" = \"contrase\xc3\xb1""a protegida,\"\r\n"
-"\"on\" = \"en\"\r\n"
-"\"to\" = \"a\"\r\n"
-"\" active users\" = \" usuarios activos\"\r\n"
-"\" active user\" = \" usuario activo\"\r\n"
-"\"Save current state\" = \"Guardar el estado actual\"\r\n"
-"\"Error whilst saving\" = \"Error al guardar\"\r\n"
-"\"Couldn\\'t write to the specified file!\" = \"\xc2\xa1No se pudo escribir el archivo especificado!\"\r\n"
-"\"Load a saved state\" = \"Cargar un estado guardado\"\r\n"
-"\"Error whilst loading\" = \"Error al cargar\"\r\n"
-"\"Couldn\\'t read from the specified file!\" = \"\xc2\xa1No se pudo leer el archivo especificado!\"\r\n"
-"\"Audio/MIDI Settings\" = \"Configuraci\xc3\xb3n de audio / MIDI\"\r\n"
-"\"Audio Settings\" = \"Configuraciones de audio\"\r\n"
-"\"Audio/MIDI Settings...\" = \"Configuraci\xc3\xb3n de audio / MIDI ...\"\r\n"
-"\"Save current state...\" = \"Guardar estado actual ...\"\r\n"
-"\"Load a saved state...\" = \"Cargar un estado guardado ...\"\r\n"
-"\"Reset to default state\" = \"Restablecer al estado por defecto\"\r\n"
-"\"Threshold\" = \"L\xc3\xadmite\"\r\n"
-"\"Makeup Gain\" = \"Ganancia complementaria \"\r\n"
-"\"Compressor\" = \"Compresor\"\r\n"
-"\"Autoset Makeup\" = \"Configuraci\xc3\xb3n autom\xc3\xa1tica de la ganancia complementaria\"\r\n"
-"\"Gain\" = \"Ganancia\"\r\n"
-"\"High Shelf\" = \"Banda alta\"\r\n"
-"\"Low Shelf\" = \"banda baja\"\r\n"
-"\"Freq 1\" = \"Frecuencia 1\"\r\n"
-"\"Q\" = \"Q\"\r\n"
-"\"Freq 2\" = \"Frecuencia 2\"\r\n"
-"\"Parametric EQ\" = \"Ecualizador param\xc3\xa9trico\"\r\n"
-"\"Level: \" = \"Nivel:\"\r\n"
-"\"Remote address:\" = \"Direcci\xc3\xb3n remota:\"\r\n"
-"\"Disable Sending\" = \"Deshabilitar el env\xc3\xado\"\r\n"
-"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Alterna la recepci\xc3\xb3n en silencio, lo que evita que este usuario escuche el audio\"\r\n"
-"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Escucha solo a este usuario y a otros usuarios seleccionados en solo. Alt-clic para escuchar  exclusivamente a este usuario.\"\r\n"
-"\"Pan\" = \"Paneo\"\r\n"
-"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Restablece el b\xc3\xba""fer de fluctuaci\xc3\xb3n al m\xc3\xadnimo. Mantenga presionada la tecla Alt para restablecer para todos (en autom\xc3\xa1tico).\"\r\n"
-"\"Jitter Buffer\" = \"B\xc3\xba""fer de fluctuaci\xc3\xb3n\"\r\n"
-"\"Change for all\" = \"Cambiar para todos\"\r\n"
-"\"Send Quality\" = \"Calidad de env\xc3\xado\"\r\n"
-"\"No Preference\" = \"Sin preferencias\"\r\n"
-"\"Preferred Recv Quality\" = \"Calidad preferida de recepci\xc3\xb3n\"\r\n"
-"\"Latency (ms)\" = \"Latencia (ms)\"\r\n"
-"\"Ping\" = \"Silbido\"\r\n"
-"\"PRESS\" = \"PRENSA\"\r\n"
-"\"Send Quality:\" = \"Calidad de env\xc3\xado:\"\r\n"
-"\"Recv Jitter Buffer:\" = \"Recibir el b\xc3\xba""fer de fluctuaci\xc3\xb3n:\"\r\n"
-"\"Reset Dropped\" = \"Restablecer data perdida\"\r\n"
-"\"Remove\" = \"Eliminar\"\r\n"
-"\"Removes user from your own connections, does not affect the whole group\" = \"Elimina al usuario de tus conexiones, no afecta a todo el grupo\"\r\n"
-"\"Other end muted us\" = \"El otro extremo te silenci\xc3\xb3\"\r\n"
-"\"SEND DISABLED\" = \"ENVIO DESACTIVADO\"\r\n"
-"\"Other side is muted\" = \"El otro lado est\xc3\xa1 silenciado\"\r\n"
-"\"You muted them\" = \"Los silenciaste\"\r\n"
+"interfaz de audio no lo incluye, instale ASIO4ALL (asio4all.org) y config\xc3\xbarelo primero.\"\n"
+"\"Disconnect\" = \"Desconectar\"\n"
+"\"[P] \" = \"[PAGS]\"\n"
+"\"Waiting for other users to join group\" = \"Esperando a que otros usuarios se unan al grupo\"\n"
+"\"Press Connect button to start.\" = \"Presione el bot\xc3\xb3n Conectar para comenzar.\"\n"
+"\"Please use headphones if you are using a microphone!\" = \"\xc2\xa1Utilice auriculares si est\xc3\xa1 utilizando un micr\xc3\xb3""fono!\"\n"
+"\"Connected to server\" = \"Conectado al servidor\"\n"
+"\"Already connected with this user name\" = \"Ya conectado con este nombre de usuario\"\n"
+"\"Connect failed: \" = \"Conexi\xc3\xb3n fallida:\"\n"
+"\"Disconnected from server\" = \"Desconectado del servidor\"\n"
+"\"Disconnect failed: \" = \"Desconexi\xc3\xb3n fallida:\"\n"
+"\"Joined Group: \" = \"Unido al Grupo:\"\n"
+"\"Failed to join group: \" = \"No se pudo unir al grupo:\"\n"
+"\"Left Group: \" = \"Te saliste del Grupo:\"\n"
+"\"Failed to leave group: \" = \"No se pudo salir del grupo:\"\n"
+"\"Trim to New\" = \"Recortar a Nuevo\"\n"
+"\"Share File\" = \"Compartir archivo\"\n"
+"\"Reveal File\" = \"Revelar archivo\"\n"
+"\"Mute All Input\" = \"Silenciar todas las entradas\"\n"
+"\"Toggle Mute all input\" = \"Alternar silenciado de las entradas\"\n"
+"\"Popup\" = \"Ventana emergente\"\n"
+"\"Mute All Users\" = \"Silenciar todos los usuarios\"\n"
+"\"Toggle Mute all users\" = \"Alternar silenciado de todos los usuarios\"\n"
+"\"Play/Pause\" = \"Reproducir/Pausar\"\n"
+"\"Toggle file playback\" = \"Alternar reproducci\xc3\xb3n de archivos\"\n"
+"\"Loop\" = \"Bucle\"\n"
+"\"Toggle file looping\" = \"Alternar bucle del archivo\"\n"
+"\"Trim file from selection to new file\" = \"Recortar la selecci\xc3\xb3n a un archivo nuevo\"\n"
+"\"Close File\" = \"Cerrar el archivo\"\n"
+"\"Close file\" = \"Cerrar el archivo\"\n"
+"\"Open File\" = \"Abrir archivo\"\n"
+"\"Open Audio file\" = \"Abrir archivo de audio\"\n"
+"\"Share file\" = \"Compartir archivo\"\n"
+"\"Reveal file\" = \"Revelar archivo\"\n"
+"\"Show Options\" = \"Mostrar opciones\"\n"
+"\"Record\" = \"Grabar\"\n"
+"\"Toggle Record\" = \"Alternar activado de la grabaci\xc3\xb3n\"\n"
+"\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\n"
+"\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\n"
+"\"File\" = \"Archivo\"\n"
+"\"Transport\" = \"Transporte\"\n"
+"\"Help\" = \"Ayuda\"\n"
+"\"PUBLIC\" = \"P\xc3\x9a""BLICO\"\n"
+"\"password protected,\" = \"contrase\xc3\xb1""a protegida,\"\n"
+"\"on\" = \"en\"\n"
+"\"to\" = \"a\"\n"
+"\" active users\" = \" usuarios activos\"\n"
+"\" active user\" = \" usuario activo\"\n"
+"\"Save current state\" = \"Guardar el estado actual\"\n"
+"\"Error whilst saving\" = \"Error al guardar\"\n"
+"\"Couldn\\'t write to the specified file!\" = \"\xc2\xa1No se pudo escribir el archivo especificado!\"\n"
+"\"Load a saved state\" = \"Cargar un estado guardado\"\n"
+"\"Error whilst loading\" = \"Error al cargar\"\n"
+"\"Couldn\\'t read from the specified file!\" = \"\xc2\xa1No se pudo leer el archivo especificado!\"\n"
+"\"Audio/MIDI Settings\" = \"Configuraci\xc3\xb3n de audio / MIDI\"\n"
+"\"Audio Settings\" = \"Configuraciones de audio\"\n"
+"\"Audio/MIDI Settings...\" = \"Configuraci\xc3\xb3n de audio / MIDI ...\"\n"
+"\"Save current state...\" = \"Guardar estado actual ...\"\n"
+"\"Load a saved state...\" = \"Cargar un estado guardado ...\"\n"
+"\"Reset to default state\" = \"Restablecer al estado por defecto\"\n"
+"\"Threshold\" = \"L\xc3\xadmite\"\n"
+"\"Makeup Gain\" = \"Ganancia complementaria \"\n"
+"\"Compressor\" = \"Compresor\"\n"
+"\"Autoset Makeup\" = \"Configuraci\xc3\xb3n autom\xc3\xa1tica de la ganancia complementaria\"\n"
+"\"Gain\" = \"Ganancia\"\n"
+"\"High Shelf\" = \"Banda alta\"\n"
+"\"Low Shelf\" = \"banda baja\"\n"
+"\"Freq 1\" = \"Frecuencia 1\"\n"
+"\"Q\" = \"Q\"\n"
+"\"Freq 2\" = \"Frecuencia 2\"\n"
+"\"Parametric EQ\" = \"Ecualizador param\xc3\xa9trico\"\n"
+"\"Level: \" = \"Nivel:\"\n"
+"\"Remote address:\" = \"Direcci\xc3\xb3n remota:\"\n"
+"\"Disable Sending\" = \"Deshabilitar el env\xc3\xado\"\n"
+"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Alterna la recepci\xc3\xb3n en silencio, lo que evita que este usuario escuche el audio\"\n"
+"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Escucha solo a este usuario y a otros usuarios seleccionados en solo. Alt-clic para escuchar  exclusivamente a este usuario.\"\n"
+"\"Pan\" = \"Paneo\"\n"
+"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Restablece el b\xc3\xba""fer de fluctuaci\xc3\xb3n al m\xc3\xadnimo. Mantenga presionada la tecla Alt para restablecer para todos (en autom\xc3\xa1tico).\"\n"
+"\"Jitter Buffer\" = \"B\xc3\xba""fer de fluctuaci\xc3\xb3n\"\n"
+"\"Change for all\" = \"Cambiar para todos\"\n"
+"\"Send Quality\" = \"Calidad de env\xc3\xado\"\n"
+"\"No Preference\" = \"Sin preferencias\"\n"
+"\"Preferred Recv Quality\" = \"Calidad preferida de recepci\xc3\xb3n\"\n"
+"\"Latency (ms)\" = \"Latencia (ms)\"\n"
+"\"Ping\" = \"Silbido\"\n"
+"\"PRESS\" = \"PRENSA\"\n"
+"\"Send Quality:\" = \"Calidad de env\xc3\xado:\"\n"
+"\"Recv Jitter Buffer:\" = \"Recibir el b\xc3\xba""fer de fluctuaci\xc3\xb3n:\"\n"
+"\"Reset Dropped\" = \"Restablecer data perdida\"\n"
+"\"Remove\" = \"Eliminar\"\n"
+"\"Removes user from your own connections, does not affect the whole group\" = \"Elimina al usuario de tus conexiones, no afecta a todo el grupo\"\n"
+"\"Other end muted us\" = \"El otro extremo te silenci\xc3\xb3\"\n"
+"\"SEND DISABLED\" = \"ENVIO DESACTIVADO\"\n"
+"\"Other side is muted\" = \"El otro lado est\xc3\xa1 silenciado\"\n"
+"\"You muted them\" = \"Los silenciaste\"\n"
 "\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"No fue posible conectar "
-"con el usuario, uno o ambos necesitan configurar su firewall o enrutador de red para permitir que SonoBus funcione entre ambos. Consulte la documentaci\xc3\xb3n de ayuda para habilitar el reenv\xc3\xado de puertos en su enrutador.\"\r\n"
-"\"Connecting...\" = \"Conectando ...\"\r\n"
-"\"Measured actual round-trip latency:\" = \"Medici\xc3\xb3n de latencia de ida y vuelta real:\"\r\n"
-"\"Est. Outgoing:\" = \"Est. Saliente:\"\r\n"
-"\"Est. Incoming:\" = \"Est. Entrante:\"\r\n"
-"\"Jitter:\" = \"Fluctuaci\xc3\xb3n:\"\r\n"
-"\"Measuring actual round-trip latency\" = \"Midiendo la latencia real de ida y vuelta\"\r\n"
-"\"Mute All\" = \"Silenciar todo\"\r\n"
-"\"Unmute All\" = \"Desactivar silencio\"\r\n"
-"\"none\" = \"ninguna\"\r\n"
-"\"Show advanced settings...\" = \"Mostrar configuraci\xc3\xb3n avanzada...\"\r\n"
-"\"Error when trying to open audio device!\" = \"\xc2\xa1""Error al intentar abrir el dispositivo de audio!\"\r\n"
-"\"(no audio output channels found)\" = \"(no se encontraron canales de salida de audio)\"\r\n"
-"\"Active Output Channels:\" = \"Canales de salida activos:\"\r\n"
-"\"(no audio input channels found)\" = \"(no se encontraron canales de entrada de audio)\"\r\n"
-"\"Active Input Channels:\" = \"Canales de entrada activos:\"\r\n"
-"\"Control Panel\" = \"Panel de control\"\r\n"
-"\"Opens the device\\'s own control panel\" = \"Abre el propio panel de control del dispositivo\"\r\n"
-"\"Reset Device\" = \"Reiniciar el dispositivo\"\r\n"
-"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"Restablece la interfaz de audio, a veces necesaria despu\xc3\xa9s de cambiar las propiedades de un dispositivo en su panel de con"
-"trol personalizado\"\r\n"
-"\"Output:\" = \"Salida:\"\r\n"
-"\"Device:\" = \"Dispositivo:\"\r\n"
-"\"Test\" = \"Prueba\"\r\n"
-"\"Plays a test tone\" = \"Reproduce un tono de prueba\"\r\n"
-"\"Input:\" = \"Entrada:\"\r\n"
-"\"Sample rate:\" = \"Frecuencia de muestreo:\"\r\n"
-"\"Audio Buffer Size:\" = \"Tama\xc3\xb1o del b\xc3\xba""fer de audio:\"\r\n"
-"\"Audio device type:\" = \"Tipo de dispositivo de audio:\"\r\n"
-"\"No MIDI inputs available\" = \"No hay entradas MIDI disponibles\"\r\n"
-"\"Active MIDI inputs:\" = \"Entradas MIDI activas:\"\r\n"
-"\"Bluetooth MIDI\" = \"MIDI Bluetooth\"\r\n"
-"\"Scan for bluetooth MIDI devices\" = \"Buscar dispositivos MIDI bluetooth\"\r\n"
-"\"MIDI Output:\" = \"Salida MIDI:\"\r\n";
+"con el usuario, uno o ambos necesitan configurar su firewall o enrutador de red para permitir que SonoBus funcione entre ambos. Consulte la documentaci\xc3\xb3n de ayuda para habilitar el reenv\xc3\xado de puertos en su enrutador.\"\n"
+"\"Connecting...\" = \"Conectando ...\"\n"
+"\"Measured actual round-trip latency:\" = \"Medici\xc3\xb3n de latencia de ida y vuelta real:\"\n"
+"\"Est. Outgoing:\" = \"Est. Saliente:\"\n"
+"\"Est. Incoming:\" = \"Est. Entrante:\"\n"
+"\"Jitter:\" = \"Fluctuaci\xc3\xb3n:\"\n"
+"\"Measuring actual round-trip latency\" = \"Midiendo la latencia real de ida y vuelta\"\n"
+"\"Mute All\" = \"Silenciar todo\"\n"
+"\"Unmute All\" = \"Desactivar silencio\"\n"
+"\"none\" = \"ninguna\"\n"
+"\"Show advanced settings...\" = \"Mostrar configuraci\xc3\xb3n avanzada...\"\n"
+"\"Error when trying to open audio device!\" = \"\xc2\xa1""Error al intentar abrir el dispositivo de audio!\"\n"
+"\"(no audio output channels found)\" = \"(no se encontraron canales de salida de audio)\"\n"
+"\"Active Output Channels:\" = \"Canales de salida activos:\"\n"
+"\"(no audio input channels found)\" = \"(no se encontraron canales de entrada de audio)\"\n"
+"\"Active Input Channels:\" = \"Canales de entrada activos:\"\n"
+"\"Control Panel\" = \"Panel de control\"\n"
+"\"Opens the device\\'s own control panel\" = \"Abre el propio panel de control del dispositivo\"\n"
+"\"Reset Device\" = \"Reiniciar el dispositivo\"\n"
+"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"Res\"\n"
+"\"Output:\" = \"Salida:\"\n"
+"\"Device:\" = \"Dispositivo:\"\n"
+"\"Test\" = \"Prueba\"\n"
+"\"Plays a test tone\" = \"Reproduce un tono de prueba\"\n"
+"\"Input:\" = \"Entrada:\"\n"
+"\"Sample rate:\" = \"Frecuencia de muestreo:\"\n"
+"\"Audio Buffer Size:\" = \"Tama\xc3\xb1o del b\xc3\xba""fer de audio:\"\n"
+"\"Audio device type:\" = \"Tipo de dispositivo de audio:\"\n"
+"\"No MIDI inputs available\" = \"No hay entradas MIDI disponibles\"\n"
+"\"Active MIDI inputs:\" = \"Entradas MIDI activas:\"\n"
+"\"Bluetooth MIDI\" = \"MIDI Bluetooth\"\n"
+"\"Scan for bluetooth MIDI devices\" = \"Buscar dispositivos MIDI bluetooth\"\n"
+"\"MIDI Output:\" = \"Salida MIDI:\"\n";
 
 const char* localized_es_txt = (const char*) temp_binary_data_0;
 
@@ -405,8 +403,79 @@ static const unsigned char temp_binary_data_2[] =
 
 const char* beat_click_wav = (const char*) temp_binary_data_2;
 
-//================== copy_icon.svg ==================
+//================== chevron_forward.svg ==================
 static const unsigned char temp_binary_data_3[] =
+"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+"<svg\n"
+"   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+"   xmlns:cc=\"http://creativecommons.org/ns#\"\n"
+"   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+"   xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"\n"
+"   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n"
+"   width=\"250\"\n"
+"   height=\"512\"\n"
+"   viewBox=\"0 0 250 512\"\n"
+"   version=\"1.1\"\n"
+"   id=\"svg22877\"\n"
+"   sodipodi:docname=\"chevron_forward.svg\"\n"
+"   inkscape:version=\"1.0 (4035a4f, 2020-05-01)\">\n"
+"  <metadata\n"
+"     id=\"metadata22883\">\n"
+"    <rdf:RDF>\n"
+"      <cc:Work\n"
+"         rdf:about=\"\">\n"
+"        <dc:format>image/svg+xml</dc:format>\n"
+"        <dc:type\n"
+"           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" />\n"
+"        <dc:title>ionicons-v5-c</dc:title>\n"
+"      </cc:Work>\n"
+"    </rdf:RDF>\n"
+"  </metadata>\n"
+"  <defs\n"
+"     id=\"defs22881\" />\n"
+"  <sodipodi:namedview\n"
+"     inkscape:document-rotation=\"0\"\n"
+"     pagecolor=\"#ffffff\"\n"
+"     bordercolor=\"#666666\"\n"
+"     borderopacity=\"1\"\n"
+"     objecttolerance=\"10\"\n"
+"     gridtolerance=\"10\"\n"
+"     guidetolerance=\"10\"\n"
+"     inkscape:pageopacity=\"0\"\n"
+"     inkscape:pageshadow=\"2\"\n"
+"     inkscape:window-width=\"1144\"\n"
+"     inkscape:window-height=\"901\"\n"
+"     id=\"namedview22879\"\n"
+"     showgrid=\"false\"\n"
+"     inkscape:zoom=\"0.33904014\"\n"
+"     inkscape:cx=\"117.55217\"\n"
+"     inkscape:cy=\"-59.924915\"\n"
+"     inkscape:window-x=\"2611\"\n"
+"     inkscape:window-y=\"245\"\n"
+"     inkscape:window-maximized=\"0\"\n"
+"     inkscape:current-layer=\"svg22877\" />\n"
+"  <title\n"
+"     id=\"title22871\">ionicons-v5-c</title>\n"
+"  <rect\n"
+"     style=\"fill:none;stroke:none;stroke-width:16.8402;stroke-linecap:round;stroke-opacity:1\"\n"
+"     id=\"rect24508\"\n"
+"     width=\"300\"\n"
+"     height=\"512\"\n"
+"     x=\"0\"\n"
+"     y=\"0\" />\n"
+"  <polyline\n"
+"     transform=\"matrix(0.78493094,0,0,0.78493094,-75.941931,55.057679)\"\n"
+"     points=\"184 112 328 256 184 400\"\n"
+"     style=\"fill:none;stroke:#cccccc;stroke-width:48px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1\"\n"
+"     id=\"polyline1019\" />\n"
+"</svg>\n";
+
+const char* chevron_forward_svg = (const char*) temp_binary_data_3;
+
+//================== copy_icon.svg ==================
+static const unsigned char temp_binary_data_4[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -481,10 +550,10 @@ static const unsigned char temp_binary_data_3[] =
 "     d=\"M383.5,128l.5-24a56.16,56.16,0,0,0-56-56H112a64.19,64.19,0,0,0-64,64V328a56.16,56.16,0,0,0,56,56h24\" />\n"
 "</svg>\n";
 
-const char* copy_icon_svg = (const char*) temp_binary_data_3;
+const char* copy_icon_svg = (const char*) temp_binary_data_4;
 
 //================== DejaVuSans.ttf ==================
-static const unsigned char temp_binary_data_4[] =
+static const unsigned char temp_binary_data_5[] =
 { 0,1,0,0,0,20,1,0,0,4,0,64,70,70,84,77,115,193,244,240,0,0,1,76,0,0,0,28,71,68,69,70,148,207,142,230,0,0,1,104,0,0,2,148,71,80,79,83,86,128,196,53,0,0,3,252,0,0,158,138,71,83,85,66,193,208,64,89,0,0,162,136,0,0,21,222,77,65,84,72,167,50,56,125,0,0,184,
 104,0,0,6,62,79,83,47,50,89,45,118,45,0,0,190,168,0,0,0,86,99,109,97,112,192,73,38,0,0,0,191,0,0,0,23,26,99,118,116,32,0,105,29,57,0,0,214,28,0,0,1,254,102,112,103,109,113,52,118,106,0,0,216,28,0,0,0,171,103,97,115,112,0,7,0,7,0,0,216,200,0,0,0,12,103,
 108,121,102,97,12,247,6,0,0,216,212,0,8,123,228,104,101,97,100,12,230,1,214,0,9,84,184,0,0,0,54,104,104,101,97,13,159,31,203,0,9,84,240,0,0,0,36,104,109,116,120,37,161,223,173,0,9,85,20,0,0,97,150,107,101,114,110,12,153,8,59,0,9,182,172,0,0,63,252,108,
@@ -9487,10 +9556,10 @@ static const unsigned char temp_binary_data_4[] =
 43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,
 43,43,43,29,0,0 };
 
-const char* DejaVuSans_ttf = (const char*) temp_binary_data_4;
+const char* DejaVuSans_ttf = (const char*) temp_binary_data_5;
 
 //================== dice_icon_128.png ==================
-static const unsigned char temp_binary_data_5[] =
+static const unsigned char temp_binary_data_6[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,128,0,0,0,128,8,6,0,0,0,195,62,97,203,0,0,0,6,98,75,71,68,0,59,0,0,0,85,52,179,151,147,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,7,12,20,59,33,210,3,100,86,
 0,0,14,94,73,68,65,84,120,218,237,157,121,144,20,213,29,199,63,179,23,179,130,44,114,136,23,106,98,44,145,132,160,136,138,43,38,26,53,152,50,40,200,17,47,226,129,23,81,2,138,150,85,106,76,162,198,28,94,139,70,87,84,76,208,120,1,70,100,181,4,35,30,81,
 81,99,66,129,90,10,165,4,49,32,107,68,34,176,202,236,53,147,63,126,223,174,157,218,218,21,119,167,167,167,187,231,125,171,182,106,119,122,182,251,189,223,251,245,251,221,191,7,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,113,70,
@@ -9546,10 +9615,10 @@ static const unsigned char temp_binary_data_5[] =
 138,214,86,255,134,232,91,96,165,170,170,138,225,195,135,83,90,90,138,67,30,157,31,173,173,44,95,190,156,45,91,182,56,98,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,236,16,255,7,76,189,120,76,223,155,3,94,0,0,0,0,73,69,78,68,
 174,66,96,130,0,0 };
 
-const char* dice_icon_128_png = (const char*) temp_binary_data_5;
+const char* dice_icon_128_png = (const char*) temp_binary_data_6;
 
 //================== dots.svg ==================
-static const unsigned char temp_binary_data_6[] =
+static const unsigned char temp_binary_data_7[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -9650,20 +9719,20 @@ static const unsigned char temp_binary_data_6[] =
 "     cy=\"378.0148\"\n"
 "     r=\"20\" /></svg>\n";
 
-const char* dots_svg = (const char*) temp_binary_data_6;
+const char* dots_svg = (const char*) temp_binary_data_7;
 
 //================== dots_icon.png ==================
-static const unsigned char temp_binary_data_7[] =
+static const unsigned char temp_binary_data_8[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,55,0,0,0,55,8,6,0,0,0,168,219,210,70,0,0,0,6,98,75,71,68,0,0,0,0,0,0,249,67,187,127,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,6,27,19,11,49,229,19,18,210,
 0,0,0,247,73,68,65,84,104,222,237,151,59,14,65,65,24,70,15,81,18,165,210,163,102,31,18,61,91,176,4,86,32,118,192,14,36,122,196,30,238,30,60,10,81,162,162,210,140,78,184,133,43,70,206,223,76,49,95,50,57,153,226,255,78,46,73,18,254,117,242,252,241,8,39,
 156,112,194,9,247,43,112,13,96,10,236,129,107,56,39,64,45,235,135,115,25,47,241,54,48,7,138,79,238,46,64,23,88,197,248,115,245,23,96,0,37,96,6,84,99,132,27,190,0,123,76,25,24,196,8,215,78,153,235,196,8,87,249,112,238,167,224,142,41,115,135,24,225,150,
 41,115,139,24,225,70,192,249,77,230,4,140,99,132,219,0,189,176,207,158,205,57,236,185,109,172,13,101,5,52,67,67,217,1,183,112,78,128,22,176,206,242,241,194,23,234,215,14,232,91,156,133,211,10,180,2,173,64,43,208,10,180,2,173,64,43,208,10,180,2,139,179,
 112,90,129,86,160,21,104,5,90,129,86,160,21,104,5,90,129,86,96,113,22,78,56,225,132,19,238,203,115,7,251,83,94,163,113,150,91,80,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* dots_icon_png = (const char*) temp_binary_data_7;
+const char* dots_icon_png = (const char*) temp_binary_data_8;
 
 //================== folder_icon.svg ==================
-static const unsigned char temp_binary_data_8[] =
+static const unsigned char temp_binary_data_9[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -9789,10 +9858,10 @@ static const unsigned char temp_binary_data_8[] =
 "     y=\"0\" />\n"
 "</svg>\n";
 
-const char* folder_icon_svg = (const char*) temp_binary_data_8;
+const char* folder_icon_svg = (const char*) temp_binary_data_9;
 
 //================== hear-others.svg ==================
-static const unsigned char temp_binary_data_9[] =
+static const unsigned char temp_binary_data_10[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -9899,10 +9968,10 @@ static const unsigned char temp_binary_data_9[] =
 "         id=\"path901\"\n"
 "         inkscape:connector-curvature=\"0\" /></g></g></svg>\n";
 
-const char* hearothers_svg = (const char*) temp_binary_data_9;
+const char* hearothers_svg = (const char*) temp_binary_data_10;
 
 //================== incoming_allowed.svg ==================
-static const unsigned char temp_binary_data_10[] =
+static const unsigned char temp_binary_data_11[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10009,10 +10078,10 @@ static const unsigned char temp_binary_data_10[] =
 "1 2.4,2.8 2.4,5.7 0,2.9 -1.6,4.9 -2.4,5.7 -0.8,0.8 -80.00003,88 -80.00003,88 -1.5,1.5 -3.6,2.3 -5.7,2.3 -2.1,0 -4.1,-0.8 -5.7,-2.3 z\"\n"
 "     style=\"fill:#e6e6e6\" /></svg>\n";
 
-const char* incoming_allowed_svg = (const char*) temp_binary_data_10;
+const char* incoming_allowed_svg = (const char*) temp_binary_data_11;
 
 //================== incoming_allowed_active.svg ==================
-static const unsigned char temp_binary_data_11[] =
+static const unsigned char temp_binary_data_12[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10118,10 +10187,10 @@ static const unsigned char temp_binary_data_11[] =
 "2 6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* incoming_allowed_active_svg = (const char*) temp_binary_data_11;
+const char* incoming_allowed_active_svg = (const char*) temp_binary_data_12;
 
 //================== incoming_disallowed.svg ==================
-static const unsigned char temp_binary_data_12[] =
+static const unsigned char temp_binary_data_13[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10217,10 +10286,10 @@ static const unsigned char temp_binary_data_12[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7305\" /></svg>\n";
 
-const char* incoming_disallowed_svg = (const char*) temp_binary_data_12;
+const char* incoming_disallowed_svg = (const char*) temp_binary_data_13;
 
 //================== lgc_bar.wav ==================
-static const unsigned char temp_binary_data_13[] =
+static const unsigned char temp_binary_data_14[] =
 { 82,73,70,70,30,3,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,250,2,0,0,0,0,0,0,149,33,255,62,19,87,14,105,118,116,67,121,174,119,75,112,225,99,117,83,28,64,12,43,106,21,86,0,213,236,182,219,179,205,51,
 195,133,188,172,185,135,186,198,190,232,197,110,207,152,218,214,230,93,243,154,255,245,10,225,20,21,29,43,35,29,39,198,40,87,40,225,37,203,33,69,28,209,21,184,14,114,7,90,0,191,249,250,243,52,239,164,235,88,233,89,232,152,232,253,233,90,236,139,239,70,
 243,102,247,156,251,187,255,145,3,236,6,181,9,198,11,37,13,178,13,156,13,196,12,112,11,148,9,107,7,8,5,151,2,49,0,249,253,2,252,101,250,47,249,101,248,11,248,31,248,143,248,95,249,105,250,175,251,13,253,122,254,222,255,39,1,79,2,57,3,245,3,103,4,155,
@@ -10232,10 +10301,10 @@ static const unsigned char temp_binary_data_13[] =
 4,0,252,255,4,0,252,255,3,0,253,255,1,0,0,0,255,255,0,0,0,0,255,255,2,0,253,255,2,0,255,255,2,0,253,255,3,0,254,255,2,0,255,255,1,0,254,255,3,0,254,255,1,0,0,0,255,255,2,0,253,255,4,0,252,255,2,0,255,255,0,0,1,0,255,255,0,0,255,255,1,0,0,0,0,0,0,0,255,
 255,1,0,0,0,0,0,1,0,255,255,0,0,1,0,254,255,3,0,254,255,1,0,0,0,254,255,3,0,254,255,0,0,2,0,252,255,5,0,252,255,2,0,255,255,0,0,1,0,254,255,3,0,253,255,2,0,255,255,0,0,0,0,2,0,252,255,5,0,251,255,3,0,0,0,255,255,0,0,1,0,254,255,0,0 };
 
-const char* lgc_bar_wav = (const char*) temp_binary_data_13;
+const char* lgc_bar_wav = (const char*) temp_binary_data_14;
 
 //================== link.svg ==================
-static const unsigned char temp_binary_data_14[] =
+static const unsigned char temp_binary_data_15[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10313,10 +10382,330 @@ static const unsigned char temp_binary_data_14[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* link_svg = (const char*) temp_binary_data_14;
+const char* link_svg = (const char*) temp_binary_data_15;
+
+//================== link_all.svg ==================
+static const unsigned char temp_binary_data_16[] =
+"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+"<svg\n"
+"   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+"   xmlns:cc=\"http://creativecommons.org/ns#\"\n"
+"   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+"   xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"\n"
+"   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n"
+"   version=\"1.1\"\n"
+"   id=\"Layer_1\"\n"
+"   x=\"0px\"\n"
+"   y=\"0px\"\n"
+"   width=\"512\"\n"
+"   height=\"539.74084\"\n"
+"   viewBox=\"0 0 512 539.74084\"\n"
+"   xml:space=\"preserve\"\n"
+"   sodipodi:docname=\"link_all.svg\"\n"
+"   inkscape:version=\"1.0 (4035a4f, 2020-05-01)\"\n"
+"   inkscape:export-filename=\"/Users/jesse/src/sonobus/images/person.png\"\n"
+"   inkscape:export-xdpi=\"9\"\n"
+"   inkscape:export-ydpi=\"9\"><g\n"
+"     transform=\"translate(45.955462,53.280116)\"\n"
+"     style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-opacity:1\"\n"
+"     id=\"g2355\"><path\n"
+"       id=\"path1103\"\n"
+"       style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-width:36px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1\"\n"
+"       d=\"M 162.03964,180.01586 H 98.039638 a 96.000003,96.000003 0 0 1 0,-192.000005 h 64.000002\" /><path\n"
+"       id=\"path1105\"\n"
+"       style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-width:36px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1\"\n"
+"       d=\"m 258.03964,-11.984145 h 64 a 96.000002,96.000002 0 0 1 0,192.000005 h -64\" /><line\n"
+"       id=\"line1107\"\n"
+"       style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-width:36px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1\"\n"
+"       y2=\"84.015854\"\n"
+"       x2=\"304.74963\"\n"
+"       y1=\"84.015854\"\n"
+"       x1=\"117.32963\" /></g><defs\n"
+"     id=\"defs5984\"><marker\n"
+"       inkscape:stockid=\"Arrow2Send\"\n"
+"       orient=\"auto\"\n"
+"       refY=\"0\"\n"
+"       refX=\"0\"\n"
+"       id=\"Arrow2Send\"\n"
+"       style=\"overflow:visible\"\n"
+"       inkscape:isstock=\"true\"><path\n"
+"         id=\"path2445\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1\"\n"
+"         d=\"M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z\"\n"
+"         transform=\"matrix(-0.3,0,0,-0.3,0.69,0)\" /></marker><marker\n"
+"       inkscape:stockid=\"TriangleOutM\"\n"
+"       orient=\"auto\"\n"
+"       refY=\"0\"\n"
+"       refX=\"0\"\n"
+"       id=\"TriangleOutM\"\n"
+"       style=\"overflow:visible\"\n"
+"       inkscape:isstock=\"true\"><path\n"
+"         id=\"path2557\"\n"
+"         d=\"M 5.77,0 -2.88,5 V -5 Z\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:1pt;stroke-opacity:1\"\n"
+"         transform=\"scale(0.4)\" /></marker><marker\n"
+"       inkscape:stockid=\"Arrow1Send\"\n"
+"       orient=\"auto\"\n"
+"       refY=\"0\"\n"
+"       refX=\"0\"\n"
+"       id=\"marker2732\"\n"
+"       style=\"overflow:visible\"\n"
+"       inkscape:isstock=\"true\"><path\n"
+"         id=\"path2730\"\n"
+"         d=\"M 0,0 5,-5 -12.5,0 5,5 Z\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:1pt;stroke-opacity:1\"\n"
+"         transform=\"matrix(-0.2,0,0,-0.2,-1.2,0)\" /></marker><marker\n"
+"       inkscape:stockid=\"ExperimentalArrow\"\n"
+"       orient=\"auto-start-reverse\"\n"
+"       refY=\"3\"\n"
+"       refX=\"5\"\n"
+"       id=\"ExperimentalArrow\"\n"
+"       inkscape:isstock=\"true\"><path\n"
+"         id=\"path2665\"\n"
+"         d=\"M 10,3 0,6 V 0 Z\"\n"
+"         style=\"fill:context-stroke;stroke:#cccccc;stroke-opacity:1\" /></marker><marker\n"
+"       inkscape:stockid=\"Arrow1Send\"\n"
+"       orient=\"auto\"\n"
+"       refY=\"0\"\n"
+"       refX=\"0\"\n"
+"       id=\"Arrow1Send\"\n"
+"       style=\"overflow:visible\"\n"
+"       inkscape:isstock=\"true\"><path\n"
+"         id=\"path2427\"\n"
+"         d=\"M 0,0 5,-5 -12.5,0 5,5 Z\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:1pt;stroke-opacity:1\"\n"
+"         transform=\"matrix(-0.2,0,0,-0.2,-1.2,0)\" /></marker><marker\n"
+"       inkscape:stockid=\"Arrow1Lend\"\n"
+"       orient=\"auto\"\n"
+"       refY=\"0\"\n"
+"       refX=\"0\"\n"
+"       id=\"Arrow1Lend\"\n"
+"       style=\"overflow:visible\"\n"
+"       inkscape:isstock=\"true\"><path\n"
+"         id=\"path2415\"\n"
+"         d=\"M 0,0 5,-5 -12.5,0 5,5 Z\"\n"
+"         style=\"fill-rule:evenodd;stroke:#000000;stroke-width:1pt\"\n"
+"         transform=\"matrix(-0.8,0,0,-0.8,-10,0)\" /></marker></defs><sodipodi:namedview\n"
+"     inkscape:document-rotation=\"0\"\n"
+"     pagecolor=\"#ffffff\"\n"
+"     bordercolor=\"#666666\"\n"
+"     borderopacity=\"1\"\n"
+"     objecttolerance=\"10\"\n"
+"     gridtolerance=\"10\"\n"
+"     guidetolerance=\"10\"\n"
+"     inkscape:pageopacity=\"0\"\n"
+"     inkscape:pageshadow=\"2\"\n"
+"     inkscape:window-width=\"1302\"\n"
+"     inkscape:window-height=\"970\"\n"
+"     id=\"namedview5982\"\n"
+"     showgrid=\"false\"\n"
+"     inkscape:zoom=\"0.58018235\"\n"
+"     inkscape:cx=\"536.23523\"\n"
+"     inkscape:cy=\"358.81997\"\n"
+"     inkscape:window-x=\"1606\"\n"
+"     inkscape:window-y=\"237\"\n"
+"     inkscape:window-maximized=\"0\"\n"
+"     inkscape:current-layer=\"Layer_1\"\n"
+"     fit-margin-top=\"0\"\n"
+"     fit-margin-left=\"0\"\n"
+"     fit-margin-right=\"0\"\n"
+"     fit-margin-bottom=\"0\" /><rect\n"
+"     style=\"fill:#000000;fill-opacity:0;stroke-width:15.3987\"\n"
+"     id=\"rect8965\"\n"
+"     width=\"512\"\n"
+"     height=\"539.57751\"\n"
+"     x=\"0\"\n"
+"     y=\"0\" /><path\n"
+"     d=\"M 258.7347,266.90677 Z\"\n"
+"     id=\"path5975\"\n"
+"     style=\"stroke-width:1.02658\" /><metadata\n"
+"     id=\"metadata5979\"><rdf:RDF><rdf:Description\n"
+"         about=\"https://iconscout.com/legal#licenses\"\n"
+"         dc:title=\"ios,person,outline\"\n"
+"         dc:description=\"ios,person,outline\"\n"
+"         dc:publisher=\"Iconscout\"\n"
+"         dc:date=\"2017-09-24\"\n"
+"         dc:format=\"image/svg+xml\"\n"
+"         dc:language=\"en\"><dc:creator><rdf:Bag><rdf:li>Benjamin J Sperry</rdf:li></rdf:Bag></dc:creator></rdf:Description><cc:Work\n"
+"         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
+"           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title /></cc:Work></rdf:RDF></metadata><path\n"
+"     d=\"M 333.58097,487.79682 276.99326,460.89806 256,519.93191 l -20.99326,-59.03385 -56.58771,26.89876 26.89876,-56.58771 -59.03385,-20.99326 59.03385,-20.99326 -26.89876,-56.58771 56.58771,26.89876 L 256,300.49979 l 20.99326,59.03385 56.58771,-26"
+".89876 -26.89876,56.58771 59.03385,20.99326 -59.03385,20.99326 z\"\n"
+"     inkscape:randomized=\"0\"\n"
+"     inkscape:rounded=\"0\"\n"
+"     inkscape:flatsided=\"false\"\n"
+"     sodipodi:arg2=\"1.1780972\"\n"
+"     sodipodi:arg1=\"0.78539816\"\n"
+"     sodipodi:r2=\"54.858028\"\n"
+"     sodipodi:r1=\"109.71606\"\n"
+"     sodipodi:cy=\"410.21585\"\n"
+"     sodipodi:cx=\"256\"\n"
+"     sodipodi:sides=\"8\"\n"
+"     id=\"path4370\"\n"
+"     style=\"fill:#9d9d9d;fill-opacity:1;stroke:#cccccc;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
+"     sodipodi:type=\"star\" /></svg>\n";
+
+const char* link_all_svg = (const char*) temp_binary_data_16;
+
+//================== link_up.svg ==================
+static const unsigned char temp_binary_data_17[] =
+"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+"<svg\n"
+"   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+"   xmlns:cc=\"http://creativecommons.org/ns#\"\n"
+"   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+"   xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"\n"
+"   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n"
+"   inkscape:export-ydpi=\"9\"\n"
+"   inkscape:export-xdpi=\"9\"\n"
+"   inkscape:export-filename=\"/Users/jesse/src/sonobus/images/person.png\"\n"
+"   inkscape:version=\"1.0 (4035a4f, 2020-05-01)\"\n"
+"   sodipodi:docname=\"link_up.svg\"\n"
+"   xml:space=\"preserve\"\n"
+"   viewBox=\"0 0 512 539.74084\"\n"
+"   height=\"539.74084\"\n"
+"   width=\"512\"\n"
+"   y=\"0px\"\n"
+"   x=\"0px\"\n"
+"   id=\"Layer_1\"\n"
+"   version=\"1.1\"><g\n"
+"     id=\"g2355\"\n"
+"     style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-opacity:1\"\n"
+"     transform=\"translate(45.955462,316.99031)\"><path\n"
+"       d=\"M 162.03964,180.01586 H 98.039638 a 96.000003,96.000003 0 0 1 0,-192.000005 h 64.000002\"\n"
+"       style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-width:36px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1\"\n"
+"       id=\"path1103\" /><path\n"
+"       d=\"m 258.03964,-11.984145 h 64 a 96.000002,96.000002 0 0 1 0,192.000005 h -64\"\n"
+"       style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-width:36px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1\"\n"
+"       id=\"path1105\" /><line\n"
+"       x1=\"117.32963\"\n"
+"       y1=\"84.015854\"\n"
+"       x2=\"304.74963\"\n"
+"       y2=\"84.015854\"\n"
+"       style=\"fill:none;fill-opacity:1;stroke:#cccccc;stroke-width:36px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1\"\n"
+"       id=\"line1107\" /></g><defs\n"
+"     id=\"defs5984\"><marker\n"
+"       inkscape:isstock=\"true\"\n"
+"       style=\"overflow:visible\"\n"
+"       id=\"Arrow2Send\"\n"
+"       refX=\"0\"\n"
+"       refY=\"0\"\n"
+"       orient=\"auto\"\n"
+"       inkscape:stockid=\"Arrow2Send\"><path\n"
+"         transform=\"matrix(-0.3,0,0,-0.3,0.69,0)\"\n"
+"         d=\"M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1\"\n"
+"         id=\"path2445\" /></marker><marker\n"
+"       inkscape:isstock=\"true\"\n"
+"       style=\"overflow:visible\"\n"
+"       id=\"TriangleOutM\"\n"
+"       refX=\"0\"\n"
+"       refY=\"0\"\n"
+"       orient=\"auto\"\n"
+"       inkscape:stockid=\"TriangleOutM\"><path\n"
+"         transform=\"scale(0.4)\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:1pt;stroke-opacity:1\"\n"
+"         d=\"M 5.77,0 -2.88,5 V -5 Z\"\n"
+"         id=\"path2557\" /></marker><marker\n"
+"       inkscape:isstock=\"true\"\n"
+"       style=\"overflow:visible\"\n"
+"       id=\"marker2732\"\n"
+"       refX=\"0\"\n"
+"       refY=\"0\"\n"
+"       orient=\"auto\"\n"
+"       inkscape:stockid=\"Arrow1Send\"><path\n"
+"         transform=\"matrix(-0.2,0,0,-0.2,-1.2,0)\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:1pt;stroke-opacity:1\"\n"
+"         d=\"M 0,0 5,-5 -12.5,0 5,5 Z\"\n"
+"         id=\"path2730\" /></marker><marker\n"
+"       inkscape:isstock=\"true\"\n"
+"       id=\"ExperimentalArrow\"\n"
+"       refX=\"5\"\n"
+"       refY=\"3\"\n"
+"       orient=\"auto-start-reverse\"\n"
+"       inkscape:stockid=\"ExperimentalArrow\"><path\n"
+"         style=\"fill:context-stroke;stroke:#cccccc;stroke-opacity:1\"\n"
+"         d=\"M 10,3 0,6 V 0 Z\"\n"
+"         id=\"path2665\" /></marker><marker\n"
+"       inkscape:isstock=\"true\"\n"
+"       style=\"overflow:visible\"\n"
+"       id=\"Arrow1Send\"\n"
+"       refX=\"0\"\n"
+"       refY=\"0\"\n"
+"       orient=\"auto\"\n"
+"       inkscape:stockid=\"Arrow1Send\"><path\n"
+"         transform=\"matrix(-0.2,0,0,-0.2,-1.2,0)\"\n"
+"         style=\"fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:1pt;stroke-opacity:1\"\n"
+"         d=\"M 0,0 5,-5 -12.5,0 5,5 Z\"\n"
+"         id=\"path2427\" /></marker><marker\n"
+"       inkscape:isstock=\"true\"\n"
+"       style=\"overflow:visible\"\n"
+"       id=\"Arrow1Lend\"\n"
+"       refX=\"0\"\n"
+"       refY=\"0\"\n"
+"       orient=\"auto\"\n"
+"       inkscape:stockid=\"Arrow1Lend\"><path\n"
+"         transform=\"matrix(-0.8,0,0,-0.8,-10,0)\"\n"
+"         style=\"fill-rule:evenodd;stroke:#000000;stroke-width:1pt\"\n"
+"         d=\"M 0,0 5,-5 -12.5,0 5,5 Z\"\n"
+"         id=\"path2415\" /></marker></defs><sodipodi:namedview\n"
+"     fit-margin-bottom=\"0\"\n"
+"     fit-margin-right=\"0\"\n"
+"     fit-margin-left=\"0\"\n"
+"     fit-margin-top=\"0\"\n"
+"     inkscape:current-layer=\"Layer_1\"\n"
+"     inkscape:window-maximized=\"0\"\n"
+"     inkscape:window-y=\"422\"\n"
+"     inkscape:window-x=\"2469\"\n"
+"     inkscape:cy=\"358.81997\"\n"
+"     inkscape:cx=\"418.71766\"\n"
+"     inkscape:zoom=\"0.58018235\"\n"
+"     showgrid=\"false\"\n"
+"     id=\"namedview5982\"\n"
+"     inkscape:window-height=\"958\"\n"
+"     inkscape:window-width=\"1293\"\n"
+"     inkscape:pageshadow=\"2\"\n"
+"     inkscape:pageopacity=\"0\"\n"
+"     guidetolerance=\"10\"\n"
+"     gridtolerance=\"10\"\n"
+"     objecttolerance=\"10\"\n"
+"     borderopacity=\"1\"\n"
+"     bordercolor=\"#666666\"\n"
+"     pagecolor=\"#ffffff\"\n"
+"     inkscape:document-rotation=\"0\" /><rect\n"
+"     y=\"0\"\n"
+"     x=\"0\"\n"
+"     height=\"539.57751\"\n"
+"     width=\"512\"\n"
+"     id=\"rect8965\"\n"
+"     style=\"fill:#000000;fill-opacity:0;stroke-width:15.3987\" /><path\n"
+"     style=\"stroke-width:1.02658\"\n"
+"     id=\"path5975\"\n"
+"     d=\"M 258.7347,266.90677 Z\" /><metadata\n"
+"     id=\"metadata5979\"><rdf:RDF><rdf:Description\n"
+"         dc:language=\"en\"\n"
+"         dc:format=\"image/svg+xml\"\n"
+"         dc:date=\"2017-09-24\"\n"
+"         dc:publisher=\"Iconscout\"\n"
+"         dc:description=\"ios,person,outline\"\n"
+"         dc:title=\"ios,person,outline\"\n"
+"         about=\"https://iconscout.com/legal#licenses\"><dc:creator><rdf:Bag><rdf:li>Benjamin J Sperry</rdf:li></rdf:Bag></dc:creator></rdf:Description><cc:Work\n"
+"         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
+"           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><path\n"
+"     id=\"path969\"\n"
+"     d=\"m 349.76286,108.58211 c -3.1,3.1 -8,3 -11.3,0 l -74.4,-66.400034 V 226.78206 c 0,4.4 -3.6,8 -8,8 -4.4,0 -8,-3.6 -8,-8 V 42.182076 l -74.40001,66.300034 c -3.4,2.9 -8.1,3.2 -11.2,0.1 -3.1,-3.1 -3.3,-8.5 -0.1,-11.400004 0,0 87.00001,-79.20003 "
+"88.00001,-80.00003 1,-0.8 2.8,-2.4 5.7,-2.4 2.9,0 4.9,1.6 5.7,2.4 0.8,0.8 88,80.00003 88,80.00003 1.5,1.5 2.3,3.600004 2.3,5.700004 0,2.1 -0.8,4.1 -2.3,5.7 z\"\n"
+"     style=\"fill:#cccccc;fill-opacity:1;stroke:#cccccc;stroke-width:15;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
+"     sodipodi:nodetypes=\"cccsssccscssscsc\" /></svg>\n";
+
+const char* link_up_svg = (const char*) temp_binary_data_17;
 
 //================== loop_icon.svg ==================
-static const unsigned char temp_binary_data_15[] =
+static const unsigned char temp_binary_data_18[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10455,10 +10844,10 @@ static const unsigned char temp_binary_data_15[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* loop_icon_svg = (const char*) temp_binary_data_15;
+const char* loop_icon_svg = (const char*) temp_binary_data_18;
 
 //================== met.svg ==================
-static const unsigned char temp_binary_data_16[] =
+static const unsigned char temp_binary_data_19[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10552,10 +10941,10 @@ static const unsigned char temp_binary_data_16[] =
 "     d=\"M 272.02882,378.01479 391.67282,150.47536 407.40159,121.313\"\n"
 "     style=\"fill:none;stroke:#cccccc;stroke-width:22;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#TriangleInS)\" /></svg>\n";
 
-const char* met_svg = (const char*) temp_binary_data_16;
+const char* met_svg = (const char*) temp_binary_data_19;
 
 //================== mic.svg ==================
-static const unsigned char temp_binary_data_17[] =
+static const unsigned char temp_binary_data_20[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10630,10 +11019,10 @@ static const unsigned char temp_binary_data_17[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7563\" /></svg>\n";
 
-const char* mic_svg = (const char*) temp_binary_data_17;
+const char* mic_svg = (const char*) temp_binary_data_20;
 
 //================== mic_disabled.svg ==================
-static const unsigned char temp_binary_data_18[] =
+static const unsigned char temp_binary_data_21[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10709,10 +11098,10 @@ static const unsigned char temp_binary_data_18[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7573\" /></svg>\n";
 
-const char* mic_disabled_svg = (const char*) temp_binary_data_18;
+const char* mic_disabled_svg = (const char*) temp_binary_data_21;
 
 //================== mic_pointing.svg ==================
-static const unsigned char temp_binary_data_19[] =
+static const unsigned char temp_binary_data_22[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10841,10 +11230,10 @@ static const unsigned char temp_binary_data_19[] =
 "       d=\"m 154.00949,66.298434 c -4.18442,-4.18442 -4.18442,-10.966085 0,-15.140885 4.18443,-4.18443 10.95647,-4.18443 15.1409,0 L 456.30795,338.31512 c 4.18444,4.18442 4.18444,10.95646 0,15.1409 -4.1748,4.18442 -10.95647,4.18442 -15.14089,0\"\n"
 "       style=\"display:inline;fill:#ff5555;fill-opacity:1;fill-rule:nonzero;stroke-width:8.06606885;stroke:#ff5555;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none\" /></g></svg>\n";
 
-const char* mic_pointing_svg = (const char*) temp_binary_data_19;
+const char* mic_pointing_svg = (const char*) temp_binary_data_22;
 
 //================== move_updown.svg ==================
-static const unsigned char temp_binary_data_20[] =
+static const unsigned char temp_binary_data_23[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10982,10 +11371,10 @@ static const unsigned char temp_binary_data_20[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* move_updown_svg = (const char*) temp_binary_data_20;
+const char* move_updown_svg = (const char*) temp_binary_data_23;
 
 //================== mute-others.svg ==================
-static const unsigned char temp_binary_data_21[] =
+static const unsigned char temp_binary_data_24[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11089,10 +11478,102 @@ static const unsigned char temp_binary_data_21[] =
 "         inkscape:connector-curvature=\"0\"\n"
 "         sodipodi:nodetypes=\"ccsccc\" /></g></g></svg>\n";
 
-const char* muteothers_svg = (const char*) temp_binary_data_21;
+const char* muteothers_svg = (const char*) temp_binary_data_24;
+
+//================== network.svg ==================
+static const unsigned char temp_binary_data_25[] =
+"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+"<svg\n"
+"   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+"   xmlns:cc=\"http://creativecommons.org/ns#\"\n"
+"   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+"   xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"\n"
+"   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n"
+"   version=\"1.1\"\n"
+"   id=\"Layer_1\"\n"
+"   x=\"0px\"\n"
+"   y=\"0px\"\n"
+"   width=\"500\"\n"
+"   height=\"500\"\n"
+"   viewBox=\"0 0 500 500\"\n"
+"   xml:space=\"preserve\"\n"
+"   sodipodi:docname=\"network.svg\"\n"
+"   inkscape:version=\"1.0 (4035a4f, 2020-05-01)\"><rect\n"
+"     style=\"fill:#000000;fill-opacity:0;stroke:none;stroke-width:21.6608;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
+"     id=\"rect8876\"\n"
+"     width=\"500\"\n"
+"     height=\"500\"\n"
+"     x=\"0\"\n"
+"     y=\"0\" /><path\n"
+"     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.624974\"\n"
+"     d=\"m 68.84282,254.7689 c 8.96846,7.99438 17.92969,15.55374 26.90506,22.67 11.84725,-17.99688 24.75738,-34.48876 38.78928,-49.40001 -2.64976,-4.99063 -4.1484,-10.68937 -4.1484,-16.72749 0,-2.98251 0.36255,-5.87626 1.05563,-8.65188 -14.65936,-9.5"
+"0062 -29.74688,-20.09376 -45.45427,-31.8975 -11.61841,23.96188 -18.12175,50.83937 -18.12175,79.23063 h 0.0619 v 0.007 h -0.0619 c 0,1.92624 0.0619,3.84561 0.0937,5.75749 z m 25.82025,-99.84876 c 15.72242,11.86251 30.77245,22.49313 45.3655,32.00062 6."
+"51076,-6.94625 15.7737,-11.28688 26.03407,-11.28688 8.14182,0 15.64119,2.73126 21.65006,7.32314 a 285.76282,285.7869 0 0 1 13.13833,-8.21626 c 18.57961,-10.92499 38.51602,-19.83563 59.91482,-26.61937 a 39.619789,39.623128 0 0 1 -0.23122,-4.30376 c 0,"
+"-5.44812 1.09249,-10.645 3.07794,-15.36874 C 241.8744,110.02262 216.1209,93.701381 186.47724,79.284501 161.74181,88.497011 139.55372,102.92824 121.23266,121.25076 A 183.44331,183.45878 0 0 0 94.65989,154.91951 Z M 211.44384,71.983874 c 23.44302,12.61"
+"5627 44.34745,26.531257 62.65282,41.885646 6.11887,-5.36688 13.89873,-8.89564 22.46122,-9.70751 a 1098.0682,1098.1607 0 0 0 5.45504,-28.708759 C 285.51558,70.537628 268.05159,67.879519 249.9668,67.879519 v 0.03748 0 -0.03748 c -13.20518,0 -26.08592,1"
+".424978 -38.50919,4.104355 z m 107.65715,9.522507 a 1115.9085,1116.0026 0 0 1 -4.7608,24.995619 c 11.93584,4.48126 21.15439,14.52064 24.49837,26.96627 16.15809,-1.18813 32.96543,-1.41751 50.46643,-0.65001 -3.37335,-3.99999 -6.90125,-7.86874 -10.59894"
+",-11.56687 -16.91861,-16.91251 -37.13632,-30.510009 -59.60506,-39.745009 z m 84.05902,70.070019 c -22.36556,-1.67501 -43.57178,-1.72001 -63.67151,-0.20627 -1.64608,8.6 -6.06751,16.21814 -12.28261,21.88751 a 242.26772,242.28813 0 0 1 14.3569,25.34187 "
+"c 6.23708,12.76376 11.37415,26.16938 15.42683,40.21751 1.23303,-0.12558 2.48745,-0.2 3.76478,-0.2 16.00969,0 29.56246,10.54936 34.07203,25.08437 11.80271,0.41377 24.00424,0.635 36.67065,0.70876 0.37488,-4.76125 0.57498,-9.55938 0.57498,-14.40938 h -0"
+".0613 v -0.0141 h 0.0613 c 0,-36.23814 -10.62207,-70.01813 -28.91321,-98.40938 z m 26.04926,130.66124 c -11.53737,-0.0812 -22.69811,-0.27999 -33.53429,-0.64187 -2.89345,13.90002 -13.88359,24.84 -27.82003,27.66001 0.61235,16.66124 0.0613,34.07501 -1.7"
+"6429,52.2575 10.21608,-1.07812 20.57963,-2.56188 31.11993,-4.42938 15.8924,-21.79875 27.06021,-47.245 31.99856,-74.84563 z m -21.7162,90.95315 0.0613,0.18498 -0.21236,0.0368 a 199.53945,199.55627 0 0 1 -15.95128,18.00438 c -36.16135,36.16439 -86.1552"
+"8,58.53939 -141.39004,58.54688 v 0.0362 0 -0.0375 c -55.22723,0 -105.22107,-22.38187 -141.39738,-58.55374 C 72.44187,355.23816 50.069494,305.23942 50.061883,250.00004 H 50 v -0.007 h 0.06188 c 0,-55.2394 22.37999,-105.23753 58.54886,-141.4094 36.1681"
+"8,-36.171886 86.15531,-58.546881 141.38174,-58.546881 v -0.03679 0 0.03748 c 55.24158,0 105.2362,22.374382 141.40496,58.553141 36.16818,36.16438 58.54126,86.1625 58.54126,141.39438 H 450 v 0.0141 h -0.0613 c 0,46.48438 -15.84718,89.24812 -42.42007,12"
+"3.19065 z m -27.98289,4.725 a 434.19345,434.23004 0 0 1 -15.57489,1.79375 541.46192,541.50756 0 0 1 -2.14785,13.96624 182.58463,182.60001 0 0 0 16.91861,-14.93375 z m -38.4716,29.77125 c 1.8234,-9.06501 3.37347,-17.93812 4.65034,-26.62689 -32.61785,1"
+".69814 -63.78961,-0.65687 -93.95725,-7.0275 -5.89019,6.99813 -14.7113,11.45626 -24.57286,11.45626 -0.72998,0 -1.45372,-0.0288 -2.16231,-0.073 -5.69089,14.51999 -11.20528,28.64937 -16.25363,41.99564 a 182.42213,182.43751 0 0 0 41.21769,4.7025 v -0.037"
+" 0 0.037 c 33.16484,0 64.26974,-8.89501 91.06367,-24.42689 z m -149.5168,14.82311 c 5.52884,-14.69748 11.04959,-28.89374 16.65986,-43.22188 -7.06376,-5.17498 -11.93584,-13.16875 -12.96135,-22.33 -32.3599,-12.8225 -63.73098,-30.61311 -94.74712,-53.401"
+"25 -4.97518,8.37814 -9.73672,17.06688 -14.29806,26.05812 8.91666,18.29251 20.82315,34.88751 35.06126,49.12689 19.56097,19.56251 43.52835,34.69562 70.28541,43.76812 z M 77.34705,308.09702 a 455.6679,455.7063 0 0 1 8.83548,-15.41374 604.0004,604.0513 0"
+" 0 1 -15.89927,-12.97001 180.68854,180.70377 0 0 0 7.06379,28.38375 z M 198.77119,197.05015 a 35.482013,35.485003 0 0 1 2.97465,14.26188 c 0,3.41062 -0.48731,6.71748 -1.3805,9.83999 19.59831,9.37499 38.86302,16.81626 58.37944,22.6925 7.09314,-21.2456"
+"2 13.91389,-43.30999 20.26201,-66.39375 a 40.006008,40.009379 0 0 1 -12.37145,-12.43123 c -20.32077,6.3925 -39.20216,14.80061 -56.75522,25.12061 a 260.41933,260.44128 0 0 0 -11.10893,6.90936 z m -7.5513,39.55999 c -6.45142,6.42249 -15.33812,10.38626 "
+"-25.15531,10.38626 a 35.606379,35.609379 0 0 1 -19.44213,-5.75 c -13.2502,14.18062 -25.44409,29.91124 -36.67131,47.07437 29.08263,21.49626 58.37944,38.37876 88.44321,50.67001 5.27761,-10.53437 16.17983,-17.76876 28.76504,-17.76876 1.21105,0 2.39989,0"
+".0669 3.58029,0.2 7.47739,-19.54062 14.96936,-39.68562 22.23254,-60.64374 -20.67518,-6.25252 -41.04789,-14.17314 -61.75233,-24.16876 z m 120.35304,-54.53813 a 40.009132,40.012504 0 0 1 -11.1973,1.5875 c -1.506,0 -2.99651,-0.0745 -4.45833,-0.24375 -6."
+"25952,22.66252 -12.9469,44.33564 -19.9076,65.20501 17.08784,4.31062 34.52256,7.54375 52.71804,9.92125 2.64222,-5.36687 6.59866,-9.95875 11.44818,-13.38375 -3.82331,-13.56812 -8.73228,-26.46437 -14.71108,-38.70375 -4.11849,-8.43 -8.75426,-16.54312 -13"
+".89191,-24.38251 z m 38.33916,126.2169 c -13.85513,-4.41438 -24.04171,-17.06 -24.79402,-32.19313 -18.90406,-2.51688 -37.06207,-5.92751 -54.88046,-10.48938 -7.51441,21.68813 -15.2575,42.51251 -22.97815,62.6875 7.32183,5.89063 12.01658,14.93375 12.0165"
+"8,25.06188 0,1.33563 -0.0891,2.65 -0.24371,3.94188 28.49935,5.66875 58.01068,7.58124 88.93873,5.72063 2.03727,-19.16313 2.67159,-37.39688 1.94103,-54.73002 z\"\n"
+"     fill-rule=\"nonzero\"\n"
+"     id=\"path7305\" /><defs\n"
+"     id=\"defs976\" /><sodipodi:namedview\n"
+"     inkscape:pagecheckerboard=\"true\"\n"
+"     inkscape:document-rotation=\"0\"\n"
+"     pagecolor=\"#656565\"\n"
+"     bordercolor=\"#666666\"\n"
+"     borderopacity=\"1\"\n"
+"     objecttolerance=\"10\"\n"
+"     gridtolerance=\"10\"\n"
+"     guidetolerance=\"10\"\n"
+"     inkscape:pageopacity=\"0\"\n"
+"     inkscape:pageshadow=\"2\"\n"
+"     inkscape:window-width=\"1290\"\n"
+"     inkscape:window-height=\"680\"\n"
+"     id=\"namedview974\"\n"
+"     showgrid=\"false\"\n"
+"     inkscape:zoom=\"0.31221736\"\n"
+"     inkscape:cx=\"680.08029\"\n"
+"     inkscape:cy=\"61.120707\"\n"
+"     inkscape:window-x=\"1826\"\n"
+"     inkscape:window-y=\"127\"\n"
+"     inkscape:window-maximized=\"0\"\n"
+"     inkscape:current-layer=\"Layer_1\"\n"
+"     fit-margin-left=\"100\"\n"
+"     fit-margin-top=\"100\"\n"
+"     fit-margin-right=\"100\"\n"
+"     fit-margin-bottom=\"100\" /><metadata\n"
+"     id=\"metadata971\"><rdf:RDF><rdf:Description\n"
+"         about=\"https://iconscout.com/legal#licenses\"\n"
+"         dc:title=\"ios,arrow,thin,right\"\n"
+"         dc:description=\"ios,arrow,thin,right\"\n"
+"         dc:publisher=\"Iconscout\"\n"
+"         dc:date=\"2017-09-24\"\n"
+"         dc:format=\"image/svg+xml\"\n"
+"         dc:language=\"en\"><dc:creator><rdf:Bag><rdf:li>Benjamin J Sperry</rdf:li></rdf:Bag></dc:creator></rdf:Description><cc:Work\n"
+"         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
+"           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
+
+const char* network_svg = (const char*) temp_binary_data_25;
 
 //================== outgoing_allowed.svg ==================
-static const unsigned char temp_binary_data_22[] =
+static const unsigned char temp_binary_data_26[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11195,10 +11676,10 @@ static const unsigned char temp_binary_data_22[] =
 "6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_allowed_svg = (const char*) temp_binary_data_22;
+const char* outgoing_allowed_svg = (const char*) temp_binary_data_26;
 
 //================== outgoing_allowed_active.svg ==================
-static const unsigned char temp_binary_data_23[] =
+static const unsigned char temp_binary_data_27[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11275,10 +11756,10 @@ static const unsigned char temp_binary_data_23[] =
 "       id=\"path7039\"\n"
 "       d=\"m 367,192 v 79.7 c 0,60.2 -49.8,109.2 -110,109.2 -60.2,0 -110,-49 -110,-109.2 V 192 h -19 v 79.7 c 0,67.2 53,122.6 120,127.5 V 462 h -73 v 18 h 161 v -18 h -69 v -62.8 c 66,-4.9 117,-60.3 117,-127.5 V 192 Z\" /></g></svg>\n";
 
-const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_23;
+const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_27;
 
 //================== outgoing_disallowed.svg ==================
-static const unsigned char temp_binary_data_24[] =
+static const unsigned char temp_binary_data_28[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11377,10 +11858,10 @@ static const unsigned char temp_binary_data_24[] =
 "062 -19.86549,54.19122 6.33,5.09225 10.38879,12.90972 10.38879,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_disallowed_svg = (const char*) temp_binary_data_24;
+const char* outgoing_disallowed_svg = (const char*) temp_binary_data_28;
 
 //================== paste_icon.svg ==================
-static const unsigned char temp_binary_data_25[] =
+static const unsigned char temp_binary_data_29[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11455,10 +11936,10 @@ static const unsigned char temp_binary_data_25[] =
 "     x=\"176\" />\n"
 "</svg>\n";
 
-const char* paste_icon_svg = (const char*) temp_binary_data_25;
+const char* paste_icon_svg = (const char*) temp_binary_data_29;
 
 //================== pause_icon.svg ==================
-static const unsigned char temp_binary_data_26[] =
+static const unsigned char temp_binary_data_30[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11589,10 +12070,10 @@ static const unsigned char temp_binary_data_26[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* pause_icon_svg = (const char*) temp_binary_data_26;
+const char* pause_icon_svg = (const char*) temp_binary_data_30;
 
 //================== people.png ==================
-static const unsigned char temp_binary_data_27[] =
+static const unsigned char temp_binary_data_31[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,6,106,73,68,65,84,104,129,237,152,109,140,92,101,21,128,159,243,222,187,187,109,55,181,161,235,206,206,220,217,45,149,18,208,93,81,139,31,80,164,104,170,96,20,149,63,146,136,74,76,109,76,44,160,72,2,13,38,126,70,82,136,52,45,34,
 63,42,152,104,248,168,10,126,166,137,223,245,163,5,137,18,9,138,27,91,74,217,214,221,123,222,105,183,221,33,105,75,157,238,220,123,252,49,119,54,227,118,102,118,27,183,250,103,158,63,51,247,220,243,158,143,251,222,247,188,231,190,208,161,67,135,14,29,
@@ -11619,10 +12100,10 @@ static const unsigned char temp_binary_data_27[] =
 155,45,202,179,37,251,190,184,75,85,83,239,253,119,255,91,123,109,201,42,143,197,113,188,105,161,109,171,234,231,84,213,84,245,202,133,182,61,67,28,199,59,85,245,128,153,45,216,113,76,157,108,33,191,232,189,255,233,217,140,59,171,131,45,85,61,74,173,
 249,58,151,148,163,40,90,62,95,229,182,167,18,141,152,153,120,239,31,18,145,115,114,28,57,203,151,91,200,211,187,14,29,58,116,232,208,161,195,185,226,223,191,160,18,11,195,92,207,96,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* people_png = (const char*) temp_binary_data_27;
+const char* people_png = (const char*) temp_binary_data_31;
 
 //================== people.svg ==================
-static const unsigned char temp_binary_data_28[] =
+static const unsigned char temp_binary_data_32[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11704,10 +12185,10 @@ static const unsigned char temp_binary_data_28[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* people_svg = (const char*) temp_binary_data_28;
+const char* people_svg = (const char*) temp_binary_data_32;
 
 //================== person.png ==================
-static const unsigned char temp_binary_data_29[] =
+static const unsigned char temp_binary_data_33[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,3,82,73,68,65,84,104,129,237,152,77,104,92,101,20,134,159,51,51,25,77,34,34,193,76,38,55,18,41,152,133,63,75,211,212,186,40,232,34,32,136,224,34,96,23,181,186,146,174,138,32,88,92,74,192,157,27,197,46,68,218,133,46,138,224,207,202,
 223,66,55,213,166,117,89,151,70,195,220,115,111,162,17,196,140,237,152,153,121,93,56,133,18,19,103,198,156,22,132,251,172,46,247,188,223,247,158,119,238,207,220,239,131,130,130,130,130,130,130,255,49,22,61,97,154,166,135,205,236,69,51,59,34,41,1,48,51,
@@ -11723,10 +12204,10 @@ static const unsigned char temp_binary_data_29[] =
 146,78,37,73,114,218,204,218,255,165,233,189,144,52,146,101,217,9,96,25,88,55,179,67,131,252,48,3,5,112,247,179,192,49,224,67,73,87,246,215,106,159,134,204,14,2,207,74,58,51,51,51,243,66,95,253,32,147,186,251,38,48,177,223,230,134,228,151,36,73,38,111,
 179,103,65,65,65,65,65,193,237,229,47,213,25,86,225,205,242,241,224,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* person_png = (const char*) temp_binary_data_29;
+const char* person_png = (const char*) temp_binary_data_33;
 
 //================== person.svg ==================
-static const unsigned char temp_binary_data_30[] =
+static const unsigned char temp_binary_data_34[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11796,10 +12277,10 @@ static const unsigned char temp_binary_data_30[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* person_svg = (const char*) temp_binary_data_30;
+const char* person_svg = (const char*) temp_binary_data_34;
 
 //================== play_icon.svg ==================
-static const unsigned char temp_binary_data_31[] =
+static const unsigned char temp_binary_data_35[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11921,10 +12402,10 @@ static const unsigned char temp_binary_data_31[] =
 "     id=\"path4930\" />\n"
 "</svg>\n";
 
-const char* play_icon_svg = (const char*) temp_binary_data_31;
+const char* play_icon_svg = (const char*) temp_binary_data_35;
 
 //================== power.svg ==================
-static const unsigned char temp_binary_data_32[] =
+static const unsigned char temp_binary_data_36[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11999,10 +12480,10 @@ static const unsigned char temp_binary_data_32[] =
 "       id=\"path4471\"\n"
 "       style=\"stroke:none;stroke-opacity:1;fill:#b2b2b2;fill-opacity:1\" /></g></svg>\n";
 
-const char* power_svg = (const char*) temp_binary_data_32;
+const char* power_svg = (const char*) temp_binary_data_36;
 
 //================== power_sel.svg ==================
-static const unsigned char temp_binary_data_33[] =
+static const unsigned char temp_binary_data_37[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12077,10 +12558,10 @@ static const unsigned char temp_binary_data_33[] =
 "       id=\"path4471\"\n"
 "       d=\"m 354.9038,193.4519 a 22,22 0 0 1 -22,-22 V -8.5480978 a 22,22 0 0 1 44,0 V 171.4519 a 22,22 0 0 1 -22,22 z\" /></g></svg>\n";
 
-const char* power_sel_svg = (const char*) temp_binary_data_33;
+const char* power_sel_svg = (const char*) temp_binary_data_37;
 
 //================== record.svg ==================
-static const unsigned char temp_binary_data_34[] =
+static const unsigned char temp_binary_data_38[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12204,10 +12685,10 @@ static const unsigned char temp_binary_data_34[] =
 "     r=\"10.826572\" />\n"
 "</svg>\n";
 
-const char* record_svg = (const char*) temp_binary_data_34;
+const char* record_svg = (const char*) temp_binary_data_38;
 
 //================== record_active.svg ==================
-static const unsigned char temp_binary_data_35[] =
+static const unsigned char temp_binary_data_39[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12331,10 +12812,10 @@ static const unsigned char temp_binary_data_35[] =
 "     r=\"10.826573\" />\n"
 "</svg>\n";
 
-const char* record_active_svg = (const char*) temp_binary_data_35;
+const char* record_active_svg = (const char*) temp_binary_data_39;
 
 //================== record_active_alt.svg ==================
-static const unsigned char temp_binary_data_36[] =
+static const unsigned char temp_binary_data_40[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12458,10 +12939,10 @@ static const unsigned char temp_binary_data_36[] =
 "     style=\"fill:#f74848;fill-opacity:1;stroke:#cccccc;stroke-width:1.03096;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" />\n"
 "</svg>\n";
 
-const char* record_active_alt_svg = (const char*) temp_binary_data_36;
+const char* record_active_alt_svg = (const char*) temp_binary_data_40;
 
 //================== reset_buffer_icon.svg ==================
-static const unsigned char temp_binary_data_37[] =
+static const unsigned char temp_binary_data_41[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12533,10 +13014,10 @@ static const unsigned char temp_binary_data_37[] =
 "     d=\"M 96.73077,88.727418 93.56857,411.27258\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:24;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" /></svg>\n";
 
-const char* reset_buffer_icon_svg = (const char*) temp_binary_data_37;
+const char* reset_buffer_icon_svg = (const char*) temp_binary_data_41;
 
 //================== send_group.svg ==================
-static const unsigned char temp_binary_data_38[] =
+static const unsigned char temp_binary_data_42[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12631,10 +13112,10 @@ static const unsigned char temp_binary_data_38[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_svg = (const char*) temp_binary_data_38;
+const char* send_group_svg = (const char*) temp_binary_data_42;
 
 //================== send_group_small.svg ==================
-static const unsigned char temp_binary_data_39[] =
+static const unsigned char temp_binary_data_43[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12729,10 +13210,10 @@ static const unsigned char temp_binary_data_39[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_small_svg = (const char*) temp_binary_data_39;
+const char* send_group_small_svg = (const char*) temp_binary_data_43;
 
 //================== settings_icon.svg ==================
-static const unsigned char temp_binary_data_40[] =
+static const unsigned char temp_binary_data_44[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12800,10 +13281,10 @@ static const unsigned char temp_binary_data_40[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>";
 
-const char* settings_icon_svg = (const char*) temp_binary_data_40;
+const char* settings_icon_svg = (const char*) temp_binary_data_44;
 
 //================== skipback_icon.svg ==================
-static const unsigned char temp_binary_data_41[] =
+static const unsigned char temp_binary_data_45[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12876,10 +13357,10 @@ static const unsigned char temp_binary_data_41[] =
 "     x1=\"112\" />\n"
 "</svg>\n";
 
-const char* skipback_icon_svg = (const char*) temp_binary_data_41;
+const char* skipback_icon_svg = (const char*) temp_binary_data_45;
 
 //================== sonobus_logo_96.png ==================
-static const unsigned char temp_binary_data_42[] =
+static const unsigned char temp_binary_data_46[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,96,0,0,0,96,8,6,0,0,0,226,152,119,56,0,0,0,9,112,72,89,115,0,0,5,137,0,0,5,137,1,109,104,157,250,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,
 111,114,103,155,238,60,26,0,0,19,120,73,68,65,84,120,156,237,157,121,124,28,197,149,199,191,213,61,35,141,102,116,75,22,178,45,11,219,128,108,99,203,54,62,98,59,118,240,193,97,3,159,128,179,16,7,18,47,11,187,192,230,19,178,9,36,155,108,178,217,108,112,
 14,18,242,225,78,54,108,178,201,2,27,236,112,132,195,24,135,144,64,240,250,36,1,108,131,111,19,31,178,37,91,178,14,235,154,123,186,107,255,40,205,120,70,26,205,244,28,58,252,89,253,230,83,154,86,117,119,85,247,123,85,239,189,122,245,170,6,70,48,130,17,
@@ -12953,10 +13434,10 @@ static const unsigned char temp_binary_data_42[] =
 215,244,70,151,105,2,219,80,214,205,179,64,235,224,189,78,102,24,234,8,229,98,212,50,216,101,168,213,152,147,176,182,128,163,19,229,185,220,133,10,17,217,196,32,76,158,12,4,134,154,1,241,80,138,10,89,44,64,109,118,228,66,141,51,220,168,13,191,27,56,143,
 90,248,8,70,48,130,17,140,96,4,35,24,193,8,70,48,12,241,127,224,50,254,113,39,185,17,225,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_logo_96_png = (const char*) temp_binary_data_42;
+const char* sonobus_logo_96_png = (const char*) temp_binary_data_46;
 
 //================== sonobus_title_small.png ==================
-static const unsigned char temp_binary_data_43[] =
+static const unsigned char temp_binary_data_47[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,1,157,0,0,0,96,8,6,0,0,0,198,164,175,209,0,0,0,9,112,72,89,115,0,0,1,118,0,0,1,118,1,233,206,71,139,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,
 46,111,114,103,155,238,60,26,0,0,32,0,73,68,65,84,120,156,237,157,119,96,19,229,255,199,223,151,61,155,166,77,210,116,179,10,66,25,181,101,200,158,178,17,197,34,163,8,226,15,183,248,69,17,5,17,5,190,184,253,226,0,199,215,9,50,100,40,10,42,10,2,50,101,
 151,34,20,40,133,238,54,163,105,218,140,38,77,147,187,251,253,113,45,22,104,51,218,148,22,191,247,42,71,175,119,207,61,207,115,151,220,125,238,249,60,159,1,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
@@ -13189,10 +13670,10 @@ static const unsigned char temp_binary_data_43[] =
 171,217,70,130,177,58,51,130,49,12,200,70,112,179,135,178,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
 176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,220,82,254,31,201,193,32,51,22,181,193,39,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_title_small_png = (const char*) temp_binary_data_43;
+const char* sonobus_title_small_png = (const char*) temp_binary_data_47;
 
 //================== speaker.svg ==================
-static const unsigned char temp_binary_data_44[] =
+static const unsigned char temp_binary_data_48[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13269,10 +13750,10 @@ static const unsigned char temp_binary_data_44[] =
 " 2523,887 2380,823 2221,823 Z\"\n"
 "       style=\"fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-opacity:1\" /></g></svg>\n";
 
-const char* speaker_svg = (const char*) temp_binary_data_44;
+const char* speaker_svg = (const char*) temp_binary_data_48;
 
 //================== speaker_disabled.svg ==================
-static const unsigned char temp_binary_data_45[] =
+static const unsigned char temp_binary_data_49[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13343,10 +13824,10 @@ static const unsigned char temp_binary_data_45[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7431\" /></svg>\n";
 
-const char* speaker_disabled_svg = (const char*) temp_binary_data_45;
+const char* speaker_disabled_svg = (const char*) temp_binary_data_49;
 
 //================== triangle_disclosure.svg ==================
-static const unsigned char temp_binary_data_46[] =
+static const unsigned char temp_binary_data_50[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13425,10 +13906,10 @@ static const unsigned char temp_binary_data_46[] =
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:23.9998;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:type=\"star\" /></svg>\n";
 
-const char* triangle_disclosure_svg = (const char*) temp_binary_data_46;
+const char* triangle_disclosure_svg = (const char*) temp_binary_data_50;
 
 //================== urei_main.wav ==================
-static const unsigned char temp_binary_data_47[] =
+static const unsigned char temp_binary_data_51[] =
 { 82,73,70,70,112,2,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,76,2,0,0,24,255,34,1,177,206,124,146,140,144,94,144,113,144,31,145,103,144,174,145,135,144,16,146,213,144,70,146,72,145,96,146,211,145,98,146,
 121,146,79,146,46,147,55,146,227,147,48,146,128,148,73,146,249,148,145,146,72,149,168,146,93,155,215,235,234,18,48,11,3,16,147,12,226,14,78,13,34,14,204,13,163,13,17,14,93,13,35,14,71,13,17,14,78,13,226,13,111,13,171,13,142,13,128,13,160,13,99,13,162,
 13,86,13,152,13,82,13,132,13,89,13,105,13,94,13,85,13,96,13,73,13,90,13,67,13,81,13,59,13,72,13,52,13,58,13,52,13,49,13,44,13,41,13,40,13,32,13,32,13,23,13,22,13,19,13,16,13,12,13,9,13,0,13,255,12,253,12,250,12,246,12,242,12,239,12,235,12,234,12,226,
@@ -13439,10 +13920,10 @@ static const unsigned char temp_binary_data_47[] =
 10,141,10,135,10,123,10,125,10,110,10,105,10,97,10,86,10,81,10,69,10,62,10,53,10,42,10,32,10,25,10,13,10,0,10,248,9,231,9,221,9,211,9,192,9,183,9,164,9,148,9,134,9,113,9,97,9,75,9,52,9,30,9,4,9,233,8,207,8,172,8,133,8,103,8,51,8,13,8,211,7,158,7,94,7,
 27,7,212,6,135,6,64,6,234,5,0,0 };
 
-const char* urei_main_wav = (const char*) temp_binary_data_47;
+const char* urei_main_wav = (const char*) temp_binary_data_51;
 
 //================== wordmaker.g ==================
-static const unsigned char temp_binary_data_48[] =
+static const unsigned char temp_binary_data_52[] =
 { 123,10,60,115,116,97,114,116,62,10,60,118,101,114,98,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,
 99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,118,101,114,98,62,60,97,100,118,101,114,98,62,59,10,125,10,10,123,10,60,97,100,106,101,99,116,105,118,101,62,10,97,98,97,115,105,99,59,10,97,98,97,116,105,99,
 59,10,97,98,105,101,110,116,59,10,97,98,106,101,99,116,59,10,97,98,108,97,122,101,59,10,97,98,108,101,59,10,97,98,108,111,111,109,59,10,97,98,111,114,97,108,59,10,97,98,111,117,116,59,10,97,98,111,118,101,59,10,97,98,114,111,97,100,59,10,97,98,114,117,
@@ -15239,10 +15720,10 @@ static const unsigned char temp_binary_data_48[] =
 59,10,119,105,100,101,59,10,119,105,100,101,108,121,59,10,119,105,108,100,59,10,119,105,108,100,108,121,59,10,119,105,115,101,108,121,59,10,119,105,116,104,97,108,59,10,119,105,116,104,105,110,59,10,119,111,114,115,101,59,10,119,111,114,115,116,59,10,
 119,114,111,110,103,59,10,119,114,121,108,121,59,10,121,101,97,59,10,121,101,97,104,59,10,121,101,97,114,108,121,59,10,121,101,116,59,10,121,111,110,59,10,121,111,110,100,101,114,59,10,122,105,103,122,97,103,59,10,125,10,0,0 };
 
-const char* wordmaker_g = (const char*) temp_binary_data_48;
+const char* wordmaker_g = (const char*) temp_binary_data_52;
 
 //================== x_icon.svg ==================
-static const unsigned char temp_binary_data_49[] =
+static const unsigned char temp_binary_data_53[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15373,7 +15854,7 @@ static const unsigned char temp_binary_data_49[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* x_icon_svg = (const char*) temp_binary_data_49;
+const char* x_icon_svg = (const char*) temp_binary_data_53;
 
 
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
@@ -15386,9 +15867,10 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
     switch (hash)
     {
-        case 0xfb1660a3:  numBytes = 18131; return localized_es_txt;
+        case 0xfb1660a3:  numBytes = 17742; return localized_es_txt;
         case 0xb8757689:  numBytes = 2846; return bar_click_wav;
         case 0x24af1e6c:  numBytes = 2708; return beat_click_wav;
+        case 0xdd1101e6:  numBytes = 2060; return chevron_forward_svg;
         case 0x06e55b28:  numBytes = 2218; return copy_icon_svg;
         case 0x0238a3d1:  numBytes = 757076; return DejaVuSans_ttf;
         case 0xc8ebcbf3:  numBytes = 3793; return dice_icon_128_png;
@@ -15401,6 +15883,8 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
         case 0x5bfbf738:  numBytes = 9407; return incoming_disallowed_svg;
         case 0xe92ab5c9:  numBytes = 806; return lgc_bar_wav;
         case 0x4733109f:  numBytes = 3128; return link_svg;
+        case 0x971e6b81:  numBytes = 6607; return link_all_svg;
+        case 0x928e76a5:  numBytes = 6397; return link_up_svg;
         case 0x3e06e8d9:  numBytes = 4901; return loop_icon_svg;
         case 0x38f04581:  numBytes = 3784; return met_svg;
         case 0x3ed4186c:  numBytes = 4186; return mic_svg;
@@ -15408,6 +15892,7 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
         case 0x1beb7bef:  numBytes = 13723; return mic_pointing_svg;
         case 0x44867210:  numBytes = 4337; return move_updown_svg;
         case 0x5e3e2e61:  numBytes = 8680; return muteothers_svg;
+        case 0x8c5980d3:  numBytes = 8054; return network_svg;
         case 0xd6ddaafa:  numBytes = 10153; return outgoing_allowed_svg;
         case 0xb9ec5855:  numBytes = 4065; return outgoing_allowed_active_svg;
         case 0xfb3c0732:  numBytes = 9997; return outgoing_disallowed_svg;
@@ -15448,6 +15933,7 @@ const char* namedResourceList[] =
     "localized_es_txt",
     "bar_click_wav",
     "beat_click_wav",
+    "chevron_forward_svg",
     "copy_icon_svg",
     "DejaVuSans_ttf",
     "dice_icon_128_png",
@@ -15460,6 +15946,8 @@ const char* namedResourceList[] =
     "incoming_disallowed_svg",
     "lgc_bar_wav",
     "link_svg",
+    "link_all_svg",
+    "link_up_svg",
     "loop_icon_svg",
     "met_svg",
     "mic_svg",
@@ -15467,6 +15955,7 @@ const char* namedResourceList[] =
     "mic_pointing_svg",
     "move_updown_svg",
     "muteothers_svg",
+    "network_svg",
     "outgoing_allowed_svg",
     "outgoing_allowed_active_svg",
     "outgoing_disallowed_svg",
@@ -15502,6 +15991,7 @@ const char* originalFilenames[] =
     "localized_es.txt",
     "bar_click.wav",
     "beat_click.wav",
+    "chevron_forward.svg",
     "copy_icon.svg",
     "DejaVuSans.ttf",
     "dice_icon_128.png",
@@ -15514,6 +16004,8 @@ const char* originalFilenames[] =
     "incoming_disallowed.svg",
     "lgc_bar.wav",
     "link.svg",
+    "link_all.svg",
+    "link_up.svg",
     "loop_icon.svg",
     "met.svg",
     "mic.svg",
@@ -15521,6 +16013,7 @@ const char* originalFilenames[] =
     "mic_pointing.svg",
     "move_updown.svg",
     "mute-others.svg",
+    "network.svg",
     "outgoing_allowed.svg",
     "outgoing_allowed_active.svg",
     "outgoing_disallowed.svg",

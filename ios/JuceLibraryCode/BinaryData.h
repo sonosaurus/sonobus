@@ -9,13 +9,16 @@
 namespace BinaryData
 {
     extern const char*   localized_es_txt;
-    const int            localized_es_txtSize = 18131;
+    const int            localized_es_txtSize = 17742;
 
     extern const char*   bar_click_wav;
     const int            bar_click_wavSize = 2846;
 
     extern const char*   beat_click_wav;
     const int            beat_click_wavSize = 2708;
+
+    extern const char*   chevron_forward_svg;
+    const int            chevron_forward_svgSize = 2060;
 
     extern const char*   copy_icon_svg;
     const int            copy_icon_svgSize = 2218;
@@ -53,6 +56,12 @@ namespace BinaryData
     extern const char*   link_svg;
     const int            link_svgSize = 3128;
 
+    extern const char*   link_all_svg;
+    const int            link_all_svgSize = 6607;
+
+    extern const char*   link_up_svg;
+    const int            link_up_svgSize = 6397;
+
     extern const char*   loop_icon_svg;
     const int            loop_icon_svgSize = 4901;
 
@@ -73,6 +82,9 @@ namespace BinaryData
 
     extern const char*   muteothers_svg;
     const int            muteothers_svgSize = 8680;
+
+    extern const char*   network_svg;
+    const int            network_svgSize = 8054;
 
     extern const char*   outgoing_allowed_svg;
     const int            outgoing_allowed_svgSize = 10153;
@@ -159,7 +171,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 50;
+    const int namedResourceListSize = 54;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
