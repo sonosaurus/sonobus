@@ -254,6 +254,7 @@ protected:
 
     std::unique_ptr<Slider> mInGainSlider;
 
+
     std::unique_ptr<BubbleMessageComponent> popTip;
 
     WeakReference<Component> effectsCalloutBox;

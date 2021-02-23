@@ -393,9 +393,9 @@ void ChannelGroupView::resized()
         levelSlider->setMouseDragSensitivity(jmax(128, levelSlider->getWidth()));
     }
 
-    if (monitorSlider) {
-        monitorSlider->setMouseDragSensitivity(jmax(128, monitorSlider->getWidth()));
-    }
+    //if (monitorSlider) {
+    //    monitorSlider->setMouseDragSensitivity(jmax(128, monitorSlider->getWidth()));
+    //}
 
     //Rectangle<int> optbounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), sendQualityLabel->getRight() - staticSendQualLabel->getX(), bufferLabel->getBottom() - sendQualityLabel->getY());
     //optionsButton->setBounds(optbounds);
@@ -449,7 +449,12 @@ void ChannelGroupsView::configLevelSlider(Slider * slider, bool monmode)
     
     slider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 12);
 
-    slider->setRange(0.0, 2.0, 0.0);
+    if (monmode) {
+        slider->setRange(0.0, 1.0, 0.0);
+        slider->setMouseDragSensitivity(90);
+    } else {
+        slider->setRange(0.0, 2.0, 0.0);
+    }
     slider->setSkewFactor(0.5);
     slider->setDoubleClickReturnValue(true, 1.0);
     slider->setTextBoxIsEditable(true);
@@ -632,7 +637,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->muteButton->setLookAndFeel(&pvf->medLnf);
     pvf->muteButton->setClickingTogglesState(true);
     pvf->muteButton->setColour(TextButton::buttonOnColourId, mutedColor);
-    pvf->muteButton->setTooltip(TRANS("Toggles muting of this channel"));
+    pvf->muteButton->setTooltip(TRANS("Mute this channel for both sending and monitoring"));
 
     pvf->soloButton = std::make_unique<TextButton>(TRANS("SOLO"));
     pvf->soloButton->addListener(this);
@@ -640,7 +645,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->soloButton->setClickingTogglesState(true);
     pvf->soloButton->setColour(TextButton::buttonOnColourId, soloColor.withAlpha(0.7f));
     pvf->soloButton->setColour(TextButton::textColourOnId, Colours::darkblue);
-    pvf->soloButton->setTooltip(TRANS("Listen to only this channel"));
+    pvf->soloButton->setTooltip(TRANS("Listen to only this channel, does not affect sending"));
 
     
     pvf->chanLabel = std::make_unique<Label>("status", "");
@@ -655,12 +660,14 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     configLevelSlider(pvf->levelSlider.get(), false);
     pvf->levelSlider->setLookAndFeel(&pvf->sonoSliderLNF);
 
-    pvf->monitorSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxRight);
+    pvf->monitorSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
     pvf->monitorSlider->setName("level");
     pvf->monitorSlider->addListener(this);
 
     configLevelSlider(pvf->monitorSlider.get(), true);
-    pvf->monitorSlider->setLookAndFeel(&pvf->sonoSliderLNF);
+    pvf->monitorSlider->setLookAndFeel(&pvf->panSliderLNF);
+    pvf->monitorSlider->setTextBoxStyle(Slider::NoTextBox, true, 60, 14);
+    //pvf->monitorSlider->setTooltip(TRANS("Monitor output level"));
 
 
     pvf->panLabel = std::make_unique<Label>("pan", TRANS("Pan"));
@@ -804,7 +811,7 @@ void ChannelGroupsView::rebuildChannelViews()
         pvf->addAndMakeVisible(pvf->muteButton.get());
         pvf->addAndMakeVisible(pvf->soloButton.get());
         pvf->addAndMakeVisible(pvf->levelSlider.get());
-        //pvf->addAndMakeVisible(pvf->monitorSlider.get());
+        pvf->addChildComponent(pvf->monitorSlider.get());
         //pvf->addAndMakeVisible(pvf->levelLabel.get());
         pvf->addAndMakeVisible(pvf->panLabel.get());
         pvf->addAndMakeVisible(pvf->nameLabel.get());
@@ -816,6 +823,8 @@ void ChannelGroupsView::rebuildChannelViews()
         pvf->addAndMakeVisible(pvf->panSlider.get());
 
         pvf->panSlider->setPopupDisplayEnabled(true, true, dw);
+
+        pvf->monitorSlider->setPopupDisplayEnabled(true, true, dw);
 
         addAndMakeVisible(pvf);
     }
@@ -835,9 +844,10 @@ void ChannelGroupsView::updateLayout(bool notify)
     int compactMaxPannerWidth = 90;
     int minSliderWidth = isNarrow ? 90 : 100;
     int meterwidth = 10;
-    int mutebuttwidth = 52;
+    int mutebuttwidth = isNarrow ? 42 : 52;
     int linkbuttwidth = 50;
     int destbuttwidth = 44;
+    int monsliderwidth = mPeerMode ? 0 : 40;
     int namewidth = isNarrow ? 88 : mPeerMode ? 110 : 100;
 
 #if JUCE_IOS || JUCE_ANDROID
@@ -1052,16 +1062,25 @@ void ChannelGroupsView::updateLayout(bool notify)
                 //}
                 pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
 
-                if (destbuttvisible) {
-                    pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
-                    pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
-                }
+                pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
 
                 if (pannervisible) {
                     pvf->monbox.items.add(FlexItem(2, 3));
                     pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth));
                     pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
                 }
+
+                if (!mPeerMode) {
+                    pvf->monbox.items.add(FlexItem(monsliderwidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(2, 3));
+                }
+
+
+                if (destbuttvisible) {
+                    pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(2, 3));
+                }
+
             }
             else {
                 if (pannervisible) {
@@ -1070,6 +1089,12 @@ void ChannelGroupsView::updateLayout(bool notify)
                 }
                 pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
                 pvf->monbox.items.add(FlexItem(2, 3));
+
+                if (!mPeerMode) {
+                    pvf->monbox.items.add(FlexItem(monsliderwidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(2, 3));
+                }
+
                 if (destbuttvisible) {
                     pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
                     pvf->monbox.items.add(FlexItem(2, 3));
@@ -1115,7 +1140,7 @@ void ChannelGroupsView::updateLayout(bool notify)
                 pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(2));
                 pvf->maincontentbox.items.add(FlexItem(6, 2));
                 if (pannervisible) {
-                    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + (destbuttvisible ? destbuttwidth + 2 : 0) + 2));
+                    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + monsliderwidth + (destbuttvisible ? destbuttwidth + 2 : 0) + 2));
                 } else {
                     pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(0)); // (1).withMaxWidth(mutebuttwidth + destbuttwidth + 4));
                 }
@@ -1174,7 +1199,7 @@ void ChannelGroupsView::updateLayout(bool notify)
                     pvf->mainbox.items.add(FlexItem(1, 3));
                 }
                 else {
-                    pvf->mainbox.items.add(FlexItem(onlyone && !isNarrow ? mutebuttwidth + (destbuttvisible ? destbuttwidth : 0) + (pannervisible ? 5 : 10) : 6, 3));
+                    pvf->mainbox.items.add(FlexItem(onlyone && !isNarrow ? mutebuttwidth + monsliderwidth +  (destbuttvisible ? destbuttwidth : 0) + (pannervisible ? 5 : 10) : 6, 3));
                 }
             }
 
@@ -1332,6 +1357,11 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         }
 
 
+        if (!pvf->monitorSlider->isMouseOverOrDragging()) {
+            pvf->monitorSlider->setValue(processor.getInputMonitor(changroup), dontSendNotification);
+        }
+
+
         pvf->meter->setMeterSource (&processor.getInputMeterSource());
         pvf->meter->setSelectedChannel(i);
         pvf->meter->setFixedNumChannels(1);
@@ -1389,13 +1419,14 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
         // hide things if we are not the first channel
         bool isprimary = chi == 0;
-        bool destbuttvisible = isprimary && chcnt < destcnt;
+        bool destbuttvisible = isprimary && chcnt < totaloutchans;
 
         pvf->levelSlider->setVisible(isprimary);
         pvf->soloButton->setVisible(isprimary);
         pvf->muteButton->setVisible(isprimary);
         pvf->nameLabel->setVisible(isprimary);
         pvf->destButton->setVisible(destbuttvisible);
+        pvf->monitorSlider->setVisible(isprimary);
 
 
         // effects aren't used if channel count is above 2, right now
@@ -1579,6 +1610,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         pvf->muteButton->setVisible(isprimary);
         pvf->nameLabel->setVisible(isprimary);
         pvf->destButton->setVisible(destbuttvisible);
+        pvf->monitorSlider->setVisible(false);
 
         const float disalpha = 0.4;
         pvf->nameLabel->setAlpha(connected ? 1.0 : 0.8);
@@ -2412,7 +2444,7 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
                 break;
             }
             else if (pvf->monitorSlider.get() == slider) {
-                //
+                //processor.setRemotePeerChanel (mPeerIndex, changroup, pvf->levelSlider->getValue());
                 break;
             }
             else if (pvf->panSlider.get() == slider) {
