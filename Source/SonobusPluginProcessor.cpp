@@ -107,8 +107,8 @@ static String peerSendFormatKey("sendformat");
 
 
 
-#define METER_RMS_SEC 0.04
-#define MAX_PANNERS 32
+#define METER_RMS_SEC 0.03
+#define MAX_PANNERS 64
 
 #define ECHO_SINKSOURCE_ID 12321
 #define DEFAULT_UDP_PORT 11000
@@ -288,6 +288,8 @@ struct SonobusAudioProcessor::RemotePeer {
     int numChanGroups = 1;
 
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> fileWriter;
+
+    ReadWriteLock    sinkLock;
 };
 
 
@@ -461,25 +463,61 @@ enum {
 #endif
 
 
+SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
+{
+    auto props = SonobusAudioProcessor::BusesProperties();
+    auto plugtype = PluginHostType::getPluginLoadedAs();
+
+    // common to all
+    props = props.withInput  ("Main In",  AudioChannelSet::stereo(), true)
+    .withOutput ("Mix Out", AudioChannelSet::stereo(), true);
+
+
+    // extra inputs
+    if (plugtype == AudioProcessor::wrapperType_AAX) {
+        // only one sidechain mono allowed, doesn't even work anyway
+        props = props.withInput ("Aux 1 In", AudioChannelSet::mono(), ALTBUS_ACTIVE);
+    }
+    else if (plugtype == AudioProcessor::wrapperType_VST) {
+        // no multi-bus outputs for now for VST2, so it works in OBS
+    }
+    else {
+        // throw in some input sidechains
+        props = props.withInput  ("Aux 1 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 2 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 3 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 4 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 5 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 6 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 7 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 8 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withInput  ("Aux 9 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE);
+    }
+
+    // outputs
+    if (plugtype == AudioProcessor::wrapperType_VST) {
+        // no multi-bus outputs for now for VST2, so it works in OBS
+    }
+    else {
+        props = props.withOutput ("Self Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 1 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 2 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 3 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 4 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 5 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 6 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 7 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        .withOutput ("Aux 8 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE);
+    }
+
+
+    return props;
+}
+
+
 //==============================================================================
 SonobusAudioProcessor::SonobusAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
-                       .withOutput ("Mix Output", AudioChannelSet::stereo(), true)
-#ifndef DONT_USE_MULTIBUS
-                       .withOutput ("Self Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 1 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 2 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 3 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 4 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 5 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 6 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 7 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-                       .withOutput ("User 8 Output", AudioChannelSet::stereo(), ALTBUS_ACTIVE)                       
-#endif
-                       ),
-#endif
+     : AudioProcessor ( getDefaultLayout() ),
 mState (*this, &mUndoManager, "SonoBusAoO",
 {
     std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
@@ -3540,9 +3578,14 @@ void SonobusAudioProcessor::setRemotePeerOverrideSendChannelCount(int index, int
 void SonobusAudioProcessor::updateRemotePeerSendChannels(int index, RemotePeer * remote) {
     // this is called while the corereadlock is already held
     int newchancnt = remote->sendChannels;
-    
+
     if (remote->sendChannelsOverride < 0) {
-        newchancnt = isAnythingRoutedToPeer(index) ? getMainBusNumOutputChannels() :  remote->nominalSendChannels <= 0 ? getMainBusNumInputChannels() : remote->nominalSendChannels;
+        int totinchans = 0;
+        for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
+            totinchans += mInputChannelGroups[cgi].numChannels;
+        }
+
+        newchancnt = isAnythingRoutedToPeer(index) ? getMainBusNumOutputChannels() :  remote->nominalSendChannels <= 0 ? totinchans : remote->nominalSendChannels;
     }
     else {
         newchancnt = jmin(getMainBusNumOutputChannels(), remote->sendChannelsOverride);
@@ -4268,7 +4311,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->oursink->set_option(aoo_opt_protocol_flags, &flags, sizeof(int32_t));
 
         retpeer->nominalSendChannels = mSendChannels.get();
-        retpeer->sendChannels =  mSendChannels.get() <= 0 ?  getMainBusNumInputChannels() : mSendChannels.get();
+        retpeer->sendChannels =  mSendChannels.get() <= 0 ?  mActiveSendChannels : mSendChannels.get();
 
         setupSourceFormat(retpeer, retpeer->oursource.get());
         float sendbufsize = jmax(10.0, SENDBUFSIZE_SCALAR * 1000.0f * currSamplesPerBlock / getSampleRate());
@@ -4308,7 +4351,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->latencysource->set_respect_codec_change_requests(1);
         retpeer->echosource->set_respect_codec_change_requests(1);
         
-        retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
+        //retpeer->latencyProcessor.reset(new MTDM(getSampleRate()));
         retpeer->latencyMeasurer.reset(new LatencyMeasurer());
         
         retpeer->oursink->set_dynamic_resampling(mDynamicResampling.get() ? 1 : 0);
@@ -4861,14 +4904,14 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     // initialisation that you need..
     bool blocksizechanged = lastSamplesPerBlock != samplesPerBlock;
 
-    int inchannels = getMainBusNumInputChannels();
+    int inchannels =  getTotalNumInputChannels(); // getMainBusNumInputChannels();
     int outchannels = getMainBusNumOutputChannels();
     int maxchans = jmax(inchannels, outchannels);
 
 
     lastSamplesPerBlock = currSamplesPerBlock = samplesPerBlock;
 
-    DBG("Prepare to play: SR " <<  sampleRate << "  prevrate: " << mPrevSampleRate <<  "  blocksize: " <<  samplesPerBlock << "  inch: " << getMainBusNumInputChannels() << "  outch: " << getMainBusNumOutputChannels());
+    DBG("Prepare to play: SR " <<  sampleRate << "  prevrate: " << mPrevSampleRate <<  "  blocksize: " <<  samplesPerBlock << "  totinch: " << getTotalNumInputChannels() << "  mbinch: " << getMainBusNumInputChannels() << "  outch: " << getMainBusNumOutputChannels());
     DBG("  numinbuses: " << getBusCount(true) << "  numoutbuses: " << getBusCount(false));
 
     const ScopedReadLock sl (mCoreLock);        
@@ -4921,19 +4964,27 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     setupSourceFormat(0, mAooDummySource.get());
     mAooDummySource->setup(sampleRate, samplesPerBlock, getTotalNumInputChannels());
 
+    int totsendchans = 0;
+    for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
+        totsendchans += mInputChannelGroups[cgi].numChannels;
+    }
+    mActiveSendChannels = totsendchans;
 
     meterRmsWindow = sampleRate * METER_RMS_SEC / currSamplesPerBlock;
     
     inputMeterSource.resize (inchannels, meterRmsWindow);
     outputMeterSource.resize (outchannels, meterRmsWindow);
-    sendMeterSource.resize (inchannels, meterRmsWindow);
+    sendMeterSource.resize (totsendchans, meterRmsWindow);
 
     if (lastInputChannels == 0 || lastOutputChannels == 0) {
+        // first time these are set, do some initialization
+
         lastInputChannels = inchannels;
         lastOutputChannels = outchannels;
 
         if (mInputChannelGroupCount == 0) {
-            // initialize it to all separate if inchannels > 2, otherwise one
+            /*
+             // initialize it to all separate if inchannels > 2, otherwise one
             if (inchannels > 2) {
                 mInputChannelGroupCount = inchannels;
                 for (int i=0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
@@ -4942,12 +4993,14 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
                     mInputChannelGroups[i].monDestStartIndex = 0;
                     mInputChannelGroups[i].monDestChannels = jmin(2, outchannels);
                 }
-            } else {
-                mInputChannelGroupCount = inchannels;
+            } else
+             */
+             {
+                mInputChannelGroupCount = 1;
                 mInputChannelGroups[0].chanStartIndex = 0;
-                mInputChannelGroups[0].numChannels = inchannels;
+                mInputChannelGroups[0].numChannels = getMainBusNumInputChannels(); // default to only as many channels as the main input bus has
                 mInputChannelGroups[0].monDestStartIndex = 0;
-                mInputChannelGroups[0].monDestChannels = jmin(inchannels, outchannels);
+                mInputChannelGroups[0].monDestChannels = jmin(2, outchannels);
             }
         }
     }
@@ -4965,6 +5018,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         }
          */
 
+#if 0
         if (lastInputChannels != inchannels) {
             // adjust input channel groups
             if (inchannels > lastInputChannels) {
@@ -5006,6 +5060,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
             }
         }
+#endif
 
         lastInputChannels = inchannels;
         lastOutputChannels = outchannels;
@@ -5016,10 +5071,11 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     }
 
     // can't be more than number of inchannels
-    mInputChannelGroupCount = jmin(inchannels, mInputChannelGroupCount);
+    //mInputChannelGroupCount = jmin(inchannels, mInputChannelGroupCount);
+    mInputChannelGroupCount = jmin(MAX_CHANGROUPS, mInputChannelGroupCount);
 
 
-    for (int i=0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
+    for (int i=0; /*i < mInputChannelGroupCount && */ i < MAX_CHANGROUPS; ++i) {
         mInputChannelGroups[i].init(sampleRate);
     }
 
@@ -5030,6 +5086,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     if (samplesPerBlock > mTempBufferSamples || maxchans > mTempBufferChannels) {
         ensureBuffers(samplesPerBlock);
     }
+
 
 
     if (lrintf(mPrevSampleRate) != lrintf(sampleRate) || blocksizechanged) {
@@ -5062,9 +5119,10 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 void SonobusAudioProcessor::setupSourceFormatsForAll()
 {
     const ScopedReadLock sl (mCoreLock);
+    //const ScopedLock slformat (mSourceFormatLock);
 
     double sampleRate = getSampleRate();
-    int inchannels = getMainBusNumInputChannels();
+    int inchannels = mActiveSendChannels; // getTotalNumInputChannels(); // getMainBusNumInputChannels();
     int outchannels = getMainBusNumOutputChannels();
 
     int i=0;
@@ -5085,6 +5143,7 @@ void SonobusAudioProcessor::setupSourceFormatsForAll()
             s->oursource->set_buffersize(sendbufsize);
         }
         if (s->oursink) {
+            const ScopedWriteLock sl (s->sinkLock);
             int sinkchan = std::max(outchannels, s->recvChannels);
             s->oursink->setup(sampleRate, currSamplesPerBlock, sinkchan);
         }
@@ -5099,15 +5158,19 @@ void SonobusAudioProcessor::setupSourceFormatsForAll()
 
             s->netBufAutoBaseline = (1e3*currSamplesPerBlock/getSampleRate()); // at least a process block
 
-            s->latencysink->setup(sampleRate, currSamplesPerBlock, 1);
-            s->echosink->setup(sampleRate, currSamplesPerBlock, 1);
+            {
+                const ScopedWriteLock sl (s->sinkLock);
 
-            s->latencyProcessor.reset(new MTDM(sampleRate));
-            s->latencyMeasurer.reset(new LatencyMeasurer());
+                s->latencysink->setup(sampleRate, currSamplesPerBlock, 1);
+                s->echosink->setup(sampleRate, currSamplesPerBlock, 1);
+            }
+
+            //s->latencyProcessor.reset(new MTDM(sampleRate));
+            //s->latencyMeasurer.reset(new LatencyMeasurer());
         }
 
         s->recvMeterSource.resize (s->recvChannels, meterRmsWindow);
-        s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
+        //s->sendMeterSource.resize (s->sendChannels, meterRmsWindow);
 
         // XXX
         for (auto chgrpi = 0; /*chgrpi < s->numChanGroups && */ chgrpi < MAX_CHANGROUPS; ++chgrpi) {
@@ -5185,37 +5248,71 @@ bool SonobusAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 
 void SonobusAudioProcessor::ensureBuffers(int numSamples)
 {
-    auto mainBusNumInputChannels  = getMainBusNumInputChannels();
-    auto mainBusNumOutputChannels = getMainBusNumOutputChannels();
+    auto mainBusNumInputChannels  = getTotalNumInputChannels(); // getMainBusNumInputChannels();
+    auto mainBusNumOutputChannels = getTotalNumOutputChannels();
     auto maxchans = jmax(2, jmax(mainBusNumOutputChannels, mainBusNumInputChannels));
 
-    if (tempBuffer.getNumSamples() < numSamples || tempBuffer.getNumChannels() != maxchans) {
-        tempBuffer.setSize(maxchans, numSamples);
+    int totsendchans = 0;
+    for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
+        totsendchans += mInputChannelGroups[cgi].numChannels;
     }
-    if (workBuffer.getNumSamples() < numSamples || workBuffer.getNumChannels() != maxchans) {
-        workBuffer.setSize(maxchans, numSamples);
+
+    bool needpeersendupdate = false;
+    if (mActiveSendChannels != totsendchans) {
+        mActiveSendChannels = totsendchans;
+        needpeersendupdate = true;
+    }
+
+    meterRmsWindow = getSampleRate() * METER_RMS_SEC / currSamplesPerBlock;
+    sendMeterSource.resize(totsendchans, meterRmsWindow);
+
+    auto maxworkbufchans = jmax(maxchans, totsendchans);
+
+    if (tempBuffer.getNumSamples() < numSamples || tempBuffer.getNumChannels() < maxchans) {
+        tempBuffer.setSize(maxchans, numSamples, false, false, true);
+    }
+    if (workBuffer.getNumSamples() < numSamples || workBuffer.getNumChannels() != maxworkbufchans) {
+
+        // only grow the work buffer channel count
+        if (maxworkbufchans > workBuffer.getNumChannels()) {
+            workBuffer.setSize(maxworkbufchans, numSamples, false, false, true);
+        }
+
+        needpeersendupdate = true;
     }
     if (inputBuffer.getNumSamples() < numSamples || inputBuffer.getNumChannels() != maxchans) {
-        inputBuffer.setSize(maxchans, numSamples);
+        inputBuffer.setSize(maxchans, numSamples, false, false, true);
     }
     if (monitorBuffer.getNumSamples() < numSamples || monitorBuffer.getNumChannels() != maxchans) {
-        monitorBuffer.setSize(maxchans, numSamples);
+        monitorBuffer.setSize(maxchans, numSamples, false, false, true);
     }
-    if (inputWorkBuffer.getNumSamples() < numSamples || inputWorkBuffer.getNumChannels() != maxchans) {
-        inputWorkBuffer.setSize(maxchans, numSamples);
+    if (inputWorkBuffer.getNumSamples() < numSamples || inputWorkBuffer.getNumChannels() != maxworkbufchans) {
+        inputWorkBuffer.setSize(maxworkbufchans, numSamples, false, false, true);
+    }
+    if (inputPostBuffer.getNumSamples() < numSamples || inputPostBuffer.getNumChannels() != totsendchans) {
+        inputPostBuffer.setSize(totsendchans, numSamples, false, false, true);
     }
     if (fileBuffer.getNumSamples() < numSamples || fileBuffer.getNumChannels() != maxchans) {
-        fileBuffer.setSize(maxchans, numSamples);
+        fileBuffer.setSize(maxchans, numSamples, false, false, true);
     }
     if (metBuffer.getNumSamples() < numSamples || metBuffer.getNumChannels() != maxchans) {
-        metBuffer.setSize(maxchans, numSamples);
+        metBuffer.setSize(maxchans, numSamples, false, false, true);
     }
     if (mainFxBuffer.getNumSamples() < numSamples || mainFxBuffer.getNumChannels() != maxchans) {
-        mainFxBuffer.setSize(maxchans, numSamples);
+        mainFxBuffer.setSize(maxchans, numSamples, false, false, true);
     }
     if (silentBuffer.getNumSamples() < numSamples) {
-        silentBuffer.setSize(1, numSamples);
+        silentBuffer.setSize(1, numSamples, false, false, true);
         silentBuffer.clear();
+    }
+
+    if (needpeersendupdate) {
+        const ScopedReadLock sl (mCoreLock);
+        // could be -1 as index meaning all remote peers
+        for (int i=0; i < mRemotePeers.size(); ++i) {
+            RemotePeer * remote = mRemotePeers.getUnchecked(i);
+            updateRemotePeerSendChannels(i, remote);
+        }
     }
 
     mTempBufferSamples = jmax(mTempBufferSamples, numSamples);
@@ -5226,13 +5323,15 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
 void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
+    auto totalInputChannels  = getTotalNumInputChannels();
     auto mainBusInputChannels  = getMainBusNumInputChannels();
     auto mainBusOutputChannels = getMainBusNumOutputChannels();
 
     auto totalOutputChannels = getTotalNumOutputChannels();
 
-    auto maxchans = jmax(2, jmax(mainBusInputChannels, mainBusOutputChannels));
-    
+    auto maxchans = jmax(2, jmax(totalInputChannels, mainBusOutputChannels));
+    auto maxsendchans = jmax(2, jmax(totalInputChannels, mainBusOutputChannels));
+
     float inGain = mInGain.get();
     float drynow = mDry.get(); // DB_CO(dry_level);
     float wetnow = mWet.get(); // DB_CO(wet_level);
@@ -5257,14 +5356,22 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             currSamplesPerBlock = numSamples;
             blocksizeCounter = -1;
             mNeedsSampleSetup = true;
+
+            setupSourceFormatsForAll();
         }
     }
 
 
+    int totsendchans = 0;
+    for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i)
+    {
+        totsendchans += mInputChannelGroups[i].numChannels;
+    }
+
 
     // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case.
-    // I know this isn't RT safe.
-    if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels) {
+    // I know this isn't RT safe. UGLY... bad... badness.
+    if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels || inputPostBuffer.getNumChannels() != totsendchans) {
         ensureBuffers(numSamples);
     }
     
@@ -5296,7 +5403,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
     
     // other buses need clearing
-    for (auto i = jmax(mainBusOutputChannels, mainBusInputChannels); i < totalOutputChannels; ++i) {
+    for (auto i = jmax(mainBusOutputChannels, totalInputChannels); i < jmax(totalOutputChannels, totalInputChannels); ++i) {
         buffer.clear (i, 0, numSamples);            
     }
     
@@ -5311,19 +5418,25 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     uint64_t t = aoo_osctime_get();
 
-
-
-    // Input Gain and FX processing
-    for (auto i = 0; i < mInputChannelGroupCount; ++i)
-    {
-        mInputChannelGroups[i].processBlock(buffer, silentBuffer, numSamples, inGain);
-    }
-    
-    // meter pre-panning, and post compressor
+    // meter input pre everything
     inputMeterSource.measureBlock (buffer);
 
+
+    inputPostBuffer.clear(0, numSamples);
+
+    // Input Gain and FX processing
+    int destch = 0;
+    for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i)
+    {
+        mInputChannelGroups[i].processBlock(buffer, inputPostBuffer, destch, mInputChannelGroups[i].numChannels, silentBuffer, numSamples, inGain);
+
+        destch += mInputChannelGroups[i].numChannels;
+    }
+
+
+
     // compressor makeup meter level per channel
-    for (auto i = 0; i < mInputChannelGroupCount; ++i) {
+    for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
         float redlev = 1.0f;
         if (mInputChannelGroups[i].compressorParams.enabled && mInputChannelGroups[i].compressorOutputLevel) {
             redlev = jlimit(0.0f, 1.0f, Decibels::decibelsToGain(*mInputChannelGroups[i].compressorOutputLevel));
@@ -5338,27 +5451,29 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // do the input panning before everything else
     int sendCh = mSendChannels.get();
     //int sendPanChannels = sendCh == 0 ?  inputBuffer.getNumChannels() : jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
-    int sendPanChannels = sendCh == 0 ?  inputWorkBuffer.getNumChannels() : jmin(inputWorkBuffer.getNumChannels(), sendCh);
+    int sendPanChannels = sendCh == 0 ?  inputPostBuffer.getNumChannels() : jmin(inputPostBuffer.getNumChannels(), sendCh);
     //int panChannels = jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
     // if sending as mono, split the difference about applying gain attentuation for the number of input channels
-    float tgain = sendPanChannels == 1 && mainBusInputChannels > 0 ? (1.0f/std::max(1.0f, (float)(mainBusInputChannels * 0.5f))) : 1.0f;
+    float tgain = sendPanChannels == 1 && inputPostBuffer.getNumChannels() > 0 ? (1.0f/std::max(1.0f, (float)(inputPostBuffer.getNumChannels() * 0.5f))) : 1.0f;
 
     if (sendPanChannels > 2) {
         // copy straight-thru
-        for (auto i = 0; i < inputWorkBuffer.getNumChannels() && i < mainBusInputChannels; ++i) {
-            inputWorkBuffer.copyFrom (i, 0, buffer, i, 0, numSamples);
+        for (auto i = 0; i < inputWorkBuffer.getNumChannels() && i < inputPostBuffer.getNumChannels(); ++i) {
+            inputWorkBuffer.copyFrom (i, 0, inputPostBuffer, i, 0, numSamples);
         }
     }
     else {
         inputWorkBuffer.clear(0, numSamples);
+        int srcstart = 0;
 
-        for (auto i = 0; i < mInputChannelGroupCount; ++i)
+        for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i)
         {
-            // todo change dest ch target
+            // change dest ch target
             int dstch = mInputChannelGroups[i].panDestStartIndex;  // todo change dest ch target
             int dstcnt = jmin(sendPanChannels, mInputChannelGroups[i].panDestChannels);
 
-            mInputChannelGroups[i].processPan(buffer, inputWorkBuffer, dstch, dstcnt, numSamples, tgain);
+            mInputChannelGroups[i].processPan(inputPostBuffer, srcstart, inputWorkBuffer, dstch, dstcnt, numSamples, tgain);
+            srcstart += mInputChannelGroups[i].numChannels;
         }
     }
 
@@ -5376,18 +5491,20 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     int monPanChannels = jmin(inputBuffer.getNumChannels(), mainBusOutputChannels);
     float tmgain = monPanChannels == 1 && mainBusInputChannels > 0 ? (1.0f/std::max(1.0f, (float)(mainBusInputChannels * 0.5f))): 1.0f;
+    int srcstart = 0;
     for (auto i = 0; i < mInputChannelGroupCount; ++i)
     {
         float utmgain = anyinputsoloed && !mInputChannelGroups[i].soloed ? 0.0f : tmgain;
         int dstch = mInputChannelGroups[i].monDestStartIndex;
         int dstcnt = jmin(monPanChannels, mInputChannelGroups[i].monDestChannels);
 
-        mInputChannelGroups[i].processMonitor(buffer, inputBuffer, dstch, dstcnt, numSamples, utmgain);
+        mInputChannelGroups[i].processMonitor(inputPostBuffer, srcstart, inputBuffer, dstch, dstcnt, numSamples, utmgain);
+        srcstart += mInputChannelGroups[i].numChannels;
     }
 
 
 
-    // write out self-only output bus
+    // write out self-only output bus XXXX FIXME
     if (auto selfbus = getBus(false, OutSelfBusIndex)) {
         if (selfbus->isEnabled()) {
             int index = getChannelIndexInProcessBlockBuffer(false, OutSelfBusIndex, 0);
@@ -5525,8 +5642,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             }
 
             
-            // get audio data coming in from outside into tempbuf
-            remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
+            {
+                // get audio data coming in from outside into tempbuf
+                const ScopedReadLock sl (remote->sinkLock); // not contended, should be able to get rid of
+
+                remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
+            }
 
             
             // record individual tracks pre-compressor/level/pan, ignoring muting/solo, raw material
@@ -5596,7 +5717,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             }
 
             for (auto cgi = 0; cgi < remote->numChanGroups; ++cgi) {
-                remote->chanGroups[cgi].processBlock(remote->workBuffer, silentBuffer, numSamples, 1.0f);
+                remote->chanGroups[cgi].processBlock(remote->workBuffer, remote->workBuffer, remote->chanGroups[cgi].chanStartIndex,  remote->chanGroups[cgi].numChannels, silentBuffer, numSamples, 1.0f);
             }
 
             
@@ -5641,7 +5762,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 // todo change dest ch target
                 int dstch = remote->chanGroups[i].panDestStartIndex;
                 int dstcnt = jmin(mainBusOutputChannels, remote->chanGroups[i].panDestChannels);
-                remote->chanGroups[i].processPan(remote->workBuffer, tempBuffer, dstch, dstcnt, numSamples, adjgain);
+                remote->chanGroups[i].processPan(remote->workBuffer, remote->chanGroups[i].chanStartIndex, tempBuffer, dstch, dstcnt, numSamples, adjgain);
             }
 
         }
@@ -5663,10 +5784,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 */
                 
                 workBuffer.clear(0, numSamples);
-                            
-                for (int channel = 0; channel < remote->sendChannels /* && totalNumInputChannels > 0 */ ; ++channel) {
+
+                int sendchans = jmin(workBuffer.getNumChannels(), remote->sendChannels);
+
+                for (int channel = 0; channel < remote->sendChannels && channel < inputWorkBuffer.getNumChannels() && channel < workBuffer.getNumChannels() ; ++channel) {
                     //int inchan = channel < totalNumInputChannels ? channel : totalNumInputChannels-1;
-                    int inchan = channel < mainBusInputChannels ? channel : mainBusInputChannels-1;
+                    //int inchan = channel < inputWorkBuffer.getNumChannels() ? channel : mainBusInputChannels-1;
                     //if (remote->sendChannels == 1) {
                         // add un-panned 1st channel only
                     //    workBuffer.addFrom(channel, 0, buffer, 0, 0, numSamples);

@@ -15,7 +15,7 @@
 namespace SonoAudio {
 
 #ifndef MAX_CHANNELS
-#define MAX_CHANNELS 32
+#define MAX_CHANNELS 64
 #endif
 
 // used to encapsulate audio processing for grouped set of audio
@@ -28,9 +28,9 @@ public:
 
     void init(double sampleRate);
 
-    void processBlock (AudioBuffer<float>& buffer, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor);
-    void processPan (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
-    void processMonitor (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
+    void processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer,  int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor);
+    void processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
+    void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
 
     void setToDefaults(bool isplugin);
 

@@ -1620,81 +1620,6 @@
 			};
 			name = Debug;
 		};
-		1702F93D9EA98C8D4FE0D7B3 /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_LINK_OBJC_RUNTIME = NO;
-				CODE_SIGN_ENTITLEMENTS = "AU.entitlements";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = XCS435894D;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"_NDEBUG=1",
-					"NDEBUG=1",
-					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.5-45\\\"",
-					"DONT_USE_MULTIBUS",
-					"USE_CODEC_OPUS=1",
-					"AOO_TIMEFILTER_CHECK=0",
-					"AOO_STATIC",
-					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.5",
-					"JUCE_APP_VERSION_HEX=0x10305",
-					"JucePlugin_Build_VST=0",
-					"JucePlugin_Build_VST3=0",
-					"JucePlugin_Build_AU=1",
-					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
-					"JucePlugin_Build_AAX=0",
-					"JucePlugin_Build_Standalone=0",
-					"JucePlugin_Build_Unity=0",
-				);
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"$(SRCROOT)/../../../VST2_SDK",
-					"$(SRCROOT)/../../JuceLibraryCode",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF",
-					"$(SRCROOT)/../../deps",
-					"$(SRCROOT)/../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/mac/include",
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = Info-AU.plist;
-				INFOPLIST_PREPROCESS = NO;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"../../deps/mac/lib\"",
-				);
-				LIBRARY_STYLE = Bundle;
-				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../../VST2_SDK $(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../AAX_SDK_2p3p2 $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF $(SRCROOT)/../../deps $(SRCROOT)/../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/mac/include $(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
-				OTHER_REZFLAGS = "-d ppc_$ppc -d i386_$i386 -d ppc64_$ppc64 -d x86_64_$x86_64 -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I \"$(DEVELOPER_DIR)/Extras/CoreAudio/AudioUnits/AUPublic/AUBase\" -I \"$(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AudioUnit.framework/Headers\"";
-				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
-				PRODUCT_NAME = "SonoBus";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
-				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
-				WRAPPER_EXTENSION = component;
-			};
-			name = ReleaseVST2;
-		};
 		229D671E28C9FE9D3542B8CE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1993,81 +1918,6 @@
 			};
 			name = Release;
 		};
-		5969E1BD415BEEB191EB15C8 /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_LINK_OBJC_RUNTIME = NO;
-				CODE_SIGN_ENTITLEMENTS = "AAX.entitlements";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = XCS435894D;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"_NDEBUG=1",
-					"NDEBUG=1",
-					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.5-45\\\"",
-					"DONT_USE_MULTIBUS",
-					"USE_CODEC_OPUS=1",
-					"AOO_TIMEFILTER_CHECK=0",
-					"AOO_STATIC",
-					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.5",
-					"JUCE_APP_VERSION_HEX=0x10305",
-					"JucePlugin_Build_VST=0",
-					"JucePlugin_Build_VST3=0",
-					"JucePlugin_Build_AU=0",
-					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
-					"JucePlugin_Build_AAX=1",
-					"JucePlugin_Build_Standalone=0",
-					"JucePlugin_Build_Unity=0",
-				);
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"$(SRCROOT)/../../../VST2_SDK",
-					"$(SRCROOT)/../../JuceLibraryCode",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF",
-					"$(SRCROOT)/../../deps",
-					"$(SRCROOT)/../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/mac/include",
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = Info-AAX.plist;
-				INFOPLIST_PREPROCESS = NO;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../sonobus/../AAX_SDK_2p3p2/Libs/Release\"",
-					"\"../../deps/mac/lib\"",
-				);
-				LIBRARY_STYLE = Bundle;
-				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../../VST2_SDK $(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../AAX_SDK_2p3p2 $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF $(SRCROOT)/../../deps $(SRCROOT)/../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/mac/include $(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-bundle -lAAXLibrary_libcpp -lSonoBus -lopus";
-				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
-				PRODUCT_NAME = "SonoBus";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
-				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
-				WRAPPER_EXTENSION = aaxplugin;
-			};
-			name = ReleaseVST2;
-		};
 		6D85CB97A9A6A80AD25F9B74 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2188,80 +2038,6 @@
 				WRAPPER_EXTENSION = vst;
 			};
 			name = Release;
-		};
-		9D016303E4D3F73B6931C2E4 /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_LINK_OBJC_RUNTIME = NO;
-				CODE_SIGN_ENTITLEMENTS = "VST3.entitlements";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = XCS435894D;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"_NDEBUG=1",
-					"NDEBUG=1",
-					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.5-45\\\"",
-					"DONT_USE_MULTIBUS",
-					"USE_CODEC_OPUS=1",
-					"AOO_TIMEFILTER_CHECK=0",
-					"AOO_STATIC",
-					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.5",
-					"JUCE_APP_VERSION_HEX=0x10305",
-					"JucePlugin_Build_VST=0",
-					"JucePlugin_Build_VST3=1",
-					"JucePlugin_Build_AU=0",
-					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
-					"JucePlugin_Build_AAX=0",
-					"JucePlugin_Build_Standalone=0",
-					"JucePlugin_Build_Unity=0",
-				);
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"$(SRCROOT)/../../../VST2_SDK",
-					"$(SRCROOT)/../../JuceLibraryCode",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF",
-					"$(SRCROOT)/../../deps",
-					"$(SRCROOT)/../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/mac/include",
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = Info-VST3.plist;
-				INFOPLIST_PREPROCESS = NO;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"../../deps/mac/lib\"",
-				);
-				LIBRARY_STYLE = Bundle;
-				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../../VST2_SDK $(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../AAX_SDK_2p3p2 $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF $(SRCROOT)/../../deps $(SRCROOT)/../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/mac/include $(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
-				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
-				PRODUCT_NAME = "SonoBus";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
-				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
-				WRAPPER_EXTENSION = vst3;
-			};
-			name = ReleaseVST2;
 		};
 		9FDD4F7C9AE2FFD4B4516D96 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -2461,199 +2237,6 @@
 				WRAPPER_EXTENSION = aaxplugin;
 			};
 			name = Release;
-		};
-		AE9512B07AA68A55F12F2A4F /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_LINK_OBJC_RUNTIME = NO;
-				CODE_SIGN_ENTITLEMENTS = "VST.entitlements";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = XCS435894D;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"_NDEBUG=1",
-					"NDEBUG=1",
-					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.5-45\\\"",
-					"DONT_USE_MULTIBUS",
-					"USE_CODEC_OPUS=1",
-					"AOO_TIMEFILTER_CHECK=0",
-					"AOO_STATIC",
-					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.5",
-					"JUCE_APP_VERSION_HEX=0x10305",
-					"JucePlugin_Build_VST=1",
-					"JucePlugin_Build_VST3=0",
-					"JucePlugin_Build_AU=0",
-					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
-					"JucePlugin_Build_AAX=0",
-					"JucePlugin_Build_Standalone=0",
-					"JucePlugin_Build_Unity=0",
-				);
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"$(SRCROOT)/../../../VST2_SDK",
-					"$(SRCROOT)/../../JuceLibraryCode",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF",
-					"$(SRCROOT)/../../deps",
-					"$(SRCROOT)/../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/mac/include",
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = Info-VST.plist;
-				INFOPLIST_PREPROCESS = NO;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"../../deps/mac/lib\"",
-				);
-				LIBRARY_STYLE = Bundle;
-				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../../VST2_SDK $(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../AAX_SDK_2p3p2 $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF $(SRCROOT)/../../deps $(SRCROOT)/../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/mac/include $(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-bundle -lSonoBus -lopus";
-				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
-				PRODUCT_NAME = "SonoBus";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
-				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
-				WRAPPER_EXTENSION = vst;
-			};
-			name = ReleaseVST2;
-		};
-		B0B2BA9CBD7DEE58AC9A4E8B /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = NO;
-				GCC_C_LANGUAGE_STANDARD = c11;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
-				GCC_WARN_MISSING_PARENTHESES = YES;
-				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
-				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				PRODUCT_NAME = "SonoBus";
-				SDKROOT = macosx;
-				WARNING_CFLAGS = "-Wreorder";
-				ZERO_LINK = NO;
-			};
-			name = ReleaseVST2;
-		};
-		C531D48857F3A1B8A901A51D /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_LINK_OBJC_RUNTIME = NO;
-				CODE_SIGN_ENTITLEMENTS = "Shared_Code.entitlements";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = XCS435894D;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"_NDEBUG=1",
-					"NDEBUG=1",
-					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.5-45\\\"",
-					"DONT_USE_MULTIBUS",
-					"USE_CODEC_OPUS=1",
-					"AOO_TIMEFILTER_CHECK=0",
-					"AOO_STATIC",
-					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.5",
-					"JUCE_APP_VERSION_HEX=0x10305",
-					"JucePlugin_Build_VST=1",
-					"JucePlugin_Build_VST3=1",
-					"JucePlugin_Build_AU=1",
-					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
-					"JucePlugin_Build_AAX=1",
-					"JucePlugin_Build_Standalone=1",
-					"JucePlugin_Build_Unity=0",
-					"JUCE_SHARED_CODE=1",
-				);
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"$(SRCROOT)/../../../VST2_SDK",
-					"$(SRCROOT)/../../JuceLibraryCode",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF",
-					"$(SRCROOT)/../../deps",
-					"$(SRCROOT)/../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/mac/include",
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client",
-					"$(inherited)",
-				);
-				INSTALL_PATH = "@executable_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"../../deps/mac/lib\"",
-				);
-				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../../VST2_SDK $(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../AAX_SDK_2p3p2 $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF $(SRCROOT)/../../deps $(SRCROOT)/../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/mac/include $(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client";
-				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
-				PRODUCT_NAME = "SonoBus";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
-				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
-				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
-			};
-			name = ReleaseVST2;
 		};
 		D15702654BFDC20A2BFB72CD /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -2875,85 +2458,6 @@
 			};
 			name = Debug;
 		};
-		F50B9B9F6781C5B45808E3DA /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_LINK_OBJC_RUNTIME = NO;
-				CODE_SIGN_ENTITLEMENTS = "Standalone_Plugin.entitlements";
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = XCS435894D;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"_NDEBUG=1",
-					"NDEBUG=1",
-					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.5-45\\\"",
-					"DONT_USE_MULTIBUS",
-					"USE_CODEC_OPUS=1",
-					"AOO_TIMEFILTER_CHECK=0",
-					"AOO_STATIC",
-					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.5",
-					"JUCE_APP_VERSION_HEX=0x10305",
-					"JucePlugin_Build_VST=0",
-					"JucePlugin_Build_VST3=0",
-					"JucePlugin_Build_AU=0",
-					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
-					"JucePlugin_Build_AAX=0",
-					"JucePlugin_Build_Standalone=1",
-					"JucePlugin_Build_Unity=0",
-				);
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK",
-					"$(SRCROOT)/../../../VST2_SDK",
-					"$(SRCROOT)/../../JuceLibraryCode",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces",
-					"$(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF",
-					"$(SRCROOT)/../../deps",
-					"$(SRCROOT)/../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/mac/include",
-					"$(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = Info-Standalone_Plugin.plist;
-				INFOPLIST_PREPROCESS = NO;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"../../deps/mac/lib\"",
-				);
-				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../../VST2_SDK $(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../AAX_SDK_2p3p2 $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces $(SRCROOT)/../../../AAX_SDK_2p3p2/Interfaces/ACF $(SRCROOT)/../../deps $(SRCROOT)/../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/mac/include $(SRCROOT)/../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-lSonoBus -lopus";
-				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
-				PRODUCT_NAME = "SonoBus";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
-				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
-			};
-			name = ReleaseVST2;
-		};
-		FE12AEBC3E87CED98003CFE1 /* ReleaseVST2 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				SDKROOT = macosx;
-			};
-			name = ReleaseVST2;
-		};
 		FF0B755F5A9B7F9E15C08054 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2970,7 +2474,6 @@
 			buildConfigurations = (
 				F1E85BC404B8980052397A27,
 				229D671E28C9FE9D3542B8CE,
-				C531D48857F3A1B8A901A51D,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -2980,7 +2483,6 @@
 			buildConfigurations = (
 				0A3B6852BCAF5775540D0C29,
 				AB01FF4B076564FB44CDD2A9,
-				5969E1BD415BEEB191EB15C8,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -2990,7 +2492,6 @@
 			buildConfigurations = (
 				FF0B755F5A9B7F9E15C08054,
 				3416330335B5076E6A11B97F,
-				FE12AEBC3E87CED98003CFE1,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -3000,7 +2501,6 @@
 			buildConfigurations = (
 				AA0623DB2DB971AEDA09FABE,
 				754D267424950EF746574102,
-				AE9512B07AA68A55F12F2A4F,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -3010,7 +2510,6 @@
 			buildConfigurations = (
 				D738F50ABB7BA739DE5D203E,
 				3F6AE77E52A78D4717EC1A63,
-				9D016303E4D3F73B6931C2E4,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -3020,7 +2519,6 @@
 			buildConfigurations = (
 				29ED496620AE3A6C4081BE13,
 				D15702654BFDC20A2BFB72CD,
-				1702F93D9EA98C8D4FE0D7B3,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -3030,7 +2528,6 @@
 			buildConfigurations = (
 				6D85CB97A9A6A80AD25F9B74,
 				9FDD4F7C9AE2FFD4B4516D96,
-				B0B2BA9CBD7DEE58AC9A4E8B,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -3040,7 +2537,6 @@
 			buildConfigurations = (
 				39DE48A1C9BF910DEF8AE1B7,
 				04677A07B526CB738D3BA71E,
-				F50B9B9F6781C5B45808E3DA,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

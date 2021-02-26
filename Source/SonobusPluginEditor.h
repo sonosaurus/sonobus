@@ -143,6 +143,9 @@ public:
     void handleURL(const String & urlstr);
     
 
+    ChannelGroupsView * getInputChannelGroupsView() { return mInputChannelsContainer.get(); }
+    PeersContainerView * getPeersContainerView() { return mPeerContainer.get(); }
+
     // if returns true signifies go ahead and quit now, otherwise we'll handle it
     bool requestedQuit();
 
@@ -466,12 +469,12 @@ private:
 
     int inChannels = 0;
     int outChannels = 0;
-    
+
     String currGroup;
     bool  currConnected = false;
     
     bool mSendChannelsOverridden = false;
-    
+
     bool mPushToTalkKeyDown = false;
     bool mPushToTalkWasMuted = true;
     

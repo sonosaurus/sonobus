@@ -103,7 +103,7 @@ void ChannelGroup::init(double sampleRate)
     commitLimiterParams();
 }
 
-void ChannelGroup::processBlock (AudioBuffer<float>& buffer, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor)
+void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor)
 {
     // called from audio thread context
 
@@ -111,19 +111,26 @@ void ChannelGroup::processBlock (AudioBuffer<float>& buffer, AudioBuffer<float>&
 
     int chstart = chanStartIndex;
     int numchan = numChannels;
-    int bufNumChan = buffer.getNumChannels();
-
+    const int frombufNumChan = frombuffer.getNumChannels();
+    const int tobufNumChan = tobuffer.getNumChannels();
     // apply input gain
 
-    float dogain = (muted ? 0.0f : gain) * gainfactor;
 
-    for (auto i = chstart; i < chstart+numchan && i < bufNumChan; ++i) {
-        if (fabsf(dogain - _lastgain) > 0.00001) {
-            buffer.applyGainRamp(i, 0, numSamples, _lastgain, dogain);
-        } else {
-            buffer.applyGain(i, 0, numSamples, dogain);
+    float dogain = (muted ? 0.0f : gain) * gainfactor;
+    //dogain = 0.0f;
+
+    if (&frombuffer == &tobuffer) {
+        // inplace, just apply gain, ignore destchans
+        for (int i = chstart; i < chstart+numchan && i < frombufNumChan ; ++i) {
+            tobuffer.applyGainRamp(i, 0, numSamples, _lastgain, dogain);
         }
     }
+    else {
+        for (int i = chstart, desti=destStartChan; i < chstart+numchan && i < frombufNumChan && desti < destStartChan+destNumChans && desti < tobufNumChan; ++i, ++desti) {
+            tobuffer.addFromWithRamp(desti, 0, frombuffer.getReadPointer(i), numSamples, _lastgain, dogain);
+        }
+    }
+
 
     _lastgain = dogain;
 
@@ -138,14 +145,12 @@ void ChannelGroup::processBlock (AudioBuffer<float>& buffer, AudioBuffer<float>&
         expanderParamsChanged = false;
     }
     if (_lastExpanderEnabled || expanderParams.enabled) {
-        if (bufNumChan - chstart > 1 && numchan == 2) {
-            float *tmpbuf[2] = { buffer.getWritePointer(chstart), buffer.getWritePointer(chstart+1) };
-            expander.compute(numSamples, tmpbuf, tmpbuf);
-        } else if (chstart < bufNumChan) {
-            float *tmpbuf[2];
-            tmpbuf[0] = buffer.getWritePointer(chstart);
-            tmpbuf[1] = silentBuffer.getWritePointer(0); // just a silent dummy buffer
-            expander.compute(numSamples, tmpbuf, tmpbuf);
+        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
+            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+            expander.compute(numSamples, bufs, bufs);
+        } else if (destStartChan < tobufNumChan) {
+            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
+            expander.compute(numSamples, bufs, bufs);
         }
     }
     _lastExpanderEnabled = expanderParams.enabled;
@@ -157,14 +162,12 @@ void ChannelGroup::processBlock (AudioBuffer<float>& buffer, AudioBuffer<float>&
         compressorParamsChanged = false;
     }
     if (_lastCompressorEnabled || compressorParams.enabled) {
-        if (bufNumChan - chstart > 1 && numchan == 2) {
-            float *tmpbuf[2] = { buffer.getWritePointer(chstart), buffer.getWritePointer(chstart+1) };
-            compressor.compute(numSamples, tmpbuf, tmpbuf);
-        } else if (chstart < bufNumChan) {
-            float *tmpbuf[2];
-            tmpbuf[0] = buffer.getWritePointer(chstart);
-            tmpbuf[1] = silentBuffer.getWritePointer(0); // just a silent dummy buffer
-            compressor.compute(numSamples, tmpbuf, tmpbuf);
+        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
+            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+            compressor.compute(numSamples, bufs, bufs);
+        } else if (destStartChan < tobufNumChan) {
+            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
+            compressor.compute(numSamples, bufs, bufs);
         }
     }
     _lastCompressorEnabled = compressorParams.enabled;
@@ -176,15 +179,15 @@ void ChannelGroup::processBlock (AudioBuffer<float>& buffer, AudioBuffer<float>&
         eqParamsChanged = false;
     }
     if (_lastEqEnabled || eqParams.enabled) {
-        if (bufNumChan - chstart > 1 && numchan == 2) {
+        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
             // only 2 channels support for now... TODO
-            float *tmpbuf[2] = { buffer.getWritePointer(chstart), buffer.getWritePointer(chstart+1) };
-            eq[0].compute(numSamples, &tmpbuf[0], &tmpbuf[0]);
-            eq[1].compute(numSamples, &tmpbuf[1], &tmpbuf[1]);
-        } else if (chstart < bufNumChan) {
-            float *tmpbuf[2];
-            tmpbuf[0] = buffer.getWritePointer(chstart);
-            eq[0].compute(numSamples, &tmpbuf[0], &tmpbuf[0]);
+            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+            eq[0].compute(numSamples, &bufs[0], &bufs[0]);
+            eq[1].compute(numSamples, &bufs[1], &bufs[1]);
+        } else if (destStartChan < tobufNumChan) {
+            float *inbuf = frombuffer.getWritePointer(chstart);
+            float *outbuf = tobuffer.getWritePointer(destStartChan);
+            eq[0].compute(numSamples, &inbuf, &outbuf);
         }
     }
     _lastEqEnabled = eqParams.enabled;
@@ -196,34 +199,33 @@ void ChannelGroup::processBlock (AudioBuffer<float>& buffer, AudioBuffer<float>&
         limiterParamsChanged = false;
     }
     if (_lastLimiterEnabled || limiterParams.enabled) {
-        if (bufNumChan - chstart > 1 && numchan == 2) {
-            float *tmpbuf[2] = { buffer.getWritePointer(chstart), buffer.getWritePointer(chstart+1) };
-            limiter.compute(numSamples, tmpbuf, tmpbuf);
-        } else if (chstart < bufNumChan) {
-            float *tmpbuf[2];
-            tmpbuf[0] = buffer.getWritePointer(chstart);
-            tmpbuf[1] = silentBuffer.getWritePointer(0); // just a silent dummy buffer
-            limiter.compute(numSamples, tmpbuf, tmpbuf);
+        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
+            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+            limiter.compute(numSamples, bufs, bufs);
+        } else if (destStartChan < tobufNumChan) {
+            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
+            limiter.compute(numSamples, bufs, bufs);
         }
     }
     _lastLimiterEnabled = limiterParams.enabled;
 
-
 }
 
-void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor)
+void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor)
 {
     int fromNumChan = frombuffer.getNumChannels();
     int toNumChan = tobuffer.getNumChannels();
 
-    if (frombuffer.getNumChannels() > 0 && destNumChans == 2) {
+    if (fromNumChan == 0) return;
+
+    if (destNumChans == 2) {
         //tobuffer.clear(0, numSamples);
 
         for (int channel = destStartChan; channel < destStartChan + destNumChans && channel < toNumChan; ++channel) {
             int pani = 0;
-            for (int i=chanStartIndex; i < chanStartIndex + numChannels && i < fromNumChan; ++i, ++pani) {
-                const float upan = (numChannels != 2 ? pan[pani] : i==chanStartIndex ? panStereo[0] : panStereo[1]);
-                const float lastpan = (numChannels != 2 ? _lastpan[pani] : i==chanStartIndex ? _laststereopan[0] : _laststereopan[1]);
+            for (int i=fromStartChan; i < fromStartChan + numChannels && i < fromNumChan; ++i, ++pani) {
+                const float upan = (numChannels != 2 ? pan[pani] : i==fromStartChan ? panStereo[0] : panStereo[1]);
+                const float lastpan = (numChannels != 2 ? _lastpan[pani] : i==fromStartChan ? _laststereopan[0] : _laststereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
@@ -244,18 +246,18 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, AudioBuffer<float
             }
         }
     }
-    else if (frombuffer.getNumChannels() > 0 && destNumChans == 1){
+    else if (destNumChans == 1){
         // sum all into destChan
         int channel = destStartChan;
-        for (int srcchan = chanStartIndex; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
+        for (int srcchan = fromStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
 
             tobuffer.addFrom(channel, 0, frombuffer, srcchan, 0, numSamples, gainfactor);
         }
     }
-    else if (frombuffer.getNumChannels() > 0){
+    else {
         // straight thru to dests - no panning
-        int srcchan = chanStartIndex;
-        for (int channel = destStartChan; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+        int srcchan = fromStartChan;
+        for (int channel = destStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
 
@@ -271,7 +273,7 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, AudioBuffer<float
     }
 }
 
-void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor)
+void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor)
 {
 
     // apply monitor level
@@ -286,9 +288,9 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, AudioBuffer<f
 
         for (int channel = destStartChan; channel < destStartChan + destNumChans; ++channel) {
             int pani = 0;
-            for (int i=chanStartIndex; i < chanStartIndex + numChannels && i < fromNumChan; ++i, ++pani) {
-                const float upan = (numChannels != 2 ? pan[pani] : i==chanStartIndex ? panStereo[0] : panStereo[1]);
-                const float lastpan = (numChannels != 2 ? _lastmonpan[pani] : i==chanStartIndex ? _lastmonstereopan[0] : _lastmonstereopan[1]);
+            for (int i=fromStartChan; i < fromStartChan + numChannels && i < fromNumChan; ++i, ++pani) {
+                const float upan = (numChannels != 2 ? pan[pani] : i==fromStartChan ? panStereo[0] : panStereo[1]);
+                const float lastpan = (numChannels != 2 ? _lastmonpan[pani] : i==fromStartChan ? _lastmonstereopan[0] : _lastmonstereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
@@ -312,15 +314,15 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, AudioBuffer<f
     else if (frombuffer.getNumChannels() > 0 && destNumChans == 1){
         // sum all into destChan
         int channel = destStartChan;
-        for (int srcchan = chanStartIndex; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
+        for (int srcchan = fromStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
 
             tobuffer.addFrom(channel, 0, frombuffer, srcchan, 0, numSamples, targmon);
         }
     }
     else if (frombuffer.getNumChannels() > 0){
         // straight thru to dests - no panning
-        int srcchan = chanStartIndex;
-        for (int channel = destStartChan; srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+        int srcchan = fromStartChan;
+        for (int channel = destStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
 //        for (int channel = destStartChan + chanStartIndex; channel < destStartChan + destNumChans && srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;

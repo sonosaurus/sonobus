@@ -12,9 +12,8 @@ MSBuild.exe SonoBus.sln ${ARGS} -t:Rebuild /p:Configuration=Release /p:Platform=
 
 
 # build VST2 with ReleaseVST2
-MSBuild.exe SonoBus_SharedCode.vcxproj ${ARGS}  -t:Rebuild /p:Configuration=ReleaseVST2 /p:Platform=x64
-
-MSBuild.exe SonoBus_VST.vcxproj ${ARGS} -t:Rebuild /p:Configuration=ReleaseVST2 /p:Platform=x64
+#MSBuild.exe SonoBus_SharedCode.vcxproj ${ARGS}  -t:Rebuild /p:Configuration=ReleaseVST2 /p:Platform=x64
+#MSBuild.exe SonoBus_VST.vcxproj ${ARGS} -t:Rebuild /p:Configuration=ReleaseVST2 /p:Platform=x64
 
 
 

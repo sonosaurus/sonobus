@@ -891,6 +891,8 @@ private:
                 // hack to allow editor to get devicemanager
                 if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(editor.get())) {
                     sonoeditor->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
+                    sonoeditor->getInputChannelGroupsView()->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
+                    sonoeditor->getPeersContainerView()->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
                     sonoeditor->isInterAppAudioConnected = [this]() { return owner.pluginHolder->isInterAppAudioConnected();  };
                     sonoeditor->getIAAHostIcon = [this](int size) { return owner.pluginHolder->getIAAHostIcon(size);  };
                     sonoeditor->switchToHostApplication = [this]() { return owner.pluginHolder->switchToHostApplication(); };

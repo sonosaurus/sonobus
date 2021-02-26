@@ -238,7 +238,9 @@ public:
     void applyToAllSliders(std::function<void(Slider *)> & routine);
 
     void updateLayout();
-    
+
+    std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
+
 protected:
     
     void startLatencyTest(int i);

@@ -1153,7 +1153,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //mPublicServerConnectViewport->setViewedComponent(mPublicServerConnectContainer.get());
 
 
-    inChannels = processor.getMainBusNumInputChannels();
+    inChannels = processor.getTotalNumInputChannels(); // processor.getMainBusNumInputChannels();
     outChannels = processor.getMainBusNumOutputChannels();
     
     updateLayout();
@@ -1332,6 +1332,18 @@ void SonobusAudioProcessorEditor::connectionsChanged(ConnectView *comp)
 
 void SonobusAudioProcessorEditor::channelLayoutChanged(ChannelGroupsView *comp)
 {
+    //updateState();
+
+    int sendchval = (int) processor.getSendChannels();
+    mSendChannelsChoice->setSelectedId(sendchval, dontSendNotification);
+    if (sendchval > 0) {
+        inputMeter->setFixedNumChannels(sendchval);
+    } else {
+        inputMeter->setFixedNumChannels(processor.getActiveSendChannelCount());
+    }
+
+    updateLayout();
+
     resized();
 }
 
@@ -1601,8 +1613,9 @@ bool SonobusAudioProcessorEditor::updatePeerState(bool force)
 
 void SonobusAudioProcessorEditor::updateChannelState(bool force)
 {
-    if (force || inChannels != processor.getMainBusNumInputChannels() || outChannels != processor.getMainBusNumOutputChannels()) {
-        inChannels = processor.getMainBusNumInputChannels();
+    //if (force || inChannels != processor.getMainBusNumInputChannels() || outChannels != processor.getMainBusNumOutputChannels()) {
+    if (force || inChannels != processor.getTotalNumInputChannels() || outChannels != processor.getMainBusNumOutputChannels()) {
+        inChannels = processor.getTotalNumInputChannels(); // processor.getMainBusNumInputChannels();
         outChannels = processor.getMainBusNumOutputChannels();
         updateLayout();
         updateState();
@@ -2571,6 +2584,8 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
     else if (event.eventComponent == inputMeter.get()) {
         inputMeter->clearClipIndicator(-1);
         outputMeter->clearClipIndicator(-1);
+        inputMeter->clearMaxLevelDisplay(-1);
+        outputMeter->clearMaxLevelDisplay(-1);
         mPeerContainer->clearClipIndicators();
         if (mInputChannelsContainer) {
             mInputChannelsContainer->clearClipIndicators();
@@ -2579,6 +2594,8 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
     else if (event.eventComponent == outputMeter.get()) {
         outputMeter->clearClipIndicator(-1);
         inputMeter->clearClipIndicator(-1);
+        inputMeter->clearMaxLevelDisplay(-1);
+        outputMeter->clearMaxLevelDisplay(-1);
         mPeerContainer->clearClipIndicators();
         if (mInputChannelsContainer) {
             mInputChannelsContainer->clearClipIndicators();
@@ -2890,7 +2907,8 @@ void SonobusAudioProcessorEditor::updateState()
     if (sendchval > 0) {
         inputMeter->setFixedNumChannels(sendchval);
     } else {
-        inputMeter->setFixedNumChannels(processor.getMainBusNumInputChannels());
+        //inputMeter->setFixedNumChannels(processor.getMainBusNumInputChannels());
+        inputMeter->setFixedNumChannels(processor.getActiveSendChannelCount());
     }
 
     mInputChannelsContainer->rebuildChannelViews();
@@ -3442,8 +3460,8 @@ void SonobusAudioProcessorEditor::updateLayout()
 #endif
 
     // adjust max meterwidth if channel count > 2
-    if (processor.getMainBusNumInputChannels() > 2 && processor.getSendChannels() == 0) {
-        inmeterwidth = 5 * processor.getMainBusNumInputChannels();
+    if (processor.getActiveSendChannelCount() > 2 && processor.getSendChannels() == 0) {
+        inmeterwidth = 5 * processor.getActiveSendChannelCount();
     }
     if (processor.getMainBusNumOutputChannels() > 2) {
         outmeterwidth = 5 * processor.getMainBusNumOutputChannels();

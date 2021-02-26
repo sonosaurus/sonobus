@@ -28,7 +28,7 @@ class Metronome;
 
 
 #define MAX_PEERS 32
-#define MAX_CHANGROUPS 32
+#define MAX_CHANGROUPS 64
 #define DEFAULT_SERVER_PORT 10998
 
 
@@ -143,6 +143,8 @@ public:
     int32 getCurrSamplesPerBlock() const { return currSamplesPerBlock; }
     
     void changeListenerCallback (ChangeBroadcaster* source) override;
+
+    static BusesProperties getDefaultLayout();
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -505,7 +507,9 @@ public:
 
     bool getPatchMatrixValue(int srcindex, int destindex) const;
     void setPatchMatrixValue(int srcindex, int destindex, bool value);
-    
+
+    int getActiveSendChannelCount() const { return mActiveSendChannels; }
+
     foleys::LevelMeterSource & getInputMeterSource() { return inputMeterSource; }
     foleys::LevelMeterSource & getSendMeterSource() { return sendMeterSource; }
     foleys::LevelMeterSource & getOutputMeterSource() { return outputMeterSource; }
@@ -663,6 +667,7 @@ private:
     AudioSampleBuffer inputBuffer;
     AudioSampleBuffer monitorBuffer;
     AudioSampleBuffer inputWorkBuffer;
+    AudioSampleBuffer inputPostBuffer;
     AudioSampleBuffer fileBuffer;
     AudioSampleBuffer metBuffer;
     AudioSampleBuffer mainFxBuffer;
@@ -741,7 +746,9 @@ private:
     
     int lastInputChannels = 0;
     int lastOutputChannels = 0;
-    
+
+    int mActiveSendChannels = 0;
+
     PeerStateCacheMap mPeerStateCacheMap;
     
     // top level meter sources
@@ -783,7 +790,8 @@ private:
     CriticalSection  mEndpointsLock;
     ReadWriteLock    mCoreLock;
     CriticalSection  mClientLock;
-    
+    CriticalSection  mSourceFormatLock;
+
     OwnedArray<EndpointState> mEndpoints;
     
     OwnedArray<RemotePeer> mRemotePeers;

@@ -2153,7 +2153,9 @@ void PeersContainerView::clearClipIndicators()
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         pvf->recvMeter->clearClipIndicator(-1);
+        pvf->recvMeter->clearMaxLevelDisplay(-1);
         pvf->channelGroups->clearClipIndicators();
+
     }
 }
 

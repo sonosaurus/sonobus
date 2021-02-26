@@ -17,11 +17,11 @@ struct GenericItemChooserItem
     };
 
     GenericItemChooserItem() : image(Image()) {}
-    GenericItemChooserItem(const String & name_, const Image & image_=Image(), std::shared_ptr<UserData> udata = nullptr) : name(name_), image(image_), userdata(udata) {}
+    GenericItemChooserItem(const String & name_, const Image & image_=Image(), std::shared_ptr<UserData> udata = nullptr, bool withSeparator=false) : name(name_), image(image_), userdata(udata), separator(withSeparator) {}
     String name;
     Image image;
-
     std::shared_ptr<UserData> userdata;
+    bool separator = false;
 };
 
 class GenericItemChooser : public Component, public ListBoxModel, public Button::Listener
@@ -74,8 +74,15 @@ public:
     void setTag(int tag_) { tag = tag_;}
     int getTag() const { return tag; }
     
-    static CallOutBox& launchPopupChooser(const Array<GenericItemChooserItem> & items, juce::Rectangle<int> targetBounds, Component * targetComponent, GenericItemChooser::Listener * listener, int tag = 0, int selectedIndex=-1, int maxheight=0);
-    
+    static CallOutBox& launchPopupChooser(const Array<GenericItemChooserItem> & items, juce::Rectangle<int> targetBounds, Component * targetComponent, GenericItemChooser::Listener * listener, int tag = 0, int selectedIndex=-1, int maxheight=0, bool dismissSel=true);
+
+    static CallOutBox& launchPopupChooser(const Array<GenericItemChooserItem> & items, juce::Rectangle<int> targetBounds, Component * targetComponent, std::function<void (GenericItemChooser* chooser,int index)> onSelectedFunction, int selectedIndex=-1, int maxheight=0, bool dismissSel=true);
+
+
+    std::function<void (GenericItemChooser* chooser,int index)> onSelected;
+
+    bool dismissOnSelected = true;
+
 private:
     
     int  getAutoWidth();

@@ -5,7 +5,9 @@
               pluginFormats="buildAAX,buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
               pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.5-45&quot;"
               pluginDesc="SonoBus - Network Audio" version="1.3.5" cppLanguageStandard="17"
-              projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'">
+              projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aumf'"
+              pluginCharacteristicsValue="pluginProducesMidiOut,pluginWantsMidiIn"
+              pluginAAXCategory="0" pluginVST3Category="Network">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
       <GROUP id="{81488E5D-9CA2-F73A-62B1-4376F46E70B1}" name="aoo">
@@ -299,9 +301,6 @@
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"
                        enablePluginBinaryCopyStep="0"/>
-        <CONFIGURATION isDebug="0" name="ReleaseVST2" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
-                       libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"
-                       defines="DONT_USE_MULTIBUS" enablePluginBinaryCopyStep="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="deps/juce/modules"/>
@@ -330,8 +329,6 @@
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
                        defines="LOGLEVEL=2"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"/>
-        <CONFIGURATION isDebug="0" name="ReleaseVST2" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
-                       defines="DONT_USE_MULTIBUS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
@@ -362,10 +359,6 @@
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
                        vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;"/>
-        <CONFIGURATION isDebug="0" name="ReleaseVST2" libraryPath="..\..\deps\windows\Release"
-                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
-                       useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
-                       vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;" defines="DONT_USE_MULTIBUS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
@@ -394,7 +387,7 @@
                    androidTargetSDK="29" androidDependencies="implementation 'androidx.appcompat:appcompat:1.0.2'"
                    androidKeyStore="${user.home}/.android/sonoupload.keystore" androidKeyStorePass="${sonoupload_keystore_password}"
                    androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
-                   androidTheme="@android:style/Theme.NoTitleBar">
+                   androidTheme="@android:style/Theme.NoTitleBar" androidCustomAppBuildGradleContent="ndkVersion &quot;22.0.7026061&quot;">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/android&#10;"
                        libraryPath="../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>

@@ -101,7 +101,7 @@ public:
     
     //void updateLayout();
 
-    bool linked = false;
+    bool showDivider = false;
 
     SonoBigTextLookAndFeel smallLnf;
     SonoBigTextLookAndFeel medLnf;
@@ -122,6 +122,7 @@ public:
     std::unique_ptr<Label>  panLabel;
     std::unique_ptr<Slider> panSlider;
     std::unique_ptr<SonoDrawableButton> linkButton;
+    std::unique_ptr<SonoDrawableButton> monoButton;
     std::unique_ptr<SonoDrawableButton> destButton;
 
 
@@ -202,7 +203,7 @@ public:
 
     int getGroupViewsCount() const { return mChannelViews.size(); }
 
-    void rebuildChannelViews();
+    void rebuildChannelViews(bool notify=false);
     void updateChannelViews(int specific=-1);
     
     void setNarrowMode(bool flag, bool update=false) { if (isNarrow != flag) { isNarrow = flag; if (update) { updateLayout(); resized(); }} }
@@ -224,6 +225,10 @@ public:
 
     void updateLayout(bool notify=true);
 
+
+    std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
+
+
 protected:
 
     void configLevelSlider(Slider * slider, bool monmode=false);    
@@ -233,7 +238,11 @@ protected:
     void updateInputModeChannelViews(int specific=-1);
     void updatePeerModeChannelViews(int specific=-1);
 
-    void linkButtonPressed(int index, bool newlinkstate);
+    void linkButtonPressed(Component *src, int index, bool newlinkstate);
+
+    void addGroupPressed();
+    void clearGroupsPressed();
+    void showChangeGroupChannels(int changroup, Component * showfrom);
 
 
     ChannelGroupView * createChannelGroupView(bool first=false);
@@ -242,6 +251,8 @@ protected:
     void showEffects(int index, bool flag, Component * fromView=nullptr);
 
     int getChanGroupFromIndex(int index);
+
+    SonoBigTextLookAndFeel addLnf;
 
 
     ListenerList<Listener> listeners;
@@ -253,6 +264,8 @@ protected:
 
 
     std::unique_ptr<Slider> mInGainSlider;
+    std::unique_ptr<TextButton> mAddButton;
+    std::unique_ptr<TextButton> mClearButton;
 
 
     std::unique_ptr<BubbleMessageComponent> popTip;
@@ -260,6 +273,7 @@ protected:
     WeakReference<Component> effectsCalloutBox;
 
     FlexBox channelsBox;
+    FlexBox addrowBox;
     int channelMinHeight = 60;
     int channelMinWidth = 400;
     int mEstimatedWidth = 0;
