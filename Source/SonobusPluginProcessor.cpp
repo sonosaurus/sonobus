@@ -229,7 +229,7 @@ struct SonobusAudioProcessor::RemotePeer {
     std::unique_ptr<MTDM> latencyProcessor;
     std::unique_ptr<LatencyMeasurer> latencyMeasurer;
 
-    //float gain = 1.0f;
+    float gain = 1.0f;
 
     float buffertimeMs = 0.0f;
     AutoNetBufferMode  autosizeBufferMode = AutoNetBufferModeAutoFull;
@@ -252,7 +252,7 @@ struct SonobusAudioProcessor::RemotePeer {
     float recvPan[MAX_PANNERS];
     float recvStereoPan[MAX_PANNERS]; // only use 2
     // runtime state
-    //float _lastgain = 0.0f;
+    float _lastgain = 0.0f;
     bool connected = false;
     String userName;
     String groupName;
@@ -282,6 +282,7 @@ struct SonobusAudioProcessor::RemotePeer {
     // metering
     foleys::LevelMeterSource sendMeterSource;
     foleys::LevelMeterSource recvMeterSource;
+    bool viewExpanded = false;
 
     // channel groups
     SonoAudio::ChannelGroup chanGroups[MAX_CHANGROUPS];
@@ -2415,7 +2416,14 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                         peer->recvMeterSource.resize (peer->recvChannels, meterRmsWindow);
 
                         // for now all on the first changroup XXX
-                        peer->chanGroups[0].numChannels = peer->recvChannels;
+                        //peer->chanGroups[0].numChannels = peer->recvChannels;
+
+                        for (int cgi=0; cgi < peer->recvChannels; ++cgi) {
+                            peer->chanGroups[cgi].chanStartIndex = cgi;
+                            peer->chanGroups[cgi].numChannels = 1;
+                        }
+                        peer->numChanGroups = peer->recvChannels;
+
 
 
                         /*
@@ -3229,7 +3237,29 @@ int SonobusAudioProcessor::getNumberRemotePeers() const
     return mRemotePeers.size();
 }
 
-void SonobusAudioProcessor::setRemotePeerLevelGain(int index, int changroup, float levelgain)
+void SonobusAudioProcessor::setRemotePeerLevelGain(int index, float levelgain)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->gain = levelgain;
+    }
+}
+
+float SonobusAudioProcessor::getRemotePeerLevelGain(int index) const
+{
+    float levelgain = 0.0f;
+
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        levelgain = remote->gain;
+    }
+    return levelgain;
+}
+
+
+void SonobusAudioProcessor::setRemotePeerChannelGain(int index, int changroup, float levelgain)
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
@@ -3238,7 +3268,7 @@ void SonobusAudioProcessor::setRemotePeerLevelGain(int index, int changroup, flo
     }
 }
 
-float SonobusAudioProcessor::getRemotePeerLevelGain(int index, int changroup) const
+float SonobusAudioProcessor::getRemotePeerChannelGain(int index, int changroup) const
 {
     float levelgain = 0.0f;
     
@@ -3494,6 +3524,29 @@ int SonobusAudioProcessor::getRemotePeerChannelGroupCount(int index) const
         ret = remote->numChanGroups;
     }
     return ret;
+}
+
+bool SonobusAudioProcessor::getRemotePeerViewExpanded(int index) const
+{
+    bool ret = false;
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        ret = remote->viewExpanded;
+    }
+    return ret;
+}
+
+void SonobusAudioProcessor::setRemotePeerViewExpanded(int index, bool expanded)
+{
+    const ScopedReadLock sl (mCoreLock);
+    // could be -1 as index meaning all remote peers
+    for (int i=0; i < mRemotePeers.size(); ++i) {
+        if (index < 0 || index == i) {
+            RemotePeer * remote = mRemotePeers.getUnchecked(i);
+            remote->viewExpanded = expanded;
+        }
+    }
 }
 
 
@@ -4293,7 +4346,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
 
         // default
         retpeer->numChanGroups = 1;
-        retpeer->chanGroups[0].numChannels = 2;
+        retpeer->chanGroups[0].numChannels = 0;
         retpeer->chanGroups[0].gain = mDefUserLevel.get();
 
         findAndLoadCacheForPeer(retpeer);
@@ -5692,7 +5745,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             
             // apply effects
 
-            float usegain = 1.0f; // remote->gain;
+            float usegain = remote->gain;
             bool wasSilent = false;
 
             bool forceSilent = false;
@@ -5703,7 +5756,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 usegain = 0.0f;
                 forceSilent = true;
 
-                if (remote->chanGroups[0]._lastgain <= 0.0f) {
+                if (remote->_lastgain <= 0.0f) {
                     wasSilent = true;
                 }
             }
@@ -5717,22 +5770,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             }
 
             for (auto cgi = 0; cgi < remote->numChanGroups; ++cgi) {
-                remote->chanGroups[cgi].processBlock(remote->workBuffer, remote->workBuffer, remote->chanGroups[cgi].chanStartIndex,  remote->chanGroups[cgi].numChannels, silentBuffer, numSamples, 1.0f);
-            }
-
-            
-#if 0
-
-            
-            // apply wet gain for this to tempbuf
-            if (fabsf(usegain - remote->_lastgain) > 0.00001) {
-                remote->workBuffer.applyGainRamp(0, numSamples, remote->_lastgain, usegain);
-            } else {
-                remote->workBuffer.applyGain(usegain);
+                remote->chanGroups[cgi].processBlock(remote->workBuffer, remote->workBuffer, remote->chanGroups[cgi].chanStartIndex,  remote->chanGroups[cgi].numChannels, silentBuffer, numSamples, usegain);
             }
 
             remote->_lastgain = usegain;
-#endif
+
 
             remote->recvMeterSource.measureBlock (remote->workBuffer);
 

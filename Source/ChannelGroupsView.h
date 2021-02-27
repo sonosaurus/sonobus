@@ -238,7 +238,8 @@ protected:
     void updateInputModeChannelViews(int specific=-1);
     void updatePeerModeChannelViews(int specific=-1);
 
-    void linkButtonPressed(Component *src, int index, bool newlinkstate);
+    void inputButtonPressed(Component *src, int index, bool newlinkstate);
+    void peerChanButtonPressed(Component *src, int index, bool newlinkstate);
 
     void addGroupPressed();
     void clearGroupsPressed();
@@ -258,6 +259,8 @@ protected:
     ListenerList<Listener> listeners;
 
     OwnedArray<ChannelGroupView> mChannelViews;
+    std::unique_ptr<ChannelGroupView> mMainChannelView; // used for peers
+
     SonobusAudioProcessor& processor;
 
     std::unique_ptr<ChannelGroupEffectsView> mEffectsView;

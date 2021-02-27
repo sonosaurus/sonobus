@@ -279,8 +279,11 @@ public:
     
     int getNumberRemotePeers() const;
 
-    void setRemotePeerLevelGain(int index, int changroup, float levelgain);
-    float getRemotePeerLevelGain(int index, int changroup) const;
+    void setRemotePeerLevelGain(int index, float levelgain);
+    float getRemotePeerLevelGain(int index) const;
+
+    void setRemotePeerChannelGain(int index, int changroup, float levelgain);
+    float getRemotePeerChannelGain(int index, int changroup) const;
 
     void setRemotePeerChannelPan(int index, int changroup, int chan, float pan);
     float getRemotePeerChannelPan(int index, int changroup, int chan) const;
@@ -328,7 +331,10 @@ public:
 
     int getRemotePeerActualSendChannelCount(int index) const;
 
-    
+    bool getRemotePeerViewExpanded(int index) const;
+    void setRemotePeerViewExpanded(int index, bool expanded);
+
+
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
 

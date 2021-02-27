@@ -723,6 +723,7 @@ void PeersContainerView::rebuildPeerViews()
         // remove from pending if necessary
         mPendingUsers.erase(username);
 
+        pvf->channelGroups->getAudioDeviceManager = getAudioDeviceManager;
 
         pvf->addAndMakeVisible(pvf->channelGroups.get());
         pvf->channelGroups->setPeerMode(true, i);
@@ -2249,7 +2250,7 @@ void PeersContainerView::sliderValueChanged (Slider* slider)
    for (int i=0; i < mPeerViews.size(); ++i) {
        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
        if (pvf->levelSlider.get() == slider) {
-           processor.setRemotePeerLevelGain(i, 0, pvf->levelSlider->getValue());
+           processor.setRemotePeerChannelGain(i, 0, pvf->levelSlider->getValue());
            break;
        }
        else if (pvf->bufferTimeSlider.get() == slider) {
