@@ -244,6 +244,7 @@ protected:
     void addGroupPressed();
     void clearGroupsPressed();
     void showChangeGroupChannels(int changroup, Component * showfrom);
+    void showChangePeerChannelsLayout(int changroup, Component * showfrom);
 
 
     ChannelGroupView * createChannelGroupView(bool first=false);

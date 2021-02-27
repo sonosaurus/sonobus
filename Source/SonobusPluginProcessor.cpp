@@ -2415,15 +2415,24 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                         peer->oursink->setup(getSampleRate(), currSamplesPerBlock, sinkchan);
                         peer->recvMeterSource.resize (peer->recvChannels, meterRmsWindow);
 
-                        // for now all on the first changroup XXX
-                        //peer->chanGroups[0].numChannels = peer->recvChannels;
+                        // for now if > 2, all on own changroup
 
-                        for (int cgi=0; cgi < peer->recvChannels; ++cgi) {
-                            peer->chanGroups[cgi].chanStartIndex = cgi;
-                            peer->chanGroups[cgi].numChannels = 1;
+                        if (peer->recvChannels > 2) {
+
+                            for (int cgi=0; cgi < peer->recvChannels; ++cgi) {
+                                peer->chanGroups[cgi].chanStartIndex = cgi;
+                                peer->chanGroups[cgi].numChannels = 1;
+                            }
+                            peer->numChanGroups = peer->recvChannels;
                         }
-                        peer->numChanGroups = peer->recvChannels;
+                        else {
+                            peer->chanGroups[0].numChannels = peer->recvChannels;
+                            peer->numChanGroups = 1;
 
+                            if (peer->recvChannels == 1) {
+                                peer->viewExpanded = false;
+                            }
+                        }
 
 
                         /*
@@ -3313,9 +3322,22 @@ void SonobusAudioProcessor::setRemotePeerChannelSoloed(int index, int changroup,
 bool SonobusAudioProcessor::getRemotePeerChannelSoloed(int index, int changroup) const
 {
     const ScopedReadLock sl (mCoreLock);
-    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+    if (index >= 0 && index < mRemotePeers.size()) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        return remote->chanGroups[changroup].soloed;
+        if (changroup < 0) {
+            // check all groups for any soloed
+            bool anysoloed = false;
+            for (int i=0; i < remote->numChanGroups && i < MAX_CHANGROUPS; ++i) {
+                if (remote->chanGroups[i].soloed) {
+                    anysoloed = true;
+                    break;
+                }
+            }
+            return anysoloed;
+        }
+        else if (changroup < MAX_CHANGROUPS) {
+            return remote->chanGroups[changroup].soloed;
+        }
     }
     return false;
 }
@@ -3482,7 +3504,7 @@ bool SonobusAudioProcessor::removeRemotePeerChannelGroup(int index, int atgroup)
         // move any existing ones after up
 
         for (auto i = atgroup + 1; i < MAX_CHANGROUPS; ++i) {
-            remote->chanGroups[i-1] = mInputChannelGroups[i];
+            remote->chanGroups[i-1] = remote->chanGroups[i];
             //mInputChannelGroups[i].chanStartIndex += chcount;
             //mInputChannelGroups[i-1].numChannels = std::max(1, std::min(count, MAX_CHANNELS));
         }

@@ -3177,6 +3177,8 @@
     <None Include="..\..\images\dice_icon_128.png"/>
     <None Include="..\..\images\dots.svg"/>
     <None Include="..\..\images\dots_icon.png"/>
+    <None Include="..\..\images\expand_arrow_active.svg"/>
+    <None Include="..\..\images\expand_arrow_inactive.svg"/>
     <None Include="..\..\images\folder_icon.svg"/>
     <None Include="..\..\images\hear-others.svg"/>
     <None Include="..\..\images\incoming_allowed.svg"/>
@@ -3224,6 +3226,7 @@
     <None Include="..\..\images\speaker.svg"/>
     <None Include="..\..\images\speaker_disabled.svg"/>
     <None Include="..\..\images\triangle_disclosure.svg"/>
+    <None Include="..\..\images\triangle_disclosure_right.svg"/>
     <None Include="..\..\images\urei_main.wav"/>
     <None Include="..\..\Source\wordmaker.g"/>
     <None Include="..\..\images\x_icon.svg"/>

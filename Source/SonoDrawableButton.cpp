@@ -61,11 +61,11 @@ Rectangle<float> SonoDrawableButton::getImageBounds() const
         }
         else if (getStyle() == ImageLeftOfTextLabel)
         {
-            r = r.withTrimmedRight (proportionOfWidth (fgImageRatio));
+            r = r.withTrimmedRight (proportionOfWidth (1.0f - fgImageRatio));
         }
         else if (getStyle() == ImageRightOfTextLabel)
         {
-            r = r.withTrimmedLeft (proportionOfWidth (fgImageRatio));
+            r = r.withTrimmedLeft (proportionOfWidth (1.0f - fgImageRatio));
         }
         r = r.reduced (indentX, indentY);
     }

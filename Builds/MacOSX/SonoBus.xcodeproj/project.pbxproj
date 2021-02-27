@@ -132,6 +132,7 @@
 		07428057259ADC986FCBC931 /* faustParametricEQ.h */ /* faustParametricEQ.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = faustParametricEQ.h; path = ../../Source/faustParametricEQ.h; sourceTree = SOURCE_ROOT; };
 		074C1C980DFD0F2475D6B0DB /* sonobus_logo_96.png */ /* sonobus_logo_96.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sonobus_logo_96.png; path = ../../images/sonobus_logo_96.png; sourceTree = SOURCE_ROOT; };
 		07AFC24FDD26FBB824C3D8F1 /* mtdm.cc */ /* mtdm.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = mtdm.cc; path = ../../Source/mtdm.cc; sourceTree = SOURCE_ROOT; };
+		08755C5052F378F541709EBA /* expand_arrow_active.svg */ /* expand_arrow_active.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = expand_arrow_active.svg; path = ../../images/expand_arrow_active.svg; sourceTree = SOURCE_ROOT; };
 		092E4789A9BC36D31E1349C3 /* skipback_icon.svg */ /* skipback_icon.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = skipback_icon.svg; path = ../../images/skipback_icon.svg; sourceTree = SOURCE_ROOT; };
 		0A97D7C9E0BA4DFC374FDE98 /* power.svg */ /* power.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = power.svg; path = ../../images/power.svg; sourceTree = SOURCE_ROOT; };
 		0AA9729AFEB32A0246FAD80B /* include_juce_audio_plugin_client_VST_utils.mm */ /* include_juce_audio_plugin_client_VST_utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_plugin_client_VST_utils.mm; path = ../../JuceLibraryCode/include_juce_audio_plugin_client_VST_utils.mm; sourceTree = SOURCE_ROOT; };
@@ -267,6 +268,7 @@
 		87CF351A706A79198B448712 /* link_all.svg */ /* link_all.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = link_all.svg; path = ../../images/link_all.svg; sourceTree = SOURCE_ROOT; };
 		889E7D3C43AA2B239037F8AC /* localized_es.txt */ /* localized_es.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = localized_es.txt; path = ../../localization/localized_es.txt; sourceTree = SOURCE_ROOT; };
 		89CF67A82AEB481A256E036C /* BeatToggleGrid.cpp */ /* BeatToggleGrid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BeatToggleGrid.cpp; path = ../../Source/BeatToggleGrid.cpp; sourceTree = SOURCE_ROOT; };
+		8B99100DF3411FD71C81019B /* triangle_disclosure_right.svg */ /* triangle_disclosure_right.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = triangle_disclosure_right.svg; path = ../../images/triangle_disclosure_right.svg; sourceTree = SOURCE_ROOT; };
 		8CDC178271AB7A7B3C287B09 /* OscReceivedElements.h */ /* OscReceivedElements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscReceivedElements.h; path = ../../deps/aoo/deps/oscpack/osc/OscReceivedElements.h; sourceTree = SOURCE_ROOT; };
 		8D5C8B4A9BF937F9E03BEAAD /* Info-AU.plist */ /* Info-AU.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info-AU.plist"; path = "Info-AU.plist"; sourceTree = SOURCE_ROOT; };
 		8E8234218E2E7F7AE98839FE /* OscTypes.cpp */ /* OscTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OscTypes.cpp; path = ../../deps/aoo/deps/oscpack/osc/OscTypes.cpp; sourceTree = SOURCE_ROOT; };
@@ -283,6 +285,7 @@
 		949DB97D0F113A2C35D48D5F /* GenericItemChooser.h */ /* GenericItemChooser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericItemChooser.h; path = ../../Source/GenericItemChooser.h; sourceTree = SOURCE_ROOT; };
 		95F69764BC438E2CB0B661CE /* RunCumulantor.h */ /* RunCumulantor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RunCumulantor.h; path = ../../Source/RunCumulantor.h; sourceTree = SOURCE_ROOT; };
 		972EB5B8FE78BF8EFB14F886 /* md5.c */ /* md5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = md5.c; path = ../../deps/aoo/deps/md5/md5.c; sourceTree = SOURCE_ROOT; };
+		97DF157D7605811B5EEE0BBC /* expand_arrow_inactive.svg */ /* expand_arrow_inactive.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = expand_arrow_inactive.svg; path = ../../images/expand_arrow_inactive.svg; sourceTree = SOURCE_ROOT; };
 		9973C64408C202CE51B830EC /* aoo.h */ /* aoo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = aoo.h; path = ../../deps/aoo/lib/aoo/aoo.h; sourceTree = SOURCE_ROOT; };
 		9A7EAB5145EA1D51837DCE05 /* LatencyMeasurer.cpp */ /* LatencyMeasurer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LatencyMeasurer.cpp; path = ../../Source/LatencyMeasurer.cpp; sourceTree = SOURCE_ROOT; };
 		9BA7461DDEFC688994DECDAF /* time.cpp */ /* time.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = time.cpp; path = ../../deps/aoo/lib/src/time.cpp; sourceTree = SOURCE_ROOT; };
@@ -800,6 +803,8 @@
 				194E42EA4D12D016298D0153,
 				5D7CD864B0AA14FA5A453FBA,
 				F8808E7CAE7F7FAF07A9DF5A,
+				08755C5052F378F541709EBA,
+				97DF157D7605811B5EEE0BBC,
 				0E57FE0606A4F6276938756B,
 				A78E8C990F01A431A1997B88,
 				112CAD1CA90550E343D1A6CE,
@@ -847,6 +852,7 @@
 				6706FA685F09B264D07384CE,
 				9F065C49ED17409BB2B2CA20,
 				3CA5320CE1922585FBEB602B,
+				8B99100DF3411FD71C81019B,
 				1905894A57C4F7CCFEC984DE,
 				05B0C41347FC0115D9494A6D,
 				AEB2DDBB2BEA9870912C1E70,

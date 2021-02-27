@@ -86,6 +86,10 @@
             file="images/dice_icon_128.png"/>
       <FILE id="wSd24I" name="dots.svg" compile="0" resource="1" file="images/dots.svg"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
+      <FILE id="yCKT31" name="expand_arrow_active.svg" compile="0" resource="1"
+            file="images/expand_arrow_active.svg"/>
+      <FILE id="qPAYdx" name="expand_arrow_inactive.svg" compile="0" resource="1"
+            file="images/expand_arrow_inactive.svg"/>
       <FILE id="zGzv4L" name="folder_icon.svg" compile="0" resource="1" file="images/folder_icon.svg"/>
       <FILE id="Ef5mFO" name="hear-others.svg" compile="0" resource="1" file="images/hear-others.svg"/>
       <FILE id="esS2r1" name="incoming_allowed.svg" compile="0" resource="1"
@@ -159,6 +163,8 @@
             file="images/speaker_disabled.svg"/>
       <FILE id="LQviC0" name="triangle_disclosure.svg" compile="0" resource="1"
             file="images/triangle_disclosure.svg"/>
+      <FILE id="tGsCp7" name="triangle_disclosure_right.svg" compile="0"
+            resource="1" file="images/triangle_disclosure_right.svg"/>
       <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>

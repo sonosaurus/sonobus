@@ -5636,6 +5636,12 @@
     <None Include="..\..\images\dots_icon.png">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\expand_arrow_active.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\expand_arrow_inactive.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\folder_icon.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
@@ -5775,6 +5781,9 @@
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\triangle_disclosure.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\triangle_disclosure_right.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\urei_main.wav">
