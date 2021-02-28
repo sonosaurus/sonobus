@@ -5850,8 +5850,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
         
         tempBuffer.clear(0, numSamples);
-        mixBuffer.clear(0, numSamples);
-
+        
         int rindex = 0;
         
         for (auto & remote : mRemotePeers) 
@@ -5989,7 +5988,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 float adjgain = anysubsolo && !remote->chanGroups[i].soloed ? 0.0f : tgain;
                 // todo change dest ch target
                 int dstch = remote->chanGroups[i].panDestStartIndex;
-                int dstcnt = jmin(totalOutputChannels - destch, remote->chanGroups[i].panDestChannels);
+                int dstcnt = jmin(totalOutputChannels, remote->chanGroups[i].panDestChannels);
                 remote->chanGroups[i].processPan(remote->workBuffer, remote->chanGroups[i].chanStartIndex, tempBuffer, dstch, dstcnt, numSamples, adjgain);
             }
 
