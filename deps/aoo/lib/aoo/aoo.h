@@ -354,7 +354,11 @@ typedef enum aoo_option
     // For sources, respect codec change requests from a sink : (int32_t) 0 or 1
     // ---
     // If > 0 the source will change its codec immediately when requested to by a remote sink
-    aoo_opt_respect_codec_change_requests
+    aoo_opt_respect_codec_change_requests,
+    // For sources, send an optional userformat blob along with the format messages
+    // ---
+    // Could be used for any purpose (channel layouts, labels, etc)
+    aoo_opt_userformat
 } aoo_option;
 
 #define AOO_ARG(x) &x, sizeof(x)

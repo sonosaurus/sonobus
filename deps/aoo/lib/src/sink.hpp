@@ -158,6 +158,8 @@ public:
     
     int32_t get_buffer_fill_ratio(float &ratio);
 
+    int32_t get_userformat(char * buf, int32_t size);
+
     int32_t get_current_salt() const { return salt_; }
     
     void set_protocol_flags(int32_t flags) { protocol_flags_ = flags; }
@@ -166,7 +168,7 @@ public:
     void update(const sink& s);
 
     int32_t handle_format(const sink& s, int32_t salt, const aoo_format& f,
-                          const char *settings, int32_t size, int32_t version);
+                          const char *settings, int32_t size, int32_t version, const char *userformat=nullptr, int32_t ufsize=0);
 
     int32_t handle_data(const sink& s, int32_t salt,
                                      const aoo::data_packet& d);
@@ -230,6 +232,7 @@ private:
     double samplerate_ = 0; // recent samplerate
     int32_t protocol_flags_ = 0; // protocol flags sent from the remote source
     stream_state streamstate_;
+    std::vector<char> userformat_;
     // queues and buffers
     block_queue blockqueue_;
     block_ack_list ack_list_;

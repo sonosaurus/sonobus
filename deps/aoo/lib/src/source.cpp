@@ -149,6 +149,9 @@ int32_t aoo::source::set_option(int32_t opt, void *ptr, int32_t size)
         CHECKARG(int32_t);
         respect_codec_change_req_ = as<int32_t>(ptr);
         break;
+    // format
+    case aoo_opt_userformat:
+        return set_userformat(ptr, size);
     // unknown
     default:
         LOG_WARNING("aoo_source: unsupported option " << opt);
@@ -800,10 +803,10 @@ void endpoint::send_data_compact(int32_t src, int32_t salt, const aoo::data_pack
     send(msg.Data(), (int32_t)msg.Size());
 }
 
-// /aoo/sink/<id>/format <src> <version> <salt> <numchannels> <samplerate> <blocksize> <codec> <options...>
+// /aoo/sink/<id>/format <src> <version> <salt> <numchannels> <samplerate> <blocksize> <codec> <options...> [<userformat..>]
 
 void endpoint::send_format(int32_t src, int32_t salt, const aoo_format& f,
-                            const char *options, int32_t size) const {
+                            const char *options, int32_t size, const char * userformat, int32_t ufsize) const {
     // call without lock!
     LOG_DEBUG("send format to " << id << " (salt = " << salt << ")");
 
@@ -823,7 +826,13 @@ void endpoint::send_format(int32_t src, int32_t salt, const aoo_format& f,
     }
 
     msg << src << (int32_t)make_version(AOO_PROTOCOL_FLAG_COMPACT_DATA) << salt << f.nchannels << f.samplerate << f.blocksize
-        << f.codec << osc::Blob(options, size) << osc::EndMessage;
+    << f.codec << osc::Blob(options, size);
+
+    if (userformat && ufsize > 0) {
+        msg << osc::Blob(userformat, ufsize);
+    }
+
+    msg << osc::EndMessage;
 
     send(msg.Data(), (int32_t)msg.Size());
 }
@@ -895,6 +904,23 @@ int32_t source::make_salt(){
     std::uniform_int_distribution<int32_t> dist;
     return dist(mt);
 }
+
+int32_t source::set_userformat(void * ptr, int32_t size){
+    unique_lock lock(update_mutex_); // writer lock!
+
+    if (size <= 0) {
+        // clear any user format
+        userformat_.clear();
+    }
+    else {
+        auto cptr = static_cast<char*>(ptr);
+        userformat_.assign(cptr, cptr+size);
+    }
+    update(); // to force format change message
+
+    return 1;
+}
+
 
 // always called with update_mutex_ locked!
 void source::update(){
@@ -989,6 +1015,9 @@ bool source::send_format(){
         return false;
     }
 
+    auto userfmt = !userformat_.empty() ? &*userformat_.begin() : nullptr;
+    int32_t userfmtsize = (int32_t) userformat_.size();
+
     if (format_changed){
         // only copy sinks which require a format update!
         shared_lock sinklock(sink_mutex_);
@@ -1004,7 +1033,7 @@ bool source::send_format(){
         // now we don't hold any lock!
 
         for (int i = 0; i < numsinks; ++i){
-            sinks[i].send_format(id(), salt, fmt, settings, size);
+            sinks[i].send_format(id(), salt, fmt, settings, size, userfmt, userfmtsize);
         }
     }
 
@@ -1012,7 +1041,7 @@ bool source::send_format(){
         while (formatrequestqueue_.read_available()){
             endpoint ep;
             formatrequestqueue_.read(ep);
-            ep.send_format(id(), salt, fmt, settings, size);
+            ep.send_format(id(), salt, fmt, settings, size, userfmt, userfmtsize);
         }
     }
 

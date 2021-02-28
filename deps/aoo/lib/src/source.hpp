@@ -32,7 +32,7 @@ struct endpoint {
     void send_data_compact(int32_t src, int32_t salt, const data_packet& data, bool sendrate=false);
 
     void send_format(int32_t src, int32_t salt, const aoo_format& f,
-                     const char *options, int32_t size) const;
+                     const char *options, int32_t size, const char * userformat = nullptr, int32_t ufsize=0) const;
 
     void send_ping(int32_t src, time_tag t) const;
 
@@ -178,6 +178,7 @@ class source final : public isource {
     std::atomic<float> ping_interval_{ AOO_PING_INTERVAL * 0.001 };
     std::atomic<int32_t> protocol_flags_{ 0 };
     std::atomic<int32_t> respect_codec_change_req_{ 0 };
+    std::vector<char> userformat_;
     // runtime
     double prev_sent_samplerate_ = 0.0;
     std::atomic<int32_t> activeplay_ { 0 };
@@ -189,6 +190,7 @@ class source final : public isource {
     sink_desc * find_sink(void *endpoint, int32_t id);
 
     int32_t set_format(aoo_format& f);
+    int32_t set_userformat(void * ptr, int32_t size);
 
     int32_t make_salt();
 
