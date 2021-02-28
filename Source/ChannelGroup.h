@@ -70,6 +70,8 @@ public:
     int panDestStartIndex = 0; // destination channel index
     int panDestChannels = 2; // destination number of channels
 
+    bool sendMainMix = true; // used for remote peers
+
     float _lastpan[MAX_CHANNELS] = { 0.0f };
     float _laststereopan[2] = { 0.0f };
     float _lastmonpan[MAX_CHANNELS] = { 0.0f };

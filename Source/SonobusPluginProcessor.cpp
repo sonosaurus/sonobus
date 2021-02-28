@@ -3110,7 +3110,7 @@ bool SonobusAudioProcessor::disconnectRemotePeer(int index)
     RemotePeer * remote = 0;
     bool ret = false;
     {
-        const ScopedWriteLock sl (mCoreLock);        
+        const ScopedReadLock sl (mCoreLock);
         
         if (index < mRemotePeers.size()) {
             remote = mRemotePeers.getUnchecked(index);
@@ -3208,7 +3208,9 @@ void SonobusAudioProcessor::adjustRemoteSendMatrix(int index, bool removed)
 
 bool SonobusAudioProcessor::removeAllRemotePeers()
 {
-    const ScopedWriteLock sl (mCoreLock);        
+    const ScopedReadLock sl (mCoreLock);
+
+    OwnedArray<RemotePeer> removed;
 
     for (int index = 0; index < mRemotePeers.size(); ++index) {  
         auto remote = mRemotePeers.getUnchecked(index);
@@ -3218,9 +3220,15 @@ bool SonobusAudioProcessor::removeAllRemotePeers()
         if (remote->connected) {
             disconnectRemotePeer(index);
         }
+
+        removed.add(remote);
     }
 
-    mRemotePeers.clear();
+
+    {
+        const ScopedWriteLock slw (mCoreLock);
+        mRemotePeers.clearQuick(false); // not deleting objects here
+    }
     
     // reset matrix
     for (int i=0; i < MAX_PEERS; ++i) {
@@ -3228,7 +3236,9 @@ bool SonobusAudioProcessor::removeAllRemotePeers()
             mRemoteSendMatrix[i][j] = false;
         }
     }
-    
+
+    // they will be cleaned up when removed list goes out of scope
+
     return true;
 }
 
@@ -3238,8 +3248,8 @@ bool SonobusAudioProcessor::removeRemotePeer(int index)
     RemotePeer * remote = 0;
     bool ret = false;
     {
-        const ScopedWriteLock sl (mCoreLock);        
-        
+        const ScopedReadLock sl (mCoreLock);
+
         if (index < mRemotePeers.size()) {            
             remote = mRemotePeers.getUnchecked(index);
 
@@ -3251,8 +3261,13 @@ bool SonobusAudioProcessor::removeRemotePeer(int index)
                         
             adjustRemoteSendMatrix(index, true);
             
+            std::unique_ptr<RemotePeer> removed(remote);
 
-            mRemotePeers.remove(index);
+            {
+                const ScopedWriteLock slw (mCoreLock);
+                mRemotePeers.remove(index, false); // not deleting in scoped write lock
+            }
+
         }
     }
     
@@ -3464,8 +3479,9 @@ bool SonobusAudioProcessor::getRemotePeerChannelGroupStartAndCount(int index, in
 
         retstart = remote->chanGroups[changroup].chanStartIndex;
         retcount = remote->chanGroups[changroup].numChannels;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 void SonobusAudioProcessor::setRemotePeerChannelGroupDestStartAndCount(int index, int changroup, int start, int count)
@@ -3486,10 +3502,30 @@ bool SonobusAudioProcessor::getRemotePeerChannelGroupDestStartAndCount(int index
 
         retstart = remote->chanGroups[changroup].panDestStartIndex;
         retcount = remote->chanGroups[changroup].panDestChannels;
+        return true;
+    }
+    return false;
+}
+
+void SonobusAudioProcessor::setRemotePeerChannelGroupSendMainMix(int index, int changroup, bool mainmix)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->chanGroups[changroup].sendMainMix = mainmix;
+    }
+}
+
+bool SonobusAudioProcessor::getRemotePeerChannelGroupSendMainMix(int index, int changroup)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+
+        return remote->chanGroups[changroup].sendMainMix;
     }
     return 0;
 }
-
 
 
 bool SonobusAudioProcessor::insertRemotePeerChannelGroup(int index, int atgroup, int chstart, int chcount)
@@ -4343,11 +4379,11 @@ SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeerByLate
 
 SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId, const String & username, const String & groupname)
 {
-    const ScopedWriteLock sl (mCoreLock);        
+    const ScopedReadLock sl (mCoreLock);
 
-    RemotePeer * retpeer = 0;
-
+    RemotePeer * retpeer = nullptr;
     bool doadd = true;
+
     for (auto s : mRemotePeers) {
         if (s->endpoint == endpoint /*&& s->ourId == ourId */) {
             doadd = false;
@@ -4355,7 +4391,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
             break;
         }
     }
-    
+
     
     if (doadd) {
         // find free id
@@ -4375,7 +4411,12 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         
         adjustRemoteSendMatrix(mRemotePeers.size(), false);
 
-        retpeer = mRemotePeers.add(new RemotePeer(endpoint, newid));
+        retpeer = new RemotePeer(endpoint, newid);
+
+        {
+            const ScopedWriteLock slw (mCoreLock);
+            mRemotePeers.add(retpeer);
+        }
 
         retpeer->userName = username;
         retpeer->groupName = groupname;
@@ -4583,10 +4624,12 @@ bool SonobusAudioProcessor::findAndLoadCacheForPeer(RemotePeer * retpeer)
 
 bool SonobusAudioProcessor::removeAllRemotePeersWithEndpoint(EndpointState * endpoint)
 {
-    const ScopedWriteLock sl (mCoreLock);        
+    const ScopedReadLock sl (mCoreLock);
 
     bool didremove = false;
-    
+
+    OwnedArray<RemotePeer> removed;
+
     // go from end, so deletions don't mess it up
     for (int i = mRemotePeers.size()-1; i >= 0;  --i) {
         auto * s = mRemotePeers.getUnchecked(i);
@@ -4601,26 +4644,38 @@ bool SonobusAudioProcessor::removeAllRemotePeersWithEndpoint(EndpointState * end
             commitCacheForPeer(s);
 
             didremove = true;
-            mRemotePeers.remove(i);
+
+            {
+                const ScopedWriteLock slw (mCoreLock);
+
+                removed.add(mRemotePeers.removeAndReturn(i));
+            }
         }
     }
-    
+
+    // remote peers will be deleted when removed list goes out of scope
+
     return didremove;
 }
 
 
 bool SonobusAudioProcessor::doRemoveRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId)
 {
-    const ScopedWriteLock sl (mCoreLock);        
+    const ScopedReadLock sl (mCoreLock);
 
     bool didremove = false;
-    
+    OwnedArray<RemotePeer> removed;
+
     int i=0;
     for (auto s : mRemotePeers) {
         if (s->endpoint == endpoint && s->ourId == ourId) {
             didremove = true;
             commitCacheForPeer(s);
-            mRemotePeers.remove(i);
+
+            {
+                const ScopedWriteLock slw (mCoreLock);
+                removed.add(mRemotePeers.removeAndReturn(i));
+            }
             break;
         }
         ++i;
@@ -5451,6 +5506,9 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
     if (tempBuffer.getNumSamples() < numSamples || tempBuffer.getNumChannels() < maxchans) {
         tempBuffer.setSize(maxchans, numSamples, false, false, true);
     }
+    if (mixBuffer.getNumSamples() < numSamples || mixBuffer.getNumChannels() < maxchans) {
+        mixBuffer.setSize(maxchans, numSamples, false, false, true);
+    }
     if (workBuffer.getNumSamples() < numSamples || workBuffer.getNumChannels() != maxworkbufchans) {
 
         // only grow the work buffer channel count
@@ -5669,7 +5727,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
     }
 
-    int monPanChannels = jmin(inputBuffer.getNumChannels(), mainBusOutputChannels);
+    int monPanChannels = jmin(inputBuffer.getNumChannels(), totalOutputChannels);
     float tmgain = monPanChannels == 1 && mainBusInputChannels > 0 ? (1.0f/std::max(1.0f, (float)(mainBusInputChannels * 0.5f))): 1.0f;
     int srcstart = 0;
     for (auto i = 0; i < mInputChannelGroupCount; ++i)
@@ -5689,9 +5747,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if (selfbus->isEnabled()) {
             int index = getChannelIndexInProcessBlockBuffer(false, OutSelfBusIndex, 0);
             int cnt = getChannelCountOfBus(false, OutSelfBusIndex);
-            for (int i=0; i < cnt; ++i) {
-                int srcchan = i < mainBusInputChannels ? i : mainBusInputChannels - 1;
-                buffer.copyFrom(index+i, 0, inputBuffer, srcchan, 0, numSamples);
+            for (int i=0; i < cnt && i < inputPostBuffer.getNumChannels(); ++i) {
+                int srcchan = i; //  i < mainBusInputChannels ? i : mainBusInputChannels - 1;
+                buffer.copyFrom(index+i, 0, inputPostBuffer, srcchan, 0, numSamples);
             }
         }
     }
@@ -5792,7 +5850,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
         
         tempBuffer.clear(0, numSamples);
-        
+        mixBuffer.clear(0, numSamples);
+
         int rindex = 0;
         
         for (auto & remote : mRemotePeers) 
@@ -5930,7 +5989,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 float adjgain = anysubsolo && !remote->chanGroups[i].soloed ? 0.0f : tgain;
                 // todo change dest ch target
                 int dstch = remote->chanGroups[i].panDestStartIndex;
-                int dstcnt = jmin(mainBusOutputChannels, remote->chanGroups[i].panDestChannels);
+                int dstcnt = jmin(totalOutputChannels - destch, remote->chanGroups[i].panDestChannels);
                 remote->chanGroups[i].processPan(remote->workBuffer, remote->chanGroups[i].chanStartIndex, tempBuffer, dstch, dstcnt, numSamples, adjgain);
             }
 
@@ -6091,7 +6150,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
 #else
     // copy from input buffer with dry gain as-is
-    for (int channel = 0; channel < mainBusOutputChannels; ++channel) {
+    for (int channel = 0; channel < getTotalNumOutputChannels(); ++channel) {
         //int usechan = channel < totalNumInputChannels ? channel : channel > 0 ? channel-1 : 0;
         if (dryrampit) {
             buffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
@@ -6150,7 +6209,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     
     // add from tempBuffer (audio from remote peers)
-    for (int channel = 0; channel < mainBusOutputChannels; ++channel) {
+    for (int channel = 0; channel < totalOutputChannels; ++channel) {
 
         buffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
     }

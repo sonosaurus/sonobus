@@ -313,6 +313,8 @@ public:
     void setRemotePeerChannelGroupDestStartAndCount(int index, int changroup, int start, int count);
     bool getRemotePeerChannelGroupDestStartAndCount(int index, int changroup, int & retstart, int & retcount);
 
+    void setRemotePeerChannelGroupSendMainMix(int index, int changroup, bool mainmix);
+    bool getRemotePeerChannelGroupSendMainMix(int index, int changroup);
 
     bool insertRemotePeerChannelGroup(int index, int atgroup, int chstart, int chcount);
     bool removeRemotePeerChannelGroup(int index, int atgroup);
@@ -678,6 +680,7 @@ private:
 
     
     AudioSampleBuffer tempBuffer;
+    AudioSampleBuffer mixBuffer;
     AudioSampleBuffer workBuffer;
     AudioSampleBuffer inputBuffer;
     AudioSampleBuffer monitorBuffer;

@@ -18,6 +18,7 @@ static String panDestStartKey("pandeststart");
 static String panDestChannelsKey("pandestchans");
 static String monDestStartKey("mondeststart");
 static String monDestChannelsKey("mondestchans");
+static String sendMainMixKey("sendmainmix");
 
 static String stereoPanListKey("StereoPanners");
 
@@ -367,6 +368,8 @@ ValueTree ChannelGroup::getValueTree() const
     channelGroupTree.setProperty(panDestStartKey, panDestStartIndex, nullptr);
     channelGroupTree.setProperty(panDestChannelsKey, panDestChannels, nullptr);
 
+    channelGroupTree.setProperty(sendMainMixKey, sendMainMix, nullptr);
+
     channelGroupTree.setProperty(nameKey, name, nullptr);
 
     ValueTree panListTree(stereoPanListKey);
@@ -404,6 +407,7 @@ void ChannelGroup::setFromValueTree(const ValueTree & channelGroupTree)
     monDestStartIndex = channelGroupTree.getProperty(monDestStartKey, monDestStartIndex);
     monDestChannels = channelGroupTree.getProperty(monDestChannelsKey, monDestChannels);
 
+    sendMainMix = channelGroupTree.getProperty(sendMainMixKey, sendMainMix);
 
     name = channelGroupTree.getProperty(nameKey, name);
 

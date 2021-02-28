@@ -927,6 +927,12 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
                     showEffects(0, false);
                 }
             };
+
+            mMainChannelView->destButton->onClick = [this]() {
+                // when shown it will be for the first one
+                showDestSelectionMenu(mMainChannelView->destButton.get(), 0);
+            };
+
         }
     } else {
         int changroups = processor.getInputGroupCount();
