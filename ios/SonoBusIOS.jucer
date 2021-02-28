@@ -3,7 +3,7 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAUv3,buildStandalone,enableIAA" pluginManufacturerCode="Sono"
-              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.5-45&quot;"
+              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.6-46&quot;"
               pluginDesc="SonoBus - Network Audio" version="1.0.3" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'"
               pluginAUIsSandboxSafe="1">
@@ -85,6 +85,10 @@
             file="../images/dice_icon_128.png"/>
       <FILE id="c8VUXh" name="dots.svg" compile="0" resource="1" file="../images/dots.svg"/>
       <FILE id="FHmMgZ" name="dots_icon.png" compile="0" resource="1" file="../images/dots_icon.png"/>
+      <FILE id="yoZpMQ" name="expand_arrow_active.svg" compile="0" resource="1"
+            file="../images/expand_arrow_active.svg"/>
+      <FILE id="LgWFFR" name="expand_arrow_inactive.svg" compile="0" resource="1"
+            file="../images/expand_arrow_inactive.svg"/>
       <FILE id="POLysK" name="folder_icon.svg" compile="0" resource="1" file="../images/folder_icon.svg"/>
       <FILE id="wCjBZE" name="hear-others.svg" compile="0" resource="1" file="../images/hear-others.svg"/>
       <FILE id="qMD4fK" name="incoming_allowed.svg" compile="0" resource="1"
@@ -153,6 +157,8 @@
             file="../images/speaker_disabled.svg"/>
       <FILE id="ugPUxN" name="triangle_disclosure.svg" compile="0" resource="1"
             file="../images/triangle_disclosure.svg"/>
+      <FILE id="hZVho3" name="triangle_disclosure_right.svg" compile="0"
+            resource="1" file="../images/triangle_disclosure_right.svg"/>
       <FILE id="v307Tj" name="urei_main.wav" compile="0" resource="1" file="../images/urei_main.wav"/>
       <FILE id="yF2qUb" name="wordmaker.g" compile="0" resource="1" file="../Source/wordmaker.g"/>
       <FILE id="t7l3zq" name="x_icon.svg" compile="0" resource="1" file="../images/x_icon.svg"/>
@@ -275,7 +281,7 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_IPHONE targetFolder="../Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;45&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;key&gt;NSLocalNetworkUsageDescription&lt;/key&gt;&#10;&#9;&lt;string&gt;SonoBus uses networking to communicate with other local services&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;46&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;key&gt;NSLocalNetworkUsageDescription&lt;/key&gt;&#10;&#9;&lt;string&gt;SonoBus uses networking to communicate with other local services&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                   extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                   externalLibraries="opus" smallIcon="tb00W2" bigIcon="rlxTrd"
                   UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="images/LaunchScreen.storyboard">

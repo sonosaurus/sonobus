@@ -35,6 +35,12 @@ namespace BinaryData
     extern const char*   dots_icon_png;
     const int            dots_icon_pngSize = 362;
 
+    extern const char*   expand_arrow_active_svg;
+    const int            expand_arrow_active_svgSize = 3072;
+
+    extern const char*   expand_arrow_inactive_svg;
+    const int            expand_arrow_inactive_svgSize = 3098;
+
     extern const char*   folder_icon_svg;
     const int            folder_icon_svgSize = 4871;
 
@@ -161,6 +167,9 @@ namespace BinaryData
     extern const char*   triangle_disclosure_svg;
     const int            triangle_disclosure_svgSize = 3068;
 
+    extern const char*   triangle_disclosure_right_svg;
+    const int            triangle_disclosure_right_svgSize = 3099;
+
     extern const char*   urei_main_wav;
     const int            urei_main_wavSize = 632;
 
@@ -171,7 +180,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 54;
+    const int namedResourceListSize = 57;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

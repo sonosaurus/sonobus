@@ -502,6 +502,9 @@ public:
     int getRemotePeerSendPacketsize(int index) const;
     void setRemotePeerSendPacketsize(int index, int psize);
 
+    void updateAllRemotePeerUserFormats();
+
+
     // danger
     foleys::LevelMeterSource * getRemotePeerRecvMeterSource(int index);
     foleys::LevelMeterSource * getRemotePeerSendMeterSource(int index);
@@ -625,6 +628,8 @@ private:
     void setupSourceFormat(RemotePeer * peer, aoo::isource * source, bool latencymode=false);
     bool formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, aoo_format_storage & retformat);
 
+    void setupSourceUserFormat(RemotePeer * peer, aoo::isource * source);
+
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);
     RemotePeer *  findRemotePeerByEchoId(EndpointState * endpoint, int32_t echoId);
@@ -652,6 +657,10 @@ private:
     void updateRemotePeerSendChannels(int index, RemotePeer * remote);
 
     void setupSourceFormatsForAll();
+    ValueTree getSendUserFormatLayoutTree();
+
+    void applyLayoutFormatToPeer(RemotePeer * remote, const ValueTree & valtree);
+
 
     int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
 

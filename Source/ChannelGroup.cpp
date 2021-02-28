@@ -34,6 +34,8 @@ static String inputChannelGroupsStateKey("InputChannelGroups");
 static String channelGroupStateKey("ChannelGroup");
 static String numChanGroupsKey("numChanGroups");
 
+static String layoutGroupsKey("Layout");
+
 
 using namespace SonoAudio;
 
@@ -504,4 +506,23 @@ void ChannelGroup::commitEqParams()
         eqControl[i].setParamValue("/parametric_eq/high_shelf/gain", eqParams.highShelfGain);
         eqControl[i].setParamValue("/parametric_eq/high_shelf/transition_freq", eqParams.highShelfFreq);
     }
+}
+
+
+ValueTree ChannelGroup::getChannelLayoutValueTree()
+{
+    ValueTree channelGroupTree(layoutGroupsKey);
+
+    channelGroupTree.setProperty(channelStartIndexKey, chanStartIndex, nullptr);
+    channelGroupTree.setProperty(numChannelsKey, numChannels, nullptr);
+    channelGroupTree.setProperty(nameKey, name, nullptr);
+
+    return channelGroupTree;
+}
+
+bool ChannelGroup::setFromChannelLayoutValueTree(const ValueTree & layoutval)
+{
+    chanStartIndex = layoutval.getProperty(channelStartIndexKey, chanStartIndex);
+    numChannels = layoutval.getProperty(numChannelsKey, numChannels);
+    name = layoutval.getProperty(nameKey, name);
 }

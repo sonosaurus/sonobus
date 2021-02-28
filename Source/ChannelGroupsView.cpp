@@ -652,7 +652,17 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->muteButton->setLookAndFeel(&pvf->medLnf);
     pvf->muteButton->setClickingTogglesState(true);
     pvf->muteButton->setColour(TextButton::buttonOnColourId, mutedColor);
-    pvf->muteButton->setTooltip(TRANS("Mute this channel for both sending and monitoring"));
+
+    if (mPeerMode) {
+        if (first) {
+            pvf->muteButton->setTooltip(TRANS("Toggles receive muting, preventing audio from being heard for this user"));
+        }
+        else {
+            pvf->muteButton->setTooltip(TRANS("Toggles receive muting, preventing audio from being heard for this user"));
+        }
+    } else {
+        pvf->muteButton->setTooltip(TRANS("Mute this channel for both sending and monitoring"));
+    }
 
     pvf->soloButton = std::make_unique<TextButton>(TRANS("SOLO"));
     pvf->soloButton->addListener(this);
@@ -661,7 +671,11 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->soloButton->setColour(TextButton::buttonOnColourId, soloColor.withAlpha(0.7f));
     pvf->soloButton->setColour(TextButton::textColourOnId, Colours::darkblue);
     if (mPeerMode) {
-        pvf->soloButton->setTooltip(TRANS("Listen to only this channel for this user"));
+        if (first) {
+            pvf->soloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
+        } else {
+            pvf->soloButton->setTooltip(TRANS("Listen to only this channel for this user"));
+        }
     } else {
         pvf->soloButton->setTooltip(TRANS("Listen to only this channel, does not affect sending"));
     }
@@ -2213,6 +2227,8 @@ void ChannelGroupsView::clearGroupsPressed()
         if (!safeThis) return;
 
         safeThis->processor.setInputGroupCount(0);
+        safeThis->processor.updateAllRemotePeerUserFormats();
+
         safeThis->rebuildChannelViews(true);
     };
 
@@ -2265,6 +2281,7 @@ void ChannelGroupsView::addGroupPressed()
         if (safeThis->processor.insertInputChannelGroup(insAt, chstart, index)) {
             safeThis->processor.setInputGroupChannelDestStartAndCount(insAt, 0, jmin(totalouts, jmax(2, index)));
             safeThis->processor.setInputGroupCount(insAt+1);
+            safeThis->processor.updateAllRemotePeerUserFormats();
             safeThis->rebuildChannelViews(true);
         }
     };
@@ -2312,6 +2329,7 @@ void ChannelGroupsView::showChangeGroupChannels(int changroup, Component * showf
         safeThis->processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
         // just set the new channel count
         safeThis->processor.setInputGroupChannelStartAndCount(changroup, chstart, index);
+        safeThis->processor.updateAllRemotePeerUserFormats();
         safeThis->rebuildChannelViews(true);
     };
 
@@ -2620,6 +2638,7 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
                 int groupcount = safeThis->processor.getInputGroupCount();
                 if (safeThis->processor.removeInputChannelGroup(changroup)) {
                     safeThis->processor.setInputGroupCount(groupcount-1);
+                    safeThis->processor.updateAllRemotePeerUserFormats();
                 }
             }
 
@@ -2649,6 +2668,7 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
             //if (safeThis->processor.getInputGroupName(changroup).isEmpty()) {
             //    safeThis->processor.setInputGroupName(changroup, selitem.name);
             //}
+            safeThis->processor.updateAllRemotePeerUserFormats();
         }
 
         safeThis->updateChannelViews();
@@ -2936,6 +2956,8 @@ void ChannelGroupsView::labelTextChanged (Label* labelThatHasChanged)
 
             if (pvf->nameLabel.get() == labelThatHasChanged) {
                 processor.setInputGroupName(changroup, labelThatHasChanged->getText());
+                processor.updateAllRemotePeerUserFormats();
+
                 break;
             }
         }

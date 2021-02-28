@@ -3374,8 +3374,13 @@ void SonobusAudioProcessorEditor::resized()
 
     Rectangle<int> totbounds = mPeerContainer->getBounds().getUnion(inmixactualbounds);
     //totbounds.setHeight(totbounds.getHeight());
+
+
+    auto viewpos = mMainViewport->getViewPosition();
+
     mMainContainer->setBounds(totbounds);
 
+    mMainViewport->setViewPosition(viewpos);
 
 
 #if JUCE_IOS || JUCE_ANDROID

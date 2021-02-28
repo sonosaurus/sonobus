@@ -94,6 +94,9 @@ static String channelGroupsStateKey("ChannelGroups");
 static String channelGroupStateKey("ChannelGroup");
 static String numChanGroupsKey("numChanGroups");
 
+static String channelLayoutsKey("ChannelLayouts");
+
+
 static String peerStateCacheMapKey("PeerStateCacheMap");
 static String peerStateCacheKey("PeerStateCache");
 static String peerNameKey("name");
@@ -1565,7 +1568,6 @@ bool SonobusAudioProcessor::removeInputChannelGroup(int atgroup)
             //mInputChannelGroups[i].chanStartIndex += chcount;
             //mInputChannelGroups[i-1].numChannels = std::max(1, std::min(count, MAX_CHANNELS));
         }
-
         return true;
     }
     return false;
@@ -2451,6 +2453,23 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                             }
                         }
                          */
+                    }
+
+                    char userfmtdata[1024];
+
+                    int32_t retsize = peer->oursink->get_sourceoption(e->endpoint, e->id, aoo_opt_userformat, userfmtdata, sizeof(userfmtdata));
+                    if (retsize > 0) {
+                        ValueTree tree = ValueTree::readFromData (userfmtdata, retsize);
+
+                        if (tree.isValid()) {
+                            applyLayoutFormatToPeer(peer, tree);
+                        }
+                        else {
+                            DBG("Error parsing userformat");
+                        }
+                    }
+                    else {
+                        DBG("Error getting userformat: " << retsize);
                     }
                     
                     AudioCodecFormatCodec codec = String(f.header.codec) == AOO_CODEC_OPUS ? CodecOpus : CodecPCM;
@@ -3671,6 +3690,8 @@ void SonobusAudioProcessor::updateRemotePeerSendChannels(int index, RemotePeer *
         DBG("Peer " << index << "  has new sendChannel count: " << remote->sendChannels);
         if (remote->oursource) {
             setupSourceFormat(remote, remote->oursource.get());
+            setupSourceUserFormat(remote, remote->oursource.get());
+
             remote->oursource->setup(getSampleRate(), currSamplesPerBlock, remote->sendChannels);
         }
     }
@@ -4393,6 +4414,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->oursource->setup(getSampleRate(), currSamplesPerBlock, retpeer->sendChannels);
         retpeer->oursource->set_buffersize(sendbufsize);
         retpeer->oursource->set_packetsize(retpeer->packetsize);        
+        setupSourceUserFormat(retpeer, retpeer->oursource.get());
 
         setupSourceFormat(retpeer, retpeer->latencysource.get(), true);
         retpeer->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
@@ -4671,6 +4693,87 @@ void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer 
         source->set_format(f.header);        
     }
 }
+
+ValueTree SonobusAudioProcessor::getSendUserFormatLayoutTree()
+{
+    // get userformat from send info
+    ValueTree fmttree(channelLayoutsKey);
+
+    if (mSendChannels.get() == 1 || mSendChannels.get() == 2) {
+        // not multichannel, this is a mixdown
+        ChannelGroup tmpgrp;
+        tmpgrp.chanStartIndex = 0;
+        tmpgrp.numChannels = mSendChannels.get();
+        fmttree.appendChild(tmpgrp.getChannelLayoutValueTree(), nullptr);
+    }
+    else {
+        int chstart = 0;
+        for (int i=0; i < mInputChannelGroupCount; ++i) {
+            ChannelGroup tmpgrp = mInputChannelGroups[i];
+            tmpgrp.chanStartIndex = chstart;
+            fmttree.appendChild(tmpgrp.getChannelLayoutValueTree(), nullptr);
+
+            chstart += tmpgrp.numChannels;
+        }
+    }
+
+    return fmttree;
+}
+
+
+void SonobusAudioProcessor::setupSourceUserFormat(RemotePeer * peer, aoo::isource * source)
+{
+    // get userformat from send info
+    ValueTree fmttree = getSendUserFormatLayoutTree();
+
+    MemoryBlock destData;
+    MemoryOutputStream stream(destData, false);
+
+    DBG("setup source user format data: " << fmttree.toXmlString());
+
+    fmttree.writeToStream(stream);
+
+    source->set_userformat(destData.getData(), (int32_t) destData.getSize());
+}
+
+void SonobusAudioProcessor::updateAllRemotePeerUserFormats()
+{
+    // get userformat from send info
+    ValueTree fmttree = getSendUserFormatLayoutTree();
+
+    MemoryBlock destData;
+    MemoryOutputStream stream(destData, false);
+
+    DBG("format data: " << fmttree.toXmlString());
+
+    fmttree.writeToStream(stream);
+
+    const ScopedReadLock sl (mCoreLock);
+
+    for (auto s : mRemotePeers) {
+        if (s->oursource) {
+            s->oursource->set_userformat(destData.getData(), (int32_t) destData.getSize());
+        }
+    }
+}
+
+
+void SonobusAudioProcessor::applyLayoutFormatToPeer(RemotePeer * remote, const ValueTree & valtree)
+{
+    // apply this valtree to the channelgroups for this peer
+    for (int i=0; i < valtree.getNumChildren(); ++i) {
+        const auto & child = valtree.getChild(i);
+        if (i < MAX_CHANGROUPS) {
+            remote->chanGroups[i].setFromChannelLayoutValueTree(child);
+        }
+    }
+
+    remote->numChanGroups = jmin(valtree.getNumChildren(), MAX_CHANGROUPS);
+
+    DBG("Got layout userformat for peer: " << valtree.toXmlString());
+
+}
+
 
 
 void SonobusAudioProcessor::parameterChanged (const String &parameterID, float newValue)
@@ -5213,6 +5316,8 @@ void SonobusAudioProcessor::setupSourceFormatsForAll()
 
         if (s->oursource) {
             setupSourceFormat(s, s->oursource.get());
+            setupSourceUserFormat(s, s->oursource.get());
+
             s->oursource->setup(sampleRate, currSamplesPerBlock, s->sendChannels);  // todo use inchannels maybe?
             float sendbufsize = jmax(10.0, SENDBUFSIZE_SCALAR * 1000.0f * currSamplesPerBlock / getSampleRate());
             s->oursource->set_buffersize(sendbufsize);
