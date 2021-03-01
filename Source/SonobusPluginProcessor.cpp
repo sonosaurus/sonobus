@@ -494,8 +494,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
         .withInput  ("Aux 5 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withInput  ("Aux 6 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withInput  ("Aux 7 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-        .withInput  ("Aux 8 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-        .withInput  ("Aux 9 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE);
+        .withInput  ("Aux 8 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE);
     }
 
     // outputs
@@ -503,8 +502,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
         // no multi-bus outputs for now for VST2, so it works in OBS
     }
     else {
-        props = props.withOutput ("Self Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
-        .withOutput ("Aux 1 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
+        props = props.withOutput ("Aux 1 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 2 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 3 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 4 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
@@ -5209,32 +5207,18 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     outputMeterSource.resize (outchannels, meterRmsWindow);
     sendMeterSource.resize (totsendchans, meterRmsWindow);
 
-    if (lastInputChannels == 0 || lastOutputChannels == 0) {
+    if (lastInputChannels == 0 || lastOutputChannels == 0 || mInputChannelGroupCount == 0) {
         // first time these are set, do some initialization
 
         lastInputChannels = inchannels;
         lastOutputChannels = outchannels;
 
         if (mInputChannelGroupCount == 0) {
-            /*
-             // initialize it to all separate if inchannels > 2, otherwise one
-            if (inchannels > 2) {
-                mInputChannelGroupCount = inchannels;
-                for (int i=0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
-                    mInputChannelGroups[i].chanStartIndex = i;
-                    mInputChannelGroups[i].numChannels = 1;
-                    mInputChannelGroups[i].monDestStartIndex = 0;
-                    mInputChannelGroups[i].monDestChannels = jmin(2, outchannels);
-                }
-            } else
-             */
-             {
-                mInputChannelGroupCount = 1;
-                mInputChannelGroups[0].chanStartIndex = 0;
-                mInputChannelGroups[0].numChannels = getMainBusNumInputChannels(); // default to only as many channels as the main input bus has
-                mInputChannelGroups[0].monDestStartIndex = 0;
-                mInputChannelGroups[0].monDestChannels = jmin(2, outchannels);
-            }
+            mInputChannelGroupCount = 1;
+            mInputChannelGroups[0].chanStartIndex = 0;
+            mInputChannelGroups[0].numChannels = getMainBusNumInputChannels(); // default to only as many channels as the main input bus has
+            mInputChannelGroups[0].monDestStartIndex = 0;
+            mInputChannelGroups[0].monDestChannels = jmin(2, outchannels);
         }
     }
     else if (lastInputChannels != inchannels || lastOutputChannels != outchannels) {
@@ -5299,9 +5283,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         lastOutputChannels = outchannels;
     }
 
-    if (mInputChannelGroupCount == 0) {
-        mInputChannelGroupCount = inchannels;
-    }
+    //if (mInputChannelGroupCount == 0) {
+    //    mInputChannelGroupCount = inchannels;
+    //}
 
     // can't be more than number of inchannels
     //mInputChannelGroupCount = jmin(inchannels, mInputChannelGroupCount);
@@ -5743,6 +5727,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
 
     // write out self-only output bus XXXX FIXME
+    /*
     if (auto selfbus = getBus(false, OutSelfBusIndex)) {
         if (selfbus->isEnabled()) {
             int index = getChannelIndexInProcessBlockBuffer(false, OutSelfBusIndex, 0);
@@ -5753,7 +5738,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             }
         }
     }
-
+     */
 
     
     // file playback goes to everyone
