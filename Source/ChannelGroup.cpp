@@ -524,7 +524,7 @@ ValueTree ChannelGroup::getChannelLayoutValueTree()
     return channelGroupTree;
 }
 
-bool ChannelGroup::setFromChannelLayoutValueTree(const ValueTree & layoutval)
+void ChannelGroup::setFromChannelLayoutValueTree(const ValueTree & layoutval)
 {
     chanStartIndex = layoutval.getProperty(channelStartIndexKey, chanStartIndex);
     numChannels = layoutval.getProperty(numChannelsKey, numChannels);

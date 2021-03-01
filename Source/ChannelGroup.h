@@ -40,7 +40,7 @@ public:
     String getValueTreeKey() const;
 
     ValueTree getChannelLayoutValueTree();
-    bool setFromChannelLayoutValueTree(const ValueTree & layoutval);
+    void setFromChannelLayoutValueTree(const ValueTree & layoutval);
 
     void commitCompressorParams();
     void commitExpanderParams();
