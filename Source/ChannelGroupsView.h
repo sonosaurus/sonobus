@@ -256,7 +256,7 @@ protected:
     void showEffects(int index, bool flag, Component * fromView=nullptr);
 
     int getChanGroupFromIndex(int index);
-    Rectangle<int> getBoundsForChanGroup(int chgroup);
+    juce::Rectangle<int> getBoundsForChanGroup(int chgroup);
     int getChanGroupForPoint(Point<int> pos, bool inbetween);
 
     SonoBigTextLookAndFeel addLnf;
@@ -300,7 +300,7 @@ protected:
     bool mDraggingActive = false;
     int mDraggingSourceGroup = -1;
     int mDraggingGroupPos = -1;
-    Array< Rectangle<int> > mChanGroupBounds;
+    Array< juce::Rectangle<int> > mChanGroupBounds;
     Image  mDragImage;
     bool mAutoscrolling = false;
 
