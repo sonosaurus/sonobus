@@ -130,6 +130,7 @@ public:
     bool singlePanner = true;
 
     std::unique_ptr<foleys::LevelMeter> meter;
+    std::unique_ptr<foleys::LevelMeter> premeter;
 
     
     FlexBox mainbox;

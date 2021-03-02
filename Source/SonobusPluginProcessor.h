@@ -523,6 +523,7 @@ public:
     int getActiveSendChannelCount() const { return mActiveSendChannels; }
 
     foleys::LevelMeterSource & getInputMeterSource() { return inputMeterSource; }
+    foleys::LevelMeterSource & getPostInputMeterSource() { return postinputMeterSource; }
     foleys::LevelMeterSource & getSendMeterSource() { return sendMeterSource; }
     foleys::LevelMeterSource & getOutputMeterSource() { return outputMeterSource; }
     
@@ -772,6 +773,7 @@ private:
     
     // top level meter sources
     foleys::LevelMeterSource inputMeterSource;
+    foleys::LevelMeterSource postinputMeterSource;
     foleys::LevelMeterSource sendMeterSource;
     foleys::LevelMeterSource outputMeterSource;
     

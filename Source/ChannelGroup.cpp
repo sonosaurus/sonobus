@@ -229,7 +229,7 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
             eq[0].compute(numSamples, &bufs[0], &bufs[0]);
             eq[1].compute(numSamples, &bufs[1], &bufs[1]);
         } else if (destStartChan < tobufNumChan) {
-            float *inbuf = frombuffer.getWritePointer(chstart);
+            float *inbuf = tobuffer.getWritePointer(destStartChan);
             float *outbuf = tobuffer.getWritePointer(destStartChan);
             eq[0].compute(numSamples, &inbuf, &outbuf);
         }
@@ -343,10 +343,10 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
                 pgain *= centerPanLaw + (fabsf(upan) * (1.0f - centerPanLaw));
                 pgain *= targmon;
 
-                if (fabsf(upan - lastpan) > 0.00001f) {
+                if (fabsf(upan - lastpan) > 0.00001f || fabsf(_lastmonitor - targmon) > 0.00001f) {
                     float plastgain = channel == destStartChan ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
                     plastgain *= centerPanLaw + (fabsf(lastpan) * (1.0f - centerPanLaw));
-                    plastgain *= targmon;
+                    plastgain *= _lastmonitor;
 
                     tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(i), numSamples, plastgain, pgain);
                 } else {
@@ -360,7 +360,8 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
         int channel = destStartChan;
         for (int srcchan = fromStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
 
-            tobuffer.addFrom(channel, 0, frombuffer, srcchan, 0, numSamples, targmon);
+            tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
+
         }
     }
     else if (frombuffer.getNumChannels() > 0){
@@ -371,7 +372,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
 
-            tobuffer.addFrom(channel, 0, frombuffer, srcchan, 0, numSamples, targmon);
+            tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
         }
     }
 

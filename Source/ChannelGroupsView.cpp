@@ -398,7 +398,9 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
     droppedTextColor = Colour(0xc0ee8888);
 
     outlineColor = Colour::fromFloatRGBA(0.25, 0.25, 0.25, 1.0);
-    bgColor = Colour::fromFloatRGBA(0.045f, 0.045f, 0.05f, 1.0f);
+
+    //bgColor = Colour::fromFloatRGBA(0.045f, 0.045f, 0.05f, 1.0f);
+    bgColor = Colour::fromFloatRGBA(0.08f, 0.045f, 0.08f, 1.0f);
 
     mInGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mInGainSlider->setName("ingain");
@@ -478,7 +480,7 @@ void ChannelGroupsView::configLevelSlider(Slider * slider, bool monmode)
             slider->textFromValueFunction = [](float v) -> String { return String(TRANS("Monitor: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
         }
         else {
-            slider->textFromValueFunction = [](float v) -> String { return String(TRANS("Gain: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
+            slider->textFromValueFunction = [](float v) -> String { return String(TRANS("Level: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
         }
     }
 
@@ -843,6 +845,13 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->meter->setRefreshRateHz(metersActive ? 8 : 0);
     pvf->meter->addMouseListener(this, false);
 
+    if (!mPeerMode) {
+        pvf->premeter = std::make_unique<foleys::LevelMeter>(flags);
+        pvf->premeter->setLookAndFeel(&(pvf->rmeterLnf));
+        pvf->premeter->setRefreshRateHz(metersActive ? 8 : 0);
+        pvf->premeter->addMouseListener(this, false);
+    }
+
     return pvf;
 }
 
@@ -868,6 +877,9 @@ void ChannelGroupsView::setMetersActive(bool flag)
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
         if (pvf->meter) {
             pvf->meter->setRefreshRateHz(subrate);
+        }
+        if (pvf->premeter) {
+            pvf->premeter->setRefreshRateHz(subrate);
         }
     }
 }
@@ -990,6 +1002,9 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
         pvf->addAndMakeVisible(pvf->chanLabel.get());
 
         pvf->addAndMakeVisible(pvf->meter.get());
+        if (pvf->premeter) {
+            pvf->addAndMakeVisible(pvf->premeter.get());
+        }
         pvf->addAndMakeVisible(pvf->fxButton.get());
 
         pvf->addAndMakeVisible(pvf->panSlider.get());
@@ -1201,6 +1216,12 @@ void ChannelGroupsView::updateLayout(bool notify)
                 pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
             }
             pvf->inbox.items.add(FlexItem(3, 3));
+
+            if (!mPeerMode) {
+                pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->premeter).withMargin(0).withFlex(0));
+                pvf->inbox.items.add(FlexItem(3, 3));
+            }
+
 
             pvf->inbox.items.add(FlexItem(namewidth, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
             if (!isNarrow) {
@@ -1518,9 +1539,14 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         }
 
 
-        pvf->meter->setMeterSource (&processor.getInputMeterSource());
-        pvf->meter->setSelectedChannel(chstart + chi);
+        pvf->meter->setMeterSource (&processor.getPostInputMeterSource());
+        pvf->meter->setSelectedChannel(i);
         pvf->meter->setFixedNumChannels(1);
+
+        pvf->premeter->setMeterSource (&processor.getInputMeterSource());
+        pvf->premeter->setSelectedChannel(chstart + chi);
+        pvf->premeter->setFixedNumChannels(1);
+
 
         int deststart = 0;
         int destcnt = 2;
@@ -2671,6 +2697,11 @@ void ChannelGroupsView::mouseDown (const MouseEvent& event)
             mDraggingSourceGroup = pvf->group;
             break;
         }
+        else if (event.eventComponent == pvf->meter.get() || (event.eventComponent == pvf->premeter.get())) {
+            clearClipIndicators();
+            break;
+        }
+
     }
 }
 
@@ -2770,6 +2801,10 @@ void ChannelGroupsView::clearClipIndicators()
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
         pvf->meter->clearClipIndicator(-1);
         pvf->meter->clearMaxLevelDisplay(-1);
+        if (pvf->premeter) {
+            pvf->premeter->clearClipIndicator(-1);
+            pvf->premeter->clearMaxLevelDisplay(-1);
+        }
     }
 }
 

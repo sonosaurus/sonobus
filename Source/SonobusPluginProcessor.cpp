@@ -5224,6 +5224,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     
     inputMeterSource.resize (inchannels, meterRmsWindow);
     outputMeterSource.resize (outchannels, meterRmsWindow);
+    postinputMeterSource.resize (totsendchans, meterRmsWindow);
     sendMeterSource.resize (totsendchans, meterRmsWindow);
 
     if (lastInputChannels == 0 || lastOutputChannels == 0 || mInputChannelGroupCount == 0) {
@@ -5675,17 +5676,22 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
 
 
+    postinputMeterSource.measureBlock (inputPostBuffer);
+
 
     // compressor makeup meter level per channel
+    destch = 0;
     for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
         float redlev = 1.0f;
         if (mInputChannelGroups[i].compressorParams.enabled && mInputChannelGroups[i].compressorOutputLevel) {
             redlev = jlimit(0.0f, 1.0f, Decibels::decibelsToGain(*mInputChannelGroups[i].compressorOutputLevel));
         }
         for (auto j=0; j < mInputChannelGroups[i].numChannels; ++j) {
-            int ch = mInputChannelGroups[i].chanStartIndex + j;
-            inputMeterSource.setReductionLevel(ch, redlev);
+            //int ch = mInputChannelGroups[i].chanStartIndex + j;
+            int ch = destch + j;
+            postinputMeterSource.setReductionLevel(ch, redlev);
         }
+        destch += mInputChannelGroups[i].numChannels;
     }
     
     
@@ -6084,7 +6090,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 }
 
                 
-                if (remote->activeLatencyTest && remote->latencyProcessor) {
+                if (remote->activeLatencyTest && remote->latencyMeasurer) {
                     workBuffer.clear(0, 0, numSamples);
                     if (remote->latencysink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
                         //DBG("received something from our latency sink");
