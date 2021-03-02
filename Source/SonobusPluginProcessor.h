@@ -433,6 +433,7 @@ public:
     // pushes existing groups around
     bool insertInputChannelGroup(int atgroup, int chstart, int chcount);
     bool removeInputChannelGroup(int atgroup);
+    bool moveInputChannelGroupTo(int atgroup, int togroup);
 
     void setInputGroupName(int changroup, const String & name);
     String getInputGroupName(int changroup);

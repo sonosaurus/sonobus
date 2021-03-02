@@ -72,12 +72,9 @@ protected:
     std::unique_ptr<ConcertinaPanel> effectsConcertina;
 
     std::unique_ptr<CompressorView> compressorView;
-    std::unique_ptr<DrawableRectangle> compressorBg;
-    std::unique_ptr<DrawableRectangle> reverbHeaderBg;
 
 
     std::unique_ptr<ExpanderView> expanderView;
-    std::unique_ptr<DrawableRectangle> expanderBg;
 
     std::unique_ptr<ParametricEqView> eqView;
 
@@ -100,6 +97,10 @@ public:
     void resized() override;
     
     //void updateLayout();
+
+    int group = 0;
+    int chanIndex = 0;
+    int groupChanCount = 0;
 
     bool showDivider = false;
 
@@ -157,7 +158,6 @@ public Button::Listener,
 public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
-public Label::Listener,
 public ChannelGroupEffectsView::Listener,
 public MultiTimer
 {
@@ -189,11 +189,12 @@ public:
     void sliderValueChanged (Slider* slider) override;
     void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
 
-    void labelTextChanged (Label* labelThatHasChanged) override;
-
     void effectsEnableChanged(ChannelGroupEffectsView *comp) override;
 
     void mouseUp (const MouseEvent& event)  override;
+    void mouseDown (const MouseEvent& event)  override;
+    void mouseDrag (const MouseEvent& event)  override;
+
 
     void timerCallback(int timerId) override;
 
@@ -238,6 +239,8 @@ protected:
     void updateInputModeChannelViews(int specific=-1);
     void updatePeerModeChannelViews(int specific=-1);
 
+    void nameLabelChanged(int changroup, const String & name);
+
     void inputButtonPressed(Component *src, int index, bool newlinkstate);
     void peerChanButtonPressed(Component *src, int index, bool newlinkstate);
 
@@ -253,6 +256,8 @@ protected:
     void showEffects(int index, bool flag, Component * fromView=nullptr);
 
     int getChanGroupFromIndex(int index);
+    Rectangle<int> getBoundsForChanGroup(int chgroup);
+    int getChanGroupForPoint(Point<int> pos, bool inbetween);
 
     SonoBigTextLookAndFeel addLnf;
 
@@ -271,6 +276,9 @@ protected:
     std::unique_ptr<TextButton> mAddButton;
     std::unique_ptr<TextButton> mClearButton;
 
+    std::unique_ptr<DrawableRectangle> mInsertLine;
+    std::unique_ptr<DrawableImage> mDragDrawable;
+
 
     std::unique_ptr<BubbleMessageComponent> popTip;
 
@@ -287,6 +295,14 @@ protected:
 
     bool mPeerMode = false;
     int mPeerIndex = 0;
+
+    // dragging state
+    bool mDraggingActive = false;
+    int mDraggingSourceGroup = -1;
+    int mDraggingGroupPos = -1;
+    Array< Rectangle<int> > mChanGroupBounds;
+    Image  mDragImage;
+    bool mAutoscrolling = false;
 
     uint32 lastUpdateTimestampMs = 0;
     

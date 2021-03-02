@@ -44,6 +44,47 @@ ChannelGroup::ChannelGroup()
 {
 }
 
+// copy assignment
+void ChannelGroup::copyParametersFrom(const ChannelGroup& other)
+{
+    name = other.name;
+    chanStartIndex = other.chanStartIndex;
+    numChannels = other.numChannels;
+    muted = other.muted;
+    soloed = other.soloed;
+    gain = other.gain;
+
+    for (int i=0; i < MAX_CHANNELS; ++i) {
+        pan[i] = other.pan[i];
+    }
+
+    panStereo[0] = other.panStereo[0];
+    panStereo[1] = other.panStereo[1];
+    centerPanLaw = other.centerPanLaw;
+
+    panDestStartIndex = other.panDestStartIndex;
+    panDestChannels = other.panDestChannels;
+
+    sendMainMix = other.sendMainMix;
+    reverbSend = other.reverbSend;
+
+    monitor = other.monitor;
+    monDestStartIndex = other.monDestStartIndex;
+    monDestChannels = other.monDestChannels;
+
+
+    compressorParams = other.compressorParams;
+    expanderParams = other.expanderParams;
+    eqParams = other.eqParams;
+    limiterParams = other.limiterParams;
+
+    compressorParamsChanged = true;
+    expanderParamsChanged = true;
+    eqParamsChanged = true;
+    limiterParamsChanged = true;
+
+}
+
 void ChannelGroup::setToDefaults(bool isplugin)
 {
     // default expander params

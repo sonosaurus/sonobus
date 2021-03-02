@@ -32,6 +32,10 @@ public:
     void processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
     void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
 
+    // shallow copy of parameters and state
+    void copyParametersFrom(const ChannelGroup& other);
+
+
     void setToDefaults(bool isplugin);
 
     ValueTree getValueTree() const;

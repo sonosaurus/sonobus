@@ -1540,7 +1540,7 @@ bool SonobusAudioProcessor::insertInputChannelGroup(int atgroup, int chstart, in
         // push any existing ones down
 
         for (auto i = MAX_CHANGROUPS-1; i > atgroup; --i) {
-            mInputChannelGroups[i] = mInputChannelGroups[i-1];
+            mInputChannelGroups[i].copyParametersFrom(mInputChannelGroups[i-1]);
             //mInputChannelGroups[i].chanStartIndex += chcount;
             //mInputChannelGroups[i-1].numChannels = std::max(1, std::min(count, MAX_CHANNELS));
         }
@@ -1562,7 +1562,7 @@ bool SonobusAudioProcessor::removeInputChannelGroup(int atgroup)
         // move any existing ones after up
 
         for (auto i = atgroup + 1; i < MAX_CHANGROUPS; ++i) {
-            mInputChannelGroups[i-1] = mInputChannelGroups[i];
+            mInputChannelGroups[i-1].copyParametersFrom(mInputChannelGroups[i]);
             //mInputChannelGroups[i].chanStartIndex += chcount;
             //mInputChannelGroups[i-1].numChannels = std::max(1, std::min(count, MAX_CHANNELS));
         }
@@ -1570,6 +1570,25 @@ bool SonobusAudioProcessor::removeInputChannelGroup(int atgroup)
     }
     return false;
 }
+
+bool SonobusAudioProcessor::moveInputChannelGroupTo(int atgroup, int togroup)
+{
+    if (atgroup == togroup || atgroup < 0 || atgroup >= MAX_CHANGROUPS || togroup < 0 || togroup >= MAX_CHANGROUPS) {
+        return false;
+    }
+
+    // takes group atgroup and rearranges settings
+    insertInputChannelGroup(togroup, mInputChannelGroups[atgroup].chanStartIndex, mInputChannelGroups[atgroup].numChannels);
+    int origgroup = atgroup < togroup ? atgroup : atgroup+1;
+    // copy from origgroup to new atgroup
+    mInputChannelGroups[togroup].copyParametersFrom(mInputChannelGroups[origgroup]);
+
+    // remove origgroup
+    removeInputChannelGroup(origgroup);
+
+    return true;
+}
+
 
 
 void SonobusAudioProcessor::setInputGroupName(int changroup, const String & name)
@@ -3534,7 +3553,7 @@ bool SonobusAudioProcessor::insertRemotePeerChannelGroup(int index, int atgroup,
         // push any existing ones down
 
         for (auto i = MAX_CHANGROUPS-1; i > atgroup; --i) {
-            remote->chanGroups[i] = remote->chanGroups[i-1];
+            remote->chanGroups[i].copyParametersFrom(remote->chanGroups[i-1]);
             //mInputChannelGroups[i].chanStartIndex += chcount;
             //mInputChannelGroups[i-1].numChannels = std::max(1, std::min(count, MAX_CHANNELS));
         }
@@ -3557,7 +3576,7 @@ bool SonobusAudioProcessor::removeRemotePeerChannelGroup(int index, int atgroup)
         // move any existing ones after up
 
         for (auto i = atgroup + 1; i < MAX_CHANGROUPS; ++i) {
-            remote->chanGroups[i-1] = remote->chanGroups[i];
+            remote->chanGroups[i-1].copyParametersFrom(remote->chanGroups[i]);
             //mInputChannelGroups[i].chanStartIndex += chcount;
             //mInputChannelGroups[i-1].numChannels = std::max(1, std::min(count, MAX_CHANNELS));
         }
@@ -3573,7 +3592,7 @@ bool SonobusAudioProcessor::copyRemotePeerChannelGroup(int index, int fromgroup,
     if (index < mRemotePeers.size() && fromgroup < MAX_CHANGROUPS && togroup < MAX_CHANGROUPS) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
 
-        remote->chanGroups[togroup] = remote->chanGroups[fromgroup];
+        remote->chanGroups[togroup].copyParametersFrom(remote->chanGroups[fromgroup]);
     }
     return false;
 }
