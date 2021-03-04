@@ -5214,18 +5214,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     setupSourceFormat(0, mAooDummySource.get());
     mAooDummySource->setup(sampleRate, samplesPerBlock, getTotalNumInputChannels());
 
-    int totsendchans = 0;
-    for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
-        totsendchans += mInputChannelGroups[cgi].numChannels;
-    }
-    mActiveSendChannels = totsendchans;
 
-    meterRmsWindow = sampleRate * METER_RMS_SEC / currSamplesPerBlock;
-    
-    inputMeterSource.resize (inchannels, meterRmsWindow);
-    outputMeterSource.resize (outchannels, meterRmsWindow);
-    postinputMeterSource.resize (totsendchans, meterRmsWindow);
-    sendMeterSource.resize (totsendchans, meterRmsWindow);
 
     if (lastInputChannels == 0 || lastOutputChannels == 0 || mInputChannelGroupCount == 0) {
         // first time these are set, do some initialization
@@ -5316,6 +5305,18 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         mInputChannelGroups[i].init(sampleRate);
     }
 
+    int totsendchans = 0;
+    for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
+        totsendchans += mInputChannelGroups[cgi].numChannels;
+    }
+    mActiveSendChannels = totsendchans;
+
+    meterRmsWindow = sampleRate * METER_RMS_SEC / currSamplesPerBlock;
+
+    inputMeterSource.resize (inchannels, meterRmsWindow);
+    outputMeterSource.resize (outchannels, meterRmsWindow);
+    postinputMeterSource.resize (totsendchans, meterRmsWindow);
+    sendMeterSource.resize (totsendchans, meterRmsWindow);
 
     setupSourceFormatsForAll();
 
@@ -5703,6 +5704,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // if sending as mono, split the difference about applying gain attentuation for the number of input channels
     float tgain = sendPanChannels == 1 && inputPostBuffer.getNumChannels() > 0 ? (1.0f/std::max(1.0f, (float)(inputPostBuffer.getNumChannels() * 0.5f))) : 1.0f;
 
+    inputWorkBuffer.clear(0, numSamples);
+
     if (sendPanChannels > 2) {
         // copy straight-thru
         for (auto i = 0; i < inputWorkBuffer.getNumChannels() && i < inputPostBuffer.getNumChannels(); ++i) {
@@ -5710,7 +5713,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
     }
     else {
-        inputWorkBuffer.clear(0, numSamples);
         int srcstart = 0;
 
         for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i)

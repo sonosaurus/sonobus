@@ -1507,10 +1507,16 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         pvf->nameLabel->setText(name, dontSendNotification);
 
         String chantext;
-        if (chi == 0 && chcnt > 1) {
-            chantext << chstart+1 << "-" << chstart+chcnt;
-        } else {
-            chantext << chstart + chi + 1;
+        if (chstart + chi >= totalchans) {
+            // out of range now
+            chantext << "--";
+        }
+        else {
+            if (chi == 0 && chcnt > 1) {
+                chantext << chstart+1 << "-" << chstart+chcnt;
+            } else {
+                chantext << chstart + chi + 1;
+            }
         }
         //pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
 
@@ -2690,6 +2696,11 @@ void ChannelGroupsView::showEffects(int index, bool flag, Component * fromView)
 
 void ChannelGroupsView::mouseDown (const MouseEvent& event)
 {
+    if (mMainChannelView && event.eventComponent == mMainChannelView->meter.get()) {
+        clearClipIndicators();
+        return;
+    }
+
     for (int i=0; i < mChannelViews.size(); ++i) {
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 
