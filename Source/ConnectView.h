@@ -89,7 +89,7 @@ protected:
     void configServerLabel(Label *label);
 
     void publicGroupLogin();
-
+    void showAdvancedMenu();
 
 
     SonobusAudioProcessor& processor;
@@ -105,11 +105,9 @@ protected:
 
 
     std::unique_ptr<Label> mLocalAddressStaticLabel;
-    std::unique_ptr<Label> mLocalAddressLabel;
+    std::unique_ptr<TextEditor> mLocalAddressLabel;
 
     std::unique_ptr<TextButton> mDirectConnectButton;
-
-    std::unique_ptr<SonoTextButton> mConnectButton;
 
     std::unique_ptr<Label> mRemoteAddressStaticLabel;
     std::unique_ptr<TextEditor> mAddRemoteHostEditor;
@@ -162,8 +160,11 @@ protected:
     std::unique_ptr<DrawableRectangle> mConnectComponentBg;
     std::unique_ptr<Label> mConnectTitle;
     std::unique_ptr<SonoDrawableButton> mConnectCloseButton;
+    std::unique_ptr<SonoDrawableButton> mConnectMenuButton;
 
     std::unique_ptr<TabbedComponent> mSettingsTab;
+
+    WeakReference<Component> directConnectCalloutBox;
 
 
     class RecentsListModel : public ListBoxModel

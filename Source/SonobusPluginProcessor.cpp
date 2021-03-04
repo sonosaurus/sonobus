@@ -810,10 +810,10 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
         }        
     }
 #else
-    auto addresses = IPAddress::getAllInterfaceAddresses (false);
+    auto addresses = IPAddress::getAllAddresses (false);
     for (auto& a : addresses) {
-        if (a.first != IPAddress::local(false)) {
-            mLocalIPAddress = a.first;
+        if (a != IPAddress::local(false)) {
+            mLocalIPAddress = a;
             break;
         }
     }

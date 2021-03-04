@@ -69,12 +69,14 @@ publicGroupsListModel(this)
     mConnectTab->addTab(TRANS("RECENTS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecentsContainer.get(), false);
     mConnectTab->addTab(TRANS("PRIVATE GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectViewport.get(), false);
     mConnectTab->addTab(TRANS("PUBLIC GROUPS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mPublicServerConnectContainer.get(), false);
-    mConnectTab->addTab(TRANS("DIRECT"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mDirectConnectContainer.get(), false);
+    //mConnectTab->addTab(TRANS("DIRECT"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mDirectConnectContainer.get(), false);
 
 
 
-    mLocalAddressLabel = std::make_unique<Label>("localaddr", TRANS("--"));
-    mLocalAddressLabel->setJustificationType(Justification::centredLeft);
+    mLocalAddressLabel = std::make_unique<TextEditor>("localaddr");
+    mLocalAddressLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+    mLocalAddressLabel->setReadOnly(true);
+    //mLocalAddressLabel->setJustificationType(Justification::centredLeft);
     mLocalAddressStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Local Address:"));
     mLocalAddressStaticLabel->setJustificationType(Justification::centredRight);
 
@@ -83,7 +85,7 @@ publicGroupsListModel(this)
     mRemoteAddressStaticLabel->setJustificationType(Justification::centredRight);
     mRemoteAddressStaticLabel->setWantsKeyboardFocus(true);
 
-    mDirectConnectDescriptionLabel = std::make_unique<Label>("remaddrst", TRANS("Connect directly to other instances of SonoBus on your local network with the local address that they advertise."));
+    mDirectConnectDescriptionLabel = std::make_unique<Label>("remaddrst", TRANS("Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks."));
     mDirectConnectDescriptionLabel->setJustificationType(Justification::topLeft);
 
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
@@ -106,14 +108,12 @@ publicGroupsListModel(this)
     mConnectCloseButton->addListener(this);
     mConnectCloseButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
-
-    mConnectButton = std::make_unique<SonoTextButton>("directconnect");
-    mConnectButton->setButtonText(TRANS("Connect..."));
-    mConnectButton->addListener(this);
-    mConnectButton->setColour(TextButton::buttonColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.6));
-    mConnectButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 0.4, 0.6, 0.6));
-    mConnectButton->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.4));
-    mConnectButton->setTextJustification(Justification::centred);
+    mConnectMenuButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> dotimg(Drawable::createFromImageData(BinaryData::dots_icon_png, BinaryData::dots_icon_pngSize));
+    mConnectMenuButton->setImages(dotimg.get());
+    mConnectMenuButton->addListener(this);
+    mConnectMenuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mConnectMenuButton->setAlpha(0.7f);
 
     mDirectConnectButton = std::make_unique<TextButton>("directconnect");
     mDirectConnectButton->setButtonText(TRANS("Direct Connect"));
@@ -352,6 +352,7 @@ publicGroupsListModel(this)
     addAndMakeVisible(mConnectTab.get());
     addAndMakeVisible(mConnectTitle.get());
     addAndMakeVisible(mConnectCloseButton.get());
+    addAndMakeVisible(mConnectMenuButton.get());
 
 
     std::istringstream gramstream(std::string(BinaryData::wordmaker_g, BinaryData::wordmaker_gSize));
@@ -395,7 +396,7 @@ void ConnectView::configEditor(TextEditor *editor, bool passwd)
 void ConnectView::updateState()
 {
     String locstr;
-    locstr << processor.getLocalIPAddress().toString() << " : " << processor.getUdpLocalPort();
+    locstr << processor.getLocalIPAddress().toString() << ":" << processor.getUdpLocalPort();
     mLocalAddressLabel->setText(locstr, dontSendNotification);
 
     resetPrivateGroupLabels();
@@ -404,7 +405,7 @@ void ConnectView::updateState()
     updateRecents();
 
     if (firstTimeConnectShow) {
-        if (mConnectTab->getNumTabs() > 3) {
+        if (mConnectTab->getNumTabs() > 2) {
             if (recentsListModel.getNumRows() > 0) {
                 // show recents tab first
                 mConnectTab->setCurrentTabIndex(0);
@@ -466,7 +467,7 @@ void ConnectView::updateLayout()
     remoteBox.items.add(FlexItem(5, 8).withFlex(0));
     remoteBox.items.add(FlexItem(180, minitemheight, addressBox).withMargin(2).withFlex(0));
     remoteBox.items.add(FlexItem(minButtonWidth, minitemheight, *mDirectConnectButton).withMargin(8).withFlex(0).withMinWidth(100));
-    remoteBox.items.add(FlexItem(180, minitemheight, *mDirectConnectDescriptionLabel).withMargin(2).withFlex(1).withMaxHeight(100));
+    remoteBox.items.add(FlexItem(180, 2*minitemheight, *mDirectConnectDescriptionLabel).withMargin(2).withFlex(1).withMaxHeight(150));
     remoteBox.items.add(FlexItem(60, minitemheight, localAddressBox).withMargin(2).withFlex(0));
     remoteBox.items.add(FlexItem(10, 0).withFlex(1));
 
@@ -586,12 +587,12 @@ void ConnectView::updateLayout()
     connectTitleBox.flexDirection = FlexBox::Direction::row;
     connectTitleBox.items.add(FlexItem(50, minitemheight, *mConnectCloseButton).withMargin(2));
     connectTitleBox.items.add(FlexItem(80, minitemheight, *mConnectTitle).withMargin(2).withFlex(1));
-    connectTitleBox.items.add(FlexItem(50, minitemheight));
+    connectTitleBox.items.add(FlexItem(50, minitemheight, *mConnectMenuButton).withMargin(2));
 
     connectHorizBox.items.clear();
     connectHorizBox.flexDirection = FlexBox::Direction::row;
     connectHorizBox.items.add(FlexItem(100, 100, *mConnectTab).withMargin(3).withFlex(1));
-    if (mConnectTab->getNumTabs() < 4) {
+    if (mConnectTab->getNumTabs() < 3) {
         connectHorizBox.items.add(FlexItem(335, 100, *mRecentsGroup).withMargin(3).withFlex(0));
     }
 
@@ -610,7 +611,7 @@ void ConnectView::resized()  {
     mConnectComponentBg->setRectangle (getLocalBounds().toFloat());
 
     if (getWidth() > 700) {
-        if (mConnectTab->getNumTabs() > 3) {
+        if (mConnectTab->getNumTabs() > 2) {
             // move recents to main connect component, out of tab
             int adjcurrtab = jmax(0, mConnectTab->getCurrentTabIndex() - 1);
 
@@ -622,7 +623,7 @@ void ConnectView::resized()  {
             updateLayout();
         }
     } else {
-        if (mConnectTab->getNumTabs() < 4) {
+        if (mConnectTab->getNumTabs() < 3) {
             int tabsel = mConnectTab->getCurrentTabIndex();
             mRecentsGroup->removeChildComponent(mRecentsContainer.get());
             mRecentsGroup->setVisible(false);
@@ -641,7 +642,7 @@ void ConnectView::resized()  {
                                        mServerConnectViewport->getWidth() - (mServerConnectViewport->getHeight() < minHeight ? mServerConnectViewport->getScrollBarThickness() : 0 ),
                                        jmax(minHeight, mServerConnectViewport->getHeight()));
 
-    remoteBox.performLayout(mDirectConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mDirectConnectContainer->getWidth()), mDirectConnectContainer->getHeight()));
+    //remoteBox.performLayout(mDirectConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mDirectConnectContainer->getWidth()), mDirectConnectContainer->getHeight()));
     serverBox.performLayout(mServerConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mServerConnectContainer->getWidth()), mServerConnectContainer->getHeight()));
 
     //mPublicServerConnectContainer->setBounds(0,0,
@@ -655,7 +656,7 @@ void ConnectView::resized()  {
     mPublicGroupsListBox->setBounds(mPublicGroupComponent->getLocalBounds().reduced(4).withTrimmedTop(10));
 
 
-    if (mConnectTab->getNumTabs() < 4) {
+    if (mConnectTab->getNumTabs() < 3) {
         mRecentsContainer->setBounds(mRecentsGroup->getLocalBounds().reduced(4).withTrimmedTop(10));
     }
     recentsBox.performLayout(mRecentsContainer->getLocalBounds());
@@ -677,7 +678,7 @@ void ConnectView::groupJoinFailed()
 void ConnectView::showActiveGroupTab()
 {
 
-    int adjindex = mConnectTab->getCurrentTabIndex() + (mConnectTab->getNumTabs() > 3 ? 0 : 1);
+    int adjindex = mConnectTab->getCurrentTabIndex() + (mConnectTab->getNumTabs() > 2 ? 0 : 1);
     if (adjindex != 1 && adjindex != 2) {
         if (currConnectionInfo.groupIsPublic) {
             showPublicGroupTab();
@@ -689,12 +690,12 @@ void ConnectView::showActiveGroupTab()
 
 void ConnectView::showPrivateGroupTab()
 {
-    mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 1 : 0);
+    mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
 }
 
 void ConnectView::showPublicGroupTab()
 {
-    mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 2 : 1);
+    mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 2 : 1);
 }
 
 bool ConnectView::getServerGroupAndPasswordText(String & retgroup, String & retpass) const
@@ -711,7 +712,7 @@ bool ConnectView::getServerGroupAndPasswordText(String & retgroup, String & retp
 void ConnectView::connectTabChanged (int newCurrentTabIndex)
 {
     // normaliza index to have recents as 0
-    int adjindex = mConnectTab->getNumTabs() < 4 ? newCurrentTabIndex + 1 : newCurrentTabIndex;
+    int adjindex = mConnectTab->getNumTabs() < 3 ? newCurrentTabIndex + 1 : newCurrentTabIndex;
 
     // public groups
     if (adjindex == 2) {
@@ -858,11 +859,11 @@ void ConnectView::textEditorReturnKeyPressed (TextEditor& ed)
         mPublicServerAddGroupButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
     }
-    else if (isVisible() && mDirectConnectButton->isShowing()) {
+    //else if (isVisible() && mDirectConnectButton->isShowing()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
-        mDirectConnectButton->grabKeyboardFocus();
+    //    mDirectConnectButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
-    }
+    //}
 }
 
 void ConnectView::textEditorEscapeKeyPressed (TextEditor& ed)
@@ -910,8 +911,13 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
         if (host.isNotEmpty() && port != 0) {
             if (processor.connectRemotePeer(host, port, "", "", processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->getValue() == 0)) {
                 setVisible(false);
+                if (auto * callout = dynamic_cast<CallOutBox*>(directConnectCalloutBox.get())) {
+                    callout->dismiss();
+                    directConnectCalloutBox = nullptr;
+                }
             }
         }
+
     }
     else if (buttonThatWasClicked == mServerConnectButton.get()) {
         bool wasconnected = false;
@@ -1023,16 +1029,68 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mConnectCloseButton.get()) {
         setVisible(false);
-        mConnectButton->setTextJustification(Justification::centred);
 
         processor.setWatchPublicGroups(false);
 
         updateState();
     }
+    else if (buttonThatWasClicked == mConnectMenuButton.get()) {
+
+        showAdvancedMenu();
+    }
     else if (buttonThatWasClicked == mClearRecentsButton.get()) {
         processor.clearRecentServerConnectionInfos();
         updateRecents();
     }
+
+}
+
+void ConnectView::showAdvancedMenu()
+{
+    // jlc
+    Array<GenericItemChooserItem> items;
+    items.add(GenericItemChooserItem(TRANS("Connect to Raw Address...")));
+
+    Component* dw = mConnectMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = mConnectMenuButton->findParentComponentOfClass<Component>();
+    Rectangle<int> bounds =  dw->getLocalArea(nullptr, mConnectMenuButton->getScreenBounds());
+
+    SafePointer<ConnectView> safeThis(this);
+
+    auto callback = [safeThis,dw,bounds](GenericItemChooser* chooser,int index) mutable {
+        if (!safeThis) return;
+        auto wrap = std::make_unique<Viewport>();
+
+        int defWidth = 320;
+#if JUCE_IOS || JUCE_ANDROID
+        int defHeight = 300;
+#else
+        int defHeight = 250;
+#endif
+
+        int extrawidth = 0;
+        if (defHeight > dw->getHeight() - 24) {
+            extrawidth = wrap->getScrollBarThickness() + 1;
+        }
+
+        wrap->setSize(jmin(defWidth + extrawidth, dw->getWidth() - 10), jmin(defHeight, dw->getHeight() - 24));
+
+        safeThis->mDirectConnectContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        wrap->setViewedComponent(safeThis->mDirectConnectContainer.get(), false);
+        safeThis->mDirectConnectContainer->setVisible(true);
+
+        safeThis->remoteBox.performLayout(safeThis->mDirectConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, safeThis->mDirectConnectContainer->getWidth()), safeThis->mDirectConnectContainer->getHeight()));
+
+        // show direct connect container
+        safeThis->directConnectCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(safeThis->directConnectCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+
+    };
+
+    GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, -1, dw ? dw->getHeight()-30 : 0);
 
 }
 
