@@ -98,8 +98,9 @@ private:
 
         float getAvgRMS () const
         {
-            if (rmsHistory.size() > 0)
+            if (rmsHistory.size() > 0) {
                 return std::sqrt(std::accumulate (rmsHistory.begin(), rmsHistory.end(), 0.0f) / static_cast<float>(rmsHistory.size()));
+            }
                 
             return float (std::sqrt (rmsSum));
         }
@@ -134,7 +135,8 @@ private:
     private:
         void pushNextRMS (const float newRMS)
         {
-            const double squaredRMS = std::min (newRMS * newRMS, 1.0f);
+            const double squaredRMS = !std::isnormal(newRMS) ? 0.0 :  std::min (newRMS * newRMS, 1.0f);
+
             if (rmsHistory.size() > 0)
             {
                 rmsHistory [(size_t) rmsPtr] = squaredRMS;
