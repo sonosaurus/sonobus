@@ -1247,15 +1247,18 @@ void PeersContainerView::updatePeerViews(int specific)
 
         bool connected = processor.getRemotePeerConnected(i);
 
-#if 0
         String hostname;
         int port = 0;
         processor.getRemotePeerAddressInfo(i, hostname, port);
 
-        String username = processor.getRemotePeerUserName(i);
         String addrname;
         addrname << hostname << " : " << port;
-        
+
+        pvf->addrLabel->setText(addrname, dontSendNotification);
+
+#if 0
+        String username = processor.getRemotePeerUserName(i);
+
         //DBG("Got username: '" << username << "'");
         
         if (username.isNotEmpty()) {
