@@ -2522,7 +2522,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
 
             RemotePeer * peer = findRemotePeer(es, sinkId);
             if (peer) {
-                peer->recvActive = e->state > 0;                    
+                peer->recvActive = peer->recvAllow && e->state > 0;                    
                 if (!peer->recvActive && !peer->sendActive) {
                     peer->connected = false;
                 } else {
