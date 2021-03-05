@@ -1094,20 +1094,20 @@ String SonobusAudioProcessor::getCurrentJoinedGroup() const {
 void SonobusAudioProcessor::AudioCodecFormatInfo::computeName()
 {
     if (codec == SonobusAudioProcessor::CodecOpus) {
-        name = String::formatted("%d kbps/ch", bitrate/1000);
+        name = String::formatted("Opus %d kbps/ch", bitrate/1000);
     }
     else {
         if (bitdepth == 2) {
-            name = "PCM 16 bit";
+            name = "PCM 16 bit/ch";
         }
         else if (bitdepth == 3) {
-            name = "PCM 24 bit";
+            name = "PCM 24 bit/ch";
         }
         else if (bitdepth == 4) {
-            name = "PCM 32 bit float";
+            name = "PCM 32 bit/ch float";
         }
         else if (bitdepth == 8) {
-            name = "PCM 64 bit float";
+            name = "PCM 64 bit/ch float";
         }
     }
 }
