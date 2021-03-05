@@ -683,6 +683,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     for (int i=0; i < numformats; ++i) {
         mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
     }
+    mOptionsFormatChoiceDefaultChoice->setTooltip(TRANS("Opus compression adds 5 ms latency and can't benefit by reducing Audio Buffer Size under 128 samples. PCM doesn't incur those latency penalties, but uses more bandwidth."));
 
     mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
     configLabel(mOptionsAutosizeStaticLabel.get(), false);
