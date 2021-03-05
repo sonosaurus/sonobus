@@ -182,7 +182,12 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+
     void parameterChanged (const String &parameterID, float newValue) override;
+
+
+    void getStateInformationWithOptions(MemoryBlock& destData, bool includecache=true, bool xmlformat=false);
+    void setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache=true, bool xmlformat=false);
 
     AudioProcessorValueTreeState& getValueTreeState();
 

@@ -354,7 +354,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mInMixerButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.1, 0.3, 0.4, 1.0));
 
     mInMuteButton = std::make_unique<TextButton>("mute");
-    mInMuteButton->setButtonText(TRANS("MUTE INPUT"));
+    mInMuteButton->setButtonText(TRANS("MUTE"));
     mInMuteButton->setLookAndFeel(&smallLNF);
     mInMuteButton->addListener(this);
     mInMuteButton->setClickingTogglesState(true);
@@ -1122,13 +1122,13 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         addAndMakeVisible(mRecordingButton.get());
         addAndMakeVisible(mFileBrowseButton.get());
         addAndMakeVisible(mFileRecordingLabel.get());
-        addAndMakeVisible(mPlayButton.get());
-        addAndMakeVisible(mLoopButton.get());
-        addAndMakeVisible(mDismissTransportButton.get());
-        addAndMakeVisible(mWaveformThumbnail.get());
-        addAndMakeVisible(mPlaybackSlider.get());
-        addAndMakeVisible(mFileSendAudioButton.get());
-        addAndMakeVisible(mFileMenuButton.get());
+        addChildComponent(mPlayButton.get());
+        addChildComponent(mLoopButton.get());
+        addChildComponent(mDismissTransportButton.get());
+        addChildComponent(mWaveformThumbnail.get());
+        addChildComponent(mPlaybackSlider.get());
+        addChildComponent(mFileSendAudioButton.get());
+        addChildComponent(mFileMenuButton.get());
     }
 
 
@@ -1955,18 +1955,22 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mMetSendButton.get()) {
         // handled by button attachment
-        if (mMetSendButton->getToggleState()) {
-            showPopTip(TRANS("Sending your metronome to all users"), 3000, mMetSendButton.get());
-        } else {
-            showPopTip(TRANS("Now only you will hear your metronome"), 3000, mMetSendButton.get());
+        if (mMetSendButton->isVisible()) {
+            if (mMetSendButton->getToggleState()) {
+                showPopTip(TRANS("Sending your metronome to all users"), 3000, mMetSendButton.get());
+            } else {
+                showPopTip(TRANS("Now only you will hear your metronome"), 3000, mMetSendButton.get());
+            }
         }
     }
     else if (buttonThatWasClicked == mFileSendAudioButton.get()) {
         // handled by button attachment
-        if (mFileSendAudioButton->getToggleState()) {
-            showPopTip(TRANS("Sending file playback to all users"), 3000, mFileSendAudioButton.get());
-        } else {
-            showPopTip(TRANS("Now only you will hear the file playback"), 3000, mFileSendAudioButton.get());
+        if (mFileSendAudioButton->isVisible()) {
+            if (mFileSendAudioButton->getToggleState()) {
+                showPopTip(TRANS("Sending file playback to all users"), 3000, mFileSendAudioButton.get());
+            } else {
+                showPopTip(TRANS("Now only you will hear the file playback"), 3000, mFileSendAudioButton.get());
+            }
         }
     }
 
@@ -2329,6 +2333,272 @@ void SonobusAudioProcessorEditor::chooseRecDirBrowser()
         DBG("Need to enable code signing");
     }
 }
+
+void SonobusAudioProcessorEditor::showSaveSettingsPreset()
+{
+    if (!JUCEApplicationBase::isStandaloneApp()) return;
+
+    SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+    if (FileChooser::isPlatformDialogAvailable())
+    {
+        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+        String * recentsfolder = nullptr;
+        if (getLastRecentsFolder) {
+            if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
+                recdir = File(*recentsfolder);
+            }
+        }
+        // TODO - on iOS we need to give it a name first
+
+        mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
+                                           recdir,
+                                           "*.sonobus",
+                                           true, false, getTopLevelComponent()));
+
+
+
+        mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
+                                   [safeThis] (const FileChooser& chooser) mutable
+                                   {
+            auto results = chooser.getURLResults();
+            if (safeThis != nullptr && results.size() > 0)
+            {
+                auto url = results.getReference (0);
+
+                DBG("Chose directory: " <<  url.toString(false));
+
+                if (url.isLocalFile()) {
+                    File lfile = url.getLocalFile();
+
+                    // save settings
+                    safeThis->saveSettingsToFile(lfile);
+                }
+            }
+
+            if (safeThis) {
+                safeThis->mFileChooser.reset();
+            }
+
+        }, nullptr);
+
+    }
+    else {
+        DBG("Need to enable code signing");
+    }
+}
+
+void SonobusAudioProcessorEditor::showLoadSettingsPreset()
+{
+    if (!JUCEApplicationBase::isStandaloneApp()) return;
+
+    SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+    if (FileChooser::isPlatformDialogAvailable())
+    {
+        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+        String * recentsfolder = nullptr;
+        if (getLastRecentsFolder) {
+            if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
+                recdir = File(*recentsfolder);
+            }
+        }
+
+        mFileChooser.reset(new FileChooser(TRANS("Choose a setup file to load"),
+                                           recdir,
+                                           "*.sonobus",
+                                           true, false, getTopLevelComponent()));
+
+
+
+        mFileChooser->launchAsync (FileBrowserComponent::openMode|FileBrowserComponent::canSelectFiles,
+                                   [safeThis] (const FileChooser& chooser) mutable
+                                   {
+            auto results = chooser.getURLResults();
+            if (safeThis != nullptr && results.size() > 0)
+            {
+                auto url = results.getReference (0);
+
+                DBG("Chose file: " <<  url.toString(false));
+
+                if (url.isLocalFile()) {
+                    File lfile = url.getLocalFile();
+
+                    // load settings
+                    safeThis->loadSettingsFromFile(lfile);
+                }
+            }
+
+            if (safeThis) {
+                safeThis->mFileChooser.reset();
+            }
+
+        }, nullptr);
+
+    }
+    else {
+        DBG("Need to enable code signing");
+    }
+}
+
+bool SonobusAudioProcessorEditor::loadSettingsFromFile(const File & file)
+{
+    if (!getAudioDeviceManager || !getAudioDeviceManager()) return false;
+    bool retval = true;
+
+    PropertiesFile::Options opts;
+    PropertiesFile propfile = PropertiesFile(file, opts);
+
+    if (!propfile.isValidFile()) {
+        AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
+                                          TRANS("Error while loading"),
+                                          TRANS("Couldn't read from the specified file!"));
+
+        return false;
+    }
+
+    MemoryBlock data;
+
+    if (propfile.containsKey("filterStateXML")) {
+        String filtxml = propfile.getValue ("filterStateXML");
+        data.replaceWith(filtxml.toUTF8(), filtxml.getNumBytesAsUTF8());
+        if (data.getSize() > 0) {
+            processor.setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, true);
+        }
+        else {
+            DBG("Empty XML filterstate");
+            retval = false;
+        }
+    }
+    else {
+        if (data.fromBase64Encoding (propfile.getValue ("filterState")) && data.getSize() > 0) {
+            processor.setStateInformationWithOptions (data.getData(), (int) data.getSize(), false);
+        } else {
+            retval = false;
+        }
+    }
+
+    auto deviceManager = getAudioDeviceManager();
+
+    auto savedAudioState = propfile.getXmlValue ("audioSetup");
+
+    if (savedAudioState.get()) {
+        std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> prefSetupOptions;
+        String preferredDefaultDeviceName;
+
+        // now remove samplerate from saved state if necessary
+        // as well as preferredSetupOptions
+
+        if (!((bool)getShouldOverrideSampleRateValue()->getValue())) {
+            DBG("NOT OVERRIDING SAMPLERATE");
+            if (savedAudioState && savedAudioState->hasAttribute("audioDeviceRate")) {
+                savedAudioState->removeAttribute("audioDeviceRate");
+            }
+            if (prefSetupOptions) {
+                prefSetupOptions->sampleRate = 0;
+            }
+        }
+
+
+
+        auto totalInChannels  = processor.getMainBusNumInputChannels();
+        auto totalOutChannels = processor.getMainBusNumOutputChannels();
+
+        deviceManager->initialise (totalInChannels,
+                                   totalOutChannels,
+                                   savedAudioState.get(),
+                                   true,
+                                   preferredDefaultDeviceName,
+                                   prefSetupOptions.get());
+    }
+
+    if (!retval) {
+        AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
+                                          TRANS("Error while loading"),
+                                          TRANS("Invalid setup!"));
+    }
+
+    updateState();
+    updateLayout();
+    resized();
+
+    addToRecentsSetups(file);
+
+    return retval;
+}
+
+void SonobusAudioProcessorEditor::addToRecentsSetups(const File & file)
+{
+    if (getRecentSetupFiles && getRecentSetupFiles()) {
+        auto recents = getRecentSetupFiles();
+        auto fname = file.getFullPathName();
+        if (auto index = recents->indexOf(fname) >= 0) {
+            // move it to the end (most recent)
+            recents->move(index, recents->size()-1);
+        }
+        else {
+            recents->add(fname);
+
+            // limit it to 12, remove from front (oldest)
+            if (recents->size() > 12) {
+                recents->remove(0);
+            }
+        }
+
+        // force regen of file menu
+        if (menuBarModel) {
+            menuBarModel->menuItemsChanged();
+        }
+    }
+
+    if (getLastRecentsFolder) {
+        if (auto * recentsfolder = getLastRecentsFolder()) {
+            *recentsfolder = file.getParentDirectory().getFullPathName();
+        }
+    }
+
+}
+
+
+bool SonobusAudioProcessorEditor::saveSettingsToFile(const File & file)
+{
+    if (!getAudioDeviceManager || !getAudioDeviceManager()) return false;
+
+    bool usexmlstate = true;
+
+    MemoryBlock data;
+    processor.getStateInformationWithOptions(data, false, usexmlstate);
+
+    PropertiesFile::Options opts;
+    PropertiesFile propfile = PropertiesFile(file, opts);
+
+    std::unique_ptr<XmlElement> xml (getAudioDeviceManager()->createStateXml());
+    propfile.setValue ("audioSetup", xml.get());
+
+    if (usexmlstate) {
+        std::unique_ptr<XmlElement> filtxml = juce::parseXML(String::createStringFromData(data.getData(), (int)data.getSize()));
+        if (filtxml) {
+            propfile.setValue ("filterStateXML", filtxml.get());
+        }
+    } else {
+        propfile.setValue ("filterState", data.toBase64Encoding());
+    }
+
+    if (!propfile.save()) {
+
+        AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
+                                          TRANS("Error while saving"),
+                                          TRANS("Couldn't write to the specified file!"));
+
+        return false;
+    }
+
+    addToRecentsSetups(file);
+
+    return true;
+}
+
+
 
 void SonobusAudioProcessorEditor::updateSliderSnap()
 {
@@ -4309,32 +4579,46 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.addDefaultKeypress ('t', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::CloseFile:
-            info.setInfo (TRANS("Close File"),
-                          TRANS("Close file"),
+            info.setInfo (TRANS("Close Audio File"),
+                          TRANS("Close audio file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
             info.addDefaultKeypress ('w', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::OpenFile:
-            info.setInfo (TRANS("Open File"),
+            info.setInfo (TRANS("Open Audio File..."),
                           TRANS("Open Audio file"),
                           TRANS("Popup"), 0);
             info.setActive(true);
             info.addDefaultKeypress ('o', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::ShareFile:
-            info.setInfo (TRANS("Share File"),
-                          TRANS("Share file"),
+            info.setInfo (TRANS("Share Audio File"),
+                          TRANS("Share audio file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
             info.addDefaultKeypress ('f', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::RevealFile:
-            info.setInfo (TRANS("Reveal File"),
-                          TRANS("Reveal file"),
+            info.setInfo (TRANS("Reveal Audio File"),
+                          TRANS("Reveal audio file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
             info.addDefaultKeypress ('e', ModifierKeys::commandModifier);
+            break;
+        case SonobusCommands::LoadSetupFile:
+            info.setInfo (TRANS("Load Setup..."),
+                          TRANS("Load Setup file"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress ('l', ModifierKeys::commandModifier);
+            break;
+        case SonobusCommands::SaveSetupFile:
+            info.setInfo (TRANS("Save Setup..."),
+                          TRANS("Save Setup file"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress ('s', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
@@ -4388,6 +4672,8 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::OpenFile);
     cmds.add(SonobusCommands::RecordToggle);
     cmds.add(SonobusCommands::CheckForNewVersion);
+    cmds.add(SonobusCommands::LoadSetupFile);
+    cmds.add(SonobusCommands::SaveSetupFile);
 }
 
 bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
@@ -4446,6 +4732,16 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             openFileBrowser();
 
             break;
+        case SonobusCommands::LoadSetupFile:
+            DBG("got load setup file!");
+            showLoadSettingsPreset();
+
+            break;
+        case SonobusCommands::SaveSetupFile:
+            DBG("got save setup file!");
+            showSaveSettingsPreset();
+
+            break;
         case SonobusCommands::Connect:
             DBG("got connect!");
             if (!currConnected || currGroup.isEmpty()) {
@@ -4480,6 +4776,34 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
     return ret;
 }
 
+void SonobusAudioProcessorEditor::populateRecentSetupsMenu(PopupMenu & popup)
+{
+    popup.clear();
+
+    auto callback = [this](File file) {
+        this->loadSettingsFromFile(file);
+    };
+
+    if (getRecentSetupFiles && getRecentSetupFiles()) {
+        auto recents = getRecentSetupFiles();
+
+        // load the recents in reverse order
+
+        for (int i=recents->size()-1; i >= 0; --i) {
+            const auto & fname = recents->getReference(i);
+            File file(fname);
+            if (file.existsAsFile()) {
+                popup.addItem( file.getFileNameWithoutExtension() , [file, callback]() { callback(file); });
+            }
+            else {
+                // remove it! (we can do this because we are traversing it from the end)
+                recents->remove(i);
+            }
+        }
+
+    }
+
+}
 
 
 
@@ -4503,8 +4827,9 @@ StringArray SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuBarNames()
 
 PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int topLevelMenuIndex, const String& /*menuName*/)
 {
-     PopupMenu retval;
-        
+    PopupMenu retval;
+    PopupMenu recents;
+
     switch (topLevelMenuIndex) {
         case MenuFileIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::OpenFile);
@@ -4516,6 +4841,13 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
 #endif
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::TrimSelectionToNewFile);
+
+            retval.addSeparator();
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::LoadSetupFile);
+            parent.populateRecentSetupsMenu(recents);
+            retval.addSubMenu(TRANS("Load Recent Setup"), recents, recents.getNumItems() > 0);
+            retval.addSeparator();
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::SaveSetupFile);
 
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::CheckForNewVersion);

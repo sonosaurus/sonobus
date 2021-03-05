@@ -187,6 +187,9 @@ public:
     Value& getShouldOverrideSampleRateValue()                           { return shouldOverrideSampleRate; }
     Value& getShouldCheckForNewVersionValue()                           { return shouldCheckForNewVersion; }
 
+    StringArray& getRecentSetupFiles()                           { return recentSetupFiles; }
+    String& getLastRecentsFolder()                           { return lastRecentsSetupFolder; }
+
     
     //==============================================================================
     File getLastFile() const
@@ -223,7 +226,7 @@ public:
 
             if (! fc.getResult().replaceWithData (data.getData(), data.getSize()))
                 AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                                  TRANS("Error whilst saving"),
+                                                  TRANS("Error while saving"),
                                                   TRANS("Couldn't write to the specified file!"));
         }
        #else
@@ -247,7 +250,7 @@ public:
                 processor->setStateInformation (data.getData(), (int) data.getSize());
             else
                 AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                                  TRANS("Error whilst loading"),
+                                                  TRANS("Error while loading"),
                                                   TRANS("Couldn't read from the specified file!"));
         }
        #else
@@ -344,6 +347,16 @@ public:
             settings->setValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue());
             settings->setValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue());
 
+            auto recentSetupXml = std::make_unique<XmlElement>("PATHLIST");
+            for (auto fname : recentSetupFiles) {
+                auto pathchild = recentSetupXml->createNewChildElement("PATH");
+                pathchild->addTextElement(fname);
+            }
+
+            settings->setValue ("recentSetupFiles", recentSetupXml.get());
+            settings->setValue ("lastRecentsSetupFolder", lastRecentsSetupFolder);
+
+
 #if ! (JUCE_IOS || JUCE_ANDROID)
             //  settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
 #endif
@@ -369,6 +382,21 @@ public:
 
             shouldOverrideSampleRate.setValue (settings->getBoolValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue()));
             shouldCheckForNewVersion.setValue (settings->getBoolValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue()));
+
+            auto setupfiles = settings->getXmlValue("recentSetupFiles");
+            if (setupfiles) {
+                recentSetupFiles.clearQuick();
+                for (int i=0; i < setupfiles->getNumChildElements(); ++i) {
+                    auto child = setupfiles->getChildElement(i);
+                    if (child->getNumChildElements() > 0 && child->getFirstChildElement()->isTextElement()) {
+                        auto fname = child->getFirstChildElement()->getText();
+                        recentSetupFiles.add(fname);
+                    }
+                }
+                DBG("Loaded recent setups: " << recentSetupFiles.joinIntoString("\n"));
+            }
+
+            lastRecentsSetupFolder = settings->getValue("lastRecentsSetupFolder", lastRecentsSetupFolder);
 
            #if ! (JUCE_IOS || JUCE_ANDROID)
             shouldMuteInput.setValue (settings->getBoolValue ("shouldMuteInput", false));
@@ -411,10 +439,29 @@ public:
     {
         if (settings != nullptr && processor != nullptr)
         {
-            MemoryBlock data;
-            processor->getStateInformation (data);
+            auto * sonobusprocessor = dynamic_cast<SonobusAudioProcessor*>(processor.get());
 
-            settings->setValue ("filterState", data.toBase64Encoding());
+            bool usexmlstate = sonobusprocessor != nullptr;
+
+            MemoryBlock data;
+
+            if (usexmlstate && sonobusprocessor) {
+                sonobusprocessor->getStateInformationWithOptions (data, true, usexmlstate);
+                std::unique_ptr<XmlElement> filtxml = juce::parseXML(String::createStringFromData(data.getData(), (int)data.getSize()));
+                if (filtxml) {
+                    settings->setValue ("filterStateXML", filtxml.get());
+                    // remove old binary one
+                    settings->removeValue("filterState");
+                } else {
+                    // failed for some reason try it binary-style
+                    data.reset();
+                    processor->getStateInformation (data);
+                    settings->setValue ("filterState", data.toBase64Encoding());
+                }
+            } else {
+                processor->getStateInformation (data);
+                settings->setValue ("filterState", data.toBase64Encoding());
+            }
         }
     }
 
@@ -423,6 +470,16 @@ public:
         if (settings != nullptr)
         {
             MemoryBlock data;
+            auto * sonobusprocessor = dynamic_cast<SonobusAudioProcessor*>(processor.get());
+
+            if (sonobusprocessor != nullptr && settings->containsKey("filterStateXML")) {
+                String filtxml = settings->getValue ("filterStateXML");
+                data.replaceWith(filtxml.toUTF8(), filtxml.getNumBytesAsUTF8());
+                if (data.getSize() > 0) {
+                    sonobusprocessor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), true, true);
+                    return;
+                }
+            }
 
             if (data.fromBase64Encoding (settings->getValue ("filterState")) && data.getSize() > 0)
                 processor->setStateInformation (data.getData(), (int) data.getSize());
@@ -480,7 +537,8 @@ public:
     Value shouldOverrideSampleRate;
 
     Value shouldCheckForNewVersion;
-
+    StringArray recentSetupFiles;
+    String  lastRecentsSetupFolder;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     StringArray lastMidiDevices;
@@ -898,6 +956,8 @@ private:
                     sonoeditor->switchToHostApplication = [this]() { return owner.pluginHolder->switchToHostApplication(); };
                     sonoeditor->getShouldOverrideSampleRateValue = [this]() { return &(owner.pluginHolder->getShouldOverrideSampleRateValue()); };
                     sonoeditor->getShouldCheckForNewVersionValue = [this]() { return &(owner.pluginHolder->getShouldCheckForNewVersionValue()); };
+                    sonoeditor->getRecentSetupFiles = [this]() { return &(owner.pluginHolder->getRecentSetupFiles()); };
+                    sonoeditor->getLastRecentsFolder = [this]() { return &owner.pluginHolder->getLastRecentsFolder(); };
                 }
                 
                 editor->addComponentListener (this);

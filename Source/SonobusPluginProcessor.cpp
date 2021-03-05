@@ -5309,6 +5309,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
         totsendchans += mInputChannelGroups[cgi].numChannels;
     }
+    int realsendchans = mSendChannels.get() <= 0 ? totsendchans : mSendChannels.get();
     mActiveSendChannels = totsendchans;
 
     meterRmsWindow = sampleRate * METER_RMS_SEC / currSamplesPerBlock;
@@ -5316,14 +5317,15 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     inputMeterSource.resize (inchannels, meterRmsWindow);
     outputMeterSource.resize (outchannels, meterRmsWindow);
     postinputMeterSource.resize (totsendchans, meterRmsWindow);
-    sendMeterSource.resize (totsendchans, meterRmsWindow);
+
+    if (sendMeterSource.getNumChannels() < realsendchans) {
+        sendMeterSource.resize (realsendchans, meterRmsWindow);
+    }
 
     setupSourceFormatsForAll();
 
     
-    if (samplesPerBlock > mTempBufferSamples || maxchans > mTempBufferChannels) {
-        ensureBuffers(samplesPerBlock);
-    }
+    ensureBuffers(samplesPerBlock);
 
 
 
@@ -5503,8 +5505,15 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
         needpeersendupdate = true;
     }
 
+    int realsendchans = mSendChannels.get() <= 0 ? totsendchans : mSendChannels.get();
+
+
+
     meterRmsWindow = getSampleRate() * METER_RMS_SEC / currSamplesPerBlock;
-    sendMeterSource.resize(totsendchans, meterRmsWindow);
+
+    if (sendMeterSource.getNumChannels() < realsendchans) {
+        sendMeterSource.resize (realsendchans, meterRmsWindow);
+    }
 
     auto maxworkbufchans = jmax(maxchans, totsendchans);
 
@@ -5581,7 +5590,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     float inmonMonoPan = mInMonMonoPan.get();
     float inmonPan1 = mInMonPan1.get();
     float inmonPan2 = mInMonPan2.get();
-    
+
+    int sendChans = mSendChannels.get();
+
     inGain = mMainInMute.get() ? 0.0f : inGain;
     
     int numSamples = buffer.getNumSamples();
@@ -5610,11 +5621,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     {
         totsendchans += mInputChannelGroups[i].numChannels;
     }
+    int realsendchans = sendChans <= 0 ? totsendchans :sendChans;
 
 
     // THIS SHOULDN"T GENERALLY HAPPEN, it should have been taken care of in prepareToPlay, but just in case.
     // I know this isn't RT safe. UGLY... bad... badness.
-    if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels || inputPostBuffer.getNumChannels() != totsendchans) {
+    if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels || inputPostBuffer.getNumChannels() != totsendchans || inputPostBuffer.getNumSamples() < numSamples  || sendMeterSource.getNumChannels() < realsendchans) {
         ensureBuffers(numSamples);
     }
     
@@ -5699,7 +5711,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // do the input panning before everything else
     int sendCh = mSendChannels.get();
     //int sendPanChannels = sendCh == 0 ?  inputBuffer.getNumChannels() : jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
-    int sendPanChannels = sendCh == 0 ?  inputPostBuffer.getNumChannels() : jmin(inputPostBuffer.getNumChannels(), sendCh);
+    int sendPanChannels = sendCh == 0 ?  inputPostBuffer.getNumChannels() : jmin(inputWorkBuffer.getNumChannels(), sendCh);
     //int panChannels = jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
     // if sending as mono, split the difference about applying gain attentuation for the number of input channels
     float tgain = sendPanChannels == 1 && inputPostBuffer.getNumChannels() > 0 ? (1.0f/std::max(1.0f, (float)(inputPostBuffer.getNumChannels() * 0.5f))) : 1.0f;
@@ -6478,22 +6490,28 @@ void AooServerConnectionInfo::setFromValueTree(const ValueTree & item)
 }
 
 
-//==============================================================================
-void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
+void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData, bool includecache, bool xmlformat)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
     MemoryOutputStream stream(destData, false);
 
-    ValueTree recentsTree = mState.state.getOrCreateChildWithName(recentsCollectionKey, nullptr);
-    // update state with our recents info
-    recentsTree.removeAllChildren(nullptr);
-    for (auto & info : mRecentConnectionInfos) {
-        recentsTree.appendChild(info.getValueTree(), nullptr);        
+    auto tempstate = mState.copyState();
+
+    ValueTree recentsTree = tempstate.getOrCreateChildWithName(recentsCollectionKey, nullptr);
+
+    if (includecache) {
+        // update state with our recents info
+        recentsTree.removeAllChildren(nullptr);
+        for (auto & info : mRecentConnectionInfos) {
+            recentsTree.appendChild(info.getValueTree(), nullptr);
+        }
+    } else {
+        tempstate.removeChild(recentsTree, nullptr);
     }
 
-    ValueTree extraTree = mState.state.getOrCreateChildWithName(extraStateCollectionKey, nullptr);
+    ValueTree extraTree = tempstate.getOrCreateChildWithName(extraStateCollectionKey, nullptr);
     // update state with our recents info
     extraTree.removeAllChildren(nullptr);
     extraTree.setProperty(useSpecificUdpPortKey, mUseSpecificUdpPort, nullptr);
@@ -6505,7 +6523,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
 
-    ValueTree inputChannelGroupsTree = mState.state.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
+    ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
     inputChannelGroupsTree.setProperty(numChanGroupsKey, mInputChannelGroupCount, nullptr);
 
@@ -6513,38 +6531,62 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
         inputChannelGroupsTree.appendChild(mInputChannelGroups[i].getValueTree(), nullptr);
     }
 
-    /*
-    ValueTree inputEffectsTree = mState.state.getOrCreateChildWithName(inputEffectsStateKey, nullptr);
-    inputEffectsTree.removeAllChildren(nullptr);
-    inputEffectsTree.appendChild(mInputCompressorParams.getValueTree(compressorStateKey), nullptr); 
-    inputEffectsTree.appendChild(mInputExpanderParams.getValueTree(expanderStateKey), nullptr); 
-    inputEffectsTree.appendChild(mInputLimiterParams.getValueTree(limiterStateKey), nullptr); 
-    inputEffectsTree.appendChild(mInputEqParams.getValueTree(), nullptr); 
-     */
-    
-    storePeerCacheToState();
-    
-    mState.state.writeToStream (stream);
-    
-    DBG("GETSTATE: " << mState.state.toXmlString());
+    ValueTree peerCacheTree = tempstate.getOrCreateChildWithName(peerStateCacheMapKey, nullptr);
+    if (includecache) {
+        // update state with our recents info
+        peerCacheTree.removeAllChildren(nullptr);
+        for (auto & info : mPeerStateCacheMap) {
+            peerCacheTree.appendChild(info.second.getValueTree(), nullptr);
+        }
+    } else {
+        tempstate.removeChild(peerCacheTree, nullptr);
+    }
+
+    if (xmlformat) {
+        stream.writeString(tempstate.toXmlString());
+    }
+    else {
+        tempstate.writeToStream (stream);
+    }
+
+    DBG("GETSTATE: " << tempstate.toXmlString());
 }
 
-void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+
+//==============================================================================
+void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
+{
+    getStateInformationWithOptions(destData, true);
+
+}
+
+void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache, bool xmlformat)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-    ValueTree tree = ValueTree::readFromData (data, sizeInBytes);
+    ValueTree tree;
+
+    if (xmlformat) {
+        tree = ValueTree::fromXml(String::createStringFromData(data, sizeInBytes));
+    }
+    else {
+        tree = ValueTree::readFromData (data, sizeInBytes);
+    }
+
     if (tree.isValid()) {
         mState.state = tree;
         
         DBG("SETSTATE: " << mState.state.toXmlString());
-        ValueTree recentsTree = mState.state.getChildWithName(recentsCollectionKey);
-        if (recentsTree.isValid()) {
-            mRecentConnectionInfos.clear();
-            for (auto child : recentsTree) {
-                AooServerConnectionInfo info;
-                info.setFromValueTree(child);
-                mRecentConnectionInfos.add(info);
+
+        if (includecache) {
+            ValueTree recentsTree = mState.state.getChildWithName(recentsCollectionKey);
+            if (recentsTree.isValid()) {
+                mRecentConnectionInfos.clear();
+                for (auto child : recentsTree) {
+                    AooServerConnectionInfo info;
+                    info.setFromValueTree(child);
+                    mRecentConnectionInfos.add(info);
+                }
             }
         }
 
@@ -6592,20 +6634,27 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
 
         }
 
-
-        loadPeerCacheFromState();
+        if (includecache) {
+            loadPeerCacheFromState();
+        }
         
         // don't recover the metronome enable state, always default it to off
         mState.getParameter(paramMetEnabled)->setValueNotifyingHost(0.0f);
 
-        // don't recover the recv mute either
-        mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
+        // don't recover the recv mute either (actually recover it after all)
+        //mState.getParameter(paramMainRecvMute)->setValueNotifyingHost(0.0f);
 
         // don't recover main solo
         mState.getParameter(paramMainMonitorSolo)->setValueNotifyingHost(0.0f);
         
     }
 }
+
+void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+{
+    setStateInformationWithOptions(data, sizeInBytes, true);
+}
+
 
 
 SonobusAudioProcessor::PeerStateCache::PeerStateCache()

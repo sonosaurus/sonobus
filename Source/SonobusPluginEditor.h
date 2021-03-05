@@ -140,6 +140,9 @@ public:
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };
     std::function<Value*()> getShouldCheckForNewVersionValue; // = []() { return 0; };
 
+    std::function<StringArray*()> getRecentSetupFiles; // = []() { return 0; };
+    std::function<String*()> getLastRecentsFolder; // = []() { return 0; };
+
     void handleURL(const String & urlstr);
     
 
@@ -150,6 +153,8 @@ public:
     bool requestedQuit();
 
 
+    bool loadSettingsFromFile(const File & file);
+    bool saveSettingsToFile(const File & file);
 
 private:
 
@@ -203,6 +208,10 @@ private:
     void updateSliderSnap();
 
     bool setupLocalisation(const String & overrideLang = {});
+
+
+    void showSaveSettingsPreset();
+    void showLoadSettingsPreset();
 
 
     // This reference is provided as a quick way for your editor to
@@ -494,7 +503,10 @@ private:
         SonobusAudioProcessorEditor & parent;
     };
 
-    
+
+    void populateRecentSetupsMenu(PopupMenu & popup);
+    void addToRecentsSetups(const File & file);
+
     SonobusCommandManager commandManager { *this };
 
     
@@ -509,12 +521,14 @@ private:
         PopupMenu getMenuForIndex (int topLevelMenuIndex, const String& /*menuName*/) override;
         void menuItemSelected (int menuItemID, int topLevelMenuIndex) override;
 
+        
     protected:
         SonobusAudioProcessorEditor & parent;
     };
     
     std::unique_ptr<SonobusMenuBarModel> menuBarModel;
     std::unique_ptr<MenuBarComponent> mMenuBar;
+
 
     
     std::unique_ptr<RandomSentenceGenerator> mRandomSentence;

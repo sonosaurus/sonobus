@@ -22,7 +22,9 @@ public:
         ShowOptions,
         OpenFile,
         RecordToggle,
-        CheckForNewVersion
+        CheckForNewVersion,
+        LoadSetupFile,
+        SaveSetupFile
     };
     
 };
