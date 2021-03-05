@@ -1799,11 +1799,11 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         //pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
 
         String chantext;
-        if (chi == 0 && chcnt > 1) {
-            chantext << chstart+1 << "-" << chstart+chcnt;
-        } else {
-            chantext << chstart + chi + 1;
-        }
+        //if (chi == 0 && chcnt > 1) {
+        chantext << chstart+chi + 1; //<< "-" << chstart+chcnt;
+        //} else {
+        //    chantext << chstart + chi + 1;
+        //}
         pvf->linkButton->setButtonText(chantext);
 
 
@@ -2517,29 +2517,29 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
     for (int cc=chcnt; cc <= jmin( chcnt, totalins); ++cc) {
         for (int i=0; i < totalins - (cc - 1); ++i) {
             String name;
-            if (mPeerMode) {
-                name << i+1;
-            } else {
-                if (i < inputnames.size()) {
-                    name << inputnames[i];
-                }
-                else {
+
+            if (cc == 1) {
+                if (mPeerMode) {
                     name << i+1;
+                } else {
+                    if (i < inputnames.size()) {
+                        name << "[" << i+1 << "] " << inputnames[i];
+                    }
+                    else {
+                        name << i+1;
+                    }
                 }
             }
-
-            if (cc > 1) {
-
-                name << " - ";
+            else if (cc > 1) {
 
                 if (mPeerMode) {
                     name << i+1;
                 } else {
                     if (i+cc-1 < inputnames.size()) {
-                        name << inputnames[i+cc-1];
+                        name << "[" << i+1 << "-" << i+cc << "] " << inputnames[i] << " - " << inputnames[i+cc-1];
                     }
                     else {
-                        name << i+cc;
+                        name << i+1 << " - " << i+cc;
                     }
                 }
             }
@@ -2857,7 +2857,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
             for ( int ni=0; ni < allnames.size(); ++ni ) {
                 if (actives[ni]) {
                     String name;
-                    //name << ind + 1 << ": " << allinputnames[ni];
+                    //name << "[" << ind + 1 << "] " << allnames[ni];
                     name << allnames[ni];
                     outputnames.add(name);
                     ++ind;
@@ -2873,7 +2873,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
             String name;
             if (auto bus = processor.getBus(false, busnum)) {
                 chname = bus->getName();
-                //name << i+1 << ": " << chname << " " << bch+1;
+                //name << "[" << i+1 << "] " << chname << " " << bch+1;
                 name << chname << " " << bch+1;
             } else {
                 name << i+1;
@@ -2893,13 +2893,15 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
             String name;
             if (cc == 1) {
                 if (i < outputnames.size()) {
-                    name << outputnames[i];
+                    name << "[" << i+1 << "] " << outputnames[i];
+                    //name << outputnames[i];
                 } else {
                     name << i+1;
                 }
             } else {
                 if (i+cc-1 < outputnames.size()) {
-                    name << outputnames[i] << " - " << outputnames[i+cc-1];
+                    name << "[" << i+1 << "-" << i+cc <<  "] " << outputnames[i] << " - " << outputnames[i+cc-1];
+                    //name << outputnames[i] << " - " << outputnames[i+cc-1];
                 } else {
                     name << i+1 << " - " << i+cc;
                 }
