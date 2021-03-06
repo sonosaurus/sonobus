@@ -2816,6 +2816,7 @@ void ChannelGroupsView::mouseUp (const MouseEvent& event)
 
                 if (canmove && processor.moveInputChannelGroupTo(mDraggingSourceGroup, mDraggingGroupPos)) {
                     // moved it
+                    processor.updateAllRemotePeerUserFormats();
                     rebuildChannelViews();
                 }
 
