@@ -20,21 +20,9 @@ namespace SonoAudio {
 
 // used to encapsulate audio processing for grouped set of audio
 // is used for both local or remote audio input
-class ChannelGroup
+
+struct ChannelGroupParams
 {
-public:
-
-    ChannelGroup();
-
-    void init(double sampleRate);
-
-    void processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer,  int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor);
-    void processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
-    void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
-
-    // shallow copy of parameters and state
-    void copyParametersFrom(const ChannelGroup& other);
-
 
     void setToDefaults(bool isplugin);
 
@@ -45,12 +33,6 @@ public:
 
     ValueTree getChannelLayoutValueTree();
     void setFromChannelLayoutValueTree(const ValueTree & layoutval);
-
-    void commitCompressorParams();
-    void commitExpanderParams();
-    void commitLimiterParams();
-    void commitEqParams();
-
 
     // group info
     String name;
@@ -84,34 +66,16 @@ public:
 
     // compressor (only used for 1 or 2 channel groups)
     CompressorParams compressorParams;
-    faustCompressor compressor;
-    MapUI compressorControl;
-    float * compressorOutputLevel = nullptr;
-    bool compressorParamsChanged = false;
-    bool _lastCompressorEnabled = false;
 
     // gate/expander
-    faustExpander expander;
-    MapUI  expanderControl;
     CompressorParams expanderParams;
-    bool expanderParamsChanged = false;
-    bool _lastExpanderEnabled = false;
-    float * expanderOutputGain = nullptr;
 
     // EQ (stereo only)
-    faustParametricEQ eq[2];
-    MapUI  eqControl[2];
     ParametricEqParams eqParams;
-    bool eqParamsChanged = false;
-    bool _lastEqEnabled = false;
 
     // limiter
     //faustLimiter mInputLimiter;
-    faustCompressor limiter;
-    MapUI  limiterControl;
     CompressorParams limiterParams;
-    bool limiterParamsChanged = false;
-    bool _lastLimiterEnabled = false;
 
     // reverb send
     float reverbSend = 0.0f;
@@ -123,6 +87,71 @@ public:
 
     float _lastmonitor = 0.0f;
 
+};
+
+
+class ChannelGroup
+{
+public:
+
+    ChannelGroup();
+
+    void init(double sampleRate);
+
+    void processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer,  int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor);
+    void processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
+    void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
+
+    // shallow copy of parameters and state
+    void copyParametersFrom(const ChannelGroup& other);
+
+    void commitAllParams();
+    
+    void commitCompressorParams();
+    void commitExpanderParams();
+    void commitLimiterParams();
+    void commitEqParams();
+
+
+    ChannelGroupParams params;
+
+    float _lastgain = 0.0f;
+
+    float _lastpan[MAX_CHANNELS] = { 0.0f };
+    float _laststereopan[2] = { 0.0f };
+    float _lastmonpan[MAX_CHANNELS] = { 0.0f };
+    float _lastmonstereopan[2] = { 0.0f };
+
+
+    // compressor (only used for 1 or 2 channel groups)
+    std::unique_ptr<faustCompressor> compressor;
+    std::unique_ptr<MapUI> compressorControl;
+    float * compressorOutputLevel = nullptr;
+    bool compressorParamsChanged = false;
+    bool _lastCompressorEnabled = false;
+
+    // gate/expander
+    std::unique_ptr<faustExpander> expander;
+    std::unique_ptr<MapUI>  expanderControl;
+    bool expanderParamsChanged = false;
+    bool _lastExpanderEnabled = false;
+    float * expanderOutputGain = nullptr;
+
+    // EQ (stereo only)
+    std::unique_ptr<faustParametricEQ> eq[2];
+    std::unique_ptr<MapUI>  eqControl[2];
+    bool eqParamsChanged = false;
+    bool _lastEqEnabled = false;
+
+    // limiter
+    //faustLimiter mInputLimiter;
+    std::unique_ptr<faustCompressor> limiter;
+    std::unique_ptr<MapUI>  limiterControl;
+    bool limiterParamsChanged = false;
+    bool _lastLimiterEnabled = false;
+
+
+    float _lastmonitor = 0.0f;
 
 };
 

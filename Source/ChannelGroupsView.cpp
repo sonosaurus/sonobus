@@ -16,6 +16,14 @@ public:
     int count;
 };
 
+struct CmdListItemData : public GenericItemChooserItem::UserData
+{
+public:
+    CmdListItemData(const CmdListItemData & other) : command(other.command) {}
+    CmdListItemData(int cmd) : command(cmd) {}
+
+    int command;
+};
 
 ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bool peermode)
 : Component(), peerMode(peermode), processor(proc)
@@ -1476,7 +1484,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
     int totalchans = processor.getTotalNumInputChannels(); // processor.getMainBusNumInputChannels();
 
-    int totaloutchans = processor.getMainBusNumOutputChannels();
+    int totaloutchans = processor.getTotalNumOutputChannels();
     int changroups = processor.getInputGroupCount();
     int chi = 0;
 
@@ -1557,7 +1565,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         int deststart = 0;
         int destcnt = 2;
         processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
-        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+        destcnt = jmin(totaloutchans, destcnt);
 
         String desttext;
         if (destcnt == 1) {
@@ -1639,7 +1647,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     int deststart = 0;
     int destcnt = 2;
     processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
-    destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+    destcnt = jmin(totaloutchans, destcnt);
 
     bool expanded = processor.getRemotePeerViewExpanded(mPeerIndex);
 
@@ -1799,11 +1807,10 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         //pvf->chanLabel->setText(String::formatted("%d", i+1), dontSendNotification);
 
         String chantext;
-        //if (chi == 0 && chcnt > 1) {
+        if (processor.getLayoutFormatChangedForRemotePeer(mPeerIndex)) {
+            chantext << "*";
+        }
         chantext << chstart+chi + 1; //<< "-" << chstart+chcnt;
-        //} else {
-        //    chantext << chstart + chi + 1;
-        //}
         pvf->linkButton->setButtonText(chantext);
 
 
@@ -2235,7 +2242,8 @@ void ChannelGroupsView::showChangeGroupChannels(int changroup, Component * showf
 
     totalins = jmin(totalins, MAX_CHANNELS);
 
-    items.add(GenericItemChooserItem(TRANS("CHANGE CHANNEL LAYOUT:")));
+    items.add(GenericItemChooserItem(TRANS("CHANGE CHANNEL LAYOUT:"), {}, nullptr, false, true));
+
 
     for (int i=0; i < totalins; ++i) {
         String name;
@@ -2290,7 +2298,7 @@ void ChannelGroupsView::showChangePeerChannelsLayout(int chindex, Component * sh
     int usableins = totalins - (chindex);
     int selindex = chindex == chstart ? chcnt : -1;
 
-    items.add(GenericItemChooserItem(TRANS("CHANGE CHANNEL LAYOUT:")));
+    items.add(GenericItemChooserItem(TRANS("CHANGE CHANNEL LAYOUT:"), {}, nullptr, false, true));
 
     for (int i=0; i < usableins; ++i) {
         String name;
@@ -2306,14 +2314,31 @@ void ChannelGroupsView::showChangePeerChannelsLayout(int chindex, Component * sh
     }
 
 
+    if (processor.getLayoutFormatChangedForRemotePeer(mPeerIndex)) {
+        auto udata = std::make_shared<CmdListItemData>(1);
+        items.add(GenericItemChooserItem(TRANS("<Restore Original Layout>"), {}, udata, true));
+    }
+
+
     Component* dw = showfrom->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = showfrom->findParentComponentOfClass<Component>();
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, showfrom->getScreenBounds());
 
     SafePointer<ChannelGroupsView> safeThis(this);
 
-    auto callback = [safeThis,changroup,chindex,totalins](GenericItemChooser* chooser,int newcount) mutable {
-        if (!safeThis || newcount == 0) return;
+    auto callback = [safeThis,changroup,chindex,totalins](GenericItemChooser* chooser,int index) mutable {
+        if (!safeThis || index == 0) return;
+        // jlcc
+        auto & selitem = chooser->getItems().getReference(index);
+        auto dclitem = std::dynamic_pointer_cast<CmdListItemData>(selitem.userdata);
+        if (dclitem) {
+            // this is restore
+            safeThis->processor.restoreLayoutFormatForRemotePeer(safeThis->mPeerIndex);
+            safeThis->rebuildChannelViews(true);
+            return;
+        }
+
+        int newcount = index;
         int chstart = 0;
         int chcnt;
         safeThis->processor.getRemotePeerChannelGroupStartAndCount(safeThis->mPeerIndex, changroup, chstart, chcnt);
@@ -2473,7 +2498,7 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
     // for each number of channel counts possible (1-chcnt)
     int selindex = -1;
 
-    items.add(GenericItemChooserItem(chcnt > 1 ? TRANS("SELECT INPUTS:") : TRANS("SELECT INPUT:"), {}, nullptr, false));
+    items.add(GenericItemChooserItem(chcnt > 1 ? TRANS("SELECT INPUTS:") : TRANS("SELECT INPUT:"), {}, nullptr, false, true));
 
 
     StringArray inputnames;
@@ -2827,7 +2852,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
     ChannelGroupView * pvf = mChannelViews.getUnchecked(index);
 
     Array<GenericItemChooserItem> items;
-    items.add(GenericItemChooserItem(TRANS("SELECT MONITOR OUT:")));
+    items.add(GenericItemChooserItem(TRANS("SELECT MONITOR OUT:"), {}, nullptr, false, true));
 
     int chstart=0, chcnt=0;
     int totalouts = 0;
@@ -2839,11 +2864,13 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
         totalouts = processor.getTotalNumOutputChannels();
         processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
         processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, destst, destcnt);
+        chcnt = jmin(chcnt, totalouts);
     }
     else {
         totalouts = processor.getTotalNumOutputChannels();
         processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
         processor.getInputGroupChannelDestStartAndCount(changroup, destst, destcnt);
+        chcnt = jmin(chcnt, totalouts);
     }
 
 

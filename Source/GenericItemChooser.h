@@ -17,11 +17,12 @@ struct GenericItemChooserItem
     };
 
     GenericItemChooserItem() : image(Image()) {}
-    GenericItemChooserItem(const String & name_, const Image & image_=Image(), std::shared_ptr<UserData> udata = nullptr, bool withSeparator=false) : name(name_), image(image_), userdata(udata), separator(withSeparator) {}
+    GenericItemChooserItem(const String & name_, const Image & image_=Image(), std::shared_ptr<UserData> udata = nullptr, bool withSeparator=false, bool disabled_=false) : name(name_), image(image_), userdata(udata), separator(withSeparator), disabled(disabled_) {}
     String name;
     Image image;
     std::shared_ptr<UserData> userdata;
     bool separator = false;
+    bool disabled = false;
 };
 
 class GenericItemChooser : public Component, public ListBoxModel, public Button::Listener

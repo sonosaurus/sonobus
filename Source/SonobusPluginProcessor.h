@@ -341,6 +341,9 @@ public:
     bool getRemotePeerViewExpanded(int index) const;
     void setRemotePeerViewExpanded(int index, bool expanded);
 
+    bool getLayoutFormatChangedForRemotePeer(int index) const;
+    void restoreLayoutFormatForRemotePeer(int index);
+
 
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
@@ -467,7 +470,7 @@ public:
     bool getInputEqParams(int changroup, SonoAudio::ParametricEqParams & retparams);
     
     
-    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].compressorParams.enabled || mInputChannelGroups[changroup].expanderParams.enabled || mInputChannelGroups[changroup].eqParams.enabled; }
+    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled; }
     
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
@@ -617,7 +620,8 @@ private:
         int   netbufauto;
         int   sendFormat = 4;
 
-        SonoAudio::ChannelGroup channelGroups[MAX_CHANGROUPS];
+        float mainGain = 1.0f;
+        SonoAudio::ChannelGroupParams channelGroupParams[MAX_CHANGROUPS];
         int numChanGroups = 1;
     };
 
@@ -669,6 +673,7 @@ private:
     ValueTree getSendUserFormatLayoutTree();
 
     void applyLayoutFormatToPeer(RemotePeer * remote, const ValueTree & valtree);
+    void restoreLayoutFormatForPeer(RemotePeer * remote);
 
 
     int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);

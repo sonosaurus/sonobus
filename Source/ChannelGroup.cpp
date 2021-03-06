@@ -47,6 +47,14 @@ ChannelGroup::ChannelGroup()
 // copy assignment
 void ChannelGroup::copyParametersFrom(const ChannelGroup& other)
 {
+    params = other.params;
+
+    compressorParamsChanged = true;
+    expanderParamsChanged = true;
+    eqParamsChanged = true;
+    limiterParamsChanged = true;
+
+#if 0
     name = other.name;
     chanStartIndex = other.chanStartIndex;
     numChannels = other.numChannels;
@@ -78,14 +86,10 @@ void ChannelGroup::copyParametersFrom(const ChannelGroup& other)
     eqParams = other.eqParams;
     limiterParams = other.limiterParams;
 
-    compressorParamsChanged = true;
-    expanderParamsChanged = true;
-    eqParamsChanged = true;
-    limiterParamsChanged = true;
-
+#endif
 }
 
-void ChannelGroup::setToDefaults(bool isplugin)
+void ChannelGroupParams::setToDefaults(bool isplugin)
 {
     // default expander params
     expanderParams.thresholdDb = -60.0f;
@@ -107,16 +111,25 @@ void ChannelGroup::setToDefaults(bool isplugin)
 
 void ChannelGroup::init(double sampleRate)
 {
-    compressor.init(sampleRate);
-    compressor.buildUserInterface(&compressorControl);
+    if (!compressor) {
+        compressor = std::make_unique<faustCompressor>();
+        compressorControl = std::make_unique<MapUI>();
+    }
+    compressor->init(sampleRate);
+    compressor->buildUserInterface(compressorControl.get());
 
     //DBG("Compressor Params:");
     //for(int i=0; i < mInputCompressorControl.getParamsCount(); i++){
     //    DBG(mInputCompressorControl.getParamAddress(i));
     //}
 
-    expander.init(sampleRate);
-    expander.buildUserInterface(&expanderControl);
+    if (!expander) {
+        expander = std::make_unique<faustExpander>();
+        expanderControl = std::make_unique<MapUI>();
+    }
+
+    expander->init(sampleRate);
+    expander->buildUserInterface(expanderControl.get());
 
     //DBG("Expander Params:");
     //for(int i=0; i < mInputExpanderControl.getParamsCount(); i++){
@@ -124,8 +137,12 @@ void ChannelGroup::init(double sampleRate)
     //}
 
     for (int j=0; j < 2; ++j) {
-        eq[j].init(sampleRate);
-        eq[j].buildUserInterface(&eqControl[j]);
+        if (!eq[j]) {
+            eq[j] = std::make_unique<faustParametricEQ>();
+            eqControl[j] = std::make_unique<MapUI>();
+        }
+        eq[j]->init(sampleRate);
+        eq[j]->buildUserInterface(eqControl[j].get());
     }
 
     //DBG("EQ Params:");
@@ -133,8 +150,13 @@ void ChannelGroup::init(double sampleRate)
     //    DBG(mInputEqControl[0].getParamAddress(i));
     //}
 
-    limiter.init(sampleRate);
-    limiter.buildUserInterface(&limiterControl);
+    if (!limiter) {
+        limiter = std::make_unique<faustCompressor>();
+        limiterControl = std::make_unique<MapUI>();
+    }
+
+    limiter->init(sampleRate);
+    limiter->buildUserInterface(limiterControl.get());
 
     //DBG("Limiter Params:");
     //for(int i=0; i < mInputLimiterControl.getParamsCount(); i++){
@@ -153,14 +175,14 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
 
 
 
-    int chstart = chanStartIndex;
-    int numchan = numChannels;
+    int chstart = params.chanStartIndex;
+    int numchan = params.numChannels;
     const int frombufNumChan = frombuffer.getNumChannels();
     const int tobufNumChan = tobuffer.getNumChannels();
     // apply input gain
 
 
-    float dogain = (muted ? 0.0f : gain) * gainfactor;
+    float dogain = (params.muted ? 0.0f : params.gain) * gainfactor;
     //dogain = 0.0f;
 
     if (&frombuffer == &tobuffer) {
@@ -178,8 +200,8 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
 
     _lastgain = dogain;
 
-    // these all operate ONLY when the channel group has 1 or 2 channels
-    if (numChannels <= 0 || numChannels > 2) {
+    // these all operate ONLY when the channel group has 1 or 2 channels (and when the effects have been initialized)
+    if (params.numChannels <= 0 || params.numChannels > 2 || !compressor) {
         return;
     }
 
@@ -188,16 +210,16 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
         commitExpanderParams();
         expanderParamsChanged = false;
     }
-    if (_lastExpanderEnabled || expanderParams.enabled) {
+    if (_lastExpanderEnabled || params.expanderParams.enabled) {
         if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
             float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            expander.compute(numSamples, bufs, bufs);
+            expander->compute(numSamples, bufs, bufs);
         } else if (destStartChan < tobufNumChan) {
             float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
-            expander.compute(numSamples, bufs, bufs);
+            expander->compute(numSamples, bufs, bufs);
         }
     }
-    _lastExpanderEnabled = expanderParams.enabled;
+    _lastExpanderEnabled = params.expanderParams.enabled;
 
 
     // apply input compressor
@@ -205,16 +227,16 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
         commitCompressorParams();
         compressorParamsChanged = false;
     }
-    if (_lastCompressorEnabled || compressorParams.enabled) {
+    if (_lastCompressorEnabled || params.compressorParams.enabled) {
         if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
             float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            compressor.compute(numSamples, bufs, bufs);
+            compressor->compute(numSamples, bufs, bufs);
         } else if (destStartChan < tobufNumChan) {
             float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
-            compressor.compute(numSamples, bufs, bufs);
+            compressor->compute(numSamples, bufs, bufs);
         }
     }
-    _lastCompressorEnabled = compressorParams.enabled;
+    _lastCompressorEnabled = params.compressorParams.enabled;
 
 
     // apply input EQ
@@ -222,19 +244,19 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
         commitEqParams();
         eqParamsChanged = false;
     }
-    if (_lastEqEnabled || eqParams.enabled) {
+    if (_lastEqEnabled || params.eqParams.enabled) {
         if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
             // only 2 channels support for now... TODO
             float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            eq[0].compute(numSamples, &bufs[0], &bufs[0]);
-            eq[1].compute(numSamples, &bufs[1], &bufs[1]);
+            eq[0]->compute(numSamples, &bufs[0], &bufs[0]);
+            eq[1]->compute(numSamples, &bufs[1], &bufs[1]);
         } else if (destStartChan < tobufNumChan) {
             float *inbuf = tobuffer.getWritePointer(destStartChan);
             float *outbuf = tobuffer.getWritePointer(destStartChan);
-            eq[0].compute(numSamples, &inbuf, &outbuf);
+            eq[0]->compute(numSamples, &inbuf, &outbuf);
         }
     }
-    _lastEqEnabled = eqParams.enabled;
+    _lastEqEnabled = params.eqParams.enabled;
 
 
     // apply input limiter
@@ -242,16 +264,16 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
         commitLimiterParams();
         limiterParamsChanged = false;
     }
-    if (_lastLimiterEnabled || limiterParams.enabled) {
+    if (_lastLimiterEnabled || params.limiterParams.enabled) {
         if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
             float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            limiter.compute(numSamples, bufs, bufs);
+            limiter->compute(numSamples, bufs, bufs);
         } else if (destStartChan < tobufNumChan) {
             float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
-            limiter.compute(numSamples, bufs, bufs);
+            limiter->compute(numSamples, bufs, bufs);
         }
     }
-    _lastLimiterEnabled = limiterParams.enabled;
+    _lastLimiterEnabled = params.limiterParams.enabled;
 
 }
 
@@ -267,20 +289,20 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
 
         for (int channel = destStartChan; channel < destStartChan + destNumChans && channel < toNumChan; ++channel) {
             int pani = 0;
-            for (int i=fromStartChan; i < fromStartChan + numChannels && i < fromNumChan; ++i, ++pani) {
-                const float upan = (numChannels != 2 ? pan[pani] : i==fromStartChan ? panStereo[0] : panStereo[1]);
-                const float lastpan = (numChannels != 2 ? _lastpan[pani] : i==fromStartChan ? _laststereopan[0] : _laststereopan[1]);
+            for (int i=fromStartChan; i < fromStartChan + params.numChannels && i < fromNumChan; ++i, ++pani) {
+                const float upan = (params.numChannels != 2 ? params.pan[pani] : i==fromStartChan ? params.panStereo[0] : params.panStereo[1]);
+                const float lastpan = (params.numChannels != 2 ? _lastpan[pani] : i==fromStartChan ? _laststereopan[0] : _laststereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
 
                 // apply pan law
-                pgain *= centerPanLaw + (fabsf(upan) * (1.0f - centerPanLaw));
+                pgain *= params.centerPanLaw + (fabsf(upan) * (1.0f - params.centerPanLaw));
                 pgain *= gainfactor;
 
                 if (fabsf(upan - lastpan) > 0.00001f) {
                     float plastgain = channel == destStartChan ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
-                    plastgain *= centerPanLaw + (fabsf(lastpan) * (1.0f - centerPanLaw));
+                    plastgain *= params.centerPanLaw + (fabsf(lastpan) * (1.0f - params.centerPanLaw));
                     plastgain *= gainfactor;
 
                     tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(i), numSamples, plastgain, pgain);
@@ -293,7 +315,7 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
     else if (destNumChans == 1){
         // sum all into destChan
         int channel = destStartChan;
-        for (int srcchan = fromStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
+        for (int srcchan = fromStartChan; srcchan < fromStartChan + params.numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
 
             tobuffer.addFrom(channel, 0, frombuffer, srcchan, 0, numSamples, gainfactor);
         }
@@ -301,7 +323,7 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
     else {
         // straight thru to dests - no panning
         int srcchan = fromStartChan;
-        for (int channel = destStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+        for (int channel = destStartChan; srcchan < fromStartChan + params.numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
 
@@ -310,10 +332,10 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
     }
     
 
-    _laststereopan[0] = panStereo[0];
-    _laststereopan[1] = panStereo[1];
-    for (int pani=0; pani < numChannels; ++pani) {
-        _lastpan[pani] = pan[pani];
+    _laststereopan[0] = params.panStereo[0];
+    _laststereopan[1] = params.panStereo[1];
+    for (int pani=0; pani < params.numChannels; ++pani) {
+        _lastpan[pani] = params.pan[pani];
     }
 }
 
@@ -322,7 +344,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
 
     // apply monitor level
 
-    float targmon = monitor * gainfactor;
+    float targmon = params.monitor * gainfactor;
 
     int fromNumChan = frombuffer.getNumChannels();
     int toNumChan = tobuffer.getNumChannels();
@@ -330,22 +352,22 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
     if (frombuffer.getNumChannels() > 0 && destNumChans == 2) {
         //tobuffer.clear(0, numSamples);
 
-        for (int channel = destStartChan; channel < destStartChan + destNumChans; ++channel) {
+        for (int channel = destStartChan; channel < destStartChan + destNumChans && channel < toNumChan; ++channel) {
             int pani = 0;
-            for (int i=fromStartChan; i < fromStartChan + numChannels && i < fromNumChan; ++i, ++pani) {
-                const float upan = (numChannels != 2 ? pan[pani] : i==fromStartChan ? panStereo[0] : panStereo[1]);
-                const float lastpan = (numChannels != 2 ? _lastmonpan[pani] : i==fromStartChan ? _lastmonstereopan[0] : _lastmonstereopan[1]);
+            for (int i=fromStartChan; i < fromStartChan + params.numChannels && i < fromNumChan; ++i, ++pani) {
+                const float upan = (params.numChannels != 2 ? params.pan[pani] : i==fromStartChan ? params.panStereo[0] : params.panStereo[1]);
+                const float lastpan = (params.numChannels != 2 ? _lastmonpan[pani] : i==fromStartChan ? _lastmonstereopan[0] : _lastmonstereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
 
                 // apply pan law
-                pgain *= centerPanLaw + (fabsf(upan) * (1.0f - centerPanLaw));
+                pgain *= params.centerPanLaw + (fabsf(upan) * (1.0f - params.centerPanLaw));
                 pgain *= targmon;
 
                 if (fabsf(upan - lastpan) > 0.00001f || fabsf(_lastmonitor - targmon) > 0.00001f) {
                     float plastgain = channel == destStartChan ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
-                    plastgain *= centerPanLaw + (fabsf(lastpan) * (1.0f - centerPanLaw));
+                    plastgain *= params.centerPanLaw + (fabsf(lastpan) * (1.0f - params.centerPanLaw));
                     plastgain *= _lastmonitor;
 
                     tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(i), numSamples, plastgain, pgain);
@@ -358,7 +380,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
     else if (frombuffer.getNumChannels() > 0 && destNumChans == 1){
         // sum all into destChan
         int channel = destStartChan;
-        for (int srcchan = fromStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
+        for (int srcchan = fromStartChan; srcchan < fromStartChan + params.numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
 
             tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
 
@@ -367,7 +389,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
     else if (frombuffer.getNumChannels() > 0){
         // straight thru to dests - no panning
         int srcchan = fromStartChan;
-        for (int channel = destStartChan; srcchan < fromStartChan + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+        for (int channel = destStartChan; srcchan < fromStartChan + params.numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
 //        for (int channel = destStartChan + chanStartIndex; channel < destStartChan + destNumChans && srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
@@ -377,22 +399,22 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
     }
 
 
-    _lastmonstereopan[0] = panStereo[0];
-    _lastmonstereopan[1] = panStereo[1];
-    for (int pani=0; pani < numChannels; ++pani) {
-        _lastmonpan[pani] = pan[pani];
+    _lastmonstereopan[0] = params.panStereo[0];
+    _lastmonstereopan[1] = params.panStereo[1];
+    for (int pani=0; pani < params.numChannels; ++pani) {
+        _lastmonpan[pani] = params.pan[pani];
     }
 
     _lastmonitor = targmon;
 
 }
 
-String ChannelGroup::getValueTreeKey() const
+String ChannelGroupParams::getValueTreeKey() const
 {
     return channelGroupStateKey;
 }
 
-ValueTree ChannelGroup::getValueTree() const
+ValueTree ChannelGroupParams::getValueTree() const
 {
     ValueTree channelGroupTree(channelGroupStateKey);
 
@@ -432,7 +454,7 @@ ValueTree ChannelGroup::getValueTree() const
     return channelGroupTree;
 }
 
-void ChannelGroup::setFromValueTree(const ValueTree & channelGroupTree)
+void ChannelGroupParams::setFromValueTree(const ValueTree & channelGroupTree)
 {
     gain = channelGroupTree.getProperty(gainKey, gain);
     chanStartIndex = channelGroupTree.getProperty(channelStartIndexKey, chanStartIndex);
@@ -469,37 +491,85 @@ void ChannelGroup::setFromValueTree(const ValueTree & channelGroupTree)
     ValueTree compressorTree = channelGroupTree.getChildWithName(compressorStateKey);
     if (compressorTree.isValid()) {
         compressorParams.setFromValueTree(compressorTree);
-        commitCompressorParams();
     }
     ValueTree expanderTree = channelGroupTree.getChildWithName(expanderStateKey);
     if (expanderTree.isValid()) {
         expanderParams.setFromValueTree(expanderTree);
-        commitExpanderParams();
     }
     ValueTree limiterTree = channelGroupTree.getChildWithName(limiterStateKey);
     if (limiterTree.isValid()) {
         limiterParams.setFromValueTree(limiterTree);
-        commitLimiterParams();
     }
-
     ValueTree eqTree = channelGroupTree.getChildWithName(eqStateKey);
     if (eqTree.isValid()) {
         eqParams.setFromValueTree(eqTree);
-        commitEqParams();
     }
 }
 
+ValueTree ChannelGroupParams::getChannelLayoutValueTree()
+{
+    ValueTree channelGroupTree(layoutGroupsKey);
+
+    channelGroupTree.setProperty(channelStartIndexKey, chanStartIndex, nullptr);
+    channelGroupTree.setProperty(numChannelsKey, numChannels, nullptr);
+    channelGroupTree.setProperty(nameKey, name, nullptr);
+    channelGroupTree.setProperty(peerPan1Key, panStereo[0], nullptr);
+    channelGroupTree.setProperty(peerPan2Key, panStereo[1], nullptr);
+
+    ValueTree panListTree(stereoPanListKey);
+    for (int i=0; i < numChannels && i < MAX_CHANNELS; ++i) {
+        ValueTree panner(panStateKey);
+        panner.setProperty(panAttrKey, pan[i], nullptr);
+        panListTree.appendChild(panner, nullptr);
+    }
+    channelGroupTree.appendChild(panListTree, nullptr);
+
+    return channelGroupTree;
+}
+
+void ChannelGroupParams::setFromChannelLayoutValueTree(const ValueTree & layoutval)
+{
+    chanStartIndex = layoutval.getProperty(channelStartIndexKey, chanStartIndex);
+    numChannels = layoutval.getProperty(numChannelsKey, numChannels);
+    name = layoutval.getProperty(nameKey, name);
+    panStereo[0] = layoutval.getProperty(peerPan1Key, panStereo[0]);
+    panStereo[1] = layoutval.getProperty(peerPan2Key, panStereo[1]);
+
+    ValueTree panListTree = layoutval.getChildWithName(stereoPanListKey);
+    if (panListTree.isValid()) {
+        int i=0;
+        for (auto panner : panListTree) {
+            if (panner.isValid() && i < MAX_CHANNELS) {
+                pan[i] = panner.getProperty(panAttrKey, pan[i]);
+            }
+            ++i;
+        }
+    }
+}
+
+
+
+void ChannelGroup::commitAllParams()
+{
+    commitCompressorParams();
+    commitLimiterParams();
+    commitEqParams();
+    commitExpanderParams();
+}
+
+
 void ChannelGroup::commitCompressorParams()
 {
-    compressorControl.setParamValue("/compressor/Bypass", compressorParams.enabled ? 0.0f : 1.0f);
-    compressorControl.setParamValue("/compressor/knee", 2.0f);
-    compressorControl.setParamValue("/compressor/threshold", compressorParams.thresholdDb);
-    compressorControl.setParamValue("/compressor/ratio", compressorParams.ratio);
-    compressorControl.setParamValue("/compressor/attack", compressorParams.attackMs * 1e-3);
-    compressorControl.setParamValue("/compressor/release", compressorParams.releaseMs * 1e-3);
-    compressorControl.setParamValue("/compressor/makeup_gain", compressorParams.makeupGainDb);
+    if (!compressorControl) return;
+    compressorControl->setParamValue("/compressor/Bypass", params.compressorParams.enabled ? 0.0f : 1.0f);
+    compressorControl->setParamValue("/compressor/knee", 2.0f);
+    compressorControl->setParamValue("/compressor/threshold", params.compressorParams.thresholdDb);
+    compressorControl->setParamValue("/compressor/ratio", params.compressorParams.ratio);
+    compressorControl->setParamValue("/compressor/attack", params.compressorParams.attackMs * 1e-3);
+    compressorControl->setParamValue("/compressor/release", params.compressorParams.releaseMs * 1e-3);
+    compressorControl->setParamValue("/compressor/makeup_gain", params.compressorParams.makeupGainDb);
 
-    float * tmp = compressorControl.getParamZone("/compressor/outgain");
+    float * tmp = compressorControl->getParamZone("/compressor/outgain");
     if (tmp != compressorOutputLevel) {
         compressorOutputLevel = tmp; // pointer
     }
@@ -508,14 +578,15 @@ void ChannelGroup::commitCompressorParams()
 
 void ChannelGroup::commitExpanderParams()
 {
+    if (!expanderControl) return;
     //mInputCompressorControl.setParamValue("/compressor/Bypass", mInputCompressorParams.enabled ? 0.0f : 1.0f);
-    expanderControl.setParamValue("/expander/knee", 3.0f);
-    expanderControl.setParamValue("/expander/threshold", expanderParams.thresholdDb);
-    expanderControl.setParamValue("/expander/ratio", expanderParams.ratio);
-    expanderControl.setParamValue("/expander/attack", expanderParams.attackMs * 1e-3);
-    expanderControl.setParamValue("/expander/release", expanderParams.releaseMs * 1e-3);
+    expanderControl->setParamValue("/expander/knee", 3.0f);
+    expanderControl->setParamValue("/expander/threshold", params.expanderParams.thresholdDb);
+    expanderControl->setParamValue("/expander/ratio", params.expanderParams.ratio);
+    expanderControl->setParamValue("/expander/attack", params.expanderParams.attackMs * 1e-3);
+    expanderControl->setParamValue("/expander/release", params.expanderParams.releaseMs * 1e-3);
 
-    float * tmp = expanderControl.getParamZone("/expander/outgain");
+    float * tmp = expanderControl->getParamZone("/expander/outgain");
 
     if (tmp != expanderOutputGain) {
         expanderOutputGain = tmp; // pointer
@@ -524,51 +595,32 @@ void ChannelGroup::commitExpanderParams()
 
 void ChannelGroup::commitLimiterParams()
 {
-    //mInputLimiterControl.setParamValue("/limiter/Bypass", mInputLimiterParams.enabled ? 0.0f : 1.0f);
-    //mInputLimiterControl.setParamValue("/limiter/threshold", mInputLimiterParams.thresholdDb);
-    //mInputLimiterControl.setParamValue("/limiter/ratio", mInputLimiterParams.ratio);
-    //mInputLimiterControl.setParamValue("/limiter/attack", mInputLimiterParams.attackMs * 1e-3);
-    //mInputLimiterControl.setParamValue("/limiter/release", mInputLimiterParams.releaseMs * 1e-3);
+    if (!limiterControl) return;
 
-    limiterControl.setParamValue("/compressor/Bypass", limiterParams.enabled ? 0.0f : 1.0f);
-    limiterControl.setParamValue("/compressor/threshold", limiterParams.thresholdDb);
-    limiterControl.setParamValue("/compressor/ratio", limiterParams.ratio);
-    limiterControl.setParamValue("/compressor/attack", limiterParams.attackMs * 1e-3);
-    limiterControl.setParamValue("/compressor/release", limiterParams.releaseMs * 1e-3);
+    limiterControl->setParamValue("/compressor/Bypass", params.limiterParams.enabled ? 0.0f : 1.0f);
+    limiterControl->setParamValue("/compressor/threshold", params.limiterParams.thresholdDb);
+    limiterControl->setParamValue("/compressor/ratio", params.limiterParams.ratio);
+    limiterControl->setParamValue("/compressor/attack", params.limiterParams.attackMs * 1e-3);
+    limiterControl->setParamValue("/compressor/release", params.limiterParams.releaseMs * 1e-3);
 }
 
 
 void ChannelGroup::commitEqParams()
 {
+    if (!eqControl[0]) return;
+
     for (int i=0; i < 2; ++i) {
-        eqControl[i].setParamValue("/parametric_eq/low_shelf/gain", eqParams.lowShelfGain);
-        eqControl[i].setParamValue("/parametric_eq/low_shelf/transition_freq", eqParams.lowShelfFreq);
-        eqControl[i].setParamValue("/parametric_eq/para1/peak_gain", eqParams.para1Gain);
-        eqControl[i].setParamValue("/parametric_eq/para1/peak_frequency", eqParams.para1Freq);
-        eqControl[i].setParamValue("/parametric_eq/para1/peak_q", eqParams.para1Q);
-        eqControl[i].setParamValue("/parametric_eq/para2/peak_gain", eqParams.para2Gain);
-        eqControl[i].setParamValue("/parametric_eq/para2/peak_frequency", eqParams.para2Freq);
-        eqControl[i].setParamValue("/parametric_eq/para2/peak_q", eqParams.para2Q);
-        eqControl[i].setParamValue("/parametric_eq/high_shelf/gain", eqParams.highShelfGain);
-        eqControl[i].setParamValue("/parametric_eq/high_shelf/transition_freq", eqParams.highShelfFreq);
+        eqControl[i]->setParamValue("/parametric_eq/low_shelf/gain", params.eqParams.lowShelfGain);
+        eqControl[i]->setParamValue("/parametric_eq/low_shelf/transition_freq", params.eqParams.lowShelfFreq);
+        eqControl[i]->setParamValue("/parametric_eq/para1/peak_gain", params.eqParams.para1Gain);
+        eqControl[i]->setParamValue("/parametric_eq/para1/peak_frequency", params.eqParams.para1Freq);
+        eqControl[i]->setParamValue("/parametric_eq/para1/peak_q", params.eqParams.para1Q);
+        eqControl[i]->setParamValue("/parametric_eq/para2/peak_gain", params.eqParams.para2Gain);
+        eqControl[i]->setParamValue("/parametric_eq/para2/peak_frequency", params.eqParams.para2Freq);
+        eqControl[i]->setParamValue("/parametric_eq/para2/peak_q", params.eqParams.para2Q);
+        eqControl[i]->setParamValue("/parametric_eq/high_shelf/gain", params.eqParams.highShelfGain);
+        eqControl[i]->setParamValue("/parametric_eq/high_shelf/transition_freq", params.eqParams.highShelfFreq);
     }
 }
 
 
-ValueTree ChannelGroup::getChannelLayoutValueTree()
-{
-    ValueTree channelGroupTree(layoutGroupsKey);
-
-    channelGroupTree.setProperty(channelStartIndexKey, chanStartIndex, nullptr);
-    channelGroupTree.setProperty(numChannelsKey, numChannels, nullptr);
-    channelGroupTree.setProperty(nameKey, name, nullptr);
-
-    return channelGroupTree;
-}
-
-void ChannelGroup::setFromChannelLayoutValueTree(const ValueTree & layoutval)
-{
-    chanStartIndex = layoutval.getProperty(channelStartIndexKey, chanStartIndex);
-    numChannels = layoutval.getProperty(numChannelsKey, numChannels);
-    name = layoutval.getProperty(nameKey, name);
-}

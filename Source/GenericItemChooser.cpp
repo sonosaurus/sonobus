@@ -8,7 +8,8 @@ enum {
     nameTextColourId = 0x1002830,
     currentNameTextColourId = 0x1002850,
     selectedColourId = 0x1002840,
-    separatorColourId = 0x1002860
+    separatorColourId = 0x1002860,
+    disabledColourId = 0x1002870
 };
 
 
@@ -81,6 +82,7 @@ GenericItemChooser::GenericItemChooser(const Array<GenericItemChooserItem> & ite
     setColour (currentNameTextColourId, Colour::fromFloatRGBA(0.4f, 0.8f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour (0xff3d70c8).withAlpha(0.5f));
     setColour (separatorColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.5f));
+    setColour (disabledColourId, Colour::fromFloatRGBA(0.7f, 0.7f, 0.7f, 0.7f));
 
     
     table.setOutlineThickness (0);
@@ -172,6 +174,11 @@ void GenericItemChooser::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 {
     listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
 
+    if (items[rowNumber].disabled) {
+        // not selectable
+        return;
+    }
+
     if (onSelected) {
         onSelected(this, rowNumber);
     }
@@ -197,12 +204,15 @@ void GenericItemChooser::paintListBoxItem (int rowNumber, Graphics &g, int width
         g.drawLine(0, 0, width, 0);
     }
 
-    if (rowIsSelected) {
+    if (rowIsSelected && !items[rowNumber].disabled) {
         g.setColour (findColour(selectedColourId));
         g.fillRect(Rectangle<int>(0,0,width,height));
     }
     
-    if (rowNumber == currentIndex) {
+    if (items[rowNumber].disabled) {
+        g.setColour (findColour(disabledColourId));
+    }
+    else if (rowNumber == currentIndex) {
         g.setColour (findColour(currentNameTextColourId));
     }
     else {
