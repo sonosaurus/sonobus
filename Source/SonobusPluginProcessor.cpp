@@ -91,8 +91,11 @@ static String eqStateKey("ParametricEqState");
 
 static String inputChannelGroupsStateKey("InputChannelGroups");
 static String channelGroupsStateKey("ChannelGroups");
+static String channelGroupsMultiStateKey("MultiChannelGroups");
 static String channelGroupStateKey("ChannelGroup");
 static String numChanGroupsKey("numChanGroups");
+static String numMultiChanGroupsKey("numMultiChanGroups");
+static String modifiedChanGroupsKey("modifiedChanGroups");
 
 static String channelLayoutsKey("ChannelLayouts");
 
@@ -291,6 +294,9 @@ struct SonobusAudioProcessor::RemotePeer {
     SonoAudio::ChannelGroup chanGroups[MAX_CHANGROUPS];
     int numChanGroups = 1;
     bool modifiedChanGroups = false;
+    SonoAudio::ChannelGroupParams lastMultiChanParams[MAX_CHANGROUPS];
+    int lastMultiNumChanGroups = 0;
+    // runtime state
     SonoAudio::ChannelGroupParams origChanParams[MAX_CHANGROUPS];
     int origNumChanGroups = 1;
 
@@ -2428,6 +2434,26 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                 if (peer->oursink->get_source_format(e->endpoint, e->id, f) > 0) {
                     DBG("Got source format event from " << es->ipaddr << ":" << es->port << "  " <<  e->id  << "  channels: " << f.header.nchannels);
                     peer->recvMeterSource.resize(f.header.nchannels, meterRmsWindow);
+
+                    // check for layout
+                    bool gotuserformat = false;
+                    char userfmtdata[1024];
+                    int32_t retsize = peer->oursink->get_sourceoption(e->endpoint, e->id, aoo_opt_userformat, userfmtdata, sizeof(userfmtdata));
+                    if (retsize > 0) {
+                        ValueTree tree = ValueTree::readFromData (userfmtdata, retsize);
+
+                        if (tree.isValid()) {
+                            applyLayoutFormatToPeer(peer, tree);
+                            gotuserformat = true;
+                        }
+                        else {
+                            DBG("Error parsing userformat");
+                        }
+                    }
+                    else {
+                        DBG("No userformat: " << retsize);
+                    }
+
                     if (peer->recvChannels != f.header.nchannels) {
                         peer->recvChannels = std::min(MAX_PANNERS, f.header.nchannels);
 
@@ -2439,21 +2465,23 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
 
                         // for now if > 2, all on own changroup (by default)
 
-                        if (peer->recvChannels > 2) {
-                            if (!peer->modifiedChanGroups) {
-                                for (int cgi=0; cgi < peer->recvChannels; ++cgi) {
-                                    peer->chanGroups[cgi].params.chanStartIndex = cgi;
-                                    peer->chanGroups[cgi].params.numChannels = 1;
+                        if (!gotuserformat) {
+                            if (peer->recvChannels > 2) {
+                                if (!peer->modifiedChanGroups) {
+                                    for (int cgi=0; cgi < peer->recvChannels; ++cgi) {
+                                        peer->chanGroups[cgi].params.chanStartIndex = cgi;
+                                        peer->chanGroups[cgi].params.numChannels = 1;
+                                    }
+                                    peer->numChanGroups = peer->recvChannels;
                                 }
-                                peer->numChanGroups = peer->recvChannels;
                             }
-                        }
-                        else {
-                            peer->chanGroups[0].params.numChannels = peer->recvChannels;
-                            peer->numChanGroups = 1;
+                            else {
+                                peer->chanGroups[0].params.numChannels = peer->recvChannels;
+                                peer->numChanGroups = 1;
 
-                            if (peer->recvChannels == 1) {
-                                peer->viewExpanded = false;
+                                if (peer->recvChannels == 1) {
+                                    peer->viewExpanded = false;
+                                }
                             }
                         }
 
@@ -2476,22 +2504,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                          */
                     }
 
-                    char userfmtdata[1024];
 
-                    int32_t retsize = peer->oursink->get_sourceoption(e->endpoint, e->id, aoo_opt_userformat, userfmtdata, sizeof(userfmtdata));
-                    if (retsize > 0) {
-                        ValueTree tree = ValueTree::readFromData (userfmtdata, retsize);
-
-                        if (tree.isValid()) {
-                            applyLayoutFormatToPeer(peer, tree);
-                        }
-                        else {
-                            DBG("Error parsing userformat");
-                        }
-                    }
-                    else {
-                        DBG("Error getting userformat: " << retsize);
-                    }
                     
                     AudioCodecFormatCodec codec = String(f.header.codec) == AOO_CODEC_OPUS ? CodecOpus : CodecPCM;
                     if (codec == CodecOpus) {
@@ -3516,6 +3529,7 @@ void SonobusAudioProcessor::setRemotePeerChannelGroupDestStartAndCount(int index
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         remote->chanGroups[changroup].params.panDestStartIndex = start;
         remote->chanGroups[changroup].params.panDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
+        remote->modifiedChanGroups = true;
     }
 }
 
@@ -4607,9 +4621,14 @@ void SonobusAudioProcessor::commitCacheForPeer(RemotePeer * retpeer)
     newcache.sendFormat = retpeer->formatIndex;
     newcache.numChanGroups = retpeer->numChanGroups;
     newcache.mainGain = retpeer->gain;
+    newcache.numMultiChanGroups = retpeer->lastMultiNumChanGroups;
+    newcache.modifiedChanGroups = retpeer->modifiedChanGroups;
 
     for (int i=0; i < retpeer->numChanGroups && i < MAX_CHANGROUPS; ++i) {
         newcache.channelGroupParams[i] = retpeer->chanGroups[i].params;
+    }
+    for (int i=0; i < retpeer->lastMultiNumChanGroups && i < MAX_CHANGROUPS; ++i) {
+        newcache.channelGroupMultiParams[i] = retpeer->lastMultiChanParams[i];
     }
 
     PeerStateCacheMap::iterator found  = mPeerStateCacheMap.find(retpeer->userName);
@@ -4660,10 +4679,17 @@ bool SonobusAudioProcessor::findAndLoadCacheForPeer(RemotePeer * retpeer)
         retpeer->formatIndex = cache.sendFormat;
         retpeer->numChanGroups = cache.numChanGroups; // restore this?
         retpeer->gain = cache.mainGain;
+        retpeer->lastMultiNumChanGroups = cache.numMultiChanGroups;
+        retpeer->modifiedChanGroups = cache.modifiedChanGroups;
 
         for (int i=0; i < retpeer->numChanGroups  && i < MAX_CHANGROUPS; ++i) {
             retpeer->chanGroups[i].params = cache.channelGroupParams[i];
         }
+
+        for (int i=0; i < retpeer->lastMultiNumChanGroups  && i < MAX_CHANGROUPS; ++i) {
+            retpeer->lastMultiChanParams[i] = cache.channelGroupMultiParams[i];
+        }
+
 
         return true;
     }
@@ -4892,21 +4918,47 @@ void SonobusAudioProcessor::applyLayoutFormatToPeer(RemotePeer * remote, const V
     // check conditions for applying these changes
     bool doapply = !remote->modifiedChanGroups;
 
-    if (!doapply) {
-        int origchans = 0;
-        for (int i=0; i < remote->origNumChanGroups; ++i) {
-            origchans += remote->origChanParams[i].numChannels;
-        }
+    int origchans = 0;
+    for (int i=0; i < remote->origNumChanGroups; ++i) {
+        origchans += remote->origChanParams[i].numChannels;
+    }
 
-        int modchans = 0;
+    int modchans = 0;
+    for (int i=0; i < remote->numChanGroups; ++i) {
+        modchans += remote->chanGroups[i].params.numChannels;
+    }
+
+    // if the total number of channels changed do apply
+    if (modchans != origchans) {
+        doapply = true;
+    }
+
+    // if the new source (origchans) is now <= 2 and previously it was more
+    // save our old one to multichan state for possible later restore
+    if (origchans <= 2 && modchans > 2) {
+        DBG("Saving last multchan");
         for (int i=0; i < remote->numChanGroups; ++i) {
-            modchans += remote->chanGroups[i].params.numChannels;
+            remote->lastMultiChanParams[i] = remote->chanGroups[i].params;
+        }
+        remote->lastMultiNumChanGroups = remote->numChanGroups;
+    }
+    else if (origchans > 2 && modchans <= 2 && remote->lastMultiNumChanGroups > 0) {
+        // if it's now switched from mono/stereo to multichannel, possibly restore last multichanparams
+        int multchans = 0;
+        for (int i=0; i < remote->lastMultiNumChanGroups; ++i) {
+            multchans += remote->lastMultiChanParams[i].numChannels;
         }
 
-        // if the total number of channels changed do apply
-        if (modchans != origchans) {
-            doapply = true;
-        } 
+        if (multchans == origchans) {
+            DBG("Restoring last saved multichannel");
+            for (int i=0; i < remote->numChanGroups; ++i) {
+                remote->chanGroups[i].params = remote->lastMultiChanParams[i];
+                remote->chanGroups[i].commitAllParams();
+            }
+            remote->numChanGroups = remote->lastMultiNumChanGroups;
+            remote->modifiedChanGroups = true;
+            doapply = false;
+        }
     }
 
 
@@ -6759,6 +6811,17 @@ ValueTree SonobusAudioProcessor::PeerStateCache::getValueTree() const
 
     item.appendChild(channelGroupsTree, nullptr);
 
+    // multichan state
+    ValueTree channelGroupsMultiTree(channelGroupsMultiStateKey);
+
+    for (auto i = 0; i < numMultiChanGroups && i < MAX_CHANGROUPS; ++i) {
+        channelGroupsMultiTree.appendChild(channelGroupMultiParams[i].getValueTree(), nullptr);
+    }
+    item.setProperty(numMultiChanGroupsKey, numMultiChanGroups, nullptr);
+    item.setProperty(modifiedChanGroupsKey, modifiedChanGroups, nullptr);
+    item.appendChild(channelGroupsMultiTree, nullptr);
+
+
     return item;
 }
 
@@ -6793,6 +6856,23 @@ void SonobusAudioProcessor::PeerStateCache::setFromValueTree(const ValueTree & i
             if (i >= MAX_CHANGROUPS) break;
 
             channelGroupParams[i].setFromValueTree(channelGroupTree);
+            ++i;
+        }
+    }
+
+    // multistate
+    numMultiChanGroups = std::max(0, std::min((int) (MAX_CHANGROUPS-1), (int)item.getProperty(numMultiChanGroupsKey, numMultiChanGroups)));
+    modifiedChanGroups = item.getProperty(modifiedChanGroupsKey, modifiedChanGroups);
+
+    ValueTree channelGroupsMultiTree = item.getChildWithName(channelGroupsStateKey);
+    if (channelGroupsMultiTree.isValid()) {
+
+        int i = 0;
+        for (auto channelGroupTree : channelGroupsMultiTree) {
+            if (!channelGroupTree.isValid()) continue;
+            if (i >= MAX_CHANGROUPS) break;
+
+            channelGroupMultiParams[i].setFromValueTree(channelGroupTree);
             ++i;
         }
     }

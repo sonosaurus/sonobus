@@ -623,6 +623,9 @@ private:
         float mainGain = 1.0f;
         SonoAudio::ChannelGroupParams channelGroupParams[MAX_CHANGROUPS];
         int numChanGroups = 1;
+        SonoAudio::ChannelGroupParams channelGroupMultiParams[MAX_CHANGROUPS];
+        int numMultiChanGroups = 0;
+        bool modifiedChanGroups = false;
     };
 
     // key is peer name
