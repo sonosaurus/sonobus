@@ -5823,7 +5823,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     uint64_t t = aoo_osctime_get();
 
     // meter input pre everything
-    inputMeterSource.measureBlock (buffer);
+    inputMeterSource.measureBlock (buffer, 0, numSamples);
 
 
     inputPostBuffer.clear(0, numSamples);
@@ -5838,7 +5838,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
 
 
-    postinputMeterSource.measureBlock (inputPostBuffer);
+    postinputMeterSource.measureBlock (inputPostBuffer, 0, numSamples);
 
 
     // compressor makeup meter level per channel
@@ -5998,7 +5998,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
 
     // send meter post panning (and post file and met)
-    sendMeterSource.measureBlock (inputWorkBuffer);
+    sendMeterSource.measureBlock (inputWorkBuffer, 0, numSamples);
 
 
     bool hearlatencytest = mHearLatencyTest.get();
@@ -6134,7 +6134,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             remote->_lastgain = usegain;
 
 
-            remote->recvMeterSource.measureBlock (remote->workBuffer);
+            remote->recvMeterSource.measureBlock (remote->workBuffer, 0, numSamples);
 
             for (auto cgi = 0; cgi < remote->numChanGroups; ++cgi) {
                 float redlev = 1.0f;
@@ -6477,7 +6477,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
    
 
     
-    outputMeterSource.measureBlock (buffer);
+    outputMeterSource.measureBlock (buffer, 0, numSamples);
 
     // output to file writer if necessary
     if (writingpossible) {
