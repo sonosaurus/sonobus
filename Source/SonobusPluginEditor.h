@@ -240,6 +240,8 @@ private:
     std::unique_ptr<ImageComponent> mMainPersonImage;
     std::unique_ptr<Label> mMainMessageLabel;
 
+    std::unique_ptr<SonoDrawableButton> mPeerLayoutFullButton;
+    std::unique_ptr<SonoDrawableButton> mPeerLayoutMinimalButton;
 
 
     std::unique_ptr<Label> mServerStatusLabel;
@@ -540,7 +542,12 @@ private:
     FlexBox titleVBox;
 
     FlexBox mainGroupUserBox;
-    
+    FlexBox mainGroupBox;
+    FlexBox mainUserBox;
+
+    FlexBox mainGroupLayoutBox;
+
+
     FlexBox knobBox;    
     
     FlexBox remoteBox;

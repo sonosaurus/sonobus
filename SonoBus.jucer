@@ -84,6 +84,8 @@
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
       <FILE id="vgfrLE" name="dice_icon_128.png" compile="0" resource="1"
             file="images/dice_icon_128.png"/>
+      <FILE id="IShDmK" name="dispfull.svg" compile="0" resource="1" file="images/dispfull.svg"/>
+      <FILE id="tr3LNt" name="dispminimal.svg" compile="0" resource="1" file="images/dispminimal.svg"/>
       <FILE id="wSd24I" name="dots.svg" compile="0" resource="1" file="images/dots.svg"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
       <FILE id="yCKT31" name="expand_arrow_active.svg" compile="0" resource="1"

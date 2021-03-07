@@ -629,7 +629,7 @@ void ConnectView::resized()  {
             mRecentsGroup->setVisible(false);
 
             mConnectTab->addTab(TRANS("RECENTS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecentsContainer.get(), false);
-            mConnectTab->moveTab(3, 0);
+            mConnectTab->moveTab(2, 0);
             mConnectTab->setCurrentTabIndex(tabsel + 1);
             updateLayout();
         }

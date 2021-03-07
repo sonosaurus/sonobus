@@ -5630,6 +5630,12 @@
     <None Include="..\..\images\dice_icon_128.png">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\dispfull.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\dispminimal.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\dots.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>

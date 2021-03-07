@@ -122,7 +122,12 @@ public:
         FileFormatWAV,
         FileFormatOGG
     };
-    
+
+    enum PeerDisplayMode {
+        PeerDisplayModeFull = 0,
+        PeerDisplayModeMinimal
+    };
+
     struct AudioCodecFormatInfo {
         AudioCodecFormatInfo() {}
         AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_), min_preferred_blocksize(16)  { computeName(); }
@@ -599,6 +604,9 @@ public:
     int getDefaultRecordingBitsPerSample() const { return mDefaultRecordingBitsPerSample; }
     void setDefaultRecordingBitsPerSample(int fmt) { mDefaultRecordingBitsPerSample = fmt; }
 
+    PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
+    void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
+
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
     AudioTransportSource & getTransportSource() { return mTransportSource; }
@@ -784,6 +792,8 @@ private:
 
     int mActiveSendChannels = 0;
 
+    PeerDisplayMode mPeerDisplayMode = PeerDisplayModeFull;
+    
     PeerStateCacheMap mPeerStateCacheMap;
     
     // top level meter sources

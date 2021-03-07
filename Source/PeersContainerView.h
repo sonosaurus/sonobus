@@ -34,8 +34,7 @@ public:
 
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;
-    
-    std::unique_ptr<Label> nameLabel;
+
     std::unique_ptr<Label> addrLabel;
     std::unique_ptr<Label> staticAddrLabel;
     std::unique_ptr<ToggleButton> sendMutedButton;
@@ -44,14 +43,7 @@ public:
     std::unique_ptr<SonoDrawableButton> latActiveButton;
     std::unique_ptr<SonoDrawableButton> sendOptionsButton;
     std::unique_ptr<SonoDrawableButton> recvOptionsButton;
-    std::unique_ptr<TextButton> fxButton;
-    std::unique_ptr<TextButton> panButton;
     std::unique_ptr<Label>  statusLabel;
-    std::unique_ptr<Label>  levelLabel;
-    std::unique_ptr<Slider> levelSlider;
-    std::unique_ptr<Label>  panLabel;
-    std::unique_ptr<Slider> panSlider1;
-    std::unique_ptr<Slider> panSlider2;
     std::unique_ptr<Label>  bufferTimeLabel;
     std::unique_ptr<Slider> bufferTimeSlider;        
     std::unique_ptr<SonoChoiceButton> autosizeButton;
@@ -68,7 +60,6 @@ public:
 
 
     
-    std::unique_ptr<Component> pannersContainer;
     std::unique_ptr<Component> sendOptionsContainer;
     std::unique_ptr<Component> recvOptionsContainer;
 
@@ -107,8 +98,6 @@ public:
     FlexBox mainnarrowbox;
     FlexBox mainsendbox;
     FlexBox mainrecvbox;
-    FlexBox namebox;
-    FlexBox nameaddrbox;
     FlexBox sendbox;
     FlexBox sendmeterbox;
     FlexBox recvbox;
@@ -150,6 +139,7 @@ public:
     
     bool singlePanner = true;
     bool isNarrow = false;
+    bool fullMode = true;
     
     Colour bgColor;
     Colour borderColor;
@@ -181,7 +171,6 @@ public Button::Listener,
 public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
-public ChannelGroupEffectsView::Listener,
 public ChannelGroupsView::Listener,
 public MultiTimer
 {
@@ -226,10 +215,10 @@ public:
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
     
-    void effectsEnableChanged(ChannelGroupEffectsView *comp) override;
 
     // channelgroupsview
     void channelLayoutChanged(ChannelGroupsView *comp) override;
+    void nameLabelClicked(ChannelGroupsView *comp) override;
 
     void clearClipIndicators();
     
@@ -240,6 +229,9 @@ public:
     void updateLayout();
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
+
+    void setPeerDisplayMode(SonobusAudioProcessor::PeerDisplayMode mode);
+
 
 protected:
     
@@ -258,10 +250,8 @@ protected:
     PendingPeerViewInfo * createPendingPeerViewInfo();
     
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
-    void showPanners(int index, bool flag);
     void showSendOptions(int index, bool flag, Component * fromView=nullptr);
     void showRecvOptions(int index, bool flag, Component * fromView=nullptr);
-    void showEffects(int index, bool flag, Component * fromView=nullptr);
 
 
     ListenerList<Listener> listeners;
@@ -298,6 +288,7 @@ protected:
 
     int mLastWidth = 0;
     bool isNarrow = false;
+    bool peerModeFull = true; // default
 
     uint32 lastUpdateTimestampMs = 0;
     

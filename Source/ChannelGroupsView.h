@@ -171,6 +171,7 @@ public:
     public:
         virtual ~Listener() {}
         virtual void channelLayoutChanged(ChannelGroupsView *comp) {}
+        virtual void nameLabelClicked(ChannelGroupsView *comp) {}
     };
 
     void addListener(Listener * listener) { listeners.add(listener); }

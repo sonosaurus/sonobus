@@ -315,6 +315,7 @@
 		B7FFF2A713E313F98DFD580A /* SonobusPluginEditor.h */ /* SonobusPluginEditor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonobusPluginEditor.h; path = ../../Source/SonobusPluginEditor.h; sourceTree = SOURCE_ROOT; };
 		B97A3A91F751F71A95F27248 /* DejaVuSans.ttf */ /* DejaVuSans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file.ttf; name = DejaVuSans.ttf; path = ../../Source/DejaVuSans.ttf; sourceTree = SOURCE_ROOT; };
 		B990B226134C0AADEE92D98D /* IOKit.framework */ /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		BAF0613B5F8F7846BE3E4032 /* dispminimal.svg */ /* dispminimal.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = dispminimal.svg; path = ../../images/dispminimal.svg; sourceTree = SOURCE_ROOT; };
 		BBACAFA4699D5A565F83099A /* sink.hpp */ /* sink.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sink.hpp; path = ../../deps/aoo/lib/src/sink.hpp; sourceTree = SOURCE_ROOT; };
 		C03B3BBD2453BCE635D7C848 /* SonoChoiceButton.h */ /* SonoChoiceButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonoChoiceButton.h; path = ../../Source/SonoChoiceButton.h; sourceTree = SOURCE_ROOT; };
 		C166D38ECE61FD7C493F4B89 /* SonoDrawableButton.cpp */ /* SonoDrawableButton.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SonoDrawableButton.cpp; path = ../../Source/SonoDrawableButton.cpp; sourceTree = SOURCE_ROOT; };
@@ -322,6 +323,7 @@
 		C1F04940EF29448710143F65 /* JucePluginDefines.h */ /* JucePluginDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = JucePluginDefines.h; path = ../../JuceLibraryCode/JucePluginDefines.h; sourceTree = SOURCE_ROOT; };
 		C537CAF9479F86EA82779604 /* incoming_allowed_active.svg */ /* incoming_allowed_active.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = incoming_allowed_active.svg; path = ../../images/incoming_allowed_active.svg; sourceTree = SOURCE_ROOT; };
 		C6098290D43A374415083DAF /* people.png */ /* people.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = people.png; path = ../../images/people.png; sourceTree = SOURCE_ROOT; };
+		C65D602718D12CD7B7972D2A /* dispfull.svg */ /* dispfull.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = dispfull.svg; path = ../../images/dispfull.svg; sourceTree = SOURCE_ROOT; };
 		C7769A02C6DF7B9F3A95ABA7 /* include_juce_dsp.mm */ /* include_juce_dsp.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_dsp.mm; path = ../../JuceLibraryCode/include_juce_dsp.mm; sourceTree = SOURCE_ROOT; };
 		CA2052614D466A3F22C8C54F /* record_active_alt.svg */ /* record_active_alt.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = record_active_alt.svg; path = ../../images/record_active_alt.svg; sourceTree = SOURCE_ROOT; };
 		CA20EB5CFF1B5D9995235E9B /* sonobus_icon_ios_1024.png */ /* sonobus_icon_ios_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sonobus_icon_ios_1024.png; path = ../../images/sonobus_icon_ios_1024.png; sourceTree = SOURCE_ROOT; };
@@ -801,6 +803,8 @@
 				915BE408C4522E6066E15CEB,
 				B97A3A91F751F71A95F27248,
 				194E42EA4D12D016298D0153,
+				C65D602718D12CD7B7972D2A,
+				BAF0613B5F8F7846BE3E4032,
 				5D7CD864B0AA14FA5A453FBA,
 				F8808E7CAE7F7FAF07A9DF5A,
 				08755C5052F378F541709EBA,

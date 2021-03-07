@@ -80,6 +80,7 @@ static String defRecordFormatKey("DefaultRecordingFormat");
 static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String defRecordDirKey("DefaultRecordDir");
 static String sliderSnapKey("SliderSnapToMouse");
+static String peerDisplayModeKey("PeerDisplayMode");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -6670,6 +6671,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
+    extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
 
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
@@ -6762,6 +6764,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
 #endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
+            setPeerDisplayMode((PeerDisplayMode)(int)extraTree.getProperty(peerDisplayModeKey, (int)mPeerDisplayMode));
         }
 
 

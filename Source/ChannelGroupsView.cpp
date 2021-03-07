@@ -669,6 +669,8 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     if (!mPeerMode) {
         pvf->nameLabel->setColour(Label::backgroundColourId, Colours::black);
         pvf->nameLabel->setTooltip(TRANS("Set name for this group that others will see"));
+    } else {
+        pvf->nameLabel->setTooltip(TRANS("Click to toggle extra information visibility"));
     }
 
 
@@ -773,6 +775,8 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     //pvf->linkButton->setAlpha(0.6f);
     if (mPeerMode) {
         pvf->linkButton->setTooltip(TRANS("Change channel layout"));
+        pvf->nameLabel->setInterceptsMouseClicks(true, false);
+        pvf->nameLabel->addMouseListener(this, false);
     } else {
         pvf->linkButton->setTooltip(TRANS("Select Input channel source (or drag to rearrange)"));
         pvf->linkButton->addMouseListener(this, false);
@@ -1109,9 +1113,9 @@ void ChannelGroupsView::updateLayout(bool notify)
             pannervisible = false;
         }
 
-        mainmeterwidth = totalchans * meterwidth;
+        mainmeterwidth = 2*meterwidth; // totalchans * meterwidth;
         if (totalchans > 2) {
-            mainmeterwidth = 5 * totalchans;
+            mainmeterwidth = 6 * totalchans;
         }
     }
     else {
@@ -2728,9 +2732,15 @@ void ChannelGroupsView::showEffects(int index, bool flag, Component * fromView)
 
 void ChannelGroupsView::mouseDown (const MouseEvent& event)
 {
-    if (mMainChannelView && event.eventComponent == mMainChannelView->meter.get()) {
-        clearClipIndicators();
-        return;
+    if (mMainChannelView) {
+        if (event.eventComponent == mMainChannelView->meter.get()) {
+            clearClipIndicators();
+            return;
+        }
+        else if (event.eventComponent == mMainChannelView->nameLabel.get()) {
+            listeners.call (&ChannelGroupsView::Listener::nameLabelClicked, this);
+            return;
+        }
     }
 
     for (int i=0; i < mChannelViews.size(); ++i) {
@@ -2744,7 +2754,6 @@ void ChannelGroupsView::mouseDown (const MouseEvent& event)
             clearClipIndicators();
             break;
         }
-
     }
 }
 
@@ -2949,7 +2958,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
                 }
             }
             auto udata = std::make_shared<DestChannelListItemData>(i, cc);
-            items.add(GenericItemChooserItem(name, Image(), udata));
+            items.add(GenericItemChooserItem(name, Image(), udata, i==0));
 
             if (i == destst && cc == destcnt) {
                 selindex = ind;

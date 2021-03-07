@@ -3175,6 +3175,8 @@
     <None Include="..\..\images\copy_icon.svg"/>
     <None Include="..\..\Source\DejaVuSans.ttf"/>
     <None Include="..\..\images\dice_icon_128.png"/>
+    <None Include="..\..\images\dispfull.svg"/>
+    <None Include="..\..\images\dispminimal.svg"/>
     <None Include="..\..\images\dots.svg"/>
     <None Include="..\..\images\dots_icon.png"/>
     <None Include="..\..\images\expand_arrow_active.svg"/>
