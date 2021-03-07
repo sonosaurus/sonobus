@@ -1192,7 +1192,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     //updateServerFieldsFromConnectionInfo();
     
-    //setResizeLimits(400, 300, 2000, 1000);
+    setResizeLimits(320, 340, 10000, 10000);
 
     commandManager.registerAllCommandsForTarget (this);
 
