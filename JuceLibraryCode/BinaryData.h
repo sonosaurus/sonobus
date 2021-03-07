@@ -30,7 +30,7 @@ namespace BinaryData
     const int            dice_icon_128_pngSize = 3793;
 
     extern const char*   dispfull_svg;
-    const int            dispfull_svgSize = 3502;
+    const int            dispfull_svgSize = 4166;
 
     extern const char*   dispminimal_svg;
     const int            dispminimal_svgSize = 2585;
