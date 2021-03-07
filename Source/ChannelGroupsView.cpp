@@ -734,7 +734,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->panLabel->setJustificationType(Justification::centredTop);
     
     pvf->panSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::NoTextBox);
-    pvf->panSlider->setName("pan1");
+    pvf->panSlider->setName(first ? "firstpan1": "pan1");
     pvf->panSlider->addListener(this);
     pvf->panSlider->getProperties().set ("fromCentre", true);
     pvf->panSlider->getProperties().set ("noFill", true);
@@ -750,7 +750,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->panSlider->setValue(0.1, dontSendNotification);
     pvf->panSlider->setValue(0.0, dontSendNotification);
     pvf->panSlider->setLookAndFeel(&pvf->panSliderLNF);
-
+    pvf->singlePanner = true;
 
     std::unique_ptr<Drawable> destimg(Drawable::createFromImageData(BinaryData::chevron_forward_svg, BinaryData::chevron_forward_svgSize));
     std::unique_ptr<Drawable> linkimg(Drawable::createFromImageData(BinaryData::link_svg, BinaryData::link_svgSize));
@@ -1741,10 +1741,17 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     }
 
     if (mMainChannelView->panSlider->isTwoValue()) {
-        mMainChannelView->panSlider->setMinAndMaxValues(processor.getRemotePeerChannelPan(mPeerIndex, changroup, 0), processor.getRemotePeerChannelPan(mPeerIndex, changroup, 1), dontSendNotification);
+        auto pan1 = processor.getRemotePeerChannelPan(mPeerIndex, changroup, 0);
+        auto pan2 = processor.getRemotePeerChannelPan(mPeerIndex, changroup, 1);
+        if (pan1 != mMainChannelView->panSlider->getMinValue() || pan2 != mMainChannelView->panSlider->getMaxValue()) {
+            mMainChannelView->panSlider->setMinAndMaxValues(pan1, pan2, dontSendNotification);
+        }
     }
     else {
-        mMainChannelView->panSlider->setValue(processor.getRemotePeerChannelPan(mPeerIndex, changroup, chi), dontSendNotification);
+        auto pan = processor.getRemotePeerChannelPan(mPeerIndex, changroup, chi);
+        if (pan != mMainChannelView->panSlider->getValue()) {
+            mMainChannelView->panSlider->setValue(pan, dontSendNotification);
+        }
     }
 
     bool maindestbuttvisible = !expanded && changroups == 1 && chcnt < totaloutchans;
@@ -2842,6 +2849,13 @@ void ChannelGroupsView::clearClipIndicators()
             pvf->premeter->clearClipIndicator(-1);
             pvf->premeter->clearMaxLevelDisplay(-1);
         }
+        pvf->meter->clearClipIndicator(-1);
+        pvf->meter->clearMaxLevelDisplay(-1);
+    }
+
+    if (mMainChannelView) {
+        mMainChannelView->meter->clearClipIndicator();
+        mMainChannelView->meter->clearMaxLevelDisplay(-1);
     }
 }
 

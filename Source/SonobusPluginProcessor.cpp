@@ -1828,6 +1828,37 @@ SonobusAudioProcessor::EndpointState * SonobusAudioProcessor::findOrAddEndpoint(
     return endpoint;
 }
 
+void SonobusAudioProcessor::updateSafetyMuting(RemotePeer * peer)
+{
+    // assumed corelock already held
+    //const float droprate =  (peer->dataPacketsDropped) / ((nowtime - peer->resetDroptime)*1e-3);
+    const float droprate = peer->fastDropRate.xbar;
+    const float safetyunmutethreshrate = 2.0f;
+    const float safetyunmutethreshmintime = 0.5f;
+    const float safetyunmutethreshtime = 0.75f;
+    const float jitterbufthresh = 15.0f;
+
+    double nowtime = Time::getMillisecondCounterHiRes();
+    double timesincereset = (nowtime - peer->resetDroptime) * 1e-3;
+    double deltadroptime = peer->lastDroptime > 0 ? (nowtime - peer->lastDroptime) * 1e-3 : timesincereset;
+
+
+    if ((timesincereset > safetyunmutethreshmintime)
+        && ((droprate > 0.0f && droprate < safetyunmutethreshrate)
+            || (droprate == 0.0f && deltadroptime > safetyunmutethreshtime)
+            || (peer->buffertimeMs > jitterbufthresh))) {
+        DBG("Droprate: " << droprate << "  deltatime: " << deltadroptime << " buftimems: " << peer->buffertimeMs);
+        DBG("Unmuting after reset drop");
+        peer->resetSafetyMuted = false;
+    }
+
+    peer->fastDropRate.Z *= 0.965;
+
+    float realdroprate =  (peer->dataPacketsDropped - peer->lastDropCount) / deltadroptime;
+    peer->fastDropRate.push(realdroprate);
+
+}
+
 void SonobusAudioProcessor::doReceiveData()
 {
     // receive from udp port, and parse packet
@@ -1867,7 +1898,10 @@ void SonobusAudioProcessor::doReceiveData()
                         // this is a compact data message, try them all
                         if (remote->oursink->handle_message(buf, nbytes, endpoint, endpoint_send)) {
                             remote->dataPacketsReceived += 1;
-                        
+                            if (remote->resetSafetyMuted) {
+                                updateSafetyMuting(remote);
+                            }
+
                             break;
                         }
                     }
@@ -1875,6 +1909,9 @@ void SonobusAudioProcessor::doReceiveData()
                     if (id == AOO_ID_WILDCARD || (remote->oursink->get_id(dummyid) && id == dummyid) ) {
                         if (remote->oursink->handle_message(buf, nbytes, endpoint, endpoint_send)) {
                             remote->dataPacketsReceived += 1;
+                            if (remote->resetSafetyMuted) {
+                                updateSafetyMuting(remote);
+                            }
                         }
                         
                         if (id != AOO_ID_WILDCARD) break;
@@ -2702,25 +2739,11 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
 
                     }
 
-                    if (peer->resetSafetyMuted) {
-                        //const float droprate =  (peer->dataPacketsDropped) / ((nowtime - peer->resetDroptime)*1e-3);
-                        const float droprate = peer->fastDropRate.xbar;
-                        const float safetyunmutethreshrate = 5.0f;
-                        const float safetyunmutethreshtime = 1.0f;
-                        const float jitterbufthresh = 15.0f;
-                        DBG("Droprate: " << droprate << "  deltatime: " << deltadroptime << " buftimems: " << peer->buffertimeMs);
-                        if ((droprate > 0.0f && droprate < safetyunmutethreshrate) || deltadroptime > safetyunmutethreshtime || peer->buffertimeMs > jitterbufthresh) {
-                            DBG("Unmuting after reset drop");
-                            peer->resetSafetyMuted = false;
-                        }
-                    }
                 }
                 else {
                     // manual mode
                     peer->resetSafetyMuted = false;
                 }
-
-                peer->fastDropRate.Z *= 0.5;
 
 
                 if (peer->autosizeBufferMode == AutoNetBufferModeAutoFull) {
