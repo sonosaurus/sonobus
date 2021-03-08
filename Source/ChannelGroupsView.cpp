@@ -1109,7 +1109,7 @@ void ChannelGroupsView::updateLayout(bool notify)
 
         totaloutchans = processor.getMainBusNumOutputChannels();
 
-        if ((destcnt != 2 && chcnt <= destcnt) || chcnt == 0) {
+        if ((destcnt != 2) || chcnt == 0) {
             pannervisible = false;
         }
 
@@ -1174,7 +1174,7 @@ void ChannelGroupsView::updateLayout(bool notify)
                 processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
                 destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
 
-                if ((destcnt != 2 && chcnt <= destcnt) || chcnt == 0) {
+                if ((destcnt != 2) || chcnt == 0) {
                     pannervisible = false;
                 }
                 else {
@@ -1700,7 +1700,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     mMainChannelView->meter->setMeterSource (processor.getRemotePeerRecvMeterSource(mPeerIndex));
     mMainChannelView->meter->setSelectedChannel(0);
 
-    if (expanded || changroups > 1 || (destcnt != 2 && chcnt <= destcnt)) {
+    if (expanded || changroups > 1 || (destcnt != 2)) {
         mMainChannelView->panSlider->setVisible(false);
         mMainChannelView->panLabel->setVisible(false);
     }
@@ -1893,7 +1893,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         }
         pvf->destButton->setButtonText(desttext);
 
-        if (destcnt != 2 && chcnt <= destcnt) {
+        if (destcnt != 2) {
             pvf->panSlider->setVisible(false);
             pvf->panLabel->setVisible(false);
         }

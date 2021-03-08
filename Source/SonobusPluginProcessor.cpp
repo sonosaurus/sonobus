@@ -4933,6 +4933,9 @@ void SonobusAudioProcessor::applyLayoutFormatToPeer(RemotePeer * remote, const V
     for (int i=0; i < valtree.getNumChildren(); ++i) {
         const auto & child = valtree.getChild(i);
         if (i < MAX_CHANGROUPS) {
+            // first copy from our active
+            remote->origChanParams[i] = remote->chanGroups[i].params;
+            // then override with stuff from value tree
             remote->origChanParams[i].setFromChannelLayoutValueTree(child);
         }
     }
