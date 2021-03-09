@@ -15,6 +15,7 @@ if [ -z "$CERTFILE" ] ; then
 fi
 
 BUILDDIR='../Builds/VisualStudio2017/x64/Release'
+BUILDDIR32='../Builds/VisualStudio2017/Win32/Release32'
 
 mkdir -p SonoBus/Plugins
 
@@ -23,6 +24,14 @@ cp -v ${BUILDDIR}/Standalone\ Plugin/SonoBus.exe SonoBus/
 cp -v ${BUILDDIR}/VST3/SonoBus.vst3 SonoBus/Plugins/
 cp -v ${BUILDDIR}/VST/SonoBus.dll SonoBus/Plugins/
 cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins/
+
+mkdir -p SonoBus/Plugins32
+
+cp -v ${BUILDDIR32}/Standalone\ Plugin/SonoBus.exe SonoBus/SonoBus32.exe
+cp -v ${BUILDDIR32}/VST3/SonoBus.vst3 SonoBus/Plugins32/
+cp -v ${BUILDDIR32}/VST/SonoBus.dll SonoBus/Plugins32/
+#cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins32/
+
 
 # sign AAX
 if [ -n "${AAXSIGNCMD}" ]; then
