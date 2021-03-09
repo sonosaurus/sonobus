@@ -22,7 +22,7 @@ namespace aoo {
 
 #ifdef _WIN32
 
-using system_time_fn = void (*)(LPFILETIME);
+using system_time_fn = void (__stdcall *)(LPFILETIME);
 
 // GetSystemTimePreciseAsFileTime is only available in Windows 8 and above.
 // For older versions of Windows we fall back to GetSystemTimeAsFileTime.
