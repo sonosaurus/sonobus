@@ -1899,10 +1899,12 @@ void SonobusAudioProcessor::doReceiveData()
                         // this is a compact data message, try them all
                         if (remote->oursink->handle_message(buf, nbytes, endpoint, endpoint_send)) {
                             remote->dataPacketsReceived += 1;
+                            if (remote->recvAllow && !remote->recvActive) {
+                                remote->recvActive = true;
+                            }
                             if (remote->resetSafetyMuted) {
                                 updateSafetyMuting(remote);
                             }
-
                             break;
                         }
                     }
@@ -1910,6 +1912,9 @@ void SonobusAudioProcessor::doReceiveData()
                     if (id == AOO_ID_WILDCARD || (remote->oursink->get_id(dummyid) && id == dummyid) ) {
                         if (remote->oursink->handle_message(buf, nbytes, endpoint, endpoint_send)) {
                             remote->dataPacketsReceived += 1;
+                            if (remote->recvAllow && !remote->recvActive) {
+                                remote->recvActive = true;
+                            }
                             if (remote->resetSafetyMuted) {
                                 updateSafetyMuting(remote);
                             }
