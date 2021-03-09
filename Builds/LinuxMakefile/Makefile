@@ -40,25 +40,25 @@ ifeq ($(CONFIG),Debug)
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST := -shared -Wl,--no-undefined
-  JUCE_TARGET_VST := SonoBus.so
+  JUCE_TARGET_VST := sonobus.so
   JUCE_VSTDESTDIR := $(HOME)/.vst
-  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/SonoBus.so $(JUCE_VSTDESTDIR)
+  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/sonobus.so $(JUCE_VSTDESTDIR)
 
   JUCE_CPPFLAGS_VST3 :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST3 := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST3 := -shared -Wl,--no-undefined
-  JUCE_VST3DIR := SonoBus.vst3
+  JUCE_VST3DIR := sonobus.vst3
   VST3_PLATFORM_ARCH := $(shell $(CXX) make_helpers/arch_detection.cpp 2>&1 | tr '\n' ' ' | sed "s/.*JUCE_ARCH \([a-zA-Z0-9_-]*\).*/\1/")
   JUCE_VST3SUBDIR := Contents/$(VST3_PLATFORM_ARCH)-linux
-  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/SonoBus.so
+  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/sonobus.so
   JUCE_VST3DESTDIR := $(HOME)/.vst3
   JUCE_COPYCMD_VST3 := $(JUCE_OUTDIR)/$(JUCE_VST3DIR) $(JUCE_VST3DESTDIR)
 
   JUCE_CPPFLAGS_STANDALONE_PLUGIN :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0"
-  JUCE_TARGET_STANDALONE_PLUGIN := SonoBus
+  JUCE_TARGET_STANDALONE_PLUGIN := sonobus
 
   JUCE_CPPFLAGS_SHARED_CODE :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0" "-DJUCE_SHARED_CODE=1"
-  JUCE_TARGET_SHARED_CODE := SonoBus.a
+  JUCE_TARGET_SHARED_CODE := sonobus.a
 
   JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -fPIC -g -ggdb -O0 -march=native $(CFLAGS)
   JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++17 $(CXXFLAGS)
@@ -82,25 +82,25 @@ ifeq ($(CONFIG),Release)
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST := -shared -Wl,--no-undefined
-  JUCE_TARGET_VST := SonoBus.so
+  JUCE_TARGET_VST := sonobus.so
   JUCE_VSTDESTDIR := $(HOME)/.vst
-  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/SonoBus.so $(JUCE_VSTDESTDIR)
+  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/sonobus.so $(JUCE_VSTDESTDIR)
 
   JUCE_CPPFLAGS_VST3 :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST3 := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST3 := -shared -Wl,--no-undefined
-  JUCE_VST3DIR := SonoBus.vst3
+  JUCE_VST3DIR := sonobus.vst3
   VST3_PLATFORM_ARCH := $(shell $(CXX) make_helpers/arch_detection.cpp 2>&1 | tr '\n' ' ' | sed "s/.*JUCE_ARCH \([a-zA-Z0-9_-]*\).*/\1/")
   JUCE_VST3SUBDIR := Contents/$(VST3_PLATFORM_ARCH)-linux
-  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/SonoBus.so
+  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/sonobus.so
   JUCE_VST3DESTDIR := $(HOME)/.vst3
   JUCE_COPYCMD_VST3 := $(JUCE_OUTDIR)/$(JUCE_VST3DIR) $(JUCE_VST3DESTDIR)
 
   JUCE_CPPFLAGS_STANDALONE_PLUGIN :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0"
-  JUCE_TARGET_STANDALONE_PLUGIN := SonoBus
+  JUCE_TARGET_STANDALONE_PLUGIN := sonobus
 
   JUCE_CPPFLAGS_SHARED_CODE :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0" "-DJUCE_SHARED_CODE=1"
-  JUCE_TARGET_SHARED_CODE := SonoBus.a
+  JUCE_TARGET_SHARED_CODE := sonobus.a
 
   JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -fPIC -O3 -march=native $(CFLAGS)
   JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++17 $(CXXFLAGS)

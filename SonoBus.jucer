@@ -335,8 +335,9 @@
                 vstLegacyFolder="../VST2_SDK">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
-                       defines="LOGLEVEL=2"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"/>
+                       defines="LOGLEVEL=2" targetName="sonobus"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
+                       targetName="sonobus"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
@@ -367,6 +368,13 @@
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
                        vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;"/>
+        <CONFIGURATION isDebug="1" name="Debug32" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
+                       libraryPath="..\..\deps\windows\Debug32" useRuntimeLibDLL="0"
+                       defines="LOGLEVEL=2" winArchitecture="Win32"/>
+        <CONFIGURATION isDebug="0" name="Release32" libraryPath="..\..\deps\windows\Release32"
+                       headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
+                       useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
+                       vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;" winArchitecture="Win32"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
