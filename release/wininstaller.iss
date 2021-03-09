@@ -16,8 +16,9 @@ SetupLogging=yes
 SignTool=signtool $f
 SignedUninstaller=yes
 DisableReadyPage=true
-DisableWelcomePage=no
+DisableWelcomePage=yes
 DisableDirPage=no
+ShowComponentSizes=no
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -25,15 +26,15 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 
 [Components]
-Name: "app"; Description: "Standalone 64-bit application (.exe)"; Types: full custom;
-Name: "app32"; Description: "Standalone 32-bit application (.exe)"; Types: full custom;
-Name: "vst2_32"; Description: "32-bit VST2 Plugin (.dll)"; Types: full custom;
+Name: "app"; Description: "Standalone 64-bit application (.exe)"; Types: full custom; Check: Is64BitInstallMode;
+Name: "app32"; Description: "Standalone 32-bit application (.exe)"; Types: full custom; Check: not Is64BitInstallMode;
 Name: "vst2_64"; Description: "64-bit VST2 Plugin (.dll)"; Types: full custom; Check: Is64BitInstallMode;
-Name: "vst3_32"; Description: "32-bit VST3 Plugin (.vst3)"; Types: full custom;
 Name: "vst3_64"; Description: "64-bit VST3 Plugin (.vst3)"; Types: full custom; Check: Is64BitInstallMode;
-;Name: "rtas_32"; Description: "32-bit RTAS Plugin (.dpm)"; Types: full custom;
 ;Name: "aax_32"; Description: "32-bit AAX Plugin (.aaxplugin)"; Types: full custom;
 Name: "aax_64"; Description: "64-bit AAX Plugin (.aaxplugin)"; Types: full custom; Check: Is64BitInstallMode;
+Name: "vst2_32"; Description: "32-bit VST2 Plugin (.dll)"; Types: full custom;
+Name: "vst3_32"; Description: "32-bit VST3 Plugin (.vst3)"; Types: full custom;
+
 ;Name: "manual"; Description: "User guide"; Types: full custom; Flags: fixed
 
 
@@ -71,29 +72,7 @@ var
   OkToCopyLog : Boolean;
   VST2DirPage: TInputDirWizardPage;
   TypesComboOnChangePrev: TNotifyEvent;
-  //VST2DirPage_32: TInputDirWizardPage;
-  //VST2DirPage_64: TInputDirWizardPage;
 
-//procedure InitializeWizard;
-//begin
-//
-//  if IsWin64 then begin
-//    VST2DirPage_64 := CreateInputDirPage(wpSelectDir,
-//    'Confirm 64-Bit VST2 Plugin Directory', '',
-//    'Select the folder in which setup should install the 64-bit VST2 Plugin, then click Next.',
-//    False, '');
-//    VST2DirPage_64.Add('');
-//    VST2DirPage_64.Values[0] := ExpandConstant('{reg:HKLM\SOFTWARE\VST,VSTPluginsPath|{pf}\Steinberg\VSTPlugins}\');
-//
-//  end;
-//  
-//end;
-
-
-//function GetVST2Dir_64(Param: String): String;
-//begin
-//  Result := VST2DirPage_64.Values[0]
-//end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
@@ -128,7 +107,7 @@ end;
 
 procedure InitializeWizard;
 begin
-
+  WizardForm.ComponentsDiskSpaceLabel.Visible := False;
   WizardForm.ComponentsList.OnClickCheck := @ComponentsListClickCheck;
   TypesComboOnChangePrev := WizardForm.TypesCombo.OnChange;
   WizardForm.TypesCombo.OnChange := @TypesComboOnChange;
