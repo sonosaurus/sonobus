@@ -2961,6 +2961,19 @@ void SonobusAudioProcessorEditor::componentParentHierarchyChanged (Component& co
 bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
 {
     DBG("Got key: " << key.getTextCharacter() << "  isdown: " << (key.isCurrentlyDown() ? 1 : 0) << " keycode: " << key.getKeyCode() << " pcode: " << (int)'p');
+
+    if (key.isKeyCurrentlyDown('T')) {
+        if (!mPushToTalkKeyDown) {
+            DBG("T press");
+            // mute others, send self
+            mPushToTalkWasMuted = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue() > 0;
+            processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(1.0);
+            processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
+            mPushToTalkKeyDown = true;
+        }
+        return true;
+    }
+
     return false;
 }
 
@@ -2977,16 +2990,6 @@ bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
         mPushToTalkKeyDown = false;
         return true;
     }
-    else if (pttdown && !mPushToTalkKeyDown) {
-        // press
-        DBG("T press");
-        // mute others, send self
-        mPushToTalkWasMuted = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue() > 0;
-        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(1.0);            
-        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
-        mPushToTalkKeyDown = true;
-        return true;
-    }        
     
     return pttdown;
 }
