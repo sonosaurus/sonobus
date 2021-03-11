@@ -319,6 +319,7 @@ struct SonobusAudioProcessor::RemotePeer {
     float remoteInLatMs = 0.0f;
     float remoteOutLatMs = 0.0f;
     int remoteNetType = RemoteNetTypeUnknown;
+    bool hasRemoteInfo = false;
 
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> fileWriter;
 
@@ -2216,7 +2217,7 @@ void SonobusAudioProcessor::handleRemotePeerInfoUpdate(RemotePeer * peer, const 
         peer->remoteNetType = nettype;
     }
 
-    // jlcc
+    peer->hasRemoteInfo = true;
 
 }
 
@@ -4450,7 +4451,7 @@ void  SonobusAudioProcessor::resetRemotePeerPacketStats(int index)
 }
 
 
-bool SonobusAudioProcessor::getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo, LatencyInfo * oldtestinfo) const
+bool SonobusAudioProcessor::getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo) const
 {
     const ScopedReadLock sl (mCoreLock);        
     if (index < mRemotePeers.size()) {
@@ -4520,26 +4521,46 @@ bool SonobusAudioProcessor::getRemotePeerLatencyInfo(int index, LatencyInfo & re
         }
 #endif
 
-        if (oldtestinfo) {
-            oldtestinfo->pingMs = remote->smoothPingTime.xbar;
+        retinfo.pingMs = remote->smoothPingTime.xbar;
 
+        if (remote->hasRemoteInfo) {
+            float buftimeMs = jmax((double)remote->buffertimeMs, 1000.0f * currSamplesPerBlock / getSampleRate());
+            auto halfping = retinfo.pingMs*0.5f;
+            auto absizeMs = 1e3*currSamplesPerBlock/getSampleRate();
+            int sendformatIndex = remote->formatIndex;
+            if (sendformatIndex < 0 || sendformatIndex >= mAudioFormats.size()) sendformatIndex = 4; //emergency default
+            const AudioCodecFormatInfo & sendformatinfo =  mAudioFormats.getReference(sendformatIndex);
+            auto sendcodecLat = sendformatinfo.codec == CodecOpus ? 2.5f : 0.0f; // Opus adds codec latency
+            auto recvcodecLat = remote->recvFormat.codec == CodecOpus ? 2.5f : 0.0f; // Opus adds codec latency
+
+            // new style
+            retinfo.incomingMs = /*absizeMs + */ recvcodecLat +  remote->remoteInLatMs + halfping + buftimeMs;
+            retinfo.outgoingMs = /*absizeMs + */ sendcodecLat +  remote->remoteOutLatMs  +  halfping  + remote->remoteJitterBufMs;
+            retinfo.jitterMs =  2 * remote->fillRatioSlow.s2xx * buftimeMs; // can't find a good estimate for this yet
+
+            retinfo.isreal = true;
+            retinfo.estimated = false;
+            retinfo.legacy = false;
+            retinfo.totalRoundtripMs =  retinfo.incomingMs + retinfo.outgoingMs;
+        }
+        else {
+            // OLD LEGACY TEST MODE
             if (remote->hasRealLatency) {
-                oldtestinfo->estimated = remote->latencyDirty;
-                oldtestinfo->isreal = true;
+                retinfo.estimated = remote->latencyDirty;
+                retinfo.isreal = true;
                 if (remote->latencyDirty) {
                     // is a good estimate
-                    oldtestinfo->totalRoundtripMs = remote->totalEstLatency;
+                    retinfo.totalRoundtripMs = remote->totalEstLatency;
                 }
                 else {
-                    oldtestinfo->totalRoundtripMs = remote->totalLatency;
+                    retinfo.totalRoundtripMs = remote->totalLatency;
                 }
 
             }
             else {
-                oldtestinfo->isreal = false;
-                oldtestinfo->estimated = true;
-                oldtestinfo->totalRoundtripMs = remote->totalEstLatency ;
-
+                retinfo.isreal = false;
+                retinfo.estimated = true;
+                retinfo.totalRoundtripMs = remote->totalEstLatency ;
             }
 
             // given a roundtrip, a ping time, and our known internal buffering latency
@@ -4550,31 +4571,11 @@ bool SonobusAudioProcessor::getRemotePeerLatencyInfo(int index, LatencyInfo & re
             // reflect actual truth
             float buftimeMs = jmax((double)remote->buffertimeMs, 1000.0f * currSamplesPerBlock / getSampleRate());
 
-            oldtestinfo->incomingMs = 2e3*currSamplesPerBlock/getSampleRate() + oldtestinfo->pingMs*0.5f + buftimeMs;
-            oldtestinfo->outgoingMs = /* unknwon_remote_output_latency + */  oldtestinfo->totalRoundtripMs - oldtestinfo->incomingMs;
-            oldtestinfo->jitterMs =  2 * remote->fillRatioSlow.s2xx * buftimeMs; // can't find a good estimate for this yet
+            retinfo.incomingMs = 2e3*currSamplesPerBlock/getSampleRate() + retinfo.pingMs*0.5f + buftimeMs;
+            retinfo.outgoingMs = /* unknwon_remote_output_latency + */  retinfo.totalRoundtripMs - retinfo.incomingMs;
+            retinfo.jitterMs =  2 * remote->fillRatioSlow.s2xx * buftimeMs; // can't find a good estimate for this yet
+            retinfo.legacy = true;
         }
-
-        retinfo.pingMs = remote->smoothPingTime.xbar;
-
-        float buftimeMs = jmax((double)remote->buffertimeMs, 1000.0f * currSamplesPerBlock / getSampleRate());
-        auto halfping = retinfo.pingMs*0.5f;
-        auto absizeMs = 1e3*currSamplesPerBlock/getSampleRate();
-        int sendformatIndex = remote->formatIndex;
-        if (sendformatIndex < 0 || sendformatIndex >= mAudioFormats.size()) sendformatIndex = 4; //emergency default
-        const AudioCodecFormatInfo & sendformatinfo =  mAudioFormats.getReference(sendformatIndex);
-        auto sendcodecLat = sendformatinfo.codec == CodecOpus ? 2.5f : 0.0f; // Opus adds codec latency
-        auto recvcodecLat = remote->recvFormat.codec == CodecOpus ? 2.5f : 0.0f; // Opus adds codec latency
-
-        // new style
-        retinfo.incomingMs = /*absizeMs + */ recvcodecLat +  remote->remoteInLatMs + halfping + buftimeMs;
-        retinfo.outgoingMs = /*absizeMs + */ sendcodecLat +  remote->remoteOutLatMs  +  halfping  + remote->remoteJitterBufMs;
-        retinfo.jitterMs =  2 * remote->fillRatioSlow.s2xx * buftimeMs; // can't find a good estimate for this yet
-
-        retinfo.isreal = true;
-        retinfo.estimated = false;
-        retinfo.totalRoundtripMs =  retinfo.incomingMs + retinfo.outgoingMs;
-
 
         return true;
     }

@@ -397,9 +397,10 @@ public:
         float jitterMs = 0.0f;
         bool isreal = false;
         bool estimated = false;
+        bool legacy = false;
     };
     
-    bool getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo, LatencyInfo * oldtestinfo=nullptr) const;
+    bool getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo) const;
 
     bool startRemotePeerLatencyTest(int index, float durationsec = 1.0);
     bool stopRemotePeerLatencyTest(int index);

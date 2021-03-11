@@ -381,11 +381,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    //pvf->latActiveButton->setClickingTogglesState(true);
-    //pvf->latActiveButton->setTriggeredOnMouseDown(true);
+    pvf->latActiveButton->setClickingTogglesState(true);
+    pvf->latActiveButton->setTriggeredOnMouseDown(true);
     pvf->latActiveButton->setLookAndFeel(&pvf->smallLnf);
     pvf->latActiveButton->addListener(this);
-    // pvf->latActiveButton->addMouseListener(this, false);
+    pvf->latActiveButton->addMouseListener(this, false);
 
     pvf->statusLabel = std::make_unique<Label>("status", "");
     configLabel(pvf->statusLabel.get(), LabelTypeRegular);
@@ -1264,13 +1264,12 @@ void PeersContainerView::updatePeerViews(int specific)
         pvf->recvActualBitrateLabel->setText(recvtext, dontSendNotification);
 
         SonobusAudioProcessor::LatencyInfo latinfo;
-        SonobusAudioProcessor::LatencyInfo oldlatinfo;
-        processor.getRemotePeerLatencyInfo(i, latinfo, &oldlatinfo);
+        processor.getRemotePeerLatencyInfo(i, latinfo);
         
         //pvf->pingLabel->setText(String::formatted("%d ms", (int)latinfo.pingMs ), dontSendNotification);
         pvf->pingLabel->setText(String::formatted("%d", (int)lrintf(latinfo.pingMs) ), dontSendNotification);
         
-        if (!latinfo.isreal) {
+        if (latinfo.legacy && !latinfo.isreal) {
             if (pvf->stopLatencyTestTimestampMs > 0) {
                 pvf->latencyLabel->setText(TRANS("****"), dontSendNotification);
             } else {
@@ -1287,17 +1286,6 @@ void PeersContainerView::updatePeerViews(int specific)
             //latlab << (latinfo.estimated ? " *" : "");
             
             pvf->latencyLabel->setText(latlab, dontSendNotification);
-
-#if 0
-            // old style in tooltip
-            String olatlab = juce::CharPointer_UTF8 ("\xe2\x86\x91"); // up arrow
-            olatlab << (int)lrintf(oldlatinfo.outgoingMs) << "   ";
-            olatlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")); // down arrow
-            olatlab << (int)lrintf(oldlatinfo.incomingMs) ;
-            olatlab << (oldlatinfo.estimated ? " *" : "");
-
-            pvf->latActiveButton->setTooltip(olatlab);
-#endif
         }
 
         pvf->latActiveButton->setToggleState(latactive, dontSendNotification);
@@ -1346,20 +1334,20 @@ void PeersContainerView::updatePeerViews(int specific)
         pvf->statusLabel->setAlpha(connected ? 1.0 : disalpha);
 
 
-#if 0
-        if (pvf->stopLatencyTestTimestampMs > 0.0 && nowstampms > pvf->stopLatencyTestTimestampMs
-            && !pvf->latActiveButton->isMouseButtonDown()) {
+        if (latinfo.legacy) {
+            if (pvf->stopLatencyTestTimestampMs > 0.0 && nowstampms > pvf->stopLatencyTestTimestampMs
+                && !pvf->latActiveButton->isMouseButtonDown()) {
 
-            // only stop if it has actually gotten a real latency
-            if (latinfo.isreal) {
-                stopLatencyTest(i);
-                
-                String messagestr = generateLatencyMessage(latinfo);
-                showPopTip(messagestr, 5000, pvf->latActiveButton.get(), 140);
+                // only stop if it has actually gotten a real latency
+                if (latinfo.isreal) {
+                    stopLatencyTest(i);
 
+                    String messagestr = generateLatencyMessage(latinfo);
+                    showPopTip(messagestr, 5000, pvf->latActiveButton.get(), 300);
+
+                }
             }
         }
-#endif
     }
     
     int i=0;
@@ -1417,7 +1405,7 @@ void PeersContainerView::stopLatencyTest(int i)
     SonobusAudioProcessor::LatencyInfo latinfo;
     processor.getRemotePeerLatencyInfo(i, latinfo);
         
-    if (!latinfo.isreal) {
+    if (latinfo.legacy && !latinfo.isreal) {
         pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
     } else {
         //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : "") , dontSendNotification);
@@ -1432,6 +1420,10 @@ String PeersContainerView::generateLatencyMessage(const SonobusAudioProcessor::L
     messagestr += "\n" + TRANS("Est. Outgoing:") + String::formatted(" %.1f ms", (latinfo.outgoingMs));
     messagestr += "\n" + TRANS("Est. Incoming:") + String::formatted(" %.1f ms", (latinfo.incomingMs));
     //messagestr += "\n" + TRANS("Est. Jitter:") + String::formatted(" %.1f ms", (latinfo.jitterMs));
+    if (latinfo.legacy) {
+        messagestr += "\n-------------";
+        messagestr += "\n" + TRANS("Legacy-mode, ask them \n to install latest version");
+    }
     return messagestr;
 }
 
@@ -1556,17 +1548,20 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             SonobusAudioProcessor::LatencyInfo latinfo;
             processor.getRemotePeerLatencyInfo(i, latinfo);
 
-            String messagestr = generateLatencyMessage(latinfo);
-
-            showPopTip(messagestr, 0, pvf->latActiveButton.get(), 140);
-#if 0
-            if (pvf->latActiveButton->getToggleState()) {
-                startLatencyTest(i);
-                //showPopTip(TRANS("Measuring actual round-trip latency"), 4000, pvf->latActiveButton.get(), 140);
-            } else {
-                stopLatencyTest(i);
+            if (latinfo.legacy) {
+                if (pvf->latActiveButton->getToggleState()) {
+                    startLatencyTest(i);
+                    //showPopTip(TRANS("Measuring actual round-trip latency"), 4000, pvf->latActiveButton.get(), 140);
+                } else {
+                    stopLatencyTest(i);
+                }
             }
-#endif
+            else {
+                String messagestr = generateLatencyMessage(latinfo);
+
+                showPopTip(messagestr, 0, pvf->latActiveButton.get(), 300);
+                pvf->latActiveButton->setToggleState(false, dontSendNotification);
+            }
             return;
         }
 
@@ -1776,26 +1771,25 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
             pvf->channelGroups->clearClipIndicators();
             break;
         }
-#if 0
         else if (event.eventComponent == pvf->latActiveButton.get()) {
             uint32 nowtimems = Time::getMillisecondCounter();
             SonobusAudioProcessor::LatencyInfo latinfo;
             processor.getRemotePeerLatencyInfo(i, latinfo);
 
             // only stop if it has actually gotten a real latency
+            if (latinfo.legacy) {
+                if (nowtimems >= pvf->stopLatencyTestTimestampMs && latinfo.isreal) {
+                    stopLatencyTest(i);
+                    pvf->latActiveButton->setToggleState(false, dontSendNotification);
 
-            if (nowtimems >= pvf->stopLatencyTestTimestampMs && latinfo.isreal) {
-                stopLatencyTest(i);
-                pvf->latActiveButton->setToggleState(false, dontSendNotification);
-                
-                String messagestr = generateLatencyMessage(latinfo);
+                    String messagestr = generateLatencyMessage(latinfo);
 
-                showPopTip(messagestr, 5000, pvf->latActiveButton.get(), 140);
+                    showPopTip(messagestr, 5000, pvf->latActiveButton.get(), 300);
 
+                }
             }
             break;
         }
-#endif
 
     }
 }
