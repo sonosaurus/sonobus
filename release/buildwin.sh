@@ -9,7 +9,7 @@ ARGS="-m  /clp:ErrorsOnly  -v:m"
 # build everything in Release mode
 echo "Building 64 bit"
 
-#MSBuild.exe SonoBus.sln ${ARGS} -t:Rebuild /p:Configuration=Release /p:Platform=x64
+MSBuild.exe SonoBus.sln ${ARGS} -t:Rebuild /p:Configuration=Release /p:Platform=x64
 
 # build 32 bit
 echo "Building 32 bit"

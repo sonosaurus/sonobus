@@ -51,10 +51,11 @@ iscc /O"instoutput" "/Ssigntool=signtool.exe sign /t http://timestamp.digicert.c
 
 #signtool.exe sign /v /t "http://timestamp.digicert.com" /f SonosaurusCodeSigningSectigoCert.p12 /p "$CERTPASS" instoutput/
 
-ZIPFILE=sonobus-${VERSION}-win.zip
+#ZIPFILE=sonobus-${VERSION}-win.zip
+#cp -v ../doc/README_WINDOWS.txt instoutput/README.txt
+#rm -f ${ZIPFILE}
+#(cd instoutput; zip  ../${ZIPFILE} SonoBus\ Installer.exe README.txt )
 
-cp -v ../doc/README_WINDOWS.txt instoutput/README.txt
-
-rm -f ${ZIPFILE}
-
-(cd instoutput; zip  ../${ZIPFILE} SonoBus\ Installer.exe README.txt )
+EXEFILE=sonobus-${VERSION}-win.exe
+rm -f ${EXEFILE}
+cp instoutput/SonoBus-${VERSION}-Installer.exe ${EXEFILE}
