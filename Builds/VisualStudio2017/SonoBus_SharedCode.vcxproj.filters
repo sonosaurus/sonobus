@@ -3033,6 +3033,9 @@
     <ClInclude Include="..\..\Source\Metronome.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\MonitorDelayView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\mtdm.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>

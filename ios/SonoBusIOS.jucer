@@ -3,7 +3,7 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAUv3,buildStandalone,enableIAA" pluginManufacturerCode="Sono"
-              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.6-46&quot;"
+              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.9-49&quot;"
               pluginDesc="SonoBus - Network Audio" version="1.0.3" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'"
               pluginAUIsSandboxSafe="1">
@@ -83,6 +83,8 @@
       <FILE id="kz3BRe" name="DejaVuSans.ttf" compile="0" resource="1" file="../Source/DejaVuSans.ttf"/>
       <FILE id="Fm4Fga" name="dice_icon_128.png" compile="0" resource="1"
             file="../images/dice_icon_128.png"/>
+      <FILE id="jRz8ea" name="dispfull.svg" compile="0" resource="1" file="../images/dispfull.svg"/>
+      <FILE id="FUUfgl" name="dispminimal.svg" compile="0" resource="1" file="../images/dispminimal.svg"/>
       <FILE id="c8VUXh" name="dots.svg" compile="0" resource="1" file="../images/dots.svg"/>
       <FILE id="FHmMgZ" name="dots_icon.png" compile="0" resource="1" file="../images/dots_icon.png"/>
       <FILE id="yoZpMQ" name="expand_arrow_active.svg" compile="0" resource="1"
@@ -222,6 +224,8 @@
             resource="0" file="../Source/LevelMeterLookAndFeelMethods.h"/>
       <FILE id="NeaBod" name="Metronome.cpp" compile="1" resource="0" file="../Source/Metronome.cpp"/>
       <FILE id="WKHMl1" name="Metronome.h" compile="0" resource="0" file="../Source/Metronome.h"/>
+      <FILE id="otheoA" name="MonitorDelayView.h" compile="0" resource="0"
+            file="../Source/MonitorDelayView.h"/>
       <FILE id="SrhLZZ" name="mtdm.cc" compile="1" resource="0" file="../Source/mtdm.cc"/>
       <FILE id="h7qrAm" name="mtdm.h" compile="0" resource="0" file="../Source/mtdm.h"/>
       <FILE id="SdZGA6" name="MVerb.h" compile="0" resource="0" file="../Source/MVerb.h"/>

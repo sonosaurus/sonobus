@@ -399,7 +399,7 @@ public:
         bool estimated = false;
     };
     
-    bool getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo) const;
+    bool getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo, LatencyInfo * oldtestinfo=nullptr) const;
 
     bool startRemotePeerLatencyTest(int index, float durationsec = 1.0);
     bool stopRemotePeerLatencyTest(int index);
@@ -518,7 +518,8 @@ public:
     int getRemotePeerSendPacketsize(int index) const;
     void setRemotePeerSendPacketsize(int index, int psize);
 
-    void updateAllRemotePeerUserFormats();
+    // select by index or by peer, or don't specify for all
+    void updateRemotePeerUserFormat(int index=-1, RemotePeer * onlypeer=nullptr);
 
 
     // danger
@@ -582,7 +583,16 @@ public:
     float getMainReverbPreDelay() const { return mMainReverbPreDelay.get(); }
     void setMainReverbModel(ReverbModel flag);
     ReverbModel getMainReverbModel() const { return (ReverbModel) mMainReverbModel.get(); }
-    
+
+    void setMonitoringDelayActive(bool flag);
+    bool getMonitoringDelayActive() const { return mMonitorDelayActive.get(); }
+    void setMonitoringDelayTimeMs(double delayMs);
+    void setMonitoringDelayTimeFromAvgPeerLatency(float scalar=1.0f);
+    double getMonitoringDelayTimeMs() const;
+    void setMonitoringDelayPlaybackOnly(bool flag);
+    bool getMonitoringDelayPlaybackOnly() const { return mMonitorDelayPlaybackOnly.get(); }
+
+
     
     // recording stuff, if record options are RecordMixOnly, or RecordSelf  (only) the file refers to the name of the file
     //   otherwise it refers to a directory where the files will be recorded (and also the prefix for the recorded files)
@@ -649,6 +659,14 @@ private:
     void doSendData();
     void handleEvents();
 
+    bool handleOtherMessage(EndpointState * endpoint, const char *msg, int32_t n);
+
+    int32_t sendPeerMessage(RemotePeer * peer, const char *msg, int32_t n);
+
+    void handleRemotePeerInfoUpdate(RemotePeer * peer, const juce::var & infodata);
+    void sendRemotePeerInfoUpdate(int peerindex = -1, RemotePeer * topeer = nullptr);
+
+
     void updateSafetyMuting(RemotePeer * peer);
 
     void setupSourceFormat(RemotePeer * peer, aoo::isource * source, bool latencymode=false);
@@ -686,7 +704,7 @@ private:
     ValueTree getSendUserFormatLayoutTree();
 
     void applyLayoutFormatToPeer(RemotePeer * remote, const ValueTree & valtree);
-    void restoreLayoutFormatForPeer(RemotePeer * remote);
+    void restoreLayoutFormatForPeer(RemotePeer * remote, bool resetmulti=false);
 
 
     int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
@@ -890,10 +908,21 @@ private:
     MVerbFloat mMReverb;
     zitaRev mZitaReverb;
     MapUI  mZitaControl;
-    
 
     ReverbModel mLastReverbModel = ReverbModelMVerb;
-    
+
+    // monitoring and playback delay
+    Atomic<bool>  mMonitorDelayActive  { false };
+    Atomic<bool>  mMonitorDelayPlaybackOnly = false;
+    bool   mMonitorDelayLastActive = false;
+    std::unique_ptr<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> > mMonitorDelayLine;
+    std::unique_ptr<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> > mPlaybackDelayLine;
+    std::unique_ptr<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> > mMetDelayLine;
+    double mMonitorDelayTimeSamples = 0.0;
+    Atomic<bool>  mMonitorDelayTimeChanged = false;
+    bool  mMonitorDelayTimeChanging = false;
+
+
     
     // recording stuff
     

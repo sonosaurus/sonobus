@@ -1113,7 +1113,7 @@ void ChannelGroupsView::updateLayout(bool notify)
             pannervisible = false;
         }
 
-        mainmeterwidth = 2*meterwidth; // totalchans * meterwidth;
+        mainmeterwidth = totalchans * meterwidth;
         if (totalchans > 2) {
             mainmeterwidth = 6 * totalchans;
         }
@@ -1288,6 +1288,10 @@ void ChannelGroupsView::updateLayout(bool notify)
 
                 if (mPeerMode && i < 0 ) {
                     pvf->monbox.items.add(FlexItem(mainmeterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+                    if (totalchans == 1) {
+                        // add gap
+                        pvf->monbox.items.add(FlexItem(meterwidth, minitemheight).withMargin(0).withFlex(0));
+                    }
                 } else {
                     pvf->monbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
                 }
@@ -1315,6 +1319,10 @@ void ChannelGroupsView::updateLayout(bool notify)
             else {
                 if (mPeerMode && i < 0 ) {
                     pvf->monbox.items.add(FlexItem(mainmeterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+                    if (totalchans == 1) {
+                        // add gap
+                        pvf->monbox.items.add(FlexItem(meterwidth, minitemheight).withMargin(0).withFlex(0));
+                    }
                 } else {
                     pvf->monbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
                 }
@@ -2179,7 +2187,7 @@ void ChannelGroupsView::clearGroupsPressed()
         if (!safeThis) return;
 
         safeThis->processor.setInputGroupCount(0);
-        safeThis->processor.updateAllRemotePeerUserFormats();
+        safeThis->processor.updateRemotePeerUserFormat();
 
         safeThis->rebuildChannelViews(true);
     };
@@ -2234,7 +2242,7 @@ void ChannelGroupsView::addGroupPressed()
             safeThis->processor.setInputGroupChannelDestStartAndCount(insAt, 0, jmin(totalouts, jmax(2, index)));
             safeThis->processor.setInputGroupCount(insAt+1);
             safeThis->processor.setInputGroupName(insAt, ""); // clear the name
-            safeThis->processor.updateAllRemotePeerUserFormats();
+            safeThis->processor.updateRemotePeerUserFormat();
             safeThis->rebuildChannelViews(true);
         }
     };
@@ -2283,7 +2291,7 @@ void ChannelGroupsView::showChangeGroupChannels(int changroup, Component * showf
         safeThis->processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
         // just set the new channel count
         safeThis->processor.setInputGroupChannelStartAndCount(changroup, chstart, index);
-        safeThis->processor.updateAllRemotePeerUserFormats();
+        safeThis->processor.updateRemotePeerUserFormat();
         safeThis->rebuildChannelViews(true);
     };
 
@@ -2617,7 +2625,7 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
                 int groupcount = safeThis->processor.getInputGroupCount();
                 if (safeThis->processor.removeInputChannelGroup(changroup)) {
                     safeThis->processor.setInputGroupCount(groupcount-1);
-                    safeThis->processor.updateAllRemotePeerUserFormats();
+                    safeThis->processor.updateRemotePeerUserFormat();
                 }
             }
 
@@ -2647,7 +2655,7 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
             //if (safeThis->processor.getInputGroupName(changroup).isEmpty()) {
             //    safeThis->processor.setInputGroupName(changroup, selitem.name);
             //}
-            safeThis->processor.updateAllRemotePeerUserFormats();
+            safeThis->processor.updateRemotePeerUserFormat();
         }
 
         safeThis->updateChannelViews();
@@ -2832,7 +2840,7 @@ void ChannelGroupsView::mouseUp (const MouseEvent& event)
 
                 if (canmove && processor.moveInputChannelGroupTo(mDraggingSourceGroup, mDraggingGroupPos)) {
                     // moved it
-                    processor.updateAllRemotePeerUserFormats();
+                    processor.updateRemotePeerUserFormat();
                     rebuildChannelViews();
                 }
 
@@ -3013,7 +3021,7 @@ void ChannelGroupsView::nameLabelChanged (int changroup, const String & name) {
     }
     else {
         processor.setInputGroupName(changroup, name);
-        processor.updateAllRemotePeerUserFormats();
+        processor.updateRemotePeerUserFormat();
     }
 }
 

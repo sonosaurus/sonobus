@@ -14,6 +14,7 @@
 #include "SonoUtility.h"
 #include "SonobusTypes.h"
 #include "ChannelGroupsView.h"
+#include "MonitorDelayView.h"
 
 #include "AutoUpdater.h"
 
@@ -400,7 +401,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mInSoloButton->setTooltip(TRANS("Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself."));
     mInMonSoloAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainMonitorSolo, *mInSoloButton);
 
-    
+
+    mMonDelayButton = std::make_unique<TextButton>("mondel");
+    mMonDelayButton->setButtonText(TRANS("MON DELAY"));
+    mMonDelayButton->setLookAndFeel(&smallLNF);
+    mMonDelayButton->addListener(this);
+    mMonDelayButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 1.0, 0.6, 0.7f));
+    mMonDelayButton->setColour(TextButton::textColourOnId, Colours::darkblue);
+    mMonDelayButton->setTooltip(TRANS("Control additional self-monitoring delay, which can help mitigate synchronization with others"));
+
     
     
     mMainMuteButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
@@ -590,7 +599,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
-    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
+    //processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbEnabled, this);
@@ -719,9 +728,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
     mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
 
-    mOptionsHearLatencyButton = std::make_unique<ToggleButton>(TRANS("Make Latency Test Audible"));
-    mOptionsHearLatencyButton->addListener(this);
-    mHearLatencyTestAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramHearLatencyTest, *mOptionsHearLatencyButton);
+    //mOptionsHearLatencyButton = std::make_unique<ToggleButton>(TRANS("Make Latency Test Audible"));
+    //mOptionsHearLatencyButton->addListener(this);
+    //mHearLatencyTestAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramHearLatencyTest, *mOptionsHearLatencyButton);
 
     mOptionsMetRecordedButton = std::make_unique<ToggleButton>(TRANS("Metronome output recorded in full mix"));
     mOptionsMetRecordedButton->addListener(this);
@@ -1052,7 +1061,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceDefaultChoice.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
+    //mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
@@ -1107,6 +1116,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     addAndMakeVisible(mMainPushToTalkButton.get());
     addAndMakeVisible(mInMuteButton.get());
     addAndMakeVisible(mInSoloButton.get());
+    addAndMakeVisible(mMonDelayButton.get());
 
     addAndMakeVisible(mPatchbayButton.get());
     addAndMakeVisible(mConnectButton.get());
@@ -1309,7 +1319,7 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
-    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
+    //processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbEnabled, this);
@@ -1752,7 +1762,10 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
         
         updateChannelState();
         
-        if (!stateUpdated && (currGroup != processor.getCurrentJoinedGroup() || currConnected != processor.isConnectedToServer())) {
+        if (!stateUpdated && (currGroup != processor.getCurrentJoinedGroup()
+                              || currConnected != processor.isConnectedToServer()
+                              || mMonDelayButton->getToggleState() != processor.getMonitoringDelayActive()
+                              )) {
             updateState();
         }
         
@@ -1961,6 +1974,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showPopTip(TRANS("Not sending your audio anywhere"), 3000, mMainMuteButton.get());
         } else {
             showPopTip(TRANS("Sending your audio to others"), 3000, mMainMuteButton.get());
+        }
+    }
+    else if (buttonThatWasClicked == mMonDelayButton.get()) {
+        if (!monDelayCalloutBox) {
+            showMonitorDelayView(true);
+        } else {
+            showMonitorDelayView(false);
         }
     }
     else if (buttonThatWasClicked == mInSoloButton.get()) {
@@ -2174,9 +2194,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mOptionsInputLimiterButton.get()) {
         CompressorParams params;
-        processor.getInputLimiterParams(0, params);
-        params.enabled = mOptionsInputLimiterButton->getToggleState();
-        processor.setInputLimiterParams(0, params);
+        for (int j=0; j < processor.getInputGroupCount(); ++j) {
+            processor.getInputLimiterParams(j, params);
+            params.enabled = mOptionsInputLimiterButton->getToggleState();
+            processor.setInputLimiterParams(j, params);
+        }
     }
     else if (buttonThatWasClicked == mPlayButton.get()) {
         if (mPlayButton->getToggleState()) {
@@ -3175,6 +3197,63 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
     }
 }
 
+void SonobusAudioProcessorEditor::showMonitorDelayView(bool flag)
+{
+    if (flag && monDelayCalloutBox == nullptr) {
+
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        int defWidth = 230;
+        int defHeight = 96;
+#else
+        int defWidth = 210;
+        int defHeight = 86;
+#endif
+
+        if (!mMonitorDelayView) {
+            mMonitorDelayView = std::make_unique<MonitorDelayView>(processor);
+        }
+
+        auto minbounds = mMonitorDelayView->getMinimumContentBounds();
+        defWidth = minbounds.getWidth();
+        defHeight = minbounds.getHeight();
+
+
+        int extrawidth = 0;
+        if (defHeight > dw->getHeight() - 24) {
+            extrawidth = wrap->getScrollBarThickness() + 1;
+        }
+
+        wrap->setSize(jmin(defWidth + extrawidth, dw->getWidth() - 10), jmin(defHeight, dw->getHeight() - 24));
+
+
+        mMonitorDelayView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        mMonitorDelayView->updateParams();
+
+        wrap->setViewedComponent(mMonitorDelayView.get(), false);
+        mMonitorDelayView->setVisible(true);
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMonDelayButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        monDelayCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(monDelayCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(monDelayCalloutBox.get())) {
+            box->dismiss();
+            monDelayCalloutBox = nullptr;
+        }
+    }
+}
+
+
 void SonobusAudioProcessorEditor::updateState()
 {
 
@@ -3209,6 +3288,7 @@ void SonobusAudioProcessorEditor::updateState()
 
     mReverbEnabledButton->setAlpha(mReverbEnabledButton->getToggleState() ? 1.0 : 0.5);
 
+    mMonDelayButton->setToggleState(processor.getMonitoringDelayActive(), dontSendNotification);
     
     int sendchval = (int) processor.getSendChannels();
     mSendChannelsChoice->setSelectedId(sendchval, dontSendNotification);
@@ -3358,13 +3438,6 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramMetEnabled) {
-        {
-            const ScopedLock sl (clientStateLock);
-            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
-        }
-        triggerAsyncUpdate();
-    }
-    else if (pname == SonobusAudioProcessor::paramHearLatencyTest) {
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -3837,9 +3910,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     inputButtonBox.items.clear();
     inputButtonBox.flexDirection = FlexBox::Direction::row;
     inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
-    //inputButtonBox.items.add(FlexItem(mutew, minpassheight, *mInMuteButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    //inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mInSoloButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+    inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
 
     inputRightBox.items.clear();
@@ -3891,10 +3964,10 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceStaticLabel).withMargin(0).withFlex(1));
     optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceDefaultChoice).withMargin(0).withFlex(1));
 
-    optionsHearlatBox.items.clear();
-    optionsHearlatBox.flexDirection = FlexBox::Direction::row;
-    optionsHearlatBox.items.add(FlexItem(10, 12));
-    optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
+    //optionsHearlatBox.items.clear();
+    //optionsHearlatBox.flexDirection = FlexBox::Direction::row;
+    //optionsHearlatBox.items.add(FlexItem(10, 12));
+    //optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
 
     optionsDefaultLevelBox.items.clear();
     optionsDefaultLevelBox.flexDirection = FlexBox::Direction::row;
@@ -3959,15 +4032,16 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 6));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
+    //optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
+
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;

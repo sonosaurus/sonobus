@@ -27,7 +27,7 @@ class WaveformTransportComponent;
 
 class SonobusAudioProcessorEditor;
 class ChannelGroupsView;
-
+class MonitorDelayView;
 
 //==============================================================================
 /**
@@ -176,7 +176,9 @@ private:
     void showFormatChooser(int peerindex);
     
     void showSettings(bool flag);
-    
+
+    void showMonitorDelayView(bool flag);
+
     void updateServerStatusLabel(const String & mesg, bool mainonly=true);
     void updateChannelState(bool force=false);
     bool updatePeerState(bool force=false);
@@ -266,6 +268,8 @@ private:
 
     std::unique_ptr<TextButton> mInMuteButton;
     std::unique_ptr<TextButton> mInSoloButton;
+
+    std::unique_ptr<TextButton> mMonDelayButton;
 
     
     std::unique_ptr<Slider> mDrySlider;
@@ -371,6 +375,8 @@ private:
 
     std::unique_ptr<DrawableRectangle> mReverbHeaderBg;
 
+    std::unique_ptr<MonitorDelayView> mMonitorDelayView;
+
 
     
     std::unique_ptr<SonoChoiceButton> mSendChannelsChoice;
@@ -415,7 +421,8 @@ private:
     WeakReference<Component> metCalloutBox;
     WeakReference<Component> effectsCalloutBox;
 
-    
+    WeakReference<Component> monDelayCalloutBox;
+
     
     std::unique_ptr<PatchMatrixView> mPatchMatrixView;
     //std::unique_ptr<DialogWindow> mPatchbayWindow;
