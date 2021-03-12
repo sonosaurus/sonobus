@@ -15,7 +15,7 @@
 #include "SonobusTypes.h"
 #include "ChannelGroupsView.h"
 #include "MonitorDelayView.h"
-
+#include "ChatView.h"
 #include "AutoUpdater.h"
 
 #include <sstream>
@@ -483,6 +483,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetEnableButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mMetEnableButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     mMetEnableButton->setTooltip(TRANS("Metronome On/Off"));
+
     
     mMetConfigButton = std::make_unique<SonoDrawableButton>("metconf", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> metcfgimg(Drawable::createFromImageData(BinaryData::dots_svg, BinaryData::dots_svgSize));
@@ -525,6 +526,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetSendButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.65));
     mMetSendButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     mMetSendButton->setTooltip(TRANS("Send Metronome to All"));
+
+    mMetSyncButton = std::make_unique<TextButton>("metsync");
+    mMetSyncButton->setButtonText(TRANS("Sync to Host"));
+    mMetSyncButton->setLookAndFeel(&smallLNF);
+    mMetSyncButton->setClickingTogglesState(true);
+    //mMetSyncButton->addListener(this);
+    mMetSyncButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 1.0, 0.6, 0.7f));
+    mMetSyncButton->setColour(TextButton::textColourOnId, Colours::darkblue);
+    mMetSyncButton->setTooltip(TRANS("Synchronize metronome tempo with plugin host"));
 
     
     mDrySlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
@@ -592,7 +602,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetLevelAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetGain, *mMetLevelSlider);
     mMetTempoAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetTempo, *mMetTempoSlider);
     mMetSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSendMetAudio, *mMetSendButton);
- 
+    mMetSyncAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSyncMetToHost, *mMetSyncButton);
+
     
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainSendMute, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetEnabled, this);
@@ -697,32 +708,27 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //mInputChannelsViewport->setViewedComponent(mInputChannelsContainer.get(), false);
     //mMainContainer->addChildComponent(mInputChannelsViewport.get());
 
-    mChatContainer = std::make_unique<Component>();
-
-    mChatNameFont = Font(13);
-    mChatMesgFont = Font(16);
-    mChatSpacerFont = Font(6);
-
-    mChatTextEditor = std::make_unique<TextEditor>();
-    mChatTextEditor->setReadOnly(true);
-    mChatTextEditor->setMultiLine(true);
-    mChatTextEditor->setScrollbarsShown(true);
-
-    mChatSendTextEditor = std::make_unique<TextEditor>();
-    //mChatSendTextEditor->setMultiLine(true);
-    mChatSendTextEditor->onReturnKey = [this]() {
-        commitChatMessage();
-    };
-    mChatSendTextEditor->setFont(mChatMesgFont);
-
-    mChatSendButton = std::make_unique<TextButton>();
-    mChatSendButton->setButtonText(TRANS("Send"));
-    mChatSendButton->onClick = [this]() { commitChatMessage(); };
+    mChatView = std::make_unique<ChatView>(processor, currConnectionInfo);
+    mChatView->setVisible(false);
+    mChatView->addComponentListener(this);
 
     mChatButton = std::make_unique<SonoDrawableButton>("chat", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     std::unique_ptr<Drawable> chatimg(Drawable::createFromImageData(BinaryData::chat_svg, BinaryData::chat_svgSize));
     mChatButton->setImages(chatimg.get());
-    mChatButton->onClick = [this]() { this->showChatPanel(this->mChatButton->getToggleState()); };
+    mChatButton->onClick = [this]() {
+        bool newshown = this->mChatButton->getToggleState();
+#if !(JUCE_IOS || JUCE_ANDROID)
+        // attempt resize
+        if (newshown && !isNarrow) {
+            auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
+            int maxwidth = display ? display->userArea.getWidth() : 1600;
+            int newwidth = jmin(maxwidth, getWidth() + mChatView->getWidth());
+            mAboutToShowChat = true;
+            setSize(newwidth, getHeight());
+        }
+#endif
+        this->showChatPanel(this->mChatButton->getToggleState());
+    };
     mChatButton->setClickingTogglesState(true);
     //mChatButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     //mChatButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
@@ -732,17 +738,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatButton->setTooltip(TRANS("Show Chat"));
 
 
-    mChatSidePanel = std::make_unique<SidePanel>(TRANS("Chat"), 250, false, mChatContainer.get(), false);
-    mChatSidePanel->setTitleBarHeight(36);
-    mChatSidePanel->onPanelShowHide = [this](bool shown) {
-        this->mChatButton->setToggleState(shown, dontSendNotification);
-    };
 
-    mChatSidePanel->onPanelMove = [this]() {
-        DBG("Panel moved");
-        resized();
-    };
-
+    mChatSizeConstrainer = std::make_unique<ComponentBoundsConstrainer>();
+    mChatSizeConstrainer->setSizeLimits(180, 100, 1200, 10000);
+    mChatEdgeResizer = std::make_unique<ResizableEdgeComponent>(mChatView.get(), mChatSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
 
 
     mRecOptionsComponent = std::make_unique<Component>();
@@ -751,6 +750,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mConnectView = std::make_unique<ConnectView>(processor, currConnectionInfo);
     mConnectView->setWantsKeyboardFocus(true);
     mConnectView->updateServerFieldsFromConnectionInfo();
+
 
 
     mOptionsAutosizeDefaultChoice = std::make_unique<SonoChoiceButton>();
@@ -1180,13 +1180,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     addAndMakeVisible(mMetConfigButton.get());
     addAndMakeVisible(mEffectsButton.get());
 
-    addChildComponent(mChatSidePanel.get());
-
     mMetContainer->addAndMakeVisible(mMetLevelSlider.get());
     mMetContainer->addAndMakeVisible(mMetTempoSlider.get());
     mMetContainer->addAndMakeVisible(mMetLevelSliderLabel.get());
     mMetContainer->addAndMakeVisible(mMetTempoSliderLabel.get());
     mMetContainer->addAndMakeVisible(mMetSendButton.get());
+
+    if (!JUCEApplicationBase::isStandaloneApp()) {
+        mMetContainer->addAndMakeVisible(mMetSyncButton.get());
+    }
 
     mEffectsContainer->addAndMakeVisible(mReverbHeaderBg.get());
     mEffectsContainer->addAndMakeVisible(mReverbTitleLabel.get());
@@ -1202,9 +1204,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mEffectsContainer->addAndMakeVisible(mReverbPreDelaySlider.get());
     
     
-    mChatContainer->addAndMakeVisible(mChatTextEditor.get());
-    mChatContainer->addAndMakeVisible(mChatSendTextEditor.get());
-    mChatContainer->addAndMakeVisible(mChatSendButton.get());
 
     addAndMakeVisible(mChatButton.get());
 
@@ -1236,8 +1235,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     addAndMakeVisible (mSettingsButton.get());
     addAndMakeVisible (mInMixerButton.get());
 
+
     addAndMakeVisible (mSendChannelsChoice.get());
     //addAndMakeVisible (mSendChannelsLabel.get());
+
+
+    addChildComponent(mChatView.get());
+    mChatView->addAndMakeVisible(mChatEdgeResizer.get());
+
+
 
     addChildComponent(mConnectView.get());
 
@@ -1851,18 +1857,23 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
 
         if (!tooltipWindow && getParentComponent()) {
             Component* dw = this; //this->findParentComponentOfClass<DocumentWindow>();
-               if (!dw)
-                   dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
-               if (!dw)
-                   dw = this->findParentComponentOfClass<Component>();        
-               //if (!dw)
-               //    dw = this;
+            if (!dw)
+                dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+            if (!dw)
+                dw = this->findParentComponentOfClass<Component>();
+            //if (!dw)
+            //    dw = this;
 
-               if (dw) {
-                   tooltipWindow = std::make_unique<CustomTooltipWindow>(this, dw);
-               }
-           }
-        
+            if (dw) {
+                tooltipWindow = std::make_unique<CustomTooltipWindow>(this, dw);
+            }
+        }
+
+        if (processor.getLastChatShown() != mChatView->isVisible()) {
+            showChatPanel(processor.getLastChatShown());
+            resized();
+        }
+
 #if 0
         if (JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
         {
@@ -3033,7 +3044,36 @@ void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& compone
     //if (&component == mSettingsTab.get()) {
     //    DebugLogC("setting vis changed: %d", component.isVisible());
     //}
+
+    if (&component == mChatView.get()) {
+        if (!mChatView->isVisible() && mChatWasVisible) {
+            if (!mChatOverlay) {
+                // reduce size
+                int newwidth = getWidth() - mChatView->getWidth();
+                setSize(newwidth, getHeight());
+            } else {
+                resized();
+            }
+        }
+
+        mChatWasVisible = mChatView->isVisible();
+        mChatButton->setToggleState(mChatWasVisible, dontSendNotification);
+        processor.setLastChatShown(mChatWasVisible);
+
+        mAboutToShowChat = false;
+    }
 }
+
+void SonobusAudioProcessorEditor::componentMovedOrResized (Component& component, bool wasmoved, bool wasresized)
+{
+    if (&component == mChatView.get()) {
+        if (mChatView->isVisible()) {
+            processor.setLastChatWidth(mChatView->getWidth());
+            resized();
+        }
+    }
+}
+
 
 void SonobusAudioProcessorEditor::componentParentHierarchyChanged (Component& component)
 {
@@ -3750,16 +3790,13 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
     if (haveNewChatEvents.compareAndSetBool(false, true))
     {
-        int numadded = 0;
         {
             const ScopedLock sl (chatStateLock);
-            numadded = newChatEvents.size();
-            allChatEvents.addArray(newChatEvents);
+            mChatView->addNewChatMessages(newChatEvents);
             newChatEvents.clearQuick();
         }
 
-        // now deal with the new events
-        processNewChatMessages(allChatEvents.size() - numadded, numadded);
+        mChatView->refreshMessages();
     }
 
     if (mReloadFile) {
@@ -3769,89 +3806,11 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 }
 
 
-void SonobusAudioProcessorEditor::processNewChatMessages(int index, int count, bool isSelf)
-{
-    if (index < 0) return;
 
-    // for now just add their text to the big texteditor showing all chats
-    const Colour selfNameColour(0xaaeeeeff);
-    const Colour selfBgColour(0x88222244);
-    const Colour otherNameColour(0xaaffffaa);
-    const Colour selfTextColour(0xffeeeeee);
-    const Colour otherTextColour(0xffffffaa);
-
-    mChatTextEditor->moveCaretToEnd();
-
-    for (int i=index; i < index+count && i < allChatEvents.size(); ++i) {
-        auto & event = allChatEvents.getReference(i);
-
-        Colour usercolor;
-
-        if (isSelf) {
-            usercolor = selfTextColour;
-        }
-        else {
-            if (mChatUserColors.find(event.from) == mChatUserColors.end()) {
-                // create a new color for them
-                mChatUserColors[event.from] = usercolor = Colour::fromHSL(Random::getSystemRandom().nextFloat(), 0.5f, 0.8f, 1.0f);
-            } else {
-                usercolor = mChatUserColors[event.from];
-            }
-        }
-
-        Colour namecolor = usercolor.withAlpha(0.7f);
-
-        mChatTextEditor->setFont(mChatSpacerFont);
-        mChatTextEditor->insertTextAtCaret("\n");
-
-        //mChatTextEditor->moveCaretDown(false);
-        //mChatTextEditor->moveCaretToStartOfLine(false);
-
-        if (event.from != mLastChatEventFrom) {
-            mChatTextEditor->setColour(TextEditor::textColourId, namecolor);
-            mChatTextEditor->setFont(mChatNameFont);
-            mChatTextEditor->insertTextAtCaret(event.from);
-            mChatTextEditor->insertTextAtCaret("\n");
-        }
-
-        mChatTextEditor->setColour(TextEditor::textColourId, usercolor);
-        mChatTextEditor->setFont(mChatMesgFont);
-        mChatTextEditor->insertTextAtCaret(event.message);
-        mChatTextEditor->insertTextAtCaret("\n");
-
-        mLastChatEventFrom = event.from;
-    }
-}
-
-void SonobusAudioProcessorEditor::commitChatMessage()
-{
-    // send it
-    auto text = mChatSendTextEditor->getText();
-    if (text.isEmpty()) return;
-
-    SBChatEvent event;
-
-    event.from = currConnectionInfo.userName;
-    event.group = currConnectionInfo.groupName;
-    event.message = text;
-    // todo target(s), tags
-
-    processor.sendChatEvent(event);
-
-    // process self
-    allChatEvents.add(event);
-    processNewChatMessages(allChatEvents.size()-1, 1, true);
-
-    mChatSendTextEditor->clear();
-    mChatSendTextEditor->repaint();
-}
 
 void SonobusAudioProcessorEditor::showChatPanel(bool show)
 {
-    if (show) {
-        chatContainerBox.performLayout(mChatContainer->getLocalBounds().reduced(2));
-    }
-    mChatSidePanel->showOrHide(show);
+    mChatView->setVisible(show);
 }
 
 
@@ -3881,8 +3840,9 @@ void SonobusAudioProcessorEditor::resized()
     int narrowthresh = 644; // 588; //520;
 #endif
 
-    if (mChatSidePanel->isVisible()) {
-        narrowthresh += mChatSidePanel->getWidth();
+
+    if (mChatView->isVisible()) {
+        narrowthresh += mChatView->getWidth();
     }
 
     bool nownarrow = getWidth() < narrowthresh;
@@ -3905,18 +3865,25 @@ void SonobusAudioProcessorEditor::resized()
         mMenuBar->setBounds(menuBounds);
     }
 
-    bool overlayChat = mainBounds.getWidth() - mChatSidePanel->getWidth() < 340;
-    mChatSidePanel->setShadowWidth(overlayChat ? 8 : 0);
+    int chatwidth = processor.getLastChatWidth();
 
-    if (mChatSidePanel->isVisible()) {
-        if (!isNarrow || !overlayChat) {
+    mChatOverlay = mainBounds.getWidth() - chatwidth < 340;
+
+    mChatView->setBounds(getLocalBounds().removeFromRight(chatwidth));
+
+    if (mChatView->isVisible() || mAboutToShowChat) {
+        if (!isNarrow || !mChatOverlay) {
             // take it off
-            mainBounds.removeFromRight(mChatSidePanel->getWidth());
+            mChatView->setBounds(mainBounds.removeFromRight(chatwidth));
         }
     }
 
 
     mainBox.performLayout(mainBounds);    
+
+
+    mChatEdgeResizer->setBounds(mChatView->getLocalBounds().withWidth(5));
+
 
     int inchantargwidth = mMainViewport->getWidth() - 10;
 
@@ -4009,10 +3976,6 @@ void SonobusAudioProcessorEditor::resized()
         callout->updatePosition(dw->getLocalArea(nullptr, mEffectsButton->getScreenBounds()), dw->getLocalBounds());
     }
 
-    if (mChatSidePanel->isVisible()) {
-        chatContainerBox.performLayout(mChatContainer->getLocalBounds().reduced(2));
-    }
-
 
     updateSliderSnap();
 
@@ -4053,25 +4016,6 @@ void SonobusAudioProcessorEditor::updateLayout()
     int mutew = 56;
     int inmixw = 74;
     int choicew = inmixw + mutew + 3;
-
-
-    chatSendBox.items.clear();
-    chatSendBox.flexDirection = FlexBox::Direction::row;
-    chatSendBox.items.add(FlexItem(4, 4).withMargin(0));
-    chatSendBox.items.add(FlexItem(minButtonWidth, minitemheight, *mChatSendTextEditor).withMargin(0).withFlex(1));
-    chatSendBox.items.add(FlexItem(4, 4).withMargin(0));
-    chatSendBox.items.add(FlexItem(minKnobWidth, minitemheight, *mChatSendButton).withMargin(0));
-    chatSendBox.items.add(FlexItem(4, 4).withMargin(0));
-
-
-    chatContainerBox.items.clear();
-    chatContainerBox.flexDirection = FlexBox::Direction::column;
-    chatContainerBox.items.add(FlexItem(choicew, minitemheight, *mChatTextEditor).withMargin(4).withFlex(1));
-    chatContainerBox.items.add(FlexItem(2, 2).withMargin(0));
-    chatContainerBox.items.add(FlexItem(choicew, minitemheight, chatSendBox).withMargin(0).withFlex(0));
-    chatContainerBox.items.add(FlexItem(2, 4).withMargin(0));
-
-
 
     inGainBox.items.clear();
     inGainBox.flexDirection = FlexBox::Direction::row;
@@ -4120,9 +4064,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mInSoloButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.2));
-    inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
 
     inputRightBox.items.clear();
     inputRightBox.flexDirection = FlexBox::Direction::column;
@@ -4350,6 +4292,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     mainGroupLayoutBox.items.add(FlexItem(1, 4));
     mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mPeerLayoutMinimalButton).withMargin(0).withFlex(0));
     mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mPeerLayoutFullButton).withMargin(0).withFlex(0));
+    mainGroupLayoutBox.items.add(FlexItem(3, 4));
+    mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     mainGroupLayoutBox.items.add(FlexItem(4, 4));
     mainGroupLayoutBox.items.add(FlexItem(24, minitemheight, *mMainPeerLabel).withMargin(0).withFlex(0));
     mainGroupLayoutBox.items.add(FlexItem(minButtonWidth, minitemheight - 8, mainGroupUserBox).withMargin(0).withFlex(1));
@@ -4436,6 +4380,9 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     metSendBox.items.clear();
     metSendBox.flexDirection = FlexBox::Direction::column;
+    if (!JUCEApplicationBase::isStandaloneApp()) {
+        metSendBox.items.add(FlexItem(60, minitemheight, *mMetSyncButton).withMargin(0).withFlex(0));
+    }
     metSendBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
     metSendBox.items.add(FlexItem(60, minitemheight, *mMetSendButton).withMargin(0).withFlex(0));
 

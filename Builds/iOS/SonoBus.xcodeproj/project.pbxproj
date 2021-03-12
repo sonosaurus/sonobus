@@ -100,6 +100,7 @@
 		E08ACFCB7F4E8F36BE8B339D /* CrossPlatformUtilsAndroid.cpp */ = {isa = PBXBuildFile; fileRef = D2A604B7BEEFCEB439F6DAF4; };
 		E0B205409B8B856A7A96FA88 /* Standalone Plugin */ = {isa = PBXBuildFile; fileRef = 5D6B0E5E3CB1868E696C3A68; };
 		E17293ABBB9B940C9DA3E77D /* OscTypes.cpp */ = {isa = PBXBuildFile; fileRef = 8E8234218E2E7F7AE98839FE; };
+		E409A3413F2E67430D4C7EEA /* ChatView.cpp */ = {isa = PBXBuildFile; fileRef = 3CFEE772A51DBF2CBBB8CB05; };
 		E9ADB40DE67A23C6FF002C5C /* SonoStandaloneFilterApp.cpp */ = {isa = PBXBuildFile; fileRef = 11C463763953CFD72F2DFB4E; };
 		EBB5DEA9B0F3BDD40EE36F91 /* GenericItemChooser.cpp */ = {isa = PBXBuildFile; fileRef = 4B308700AB4B98028C716CF5; };
 		ED2A2414FF69987111EA37C4 /* UIKit.framework */ = {isa = PBXBuildFile; fileRef = 5BC3101B3C0129A9667DC565; };
@@ -180,6 +181,7 @@
 		3972617268D9765CC8EEB158 /* CompressorView.h */ /* CompressorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CompressorView.h; path = ../../Source/CompressorView.h; sourceTree = SOURCE_ROOT; };
 		39B19482CAE1F62C09C6C8E1 /* AUv3 AppExtension */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SonoBus.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CA5320CE1922585FBEB602B /* triangle_disclosure.svg */ /* triangle_disclosure.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = triangle_disclosure.svg; path = ../../images/triangle_disclosure.svg; sourceTree = SOURCE_ROOT; };
+		3CFEE772A51DBF2CBBB8CB05 /* ChatView.cpp */ /* ChatView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ChatView.cpp; path = ../../Source/ChatView.cpp; sourceTree = SOURCE_ROOT; };
 		3E3B798DA2C8DE415AE4C564 /* source.hpp */ /* source.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = source.hpp; path = ../../deps/aoo/lib/src/source.hpp; sourceTree = SOURCE_ROOT; };
 		3E6EF82AE388EAACEB5AC9DC /* JucePluginDefines.h */ /* JucePluginDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = JucePluginDefines.h; path = ../../ios/JuceLibraryCode/JucePluginDefines.h; sourceTree = SOURCE_ROOT; };
 		3EF663FECADF1AE820231957 /* lockfree.hpp */ /* lockfree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = lockfree.hpp; path = ../../deps/aoo/lib/src/lockfree.hpp; sourceTree = SOURCE_ROOT; };
@@ -346,6 +348,7 @@
 		E9B5D696282427F86579BD24 /* EffectsBaseView.h */ /* EffectsBaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EffectsBaseView.h; path = ../../Source/EffectsBaseView.h; sourceTree = SOURCE_ROOT; };
 		EA7B811305AE6872DB4EA4E8 /* EffectParams.cpp */ /* EffectParams.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = EffectParams.cpp; path = ../../Source/EffectParams.cpp; sourceTree = SOURCE_ROOT; };
 		ECB25AAE2E734CAF20B6BE7B /* bar_click.wav */ /* bar_click.wav */ = {isa = PBXFileReference; lastKnownFileType = file.wav; name = bar_click.wav; path = ../../images/bar_click.wav; sourceTree = SOURCE_ROOT; };
+		ED246BBD19D28D40775F9EF8 /* ChatView.h */ /* ChatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ChatView.h; path = ../../Source/ChatView.h; sourceTree = SOURCE_ROOT; };
 		EE3E71DEB08505ADDEFB5021 /* AudioToolbox.framework */ /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		F1BE495186932DCDCB02F166 /* outgoing_allowed_active.svg */ /* outgoing_allowed_active.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = outgoing_allowed_active.svg; path = ../../images/outgoing_allowed_active.svg; sourceTree = SOURCE_ROOT; };
 		F511C93BFD383025E9E1B913 /* include_juce_gui_extra.mm */ /* include_juce_gui_extra.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_gui_extra.mm; path = ../../ios/JuceLibraryCode/include_juce_gui_extra.mm; sourceTree = SOURCE_ROOT; };
@@ -549,6 +552,8 @@
 				2B5EF6FD0E77910D139F590C,
 				B1D0AAD037A09676BE0676D0,
 				812D1487188455E396DE72BE,
+				3CFEE772A51DBF2CBBB8CB05,
+				ED246BBD19D28D40775F9EF8,
 				3972617268D9765CC8EEB158,
 				4985769F53D4B4C067775429,
 				32CF5F637051928650846729,
@@ -1003,6 +1008,7 @@
 				8D9B638028CB7369029B1786,
 				21C98C88F34A835AA042CB90,
 				93589D1C4AA4CEB5FB6FA9A2,
+				E409A3413F2E67430D4C7EEA,
 				2FE34F34384B62CBA5C6C263,
 				E08ACFCB7F4E8F36BE8B339D,
 				295A4EF4F2E3AB3187977073,

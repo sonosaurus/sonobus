@@ -192,6 +192,8 @@
             file="Source/ChannelGroupsView.cpp"/>
       <FILE id="lMcu0Z" name="ChannelGroupsView.h" compile="0" resource="0"
             file="Source/ChannelGroupsView.h"/>
+      <FILE id="xuAmXM" name="ChatView.cpp" compile="1" resource="0" file="Source/ChatView.cpp"/>
+      <FILE id="LqLqSd" name="ChatView.h" compile="0" resource="0" file="Source/ChatView.h"/>
       <FILE id="zsNFlO" name="CompressorView.h" compile="0" resource="0"
             file="Source/CompressorView.h"/>
       <FILE id="Q31sYW" name="ConnectView.cpp" compile="1" resource="0" file="Source/ConnectView.cpp"/>

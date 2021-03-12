@@ -241,6 +241,7 @@ public:
     static String paramMainMonitorSolo;
     static String paramAutoReconnectLast;
     static String paramDefaultPeerLevel;
+    static String paramSyncMetToHost;
 
     struct EndpointState;
     struct RemoteSink;
@@ -514,6 +515,8 @@ public:
 
     bool getAutoReconnectToLast() const { return mAutoReconnectLast.get(); }
 
+    bool getSyncMetToHost() const { return mSyncMetToHost.get(); }
+
     // misc settings
     bool getSlidersSnapToMousePosition() const { return mSliderSnapToMouse; }
     void setSlidersSnapToMousePosition(bool flag) {  mSliderSnapToMouse = flag; }
@@ -640,7 +643,11 @@ public:
 
     // chat
     bool sendChatEvent(const SBChatEvent & event);
-    
+    void setLastChatWidth(int width) { mLastChatWidth = width;}
+    int getLastChatWidth() const { return mLastChatWidth; }
+    void setLastChatShown(bool shown) { mLastChatShown = shown; }
+    bool getLastChatShown() const { return mLastChatShown; }
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
@@ -783,6 +790,7 @@ private:
     Atomic<bool>   mDynamicResampling  { false };
     Atomic<bool>   mAutoReconnectLast  { false };
     Atomic<float>   mDefUserLevel    { 1.0f };
+    Atomic<bool>   mSyncMetToHost  { false };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
@@ -825,6 +833,9 @@ private:
     
     int lastInputChannels = 0;
     int lastOutputChannels = 0;
+
+    int mLastChatWidth = 250;
+    bool mLastChatShown = false;
 
     int mActiveSendChannels = 0;
 

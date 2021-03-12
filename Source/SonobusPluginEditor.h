@@ -28,6 +28,7 @@ class WaveformTransportComponent;
 class SonobusAudioProcessorEditor;
 class ChannelGroupsView;
 class MonitorDelayView;
+class ChatView;
 
 //==============================================================================
 /**
@@ -66,7 +67,8 @@ public:
 
     void componentVisibilityChanged (Component& component) override;
     void componentParentHierarchyChanged (Component& component) override;
-    
+    void componentMovedOrResized (Component&, bool wasmoved, bool wasresized);
+
     void sliderValueChanged (Slider* slider) override;
 
     void parameterChanged (const String&, float newValue) override;
@@ -216,9 +218,6 @@ private:
     void showSaveSettingsPreset();
     void showLoadSettingsPreset();
 
-    void processNewChatMessages(int index, int count, bool isSelf=false);
-    void commitChatMessage();
-
     void showChatPanel(bool show);
 
     // This reference is provided as a quick way for your editor to
@@ -287,6 +286,7 @@ private:
     std::unique_ptr<SonoDrawableButton> mMetConfigButton;
     std::unique_ptr<SonoDrawableButton> mMetEnableButton;
     std::unique_ptr<SonoDrawableButton> mMetSendButton;
+    std::unique_ptr<TextButton> mMetSyncButton;
     std::unique_ptr<Label> mMetTempoSliderLabel;
     std::unique_ptr<Slider> mMetTempoSlider;
     std::unique_ptr<Label> mMetLevelSliderLabel;
@@ -477,19 +477,13 @@ private:
     Array<SBChatEvent> newChatEvents;
     Atomic<bool>  haveNewChatEvents = { false };
 
-    Array<SBChatEvent> allChatEvents;
-
-    std::unique_ptr<Component> mChatContainer;
-    std::unique_ptr<TextEditor> mChatTextEditor;
-    std::unique_ptr<SidePanel> mChatSidePanel;
-    std::unique_ptr<TextEditor> mChatSendTextEditor;
-    std::unique_ptr<TextButton> mChatSendButton;
+    std::unique_ptr<ChatView> mChatView;
+    std::unique_ptr<ComponentBoundsConstrainer> mChatSizeConstrainer;
+    std::unique_ptr<ResizableEdgeComponent> mChatEdgeResizer;
     std::unique_ptr<SonoDrawableButton> mChatButton;
-    Font mChatNameFont;
-    Font mChatMesgFont;
-    Font mChatSpacerFont;
-    String mLastChatEventFrom;
-    std::map<String,Colour> mChatUserColors;
+    bool mAboutToShowChat = false;
+    bool mChatWasVisible = false;
+    bool mChatOverlay = false;
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
@@ -611,8 +605,6 @@ private:
 
     FlexBox outputMainBox;
 
-    FlexBox chatContainerBox;
-    FlexBox chatSendBox;
 
     FlexBox metBox;
     FlexBox metVolBox;
@@ -689,6 +681,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainSendMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainRecvMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetTempoAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSyncAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetEnableAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;

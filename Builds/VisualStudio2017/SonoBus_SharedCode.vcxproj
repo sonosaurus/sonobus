@@ -281,6 +281,7 @@
     <ClCompile Include="..\..\Source\BeatToggleGrid.cpp"/>
     <ClCompile Include="..\..\Source\ChannelGroup.cpp"/>
     <ClCompile Include="..\..\Source\ChannelGroupsView.cpp"/>
+    <ClCompile Include="..\..\Source\ChatView.cpp"/>
     <ClCompile Include="..\..\Source\ConnectView.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsAndroid.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsLinux.cpp"/>
@@ -2416,6 +2417,7 @@
     <ClInclude Include="..\..\Source\BeatToggleGrid.h"/>
     <ClInclude Include="..\..\Source\ChannelGroup.h"/>
     <ClInclude Include="..\..\Source\ChannelGroupsView.h"/>
+    <ClInclude Include="..\..\Source\ChatView.h"/>
     <ClInclude Include="..\..\Source\CompressorView.h"/>
     <ClInclude Include="..\..\Source\ConnectView.h"/>
     <ClInclude Include="..\..\Source\CrossPlatformUtils.h"/>

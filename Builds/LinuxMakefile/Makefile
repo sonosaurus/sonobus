@@ -141,6 +141,7 @@ OBJECTS_SHARED_CODE := \
   $(JUCE_OBJDIR)/BeatToggleGrid_31823899.o \
   $(JUCE_OBJDIR)/ChannelGroup_97aa65c5.o \
   $(JUCE_OBJDIR)/ChannelGroupsView_7dcc7b5d.o \
+  $(JUCE_OBJDIR)/ChatView_916ba26.o \
   $(JUCE_OBJDIR)/ConnectView_47bf4d90.o \
   $(JUCE_OBJDIR)/CrossPlatformUtilsAndroid_3c3075d2.o \
   $(JUCE_OBJDIR)/CrossPlatformUtilsLinux_9477f957.o \
@@ -344,6 +345,11 @@ $(JUCE_OBJDIR)/ChannelGroup_97aa65c5.o: ../../Source/ChannelGroup.cpp
 $(JUCE_OBJDIR)/ChannelGroupsView_7dcc7b5d.o: ../../Source/ChannelGroupsView.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling ChannelGroupsView.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/ChatView_916ba26.o: ../../Source/ChatView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling ChatView.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/ConnectView_47bf4d90.o: ../../Source/ConnectView.cpp

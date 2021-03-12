@@ -71,6 +71,7 @@ String SonobusAudioProcessor::paramMainReverbModel  ("mainreverbmodel");
 String SonobusAudioProcessor::paramDynamicResampling  ("dynamicresampling");
 String SonobusAudioProcessor::paramAutoReconnectLast  ("reconnectlast");
 String SonobusAudioProcessor::paramDefaultPeerLevel  ("defPeerLevel");
+String SonobusAudioProcessor::paramSyncMetToHost  ("syncMetHost");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -85,6 +86,8 @@ static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String defRecordDirKey("DefaultRecordDir");
 static String sliderSnapKey("SliderSnapToMouse");
 static String peerDisplayModeKey("PeerDisplayMode");
+static String lastChatWidthKey("lastChatWidth");
+static String lastChatShownKey("lastChatShown");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -623,6 +626,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(paramDefaultPeerLevel,     TRANS ("Default User Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), mDefUserLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+    std::make_unique<AudioParameterBool>(paramSyncMetToHost, TRANS ("Sync to Host"), JUCEApplicationBase::isStandaloneApp() ? false : true),
 
 })
 {
@@ -656,6 +660,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramMainInMute, this);
     mState.addParameterListener (paramMainMonitorSolo, this);
     mState.addParameterListener (paramDefaultPeerLevel, this);
+    mState.addParameterListener (paramSyncMetToHost, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -5468,6 +5473,9 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramDefaultPeerLevel) {
         mDefUserLevel = newValue;
     }
+    else if (parameterID == paramSyncMetToHost) {
+        mSyncMetToHost = newValue > 0;
+    }
     else if (parameterID == paramSendChannels) {
         mSendChannels = (int) newValue;
         
@@ -6241,15 +6249,21 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     AudioPlayHead::CurrentPositionInfo posInfo;
     posInfo.resetToDefault();
     posInfo.bpm = mMetTempo.get();
+
+    bool syncmethost = mSyncMetToHost.get();
+
     AudioPlayHead * playhead = getPlayHead();
     bool posValid = playhead && playhead->getCurrentPosition(posInfo);
     bool hostPlaying = posValid && posInfo.isPlaying;
     if (posInfo.bpm <= 0.0) {
-        posInfo.bpm = mMetTempo.get();        
+        posInfo.bpm = mMetTempo.get();
     }
-    if (posValid && fabs(posInfo.bpm - mMetTempo.get()) > 0.001) {
-        mMetTempo = posInfo.bpm;
-        mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetTempo.get()));
+
+    if (syncmethost) {
+        if (posValid && fabs(posInfo.bpm - mMetTempo.get()) > 0.001) {
+            mMetTempo = posInfo.bpm;
+            mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetTempo.get()));
+        }
     }
     
     // main bus only
@@ -6426,7 +6440,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     if (metenabled != mLastMetEnabled) {
         if (metenabled) {
             mMetronome->setGain(metgain, true);
-            if (!hostPlaying) {
+            if (!syncmethost || !hostPlaying) {
                 mMetronome->resetRelativeStart();
             }
         } else {
@@ -6439,10 +6453,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         mMetronome->setGain(metgain);
         mMetronome->setTempo(mettempo);
         double beattime = 0.0;
-        if (hostPlaying) {
+        if (syncmethost && hostPlaying) {
             beattime = posInfo.ppqPosition;
         }
-        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(mainBusOutputChannels > 1 ? 1 : 0), beattime, !hostPlaying);
+        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(mainBusOutputChannels > 1 ? 1 : 0), beattime, !syncmethost || !hostPlaying);
 
         if (sendmet) {
             //add to main buffer for going out
@@ -7206,6 +7220,8 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
     extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
+    extraTree.setProperty(lastChatWidthKey, var((int)mLastChatWidth), nullptr);
+    extraTree.setProperty(lastChatShownKey, mLastChatShown, nullptr);
 
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
@@ -7299,6 +7315,8 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 #endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
             setPeerDisplayMode((PeerDisplayMode)(int)extraTree.getProperty(peerDisplayModeKey, (int)mPeerDisplayMode));
+            setLastChatWidth((int)extraTree.getProperty(lastChatWidthKey, (int)mLastChatWidth));
+            setLastChatShown(extraTree.getProperty(lastChatShownKey, mLastChatShown));
         }
 
 

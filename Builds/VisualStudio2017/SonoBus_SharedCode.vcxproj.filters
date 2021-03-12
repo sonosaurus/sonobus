@@ -574,6 +574,9 @@
     <ClCompile Include="..\..\Source\ChannelGroupsView.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ChatView.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\ConnectView.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
@@ -2983,6 +2986,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\ChannelGroupsView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ChatView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\CompressorView.h">

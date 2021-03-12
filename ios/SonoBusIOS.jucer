@@ -180,6 +180,8 @@
             file="../Source/ChannelGroupsView.cpp"/>
       <FILE id="Oz4OG6" name="ChannelGroupsView.h" compile="0" resource="0"
             file="../Source/ChannelGroupsView.h"/>
+      <FILE id="L9mmHj" name="ChatView.cpp" compile="1" resource="0" file="../Source/ChatView.cpp"/>
+      <FILE id="yV3Zd3" name="ChatView.h" compile="0" resource="0" file="../Source/ChatView.h"/>
       <FILE id="g1gcnX" name="CompressorView.h" compile="0" resource="0"
             file="../Source/CompressorView.h"/>
       <FILE id="QbelEz" name="ConnectView.cpp" compile="1" resource="0" file="../Source/ConnectView.cpp"/>
