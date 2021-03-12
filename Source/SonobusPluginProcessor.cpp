@@ -962,7 +962,9 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
     mServerEndpoint->ipaddr = host;
     mServerEndpoint->port = port;
     mServerEndpoint->peer.reset();
-    
+
+    mCurrentUsername = username;
+
     int32_t retval = mAooClient->connect(host.toRawUTF8(), port, username.toRawUTF8(), passwd.toRawUTF8());
     
     if (retval < 0) {
@@ -2052,11 +2054,16 @@ void SonobusAudioProcessor::doReceiveData()
 #define SONOBUS_MSG_LAYOUTINFO_LEN 9
 #define SONOBUS_FULLMSG_LAYOUTINFO SONOBUS_MSG_DOMAIN SONOBUS_MSG_LAYOUTINFO
 
+#define SONOBUS_MSG_CHAT "/chat"
+#define SONOBUS_MSG_CHAT_LEN 5
+#define SONOBUS_FULLMSG_CHAT SONOBUS_MSG_DOMAIN SONOBUS_MSG_CHAT
+
 
 enum {
     SONOBUS_MSGTYPE_UNKNOWN = 0,
     SONOBUS_MSGTYPE_PEERINFO,
     SONOBUS_MSGTYPE_LAYOUTINFO,
+    SONOBUS_MSGTYPE_CHAT
 };
 
 static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rettype)
@@ -2078,6 +2085,13 @@ static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rett
         {
             rettype = SONOBUS_MSGTYPE_LAYOUTINFO;
             offset += SONOBUS_MSG_LAYOUTINFO_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_CHAT_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_CHAT, SONOBUS_MSG_CHAT_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_CHAT;
+            offset += SONOBUS_MSG_CHAT_LEN;
             return offset;
         }
         else {
@@ -2179,12 +2193,70 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
 
 
         }
+        else if (type == SONOBUS_MSGTYPE_CHAT) {
+            // layout info message arguments:
+            // s:groupname s:from s:targets s:tags s:message
+            auto it = message.ArgumentsBegin();
 
+            String group (CharPointer_UTF8((it++)->AsString()));
+            String from (CharPointer_UTF8((it++)->AsString()));
+            String targets (CharPointer_UTF8((it++)->AsString()));
+            String tags (CharPointer_UTF8((it++)->AsString()));
+            String message (CharPointer_UTF8((it++)->AsString()));
+
+            SBChatEvent chatevent(group, from, targets, tags, message);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
+
+
+        }
         return true;
     } catch (const osc::Exception& e){
         DBG("exception in handleOtherMessage: " << e.what());
     }
     return false;
+}
+
+
+bool SonobusAudioProcessor::sendChatEvent(const SBChatEvent & event)
+{
+    // /sb/chat s:groupname s:from s:targets s:tags s:message
+
+    // if peerindex < 0 - send to all peers
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+
+    try {
+
+        msg << osc::BeginMessage(SONOBUS_FULLMSG_CHAT)
+        << event.group.toRawUTF8()
+        << event.from.toRawUTF8()
+        << event.targets.toRawUTF8()
+        << event.tags.toRawUTF8()
+        << event.message.toRawUTF8()
+        << osc::EndMessage;
+
+    }
+    catch (const osc::Exception& e){
+        DBG("exception in chat message constructions: " << e.what());
+        return false;
+    }
+
+    StringArray targetnames = StringArray::fromTokens(event.targets, "|", "");
+
+
+    const ScopedReadLock sl (mCoreLock);
+    for (int i=0;  i < mRemotePeers.size(); ++i) {
+        auto * peer = mRemotePeers.getUnchecked(i);
+
+        if (!targetnames.isEmpty() && !targetnames.contains(peer->userName))
+            continue;
+
+        DBG("Sending chat message to " << i);
+        this->sendPeerMessage(peer, msg.Data(), (int32_t) msg.Size());
+
+    }
+
+    return true;
 }
 
 
@@ -2251,9 +2323,15 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
             return;
         }
 
-        msg << osc::BeginMessage(SONOBUS_FULLMSG_PEERINFO)
-        << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
-        << osc::EndMessage;
+        try {
+            msg << osc::BeginMessage(SONOBUS_FULLMSG_PEERINFO)
+            << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
+            << osc::EndMessage;
+        }
+        catch (const osc::Exception& e){
+            DBG("exception in PEERINFO message constructions: " << e.what());
+            continue;
+        }
 
         DBG("Sending peerinfo message to " << i);
         this->sendPeerMessage(peer, msg.Data(), (int32_t) msg.Size());
@@ -5253,10 +5331,15 @@ void SonobusAudioProcessor::updateRemotePeerUserFormat(int index, RemotePeer * o
 
         osc::OutboundPacketStream msg(buf, sizeof(buf));
 
-        msg << osc::BeginMessage(SONOBUS_FULLMSG_LAYOUTINFO)
-        << peer->remoteSinkId
-        << osc::Blob(destData.getData(), (int) destData.getSize())
-        << osc::EndMessage;
+        try {
+            msg << osc::BeginMessage(SONOBUS_FULLMSG_LAYOUTINFO)
+            << peer->remoteSinkId
+            << osc::Blob(destData.getData(), (int) destData.getSize())
+            << osc::EndMessage;
+        } catch (const osc::Exception& e){
+            DBG("exception in osc LAYOUTINFO: " << e.what());
+            continue;
+        }
 
         DBG("Sending channellayout message to " << i);
         this->sendPeerMessage(peer, msg.Data(), (int32_t) msg.Size());

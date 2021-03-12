@@ -357,6 +357,7 @@
 		E1B456734CC5BA100E8AADC0 /* juce_audio_devices */ /* juce_audio_devices */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_audio_devices; path = ../../deps/juce/modules/juce_audio_devices; sourceTree = SOURCE_ROOT; };
 		E33BC33EE0A457EBF338E0CD /* mute-others.svg */ /* mute-others.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = "mute-others.svg"; path = "../../images/mute-others.svg"; sourceTree = SOURCE_ROOT; };
 		E3D67EA3A9C7A3FD5D4E22A0 /* VST.entitlements */ /* VST.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = VST.entitlements; path = VST.entitlements; sourceTree = SOURCE_ROOT; };
+		E41A3E33B4DB9EA4E90FC155 /* chat.svg */ /* chat.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = chat.svg; path = ../../images/chat.svg; sourceTree = SOURCE_ROOT; };
 		E6AB82F5E3A0D306CB84EC10 /* Standalone_Plugin.entitlements */ /* Standalone_Plugin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Standalone_Plugin.entitlements; path = Standalone_Plugin.entitlements; sourceTree = SOURCE_ROOT; };
 		E73772F59C15FA97EFE55F4B /* OscPrintReceivedElements.h */ /* OscPrintReceivedElements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscPrintReceivedElements.h; path = ../../deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.h; sourceTree = SOURCE_ROOT; };
 		E83E06B65F0FEE2A510DD875 /* RunningCumulant.h */ /* RunningCumulant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RunningCumulant.h; path = ../../Source/RunningCumulant.h; sourceTree = SOURCE_ROOT; };
@@ -801,6 +802,7 @@
 				0CAA43DBBBE23393552742F0,
 				ECB25AAE2E734CAF20B6BE7B,
 				68079251C527B4E44F06B79B,
+				E41A3E33B4DB9EA4E90FC155,
 				F71D02AE352CA5F312A77E76,
 				915BE408C4522E6066E15CEB,
 				B97A3A91F751F71A95F27248,

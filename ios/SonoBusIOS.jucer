@@ -77,6 +77,7 @@
       </GROUP>
       <FILE id="xiA07t" name="bar_click.wav" compile="0" resource="1" file="../images/bar_click.wav"/>
       <FILE id="fRSnh7" name="beat_click.wav" compile="0" resource="1" file="../images/beat_click.wav"/>
+      <FILE id="PI0BgL" name="chat.svg" compile="0" resource="1" file="../images/chat.svg"/>
       <FILE id="oRqqx7" name="chevron_forward.svg" compile="0" resource="1"
             file="../images/chevron_forward.svg"/>
       <FILE id="uAKgXJ" name="copy_icon.svg" compile="0" resource="1" file="../images/copy_icon.svg"/>

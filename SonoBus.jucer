@@ -7,7 +7,7 @@
               pluginDesc="SonoBus - Network Audio" version="1.3.9" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aumf'"
               pluginCharacteristicsValue="pluginProducesMidiOut,pluginWantsMidiIn"
-              pluginAAXCategory="0" pluginVST3Category="Network">
+              pluginAAXCategory="0" pluginVST3Category="Fx,Instrument,Network">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
       <GROUP id="{81488E5D-9CA2-F73A-62B1-4376F46E70B1}" name="aoo">
@@ -78,6 +78,7 @@
       </GROUP>
       <FILE id="O1xtq9" name="bar_click.wav" compile="0" resource="1" file="images/bar_click.wav"/>
       <FILE id="dmiruB" name="beat_click.wav" compile="0" resource="1" file="images/beat_click.wav"/>
+      <FILE id="ZwykWL" name="chat.svg" compile="0" resource="1" file="images/chat.svg"/>
       <FILE id="j4WSQR" name="chevron_forward.svg" compile="0" resource="1"
             file="images/chevron_forward.svg"/>
       <FILE id="N4OxEE" name="copy_icon.svg" compile="0" resource="1" file="images/copy_icon.svg"/>

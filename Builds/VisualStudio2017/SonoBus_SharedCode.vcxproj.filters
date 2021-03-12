@@ -5621,6 +5621,9 @@
     <None Include="..\..\images\beat_click.wav">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\chat.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\chevron_forward.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>

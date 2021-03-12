@@ -697,6 +697,53 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //mInputChannelsViewport->setViewedComponent(mInputChannelsContainer.get(), false);
     //mMainContainer->addChildComponent(mInputChannelsViewport.get());
 
+    mChatContainer = std::make_unique<Component>();
+
+    mChatNameFont = Font(13);
+    mChatMesgFont = Font(16);
+    mChatSpacerFont = Font(6);
+
+    mChatTextEditor = std::make_unique<TextEditor>();
+    mChatTextEditor->setReadOnly(true);
+    mChatTextEditor->setMultiLine(true);
+    mChatTextEditor->setScrollbarsShown(true);
+
+    mChatSendTextEditor = std::make_unique<TextEditor>();
+    //mChatSendTextEditor->setMultiLine(true);
+    mChatSendTextEditor->onReturnKey = [this]() {
+        commitChatMessage();
+    };
+    mChatSendTextEditor->setFont(mChatMesgFont);
+
+    mChatSendButton = std::make_unique<TextButton>();
+    mChatSendButton->setButtonText(TRANS("Send"));
+    mChatSendButton->onClick = [this]() { commitChatMessage(); };
+
+    mChatButton = std::make_unique<SonoDrawableButton>("chat", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> chatimg(Drawable::createFromImageData(BinaryData::chat_svg, BinaryData::chat_svgSize));
+    mChatButton->setImages(chatimg.get());
+    mChatButton->onClick = [this]() { this->showChatPanel(this->mChatButton->getToggleState()); };
+    mChatButton->setClickingTogglesState(true);
+    //mChatButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    //mChatButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    //mChatButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
+    mChatButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    //mChatButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mChatButton->setTooltip(TRANS("Show Chat"));
+
+
+    mChatSidePanel = std::make_unique<SidePanel>(TRANS("Chat"), 250, false, mChatContainer.get(), false);
+    mChatSidePanel->setTitleBarHeight(36);
+    mChatSidePanel->onPanelShowHide = [this](bool shown) {
+        this->mChatButton->setToggleState(shown, dontSendNotification);
+    };
+
+    mChatSidePanel->onPanelMove = [this]() {
+        DBG("Panel moved");
+        resized();
+    };
+
+
 
     mRecOptionsComponent = std::make_unique<Component>();
     mOptionsComponent = std::make_unique<Component>();
@@ -1133,7 +1180,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     addAndMakeVisible(mMetConfigButton.get());
     addAndMakeVisible(mEffectsButton.get());
 
-    
+    addChildComponent(mChatSidePanel.get());
+
     mMetContainer->addAndMakeVisible(mMetLevelSlider.get());
     mMetContainer->addAndMakeVisible(mMetTempoSlider.get());
     mMetContainer->addAndMakeVisible(mMetLevelSliderLabel.get());
@@ -1154,7 +1202,14 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mEffectsContainer->addAndMakeVisible(mReverbPreDelaySlider.get());
     
     
+    mChatContainer->addAndMakeVisible(mChatTextEditor.get());
+    mChatContainer->addAndMakeVisible(mChatSendTextEditor.get());
+    mChatContainer->addAndMakeVisible(mChatSendButton.get());
+
+    addAndMakeVisible(mChatButton.get());
+
     
+
     addChildComponent(mIAAHostButton.get());
 
 
@@ -1594,6 +1649,16 @@ void SonobusAudioProcessorEditor::aooClientPeerChangedState(SonobusAudioProcesso
     triggerAsyncUpdate();    
 }
 
+void SonobusAudioProcessorEditor::sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg)
+{
+    {
+        const ScopedLock sl (chatStateLock);
+        newChatEvents.add(mesg);
+        haveNewChatEvents = true;
+    }
+
+    triggerAsyncUpdate();
+}
 
 
 //////////////////////////
@@ -3682,12 +3747,113 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             mPeerContainer->peerFailedJoin(ev.group, ev.user);
         }
     }
-    
+
+    if (haveNewChatEvents.compareAndSetBool(false, true))
+    {
+        int numadded = 0;
+        {
+            const ScopedLock sl (chatStateLock);
+            numadded = newChatEvents.size();
+            allChatEvents.addArray(newChatEvents);
+            newChatEvents.clearQuick();
+        }
+
+        // now deal with the new events
+        processNewChatMessages(allChatEvents.size() - numadded, numadded);
+    }
+
     if (mReloadFile) {
         loadAudioFromURL(mCurrentAudioFile);
         mReloadFile = false;
     }
 }
+
+
+void SonobusAudioProcessorEditor::processNewChatMessages(int index, int count, bool isSelf)
+{
+    if (index < 0) return;
+
+    // for now just add their text to the big texteditor showing all chats
+    const Colour selfNameColour(0xaaeeeeff);
+    const Colour selfBgColour(0x88222244);
+    const Colour otherNameColour(0xaaffffaa);
+    const Colour selfTextColour(0xffeeeeee);
+    const Colour otherTextColour(0xffffffaa);
+
+    mChatTextEditor->moveCaretToEnd();
+
+    for (int i=index; i < index+count && i < allChatEvents.size(); ++i) {
+        auto & event = allChatEvents.getReference(i);
+
+        Colour usercolor;
+
+        if (isSelf) {
+            usercolor = selfTextColour;
+        }
+        else {
+            if (mChatUserColors.find(event.from) == mChatUserColors.end()) {
+                // create a new color for them
+                mChatUserColors[event.from] = usercolor = Colour::fromHSL(Random::getSystemRandom().nextFloat(), 0.5f, 0.8f, 1.0f);
+            } else {
+                usercolor = mChatUserColors[event.from];
+            }
+        }
+
+        Colour namecolor = usercolor.withAlpha(0.7f);
+
+        mChatTextEditor->setFont(mChatSpacerFont);
+        mChatTextEditor->insertTextAtCaret("\n");
+
+        //mChatTextEditor->moveCaretDown(false);
+        //mChatTextEditor->moveCaretToStartOfLine(false);
+
+        if (event.from != mLastChatEventFrom) {
+            mChatTextEditor->setColour(TextEditor::textColourId, namecolor);
+            mChatTextEditor->setFont(mChatNameFont);
+            mChatTextEditor->insertTextAtCaret(event.from);
+            mChatTextEditor->insertTextAtCaret("\n");
+        }
+
+        mChatTextEditor->setColour(TextEditor::textColourId, usercolor);
+        mChatTextEditor->setFont(mChatMesgFont);
+        mChatTextEditor->insertTextAtCaret(event.message);
+        mChatTextEditor->insertTextAtCaret("\n");
+
+        mLastChatEventFrom = event.from;
+    }
+}
+
+void SonobusAudioProcessorEditor::commitChatMessage()
+{
+    // send it
+    auto text = mChatSendTextEditor->getText();
+    if (text.isEmpty()) return;
+
+    SBChatEvent event;
+
+    event.from = currConnectionInfo.userName;
+    event.group = currConnectionInfo.groupName;
+    event.message = text;
+    // todo target(s), tags
+
+    processor.sendChatEvent(event);
+
+    // process self
+    allChatEvents.add(event);
+    processNewChatMessages(allChatEvents.size()-1, 1, true);
+
+    mChatSendTextEditor->clear();
+    mChatSendTextEditor->repaint();
+}
+
+void SonobusAudioProcessorEditor::showChatPanel(bool show)
+{
+    if (show) {
+        chatContainerBox.performLayout(mChatContainer->getLocalBounds().reduced(2));
+    }
+    mChatSidePanel->showOrHide(show);
+}
+
 
 void SonobusAudioProcessorEditor::parentHierarchyChanged()
 {    
@@ -3710,10 +3876,15 @@ void SonobusAudioProcessorEditor::resized()
     Component::resized();
  
 #if JUCE_IOS || JUCE_ANDROID
-    const int narrowthresh = 480; //520;
+    int narrowthresh = 480; //520;
 #else
-    const int narrowthresh = 644; // 588; //520;
+    int narrowthresh = 644; // 588; //520;
 #endif
+
+    if (mChatSidePanel->isVisible()) {
+        narrowthresh += mChatSidePanel->getWidth();
+    }
+
     bool nownarrow = getWidth() < narrowthresh;
     if (nownarrow != isNarrow) {
         isNarrow = nownarrow;
@@ -3721,8 +3892,7 @@ void SonobusAudioProcessorEditor::resized()
         mInputChannelsContainer->setNarrowMode(isNarrow);
         updateLayout();
     }
-    
-    
+
    
     
     DBG("RESIZED to " << getWidth() << " " << getHeight());
@@ -3734,7 +3904,18 @@ void SonobusAudioProcessorEditor::resized()
         auto menuBounds = mainBounds.removeFromTop(menuHeight);
         mMenuBar->setBounds(menuBounds);
     }
-    
+
+    bool overlayChat = mainBounds.getWidth() - mChatSidePanel->getWidth() < 340;
+    mChatSidePanel->setShadowWidth(overlayChat ? 8 : 0);
+
+    if (mChatSidePanel->isVisible()) {
+        if (!isNarrow || !overlayChat) {
+            // take it off
+            mainBounds.removeFromRight(mChatSidePanel->getWidth());
+        }
+    }
+
+
     mainBox.performLayout(mainBounds);    
 
     int inchantargwidth = mMainViewport->getWidth() - 10;
@@ -3828,6 +4009,11 @@ void SonobusAudioProcessorEditor::resized()
         callout->updatePosition(dw->getLocalArea(nullptr, mEffectsButton->getScreenBounds()), dw->getLocalBounds());
     }
 
+    if (mChatSidePanel->isVisible()) {
+        chatContainerBox.performLayout(mChatContainer->getLocalBounds().reduced(2));
+    }
+
+
     updateSliderSnap();
 
 }
@@ -3867,6 +4053,24 @@ void SonobusAudioProcessorEditor::updateLayout()
     int mutew = 56;
     int inmixw = 74;
     int choicew = inmixw + mutew + 3;
+
+
+    chatSendBox.items.clear();
+    chatSendBox.flexDirection = FlexBox::Direction::row;
+    chatSendBox.items.add(FlexItem(4, 4).withMargin(0));
+    chatSendBox.items.add(FlexItem(minButtonWidth, minitemheight, *mChatSendTextEditor).withMargin(0).withFlex(1));
+    chatSendBox.items.add(FlexItem(4, 4).withMargin(0));
+    chatSendBox.items.add(FlexItem(minKnobWidth, minitemheight, *mChatSendButton).withMargin(0));
+    chatSendBox.items.add(FlexItem(4, 4).withMargin(0));
+
+
+    chatContainerBox.items.clear();
+    chatContainerBox.flexDirection = FlexBox::Direction::column;
+    chatContainerBox.items.add(FlexItem(choicew, minitemheight, *mChatTextEditor).withMargin(4).withFlex(1));
+    chatContainerBox.items.add(FlexItem(2, 2).withMargin(0));
+    chatContainerBox.items.add(FlexItem(choicew, minitemheight, chatSendBox).withMargin(0).withFlex(0));
+    chatContainerBox.items.add(FlexItem(2, 4).withMargin(0));
+
 
 
     inGainBox.items.clear();
@@ -3916,7 +4120,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mInSoloButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
+    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.2));
+    inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
 
     inputRightBox.items.clear();
     inputRightBox.flexDirection = FlexBox::Direction::column;

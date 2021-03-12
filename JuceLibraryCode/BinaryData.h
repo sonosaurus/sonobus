@@ -17,6 +17,9 @@ namespace BinaryData
     extern const char*   beat_click_wav;
     const int            beat_click_wavSize = 2708;
 
+    extern const char*   chat_svg;
+    const int            chat_svgSize = 3014;
+
     extern const char*   chevron_forward_svg;
     const int            chevron_forward_svgSize = 2060;
 
@@ -189,7 +192,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 60;
+    const int namedResourceListSize = 61;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

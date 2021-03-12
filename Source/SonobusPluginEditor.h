@@ -132,6 +132,7 @@ public:
     void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) override;
     void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) override;
+    void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg) override;
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
@@ -215,6 +216,10 @@ private:
     void showSaveSettingsPreset();
     void showLoadSettingsPreset();
 
+    void processNewChatMessages(int index, int count, bool isSelf=false);
+    void commitChatMessage();
+
+    void showChatPanel(bool show);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -468,7 +473,23 @@ private:
     };
     Array<ClientEvent> clientEvents;
 
+    CriticalSection    chatStateLock;
+    Array<SBChatEvent> newChatEvents;
+    Atomic<bool>  haveNewChatEvents = { false };
 
+    Array<SBChatEvent> allChatEvents;
+
+    std::unique_ptr<Component> mChatContainer;
+    std::unique_ptr<TextEditor> mChatTextEditor;
+    std::unique_ptr<SidePanel> mChatSidePanel;
+    std::unique_ptr<TextEditor> mChatSendTextEditor;
+    std::unique_ptr<TextButton> mChatSendButton;
+    std::unique_ptr<SonoDrawableButton> mChatButton;
+    Font mChatNameFont;
+    Font mChatMesgFont;
+    Font mChatSpacerFont;
+    String mLastChatEventFrom;
+    std::map<String,Colour> mChatUserColors;
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
@@ -589,8 +610,10 @@ private:
     FlexBox inputPannerBox;
 
     FlexBox outputMainBox;
-    
-    
+
+    FlexBox chatContainerBox;
+    FlexBox chatSendBox;
+
     FlexBox metBox;
     FlexBox metVolBox;
     FlexBox metTempoBox;

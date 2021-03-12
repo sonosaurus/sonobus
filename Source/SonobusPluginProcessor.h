@@ -61,6 +61,20 @@ struct AooPublicGroupInfo
 };
 
 
+struct SBChatEvent
+{
+    SBChatEvent() {};
+    SBChatEvent(const String & group_,  const String & from_, const String &targets_, const String & tags_, const String & mesg_) :
+    group(group_), from(from_), targets(targets_), tags(tags_), message(mesg_)
+    {}
+
+    String group;
+    String from;
+    String targets;
+    String tags;
+    String message;
+};
+
 inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs) {
     // compare all except timestamp
      return (lhs.userName == rhs.userName
@@ -562,6 +576,7 @@ public:
         virtual void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) {}
         virtual void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) {}
+        virtual void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & chatevent) {}
     };
     
     void addClientListener(ClientListener * l) {
@@ -623,6 +638,8 @@ public:
     AudioTransportSource & getTransportSource() { return mTransportSource; }
     AudioFormatManager & getFormatManager() { return mFormatManager; }
 
+    // chat
+    bool sendChatEvent(const SBChatEvent & event);
     
 private:
     //==============================================================================
@@ -834,6 +851,7 @@ private:
     String mCurrentJoinedGroup;
     double mSessionConnectionStamp = 0.0;
     bool mWatchPublicGroups = false;
+    String mCurrentUsername;
 
     double mPrevSampleRate = 0.0;
     Atomic<bool> mPendingUnmute {false}; // jlc
