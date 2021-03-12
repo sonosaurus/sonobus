@@ -3553,8 +3553,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             //mPeerContainer->updateLayout();
             //mPeerContainer->resized();
             //Timer::callAfterDelay(100, [this](){
-            updatePeerState(true);
-            updateState();
+            updatePeerState(false);
             //});
         }
         else if (ev.type == ClientEvent::ConnectEvent) {
