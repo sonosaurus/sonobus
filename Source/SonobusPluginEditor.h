@@ -161,7 +161,7 @@ private:
 
     void updateLayout();
 
-    void updateState();
+    void updateState(bool rebuildInputChannels = true);
     
     void configKnobSlider(Slider *);
     //void configLabel(Label * lab, bool val);

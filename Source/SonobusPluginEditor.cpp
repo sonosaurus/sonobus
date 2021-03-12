@@ -1422,7 +1422,7 @@ bool SonobusAudioProcessorEditor::requestedQuit()
 
 void SonobusAudioProcessorEditor::connectionsChanged(ConnectView *comp)
 {
-    updateState();
+    updateState(false);
 }
 
 void SonobusAudioProcessorEditor::channelLayoutChanged(ChannelGroupsView *comp)
@@ -1702,7 +1702,7 @@ bool SonobusAudioProcessorEditor::updatePeerState(bool force)
             mPatchMatrixView->updateGrid();
         }
 
-        updateState();
+        updateState(false);
         return true;
     }
     else {
@@ -3322,7 +3322,7 @@ void SonobusAudioProcessorEditor::showMonitorDelayView(bool flag)
 }
 
 
-void SonobusAudioProcessorEditor::updateState()
+void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
 {
 
     currConnected = processor.isConnectedToServer();
@@ -3369,8 +3369,9 @@ void SonobusAudioProcessorEditor::updateState()
         inputMeter->setFixedNumChannels(processor.getActiveSendChannelCount());
     }
 
-    mInputChannelsContainer->rebuildChannelViews();
-
+    if (rebuildInputChannels) {
+        mInputChannelsContainer->rebuildChannelViews();
+    }
     
     bool sendmute = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue();
     if (!mMainPushToTalkButton->isMouseButtonDown() && !mPushToTalkKeyDown) {
@@ -3619,7 +3620,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             //mPeerContainer->resized();
             //Timer::callAfterDelay(100, [this](){
             updatePeerState(true);
-            updateState();
+            updateState(false);
             //});
         }
         else if (ev.type == ClientEvent::ConnectEvent) {
@@ -3733,12 +3734,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             // delay update
             Timer::callAfterDelay(200, [this] {
                 updatePeerState(true);
-                updateState();
+                updateState(false);
             });
         }
         else if (ev.type == ClientEvent::PeerLeaveEvent) {
             updatePeerState(true);
-            updateState();
+            updateState(false);
         }
         else if (ev.type == ClientEvent::PeerPendingJoinEvent) {
             mPeerContainer->peerPendingJoin(ev.group, ev.user);
