@@ -713,10 +713,11 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatView->addComponentListener(this);
 
     mChatButton = std::make_unique<SonoDrawableButton>("chat", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> chatdotsimg(Drawable::createFromImageData(BinaryData::chat_dots_svg, BinaryData::chat_dots_svgSize));
     std::unique_ptr<Drawable> chatimg(Drawable::createFromImageData(BinaryData::chat_svg, BinaryData::chat_svgSize));
-    mChatButton->setImages(chatimg.get());
+    mChatButton->setImages(chatimg.get(), nullptr, nullptr, nullptr, chatdotsimg.get());
     mChatButton->onClick = [this]() {
-        bool newshown = this->mChatButton->getToggleState();
+        bool newshown = !mChatView->isVisible();
 #if !(JUCE_IOS || JUCE_ANDROID)
         // attempt resize
         if (newshown && !isNarrow) {
@@ -727,15 +728,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             setSize(newwidth, getHeight());
         }
 #endif
-        this->showChatPanel(this->mChatButton->getToggleState());
+        this->showChatPanel(newshown);
     };
-    mChatButton->setClickingTogglesState(true);
+    //mChatButton->setClickingTogglesState(true);
     //mChatButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     //mChatButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     //mChatButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     mChatButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     //mChatButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    mChatButton->setTooltip(TRANS("Show Chat"));
+    mChatButton->setTooltip(TRANS("Show/Hide Chat"));
 
 
 
@@ -1873,6 +1874,8 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             showChatPanel(processor.getLastChatShown());
             resized();
         }
+
+        mChatButton->setToggleState(mChatView->haveNewSinceLastView(), dontSendNotification);
 
 #if 0
         if (JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
@@ -3057,7 +3060,7 @@ void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& compone
         }
 
         mChatWasVisible = mChatView->isVisible();
-        mChatButton->setToggleState(mChatWasVisible, dontSendNotification);
+        //mChatButton->setToggleState(mChatWasVisible, dontSendNotification);
         processor.setLastChatShown(mChatWasVisible);
 
         mAboutToShowChat = false;
@@ -3704,6 +3707,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
                 mConnectView->updateServerFieldsFromConnectionInfo();
 
+                //mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, "", "", "", "", statstr));
+
             }
             else {
                 // switch to group page
@@ -3720,6 +3725,9 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             } else {
                 //statstr = TRANS("Disconnect failed: ") + ev.message;
             }
+
+            //mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, "", "", "", "", statstr));
+
             mPeerContainer->resetPendingUsers();
             updateServerStatusLabel(statstr);
             updatePeerState(true);
@@ -3732,6 +3740,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 
                 showConnectPopup(false);
 
+                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+
                 // need to update layout too
                 updateLayout();
                 resized();
@@ -3739,6 +3749,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 statstr = TRANS("Failed to join group: ") + ev.message;
 
                 mConnectView->groupJoinFailed();
+
+                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
 
                 // disconnect
                 processor.disconnectFromServer();
@@ -3770,6 +3782,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         }
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
+            String mesg;
+            mesg << ev.user << TRANS(" - joined group");
+            mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+
             // delay update
             Timer::callAfterDelay(200, [this] {
                 updatePeerState(true);
@@ -3777,6 +3793,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             });
         }
         else if (ev.type == ClientEvent::PeerLeaveEvent) {
+            String mesg;
+            mesg << ev.user << TRANS(" - left group");
+            mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+
             updatePeerState(true);
             updateState();
         }
@@ -4064,7 +4084,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mInSoloButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.2));
 
     inputRightBox.items.clear();
     inputRightBox.flexDirection = FlexBox::Direction::column;

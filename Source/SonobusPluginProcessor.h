@@ -63,11 +63,18 @@ struct AooPublicGroupInfo
 
 struct SBChatEvent
 {
+    enum EventType {
+        SelfType=0,
+        UserType,
+        SystemType
+    };
+
     SBChatEvent() {};
-    SBChatEvent(const String & group_,  const String & from_, const String &targets_, const String & tags_, const String & mesg_) :
-    group(group_), from(from_), targets(targets_), tags(tags_), message(mesg_)
+    SBChatEvent(EventType type_, const String & group_,  const String & from_, const String &targets_, const String & tags_, const String & mesg_) :
+    type(type_), group(group_), from(from_), targets(targets_), tags(tags_), message(mesg_)
     {}
 
+    EventType type = UserType;
     String group;
     String from;
     String targets;

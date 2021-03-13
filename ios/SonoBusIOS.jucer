@@ -3,7 +3,7 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2020 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAUv3,buildStandalone,enableIAA" pluginManufacturerCode="Sono"
-              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.9-49&quot;"
+              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.10-50&quot;"
               pluginDesc="SonoBus - Network Audio" version="1.0.3" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'"
               pluginAUIsSandboxSafe="1">
@@ -78,6 +78,7 @@
       <FILE id="xiA07t" name="bar_click.wav" compile="0" resource="1" file="../images/bar_click.wav"/>
       <FILE id="fRSnh7" name="beat_click.wav" compile="0" resource="1" file="../images/beat_click.wav"/>
       <FILE id="PI0BgL" name="chat.svg" compile="0" resource="1" file="../images/chat.svg"/>
+      <FILE id="bsvxaw" name="chat_dots.svg" compile="0" resource="1" file="../images/chat_dots.svg"/>
       <FILE id="oRqqx7" name="chevron_forward.svg" compile="0" resource="1"
             file="../images/chevron_forward.svg"/>
       <FILE id="uAKgXJ" name="copy_icon.svg" compile="0" resource="1" file="../images/copy_icon.svg"/>

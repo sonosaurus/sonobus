@@ -8,6 +8,7 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonoDrawableButton.h"
+#include <map>
 
 class ChatView : public Component
 {
@@ -18,21 +19,51 @@ public:
     void paint (Graphics&) override;
     void resized() override;
 
+    void addNewChatMessage(const SBChatEvent & mesg, bool refresh=true);
     void addNewChatMessages(const Array<SBChatEvent> & mesgs, bool refresh=false);
     void refreshMessages();
+    void clearAll();
+
+    bool haveNewSinceLastView() const;
 
     bool keyPressed (const KeyPress & key) override;
 
+    void mouseDown (const MouseEvent& event)  override;
+    void mouseUp (const MouseEvent& event)  override;
+    void mouseDrag (const MouseEvent& event)  override;
+    void mouseMove (const MouseEvent& event)  override;
+
+
+
 protected:
 
-    void processNewChatMessages(int index, int count, bool isSelf=false);
+    void processNewChatMessages(int index, int count);
     void commitChatMessage();
+
+    void showMenu(bool show);
+    void showSaveChat();
+
+    bool parseStringForUrl(const String & str, Array<Range<int> > & retranges);
+
+    bool findUrlAtPos(juce::Point<int>, String & retstr);
 
     SonobusAudioProcessor& processor;
     AooServerConnectionInfo & currConnectionInfo;
 
     
     double mLastChatMessageStamp = 0.0;
+    double mLastChatShowTimeStamp = 0.0;
+    double mLastChatUserMessageStamp = 0.0;
+
+    double mLastChatViewStamp = 0.0;
+
+    bool mUserScrolled = false;
+
+    uint32 mLastUrlCheckStampMs = 0;
+    bool mOverUrl = false;
+
+    MouseCursor mHandCursor = { MouseCursor::PointingHandCursor };
+    MouseCursor mTextCursor = { MouseCursor::IBeamCursor };
 
     Array<SBChatEvent> allChatEvents;
     int lastShownCount = 0;
@@ -40,9 +71,23 @@ protected:
     std::unique_ptr<Component> mChatContainer;
     std::unique_ptr<TextEditor> mChatTextEditor;
     std::unique_ptr<TextEditor> mChatSendTextEditor;
-    //std::unique_ptr<TextButton> mChatSendButton;
+    std::unique_ptr<SonoDrawableButton> mMenuButton;
     std::unique_ptr<SonoDrawableButton> mCloseButton;
     std::unique_ptr<Label> mTitleLabel;
+
+    // URL position list
+    struct cmpRange {
+        bool operator()(const Range<int>& a, const Range<int>& b) const {
+            return a.getStart() < b.getStart();
+        }
+    };
+
+    typedef std::map<Range<int>, String, cmpRange> RangeStringMap;
+    RangeStringMap mUrlRanges;
+
+    //Array<Range<int> > mUrlRanges;
+
+    std::unique_ptr<FileChooser> mFileChooser;
 
 
     Font mChatNameFont;

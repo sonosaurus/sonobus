@@ -5630,6 +5630,9 @@
     <None Include="..\..\images\chat.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\chat_dots.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\chevron_forward.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>

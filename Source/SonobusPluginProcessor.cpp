@@ -2209,7 +2209,7 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             String tags (CharPointer_UTF8((it++)->AsString()));
             String message (CharPointer_UTF8((it++)->AsString()));
 
-            SBChatEvent chatevent(group, from, targets, tags, message);
+            SBChatEvent chatevent(SBChatEvent::UserType, group, from, targets, tags, message);
             clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
 
 
