@@ -24,7 +24,8 @@ public:
         RecordToggle,
         CheckForNewVersion,
         LoadSetupFile,
-        SaveSetupFile
+        SaveSetupFile,
+        ChatToggle
     };
     
 };

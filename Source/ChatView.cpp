@@ -122,6 +122,12 @@ void ChatView::resized()
     mainBox.performLayout(getLocalBounds().reduced(2));
 }
 
+void ChatView::setFocusToChat()
+{
+    mChatSendTextEditor->grabKeyboardFocus();
+}
+
+
 void ChatView::mouseDown (const MouseEvent& event)
 {
 

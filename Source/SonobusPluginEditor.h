@@ -218,7 +218,7 @@ private:
     void showSaveSettingsPreset();
     void showLoadSettingsPreset();
 
-    void showChatPanel(bool show);
+    void showChatPanel(bool show, bool allowresize=true);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

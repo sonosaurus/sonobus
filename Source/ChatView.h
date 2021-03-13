@@ -25,6 +25,7 @@ public:
     void clearAll();
 
     bool haveNewSinceLastView() const;
+    void setFocusToChat();
 
     bool keyPressed (const KeyPress & key) override;
 

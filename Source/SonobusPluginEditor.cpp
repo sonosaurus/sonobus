@@ -718,16 +718,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatButton->setImages(chatimg.get(), nullptr, nullptr, nullptr, chatdotsimg.get());
     mChatButton->onClick = [this]() {
         bool newshown = !mChatView->isVisible();
-#if !(JUCE_IOS || JUCE_ANDROID)
-        // attempt resize
-        if (newshown && !isNarrow) {
-            auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
-            int maxwidth = display ? display->userArea.getWidth() : 1600;
-            int newwidth = jmin(maxwidth, getWidth() + mChatView->getWidth());
-            mAboutToShowChat = true;
-            setSize(newwidth, getHeight());
-        }
-#endif
         this->showChatPanel(newshown);
     };
     //mChatButton->setClickingTogglesState(true);
@@ -1871,7 +1861,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
         }
 
         if (processor.getLastChatShown() != mChatView->isVisible()) {
-            showChatPanel(processor.getLastChatShown());
+            showChatPanel(processor.getLastChatShown(), false);
             resized();
         }
 
@@ -3829,9 +3819,27 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
 
 
-void SonobusAudioProcessorEditor::showChatPanel(bool show)
+void SonobusAudioProcessorEditor::showChatPanel(bool show, bool allowresize)
 {
+
+#if !(JUCE_IOS || JUCE_ANDROID)
+        // attempt resize
+        if (allowresize && show && !isNarrow) {
+            auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
+            int maxwidth = display ? display->userArea.getWidth() : 1600;
+            int newwidth = jmin(maxwidth, getWidth() + mChatView->getWidth());
+            mAboutToShowChat = true;
+            setSize(newwidth, getHeight());
+        }
+#endif
+
     mChatView->setVisible(show);
+
+#if !(JUCE_IOS || JUCE_ANDROID)
+    if (show && allowresize) {
+        mChatView->setFocusToChat();
+    }
+#endif
 }
 
 
@@ -4953,6 +4961,13 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.setActive(true);
             info.addDefaultKeypress ('s', ModifierKeys::commandModifier);
             break;
+        case SonobusCommands::ChatToggle:
+            info.setInfo (TRANS("Show/Hide Chat"),
+                          TRANS("Show or hide chat area"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress ('a', ModifierKeys::commandModifier);
+            break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
@@ -5007,6 +5022,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::CheckForNewVersion);
     cmds.add(SonobusCommands::LoadSetupFile);
     cmds.add(SonobusCommands::SaveSetupFile);
+    cmds.add(SonobusCommands::ChatToggle);
 }
 
 bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
@@ -5068,6 +5084,10 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::LoadSetupFile:
             DBG("got load setup file!");
             showLoadSettingsPreset();
+
+            break;
+        case SonobusCommands::ChatToggle:
+            showChatPanel(!mChatView->isVisible());
 
             break;
         case SonobusCommands::SaveSetupFile:
@@ -5147,6 +5167,7 @@ enum
     MenuFileIndex = 0,
     MenuConnectIndex,
     MenuTransportIndex,
+    MenuViewIndex,
     MenuHelpIndex
 };
 
@@ -5154,7 +5175,9 @@ StringArray SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuBarNames()
 {
     return StringArray(TRANS("File"),
                        TRANS("Connect"),
-                       TRANS("Transport"));
+                       TRANS("Transport"),
+                       TRANS("View")
+                       );
     //TRANS("Help"));
 }
 
@@ -5204,7 +5227,10 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::RecordToggle);
             break;
-            
+        case MenuViewIndex:
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::ChatToggle);
+            break;
+
         case MenuHelpIndex:
             break;
     }
