@@ -3732,6 +3732,11 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
 
+                if (JUCEApplicationBase::isStandaloneApp() && saveSettingsIfNeeded) {
+                    DBG("Saving settings");
+                    saveSettingsIfNeeded();
+                }
+
                 // need to update layout too
                 updateLayout();
                 resized();
@@ -3762,7 +3767,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             updateState();
             // need to update layout too
             updateLayout();
-            resized();
+            resized();            
         }
         else if (ev.type == ClientEvent::PublicGroupModifiedEvent) {
             mConnectView->updatePublicGroups();

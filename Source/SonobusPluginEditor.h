@@ -146,6 +146,8 @@ public:
     std::function<StringArray*()> getRecentSetupFiles; // = []() { return 0; };
     std::function<String*()> getLastRecentsFolder; // = []() { return 0; };
 
+    std::function<void()> saveSettingsIfNeeded; // = []() { return 0; };
+
     void handleURL(const String & urlstr);
     
 

@@ -127,7 +127,21 @@ public:
         setupOptions.bufferSize = 256;
 #endif
 
-        return new StandaloneFilterWindow (getApplicationName(),
+        File settingsFile = appProperties.getStorageParameters().getDefaultFile();
+        File crashSentinelFile = settingsFile.getSiblingFile("SENTINEL");
+        if (crashSentinelFile.existsAsFile()) {
+            DBG("CRASH SENTINEL STILL EXISTS, moving old settings away!");
+            File oldfile = settingsFile.getSiblingFile(String("POSSIBLY_BAD_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S"));
+            settingsFile.moveFileTo(oldfile);
+            AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
+                                              TRANS("Crashed Last Time"),
+                                              TRANS("Looks like you crashed on launch last time, restoring default settings!"));
+        }
+        else {
+            crashSentinelFile.create();
+        }
+
+        auto wind = new StandaloneFilterWindow (getApplicationName(),
                                            LookAndFeel::getDefaultLookAndFeel().findColour (ResizableWindow::backgroundColourId),
                                            appProperties.getUserSettings(),
                                            false, {}, &setupOptions
@@ -140,6 +154,11 @@ public:
                                            , false
                                           //#endif
                                            );
+
+        // if we got here, we didn't crash on initialization!
+        crashSentinelFile.deleteFile();
+
+        return wind;
     }
 
     //==============================================================================
@@ -155,6 +174,16 @@ public:
         
         Desktop::getInstance().setScreenSaverEnabled(false);
 
+
+        if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
+            if (sonoproc->hasEditor()) {
+                if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded())) {
+                    sonoeditor->saveSettingsIfNeeded = [this]() {
+                        mainWindow->pluginHolder->savePluginState();
+                    };
+                }
+            }
+        }
 
 #if JUCE_ANDROID && JUCE_OPENGL
         attachGL();
