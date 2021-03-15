@@ -3061,7 +3061,9 @@ void SonobusAudioProcessorEditor::componentMovedOrResized (Component& component,
     if (&component == mChatView.get()) {
         if (mChatView->isVisible()) {
             processor.setLastChatWidth(mChatView->getWidth());
-            resized();
+            if (!mIgnoreChatViewResize) {
+                resized();
+            }
         }
     }
 }
@@ -3900,7 +3902,9 @@ void SonobusAudioProcessorEditor::resized()
     if (mChatView->isVisible() || mAboutToShowChat) {
         if (!isNarrow || !mChatOverlay) {
             // take it off
+            mIgnoreChatViewResize = true;
             mChatView->setBounds(mainBounds.removeFromRight(chatwidth));
+            mIgnoreChatViewResize = false;
         }
     }
 

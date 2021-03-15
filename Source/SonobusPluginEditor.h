@@ -484,6 +484,7 @@ private:
     bool mAboutToShowChat = false;
     bool mChatWasVisible = false;
     bool mChatOverlay = false;
+    bool mIgnoreChatViewResize = false;
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
