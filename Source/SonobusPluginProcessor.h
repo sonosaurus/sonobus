@@ -727,6 +727,10 @@ private:
     void sendRemotePeerInfoUpdate(int peerindex = -1, RemotePeer * topeer = nullptr);
 
 
+    void handlePingEvent(EndpointState * endpoint, uint64_t tt1, uint64_t tt2, uint64_t tt3);
+
+    void sendPingEvent(RemotePeer * peer);
+
     void updateSafetyMuting(RemotePeer * peer);
 
     void setupSourceFormat(RemotePeer * peer, aoo::isource * source, bool latencymode=false);

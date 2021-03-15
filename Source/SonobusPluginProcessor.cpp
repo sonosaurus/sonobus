@@ -39,6 +39,7 @@ typedef int socklen_t;
 
 #define MAX_DELAY_SAMPLES 192000
 #define SENDBUFSIZE_SCALAR 2.0f
+#define PEER_PING_INTERVAL_MS 2000.0
 
 String SonobusAudioProcessor::paramInGain     ("ingain");
 String SonobusAudioProcessor::paramDry     ("dry");
@@ -290,6 +291,9 @@ struct SonobusAudioProcessor::RemotePeer {
     bool autoNetbufInitCompleted = false;
     bool resetSafetyMuted = true;
     float pingTime = 0.0f; // ms
+    double lastSendPingTimeMs = -1;
+    bool   gotNewStylePing = false;
+    bool   haveSentFirstPeerInfo = false;
     stats::RunCumulantor1D  smoothPingTime; // ms
     stats::RunCumulantor1D  fillRatio;
     stats::RunCumulantor1D  fillRatioSlow;
@@ -2201,12 +2205,22 @@ void SonobusAudioProcessor::doReceiveData()
 #define SONOBUS_MSG_CHAT_LEN 5
 #define SONOBUS_FULLMSG_CHAT SONOBUS_MSG_DOMAIN SONOBUS_MSG_CHAT
 
+#define SONOBUS_MSG_PING "/ping"
+#define SONOBUS_MSG_PING_LEN 5
+#define SONOBUS_FULLMSG_PING SONOBUS_MSG_DOMAIN SONOBUS_MSG_PING
+
+#define SONOBUS_MSG_PINGACK "/pngack"
+#define SONOBUS_MSG_PINGACK_LEN 7
+#define SONOBUS_FULLMSG_PINGACK SONOBUS_MSG_DOMAIN SONOBUS_MSG_PINGACK
+
 
 enum {
     SONOBUS_MSGTYPE_UNKNOWN = 0,
     SONOBUS_MSGTYPE_PEERINFO,
     SONOBUS_MSGTYPE_LAYOUTINFO,
-    SONOBUS_MSGTYPE_CHAT
+    SONOBUS_MSGTYPE_CHAT,
+    SONOBUS_MSGTYPE_PING,
+    SONOBUS_MSGTYPE_PINGACK
 };
 
 static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rettype)
@@ -2216,7 +2230,22 @@ static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rett
         && !memcmp(msg, SONOBUS_MSG_DOMAIN, SONOBUS_MSG_DOMAIN_LEN))
     {
         offset += SONOBUS_MSG_DOMAIN_LEN;
-        if (n >= (offset + SONOBUS_MSG_PEERINFO_LEN)
+
+        if (n >= (offset + SONOBUS_MSG_PING_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_PING, SONOBUS_MSG_PING_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_PING;
+            offset += SONOBUS_MSG_PING_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_PINGACK_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_PINGACK, SONOBUS_MSG_PINGACK_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_PINGACK;
+            offset += SONOBUS_MSG_PINGACK_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_PEERINFO_LEN)
             && !memcmp(msg + offset, SONOBUS_MSG_PEERINFO, SONOBUS_MSG_PEERINFO_LEN))
         {
             rettype = SONOBUS_MSGTYPE_PEERINFO;
@@ -2258,7 +2287,47 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
         osc::ReceivedPacket packet(msg, n);
         osc::ReceivedMessage message(packet);
 
-        if (type == SONOBUS_MSGTYPE_PEERINFO) {
+        if (type == SONOBUS_MSGTYPE_PING) {
+            // received from the other side
+            // args: t:origtime
+
+            auto it = message.ArgumentsBegin();
+            auto tt = (it++)->AsTimeTag();
+
+            // now prepare and send ack immediately
+            auto tt2 = aoo_osctime_get(); // use real system time
+
+            char buf[AOO_MAXPACKETSIZE];
+            osc::OutboundPacketStream outmsg(buf, sizeof(buf));
+
+            try {
+                outmsg << osc::BeginMessage(SONOBUS_FULLMSG_PINGACK)
+                << osc::TimeTag(tt) << osc::TimeTag(tt2)
+                << osc::EndMessage;
+            }
+            catch (const osc::Exception& e){
+                DBG("exception in pingack message constructions: " << e.what());
+                return false;
+            }
+
+            endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
+
+            DBG("Received ping from " << endpoint->ipaddr << ":" << endpoint->port << "  stamp: " << tt);
+
+        }
+        else if (type == SONOBUS_MSGTYPE_PINGACK) {
+            // received from the other side
+            // args: t:origtime t:theirtime
+
+            auto it = message.ArgumentsBegin();
+            auto tt = (it++)->AsTimeTag();
+            auto tt2 = (it++)->AsTimeTag();
+            auto tt3 = aoo_osctime_get(); // use real system time
+
+            handlePingEvent(endpoint, tt, tt2, tt3); // jlc
+
+        }
+        else if (type == SONOBUS_MSGTYPE_PEERINFO) {
             // peerinfo message arguments:
             // blob containing JSON
             auto it = message.ArgumentsBegin();
@@ -2499,7 +2568,9 @@ void SonobusAudioProcessor::doSendData()
     // send stuff until there is nothing left to send
     
     bool didsomething = true;
-    
+
+    auto nowtimems = Time::getMillisecondCounterHiRes();
+
     while (didsomething) {
         //mAooSource->send();
         didsomething = false;
@@ -2529,6 +2600,14 @@ void SonobusAudioProcessor::doSendData()
                 didsomething |= remote->echosink->send();
             }
 
+            if ( nowtimems > (remote->lastSendPingTimeMs + PEER_PING_INTERVAL_MS) ) {
+                sendPingEvent(remote);
+                remote->lastSendPingTimeMs = nowtimems;
+                if (!remote->haveSentFirstPeerInfo) {
+                    sendRemotePeerInfoUpdate(-1, remote);
+                    remote->haveSentFirstPeerInfo = true;
+                }
+            }
         }
     }
 
@@ -2652,6 +2731,59 @@ void SonobusAudioProcessor::handleEvents()
 
 }
 
+void SonobusAudioProcessor::sendPingEvent(RemotePeer * peer)
+{
+
+    auto tt = aoo_osctime_get();
+
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream outmsg(buf, sizeof(buf));
+
+    try {
+        outmsg << osc::BeginMessage(SONOBUS_FULLMSG_PING)
+        << osc::TimeTag(tt)
+        << osc::EndMessage;
+    }
+    catch (const osc::Exception& e){
+        DBG("exception in ping message construction: " << e.what());
+        return;
+    }
+
+    sendPeerMessage(peer, outmsg.Data(), (int32_t) outmsg.Size());
+
+    DBG("Sent ping to peer: " << peer->endpoint->ipaddr);
+}
+
+
+void SonobusAudioProcessor::handlePingEvent(EndpointState * endpoint, uint64_t tt1, uint64_t tt2, uint64_t tt3)
+{
+    double diff1 = aoo_osctime_duration(tt1, tt2) * 1000.0;
+    double diff2 = aoo_osctime_duration(tt2, tt3) * 1000.0;
+    double rtt = aoo_osctime_duration(tt1, tt3) * 1000.0;
+
+    const ScopedReadLock sl (mCoreLock);
+
+    auto * peer = findRemotePeer(endpoint, -1);
+    if (!peer) return;
+
+    // smooth it
+    peer->pingTime = rtt; // * 0.5;
+    if (rtt < 600.0 ) {
+        peer->smoothPingTime.Z *= 0.5f;
+        peer->smoothPingTime.push(peer->pingTime);
+    }
+
+    DBG("ping recvd from " << peer->endpoint->ipaddr << ":" << peer->endpoint->port << " -- " << diff1 << " " << diff2 << " " <<  rtt << " smooth: " << peer->smoothPingTime.xbar << " stdev: " <<peer->smoothPingTime.s2xx);
+
+
+    if (!peer->hasRealLatency) {
+        peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
+    }
+
+    peer->gotNewStylePing = true;
+}
+
+
 int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId)
 {
     for (int i = 0; i < n; ++i){
@@ -2666,7 +2798,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
             EndpointState * es = (EndpointState *)e->endpoint;
             
             RemotePeer * peer = findRemotePeer(es, sourceId);
-            if (peer) {
+            if (peer && !peer->gotNewStylePing) {
                 const ScopedReadLock sl (mCoreLock);        
 
                 // smooth it
@@ -2682,9 +2814,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                 if (!peer->hasRealLatency) {
                     peer->totalEstLatency =  peer->smoothPingTime.xbar + 2*peer->buffertimeMs + (1e3*currSamplesPerBlock/getSampleRate());
                 }
-
             }
-            
             break;
         }
         case AOO_INVITE_EVENT:
@@ -3624,9 +3754,10 @@ int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, cons
             remote->sendActive = true;
             remote->oursource->start();
             updateRemotePeerUserFormat(-1, remote);
-            sendRemotePeerInfoUpdate(-1, remote);
         }
-        
+
+        sendRemotePeerInfoUpdate(-1, remote);
+
     } else {
         DBG("Error inviting remote peer at " << host << ":" << port << " - ourId " << remote->ourId);
     }
@@ -5146,6 +5277,8 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->recvAllow = !mMainRecvMute.get();
         retpeer->recvAllowCache = true;
         
+        retpeer->lastSendPingTimeMs = Time::getMillisecondCounterHiRes() - PEER_PING_INTERVAL_MS/2; // so that first ping doesn't happen immediately
+        retpeer->haveSentFirstPeerInfo = false;
 
         //retpeer->chanGroups[0].init(getSampleRate());
         for (auto chgrpi = 0; /*chgrpi < s->numChanGroups && */ chgrpi < MAX_CHANGROUPS; ++chgrpi) {
