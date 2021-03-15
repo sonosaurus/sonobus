@@ -14,6 +14,7 @@
 #include "CompressorView.h"
 #include "ExpanderView.h"
 #include "ParametricEqView.h"
+#include "MonitorDelayView.h"
 
 class ChannelGroupEffectsView :
 public Component,
@@ -87,6 +88,72 @@ protected:
 
 };
 
+class ChannelGroupMonitorEffectsView :
+public Component,
+public ParametricEqView::Listener,
+public MonitorDelayView::Listener,
+public EffectsBaseView::HeaderListener
+{
+public:
+    ChannelGroupMonitorEffectsView(SonobusAudioProcessor& proc, bool peermode=false);
+    virtual ~ChannelGroupMonitorEffectsView();
+
+
+    class Listener {
+    public:
+        virtual ~Listener() {}
+        virtual void monitorEffectsEnableChanged(ChannelGroupMonitorEffectsView *comp) {}
+    };
+
+    void addListener(Listener * listener) { listeners.add(listener); }
+    void removeListener(Listener * listener) { listeners.remove(listener); }
+
+
+    juce::Rectangle<int> getMinimumContentBounds() const;
+
+
+    void updateState();
+
+    void updateStateForRemotePeer();
+    void updateStateForInput();
+
+    void updateLayout();
+
+    void updateLayoutForRemotePeer();
+    void updateLayoutForInput();
+
+    void resized() override;
+
+    void monitorDelayParamsChanged(MonitorDelayView *comp, SonoAudio::DelayParams &params) override;
+
+
+    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
+
+
+    int  groupIndex = 0;
+    bool peerMode = false;
+    int  peerIndex = 0;
+    bool firstShow = true;
+
+protected:
+
+    SonobusAudioProcessor& processor;
+
+    ListenerList<Listener> listeners;
+
+    std::unique_ptr<ConcertinaPanel> effectsConcertina;
+
+    std::unique_ptr<MonitorDelayView> delayView;
+
+
+    FlexBox effectsBox;
+
+    juce::Rectangle<int> minBounds;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChannelGroupMonitorEffectsView)
+
+};
+
 
 class ChannelGroupView : public Component {
 public:
@@ -116,6 +183,7 @@ public:
     std::unique_ptr<TextButton> muteButton;
     std::unique_ptr<TextButton> soloButton;
     std::unique_ptr<TextButton> fxButton;
+    std::unique_ptr<TextButton> monfxButton;
     std::unique_ptr<Label>  chanLabel;
     std::unique_ptr<Label>  levelLabel;
     std::unique_ptr<Slider> levelSlider;
@@ -144,7 +212,7 @@ public:
     FlexBox linkedchannelsbox;
 
     
-
+    bool  useBgColor = false;
     Colour bgColor;
     Colour borderColor;
     Colour itemColor;
@@ -160,6 +228,7 @@ public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
 public ChannelGroupEffectsView::Listener,
+public ChannelGroupMonitorEffectsView::Listener,
 public MultiTimer
 {
 public:
@@ -192,6 +261,9 @@ public:
     void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override;
 
     void effectsEnableChanged(ChannelGroupEffectsView *comp) override;
+
+    void monitorEffectsEnableChanged(ChannelGroupMonitorEffectsView *comp) override;
+
 
     void mouseUp (const MouseEvent& event)  override;
     void mouseDown (const MouseEvent& event)  override;
@@ -234,6 +306,10 @@ public:
 
 protected:
 
+    void updateLayoutForRemotePeer(bool notify=true);
+    void updateLayoutForInput(bool notify=true);
+
+
     void configLevelSlider(Slider * slider, bool monmode=false);    
     void configLabel(Label *label, int ltype);
     void configKnobSlider(Slider * slider);    
@@ -253,9 +329,11 @@ protected:
 
 
     ChannelGroupView * createChannelGroupView(bool first=false);
+    void setupChildren(ChannelGroupView * pvf);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showEffects(int index, bool flag, Component * fromView=nullptr);
+    void showMonitorEffects(int index, bool flag, Component * fromView=nullptr);
 
     int getChanGroupFromIndex(int index);
     juce::Rectangle<int> getBoundsForChanGroup(int chgroup);
@@ -263,15 +341,19 @@ protected:
 
     SonoBigTextLookAndFeel addLnf;
 
+    SonobusAudioProcessor& processor;
 
     ListenerList<Listener> listeners;
 
     OwnedArray<ChannelGroupView> mChannelViews;
     std::unique_ptr<ChannelGroupView> mMainChannelView; // used for peers
 
-    SonobusAudioProcessor& processor;
+    std::unique_ptr<ChannelGroupView> mFileChannelView; // used for input
+    std::unique_ptr<ChannelGroupView> mMetChannelView; // used for input
+
 
     std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
+    std::unique_ptr<ChannelGroupMonitorEffectsView> mMonEffectsView;
 
 
     std::unique_ptr<Slider> mInGainSlider;
@@ -280,11 +362,17 @@ protected:
 
     std::unique_ptr<DrawableRectangle> mInsertLine;
     std::unique_ptr<DrawableImage> mDragDrawable;
+    std::unique_ptr<DrawableRectangle> mMetFileBg;
 
 
     std::unique_ptr<BubbleMessageComponent> popTip;
 
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
+
+
     WeakReference<Component> effectsCalloutBox;
+    WeakReference<Component> monEffectsCalloutBox;
 
     FlexBox channelsBox;
     FlexBox addrowBox;

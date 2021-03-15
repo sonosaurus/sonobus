@@ -465,7 +465,11 @@ public:
     bool getInputGroupChannelDestStartAndCount(int changroup, int & retstart, int & retcount);
 
 
-    
+    // input monitor delay stuff
+    void setInputMonitorDelayParams(int changroup, SonoAudio::DelayParams & params);
+    bool getInputMonitorDelayParams(int changroup, SonoAudio::DelayParams & retparams);
+
+
     // pushes existing groups around
     bool insertInputChannelGroup(int atgroup, int chstart, int chcount);
     bool removeInputChannelGroup(int atgroup);
@@ -499,7 +503,9 @@ public:
     
     
     bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled; }
-    
+
+    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled; }
+
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
     void setDefaultAudioCodecFormat(int formatIndex);
@@ -565,7 +571,10 @@ public:
     foleys::LevelMeterSource & getPostInputMeterSource() { return postinputMeterSource; }
     foleys::LevelMeterSource & getSendMeterSource() { return sendMeterSource; }
     foleys::LevelMeterSource & getOutputMeterSource() { return outputMeterSource; }
-    
+
+    foleys::LevelMeterSource & getFilePlaybackMeterSource() { return filePlaybackMeterSource; }
+    foleys::LevelMeterSource & getMetronomeMeterSource() { return metMeterSource; }
+
     bool isAnythingRoutedToPeer(int index) const;
     
     bool isAnythingSoloed() const { return mAnythingSoloed.get(); }
@@ -610,16 +619,35 @@ public:
     void setMainReverbModel(ReverbModel flag);
     ReverbModel getMainReverbModel() const { return (ReverbModel) mMainReverbModel.get(); }
 
-    void setMonitoringDelayActive(bool flag);
-    bool getMonitoringDelayActive() const { return mMonitorDelayActive.get(); }
-    void setMonitoringDelayTimeMs(double delayMs);
-    void setMonitoringDelayTimeFromAvgPeerLatency(float scalar=1.0f);
-    double getMonitoringDelayTimeMs() const;
-    void setMonitoringDelayPlaybackOnly(bool flag);
-    bool getMonitoringDelayPlaybackOnly() const { return mMonitorDelayPlaybackOnly.get(); }
+
+    void setMetronomeMonitorDelayParams(SonoAudio::DelayParams & params);
+    bool getMetronomeMonitorDelayParams(SonoAudio::DelayParams & retparams);
+    void setMetronomeChannelDestStartAndCount(int start, int count);
+    bool getMetronomeChannelDestStartAndCount(int & retstart, int & retcount);
+    void setMetronomePan(float pan);
+    float getMetronomePan() const;
+    void setMetronomeGain(float gain);
+    float getMetronomeGain() const;
+    void setMetronomeMonitor(float mgain);
+    float getMetronomeMonitor() const;
 
 
-    
+    void setFilePlaybackMonitorDelayParams(SonoAudio::DelayParams & params);
+    bool getFilePlaybackMonitorDelayParams(SonoAudio::DelayParams & retparams);
+    void setFilePlaybackDestStartAndCount(int start, int count);
+    bool getFilePlaybackDestStartAndCount(int & retstart, int & retcount);
+    void setFilePlaybackGain(float gain);
+    float getFilePlaybackGain() const;
+    void setFilePlaybackMonitor(float mgain);
+    float getFilePlaybackMonitor() const;
+
+
+    void setLinkMonitoringDelayTimes(bool flag) { mLinkMonitoringDelayTimes = flag; }
+    bool getLinkMonitoringDelayTimes() const { return mLinkMonitoringDelayTimes; }
+
+    double getMonitoringDelayTimeFromAvgPeerLatency(float scalar=1.0f);
+
+
     // recording stuff, if record options are RecordMixOnly, or RecordSelf  (only) the file refers to the name of the file
     //   otherwise it refers to a directory where the files will be recorded (and also the prefix for the recorded files)
     bool startRecordingToFile(File & file, uint32 recordOptions=RecordDefaultOptions, RecordFileFormat fileformat=FileFormatDefault);
@@ -727,6 +755,7 @@ private:
     void commitInputLimiterParams(int changroup);
 
     void commitInputEqParams(int changroup);
+    void commitInputMonitoringParams(int changroup);
 
     void updateDynamicResampling();
 
@@ -759,7 +788,7 @@ private:
     AudioSampleBuffer workBuffer;
     AudioSampleBuffer inputBuffer;
     AudioSampleBuffer monitorBuffer;
-    AudioSampleBuffer inputWorkBuffer;
+    AudioSampleBuffer sendWorkBuffer;
     AudioSampleBuffer inputPostBuffer;
     AudioSampleBuffer fileBuffer;
     AudioSampleBuffer metBuffer;
@@ -822,7 +851,9 @@ private:
     RangedAudioParameter * mTempoParameter;
 
     int mUseSpecificUdpPort = 0;
-    
+
+    bool mLinkMonitoringDelayTimes = true;
+
     bool hasInitializedInMonPanners = false;
     
     int maxBlockSize = 4096;
@@ -855,7 +886,9 @@ private:
     foleys::LevelMeterSource postinputMeterSource;
     foleys::LevelMeterSource sendMeterSource;
     foleys::LevelMeterSource outputMeterSource;
-    
+    foleys::LevelMeterSource filePlaybackMeterSource;
+    foleys::LevelMeterSource metMeterSource;
+
     // AOO stuff
     aoo::isource::pointer mAooDummySource;
 
@@ -948,17 +981,9 @@ private:
 
     ReverbModel mLastReverbModel = ReverbModelMVerb;
 
-    // monitoring and playback delay
-    Atomic<bool>  mMonitorDelayActive  { false };
-    Atomic<bool>  mMonitorDelayPlaybackOnly = false;
-    bool   mMonitorDelayLastActive = false;
-    std::unique_ptr<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> > mMonitorDelayLine;
-    std::unique_ptr<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> > mPlaybackDelayLine;
-    std::unique_ptr<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> > mMetDelayLine;
-    double mMonitorDelayTimeSamples = 0.0;
-    Atomic<bool>  mMonitorDelayTimeChanged = false;
-    bool  mMonitorDelayTimeChanging = false;
-
+    // met and playback channel groups
+    SonoAudio::ChannelGroup  mMetChannelGroup;
+    SonoAudio::ChannelGroup  mFilePlaybackChannelGroup;
 
     
     // recording stuff

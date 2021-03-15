@@ -27,6 +27,10 @@ static String eqPara2GainKey("p2gain");
 static String eqPara2FreqKey("p2freq");
 static String eqPara2QKey("p1q");
 
+static String delayEnabledKey("enabled");
+static String delayTimeMsKey("delaytimems");
+
+
 
 ValueTree CompressorParams::getValueTree(const String & stateKey) const
 {
@@ -89,3 +93,18 @@ void ParametricEqParams::setFromValueTree(const ValueTree & item)
 
 }
 
+ValueTree DelayParams::getValueTree(const String & stateKey) const
+{
+    ValueTree item(stateKey);
+
+    item.setProperty(delayEnabledKey, enabled, nullptr);
+    item.setProperty(delayTimeMsKey, delayTimeMs, nullptr);
+
+    return item;
+}
+
+void DelayParams::setFromValueTree(const ValueTree & item)
+{
+    enabled = item.getProperty(delayEnabledKey, enabled);
+    delayTimeMs = item.getProperty(delayTimeMsKey, delayTimeMs);
+}

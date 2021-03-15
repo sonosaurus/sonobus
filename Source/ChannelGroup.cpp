@@ -20,6 +20,7 @@ static String monDestStartKey("mondeststart");
 static String monDestChannelsKey("mondestchans");
 static String sendMainMixKey("sendmainmix");
 
+
 static String stereoPanListKey("StereoPanners");
 
 static String panStateKey("Panner");
@@ -30,6 +31,7 @@ static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
 static String limiterStateKey("LimiterState");
 static String eqStateKey("ParametricEqState");
+static String monDelayStateKey("MonitorDelayState");
 
 static String inputChannelGroupsStateKey("InputChannelGroups");
 static String channelGroupStateKey("ChannelGroup");
@@ -37,6 +39,8 @@ static String numChanGroupsKey("numChanGroups");
 
 static String layoutGroupsKey("Layout");
 
+
+#define MAX_DELAY_SAMPLES 192000
 
 using namespace SonoAudio;
 
@@ -53,40 +57,8 @@ void ChannelGroup::copyParametersFrom(const ChannelGroup& other)
     expanderParamsChanged = true;
     eqParamsChanged = true;
     limiterParamsChanged = true;
+    monitorDelayParamsChanged = true;
 
-#if 0
-    name = other.name;
-    chanStartIndex = other.chanStartIndex;
-    numChannels = other.numChannels;
-    muted = other.muted;
-    soloed = other.soloed;
-    gain = other.gain;
-
-    for (int i=0; i < MAX_CHANNELS; ++i) {
-        pan[i] = other.pan[i];
-    }
-
-    panStereo[0] = other.panStereo[0];
-    panStereo[1] = other.panStereo[1];
-    centerPanLaw = other.centerPanLaw;
-
-    panDestStartIndex = other.panDestStartIndex;
-    panDestChannels = other.panDestChannels;
-
-    sendMainMix = other.sendMainMix;
-    reverbSend = other.reverbSend;
-
-    monitor = other.monitor;
-    monDestStartIndex = other.monDestStartIndex;
-    monDestChannels = other.monDestChannels;
-
-
-    compressorParams = other.compressorParams;
-    expanderParams = other.expanderParams;
-    eqParams = other.eqParams;
-    limiterParams = other.limiterParams;
-
-#endif
 }
 
 void ChannelGroupParams::setToDefaults(bool isplugin)
@@ -107,10 +79,15 @@ void ChannelGroupParams::setToDefaults(bool isplugin)
     limiterParams.ratio = 4.0f;
     limiterParams.attackMs = 0.01;
     limiterParams.releaseMs = 100.0;
+
+    monitorDelayParams.enabled = false;
+    monitorDelayParams.delayTimeMs = 0.0;
 }
 
-void ChannelGroup::init(double sampleRate)
+void ChannelGroup::init(double sampRate)
 {
+    sampleRate = sampRate;
+    
     if (!compressor) {
         compressor = std::make_unique<faustCompressor>();
         compressorControl = std::make_unique<MapUI>();
@@ -167,7 +144,51 @@ void ChannelGroup::init(double sampleRate)
     commitExpanderParams();
     commitEqParams();
     commitLimiterParams();
+    commitMonitorDelayParams();
+
 }
+
+void ChannelGroup::setMonitoringDelayEnabled(bool enabled, int numchans)
+{
+    if (enabled) {
+        if (!monitorDelayLine) {
+            const ScopedLock lock(_monitorDelayLock);
+            // need to initialize it
+            monitorDelayLine = std::make_unique<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> >(MAX_DELAY_SAMPLES);
+            monitorDelayLine->setDelay(_monitorDelayTimeSamples);
+
+            juce::dsp::ProcessSpec delayspec = { sampleRate, 4096, (juce::uint32) numchans };
+            monitorDelayLine->prepare(delayspec);
+
+            _monitorDelayChans = numchans;
+        }
+        else if (_monitorDelayChans != numchans) {
+            //
+            const ScopedLock lock(_monitorDelayLock);
+
+            juce::dsp::ProcessSpec delayspec = { sampleRate, 4096, (juce::uint32) numchans };
+            monitorDelayLine->prepare(delayspec);
+            monitorDelayLine->reset();
+            _monitorDelayChans = numchans;
+        }
+
+        // if monitorDelayActive is ever true, it means it has already been initialized
+        params.monitorDelayParams.enabled = true;
+        _monitorDelayActive = true;
+    }
+    else {
+        params.monitorDelayParams.enabled = false;
+        _monitorDelayActive = false;
+    }
+}
+
+void ChannelGroup::setMonitoringDelayTimeMs(double delayms)
+{
+    params.monitorDelayParams.delayTimeMs = delayms;
+    _monitorDelayTimeSamples = 1e-3 * delayms * sampleRate;
+    _monitorDelayTimeChanged = true;
+}
+
 
 void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor)
 {
@@ -398,6 +419,64 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
         }
     }
 
+    if (monitorDelayParamsChanged) {
+        commitMonitorDelayParams();
+        monitorDelayParamsChanged = false;
+    }
+
+    bool domondelay = _monitorDelayActive.get();
+    int mondelayfade = 0;
+
+    if (domondelay || _monitorDelayLastActive != domondelay) {
+        const ScopedTryLock lock(_monitorDelayLock);
+        if (lock.isLocked()) {
+
+            // transition between delayed and not
+            if (_monitorDelayLastActive != domondelay) {
+                if (domondelay) {
+                    monitorDelayLine->reset();
+                    mondelayfade = 1; // fade in
+                } else {
+                    mondelayfade = -1; // fade out
+                }
+            }
+
+            if (domondelay) {
+                if (_monitorDelayTimeChanged.get() && !_monitorDelayTimeChanging) {
+                    _monitorDelayTimeChanged = false;
+                    mondelayfade = -1.0f; // fade out
+                    _monitorDelayTimeChanging = true;
+                } else if (_monitorDelayTimeChanging) {
+                    // already faded out, now apply new delay time
+                    _monitorDelayTimeChanging = false;
+                    monitorDelayLine->setDelay(_monitorDelayTimeSamples);
+                    mondelayfade = 1; // fade in
+                }
+            }
+
+            if ((domondelay || mondelayfade != 0)) {
+                // should match dest num channels, but we need to make sure of it
+                if (destNumChans == _monitorDelayChans) {
+                    auto delayinoutBlock = dsp::AudioBlock<float> (tobuffer).getSubsetChannelBlock (destStartChan, (size_t) destNumChans).getSubBlock(0, numSamples);
+
+                    // apply it going in
+                    if (mondelayfade != 0) {
+                        tobuffer.applyGainRamp(0, numSamples, mondelayfade > 0 ? 0.0f : 1.0f, mondelayfade > 0 ? 1.0f : 0.0f);
+                    }
+
+                    monitorDelayLine->process (dsp::ProcessContextReplacing<float> (delayinoutBlock));
+
+                    // apply it coming out
+                    if (mondelayfade != 0) {
+                        tobuffer.applyGainRamp(0, numSamples, mondelayfade > 0 ? 0.0f : 1.0f, mondelayfade > 0 ? 1.0f : 0.0f);
+                    }
+                }
+            }
+
+            _monitorDelayLastActive = domondelay;
+
+        }
+    }
 
     _lastmonstereopan[0] = params.panStereo[0];
     _lastmonstereopan[1] = params.panStereo[1];
@@ -432,6 +511,7 @@ ValueTree ChannelGroupParams::getValueTree() const
     channelGroupTree.setProperty(panDestStartKey, panDestStartIndex, nullptr);
     channelGroupTree.setProperty(panDestChannelsKey, panDestChannels, nullptr);
 
+
     channelGroupTree.setProperty(sendMainMixKey, sendMainMix, nullptr);
 
     channelGroupTree.setProperty(nameKey, name, nullptr);
@@ -450,6 +530,7 @@ ValueTree ChannelGroupParams::getValueTree() const
     channelGroupTree.appendChild(expanderParams.getValueTree(expanderStateKey), nullptr);
     channelGroupTree.appendChild(limiterParams.getValueTree(limiterStateKey), nullptr);
     channelGroupTree.appendChild(eqParams.getValueTree(), nullptr);
+    channelGroupTree.appendChild(monitorDelayParams.getValueTree(monDelayStateKey), nullptr);
 
     return channelGroupTree;
 }
@@ -504,6 +585,10 @@ void ChannelGroupParams::setFromValueTree(const ValueTree & channelGroupTree)
     if (eqTree.isValid()) {
         eqParams.setFromValueTree(eqTree);
     }
+    ValueTree mondelayTree = channelGroupTree.getChildWithName(monDelayStateKey);
+    if (mondelayTree.isValid()) {
+        monitorDelayParams.setFromValueTree(mondelayTree);
+    }
 }
 
 ValueTree ChannelGroupParams::getChannelLayoutValueTree()
@@ -555,6 +640,7 @@ void ChannelGroup::commitAllParams()
     commitLimiterParams();
     commitEqParams();
     commitExpanderParams();
+    commitMonitorDelayParams();
 }
 
 
@@ -621,6 +707,12 @@ void ChannelGroup::commitEqParams()
         eqControl[i]->setParamValue("/parametric_eq/high_shelf/gain", params.eqParams.highShelfGain);
         eqControl[i]->setParamValue("/parametric_eq/high_shelf/transition_freq", params.eqParams.highShelfFreq);
     }
+}
+
+void ChannelGroup::commitMonitorDelayParams()
+{
+    setMonitoringDelayTimeMs(params.monitorDelayParams.delayTimeMs);
+    setMonitoringDelayEnabled(params.monitorDelayParams.enabled, params.monDestChannels);
 }
 
 

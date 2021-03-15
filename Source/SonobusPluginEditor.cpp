@@ -1066,7 +1066,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         mPlaybackSlider->setPopupDisplayEnabled(true, true, this);
         mPlaybackSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
         mPlaybackSlider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
-        mPlaybackSlider->onValueChange = [this] { processor.getTransportSource().setGain(mPlaybackSlider->getValue()); };
+        mPlaybackSlider->onValueChange = [this] { processor.setFilePlaybackGain(mPlaybackSlider->getValue()); };
         
         mFileSendAudioButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
         std::unique_ptr<Drawable> filesendimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
@@ -1154,7 +1154,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     addAndMakeVisible(mMainPushToTalkButton.get());
     addAndMakeVisible(mInMuteButton.get());
     addAndMakeVisible(mInSoloButton.get());
-    addAndMakeVisible(mMonDelayButton.get());
+    //addAndMakeVisible(mMonDelayButton.get());
 
     addAndMakeVisible(mPatchbayButton.get());
     addAndMakeVisible(mConnectButton.get());
@@ -1809,7 +1809,7 @@ void SonobusAudioProcessorEditor::updateTransportState()
 
         mPlayButton->setToggleState(processor.getTransportSource().isPlaying(), dontSendNotification);
 
-        mPlaybackSlider->setValue(processor.getTransportSource().getGain(), dontSendNotification);
+        mPlaybackSlider->setValue(processor.getFilePlaybackGain(), dontSendNotification);
         
     }
 }
@@ -1826,7 +1826,6 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
         
         if (!stateUpdated && (currGroup != processor.getCurrentJoinedGroup()
                               || currConnected != processor.isConnectedToServer()
-                              || mMonDelayButton->getToggleState() != processor.getMonitoringDelayActive()
                               )) {
             updateState();
         }
@@ -3333,7 +3332,7 @@ void SonobusAudioProcessorEditor::showMonitorDelayView(bool flag)
 
         mMonitorDelayView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
 
-        mMonitorDelayView->updateParams();
+        //mMonitorDelayView->updateParams();
 
         wrap->setViewedComponent(mMonitorDelayView.get(), false);
         mMonitorDelayView->setVisible(true);
@@ -3389,8 +3388,6 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
 
     mReverbEnabledButton->setAlpha(mReverbEnabledButton->getToggleState() ? 1.0 : 0.5);
 
-    mMonDelayButton->setToggleState(processor.getMonitoringDelayActive(), dontSendNotification);
-    
     int sendchval = (int) processor.getSendChannels();
     mSendChannelsChoice->setSelectedId(sendchval, dontSendNotification);
 
@@ -4091,8 +4088,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     inputButtonBox.flexDirection = FlexBox::Direction::row;
     inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mInSoloButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
-    inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    //inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+    //inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.2));
 
     inputRightBox.items.clear();

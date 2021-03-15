@@ -48,8 +48,10 @@ public:
         autoButton.addListener(this);
         autoButton.setTooltip(TRANS("Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection"));
 
-        onlyPlaybackToggle.setButtonText(TRANS("Delay File/Met Playback Only"));
-        onlyPlaybackToggle.addListener(this);
+        linkButton.setButtonText(TRANS("Link Delay Time with others"));
+        linkButton.onClick = [this]() {
+            processor.setLinkMonitoringDelayTimes(linkButton.getToggleState());
+        };
 
         // these are in the header component
         enableButton.addListener(this);        
@@ -61,15 +63,13 @@ public:
         addAndMakeVisible(timeLabel);
         addAndMakeVisible(autoModeChoice);
         addAndMakeVisible(autoButton);
-        addAndMakeVisible(onlyPlaybackToggle);
+        addAndMakeVisible(linkButton);
 
-        addAndMakeVisible(headerComponent);
-
-        addHeaderListener(this);
+        //addAndMakeVisible(headerComponent);
+        //addHeaderListener(this);
 
         setupLayout();
         
-        updateParams();
     }
 
     ~MonitorDelayView()
@@ -86,7 +86,7 @@ public:
     class Listener {
     public:
         virtual ~Listener() {}
-        //virtual void expanderParamsChanged(ExpanderView *comp, SonoAudio::CompressorParams &params) {}
+        virtual void monitorDelayParamsChanged(MonitorDelayView *comp, SonoAudio::DelayParams &params) {}
     };
     
     void addListener(Listener * listener) { listeners.add(listener); }
@@ -114,10 +114,12 @@ public:
         timeBox.items.clear();
         timeBox.flexDirection = FlexBox::Direction::row;
         //timeBox.items.add(FlexItem(minKnobWidth, knoblabelheight, timeLabel).withMargin(0).withFlex(0));
+        timeBox.items.add(FlexItem(12, 4).withMargin(0));
         timeBox.items.add(FlexItem(minKnobWidth, minitemheight, timeSlider).withMargin(0).withFlex(1));
 
         autoBox.items.clear();
         autoBox.flexDirection = FlexBox::Direction::row;
+        autoBox.items.add(FlexItem(12, 4).withMargin(0));
         autoBox.items.add(FlexItem(autobuttwidth, minitemheight, autoButton).withMargin(0).withFlex(1));
         autoBox.items.add(FlexItem(8, 4).withMargin(0));
         autoBox.items.add(FlexItem(buttwidth, minitemheight, autoModeChoice).withMargin(0).withFlex(0.5));
@@ -125,7 +127,7 @@ public:
         optionBox.items.clear();
         optionBox.flexDirection = FlexBox::Direction::row;
         optionBox.items.add(FlexItem(16, 4).withMargin(0));
-        optionBox.items.add(FlexItem(100, minitemheight, onlyPlaybackToggle).withMargin(0).withFlex(1));
+        optionBox.items.add(FlexItem(buttwidth, minitemheight, linkButton).withMargin(0).withFlex(1.0));
 
 
         
@@ -150,8 +152,8 @@ public:
 
         mainBox.items.clear();
         mainBox.flexDirection = FlexBox::Direction::column;
-        mainBox.items.add(FlexItem(ipw, headerheight, headerComponent).withMargin(0).withFlex(0));
-        mainBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0));
+        //mainBox.items.add(FlexItem(ipw, headerheight, headerComponent).withMargin(0).withFlex(0));
+        //mainBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, timeBox).withMargin(0).withFlex(1));
         mainBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, autoBox).withMargin(0).withFlex(1));
@@ -178,40 +180,49 @@ public:
 
         timeLabel.setBounds(timeSlider.getBounds().removeFromLeft(timeSlider.getWidth()*0.75));
 
+        timeSlider.setMouseDragSensitivity(jmax(128, timeSlider.getWidth()));
     }
 
     void buttonClicked (Button* buttonThatWasClicked) override
     {
         if (buttonThatWasClicked == &enableButton) {
-            processor.setMonitoringDelayActive(enableButton.getToggleState());
+            mParams.enabled = enableButton.getToggleState();
             headerComponent.repaint();
         }
         else if (buttonThatWasClicked == &autoButton) {
             auto autoScalar = autoModeChoice.getSelectedItemIndex() == 1 ? 2.0f : 1.0f;
 
-            processor.setMonitoringDelayTimeFromAvgPeerLatency(autoScalar);
-            updateParams();
+            mParams.delayTimeMs = processor.getMonitoringDelayTimeFromAvgPeerLatency(autoScalar);
+
+            updateParams(mParams);
         }
-        else if (buttonThatWasClicked == &onlyPlaybackToggle) {
-            processor.setMonitoringDelayPlaybackOnly(onlyPlaybackToggle.getToggleState());
-        }
+
+        listeners.call (&MonitorDelayView::Listener::monitorDelayParamsChanged, this, mParams);
     }
 
     void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) override
     {
-        processor.setMonitoringDelayActive(!enableButton.getToggleState());
-        updateParams();
+        mParams.enabled = !enableButton.getToggleState();
+        //processor.setMonitoringDelayActive(!enableButton.getToggleState());
+        updateParams(mParams);
+
+        listeners.call (&MonitorDelayView::Listener::monitorDelayParamsChanged, this, mParams);
     }
 
     
     void sliderValueChanged (Slider* slider) override
     {
         if (slider == &timeSlider) {
-            processor.setMonitoringDelayTimeMs(slider->getValue());
-            auto deltimems = processor.getMonitoringDelayTimeMs();
-            if (deltimems != slider->getValue()) {
-                slider->setValue(deltimems, dontSendNotification);
-            }
+            //processor.setMonitoringDelayTimeMs(slider->getValue());
+            //auto deltimems = processor.getMonitoringDelayTimeMs();
+
+            mParams.delayTimeMs = slider->getValue();
+
+            //if (deltimems != slider->getValue()) {
+            //    slider->setValue(deltimems, dontSendNotification);
+            //}
+
+            listeners.call (&MonitorDelayView::Listener::monitorDelayParamsChanged, this, mParams);
         }
     }
 
@@ -223,14 +234,15 @@ public:
     }
 
 
-    void updateParams() {
-
-        auto deltimems = processor.getMonitoringDelayTimeMs();
+    void updateParams(const SonoAudio::DelayParams & params) {
+        mParams = params;
+        
+        auto deltimems = mParams.delayTimeMs; // processor.getMonitoringDelayTimeMs();
         timeSlider.setValue(deltimems, dontSendNotification);
 
-        onlyPlaybackToggle.setToggleState(processor.getMonitoringDelayPlaybackOnly(), dontSendNotification);
+        linkButton.setToggleState(processor.getLinkMonitoringDelayTimes(), dontSendNotification);
 
-        auto active = processor.getMonitoringDelayActive();
+        auto active = mParams.enabled;
         enableButton.setAlpha(active ? 1.0 : 0.5);
         enableButton.setToggleState(active, dontSendNotification);
         headerComponent.repaint();
@@ -246,8 +258,8 @@ private:
 
     Slider       timeSlider;
     TextButton   autoButton;
-    ToggleButton onlyPlaybackToggle;
     SonoChoiceButton autoModeChoice;
+    ToggleButton   linkButton;
 
     Label timeLabel;
     Label infoLabel;
@@ -259,6 +271,8 @@ private:
     FlexBox autoBox;
     FlexBox optionBox;
     FlexBox infoBox;
+
+    SonoAudio::DelayParams mParams;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MonitorDelayView)

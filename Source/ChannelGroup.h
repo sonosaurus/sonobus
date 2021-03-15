@@ -87,6 +87,10 @@ struct ChannelGroupParams
 
     float _lastmonitor = 0.0f;
 
+    // monitoring delay
+    DelayParams monitorDelayParams;
+
+
 };
 
 
@@ -111,7 +115,10 @@ public:
     void commitExpanderParams();
     void commitLimiterParams();
     void commitEqParams();
+    void commitMonitorDelayParams();
 
+    void setMonitoringDelayEnabled(bool enabled, int numchans);
+    void setMonitoringDelayTimeMs(double delayms);
 
     ChannelGroupParams params;
 
@@ -150,9 +157,21 @@ public:
     bool limiterParamsChanged = false;
     bool _lastLimiterEnabled = false;
 
+    // monitoring delay
+    std::unique_ptr<juce::dsp::DelayLine<float,juce::dsp::DelayLineInterpolationTypes::None> > monitorDelayLine;
+    bool monitorDelayParamsChanged = false;
+    double _monitorDelayTimeSamples = 0.0;
+    int _monitorDelayChans = 0;
+    Atomic<bool>  _monitorDelayTimeChanged = false;
+    bool  _monitorDelayTimeChanging = false;
+    Atomic<bool>  _monitorDelayActive  { false };
+    bool   _monitorDelayLastActive = false;
+    CriticalSection _monitorDelayLock;
+
 
     float _lastmonitor = 0.0f;
 
+    double sampleRate = 48000.0;
 };
 
 }

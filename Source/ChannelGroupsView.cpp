@@ -321,6 +321,218 @@ void ChannelGroupEffectsView::effectsHeaderClicked(EffectsBaseView *comp, const 
 }
 
 
+#pragma ChannelGroupMonitorEffectsView
+
+ChannelGroupMonitorEffectsView::ChannelGroupMonitorEffectsView(SonobusAudioProcessor& proc, bool peermode)
+: Component(), peerMode(peermode), processor(proc)
+{
+    effectsConcertina =  std::make_unique<ConcertinaPanel>();
+
+    delayView =  std::make_unique<MonitorDelayView>(processor);
+    delayView->addListener(this);
+    delayView->addHeaderListener(this);
+
+
+    effectsConcertina->addPanel(-1, delayView.get(), false);
+
+    effectsConcertina->setCustomPanelHeader(delayView.get(), delayView->getHeaderComponent(), false);
+
+    addAndMakeVisible (effectsConcertina.get());
+
+    updateLayout();
+}
+
+ChannelGroupMonitorEffectsView::~ChannelGroupMonitorEffectsView() {}
+
+juce::Rectangle<int> ChannelGroupMonitorEffectsView::getMinimumContentBounds() const {
+    auto minbounds = delayView->getMinimumContentBounds();
+    auto headbounds = delayView->getMinimumHeaderBounds();
+
+    int defWidth = jmax(minbounds.getWidth(), 0) + 12;
+    int defHeight = jmax(minbounds.getHeight(), 0) + 1*headbounds.getHeight() + 8;
+
+    return Rectangle<int>(0,0,defWidth,defHeight);
+}
+
+
+void ChannelGroupMonitorEffectsView::updateState()
+{
+    if (peerMode) {
+        updateStateForRemotePeer();
+    } else {
+        updateStateForInput();
+    }
+
+}
+
+void ChannelGroupMonitorEffectsView::updateStateForRemotePeer()
+{
+
+}
+
+void ChannelGroupMonitorEffectsView::updateStateForInput()
+{
+    DelayParams monDelayParams;
+    if (groupIndex == -1) {
+        // met
+        if (processor.getMetronomeMonitorDelayParams(monDelayParams)) {
+            delayView->updateParams(monDelayParams);
+        }
+    }
+    else if (groupIndex == -2) {
+        // file playback
+        if (processor.getFilePlaybackMonitorDelayParams(monDelayParams)) {
+            delayView->updateParams(monDelayParams);
+        }
+    }
+    else {
+        if (processor.getInputMonitorDelayParams(groupIndex, monDelayParams)) {
+            delayView->updateParams(monDelayParams);
+        }
+    }
+
+    if (firstShow) {
+        effectsConcertina->setPanelSize(delayView.get(), 0, false);
+        //effectsConcertina->expandPanelFully(expanderView.get(), false);
+        firstShow = false;
+    }
+}
+
+void ChannelGroupMonitorEffectsView::updateLayout()
+{
+    int minitemheight = 32;
+#if JUCE_IOS || JUCE_ANDROID
+    // make the button heights a bit more for touchscreen purposes
+    minitemheight = 40;
+#endif
+
+    auto mindelaybounds = delayView->getMinimumContentBounds();
+    auto mindelayheadbounds = delayView->getMinimumHeaderBounds();
+    //auto minexpbounds = expanderView->getMinimumContentBounds();
+    //auto minexpheadbounds = compressorView->getMinimumHeaderBounds();
+    int gcount = 1;
+
+
+    effectsBox.items.clear();
+    effectsBox.flexDirection = FlexBox::Direction::column;
+    effectsBox.items.add(FlexItem(4, 2));
+    effectsBox.items.add(FlexItem(mindelaybounds.getWidth(), jmax(mindelaybounds.getHeight(), 0) + gcount*minitemheight, *effectsConcertina).withMargin(1).withFlex(1));
+
+    effectsConcertina->setPanelHeaderSize(delayView.get(), mindelayheadbounds.getHeight());
+
+    effectsConcertina->setMaximumPanelSize(delayView.get(), mindelaybounds.getHeight()+5);
+
+}
+
+void ChannelGroupMonitorEffectsView::resized()  {
+
+    effectsBox.performLayout(getLocalBounds().reduced(2, 2));
+
+}
+
+void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView *comp, SonoAudio::DelayParams & params)
+{
+    if (peerMode) {
+        /*
+        bool wason = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+
+        processor.setRemotePeerCompressorParams(peerIndex, groupIndex, params);
+
+        bool ison = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
+        }
+         */
+    }
+    else {
+        bool wason = false;
+
+        auto deltimems = params.delayTimeMs;
+        DelayParams eparam;
+
+        if (groupIndex == -1) {
+            processor.getMetronomeMonitorDelayParams(eparam);
+            wason = eparam.enabled;
+            processor.setMetronomeMonitorDelayParams(params);
+        } else if (groupIndex == -2) {
+            processor.getFilePlaybackMonitorDelayParams(eparam);
+            wason = eparam.enabled;
+            processor.setFilePlaybackMonitorDelayParams(params);
+        } else {
+            wason = processor.getInputMonitorEffectsActive(groupIndex);
+            processor.setInputMonitorDelayParams(groupIndex, params);
+        }
+
+        if (processor.getLinkMonitoringDelayTimes()) {
+            // set for all the others too
+            int numgroups = processor.getInputGroupCount();
+            for (int i=0; i < numgroups; ++i) {
+                processor.getInputMonitorDelayParams(i, eparam);
+                if (eparam.delayTimeMs != deltimems) {
+                    eparam.delayTimeMs = deltimems;
+                    processor.setInputMonitorDelayParams(i, eparam);
+                }
+            }
+
+            processor.getMetronomeMonitorDelayParams(eparam);
+            if (eparam.delayTimeMs != deltimems) {
+                eparam.delayTimeMs = deltimems;
+                processor.setMetronomeMonitorDelayParams(eparam);
+            }
+
+            processor.getFilePlaybackMonitorDelayParams(eparam);
+            if (eparam.delayTimeMs != deltimems) {
+                eparam.delayTimeMs = deltimems;
+                processor.setFilePlaybackMonitorDelayParams(eparam);
+            }
+        }
+
+        bool ison = processor.getInputMonitorEffectsActive(groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
+        }
+    }
+
+}
+
+
+void ChannelGroupMonitorEffectsView::effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev)
+{
+    if (comp == delayView.get()) {
+        bool changed = effectsConcertina->setPanelSize(delayView.get(), 0, true);
+        //changed |= effectsConcertina->expandPanelFully(expanderView.get(), true);
+        //changed |= effectsConcertina->expandPanelFully(compressorView.get(), true);
+        if (!changed) {
+            // toggle it
+            DelayParams params;
+
+            if (peerMode) {
+                //processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                //params.enabled = !params.enabled;
+                //processor.setInputCompressorParams(0, params);
+            } else {
+                if (groupIndex == -1) {
+                    processor.getMetronomeMonitorDelayParams(params);
+                    params.enabled = !params.enabled;
+                    processor.setMetronomeMonitorDelayParams(params);
+                } else if (groupIndex == -2) {
+                    processor.getFilePlaybackMonitorDelayParams(params);
+                    params.enabled = !params.enabled;
+                    processor.setFilePlaybackMonitorDelayParams(params);
+                }
+                else {
+                    processor.getInputMonitorDelayParams(groupIndex, params);
+                    params.enabled = !params.enabled;
+                    processor.setInputMonitorDelayParams(groupIndex, params);
+                }
+            }
+            updateState();
+
+            listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
+        }
+    }
+}
+
 
 #pragma ChannelGroupView
 
@@ -356,9 +568,12 @@ void ChannelGroupView::paint(Graphics& g)
 {
     //g.fillAll (Colour(0xff111111));
     //g.fillAll (Colour(0xff202020));
-    
-    //g.setColour(bgColor);
-    //g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+
+    if (useBgColor) {
+        g.fillAll (bgColor);
+        //g.setColour(bgColor);
+        //g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+    }
 
     //g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.0f, 0.5f);
 
@@ -441,6 +656,14 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
     mDragDrawable->setAlwaysOnTop(true);
     addChildComponent(mDragDrawable.get());
 
+    mMetFileBg = std::make_unique<DrawableRectangle>();
+    mMetFileBg->setFill (Colour::fromFloatRGBA(0.0, 0.0, 0.0, 0.75));
+    //mMetFileBg->setStrokeFill (Colour::fromFloatRGBA(0.4, 0.4, 0.4, 0.3));
+    mMetFileBg->setStrokeFill (Colours::transparentBlack);
+    //mMetFileBg->setStrokeThickness(0.75f);
+    mMetFileBg->setCornerSize(Point<float>(8.0f, 8.0f));
+    addChildComponent(mMetFileBg.get());
+
 
     rebuildChannelViews();
 }
@@ -461,7 +684,7 @@ void ChannelGroupsView::configLevelSlider(Slider * slider, bool monmode)
     slider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
 
     
-    slider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 12);
+    slider->setTextBoxStyle(Slider::TextBoxAbove, true, 100, 12);
 
     if (monmode) {
         slider->setRange(0.0, 1.0, 0.0);
@@ -488,7 +711,7 @@ void ChannelGroupsView::configLevelSlider(Slider * slider, bool monmode)
             slider->textFromValueFunction = [](float v) -> String { return String(TRANS("Monitor: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
         }
         else {
-            slider->textFromValueFunction = [](float v) -> String { return String(TRANS("Level: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
+            slider->textFromValueFunction = [](float v) -> String { return String(TRANS("Pre Level: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
         }
     }
 
@@ -587,6 +810,12 @@ void ChannelGroupsView::resized()
 
     if (mMainChannelView) {
         mMainChannelView->resized();
+    }
+
+    if (mMetChannelView && mMetChannelView->isVisible()) {
+        // resize bg border
+        auto mfbounds = Rectangle<int>(mMetChannelView->getX() - 3, mMetChannelView->getY(), mMetChannelView->getWidth() + 6, mFileChannelView->getBottom() - mMetChannelView->getY() + 4);
+        mMetFileBg->setRectangle (mfbounds.toFloat());
     }
 
     Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();    
@@ -700,12 +929,12 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->soloButton->setColour(TextButton::textColourOnId, Colours::darkblue);
     if (mPeerMode) {
         if (first) {
-            pvf->soloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
+            pvf->soloButton->setTooltip(TRANS("Solo - Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
         } else {
-            pvf->soloButton->setTooltip(TRANS("Listen to only this channel for this user"));
+            pvf->soloButton->setTooltip(TRANS("Solo - Listen to only this channel for this user"));
         }
     } else {
-        pvf->soloButton->setTooltip(TRANS("Listen to only this channel, does not affect sending"));
+        pvf->soloButton->setTooltip(TRANS("Solo - Listen to only this channel, does not affect sending"));
     }
 
     
@@ -847,6 +1076,16 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
         pvf->fxButton->setTooltip(TRANS("Edit effects"));
     }
 
+    pvf->monfxButton = std::make_unique<TextButton>(TRANS("M.FX"));
+    pvf->monfxButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
+    pvf->monfxButton->addListener(this);
+    pvf->monfxButton->setLookAndFeel(&pvf->medLnf);
+    if (!mPeerMode) {
+        pvf->monfxButton->setTooltip(TRANS("Edit input monitoring effects (applied to local monitoring only)"));
+    } else {
+        pvf->monfxButton->setTooltip(TRANS("Edit monitoring effects"));
+    }
+
     
 
     // meters
@@ -884,6 +1123,14 @@ void ChannelGroupsView::setMetersActive(bool flag)
     if (mMainChannelView) {
         mMainChannelView->meter->setRefreshRateHz(rate);
     }
+
+    if (mMetChannelView) {
+        mMetChannelView->meter->setRefreshRateHz(rate);
+    }
+    if (mFileChannelView) {
+        mFileChannelView->meter->setRefreshRateHz(rate);
+    }
+
 
     for (int i=0; i < mChannelViews.size(); ++i) {
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
@@ -971,6 +1218,14 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
                 }
             };
 
+            mMainChannelView->monfxButton->onClick = [this]() {
+                if (!monEffectsCalloutBox) {
+                    showMonitorEffects(0, true, mMainChannelView->monfxButton.get());
+                } else {
+                    showMonitorEffects(0, false);
+                }
+            };
+
             mMainChannelView->destButton->onClick = [this]() {
                 // when shown it will be for the first one
                 showDestSelectionMenu(mMainChannelView->destButton.get(), 0);
@@ -985,6 +1240,153 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             processor.getInputGroupChannelStartAndCount(i, chst, chcnt);
             numchans += chcnt;
         }
+
+        if (!mMetChannelView) {
+            mMetChannelView.reset(createChannelGroupView(true));
+            mMetChannelView->nameLabel->setText(TRANS("Metronome"), dontSendNotification);
+            mMetChannelView->nameLabel->setEditable(false);
+            mMetChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
+
+            std::unique_ptr<Drawable> grpimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
+            mMetChannelView->linkButton->setButtonStyle(DrawableButton::ButtonStyle::ImageOnButtonBackground);
+            mMetChannelView->linkButton->setImages(grpimg.get());
+            mMetChannelView->linkButton->setClickingTogglesState(true);
+            mMetSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramSendMetAudio, *mMetChannelView->linkButton);
+            mMetChannelView->linkButton->setForegroundImageRatio(1.0f);
+            mMetChannelView->linkButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.65));
+            mMetChannelView->linkButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+            mMetChannelView->linkButton->setTooltip(TRANS("Send Metronome to All"));
+
+
+
+            mMetChannelView->soloButton->onClick = [this]() {
+            };
+
+            mMetChannelView->muteButton->onClick = [this]() {
+            };
+
+
+            mMetChannelView->fxButton->onClick = [this]() {
+                /*
+                if (!effectsCalloutBox) {
+                    showEffects(0, true, mMetChannelView->fxButton.get());
+                } else {
+                    showEffects(0, false);
+                }
+                 */
+            };
+
+            mMetChannelView->monfxButton->onClick = [this]() {
+                if (!monEffectsCalloutBox) {
+                    showMonitorEffects(-1, true, mMetChannelView->monfxButton.get());
+                } else {
+                    showMonitorEffects(-1, false);
+                }
+            };
+
+            mMetChannelView->destButton->onClick = [this]() {
+                // when shown it will be for the first one
+                showDestSelectionMenu(mMetChannelView->destButton.get(), -1);
+            };
+
+            mMetChannelView->levelSlider->onValueChange = [this]() {
+                processor.setMetronomeGain(mMetChannelView->levelSlider->getValue());
+            };
+
+            mMetChannelView->panSlider->onValueChange = [this]() {
+                processor.setMetronomePan(mMetChannelView->panSlider->getValue());
+            };
+
+            mMetChannelView->monitorSlider->onValueChange = [this]() {
+                processor.setMetronomeMonitor(mMetChannelView->monitorSlider->getValue());
+            };
+
+            setupChildren(mMetChannelView.get());
+
+            mMetChannelView->muteButton->setVisible(false);
+            mMetChannelView->soloButton->setVisible(false);
+            mMetChannelView->fxButton->setVisible(false);
+            mMetChannelView->premeter->setVisible(false);
+            mMetChannelView->premeter->setRefreshRateHz(0);
+            //mMetChannelView->premeter->setVisible(false);
+            //mMetChannelView->premeter->setRefreshRateHz(0);
+
+        }
+
+        if (!mFileChannelView) {
+            mFileChannelView.reset(createChannelGroupView(true));
+            mFileChannelView->nameLabel->setText(TRANS("File Playback"), dontSendNotification);
+            mFileChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
+
+            mFileChannelView->linkButton->setClickingTogglesState(true);
+            std::unique_ptr<Drawable> grpimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
+            mFileChannelView->linkButton->setImages(grpimg.get());
+            mFileChannelView->linkButton->setClickingTogglesState(true);
+            mFileSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramSendFileAudio, *mFileChannelView->linkButton);
+            mFileChannelView->linkButton->setButtonStyle(DrawableButton::ButtonStyle::ImageOnButtonBackground);
+            mFileChannelView->linkButton->setForegroundImageRatio(1.0f);
+            mFileChannelView->linkButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.65));
+            mFileChannelView->linkButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+            mFileChannelView->linkButton->setTooltip(TRANS("Send File Playback to All"));
+
+
+            mFileChannelView->soloButton->onClick = [this]() {
+            };
+
+            mFileChannelView->muteButton->onClick = [this]() {
+            };
+
+
+            mFileChannelView->fxButton->onClick = [this]() {
+                /*
+                if (!effectsCalloutBox) {
+                    showEffects(0, true, mFileChannelView->fxButton.get());
+                } else {
+                    showEffects(0, false);
+                }
+                 */
+            };
+
+            mFileChannelView->monfxButton->onClick = [this]() {
+                if (!monEffectsCalloutBox) {
+                    showMonitorEffects(-2, true, mFileChannelView->monfxButton.get());
+                } else {
+                    showMonitorEffects(-2, false);
+                }
+            };
+
+            mFileChannelView->destButton->onClick = [this]() {
+                // when shown it will be for the first one
+                showDestSelectionMenu(mFileChannelView->destButton.get(), -2);
+            };
+
+            mFileChannelView->levelSlider->onValueChange = [this]() {
+                processor.setFilePlaybackGain(mFileChannelView->levelSlider->getValue());
+            };
+
+            //mFileChannelView->panSlider->onValueChange = [this]() {
+            //    processor.setFilePlaybackPan(mFileChannelView->panSlider->getValue());
+            //};
+
+            mFileChannelView->monitorSlider->onValueChange = [this]() {
+                processor.setFilePlaybackMonitor(mFileChannelView->monitorSlider->getValue());
+            };
+
+            setupChildren(mFileChannelView.get());
+
+            mFileChannelView->muteButton->setVisible(false);
+            mFileChannelView->soloButton->setVisible(false);
+            mFileChannelView->fxButton->setVisible(false);
+            mFileChannelView->panSlider->setVisible(false);
+
+            mFileChannelView->premeter->setVisible(false);
+            mFileChannelView->premeter->setRefreshRateHz(0);
+            //mFileChannelView->premeter->setVisible(false);
+            //mFileChannelView->premeter->setRefreshRateHz(0);
+
+        }
+
+        mMetFileBg->setVisible(true);
     }
 
     while (mChannelViews.size() < numchans) {
@@ -994,38 +1396,11 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
         mChannelViews.removeLast();
     }
 
-    Component* dw = this->findParentComponentOfClass<AudioProcessorEditor>();
-    if (!dw) dw = this->findParentComponentOfClass<Component>();
-    if (!dw) dw = this;
 
     for (int i= (mPeerMode ? -1 : 0); i < mChannelViews.size(); ++i) {
         ChannelGroupView * pvf = i < 0 ? mMainChannelView.get() : mChannelViews.getUnchecked(i);
 
-        pvf->addAndMakeVisible(pvf->linkButton.get());
-        pvf->addChildComponent(pvf->monoButton.get());
-        pvf->addAndMakeVisible(pvf->destButton.get());
-        pvf->addAndMakeVisible(pvf->muteButton.get());
-        pvf->addAndMakeVisible(pvf->soloButton.get());
-        pvf->addAndMakeVisible(pvf->levelSlider.get());
-        pvf->addChildComponent(pvf->monitorSlider.get());
-        //pvf->addAndMakeVisible(pvf->levelLabel.get());
-        pvf->addAndMakeVisible(pvf->panLabel.get());
-        pvf->addAndMakeVisible(pvf->nameLabel.get());
-        pvf->addAndMakeVisible(pvf->chanLabel.get());
-
-        pvf->addAndMakeVisible(pvf->meter.get());
-        if (pvf->premeter) {
-            pvf->addAndMakeVisible(pvf->premeter.get());
-        }
-        pvf->addAndMakeVisible(pvf->fxButton.get());
-
-        pvf->addAndMakeVisible(pvf->panSlider.get());
-
-        pvf->panSlider->setPopupDisplayEnabled(true, true, dw);
-
-        pvf->monitorSlider->setPopupDisplayEnabled(true, true, dw);
-
-        addAndMakeVisible(pvf);
+        setupChildren(pvf);
     }
     
     updateChannelViews();
@@ -1033,9 +1408,44 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
     resized();
 }
 
-void ChannelGroupsView::updateLayout(bool notify)
+void ChannelGroupsView::setupChildren(ChannelGroupView * pvf)
 {
-    int minitemheight = mPeerMode ? 34 : 30;
+    Component* dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = this->findParentComponentOfClass<Component>();
+    if (!dw) dw = this;
+
+    pvf->addAndMakeVisible(pvf->linkButton.get());
+    pvf->addChildComponent(pvf->monoButton.get());
+    pvf->addAndMakeVisible(pvf->destButton.get());
+    pvf->addAndMakeVisible(pvf->muteButton.get());
+    pvf->addAndMakeVisible(pvf->soloButton.get());
+    pvf->addAndMakeVisible(pvf->levelSlider.get());
+    pvf->addChildComponent(pvf->monitorSlider.get());
+    //pvf->addAndMakeVisible(pvf->levelLabel.get());
+    pvf->addAndMakeVisible(pvf->panLabel.get());
+    pvf->addAndMakeVisible(pvf->nameLabel.get());
+    pvf->addAndMakeVisible(pvf->chanLabel.get());
+
+    pvf->addAndMakeVisible(pvf->meter.get());
+    if (pvf->premeter) {
+        pvf->addAndMakeVisible(pvf->premeter.get());
+    }
+    pvf->addAndMakeVisible(pvf->fxButton.get());
+
+    pvf->addAndMakeVisible(pvf->monfxButton.get());
+
+    pvf->addAndMakeVisible(pvf->panSlider.get());
+
+    pvf->panSlider->setPopupDisplayEnabled(true, true, dw);
+
+    pvf->monitorSlider->setPopupDisplayEnabled(true, true, dw);
+
+    addAndMakeVisible(pvf);
+}
+
+void ChannelGroupsView::updateLayoutForRemotePeer(bool notify)
+{
+    int minitemheight = 34 ;
     int mincheckheight = 32;
     int minPannerWidth = isNarrow ? 56 : 64;
     int minButtonWidth = 60;
@@ -1047,13 +1457,13 @@ void ChannelGroupsView::updateLayout(bool notify)
     int mutebuttwidth = isNarrow ? 42 : 52;
     int linkbuttwidth = 50;
     int destbuttwidth = 44;
-    int monsliderwidth = mPeerMode ? 0 : 40;
-    int namewidth = isNarrow ? 88 : mPeerMode ? 110 : 100;
+    int monsliderwidth =  0 ;
+    int namewidth = isNarrow ? 88 :  110;
     int addrowheight = minitemheight - 2;
 
 #if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
-    minitemheight = mPeerMode ? 42 : 38;
+    minitemheight = 42;
     mincheckheight = 40;
     minPannerWidth = 60;
 #endif
@@ -1068,7 +1478,7 @@ void ChannelGroupsView::updateLayout(bool notify)
     int peersheight = 0;
     //const int singleph =  minitemheight*3 + 12;
     const int singleph =  minitemheight;
-    
+
     //channelsBox.items.add(FlexItem(8, 2).withMargin(0));
     //peersheight += 2;
 
@@ -1098,99 +1508,45 @@ void ChannelGroupsView::updateLayout(bool notify)
 
     int estwidth = mEstimatedWidth > 13 ? mEstimatedWidth - 13 : 320;
 
-    if (mPeerMode) {
-        changroups = processor.getRemotePeerChannelGroupCount(mPeerIndex);
+    changroups = processor.getRemotePeerChannelGroupCount(mPeerIndex);
 
-        totalchans = processor.getRemotePeerRecvChannelCount(mPeerIndex);
+    totalchans = processor.getRemotePeerRecvChannelCount(mPeerIndex);
 
-        processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
-        processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
-        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+    processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+    processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
+    destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
 
-        totaloutchans = processor.getMainBusNumOutputChannels();
+    totaloutchans = processor.getMainBusNumOutputChannels();
 
-        if ((destcnt != 2) || chcnt == 0) {
-            pannervisible = false;
-        }
-
-        mainmeterwidth = totalchans * meterwidth;
-        if (totalchans > 2) {
-            mainmeterwidth = 6 * totalchans;
-        }
-    }
-    else {
-        sendcnt = (int) processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->getValue());
-
-        if (sendcnt == 0) {
-            sendcnt = processor.getTotalNumInputChannels(); // processor.getMainBusNumInputChannels();
-        }
-
-        totalchans = processor.getTotalNumInputChannels();
-        changroups = processor.getInputGroupCount();
-
-        totaloutchans = processor.getMainBusNumOutputChannels();
-
-        processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
-        processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
-
-        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
-        if ((sendcnt != 2 && destcnt != 2) || chcnt == 0) {
-            pannervisible = false;
-        }
+    if ((destcnt != 2) || chcnt == 0) {
+        pannervisible = false;
     }
 
+    mainmeterwidth = totalchans * meterwidth;
+    if (totalchans > 2) {
+        mainmeterwidth = 6 * totalchans;
+    }
 
 
     // Main connected peer views
 
-    if (!mPeerMode) {
-        addrowBox.items.clear();
-        addrowBox.flexDirection = FlexBox::Direction::row;
-        addrowBox.items.add(FlexItem(4, 2).withMargin(0));
-        addrowBox.items.add(FlexItem(linkbuttwidth, addrowheight, *mAddButton).withMargin(0).withFlex(0));
-        addrowBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(1));
-        addrowBox.items.add(FlexItem(mutebuttwidth, addrowheight, *mClearButton).withMargin(0).withFlex(0));
-        addrowBox.items.add(FlexItem(4, 2).withMargin(0));
 
-        int gaph = 6 ; //changroups > 0 ? 2 : 6;
-        int bgaph = changroups > 0 ? 4 : 6;
-        channelsBox.items.add(FlexItem(8, gaph).withMargin(0));
-        channelsBox.items.add(FlexItem(100, addrowheight, addrowBox).withMargin(0).withFlex(0));
-        channelsBox.items.add(FlexItem(8, bgaph).withMargin(0));
-        peersheight += addrowheight + gaph + bgaph;
-    }
-
-
-
-    for (int i = (mPeerMode ? -1 : 0); i < mChannelViews.size(); ++i, ++chi) {
+    for (int i = -1; i < mChannelViews.size(); ++i, ++chi) {
         if (i==0) {
             chi = 0; // ensure this
         }
 
         if (chi >= chcnt && changroup < changroups-1) {
             changroup++;
-            if (mPeerMode) {
-                processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
-                processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
-                destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+            processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
+            processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
+            destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
 
-                if ((destcnt != 2) || chcnt == 0) {
-                    pannervisible = false;
-                }
-                else {
-                    pannervisible = true;
-                }
-            } else {
-                processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
-
-                processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
-
-                destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
-                if ((sendcnt != 2 && destcnt != 2) || chcnt == 0) {
-                    pannervisible = false;
-                } else {
-                    pannervisible = true;
-                }
+            if ((destcnt != 2) || chcnt == 0) {
+                pannervisible = false;
+            }
+            else {
+                pannervisible = true;
             }
             chi = 0;
         }
@@ -1198,17 +1554,17 @@ void ChannelGroupsView::updateLayout(bool notify)
         ChannelGroupView * pvf = i < 0 ? mMainChannelView.get() : mChannelViews.getUnchecked(i);
 
         //pvf->updateLayout();
-        bool viewexpanded = !mPeerMode || processor.getRemotePeerViewExpanded(mPeerIndex);
+        bool viewexpanded = processor.getRemotePeerViewExpanded(mPeerIndex);
 
         if (!viewexpanded && i >= 0) {
             // skip this one, not expanded
             continue;
         }
-        
+
 
         bool destbuttvisible = true;
 
-        if (chi == 0 || !mPeerMode || (totalchans > 1) )
+        if (chi == 0 || (totalchans > 1) )
         {
 
             pvf->namebox.items.clear();
@@ -1221,18 +1577,12 @@ void ChannelGroupsView::updateLayout(bool notify)
             // pvf->inbox.items.add(FlexItem(20, minitemheight, *pvf->chanLabel).withMargin(0).withFlex(0));
             // pvf->inbox.items.add(FlexItem(3, 3));
 
-            //if (/*!mPeerMode && */ totalchans > 1) {
-            if (mPeerMode && totalchans == 1) {
+            if (totalchans == 1) {
                 pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->monoButton).withMargin(0).withFlex(0));
             } else {
                 pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
             }
             pvf->inbox.items.add(FlexItem(3, 3));
-
-            if (!mPeerMode) {
-                pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->premeter).withMargin(0).withFlex(0));
-                pvf->inbox.items.add(FlexItem(3, 3));
-            }
 
 
             pvf->inbox.items.add(FlexItem(namewidth, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
@@ -1249,17 +1599,6 @@ void ChannelGroupsView::updateLayout(bool notify)
             pvf->inbox.items.add(FlexItem(3, 3));
             pvf->inbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(1));
             pvf->inbox.items.add(FlexItem(1, 3));
-
-            /*
-            if (mPeerMode && totalchans == 2) {
-                pvf->inbox.items.add(FlexItem(2*meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
-            }
-            else {
-                if (!isNarrow) {
-                    pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
-                }
-            }
-*/
 
             if (isNarrow) {
                 pvf->inbox.items.add(FlexItem(2, 3));
@@ -1286,7 +1625,7 @@ void ChannelGroupsView::updateLayout(bool notify)
 
                 pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
 
-                if (mPeerMode && i < 0 ) {
+                if (i < 0 ) {
                     pvf->monbox.items.add(FlexItem(mainmeterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
                     if (totalchans == 1) {
                         // add gap
@@ -1304,11 +1643,6 @@ void ChannelGroupsView::updateLayout(bool notify)
                     pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
                 }
 
-                if (!mPeerMode) {
-                    pvf->monbox.items.add(FlexItem(monsliderwidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(0));
-                    pvf->monbox.items.add(FlexItem(2, 3));
-                }
-
 
                 if (destbuttvisible) {
                     pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
@@ -1317,7 +1651,7 @@ void ChannelGroupsView::updateLayout(bool notify)
 
             }
             else {
-                if (mPeerMode && i < 0 ) {
+                if (i < 0) {
                     pvf->monbox.items.add(FlexItem(mainmeterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
                     if (totalchans == 1) {
                         // add gap
@@ -1335,10 +1669,6 @@ void ChannelGroupsView::updateLayout(bool notify)
                 //pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
                 //pvf->monbox.items.add(FlexItem(2, 3));
 
-                if (!mPeerMode) {
-                    pvf->monbox.items.add(FlexItem(monsliderwidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(0));
-                    pvf->monbox.items.add(FlexItem(2, 3));
-                }
 
                 if (destbuttvisible) {
                     pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
@@ -1357,9 +1687,9 @@ void ChannelGroupsView::updateLayout(bool notify)
             pvf->mainbox.items.clear();
             pvf->mainbox.flexDirection = FlexBox::Direction::column;
 
-            bool dotopgap = (chi == 0) && (!mPeerMode || i >= 0 );
+            bool dotopgap = (chi == 0) && (i >= 0 );
 
-            if (i == -1 && mPeerMode) {
+            if (i == -1) {
                 pvf->mainbox.items.add(FlexItem(3, 4));
             }
 
@@ -1393,7 +1723,7 @@ void ChannelGroupsView::updateLayout(bool notify)
                 pvf->maincontentbox.items.add(FlexItem(2, 2));
                 //if (pannervisible)
                 {
-                    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + (!mPeerMode ? monsliderwidth : 0) + (destbuttvisible ? destbuttwidth + 2 : 0) + 2));
+                    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth  + (destbuttvisible ? destbuttwidth + 2 : 0) + 2));
                 }
                 //else {
                 //    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(0)); // (1).withMaxWidth(mutebuttwidth + destbuttwidth + 4));
@@ -1432,6 +1762,12 @@ void ChannelGroupsView::updateLayout(bool notify)
     }
 
 
+    // for input mode add met and file playback rows
+    if (!mPeerMode) {
+
+    }
+
+
     if (isNarrow) {
         channelMinHeight = std::max(mbh,  peersheight);
         channelMinWidth = ipw + 12;
@@ -1449,6 +1785,383 @@ void ChannelGroupsView::updateLayout(bool notify)
         listeners.call (&ChannelGroupsView::Listener::channelLayoutChanged, this);
     }
 
+}
+
+void ChannelGroupsView::updateLayoutForInput(bool notify)
+{
+    int minitemheight =  30;
+    int mincheckheight = 32;
+    int minPannerWidth = isNarrow ? 56 : 64;
+    int minButtonWidth = 60;
+    int maxPannerWidth = 130;
+    int compactMaxPannerWidth = 90;
+    int minSliderWidth = isNarrow ? 90 : 100;
+    int meterwidth = 10;
+    int mainmeterwidth = 10;
+    int mutebuttwidth = isNarrow ? 42 : 52;
+    int linkbuttwidth = 50;
+    int destbuttwidth = 44;
+    int monsliderwidth =  40;
+    int namewidth = isNarrow ? 88 : 100;
+    int addrowheight = minitemheight - 2;
+
+#if JUCE_IOS || JUCE_ANDROID
+    // make the button heights a bit more for touchscreen purposes
+    minitemheight =  38;
+    mincheckheight = 40;
+    minPannerWidth = 60;
+#endif
+
+    const int textheight = minitemheight / 2;
+
+    bool servconnected = processor.isConnectedToServer();
+
+    channelsBox.items.clear();
+    channelsBox.flexDirection = FlexBox::Direction::column;
+    channelsBox.justifyContent = FlexBox::JustifyContent::flexStart;
+    int peersheight = 0;
+    //const int singleph =  minitemheight*3 + 12;
+    const int singleph =  minitemheight;
+
+    //channelsBox.items.add(FlexItem(8, 2).withMargin(0));
+    //peersheight += 2;
+
+    const int ph = singleph;
+    int ipw = 0;//2*minButtonWidth + minSliderWidth + 15 + 32 + 60 + 20;
+    int mpw = 0;// 2*minButtonWidth + minPannerWidth + 6 + 44;
+    int iph = 0;
+    int mph = 0;
+    int mbh = 0;
+
+
+    int chi = 0;
+    int changroup = 0;
+    int sendcnt = 0;
+    int totalchans = 0;
+    int changroups = 0;
+
+    int chstart = 0;
+    int chcnt = 1;
+
+    int deststart = 0;
+    int destcnt = 1;
+
+    bool pannervisible = true;
+
+    int totaloutchans = 1;
+
+    int estwidth = mEstimatedWidth > 13 ? mEstimatedWidth - 13 : 320;
+
+
+    sendcnt = (int) processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->convertFrom0to1( processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->getValue());
+
+    if (sendcnt == 0) {
+        sendcnt = processor.getTotalNumInputChannels(); // processor.getMainBusNumInputChannels();
+    }
+
+    totalchans = processor.getTotalNumInputChannels();
+    changroups = processor.getInputGroupCount();
+
+    totaloutchans = processor.getMainBusNumOutputChannels();
+
+    processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+    processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
+
+    destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+    if ((sendcnt != 2 && destcnt != 2) || chcnt == 0) {
+        pannervisible = false;
+    }
+
+
+    // Main connected peer views
+
+    addrowBox.items.clear();
+    addrowBox.flexDirection = FlexBox::Direction::row;
+    addrowBox.items.add(FlexItem(4, 2).withMargin(0));
+    addrowBox.items.add(FlexItem(linkbuttwidth, addrowheight, *mAddButton).withMargin(0).withFlex(0));
+    addrowBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(1));
+    addrowBox.items.add(FlexItem(mutebuttwidth, addrowheight, *mClearButton).withMargin(0).withFlex(0));
+    addrowBox.items.add(FlexItem(4, 2).withMargin(0));
+
+    int gaph = 6 ; //changroups > 0 ? 2 : 6;
+    int bgaph = changroups > 0 ? 4 : 6;
+    channelsBox.items.add(FlexItem(8, gaph).withMargin(0));
+    channelsBox.items.add(FlexItem(100, addrowheight, addrowBox).withMargin(0).withFlex(0));
+    channelsBox.items.add(FlexItem(8, bgaph).withMargin(0));
+    peersheight += addrowheight + gaph + bgaph;
+
+    // all the inputs, plus two extra (met and file playback)
+    for (int i =  0; i < mChannelViews.size() + 2; ++i, ++chi) {
+        if (i==0) {
+            chi = 0; // ensure this
+        }
+
+        if (i >= mChannelViews.size()) {
+            // one of met or file playback
+            chi = 0;
+        }
+        else if (chi >= chcnt && changroup < changroups-1) {
+            changroup++;
+            processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+
+            processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
+
+            destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+            if ((sendcnt != 2 && destcnt != 2) || chcnt == 0) {
+                pannervisible = false;
+            } else {
+                pannervisible = true;
+            }
+            chi = 0;
+        }
+
+        bool ismetorfile = false;
+
+        ChannelGroupView * pvf;
+        if (i == mChannelViews.size()) {
+            pvf = mMetChannelView.get();
+            ismetorfile = true;
+        } else if (i > mChannelViews.size()) {
+            pvf = mFileChannelView.get();
+            auto numfilechan = processor.getFilePlaybackMeterSource().getNumChannels();
+            mainmeterwidth = numfilechan * (numfilechan > 2 ? 6 : meterwidth);
+            ismetorfile = true;
+        } else {
+            pvf = mChannelViews.getUnchecked(i);
+        }
+
+        //pvf->updateLayout();
+        bool viewexpanded = true;
+
+        if (!viewexpanded && i >= 0) {
+            // skip this one, not expanded
+            continue;
+        }
+
+
+        bool destbuttvisible = true;
+
+        //if (chi == 0 || !mPeerMode || (totalchans > 1) )
+        {
+
+            pvf->namebox.items.clear();
+            pvf->namebox.flexDirection = FlexBox::Direction::row;
+            //.withAlignSelf(FlexItem::AlignSelf::center));
+            pvf->namebox.items.add(FlexItem(namewidth, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
+
+            pvf->inbox.items.clear();
+            pvf->inbox.flexDirection = FlexBox::Direction::row;
+            // pvf->inbox.items.add(FlexItem(20, minitemheight, *pvf->chanLabel).withMargin(0).withFlex(0));
+            // pvf->inbox.items.add(FlexItem(3, 3));
+
+            pvf->inbox.items.add(FlexItem(linkbuttwidth, minitemheight, *pvf->linkButton).withMargin(0).withFlex(0));
+
+            pvf->inbox.items.add(FlexItem(3, 3));
+
+            pvf->inbox.items.add(FlexItem(meterwidth, minitemheight, *pvf->premeter).withMargin(0).withFlex(0));
+            pvf->inbox.items.add(FlexItem(3, 3));
+
+
+            pvf->inbox.items.add(FlexItem(namewidth, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
+            if (!isNarrow && !ismetorfile) {
+                pvf->inbox.items.add(FlexItem(6, 3));
+                pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+                pvf->inbox.items.add(FlexItem(3, 3));
+                pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+
+                pvf->inbox.items.add(FlexItem(5, 3));
+                pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+
+            }
+            pvf->inbox.items.add(FlexItem(3, 3));
+            pvf->inbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->levelSlider).withMargin(0).withFlex(1));
+            pvf->inbox.items.add(FlexItem(1, 3));
+
+
+            if (isNarrow) {
+                pvf->inbox.items.add(FlexItem(2, 3));
+            }
+
+
+            ipw = 0;
+            iph = minitemheight;
+            for (auto & item : pvf->inbox.items) {
+                ipw += item.minWidth;
+            }
+
+            pvf->monbox.items.clear();
+            pvf->monbox.flexDirection = FlexBox::Direction::row;
+            //pvf->monbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(1));
+            if (isNarrow) {
+                if (!ismetorfile) {
+                    pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
+                    pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(3, 3));
+                    pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(3, 3));
+                    pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+                }
+
+                pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
+
+                pvf->monbox.items.add(FlexItem(mainmeterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+
+                pvf->monbox.items.add(FlexItem(4, 3));
+
+                //if (pannervisible)
+                {
+                    pvf->monbox.items.add(FlexItem(2, 3));
+                    pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth));
+                    pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
+                }
+
+                pvf->monbox.items.add(FlexItem(monsliderwidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(2, 3));
+
+                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->monfxButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(2, 3));
+
+
+                if (destbuttvisible) {
+                    pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(2, 3));
+                }
+
+            }
+            else {
+                pvf->monbox.items.add(FlexItem(mainmeterwidth, minitemheight, *pvf->meter).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(4, 3));
+
+                //if (pannervisible) {
+                    pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(0.25).withMaxWidth(maxPannerWidth));
+                    pvf->monbox.items.add(FlexItem(3, 3));
+                //}
+                //pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+                //pvf->monbox.items.add(FlexItem(2, 3));
+
+                pvf->monbox.items.add(FlexItem(monsliderwidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(2, 3));
+                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->monfxButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(2, 3));
+
+                if (destbuttvisible) {
+                    pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(2, 3));
+                }
+            }
+
+            mpw = 0;
+            mph = minitemheight;
+            for (auto & item : pvf->monbox.items) {
+                mpw += item.minWidth;
+            }
+
+            pvf->maincontentbox.items.clear();
+
+            pvf->mainbox.items.clear();
+            pvf->mainbox.flexDirection = FlexBox::Direction::column;
+
+            bool dotopgap = (chi == 0) || i >= mChannelViews.size();
+
+
+            if (dotopgap) {
+                // gap at top
+                pvf->mainbox.items.add(FlexItem(3, 6));
+            }
+
+
+            if (isNarrow) {
+                pvf->maincontentbox.flexDirection = FlexBox::Direction::column;
+                pvf->maincontentbox.items.add(FlexItem(3, 2));
+                if (chi == 0) {
+                    pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(0));
+                    pvf->maincontentbox.items.add(FlexItem(2, 2));
+                }
+                pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(0));
+
+                int mch = 0;
+                for (auto & item : pvf->maincontentbox.items) {
+                    mch += item.minHeight;
+                }
+
+                pvf->mainbox.items.add(FlexItem(60, mch, pvf->maincontentbox).withMargin(0).withFlex(0));
+
+            } else {
+                pvf->maincontentbox.flexDirection = FlexBox::Direction::row;
+                pvf->maincontentbox.items.add(FlexItem(3, 2));
+                pvf->maincontentbox.items.add(FlexItem(ipw, iph , pvf->inbox).withMargin(0).withFlex(2));
+                pvf->maincontentbox.items.add(FlexItem(2, 2));
+                //if (pannervisible)
+                {
+                    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth + mutebuttwidth + (monsliderwidth) + (destbuttvisible ? destbuttwidth + 2 : 0) + 2));
+                }
+                //else {
+                //    pvf->maincontentbox.items.add(FlexItem(mpw, mph , pvf->monbox).withMargin(0).withFlex(0)); // (1).withMaxWidth(mutebuttwidth + destbuttwidth + 4));
+                //}
+
+
+                pvf->mainbox.items.add(FlexItem(60, iph, pvf->maincontentbox).withMargin(0).withFlex(0));
+            }
+
+
+
+            mbh = 0;
+            for (auto & item : pvf->mainbox.items) {
+                mbh += item.minHeight;
+            }
+
+
+
+            if (isNarrow) {
+                channelsBox.items.add(FlexItem(ipw, mbh, *pvf).withMargin(0).withFlex(0));
+                //peersheight += ph*2 + 6;
+                peersheight += mbh + 2;
+            } else {
+                channelsBox.items.add(FlexItem(ipw+mpw + 6, mbh, *pvf).withMargin(1).withFlex(0));
+                //peersheight += ph + 11;
+                peersheight += mbh + 2;
+            }
+
+            if (i < mChannelViews.size()+1) {
+                channelsBox.items.add(FlexItem(3, 4));
+                peersheight += 4;
+            }
+
+        }
+
+    }
+
+
+    // for input mode add met and file playback rows
+
+
+    if (isNarrow) {
+        channelMinHeight = std::max(mbh,  peersheight);
+        channelMinWidth = ipw + 12;
+    }
+    else {
+        if (!mPeerMode) {
+            channelMinHeight = std::max(mbh + 18,  peersheight);
+        } else {
+            channelMinHeight = std::max(mbh,  peersheight);
+        }
+        channelMinWidth = ipw + mpw + 50;
+    }
+
+    if (notify) {
+        listeners.call (&ChannelGroupsView::Listener::channelLayoutChanged, this);
+    }
+
+}
+
+
+void ChannelGroupsView::updateLayout(bool notify)
+{
+    if (mPeerMode) {
+        updateLayoutForRemotePeer(notify);
+    } else {
+        updateLayoutForInput(notify);
+    }
 }
 
 Rectangle<int> ChannelGroupsView::getMinimumContentBounds() const
@@ -1499,6 +2212,53 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
     int totaloutchans = processor.getTotalNumOutputChannels();
     int changroups = processor.getInputGroupCount();
     int chi = 0;
+
+
+    // met and file playback
+    if (mMetChannelView) {
+        String desttext;
+        int destcnt, deststart;
+        processor.getMetronomeChannelDestStartAndCount(deststart, destcnt);
+        if (destcnt == 1) {
+            desttext << deststart + 1;
+        } else {
+            desttext << deststart + 1 << "-" << deststart+destcnt;
+        }
+        mMetChannelView->destButton->setButtonText(desttext);
+        mMetChannelView->monitorSlider->setVisible(true);
+        mMetChannelView->monitorSlider->setValue(processor.getMetronomeMonitor(), dontSendNotification);
+        mMetChannelView->levelSlider->setValue(processor.getMetronomeGain(), dontSendNotification);
+        mMetChannelView->panSlider->setValue(processor.getMetronomePan(), dontSendNotification);
+        mMetChannelView->showDivider = true;
+
+        mMetChannelView->meter->setMeterSource (&processor.getMetronomeMeterSource());
+        mMetChannelView->meter->setSelectedChannel(0);
+
+    }
+
+    if (mFileChannelView) {
+        String desttext;
+        int destcnt, deststart;
+        processor.getFilePlaybackDestStartAndCount(deststart, destcnt);
+        if (destcnt == 1) {
+            desttext << deststart + 1;
+        } else {
+            desttext << deststart + 1 << "-" << deststart+destcnt;
+        }
+        mFileChannelView->destButton->setButtonText(desttext);
+        mFileChannelView->monitorSlider->setVisible(true);
+        mFileChannelView->monitorSlider->setValue(processor.getFilePlaybackMonitor(), dontSendNotification);
+        mFileChannelView->levelSlider->setValue(processor.getFilePlaybackGain(), dontSendNotification);
+        mFileChannelView->panSlider->setVisible(false);
+        mFileChannelView->panLabel->setVisible(false);
+        //mFileChannelView->panSlider->setValue(processor.getFilPlaybackPan(), dontSendNotification);
+        mFileChannelView->showDivider = true;
+
+        mFileChannelView->meter->setMeterSource (&processor.getFilePlaybackMeterSource());
+        mFileChannelView->meter->setSelectedChannel(0);
+
+    }
+
 
     int chstart = 0;
     int chcnt = 1;
@@ -1553,6 +2313,9 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
         bool infxon = processor.getInputEffectsActive(changroup);
         pvf->fxButton->setToggleState(infxon, dontSendNotification);
+
+        bool inmonfxon = processor.getInputMonitorEffectsActive(changroup);
+        pvf->monfxButton->setToggleState(inmonfxon, dontSendNotification);
 
 
         if (!pvf->levelSlider->isMouseOverOrDragging()) {
@@ -1620,6 +2383,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         pvf->nameLabel->setVisible(isprimary);
         pvf->destButton->setVisible(destbuttvisible);
         pvf->monitorSlider->setVisible(isprimary);
+        pvf->monfxButton->setVisible(isprimary);
 
 
         // effects aren't used if channel count is above 2, right now
@@ -1792,6 +2556,8 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
 
     mMainChannelView->linkButton->setToggleState(expanded, dontSendNotification);
 
+    mMainChannelView->monfxButton->setVisible(false);
+
 
 
     for (int i=0; expanded && i < mChannelViews.size(); ++i, ++chi) {
@@ -1934,6 +2700,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         pvf->nameLabel->setVisible(isprimary);
         pvf->destButton->setVisible(destbuttvisible);
         pvf->monitorSlider->setVisible(false);
+        pvf->monfxButton->setVisible(false);
 
         const float disalpha = 0.4;
         pvf->nameLabel->setAlpha(connected ? 1.0 : 0.8);
@@ -2090,6 +2857,16 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
 
                 break;
             }
+            else if (pvf->monfxButton.get() == buttonThatWasClicked) {
+
+                if (!monEffectsCalloutBox) {
+                    showMonitorEffects(changroup, true, pvf->monfxButton.get());
+                } else {
+                    showMonitorEffects(changroup, false);
+                }
+
+                break;
+            }
         }
 
     }
@@ -2161,6 +2938,16 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
                     showEffects(changroup, true, pvf->fxButton.get());
                 } else {
                     showEffects(changroup, false);
+                }
+
+                break;
+            }
+            else if (pvf->monfxButton.get() == buttonThatWasClicked) {
+
+                if (!monEffectsCalloutBox) {
+                    showMonitorEffects(changroup, true, pvf->monfxButton.get());
+                } else {
+                    showMonitorEffects(changroup, false);
                 }
 
                 break;
@@ -2737,6 +3524,76 @@ void ChannelGroupsView::showEffects(int index, bool flag, Component * fromView)
     }
 }
 
+void ChannelGroupsView::showMonitorEffects(int index, bool flag, Component * fromView)
+{
+    if (flag && monEffectsCalloutBox == nullptr) {
+
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
+
+        if (!dw) {
+            dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+        }
+        if (!dw) {
+            dw = this->findParentComponentOfClass<Component>();
+        }
+        if (!dw) {
+            dw = this;
+        }
+
+        int defWidth = 260;
+#if JUCE_IOS || JUCE_ANDROID
+        int defHeight = 180;
+#else
+        int defHeight = 156;
+#endif
+
+        if (!mEffectsView) {
+            mMonEffectsView = std::make_unique<ChannelGroupMonitorEffectsView>(processor, mPeerMode);
+            mMonEffectsView->addListener(this);
+        }
+
+        auto minbounds = mMonEffectsView->getMinimumContentBounds();
+        defWidth = minbounds.getWidth();
+        defHeight = minbounds.getHeight();
+
+
+        int extrawidth = 0;
+        if (defHeight > dw->getHeight() - 24) {
+            extrawidth = wrap->getScrollBarThickness() + 1;
+        }
+
+        wrap->setSize(jmin(defWidth + extrawidth, dw->getWidth() - 10), jmin(defHeight, dw->getHeight() - 24));
+
+
+        mMonEffectsView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        mMonEffectsView->peerMode = mPeerMode;
+        mMonEffectsView->peerIndex = mPeerIndex;
+        mMonEffectsView->groupIndex = index;
+
+        mMonEffectsView->updateState();
+
+        wrap->setViewedComponent(mMonEffectsView.get(), false);
+        mMonEffectsView->setVisible(true);
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView->getScreenBounds());
+        DBG("effect callout bounds: " << bounds.toString());
+        monEffectsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(monEffectsCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(monEffectsCalloutBox.get())) {
+            box->dismiss();
+            monEffectsCalloutBox = nullptr;
+        }
+    }
+}
+
 
 void ChannelGroupsView::mouseDown (const MouseEvent& event)
 {
@@ -2747,6 +3604,19 @@ void ChannelGroupsView::mouseDown (const MouseEvent& event)
         }
         else if (event.eventComponent == mMainChannelView->nameLabel.get()) {
             listeners.call (&ChannelGroupsView::Listener::nameLabelClicked, this);
+            return;
+        }
+    }
+
+    if (mMetChannelView) {
+        if (event.eventComponent == mMetChannelView->meter.get()) {
+            clearClipIndicators();
+            return;
+        }
+    }
+    if (mFileChannelView) {
+        if (event.eventComponent == mFileChannelView->meter.get()) {
+            clearClipIndicators();
             return;
         }
     }
@@ -2874,14 +3744,40 @@ void ChannelGroupsView::clearClipIndicators()
         mMainChannelView->meter->clearClipIndicator();
         mMainChannelView->meter->clearMaxLevelDisplay(-1);
     }
+
+    if (mMetChannelView) {
+        mMetChannelView->premeter->clearClipIndicator();
+        mMetChannelView->premeter->clearMaxLevelDisplay(-1);
+        mMetChannelView->meter->clearClipIndicator();
+        mMetChannelView->meter->clearMaxLevelDisplay(-1);
+    }
+
+    if (mFileChannelView) {
+        mFileChannelView->premeter->clearClipIndicator();
+        mFileChannelView->premeter->clearMaxLevelDisplay(-1);
+        mFileChannelView->meter->clearClipIndicator();
+        mFileChannelView->meter->clearMaxLevelDisplay(-1);
+    }
+
 }
 
 
 void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
 {
     if (index >= mChannelViews.size()) return;
-    
-    ChannelGroupView * pvf = mChannelViews.getUnchecked(index);
+
+    ChannelGroupView * pvf = nullptr;
+    bool ismet = false, isfile = false;
+
+    if (index == -1) {
+        pvf = mMetChannelView.get();
+        ismet = true;
+    } else if (index == -2) {
+        pvf = mFileChannelView.get();
+        isfile = true;
+    } else {
+        pvf = mChannelViews.getUnchecked(index);
+    }
 
     Array<GenericItemChooserItem> items;
     items.add(GenericItemChooserItem(TRANS("SELECT MONITOR OUT:"), {}, nullptr, false, true));
@@ -2891,18 +3787,33 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
     int destst=0, destcnt=0;
 
     int changroup =  getChanGroupFromIndex(index);
+    int maxchcnt = 0;
 
     if (mPeerMode) {
         totalouts = processor.getTotalNumOutputChannels();
         processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
         processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, destst, destcnt);
         chcnt = jmin(chcnt, totalouts);
+        maxchcnt = chcnt;
     }
     else {
+        // input mode
         totalouts = processor.getTotalNumOutputChannels();
-        processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
-        processor.getInputGroupChannelDestStartAndCount(changroup, destst, destcnt);
-        chcnt = jmin(chcnt, totalouts);
+        if (ismet) {
+            chcnt = maxchcnt = 1;
+            processor.getMetronomeChannelDestStartAndCount(destst, destcnt);
+        }
+        else if (isfile) {
+            processor.getFilePlaybackDestStartAndCount(destst, destcnt);
+            chcnt = processor.getFilePlaybackMeterSource().getNumChannels();
+            maxchcnt = chcnt;
+            chcnt = jmin(2, chcnt, totalouts);
+        }
+        else {
+            processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
+            processor.getInputGroupChannelDestStartAndCount(changroup, destst, destcnt);
+            maxchcnt = chcnt = jmin(chcnt, totalouts);
+        }
     }
 
 
@@ -2947,7 +3858,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
     int selindex = -1;
 
     int ind = 1;
-    for (int cc=chcnt; cc <= jmin( jmax(2, chcnt), totalouts); ++cc) {
+    for (int cc=chcnt; cc <= jmin( jmax(2, maxchcnt), totalouts); ++cc) {
         for (int i=0; i < totalouts - (cc - 1); ++i) {
             String name;
             if (cc == 1) {
@@ -2977,7 +3888,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
 
     SafePointer<ChannelGroupsView> safeThis(this);
 
-    auto callback = [safeThis,changroup](GenericItemChooser* chooser,int index) mutable {
+    auto callback = [safeThis,changroup,ismet,isfile](GenericItemChooser* chooser,int index) mutable {
         auto & items = chooser->getItems();
         auto & selitem = items.getReference(index);
         auto dclitem = std::dynamic_pointer_cast<DestChannelListItemData>(selitem.userdata);
@@ -2988,7 +3899,13 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
 
         // change src chan stuff
 
-        if (safeThis->mPeerMode) {
+        if (ismet) {
+            safeThis->processor.setMetronomeChannelDestStartAndCount(dclitem->startIndex, dclitem->count);
+        }
+        else if (isfile) {
+            safeThis->processor.setFilePlaybackDestStartAndCount(dclitem->startIndex, dclitem->count);
+        }
+        else if (safeThis->mPeerMode) {
             safeThis->processor.setRemotePeerChannelGroupDestStartAndCount(safeThis->mPeerIndex, changroup, dclitem->startIndex, dclitem->count);
         }
         else {
@@ -3027,6 +3944,11 @@ void ChannelGroupsView::nameLabelChanged (int changroup, const String & name) {
 
 
 void ChannelGroupsView::effectsEnableChanged(ChannelGroupEffectsView *comp)
+{
+    updateChannelViews();
+}
+
+void ChannelGroupsView::monitorEffectsEnableChanged(ChannelGroupMonitorEffectsView *comp)
 {
     updateChannelViews();
 }
@@ -3087,6 +4009,8 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
         }
     }
     else {
+
+
 
         for (int i=0; i < mChannelViews.size(); ++i)
         {

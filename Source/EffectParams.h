@@ -42,4 +42,13 @@ struct ParametricEqParams
     float highShelfFreq = 10000.0f; // Hz
 };
 
+struct DelayParams
+{
+    ValueTree getValueTree(const String & stateKey) const;
+    void setFromValueTree(const ValueTree & val);
+
+    bool enabled = false;
+    float delayTimeMs = 0.0f;
+};
+
 }
