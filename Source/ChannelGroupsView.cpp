@@ -2238,6 +2238,10 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         mMetChannelView->meter->setMeterSource (&processor.getMetronomeMeterSource());
         mMetChannelView->meter->setSelectedChannel(0);
 
+        SonoAudio::DelayParams eparams;
+        processor.getMetronomeMonitorDelayParams(eparams);
+        mMetChannelView->monfxButton->setToggleState(eparams.enabled, dontSendNotification);
+
     }
 
     if (mFileChannelView) {
@@ -2260,6 +2264,10 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
         mFileChannelView->meter->setMeterSource (&processor.getFilePlaybackMeterSource());
         mFileChannelView->meter->setSelectedChannel(0);
+
+        SonoAudio::DelayParams eparams;
+        processor.getFilePlaybackMonitorDelayParams(eparams);
+        mFileChannelView->monfxButton->setToggleState(eparams.enabled, dontSendNotification);
 
     }
 

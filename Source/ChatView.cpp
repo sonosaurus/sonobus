@@ -476,6 +476,14 @@ void ChatView::processNewChatMessages(int index, int count)
     lastShownCount = index + count;
 }
 
+void ChatView::visibilityChanged()
+{
+    if (isVisible()) {
+        mLastChatViewStamp = Time::getMillisecondCounterHiRes() * 1e-3;
+    }
+}
+
+
 bool ChatView::parseStringForUrl(const String & str, Array<Range<int> > & retranges)
 {
     retranges.clearQuick();
