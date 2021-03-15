@@ -168,6 +168,7 @@ public:
     bool   _monitorDelayLastActive = false;
     CriticalSection _monitorDelayLock;
 
+    AudioBuffer<float> delayWorkBuffer;
 
     float _lastmonitor = 0.0f;
 

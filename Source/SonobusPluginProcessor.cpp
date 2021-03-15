@@ -1676,6 +1676,7 @@ void SonobusAudioProcessor::setInputGroupChannelStartAndCount(int changroup, int
     if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
         mInputChannelGroups[changroup].params.chanStartIndex = start;
         mInputChannelGroups[changroup].params.numChannels = std::max(1, std::min(count, MAX_CHANNELS));
+        mInputChannelGroups[changroup].commitMonitorDelayParams();
     }
 }
 
@@ -1694,7 +1695,6 @@ void SonobusAudioProcessor::setInputGroupChannelDestStartAndCount(int changroup,
     if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
         mInputChannelGroups[changroup].params.monDestStartIndex = start;
         mInputChannelGroups[changroup].params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
-        mInputChannelGroups[changroup].commitMonitorDelayParams(); // need to do this too
     }
 }
 
@@ -1725,6 +1725,7 @@ bool SonobusAudioProcessor::insertInputChannelGroup(int atgroup, int chstart, in
         mInputChannelGroups[atgroup].params.monDestChannels = std::max(1, std::min(2, getMainBusNumOutputChannels() - mInputChannelGroups[atgroup].params.monDestStartIndex));
 
         // todo some defaults
+        mInputChannelGroups[atgroup].commitMonitorDelayParams(); // need to do this too
 
         return true;
     }
@@ -5989,6 +5990,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
             mInputChannelGroups[0].params.numChannels = getMainBusNumInputChannels(); // default to only as many channels as the main input bus has
             mInputChannelGroups[0].params.monDestStartIndex = 0;
             mInputChannelGroups[0].params.monDestChannels = jmin(2, outchannels);
+            mInputChannelGroups[0].commitMonitorDelayParams(); // need to do this too
         }
     }
     else if (lastInputChannels != inchannels || lastOutputChannels != outchannels) {
@@ -6610,6 +6612,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if (sendfileaudio) {
             int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
             mFilePlaybackChannelGroup.params.numChannels = srcchans;
+            mFilePlaybackChannelGroup.commitMonitorDelayParams(); // need to do this too
 
             //add to main buffer for going out, mix as appropriate depending on how many channels being sent
             if (sendPanChannels == 1) {

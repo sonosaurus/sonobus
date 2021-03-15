@@ -161,6 +161,7 @@ void ChannelGroup::setMonitoringDelayEnabled(bool enabled, int numchans)
             monitorDelayLine->prepare(delayspec);
 
             _monitorDelayChans = numchans;
+            delayWorkBuffer.setSize(numchans, 4096, false, false, true);
         }
         else if (_monitorDelayChans != numchans) {
             //
@@ -170,7 +171,11 @@ void ChannelGroup::setMonitoringDelayEnabled(bool enabled, int numchans)
             monitorDelayLine->prepare(delayspec);
             monitorDelayLine->reset();
             _monitorDelayChans = numchans;
+            delayWorkBuffer.setSize(numchans, 4096, false, false, true);
         }
+
+        
+
 
         // if monitorDelayActive is ever true, it means it has already been initialized
         params.monitorDelayParams.enabled = true;
@@ -370,14 +375,94 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
     int fromNumChan = frombuffer.getNumChannels();
     int toNumChan = tobuffer.getNumChannels();
 
-    if (frombuffer.getNumChannels() > 0 && destNumChans == 2) {
+
+    if (monitorDelayParamsChanged) {
+        commitMonitorDelayParams();
+        monitorDelayParamsChanged = false;
+    }
+
+    bool domondelay = _monitorDelayActive.get();
+    int mondelayfade = 0;
+
+    auto * usefrombuffer = &frombuffer;
+    auto useFromStartChan = fromStartChan;
+    auto useFromNumChan = fromNumChan;
+
+    if (domondelay || _monitorDelayLastActive != domondelay) {
+        const ScopedTryLock lock(_monitorDelayLock);
+        if (lock.isLocked()) {
+
+            // transition between delayed and not
+            if (_monitorDelayLastActive != domondelay) {
+                if (domondelay) {
+                    monitorDelayLine->reset();
+                    mondelayfade = 1; // fade in
+                }
+                else {
+                    mondelayfade = -1; // fade out
+                }
+            }
+
+            if (domondelay) {
+                if (_monitorDelayTimeChanged.get() && !_monitorDelayTimeChanging) {
+                    _monitorDelayTimeChanged = false;
+                    mondelayfade = -1.0f; // fade out
+                    _monitorDelayTimeChanging = true;
+                }
+                else if (_monitorDelayTimeChanging) {
+                    // already faded out, now apply new delay time
+                    _monitorDelayTimeChanging = false;
+                    monitorDelayLine->setDelay(_monitorDelayTimeSamples);
+                    mondelayfade = 1; // fade in
+                }
+            }
+
+            if ((domondelay || mondelayfade != 0)) {
+                // should match dest num channels, but we need to make sure of it
+                if (params.numChannels == _monitorDelayChans) {
+                    auto delayinoutBlock = dsp::AudioBlock<float>(delayWorkBuffer).getSubsetChannelBlock(0, (size_t)params.numChannels).getSubBlock(0, numSamples);
+
+                    // apply it going in
+                    for (int srcchan = fromStartChan, chan = 0; chan < delayWorkBuffer.getNumChannels() && srcchan < fromStartChan + params.numChannels && srcchan < fromNumChan; ++srcchan, ++chan) {
+                        if (mondelayfade != 0) {
+                            delayWorkBuffer.copyFromWithRamp(chan, 0, frombuffer.getReadPointer(srcchan), numSamples,
+                                mondelayfade > 0 ? 0.0f : 1.0f, mondelayfade > 0 ? 1.0f : 0.0f);
+                            //tobuffer.applyGainRamp(0, numSamples, mondelayfade > 0 ? 0.0f : 1.0f, mondelayfade > 0 ? 1.0f : 0.0f);
+                        }
+                        else {
+                            delayWorkBuffer.copyFrom(chan, 0, frombuffer.getReadPointer(srcchan), numSamples);
+                        }
+                    }
+
+                    monitorDelayLine->process(dsp::ProcessContextReplacing<float>(delayinoutBlock));
+
+                    // apply it coming out
+                    for (int chan = 0; chan < params.numChannels && chan < delayWorkBuffer.getNumChannels(); ++chan) {
+                        if (mondelayfade != 0) {
+                            delayWorkBuffer.applyGainRamp(chan, 0, numSamples, mondelayfade > 0 ? 0.0f : 1.0f, mondelayfade > 0 ? 1.0f : 0.0f);
+                        }
+                    }
+
+                    usefrombuffer = &delayWorkBuffer;
+                    useFromStartChan = 0;
+                    useFromNumChan = jmin(params.numChannels, delayWorkBuffer.getNumChannels());
+                }
+            }
+
+            _monitorDelayLastActive = domondelay;
+
+            
+        }
+    }
+
+    if (useFromNumChan > 0 && destNumChans == 2) {
         //tobuffer.clear(0, numSamples);
 
         for (int channel = destStartChan; channel < destStartChan + destNumChans && channel < toNumChan; ++channel) {
             int pani = 0;
-            for (int i=fromStartChan; i < fromStartChan + params.numChannels && i < fromNumChan; ++i, ++pani) {
-                const float upan = (params.numChannels != 2 ? params.pan[pani] : i==fromStartChan ? params.panStereo[0] : params.panStereo[1]);
-                const float lastpan = (params.numChannels != 2 ? _lastmonpan[pani] : i==fromStartChan ? _lastmonstereopan[0] : _lastmonstereopan[1]);
+            for (int i=useFromStartChan; i < useFromStartChan + params.numChannels && i < useFromNumChan; ++i, ++pani) {
+                const float upan = (params.numChannels != 2 ? params.pan[pani] : i==useFromStartChan ? params.panStereo[0] : params.panStereo[1]);
+                const float lastpan = (params.numChannels != 2 ? _lastmonpan[pani] : i==useFromStartChan ? _lastmonstereopan[0] : _lastmonstereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
@@ -391,92 +476,35 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
                     plastgain *= params.centerPanLaw + (fabsf(lastpan) * (1.0f - params.centerPanLaw));
                     plastgain *= _lastmonitor;
 
-                    tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(i), numSamples, plastgain, pgain);
+                    tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(i), numSamples, plastgain, pgain);
                 } else {
-                    tobuffer.addFrom (channel, 0, frombuffer, i, 0, numSamples, pgain);
+                    tobuffer.addFrom (channel, 0, *usefrombuffer, i, 0, numSamples, pgain);
                 }
             }
         }
     }
-    else if (frombuffer.getNumChannels() > 0 && destNumChans == 1){
+    else if (useFromNumChan > 0 && destNumChans == 1){
         // sum all into destChan
         int channel = destStartChan;
-        for (int srcchan = fromStartChan; srcchan < fromStartChan + params.numChannels && srcchan < fromNumChan && channel < toNumChan; ++srcchan) {
+        for (int srcchan = useFromStartChan; srcchan < useFromStartChan + params.numChannels && srcchan < useFromNumChan && channel < toNumChan; ++srcchan) {
 
-            tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
+            tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
 
         }
     }
-    else if (frombuffer.getNumChannels() > 0){
+    else if (useFromNumChan > 0){
         // straight thru to dests - no panning
-        int srcchan = fromStartChan;
-        for (int channel = destStartChan; srcchan < fromStartChan + params.numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+        int srcchan = useFromStartChan;
+        for (int channel = destStartChan; srcchan < useFromStartChan + params.numChannels && srcchan < useFromNumChan && channel < toNumChan; ++channel, ++srcchan) {
 //        for (int channel = destStartChan + chanStartIndex; channel < destStartChan + destNumChans && srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
 
-            tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
+            tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
         }
     }
 
-    if (monitorDelayParamsChanged) {
-        commitMonitorDelayParams();
-        monitorDelayParamsChanged = false;
-    }
-
-    bool domondelay = _monitorDelayActive.get();
-    int mondelayfade = 0;
-
-    if (domondelay || _monitorDelayLastActive != domondelay) {
-        const ScopedTryLock lock(_monitorDelayLock);
-        if (lock.isLocked()) {
-
-            // transition between delayed and not
-            if (_monitorDelayLastActive != domondelay) {
-                if (domondelay) {
-                    monitorDelayLine->reset();
-                    mondelayfade = 1; // fade in
-                } else {
-                    mondelayfade = -1; // fade out
-                }
-            }
-
-            if (domondelay) {
-                if (_monitorDelayTimeChanged.get() && !_monitorDelayTimeChanging) {
-                    _monitorDelayTimeChanged = false;
-                    mondelayfade = -1.0f; // fade out
-                    _monitorDelayTimeChanging = true;
-                } else if (_monitorDelayTimeChanging) {
-                    // already faded out, now apply new delay time
-                    _monitorDelayTimeChanging = false;
-                    monitorDelayLine->setDelay(_monitorDelayTimeSamples);
-                    mondelayfade = 1; // fade in
-                }
-            }
-
-            if ((domondelay || mondelayfade != 0)) {
-                // should match dest num channels, but we need to make sure of it
-                if (destNumChans == _monitorDelayChans) {
-                    auto delayinoutBlock = dsp::AudioBlock<float> (tobuffer).getSubsetChannelBlock (destStartChan, (size_t) destNumChans).getSubBlock(0, numSamples);
-
-                    // apply it going in
-                    if (mondelayfade != 0) {
-                        tobuffer.applyGainRamp(0, numSamples, mondelayfade > 0 ? 0.0f : 1.0f, mondelayfade > 0 ? 1.0f : 0.0f);
-                    }
-
-                    monitorDelayLine->process (dsp::ProcessContextReplacing<float> (delayinoutBlock));
-
-                    // apply it coming out
-                    if (mondelayfade != 0) {
-                        tobuffer.applyGainRamp(0, numSamples, mondelayfade > 0 ? 0.0f : 1.0f, mondelayfade > 0 ? 1.0f : 0.0f);
-                    }
-                }
-            }
-
-            _monitorDelayLastActive = domondelay;
-
-        }
-    }
+    
 
     _lastmonstereopan[0] = params.panStereo[0];
     _lastmonstereopan[1] = params.panStereo[1];
@@ -712,7 +740,7 @@ void ChannelGroup::commitEqParams()
 void ChannelGroup::commitMonitorDelayParams()
 {
     setMonitoringDelayTimeMs(params.monitorDelayParams.delayTimeMs);
-    setMonitoringDelayEnabled(params.monitorDelayParams.enabled, params.monDestChannels);
+    setMonitoringDelayEnabled(params.monitorDelayParams.enabled, params.numChannels);
 }
 
 
