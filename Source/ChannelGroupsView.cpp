@@ -1247,6 +1247,9 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             mMetChannelView->nameLabel->setEditable(false);
             mMetChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
 
+            mMetLevelAttachment   = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMetGain, *mMetChannelView->levelSlider);
+
+
             std::unique_ptr<Drawable> grpimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
             mMetChannelView->linkButton->setButtonStyle(DrawableButton::ButtonStyle::ImageOnButtonBackground);
             mMetChannelView->linkButton->setImages(grpimg.get());
@@ -1289,9 +1292,9 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
                 showDestSelectionMenu(mMetChannelView->destButton.get(), -1);
             };
 
-            mMetChannelView->levelSlider->onValueChange = [this]() {
-                processor.setMetronomeGain(mMetChannelView->levelSlider->getValue());
-            };
+            //mMetChannelView->levelSlider->onValueChange = [this]() {
+            //    processor.setMetronomeGain(mMetChannelView->levelSlider->getValue());
+            //};
 
             mMetChannelView->panSlider->onValueChange = [this]() {
                 processor.setMetronomePan(mMetChannelView->panSlider->getValue());
@@ -1315,6 +1318,7 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
         if (!mFileChannelView) {
             mFileChannelView.reset(createChannelGroupView(true));
+            mFileChannelView->nameLabel->setEditable(false);
             mFileChannelView->nameLabel->setText(TRANS("File Playback"), dontSendNotification);
             mFileChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
 

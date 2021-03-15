@@ -16,7 +16,7 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
 
     mTitleLabel = std::make_unique<Label>("title", TRANS("Chat"));
     mTitleLabel->setJustificationType(Justification::centred);
-    mTitleLabel->setFont(Font(20, Font::bold));
+    mTitleLabel->setFont(Font(18, Font::bold));
     mTitleLabel->setColour(Label::textColourId, Colour(0xeeffffff));
 
     mChatTextEditor = std::make_unique<TextEditor>();

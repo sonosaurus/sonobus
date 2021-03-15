@@ -369,6 +369,7 @@ protected:
 
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
 
 
     WeakReference<Component> effectsCalloutBox;
