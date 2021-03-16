@@ -3561,7 +3561,7 @@ void ChannelGroupsView::showMonitorEffects(int index, bool flag, Component * fro
         int defHeight = 156;
 #endif
 
-        if (!mEffectsView) {
+        if (!mMonEffectsView) {
             mMonEffectsView = std::make_unique<ChannelGroupMonitorEffectsView>(processor, mPeerMode);
             mMonEffectsView->addListener(this);
         }

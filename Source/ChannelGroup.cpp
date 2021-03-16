@@ -190,8 +190,11 @@ void ChannelGroup::setMonitoringDelayEnabled(bool enabled, int numchans)
 void ChannelGroup::setMonitoringDelayTimeMs(double delayms)
 {
     params.monitorDelayParams.delayTimeMs = delayms;
-    _monitorDelayTimeSamples = 1e-3 * delayms * sampleRate;
-    _monitorDelayTimeChanged = true;
+    auto newsamps = 1e-3 * delayms * sampleRate;
+    if ( fabs(_monitorDelayTimeSamples - newsamps) > 1) {
+        _monitorDelayTimeSamples = newsamps;
+        _monitorDelayTimeChanged = true;
+    }
 }
 
 
