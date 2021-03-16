@@ -1725,8 +1725,8 @@ bool SonobusAudioProcessor::insertInputChannelGroup(int atgroup, int chstart, in
         }
         mInputChannelGroups[atgroup].params.chanStartIndex = chstart;
         mInputChannelGroups[atgroup].params.numChannels = std::max(1, std::min(chcount, MAX_CHANNELS));
-        mInputChannelGroups[atgroup].params.monDestStartIndex = jmax(0, jmin(2 * (chstart / 2), getMainBusNumOutputChannels()-1));
-        mInputChannelGroups[atgroup].params.monDestChannels = std::max(1, std::min(2, getMainBusNumOutputChannels() - mInputChannelGroups[atgroup].params.monDestStartIndex));
+        mInputChannelGroups[atgroup].params.monDestStartIndex = jmax(0, jmin(2 * (chstart / 2), getTotalNumOutputChannels()-1));
+        mInputChannelGroups[atgroup].params.monDestChannels = std::max(1, std::min(2, getTotalNumOutputChannels() - mInputChannelGroups[atgroup].params.monDestStartIndex));
 
         // todo some defaults
         mInputChannelGroups[atgroup].commitMonitorDelayParams(); // need to do this too
@@ -4255,7 +4255,7 @@ bool SonobusAudioProcessor::insertRemotePeerChannelGroup(int index, int atgroup,
         remote->chanGroups[atgroup].params.chanStartIndex = chstart;
         remote->chanGroups[atgroup].params.numChannels = std::max(1, std::min(chcount, MAX_CHANNELS));
         remote->chanGroups[atgroup].params.panDestStartIndex = 0;
-        remote->chanGroups[atgroup].params.panDestChannels = std::max(1, std::min(2, getMainBusNumOutputChannels()));
+        remote->chanGroups[atgroup].params.panDestChannels = std::max(1, std::min(2, getTotalNumOutputChannels()));
 
         remote->modifiedChanGroups = true;
         remote->modifiedMultiChanGroups = true;
@@ -5653,6 +5653,15 @@ void SonobusAudioProcessor::restoreLayoutFormatForPeer(RemotePeer * remote, bool
 
     for (int i=0; i < MAX_CHANGROUPS && i < remote->numChanGroups; ++i) {
         remote->chanGroups[i].params = remote->origChanParams[i];
+
+        // possibly reset monitoring pan
+        if (remote->chanGroups[i].params.numChannels > remote->chanGroups[i].params.panDestChannels) {
+            // set the monDestChannel count to be equal (but not more than total output channels)
+            remote->chanGroups[i].params.panDestChannels = jmin(remote->chanGroups[i].params.numChannels, getTotalNumOutputChannels());
+            remote->chanGroups[i].params.panDestStartIndex = jmax(0, jmin(remote->chanGroups[i].params.panDestStartIndex,
+                                                                          getTotalNumOutputChannels() - remote->chanGroups[i].params.panDestChannels));
+        }
+
         remote->chanGroups[i].commitAllParams();
     }
 
@@ -6050,7 +6059,6 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
     int inchannels =  getTotalNumInputChannels(); // getMainBusNumInputChannels();
     int outchannels = getMainBusNumOutputChannels();
-    int maxchans = jmax(inchannels, outchannels);
 
 
     lastSamplesPerBlock = currSamplesPerBlock = samplesPerBlock;
@@ -6127,62 +6135,6 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         }
     }
     else if (lastInputChannels != inchannels || lastOutputChannels != outchannels) {
-        /*
-        if (inchannels < outchannels) {
-            // center pan it
-            mState.getParameter(paramInMonitorPan1)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan1)->convertTo0to1(0.0));
-            mState.getParameter(paramInMonitorPan2)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan2)->convertTo0to1(0.0));
-        }
-        else {
-            // hard pan left/right
-            mState.getParameter(paramInMonitorPan1)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan1)->convertTo0to1(-1.0));
-            mState.getParameter(paramInMonitorPan2)->setValueNotifyingHost(mState.getParameter(paramInMonitorPan2)->convertTo0to1(1.0));
-        }
-         */
-
-#if 0
-        if (lastInputChannels != inchannels) {
-            // adjust input channel groups
-            if (inchannels > lastInputChannels) {
-                if (inchannels > 2 || mInputChannelGroupCount > 1) {
-                    // just add a new single channel groups to the end
-                    int delta = inchannels - lastInputChannels;
-                    int chstart = lastInputChannels;
-                    for (int i=mInputChannelGroupCount; i < mInputChannelGroupCount + delta && i < MAX_CHANGROUPS; ++i) {
-                        mInputChannelGroups[i].chanStartIndex = chstart++;
-                        mInputChannelGroups[i].numChannels = 1;
-                        mInputChannelGroups[i].monDestStartIndex = 0;
-                        mInputChannelGroups[i].monDestChannels = jmin(2, outchannels);
-                    }
-
-                    mInputChannelGroupCount += delta;
-                }
-                else {
-                    // just increase size of existing single one
-                    int delta = inchannels - lastInputChannels;
-                    mInputChannelGroups[0].numChannels += delta;
-                }
-            }
-            else {
-                // fewer channels, need to start pulling channels off from the last group
-                int delta = lastInputChannels - inchannels;
-
-                for (int i=mInputChannelGroupCount-1; i > 0 && delta > 0; --i) {
-                    if (mInputChannelGroups[i].numChannels > delta) {
-                        // some left, we're done
-                        mInputChannelGroups[i].numChannels -= delta;
-                        delta = 0;
-                        break;
-                    } else {
-                        // remove a group, keep going possibly
-                        delta -= mInputChannelGroups[i].numChannels;
-                        --mInputChannelGroupCount;
-                    }
-                }
-
-            }
-        }
-#endif
 
         lastInputChannels = inchannels;
         lastOutputChannels = outchannels;
@@ -6300,7 +6252,7 @@ void SonobusAudioProcessor::setupSourceFormatsForAll()
         }
         if (s->oursink) {
             const ScopedWriteLock sl (s->sinkLock);
-            int sinkchan = std::max(outchannels, s->recvChannels);
+            int sinkchan = jmax(outchannels, s->recvChannels);
             s->oursink->setup(sampleRate, currSamplesPerBlock, sinkchan);
         }
 

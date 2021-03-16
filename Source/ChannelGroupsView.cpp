@@ -1509,6 +1509,7 @@ void ChannelGroupsView::updateLayoutForRemotePeer(bool notify)
     bool pannervisible = true;
 
     int totaloutchans = 1;
+    totaloutchans = processor.getTotalNumOutputChannels();
 
     int estwidth = mEstimatedWidth > 13 ? mEstimatedWidth - 13 : 320;
 
@@ -1518,9 +1519,8 @@ void ChannelGroupsView::updateLayoutForRemotePeer(bool notify)
 
     processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
     processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
-    destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+    destcnt = jmin(totaloutchans, destcnt);
 
-    totaloutchans = processor.getMainBusNumOutputChannels();
 
     if ((destcnt != 2) || chcnt == 0) {
         pannervisible = false;
@@ -1544,7 +1544,7 @@ void ChannelGroupsView::updateLayoutForRemotePeer(bool notify)
             changroup++;
             processor.getRemotePeerChannelGroupStartAndCount(mPeerIndex, changroup, chstart, chcnt);
             processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
-            destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+            destcnt = jmin(totaloutchans, destcnt);
 
             if ((destcnt != 2) || chcnt == 0) {
                 pannervisible = false;
@@ -1866,12 +1866,12 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
     totalchans = processor.getTotalNumInputChannels();
     changroups = processor.getInputGroupCount();
 
-    totaloutchans = processor.getMainBusNumOutputChannels();
+    totaloutchans = processor.getTotalNumOutputChannels();
 
     processor.getInputGroupChannelStartAndCount(changroup, chstart, chcnt);
     processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
 
-    destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+    destcnt = jmin(totaloutchans, destcnt);
     if ((sendcnt != 2 && destcnt != 2) || chcnt == 0) {
         pannervisible = false;
     }
@@ -1910,7 +1910,7 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
 
             processor.getInputGroupChannelDestStartAndCount(changroup, deststart, destcnt);
 
-            destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+            destcnt = jmin(totaloutchans, destcnt);
             if ((sendcnt != 2 && destcnt != 2) || chcnt == 0) {
                 pannervisible = false;
             } else {
@@ -2542,7 +2542,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         }
     }
 
-    bool maindestbuttvisible = !expanded && changroups == 1 && chcnt < totaloutchans;
+    bool maindestbuttvisible = !expanded && changroups == 1 /*&& chcnt < totaloutchans */;
     mMainChannelView->destButton->setVisible(maindestbuttvisible);
 
     if (maindestbuttvisible) {
@@ -2669,7 +2669,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         deststart = 0;
         destcnt = 2;
         processor.getRemotePeerChannelGroupDestStartAndCount(mPeerIndex, changroup, deststart, destcnt);
-        destcnt = jmin(processor.getMainBusNumOutputChannels(), destcnt);
+        destcnt = jmin(totaloutchans, destcnt);
 
         String desttext;
         if (destcnt == 1) {
@@ -2705,7 +2705,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         }
 
         bool isprimary = chi == 0;
-        bool destbuttvisible = isprimary && chcnt < totaloutchans;
+        bool destbuttvisible = isprimary /*&& chcnt < totaloutchans */;
         pvf->levelSlider->setVisible(isprimary);
         pvf->soloButton->setVisible(isprimary);
         pvf->muteButton->setVisible(isprimary);
@@ -3001,7 +3001,7 @@ void ChannelGroupsView::addGroupPressed()
 
     Array<GenericItemChooserItem> items;
 
-    int totalouts = processor.getMainBusNumOutputChannels();
+    int totalouts = processor.getTotalNumOutputChannels();
     int totalins = processor.getTotalNumInputChannels();
     totalins = jmin(totalins, MAX_CHANNELS);
 
@@ -3055,7 +3055,7 @@ void ChannelGroupsView::showChangeGroupChannels(int changroup, Component * showf
 
     Array<GenericItemChooserItem> items;
 
-    int totalouts = processor.getMainBusNumOutputChannels();
+    int totalouts = processor.getTotalNumOutputChannels();
     int totalins = processor.getTotalNumInputChannels();
 
     totalins = jmin(totalins, MAX_CHANNELS);

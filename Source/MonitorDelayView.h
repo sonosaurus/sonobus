@@ -48,7 +48,7 @@ public:
         autoButton.addListener(this);
         autoButton.setTooltip(TRANS("Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection"));
 
-        linkButton.setButtonText(TRANS("Link Delay Time with others"));
+        linkButton.setButtonText(TRANS("Link Delay Time with other inputs"));
         linkButton.onClick = [this]() {
             processor.setLinkMonitoringDelayTimes(linkButton.getToggleState());
         };
