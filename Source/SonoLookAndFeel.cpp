@@ -65,8 +65,8 @@ SonoLookAndFeel::SonoLookAndFeel()
     setColour (Slider::backgroundColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 1.0));
     setColour (Slider::rotarySliderOutlineColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 1.0));
     setColour (Slider::textBoxTextColourId, Colour(0xddcccccc));
-    setColour (Slider::textBoxBackgroundColourId, Colour::fromFloatRGBA(0.1, 0.1, 0.1, 0.7));
-    setColour (Slider::textBoxHighlightColourId, Colour (0xff050505));
+    setColour (Slider::textBoxBackgroundColourId, Colour::fromFloatRGBA(0.05, 0.05, 0.05, 1.0));
+    setColour (Slider::textBoxHighlightColourId, Colour (0xaa555555));
     setColour (Slider::textBoxOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
     
     setColour (Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.8));
@@ -1350,6 +1350,11 @@ SonoPanSliderLookAndFeel::SonoPanSliderLookAndFeel(float maxTextSize)
 {
     setColour (TooltipWindow::textColourId, Colour(0xeecccccc));
    // setColour (TooltipWindow::backgroundColourId, Colour(0xeeffff99));
+    //setColour (Slider::textBoxBackgroundColourId, Colour::fromFloatRGBA(0.05, 0.05, 0.05, 1.0));
+    setColour (Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+    setColour (Slider::textBoxHighlightColourId, Colour (0xaa555555));
+    setColour (Slider::textBoxOutlineColourId, Colours::transparentBlack);
+
 }
 
 Label* SonoPanSliderLookAndFeel::createSliderTextBox (Slider& slider)

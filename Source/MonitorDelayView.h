@@ -34,6 +34,7 @@ public:
         configBarSlider(timeSlider);
         timeSlider.addListener(this);
         timeSlider.getProperties().set ("noFill", true);
+        timeSlider.setTextBoxIsEditable(true);
 
         timeLabel.setText(TRANS("Delay Time"), dontSendNotification);
         configLabel(timeLabel);
@@ -59,8 +60,8 @@ public:
 
         dragButton.setVisible(false);
 
-        addAndMakeVisible(timeSlider);
         addAndMakeVisible(timeLabel);
+        addAndMakeVisible(timeSlider);
         addAndMakeVisible(autoModeChoice);
         addAndMakeVisible(autoButton);
         addAndMakeVisible(linkButton);

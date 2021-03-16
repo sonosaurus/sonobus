@@ -484,6 +484,7 @@ private:
     std::unique_ptr<ResizableEdgeComponent> mChatEdgeResizer;
     std::unique_ptr<SonoDrawableButton> mChatButton;
     bool mAboutToShowChat = false;
+    bool mChatShowDidResize = false;
     bool mChatWasVisible = false;
     bool mChatOverlay = false;
     bool mIgnoreChatViewResize = false;

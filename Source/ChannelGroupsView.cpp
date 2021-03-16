@@ -965,13 +965,14 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->panLabel->setJustificationType(Justification::centredTop);
     
     pvf->panSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::NoTextBox);
+    //pvf->panSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 60, 12);
     pvf->panSlider->setName(first ? "firstpan1": "pan1");
     pvf->panSlider->addListener(this);
     pvf->panSlider->getProperties().set ("fromCentre", true);
     pvf->panSlider->getProperties().set ("noFill", true);
     pvf->panSlider->setRange(-1, 1, 0.0f);
     pvf->panSlider->setDoubleClickReturnValue(true, 0.0);
-    pvf->panSlider->setTextBoxIsEditable(false);
+    pvf->panSlider->setTextBoxIsEditable(true);
     pvf->panSlider->setSliderSnapsToMousePosition(false);
     pvf->panSlider->setScrollWheelEnabled(false);
     pvf->panSlider->setMouseDragSensitivity(100);

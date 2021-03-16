@@ -561,8 +561,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mBufferTimeSlider->setSliderSnapsToMousePosition(false);
     mBufferTimeSlider->setChangeNotificationOnlyOnRelease(true);
     mBufferTimeSlider->setDoubleClickReturnValue(true, 15.0);
-    mBufferTimeSlider->setTextBoxIsEditable(false);
+    mBufferTimeSlider->setTextBoxIsEditable(true);
     mBufferTimeSlider->setScrollWheelEnabled(false);
+
 
     mInGainLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Level"));
     configLabel(mInGainLabel.get(), false);
@@ -719,6 +720,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatButton->onClick = [this]() {
         bool newshown = !mChatView->isVisible();
         this->showChatPanel(newshown);
+        resized();
     };
     //mChatButton->setClickingTogglesState(true);
     //mChatButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
@@ -1094,10 +1096,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //mInputChannelsViewport->setScrollOnDragEnabled(true);
 #endif
     
+    mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mBufferTimeSlider.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutosizeDefaultChoice.get());
     mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceDefaultChoice.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
     //mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
@@ -3039,10 +3041,11 @@ void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& compone
 
     if (&component == mChatView.get()) {
         if (!mChatView->isVisible() && mChatWasVisible) {
-            if (!mChatOverlay) {
+            if (!mChatOverlay && mChatShowDidResize) {
                 // reduce size
                 int newwidth = getWidth() - mChatView->getWidth();
                 setSize(newwidth, getHeight());
+                //mChatShowDidResize = false;
             } else {
                 resized();
             }
@@ -3767,7 +3770,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             updateState();
             // need to update layout too
             updateLayout();
-            resized();            
+            resized();
         }
         else if (ev.type == ClientEvent::PublicGroupModifiedEvent) {
             mConnectView->updatePublicGroups();
@@ -3833,8 +3836,19 @@ void SonobusAudioProcessorEditor::showChatPanel(bool show, bool allowresize)
             int maxwidth = display ? display->userArea.getWidth() : 1600;
             int newwidth = jmin(maxwidth, getWidth() + mChatView->getWidth());
             mAboutToShowChat = true;
-            setSize(newwidth, getHeight());
+            if (abs(newwidth - getWidth()) > 10) {
+                mChatShowDidResize = true;
+                setSize(newwidth, getHeight());
+            }
+            else {
+                mChatShowDidResize = false;
+            }
         }
+        else if (show) {
+            mChatShowDidResize = false;
+        }
+#else
+    mChatShowDidResize = false;
 #endif
 
     mChatView->setVisible(show);
@@ -5094,7 +5108,7 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::ChatToggle:
             showChatPanel(!mChatView->isVisible());
-
+            resized();
             break;
         case SonobusCommands::SaveSetupFile:
             DBG("got save setup file!");

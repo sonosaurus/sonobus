@@ -400,7 +400,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeSlider->getProperties().set ("noFill", true);
     pvf->bufferTimeSlider->setSkewFactor(0.4);
     pvf->bufferTimeSlider->setDoubleClickReturnValue(true, 20.0);
-    pvf->bufferTimeSlider->setTextBoxIsEditable(false);
+    pvf->bufferTimeSlider->setTextBoxIsEditable(true);
     pvf->bufferTimeSlider->setSliderSnapsToMousePosition(false);
     pvf->bufferTimeSlider->setChangeNotificationOnlyOnRelease(true);
     pvf->bufferTimeSlider->setScrollWheelEnabled(false);
@@ -720,9 +720,9 @@ void PeersContainerView::rebuildPeerViews()
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->addrLabel.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->staticAddrLabel.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->autosizeButton.get());
+        pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferTimeLabel.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferTimeSlider.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferMinButton.get());
-        pvf->recvOptionsContainer->addAndMakeVisible(pvf->bufferTimeLabel.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->optionsResetDropButton.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->remoteSendFormatChoiceButton.get());
         pvf->recvOptionsContainer->addAndMakeVisible(pvf->staticRemoteSendFormatChoiceLabel.get());
