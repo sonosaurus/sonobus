@@ -4958,7 +4958,6 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Share audio file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('f', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::RevealFile:
             info.setInfo (TRANS("Reveal Audio File"),
@@ -4986,7 +4985,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Show or hide chat area"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('a', ModifierKeys::commandModifier);
+            info.addDefaultKeypress ('y', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
