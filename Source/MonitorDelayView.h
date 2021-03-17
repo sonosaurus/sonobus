@@ -78,12 +78,6 @@ public:
     }
 
    
-    
-    void paint (Graphics& g) override
-    {
-       
-    }
-    
     class Listener {
     public:
         virtual ~Listener() {}

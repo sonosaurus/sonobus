@@ -42,19 +42,24 @@ ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bo
     eqView->addListener(this);
     eqView->addHeaderListener(this);
 
-    reverbSendView =  std::make_unique<ReverbSendView>(processor);
+    reverbSendView =  std::make_unique<ReverbSendView>(processor, true);
     reverbSendView->addListener(this);
     reverbSendView->addHeaderListener(this);
 
     effectsConcertina->addPanel(-1, expanderView.get(), false);
     effectsConcertina->addPanel(-1, compressorView.get(), false);
     effectsConcertina->addPanel(-1, eqView.get(), false);
-    effectsConcertina->addPanel(-1, reverbSendView.get(), false);
+    if (peerMode) {
+        effectsConcertina->addPanel(-1, reverbSendView.get(), false);
+    }
 
     effectsConcertina->setCustomPanelHeader(compressorView.get(), compressorView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(expanderView.get(), expanderView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(eqView.get(), eqView->getHeaderComponent(), false);
-    effectsConcertina->setCustomPanelHeader(reverbSendView.get(), reverbSendView->getHeaderComponent(), false);
+
+    if (peerMode) {
+        effectsConcertina->setCustomPanelHeader(reverbSendView.get(), reverbSendView->getHeaderComponent(), false);
+    }
 
     addAndMakeVisible (effectsConcertina.get());
 
@@ -188,22 +193,28 @@ void ChannelGroupEffectsView::updateLayout()
     auto minrevbounds = reverbSendView->getMinimumContentBounds();
     auto minrevheadbounds = reverbSendView->getMinimumHeaderBounds();
 
-
+    int gcount = peerMode ? 4 : 3;
 
     effectsBox.items.clear();
     effectsBox.flexDirection = FlexBox::Direction::column;
     effectsBox.items.add(FlexItem(4, 2));
-    effectsBox.items.add(FlexItem(minexpbounds.getWidth(), jmax(minexpbounds.getHeight(), mincompbounds.getHeight(), mineqbounds.getHeight()) + 3*minitemheight, *effectsConcertina).withMargin(1).withFlex(1));
+    effectsBox.items.add(FlexItem(minexpbounds.getWidth(), jmax(minexpbounds.getHeight(), mincompbounds.getHeight(), mineqbounds.getHeight()) + gcount*minitemheight, *effectsConcertina).withMargin(1).withFlex(1));
 
     effectsConcertina->setPanelHeaderSize(compressorView.get(), mincompheadbounds.getHeight());
     effectsConcertina->setPanelHeaderSize(expanderView.get(), minexpheadbounds.getHeight());
     effectsConcertina->setPanelHeaderSize(eqView.get(), mineqheadbounds.getHeight());
-    effectsConcertina->setPanelHeaderSize(reverbSendView.get(), minrevheadbounds.getHeight());
+
+    if (peerMode) {
+        effectsConcertina->setPanelHeaderSize(reverbSendView.get(), minrevheadbounds.getHeight());
+    }
 
     effectsConcertina->setMaximumPanelSize(compressorView.get(), mincompbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(expanderView.get(), minexpbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(eqView.get(), mineqbounds.getHeight());
-    effectsConcertina->setMaximumPanelSize(reverbSendView.get(), minrevbounds.getHeight());
+
+    if (peerMode) {
+        effectsConcertina->setMaximumPanelSize(reverbSendView.get(), minrevbounds.getHeight());
+    }
 
 }
 
@@ -376,7 +387,7 @@ ChannelGroupMonitorEffectsView::ChannelGroupMonitorEffectsView(SonobusAudioProce
     delayView->addListener(this);
     delayView->addHeaderListener(this);
 
-    reverbSendView =  std::make_unique<ReverbSendView>(processor);
+    reverbSendView =  std::make_unique<ReverbSendView>(processor, false);
     reverbSendView->addListener(this);
     //reverbSendView->addHeaderListener(this);
 

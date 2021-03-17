@@ -7013,7 +7013,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 remote->chanGroups[i].processPan(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, tempBuffer, dstch, dstcnt, numSamples, adjgain);
 
                 if (doreverb) {
-                    remote->chanGroups[i].processReverbSend(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, remote->chanGroups[i].params.numChannels, mainFxBuffer, 0, fxchannels, numSamples, mainReverbEnabled);
+                    remote->chanGroups[i].processReverbSend(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, remote->chanGroups[i].params.numChannels, mainFxBuffer, 0, fxchannels, numSamples, mainReverbEnabled, adjgain);
                 }
 
             }

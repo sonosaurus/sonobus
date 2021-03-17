@@ -99,7 +99,7 @@ public:
 
     void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor, AudioBuffer<float> * reverbbuffer=nullptr, int revStartChan=0, int revNumChans=2, bool revEnabled=false);
 
-    void processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, bool revEnabled);
+    void processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, bool revEnabled, float gainfactor=1.0f);
 
     // shallow copy of parameters and state
     void copyParametersFrom(const ChannelGroup& other);
@@ -168,8 +168,8 @@ public:
     AudioBuffer<float> delayWorkBuffer;
 
     float _lastmonitor = 0.0f;
-    float _lastrevsend = 0.0f;
-    bool _lastRevEnabled = false;
+    float _lastrevgain = 0.0f;
+
     double sampleRate = 48000.0;
 };
 

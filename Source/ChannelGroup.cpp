@@ -517,7 +517,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
 
     // apply to reverb buffer
     if (reverbbuffer) {
-        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled);
+        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, targmon);
     }
 
     _lastmonstereopan[0] = params.panStereo[0];
@@ -532,13 +532,13 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
 
 void ChannelGroup::processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans,
                                       AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
-                                      int numSamples, bool revEnabled)
+                                      int numSamples, bool revEnabled, float gainfactor)
 {
     int fromMaxChans = frombuffer.getNumChannels();
     int destMaxChans = tobuffer.getNumChannels();
 
-    float targrevgain = params.reverbSend * (revEnabled ? 1.0f : 0.0f);
-    float lastrevgain = _lastrevsend * (_lastRevEnabled ? 1.0f : 0.0f);
+    const float targrevgain = gainfactor * params.reverbSend * (revEnabled ? 1.0f : 0.0f);
+    const float lastrevgain = _lastrevgain;
 
     if (fromNumChans > 0 && destNumChans == 2) {
         //tobuffer.clear(0, numSamples);
@@ -595,8 +595,7 @@ void ChannelGroup::processReverbSend (AudioBuffer<float>& frombuffer, int fromSt
         _lastrevpan[pani] = params.pan[pani];
     }
 
-    _lastRevEnabled = revEnabled;
-    _lastrevsend = params.reverbSend;
+    _lastrevgain = targrevgain;
 }
 
 

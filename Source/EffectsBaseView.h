@@ -18,6 +18,8 @@ class EffectsBaseView    : public Component
 public:
     EffectsBaseView() : sonoSliderLNF(14), smallLNF(12)
     {
+        bgColor = Colour(0xff101010);
+
         headerComponent.addAndMakeVisible(enableButton);
         headerComponent.addAndMakeVisible(titleLabel);
         headerComponent.addAndMakeVisible(dragButton);
@@ -43,6 +45,17 @@ public:
     {
     }
 
+    void paint (Graphics& g) override
+    {
+        auto bounds = getLocalBounds().toFloat().withTrimmedBottom(1);
+        const float cornrad = 8.0;
+        Path rrpath;
+        rrpath.addRoundedRectangle(bounds.getX() , bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornrad, cornrad, false, false, true, true);
+
+        g.setColour(bgColor);
+        g.fillPath(rrpath);
+    }
+
     class HeaderComponent : public Component
     {
     public:
@@ -61,7 +74,7 @@ public:
             
             g.setColour(usecolor);  
 
-            auto bounds = getLocalBounds().withTrimmedTop(2).withTrimmedBottom(2);
+            auto bounds = getLocalBounds().withTrimmedTop(2).withTrimmedBottom(0);
             g.fillRoundedRectangle(bounds.toFloat(), 6.0);
         }
         
@@ -212,6 +225,8 @@ protected:
     
     SonoBigTextLookAndFeel sonoSliderLNF;
     SonoBigTextLookAndFeel smallLNF;
+
+    Colour   bgColor;
 
     SonoDrawableButton enableButton = { "enable", DrawableButton::ButtonStyle::ImageFitted };    
     HeaderComponent headerComponent = { *this };

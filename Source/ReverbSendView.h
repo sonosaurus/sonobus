@@ -24,7 +24,7 @@ class ReverbSendView    : public EffectsBaseView,
    public EffectsBaseView::HeaderListener
 {
 public:
-    ReverbSendView(SonobusAudioProcessor & processor_)  : sonoSliderLNF(14), processor(processor_)
+    ReverbSendView(SonobusAudioProcessor & processor_, bool showdrag=true)  : sonoSliderLNF(14), processor(processor_), showDragIcon(showdrag)
     {
         sonoSliderLNF.textJustification = Justification::centredLeft;
 
@@ -54,7 +54,7 @@ public:
         enableButton.addListener(this);
         titleLabel.setText(TRANS("Main Reverb Send"), dontSendNotification);
 
-        dragButton.setVisible(false);
+        dragButton.setVisible(showDragIcon);
 
         //addAndMakeVisible(sendLabel);
         addAndMakeVisible(sendSlider);
@@ -72,12 +72,6 @@ public:
     }
 
    
-    
-    void paint (Graphics& g) override
-    {
-       
-    }
-    
     class Listener {
     public:
         virtual ~Listener() {}
@@ -86,8 +80,10 @@ public:
     
     void addListener(Listener * listener) { listeners.add(listener); }
     void removeListener(Listener * listener) { listeners.remove(listener); }
-    
-    
+
+    void setShowDragIcon(bool flag) { showDragIcon = flag; }
+    bool getShowDragIcon() const { return showDragIcon; }
+
     void setupLayout()
     {
         int minKnobWidth = 54;
@@ -124,9 +120,16 @@ public:
         //checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
         //checkBox.items.add(FlexItem(enablewidth, minitemheight, enableButton).withMargin(0).withFlex(0));
         checkBox.items.add(FlexItem(7, 5).withMargin(0).withFlex(0));
-        checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1));
-        //checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
-        //checkBox.items.add(FlexItem(24, minitemheight, dragButton).withMargin(0).withFlex(0));
+
+        if (showDragIcon) {
+            checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1).withMaxWidth(120));
+            checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
+            checkBox.items.add(FlexItem(24, minitemheight, dragButton).withMargin(0).withFlex(0));
+        } else {
+            checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1));
+        }
+        dragButton.setVisible(showDragIcon);
+
         checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
 
 
@@ -236,6 +239,7 @@ private:
     SonobusAudioProcessor & processor;
 
     Slider       sendSlider;
+    bool showDragIcon = false;
 
     Label sendLabel;
     Label infoLabel;
