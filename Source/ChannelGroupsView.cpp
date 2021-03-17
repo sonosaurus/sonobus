@@ -42,13 +42,19 @@ ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bo
     eqView->addListener(this);
     eqView->addHeaderListener(this);
 
+    reverbSendView =  std::make_unique<ReverbSendView>(processor);
+    reverbSendView->addListener(this);
+    reverbSendView->addHeaderListener(this);
+
     effectsConcertina->addPanel(-1, expanderView.get(), false);
     effectsConcertina->addPanel(-1, compressorView.get(), false);
     effectsConcertina->addPanel(-1, eqView.get(), false);
+    effectsConcertina->addPanel(-1, reverbSendView.get(), false);
 
     effectsConcertina->setCustomPanelHeader(compressorView.get(), compressorView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(expanderView.get(), expanderView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(eqView.get(), eqView->getHeaderComponent(), false);
+    effectsConcertina->setCustomPanelHeader(reverbSendView.get(), reverbSendView->getHeaderComponent(), false);
 
     addAndMakeVisible (effectsConcertina.get());
 
@@ -62,9 +68,17 @@ juce::Rectangle<int> ChannelGroupEffectsView::getMinimumContentBounds() const {
     auto minexpbounds = expanderView->getMinimumContentBounds();
     auto mineqbounds = eqView->getMinimumContentBounds();
     auto headbounds = compressorView->getMinimumHeaderBounds();
+    auto minrevbounds = reverbSendView->getMinimumContentBounds();
 
-    int defWidth = jmax(minbounds.getWidth(), minexpbounds.getWidth(), mineqbounds.getWidth()) + 12;
-    int defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight()) + 3*headbounds.getHeight() + 8;
+    int defWidth = jmax(minbounds.getWidth(), minexpbounds.getWidth(), mineqbounds.getWidth(), minrevbounds.getWidth()) + 12;
+    int defHeight = 0;
+
+    if (peerMode) {
+        defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight(), minrevbounds.getHeight()) + 4*headbounds.getHeight() + 8;
+    } else {
+        // don't include reverb send in input mode
+        defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight()) + 3*headbounds.getHeight() + 8;
+    }
 
     return Rectangle<int>(0,0,defWidth,defHeight);
 }
@@ -97,11 +111,19 @@ void ChannelGroupEffectsView::updateStateForRemotePeer()
         eqView->updateParams(eqparams);
     }
 
+    if (!reverbSendView->isVisible()) {
+        reverbSendView->setVisible(true);
+        reverbSendView->getHeaderComponent()->setVisible(true);
+    }
+
+    reverbSendView->updateParams(processor.getRemotePeerChannelReverbSend(peerIndex, groupIndex));
+
     if (firstShow) {
         if (eqparams.enabled && !(compParams.enabled || expParams.enabled)) {
             effectsConcertina->expandPanelFully(eqView.get(), false);
         }
         else {
+            effectsConcertina->setPanelSize(reverbSendView.get(), 0, false);
             effectsConcertina->setPanelSize(eqView.get(), 0, false);
             effectsConcertina->expandPanelFully(expanderView.get(), false);
             effectsConcertina->expandPanelFully(compressorView.get(), false);
@@ -128,6 +150,11 @@ void ChannelGroupEffectsView::updateStateForInput()
     ParametricEqParams eqparams;
     if (processor.getInputEqParams(groupIndex, eqparams)) {
         eqView->updateParams(eqparams);
+    }
+
+    if (reverbSendView->isVisible()) {
+        reverbSendView->setVisible(false);
+        reverbSendView->getHeaderComponent()->setVisible(false);
     }
 
     if (firstShow) {
@@ -158,6 +185,8 @@ void ChannelGroupEffectsView::updateLayout()
     auto minexpheadbounds = compressorView->getMinimumHeaderBounds();
     auto mineqbounds = eqView->getMinimumContentBounds();
     auto mineqheadbounds = eqView->getMinimumHeaderBounds();
+    auto minrevbounds = reverbSendView->getMinimumContentBounds();
+    auto minrevheadbounds = reverbSendView->getMinimumHeaderBounds();
 
 
 
@@ -169,10 +198,12 @@ void ChannelGroupEffectsView::updateLayout()
     effectsConcertina->setPanelHeaderSize(compressorView.get(), mincompheadbounds.getHeight());
     effectsConcertina->setPanelHeaderSize(expanderView.get(), minexpheadbounds.getHeight());
     effectsConcertina->setPanelHeaderSize(eqView.get(), mineqheadbounds.getHeight());
+    effectsConcertina->setPanelHeaderSize(reverbSendView.get(), minrevheadbounds.getHeight());
 
     effectsConcertina->setMaximumPanelSize(compressorView.get(), mincompbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(expanderView.get(), minexpbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(eqView.get(), mineqbounds.getHeight());
+    effectsConcertina->setMaximumPanelSize(reverbSendView.get(), minrevbounds.getHeight());
 
 }
 
@@ -254,6 +285,16 @@ void ChannelGroupEffectsView::parametricEqParamsChanged(ParametricEqView *comp, 
     }
 }
 
+void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float revlevel)
+{
+    if (peerMode) {
+        processor.setRemotePeerChannelReverbSend(peerIndex, groupIndex, revlevel);
+    }
+    else {
+        //processor.setInputReverbSend(groupIndex, revlevel);
+    }
+}
+
 void ChannelGroupEffectsView::effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev)
 {
     if (comp == compressorView.get()) {
@@ -318,6 +359,9 @@ void ChannelGroupEffectsView::effectsHeaderClicked(EffectsBaseView *comp, const 
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
     }
+    else if (comp == reverbSendView.get()) {
+        bool changed = effectsConcertina->expandPanelFully(reverbSendView.get(), true);
+    }
 }
 
 
@@ -332,24 +376,44 @@ ChannelGroupMonitorEffectsView::ChannelGroupMonitorEffectsView(SonobusAudioProce
     delayView->addListener(this);
     delayView->addHeaderListener(this);
 
+    reverbSendView =  std::make_unique<ReverbSendView>(processor);
+    reverbSendView->addListener(this);
+    //reverbSendView->addHeaderListener(this);
+
 
     effectsConcertina->addPanel(-1, delayView.get(), false);
-
     effectsConcertina->setCustomPanelHeader(delayView.get(), delayView->getHeaderComponent(), false);
+
+    effectsConcertina->addPanel(-1, reverbSendView.get(), false);
+    effectsConcertina->setCustomPanelHeader(reverbSendView.get(), reverbSendView->getHeaderComponent(), false);
+
 
     addAndMakeVisible (effectsConcertina.get());
 
     updateLayout();
 }
 
-ChannelGroupMonitorEffectsView::~ChannelGroupMonitorEffectsView() {}
+ChannelGroupMonitorEffectsView::~ChannelGroupMonitorEffectsView()
+{
+}
 
 juce::Rectangle<int> ChannelGroupMonitorEffectsView::getMinimumContentBounds() const {
     auto minbounds = delayView->getMinimumContentBounds();
     auto headbounds = delayView->getMinimumHeaderBounds();
 
+    auto minrevbounds = reverbSendView->getMinimumContentBounds();
+    auto headrevbounds = reverbSendView->getMinimumHeaderBounds();
+
+
     int defWidth = jmax(minbounds.getWidth(), 0) + 12;
-    int defHeight = jmax(minbounds.getHeight(), 0) + 1*headbounds.getHeight() + 8;
+    int defHeight = 0;
+
+    if (groupIndex < 0) {
+        // don't include reverb
+        defHeight = jmax(minbounds.getHeight() , 0) + headbounds.getHeight() + 8;
+    } else {
+        defHeight = jmax(minbounds.getHeight() + minrevbounds.getHeight(), 0) + headbounds.getHeight() + headrevbounds.getHeight() + 8;
+    }
 
     return Rectangle<int>(0,0,defWidth,defHeight);
 }
@@ -373,10 +437,16 @@ void ChannelGroupMonitorEffectsView::updateStateForRemotePeer()
 void ChannelGroupMonitorEffectsView::updateStateForInput()
 {
     DelayParams monDelayParams;
+
     if (groupIndex == -1) {
         // met
         if (processor.getMetronomeMonitorDelayParams(monDelayParams)) {
             delayView->updateParams(monDelayParams);
+        }
+
+        if (reverbSendView->isVisible()) {
+            reverbSendView->setVisible(false);
+            reverbSendView->getHeaderComponent()->setVisible(false);
         }
     }
     else if (groupIndex == -2) {
@@ -384,15 +454,27 @@ void ChannelGroupMonitorEffectsView::updateStateForInput()
         if (processor.getFilePlaybackMonitorDelayParams(monDelayParams)) {
             delayView->updateParams(monDelayParams);
         }
+
+        if (reverbSendView->isVisible()) {
+            reverbSendView->setVisible(false);
+            reverbSendView->getHeaderComponent()->setVisible(false);
+        }
     }
     else {
         if (processor.getInputMonitorDelayParams(groupIndex, monDelayParams)) {
             delayView->updateParams(monDelayParams);
         }
+        reverbSendView->updateParams(processor.getInputReverbSend(groupIndex));
+
+        if (!reverbSendView->isVisible()) {
+            reverbSendView->setVisible(true);
+            reverbSendView->getHeaderComponent()->setVisible(true);
+        }
     }
 
     if (firstShow) {
         effectsConcertina->setPanelSize(delayView.get(), 0, false);
+        effectsConcertina->setPanelSize(reverbSendView.get(), 0, false);
         //effectsConcertina->expandPanelFully(expanderView.get(), false);
         firstShow = false;
     }
@@ -408,19 +490,21 @@ void ChannelGroupMonitorEffectsView::updateLayout()
 
     auto mindelaybounds = delayView->getMinimumContentBounds();
     auto mindelayheadbounds = delayView->getMinimumHeaderBounds();
-    //auto minexpbounds = expanderView->getMinimumContentBounds();
-    //auto minexpheadbounds = compressorView->getMinimumHeaderBounds();
-    int gcount = 1;
+    auto minrevbounds = reverbSendView->getMinimumContentBounds();
+    auto minrevheadbounds = reverbSendView->getMinimumHeaderBounds();
+    int gcount = 2;
 
 
     effectsBox.items.clear();
     effectsBox.flexDirection = FlexBox::Direction::column;
     effectsBox.items.add(FlexItem(4, 2));
-    effectsBox.items.add(FlexItem(mindelaybounds.getWidth(), jmax(mindelaybounds.getHeight(), 0) + gcount*minitemheight, *effectsConcertina).withMargin(1).withFlex(1));
+    effectsBox.items.add(FlexItem(mindelaybounds.getWidth(), jmax(mindelaybounds.getHeight() + minrevbounds.getHeight(), 0) + gcount*minitemheight, *effectsConcertina).withMargin(1).withFlex(1));
 
     effectsConcertina->setPanelHeaderSize(delayView.get(), mindelayheadbounds.getHeight());
+    effectsConcertina->setPanelHeaderSize(reverbSendView.get(), minrevheadbounds.getHeight());
 
-    effectsConcertina->setMaximumPanelSize(delayView.get(), mindelaybounds.getHeight()+5);
+    effectsConcertina->setMaximumPanelSize(delayView.get(), mindelaybounds.getHeight());
+    effectsConcertina->setMaximumPanelSize(reverbSendView.get(), minrevbounds.getHeight());
 
 }
 
@@ -429,6 +513,17 @@ void ChannelGroupMonitorEffectsView::resized()  {
     effectsBox.performLayout(getLocalBounds().reduced(2, 2));
 
 }
+
+void ChannelGroupMonitorEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float revlevel)
+{
+    if (peerMode) {
+        processor.setRemotePeerChannelReverbSend(peerIndex, groupIndex, revlevel);
+    }
+    else {
+        processor.setInputReverbSend(groupIndex, revlevel);
+    }
+}
+
 
 void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView *comp, SonoAudio::DelayParams & params)
 {
@@ -502,7 +597,8 @@ void ChannelGroupMonitorEffectsView::effectsHeaderClicked(EffectsBaseView *comp,
         bool changed = effectsConcertina->setPanelSize(delayView.get(), 0, true);
         //changed |= effectsConcertina->expandPanelFully(expanderView.get(), true);
         //changed |= effectsConcertina->expandPanelFully(compressorView.get(), true);
-        if (!changed) {
+        //if (!changed)
+        {
             // toggle it
             DelayParams params;
 
@@ -2182,6 +2278,25 @@ void ChannelGroupsView::applyToAllSliders(std::function<void(Slider *)> & routin
         routine(pvf->monitorSlider.get());
         routine(pvf->panSlider.get());
     }
+
+    if (mMainChannelView) {
+        routine(mMainChannelView->levelSlider.get());
+        routine(mMainChannelView->panSlider.get());
+        routine(mMainChannelView->monitorSlider.get());
+    }
+
+    if (mFileChannelView) {
+        routine(mFileChannelView->levelSlider.get());
+        routine(mFileChannelView->panSlider.get());
+        routine(mFileChannelView->monitorSlider.get());
+    }
+
+    if (mMetChannelView) {
+        routine(mMetChannelView->levelSlider.get());
+        routine(mMetChannelView->panSlider.get());
+        routine(mMetChannelView->monitorSlider.get());
+    }
+
 }
 
 void ChannelGroupsView::updateChannelViews(int specific)
@@ -3567,6 +3682,10 @@ void ChannelGroupsView::showMonitorEffects(int index, bool flag, Component * fro
             mMonEffectsView->addListener(this);
         }
 
+        mMonEffectsView->peerMode = mPeerMode;
+        mMonEffectsView->peerIndex = mPeerIndex;
+        mMonEffectsView->groupIndex = index;
+
         auto minbounds = mMonEffectsView->getMinimumContentBounds();
         defWidth = minbounds.getWidth();
         defHeight = minbounds.getHeight();
@@ -3580,11 +3699,9 @@ void ChannelGroupsView::showMonitorEffects(int index, bool flag, Component * fro
         wrap->setSize(jmin(defWidth + extrawidth, dw->getWidth() - 10), jmin(defHeight, dw->getHeight() - 24));
 
 
-        mMonEffectsView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        mMonEffectsView->updateLayout();
 
-        mMonEffectsView->peerMode = mPeerMode;
-        mMonEffectsView->peerIndex = mPeerIndex;
-        mMonEffectsView->groupIndex = index;
+        mMonEffectsView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
 
         mMonEffectsView->updateState();
 

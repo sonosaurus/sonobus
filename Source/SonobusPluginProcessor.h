@@ -326,6 +326,9 @@ public:
     void setRemotePeerChannelSoloed(int index, int changroup, bool soloed);
     bool getRemotePeerChannelSoloed(int index, int changroup) const;
 
+    void setRemotePeerChannelReverbSend(int index, int changroup, float rgain);
+    float getRemotePeerChannelReverbSend(int index, int changroup);
+
 
     void setRemotePeerUserName(int index, const String & name);
     String getRemotePeerUserName(int index) const;

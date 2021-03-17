@@ -3057,6 +3057,9 @@
     <ClInclude Include="..\..\Source\RandomSentenceGenerator.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\ReverbSendView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\RunCumulantor.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>

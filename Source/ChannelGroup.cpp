@@ -9,7 +9,7 @@ static String nameKey("name");
 static String gainKey("gain");
 static String channelStartIndexKey("chanstart");
 static String numChannelsKey("numchan");
-static String reverbSendKey("revsend");
+static String reverbSendKey("reverbsend");
 static String monitorLevelKey("monitorlev");
 static String peerMonoPanKey("pan");
 static String peerPan1Key("span1");
@@ -198,7 +198,10 @@ void ChannelGroup::setMonitoringDelayTimeMs(double delayms)
 }
 
 
-void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor)
+void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer,
+                                 AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
+                                 AudioBuffer<float>& silentBuffer,
+                                 int numSamples, float gainfactor)
 {
     // called from audio thread context
 
@@ -306,7 +309,9 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<flo
 
 }
 
-void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor)
+void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan,
+                               AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
+                               int numSamples, float gainfactor)
 {
     int fromNumChan = frombuffer.getNumChannels();
     int toNumChan = tobuffer.getNumChannels();
@@ -368,7 +373,10 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
     }
 }
 
-void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor)
+void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan,
+                                   AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
+                                   int numSamples, float gainfactor,
+                                   AudioBuffer<float> * reverbbuffer, int revStartChan, int revNumChans, bool revEnabled)
 {
 
     // apply monitor level
@@ -507,7 +515,10 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
         }
     }
 
-    
+    // apply to reverb buffer
+    if (reverbbuffer) {
+        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled);
+    }
 
     _lastmonstereopan[0] = params.panStereo[0];
     _lastmonstereopan[1] = params.panStereo[1];
@@ -518,6 +529,77 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
     _lastmonitor = targmon;
 
 }
+
+void ChannelGroup::processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans,
+                                      AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
+                                      int numSamples, bool revEnabled)
+{
+    int fromMaxChans = frombuffer.getNumChannels();
+    int destMaxChans = tobuffer.getNumChannels();
+
+    float targrevgain = params.reverbSend * (revEnabled ? 1.0f : 0.0f);
+    float lastrevgain = _lastrevsend * (_lastRevEnabled ? 1.0f : 0.0f);
+
+    if (fromNumChans > 0 && destNumChans == 2) {
+        //tobuffer.clear(0, numSamples);
+
+        for (int channel = destStartChan; channel < destStartChan + destNumChans && channel < destMaxChans; ++channel) {
+            int pani = 0;
+            for (int i=fromStartChan; i < fromStartChan + fromNumChans && i < fromMaxChans; ++i, ++pani) {
+                const float upan = (fromNumChans != 2 ? params.pan[pani] : i==fromStartChan ? params.panStereo[0] : params.panStereo[1]);
+                const float lastpan = (params.numChannels != 2 ? _lastrevpan[pani] : i==fromStartChan ? _lastrevstereopan[0] : _lastrevstereopan[1]);
+
+                // -1 is left, 1 is right
+                float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
+
+                // apply pan law
+                pgain *= params.centerPanLaw + (fabsf(upan) * (1.0f - params.centerPanLaw));
+                pgain *= targrevgain;
+
+                if (fabsf(upan - lastpan) > 0.00001f || fabsf(lastrevgain - targrevgain) > 0.00001f) {
+                    float plastgain = channel == destStartChan ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
+                    plastgain *= params.centerPanLaw + (fabsf(lastpan) * (1.0f - params.centerPanLaw));
+                    plastgain *= lastrevgain;
+
+                    tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(i), numSamples, plastgain, pgain);
+                } else {
+                    tobuffer.addFrom (channel, 0, frombuffer, i, 0, numSamples, pgain);
+                }
+            }
+        }
+    }
+    else if (fromNumChans > 0 && destNumChans == 1){
+        // sum all into destChan
+        int channel = destStartChan;
+        for (int srcchan = fromStartChan; srcchan < fromStartChan + fromNumChans && srcchan < fromMaxChans && channel < destMaxChans; ++srcchan) {
+
+            tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(srcchan), numSamples, lastrevgain, targrevgain);
+
+        }
+    }
+    else if (fromNumChans > 0){
+        // straight thru to dests - no panning
+        int srcchan = fromStartChan;
+        for (int channel = destStartChan; srcchan < fromStartChan + fromNumChans && srcchan < fromMaxChans && channel < destMaxChans; ++channel, ++srcchan) {
+//        for (int channel = destStartChan + chanStartIndex; channel < destStartChan + destNumChans && srcchan < chanStartIndex + numChannels && srcchan < fromNumChan && channel < toNumChan; ++channel, ++srcchan) {
+            //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
+            //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
+
+            tobuffer.addFromWithRamp(channel, 0, frombuffer.getReadPointer(srcchan), numSamples, lastrevgain, targrevgain);
+        }
+    }
+
+    _lastrevstereopan[0] = params.panStereo[0];
+    _lastrevstereopan[1] = params.panStereo[1];
+    for (int pani=0; pani < params.numChannels; ++pani) {
+        _lastrevpan[pani] = params.pan[pani];
+    }
+
+    _lastRevEnabled = revEnabled;
+    _lastrevsend = params.reverbSend;
+}
+
+
 
 String ChannelGroupParams::getValueTreeKey() const
 {

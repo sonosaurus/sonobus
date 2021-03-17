@@ -44,7 +44,6 @@ struct ChannelGroupParams
 
     // input gain
     float gain = 1.0f;
-    float _lastgain = 0.0f;
 
     // panning (0.0 is centered, -1 is left, 1 is right)
     // used when numChannels != 2
@@ -57,12 +56,6 @@ struct ChannelGroupParams
     int panDestChannels = 2; // destination number of channels
 
     bool sendMainMix = true; // used for remote peers
-
-    float _lastpan[MAX_CHANNELS] = { 0.0f };
-    float _laststereopan[2] = { 0.0f };
-    float _lastmonpan[MAX_CHANNELS] = { 0.0f };
-    float _lastmonstereopan[2] = { 0.0f };
-
 
     // compressor (only used for 1 or 2 channel groups)
     CompressorParams compressorParams;
@@ -78,14 +71,12 @@ struct ChannelGroupParams
     CompressorParams limiterParams;
 
     // reverb send
-    float reverbSend = 0.0f;
+    float reverbSend = 1.0f;
 
     // monitoring level
     float monitor = 1.0f;
     int monDestStartIndex = 0; // destination channel index
     int monDestChannels = 2; // destination number of channels
-
-    float _lastmonitor = 0.0f;
 
     // monitoring delay
     DelayParams monitorDelayParams;
@@ -103,8 +94,12 @@ public:
     void init(double sampleRate);
 
     void processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer,  int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor);
+
     void processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
-    void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
+
+    void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor, AudioBuffer<float> * reverbbuffer=nullptr, int revStartChan=0, int revNumChans=2, bool revEnabled=false);
+
+    void processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, bool revEnabled);
 
     // shallow copy of parameters and state
     void copyParametersFrom(const ChannelGroup& other);
@@ -123,12 +118,14 @@ public:
     ChannelGroupParams params;
 
     float _lastgain = 0.0f;
+    float _lastfgain = 0.0f;
 
     float _lastpan[MAX_CHANNELS] = { 0.0f };
     float _laststereopan[2] = { 0.0f };
     float _lastmonpan[MAX_CHANNELS] = { 0.0f };
     float _lastmonstereopan[2] = { 0.0f };
-
+    float _lastrevpan[MAX_CHANNELS] = { 0.0f };
+    float _lastrevstereopan[2] = { 0.0f };
 
     // compressor (only used for 1 or 2 channel groups)
     std::unique_ptr<faustCompressor> compressor;
@@ -171,7 +168,8 @@ public:
     AudioBuffer<float> delayWorkBuffer;
 
     float _lastmonitor = 0.0f;
-
+    float _lastrevsend = 0.0f;
+    bool _lastRevEnabled = false;
     double sampleRate = 48000.0;
 };
 

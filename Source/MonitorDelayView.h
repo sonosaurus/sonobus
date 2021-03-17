@@ -148,7 +148,7 @@ public:
 
         int ipw = 0;
         for (auto & item : autoBox.items) {
-            ipw += item.minWidth;
+            ipw += item.minWidth + item.margin.left + item.margin.right;
         }
 
         mainBox.items.clear();
@@ -164,7 +164,7 @@ public:
 
         int iph = 0;
         for (auto & item : mainBox.items) {
-            iph += item.minHeight;
+            iph += item.minHeight + item.margin.top + item.margin.bottom;
         }
 
 

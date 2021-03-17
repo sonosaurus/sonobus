@@ -15,12 +15,14 @@
 #include "ExpanderView.h"
 #include "ParametricEqView.h"
 #include "MonitorDelayView.h"
+#include "ReverbSendView.h"
 
 class ChannelGroupEffectsView :
 public Component,
 public CompressorView::Listener,
 public ExpanderView::Listener,
 public ParametricEqView::Listener,
+public ReverbSendView::Listener,
 public EffectsBaseView::HeaderListener
 {
 public:
@@ -56,6 +58,8 @@ public:
     void expanderParamsChanged(ExpanderView *comp, SonoAudio::CompressorParams & params) override;
     void parametricEqParamsChanged(ParametricEqView *comp, SonoAudio::ParametricEqParams & params) override;
 
+    void reverbSendLevelChanged(ReverbSendView *comp, float revlevel) override;
+
     void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
 
 
@@ -79,6 +83,8 @@ protected:
 
     std::unique_ptr<ParametricEqView> eqView;
 
+    std::unique_ptr<ReverbSendView> reverbSendView;
+
 
     FlexBox effectsBox;
 
@@ -92,6 +98,7 @@ class ChannelGroupMonitorEffectsView :
 public Component,
 public ParametricEqView::Listener,
 public MonitorDelayView::Listener,
+public ReverbSendView::Listener,
 public EffectsBaseView::HeaderListener
 {
 public:
@@ -126,6 +133,7 @@ public:
 
     void monitorDelayParamsChanged(MonitorDelayView *comp, SonoAudio::DelayParams &params) override;
 
+    void reverbSendLevelChanged(ReverbSendView *comp, float revlevel) override;
 
     void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
 
@@ -144,6 +152,8 @@ protected:
     std::unique_ptr<ConcertinaPanel> effectsConcertina;
 
     std::unique_ptr<MonitorDelayView> delayView;
+
+    std::unique_ptr<ReverbSendView> reverbSendView;
 
 
     FlexBox effectsBox;

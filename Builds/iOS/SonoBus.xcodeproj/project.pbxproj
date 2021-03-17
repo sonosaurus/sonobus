@@ -261,6 +261,7 @@
 		8908589664E087E8840AF952 /* AppConfig.h */ /* AppConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppConfig.h; path = ../../ios/JuceLibraryCode/AppConfig.h; sourceTree = SOURCE_ROOT; };
 		89CF67A82AEB481A256E036C /* BeatToggleGrid.cpp */ /* BeatToggleGrid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BeatToggleGrid.cpp; path = ../../Source/BeatToggleGrid.cpp; sourceTree = SOURCE_ROOT; };
 		8B99100DF3411FD71C81019B /* triangle_disclosure_right.svg */ /* triangle_disclosure_right.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = triangle_disclosure_right.svg; path = ../../images/triangle_disclosure_right.svg; sourceTree = SOURCE_ROOT; };
+		8C8795B8DFF7D255EDD9BFEC /* ReverbSendView.h */ /* ReverbSendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ReverbSendView.h; path = ../../Source/ReverbSendView.h; sourceTree = SOURCE_ROOT; };
 		8CDC178271AB7A7B3C287B09 /* OscReceivedElements.h */ /* OscReceivedElements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscReceivedElements.h; path = ../../deps/aoo/deps/oscpack/osc/OscReceivedElements.h; sourceTree = SOURCE_ROOT; };
 		8E8234218E2E7F7AE98839FE /* OscTypes.cpp */ /* OscTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OscTypes.cpp; path = ../../deps/aoo/deps/oscpack/osc/OscTypes.cpp; sourceTree = SOURCE_ROOT; };
 		8EE09F9675F6DBED654BCB7B /* SonoLookAndFeel.h */ /* SonoLookAndFeel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonoLookAndFeel.h; path = ../../Source/SonoLookAndFeel.h; sourceTree = SOURCE_ROOT; };
@@ -591,6 +592,7 @@
 				11521D5C1F70EEC3394713E1,
 				436746453BF2DCB6725679AD,
 				D604E91829E35725D49773FB,
+				8C8795B8DFF7D255EDD9BFEC,
 				F86BC7D818C3DAD819FA7EE6,
 				95F69764BC438E2CB0B661CE,
 				FC1B667D81783BB63C1C60E7,

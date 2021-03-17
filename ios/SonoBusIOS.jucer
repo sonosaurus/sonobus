@@ -243,6 +243,8 @@
             file="../Source/RandomSentenceGenerator.cpp"/>
       <FILE id="e5pe8M" name="RandomSentenceGenerator.h" compile="0" resource="0"
             file="../Source/RandomSentenceGenerator.h"/>
+      <FILE id="HfP0yd" name="ReverbSendView.h" compile="0" resource="0"
+            file="../Source/ReverbSendView.h"/>
       <FILE id="K4fw2S" name="RunCumulantor.cpp" compile="1" resource="0"
             file="../Source/RunCumulantor.cpp"/>
       <FILE id="rnucPD" name="RunCumulantor.h" compile="0" resource="0" file="../Source/RunCumulantor.h"/>

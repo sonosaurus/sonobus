@@ -2440,6 +2440,7 @@
     <ClInclude Include="..\..\Source\ParametricEqView.h"/>
     <ClInclude Include="..\..\Source\PeersContainerView.h"/>
     <ClInclude Include="..\..\Source\RandomSentenceGenerator.h"/>
+    <ClInclude Include="..\..\Source\ReverbSendView.h"/>
     <ClInclude Include="..\..\Source\RunCumulantor.h"/>
     <ClInclude Include="..\..\Source\RunningCumulant.h"/>
     <ClInclude Include="..\..\Source\SonobusPluginEditor.h"/>

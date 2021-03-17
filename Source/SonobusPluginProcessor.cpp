@@ -4025,6 +4025,27 @@ float SonobusAudioProcessor::getRemotePeerChannelGain(int index, int changroup) 
     return levelgain;
 }
 
+void SonobusAudioProcessor::setRemotePeerChannelReverbSend(int index, int changroup, float rgain)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->chanGroups[changroup].params.reverbSend = rgain;
+    }
+}
+
+float SonobusAudioProcessor::getRemotePeerChannelReverbSend(int index, int changroup)
+{
+    float revsend = 0.0f;
+
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        revsend = remote->chanGroups[changroup].params.reverbSend;
+    }
+    return revsend;
+}
+
 
 
 void SonobusAudioProcessor::setRemotePeerChannelMuted(int index, int changroup, bool muted)
@@ -6639,6 +6660,14 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
     }
 
+    // MAIN EFFECTS BUS
+    bool mainReverbEnabled = mMainReverbEnabled.get();
+    bool doreverb = mainReverbEnabled || mLastMainReverbEnabled;
+    bool hasmainfx = doreverb;
+    int fxchannels = 2;
+
+    mainFxBuffer.clear(0, numSamples);
+
 
     // handle what's going to be monitored
     inputBuffer.clear(0, numSamples);
@@ -6660,7 +6689,13 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         int dstch = mInputChannelGroups[i].params.monDestStartIndex;
         int dstcnt = jmin(monPanChannels, mInputChannelGroups[i].params.monDestChannels);
 
-        mInputChannelGroups[i].processMonitor(inputPostBuffer, srcstart, inputBuffer, dstch, dstcnt, numSamples, utmgain);
+        auto * revbuffer = doreverb ? &mainFxBuffer : nullptr;
+
+        mInputChannelGroups[i].processMonitor(inputPostBuffer, srcstart,
+                                              inputBuffer, dstch, dstcnt,
+                                              numSamples, utmgain,
+                                              revbuffer, 0, fxchannels, mainReverbEnabled);
+
         srcstart += mInputChannelGroups[i].params.numChannels;
     }
 
@@ -6703,14 +6738,14 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             if (sendPanChannels == 1) {
                 float fgain = sendPanChannels == 1 && srcchans > 0 ? (1.0f/std::max(1.0f, (float)(srcchans))): 1.0f;
                 fgain *= mFilePlaybackChannelGroup.params.gain;
-                auto lastfgain = mFilePlaybackChannelGroup.params._lastgain;
+                auto lastfgain = mFilePlaybackChannelGroup._lastfgain;
 
                 for (int channel = 0; channel < srcchans; ++channel) {
                     //sendWorkBuffer.addFrom(0, 0, fileBuffer, channel, 0, numSamples, fgain);
                     sendWorkBuffer.addFromWithRamp(0, 0, fileBuffer.getReadPointer(channel), numSamples, fgain, lastfgain);
                 }
 
-                mFilePlaybackChannelGroup.params._lastgain = fgain;
+                mFilePlaybackChannelGroup._lastfgain = fgain;
             }
             else if (sendPanChannels > 2){
                 // straight-thru
@@ -6720,7 +6755,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 auto filech = filestartch; // XXX
                 //sendWorkBuffer.addFrom (filech, 0, fileBuffer, 0, 0, numSamples);
                 auto fgain = mFilePlaybackChannelGroup.params.gain;
-                auto lastfgain = mFilePlaybackChannelGroup.params._lastgain;
+                auto lastfgain = mFilePlaybackChannelGroup._lastfgain;
 
                 for (int channel = 0; channel < srcchans && filech < sendWorkBuffer.getNumChannels(); ++channel) {
                     //sendWorkBuffer.addFrom(filech, 0, fileBuffer, channel, 0, numSamples);
@@ -6728,7 +6763,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     ++filech;
                 }
 
-                mFilePlaybackChannelGroup.params._lastgain = fgain;
+                mFilePlaybackChannelGroup._lastfgain = fgain;
             }
             else if (sendPanChannels == 2) {
                 // change dest ch target
@@ -6737,6 +6772,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 auto fgain = mFilePlaybackChannelGroup.params.gain;
 
                 mFilePlaybackChannelGroup.processPan(fileBuffer, 0, sendWorkBuffer, dstch, dstcnt, numSamples, fgain);
+
+                mFilePlaybackChannelGroup._lastfgain = fgain;
             }
         }
 
@@ -6974,6 +7011,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 int dstch = remote->chanGroups[i].params.panDestStartIndex;
                 int dstcnt = jmin(totalOutputChannels, remote->chanGroups[i].params.panDestChannels);
                 remote->chanGroups[i].processPan(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, tempBuffer, dstch, dstcnt, numSamples, adjgain);
+
+                if (doreverb) {
+                    remote->chanGroups[i].processReverbSend(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, remote->chanGroups[i].params.numChannels, mainFxBuffer, 0, fxchannels, numSamples, mainReverbEnabled);
+                }
+
             }
 
         }
@@ -7113,12 +7155,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
 
     // EFFECTS
-    bool mainReverbEnabled = mMainReverbEnabled.get();
-    bool doreverb = mainReverbEnabled || mLastMainReverbEnabled;
-    bool hasmainfx = doreverb;
 
-    mainFxBuffer.clear(0, numSamples);
-    
+
     // TODO other main FX
     if (mainReverbEnabled != mLastMainReverbEnabled) {
 
@@ -7130,7 +7168,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             mMReverb.reset();
             mZitaReverb.instanceClear();
         }
-        
+
+        /*
         for (int channel = 0; channel < mainBusOutputChannels; ++channel) {
             // others
             mainFxBuffer.addFromWithRamp(channel, 0, tempBuffer.getReadPointer(channel), numSamples, sgain, egain);
@@ -7141,9 +7180,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             } else {
                 mainFxBuffer.addFromWithRamp(channel, 0, buffer.getReadPointer(channel), numSamples, sgain, egain);                
             }
-        }                    
+        }
+         */
     }
     else if (mainReverbEnabled){
+
+        /*
         for (int channel = 0; channel < mainBusOutputChannels; ++channel) {
             // others
             mainFxBuffer.addFrom(channel, 0, tempBuffer, channel, 0, numSamples);
@@ -7154,7 +7196,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             } else {
                 mainFxBuffer.addFrom(channel, 0, buffer, channel, 0, numSamples);                
             }
-        }            
+        }
+         */
 
     }
     
