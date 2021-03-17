@@ -5812,7 +5812,8 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramSendChannels) {
         mSendChannels = (int) newValue;
         
-        setRemotePeerNominalSendChannelCount(-1, mSendChannels.get());        
+        setRemotePeerNominalSendChannelCount(-1, mSendChannels.get());
+        updateRemotePeerUserFormat();
     }
     else if (parameterID == paramMainReverbSize)
     {
@@ -6651,7 +6652,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     sendWorkBuffer.clear(0, numSamples);
 
-    if (sendPanChannels > 2) {
+    if (sendPanChannels > 2 || sendCh == 0) {
         // copy straight-thru
         for (auto i = 0; i < sendWorkBuffer.getNumChannels() && i < inputPostBuffer.getNumChannels(); ++i) {
             sendWorkBuffer.copyFrom (i, 0, inputPostBuffer, i, 0, numSamples);
