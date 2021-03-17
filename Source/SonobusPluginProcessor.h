@@ -290,7 +290,10 @@ public:
     void removeRecentServerConnectionInfo(int index);
     int getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray);
     void clearRecentServerConnectionInfos();
-    
+
+    bool setCurrentUsername(const String & name);
+    String getCurrentUsername() const { return mCurrentUsername; }
+
     // peer stuff
     
     EndpointState * findOrAddEndpoint(const String & host, int port);

@@ -90,7 +90,7 @@ publicGroupsListModel(this)
 
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
     mAddRemoteHostEditor->setFont(Font(16));
-    mAddRemoteHostEditor->setText(""); // 100.36.128.246:11000
+    mAddRemoteHostEditor->setText("", false); // 100.36.128.246:11000
     mAddRemoteHostEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
 
 
@@ -134,7 +134,7 @@ publicGroupsListModel(this)
 
     mServerUsernameEditor = std::make_unique<TextEditor>("srvaddredit");
     mServerUsernameEditor->setFont(Font(16));
-    mServerUsernameEditor->setText(currConnectionInfo.userName);
+    mServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mServerUsernameEditor.get());
 
     mServerUserPasswordEditor = std::make_unique<TextEditor>("userpass"); // 0x25cf
@@ -163,13 +163,13 @@ publicGroupsListModel(this)
 
     mServerGroupEditor = std::make_unique<TextEditor>("groupedit");
     mServerGroupEditor->setFont(Font(16));
-    mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "");
+    mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mServerGroupEditor.get());
 
     mServerGroupPasswordEditor = std::make_unique<TextEditor>("grouppass"); // 0x25cf
     mServerGroupPasswordEditor->setFont(Font(14));
     mServerGroupPasswordEditor->setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
-    mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword);
+    mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
     configEditor(mServerGroupPasswordEditor.get());
 
     mServerGroupRandomButton = std::make_unique<SonoDrawableButton>("randgroup", DrawableButton::ButtonStyle::ImageFitted);
@@ -277,7 +277,7 @@ publicGroupsListModel(this)
 
     mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerUsernameEditor->setFont(Font(16));
-    mPublicServerUsernameEditor->setText(currConnectionInfo.userName);
+    mPublicServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mPublicServerUsernameEditor.get());
 
     mPublicGroupComponent = std::make_unique<GroupComponent>("", TRANS("Active Public Groups"));
@@ -298,7 +298,7 @@ publicGroupsListModel(this)
 
     mPublicServerGroupEditor = std::make_unique<TextEditor>("pubgroupedit");
     mPublicServerGroupEditor->setFont(Font(16));
-    mPublicServerGroupEditor->setText(currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "");
+    mPublicServerGroupEditor->setText(currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mPublicServerGroupEditor.get());
     mPublicServerGroupEditor->setTextToShowWhenEmpty(TRANS("enter group name"), Colour(0x44ffffff));
     mPublicServerGroupEditor->setTooltip(TRANS("Choose a descriptive group name that includes geographic information and genre"));
@@ -877,8 +877,12 @@ void ConnectView::textEditorEscapeKeyPressed (TextEditor& ed)
     //grabKeyboardFocus();
 }
 
-void ConnectView::textEditorTextChanged (TextEditor&)
+void ConnectView::textEditorTextChanged (TextEditor& ed)
 {
+    if (&ed == mPublicServerUsernameEditor.get() || &ed == mServerUsernameEditor.get()) {
+        // try to set the current username, it will fail if we are connected, no big deal
+        processor.setCurrentUsername(ed.getText());
+    }
 }
 
 

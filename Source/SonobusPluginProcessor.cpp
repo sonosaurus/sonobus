@@ -96,6 +96,8 @@ static String expanderStateKey("ExpanderState");
 static String limiterStateKey("LimiterState");
 static String eqStateKey("ParametricEqState");
 
+static String lastUsernameKey("lastUsername");
+
 
 //static String inputEffectsStateKey("InputEffects");
 
@@ -959,6 +961,15 @@ void SonobusAudioProcessor::stopAooServer()
         mAooServer.reset();
     }
 }
+
+bool SonobusAudioProcessor::setCurrentUsername(const String & name)
+{
+    if (mIsConnectedToServer) return false;
+
+    mCurrentUsername = name;
+    return true;
+}
+
 
 bool SonobusAudioProcessor::connectToServer(const String & host, int port, const String & username, const String & passwd)
 {
@@ -7502,6 +7513,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastChatWidthKey, var((int)mLastChatWidth), nullptr);
     extraTree.setProperty(lastChatShownKey, mLastChatShown, nullptr);
     extraTree.setProperty(linkMonitoringDelayTimesKey, mLinkMonitoringDelayTimes, nullptr);
+    extraTree.setProperty(lastUsernameKey, mCurrentUsername, nullptr);
 
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
@@ -7601,6 +7613,8 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setPeerDisplayMode((PeerDisplayMode)(int)extraTree.getProperty(peerDisplayModeKey, (int)mPeerDisplayMode));
             setLastChatWidth((int)extraTree.getProperty(lastChatWidthKey, (int)mLastChatWidth));
             setLastChatShown(extraTree.getProperty(lastChatShownKey, mLastChatShown));
+            mCurrentUsername = extraTree.getProperty(lastUsernameKey, mCurrentUsername);
+
         }
 
 

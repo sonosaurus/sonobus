@@ -286,15 +286,18 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     else {
         // defaults
         currConnectionInfo.groupName = "";
-#if JUCE_IOS
-        //String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();
-        String username = SystemStats::getComputerName(); //SystemStats::getLogonName();
-#else
-        String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();    
-        //if (username.length() > 0) username = username.replaceSection(0, 1, username.substring(0, 1).toUpperCase());
-#endif
+        String username = processor.getCurrentUsername();
 
         if (username.isEmpty()) {
+#if JUCE_IOS
+            //String username = SystemStats::getFullUserName(); //SystemStats::getLogonName();
+            username = SystemStats::getComputerName(); //SystemStats::getLogonName();
+#else
+            username = SystemStats::getFullUserName(); //SystemStats::getLogonName();
+            //if (username.length() > 0) username = username.replaceSection(0, 1, username.substring(0, 1).toUpperCase());
+#endif
+        }
+        if (username.isEmpty()) { // fallback
             username = SystemStats::getComputerName();
         }
         
@@ -303,7 +306,12 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         currConnectionInfo.serverHost = "aoo.sonobus.net";
         currConnectionInfo.serverPort = DEFAULT_SERVER_PORT;
     }
-    
+
+    String lastusername = processor.getCurrentUsername();
+    if (lastusername.isNotEmpty()) {
+        currConnectionInfo.userName = lastusername;
+    }
+
     mTitleLabel = std::make_unique<Label>("title", TRANS("SonoBus"));
     mTitleLabel->setFont(20);
     mTitleLabel->setColour(Label::textColourId, Colour(0xff47b0f8));
