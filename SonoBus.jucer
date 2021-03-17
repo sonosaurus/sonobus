@@ -3,8 +3,8 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2021 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAAX,buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
-              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.12-52&quot;"
-              pluginDesc="SonoBus - Network Audio" version="1.3.12" cppLanguageStandard="17"
+              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.13-53&quot;"
+              pluginDesc="SonoBus - Network Audio" version="1.3.13" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aumf'"
               pluginCharacteristicsValue="pluginEditorRequiresKeys,pluginProducesMidiOut,pluginWantsMidiIn"
               pluginAAXCategory="0" pluginVST3Category="Fx,Network">
