@@ -4984,8 +4984,8 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
     String sflang = lang.initialSectionNotContaining("_").toLowerCase().replace("-", "");
     String slang = lang.initialSectionNotContaining("_").initialSectionNotContaining("-").toLowerCase();
 
-    String resname = String::formatted("localized_%s_txt", slang.toRawUTF8());
-    String resfname = String::formatted("localized_%s_txt", sflang.toRawUTF8());
+    String resname = String("localized_") + slang + String("_txt");
+    String resfname = String("localized_") + sflang + String("_txt");
 
     const char * rawdata = BinaryData::getNamedResource(resname.toRawUTF8(), retbytes);
     const char * rawdataf = BinaryData::getNamedResource(resfname.toRawUTF8(), retfbytes);
