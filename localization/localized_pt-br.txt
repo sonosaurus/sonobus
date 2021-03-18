@@ -1,5 +1,5 @@
 language: Portuguese (pt)
-countries: Brazil (br)
+countries: br
 
 "Noise Floor" = "Nível Mínimo de Ruído"
 "Ratio" = "Proporção"
