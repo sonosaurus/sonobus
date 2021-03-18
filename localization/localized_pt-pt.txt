@@ -1,6 +1,6 @@
-"language: Portuguese (pt)" = "PLEASE PUT SUGGESTED EDITS IN A NEW COLUMN SO IT IS OBVIOUS WHEN CHANGES ARE MADE -->"
-"countries: Portugal (pt), Brazil (br)" = "Green items are NEW and need checking (17 Mar 2021)"
-"" = ""
+language: Portuguese (pt)
+countries: Portugal (pt)
+
 "Noise Floor" = "Nível Mínimo de Ruído"
 "Ratio" = "Ratio"
 "Attack" = "Attack"
