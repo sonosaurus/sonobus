@@ -135,9 +135,9 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
     {
         // if on android and language is japanese/chinese/korean, use DroidSansFallback
         String lang = SystemStats::getUserLanguage();
-        //if (!AppState::getInstance()->mainConfig.activeLanguageCode.empty()) {
-        //    lang = AppState::getInstance()->mainConfig.activeLanguageCode;
-        //}
+        if (languageCode.isNotEmpty()) {
+            lang = languageCode;
+        }
         
         String slang = lang.initialSectionNotContaining("_").toLowerCase();
         

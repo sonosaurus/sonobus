@@ -266,7 +266,26 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
     sonoLookAndFeel.setUsingNativeAlertWindows(true);
 
-    // setupLocalisation();  // NOT YET!
+    // complete hack that I have to do this here just to get our settings folder for localization setup
+    if (JUCEApplication::isStandaloneApp()) {
+        PropertiesFile::Options options;
+        options.applicationName     = JUCEApplication::getInstance()->getApplicationName();
+        options.filenameSuffix      = ".settings";
+        options.osxLibrarySubFolder = "Application Support/" + JUCEApplication::getInstance()->getApplicationName();
+#if JUCE_LINUX
+        options.folderName          = "~/.config";
+#else
+        options.folderName          = "";
+#endif
+
+        mSettingsFolder = options.getDefaultFile().getParentDirectory();
+    }
+
+
+    initializeLanguages();
+    setupLocalisation(processor.getLanguageOverrideCode());
+
+    sonoLookAndFeel.setLanguageCode(mActiveLanguageCode);
 
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
@@ -776,6 +795,34 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
     mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
 
+
+    mOptionsLanguageChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsLanguageChoice->addChoiceListener(this);
+    auto overridelang = processor.getLanguageOverrideCode();
+    int langsel = -1;
+    for (int i=0; i < languages.size(); ++i) {
+        String itemname;
+        if (languagesNative[i] != languages[i] && !languagesNative[i].isEmpty()) {
+            itemname = languagesNative[i] + " - " + languages[i];
+        }
+        else {
+            itemname = languages[i];
+        }
+        mOptionsLanguageChoice->addItem(itemname, i);
+        if (overridelang == codes[i]) {
+            langsel = i;
+        }
+    }
+
+    if (langsel >= 0) {
+        mOptionsLanguageChoice->setSelectedId(langsel);
+    }
+
+    mOptionsLanguageLabel = std::make_unique<Label>("", TRANS("Language:"));
+    configLabel(mOptionsLanguageLabel.get(), false);
+    mOptionsLanguageLabel->setJustificationType(Justification::centredRight);
+
+
     //mOptionsHearLatencyButton = std::make_unique<ToggleButton>(TRANS("Make Latency Test Audible"));
     //mOptionsHearLatencyButton->addListener(this);
     //mHearLatencyTestAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramHearLatencyTest, *mOptionsHearLatencyButton);
@@ -1119,6 +1166,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mOptionsComponent->addAndMakeVisible(mOptionsDefaultLevelSliderLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsLanguageChoice.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
     if (JUCEApplicationBase::isStandaloneApp()) {
         mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
@@ -1670,6 +1719,7 @@ void SonobusAudioProcessorEditor::sbChatEventReceived(SonobusAudioProcessor *com
 
 //////////////////////////
 
+
 void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, int index, int ident)
 {
     if (comp == mOptionsFormatChoiceDefaultChoice.get()) {
@@ -1692,6 +1742,47 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
         processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->setValueNotifyingHost(fval);
         updateLayout();
     }
+    else if (comp == mOptionsLanguageChoice.get()) {
+        String code = codes[ident];
+        //app->mainConfig.languageOverrideCode =  codes[comp->getRowId()].toStdString();
+
+        String message;
+        String title;
+        if (JUCEApplication::isStandaloneApp()) {
+            message = TRANS("In order to change the language, the application must be closed and restarted by you.");
+            title = TRANS("App restart required");
+        } else {
+            message = TRANS("In order to change the language, the plugin host must close the session and reload it.");
+            title = TRANS("Host session reload required");
+        }
+
+        AlertWindow::showOkCancelBox(AlertWindow::WarningIcon,
+                                     title,
+                                     message,
+                                     TRANS("Change and Close"),
+                                     TRANS("Cancel"),
+                                     this,
+                                     ModalCallbackFunction::create( [this,code](int result) {
+            if (result) {
+                String langOverride = code;
+                if (!setupLocalisation(langOverride)) {
+                    DBG("Error overriding language with " << langOverride);
+
+                    langOverride = "";
+                }
+
+                processor.setLanguageOverrideCode(langOverride);
+
+                if (JUCEApplication::isStandaloneApp()) {
+                    if (saveSettingsIfNeeded) {
+                        saveSettingsIfNeeded();
+                    }
+                    JUCEApplication::getInstance()->quit();
+                }
+            }
+        }));
+    }
+
 }
 
 
@@ -4172,6 +4263,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceStaticLabel).withMargin(0).withFlex(1));
     optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceDefaultChoice).withMargin(0).withFlex(1));
 
+    optionsLanguageBox.items.clear();
+    optionsLanguageBox.flexDirection = FlexBox::Direction::row;
+    optionsLanguageBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsLanguageLabel).withMargin(0).withFlex(1));
+    optionsLanguageBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsLanguageChoice).withMargin(0).withFlex(3));
+
     //optionsHearlatBox.items.clear();
     //optionsHearlatBox.flexDirection = FlexBox::Direction::row;
     //optionsHearlatBox.items.add(FlexItem(10, 12));
@@ -4231,6 +4327,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.flexDirection = FlexBox::Direction::column;
     optionsBox.items.add(FlexItem(4, 6));
     optionsBox.items.add(FlexItem(100, 15, *mVersionLabel).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 4));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsLanguageBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsSendQualBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
@@ -4844,6 +4942,27 @@ void SonobusAudioProcessorEditor::trimAudioFile(const String & fname, double sta
 
 }
 
+void SonobusAudioProcessorEditor::initializeLanguages()
+{
+    // TODO smarter way of figuring out what languages are available
+    languages.add(TRANS("System Default Language")); languagesNative.add(""); codes.add("");
+
+    languages.add(TRANS("English")); languagesNative.add("English"); codes.add("en");
+    languages.add(TRANS("Spanish")); languagesNative.add(CharPointer_UTF8 ("espa\xc3\xb1ol")); codes.add("es");
+    languages.add(TRANS("French"));  languagesNative.add(CharPointer_UTF8 ("fran\xc3\xa7""ais")); codes.add("fr");
+    languages.add(TRANS("Italian"));  languagesNative.add("italiano"); codes.add("it");
+    languages.add(TRANS("German"));  languagesNative.add("Deutsch"); codes.add("de");
+    languages.add(TRANS("Portuguese"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas")); codes.add("pt");
+
+    //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
+    languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
+
+    //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh_hans");
+    //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh_hant");
+
+    // TOOD - parse any user files with localized_%s.txt in our settings folder and add as options if not existing already
+
+}
 
 bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
 {
@@ -4870,8 +4989,21 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
 
     const char * rawdata = BinaryData::getNamedResource(resname.toRawUTF8(), retbytes);
     const char * rawdataf = BinaryData::getNamedResource(resfname.toRawUTF8(), retfbytes);
+    
+    File   userfilename;
+    if (JUCEApplication::isStandaloneApp() && mSettingsFolder.getFullPathName().isNotEmpty()) {
+        userfilename = mSettingsFolder.getChildFile(String::formatted("localized_%s.txt", slang.toRawUTF8()));
+    }
 
-    if (rawdataf) {
+
+    if (userfilename.existsAsFile()) {
+        DBG("Found user localization file for language: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resfname);
+        LocalisedStrings * lstrings = new LocalisedStrings(userfilename.loadFileAsString(), true);
+
+        LocalisedStrings::setCurrentMappings(lstrings);
+        retval = true;
+    }
+    else if (rawdataf) {
         DBG("Found fulldisp localization for language: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resfname);
         LocalisedStrings * lstrings = new LocalisedStrings(String::createStringFromData(rawdataf, retfbytes), true);
 

@@ -689,6 +689,10 @@ public:
     void setLastChatShown(bool shown) { mLastChatShown = shown; }
     bool getLastChatShown() const { return mLastChatShown; }
 
+    // language
+    void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
+    String getLanguageOverrideCode() const { return mLangOverrideCode; }
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
@@ -1029,6 +1033,8 @@ private:
    
     // misc
     bool mSliderSnapToMouse = true;
+
+    String mLangOverrideCode;
 
     // main state
     AudioProcessorValueTreeState mState;

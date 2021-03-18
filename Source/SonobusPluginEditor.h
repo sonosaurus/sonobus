@@ -161,6 +161,8 @@ public:
     bool loadSettingsFromFile(const File & file);
     bool saveSettingsToFile(const File & file);
 
+    bool setupLocalisation(const String & overrideLang = {});
+
 private:
 
     void updateLayout();
@@ -214,7 +216,8 @@ private:
 
     void updateSliderSnap();
 
-    bool setupLocalisation(const String & overrideLang = {});
+    void initializeLanguages();
+
 
 
     void showSaveSettingsPreset();
@@ -353,6 +356,8 @@ private:
     std::unique_ptr<Label> mOptionsDefaultLevelSliderLabel;
     std::unique_ptr<Slider> mOptionsDefaultLevelSlider;
 
+    std::unique_ptr<SonoChoiceButton> mOptionsLanguageChoice;
+    std::unique_ptr<Label> mOptionsLanguageLabel;
 
 
     std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
@@ -642,6 +647,7 @@ private:
     FlexBox optionsAutoReconnectBox;
     FlexBox optionsSnapToMouseBox;
     FlexBox optionsDefaultLevelBox;
+    FlexBox optionsLanguageBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;
@@ -707,6 +713,13 @@ private:
     std::unique_ptr<BubbleMessageComponent> popTip;
 
     bool iaaConnected = false;
+
+    File mSettingsFolder;
     
+    // language stuff
+    StringArray languages;
+    StringArray languagesNative;
+    StringArray codes;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

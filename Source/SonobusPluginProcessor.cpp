@@ -90,6 +90,7 @@ static String peerDisplayModeKey("PeerDisplayMode");
 static String lastChatWidthKey("lastChatWidth");
 static String lastChatShownKey("lastChatShown");
 static String linkMonitoringDelayTimesKey("linkMonDelayTimes");
+static String langOverrideCodeKey("langOverrideCode");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -7515,6 +7516,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastChatShownKey, mLastChatShown, nullptr);
     extraTree.setProperty(linkMonitoringDelayTimesKey, mLinkMonitoringDelayTimes, nullptr);
     extraTree.setProperty(lastUsernameKey, mCurrentUsername, nullptr);
+    extraTree.setProperty(langOverrideCodeKey, mLangOverrideCode, nullptr);
 
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
@@ -7615,6 +7617,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setLastChatWidth((int)extraTree.getProperty(lastChatWidthKey, (int)mLastChatWidth));
             setLastChatShown(extraTree.getProperty(lastChatShownKey, mLastChatShown));
             mCurrentUsername = extraTree.getProperty(lastUsernameKey, mCurrentUsername);
+            mLangOverrideCode = extraTree.getProperty(langOverrideCodeKey, mLangOverrideCode);
 
         }
 

@@ -7,8 +7,427 @@
 namespace BinaryData
 {
 
-//================== localized_es.txt ==================
+//================== localized_de.txt ==================
 static const unsigned char temp_binary_data_0[] =
+"language: German\n"
+"countries: de\n"
+"\n"
+"\"Noise Floor\" = \"Noise Floor\"\n"
+"\"Ratio\" = \"Ratio\"\n"
+"\"Attack\" = \"Attack\"\n"
+"\"Release\" = \"Release\"\n"
+"\"Noise Gate\" = \"Noise Gate\"\n"
+"\"In Gain\" = \"In Gain\"\n"
+"\"In Pan\" = \"In Pan\"\n"
+"\"C\" = \"C\"\n"
+"\"In Pan 1\" = \"In Pan 1\"\n"
+"\"In Pan 2\" = \"In Pan 2\"\n"
+"\"Dry Level\" = \"Dry Level\"\n"
+"\"Output Level\" = \"Ausgabelautst\xc3\xa4rke\"\n"
+"\"Default Net Buffer Time\" = \"Standard Netzwerkpuffergr\xc3\xb6\xc3\x9f""e\"\n"
+"\"Send Channels\" = \"Sendekan\xc3\xa4le\"\n"
+"\"Metronome Enabled\" = \"Metronom aktiviert\"\n"
+"\"Send Metronome Audio\" = \"Metronomsignal senden\"\n"
+"\"Metronome Gain\" = \"Metronomlautst\xc3\xa4rke\"\n"
+"\"Metronome Tempo\" = \"Metronomtempo\"\n"
+"\"Send Playback Audio\" = \"Audiodatewiedergabe senden\"\n"
+"\"Hear Latency Test\" = \"Latenztest h\xc3\xb6rbar machen\"\n"
+"\"Record Metronome to File\" = \"Metronomsignal in Datei aufnehmen\"\n"
+"\"Main Reverb Enabled\" = \"Haupthall aktiviert\"\n"
+"\"Main Reverb Level\" = \"Haupthallpegel\"\n"
+"\"Main Reverb Size\" = \"Haupthallgr\xc3\xb6\xc3\x9f""e\"\n"
+"\"Main Reverb Damping\" = \"Haupthalld\xc3\xa4mpfung\"\n"
+"\"Pre-Delay Time\" = \"Vorverz\xc3\xb6gerungszeit\"\n"
+"\"Main Reverb Model\" = \"Haupthallmodell\"\n"
+"\"Main Send Mute\" = \"Main Send Mute\"\n"
+"\"Main Receive Mute\" = \"Hauptempfangsstummschaltung\"\n"
+"\"Main In Mute\" = \"Main In Mute\"\n"
+"\"Main Monitor Solo\" = \"Hauptmonitor Solo\"\n"
+"\"Def Auto Net Buffer Mode\" = \"Def Auto Net Buffer Mode\"\n"
+"\"Def Send Format\" = \"Def Sendeformat\"\n"
+"\"Dynamic Resampling\" = \"Dynamisches Resampling\"\n"
+"\"Reconnect Last\" = \"Letzte Verbindung wiederherstellen\"\n"
+"\"Could not find format for filename\" = \"Unbekannter Audio-Dateityp\"\n"
+"\"Error creating writer for \" = \"Fehler beim Erstellen des Schreibprozesses f\xc3\xbcr\"\n"
+"\"Error creating output file: \" = \"Fehler beim Erstellen der Ausgabedatei:\"\n"
+"\"Error creating directory for recording: \" = \"Fehler beim Erstellen des Verzeichnisses f\xc3\xbcr die Aufzeichnung:\"\n"
+"\"SonoBus\" = \"SonoBus\"\n"
+"\"Pan: Center\" = \"Pan: Mitte\"\n"
+"\"Pan: \" = \"Panorama:\"\n"
+"\"MUTE\" = \"STUMM\"\n"
+"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Schaltet Ihren Eingang stumm, so dass niemand Sie h\xc3\xb6rt und ohne dass es den anderen Teilnehmern angezeigt wird.\"\n"
+"\"SOLO\" = \"SOLO\"\n"
+"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"H\xc3\xb6ren Sie nur sich selbst und andere auf SOLO geschaltete Teilnehmer. Alt-Klick, um ausschlie\xc3\x9flich sich selbst zu h\xc3\xb6ren.\"\n"
+"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Schaltet Ihren Eingang stumm. Es wird kein Audio (einschlie\xc3\x9flich der Wiedergabe von Dateien) an andere Teilnehm"
+"er gesendet, und diese sehen eine Anzeige, dass Sie stummgeschaltet sind\"\n"
+"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Ein- und Ausschalten der Stummschaltung f\xc3\xbcr alle Teilnehmer. Beim Stummschalten der Teilnehmer werden keine Audiodaten empfangen\"\n"
+"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Wenn diese Taste gedr\xc3\xbc""ckt wird, werden andere stummgeschaltet und die Stummschaltung f\xc3\xbcr einen Moment aufgehoben (zum Sprechen dr\xc3\xbc""cken).\"\n"
+"\" Use the \\'T\\' key as a shortcut.\" = \"Verwenden Sie die Taste \\'T\\' als Tastaturkurzbefehl\"\n"
+"\"Metronome On/Off\" = \"Metronom Ein / Aus\"\n"
+"\"Metronome Options\" = \"Metronomoptionen\"\n"
+"\"Level\" = \"Pegel\"\n"
+"\"Tempo\" = \"Tempo\"\n"
+"\"Send Metronome to All\" = \"Metronomsignal an alle senden\"\n"
+"\"In Level\" = \"Eingangspegel\"\n"
+"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Dies verringert oder erh\xc3\xb6ht den Pegel Ihres eigenen Audioeingangs und wirkt sich auf den "
+"Pegel Ihres an andere gesendeten Audiosignals und auf Ihre eigenes Monitorsignal aus\"\n"
+"\"Monitor\" = \"Monitor\"\n"
+"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Mit diesem Regler k\xc3\xb6nnen Sie den Pegel des Monitorsignals anpassen, das nur Sie h\xc3\xb6ren\"\n"
+"\"Out Level\" = \"Ausgangspegel\"\n"
+"\"This is the main volume control which affects everything you hear\" = \"Dies ist der Hauptlautst\xc3\xa4rkeregler, der die Gesamtlautst\xc3\xa4rke steuert\"\n"
+"\"RECENTS\" = \"LETZTE GRUPPEN\"\n"
+"\"PRIVATE GROUP\" = \"PRIVATE GRUPPE\"\n"
+"\"PUBLIC GROUPS\" = \"\xc3\x96""FFENTLICHE GRUPPEN\"\n"
+"\"DIRECT\" = \"DIREKTVERBINDUNG\"\n"
+"\"Local Address:\" = \"Lokale Adresse:\"\n"
+"\"Host: \" = \"Host:\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Stellen Sie eine direkte Verbindung zu anderen SonoBus-Instanzen in Ihrem lokalen Netzwerk unter der bekannten IP-Adresse und Por"
+"tnummer des anderen Teilnehmer her.\"\n"
+"\"IPaddress:port\" = \"IP-Adresse:Port\"\n"
+"\"Connect...\" = \"Verbinden...\"\n"
+"\"Direct Connect\" = \"Direkte Verbindung\"\n"
+"\"Connect to Group\" = \"Mit Gruppe verbinden\"\n"
+"\"optional\" = \"optional\"\n"
+"\"Your Displayed Name:\" = \"Ihr angezeigter Name:\"\n"
+"\"Password:\" = \"Passwort:\"\n"
+"\"Group Name:\" = \"Gruppenname:\"\n"
+"\"Connection Server:\" = \"Verbindungs-Server:\"\n"
+"\"Generate a random group name\" = \"Generieren Sie einen zuf\xc3\xa4lligen Gruppennamen\"\n"
+"\"Copy connection information to the clipboard to share\" = \"Kopieren Sie die Verbindungsinformationen in die Zwischenablage\"\n"
+"\"Paste connection information from the clipboard\" = \"F\xc3\xbcgen Sie Verbindungsinformationen aus der Zwischenablage ein\"\n"
+"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"Der Verbindungs-Server wird nur verwendet, um die Verbindung zwischen den einzelnen Teilneh"
+"mern herzustellen. Es wird kein Audio \xc3\xbc""bertragen. Alle Audiodaten werden direkt zwischen den Teilnehmern ausgetauscht (Peer-to-Peer).\"\n"
+"\"Clear All\" = \"Alle l\xc3\xb6schen\"\n"
+"\"Active Public Groups\" = \"Aktive \xc3\xb6""ffentliche Gruppen\"\n"
+"\"Select existing group below OR \" = \"W\xc3\xa4hlen Sie unten eine vorhandene Gruppe aus ODER\"\n"
+"\"Create Group...\" = \"Gruppe erstellen...\"\n"
+"\"enter group name\" = \"Gruppennamen eingeben\"\n"
+"\"Choose a descriptive group name that includes geographic information and genre\" = \"W\xc3\xa4hlen Sie einen beschreibenden Gruppennamen, der geografische Informationen und das Genre enth\xc3\xa4lt\"\n"
+"\"Patchbay\" = \"Patchbay\"\n"
+"\"Setup Audio\" = \"Audio einrichten\"\n"
+"\"Press to copy/share link to group\" = \"Dr\xc3\xbc""cken, um Link zur Gruppe zu kopieren / freizugeben\"\n"
+"\"Connect\" = \"Verbinden\"\n"
+"\"Manual\" = \"Manuell\"\n"
+"\"Auto Up\" = \"Automatisch erh\xc3\xb6hen\"\n"
+"\"Auto\" = \"Automatisch\"\n"
+"\"Initial Auto\" = \"Automatische Initialisierung\"\n"
+"\"Default Jitter Buffer\" = \"Standard-Jitter-Puffer\"\n"
+"\"Default Send Quality:\" = \"Standard-Sendequalit\xc3\xa4t:\"\n"
+"\"Make Latency Test Audible\" = \"Latenztest h\xc3\xb6rbar machen\"\n"
+"\"Metronome output recorded in full mix\" = \"Metronomsignal in Gesamtmischung mit aufzeichnen\"\n"
+"\"Record feature creates the following files:\" = \"Die Aufnahmefunktion erstellt die folgenden Dateien:\"\n"
+"\"Full Mix\" = \"Gesamtmischung\"\n"
+"\"Full Mix without yourself\" = \"Gesamtmischung ohne Sie\"\n"
+"\"Yourself\" = \"Nur Sie\"\n"
+"\"Each Connected User\" = \"Jeden Teilnehmer einzeln\"\n"
+"\"FLAC\" = \"FLAC\"\n"
+"\"WAV\" = \"WAV\"\n"
+"\"OGG\" = \"OGG\"\n"
+"\"16 bit\" = \"16 Bit\"\n"
+"\"24 bit\" = \"24 Bit\"\n"
+"\"Audio File Format:\" = \"Audiodateiformat:\"\n"
+"\"Record Location:\" = \"Verzeichnis f\xc3\xbcr Aufnahmen:\"\n"
+"\"Use Specific UDP Port\" = \"Festgelegten UDP-Port verwenden\"\n"
+"\"Use Drift Correction\" = \"Driftkorrektur verwenden\"\n"
+"\"Auto-Reconnect to Last Group\" = \"Automatische Verbindung zur letzten Gruppe wiederherstellen\"\n"
+"\"Override Device Sample Rate\" = \"Abtastrate der Audioschnittstelle \xc3\xbc""berschreiben\"\n"
+"\"Automatically check for updates\" = \"Automatisch nach Aktualisierungen suchen\"\n"
+"\"Sliders Snap to Mouse Click\" = \"Schieberegler per Mausklick setzen\"\n"
+"\"Use Input FX Limiter\" = \"Eingangseffekt Limiter verwenden\"\n"
+"\"Change all connected\" = \"\xc3\x84ndern f\xc3\xbcr alle Teilnehmer\"\n"
+"\"Version: \" = \"Version:\"\n"
+"\"FX\" = \"FX\"\n"
+"\"In FX\" = \"In FX\"\n"
+"\"Match # Inputs\" = \"Entsprechend der Eingangsanzahl\"\n"
+"\"Send Mono\" = \"Mono senden\"\n"
+"\"Send Stereo\" = \"Stereo senden\"\n"
+"\"# Send Channels\" = \"Anzahl der Sendekan\xc3\xa4le\"\n"
+"\"Size\" = \"Size\"\n"
+"\"Damping\" = \"Damping\"\n"
+"\"Pre-Delay\" = \"Pre-Delay\"\n"
+"\"Reverb\" = \"Reverb\"\n"
+"\"Freeverb\" = \"Freeverb\"\n"
+"\"MVerb\" = \"MVerb\"\n"
+"\"Zita\" = \"Zita\"\n"
+"\"Start/Stop recording audio to file\" = \"Starten / Beenden der Audioaufnahme in eine Datei\"\n"
+"\"Load audio file for playback\" = \"Audiodatei f\xc3\xbcr die Wiedergabe laden\"\n"
+"\"Send File Playback to All\" = \"Dateiwiedergabe an alle senden\"\n"
+"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Gruppeninformationen aus der Zwischenablage eingeben! Dr\xc3\xbc""cken Sie \\'Mit Gruppe verbinden\\', um sich anzumelden ...\"\n"
+"\"Quit Confirmation\" = \"Beenden best\xc3\xa4tigen\"\n"
+"\"You are connected, are you sure you want to quit?\" = \"Sie sind verbunden, m\xc3\xb6""chten Sie wirklich beenden?\"\n"
+"\"Quit\" = \"Beenden\"\n"
+"\"Share this link with others to connect with SonoBus:\" = \"Teilen Sie diesen Link mit anderen, um eine Verbindung mit SonoBus herzustellen:\"\n"
+"\"Or share this link:\" = \"Oder teilen Sie diesen Link:\"\n"
+"\"Last Session: \" = \"Letzte Sitzung:\"\n"
+"\"Total: \" = \"Gesamt:\"\n"
+"\"Not sending your audio anywhere\" = \"Eigenes Audiosignal an niemanden senden\"\n"
+"\"Sending your audio to others\" = \"Eigenes Audiosignal an andere senden\"\n"
+"\"Muted everyone\" = \"Alle stummschalten\"\n"
+"\"Unmuted all who were not muted previously\" = \"Stummschaltung f\xc3\xbcr alle aufheben, die zuvor nicht stummgeschaltet waren\"\n"
+"\"Sending your metronome to all users\" = \"Metronomsignal an alle senden\"\n"
+"\"Now only you will hear your metronome\" = \"Jetzt h\xc3\xb6ren nur Sie Ihr Metronom\"\n"
+"\"Sending file playback to all users\" = \"Senden der Dateiwiedergabe an alle Teilnehmer\"\n"
+"\"Now only you will hear the file playback\" = \"Jetzt h\xc3\xb6ren nur Sie die Dateiwiedergabe\"\n"
+"\"Copied connection info to clipboard for you to share with others\" = \"Verbindungsinformationen wurden in die Zwischenablage kopiert, damit Sie sie mit anderen teilen k\xc3\xb6nnen\"\n"
+"\"Copied group connection info to clipboard for you to share with others\" = \"Gruppenverbindungsinformationen wurden in die Zwischenablage kopiert, damit Sie sie mit anderen teilen k\xc3\xb6nnen\"\n"
+"\"Finished recording to \" = \"Aufnahme abgeschlossen in Datei\"\n"
+"\"Last recorded file: \" = \"Zuletzt aufgenommene Datei:\"\n"
+"\"Started recording output\" = \"Aufnahme gestartet\"\n"
+"\"Recording audio to: \" = \"Audio aufnemen in:\"\n"
+"\"Recording multi-track audio to: \" = \"Mehrspur-Audio aufnehmen in:\"\n"
+"\"Choose an audio file to open...\" = \"W\xc3\xa4hlen Sie eine Audiodatei zum \xc3\x96""ffnen ...\"\n"
+"\"Choose the folder for new recordings\" = \"W\xc3\xa4hlen Sie den Ordner f\xc3\xbcr neue Aufnahmen\"\n"
+"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Gruppe aus Link \xc3\xbc""bernommen! Dr\xc3\xbc""cken Sie \\'Mit Gruppe verbinden\\', um sich anzumelden ...\"\n"
+"\"You need to specify a group name!\" = \"Sie m\xc3\xbcssen einen Gruppennamen angeben!\"\n"
+"\"You need to specify a user name!\" = \"Sie m\xc3\xbcssen einen Benutzernamen angeben!\"\n"
+"\"Server address is invalid!\" = \"Server-Adresse ist ung\xc3\xbcltig!\"\n"
+"\"All who join the same Group will be able to connect with each other.\" = \"Alle, die derselben Gruppe beitreten, k\xc3\xb6nnen sich miteinander verbinden.\"\n"
+"\"AUDIO\" = \"AUDIO\"\n"
+"\"OPTIONS\" = \"OPTIONEN\"\n"
+"\"HELP\" = \"HILFE\"\n"
+"\"RECORDING\" = \"AUFZEICHNUNG\"\n"
+"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Die Verwendung eines ASIO Ger\xc3\xa4tetreibers wird dringend empfohlen. We"
+"nn Sie f\xc3\xbcr Ihr Audio-Interface keinen solchen Treiber haben, installieren Sie bitte ASIO4ALL (asio4all.org) und konfigurieren Sie dieses zuerst.\"\n"
+"\"Disconnect\" = \"Trennen\"\n"
+"\"[P] \" = \"[P]\"\n"
+"\"Waiting for other users to join group\" = \"Warten auf den Beitritt anderer Teilnehmer zur Gruppe\"\n"
+"\"Press Connect button to start.\" = \"Dr\xc3\xbc""cken Sie die Verbinden-Taste, um zu starten.\"\n"
+"\"Please use headphones if you are using a microphone!\" = \"Bitte verwenden Sie Kopfh\xc3\xb6rer, wenn Sie ein Mikrofon verwenden!\"\n"
+"\"Connected to server\" = \"Mit Server verbunden\"\n"
+"\"Already connected with this user name\" = \"Bereits mit diesem Benutzernamen verbunden\"\n"
+"\"Connect failed: \" = \"Verbindung fehlgeschlagen:\"\n"
+"\"Disconnected from server\" = \"Vom Server getrennt\"\n"
+"\"Disconnect failed: \" = \"Trennung fehlgeschlagen:\"\n"
+"\"Joined Group: \" = \"Gruppe beigetreten:\"\n"
+"\"Failed to join group: \" = \"Fehler beim Beitritt zur Gruppe:\"\n"
+"\"Left Group: \" = \"Gruppe verlassen:\"\n"
+"\"Failed to leave group: \" = \"Gruppe konnte nicht verlassen werden:\"\n"
+"\"Trim to New\" = \"Auswahl als neue Datei\"\n"
+"\"Share File\" = \"Datei teilen\"\n"
+"\"Reveal File\" = \"Datei anzeigen\"\n"
+"\"Mute All Input\" = \"Alle Eingangssignale stumm schalten\"\n"
+"\"Toggle Mute all input\" = \"Umschalten der Stummschaltung f\xc3\xbcr alle Eing\xc3\xa4nge\"\n"
+"\"Popup\" = \"Popup\"\n"
+"\"Mute All Users\" = \"Alle Teilnehmer stummschalten\"\n"
+"\"Toggle Mute all users\" = \"Umschalten der Stummschaltung f\xc3\xbcr alle Teilnehmer\"\n"
+"\"Play/Pause\" = \"Wiedergabe/Pause\"\n"
+"\"Toggle file playback\" = \"Dateiwiedergabe ein- und ausschalten\"\n"
+"\"Loop\" = \"Schleife\"\n"
+"\"Toggle file looping\" = \"Schleifenwiedergabe ein- und ausschalten\"\n"
+"\"Trim file from selection to new file\" = \"Auswahl als neue Audiodatei speichern\"\n"
+"\"Close File\" = \"Datei schlie\xc3\x9f""en\"\n"
+"\"Close file\" = \"Datei schlie\xc3\x9f""en\"\n"
+"\"Open File\" = \"Datei \xc3\xb6""ffnen\"\n"
+"\"Open Audio file\" = \"Audiodatei \xc3\xb6""ffnen\"\n"
+"\"Share file\" = \"Datei teilen\"\n"
+"\"Reveal file\" = \"Datei anzeigen\"\n"
+"\"Show Options\" = \"Optionen anzeigen\"\n"
+"\"Record\" = \"Aufnehmen\"\n"
+"\"Toggle Record\" = \"Aufnehmen ein- und ausschalten\"\n"
+"\"Check For New Version\" = \"Nach neuer Version suchen\"\n"
+"\"Check for New Version\" = \"Nach neuer Version suchen\"\n"
+"\"File\" = \"Datei\"\n"
+"\"Transport\" = \"Transport\"\n"
+"\"Help\" = \"Hilfe\"\n"
+"\"PUBLIC\" = \"\xc3\x96""FFENTLICH\"\n"
+"\"password protected,\" = \"passwortgesch\xc3\xbctzt,\"\n"
+"\"on\" = \"am\"\n"
+"\"to\" = \"zu\"\n"
+"\" active users\" = \"aktive Teilnehmer\"\n"
+"\" active user\" = \"aktiver Teilnehmer\"\n"
+"\"Save current state\" = \"Aktuellen Status speichern\"\n"
+"\"Error whilst saving\" = \"Fehler beim Speichern\"\n"
+"\"Couldn\\'t write to the specified file!\" = \"Konnte nicht in die angegebene Datei schreiben!\"\n"
+"\"Load a saved state\" = \"Aktuellen Status laden\"\n"
+"\"Error whilst loading\" = \"Fehler beim Laden\"\n"
+"\"Couldn\\'t read from the specified file!\" = \"Konnte nicht aus der angegebenen Datei lesen!\"\n"
+"\"Audio/MIDI Settings\" = \"Audio / MIDI-Einstellungen\"\n"
+"\"Audio Settings\" = \"Audio Einstellungen\"\n"
+"\"Audio/MIDI Settings...\" = \"Audio / MIDI Einstellungen ...\"\n"
+"\"Save current state...\" = \"Aktuellen Status speichern ...\"\n"
+"\"Load a saved state...\" = \"Gespeicherten Status laden \xe2\x80\xa6\"\n"
+"\"Reset to default state\" = \"Auf Standard zur\xc3\xbc""cksetzen\"\n"
+"\"Threshold\" = \"Threshold\"\n"
+"\"Makeup Gain\" = \"Makeup Gain\"\n"
+"\"Compressor\" = \"Compressor\"\n"
+"\"Autoset Makeup\" = \"Autoset Makeup\"\n"
+"\"Gain\" = \"Gain\"\n"
+"\"High Shelf\" = \"High Shelf\"\n"
+"\"Low Shelf\" = \"Low Shelf\"\n"
+"\"Freq 1\" = \"Freq 1\"\n"
+"\"Q\" = \"Q\"\n"
+"\"Freq 2\" = \"Freq 2\"\n"
+"\"Parametric EQ\" = \"Parametric EQ\"\n"
+"\"Level: \" = \"Pegel:\"\n"
+"\"Remote address:\" = \"Entfernte Adresse:\"\n"
+"\"Disable Sending\" = \"Senden deaktivieren\"\n"
+"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Schaltet die Stummschaltung f\xc3\xbcr diesen Eingang um. Bei aktiver Stummschaltung ist kein Signal von diesem Teilnehmer zu h\xc3\xb6ren.\"\n"
+"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Schalte die Solo-Funktion f\xc3\xbcr diese Teilnehmer um. Dadurch ist nur dieser Teilnehmer sowie alle anderen auf Solo geschalteten Teilnehmer h\xc3\xb6"
+"rbar. Alt-Click um nur diesen Teilnehmer auf Solo zu schalten.\"\n"
+"\"Pan\" = \"Panorama\"\n"
+"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Setzt den Jitterbuffer auf das Minimum zur\xc3\xbc""ck. Halten Sie die Alt-Taste gedr\xc3\xbc""ckt, um ihn f\xc3\xbcr alle zur\xc3\xbc""ckzusetzen (mit Auto).\"\n"
+"\"Jitter Buffer\" = \"Jitterbuffer\"\n"
+"\"Change for all\" = \"F\xc3\xbcr alle Teilnehmer \xc3\xa4ndern\"\n"
+"\"Send Quality\" = \"Sendequalit\xc3\xa4t\"\n"
+"\"No Preference\" = \"Keine Pr\xc3\xa4""ferenz\"\n"
+"\"Preferred Recv Quality\" = \"Bevorzugte Empfangsqualit\xc3\xa4t\"\n"
+"\"Latency (ms)\" = \"Latenz (ms)\"\n"
+"\"Ping\" = \"Ping\"\n"
+"\"PRESS\" = \"DR\xc3\x9c""CKEN SIE\"\n"
+"\"Send Quality:\" = \"Sendequalit\xc3\xa4t:\"\n"
+"\"Recv Jitter Buffer:\" = \"Empfangs-Jitterbuffer:\"\n"
+"\"Reset Dropped\" = \"Packetverlustz\xc3\xa4hler zur\xc3\xbc""cksetzen\"\n"
+"\"Remove\" = \"Entfernen\"\n"
+"\"Removes user from your own connections, does not affect the whole group\" = \"Entfernt Teilnehmer aus Ihren eigenen Verbindungen, wirkt sich nicht auf die gesamte Gruppe aus\"\n"
+"\"Other end muted us\" = \"Die andere Seite hat uns stummgeschaltet\"\n"
+"\"SEND DISABLED\" = \"SENDEN DEAKTIVIERT\"\n"
+"\"Other side is muted\" = \"Die andere Seite ist stummgeschaltet\"\n"
+"\"You muted them\" = \"Sie haben sie stummgeschaltet\"\n"
+"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"Es konnte keine Verbindu"
+"ng mit dem Teilnehmer hergestellt werden. M\xc3\xb6glicherweise m\xc3\xbcssen einer oder beide ihre interne Firewall oder ihren Netzwerkrouter konfigurieren, damit SonoBus zwischen Ihnen arbeiten kann. Informationen zum Aktivieren der Portweiterleitu"
+"ng auf Ihrem Router finden Sie in dessen Hilfedokumentation.\"\n"
+"\"Connecting...\" = \"Verbinde ...\"\n"
+"\"Measured actual round-trip latency:\" = \"Gemessene gegenw\xc3\xa4rtige Gesamtlatenz\"\n"
+"\"Est. Outgoing:\" = \"Ausgangslatenz\"\n"
+"\"Est. Incoming:\" = \"Eingangslatenz\"\n"
+"\"Jitter:\" = \"Jitter:\"\n"
+"\"Measuring actual round-trip latency\" = \"Messe Gesamtlatenz\"\n"
+"\"Mute All\" = \"Alle stummschalten\"\n"
+"\"Unmute All\" = \"Alle stumm schalten\"\n"
+"\"none\" = \"keiner\"\n"
+"\"Show advanced settings...\" = \"Erweiterte Einstellungen anzeigen...\"\n"
+"\"Error when trying to open audio device!\" = \"Fehler beim Versuch, das Audioger\xc3\xa4t zu \xc3\xb6""ffnen!\"\n"
+"\"(no audio output channels found)\" = \"(Keine Audioausgangskan\xc3\xa4le gefunden)\"\n"
+"\"Active Output Channels:\" = \"Aktive Ausgabekan\xc3\xa4le:\"\n"
+"\"(no audio input channels found)\" = \"(Keine Audioeingangskan\xc3\xa4le gefunden)\"\n"
+"\"Active Input Channels:\" = \"Aktive Eingangskan\xc3\xa4le:\"\n"
+"\"Control Panel\" = \"Einstellungen\"\n"
+"\"Opens the device\\'s own control panel\" = \"\xc3\x96""ffnet die ger\xc3\xa4tespezifischen Einstellungen\"\n"
+"\"Reset Device\" = \"Ger\xc3\xa4t zur\xc3\xbc""cksetzen\"\n"
+"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"Setzt das Audio-Interface zur\xc3\xbc""ck. Das ist manchmal erforderlich, nachdem die Parameter des Audio-Interfaces in den ger\xc3"
+"\xa4tespezifischen Einstellungen ge\xc3\xa4ndert wurden\"\n"
+"\"Output:\" = \"Ausgabe:\"\n"
+"\"Device:\" = \"Ger\xc3\xa4t:\"\n"
+"\"Test\" = \"Test\"\n"
+"\"Plays a test tone\" = \"Spielt einen Testton ab\"\n"
+"\"Input:\" = \"Eingang:\"\n"
+"\"Sample rate:\" = \"Abtastrate:\"\n"
+"\"Audio Buffer Size:\" = \"Audiopuffergr\xc3\xb6\xc3\x9f""e:\"\n"
+"\"Audio device type:\" = \"Audioger\xc3\xa4tetyp:\"\n"
+"\"No MIDI inputs available\" = \"Keine MIDI-Eing\xc3\xa4nge verf\xc3\xbcgbar\"\n"
+"\"Active MIDI inputs:\" = \"Aktive MIDI-Eing\xc3\xa4nge:\"\n"
+"\"Bluetooth MIDI\" = \"Bluetooth-MIDI\"\n"
+"\"Scan for bluetooth MIDI devices\" = \"Suche nach Bluetooth-MIDI-Ger\xc3\xa4ten\"\n"
+"\"MIDI Output:\" = \"MIDI-Ausgang:\"\n"
+"\"Default Jitter Buffer Time\" = \"Standard-Jitter-Pufferzeit\"\n"
+"\"Default User Level\" = \"Standardbenutzerebene\"\n"
+"\"Sync to Host\" = \"Mit Host synchronisieren\"\n"
+"\"Metronome\" = \"Metronom\"\n"
+"\"File Playback\" = \"Datei-Wiedergabe\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks.\" = \"Stellen Sie mit der von ihn"
+"en angek\xc3\xbcndigten lokalen Adresse eine direkte Verbindung zu anderen SonoBus-Instanzen in Ihrem lokalen Netzwerk her. Dies ist experimentell, stattdessen wird die Verwendung einer privaten Gruppe empfohlen und funktioniert in lokalen Netzwerken"
+" einwandfrei.\"\n"
+"\"Connect to Raw Address...\" = \"Verbindung zur Rohadresse herstellen ...\"\n"
+"\"Shows full information for connected users\" = \"Zeigt vollst\xc3\xa4ndige Informationen f\xc3\xbcr verbundene Benutzer an\"\n"
+"\"Shows minimal information for connected users\" = \"Zeigt minimale Informationen f\xc3\xbcr verbundene Benutzer an\"\n"
+"\"INPUT MIXER\" = \"EINGANGSMISCHER\"\n"
+"\"MON DELAY\" = \"MON VERZ\xc3\x96GERUNG\"\n"
+"\"Control additional self-monitoring delay, which can help mitigate synchronization with others\" = \"Steuern Sie die zus\xc3\xa4tzliche Verz\xc3\xb6gerung der Selbst\xc3\xbc""berwachung, um die Synchronisation mit anderen zu verringern\"\n"
+"\"Synchronize metronome tempo with plugin host\" = \"Synchronisieren Sie das Metronomtempo mit dem Plugin-Host\"\n"
+"\"Show the connections page, while staying connected to current group\" = \"Zeigen Sie die Verbindungsseite an, w\xc3\xa4hrend Sie mit der aktuellen Gruppe verbunden bleiben\"\n"
+"\"Show/Hide Chat\" = \"Chat ein- / ausblenden\"\n"
+"\"Use Drift Correction (NOT RECOMMENDED)\" = \"Driftkorrektur verwenden (NICHT EMPFOHLEN)\"\n"
+"\"Sliders Snap to Clicked Position\" = \"Schieberegler an der angeklickten Position ausrichten\"\n"
+"\"Send Multichannel\" = \"Mehrkanal senden\"\n"
+"\"Choose a location and name to store the setup\" = \"W\xc3\xa4hlen Sie einen Ort und einen Namen, um das Setup zu speichern\"\n"
+"\"Choose a setup file to load\" = \"W\xc3\xa4hlen Sie eine Setup-Datei zum Laden\"\n"
+"\"Error while loading\" = \"Fehler beim Laden\"\n"
+"\"Invalid setup!\" = \"Ung\xc3\xbcltiges Setup!\"\n"
+"\"Error while saving\" = \"Fehler beim Speichern\"\n"
+"\"Waiting for other users to join group \\\"\" = \"Warten auf den Beitritt anderer Benutzer zur Gruppe \\\"\"\n"
+"\" - joined group\" = \" - der Gruppe beigetreten\"\n"
+"\" - left group\" = \" - linke Gruppe\"\n"
+"\"Close Audio File\" = \"Schlie\xc3\x9f""en Sie die Audiodatei\"\n"
+"\"Close audio file\" = \"Audiodatei schlie\xc3\x9f""en\"\n"
+"\"Open Audio File...\" = \"Audiodatei \xc3\xb6""ffnen ...\"\n"
+"\"Share Audio File\" = \"Audiodatei freigeben\"\n"
+"\"Share audio file\" = \"Audiodatei freigeben\"\n"
+"\"Reveal Audio File\" = \"Audiodatei anzeigen\"\n"
+"\"Reveal audio file\" = \"Audiodatei anzeigen\"\n"
+"\"Load Setup...\" = \"Lade Setup ...\"\n"
+"\"Load Setup file\" = \"Setup-Datei laden\"\n"
+"\"Save Setup...\" = \"Setup speichern ...\"\n"
+"\"Save Setup file\" = \"Setup-Datei speichern\"\n"
+"\"Show or hide chat area\" = \"Chat-Bereich ein- oder ausblenden\"\n"
+"\"View\" = \"Aussicht\"\n"
+"\"Load Recent Setup\" = \"Laden Sie das letzte Setup\"\n"
+"\"Send Level: \" = \"Sendeebene:\"\n"
+"\"Reverb Send\" = \"Reverb Send\"\n"
+"\"Enable the main reverb at the bottom of the window to hear the effect\" = \"Aktivieren Sie den Haupthall am unteren Rand des Fensters, um den Effekt zu h\xc3\xb6ren\"\n"
+"\"Main Reverb Send\" = \"Main Reverb Send\"\n"
+"\"Crashed Last Time\" = \"Letztes Mal abgest\xc3\xbcrzt\"\n"
+"\"Looks like you crashed on launch last time, restoring default settings!\" = \"Sieht so aus, als w\xc3\xa4ren Sie beim letzten Start abgest\xc3\xbcrzt und haben die Standardeinstellungen wiederhergestellt!\"\n"
+"\"Chat\" = \"Plaudern\"\n"
+"\"Enter message here...\" = \"Nachricht hier eingeben ...\"\n"
+"\"Send\" = \"Senden\"\n"
+"\"Save Chat\" = \"Chat speichern\"\n"
+"\"Clear Chat\" = \"Chat l\xc3\xb6schen\"\n"
+"\"Add New Input Group\" = \"Neue Eingabegruppe hinzuf\xc3\xbcgen\"\n"
+"\"CLEAR\" = \"KLAR\"\n"
+"\"Remove all input groups\" = \"Entfernen Sie alle Eingabegruppen\"\n"
+"\"Monitor: \" = \"Monitor:\"\n"
+"\"Pre Level: \" = \"Pre Level:\"\n"
+"\"Set name for this group that others will see\" = \"Legen Sie den Namen f\xc3\xbcr diese Gruppe fest, den andere sehen werden\"\n"
+"\"Click to toggle extra information visibility\" = \"Klicken Sie hier, um die Sichtbarkeit zus\xc3\xa4tzlicher Informationen umzuschalten\"\n"
+"\"Mute this channel for both sending and monitoring\" = \"Schalten Sie diesen Kanal f\xc3\xbcr das Senden und \xc3\x9c""berwachen stumm\"\n"
+"\"Solo - Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Solo - H\xc3\xb6ren Sie nur diesen Benutzer und andere Solo-Benutzer. Klicken Sie bei gedr\xc3\xbc""ckter Alt-Taste, um diesen Benutzer exklusiv"
+" zu solo zu schalten.\"\n"
+"\"Solo - Listen to only this channel for this user\" = \"Solo - H\xc3\xb6ren Sie nur diesen Kanal f\xc3\xbcr diesen Benutzer\"\n"
+"\"Solo - Listen to only this channel, does not affect sending\" = \"Solo - H\xc3\xb6ren Sie nur diesen Kanal, hat keinen Einfluss auf das Senden\"\n"
+"\"Monitor output level\" = \"Ausgangspegel \xc3\xbc""berwachen\"\n"
+"\"Change channel layout\" = \"\xc3\x84ndern Sie das Kanallayout\"\n"
+"\"Select Input channel source (or drag to rearrange)\" = \"W\xc3\xa4hlen Sie Eingangskanalquelle (oder ziehen Sie, um neu anzuordnen).\"\n"
+"\"mono\" = \"Mono\"\n"
+"\"Choose destination output channels\" = \"W\xc3\xa4hlen Sie die Zielausgangskan\xc3\xa4le\"\n"
+"\"Choose destination monitoring channels\" = \"W\xc3\xa4hlen Sie Ziel\xc3\xbc""berwachungskan\xc3\xa4le\"\n"
+"\"Edit input effects (applied before sending)\" = \"Eingabeeffekte bearbeiten (vor dem Senden angewendet)\"\n"
+"\"Edit effects\" = \"Effekte bearbeiten\"\n"
+"\"M.FX\" = \"M.FX.\"\n"
+"\"Edit input monitoring effects (applied to local monitoring only)\" = \"Eingangs\xc3\xbc""berwachungseffekte bearbeiten (gilt nur f\xc3\xbcr die lokale \xc3\x9c""berwachung)\"\n"
+"\"Edit monitoring effects\" = \"Bearbeiten Sie \xc3\x9c""berwachungseffekte\"\n"
+"\"ch\" = \"CH\"\n"
+"\"Confirm Remove of All Inputs\" = \"Best\xc3\xa4tigen Sie das Entfernen aller Eing\xc3\xa4nge\"\n"
+"\"ADD INPUT GROUP:\" = \"EINGANGSGRUPPE HINZUF\xc3\x9cGEN:\"\n"
+"\"Mono\" = \"Mono\"\n"
+"\"Stereo\" = \"Stereo\"\n"
+"\"channel\" = \"Kanal\"\n"
+"\"CHANGE CHANNEL LAYOUT:\" = \"KANALLAYOUT \xc3\x84NDERN:\"\n"
+"\"<Restore Original Layout>\" = \"<Urspr\xc3\xbcngliches Layout wiederherstellen>\"\n"
+"\"SELECT INPUTS:\" = \"EING\xc3\x84NGE AUSW\xc3\x84HLEN:\"\n"
+"\"SELECT INPUT:\" = \"EINGABE AUSW\xc3\x84HLEN:\"\n"
+"\"CHANGE LAYOUT...\" = \"LAYOUT \xc3\x84NDERN ...\"\n"
+"\"REMOVE\" = \"ENTFERNEN\"\n"
+"\"SELECT MONITOR OUT:\" = \"MONITOR AUSW\xc3\x84HLEN:\"\n"
+"\"Change all\" = \"\xc3\x84ndere Alles\"\n"
+"\"Removes pending user from list\" = \"Entfernt ausstehende Benutzer aus der Liste\"\n"
+"\"****\" = \"****\"\n"
+"\"Estimated Round-trip Latency:\" = \"Gesch\xc3\xa4tzte Roundtrip-Latenz:\"\n"
+"\"Round-trip Network Ping:\" = \"Netzwerk-Ping f\xc3\xbcr Hin- und R\xc3\xbc""ckfl\xc3\xbcge:\"\n"
+"\"Est. Jitter:\" = \"Europ\xc3\xa4ische Sommerzeit. Jitter:\"\n"
+"\"Legacy-mode, ask them \\r\\n to install latest version\" = \"Legacy-Modus, frag sie\\r\\n um die neueste Version zu installieren\"\n"
+"\"Delay Time\" = \"Verz\xc3\xb6gerungszeit\"\n"
+"\"One-way\" = \"Einweg\"\n"
+"\"Round-trip\" = \"Rundfahrt\"\n"
+"\"Set From Peers\" = \"Set von Gleichaltrigen\"\n"
+"\"Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection\" = \"Durch Dr\xc3\xbc""cken dieser Taste wird eine durchschnittliche Latenz f\xc3"
+"\xbcr alle verbundenen Peers berechnet und die \xc3\x9c""berwachungsverz\xc3\xb6gerungszeit entsprechend der Auswahl der Einweg- oder Hin- und R\xc3\xbc""ckfahrt festgelegt\"\n"
+"\"Link Delay Time with other inputs\" = \"Verbinden Sie die Verz\xc3\xb6gerungszeit mit anderen Eing\xc3\xa4ngen\"\n"
+"\"Additional Monitoring Delay\" = \"Zus\xc3\xa4tzliche \xc3\x9c""berwachungsverz\xc3\xb6gerung\"\n";
+
+const char* localized_de_txt = (const char*) temp_binary_data_0;
+
+//================== localized_es.txt ==================
+static const unsigned char temp_binary_data_1[] =
 "language: Spanish\n"
 "countries: es\n"
 "\n"
@@ -224,7 +643,6 @@ static const unsigned char temp_binary_data_0[] =
 "\"Record\" = \"Grabar\"\n"
 "\"Toggle Record\" = \"Alternar activado de la grabaci\xc3\xb3n\"\n"
 "\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\n"
-"\"Check For New Version\" = \"Buscar por nueva versi\xc3\xb3n\"\n"
 "\"File\" = \"Archivo\"\n"
 "\"Transport\" = \"Transporte\"\n"
 "\"Help\" = \"Ayuda\"\n"
@@ -314,12 +732,1795 @@ static const unsigned char temp_binary_data_0[] =
 "\"Active MIDI inputs:\" = \"Entradas MIDI activas:\"\n"
 "\"Bluetooth MIDI\" = \"MIDI Bluetooth\"\n"
 "\"Scan for bluetooth MIDI devices\" = \"Buscar dispositivos MIDI bluetooth\"\n"
-"\"MIDI Output:\" = \"Salida MIDI:\"\n";
+"\"MIDI Output:\" = \"Salida MIDI:\"\n"
+"\"Default Jitter Buffer Time\" = \"Tiempo de b\xc3\xba""fer de fluctuaci\xc3\xb3n predeterminado\"\n"
+"\"Default User Level\" = \"Nivel de usuario predeterminado\"\n"
+"\"Sync to Host\" = \"Sincronizar con el host\"\n"
+"\"Metronome\" = \"Metr\xc3\xb3nomo\"\n"
+"\"File Playback\" = \"Reproducci\xc3\xb3n de archivos\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks.\" = \"Con\xc3\xa9""ctese directam"
+"ente a otras instancias de SonoBus en su red local con la direcci\xc3\xb3n local que anuncian. Esto es experimental, se recomienda usar un grupo privado en su lugar y funciona bien en redes locales.\"\n"
+"\"Connect to Raw Address...\" = \"Conectarse a la direcci\xc3\xb3n sin formato ...\"\n"
+"\"Shows full information for connected users\" = \"Muestra informaci\xc3\xb3n completa para usuarios conectados\"\n"
+"\"Shows minimal information for connected users\" = \"Muestra informaci\xc3\xb3n m\xc3\xadnima para usuarios conectados\"\n"
+"\"INPUT MIXER\" = \"MEZCLADOR DE ENTRADA\"\n"
+"\"MON DELAY\" = \"LUN DEMORA\"\n"
+"\"Control additional self-monitoring delay, which can help mitigate synchronization with others\" = \"Controle la demora de autocontrol adicional, que puede ayudar a mitigar la sincronizaci\xc3\xb3n con otros\"\n"
+"\"Synchronize metronome tempo with plugin host\" = \"Sincronizar el tempo del metr\xc3\xb3nomo con el host del complemento\"\n"
+"\"Show the connections page, while staying connected to current group\" = \"Muestre la p\xc3\xa1gina de conexiones, mientras permanece conectado al grupo actual\"\n"
+"\"Show/Hide Chat\" = \"Mostrar / Ocultar chat\"\n"
+"\"Use Drift Correction (NOT RECOMMENDED)\" = \"Utilice la correcci\xc3\xb3n de deriva (NO SE RECOMIENDA)\"\n"
+"\"Sliders Snap to Clicked Position\" = \"Los controles deslizantes se ajustan a la posici\xc3\xb3n en la que se hizo clic\"\n"
+"\"Send Multichannel\" = \"Enviar multicanal\"\n"
+"\"Choose a location and name to store the setup\" = \"Elija una ubicaci\xc3\xb3n y un nombre para almacenar la configuraci\xc3\xb3n\"\n"
+"\"Choose a setup file to load\" = \"Elija un archivo de instalaci\xc3\xb3n para cargar\"\n"
+"\"Error while loading\" = \"Error al cargar\"\n"
+"\"Invalid setup!\" = \"\xc2\xa1""Configuraci\xc3\xb3n no v\xc3\xa1lida!\"\n"
+"\"Error while saving\" = \"Error al guardar\"\n"
+"\"Waiting for other users to join group \\\"\" = \"Esperando que otros usuarios se unan al grupo \\\"\"\n"
+"\" - joined group\" = \" - se uni\xc3\xb3 al grupo\"\n"
+"\" - left group\" = \" - grupo izquierdo\"\n"
+"\"Close Audio File\" = \"Cerrar archivo de audio\"\n"
+"\"Close audio file\" = \"Cerrar archivo de audio\"\n"
+"\"Open Audio File...\" = \"Abrir archivo de audio ...\"\n"
+"\"Share Audio File\" = \"Compartir archivo de audio\"\n"
+"\"Share audio file\" = \"Compartir archivo de audio\"\n"
+"\"Reveal Audio File\" = \"Revelar archivo de audio\"\n"
+"\"Reveal audio file\" = \"Revelar archivo de audio\"\n"
+"\"Load Setup...\" = \"Cargar configuraci\xc3\xb3n ...\"\n"
+"\"Load Setup file\" = \"Cargar archivo de instalaci\xc3\xb3n\"\n"
+"\"Save Setup...\" = \"Guardar configuraci\xc3\xb3n ...\"\n"
+"\"Save Setup file\" = \"Guardar archivo de configuraci\xc3\xb3n\"\n"
+"\"Show or hide chat area\" = \"Mostrar u ocultar el \xc3\xa1rea de chat\"\n"
+"\"Check for New Version\" = \"Compruebe si hay nueva versi\xc3\xb3n\"\n"
+"\"View\" = \"Vista\"\n"
+"\"Load Recent Setup\" = \"Cargar configuraci\xc3\xb3n reciente\"\n"
+"\"Send Level: \" = \"Nivel de env\xc3\xado:\"\n"
+"\"Reverb Send\" = \"Env\xc3\xado de reverberaci\xc3\xb3n\"\n"
+"\"Enable the main reverb at the bottom of the window to hear the effect\" = \"Habilite la reverberaci\xc3\xb3n principal en la parte inferior de la ventana para escuchar el efecto\"\n"
+"\"Main Reverb Send\" = \"Env\xc3\xado de reverberaci\xc3\xb3n principal\"\n"
+"\"Crashed Last Time\" = \"Se estrell\xc3\xb3 la \xc3\xbaltima vez\"\n"
+"\"Looks like you crashed on launch last time, restoring default settings!\" = \"Parece que se bloque\xc3\xb3 al iniciar la \xc3\xbaltima vez, \xc2\xa1restaurando la configuraci\xc3\xb3n predeterminada!\"\n"
+"\"Chat\" = \"Chat\"\n"
+"\"Enter message here...\" = \"Ingrese el mensaje aqu\xc3\xad ...\"\n"
+"\"Send\" = \"Enviar\"\n"
+"\"Save Chat\" = \"Guardar chat\"\n"
+"\"Clear Chat\" = \"Vacie la conversacion\"\n"
+"\"Add New Input Group\" = \"Agregar nuevo grupo de entrada\"\n"
+"\"CLEAR\" = \"CLARO\"\n"
+"\"Remove all input groups\" = \"Eliminar todos los grupos de entrada\"\n"
+"\"Monitor: \" = \"Monitor:\"\n"
+"\"Pre Level: \" = \"Nivel previo:\"\n"
+"\"Set name for this group that others will see\" = \"Establecer un nombre para este grupo que otros ver\xc3\xa1n\"\n"
+"\"Click to toggle extra information visibility\" = \"Haga clic para alternar la visibilidad de informaci\xc3\xb3n adicional\"\n"
+"\"Mute this channel for both sending and monitoring\" = \"Silenciar este canal para enviar y monitorear\"\n"
+"\"Solo - Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Solo: escuche solo a este usuario y a otros usuarios en solitario. Alt-clic para solo este usuario exclusivamente.\"\n"
+"\"Solo - Listen to only this channel for this user\" = \"Solo: escuche solo este canal para este usuario\"\n"
+"\"Solo - Listen to only this channel, does not affect sending\" = \"Solo: escuche solo este canal, no afecta el env\xc3\xado\"\n"
+"\"Monitor output level\" = \"Monitor de nivel de salida\"\n"
+"\"Change channel layout\" = \"Cambiar el dise\xc3\xb1o del canal\"\n"
+"\"Select Input channel source (or drag to rearrange)\" = \"Seleccione la fuente del canal de entrada (o arrastre para reorganizar)\"\n"
+"\"mono\" = \"mononucleosis infecciosa\"\n"
+"\"Choose destination output channels\" = \"Elija los canales de salida de destino\"\n"
+"\"Choose destination monitoring channels\" = \"Elija los canales de monitoreo de destino\"\n"
+"\"Edit input effects (applied before sending)\" = \"Editar efectos de entrada (aplicados antes del env\xc3\xado)\"\n"
+"\"Edit effects\" = \"Editar efectos\"\n"
+"\"M.FX\" = \"M.FX\"\n"
+"\"Edit input monitoring effects (applied to local monitoring only)\" = \"Editar efectos de monitorizaci\xc3\xb3n de entrada (aplicado solo a monitorizaci\xc3\xb3n local)\"\n"
+"\"Edit monitoring effects\" = \"Editar efectos de monitorizaci\xc3\xb3n\"\n"
+"\"ch\" = \"ch\"\n"
+"\"Confirm Remove of All Inputs\" = \"Confirmar la eliminaci\xc3\xb3n de todas las entradas\"\n"
+"\"ADD INPUT GROUP:\" = \"A\xc3\x91""ADIR GRUPO DE ENTRADA:\"\n"
+"\"Mono\" = \"Mononucleosis infecciosa\"\n"
+"\"Stereo\" = \"Est\xc3\xa9reo\"\n"
+"\"channel\" = \"canal\"\n"
+"\"CHANGE CHANNEL LAYOUT:\" = \"CAMBIAR DISE\xc3\x91O DEL CANAL:\"\n"
+"\"<Restore Original Layout>\" = \"<Restaurar dise\xc3\xb1o original>\"\n"
+"\"SELECT INPUTS:\" = \"SELECCIONAR ENTRADAS:\"\n"
+"\"SELECT INPUT:\" = \"SELECCIONAR ENTRADA:\"\n"
+"\"CHANGE LAYOUT...\" = \"CAMBIA EL DISE\xc3\x91O...\"\n"
+"\"REMOVE\" = \"RETIRAR\"\n"
+"\"SELECT MONITOR OUT:\" = \"SELECCIONAR SALIDA DE MONITOR:\"\n"
+"\"Change all\" = \"Cambia todo\"\n"
+"\"Removes pending user from list\" = \"Elimina el usuario pendiente de la lista\"\n"
+"\"****\" = \"****\"\n"
+"\"Estimated Round-trip Latency:\" = \"Latencia estimada de ida y vuelta:\"\n"
+"\"Round-trip Network Ping:\" = \"Ping de red de ida y vuelta:\"\n"
+"\"Est. Jitter:\" = \"Est. Estar nervioso:\"\n"
+"\"Legacy-mode, ask them \\r\\n to install latest version\" = \"Modo heredado, preg\xc3\xbantales\\r\\n para instalar la \xc3\xbaltima versi\xc3\xb3n\"\n"
+"\"Delay Time\" = \"Tiempo de retardo\"\n"
+"\"One-way\" = \"De una sola mano\"\n"
+"\"Round-trip\" = \"Ida y vuelta\"\n"
+"\"Set From Peers\" = \"Establecer desde compa\xc3\xb1""eros\"\n"
+"\"Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection\" = \"Al presionar esto, se calcular\xc3\xa1 una latencia promedio para todos los"
+" pares conectados y se establecer\xc3\xa1 el tiempo de retardo de monitoreo en consecuencia, seg\xc3\xban la selecci\xc3\xb3n de opci\xc3\xb3n de ida o vuelta.\"\n"
+"\"Link Delay Time with other inputs\" = \"Vincular el tiempo de retardo con otras entradas\"\n"
+"\"Additional Monitoring Delay\" = \"Retraso de monitoreo adicional\"\n";
 
-const char* localized_es_txt = (const char*) temp_binary_data_0;
+const char* localized_es_txt = (const char*) temp_binary_data_1;
+
+//================== localized_fr.txt ==================
+static const unsigned char temp_binary_data_2[] =
+"language: French\n"
+"countries: fr\n"
+"\n"
+"\"Noise Floor\" = \"Bruit de fond\"\n"
+"\"Ratio\" = \"Ratio\"\n"
+"\"Attack\" = \"Attaque\"\n"
+"\"Release\" = \"Extinction\"\n"
+"\"Noise Gate\" = \"Noise Gate\"\n"
+"\"In Gain\" = \"Niveau d\\'entr\xc3\xa9""e\"\n"
+"\"In Pan\" = \"Pan\"\n"
+"\"C\" = \"C\"\n"
+"\"In Pan 1\" = \"Pan 1\"\n"
+"\"In Pan 2\" = \"Pan 2\"\n"
+"\"Dry Level\" = \"Niveau son direct\"\n"
+"\"Output Level\" = \"Niveau de sortie\"\n"
+"\"Default Net Buffer Time\" = \"Dur\xc3\xa9""e tampon r\xc3\xa9seau par d\xc3\xa9""faut\"\n"
+"\"Send Channels\" = \"Canaux d\\'envoi\"\n"
+"\"Metronome Enabled\" = \"M\xc3\xa9tronome activ\xc3\xa9\"\n"
+"\"Send Metronome Audio\" = \"Envoyer l\\'audio du m\xc3\xa9tronome\"\n"
+"\"Metronome Gain\" = \"Niveau du m\xc3\xa9tronome\"\n"
+"\"Metronome Tempo\" = \"Tempo du m\xc3\xa9tronome\"\n"
+"\"Send Playback Audio\" = \"Envoyer l\\'audio de lecture\"\n"
+"\"Hear Latency Test\" = \"Entendre le test de latence\"\n"
+"\"Record Metronome to File\" = \"Enregistrer le m\xc3\xa9tronome dans un fichier\"\n"
+"\"Main Reverb Enabled\" = \"R\xc3\xa9verb\xc3\xa9ration principale activ\xc3\xa9""e\"\n"
+"\"Main Reverb Level\" = \"Niveau de la r\xc3\xa9verb\xc3\xa9ration principale\"\n"
+"\"Main Reverb Size\" = \"Taille de la r\xc3\xa9verb\xc3\xa9ration principale\"\n"
+"\"Main Reverb Damping\" = \"Amortissement de la r\xc3\xa9verb\xc3\xa9ration principale\"\n"
+"\"Pre-Delay Time\" = \"Dur\xc3\xa9""e du pr\xc3\xa9-d\xc3\xa9lai\"\n"
+"\"Main Reverb Model\" = \"Mod\xc3\xa8le de r\xc3\xa9verb\xc3\xa9ration principale\"\n"
+"\"Main Send Mute\" = \"Envoi principal muet \"\n"
+"\"Main Receive Mute\" = \"Reception muette\"\n"
+"\"Main In Mute\" = \"Entr\xc3\xa9""e\"\n"
+"\"Main Monitor Solo\" = \"Moniteur principal en solo\"\n"
+"\"Def Auto Net Buffer Mode\" = \"Def Auto Net Buffer Mode\"\n"
+"\"Def Send Format\" = \"D\xc3\xa9""finir le format d\\'envoi\"\n"
+"\"Dynamic Resampling\" = \"R\xc3\xa9\xc3\xa9""chantillonnage dynamique\"\n"
+"\"Reconnect Last\" = \"R\xc3\xa9tablir la derni\xc3\xa8re connexion\"\n"
+"\"Could not find format for filename\" = \"Impossible de trouver le format li\xc3\xa9 \xc3\xa0 ce fichier\"\n"
+"\"Error creating writer for \" = \"Erreur lors de la cr\xc3\xa9""ation du r\xc3\xa9""dacteur pour\"\n"
+"\"Error creating output file: \" = \"Erreur lors de la cr\xc3\xa9""ation du fichier de sortie:\"\n"
+"\"Error creating directory for recording: \" = \"Erreur lors de la cr\xc3\xa9""ation du r\xc3\xa9pertoire pour l\\'enregistrement:\"\n"
+"\"SonoBus\" = \"SonoBus\"\n"
+"\"Pan: Center\" = \"Pan: Centre\"\n"
+"\"Pan: \" = \"Pan:\"\n"
+"\"MUTE\" = \"MUET\"\n"
+"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Entr\xc3\xa9""e en mode muet, emp\xc3\xaa""chant tout le monde de vous entendre, sans vous signaler\"\n"
+"\"SOLO\" = \"SOLO\"\n"
+"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"\xc3\x89""coutez uniquement vous-m\xc3\xaame et les autres utilisateurs dont le solo est activ\xc3\xa9. Alt+Clic  pour vous \xc3\xa9""couter en solo excl"
+"usivement.\"\n"
+"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Votre entr\xc3\xa9""e est en mode muet, aucun de vos fichiers audio (y compris la lecture de fichiers) ne sera envoy\xc3"
+"\xa9 aux utilisateurs et ils verront un indicateur muet\"\n"
+"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Active / d\xc3\xa9sactive le mode muet pour tous les utilisateurs, aucune donn\xc3\xa9""e audio ne sera re\xc3\xa7ue lorsque les utilisateurs sont muets\"\n"
+"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Lorsque vous appuyez, coupe le son des autres et active momentan\xc3\xa9ment le son (push to talk).\"\n"
+"\" Use the \\'T\\' key as a shortcut.\" = \" Utilisez la touche \xc2\xabT\xc2\xbb comme raccourci.\"\n"
+"\"Metronome On/Off\" = \"M\xc3\xa9tronome activ\xc3\xa9 / d\xc3\xa9sactiv\xc3\xa9\"\n"
+"\"Metronome Options\" = \"Options du m\xc3\xa9tronome\"\n"
+"\"Level\" = \"Niveau\"\n"
+"\"Tempo\" = \"Tempo\"\n"
+"\"Send Metronome to All\" = \"Envoyer le m\xc3\xa9tronome \xc3\xa0 tous\"\n"
+"\"In Level\" = \"Niveau d\\'entr\xc3\xa9""e\"\n"
+"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"R\xc3\xa9""duit ou augmente le niveau de votre propre entr\xc3\xa9""e audio. Affecte le niveau d"
+"e votre propre circuit d\\'\xc3\xa9""coute et de ce que vous envoyez aux autres\"\n"
+"\"Monitor\" = \"\xc3\x89""coute\"\n"
+"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Ceci ajuste le niveau d\\'\xc3\xa9""coute de votre entr\xc3\xa9""e, que vous seul entendez\"\n"
+"\"Out Level\" = \"Niveau de sortie\"\n"
+"\"This is the main volume control which affects everything you hear\" = \"Il s\\'agit du contr\xc3\xb4le de volume principal qui affecte tout ce que vous entendez\"\n"
+"\"RECENTS\" = \"R\xc3\x89""CENTS\"\n"
+"\"PRIVATE GROUP\" = \"GROUPE PRIV\xc3\x89\"\n"
+"\"PUBLIC GROUPS\" = \"GROUPES PUBLICS\"\n"
+"\"DIRECT\" = \"DIRECT\"\n"
+"\"Local Address:\" = \"Adresse locale:\"\n"
+"\"Host: \" = \"H\xc3\xb4te:\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Connectez-vous directement \xc3\xa0 d\\'autres instances de SonoBus sur votre r\xc3\xa9seau local avec l\\'adresse locale qu\\'il"
+"s annoncent.\"\n"
+"\"IPaddress:port\" = \"AdresseIP: port\"\n"
+"\"Connect...\" = \"Connecter...\"\n"
+"\"Direct Connect\" = \"Connexion directe\"\n"
+"\"Connect to Group\" = \"Se connecter au groupe\"\n"
+"\"optional\" = \"optionnel\"\n"
+"\"Your Displayed Name:\" = \"Votre nom affich\xc3\xa9:\"\n"
+"\"Password:\" = \"Mot de passe:\"\n"
+"\"Group Name:\" = \"Nom de groupe:\"\n"
+"\"Connection Server:\" = \"Serveur de connexion:\"\n"
+"\"Generate a random group name\" = \"G\xc3\xa9n\xc3\xa9rer un nom de groupe al\xc3\xa9""atoire\"\n"
+"\"Copy connection information to the clipboard to share\" = \"Copier les informations de connexion dans le presse-papiers pour les partager\"\n"
+"\"Paste connection information from the clipboard\" = \"Coller les informations de connexion \xc3\xa0 partir du presse-papiers\"\n"
+"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"Le serveur de connexion est uniquement utilis\xc3\xa9 pour aider les utilisateurs \xc3\xa0 "
+"se trouver, aucun son ne le traverse. Tout l\\'audio est envoy\xc3\xa9 directement entre les utilisateurs (peer to peer).\"\n"
+"\"Clear All\" = \"Tout effacer\"\n"
+"\"Active Public Groups\" = \"Groupes publics actifs\"\n"
+"\"Select existing group below OR \" = \"S\xc3\xa9lectionnez un groupe existant ci-dessous OU\"\n"
+"\"Create Group...\" = \"Cr\xc3\xa9""er un groupe...\"\n"
+"\"enter group name\" = \"entrez le nom du groupe\"\n"
+"\"Choose a descriptive group name that includes geographic information and genre\" = \"Choisissez un nom de groupe descriptif comprenant des informations g\xc3\xa9ographiques et un genre\"\n"
+"\"Patchbay\" = \"Patch\"\n"
+"\"Setup Audio\" = \"Configurer l\\'audio\"\n"
+"\"Press to copy/share link to group\" = \"Appuyez pour copier / partager le lien vers le groupe\"\n"
+"\"Connect\" = \"Connecter\"\n"
+"\"Manual\" = \"Manuel\"\n"
+"\"Auto Up\" = \"Auto valeur haute\"\n"
+"\"Auto\" = \"Auto\"\n"
+"\"Initial Auto\" = \"Auto avec remise \xc3\xa0 z\xc3\xa9ro\"\n"
+"\"Default Jitter Buffer\" = \"Tampon de gigue par d\xc3\xa9""faut\"\n"
+"\"Default Send Quality:\" = \"Qualit\xc3\xa9 d\\'envoi par d\xc3\xa9""faut:\"\n"
+"\"Make Latency Test Audible\" = \"Rendre le test de latence audible\"\n"
+"\"Metronome output recorded in full mix\" = \"M\xc3\xa9tronome enregistr\xc3\xa9 avec le mixage global\"\n"
+"\"Record feature creates the following files:\" = \"L\\'enregistrement cr\xc3\xa9""e les fichiers suivants:\"\n"
+"\"Full Mix\" = \"Mixage global\"\n"
+"\"Full Mix without yourself\" = \"Mixage global sans moi\"\n"
+"\"Yourself\" = \"Vous-m\xc3\xaame\"\n"
+"\"Each Connected User\" = \"Chaque utilisateur connect\xc3\xa9\"\n"
+"\"FLAC\" = \"FLAC\"\n"
+"\"WAV\" = \"WAV\"\n"
+"\"OGG\" = \"OGG\"\n"
+"\"16 bit\" = \"16 bits\"\n"
+"\"24 bit\" = \"24 bits\"\n"
+"\"Audio File Format:\" = \"Format de fichier audio:\"\n"
+"\"Record Location:\" = \"Emplacement d\\'enregistrement:\"\n"
+"\"Use Specific UDP Port\" = \"Utiliser un port UDP sp\xc3\xa9""cifique\"\n"
+"\"Use Drift Correction\" = \"Utiliser la correction de la d\xc3\xa9rive\"\n"
+"\"Auto-Reconnect to Last Group\" = \"Reconnexion auto au dernier groupe\"\n"
+"\"Override Device Sample Rate\" = \"Remplacer la fr\xc3\xa9q. d\\'\xc3\xa9""ch. du mat\xc3\xa9riel\"\n"
+"\"Automatically check for updates\" = \"Rechercher automatiquement les mises \xc3\xa0 jour\"\n"
+"\"Sliders Snap to Mouse Click\" = \"Curseurs s\\'alignent sur un clic de souris\"\n"
+"\"Use Input FX Limiter\" = \"Utiliser le limiteur en entr\xc3\xa9""e\"\n"
+"\"Change all connected\" = \"Changer tous connect\xc3\xa9s\"\n"
+"\"Version: \" = \"Version:\"\n"
+"\"FX\" = \"Effet\"\n"
+"\"In FX\" = \"Entr\xc3\xa9""e effet\"\n"
+"\"Match # Inputs\" = \"Match # entr\xc3\xa9""es\"\n"
+"\"Send Mono\" = \"Envoi mono\"\n"
+"\"Send Stereo\" = \"Envoyer en st\xc3\xa9r\xc3\xa9o\"\n"
+"\"# Send Channels\" = \"# Canaux d\\'envoi\"\n"
+"\"Size\" = \"Taille\"\n"
+"\"Damping\" = \"Amortissement\"\n"
+"\"Pre-Delay\" = \"Pr\xc3\xa9-d\xc3\xa9lai\"\n"
+"\"Reverb\" = \"R\xc3\xa9verb\xc3\xa9ration\"\n"
+"\"Freeverb\" = \"Freeverb\"\n"
+"\"MVerb\" = \"MVerb\"\n"
+"\"Zita\" = \"Zita\"\n"
+"\"Start/Stop recording audio to file\" = \"D\xc3\xa9marrer / arr\xc3\xaater l\\'enregistrement audio dans un fichier\"\n"
+"\"Load audio file for playback\" = \"Charger le fichier audio pour la lecture\"\n"
+"\"Send File Playback to All\" = \"Envoyer la lecture du fichier \xc3\xa0 tous\"\n"
+"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Remplir les informations de groupe \xc3\xa0 partir du presse-papiers! Appuyez sur \\'Se connecter au groupe\\' pour rejoindre ...\"\n"
+"\"Quit Confirmation\" = \"Confirmation de l\\'arr\xc3\xaat\"\n"
+"\"You are connected, are you sure you want to quit?\" = \"Vous \xc3\xaates connect\xc3\xa9, \xc3\xaates-vous s\xc3\xbbr de vouloir quitter?\"\n"
+"\"Quit\" = \"Quitter\"\n"
+"\"Share this link with others to connect with SonoBus:\" = \"Partagez ce lien avec d\\'autres pour vous connecter avec SonoBus:\"\n"
+"\"Or share this link:\" = \"Ou partagez ce lien:\"\n"
+"\"Last Session: \" = \"Derni\xc3\xa8re session:\"\n"
+"\"Total: \" = \"Total:\"\n"
+"\"Not sending your audio anywhere\" = \"Pas envoy\xc3\xa9 votre audio n\\'importe o\xc3\xb9\"\n"
+"\"Sending your audio to others\" = \"Envoi de mon audio aux autres\"\n"
+"\"Muted everyone\" = \"Tout le monde en mode muet\"\n"
+"\"Unmuted all who were not muted previously\" = \"Activer le son de tous ceux qui n\\'\xc3\xa9taient pas muets auparavant\"\n"
+"\"Sending your metronome to all users\" = \"Envoi de mon m\xc3\xa9tronome \xc3\xa0 tous les utilisateurs\"\n"
+"\"Now only you will hear your metronome\" = \"Maintenant, moi seul entends mon m\xc3\xa9tronome\"\n"
+"\"Sending file playback to all users\" = \"Envoi de la lecture du fichier \xc3\xa0 tous les utilisateurs\"\n"
+"\"Now only you will hear the file playback\" = \"Maintenant, moi seul entends la lecture du fichier\"\n"
+"\"Copied connection info to clipboard for you to share with others\" = \"Informations de connexion copi\xc3\xa9""es dans le presse-papiers pour que je puisse les partager avec d\\'autres\"\n"
+"\"Copied group connection info to clipboard for you to share with others\" = \"Informations de connexion de groupe copi\xc3\xa9""es dans le presse-papiers pour que je puisse les partager avec d\\'autres\"\n"
+"\"Finished recording to \" = \"Enregistrement termin\xc3\xa9 sur\"\n"
+"\"Last recorded file: \" = \"Dernier fichier enregistr\xc3\xa9:\"\n"
+"\"Started recording output\" = \"Enregistrement de la sortie d\xc3\xa9marr\xc3\xa9\"\n"
+"\"Recording audio to: \" = \"Enregistrement audio sur:\"\n"
+"\"Recording multi-track audio to: \" = \"Enregistrement audio multipiste sur:\"\n"
+"\"Choose an audio file to open...\" = \"Choisissez un fichier audio \xc3\xa0 ouvrir ...\"\n"
+"\"Choose the folder for new recordings\" = \"Choisissez le dossier pour les nouveaux enregistrements\"\n"
+"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Remplir le groupe \xc3\xa0 partir du lien! Appuyez sur \\'Se connecter au groupe\\' pour rejoindre ...\"\n"
+"\"You need to specify a group name!\" = \"Il faut sp\xc3\xa9""cifier un nom de groupe!\"\n"
+"\"You need to specify a user name!\" = \"Il faut sp\xc3\xa9""cifier un nom d\\'utilisateur!\"\n"
+"\"Server address is invalid!\" = \"L\\'adresse du serveur n\\'est pas valide!\"\n"
+"\"All who join the same Group will be able to connect with each other.\" = \"Tous ceux qui rejoignent le m\xc3\xaame groupe pourront se connecter les uns aux autres.\"\n"
+"\"AUDIO\" = \"AUDIO\"\n"
+"\"OPTIONS\" = \"OPTIONS\"\n"
+"\"HELP\" = \"AIDE\"\n"
+"\"RECORDING\" = \"ENREGISTREMENT\"\n"
+"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"L\\'utilisation d\\'un driver ASIO est fortement recommand\xc3\xa9""e pour "
+"votre p\xc3\xa9riph\xc3\xa9rique audio. Si votre interface audio n\\'en est pas dot\xc3\xa9""e, installez ASIO4ALL (asio4all.org) et configurez-le d\\'abord.\"\n"
+"\"Disconnect\" = \"D\xc3\xa9""connecter\"\n"
+"\"[P] \" = \"[P]\"\n"
+"\"Waiting for other users to join group\" = \"En attente que d\\'autres utilisateurs rejoignent le groupe\"\n"
+"\"Press Connect button to start.\" = \"Appuyez sur le bouton Connect pour commencer.\"\n"
+"\"Please use headphones if you are using a microphone!\" = \"Veuillez utiliser des \xc3\xa9""couteurs si vous utilisez un microphone!\"\n"
+"\"Connected to server\" = \"Connect\xc3\xa9 au serveur\"\n"
+"\"Already connected with this user name\" = \"D\xc3\xa9j\xc3\xa0 connect\xc3\xa9 avec ce nom d\\'utilisateur\"\n"
+"\"Connect failed: \" = \"Echec de connexion:\"\n"
+"\"Disconnected from server\" = \"D\xc3\xa9""connect\xc3\xa9 du serveur\"\n"
+"\"Disconnect failed: \" = \"\xc3\x89""chec de la d\xc3\xa9""connexion:\"\n"
+"\"Joined Group: \" = \"Groupe rejoint:\"\n"
+"\"Failed to join group: \" = \"Impossible de rejoindre le groupe:\"\n"
+"\"Left Group: \" = \"Groupe de gauche:\"\n"
+"\"Failed to leave group: \" = \"\xc3\x89""chec de la sortie du groupe:\"\n"
+"\"Trim to New\" = \"S\xc3\xa9lection vers nouveau fichier\"\n"
+"\"Share File\" = \"Partager le fichier\"\n"
+"\"Reveal File\" = \"R\xc3\xa9v\xc3\xa9ler le fichier\"\n"
+"\"Mute All Input\" = \"Toutes entr\xc3\xa9""es muettes\"\n"
+"\"Toggle Mute all input\" = \"Activer/d\xc3\xa9sactiver toutes les entr\xc3\xa9""es\"\n"
+"\"Popup\" = \"Popup\"\n"
+"\"Mute All Users\" = \"Mettre tous les utilisateurs en mode muet\"\n"
+"\"Toggle Mute all users\" = \"Active / D\xc3\xa9sactive tous les utilisateurs\"\n"
+"\"Play/Pause\" = \"Lecture / pause\"\n"
+"\"Toggle file playback\" = \"Lecture / arr\xc3\xaat lecture fichier\"\n"
+"\"Loop\" = \"Boucle\"\n"
+"\"Toggle file looping\" = \"Active / d\xc3\xa9sactive la boucle de fichier\"\n"
+"\"Trim file from selection to new file\" = \"S\xc3\xa9lection vers nouveau fichier\"\n"
+"\"Close File\" = \"Fermer le fichier\"\n"
+"\"Close file\" = \"Fermer le fichier\"\n"
+"\"Open File\" = \"Ouvrir le fichier\"\n"
+"\"Open Audio file\" = \"Ouvrir le fichier audio\"\n"
+"\"Share file\" = \"Partager le fichier\"\n"
+"\"Reveal file\" = \"R\xc3\xa9v\xc3\xa9ler le fichier\"\n"
+"\"Show Options\" = \"Afficher les options\"\n"
+"\"Record\" = \"Enregistrement\"\n"
+"\"Toggle Record\" = \"Enregistrement / arr\xc3\xaat\"\n"
+"\"Check For New Version\" = \"Rechercher une nouvelle version\"\n"
+"\"Check for New Version\" = \"Rechercher une nouvelle version\"\n"
+"\"File\" = \"Fichier\"\n"
+"\"Transport\" = \"Transport\"\n"
+"\"Help\" = \"Aide\"\n"
+"\"PUBLIC\" = \"PUBLIC\"\n"
+"\"password protected,\" = \"prot\xc3\xa9g\xc3\xa9 par mot de passe,\"\n"
+"\"on\" = \"sur\"\n"
+"\"to\" = \"\xc3\xa0\"\n"
+"\" active users\" = \" utilisateurs actifs\"\n"
+"\" active user\" = \" utilisateur actif\"\n"
+"\"Save current state\" = \"Enregistrer l\\'\xc3\xa9tat actuel\"\n"
+"\"Error whilst saving\" = \"Erreur lors de l\\'enregistrement\"\n"
+"\"Couldn\\'t write to the specified file!\" = \"Impossible d\\'\xc3\xa9""crire dans le fichier sp\xc3\xa9""cifi\xc3\xa9!\"\n"
+"\"Load a saved state\" = \"Charger un \xc3\xa9tat enregistr\xc3\xa9\"\n"
+"\"Error whilst loading\" = \"Erreur lors du chargement\"\n"
+"\"Couldn\\'t read from the specified file!\" = \"Impossible de lire \xc3\xa0 partir du fichier sp\xc3\xa9""cifi\xc3\xa9!\"\n"
+"\"Audio/MIDI Settings\" = \"Param\xc3\xa8tres audio / MIDI\"\n"
+"\"Audio Settings\" = \"Les param\xc3\xa8tres audio\"\n"
+"\"Audio/MIDI Settings...\" = \"Param\xc3\xa8tres audio / MIDI ...\"\n"
+"\"Save current state...\" = \"Enregistrer l\\'\xc3\xa9tat actuel ...\"\n"
+"\"Load a saved state...\" = \"Charger un \xc3\xa9tat enregistr\xc3\xa9 ...\"\n"
+"\"Reset to default state\" = \"R\xc3\xa9initialiser \xc3\xa0 l\\'\xc3\xa9tat par d\xc3\xa9""faut\"\n"
+"\"Threshold\" = \"Seuil\"\n"
+"\"Makeup Gain\" = \"Gain de compensation\"\n"
+"\"Compressor\" = \"Compresseur\"\n"
+"\"Autoset Makeup\" = \"Compensation Auto\"\n"
+"\"Gain\" = \"Gain\"\n"
+"\"High Shelf\" = \"Plateau aigu\"\n"
+"\"Low Shelf\" = \"Plateau grave\"\n"
+"\"Freq 1\" = \"Fr\xc3\xa9q 2\"\n"
+"\"Q\" = \"Q\"\n"
+"\"Freq 2\" = \"Fr\xc3\xa9q 3\"\n"
+"\"Parametric EQ\" = \"\xc3\x89galiseur param\xc3\xa9trique\"\n"
+"\"Level: \" = \"Niveau:\"\n"
+"\"Remote address:\" = \"Adresse distante:\"\n"
+"\"Disable Sending\" = \"D\xc3\xa9sactiver l\\'envoi\"\n"
+"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Active / d\xc3\xa9sactive le mode muet, emp\xc3\xaa""chant l\\'audio d\\'\xc3\xaatre entendu pour cet utilisateur\"\n"
+"\"Pan\" = \"Pan\"\n"
+"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"R\xc3\xa9initialise le tampon de gigue au minimum. Maintenez la touche Alt enfonc\xc3\xa9""e pour r\xc3\xa9initialiser pour tous (avec auto).\"\n"
+"\"Jitter Buffer\" = \"Tampon de gigue\"\n"
+"\"Change for all\" = \"Changement pour tous\"\n"
+"\"Send Quality\" = \"Qualit\xc3\xa9 de l\\'envoi\"\n"
+"\"No Preference\" = \"Pas de pr\xc3\xa9""f\xc3\xa9rence\"\n"
+"\"Preferred Recv Quality\" = \"Qualit\xc3\xa9 de r\xc3\xa9""ception pr\xc3\xa9""f\xc3\xa9r\xc3\xa9""e\"\n"
+"\"Latency (ms)\" = \"Latence (ms)\"\n"
+"\"Ping\" = \"Ping\"\n"
+"\"PRESS\" = \"APPUYER\"\n"
+"\"Send Quality:\" = \"Qualit\xc3\xa9 de l\\'envoi:\"\n"
+"\"Recv Jitter Buffer:\" = \"Tampon de gigue en Recep:\"\n"
+"\"Reset Dropped\" = \"R\xc3\xa9initialiser abandonn\xc3\xa9\"\n"
+"\"Remove\" = \"Retirer\"\n"
+"\"Removes user from your own connections, does not affect the whole group\" = \"Supprime l\\'utilisateur de vos propres connexions, n\\'affecte pas l\\'ensemble du groupe\"\n"
+"\"Other end muted us\" = \"L\\'autre extr\xc3\xa9mit\xc3\xa9 nous a mis en mode muet\"\n"
+"\"SEND DISABLED\" = \"ENVOI D\xc3\x89SACTIV\xc3\x89\"\n"
+"\"Other side is muted\" = \"L\\'autre c\xc3\xb4t\xc3\xa9 est en mode muet\"\n"
+"\"You muted them\" = \"Vous les avez mis en mode muet\"\n"
+"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"Impossible de se connect"
+"er avec l\\'utilisateur, l\\'un ou les deux d\\'entre vous peuvent avoir besoin de configurer votre pare-feu interne ou votre routeur r\xc3\xa9seau pour permettre \xc3\xa0 SonoBus de fonctionner entre vous. Consultez la documentation d\\'aide pour ac"
+"tiver la redirection de port sur votre routeur.\"\n"
+"\"Connecting...\" = \"Connexion...\"\n"
+"\"Measured actual round-trip latency:\" = \"Latence aller-retour r\xc3\xa9""elle mesur\xc3\xa9""e:\"\n"
+"\"Est. Outgoing:\" = \"Esti. Sortant:\"\n"
+"\"Est. Incoming:\" = \"Esti. Entrant:\"\n"
+"\"Jitter:\" = \"Gigue:\"\n"
+"\"Measuring actual round-trip latency\" = \"Mesure de la latence aller-retour r\xc3\xa9""elle\"\n"
+"\"Mute All\" = \"Tous muets\"\n"
+"\"Unmute All\" = \"Tous non muets\"\n"
+"\"none\" = \"aucun\"\n"
+"\"Show advanced settings...\" = \"Afficher les param\xc3\xa8tres avanc\xc3\xa9s...\"\n"
+"\"Error when trying to open audio device!\" = \"Erreur lors de la tentative d\\'ouverture du p\xc3\xa9riph\xc3\xa9rique audio!\"\n"
+"\"(no audio output channels found)\" = \"(aucun canal de sortie audio trouv\xc3\xa9)\"\n"
+"\"Active Output Channels:\" = \"Canaux de sortie actifs:\"\n"
+"\"(no audio input channels found)\" = \"(aucun canal d\\'entr\xc3\xa9""e audio trouv\xc3\xa9)\"\n"
+"\"Active Input Channels:\" = \"Canaux d\\'entr\xc3\xa9""e actifs:\"\n"
+"\"Control Panel\" = \"Panneau de configuration\"\n"
+"\"Opens the device\\'s own control panel\" = \"Ouvre le panneau de controle de l\\'appareil\"\n"
+"\"Reset Device\" = \"R\xc3\xa9initialiser l\\'appareil\"\n"
+"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"R\xc3\xa9initialise l\\'interface audio - parfois n\xc3\xa9""cessaire apr\xc3\xa8s la modification des propri\xc3\xa9t\xc3\xa9s d"
+"\\'un p\xc3\xa9riph\xc3\xa9rique dans son panneau de configuration personnalis\xc3\xa9\"\n"
+"\"Output:\" = \"Sortie:\"\n"
+"\"Device:\" = \"Appareil:\"\n"
+"\"Test\" = \"Tester\"\n"
+"\"Plays a test tone\" = \"Joue un son de test\"\n"
+"\"Input:\" = \"Entr\xc3\xa9""e:\"\n"
+"\"Sample rate:\" = \"Taux d\\'\xc3\xa9""chantillonnage:\"\n"
+"\"Audio Buffer Size:\" = \"Taille du tampon audio:\"\n"
+"\"Audio device type:\" = \"Type d\\'appareil audio:\"\n"
+"\"No MIDI inputs available\" = \"Aucune entr\xc3\xa9""e MIDI disponible\"\n"
+"\"Active MIDI inputs:\" = \"Entr\xc3\xa9""es MIDI actives:\"\n"
+"\"Bluetooth MIDI\" = \"Bluetooth MIDI\"\n"
+"\"Scan for bluetooth MIDI devices\" = \"Rechercher des appareils MIDI Bluetooth\"\n"
+"\"MIDI Output:\" = \"Sortie MIDI:\"\n"
+"\"Default Jitter Buffer Time\" = \"Temps de tampon de gigue par d\xc3\xa9""faut\"\n"
+"\"Default User Level\" = \"Niveau d\\'utilisateur par d\xc3\xa9""faut\"\n"
+"\"Sync to Host\" = \"Synchroniser avec l\\'h\xc3\xb4te\"\n"
+"\"Metronome\" = \"M\xc3\xa9tronome\"\n"
+"\"File Playback\" = \"Lecture de fichiers\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks.\" = \"Connectez-vous directement "
+"\xc3\xa0 d\\'autres instances de SonoBus sur votre r\xc3\xa9seau local avec l\\'adresse locale qu\\'ils annoncent. Ceci est exp\xc3\xa9rimental, l\\'utilisation d\\'un groupe priv\xc3\xa9 est recommand\xc3\xa9""e \xc3\xa0 la place et fonctionne corre"
+"ctement sur les r\xc3\xa9seaux locaux.\"\n"
+"\"Connect to Raw Address...\" = \"Se connecter \xc3\xa0 l\\'adresse brute ...\"\n"
+"\"Shows full information for connected users\" = \"Affiche des informations compl\xc3\xa8tes pour les utilisateurs connect\xc3\xa9s\"\n"
+"\"Shows minimal information for connected users\" = \"Affiche des informations minimales pour les utilisateurs connect\xc3\xa9s\"\n"
+"\"INPUT MIXER\" = \"M\xc3\x89LANGEUR D\\'ENTR\xc3\x89""E\"\n"
+"\"MON DELAY\" = \"LUN RETARD\"\n"
+"\"Control additional self-monitoring delay, which can help mitigate synchronization with others\" = \"Contr\xc3\xb4lez le d\xc3\xa9lai d\\'auto-surveillance suppl\xc3\xa9mentaire, ce qui peut aider \xc3\xa0 att\xc3\xa9nuer la synchronisation avec les"
+" autres\"\n"
+"\"Synchronize metronome tempo with plugin host\" = \"Synchroniser le tempo du m\xc3\xa9tronome avec l\\'h\xc3\xb4te du plugin\"\n"
+"\"Show the connections page, while staying connected to current group\" = \"Afficher la page des connexions, tout en restant connect\xc3\xa9 au groupe actuel\"\n"
+"\"Show/Hide Chat\" = \"Afficher / masquer le chat\"\n"
+"\"Use Drift Correction (NOT RECOMMENDED)\" = \"Utiliser la correction de la d\xc3\xa9rive (NON RECOMMAND\xc3\x89)\"\n"
+"\"Sliders Snap to Clicked Position\" = \"Les curseurs s\\'alignent sur la position cliqu\xc3\xa9""e\"\n"
+"\"Send Multichannel\" = \"Envoyer multicanal\"\n"
+"\"Choose a location and name to store the setup\" = \"Choisissez un emplacement et un nom pour stocker la configuration\"\n"
+"\"Choose a setup file to load\" = \"Choisissez un fichier d\\'installation \xc3\xa0 charger\"\n"
+"\"Error while loading\" = \"Erreur lors du chargement\"\n"
+"\"Invalid setup!\" = \"Configuration invalide!\"\n"
+"\"Error while saving\" = \"Erreur lors de l\\'enregistrement\"\n"
+"\"Waiting for other users to join group \\\"\" = \"En attente que d\\'autres utilisateurs rejoignent le groupe \\\"\"\n"
+"\" - joined group\" = \" - a rejoint le groupe\"\n"
+"\" - left group\" = \" - groupe de gauche\"\n"
+"\"Close Audio File\" = \"Fermer le fichier audio\"\n"
+"\"Close audio file\" = \"Fermer le fichier audio\"\n"
+"\"Open Audio File...\" = \"Ouvrir le fichier audio ...\"\n"
+"\"Share Audio File\" = \"Partager un fichier audio\"\n"
+"\"Share audio file\" = \"Partager un fichier audio\"\n"
+"\"Reveal Audio File\" = \"R\xc3\xa9v\xc3\xa9ler le fichier audio\"\n"
+"\"Reveal audio file\" = \"R\xc3\xa9v\xc3\xa9ler le fichier audio\"\n"
+"\"Load Setup...\" = \"Charger la configuration ...\"\n"
+"\"Load Setup file\" = \"Charger le fichier d\\'installation\"\n"
+"\"Save Setup...\" = \"Enregistrer la configuration ...\"\n"
+"\"Save Setup file\" = \"Enregistrer le fichier d\\'installation\"\n"
+"\"Show or hide chat area\" = \"Afficher ou masquer la zone de chat\"\n"
+"\"View\" = \"Vue\"\n"
+"\"Load Recent Setup\" = \"Charger la configuration r\xc3\xa9""cente\"\n"
+"\"Send Level: \" = \"Niveau d\\'envoi:\"\n"
+"\"Reverb Send\" = \"Envoi de r\xc3\xa9verb\xc3\xa9ration\"\n"
+"\"Enable the main reverb at the bottom of the window to hear the effect\" = \"Activez la r\xc3\xa9verb\xc3\xa9ration principale en bas de la fen\xc3\xaatre pour entendre l\\'effet\"\n"
+"\"Main Reverb Send\" = \"Envoi de r\xc3\xa9verb\xc3\xa9ration principale\"\n"
+"\"Crashed Last Time\" = \"Crashed la derni\xc3\xa8re fois\"\n"
+"\"Looks like you crashed on launch last time, restoring default settings!\" = \"On dirait que vous vous \xc3\xaates \xc3\xa9""cras\xc3\xa9 au lancement la derni\xc3\xa8re fois, en restaurant les param\xc3\xa8tres par d\xc3\xa9""faut!\"\n"
+"\"Chat\" = \"Discuter\"\n"
+"\"Enter message here...\" = \"Entrez le message ici ...\"\n"
+"\"Send\" = \"Envoyer\"\n"
+"\"Save Chat\" = \"Enregistrer le chat\"\n"
+"\"Clear Chat\" = \"Effacer le chat\"\n"
+"\"Add New Input Group\" = \"Ajouter un nouveau groupe d\\'entr\xc3\xa9""e\"\n"
+"\"CLEAR\" = \"D\xc3\x89GAGER\"\n"
+"\"Remove all input groups\" = \"Supprimer tous les groupes d\\'entr\xc3\xa9""e\"\n"
+"\"Monitor: \" = \"Surveiller:\"\n"
+"\"Pre Level: \" = \"Niveau pr\xc3\xa9:\"\n"
+"\"Set name for this group that others will see\" = \"D\xc3\xa9""finissez le nom de ce groupe que les autres verront\"\n"
+"\"Click to toggle extra information visibility\" = \"Cliquez pour activer la visibilit\xc3\xa9 des informations suppl\xc3\xa9mentaires\"\n"
+"\"Mute this channel for both sending and monitoring\" = \"Mettez ce canal en sourdine \xc3\xa0 la fois pour l\\'envoi et la surveillance\"\n"
+"\"Solo - Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Solo - N\\'\xc3\xa9""coutez que cet utilisateur et les autres utilisateurs en solo. Appuyez sur Alt pour mettre en solo cet utilisateur exclusiv"
+"ement.\"\n"
+"\"Solo - Listen to only this channel for this user\" = \"Solo - N\\'\xc3\xa9""coutez que cette cha\xc3\xaene pour cet utilisateur\"\n"
+"\"Solo - Listen to only this channel, does not affect sending\" = \"Solo - N\\'\xc3\xa9""coute que ce canal, n\\'affecte pas l\\'envoi\"\n"
+"\"Monitor output level\" = \"Surveiller le niveau de sortie\"\n"
+"\"Change channel layout\" = \"Modifier la disposition des cha\xc3\xaenes\"\n"
+"\"Select Input channel source (or drag to rearrange)\" = \"S\xc3\xa9lectionnez la source du canal d\\'entr\xc3\xa9""e (ou faites glisser pour r\xc3\xa9organiser)\"\n"
+"\"mono\" = \"mono\"\n"
+"\"Choose destination output channels\" = \"Choisissez les canaux de sortie de destination\"\n"
+"\"Choose destination monitoring channels\" = \"Choisissez les canaux de surveillance de destination\"\n"
+"\"Edit input effects (applied before sending)\" = \"Modifier les effets d\\'entr\xc3\xa9""e (appliqu\xc3\xa9s avant l\\'envoi)\"\n"
+"\"Edit effects\" = \"Modifier les effets\"\n"
+"\"M.FX\" = \"M.FX\"\n"
+"\"Edit input monitoring effects (applied to local monitoring only)\" = \"Modifier les effets de surveillance d\\'entr\xc3\xa9""e (appliqu\xc3\xa9s uniquement \xc3\xa0 la surveillance locale)\"\n"
+"\"Edit monitoring effects\" = \"Modifier les effets de surveillance\"\n"
+"\"ch\" = \"ch\"\n"
+"\"Confirm Remove of All Inputs\" = \"Confirmer la suppression de toutes les entr\xc3\xa9""es\"\n"
+"\"ADD INPUT GROUP:\" = \"AJOUTER UN GROUPE D\\'ENTR\xc3\x89""ES:\"\n"
+"\"Mono\" = \"Mono\"\n"
+"\"Stereo\" = \"St\xc3\xa9r\xc3\xa9o\"\n"
+"\"channel\" = \"canaliser\"\n"
+"\"CHANGE CHANNEL LAYOUT:\" = \"CHANGER LA DISPOSITION DES CANAUX:\"\n"
+"\"<Restore Original Layout>\" = \"<Restaurer la mise en page d\\'origine>\"\n"
+"\"SELECT INPUTS:\" = \"S\xc3\x89LECTIONNEZ LES ENTR\xc3\x89""ES:\"\n"
+"\"SELECT INPUT:\" = \"S\xc3\x89LECTIONNER L\\'ENTR\xc3\x89""E:\"\n"
+"\"CHANGE LAYOUT...\" = \"CHANGER LA DISPOSITION...\"\n"
+"\"REMOVE\" = \"SUPPRIMER\"\n"
+"\"SELECT MONITOR OUT:\" = \"S\xc3\x89LECTIONNEZ MONITOR OUT:\"\n"
+"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"N\\'\xc3\xa9""coutez que cet utilisateur et les autres utilisateurs en solo. Appuyez sur Alt pour mettre en solo cet utilisateur exclusivement.\"\n"
+"\"Change all\" = \"Change tout\"\n"
+"\"Removes pending user from list\" = \"Supprime l\\'utilisateur en attente de la liste\"\n"
+"\"****\" = \"****\"\n"
+"\"Estimated Round-trip Latency:\" = \"Latence aller-retour estim\xc3\xa9""e:\"\n"
+"\"Round-trip Network Ping:\" = \"Ping r\xc3\xa9seau aller-retour:\"\n"
+"\"Est. Jitter:\" = \"Est. Jitter:\"\n"
+"\"Legacy-mode, ask them \\r\\n to install latest version\" = \"Mode h\xc3\xa9rit\xc3\xa9, demandez-leur\\r\\n pour installer la derni\xc3\xa8re version\"\n"
+"\"Delay Time\" = \"Temporisation\"\n"
+"\"One-way\" = \"Une mani\xc3\xa8re\"\n"
+"\"Round-trip\" = \"Aller-retour\"\n"
+"\"Set From Peers\" = \"D\xc3\xa9""finir des pairs\"\n"
+"\"Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection\" = \"Appuyez dessus pour calculer une latence moyenne pour tous les pairs connec"
+"t\xc3\xa9s et r\xc3\xa9gler le temps de retard de surveillance en cons\xc3\xa9quence, en fonction de la s\xc3\xa9lection de choix aller simple ou aller-retour.\"\n"
+"\"Link Delay Time with other inputs\" = \"Link Delay Time avec d\\'autres entr\xc3\xa9""es\"\n"
+"\"Additional Monitoring Delay\" = \"D\xc3\xa9lai de surveillance suppl\xc3\xa9mentaire\"\n";
+
+const char* localized_fr_txt = (const char*) temp_binary_data_2;
+
+//================== localized_it.txt ==================
+static const unsigned char temp_binary_data_3[] =
+"language: Italian\n"
+"countries: it\n"
+"\n"
+"\"Noise Floor\" = \"Noise Floor\"\n"
+"\"Ratio\" = \"Rapporto\"\n"
+"\"Attack\" = \"attacco\"\n"
+"\"Release\" = \"pubblicazione\"\n"
+"\"Noise Gate\" = \"Noise Gate\"\n"
+"\"In Gain\" = \"In guadagno\"\n"
+"\"In Pan\" = \"In Pan\"\n"
+"\"C\" = \"C\"\n"
+"\"In Pan 1\" = \"In padella 1\"\n"
+"\"In Pan 2\" = \"In padella 2\"\n"
+"\"Dry Level\" = \"Livello a secco\"\n"
+"\"Output Level\" = \"Livello di uscita\"\n"
+"\"Default Net Buffer Time\" = \"Tempo di buffer netto predefinito\"\n"
+"\"Send Channels\" = \"Invia canali\"\n"
+"\"Metronome Enabled\" = \"Metronomo abilitato\"\n"
+"\"Send Metronome Audio\" = \"Invia audio metronomo\"\n"
+"\"Metronome Gain\" = \"Guadagno metronomo\"\n"
+"\"Metronome Tempo\" = \"Metronome Tempo\"\n"
+"\"Send Playback Audio\" = \"Invia audio di riproduzione\"\n"
+"\"Hear Latency Test\" = \"Ascolta il test di latenza\"\n"
+"\"Record Metronome to File\" = \"Registra metronomo su file\"\n"
+"\"Main Reverb Enabled\" = \"Riverbero principale abilitato\"\n"
+"\"Main Reverb Level\" = \"Livello di riverbero principale\"\n"
+"\"Main Reverb Size\" = \"Dimensione del riverbero principale\"\n"
+"\"Main Reverb Damping\" = \"Smorzamento del riverbero principale\"\n"
+"\"Pre-Delay Time\" = \"Tempo di pre-ritardo\"\n"
+"\"Main Reverb Model\" = \"Modello di riverbero principale\"\n"
+"\"Main Send Mute\" = \"Muto principale di invio\"\n"
+"\"Main Receive Mute\" = \"Muto di ricezione principale\"\n"
+"\"Main In Mute\" = \"Main In Mute\"\n"
+"\"Main Monitor Solo\" = \"Main Monitor Solo\"\n"
+"\"Def Auto Net Buffer Mode\" = \"Modalit\xc3\xa0 Def Auto Net Buffer\"\n"
+"\"Def Send Format\" = \"Formato di invio predefinito\"\n"
+"\"Dynamic Resampling\" = \"Ricampionamento dinamico\"\n"
+"\"Reconnect Last\" = \"Riconnetti per ultimo\"\n"
+"\"Could not find format for filename\" = \"Impossibile trovare il formato per il nome del file\"\n"
+"\"Error creating writer for \" = \"Errore durante la creazione del writer per\"\n"
+"\"Error creating output file: \" = \"Errore durante la creazione del file di output:\"\n"
+"\"Error creating directory for recording: \" = \"Errore durante la creazione della directory per la registrazione:\"\n"
+"\"SonoBus\" = \"SonoBus\"\n"
+"\"Pan: Center\" = \"Pan: centro\"\n"
+"\"Pan: \" = \"Padella:\"\n"
+"\"MUTE\" = \"MUTE\"\n"
+"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Disattiva il tuo input impedendo a tutti di sentirti, senza alcun indicatore\"\n"
+"\"SOLO\" = \"ASSOLO\"\n"
+"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Ascolta solo te stesso e altri utenti in solo. Alt-clic per solo solo te stesso.\"\n"
+"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silenzia il tuo ingresso, nessuno dei tuoi audio (inclusa la riproduzione del file) verr\xc3\xa0 inviato agli utenti e"
+" vedranno un indicatore disattivato\"\n"
+"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Disattiva / ripristina l\\'audio di tutti gli utenti, nessun dato audio verr\xc3\xa0 ricevuto quando gli utenti vengono disattivati\"\n"
+"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Quando viene premuto, disattiva l\\'audio degli altri e ti riattiva momentaneamente (premi per parlare).\"\n"
+"\" Use the \\'T\\' key as a shortcut.\" = \" Usa il tasto \\\"T\\\" come scorciatoia.\"\n"
+"\"Metronome On/Off\" = \"Metronomo On / Off\"\n"
+"\"Metronome Options\" = \"Opzioni metronomo\"\n"
+"\"Level\" = \"Livello\"\n"
+"\"Tempo\" = \"Tempo\"\n"
+"\"Send Metronome to All\" = \"Invia metronomo a tutti\"\n"
+"\"In Level\" = \"In Level\"\n"
+"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Questo riduce o aumenta il livello del tuo ingresso audio e influenzer\xc3\xa0 il livello del tu"
+"o audio inviato agli altri e il tuo monitoraggio\"\n"
+"\"Monitor\" = \"Tenere sotto controllo\"\n"
+"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Questo regola il livello del monitoraggio del tuo ingresso, che solo tu senti\"\n"
+"\"Out Level\" = \"Livello di uscita\"\n"
+"\"This is the main volume control which affects everything you hear\" = \"Questo \xc3\xa8 il controllo del volume principale che influenza tutto ci\xc3\xb2 che senti\"\n"
+"\"RECENTS\" = \"RECENTI\"\n"
+"\"PRIVATE GROUP\" = \"GRUPPO PRIVATO\"\n"
+"\"PUBLIC GROUPS\" = \"GRUPPI PUBBLICI\"\n"
+"\"DIRECT\" = \"DIRETTO\"\n"
+"\"--\" = \"-\"\n"
+"\"Local Address:\" = \"Indirizzo locale:\"\n"
+"\"Host: \" = \"Ospite:\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Collegati direttamente ad altre istanze di SonoBus sulla tua rete locale con l\\'indirizzo locale che pubblicizzano.\"\n"
+"\"IPaddress:port\" = \"Indirizzo IP: porta\"\n"
+"\"Connect...\" = \"Collegare...\"\n"
+"\"Direct Connect\" = \"Collegamento diretto\"\n"
+"\"Connect to Group\" = \"Connetti al gruppo\"\n"
+"\"optional\" = \"opzionale\"\n"
+"\"Your Displayed Name:\" = \"Il tuo nome visualizzato:\"\n"
+"\"Password:\" = \"Parola d\\'ordine:\"\n"
+"\"Group Name:\" = \"Nome del gruppo:\"\n"
+"\"Connection Server:\" = \"Connection Server:\"\n"
+"\"Generate a random group name\" = \"Genera un nome di gruppo casuale\"\n"
+"\"Copy connection information to the clipboard to share\" = \"Copia le informazioni di connessione negli appunti per condividerle\"\n"
+"\"Paste connection information from the clipboard\" = \"Incolla le informazioni di connessione dagli appunti\"\n"
+"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"Il server di connessione viene utilizzato solo per aiutare gli utenti a ritrovarsi, nessun "
+"audio lo attraversa. Tutto l\\'audio viene inviato direttamente tra gli utenti (peer to peer).\"\n"
+"\"Clear All\" = \"Cancella tutto\"\n"
+"\"Active Public Groups\" = \"Gruppi pubblici attivi\"\n"
+"\"Select existing group below OR \" = \"Seleziona il gruppo esistente sotto OR\"\n"
+"\"Create Group...\" = \"Creare un gruppo...\"\n"
+"\"enter group name\" = \"immettere il nome del gruppo\"\n"
+"\"Choose a descriptive group name that includes geographic information and genre\" = \"Scegli un nome di gruppo descrittivo che includa informazioni geografiche e genere\"\n"
+"\"Patchbay\" = \"Patchbay\"\n"
+"\"Setup Audio\" = \"Imposta audio\"\n"
+"\"Press to copy/share link to group\" = \"Premere per copiare / condividere il collegamento al gruppo\"\n"
+"\"Connect\" = \"Collegare\"\n"
+"\"Manual\" = \"Manuale\"\n"
+"\"Auto Up\" = \"Auto Up\"\n"
+"\"Auto\" = \"Auto\"\n"
+"\"Initial Auto\" = \"Auto iniziale\"\n"
+"\"Default Jitter Buffer\" = \"Buffer jitter predefinito\"\n"
+"\"Default Send Quality:\" = \"Qualit\xc3\xa0 di invio predefinita:\"\n"
+"\"Make Latency Test Audible\" = \"Rendi udibile il test di latenza\"\n"
+"\"Metronome output recorded in full mix\" = \"Uscita metronomo registrata in full mix\"\n"
+"\"Record feature creates the following files:\" = \"La funzione di registrazione crea i seguenti file:\"\n"
+"\"Full Mix\" = \"Mix completo\"\n"
+"\"Full Mix without yourself\" = \"Mix completo senza te stesso\"\n"
+"\"Yourself\" = \"Te stesso\"\n"
+"\"Each Connected User\" = \"Ogni utente connesso\"\n"
+"\"FLAC\" = \"FLAC\"\n"
+"\"WAV\" = \"WAV\"\n"
+"\"OGG\" = \"OGG\"\n"
+"\"16 bit\" = \"16 bit\"\n"
+"\"24 bit\" = \"24 bit\"\n"
+"\"Audio File Format:\" = \"Formato file audio:\"\n"
+"\"Record Location:\" = \"Posizione della registrazione:\"\n"
+"\"Use Specific UDP Port\" = \"Usa porta UDP specifica\"\n"
+"\"Use Drift Correction\" = \"Usa la correzione della deriva\"\n"
+"\"Auto-Reconnect to Last Group\" = \"Riconnessione automatica all\\'ultimo gruppo\"\n"
+"\"Override Device Sample Rate\" = \"Ignora frequenza di campionamento del dispositivo\"\n"
+"\"Automatically check for updates\" = \"Controlla automaticamente gli aggiornamenti\"\n"
+"\"Sliders Snap to Mouse Click\" = \"I cursori si agganciano al clic del mouse\"\n"
+"\"Use Input FX Limiter\" = \"Usa Input FX Limiter\"\n"
+"\"Change all connected\" = \"Cambia tutto connesso\"\n"
+"\"Version: \" = \"Versione:\"\n"
+"\"FX\" = \"FX\"\n"
+"\"In FX\" = \"In FX\"\n"
+"\"Match # Inputs\" = \"Abbina # input\"\n"
+"\"Send Mono\" = \"Invia Mono\"\n"
+"\"Send Stereo\" = \"Invia Stereo\"\n"
+"\"# Send Channels\" = \"# Invia canali\"\n"
+"\"Size\" = \"Taglia\"\n"
+"\"Damping\" = \"Smorzamento\"\n"
+"\"Pre-Delay\" = \"Pre-ritardo\"\n"
+"\"Reverb\" = \"Riverbero\"\n"
+"\"Freeverb\" = \"Freeverb\"\n"
+"\"MVerb\" = \"MVerb\"\n"
+"\"Zita\" = \"Zita\"\n"
+"\"Start/Stop recording audio to file\" = \"Avvia / interrompe la registrazione dell\\'audio su file\"\n"
+"\"Load audio file for playback\" = \"Carica il file audio per la riproduzione\"\n"
+"\"Send File Playback to All\" = \"Invia riproduzione file a tutti\"\n"
+"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Informazioni di gruppo compilate dagli appunti! Premi \\\"Connetti al gruppo\\\" per partecipare ...\"\n"
+"\"Quit Confirmation\" = \"Esci dalla conferma\"\n"
+"\"You are connected, are you sure you want to quit?\" = \"Sei connesso, sei sicuro di voler uscire?\"\n"
+"\"Quit\" = \"Smettere\"\n"
+"\"Share this link with others to connect with SonoBus: \\n\\n\" = \"Condividi questo collegamento con altri per connetterti con SonoBus:\\n\\n\"\n"
+"\"Or share this link:\\n\" = \"Oppure condividi questo link:\\n\"\n"
+"\"Last Session: \" = \"Ultima sessione:\"\n"
+"\"Total: \" = \"Totale:\"\n"
+"\"Not sending your audio anywhere\" = \"Non inviare il tuo audio ovunque\"\n"
+"\"Sending your audio to others\" = \"Invio del tuo audio ad altri\"\n"
+"\"Muted everyone\" = \"Silenziato tutti\"\n"
+"\"Unmuted all who were not muted previously\" = \"Riattiva tutti quelli che non erano stati disattivati \xe2\x80\x8b\xe2\x80\x8bin precedenza\"\n"
+"\"Sending your metronome to all users\" = \"Invio del metronomo a tutti gli utenti\"\n"
+"\"Now only you will hear your metronome\" = \"Ora solo tu ascolterai il tuo metronomo\"\n"
+"\"Sending file playback to all users\" = \"Invio della riproduzione del file a tutti gli utenti\"\n"
+"\"Now only you will hear the file playback\" = \"Ora solo tu ascolterai la riproduzione del file\"\n"
+"\"Copied connection info to clipboard for you to share with others\" = \"Informazioni di connessione copiate negli appunti per condividerle con altri\"\n"
+"\"Copied group connection info to clipboard for you to share with others\" = \"Copiate le informazioni sulla connessione del gruppo negli appunti per condividerle con altri\"\n"
+"\"Finished recording to \" = \"Registrazione terminata su\"\n"
+"\"Last recorded file: \" = \"Ultimo file registrato:\"\n"
+"\"Started recording output\" = \"Uscita registrazione avviata\"\n"
+"\"Recording audio to: \" = \"Registrazione dell\\'audio su:\"\n"
+"\"Recording multi-track audio to: \" = \"Registrazione di audio multitraccia su:\"\n"
+"\"Choose an audio file to open...\" = \"Scegli un file audio da aprire ...\"\n"
+"\"Choose the folder for new recordings\" = \"Scegli la cartella per le nuove registrazioni\"\n"
+"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Gruppo compilato dal link! Premi \\\"Connetti al gruppo\\\" per partecipare ...\"\n"
+"\"You need to specify a group name!\" = \"Devi specificare un nome di gruppo!\"\n"
+"\"You need to specify a user name!\" = \"Devi specificare un nome utente!\"\n"
+"\"Server address is invalid!\" = \"L\\'indirizzo del server non \xc3\xa8 valido!\"\n"
+"\"All who join the same Group will be able to connect with each other.\" = \"Tutti coloro che si uniscono allo stesso gruppo potranno connettersi tra loro.\"\n"
+"\"AUDIO\" = \"AUDIO\"\n"
+"\"OPTIONS\" = \"OPZIONI\"\n"
+"\"HELP\" = \"AIUTO\"\n"
+"\"RECORDING\" = \"REGISTRAZIONE\"\n"
+"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Si consiglia vivamente di utilizzare un tipo di dispositivo audio ASIO. Se "
+"la tua interfaccia audio non ne \xc3\xa8 stata fornita, installa ASIO4ALL (asio4all.org) e configuralo prima.\"\n"
+"\"Disconnect\" = \"Disconnetti\"\n"
+"\"[P] \" = \"[P]\"\n"
+"\"Waiting for other users to join group \\\"\" = \"In attesa che altri utenti si uniscano al gruppo \\\"\"\n"
+"\"Press Connect button to start.\\n\\nPlease use headphones if you are using a microphone!\" = \"Premere il pulsante Connetti per iniziare.\\n\\nSi prega di utilizzare le cuffie se si utilizza un microfono!\"\n"
+"\"Connected to server\" = \"Collegato al server\"\n"
+"\"Already connected with this user name\" = \"Gi\xc3\xa0 connesso con questo nome utente\"\n"
+"\"Connect failed: \" = \"Connessione fallita:\"\n"
+"\"Disconnected from server\" = \"Disconnesso dal server\"\n"
+"\"Disconnect failed: \" = \"Disconnessione non riuscita:\"\n"
+"\"Joined Group: \" = \"Gruppo unito:\"\n"
+"\"Failed to join group: \" = \"Impossibile partecipare al gruppo:\"\n"
+"\"Left Group: \" = \"Gruppo di Sinistra:\"\n"
+"\"Failed to leave group: \" = \"Impossibile lasciare il gruppo:\"\n"
+"\"Trim to New\" = \"Ritaglia a nuovo\"\n"
+"\"Share File\" = \"Condividi file\"\n"
+"\"Reveal File\" = \"Rivela file\"\n"
+"\"Mute All Input\" = \"Disattiva tutti gli ingressi\"\n"
+"\"Toggle Mute all input\" = \"Attiva Disattiva tutti gli input\"\n"
+"\"Popup\" = \"Apparire\"\n"
+"\"Mute All Users\" = \"Disattiva tutti gli utenti\"\n"
+"\"Toggle Mute all users\" = \"Attiva Disattiva tutti gli utenti\"\n"
+"\"Play/Pause\" = \"Play pausa\"\n"
+"\"Toggle file playback\" = \"Attiva / disattiva la riproduzione del file\"\n"
+"\"Loop\" = \"Ciclo continuo\"\n"
+"\"Toggle file looping\" = \"Attiva / disattiva il ciclo di file\"\n"
+"\"Trim file from selection to new file\" = \"Taglia il file dalla selezione al nuovo file\"\n"
+"\"Close File\" = \"Chiudi file\"\n"
+"\"Close file\" = \"Chiudi file\"\n"
+"\"Open File\" = \"Apri il file\"\n"
+"\"Open Audio file\" = \"Apri file audio\"\n"
+"\"Share file\" = \"Condividi file\"\n"
+"\"Reveal file\" = \"Rivela file\"\n"
+"\"Show Options\" = \"Mostra opzioni\"\n"
+"\"Record\" = \"Disco\"\n"
+"\"Toggle Record\" = \"Attiva / disattiva registrazione\"\n"
+"\"Check For New Version\" = \"Controlla la nuova versione\"\n"
+"\"Check for New Version\" = \"Verifica la presenza di una nuova versione\"\n"
+"\"File\" = \"File\"\n"
+"\"Transport\" = \"Trasporto\"\n"
+"\"Help\" = \"Aiuto\"\n"
+"\"PUBLIC \" = \"PUBBLICO\"\n"
+"\"password protected, \" = \"protetto da password,\"\n"
+"\"on \" = \"sopra\"\n"
+"\"to \" = \"per\"\n"
+"\" active users\" = \" utenti attivi\"\n"
+"\" active user\" = \" utente attivo\"\n"
+"\"Save current state\" = \"Salva lo stato corrente\"\n"
+"\"Error whilst saving\" = \"Errore durante il salvataggio\"\n"
+"\"Couldn\\'t write to the specified file!\" = \"Impossibile scrivere nel file specificato!\"\n"
+"\"Load a saved state\" = \"Carica uno stato salvato\"\n"
+"\"Error whilst loading\" = \"Errore durante il caricamento\"\n"
+"\"Couldn\\'t read from the specified file!\" = \"Impossibile leggere dal file specificato!\"\n"
+"\"Audio/MIDI Settings\" = \"Impostazioni audio / MIDI\"\n"
+"\"Audio Settings\" = \"Impostazioni audio\"\n"
+"\"Audio/MIDI Settings...\" = \"Impostazioni audio / MIDI ...\"\n"
+"\"Save current state...\" = \"Salva stato corrente ...\"\n"
+"\"Load a saved state...\" = \"Carica uno stato salvato ...\"\n"
+"\"Reset to default state\" = \"Ripristina lo stato predefinito\"\n"
+"\"Threshold\" = \"Soglia\"\n"
+"\"Makeup Gain\" = \"Guadagno di trucco\"\n"
+"\"Compressor\" = \"Compressore\"\n"
+"\"Autoset Makeup\" = \"Trucco Autoset\"\n"
+"\"Gain\" = \"Guadagno\"\n"
+"\"High Shelf\" = \"Ripiano alto\"\n"
+"\"Low Shelf\" = \"Ripiano basso\"\n"
+"\"Freq 1\" = \"Freq 1\"\n"
+"\"Q\" = \"Q\"\n"
+"\"Freq 2\" = \"Freq 2\"\n"
+"\"Parametric EQ\" = \"EQ parametrico\"\n"
+"\"Level: \" = \"Livello:\"\n"
+"\"Remote address:\" = \"Indirizzo remoto:\"\n"
+"\"Disable Sending\" = \"Disabilita l\\'invio\"\n"
+"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Attiva / disattiva il silenziamento della ricezione, impedendo l\\'ascolto dell\\'audio per questo utente\"\n"
+"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Ascolta solo questo utente e altri utenti in solo. Alt-clic per isolare esclusivamente questo utente.\"\n"
+"\"Latency\\nTest\" = \"Latenza\\nTest\"\n"
+"\"Pan\" = \"Padella\"\n"
+"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Ripristina il jitter buffer al minimo. Tenere premuto il tasto Alt per ripristinare per tutti (con auto).\"\n"
+"\"Jitter Buffer\" = \"Buffer jitter\"\n"
+"\"Change for all\" = \"Cambia per tutti\"\n"
+"\"Send Quality\" = \"Invia qualit\xc3\xa0\"\n"
+"\"No Preference\" = \"Nessuna preferenza\"\n"
+"\"Preferred Recv Quality\" = \"Qualit\xc3\xa0 di ricezione preferita\"\n"
+"\"Latency (ms)\" = \"Latenza (ms)\"\n"
+"\"Ping\" = \"Ping\"\n"
+"\"PRESS\" = \"STAMPA\"\n"
+"\"Send Quality:\" = \"Invia qualit\xc3\xa0:\"\n"
+"\"Recv Jitter Buffer:\" = \"Buffer Jitter Recv:\"\n"
+"\"Reset Dropped\" = \"Reset interrotto\"\n"
+"\"Remove\" = \"Rimuovere\"\n"
+"\"Removes user from your own connections, does not affect the whole group\" = \"Rimuove l\\'utente dalle proprie connessioni, non influisce sull\\'intero gruppo\"\n"
+"\"Other end muted us\" = \"L\\'altra estremit\xc3\xa0 ci ha disattivato\"\n"
+"\"SEND DISABLED\" = \"INVIO DISABILITATO\"\n"
+"\"Other side is muted\" = \"L\\'altro lato \xc3\xa8 disattivato\"\n"
+"\"You muted them\" = \"Li hai disattivati\"\n"
+"\"****\" = \"****\"\n"
+"\"%.1f\" = \"% .1f\"\n"
+"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"Impossibile connettersi "
+"con l\\'utente, uno o entrambi potrebbero dover configurare il firewall interno o il router di rete per consentire a SonoBus di lavorare tra di voi. Vedere la documentazione della guida per abilitare il port forwarding sul router.\"\n"
+"\"Connecting...\" = \"Collegamento ...\"\n"
+"\"Measured actual round-trip latency: %d ms\" = \"Latenza di andata e ritorno effettiva misurata:% d ms\"\n"
+"\"Est. Outgoing: %.1f ms\" = \"Est. In uscita:% .1f ms\"\n"
+"\"Est. Incoming: %.1f ms\" = \"Est. In arrivo:% .1f ms\"\n"
+"\"Jitter: %.1f ms\" = \"Jitter:% .1f ms\"\n"
+"\"Measuring actual round-trip latency\" = \"Misurazione della latenza di andata e ritorno effettiva\"\n"
+"\"Mute All\" = \"Disattiva tutto\"\n"
+"\"Unmute All\" = \"Riattiva tutto\"\n"
+"\"none\" = \"nessuna\"\n"
+"\"Show advanced settings...\" = \"Mostra impostazioni avanzate...\"\n"
+"\"Error when trying to open audio device!\" = \"Errore durante il tentativo di aprire il dispositivo audio!\"\n"
+"\"(no audio output channels found)\" = \"(nessun canale di uscita audio trovato)\"\n"
+"\"Active Output Channels:\" = \"Canali di uscita attivi:\"\n"
+"\"(no audio input channels found)\" = \"(nessun canale di ingresso audio trovato)\"\n"
+"\"Active Input Channels:\" = \"Canali di ingresso attivi:\"\n"
+"\"Control Panel\" = \"Pannello di controllo\"\n"
+"\"Opens the device\\'s own control panel\" = \"Apre il pannello di controllo del dispositivo\"\n"
+"\"Reset Device\" = \"Ripristina dispositivo\"\n"
+"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"Ripristina l\\'interfaccia audio, a volte necessaria dopo aver modificato le propriet\xc3\xa0 di un dispositivo nel suo pannello "
+"di controllo personalizzato\"\n"
+"\"Output:\" = \"Produzione:\"\n"
+"\"Device:\" = \"Dispositivo:\"\n"
+"\"Test\" = \"Test\"\n"
+"\"Plays a test tone\" = \"Riproduce un tono di prova\"\n"
+"\"Input:\" = \"Ingresso:\"\n"
+"\"Sample rate:\" = \"Frequenza di campionamento:\"\n"
+"\"Audio Buffer Size:\" = \"Dimensione buffer audio:\"\n"
+"\"Audio device type:\" = \"Tipo di dispositivo audio:\"\n"
+"\"No MIDI inputs available\" = \"Nessun ingresso MIDI disponibile\"\n"
+"\"Active MIDI inputs:\" = \"Ingressi MIDI attivi:\"\n"
+"\"Bluetooth MIDI\" = \"Bluetooth MIDI\"\n"
+"\"Scan for bluetooth MIDI devices\" = \"Cerca dispositivi MIDI Bluetooth\"\n"
+"\"MIDI Output:\" = \"Uscita MIDI:\"\n"
+"\"Default Jitter Buffer Time\" = \"Tempo di buffer jitter predefinito\"\n"
+"\"Default User Level\" = \"Livello utente predefinito\"\n"
+"\"Sync to Host\" = \"Sincronizza con l\\'host\"\n"
+"\"Metronome\" = \"Metronomo\"\n"
+"\"File Playback\" = \"Riproduzione di file\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks.\" = \"Collegati direttamente ad a"
+"ltre istanze di SonoBus sulla tua rete locale con l\\'indirizzo locale che pubblicizzano. Questo \xc3\xa8 sperimentale, si consiglia invece di utilizzare un gruppo privato e funziona bene sulle reti locali.\"\n"
+"\"Share this link with others to connect with SonoBus:\" = \"Condividi questo collegamento con altri per connetterti con SonoBus:\"\n"
+"\"Or share this link:\" = \"Oppure condividi questo link:\"\n"
+"\"Connect to Raw Address...\" = \"Connetti a indirizzo grezzo ...\"\n"
+"\"PUBLIC\" = \"PUBBLICO\"\n"
+"\"password protected,\" = \"protetto da password,\"\n"
+"\"on\" = \"su\"\n"
+"\"to\" = \"per\"\n"
+"\"Shows full information for connected users\" = \"Mostra le informazioni complete per gli utenti connessi\"\n"
+"\"Shows minimal information for connected users\" = \"Mostra le informazioni minime per gli utenti connessi\"\n"
+"\"INPUT MIXER\" = \"MIXER DI INGRESSO\"\n"
+"\"MON DELAY\" = \"LUN RITARDO\"\n"
+"\"Control additional self-monitoring delay, which can help mitigate synchronization with others\" = \"Controlla il ritardo di automonitoraggio aggiuntivo, che pu\xc3\xb2 aiutare a mitigare la sincronizzazione con altri\"\n"
+"\"Synchronize metronome tempo with plugin host\" = \"Sincronizza il tempo del metronomo con l\\'host del plugin\"\n"
+"\"Show the connections page, while staying connected to current group\" = \"Mostra la pagina delle connessioni, rimanendo connesso al gruppo corrente\"\n"
+"\"Show/Hide Chat\" = \"Mostra / Nascondi chat\"\n"
+"\"Use Drift Correction (NOT RECOMMENDED)\" = \"Usa la correzione della deriva (NON RACCOMANDATO)\"\n"
+"\"Sliders Snap to Clicked Position\" = \"I cursori si agganciano alla posizione su cui si fa clic\"\n"
+"\"Send Multichannel\" = \"Invia multicanale\"\n"
+"\"Choose a location and name to store the setup\" = \"Scegli una posizione e un nome per memorizzare la configurazione\"\n"
+"\"Choose a setup file to load\" = \"Scegli un file di installazione da caricare\"\n"
+"\"Error while loading\" = \"Errore durante il caricamento\"\n"
+"\"Invalid setup!\" = \"Configurazione non valida!\"\n"
+"\"Error while saving\" = \"Errore durante il salvataggio\"\n"
+"\"Press Connect button to start.\" = \"Premere il pulsante Connetti per iniziare.\"\n"
+"\"Please use headphones if you are using a microphone!\" = \"Si prega di utilizzare le cuffie se si utilizza un microfono!\"\n"
+"\" - joined group\" = \" - si \xc3\xa8 unito al gruppo\"\n"
+"\" - left group\" = \" - gruppo di Sinistra\"\n"
+"\"Close Audio File\" = \"Chiudi file audio\"\n"
+"\"Close audio file\" = \"Chiudi il file audio\"\n"
+"\"Open Audio File...\" = \"Apri file audio ...\"\n"
+"\"Share Audio File\" = \"Condividi file audio\"\n"
+"\"Share audio file\" = \"Condividi file audio\"\n"
+"\"Reveal Audio File\" = \"Rivela file audio\"\n"
+"\"Reveal audio file\" = \"Rivela il file audio\"\n"
+"\"Load Setup...\" = \"Carica configurazione ...\"\n"
+"\"Load Setup file\" = \"Carica il file di installazione\"\n"
+"\"Save Setup...\" = \"Salva configurazione ...\"\n"
+"\"Save Setup file\" = \"Salva il file di installazione\"\n"
+"\"Show or hide chat area\" = \"Mostra o nascondi l\\'area chat\"\n"
+"\"View\" = \"Visualizza\"\n"
+"\"Load Recent Setup\" = \"Carica configurazione recente\"\n"
+"\"Send Level: \" = \"Invia livello:\"\n"
+"\"Reverb Send\" = \"Reverb Send\"\n"
+"\"Enable the main reverb at the bottom of the window to hear the effect\" = \"Abilita il riverbero principale nella parte inferiore della finestra per ascoltare l\\'effetto\"\n"
+"\"Main Reverb Send\" = \"Mandata riverbero principale\"\n"
+"\"Crashed Last Time\" = \"Si \xc3\xa8 schiantato l\\'ultima volta\"\n"
+"\"Looks like you crashed on launch last time, restoring default settings!\" = \"Sembra che tu sia andato in crash all\\'avvio l\\'ultima volta, ripristinando le impostazioni predefinite!\"\n"
+"\"Chat\" = \"Chiacchierare\"\n"
+"\"Enter message here...\" = \"Inserisci qui il messaggio ...\"\n"
+"\"Send\" = \"Spedire\"\n"
+"\"Save Chat\" = \"Salva chat\"\n"
+"\"Clear Chat\" = \"Cancella chat\"\n"
+"\"Add New Input Group\" = \"Aggiungi nuovo gruppo di input\"\n"
+"\"CLEAR\" = \"CHIARO\"\n"
+"\"Remove all input groups\" = \"Rimuovi tutti i gruppi di input\"\n"
+"\"Monitor: \" = \"Tenere sotto controllo:\"\n"
+"\"Pre Level: \" = \"Livello preliminare:\"\n"
+"\"Set name for this group that others will see\" = \"Imposta un nome per questo gruppo che gli altri vedranno\"\n"
+"\"Click to toggle extra information visibility\" = \"Fare clic per attivare o disattivare la visibilit\xc3\xa0 delle informazioni aggiuntive\"\n"
+"\"Mute this channel for both sending and monitoring\" = \"Disattiva questo canale sia per l\\'invio che per il monitoraggio\"\n"
+"\"Solo - Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Solo: ascolta solo questo utente e altri utenti in solo. Alt-clic per isolare esclusivamente questo utente.\"\n"
+"\"Solo - Listen to only this channel for this user\" = \"Solo: ascolta solo questo canale per questo utente\"\n"
+"\"Solo - Listen to only this channel, does not affect sending\" = \"Solo: ascolta solo questo canale, non influisce sull\\'invio\"\n"
+"\"Monitor output level\" = \"Monitorare il livello di uscita\"\n"
+"\"Change channel layout\" = \"Cambia il layout del canale\"\n"
+"\"Select Input channel source (or drag to rearrange)\" = \"Seleziona la sorgente del canale di ingresso (o trascina per riorganizzare)\"\n"
+"\"mono\" = \"mono\"\n"
+"\"Choose destination output channels\" = \"Scegli i canali di output di destinazione\"\n"
+"\"Choose destination monitoring channels\" = \"Scegli i canali di monitoraggio della destinazione\"\n"
+"\"Edit input effects (applied before sending)\" = \"Modifica gli effetti di input (applicato prima dell\\'invio)\"\n"
+"\"Edit effects\" = \"Modifica gli effetti\"\n"
+"\"M.FX\" = \"M.FX\"\n"
+"\"Edit input monitoring effects (applied to local monitoring only)\" = \"Modifica gli effetti del monitoraggio in ingresso (applicato solo al monitoraggio locale)\"\n"
+"\"Edit monitoring effects\" = \"Modifica gli effetti di monitoraggio\"\n"
+"\"ch\" = \"cap\"\n"
+"\"Confirm Remove of All Inputs\" = \"Conferma la rimozione di tutti gli input\"\n"
+"\"ADD INPUT GROUP:\" = \"AGGIUNGI GRUPPO DI INGRESSO:\"\n"
+"\"Mono\" = \"Mono\"\n"
+"\"Stereo\" = \"Stereo\"\n"
+"\"channel\" = \"canale\"\n"
+"\"CHANGE CHANNEL LAYOUT:\" = \"CAMBIA LAYOUT DEL CANALE:\"\n"
+"\"<Restore Original Layout>\" = \"<Ripristina layout originale>\"\n"
+"\"SELECT INPUTS:\" = \"SELEZIONA INGRESSI:\"\n"
+"\"SELECT INPUT:\" = \"SELEZIONA INGRESSO:\"\n"
+"\"CHANGE LAYOUT...\" = \"CAMBIA LAYOUT ...\"\n"
+"\"REMOVE\" = \"RIMUOVERE\"\n"
+"\"SELECT MONITOR OUT:\" = \"SELEZIONA USCITA MONITOR:\"\n"
+"\"Change all\" = \"Cambia tutto\"\n"
+"\"Removes pending user from list\" = \"Rimuove l\\'utente in sospeso dall\\'elenco\"\n"
+"\"Estimated Round-trip Latency:\" = \"Latenza di andata e ritorno stimata:\"\n"
+"\"Round-trip Network Ping:\" = \"Ping di rete di andata e ritorno:\"\n"
+"\"Est. Outgoing:\" = \"Est. Estroverso:\"\n"
+"\"Est. Incoming:\" = \"Est. In arrivo:\"\n"
+"\"Est. Jitter:\" = \"Est. Jitter:\"\n"
+"\"Legacy-mode, ask them \\r\\n to install latest version\" = \"Modalit\xc3\xa0 legacy, chiedi loro\\r\\n per installare l\\'ultima versione\"\n"
+"\"Delay Time\" = \"Ritardo\"\n"
+"\"One-way\" = \"Senso unico\"\n"
+"\"Round-trip\" = \"Andata e ritorno\"\n"
+"\"Set From Peers\" = \"Impostato da colleghi\"\n"
+"\"Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection\" = \"Premendolo verr\xc3\xa0 calcolata una latenza media per tutti i peer colleg"
+"ati e verr\xc3\xa0 impostato il tempo di ritardo del monitoraggio di conseguenza, in base alla selezione della scelta di andata o ritorno\"\n"
+"\"Link Delay Time with other inputs\" = \"Link Delay Time con altri ingressi\"\n"
+"\"Additional Monitoring Delay\" = \"Ritardo di monitoraggio aggiuntivo\"\n";
+
+const char* localized_it_txt = (const char*) temp_binary_data_3;
+
+//================== localized_ja.txt ==================
+static const unsigned char temp_binary_data_4[] =
+{ 108,97,110,103,117,97,103,101,58,32,74,97,112,97,110,101,115,101,10,99,111,117,110,116,114,105,101,115,58,32,106,97,10,10,34,78,111,105,115,101,32,70,108,111,111,114,34,32,61,32,34,227,131,142,227,130,164,227,130,186,227,131,149,227,131,173,227,130,162,
+34,10,34,82,97,116,105,111,34,32,61,32,34,230,175,148,34,10,34,65,116,116,97,99,107,34,32,61,32,34,230,148,187,230,146,131,34,10,34,82,101,108,101,97,115,101,34,32,61,32,34,227,131,170,227,131,170,227,131,188,227,130,185,34,10,34,78,111,105,115,101,32,
+71,97,116,101,34,32,61,32,34,227,131,142,227,130,164,227,130,186,227,130,178,227,131,188,227,131,136,34,10,34,73,110,32,71,97,105,110,34,32,61,32,34,227,130,178,227,130,164,227,131,179,227,129,167,34,10,34,73,110,32,80,97,110,34,32,61,32,34,227,131,145,
+227,131,179,227,129,167,34,10,34,67,34,32,61,32,34,67,34,10,34,73,110,32,80,97,110,32,49,34,32,61,32,34,227,131,145,227,131,179,49,227,129,167,34,10,34,73,110,32,80,97,110,32,50,34,32,61,32,34,227,131,145,227,131,179,50,227,129,167,34,10,34,68,114,121,
+32,76,101,118,101,108,34,32,61,32,34,228,185,190,231,135,165,227,131,172,227,131,153,227,131,171,34,10,34,79,117,116,112,117,116,32,76,101,118,101,108,34,32,61,32,34,229,135,186,229,138,155,227,131,172,227,131,153,227,131,171,34,10,34,68,101,102,97,117,
+108,116,32,74,105,116,116,101,114,32,66,117,102,102,101,114,32,84,105,109,101,34,32,61,32,34,227,131,135,227,131,149,227,130,169,227,131,171,227,131,136,227,129,174,227,130,184,227,131,131,227,130,191,227,131,144,227,131,131,227,131,149,227,130,161,230,
+153,130,233,150,147,34,10,34,83,101,110,100,32,67,104,97,110,110,101,108,115,34,32,61,32,34,227,131,129,227,131,163,227,131,179,227,131,141,227,131,171,227,130,146,233,128,129,227,130,139,34,10,34,77,101,116,114,111,110,111,109,101,32,69,110,97,98,108,
+101,100,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,229,175,190,229,191,156,34,10,34,83,101,110,100,32,77,101,116,114,111,110,111,109,101,32,65,117,100,105,111,34,32,61,32,34,227,131,161,227,131,136,227,131,
+173,227,131,142,227,131,188,227,131,160,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,130,146,233,128,129,228,191,161,227,129,153,227,130,139,34,10,34,77,101,116,114,111,110,111,109,101,32,71,97,105,110,34,32,61,32,34,227,131,161,227,
+131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,130,178,227,130,164,227,131,179,34,10,34,77,101,116,114,111,110,111,109,101,32,84,101,109,112,111,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,131,
+134,227,131,179,227,131,157,34,10,34,83,101,110,100,32,80,108,97,121,98,97,99,107,32,65,117,100,105,111,34,32,61,32,34,229,134,141,231,148,159,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,130,146,233,128,129,228,191,161,227,129,153,
+227,130,139,34,10,34,72,101,97,114,32,76,97,116,101,110,99,121,32,84,101,115,116,34,32,61,32,34,227,131,172,227,130,164,227,131,134,227,131,179,227,130,183,227,131,188,227,131,134,227,130,185,227,131,136,227,130,146,232,129,158,227,129,143,34,10,34,82,
+101,99,111,114,100,32,77,101,116,114,111,110,111,109,101,32,116,111,32,70,105,108,101,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,130,146,227,131,149,227,130,161,227,130,164,227,131,171,227,129,171,232,168,
+152,233,140,178,227,129,153,227,130,139,34,10,34,77,97,105,110,32,82,101,118,101,114,98,32,69,110,97,98,108,101,100,34,32,61,32,34,227,131,161,227,130,164,227,131,179,227,131,170,227,131,144,227,131,188,227,131,150,229,175,190,229,191,156,34,10,34,77,
+97,105,110,32,82,101,118,101,114,98,32,76,101,118,101,108,34,32,61,32,34,227,131,161,227,130,164,227,131,179,227,131,170,227,131,144,227,131,188,227,131,150,227,131,172,227,131,153,227,131,171,34,10,34,77,97,105,110,32,82,101,118,101,114,98,32,83,105,
+122,101,34,32,61,32,34,227,131,161,227,130,164,227,131,179,227,131,170,227,131,144,227,131,188,227,131,150,227,130,181,227,130,164,227,130,186,34,10,34,77,97,105,110,32,82,101,118,101,114,98,32,68,97,109,112,105,110,103,34,32,61,32,34,227,131,161,227,
+130,164,227,131,179,227,131,170,227,131,144,227,131,188,227,131,150,227,131,128,227,131,179,227,131,148,227,131,179,227,130,176,34,10,34,80,114,101,45,68,101,108,97,121,32,84,105,109,101,34,32,61,32,34,228,186,139,229,137,141,233,129,133,229,187,182,
+230,153,130,233,150,147,34,10,34,77,97,105,110,32,82,101,118,101,114,98,32,77,111,100,101,108,34,32,61,32,34,227,131,161,227,130,164,227,131,179,227,131,170,227,131,144,227,131,188,227,131,150,227,131,162,227,131,135,227,131,171,34,10,34,77,97,105,110,
+32,83,101,110,100,32,77,117,116,101,34,32,61,32,34,227,131,161,227,130,164,227,131,179,233,128,129,228,191,161,227,131,159,227,131,165,227,131,188,227,131,136,34,10,34,77,97,105,110,32,82,101,99,101,105,118,101,32,77,117,116,101,34,32,61,32,34,227,131,
+161,227,130,164,227,131,179,229,143,151,228,191,161,227,131,159,227,131,165,227,131,188,227,131,136,34,10,34,77,97,105,110,32,73,110,32,77,117,116,101,34,32,61,32,34,227,131,161,227,130,164,227,131,179,227,130,164,227,131,179,227,131,159,227,131,165,
+227,131,188,227,131,136,34,10,34,77,97,105,110,32,77,111,110,105,116,111,114,32,83,111,108,111,34,32,61,32,34,227,131,161,227,130,164,227,131,179,227,131,162,227,131,139,227,130,191,227,131,188,227,130,189,227,131,173,34,10,34,68,101,102,32,65,117,116,
+111,32,78,101,116,32,66,117,102,102,101,114,32,77,111,100,101,34,32,61,32,34,68,101,102,32,65,117,116,111,32,78,101,116,32,66,117,102,102,101,114,32,77,111,100,101,34,10,34,68,101,102,32,83,101,110,100,32,70,111,114,109,97,116,34,32,61,32,34,68,101,102,
+32,83,101,110,100,32,70,111,114,109,97,116,34,10,34,68,121,110,97,109,105,99,32,82,101,115,97,109,112,108,105,110,103,34,32,61,32,34,229,139,149,231,154,132,227,131,170,227,130,181,227,131,179,227,131,151,227,131,170,227,131,179,227,130,176,34,10,34,
+82,101,99,111,110,110,101,99,116,32,76,97,115,116,34,32,61,32,34,230,156,128,229,190,140,227,129,171,229,134,141,230,142,165,231,182,154,34,10,34,68,101,102,97,117,108,116,32,85,115,101,114,32,76,101,118,101,108,34,32,61,32,34,227,131,135,227,131,149,
+227,130,169,227,131,171,227,131,136,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,131,172,227,131,153,227,131,171,34,10,34,83,121,110,99,32,116,111,32,72,111,115,116,34,32,61,32,34,227,131,155,227,130,185,227,131,136,227,129,171,229,
+144,140,230,156,159,34,10,34,77,101,116,114,111,110,111,109,101,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,34,10,34,70,105,108,101,32,80,108,97,121,98,97,99,107,34,32,61,32,34,227,131,149,227,130,161,227,130,
+164,227,131,171,227,129,174,229,134,141,231,148,159,34,10,34,67,111,117,108,100,32,110,111,116,32,102,105,110,100,32,102,111,114,109,97,116,32,102,111,114,32,102,105,108,101,110,97,109,101,34,32,61,32,34,227,131,149,227,130,161,227,130,164,227,131,171,
+229,144,141,227,129,174,229,189,162,229,188,143,227,129,140,232,166,139,227,129,164,227,129,139,227,130,138,227,129,190,227,129,155,227,130,147,227,129,167,227,129,151,227,129,159,34,10,34,69,114,114,111,114,32,99,114,101,97,116,105,110,103,32,119,114,
+105,116,101,114,32,102,111,114,32,34,32,61,32,34,227,129,174,227,131,169,227,130,164,227,130,191,227,131,188,227,129,174,228,189,156,230,136,144,228,184,173,227,129,171,227,130,168,227,131,169,227,131,188,227,129,140,231,153,186,231,148,159,227,129,151,
+227,129,190,227,129,151,227,129,159,34,10,34,69,114,114,111,114,32,99,114,101,97,116,105,110,103,32,111,117,116,112,117,116,32,102,105,108,101,58,32,34,32,61,32,34,229,135,186,229,138,155,227,131,149,227,130,161,227,130,164,227,131,171,227,129,174,228,
+189,156,230,136,144,228,184,173,227,129,171,227,130,168,227,131,169,227,131,188,227,129,140,231,153,186,231,148,159,227,129,151,227,129,190,227,129,151,227,129,159,239,188,154,34,10,34,69,114,114,111,114,32,99,114,101,97,116,105,110,103,32,100,105,114,
+101,99,116,111,114,121,32,102,111,114,32,114,101,99,111,114,100,105,110,103,58,32,34,32,61,32,34,232,168,152,233,140,178,231,148,168,227,129,174,227,131,135,227,130,163,227,131,172,227,130,175,227,131,136,227,131,170,227,129,174,228,189,156,230,136,144,
+228,184,173,227,129,171,227,130,168,227,131,169,227,131,188,227,129,140,231,153,186,231,148,159,227,129,151,227,129,190,227,129,151,227,129,159,239,188,154,34,10,34,82,69,67,69,78,84,83,34,32,61,32,34,230,156,128,232,191,145,34,10,34,80,82,73,86,65,84,
+69,32,71,82,79,85,80,34,32,61,32,34,227,131,151,227,131,169,227,130,164,227,131,153,227,131,188,227,131,136,227,130,176,227,131,171,227,131,188,227,131,151,34,10,34,80,85,66,76,73,67,32,71,82,79,85,80,83,34,32,61,32,34,227,131,145,227,131,150,227,131,
+170,227,131,131,227,130,175,227,130,176,227,131,171,227,131,188,227,131,151,34,10,34,68,73,82,69,67,84,34,32,61,32,34,231,155,180,230,142,165,34,10,34,76,111,99,97,108,32,65,100,100,114,101,115,115,58,34,32,61,32,34,227,131,173,227,131,188,227,130,171,
+227,131,171,227,130,162,227,131,137,227,131,172,227,130,185,239,188,154,34,10,34,72,111,115,116,58,32,34,32,61,32,34,227,131,155,227,130,185,227,131,136,239,188,154,34,10,34,67,111,110,110,101,99,116,32,100,105,114,101,99,116,108,121,32,116,111,32,111,
+116,104,101,114,32,105,110,115,116,97,110,99,101,115,32,111,102,32,83,111,110,111,66,117,115,32,111,110,32,121,111,117,114,32,108,111,99,97,108,32,110,101,116,119,111,114,107,32,119,105,116,104,32,116,104,101,32,108,111,99,97,108,32,97,100,100,114,101,
+115,115,32,116,104,97,116,32,116,104,101,121,32,97,100,118,101,114,116,105,115,101,46,32,84,104,105,115,32,105,115,32,101,120,112,101,114,105,109,101,110,116,97,108,44,32,117,115,105,110,103,32,97,32,112,114,105,118,97,116,101,32,103,114,111,117,112,
+32,105,115,32,114,101,99,111,109,109,101,110,100,101,100,32,105,110,115,116,101,97,100,44,32,97,110,100,32,119,111,114,107,115,32,102,105,110,101,32,111,110,32,108,111,99,97,108,32,110,101,116,119,111,114,107,115,46,34,32,61,32,34,227,130,162,227,131,
+137,227,131,144,227,130,191,227,130,164,227,130,186,227,129,153,227,130,139,227,131,173,227,131,188,227,130,171,227,131,171,227,130,162,227,131,137,227,131,172,227,130,185,227,130,146,228,189,191,231,148,168,227,129,151,227,129,166,227,128,129,227,131,
+173,227,131,188,227,130,171,227,131,171,227,131,141,227,131,131,227,131,136,227,131,175,227,131,188,227,130,175,228,184,138,227,129,174,83,111,110,111,66,117,115,227,129,174,228,187,150,227,129,174,227,130,164,227,131,179,227,130,185,227,130,191,227,
+131,179,227,130,185,227,129,171,231,155,180,230,142,165,230,142,165,231,182,154,227,129,151,227,129,190,227,129,153,227,128,130,227,129,147,227,130,140,227,129,175,229,174,159,233,168,147,231,154,132,227,129,170,227,130,130,227,129,174,227,129,167,227,
+129,130,227,130,138,227,128,129,228,187,163,227,130,143,227,130,138,227,129,171,227,131,151,227,131,169,227,130,164,227,131,153,227,131,188,227,131,136,227,130,176,227,131,171,227,131,188,227,131,151,227,130,146,228,189,191,231,148,168,227,129,153,227,
+130,139,227,129,147,227,129,168,227,130,146,227,129,138,229,139,167,227,130,129,227,129,151,227,129,190,227,129,153,227,128,130,227,129,147,227,130,140,227,129,175,227,128,129,227,131,173,227,131,188,227,130,171,227,131,171,227,131,141,227,131,131,227,
+131,136,227,131,175,227,131,188,227,130,175,227,129,167,230,173,163,229,184,184,227,129,171,230,169,159,232,131,189,227,129,151,227,129,190,227,129,153,227,128,130,34,10,34,73,80,97,100,100,114,101,115,115,58,112,111,114,116,34,32,61,32,34,73,80,227,
+130,162,227,131,137,227,131,172,227,130,185,239,188,154,227,131,157,227,131,188,227,131,136,34,10,34,67,111,110,110,101,99,116,34,32,61,32,34,230,142,165,231,182,154,227,129,153,227,130,139,34,10,34,68,105,114,101,99,116,32,67,111,110,110,101,99,116,
+34,32,61,32,34,227,131,128,227,130,164,227,131,172,227,130,175,227,131,136,227,130,179,227,131,141,227,130,175,227,131,136,34,10,34,67,111,110,110,101,99,116,32,116,111,32,71,114,111,117,112,34,32,61,32,34,227,130,176,227,131,171,227,131,188,227,131,
+151,227,129,171,230,142,165,231,182,154,227,129,153,227,130,139,34,10,34,111,112,116,105,111,110,97,108,34,32,61,32,34,227,130,170,227,131,151,227,130,183,227,131,167,227,131,179,34,10,34,89,111,117,114,32,68,105,115,112,108,97,121,101,100,32,78,97,109,
+101,58,34,32,61,32,34,227,129,130,227,129,170,227,129,159,227,129,174,232,161,168,231,164,186,229,144,141,239,188,154,34,10,34,80,97,115,115,119,111,114,100,58,34,32,61,32,34,227,131,145,227,130,185,227,131,175,227,131,188,227,131,137,239,188,154,34,
+10,34,71,114,111,117,112,32,78,97,109,101,58,34,32,61,32,34,227,130,176,227,131,171,227,131,188,227,131,151,229,144,141,239,188,154,34,10,34,67,111,110,110,101,99,116,105,111,110,32,83,101,114,118,101,114,58,34,32,61,32,34,230,142,165,231,182,154,227,
+130,181,227,131,188,227,131,144,227,131,188,239,188,154,34,10,34,71,101,110,101,114,97,116,101,32,97,32,114,97,110,100,111,109,32,103,114,111,117,112,32,110,97,109,101,34,32,61,32,34,227,131,169,227,131,179,227,131,128,227,131,160,227,129,170,227,130,
+176,227,131,171,227,131,188,227,131,151,229,144,141,227,130,146,231,148,159,230,136,144,227,129,151,227,129,190,227,129,153,34,10,34,67,111,112,121,32,99,111,110,110,101,99,116,105,111,110,32,105,110,102,111,114,109,97,116,105,111,110,32,116,111,32,116,
+104,101,32,99,108,105,112,98,111,97,114,100,32,116,111,32,115,104,97,114,101,34,32,61,32,34,230,142,165,231,182,154,230,131,133,229,160,177,227,130,146,227,130,175,227,131,170,227,131,131,227,131,151,227,131,156,227,131,188,227,131,137,227,129,171,227,
+130,179,227,131,148,227,131,188,227,129,151,227,129,166,229,133,177,230,156,137,227,129,153,227,130,139,34,10,34,80,97,115,116,101,32,99,111,110,110,101,99,116,105,111,110,32,105,110,102,111,114,109,97,116,105,111,110,32,102,114,111,109,32,116,104,101,
+32,99,108,105,112,98,111,97,114,100,34,32,61,32,34,227,130,175,227,131,170,227,131,131,227,131,151,227,131,156,227,131,188,227,131,137,227,129,139,227,130,137,230,142,165,231,182,154,230,131,133,229,160,177,227,130,146,232,178,188,227,130,138,228,187,
+152,227,129,145,227,129,190,227,129,153,34,10,34,84,104,101,32,99,111,110,110,101,99,116,105,111,110,32,115,101,114,118,101,114,32,105,115,32,111,110,108,121,32,117,115,101,100,32,116,111,32,104,101,108,112,32,117,115,101,114,115,32,102,105,110,100,32,
+101,97,99,104,32,111,116,104,101,114,44,32,110,111,32,97,117,100,105,111,32,112,97,115,115,101,115,32,116,104,114,111,117,103,104,32,105,116,46,32,65,108,108,32,97,117,100,105,111,32,105,115,32,115,101,110,116,32,100,105,114,101,99,116,108,121,32,98,
+101,116,119,101,101,110,32,117,115,101,114,115,32,40,112,101,101,114,32,116,111,32,112,101,101,114,41,46,34,32,61,32,34,230,142,165,231,182,154,227,130,181,227,131,188,227,131,144,227,131,188,227,129,175,227,128,129,227,131,166,227,131,188,227,130,182,
+227,131,188,227,129,140,227,129,138,228,186,146,227,129,132,227,130,146,232,166,139,227,129,164,227,129,145,227,130,139,227,129,174,227,130,146,229,138,169,227,129,145,227,130,139,227,129,159,227,130,129,227,129,171,227,129,174,227,129,191,228,189,191,
+231,148,168,227,129,149,227,130,140,227,128,129,233,159,179,229,163,176,227,129,175,227,130,181,227,131,188,227,131,144,227,131,188,227,130,146,233,128,154,233,129,142,227,129,151,227,129,190,227,129,155,227,130,147,227,128,130,227,129,153,227,129,185,
+227,129,166,227,129,174,233,159,179,229,163,176,227,129,175,227,131,166,227,131,188,227,130,182,227,131,188,233,150,147,227,129,167,231,155,180,230,142,165,233,128,129,228,191,161,227,129,149,227,130,140,227,129,190,227,129,153,239,188,136,227,131,148,
+227,130,162,227,131,132,227,131,188,227,131,148,227,130,162,239,188,137,227,128,130,34,10,34,67,108,101,97,114,32,65,108,108,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,130,175,227,131,170,227,130,162,34,10,34,65,99,116,105,118,101,32,80,117,
+98,108,105,99,32,71,114,111,117,112,115,34,32,61,32,34,227,130,162,227,130,175,227,131,134,227,130,163,227,131,150,227,129,170,227,131,145,227,131,150,227,131,170,227,131,131,227,130,175,227,130,176,227,131,171,227,131,188,227,131,151,34,10,34,83,101,
+108,101,99,116,32,101,120,105,115,116,105,110,103,32,103,114,111,117,112,32,98,101,108,111,119,32,79,82,32,34,32,61,32,34,228,187,165,228,184,139,227,129,174,230,151,162,229,173,152,227,129,174,227,130,176,227,131,171,227,131,188,227,131,151,227,130,
+146,233,129,184,230,138,158,227,129,153,227,130,139,227,129,190,227,129,159,227,129,175,34,10,34,67,114,101,97,116,101,32,71,114,111,117,112,46,46,46,34,32,61,32,34,227,130,176,227,131,171,227,131,188,227,131,151,227,130,146,228,189,156,227,130,139,46,
+46,46,34,10,34,101,110,116,101,114,32,103,114,111,117,112,32,110,97,109,101,34,32,61,32,34,227,130,176,227,131,171,227,131,188,227,131,151,229,144,141,227,130,146,229,133,165,229,138,155,227,129,151,227,129,166,227,129,143,227,129,160,227,129,149,227,
+129,132,34,10,34,67,104,111,111,115,101,32,97,32,100,101,115,99,114,105,112,116,105,118,101,32,103,114,111,117,112,32,110,97,109,101,32,116,104,97,116,32,105,110,99,108,117,100,101,115,32,103,101,111,103,114,97,112,104,105,99,32,105,110,102,111,114,109,
+97,116,105,111,110,32,97,110,100,32,103,101,110,114,101,34,32,61,32,34,229,156,176,231,144,134,230,131,133,229,160,177,227,129,168,227,130,184,227,131,163,227,131,179,227,131,171,227,130,146,229,144,171,227,130,128,227,130,143,227,129,139,227,130,138,
+227,130,132,227,129,153,227,129,132,227,130,176,227,131,171,227,131,188,227,131,151,229,144,141,227,130,146,233,129,184,230,138,158,227,129,151,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,34,10,34,83,104,97,114,101,32,116,104,105,115,
+32,108,105,110,107,32,119,105,116,104,32,111,116,104,101,114,115,32,116,111,32,99,111,110,110,101,99,116,32,119,105,116,104,32,83,111,110,111,66,117,115,58,34,32,61,32,34,227,129,147,227,129,174,227,131,170,227,131,179,227,130,175,227,130,146,228,187,
+150,227,129,174,228,186,186,227,129,168,229,133,177,230,156,137,227,129,151,227,129,166,227,128,129,83,111,110,111,66,117,115,227,129,171,230,142,165,231,182,154,227,129,151,227,129,190,227,129,153,227,128,130,34,10,34,79,114,32,115,104,97,114,101,32,
+116,104,105,115,32,108,105,110,107,58,34,32,61,32,34,227,129,190,227,129,159,227,129,175,227,128,129,227,129,147,227,129,174,227,131,170,227,131,179,227,130,175,227,130,146,229,133,177,230,156,137,227,129,151,227,129,166,227,129,143,227,129,160,227,129,
+149,227,129,132,239,188,154,34,10,34,84,111,116,97,108,58,32,34,32,61,32,34,229,144,136,232,168,136,239,188,154,34,10,34,70,105,108,108,101,100,32,105,110,32,71,114,111,117,112,32,105,110,102,111,114,109,97,116,105,111,110,32,102,114,111,109,32,99,108,
+105,112,98,111,97,114,100,33,32,80,114,101,115,115,32,92,39,67,111,110,110,101,99,116,32,116,111,32,71,114,111,117,112,92,39,32,116,111,32,106,111,105,110,46,46,46,34,32,61,32,34,227,130,175,227,131,170,227,131,131,227,131,151,227,131,156,227,131,188,
+227,131,137,227,129,139,227,130,137,227,130,176,227,131,171,227,131,188,227,131,151,230,131,133,229,160,177,227,130,146,229,133,165,229,138,155,239,188,129,32,227,128,140,227,130,176,227,131,171,227,131,188,227,131,151,227,129,171,230,142,165,231,182,
+154,227,128,141,227,130,146,230,138,188,227,129,151,227,129,166,229,143,130,229,138,160,227,129,151,227,129,190,227,129,153,46,46,46,34,10,34,67,111,112,105,101,100,32,99,111,110,110,101,99,116,105,111,110,32,105,110,102,111,32,116,111,32,99,108,105,
+112,98,111,97,114,100,32,102,111,114,32,121,111,117,32,116,111,32,115,104,97,114,101,32,119,105,116,104,32,111,116,104,101,114,115,34,32,61,32,34,228,187,150,227,129,174,228,186,186,227,129,168,229,133,177,230,156,137,227,129,153,227,130,139,227,129,
+159,227,130,129,227,129,171,227,130,175,227,131,170,227,131,131,227,131,151,227,131,156,227,131,188,227,131,137,227,129,171,230,142,165,231,182,154,230,131,133,229,160,177,227,130,146,227,130,179,227,131,148,227,131,188,227,129,151,227,129,190,227,129,
+151,227,129,159,34,10,34,67,111,110,110,101,99,116,32,116,111,32,82,97,119,32,65,100,100,114,101,115,115,46,46,46,34,32,61,32,34,82,97,119,227,130,162,227,131,137,227,131,172,227,130,185,227,129,171,230,142,165,231,182,154,46,46,46,34,10,34,89,111,117,
+32,110,101,101,100,32,116,111,32,115,112,101,99,105,102,121,32,97,32,103,114,111,117,112,32,110,97,109,101,33,34,32,61,32,34,227,130,176,227,131,171,227,131,188,227,131,151,229,144,141,227,130,146,230,140,135,229,174,154,227,129,153,227,130,139,229,191,
+133,232,166,129,227,129,140,227,129,130,227,130,138,227,129,190,227,129,153,239,188,129,34,10,34,89,111,117,32,110,101,101,100,32,116,111,32,115,112,101,99,105,102,121,32,97,32,117,115,101,114,32,110,97,109,101,33,34,32,61,32,34,227,131,166,227,131,188,
+227,130,182,227,131,188,229,144,141,227,130,146,230,140,135,229,174,154,227,129,153,227,130,139,229,191,133,232,166,129,227,129,140,227,129,130,227,130,138,227,129,190,227,129,153,239,188,129,34,10,34,83,101,114,118,101,114,32,97,100,100,114,101,115,
+115,32,105,115,32,105,110,118,97,108,105,100,33,34,32,61,32,34,227,130,181,227,131,188,227,131,144,227,131,188,227,130,162,227,131,137,227,131,172,227,130,185,227,129,140,231,132,161,229,138,185,227,129,167,227,129,153,239,188,129,34,10,34,65,108,108,
+32,119,104,111,32,106,111,105,110,32,116,104,101,32,115,97,109,101,32,71,114,111,117,112,32,119,105,108,108,32,98,101,32,97,98,108,101,32,116,111,32,99,111,110,110,101,99,116,32,119,105,116,104,32,101,97,99,104,32,111,116,104,101,114,46,34,32,61,32,34,
+229,144,140,227,129,152,227,130,176,227,131,171,227,131,188,227,131,151,227,129,171,229,143,130,229,138,160,227,129,153,227,130,139,227,129,153,227,129,185,227,129,166,227,129,174,228,186,186,227,129,140,228,186,146,227,129,132,227,129,171,227,129,164,
+227,129,170,227,129,140,227,130,139,227,129,147,227,129,168,227,129,140,227,129,167,227,129,141,227,129,190,227,129,153,227,128,130,34,10,34,80,85,66,76,73,67,34,32,61,32,34,229,133,172,232,161,134,34,10,34,112,97,115,115,119,111,114,100,32,112,114,111,
+116,101,99,116,101,100,44,34,32,61,32,34,229,174,136,227,130,137,227,130,140,227,129,159,227,131,145,227,130,185,227,131,175,227,131,188,227,131,137,227,128,129,34,10,34,111,110,34,32,61,32,34,227,130,170,227,131,179,34,10,34,116,111,34,32,61,32,34,227,
+129,171,34,10,34,32,97,99,116,105,118,101,32,117,115,101,114,115,34,32,61,32,34,32,227,130,162,227,130,175,227,131,134,227,130,163,227,131,150,227,131,166,227,131,188,227,130,182,227,131,188,34,10,34,32,97,99,116,105,118,101,32,117,115,101,114,34,32,
+61,32,34,32,227,130,162,227,130,175,227,131,134,227,130,163,227,131,150,227,131,166,227,131,188,227,130,182,227,131,188,34,10,34,83,111,110,111,66,117,115,34,32,61,32,34,83,111,110,111,66,117,115,34,10,34,83,104,111,119,115,32,102,117,108,108,32,105,
+110,102,111,114,109,97,116,105,111,110,32,102,111,114,32,99,111,110,110,101,99,116,101,100,32,117,115,101,114,115,34,32,61,32,34,230,142,165,231,182,154,227,129,149,227,130,140,227,129,166,227,129,132,227,130,139,227,131,166,227,131,188,227,130,182,227,
+131,188,227,129,174,229,174,140,229,133,168,227,129,170,230,131,133,229,160,177,227,130,146,232,161,168,231,164,186,227,129,151,227,129,190,227,129,153,34,10,34,83,104,111,119,115,32,109,105,110,105,109,97,108,32,105,110,102,111,114,109,97,116,105,111,
+110,32,102,111,114,32,99,111,110,110,101,99,116,101,100,32,117,115,101,114,115,34,32,61,32,34,230,142,165,231,182,154,227,129,151,227,129,166,227,129,132,227,130,139,227,131,166,227,131,188,227,130,182,227,131,188,227,129,171,230,156,128,229,176,143,
+233,153,144,227,129,174,230,131,133,229,160,177,227,130,146,232,161,168,231,164,186,227,129,151,227,129,190,227,129,153,34,10,34,73,78,80,85,84,32,77,73,88,69,82,34,32,61,32,34,229,133,165,229,138,155,227,131,159,227,130,173,227,130,181,227,131,188,34,
+10,34,77,85,84,69,34,32,61,32,34,227,131,159,227,131,165,227,131,188,227,131,136,34,10,34,77,117,116,101,115,32,121,111,117,114,32,105,110,112,117,116,32,112,114,101,118,101,110,116,105,110,103,32,101,118,101,114,121,111,110,101,32,102,114,111,109,32,
+104,101,97,114,105,110,103,32,121,111,117,44,32,119,105,116,104,111,117,116,32,97,110,121,32,105,110,100,105,99,97,116,111,114,34,32,61,32,34,229,133,165,229,138,155,227,130,146,227,131,159,227,131,165,227,131,188,227,131,136,227,129,151,227,129,166,
+227,128,129,227,130,164,227,131,179,227,130,184,227,130,177,227,131,188,227,130,191,227,131,188,227,129,170,227,129,151,227,129,167,232,170,176,227,130,130,227,129,140,227,129,130,227,129,170,227,129,159,227,129,174,229,163,176,227,130,146,232,129,158,
+227,129,143,227,129,147,227,129,168,227,129,140,227,129,167,227,129,141,227,129,170,227,129,132,227,130,136,227,129,134,227,129,171,227,129,151,227,129,190,227,129,153,34,10,34,83,79,76,79,34,32,61,32,34,227,130,189,227,131,173,34,10,34,76,105,115,116,
+101,110,32,116,111,32,111,110,108,121,32,121,111,117,114,115,101,108,102,44,32,97,110,100,32,111,116,104,101,114,32,115,111,108,111,101,100,32,117,115,101,114,115,46,32,65,108,116,45,99,108,105,99,107,32,116,111,32,101,120,99,108,117,115,105,118,101,
+108,121,32,115,111,108,111,32,121,111,117,114,115,101,108,102,46,34,32,61,32,34,232,135,170,229,136,134,232,135,170,232,186,171,227,129,168,228,187,150,227,129,174,227,130,189,227,131,173,227,131,166,227,131,188,227,130,182,227,131,188,227,129,160,227,
+129,145,227,129,171,232,128,179,227,130,146,229,130,190,227,129,145,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,227,128,130,32,65,108,116,227,130,173,227,131,188,227,130,146,230,138,188,227,129,151,227,129,170,227,129,140,227,130,137,
+227,130,175,227,131,170,227,131,131,227,130,175,227,129,151,227,129,166,227,128,129,232,135,170,229,136,134,227,129,160,227,129,145,227,130,146,227,130,189,227,131,173,227,129,171,227,129,151,227,129,190,227,129,153,227,128,130,34,10,34,77,79,78,32,68,
+69,76,65,89,34,32,61,32,34,77,79,78,32,68,69,76,65,89,34,10,34,67,111,110,116,114,111,108,32,97,100,100,105,116,105,111,110,97,108,32,115,101,108,102,45,109,111,110,105,116,111,114,105,110,103,32,100,101,108,97,121,44,32,119,104,105,99,104,32,99,97,110,
+32,104,101,108,112,32,109,105,116,105,103,97,116,101,32,115,121,110,99,104,114,111,110,105,122,97,116,105,111,110,32,119,105,116,104,32,111,116,104,101,114,115,34,32,61,32,34,232,191,189,229,138,160,227,129,174,232,135,170,229,183,177,231,155,163,232,
+166,150,233,129,133,229,187,182,227,130,146,229,136,182,229,190,161,227,129,151,227,129,190,227,129,153,227,128,130,227,129,147,227,130,140,227,129,171,227,130,136,227,130,138,227,128,129,228,187,150,227,129,174,227,131,166,227,131,188,227,130,182,227,
+131,188,227,129,168,227,129,174,229,144,140,230,156,159,227,130,146,231,183,169,229,146,140,227,129,167,227,129,141,227,129,190,227,129,153,227,128,130,34,10,34,83,105,108,101,110,99,101,115,32,121,111,117,114,32,73,110,112,117,116,44,32,110,111,110,
+101,32,111,102,32,121,111,117,114,32,97,117,100,105,111,32,40,105,110,99,108,117,100,105,110,103,32,102,105,108,101,32,112,108,97,121,98,97,99,107,41,32,119,105,108,108,32,98,101,32,115,101,110,116,32,116,111,32,117,115,101,114,115,32,97,110,100,32,116,
+104,101,121,32,119,105,108,108,32,115,101,101,32,97,32,109,117,116,101,100,32,105,110,100,105,99,97,116,111,114,34,32,61,32,34,229,133,165,229,138,155,227,130,146,230,182,136,233,159,179,227,129,151,227,129,190,227,129,153,227,128,130,227,130,170,227,
+131,188,227,131,135,227,130,163,227,130,170,239,188,136,227,131,149,227,130,161,227,130,164,227,131,171,227,129,174,229,134,141,231,148,159,227,130,146,229,144,171,227,130,128,239,188,137,227,129,175,227,131,166,227,131,188,227,130,182,227,131,188,227,
+129,171,233,128,129,228,191,161,227,129,149,227,130,140,227,129,154,227,128,129,227,131,159,227,131,165,227,131,188,227,131,136,227,129,149,227,130,140,227,129,159,227,130,164,227,131,179,227,130,184,227,130,177,227,131,188,227,130,191,227,131,188,227,
+129,140,232,161,168,231,164,186,227,129,149,227,130,140,227,129,190,227,129,153,227,128,130,34,10,34,77,117,116,101,115,47,85,110,109,117,116,101,115,32,97,108,108,32,117,115,101,114,115,44,32,110,111,32,97,117,100,105,111,32,100,97,116,97,32,119,105,
+108,108,32,98,101,32,114,101,99,101,105,118,101,100,32,119,104,101,110,32,117,115,101,114,115,32,97,114,101,32,109,117,116,101,100,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,130,
+146,227,131,159,227,131,165,227,131,188,227,131,136,47,227,131,159,227,131,165,227,131,188,227,131,136,232,167,163,233,153,164,227,129,151,227,129,190,227,129,153,227,128,130,227,131,166,227,131,188,227,130,182,227,131,188,227,129,140,227,131,159,227,
+131,165,227,131,188,227,131,136,227,129,149,227,130,140,227,129,166,227,129,132,227,130,139,229,160,180,229,144,136,227,128,129,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,135,227,131,188,227,130,191,227,129,175,229,143,151,228,
+191,161,227,129,149,227,130,140,227,129,190,227,129,155,227,130,147,227,128,130,34,10,34,87,104,101,110,32,112,114,101,115,115,101,100,44,32,109,117,116,101,115,32,111,116,104,101,114,115,32,97,110,100,32,117,110,109,117,116,101,115,32,121,111,117,32,
+109,111,109,101,110,116,97,114,105,108,121,32,40,112,117,115,104,32,116,111,32,116,97,108,107,41,46,34,32,61,32,34,230,138,188,227,129,153,227,129,168,227,128,129,228,187,150,227,129,174,228,186,186,227,130,146,227,131,159,227,131,165,227,131,188,227,
+131,136,227,129,151,227,128,129,228,184,128,230,153,130,231,154,132,227,129,171,227,131,159,227,131,165,227,131,188,227,131,136,227,130,146,232,167,163,233,153,164,227,129,151,227,129,190,227,129,153,239,188,136,227,131,151,227,131,131,227,130,183,227,
+131,165,227,129,151,227,129,166,232,169,177,227,129,151,227,129,190,227,129,153,239,188,137,227,128,130,34,10,34,32,85,115,101,32,116,104,101,32,92,39,84,92,39,32,107,101,121,32,97,115,32,97,32,115,104,111,114,116,99,117,116,46,34,32,61,32,34,32,227,
+130,183,227,131,167,227,131,188,227,131,136,227,130,171,227,131,131,227,131,136,227,129,168,227,129,151,227,129,166,227,128,140,84,227,128,141,227,130,173,227,131,188,227,130,146,228,189,191,231,148,168,227,129,151,227,129,190,227,129,153,227,128,130,
+34,10,34,77,101,116,114,111,110,111,109,101,32,79,110,47,79,102,102,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,129,174,227,130,170,227,131,179,47,227,130,170,227,131,149,34,10,34,77,101,116,114,111,110,
+111,109,101,32,79,112,116,105,111,110,115,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,130,170,227,131,151,227,130,183,227,131,167,227,131,179,34,10,34,76,101,118,101,108,34,32,61,32,34,227,131,172,227,131,
+153,227,131,171,34,10,34,84,101,109,112,111,34,32,61,32,34,227,131,134,227,131,179,227,131,157,34,10,34,83,101,110,100,32,77,101,116,114,111,110,111,109,101,32,116,111,32,65,108,108,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,
+188,227,131,160,227,130,146,227,129,153,227,129,185,227,129,166,227,129,174,228,186,186,227,129,171,233,128,129,227,130,139,34,10,34,83,121,110,99,104,114,111,110,105,122,101,32,109,101,116,114,111,110,111,109,101,32,116,101,109,112,111,32,119,105,116,
+104,32,112,108,117,103,105,110,32,104,111,115,116,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,129,174,227,131,134,227,131,179,227,131,157,227,130,146,227,131,151,227,131,169,227,130,176,227,130,164,227,131,
+179,227,131,155,227,130,185,227,131,136,227,129,168,229,144,140,230,156,159,227,129,151,227,129,190,227,129,153,34,10,34,73,110,32,76,101,118,101,108,34,32,61,32,34,227,131,172,227,131,153,227,131,171,227,129,167,34,10,34,84,104,105,115,32,114,101,100,
+117,99,101,115,32,111,114,32,98,111,111,115,116,115,32,116,104,101,32,108,101,118,101,108,32,111,102,32,121,111,117,114,32,111,119,110,32,97,117,100,105,111,32,105,110,112,117,116,44,32,97,110,100,32,105,116,32,119,105,108,108,32,97,102,102,101,99,116,
+32,116,104,101,32,108,101,118,101,108,32,111,102,32,121,111,117,114,32,97,117,100,105,111,32,98,101,105,110,103,32,115,101,110,116,32,116,111,32,111,116,104,101,114,115,32,97,110,100,32,121,111,117,114,32,111,119,110,32,109,111,110,105,116,111,114,105,
+110,103,34,32,61,32,34,227,129,147,227,130,140,227,129,171,227,130,136,227,130,138,227,128,129,232,135,170,229,136,134,227,129,174,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,229,133,165,229,138,155,227,129,174,227,131,172,227,131,153,
+227,131,171,227,129,140,229,162,151,230,184,155,227,129,151,227,128,129,228,187,150,227,129,174,228,186,186,227,129,171,233,128,129,228,191,161,227,129,149,227,130,140,227,130,139,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,129,174,
+227,131,172,227,131,153,227,131,171,227,129,168,232,135,170,229,136,134,227,129,174,227,131,162,227,131,139,227,130,191,227,131,170,227,131,179,227,130,176,227,129,171,229,189,177,233,159,191,227,129,151,227,129,190,227,129,153,227,128,130,34,10,34,77,
+111,110,105,116,111,114,34,32,61,32,34,227,131,162,227,131,139,227,130,191,227,131,188,34,10,34,84,104,105,115,32,97,100,106,117,115,116,115,32,116,104,101,32,108,101,118,101,108,32,111,102,32,116,104,101,32,109,111,110,105,116,111,114,105,110,103,32,
+111,102,32,121,111,117,114,32,105,110,112,117,116,44,32,116,104,97,116,32,111,110,108,121,32,121,111,117,32,104,101,97,114,34,32,61,32,34,227,129,147,227,130,140,227,129,171,227,130,136,227,130,138,227,128,129,229,133,165,229,138,155,227,129,174,231,
+155,163,232,166,150,227,131,172,227,131,153,227,131,171,227,129,140,232,170,191,230,149,180,227,129,149,227,130,140,227,129,190,227,129,153,227,128,130,227,129,147,227,130,140,227,129,175,227,128,129,227,129,130,227,129,170,227,129,159,227,129,160,227,
+129,145,227,129,140,232,129,158,227,129,143,227,129,147,227,129,168,227,129,140,227,129,167,227,129,141,227,129,190,227,129,153,227,128,130,34,10,34,79,117,116,32,76,101,118,101,108,34,32,61,32,34,227,130,162,227,130,166,227,131,136,227,131,172,227,131,
+153,227,131,171,34,10,34,84,104,105,115,32,105,115,32,116,104,101,32,109,97,105,110,32,118,111,108,117,109,101,32,99,111,110,116,114,111,108,32,119,104,105,99,104,32,97,102,102,101,99,116,115,32,101,118,101,114,121,116,104,105,110,103,32,121,111,117,
+32,104,101,97,114,34,32,61,32,34,227,129,147,227,130,140,227,129,175,227,129,130,227,129,170,227,129,159,227,129,140,232,129,158,227,129,143,227,129,153,227,129,185,227,129,166,227,129,171,229,189,177,233,159,191,227,130,146,228,184,142,227,129,136,227,
+130,139,227,131,161,227,130,164,227,131,179,227,129,174,227,131,156,227,131,170,227,131,165,227,131,188,227,131,160,227,130,179,227,131,179,227,131,136,227,131,173,227,131,188,227,131,171,227,129,167,227,129,153,34,10,34,67,111,110,110,101,99,116,46,
+46,46,34,32,61,32,34,230,142,165,231,182,154,46,46,46,34,10,34,83,104,111,119,32,116,104,101,32,99,111,110,110,101,99,116,105,111,110,115,32,112,97,103,101,44,32,119,104,105,108,101,32,115,116,97,121,105,110,103,32,99,111,110,110,101,99,116,101,100,32,
+116,111,32,99,117,114,114,101,110,116,32,103,114,111,117,112,34,32,61,32,34,231,143,190,229,156,168,227,129,174,227,130,176,227,131,171,227,131,188,227,131,151,227,129,171,230,142,165,231,182,154,227,129,151,227,129,159,227,129,190,227,129,190,227,128,
+129,230,142,165,231,182,154,227,131,154,227,131,188,227,130,184,227,130,146,232,161,168,231,164,186,227,129,153,227,130,139,34,10,34,80,97,116,99,104,98,97,121,34,32,61,32,34,227,131,145,227,131,131,227,131,129,227,131,153,227,130,164,34,10,34,83,101,
+116,117,112,32,65,117,100,105,111,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,129,174,227,130,187,227,131,131,227,131,136,227,130,162,227,131,131,227,131,151,34,10,34,80,114,101,115,115,32,116,111,32,99,111,112,121,
+47,115,104,97,114,101,32,108,105,110,107,32,116,111,32,103,114,111,117,112,34,32,61,32,34,227,130,146,230,138,188,227,129,151,227,129,166,227,128,129,227,130,176,227,131,171,227,131,188,227,131,151,227,129,184,227,129,174,227,131,170,227,131,179,227,
+130,175,227,130,146,227,130,179,227,131,148,227,131,188,47,229,133,177,230,156,137,227,129,151,227,129,190,227,129,153,34,10,34,83,104,111,119,47,72,105,100,101,32,67,104,97,116,34,32,61,32,34,227,131,129,227,131,163,227,131,131,227,131,136,227,129,174,
+232,161,168,231,164,186,47,233,157,158,232,161,168,231,164,186,34,10,34,77,97,110,117,97,108,34,32,61,32,34,227,131,158,227,131,139,227,131,165,227,130,162,227,131,171,34,10,34,65,117,116,111,32,85,112,34,32,61,32,34,227,130,170,227,131,188,227,131,136,
+227,130,162,227,131,131,227,131,151,34,10,34,65,117,116,111,34,32,61,32,34,232,135,170,229,139,149,34,10,34,73,110,105,116,105,97,108,32,65,117,116,111,34,32,61,32,34,229,136,157,230,156,159,232,135,170,229,139,149,34,10,34,68,101,102,97,117,108,116,
+32,74,105,116,116,101,114,32,66,117,102,102,101,114,34,32,61,32,34,227,131,135,227,131,149,227,130,169,227,131,171,227,131,136,227,129,174,227,130,184,227,131,131,227,130,191,227,131,144,227,131,131,227,131,149,227,130,161,34,10,34,68,101,102,97,117,
+108,116,32,83,101,110,100,32,81,117,97,108,105,116,121,58,34,32,61,32,34,227,131,135,227,131,149,227,130,169,227,131,171,227,131,136,227,129,174,233,128,129,228,191,161,229,147,129,232,179,170,239,188,154,34,10,34,77,97,107,101,32,76,97,116,101,110,99,
+121,32,84,101,115,116,32,65,117,100,105,98,108,101,34,32,61,32,34,227,131,172,227,130,164,227,131,134,227,131,179,227,130,183,227,131,188,227,131,134,227,130,185,227,131,136,227,130,146,229,143,175,232,129,180,227,129,171,227,129,153,227,130,139,34,10,
+34,77,101,116,114,111,110,111,109,101,32,111,117,116,112,117,116,32,114,101,99,111,114,100,101,100,32,105,110,32,102,117,108,108,32,109,105,120,34,32,61,32,34,227,131,149,227,131,171,227,131,159,227,131,131,227,130,175,227,130,185,227,129,167,233,140,
+178,233,159,179,227,129,149,227,130,140,227,129,159,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,229,135,186,229,138,155,34,10,34,82,101,99,111,114,100,32,102,101,97,116,117,114,101,32,99,114,101,97,116,101,115,32,116,104,101,
+32,102,111,108,108,111,119,105,110,103,32,102,105,108,101,115,58,34,32,61,32,34,232,168,152,233,140,178,230,169,159,232,131,189,227,129,175,227,128,129,230,172,161,227,129,174,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,228,189,156,230,
+136,144,227,129,151,227,129,190,227,129,153,227,128,130,34,10,34,70,117,108,108,32,77,105,120,34,32,61,32,34,227,131,149,227,131,171,227,131,159,227,131,131,227,130,175,227,130,185,34,10,34,70,117,108,108,32,77,105,120,32,119,105,116,104,111,117,116,
+32,121,111,117,114,115,101,108,102,34,32,61,32,34,232,135,170,229,136,134,227,129,170,227,129,151,227,129,167,227,131,149,227,131,171,227,131,159,227,131,131,227,130,175,227,130,185,34,10,34,89,111,117,114,115,101,108,102,34,32,61,32,34,227,129,130,227,
+129,170,227,129,159,232,135,170,232,186,171,34,10,34,69,97,99,104,32,67,111,110,110,101,99,116,101,100,32,85,115,101,114,34,32,61,32,34,69,97,99,104,230,142,165,231,182,154,227,131,166,227,131,188,227,130,182,227,131,188,34,10,34,70,76,65,67,34,32,61,
+32,34,70,76,65,67,34,10,34,87,65,86,34,32,61,32,34,87,65,86,34,10,34,79,71,71,34,32,61,32,34,79,71,71,34,10,34,49,54,32,98,105,116,34,32,61,32,34,49,54,227,131,147,227,131,131,227,131,136,34,10,34,50,52,32,98,105,116,34,32,61,32,34,50,52,227,131,147,
+227,131,131,227,131,136,34,10,34,65,117,100,105,111,32,70,105,108,101,32,70,111,114,109,97,116,58,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,227,130,164,227,131,171,229,189,162,229,188,143,239,188,
+154,34,10,34,82,101,99,111,114,100,32,76,111,99,97,116,105,111,110,58,34,32,61,32,34,232,168,152,233,140,178,229,160,180,230,137,128,239,188,154,34,10,34,85,115,101,32,83,112,101,99,105,102,105,99,32,85,68,80,32,80,111,114,116,34,32,61,32,34,231,137,
+185,229,174,154,227,129,174,85,68,80,227,131,157,227,131,188,227,131,136,227,130,146,228,189,191,231,148,168,227,129,153,227,130,139,34,10,34,85,115,101,32,68,114,105,102,116,32,67,111,114,114,101,99,116,105,111,110,32,40,78,79,84,32,82,69,67,79,77,77,
+69,78,68,69,68,41,34,32,61,32,34,227,131,137,227,131,170,227,131,149,227,131,136,232,163,156,230,173,163,227,130,146,228,189,191,231,148,168,227,129,153,227,130,139,239,188,136,230,142,168,229,165,168,227,129,149,227,130,140,227,129,190,227,129,155,227,
+130,147,239,188,137,34,10,34,65,117,116,111,45,82,101,99,111,110,110,101,99,116,32,116,111,32,76,97,115,116,32,71,114,111,117,112,34,32,61,32,34,230,156,128,229,190,140,227,129,174,227,130,176,227,131,171,227,131,188,227,131,151,227,129,184,227,129,174,
+232,135,170,229,139,149,229,134,141,230,142,165,231,182,154,34,10,34,79,118,101,114,114,105,100,101,32,68,101,118,105,99,101,32,83,97,109,112,108,101,32,82,97,116,101,34,32,61,32,34,227,131,135,227,131,144,227,130,164,227,130,185,227,129,174,227,130,
+181,227,131,179,227,131,151,227,131,171,227,131,172,227,131,188,227,131,136,227,130,146,228,184,138,230,155,184,227,129,141,227,129,153,227,130,139,34,10,34,65,117,116,111,109,97,116,105,99,97,108,108,121,32,99,104,101,99,107,32,102,111,114,32,117,112,
+100,97,116,101,115,34,32,61,32,34,230,155,180,230,150,176,227,130,146,232,135,170,229,139,149,231,154,132,227,129,171,231,162,186,232,170,141,227,129,151,227,129,190,227,129,153,34,10,34,83,108,105,100,101,114,115,32,83,110,97,112,32,116,111,32,67,108,
+105,99,107,101,100,32,80,111,115,105,116,105,111,110,34,32,61,32,34,227,130,185,227,131,169,227,130,164,227,131,128,227,131,188,227,129,175,227,130,175,227,131,170,227,131,131,227,130,175,227,129,151,227,129,159,228,189,141,231,189,174,227,129,171,227,
+130,185,227,131,138,227,131,131,227,131,151,227,129,151,227,129,190,227,129,153,34,10,34,85,115,101,32,73,110,112,117,116,32,70,88,32,76,105,109,105,116,101,114,34,32,61,32,34,229,133,165,229,138,155,70,88,227,131,170,227,131,159,227,131,131,227,130,
+191,227,131,188,227,130,146,228,189,191,231,148,168,227,129,153,227,130,139,34,10,34,67,104,97,110,103,101,32,97,108,108,32,99,111,110,110,101,99,116,101,100,34,32,61,32,34,230,142,165,231,182,154,227,129,149,227,130,140,227,129,166,227,129,132,227,130,
+139,227,129,153,227,129,185,227,129,166,227,130,146,229,164,137,230,155,180,227,129,153,227,130,139,34,10,34,86,101,114,115,105,111,110,58,32,34,32,61,32,34,227,131,144,227,131,188,227,130,184,227,131,167,227,131,179,239,188,154,34,10,34,70,88,34,32,
+61,32,34,70,88,34,10,34,83,101,110,100,32,77,111,110,111,34,32,61,32,34,227,131,162,227,131,142,227,130,146,233,128,129,227,130,139,34,10,34,83,101,110,100,32,83,116,101,114,101,111,34,32,61,32,34,227,130,185,227,131,134,227,131,172,227,130,170,227,130,
+146,233,128,129,228,191,161,34,10,34,83,101,110,100,32,77,117,108,116,105,99,104,97,110,110,101,108,34,32,61,32,34,227,131,158,227,131,171,227,131,129,227,131,129,227,131,163,227,131,141,227,131,171,227,130,146,233,128,129,228,191,161,34,10,34,35,32,
+83,101,110,100,32,67,104,97,110,110,101,108,115,34,32,61,32,34,239,188,131,227,131,129,227,131,163,227,131,179,227,131,141,227,131,171,227,130,146,233,128,129,228,191,161,34,10,34,83,105,122,101,34,32,61,32,34,227,130,181,227,130,164,227,130,186,34,10,
+34,68,97,109,112,105,110,103,34,32,61,32,34,227,131,128,227,131,179,227,131,148,227,131,179,227,130,176,34,10,34,80,114,101,45,68,101,108,97,121,34,32,61,32,34,228,186,139,229,137,141,233,129,133,229,187,182,34,10,34,82,101,118,101,114,98,34,32,61,32,
+34,227,131,170,227,131,144,227,131,188,227,131,150,34,10,34,70,114,101,101,118,101,114,98,34,32,61,32,34,227,131,149,227,131,170,227,131,188,227,131,144,227,131,188,227,131,150,34,10,34,77,86,101,114,98,34,32,61,32,34,77,86,101,114,98,34,10,34,90,105,
+116,97,34,32,61,32,34,227,130,184,227,130,191,34,10,34,83,116,97,114,116,47,83,116,111,112,32,114,101,99,111,114,100,105,110,103,32,97,117,100,105,111,32,116,111,32,102,105,108,101,34,32,61,32,34,227,131,149,227,130,161,227,130,164,227,131,171,227,129,
+184,227,129,174,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,129,174,233,140,178,233,159,179,227,130,146,233,150,139,229,167,139,47,229,129,156,230,173,162,227,129,151,227,129,190,227,129,153,34,10,34,76,111,97,100,32,97,117,100,105,
+111,32,102,105,108,101,32,102,111,114,32,112,108,97,121,98,97,99,107,34,32,61,32,34,229,134,141,231,148,159,231,148,168,227,129,174,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,
+227,131,173,227,131,188,227,131,137,227,129,153,227,130,139,34,10,34,83,101,110,100,32,70,105,108,101,32,80,108,97,121,98,97,99,107,32,116,111,32,65,108,108,34,32,61,32,34,227,131,149,227,130,161,227,130,164,227,131,171,229,134,141,231,148,159,227,130,
+146,227,129,153,227,129,185,227,129,166,227,129,171,233,128,129,228,191,161,34,10,34,81,117,105,116,32,67,111,110,102,105,114,109,97,116,105,111,110,34,32,61,32,34,231,162,186,232,170,141,227,130,146,231,181,130,228,186,134,227,129,151,227,129,190,227,
+129,153,34,10,34,89,111,117,32,97,114,101,32,99,111,110,110,101,99,116,101,100,44,32,97,114,101,32,121,111,117,32,115,117,114,101,32,121,111,117,32,119,97,110,116,32,116,111,32,113,117,105,116,63,34,32,61,32,34,230,142,165,231,182,154,227,129,149,227,
+130,140,227,129,166,227,129,132,227,129,190,227,129,153,227,128,130,231,181,130,228,186,134,227,129,151,227,129,166,227,130,130,227,130,136,227,130,141,227,129,151,227,129,132,227,129,167,227,129,153,227,129,139,239,188,159,34,10,34,81,117,105,116,34,
+32,61,32,34,231,181,130,228,186,134,227,129,153,227,130,139,34,10,34,76,97,115,116,32,83,101,115,115,105,111,110,58,32,34,32,61,32,34,230,156,128,229,190,140,227,129,174,227,130,187,227,131,131,227,130,183,227,131,167,227,131,179,239,188,154,34,10,34,
+78,111,116,32,115,101,110,100,105,110,103,32,121,111,117,114,32,97,117,100,105,111,32,97,110,121,119,104,101,114,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,130,146,227,129,169,227,129,147,227,129,171,227,130,130,
+233,128,129,228,191,161,227,129,151,227,129,170,227,129,132,34,10,34,83,101,110,100,105,110,103,32,121,111,117,114,32,97,117,100,105,111,32,116,111,32,111,116,104,101,114,115,34,32,61,32,34,233,159,179,229,163,176,227,130,146,228,187,150,227,129,174,
+228,186,186,227,129,171,233,128,129,228,191,161,227,129,153,227,130,139,34,10,34,77,117,116,101,100,32,101,118,101,114,121,111,110,101,34,32,61,32,34,227,129,191,227,130,147,227,129,170,227,131,159,227,131,165,227,131,188,227,131,136,34,10,34,85,110,
+109,117,116,101,100,32,97,108,108,32,119,104,111,32,119,101,114,101,32,110,111,116,32,109,117,116,101,100,32,112,114,101,118,105,111,117,115,108,121,34,32,61,32,34,228,187,165,229,137,141,227,129,171,227,131,159,227,131,165,227,131,188,227,131,136,227,
+129,149,227,130,140,227,129,166,227,129,132,227,129,170,227,129,139,227,129,163,227,129,159,227,129,153,227,129,185,227,129,166,227,129,174,227,131,159,227,131,165,227,131,188,227,131,136,227,130,146,232,167,163,233,153,164,34,10,34,83,101,110,100,105,
+110,103,32,121,111,117,114,32,109,101,116,114,111,110,111,109,101,32,116,111,32,97,108,108,32,117,115,101,114,115,34,32,61,32,34,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,130,146,227,129,153,227,129,185,227,129,166,227,
+129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,129,171,233,128,129,228,191,161,227,129,153,227,130,139,34,10,34,78,111,119,32,111,110,108,121,32,121,111,117,32,119,105,108,108,32,104,101,97,114,32,121,111,117,114,32,109,101,116,114,111,110,
+111,109,101,34,32,61,32,34,228,187,138,227,128,129,227,129,130,227,129,170,227,129,159,227,129,160,227,129,145,227,129,140,227,129,130,227,129,170,227,129,159,227,129,174,227,131,161,227,131,136,227,131,173,227,131,142,227,131,188,227,131,160,227,130,
+146,232,129,158,227,129,143,227,129,167,227,129,151,227,130,135,227,129,134,34,10,34,83,101,110,100,105,110,103,32,102,105,108,101,32,112,108,97,121,98,97,99,107,32,116,111,32,97,108,108,32,117,115,101,114,115,34,32,61,32,34,227,129,153,227,129,185,227,
+129,166,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,129,171,227,131,149,227,130,161,227,130,164,227,131,171,229,134,141,231,148,159,227,130,146,233,128,129,228,191,161,227,129,153,227,130,139,34,10,34,78,111,119,32,111,110,108,121,
+32,121,111,117,32,119,105,108,108,32,104,101,97,114,32,116,104,101,32,102,105,108,101,32,112,108,97,121,98,97,99,107,34,32,61,32,34,227,129,147,227,130,140,227,129,167,227,128,129,227,131,149,227,130,161,227,130,164,227,131,171,227,129,174,229,134,141,
+231,148,159,227,129,140,232,129,158,227,129,147,227,129,136,227,130,139,227,129,174,227,129,175,227,129,130,227,129,170,227,129,159,227,129,160,227,129,145,227,129,167,227,129,153,34,10,34,67,111,112,105,101,100,32,103,114,111,117,112,32,99,111,110,110,
+101,99,116,105,111,110,32,105,110,102,111,32,116,111,32,99,108,105,112,98,111,97,114,100,32,102,111,114,32,121,111,117,32,116,111,32,115,104,97,114,101,32,119,105,116,104,32,111,116,104,101,114,115,34,32,61,32,34,227,130,176,227,131,171,227,131,188,227,
+131,151,230,142,165,231,182,154,230,131,133,229,160,177,227,130,146,227,130,175,227,131,170,227,131,131,227,131,151,227,131,156,227,131,188,227,131,137,227,129,171,227,130,179,227,131,148,227,131,188,227,129,151,227,129,166,227,128,129,228,187,150,227,
+129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,129,168,229,133,177,230,156,137,227,129,167,227,129,141,227,130,139,227,130,136,227,129,134,227,129,171,227,129,151,227,129,190,227,129,153,34,10,34,70,105,110,105,115,104,101,100,32,114,101,
+99,111,114,100,105,110,103,32,116,111,32,34,32,61,32,34,227,129,184,227,129,174,233,140,178,233,159,179,227,129,140,231,181,130,228,186,134,227,129,151,227,129,190,227,129,151,227,129,159,34,10,34,76,97,115,116,32,114,101,99,111,114,100,101,100,32,102,
+105,108,101,58,32,34,32,61,32,34,230,156,128,229,190,140,227,129,171,232,168,152,233,140,178,227,129,149,227,130,140,227,129,159,227,131,149,227,130,161,227,130,164,227,131,171,239,188,154,34,10,34,83,116,97,114,116,101,100,32,114,101,99,111,114,100,
+105,110,103,32,111,117,116,112,117,116,34,32,61,32,34,229,135,186,229,138,155,227,129,174,232,168,152,233,140,178,227,130,146,233,150,139,229,167,139,227,129,151,227,129,190,227,129,151,227,129,159,34,10,34,82,101,99,111,114,100,105,110,103,32,97,117,
+100,105,111,32,116,111,58,32,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,129,174,233,140,178,233,159,179,229,133,136,239,188,154,34,10,34,82,101,99,111,114,100,105,110,103,32,109,117,108,116,105,45,116,114,97,99,107,
+32,97,117,100,105,111,32,116,111,58,32,34,32,61,32,34,227,131,158,227,131,171,227,131,129,227,131,136,227,131,169,227,131,131,227,130,175,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,129,174,233,140,178,233,159,179,229,133,136,239,
+188,154,34,10,34,67,104,111,111,115,101,32,97,110,32,97,117,100,105,111,32,102,105,108,101,32,116,111,32,111,112,101,110,46,46,46,34,32,61,32,34,233,150,139,227,129,143,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,
+227,130,164,227,131,171,227,130,146,233,129,184,230,138,158,227,129,151,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,46,46,46,34,10,34,67,104,111,111,115,101,32,116,104,101,32,102,111,108,100,101,114,32,102,111,114,32,110,101,119,32,114,
+101,99,111,114,100,105,110,103,115,34,32,61,32,34,230,150,176,227,129,151,227,129,132,233,140,178,233,159,179,231,148,168,227,129,174,227,131,149,227,130,169,227,131,171,227,131,128,227,130,146,233,129,184,230,138,158,227,129,151,227,129,166,227,129,
+143,227,129,160,227,129,149,227,129,132,34,10,34,67,104,111,111,115,101,32,97,32,108,111,99,97,116,105,111,110,32,97,110,100,32,110,97,109,101,32,116,111,32,115,116,111,114,101,32,116,104,101,32,115,101,116,117,112,34,32,61,32,34,227,130,187,227,131,
+131,227,131,136,227,130,162,227,131,131,227,131,151,227,130,146,228,191,157,229,173,152,227,129,153,227,130,139,229,160,180,230,137,128,227,129,168,229,144,141,229,137,141,227,130,146,233,129,184,230,138,158,227,129,151,227,129,190,227,129,153,34,10,
+34,67,104,111,111,115,101,32,97,32,115,101,116,117,112,32,102,105,108,101,32,116,111,32,108,111,97,100,34,32,61,32,34,227,131,173,227,131,188,227,131,137,227,129,153,227,130,139,227,130,187,227,131,131,227,131,136,227,130,162,227,131,131,227,131,151,
+227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,233,129,184,230,138,158,227,129,151,227,129,190,227,129,153,34,10,34,69,114,114,111,114,32,119,104,105,108,101,32,108,111,97,100,105,110,103,34,32,61,32,34,227,131,173,227,131,188,227,131,137,
+228,184,173,227,129,171,227,130,168,227,131,169,227,131,188,227,129,140,231,153,186,231,148,159,227,129,151,227,129,190,227,129,151,227,129,159,34,10,34,67,111,117,108,100,110,92,39,116,32,114,101,97,100,32,102,114,111,109,32,116,104,101,32,115,112,101,
+99,105,102,105,101,100,32,102,105,108,101,33,34,32,61,32,34,230,140,135,229,174,154,227,129,149,227,130,140,227,129,159,227,131,149,227,130,161,227,130,164,227,131,171,227,129,139,227,130,137,232,170,173,227,129,191,229,143,150,227,130,139,227,129,147,
+227,129,168,227,129,140,227,129,167,227,129,141,227,129,190,227,129,155,227,130,147,227,129,167,227,129,151,227,129,159,239,188,129,34,10,34,73,110,118,97,108,105,100,32,115,101,116,117,112,33,34,32,61,32,34,232,168,173,229,174,154,227,129,140,231,132,
+161,229,138,185,227,129,167,227,129,153,239,188,129,34,10,34,69,114,114,111,114,32,119,104,105,108,101,32,115,97,118,105,110,103,34,32,61,32,34,228,191,157,229,173,152,228,184,173,227,129,171,227,130,168,227,131,169,227,131,188,227,129,140,231,153,186,
+231,148,159,227,129,151,227,129,190,227,129,151,227,129,159,34,10,34,67,111,117,108,100,110,92,39,116,32,119,114,105,116,101,32,116,111,32,116,104,101,32,115,112,101,99,105,102,105,101,100,32,102,105,108,101,33,34,32,61,32,34,230,140,135,229,174,154,
+227,129,149,227,130,140,227,129,159,227,131,149,227,130,161,227,130,164,227,131,171,227,129,171,230,155,184,227,129,141,232,190,188,227,130,129,227,129,190,227,129,155,227,130,147,227,129,167,227,129,151,227,129,159,239,188,129,34,10,34,70,105,108,108,
+101,100,32,105,110,32,71,114,111,117,112,32,102,114,111,109,32,108,105,110,107,33,32,80,114,101,115,115,32,92,39,67,111,110,110,101,99,116,32,116,111,32,71,114,111,117,112,92,39,32,116,111,32,106,111,105,110,46,46,46,34,32,61,32,34,227,131,170,227,131,
+179,227,130,175,227,129,139,227,130,137,227,130,176,227,131,171,227,131,188,227,131,151,227,129,171,232,168,152,229,133,165,239,188,129,32,227,128,140,227,130,176,227,131,171,227,131,188,227,131,151,227,129,171,230,142,165,231,182,154,227,128,141,227,
+130,146,230,138,188,227,129,151,227,129,166,229,143,130,229,138,160,227,129,151,227,129,190,227,129,153,46,46,46,34,10,34,65,85,68,73,79,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,34,10,34,79,80,84,73,79,78,83,34,32,61,
+32,34,227,130,170,227,131,151,227,130,183,227,131,167,227,131,179,34,10,34,72,69,76,80,34,32,61,32,34,229,138,169,227,129,145,227,129,166,34,10,34,82,69,67,79,82,68,73,78,71,34,32,61,32,34,233,140,178,233,159,179,34,10,34,85,115,105,110,103,32,97,110,
+32,65,83,73,79,32,97,117,100,105,111,32,100,101,118,105,99,101,32,116,121,112,101,32,105,115,32,115,116,114,111,110,103,108,121,32,114,101,99,111,109,109,101,110,100,101,100,46,32,73,102,32,121,111,117,114,32,97,117,100,105,111,32,105,110,116,101,114,
+102,97,99,101,32,100,105,100,32,110,111,116,32,99,111,109,101,32,119,105,116,104,32,111,110,101,44,32,112,108,101,97,115,101,32,105,110,115,116,97,108,108,32,65,83,73,79,52,65,76,76,32,40,97,115,105,111,52,97,108,108,46,111,114,103,41,32,97,110,100,32,
+99,111,110,102,105,103,117,114,101,32,105,116,32,102,105,114,115,116,46,34,32,61,32,34,65,83,73,79,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,135,227,131,144,227,130,164,227,130,185,227,130,191,227,130,164,227,131,151,227,130,
+146,228,189,191,231,148,168,227,129,153,227,130,139,227,129,147,227,129,168,227,130,146,229,188,183,227,129,143,227,129,138,229,139,167,227,130,129,227,129,151,227,129,190,227,129,153,227,128,130,227,130,170,227,131,188,227,131,135,227,130,163,227,130,
+170,227,130,164,227,131,179,227,130,191,227,131,188,227,131,149,227,130,167,227,130,164,227,130,185,227,129,140,228,187,152,229,177,158,227,129,151,227,129,166,227,129,132,227,129,170,227,129,132,229,160,180,229,144,136,227,129,175,227,128,129,65,83,
+73,79,52,65,76,76,239,188,136,97,115,105,111,52,97,108,108,46,111,114,103,239,188,137,227,130,146,227,130,164,227,131,179,227,130,185,227,131,136,227,131,188,227,131,171,227,129,151,227,129,166,227,128,129,230,156,128,229,136,157,227,129,171,230,167,
+139,230,136,144,227,129,151,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,227,128,130,34,10,34,68,105,115,99,111,110,110,101,99,116,34,32,61,32,34,229,136,135,230,150,173,227,129,153,227,130,139,34,10,34,91,80,93,32,34,32,61,32,34,91,80,
+93,34,10,34,87,97,105,116,105,110,103,32,102,111,114,32,111,116,104,101,114,32,117,115,101,114,115,32,116,111,32,106,111,105,110,32,103,114,111,117,112,32,92,34,34,32,61,32,34,228,187,150,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,
+129,140,227,130,176,227,131,171,227,131,188,227,131,151,227,129,171,229,143,130,229,138,160,227,129,153,227,130,139,227,129,174,227,130,146,229,190,133,227,129,163,227,129,166,227,129,132,227,129,190,227,129,153,32,92,34,34,10,34,80,114,101,115,115,32,
+67,111,110,110,101,99,116,32,98,117,116,116,111,110,32,116,111,32,115,116,97,114,116,46,34,32,61,32,34,230,142,165,231,182,154,227,131,156,227,130,191,227,131,179,227,130,146,230,138,188,227,129,151,227,129,166,233,150,139,229,167,139,227,129,151,227,
+129,190,227,129,153,227,128,130,34,10,34,80,108,101,97,115,101,32,117,115,101,32,104,101,97,100,112,104,111,110,101,115,32,105,102,32,121,111,117,32,97,114,101,32,117,115,105,110,103,32,97,32,109,105,99,114,111,112,104,111,110,101,33,34,32,61,32,34,227,
+131,158,227,130,164,227,130,175,227,130,146,228,189,191,231,148,168,227,129,151,227,129,166,227,129,132,227,130,139,229,160,180,229,144,136,227,129,175,227,128,129,227,131,152,227,131,131,227,131,137,227,131,155,227,131,179,227,130,146,228,189,191,231,
+148,168,227,129,151,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,227,128,130,34,10,34,67,111,110,110,101,99,116,101,100,32,116,111,32,115,101,114,118,101,114,34,32,61,32,34,227,130,181,227,131,188,227,131,144,227,131,188,227,129,171,230,
+142,165,231,182,154,227,129,151,227,129,190,227,129,151,227,129,159,34,10,34,65,108,114,101,97,100,121,32,99,111,110,110,101,99,116,101,100,32,119,105,116,104,32,116,104,105,115,32,117,115,101,114,32,110,97,109,101,34,32,61,32,34,227,129,153,227,129,
+167,227,129,171,227,129,147,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,229,144,141,227,129,171,230,142,165,231,182,154,227,129,149,227,130,140,227,129,166,227,129,132,227,129,190,227,129,153,34,10,34,67,111,110,110,101,99,116,32,102,
+97,105,108,101,100,58,32,34,32,61,32,34,233,128,154,228,191,161,229,164,177,230,149,151,239,188,154,34,10,34,68,105,115,99,111,110,110,101,99,116,101,100,32,102,114,111,109,32,115,101,114,118,101,114,34,32,61,32,34,227,130,181,227,131,188,227,131,144,
+227,131,188,227,129,139,227,130,137,229,136,135,230,150,173,34,10,34,68,105,115,99,111,110,110,101,99,116,32,102,97,105,108,101,100,58,32,34,32,61,32,34,229,136,135,230,150,173,227,129,171,229,164,177,230,149,151,227,129,151,227,129,190,227,129,151,227,
+129,159,239,188,154,34,10,34,74,111,105,110,101,100,32,71,114,111,117,112,58,32,34,32,61,32,34,229,143,130,229,138,160,227,130,176,227,131,171,227,131,188,227,131,151,239,188,154,34,10,34,70,97,105,108,101,100,32,116,111,32,106,111,105,110,32,103,114,
+111,117,112,58,32,34,32,61,32,34,227,130,176,227,131,171,227,131,188,227,131,151,227,129,184,227,129,174,229,143,130,229,138,160,227,129,171,229,164,177,230,149,151,227,129,151,227,129,190,227,129,151,227,129,159,239,188,154,34,10,34,76,101,102,116,32,
+71,114,111,117,112,58,32,34,32,61,32,34,229,183,166,227,130,176,227,131,171,227,131,188,227,131,151,239,188,154,34,10,34,70,97,105,108,101,100,32,116,111,32,108,101,97,118,101,32,103,114,111,117,112,58,32,34,32,61,32,34,227,130,176,227,131,171,227,131,
+188,227,131,151,227,130,146,233,155,162,227,130,140,227,130,139,227,129,147,227,129,168,227,129,140,227,129,167,227,129,141,227,129,190,227,129,155,227,130,147,227,129,167,227,129,151,227,129,159,239,188,154,34,10,34,32,45,32,106,111,105,110,101,100,
+32,103,114,111,117,112,34,32,61,32,34,32,45,227,130,176,227,131,171,227,131,188,227,131,151,227,129,171,229,143,130,229,138,160,34,10,34,32,45,32,108,101,102,116,32,103,114,111,117,112,34,32,61,32,34,32,45,229,183,166,231,191,188,227,130,176,227,131,
+171,227,131,188,227,131,151,34,10,34,84,114,105,109,32,116,111,32,78,101,119,34,32,61,32,34,230,150,176,232,166,143,227,129,171,227,131,136,227,131,170,227,131,160,34,10,34,83,104,97,114,101,32,70,105,108,101,34,32,61,32,34,227,131,149,227,130,161,227,
+130,164,227,131,171,227,130,146,229,133,177,230,156,137,227,129,153,227,130,139,34,10,34,82,101,118,101,97,108,32,70,105,108,101,34,32,61,32,34,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,230,152,142,227,130,137,227,129,139,227,129,171,
+227,129,153,227,130,139,34,10,34,77,117,116,101,32,65,108,108,32,73,110,112,117,116,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,129,174,229,133,165,229,138,155,227,130,146,227,131,159,227,131,165,227,131,188,227,131,136,34,10,34,84,111,103,
+103,108,101,32,77,117,116,101,32,97,108,108,32,105,110,112,117,116,34,32,61,32,34,227,131,136,227,130,176,227,131,171,227,131,159,227,131,165,227,131,188,227,131,136,227,129,153,227,129,185,227,129,166,227,129,174,229,133,165,229,138,155,34,10,34,80,
+111,112,117,112,34,32,61,32,34,231,143,190,227,130,140,227,130,139,34,10,34,77,117,116,101,32,65,108,108,32,85,115,101,114,115,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,130,146,
+227,131,159,227,131,165,227,131,188,227,131,136,227,129,153,227,130,139,34,10,34,84,111,103,103,108,101,32,77,117,116,101,32,97,108,108,32,117,115,101,114,115,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,129,174,227,131,166,227,131,188,227,
+130,182,227,131,188,227,130,146,227,131,159,227,131,165,227,131,188,227,131,136,227,129,171,229,136,135,227,130,138,230,155,191,227,129,136,227,129,190,227,129,153,34,10,34,80,108,97,121,47,80,97,117,115,101,34,32,61,32,34,229,134,141,231,148,159,47,
+228,184,128,230,153,130,229,129,156,230,173,162,34,10,34,84,111,103,103,108,101,32,102,105,108,101,32,112,108,97,121,98,97,99,107,34,32,61,32,34,227,131,149,227,130,161,227,130,164,227,131,171,227,129,174,229,134,141,231,148,159,227,130,146,229,136,135,
+227,130,138,230,155,191,227,129,136,227,129,190,227,129,153,34,10,34,76,111,111,112,34,32,61,32,34,227,131,171,227,131,188,227,131,151,34,10,34,84,111,103,103,108,101,32,102,105,108,101,32,108,111,111,112,105,110,103,34,32,61,32,34,227,131,149,227,130,
+161,227,130,164,227,131,171,227,131,171,227,131,188,227,131,151,227,130,146,229,136,135,227,130,138,230,155,191,227,129,136,227,129,190,227,129,153,34,10,34,84,114,105,109,32,102,105,108,101,32,102,114,111,109,32,115,101,108,101,99,116,105,111,110,32,
+116,111,32,110,101,119,32,102,105,108,101,34,32,61,32,34,233,129,184,230,138,158,227,129,139,227,130,137,230,150,176,227,129,151,227,129,132,227,131,149,227,130,161,227,130,164,227,131,171,227,129,171,227,131,149,227,130,161,227,130,164,227,131,171,227,
+130,146,227,131,136,227,131,170,227,131,159,227,131,179,227,130,176,227,129,151,227,129,190,227,129,153,34,10,34,67,108,111,115,101,32,65,117,100,105,111,32,70,105,108,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,
+131,149,227,130,161,227,130,164,227,131,171,227,130,146,233,150,137,227,129,152,227,130,139,34,10,34,67,108,111,115,101,32,97,117,100,105,111,32,102,105,108,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,
+130,161,227,130,164,227,131,171,227,130,146,233,150,137,227,129,152,227,130,139,34,10,34,79,112,101,110,32,65,117,100,105,111,32,70,105,108,101,46,46,46,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,
+227,130,164,227,131,171,227,130,146,233,150,139,227,129,143,46,46,46,34,10,34,79,112,101,110,32,65,117,100,105,111,32,102,105,108,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,227,130,164,227,131,
+171,227,130,146,233,150,139,227,129,143,34,10,34,83,104,97,114,101,32,65,117,100,105,111,32,70,105,108,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,229,133,
+177,230,156,137,227,129,153,227,130,139,34,10,34,83,104,97,114,101,32,97,117,100,105,111,32,102,105,108,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,229,133,
+177,230,156,137,227,129,153,227,130,139,34,10,34,82,101,118,101,97,108,32,65,117,100,105,111,32,70,105,108,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,230,
+152,142,227,130,137,227,129,139,227,129,171,227,129,153,227,130,139,34,10,34,82,101,118,101,97,108,32,97,117,100,105,111,32,102,105,108,101,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,149,227,130,161,227,130,164,
+227,131,171,227,130,146,230,152,142,227,130,137,227,129,139,227,129,171,227,129,153,227,130,139,34,10,34,76,111,97,100,32,83,101,116,117,112,46,46,46,34,32,61,32,34,227,130,187,227,131,131,227,131,136,227,130,162,227,131,131,227,131,151,227,130,146,227,
+131,173,227,131,188,227,131,137,46,46,46,34,10,34,76,111,97,100,32,83,101,116,117,112,32,102,105,108,101,34,32,61,32,34,227,130,187,227,131,131,227,131,136,227,130,162,227,131,131,227,131,151,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,
+227,131,173,227,131,188,227,131,137,227,129,151,227,129,190,227,129,153,34,10,34,83,97,118,101,32,83,101,116,117,112,46,46,46,34,32,61,32,34,232,168,173,229,174,154,227,130,146,228,191,157,229,173,152,46,46,46,34,10,34,83,97,118,101,32,83,101,116,117,
+112,32,102,105,108,101,34,32,61,32,34,227,130,187,227,131,131,227,131,136,227,130,162,227,131,131,227,131,151,227,131,149,227,130,161,227,130,164,227,131,171,227,130,146,228,191,157,229,173,152,227,129,153,227,130,139,34,10,34,83,104,111,119,32,111,114,
+32,104,105,100,101,32,99,104,97,116,32,97,114,101,97,34,32,61,32,34,227,131,129,227,131,163,227,131,131,227,131,136,227,130,168,227,131,170,227,130,162,227,130,146,232,161,168,231,164,186,227,129,190,227,129,159,227,129,175,233,157,158,232,161,168,231,
+164,186,34,10,34,83,104,111,119,32,79,112,116,105,111,110,115,34,32,61,32,34,227,130,170,227,131,151,227,130,183,227,131,167,227,131,179,227,130,146,232,161,168,231,164,186,34,10,34,82,101,99,111,114,100,34,32,61,32,34,232,168,152,233,140,178,34,10,34,
+84,111,103,103,108,101,32,82,101,99,111,114,100,34,32,61,32,34,227,131,136,227,130,176,227,131,171,227,131,172,227,130,179,227,131,188,227,131,137,34,10,34,67,104,101,99,107,32,70,111,114,32,78,101,119,32,86,101,114,115,105,111,110,34,32,61,32,34,230,
+150,176,227,129,151,227,129,132,227,131,144,227,131,188,227,130,184,227,131,167,227,131,179,227,130,146,231,162,186,232,170,141,227,129,153,227,130,139,34,10,34,67,104,101,99,107,32,102,111,114,32,78,101,119,32,86,101,114,115,105,111,110,34,32,61,32,
+34,230,150,176,227,129,151,227,129,132,227,131,144,227,131,188,227,130,184,227,131,167,227,131,179,227,130,146,231,162,186,232,170,141,227,129,153,227,130,139,34,10,34,70,105,108,101,34,32,61,32,34,227,131,149,227,130,161,227,130,164,227,131,171,34,10,
+34,84,114,97,110,115,112,111,114,116,34,32,61,32,34,232,188,184,233,128,129,34,10,34,86,105,101,119,34,32,61,32,34,232,166,139,227,130,139,34,10,34,72,101,108,112,34,32,61,32,34,229,138,169,227,129,145,227,129,166,34,10,34,76,111,97,100,32,82,101,99,
+101,110,116,32,83,101,116,117,112,34,32,61,32,34,230,156,128,232,191,145,227,129,174,232,168,173,229,174,154,227,130,146,232,170,173,227,129,191,232,190,188,227,130,128,34,10,34,83,97,118,101,32,99,117,114,114,101,110,116,32,115,116,97,116,101,34,32,
+61,32,34,231,143,190,229,156,168,227,129,174,231,138,182,230,133,139,227,130,146,228,191,157,229,173,152,227,129,153,227,130,139,34,10,34,76,111,97,100,32,97,32,115,97,118,101,100,32,115,116,97,116,101,34,32,61,32,34,228,191,157,229,173,152,227,129,149,
+227,130,140,227,129,159,231,138,182,230,133,139,227,130,146,227,131,173,227,131,188,227,131,137,227,129,151,227,129,190,227,129,153,34,10,34,65,117,100,105,111,47,77,73,68,73,32,83,101,116,116,105,110,103,115,34,32,61,32,34,227,130,170,227,131,188,227,
+131,135,227,130,163,227,130,170,47,32,77,73,68,73,232,168,173,229,174,154,34,10,34,65,117,100,105,111,32,83,101,116,116,105,110,103,115,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,232,168,173,229,174,154,34,10,34,65,117,
+100,105,111,47,77,73,68,73,32,83,101,116,116,105,110,103,115,46,46,46,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,47,32,77,73,68,73,232,168,173,229,174,154,46,46,46,34,10,34,83,97,118,101,32,99,117,114,114,101,110,116,32,
+115,116,97,116,101,46,46,46,34,32,61,32,34,231,143,190,229,156,168,227,129,174,231,138,182,230,133,139,227,130,146,228,191,157,229,173,152,46,46,46,34,10,34,76,111,97,100,32,97,32,115,97,118,101,100,32,115,116,97,116,101,46,46,46,34,32,61,32,34,228,191,
+157,229,173,152,227,129,149,227,130,140,227,129,159,231,138,182,230,133,139,227,130,146,227,131,173,227,131,188,227,131,137,227,129,151,227,129,190,227,129,153,227,128,130,34,10,34,82,101,115,101,116,32,116,111,32,100,101,102,97,117,108,116,32,115,116,
+97,116,101,34,32,61,32,34,227,131,135,227,131,149,227,130,169,227,131,171,227,131,136,231,138,182,230,133,139,227,129,171,227,131,170,227,130,187,227,131,131,227,131,136,34,10,34,83,101,110,100,32,76,101,118,101,108,58,32,34,32,61,32,34,233,128,129,228,
+191,161,227,131,172,227,131,153,227,131,171,239,188,154,34,10,34,82,101,118,101,114,98,32,83,101,110,100,34,32,61,32,34,227,131,170,227,131,144,227,131,188,227,131,150,227,130,187,227,131,179,227,131,137,34,10,34,69,110,97,98,108,101,32,116,104,101,32,
+109,97,105,110,32,114,101,118,101,114,98,32,97,116,32,116,104,101,32,98,111,116,116,111,109,32,111,102,32,116,104,101,32,119,105,110,100,111,119,32,116,111,32,104,101,97,114,32,116,104,101,32,101,102,102,101,99,116,34,32,61,32,34,227,130,166,227,130,
+163,227,131,179,227,131,137,227,130,166,227,129,174,228,184,139,233,131,168,227,129,171,227,129,130,227,130,139,227,131,161,227,130,164,227,131,179,227,131,170,227,131,144,227,131,188,227,131,150,227,130,146,230,156,137,229,138,185,227,129,171,227,129,
+151,227,129,166,227,128,129,229,138,185,230,158,156,227,130,146,232,129,158,227,129,141,227,129,190,227,129,153,34,10,34,77,97,105,110,32,82,101,118,101,114,98,32,83,101,110,100,34,32,61,32,34,227,131,161,227,130,164,227,131,179,227,131,170,227,131,144,
+227,131,188,227,131,150,227,130,187,227,131,179,227,131,137,34,10,34,67,114,97,115,104,101,100,32,76,97,115,116,32,84,105,109,101,34,32,61,32,34,229,137,141,229,155,158,229,162,156,232,144,189,227,129,151,227,129,159,34,10,34,76,111,111,107,115,32,108,
+105,107,101,32,121,111,117,32,99,114,97,115,104,101,100,32,111,110,32,108,97,117,110,99,104,32,108,97,115,116,32,116,105,109,101,44,32,114,101,115,116,111,114,105,110,103,32,100,101,102,97,117,108,116,32,115,101,116,116,105,110,103,115,33,34,32,61,32,
+34,229,137,141,229,155,158,227,129,174,232,181,183,229,139,149,230,153,130,227,129,171,227,130,175,227,131,169,227,131,131,227,130,183,227,131,165,227,129,151,227,128,129,227,131,135,227,131,149,227,130,169,227,131,171,227,131,136,232,168,173,229,174,
+154,227,129,171,230,136,187,227,129,163,227,129,159,227,130,136,227,129,134,227,129,167,227,129,153,227,128,130,34,10,34,84,104,114,101,115,104,111,108,100,34,32,61,32,34,227,129,151,227,129,141,227,129,132,229,128,164,34,10,34,77,97,107,101,117,112,
+32,71,97,105,110,34,32,61,32,34,227,131,161,227,130,164,227,130,175,227,130,162,227,131,131,227,131,151,227,130,178,227,130,164,227,131,179,34,10,34,67,111,109,112,114,101,115,115,111,114,34,32,61,32,34,227,130,179,227,131,179,227,131,151,227,131,172,
+227,131,131,227,130,181,227,131,188,34,10,34,65,117,116,111,115,101,116,32,77,97,107,101,117,112,34,32,61,32,34,227,130,170,227,131,188,227,131,136,227,130,187,227,131,131,227,131,136,227,131,161,227,130,164,227,130,175,34,10,34,71,97,105,110,34,32,61,
+32,34,229,136,169,229,190,151,34,10,34,72,105,103,104,32,83,104,101,108,102,34,32,61,32,34,227,131,143,227,130,164,227,130,183,227,130,167,227,131,171,227,131,149,34,10,34,76,111,119,32,83,104,101,108,102,34,32,61,32,34,228,189,142,227,129,132,230,163,
+154,34,10,34,70,114,101,113,32,49,34,32,61,32,34,229,145,168,230,179,162,230,149,176,49,34,10,34,81,34,32,61,32,34,81,34,10,34,70,114,101,113,32,50,34,32,61,32,34,229,145,168,230,179,162,230,149,176,50,34,10,34,80,97,114,97,109,101,116,114,105,99,32,
+69,81,34,32,61,32,34,227,131,145,227,131,169,227,131,161,227,131,136,227,131,170,227,131,131,227,130,175,69,81,34,10,34,67,104,97,116,34,32,61,32,34,227,131,129,227,131,163,227,131,131,227,131,136,34,10,34,69,110,116,101,114,32,109,101,115,115,97,103,
+101,32,104,101,114,101,46,46,46,34,32,61,32,34,227,129,147,227,129,147,227,129,171,227,131,161,227,131,131,227,130,187,227,131,188,227,130,184,227,130,146,229,133,165,229,138,155,227,129,151,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,
+46,46,46,34,10,34,83,101,110,100,34,32,61,32,34,233,128,129,228,191,161,34,10,34,83,97,118,101,32,67,104,97,116,34,32,61,32,34,227,131,129,227,131,163,227,131,131,227,131,136,227,130,146,228,191,157,229,173,152,34,10,34,67,108,101,97,114,32,67,104,97,
+116,34,32,61,32,34,227,130,175,227,131,170,227,130,162,227,131,129,227,131,163,227,131,131,227,131,136,34,10,34,65,100,100,32,78,101,119,32,73,110,112,117,116,32,71,114,111,117,112,34,32,61,32,34,230,150,176,227,129,151,227,129,132,229,133,165,229,138,
+155,227,130,176,227,131,171,227,131,188,227,131,151,227,130,146,232,191,189,229,138,160,227,129,153,227,130,139,34,10,34,67,76,69,65,82,34,32,61,32,34,230,153,180,227,130,140,34,10,34,82,101,109,111,118,101,32,97,108,108,32,105,110,112,117,116,32,103,
+114,111,117,112,115,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,129,174,229,133,165,229,138,155,227,130,176,227,131,171,227,131,188,227,131,151,227,130,146,229,137,138,233,153,164,227,129,151,227,129,190,227,129,153,34,10,34,76,101,118,101,
+108,58,32,34,32,61,32,34,227,131,172,227,131,153,227,131,171,239,188,154,34,10,34,77,111,110,105,116,111,114,58,32,34,32,61,32,34,227,131,162,227,131,139,227,130,191,227,131,188,239,188,154,34,10,34,80,114,101,32,76,101,118,101,108,58,32,34,32,61,32,
+34,227,131,151,227,131,172,227,131,172,227,131,153,227,131,171,239,188,154,34,10,34,83,101,116,32,110,97,109,101,32,102,111,114,32,116,104,105,115,32,103,114,111,117,112,32,116,104,97,116,32,111,116,104,101,114,115,32,119,105,108,108,32,115,101,101,34,
+32,61,32,34,228,187,150,227,129,174,228,186,186,227,129,171,232,161,168,231,164,186,227,129,149,227,130,140,227,130,139,227,129,147,227,129,174,227,130,176,227,131,171,227,131,188,227,131,151,227,129,174,229,144,141,229,137,141,227,130,146,232,168,173,
+229,174,154,227,129,151,227,129,190,227,129,153,34,10,34,67,108,105,99,107,32,116,111,32,116,111,103,103,108,101,32,101,120,116,114,97,32,105,110,102,111,114,109,97,116,105,111,110,32,118,105,115,105,98,105,108,105,116,121,34,32,61,32,34,227,130,175,
+227,131,170,227,131,131,227,130,175,227,129,151,227,129,166,232,191,189,229,138,160,230,131,133,229,160,177,227,129,174,229,143,175,232,166,150,230,128,167,227,130,146,229,136,135,227,130,138,230,155,191,227,129,136,227,129,190,227,129,153,34,10,34,84,
+111,103,103,108,101,115,32,114,101,99,101,105,118,101,32,109,117,116,105,110,103,44,32,112,114,101,118,101,110,116,105,110,103,32,97,117,100,105,111,32,102,114,111,109,32,98,101,105,110,103,32,104,101,97,114,100,32,102,111,114,32,116,104,105,115,32,117,
+115,101,114,34,32,61,32,34,227,131,136,227,130,176,227,131,171,227,129,175,227,131,159,227,131,165,227,131,188,227,131,134,227,130,163,227,131,179,227,130,176,227,130,146,229,143,151,228,191,161,227,129,151,227,128,129,227,129,147,227,129,174,227,131,
+166,227,131,188,227,130,182,227,131,188,227,129,174,233,159,179,229,163,176,227,129,140,232,129,158,227,129,147,227,129,136,227,129,170,227,129,132,227,130,136,227,129,134,227,129,171,227,129,151,227,129,190,227,129,153,34,10,34,77,117,116,101,32,116,
+104,105,115,32,99,104,97,110,110,101,108,32,102,111,114,32,98,111,116,104,32,115,101,110,100,105,110,103,32,97,110,100,32,109,111,110,105,116,111,114,105,110,103,34,32,61,32,34,233,128,129,228,191,161,227,129,168,231,155,163,232,166,150,227,129,174,228,
+184,161,230,150,185,227,129,167,227,129,147,227,129,174,227,131,129,227,131,163,227,131,141,227,131,171,227,130,146,227,131,159,227,131,165,227,131,188,227,131,136,227,129,151,227,129,190,227,129,153,34,10,34,83,111,108,111,32,45,32,76,105,115,116,101,
+110,32,116,111,32,111,110,108,121,32,116,104,105,115,32,117,115,101,114,44,32,97,110,100,32,111,116,104,101,114,32,115,111,108,111,101,100,32,117,115,101,114,115,46,32,65,108,116,45,99,108,105,99,107,32,116,111,32,101,120,99,108,117,115,105,118,101,108,
+121,32,115,111,108,111,32,116,104,105,115,32,117,115,101,114,46,34,32,61,32,34,227,130,189,227,131,173,45,227,129,147,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,129,168,228,187,150,227,129,174,227,130,189,227,131,173,227,131,166,
+227,131,188,227,130,182,227,131,188,227,129,174,227,129,191,227,130,146,232,129,180,227,129,141,227,129,190,227,129,153,227,128,130,32,65,108,116,227,130,173,227,131,188,227,130,146,230,138,188,227,129,151,227,129,170,227,129,140,227,130,137,227,130,
+175,227,131,170,227,131,131,227,130,175,227,129,151,227,129,166,227,128,129,227,129,147,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,130,146,230,142,146,228,187,150,231,154,132,227,129,171,227,130,189,227,131,173,227,129,171,227,129,
+151,227,129,190,227,129,153,227,128,130,34,10,34,83,111,108,111,32,45,32,76,105,115,116,101,110,32,116,111,32,111,110,108,121,32,116,104,105,115,32,99,104,97,110,110,101,108,32,102,111,114,32,116,104,105,115,32,117,115,101,114,34,32,61,32,34,227,130,
+189,227,131,173,45,227,129,147,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,129,174,227,129,147,227,129,174,227,131,129,227,131,163,227,131,179,227,131,141,227,131,171,227,129,174,227,129,191,227,130,146,232,129,158,227,129,143,34,
+10,34,83,111,108,111,32,45,32,76,105,115,116,101,110,32,116,111,32,111,110,108,121,32,116,104,105,115,32,99,104,97,110,110,101,108,44,32,100,111,101,115,32,110,111,116,32,97,102,102,101,99,116,32,115,101,110,100,105,110,103,34,32,61,32,34,227,130,189,
+227,131,173,45,227,129,147,227,129,174,227,131,129,227,131,163,227,131,179,227,131,141,227,131,171,227,129,174,227,129,191,227,130,146,232,129,180,227,129,141,227,128,129,233,128,129,228,191,161,227,129,171,227,129,175,229,189,177,233,159,191,227,129,
+151,227,129,190,227,129,155,227,130,147,34,10,34,77,111,110,105,116,111,114,32,111,117,116,112,117,116,32,108,101,118,101,108,34,32,61,32,34,229,135,186,229,138,155,227,131,172,227,131,153,227,131,171,227,130,146,231,155,163,232,166,150,227,129,153,227,
+130,139,34,10,34,80,97,110,34,32,61,32,34,227,131,145,227,131,179,34,10,34,80,97,110,58,32,67,101,110,116,101,114,34,32,61,32,34,227,131,145,227,131,179,239,188,154,228,184,173,229,164,174,34,10,34,80,97,110,58,32,34,32,61,32,34,227,131,145,227,131,179,
+239,188,154,34,10,34,67,104,97,110,103,101,32,99,104,97,110,110,101,108,32,108,97,121,111,117,116,34,32,61,32,34,227,131,129,227,131,163,227,131,141,227,131,171,227,131,172,227,130,164,227,130,162,227,130,166,227,131,136,227,130,146,229,164,137,230,155,
+180,227,129,153,227,130,139,34,10,34,83,101,108,101,99,116,32,73,110,112,117,116,32,99,104,97,110,110,101,108,32,115,111,117,114,99,101,32,40,111,114,32,100,114,97,103,32,116,111,32,114,101,97,114,114,97,110,103,101,41,34,32,61,32,34,229,133,165,229,
+138,155,227,131,129,227,131,163,227,131,141,227,131,171,227,130,189,227,131,188,227,130,185,227,130,146,233,129,184,230,138,158,227,129,151,227,129,190,227,129,153,239,188,136,227,129,190,227,129,159,227,129,175,227,131,137,227,131,169,227,131,131,227,
+130,176,227,129,151,227,129,166,229,134,141,233,133,141,231,189,174,227,129,151,227,129,190,227,129,153,239,188,137,34,10,34,109,111,110,111,34,32,61,32,34,229,141,152,230,160,184,231,151,135,34,10,34,67,104,111,111,115,101,32,100,101,115,116,105,110,
+97,116,105,111,110,32,111,117,116,112,117,116,32,99,104,97,110,110,101,108,115,34,32,61,32,34,229,174,155,229,133,136,229,135,186,229,138,155,227,131,129,227,131,163,227,131,141,227,131,171,227,130,146,233,129,184,230,138,158,227,129,151,227,129,190,
+227,129,153,34,10,34,67,104,111,111,115,101,32,100,101,115,116,105,110,97,116,105,111,110,32,109,111,110,105,116,111,114,105,110,103,32,99,104,97,110,110,101,108,115,34,32,61,32,34,229,174,155,229,133,136,231,155,163,232,166,150,227,131,129,227,131,163,
+227,131,141,227,131,171,227,130,146,233,129,184,230,138,158,227,129,151,227,129,190,227,129,153,34,10,34,69,100,105,116,32,105,110,112,117,116,32,101,102,102,101,99,116,115,32,40,97,112,112,108,105,101,100,32,98,101,102,111,114,101,32,115,101,110,100,
+105,110,103,41,34,32,61,32,34,229,133,165,229,138,155,227,130,168,227,131,149,227,130,167,227,130,175,227,131,136,227,129,174,231,183,168,233,155,134,239,188,136,233,128,129,228,191,161,229,137,141,227,129,171,233,129,169,231,148,168,239,188,137,34,10,
+34,69,100,105,116,32,101,102,102,101,99,116,115,34,32,61,32,34,227,130,168,227,131,149,227,130,167,227,130,175,227,131,136,227,129,174,231,183,168,233,155,134,34,10,34,77,46,70,88,34,32,61,32,34,77,46,70,88,34,10,34,69,100,105,116,32,105,110,112,117,
+116,32,109,111,110,105,116,111,114,105,110,103,32,101,102,102,101,99,116,115,32,40,97,112,112,108,105,101,100,32,116,111,32,108,111,99,97,108,32,109,111,110,105,116,111,114,105,110,103,32,111,110,108,121,41,34,32,61,32,34,229,133,165,229,138,155,227,
+131,162,227,131,139,227,130,191,227,131,170,227,131,179,227,130,176,229,138,185,230,158,156,227,129,174,231,183,168,233,155,134,239,188,136,227,131,173,227,131,188,227,130,171,227,131,171,227,131,162,227,131,139,227,130,191,227,131,170,227,131,179,227,
+130,176,227,129,171,227,129,174,227,129,191,233,129,169,231,148,168,239,188,137,34,10,34,69,100,105,116,32,109,111,110,105,116,111,114,105,110,103,32,101,102,102,101,99,116,115,34,32,61,32,34,227,131,162,227,131,139,227,130,191,227,131,170,227,131,179,
+227,130,176,229,138,185,230,158,156,227,129,174,231,183,168,233,155,134,34,10,34,99,104,34,32,61,32,34,99,104,34,10,34,67,111,110,102,105,114,109,32,82,101,109,111,118,101,32,111,102,32,65,108,108,32,73,110,112,117,116,115,34,32,61,32,34,227,129,153,
+227,129,185,227,129,166,227,129,174,229,133,165,229,138,155,227,129,174,229,137,138,233,153,164,227,130,146,231,162,186,232,170,141,34,10,34,65,68,68,32,73,78,80,85,84,32,71,82,79,85,80,58,34,32,61,32,34,229,133,165,229,138,155,227,130,176,227,131,171,
+227,131,188,227,131,151,227,129,174,232,191,189,229,138,160,239,188,154,34,10,34,77,111,110,111,34,32,61,32,34,229,141,152,230,160,184,231,151,135,34,10,34,83,116,101,114,101,111,34,32,61,32,34,227,130,185,227,131,134,227,131,172,227,130,170,34,10,34,
+99,104,97,110,110,101,108,34,32,61,32,34,227,131,129,227,131,163,227,131,141,227,131,171,34,10,34,67,72,65,78,71,69,32,67,72,65,78,78,69,76,32,76,65,89,79,85,84,58,34,32,61,32,34,227,131,129,227,131,163,227,131,179,227,131,141,227,131,171,227,131,172,
+227,130,164,227,130,162,227,130,166,227,131,136,227,129,174,229,164,137,230,155,180,239,188,154,34,10,34,60,82,101,115,116,111,114,101,32,79,114,105,103,105,110,97,108,32,76,97,121,111,117,116,62,34,32,61,32,34,60,229,133,131,227,129,174,227,131,172,
+227,130,164,227,130,162,227,130,166,227,131,136,227,129,171,230,136,187,227,129,153,62,34,10,34,83,69,76,69,67,84,32,73,78,80,85,84,83,58,34,32,61,32,34,229,133,165,229,138,155,227,129,174,233,129,184,230,138,158,239,188,154,34,10,34,83,69,76,69,67,84,
+32,73,78,80,85,84,58,34,32,61,32,34,229,133,165,229,138,155,227,129,174,233,129,184,230,138,158,239,188,154,34,10,34,67,72,65,78,71,69,32,76,65,89,79,85,84,46,46,46,34,32,61,32,34,227,131,172,227,130,164,227,130,162,227,130,166,227,131,136,227,129,174,
+229,164,137,230,155,180,46,46,46,34,10,34,82,69,77,79,86,69,34,32,61,32,34,229,137,138,233,153,164,227,129,153,227,130,139,34,10,34,83,69,76,69,67,84,32,77,79,78,73,84,79,82,32,79,85,84,58,34,32,61,32,34,227,131,162,227,131,139,227,130,191,227,131,188,
+229,135,186,229,138,155,227,129,174,233,129,184,230,138,158,239,188,154,34,10,34,82,101,109,111,116,101,32,97,100,100,114,101,115,115,58,34,32,61,32,34,227,131,170,227,131,162,227,131,188,227,131,136,227,130,162,227,131,137,227,131,172,227,130,185,239,
+188,154,34,10,34,68,105,115,97,98,108,101,32,83,101,110,100,105,110,103,34,32,61,32,34,233,128,129,228,191,161,227,130,146,231,132,161,229,138,185,227,129,171,227,129,153,227,130,139,34,10,34,76,105,115,116,101,110,32,116,111,32,111,110,108,121,32,116,
+104,105,115,32,117,115,101,114,44,32,97,110,100,32,111,116,104,101,114,32,115,111,108,111,101,100,32,117,115,101,114,115,46,32,65,108,116,45,99,108,105,99,107,32,116,111,32,101,120,99,108,117,115,105,118,101,108,121,32,115,111,108,111,32,116,104,105,
+115,32,117,115,101,114,46,34,32,61,32,34,227,129,147,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,129,168,228,187,150,227,129,174,227,130,189,227,131,173,227,131,166,227,131,188,227,130,182,227,131,188,227,129,160,227,129,145,227,130,
+146,232,129,158,227,129,132,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,227,128,130,32,65,108,116,227,130,173,227,131,188,227,130,146,230,138,188,227,129,151,227,129,170,227,129,140,227,130,137,227,130,175,227,131,170,227,131,131,227,
+130,175,227,129,151,227,129,166,227,128,129,227,129,147,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,130,146,230,142,146,228,187,150,231,154,132,227,129,171,227,130,189,227,131,173,227,129,171,227,129,151,227,129,190,227,129,153,227,
+128,130,34,10,34,82,101,115,101,116,115,32,106,105,116,116,101,114,32,98,117,102,102,101,114,32,116,111,32,116,104,101,32,109,105,110,105,109,117,109,46,32,72,111,108,100,32,65,108,116,32,107,101,121,32,116,111,32,114,101,115,101,116,32,102,111,114,32,
+97,108,108,32,40,119,105,116,104,32,97,117,116,111,41,46,34,32,61,32,34,227,130,184,227,131,131,227,130,191,227,131,144,227,131,131,227,131,149,227,130,161,227,130,146,230,156,128,229,176,143,227,129,171,227,131,170,227,130,187,227,131,131,227,131,136,
+227,129,151,227,129,190,227,129,153,227,128,130,32,65,108,116,227,130,173,227,131,188,227,130,146,230,138,188,227,129,151,227,129,159,227,129,190,227,129,190,227,129,171,227,129,153,227,130,139,227,129,168,227,128,129,227,129,153,227,129,185,227,129,
+166,227,129,140,227,131,170,227,130,187,227,131,131,227,131,136,227,129,149,227,130,140,227,129,190,227,129,153,239,188,136,232,135,170,229,139,149,239,188,137,227,128,130,34,10,34,74,105,116,116,101,114,32,66,117,102,102,101,114,34,32,61,32,34,227,130,
+184,227,131,131,227,130,191,227,131,144,227,131,131,227,131,149,227,130,161,34,10,34,67,104,97,110,103,101,32,102,111,114,32,97,108,108,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,129,174,227,129,159,227,130,129,227,129,171,229,164,137,230,
+155,180,34,10,34,83,101,110,100,32,81,117,97,108,105,116,121,34,32,61,32,34,229,147,129,232,179,170,227,130,146,233,128,129,228,191,161,34,10,34,78,111,32,80,114,101,102,101,114,101,110,99,101,34,32,61,32,34,230,140,135,229,174,154,227,129,170,227,129,
+151,34,10,34,80,114,101,102,101,114,114,101,100,32,82,101,99,118,32,81,117,97,108,105,116,121,34,32,61,32,34,229,132,170,229,133,136,229,143,151,228,191,161,229,147,129,232,179,170,34,10,34,67,104,97,110,103,101,32,97,108,108,34,32,61,32,34,227,129,153,
+227,129,185,227,129,166,229,164,137,230,155,180,34,10,34,76,97,116,101,110,99,121,32,40,109,115,41,34,32,61,32,34,229,190,133,227,129,161,230,153,130,233,150,147,239,188,136,227,131,159,227,131,170,231,167,146,239,188,137,34,10,34,80,105,110,103,34,32,
+61,32,34,112,105,110,103,34,10,34,80,82,69,83,83,34,32,61,32,34,230,138,188,227,129,153,34,10,34,83,101,110,100,32,81,117,97,108,105,116,121,58,34,32,61,32,34,233,128,129,228,191,161,229,147,129,232,179,170,239,188,154,34,10,34,82,101,99,118,32,74,105,
+116,116,101,114,32,66,117,102,102,101,114,58,34,32,61,32,34,82,101,99,118,32,74,105,116,116,101,114,32,66,117,102,102,101,114,239,188,154,34,10,34,82,101,115,101,116,32,68,114,111,112,112,101,100,34,32,61,32,34,227,131,137,227,131,173,227,131,131,227,
+131,151,227,129,149,227,130,140,227,129,159,227,131,170,227,130,187,227,131,131,227,131,136,34,10,34,82,101,109,111,118,101,34,32,61,32,34,229,137,138,233,153,164,227,129,153,227,130,139,34,10,34,82,101,109,111,118,101,115,32,117,115,101,114,32,102,114,
+111,109,32,121,111,117,114,32,111,119,110,32,99,111,110,110,101,99,116,105,111,110,115,44,32,100,111,101,115,32,110,111,116,32,97,102,102,101,99,116,32,116,104,101,32,119,104,111,108,101,32,103,114,111,117,112,34,32,61,32,34,232,135,170,229,136,134,227,
+129,174,230,142,165,231,182,154,227,129,139,227,130,137,227,131,166,227,131,188,227,130,182,227,131,188,227,130,146,229,137,138,233,153,164,227,129,151,227,128,129,227,130,176,227,131,171,227,131,188,227,131,151,229,133,168,228,189,147,227,129,171,229,
+189,177,233,159,191,227,130,146,228,184,142,227,129,136,227,129,190,227,129,155,227,130,147,34,10,34,82,101,109,111,118,101,115,32,112,101,110,100,105,110,103,32,117,115,101,114,32,102,114,111,109,32,108,105,115,116,34,32,61,32,34,228,191,157,231,149,
+153,228,184,173,227,129,174,227,131,166,227,131,188,227,130,182,227,131,188,227,130,146,227,131,170,227,130,185,227,131,136,227,129,139,227,130,137,229,137,138,233,153,164,227,129,151,227,129,190,227,129,153,34,10,34,79,116,104,101,114,32,101,110,100,
+32,109,117,116,101,100,32,117,115,34,32,61,32,34,227,130,130,227,129,134,228,184,128,230,150,185,227,129,174,231,171,175,227,129,175,231,167,129,227,129,159,227,129,161,227,130,146,227,131,159,227,131,165,227,131,188,227,131,136,227,129,151,227,129,190,
+227,129,151,227,129,159,34,10,34,83,69,78,68,32,68,73,83,65,66,76,69,68,34,32,61,32,34,231,132,161,229,138,185,227,129,171,233,128,129,228,191,161,34,10,34,79,116,104,101,114,32,115,105,100,101,32,105,115,32,109,117,116,101,100,34,32,61,32,34,229,143,
+141,229,175,190,229,129,180,227,129,175,227,131,159,227,131,165,227,131,188,227,131,136,227,129,149,227,130,140,227,129,166,227,129,132,227,129,190,227,129,153,34,10,34,89,111,117,32,109,117,116,101,100,32,116,104,101,109,34,32,61,32,34,227,129,130,227,
+129,170,227,129,159,227,129,175,227,129,157,227,130,140,227,130,137,227,130,146,227,131,159,227,131,165,227,131,188,227,131,136,227,129,151,227,129,190,227,129,151,227,129,159,34,10,34,42,42,42,42,34,32,61,32,34,42,42,42,42,34,10,34,67,111,117,108,100,
+32,110,111,116,32,99,111,110,110,101,99,116,32,119,105,116,104,32,117,115,101,114,44,32,111,110,101,32,111,114,32,98,111,116,104,32,111,102,32,121,111,117,32,109,97,121,32,110,101,101,100,32,116,111,32,99,111,110,102,105,103,117,114,101,32,121,111,117,
+114,32,105,110,116,101,114,110,97,108,32,102,105,114,101,119,97,108,108,32,111,114,32,110,101,116,119,111,114,107,32,114,111,117,116,101,114,32,116,111,32,97,108,108,111,119,32,83,111,110,111,66,117,115,32,116,111,32,119,111,114,107,32,98,101,116,119,
+101,101,110,32,121,111,117,46,32,83,101,101,32,116,104,101,32,104,101,108,112,32,100,111,99,117,109,101,110,116,97,116,105,111,110,32,116,111,32,101,110,97,98,108,101,32,112,111,114,116,32,102,111,114,119,97,114,100,105,110,103,32,111,110,32,121,111,
+117,114,32,114,111,117,116,101,114,46,34,32,61,32,34,227,131,166,227,131,188,227,130,182,227,131,188,227,129,168,230,142,165,231,182,154,227,129,167,227,129,141,227,129,190,227,129,155,227,130,147,227,129,167,227,129,151,227,129,159,227,128,130,228,184,
+128,230,150,185,227,129,190,227,129,159,227,129,175,228,184,161,230,150,185,227,129,140,227,128,129,83,111,110,111,66,117,115,227,129,140,231,155,184,228,186,146,227,129,171,230,169,159,232,131,189,227,129,153,227,130,139,227,130,136,227,129,134,227,
+129,171,229,134,133,233,131,168,227,131,149,227,130,161,227,130,164,227,130,162,227,130,166,227,130,169,227,131,188,227,131,171,227,129,190,227,129,159,227,129,175,227,131,141,227,131,131,227,131,136,227,131,175,227,131,188,227,130,175,227,131,171,227,
+131,188,227,130,191,227,131,188,227,130,146,230,167,139,230,136,144,227,129,153,227,130,139,229,191,133,232,166,129,227,129,140,227,129,130,227,130,139,229,160,180,229,144,136,227,129,140,227,129,130,227,130,138,227,129,190,227,129,153,227,128,130,227,
+131,171,227,131,188,227,130,191,227,131,188,227,129,167,227,131,157,227,131,188,227,131,136,232,187,162,233,128,129,227,130,146,230,156,137,229,138,185,227,129,171,227,129,153,227,130,139,227,129,171,227,129,175,227,128,129,227,131,152,227,131,171,227,
+131,151,227,131,137,227,130,173,227,131,165,227,131,161,227,131,179,227,131,136,227,130,146,229,143,130,231,133,167,227,129,151,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,227,128,130,34,10,34,67,111,110,110,101,99,116,105,110,103,46,
+46,46,34,32,61,32,34,230,142,165,231,182,154,227,129,151,227,129,166,227,129,132,227,129,190,227,129,153,46,46,46,34,10,34,69,115,116,105,109,97,116,101,100,32,82,111,117,110,100,45,116,114,105,112,32,76,97,116,101,110,99,121,58,34,32,61,32,34,230,142,
+168,229,174,154,229,190,128,229,190,169,229,190,133,227,129,161,230,153,130,233,150,147,239,188,154,34,10,34,82,111,117,110,100,45,116,114,105,112,32,78,101,116,119,111,114,107,32,80,105,110,103,58,34,32,61,32,34,229,190,128,229,190,169,227,131,141,227,
+131,131,227,131,136,227,131,175,227,131,188,227,130,175,112,105,110,103,239,188,154,34,10,34,69,115,116,46,32,79,117,116,103,111,105,110,103,58,34,32,61,32,34,69,83,84,239,188,136,230,157,177,233,131,168,229,159,186,230,186,150,230,153,130,227,128,130,
+231,153,186,228,191,161,239,188,154,34,10,34,69,115,116,46,32,73,110,99,111,109,105,110,103,58,34,32,61,32,34,69,83,84,239,188,136,230,157,177,233,131,168,229,159,186,230,186,150,230,153,130,227,128,130,231,157,128,228,191,161,239,188,154,34,10,34,69,
+115,116,46,32,74,105,116,116,101,114,58,34,32,61,32,34,69,83,84,239,188,136,230,157,177,233,131,168,229,159,186,230,186,150,230,153,130,227,128,130,227,130,184,227,131,131,227,130,191,227,131,188,239,188,154,34,10,34,76,101,103,97,99,121,45,109,111,100,
+101,44,32,97,115,107,32,116,104,101,109,32,92,114,92,110,32,116,111,32,105,110,115,116,97,108,108,32,108,97,116,101,115,116,32,118,101,114,115,105,111,110,34,32,61,32,34,227,131,172,227,130,172,227,130,183,227,131,188,227,131,162,227,131,188,227,131,
+137,227,128,129,229,189,188,227,130,137,227,129,171,232,129,158,227,129,132,227,129,166,227,129,143,227,129,160,227,129,149,227,129,132,92,114,92,110,32,230,156,128,230,150,176,227,131,144,227,131,188,227,130,184,227,131,167,227,131,179,227,130,146,227,
+130,164,227,131,179,227,130,185,227,131,136,227,131,188,227,131,171,227,129,153,227,130,139,227,129,171,227,129,175,34,10,34,77,101,97,115,117,114,105,110,103,32,97,99,116,117,97,108,32,114,111,117,110,100,45,116,114,105,112,32,108,97,116,101,110,99,
+121,34,32,61,32,34,229,174,159,233,154,155,227,129,174,229,190,128,229,190,169,229,190,133,227,129,161,230,153,130,233,150,147,227,129,174,230,184,172,229,174,154,34,10,34,77,117,116,101,32,65,108,108,34,32,61,32,34,227,129,153,227,129,185,227,129,166,
+227,131,159,227,131,165,227,131,188,227,131,136,34,10,34,85,110,109,117,116,101,32,65,108,108,34,32,61,32,34,227,129,153,227,129,185,227,129,166,227,129,174,227,131,159,227,131,165,227,131,188,227,131,136,227,130,146,232,167,163,233,153,164,227,129,153,
+227,130,139,34,10,34,68,101,108,97,121,32,84,105,109,101,34,32,61,32,34,233,129,133,229,187,182,230,153,130,233,150,147,34,10,34,79,110,101,45,119,97,121,34,32,61,32,34,228,184,128,230,150,185,233,128,154,232,161,140,34,10,34,82,111,117,110,100,45,116,
+114,105,112,34,32,61,32,34,229,190,128,229,190,169,34,10,34,83,101,116,32,70,114,111,109,32,80,101,101,114,115,34,32,61,32,34,227,131,148,227,130,162,227,129,139,227,130,137,232,168,173,229,174,154,34,10,34,80,114,101,115,115,105,110,103,32,116,104,105,
+115,32,119,105,108,108,32,99,97,108,99,117,108,97,116,101,32,97,110,32,97,118,101,114,97,103,101,32,108,97,116,101,110,99,121,32,102,111,114,32,97,108,108,32,99,111,110,110,101,99,116,101,100,32,112,101,101,114,115,32,97,110,100,32,115,101,116,32,116,
+104,101,32,109,111,110,105,116,111,114,105,110,103,32,100,101,108,97,121,32,116,105,109,101,32,97,99,99,111,114,100,105,110,103,108,121,44,32,98,97,115,101,100,32,111,110,32,111,110,101,45,119,97,121,32,111,114,32,114,111,117,110,100,45,116,114,105,112,
+32,99,104,111,105,99,101,32,115,101,108,101,99,116,105,111,110,34,32,61,32,34,227,129,147,227,130,140,227,130,146,230,138,188,227,129,153,227,129,168,227,128,129,230,142,165,231,182,154,227,129,149,227,130,140,227,129,166,227,129,132,227,130,139,227,
+129,153,227,129,185,227,129,166,227,129,174,227,131,148,227,130,162,227,129,174,229,185,179,229,157,135,233,129,133,229,187,182,227,129,140,232,168,136,231,174,151,227,129,149,227,130,140,227,128,129,227,129,157,227,130,140,227,129,171,229,191,156,227,
+129,152,227,129,166,227,128,129,228,184,128,230,150,185,229,144,145,227,129,190,227,129,159,227,129,175,229,190,128,229,190,169,227,129,174,233,129,184,230,138,158,227,129,171,229,159,186,227,129,165,227,129,132,227,129,166,231,155,163,232,166,150,233,
+129,133,229,187,182,230,153,130,233,150,147,227,129,140,232,168,173,229,174,154,227,129,149,227,130,140,227,129,190,227,129,153,227,128,130,34,10,34,76,105,110,107,32,68,101,108,97,121,32,84,105,109,101,32,119,105,116,104,32,111,116,104,101,114,32,105,
+110,112,117,116,115,34,32,61,32,34,233,129,133,229,187,182,230,153,130,233,150,147,227,130,146,228,187,150,227,129,174,229,133,165,229,138,155,227,129,168,227,131,170,227,131,179,227,130,175,227,129,153,227,130,139,34,10,34,65,100,100,105,116,105,111,
+110,97,108,32,77,111,110,105,116,111,114,105,110,103,32,68,101,108,97,121,34,32,61,32,34,232,191,189,229,138,160,227,129,174,231,155,163,232,166,150,233,129,133,229,187,182,34,10,34,110,111,110,101,34,32,61,32,34,227,129,170,227,129,151,34,10,34,83,104,
+111,119,32,97,100,118,97,110,99,101,100,32,115,101,116,116,105,110,103,115,46,46,46,34,32,61,32,34,232,169,179,231,180,176,232,168,173,229,174,154,227,130,146,232,161,168,231,164,186,227,129,153,227,130,139,46,46,46,34,10,34,69,114,114,111,114,32,119,
+104,101,110,32,116,114,121,105,110,103,32,116,111,32,111,112,101,110,32,97,117,100,105,111,32,100,101,118,105,99,101,33,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,135,227,131,144,227,130,164,227,130,185,227,130,
+146,233,150,139,227,129,147,227,129,134,227,129,168,227,129,151,227,129,159,227,129,168,227,129,141,227,129,171,227,130,168,227,131,169,227,131,188,227,129,140,231,153,186,231,148,159,227,129,151,227,129,190,227,129,151,227,129,159,227,128,130,34,10,
+34,40,110,111,32,97,117,100,105,111,32,111,117,116,112,117,116,32,99,104,97,110,110,101,108,115,32,102,111,117,110,100,41,34,32,61,32,34,239,188,136,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,229,135,186,229,138,155,227,131,129,227,131,
+163,227,131,141,227,131,171,227,129,140,232,166,139,227,129,164,227,129,139,227,130,138,227,129,190,227,129,155,227,130,147,239,188,137,34,10,34,65,99,116,105,118,101,32,79,117,116,112,117,116,32,67,104,97,110,110,101,108,115,58,34,32,61,32,34,227,130,
+162,227,130,175,227,131,134,227,130,163,227,131,150,227,129,170,229,135,186,229,138,155,227,131,129,227,131,163,227,131,141,227,131,171,239,188,154,34,10,34,40,110,111,32,97,117,100,105,111,32,105,110,112,117,116,32,99,104,97,110,110,101,108,115,32,102,
+111,117,110,100,41,34,32,61,32,34,239,188,136,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,229,133,165,229,138,155,227,131,129,227,131,163,227,131,179,227,131,141,227,131,171,227,129,140,232,166,139,227,129,164,227,129,139,227,130,138,
+227,129,190,227,129,155,227,130,147,239,188,137,34,10,34,65,99,116,105,118,101,32,73,110,112,117,116,32,67,104,97,110,110,101,108,115,58,34,32,61,32,34,227,130,162,227,130,175,227,131,134,227,130,163,227,131,150,227,129,170,229,133,165,229,138,155,227,
+131,129,227,131,163,227,131,179,227,131,141,227,131,171,239,188,154,34,10,34,67,111,110,116,114,111,108,32,80,97,110,101,108,34,32,61,32,34,227,130,179,227,131,179,227,131,136,227,131,173,227,131,188,227,131,171,227,131,145,227,131,141,227,131,171,34,
+10,34,79,112,101,110,115,32,116,104,101,32,100,101,118,105,99,101,92,39,115,32,111,119,110,32,99,111,110,116,114,111,108,32,112,97,110,101,108,34,32,61,32,34,227,131,135,227,131,144,227,130,164,227,130,185,232,135,170,228,189,147,227,129,174,227,130,
+179,227,131,179,227,131,136,227,131,173,227,131,188,227,131,171,227,131,145,227,131,141,227,131,171,227,130,146,233,150,139,227,129,141,227,129,190,227,129,153,34,10,34,82,101,115,101,116,32,68,101,118,105,99,101,34,32,61,32,34,227,131,135,227,131,144,
+227,130,164,227,130,185,227,129,174,227,131,170,227,130,187,227,131,131,227,131,136,34,10,34,82,101,115,101,116,115,32,116,104,101,32,97,117,100,105,111,32,105,110,116,101,114,102,97,99,101,32,45,32,115,111,109,101,116,105,109,101,115,32,110,101,101,
+100,101,100,32,97,102,116,101,114,32,99,104,97,110,103,105,110,103,32,97,32,100,101,118,105,99,101,92,39,115,32,112,114,111,112,101,114,116,105,101,115,32,105,110,32,105,116,115,32,99,117,115,116,111,109,32,99,111,110,116,114,111,108,32,112,97,110,101,
+108,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,130,164,227,131,179,227,130,191,227,131,188,227,131,149,227,130,167,227,130,164,227,130,185,227,130,146,227,131,170,227,130,187,227,131,131,227,131,136,227,129,151,227,
+129,190,227,129,153,45,227,130,171,227,130,185,227,130,191,227,131,160,227,130,179,227,131,179,227,131,136,227,131,173,227,131,188,227,131,171,227,131,145,227,131,141,227,131,171,227,129,167,227,131,135,227,131,144,227,130,164,227,130,185,227,129,174,
+227,131,151,227,131,173,227,131,145,227,131,134,227,130,163,227,130,146,229,164,137,230,155,180,227,129,151,227,129,159,229,190,140,227,129,171,229,191,133,232,166,129,227,129,171,227,129,170,227,130,139,229,160,180,229,144,136,227,129,140,227,129,130,
+227,130,138,227,129,190,227,129,153,34,10,34,79,117,116,112,117,116,58,34,32,61,32,34,229,135,186,229,138,155,239,188,154,34,10,34,68,101,118,105,99,101,58,34,32,61,32,34,231,171,175,230,156,171,239,188,154,34,10,34,84,101,115,116,34,32,61,32,34,227,
+131,134,227,130,185,227,131,136,34,10,34,80,108,97,121,115,32,97,32,116,101,115,116,32,116,111,110,101,34,32,61,32,34,227,131,134,227,130,185,227,131,136,227,131,136,227,131,188,227,131,179,227,130,146,229,134,141,231,148,159,227,129,151,227,129,190,
+227,129,153,34,10,34,73,110,112,117,116,58,34,32,61,32,34,229,133,165,229,138,155,239,188,154,34,10,34,83,97,109,112,108,101,32,114,97,116,101,58,34,32,61,32,34,227,130,181,227,131,179,227,131,151,227,131,171,227,131,172,227,131,188,227,131,136,239,188,
+154,34,10,34,65,117,100,105,111,32,66,117,102,102,101,114,32,83,105,122,101,58,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,144,227,131,131,227,131,149,227,130,161,227,130,181,227,130,164,227,130,186,239,188,154,
+34,10,34,65,117,100,105,111,32,100,101,118,105,99,101,32,116,121,112,101,58,34,32,61,32,34,227,130,170,227,131,188,227,131,135,227,130,163,227,130,170,227,131,135,227,131,144,227,130,164,227,130,185,227,130,191,227,130,164,227,131,151,239,188,154,34,
+10,34,78,111,32,77,73,68,73,32,105,110,112,117,116,115,32,97,118,97,105,108,97,98,108,101,34,32,61,32,34,77,73,68,73,229,133,165,229,138,155,227,129,175,229,136,169,231,148,168,227,129,167,227,129,141,227,129,190,227,129,155,227,130,147,34,10,34,65,99,
+116,105,118,101,32,77,73,68,73,32,105,110,112,117,116,115,58,34,32,61,32,34,227,130,162,227,130,175,227,131,134,227,130,163,227,131,150,227,129,170,77,73,68,73,229,133,165,229,138,155,239,188,154,34,10,34,66,108,117,101,116,111,111,116,104,32,77,73,68,
+73,34,32,61,32,34,66,108,117,101,116,111,111,116,104,32,77,73,68,73,34,10,34,83,99,97,110,32,102,111,114,32,98,108,117,101,116,111,111,116,104,32,77,73,68,73,32,100,101,118,105,99,101,115,34,32,61,32,34,66,108,117,101,116,111,111,116,104,77,73,68,73,
+227,131,135,227,131,144,227,130,164,227,130,185,227,130,146,227,130,185,227,130,173,227,131,163,227,131,179,227,129,153,227,130,139,34,10,34,77,73,68,73,32,79,117,116,112,117,116,58,34,32,61,32,34,77,73,68,73,229,135,186,229,138,155,239,188,154,34,10,
+10,0,0 };
+
+const char* localized_ja_txt = (const char*) temp_binary_data_4;
+
+//================== localized_pt.txt ==================
+static const unsigned char temp_binary_data_5[] =
+"language: Portuguese (pt)\n"
+"countries: Portugal (pt), Brazil (br)\n"
+"\n"
+"\"Noise Floor\" = \"N\xc3\xadvel M\xc3\xadnimo de Ru\xc3\xad""do\"\n"
+"\"Ratio\" = \"Propor\xc3\xa7\xc3\xa3o\"\n"
+"\"Attack\" = \"Ataque\"\n"
+"\"Release\" = \"Lan\xc3\xa7""amento\"\n"
+"\"Noise Gate\" = \"Noise Gate\"\n"
+"\"In Gain\" = \"In Gain\"\n"
+"\"In Pan\" = \"Na panela\"\n"
+"\"C\" = \"C\"\n"
+"\"In Pan 1\" = \"No Pan 1\"\n"
+"\"In Pan 2\" = \"No Pan 2\"\n"
+"\"Dry Level\" = \"N\xc3\xadvel Seco\"\n"
+"\"Output Level\" = \"N\xc3\xadvel de Sa\xc3\xad""da\"\n"
+"\"Default Net Buffer Time\" = \"Tempo de buffer de rede padr\xc3\xa3o\"\n"
+"\"Send Channels\" = \"Enviar Canais\"\n"
+"\"Metronome Enabled\" = \"Metr\xc3\xb4nomo Ativado\"\n"
+"\"Send Metronome Audio\" = \"Enviar \xc3\x81udio do Metr\xc3\xb4nomo\"\n"
+"\"Metronome Gain\" = \"Ganho de metr\xc3\xb4nomo\"\n"
+"\"Metronome Tempo\" = \"Tempo do Metr\xc3\xb4nomo\"\n"
+"\"Send Playback Audio\" = \"Enviar Reprodu\xc3\xa7\xc3\xa3o de \xc3\x81udio\"\n"
+"\"Hear Latency Test\" = \"Ou\xc3\xa7""a o Teste de Lat\xc3\xaancia\"\n"
+"\"Record Metronome to File\" = \"Gravar Metr\xc3\xb4nomo para Arquivo\"\n"
+"\"Main Reverb Enabled\" = \"Reverbera\xc3\xa7\xc3\xa3o Principal Ativada\"\n"
+"\"Main Reverb Level\" = \"N\xc3\xadvel de Reverbera\xc3\xa7\xc3\xa3o Principal\"\n"
+"\"Main Reverb Size\" = \"Tamanho da Reverbera\xc3\xa7\xc3\xa3o Principal\"\n"
+"\"Main Reverb Damping\" = \"Amortecimento de reverbera\xc3\xa7\xc3\xa3o principal\"\n"
+"\"Pre-Delay Time\" = \"Tempo de pr\xc3\xa9-atraso\"\n"
+"\"Main Reverb Model\" = \"Modelo de reverbera\xc3\xa7\xc3\xa3o principal\"\n"
+"\"Main Send Mute\" = \"Silenciar Envio Principal\"\n"
+"\"Main Receive Mute\" = \"Silenciar Recebimento Principal\"\n"
+"\"Main In Mute\" = \"Silenciar em Principal\"\n"
+"\"Main Monitor Solo\" = \"Solo Monitor Principal\"\n"
+"\"Def Auto Net Buffer Mode\" = \"Def Auto Net Buffer Mode\"\n"
+"\"Def Send Format\" = \"Formato de envio de defini\xc3\xa7\xc3\xa3o\"\n"
+"\"Dynamic Resampling\" = \"Reamostragem Din\xc3\xa2mica\"\n"
+"\"Reconnect Last\" = \"Reconectar por \xc3\x9altimo\"\n"
+"\"Could not find format for filename\" = \"N\xc3\xa3o foi poss\xc3\xadvel encontrar o formato do nome do arquivo\"\n"
+"\"Error creating writer for \" = \"Erro ao criar escritor para\"\n"
+"\"Error creating output file: \" = \"Erro ao criar arquivo de sa\xc3\xad""da:\"\n"
+"\"Error creating directory for recording: \" = \"Erro ao criar diret\xc3\xb3rio para grava\xc3\xa7\xc3\xa3o:\"\n"
+"\"SonoBus\" = \"SonoBus\"\n"
+"\"Pan: Center\" = \"Pan: Centro\"\n"
+"\"Pan: \" = \"Pan:\"\n"
+"\"MUTE\" = \"MUDO\"\n"
+"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Silencia sua entrada evitando que todos possam ouvi-lo, sem qualquer indicador\"\n"
+"\"SOLO\" = \"S\xc3\x93\"\n"
+"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Ou\xc3\xa7""a apenas voc\xc3\xaa mesmo e outros usu\xc3\xa1rios solados. Clique com a tecla Alt apenas para sozinho.\"\n"
+"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silencia sua entrada, nenhum \xc3\xa1udio (incluindo a reprodu\xc3\xa7\xc3\xa3o de arquivo) ser\xc3\xa1 enviado aos us"
+"u\xc3\xa1rios e eles ver\xc3\xa3o um indicador de mudo\"\n"
+"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Desativa / ativa o som de todos os usu\xc3\xa1rios, nenhum dado de \xc3\xa1udio ser\xc3\xa1 recebido quando os usu\xc3\xa1rios estiverem sem som\"\n"
+"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Quando pressionado, silencia os outros e ativa voc\xc3\xaa momentaneamente (aperte para falar).\"\n"
+"\" Use the \\'T\\' key as a shortcut.\" = \" Use a tecla \\'T\\' como um atalho.\"\n"
+"\"Metronome On/Off\" = \"Metr\xc3\xb4nomo Ligado / Desligado\"\n"
+"\"Metronome Options\" = \"Op\xc3\xa7\xc3\xb5""es de Metr\xc3\xb4nomo\"\n"
+"\"Level\" = \"N\xc3\xadvel\"\n"
+"\"Tempo\" = \"Tempo\"\n"
+"\"Send Metronome to All\" = \"Enviar metr\xc3\xb4nomo para todos\"\n"
+"\"In Level\" = \"N\xc3\xadvel de Entrada\"\n"
+"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Isso reduz ou aumenta o n\xc3\xadvel de sua pr\xc3\xb3pria entrada de \xc3\xa1udio e afetar\xc3\xa1"
+" o n\xc3\xadvel de seu \xc3\xa1udio sendo enviado para outras pessoas e seu pr\xc3\xb3prio monitoramento\"\n"
+"\"Monitor\" = \"Monitor\"\n"
+"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Isso ajusta o n\xc3\xadvel de monitoramento de sua entrada, que s\xc3\xb3 voc\xc3\xaa ouve\"\n"
+"\"Out Level\" = \"N\xc3\xadvel de Sa\xc3\xad""da\"\n"
+"\"This is the main volume control which affects everything you hear\" = \"Este \xc3\xa9 o controle de volume principal que afeta tudo que voc\xc3\xaa ouve\"\n"
+"\"RECENTS\" = \"RECENTES\"\n"
+"\"PRIVATE GROUP\" = \"GRUPO PRIVADO\"\n"
+"\"PUBLIC GROUPS\" = \"GRUPOS P\xc3\x9a""BLICOS\"\n"
+"\"DIRECT\" = \"DIRETO\"\n"
+"\"Local Address:\" = \"Endere\xc3\xa7o local:\"\n"
+"\"Host: \" = \"Hospedeiro:\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Conecte-se diretamente a outras inst\xc3\xa2ncias do SonoBus em sua rede local com o endere\xc3\xa7o local que anunciam.\"\n"
+"\"IPaddress:port\" = \"Endere\xc3\xa7o IP: porta\"\n"
+"\"Connect...\" = \"Conectar...\"\n"
+"\"Direct Connect\" = \"Conex\xc3\xa3o direta\"\n"
+"\"Connect to Group\" = \"Conectar ao grupo\"\n"
+"\"optional\" = \"opcional\"\n"
+"\"Your Displayed Name:\" = \"Seu nome exibido:\"\n"
+"\"Password:\" = \"Senha:\"\n"
+"\"Group Name:\" = \"Nome do Grupo:\"\n"
+"\"Connection Server:\" = \"Servidor de conex\xc3\xa3o:\"\n"
+"\"Generate a random group name\" = \"Gerar um nome de grupo aleat\xc3\xb3rio\"\n"
+"\"Copy connection information to the clipboard to share\" = \"Copie as informa\xc3\xa7\xc3\xb5""es de conex\xc3\xa3o para a \xc3\xa1rea de transfer\xc3\xaancia para compartilhar\"\n"
+"\"Paste connection information from the clipboard\" = \"Cole as informa\xc3\xa7\xc3\xb5""es de conex\xc3\xa3o da \xc3\xa1rea de transfer\xc3\xaancia\"\n"
+"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"O servidor de conex\xc3\xa3o \xc3\xa9 usado apenas para ajudar os usu\xc3\xa1rios a se enco"
+"ntrarem, nenhum \xc3\xa1udio passa por ele. Todo o \xc3\xa1udio \xc3\xa9 enviado diretamente entre os usu\xc3\xa1rios (ponto a ponto).\"\n"
+"\"Clear All\" = \"Limpar Tudo\"\n"
+"\"Active Public Groups\" = \"Grupos P\xc3\xba""blicos Ativos\"\n"
+"\"Select existing group below OR \" = \"Selecione o grupo existente abaixo OU\"\n"
+"\"Create Group...\" = \"Criar Grupo...\"\n"
+"\"enter group name\" = \"insira o nome do grupo\"\n"
+"\"Choose a descriptive group name that includes geographic information and genre\" = \"Escolha um nome de grupo descritivo que inclua informa\xc3\xa7\xc3\xb5""es geogr\xc3\xa1""ficas e g\xc3\xaanero\"\n"
+"\"Patchbay\" = \"Patchbay\"\n"
+"\"Setup Audio\" = \"Configurar \xc3\x81udio\"\n"
+"\"Press to copy/share link to group\" = \"Pressione para copiar / compartilhar link para o grupo\"\n"
+"\"Connect\" = \"Conectar\"\n"
+"\"Manual\" = \"Manual\"\n"
+"\"Auto Up\" = \"Auto Up\"\n"
+"\"Auto\" = \"Auto\"\n"
+"\"Initial Auto\" = \"Auto inicial\"\n"
+"\"Default Jitter Buffer\" = \"Configurar \xc3\x81udio\"\n"
+"\"Default Send Quality:\" = \"Qualidade de Envio Padr\xc3\xa3o:\"\n"
+"\"Make Latency Test Audible\" = \"Tornar o Teste de Lat\xc3\xaancia Aud\xc3\xadvel\"\n"
+"\"Metronome output recorded in full mix\" = \"Sa\xc3\xad""da de metr\xc3\xb4nomo gravada em mixagem completa\"\n"
+"\"Record feature creates the following files:\" = \"O recurso de registro cria os seguintes arquivos:\"\n"
+"\"Full Mix\" = \"Mix Completo\"\n"
+"\"Full Mix without yourself\" = \"Mistura completa sem voc\xc3\xaa\"\n"
+"\"Yourself\" = \"Voc\xc3\xaa mesmo\"\n"
+"\"Each Connected User\" = \"Cada Usu\xc3\xa1rio Conectado\"\n"
+"\"FLAC\" = \"FLAC\"\n"
+"\"WAV\" = \"WAV\"\n"
+"\"OGG\" = \"OGG\"\n"
+"\"16 bit\" = \"16 bits\"\n"
+"\"24 bit\" = \"24 bits\"\n"
+"\"Audio File Format:\" = \"Formato de Arquivo de \xc3\x81udio:\"\n"
+"\"Record Location:\" = \"Localiza\xc3\xa7\xc3\xa3o do Registro:\"\n"
+"\"Use Specific UDP Port\" = \"Use a porta UDP espec\xc3\xad""fica\"\n"
+"\"Use Drift Correction\" = \"Use corre\xc3\xa7\xc3\xa3o de desvio\"\n"
+"\"Auto-Reconnect to Last Group\" = \"Reconectar automaticamente ao \xc3\xbaltimo grupo\"\n"
+"\"Override Device Sample Rate\" = \"Substituir taxa de amostra do dispositivo\"\n"
+"\"Automatically check for updates\" = \"Verificar atualiza\xc3\xa7\xc3\xb5""es automaticamente\"\n"
+"\"Sliders Snap to Mouse Click\" = \"Os controles deslizantes se ajustam ao clique do mouse\"\n"
+"\"Use Input FX Limiter\" = \"Use o limitador de entrada de efeitos\"\n"
+"\"Change all connected\" = \"Mudar todos conectados\"\n"
+"\"Version: \" = \"Vers\xc3\xa3o:\"\n"
+"\"FX\" = \"FX\"\n"
+"\"In FX\" = \"Em FX\"\n"
+"\"Match # Inputs\" = \"Match # Inputs\"\n"
+"\"Send Mono\" = \"Enviar Mono\"\n"
+"\"Send Stereo\" = \"Enviar est\xc3\xa9reo\"\n"
+"\"# Send Channels\" = \"# Canais de envio\"\n"
+"\"Size\" = \"Tamanho\"\n"
+"\"Damping\" = \"Amortecimento\"\n"
+"\"Pre-Delay\" = \"Pr\xc3\xa9-Atraso\"\n"
+"\"Reverb\" = \"Resson\xc3\xa2ncia\"\n"
+"\"Freeverb\" = \"Freeverb\"\n"
+"\"MVerb\" = \"MVerb\"\n"
+"\"Zita\" = \"Zita\"\n"
+"\"Start/Stop recording audio to file\" = \"Iniciar / parar a grava\xc3\xa7\xc3\xa3o de \xc3\xa1udio em arquivo\"\n"
+"\"Load audio file for playback\" = \"Carregar arquivo de \xc3\xa1udio para reprodu\xc3\xa7\xc3\xa3o\"\n"
+"\"Send File Playback to All\" = \"Enviar reprodu\xc3\xa7\xc3\xa3o de arquivo para todos\"\n"
+"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Preenchido com informa\xc3\xa7\xc3\xb5""es do grupo da \xc3\xa1rea de transfer\xc3\xaancia Pressione \\'Conectar ao Grupo\\' para entrar ...\"\n"
+"\"Quit Confirmation\" = \"Confirma\xc3\xa7\xc3\xa3o de sa\xc3\xad""da\"\n"
+"\"You are connected, are you sure you want to quit?\" = \"Voc\xc3\xaa est\xc3\xa1 conectado, tem certeza de que deseja sair?\"\n"
+"\"Quit\" = \"Sair\"\n"
+"\"Share this link with others to connect with SonoBus:\" = \"Compartilhe este link com outras pessoas para se conectar com o SonoBus:\"\n"
+"\"Or share this link:\" = \"Ou compartilhe este link:\"\n"
+"\"Last Session: \" = \"\xc3\x9altima Sess\xc3\xa3o:\"\n"
+"\"Total: \" = \"Total:\"\n"
+"\"Not sending your audio anywhere\" = \"N\xc3\xa3o enviar carregando seu \xc3\xa1udio em qualquer lugar\"\n"
+"\"Sending your audio to others\" = \"Enviando seu \xc3\xa1udio para outras pessoas\"\n"
+"\"Muted everyone\" = \"Todos silenciados\"\n"
+"\"Unmuted all who were not muted previously\" = \"Reative todos os que n\xc3\xa3o estavam silenciados anteriormente\"\n"
+"\"Sending your metronome to all users\" = \"Enviando seu metr\xc3\xb4nomo para todos os usu\xc3\xa1rios\"\n"
+"\"Now only you will hear your metronome\" = \"Agora s\xc3\xb3 voc\xc3\xaa vai ouvir o seu metr\xc3\xb4nomo\"\n"
+"\"Sending file playback to all users\" = \"Enviando a reprodu\xc3\xa7\xc3\xa3o do arquivo para todos os usu\xc3\xa1rios\"\n"
+"\"Now only you will hear the file playback\" = \"Agora s\xc3\xb3 voc\xc3\xaa vai ouvir a reprodu\xc3\xa7\xc3\xa3o do arquivo\"\n"
+"\"Copied connection info to clipboard for you to share with others\" = \"Informa\xc3\xa7\xc3\xb5""es de conex\xc3\xa3o copiadas para a \xc3\xa1rea de transfer\xc3\xaancia para voc\xc3\xaa compartilhar com outras pessoas\"\n"
+"\"Copied group connection info to clipboard for you to share with others\" = \"Informa\xc3\xa7\xc3\xb5""es de conex\xc3\xa3o de grupo copiadas para a \xc3\xa1rea de transfer\xc3\xaancia para voc\xc3\xaa compartilhar com outras pessoas\"\n"
+"\"Finished recording to \" = \"Grava\xc3\xa7\xc3\xa3o terminada para\"\n"
+"\"Last recorded file: \" = \"\xc3\x9altimo arquivo gravado:\"\n"
+"\"Started recording output\" = \"Sa\xc3\xad""da de grava\xc3\xa7\xc3\xa3o iniciada\"\n"
+"\"Recording audio to: \" = \"Gravando \xc3\xa1udio para:\"\n"
+"\"Recording multi-track audio to: \" = \"Gravando \xc3\xa1udio multitrilha para:\"\n"
+"\"Choose an audio file to open...\" = \"Escolha um arquivo de \xc3\xa1udio para abrir ...\"\n"
+"\"Choose the folder for new recordings\" = \"Escolha a pasta para novas grava\xc3\xa7\xc3\xb5""es\"\n"
+"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Preenchido no Grupo a partir do link! Pressione \\'Conectar ao Grupo\\' para entrar ...\"\n"
+"\"You need to specify a group name!\" = \"Voc\xc3\xaa precisa especificar um nome de grupo!\"\n"
+"\"You need to specify a user name!\" = \"Voc\xc3\xaa precisa especificar um nome de usu\xc3\xa1rio!\"\n"
+"\"Server address is invalid!\" = \"O endere\xc3\xa7o do servidor \xc3\xa9 inv\xc3\xa1lido!\"\n"
+"\"All who join the same Group will be able to connect with each other.\" = \"Todos os que ingressam no mesmo Grupo poder\xc3\xa3o se conectar uns com os outros.\"\n"
+"\"AUDIO\" = \"\xc3\x81UDIO\"\n"
+"\"OPTIONS\" = \"OP\xc3\x87\xc3\x95""ES\"\n"
+"\"HELP\" = \"AJUDA\"\n"
+"\"RECORDING\" = \"GRAVA\xc3\x87\xc3\x83O\"\n"
+"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Usar um tipo de dispositivo de \xc3\xa1udio ASIO \xc3\xa9 altamente recomen"
+"dado. Se sua interface de \xc3\xa1udio n\xc3\xa3o veio com um, instale ASIO4ALL (asio4all.org) e configure-o primeiro.\"\n"
+"\"Disconnect\" = \"Desconectar\"\n"
+"\"[P] \" = \"[P]\"\n"
+"\"Waiting for other users to join group\" = \"Esperando que outros usu\xc3\xa1rios entrem no grupo\"\n"
+"\"Press Connect button to start.\" = \"Pressione o bot\xc3\xa3o Conectar para iniciar.\"\n"
+"\"Please use headphones if you are using a microphone!\" = \"Use fones de ouvido se estiver usando um microfone!\"\n"
+"\"Connected to server\" = \"Conectado ao servidor\"\n"
+"\"Already connected with this user name\" = \"J\xc3\xa1 conectado com este nome de usu\xc3\xa1rio\"\n"
+"\"Connect failed: \" = \"Falha na conex\xc3\xa3o:\"\n"
+"\"Disconnected from server\" = \"Desconectado do servidor\"\n"
+"\"Disconnect failed: \" = \"A desconex\xc3\xa3o falhou:\"\n"
+"\"Joined Group: \" = \"Grupo ingressado:\"\n"
+"\"Failed to join group: \" = \"Falha ao entrar no grupo:\"\n"
+"\"Left Group: \" = \"Deixou o grupo:\"\n"
+"\"Failed to leave group: \" = \"Falha ao sair do grupo:\"\n"
+"\"Trim to New\" = \"Cortar para novo\"\n"
+"\"Share File\" = \"Compartilhar arquivo\"\n"
+"\"Reveal File\" = \"Revelar Arquivo\"\n"
+"\"Mute All Input\" = \"Silenciar todas as entradas\"\n"
+"\"Toggle Mute all input\" = \"Alternar Silenciar todas as entradas\"\n"
+"\"Popup\" = \"Aparecer\"\n"
+"\"Mute All Users\" = \"Silenciar todos os usu\xc3\xa1rios\"\n"
+"\"Toggle Mute all users\" = \"Alternar Silenciar todos os usu\xc3\xa1rios\"\n"
+"\"Play/Pause\" = \"Tocar/Pausar\"\n"
+"\"Toggle file playback\" = \"Alternar reprodu\xc3\xa7\xc3\xa3o de arquivo\"\n"
+"\"Loop\" = \"Ciclo\"\n"
+"\"Toggle file looping\" = \"Alternar loop de arquivo\"\n"
+"\"Trim file from selection to new file\" = \"Corte o arquivo da sele\xc3\xa7\xc3\xa3o para o novo arquivo\"\n"
+"\"Close File\" = \"Fechar Arquivo\"\n"
+"\"Close file\" = \"Fechar arquivo\"\n"
+"\"Open File\" = \"Abrir Arquivo\"\n"
+"\"Open Audio file\" = \"Abrir Arquivo de \xc3\x81udio\"\n"
+"\"Share file\" = \"Compartilhar arquivo\"\n"
+"\"Reveal file\" = \"Revelar arquivo\"\n"
+"\"Show Options\" = \"Mostrar Op\xc3\xa7\xc3\xb5""es\"\n"
+"\"Record\" = \"Gravar\"\n"
+"\"Toggle Record\" = \"Alternar registro\"\n"
+"\"Check For New Version\" = \"Verifique se h\xc3\xa1 uma Nova Vers\xc3\xa3o\"\n"
+"\"Check for New Version\" = \"Verifique se h\xc3\xa1 uma nova vers\xc3\xa3o\"\n"
+"\"File\" = \"Arquivo\"\n"
+"\"Transport\" = \"Transporte\"\n"
+"\"Help\" = \"Ajuda\"\n"
+"\"PUBLIC\" = \"P\xc3\x9a""BLICO\"\n"
+"\"password protected,\" = \"protegido por senha,\"\n"
+"\"on\" = \"em\"\n"
+"\"to\" = \"para\"\n"
+"\" active users\" = \" usu\xc3\xa1rios ativos\"\n"
+"\" active user\" = \" usu\xc3\xa1rio ativo\"\n"
+"\"Save current state\" = \"Salvar estado atual\"\n"
+"\"Error whilst saving\" = \"Erro ao salvar\"\n"
+"\"Couldn\\'t write to the specified file!\" = \"N\xc3\xa3o foi poss\xc3\xadvel gravar no arquivo especificado!\"\n"
+"\"Load a saved state\" = \"Carregar um estado salvo\"\n"
+"\"Error whilst loading\" = \"Erro ao carregar\"\n"
+"\"Couldn\\'t read from the specified file!\" = \"N\xc3\xa3o foi poss\xc3\xadvel ler do arquivo especificado!\"\n"
+"\"Audio/MIDI Settings\" = \"Configura\xc3\xa7\xc3\xb5""es de \xc3\xa1udio/MIDI\"\n"
+"\"Audio Settings\" = \"Configura\xc3\xa7\xc3\xb5""es de \xc3\xa1udio\"\n"
+"\"Audio/MIDI Settings...\" = \"Configura\xc3\xa7\xc3\xb5""es de \xc3\xa1udio/MIDI...\"\n"
+"\"Save current state...\" = \"Salvar estado atual...\"\n"
+"\"Load a saved state...\" = \"Carregar um estado salvo...\"\n"
+"\"Reset to default state\" = \"Redefinir para o estado padr\xc3\xa3o\"\n"
+"\"Threshold\" = \"Limite\"\n"
+"\"Makeup Gain\" = \"Ganho de maquiagem\"\n"
+"\"Compressor\" = \"Compressor\"\n"
+"\"Autoset Makeup\" = \"Maquiagem Autoset\"\n"
+"\"Gain\" = \"Ganho\"\n"
+"\"High Shelf\" = \"Prateleira Alta\"\n"
+"\"Low Shelf\" = \"Prateleira Baixa\"\n"
+"\"Freq 1\" = \"Freq 1\"\n"
+"\"Q\" = \"Q\"\n"
+"\"Freq 2\" = \"Freq 2\"\n"
+"\"Parametric EQ\" = \"EQ Param\xc3\xa9trico\"\n"
+"\"Level: \" = \"N\xc3\xadvel:\"\n"
+"\"Remote address:\" = \"Endere\xc3\xa7o remoto:\"\n"
+"\"Disable Sending\" = \"Desativar envio\"\n"
+"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Alterna o recebimento do silenciamento, evitando que o \xc3\xa1udio seja ouvido por este usu\xc3\xa1rio\"\n"
+"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Ou\xc3\xa7""a apenas este usu\xc3\xa1rio e outros usu\xc3\xa1rios solados. Clique com a tecla Alt pressionada para isolar exclusivamente este usu\xc3\xa1"
+"rio.\"\n"
+"\"Pan\" = \"Pan\"\n"
+"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Redefine o buffer de jitter para o m\xc3\xadnimo. Segure a tecla Alt para redefinir para todos (com autom\xc3\xa1tico).\"\n"
+"\"Jitter Buffer\" = \"Jitter Buffer\"\n"
+"\"Change for all\" = \"Mudan\xc3\xa7""a para todos\"\n"
+"\"Send Quality\" = \"Qualidade de Envio\"\n"
+"\"No Preference\" = \"Sem Prefer\xc3\xaancia\"\n"
+"\"Preferred Recv Quality\" = \"Qualidade de Recebimento Preferida\"\n"
+"\"Latency (ms)\" = \"Lat\xc3\xaancia (ms)\"\n"
+"\"Ping\" = \"Ping\"\n"
+"\"PRESS\" = \"PRESSIONE\"\n"
+"\"Send Quality:\" = \"Qualidade de Envio:\"\n"
+"\"Recv Jitter Buffer:\" = \"Recv Jitter Buffer:\"\n"
+"\"Reset Dropped\" = \"Reinicializa\xc3\xa7\xc3\xa3o Descartada\"\n"
+"\"Remove\" = \"Retirar\"\n"
+"\"Removes user from your own connections, does not affect the whole group\" = \"Remove o usu\xc3\xa1rio de suas pr\xc3\xb3prias conex\xc3\xb5""es, n\xc3\xa3o afeta todo o grupo\"\n"
+"\"Other end muted us\" = \"O outro lado nos silenciou\"\n"
+"\"SEND DISABLED\" = \"ENVIAR DESATIVADO\"\n"
+"\"Other side is muted\" = \"O outro lado est\xc3\xa1 mudo\"\n"
+"\"You muted them\" = \"Voc\xc3\xaa os silenciou\"\n"
+"\"****\" = \"****\"\n"
+"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"N\xc3\xa3o foi poss\xc3\xad"
+"vel conectar com o usu\xc3\xa1rio; um ou ambos podem precisar configurar seu firewall interno ou roteador de rede para permitir que SonoBus funcione entre voc\xc3\xaas. Consulte a documenta\xc3\xa7\xc3\xa3o de ajuda para habilitar o encaminhamento de"
+" porta em seu roteador.\"\n"
+"\"Connecting...\" = \"Conectando ...\"\n"
+"\"Measured actual round-trip latency:\" = \"Lat\xc3\xaancia de ida e volta real medida:\"\n"
+"\"Est. Outgoing:\" = \"Husa. Sa\xc3\xad""da:\"\n"
+"\"Est. Incoming:\" = \"Husa. Entrada:\"\n"
+"\"Jitter:\" = \"Tremor:\"\n"
+"\"Measuring actual round-trip latency\" = \"Medir a lat\xc3\xaancia real de ida e volta\"\n"
+"\"Mute All\" = \"Silenciar Tudo\"\n"
+"\"Unmute All\" = \"De\"\n"
+"\"none\" = \"nenhum\"\n"
+"\"Show advanced settings...\" = \"Mostrar configura\xc3\xa7\xc3\xb5""es avan\xc3\xa7""adas...\"\n"
+"\"Error when trying to open audio device!\" = \"Erro ao tentar abrir o dispositivo de \xc3\xa1udio!\"\n"
+"\"(no audio output channels found)\" = \"(nenhum canal de sa\xc3\xad""da de \xc3\xa1udio encontrado)\"\n"
+"\"Active Output Channels:\" = \"Canais de Sa\xc3\xad""da Ativos:\"\n"
+"\"(no audio input channels found)\" = \"(nenhum canal de entrada de \xc3\xa1udio encontrado)\"\n"
+"\"Active Input Channels:\" = \"Canais de Entrada Ativos:\"\n"
+"\"Control Panel\" = \"Painel de Controle\"\n"
+"\"Opens the device\\'s own control panel\" = \"Abre o painel de controle do pr\xc3\xb3prio dispositivo\"\n"
+"\"Reset Device\" = \"Redefinir o Dispositivo\"\n"
+"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"Redefine a interface de \xc3\xa1udio - \xc3\xa0s vezes necess\xc3\xa1ria ap\xc3\xb3s alterar as propriedades de um dispositivo em"
+" seu painel de controle personalizado\"\n"
+"\"Output:\" = \"Sa\xc3\xad""da:\"\n"
+"\"Device:\" = \"Dispositivo:\"\n"
+"\"Test\" = \"Teste\"\n"
+"\"Plays a test tone\" = \"Toca um tom de teste\"\n"
+"\"Input:\" = \"Entrada:\"\n"
+"\"Sample rate:\" = \"Taxa de amostragem:\"\n"
+"\"Audio Buffer Size:\" = \"Tamanho do Buffer de \xc3\x81udio:\"\n"
+"\"Audio device type:\" = \"Tipo de dispositivo de \xc3\xa1udio:\"\n"
+"\"No MIDI inputs available\" = \"Sem entradas MIDI dispon\xc3\xadveis\"\n"
+"\"Active MIDI inputs:\" = \"Entradas MIDI ativas:\"\n"
+"\"Bluetooth MIDI\" = \"MIDI Bluetooth\"\n"
+"\"Scan for bluetooth MIDI devices\" = \"Procurar dispositivos bluetooth MIDI\"\n"
+"\"MIDI Output:\" = \"Sa\xc3\xad""da MIDI:\"\n"
+"\"Default Jitter Buffer Time\" = \"Tempo de buffer de jitter padr\xc3\xa3o\"\n"
+"\"Default User Level\" = \"N\xc3\xadvel de usu\xc3\xa1rio padr\xc3\xa3o\"\n"
+"\"Sync to Host\" = \"Sincronizar com o Host\"\n"
+"\"Metronome\" = \"Metr\xc3\xb4nomo\"\n"
+"\"File Playback\" = \"Reprodu\xc3\xa7\xc3\xa3o de arquivo\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks.\" = \"Conecte-se diretamente a ou"
+"tras inst\xc3\xa2ncias do SonoBus em sua rede local com o endere\xc3\xa7o local que anunciam. Isso \xc3\xa9 experimental, o uso de um grupo privado \xc3\xa9 recomendado em vez disso e funciona bem em redes locais.\"\n"
+"\"Connect to Raw Address...\" = \"Conectar ao endere\xc3\xa7o bruto ...\"\n"
+"\"Shows full information for connected users\" = \"Mostra informa\xc3\xa7\xc3\xb5""es completas para usu\xc3\xa1rios conectados\"\n"
+"\"Shows minimal information for connected users\" = \"Mostra informa\xc3\xa7\xc3\xb5""es m\xc3\xadnimas para usu\xc3\xa1rios conectados\"\n"
+"\"INPUT MIXER\" = \"MISTURADOR DE ENTRADA\"\n"
+"\"MON DELAY\" = \"M\xc3\x8aS DELAY\"\n"
+"\"Control additional self-monitoring delay, which can help mitigate synchronization with others\" = \"Controle o atraso de automonitoramento adicional, o que pode ajudar a mitigar a sincroniza\xc3\xa7\xc3\xa3o com outros\"\n"
+"\"Synchronize metronome tempo with plugin host\" = \"Sincronizar o ritmo do metr\xc3\xb4nomo com o host do plugin\"\n"
+"\"Show the connections page, while staying connected to current group\" = \"Mostra a p\xc3\xa1gina de conex\xc3\xb5""es, enquanto permanece conectado ao grupo atual\"\n"
+"\"Show/Hide Chat\" = \"Mostrar / ocultar bate-papo\"\n"
+"\"Use Drift Correction (NOT RECOMMENDED)\" = \"Use corre\xc3\xa7\xc3\xa3o de desvio (N\xc3\x83O RECOMENDADO)\"\n"
+"\"Sliders Snap to Clicked Position\" = \"Os controles deslizantes se ajustam \xc3\xa0 posi\xc3\xa7\xc3\xa3o clicada\"\n"
+"\"Send Multichannel\" = \"Enviar multicanal\"\n"
+"\"Choose a location and name to store the setup\" = \"Escolha um local e nome para armazenar a configura\xc3\xa7\xc3\xa3o\"\n"
+"\"Choose a setup file to load\" = \"Escolha um arquivo de configura\xc3\xa7\xc3\xa3o para carregar\"\n"
+"\"Error while loading\" = \"Erro ao carregar\"\n"
+"\"Invalid setup!\" = \"Configura\xc3\xa7\xc3\xa3o inv\xc3\xa1lida!\"\n"
+"\"Error while saving\" = \"Erro ao salvar\"\n"
+"\"Waiting for other users to join group \\\"\" = \"Esperando que outros usu\xc3\xa1rios entrem no grupo \\\"\"\n"
+"\" - joined group\" = \" - juntou-se ao grupo\"\n"
+"\" - left group\" = \" - deixou o grupo\"\n"
+"\"Close Audio File\" = \"Fechar arquivo de \xc3\xa1udio\"\n"
+"\"Close audio file\" = \"Fechar arquivo de \xc3\xa1udio\"\n"
+"\"Open Audio File...\" = \"Abrir arquivo de \xc3\xa1udio ...\"\n"
+"\"Share Audio File\" = \"Compartilhar arquivo de \xc3\xa1udio\"\n"
+"\"Share audio file\" = \"Compartilhar arquivo de \xc3\xa1udio\"\n"
+"\"Reveal Audio File\" = \"Revelar arquivo de \xc3\xa1udio\"\n"
+"\"Reveal audio file\" = \"Revelar arquivo de \xc3\xa1udio\"\n"
+"\"Load Setup...\" = \"Carregar configura\xc3\xa7\xc3\xa3o ...\"\n"
+"\"Load Setup file\" = \"Carregar arquivo de configura\xc3\xa7\xc3\xa3o\"\n"
+"\"Save Setup...\" = \"Salvar configura\xc3\xa7\xc3\xa3o ...\"\n"
+"\"Save Setup file\" = \"Salvar arquivo de configura\xc3\xa7\xc3\xa3o\"\n"
+"\"Show or hide chat area\" = \"Mostrar ou ocultar a \xc3\xa1rea de bate-papo\"\n"
+"\"View\" = \"Visualizar\"\n"
+"\"Load Recent Setup\" = \"Carregar configura\xc3\xa7\xc3\xa3o recente\"\n"
+"\"Send Level: \" = \"N\xc3\xadvel de envio:\"\n"
+"\"Reverb Send\" = \"Envio de reverbera\xc3\xa7\xc3\xa3o\"\n"
+"\"Enable the main reverb at the bottom of the window to hear the effect\" = \"Ative a reverbera\xc3\xa7\xc3\xa3o principal na parte inferior da janela para ouvir o efeito\"\n"
+"\"Main Reverb Send\" = \"Envio de reverbera\xc3\xa7\xc3\xa3o principal\"\n"
+"\"Crashed Last Time\" = \"Quebrou da \xc3\xbaltima vez\"\n"
+"\"Looks like you crashed on launch last time, restoring default settings!\" = \"Parece que voc\xc3\xaa travou na inicializa\xc3\xa7\xc3\xa3o da \xc3\xbaltima vez, restaurando as configura\xc3\xa7\xc3\xb5""es padr\xc3\xa3o!\"\n"
+"\"Chat\" = \"Bate-papo\"\n"
+"\"Enter message here...\" = \"Insira a mensagem aqui ...\"\n"
+"\"Send\" = \"Mandar\"\n"
+"\"Save Chat\" = \"Salvar bate-papo\"\n"
+"\"Clear Chat\" = \"Limpar conversa\"\n"
+"\"Add New Input Group\" = \"Adicionar Novo Grupo de Entrada\"\n"
+"\"CLEAR\" = \"CLARO\"\n"
+"\"Remove all input groups\" = \"Remova todos os grupos de entrada\"\n"
+"\"Monitor: \" = \"Monitor:\"\n"
+"\"Pre Level: \" = \"Pr\xc3\xa9-n\xc3\xadvel:\"\n"
+"\"Set name for this group that others will see\" = \"Defina um nome para este grupo que outras pessoas ver\xc3\xa3o\"\n"
+"\"Click to toggle extra information visibility\" = \"Clique para alternar a visibilidade de informa\xc3\xa7\xc3\xb5""es extras\"\n"
+"\"Mute this channel for both sending and monitoring\" = \"Silencie este canal para envio e monitoramento\"\n"
+"\"Solo - Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Solo - Ou\xc3\xa7""a apenas este usu\xc3\xa1rio e outros usu\xc3\xa1rios solados. Clique com a tecla Alt pressionada para isolar exclusivamente "
+"este usu\xc3\xa1rio.\"\n"
+"\"Solo - Listen to only this channel for this user\" = \"Solo - Ou\xc3\xa7""a apenas este canal para este usu\xc3\xa1rio\"\n"
+"\"Solo - Listen to only this channel, does not affect sending\" = \"Solo - Ou\xc3\xa7""a apenas este canal, n\xc3\xa3o afeta o envio\"\n"
+"\"Monitor output level\" = \"Monitorar o n\xc3\xadvel de sa\xc3\xad""da\"\n"
+"\"Change channel layout\" = \"Alterar o layout do canal\"\n"
+"\"Select Input channel source (or drag to rearrange)\" = \"Selecione a fonte do canal de entrada (ou arraste para reorganizar)\"\n"
+"\"mono\" = \"mono\"\n"
+"\"Choose destination output channels\" = \"Escolha os canais de sa\xc3\xad""da de destino\"\n"
+"\"Choose destination monitoring channels\" = \"Escolha os canais de monitoramento de destino\"\n"
+"\"Edit input effects (applied before sending)\" = \"Editar efeitos de entrada (aplicado antes de enviar)\"\n"
+"\"Edit effects\" = \"Editar efeitos\"\n"
+"\"M.FX\" = \"M.FX\"\n"
+"\"Edit input monitoring effects (applied to local monitoring only)\" = \"Editar efeitos de monitoramento de entrada (aplicado apenas ao monitoramento local)\"\n"
+"\"Edit monitoring effects\" = \"Editar efeitos de monitoramento\"\n"
+"\"ch\" = \"CH\"\n"
+"\"Confirm Remove of All Inputs\" = \"Confirme a remo\xc3\xa7\xc3\xa3o de todas as entradas\"\n"
+"\"ADD INPUT GROUP:\" = \"ADICIONE GRUPO DE ENTRADA:\"\n"
+"\"Mono\" = \"Mono\"\n"
+"\"Stereo\" = \"Est\xc3\xa9reo\"\n"
+"\"channel\" = \"canal\"\n"
+"\"CHANGE CHANNEL LAYOUT:\" = \"MUDAR O LAYOUT DO CANAL:\"\n"
+"\"<Restore Original Layout>\" = \"<Restaurar Layout Original>\"\n"
+"\"SELECT INPUTS:\" = \"SELECIONE AS ENTRADAS:\"\n"
+"\"SELECT INPUT:\" = \"SELECIONE A ENTRADA:\"\n"
+"\"CHANGE LAYOUT...\" = \"ALTERAR LAYOUT ...\"\n"
+"\"REMOVE\" = \"RETIRAR\"\n"
+"\"SELECT MONITOR OUT:\" = \"SELECIONE O MONITOR DE SA\xc3\x8d""DA:\"\n"
+"\"Change all\" = \"Mude tudo\"\n"
+"\"Removes pending user from list\" = \"Remove usu\xc3\xa1rio pendente da lista\"\n"
+"\"Estimated Round-trip Latency:\" = \"Lat\xc3\xaancia estimada de ida e volta:\"\n"
+"\"Round-trip Network Ping:\" = \"Ping de rede de ida e volta:\"\n"
+"\"Est. Jitter:\" = \"Husa. Jitter:\"\n"
+"\"Legacy-mode, ask them \\r\\n to install latest version\" = \"Modo legado, pergunte a eles\\r\\n instalar a \xc3\xbaltima vers\xc3\xa3o\"\n"
+"\"Delay Time\" = \"Tempo de atraso\"\n"
+"\"One-way\" = \"M\xc3\xa3o \xc3\xbanica\"\n"
+"\"Round-trip\" = \"Ida e volta\"\n"
+"\"Set From Peers\" = \"Conjunto de pares\"\n"
+"\"Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection\" = \"Pressionar isso ir\xc3\xa1 calcular uma lat\xc3\xaancia m\xc3\xa9""dia para"
+" todos os pares conectados e definir o tempo de atraso de monitoramento de acordo, com base na sele\xc3\xa7\xc3\xa3o de escolha de ida ou volta\"\n"
+"\"Link Delay Time with other inputs\" = \"Tempo de atraso do link com outras entradas\"\n"
+"\"Additional Monitoring Delay\" = \"Atraso de monitoramento adicional\"\n";
+
+const char* localized_pt_txt = (const char*) temp_binary_data_5;
 
 //================== bar_click.wav ==================
-static const unsigned char temp_binary_data_1[] =
+static const unsigned char temp_binary_data_6[] =
 { 82,73,70,70,22,11,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,242,10,0,0,106,255,178,254,205,253,132,254,61,255,155,253,134,252,106,250,68,251,238,3,59,9,135,5,24,253,10,243,65,241,161,254,192,19,220,34,
 171,37,57,30,73,11,214,236,192,209,33,205,212,224,83,252,182,1,230,226,117,194,242,205,49,5,160,68,193,109,209,114,146,86,103,41,151,249,25,218,122,222,23,243,179,239,53,208,59,175,103,158,211,162,30,191,61,237,214,31,142,66,246,67,202,52,191,55,28,79,
 180,95,73,88,177,55,98,4,132,205,140,161,89,140,101,151,57,182,68,205,194,211,52,216,170,233,237,12,5,59,84,98,63,120,120,120,172,91,3,43,189,1,67,237,16,228,130,215,116,193,80,169,106,156,104,157,195,172,195,210,36,7,11,47,116,62,4,63,161,62,52,70,152,
@@ -360,10 +2561,10 @@ static const unsigned char temp_binary_data_1[] =
 57,0,36,0,32,0,24,0,23,0,4,0,237,255,211,255,197,255,204,255,212,255,236,255,245,255,1,0,4,0,7,0,12,0,25,0,31,0,39,0,26,0,12,0,251,255,242,255,242,255,250,255,2,0,9,0,2,0,254,255,247,255,246,255,250,255,254,255,0,0,2,0,251,255,251,255,247,255,0,0,3,0,
 10,0,6,0,4,0,252,255,252,255,0,0,4,0,10,0,6,0,4,0,252,255,254,255,250,255,0,0,254,255,255,255,255,255,255,255,0,0,0,0,0,0 };
 
-const char* bar_click_wav = (const char*) temp_binary_data_1;
+const char* bar_click_wav = (const char*) temp_binary_data_6;
 
 //================== beat_click.wav ==================
-static const unsigned char temp_binary_data_2[] =
+static const unsigned char temp_binary_data_7[] =
 { 82,73,70,70,140,10,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,104,10,0,0,28,249,58,6,151,72,207,101,199,104,160,116,88,110,95,98,168,79,136,50,103,21,4,248,170,222,75,201,157,181,156,163,71,148,120,139,
 249,140,201,154,41,179,20,209,25,241,172,17,229,47,195,71,245,87,7,98,217,104,112,109,238,106,141,91,140,64,129,32,16,0,243,224,213,196,7,174,48,159,232,153,116,157,217,168,140,186,46,205,54,219,172,229,52,243,196,8,64,37,155,67,142,92,65,104,148,97,
 158,75,248,49,22,33,105,29,220,32,25,32,218,18,193,247,206,212,230,180,6,161,164,154,246,158,81,171,159,188,236,207,53,228,101,249,247,14,15,36,9,54,179,66,231,74,169,80,99,85,112,88,93,84,153,66,113,35,157,254,191,221,122,199,26,189,243,186,45,187,49,
@@ -401,10 +2602,10 @@ static const unsigned char temp_binary_data_2[] =
 250,255,255,255,7,0,8,0,7,0,11,0,11,0,18,0,19,0,16,0,11,0,1,0,248,255,244,255,236,255,244,255,242,255,252,255,250,255,1,0,252,255,255,255,2,0,5,0,6,0,13,0,4,0,12,0,0,0,2,0,253,255,253,255,250,255,252,255,251,255,253,255,254,255,253,255,0,0,0,0,2,0,4,
 0,2,0,3,0,1,0,254,255,2,0,0,0,1,0,1,0,253,255,0,0,251,255,0,0,253,255,3,0,255,255,2,0,2,0,254,255,1,0,254,255,2,0,2,0,2,0,0,0,1,0,255,255,254,255,1,0,252,255,1,0,0,0,0,0,0,0,0,0,255,255,1,0,0,0,255,255,3,0,252,255,3,0,254,255,0,0 };
 
-const char* beat_click_wav = (const char*) temp_binary_data_2;
+const char* beat_click_wav = (const char*) temp_binary_data_7;
 
 //================== chat.svg ==================
-static const unsigned char temp_binary_data_3[] =
+static const unsigned char temp_binary_data_8[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -471,10 +2672,10 @@ static const unsigned char temp_binary_data_3[] =
 "     d=\"M 402,58.000909 H 97.999994 A 56.16,56.16 0 0 0 41.999996,114.00091 v 192.00001 a 56.16,56.16 0 0 0 55.999997,56 h 39.999997 v 79.99999 l 93.72,-78.13999 a 8,8 0 0 1 5.13,-1.86 H 402 a 56.16,56.16 0 0 0 56,-56 V 114.00091 A 56.16,56.16 0 0 0"
 " 402,58.000909 Z\" /></svg>\n";
 
-const char* chat_svg = (const char*) temp_binary_data_3;
+const char* chat_svg = (const char*) temp_binary_data_8;
 
 //================== chat_dots.svg ==================
-static const unsigned char temp_binary_data_4[] =
+static const unsigned char temp_binary_data_9[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -556,10 +2757,10 @@ static const unsigned char temp_binary_data_4[] =
 "     r=\"32\"\n"
 "     id=\"circle6958\" /></svg>\n";
 
-const char* chat_dots_svg = (const char*) temp_binary_data_4;
+const char* chat_dots_svg = (const char*) temp_binary_data_9;
 
 //================== chevron_forward.svg ==================
-static const unsigned char temp_binary_data_5[] =
+static const unsigned char temp_binary_data_10[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -627,10 +2828,10 @@ static const unsigned char temp_binary_data_5[] =
 "     id=\"polyline1019\" />\n"
 "</svg>\n";
 
-const char* chevron_forward_svg = (const char*) temp_binary_data_5;
+const char* chevron_forward_svg = (const char*) temp_binary_data_10;
 
 //================== copy_icon.svg ==================
-static const unsigned char temp_binary_data_6[] =
+static const unsigned char temp_binary_data_11[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -705,10 +2906,10 @@ static const unsigned char temp_binary_data_6[] =
 "     d=\"M383.5,128l.5-24a56.16,56.16,0,0,0-56-56H112a64.19,64.19,0,0,0-64,64V328a56.16,56.16,0,0,0,56,56h24\" />\n"
 "</svg>\n";
 
-const char* copy_icon_svg = (const char*) temp_binary_data_6;
+const char* copy_icon_svg = (const char*) temp_binary_data_11;
 
 //================== DejaVuSans.ttf ==================
-static const unsigned char temp_binary_data_7[] =
+static const unsigned char temp_binary_data_12[] =
 { 0,1,0,0,0,20,1,0,0,4,0,64,70,70,84,77,115,193,244,240,0,0,1,76,0,0,0,28,71,68,69,70,148,207,142,230,0,0,1,104,0,0,2,148,71,80,79,83,86,128,196,53,0,0,3,252,0,0,158,138,71,83,85,66,193,208,64,89,0,0,162,136,0,0,21,222,77,65,84,72,167,50,56,125,0,0,184,
 104,0,0,6,62,79,83,47,50,89,45,118,45,0,0,190,168,0,0,0,86,99,109,97,112,192,73,38,0,0,0,191,0,0,0,23,26,99,118,116,32,0,105,29,57,0,0,214,28,0,0,1,254,102,112,103,109,113,52,118,106,0,0,216,28,0,0,0,171,103,97,115,112,0,7,0,7,0,0,216,200,0,0,0,12,103,
 108,121,102,97,12,247,6,0,0,216,212,0,8,123,228,104,101,97,100,12,230,1,214,0,9,84,184,0,0,0,54,104,104,101,97,13,159,31,203,0,9,84,240,0,0,0,36,104,109,116,120,37,161,223,173,0,9,85,20,0,0,97,150,107,101,114,110,12,153,8,59,0,9,182,172,0,0,63,252,108,
@@ -9711,10 +11912,10 @@ static const unsigned char temp_binary_data_7[] =
 43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,
 43,43,43,29,0,0 };
 
-const char* DejaVuSans_ttf = (const char*) temp_binary_data_7;
+const char* DejaVuSans_ttf = (const char*) temp_binary_data_12;
 
 //================== dice_icon_128.png ==================
-static const unsigned char temp_binary_data_8[] =
+static const unsigned char temp_binary_data_13[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,128,0,0,0,128,8,6,0,0,0,195,62,97,203,0,0,0,6,98,75,71,68,0,59,0,0,0,85,52,179,151,147,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,7,12,20,59,33,210,3,100,86,
 0,0,14,94,73,68,65,84,120,218,237,157,121,144,20,213,29,199,63,179,23,179,130,44,114,136,23,106,98,44,145,132,160,136,138,43,38,26,53,152,50,40,200,17,47,226,129,23,81,2,138,150,85,106,76,162,198,28,94,139,70,87,84,76,208,120,1,70,100,181,4,35,30,81,
 81,99,66,129,90,10,165,4,49,32,107,68,34,176,202,236,53,147,63,126,223,174,157,218,218,21,119,167,167,167,187,231,125,171,182,106,119,122,182,251,189,223,251,245,251,221,191,7,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,113,70,
@@ -9770,10 +11971,10 @@ static const unsigned char temp_binary_data_8[] =
 138,214,86,255,134,232,91,96,165,170,170,138,225,195,135,83,90,90,138,67,30,157,31,173,173,44,95,190,156,45,91,182,56,98,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,236,16,255,7,76,189,120,76,223,155,3,94,0,0,0,0,73,69,78,68,
 174,66,96,130,0,0 };
 
-const char* dice_icon_128_png = (const char*) temp_binary_data_8;
+const char* dice_icon_128_png = (const char*) temp_binary_data_13;
 
 //================== dispfull.svg ==================
-static const unsigned char temp_binary_data_9[] =
+static const unsigned char temp_binary_data_14[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -9883,10 +12084,10 @@ static const unsigned char temp_binary_data_9[] =
 "       id=\"rect6668-1\"\n"
 "       style=\"fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:21.1031;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" /></g></svg>\n";
 
-const char* dispfull_svg = (const char*) temp_binary_data_9;
+const char* dispfull_svg = (const char*) temp_binary_data_14;
 
 //================== dispminimal.svg ==================
-static const unsigned char temp_binary_data_10[] =
+static const unsigned char temp_binary_data_15[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -9957,10 +12158,10 @@ static const unsigned char temp_binary_data_10[] =
 "     rx=\"7.7217793\"\n"
 "     ry=\"17.39216\" /></svg>\n";
 
-const char* dispminimal_svg = (const char*) temp_binary_data_10;
+const char* dispminimal_svg = (const char*) temp_binary_data_15;
 
 //================== dots.svg ==================
-static const unsigned char temp_binary_data_11[] =
+static const unsigned char temp_binary_data_16[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10061,20 +12262,20 @@ static const unsigned char temp_binary_data_11[] =
 "     cy=\"378.0148\"\n"
 "     r=\"20\" /></svg>\n";
 
-const char* dots_svg = (const char*) temp_binary_data_11;
+const char* dots_svg = (const char*) temp_binary_data_16;
 
 //================== dots_icon.png ==================
-static const unsigned char temp_binary_data_12[] =
+static const unsigned char temp_binary_data_17[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,55,0,0,0,55,8,6,0,0,0,168,219,210,70,0,0,0,6,98,75,71,68,0,0,0,0,0,0,249,67,187,127,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,6,27,19,11,49,229,19,18,210,
 0,0,0,247,73,68,65,84,104,222,237,151,59,14,65,65,24,70,15,81,18,165,210,163,102,31,18,61,91,176,4,86,32,118,192,14,36,122,196,30,238,30,60,10,81,162,162,210,140,78,184,133,43,70,206,223,76,49,95,50,57,153,226,255,78,46,73,18,254,117,242,252,241,8,39,
 156,112,194,9,247,43,112,13,96,10,236,129,107,56,39,64,45,235,135,115,25,47,241,54,48,7,138,79,238,46,64,23,88,197,248,115,245,23,96,0,37,96,6,84,99,132,27,190,0,123,76,25,24,196,8,215,78,153,235,196,8,87,249,112,238,167,224,142,41,115,135,24,225,150,
 41,115,139,24,225,70,192,249,77,230,4,140,99,132,219,0,189,176,207,158,205,57,236,185,109,172,13,101,5,52,67,67,217,1,183,112,78,128,22,176,206,242,241,194,23,234,215,14,232,91,156,133,211,10,180,2,173,64,43,208,10,180,2,173,64,43,208,10,180,2,139,179,
 112,90,129,86,160,21,104,5,90,129,86,160,21,104,5,90,129,86,96,113,22,78,56,225,132,19,238,203,115,7,251,83,94,163,113,150,91,80,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* dots_icon_png = (const char*) temp_binary_data_12;
+const char* dots_icon_png = (const char*) temp_binary_data_17;
 
 //================== expand_arrow_active.svg ==================
-static const unsigned char temp_binary_data_13[] =
+static const unsigned char temp_binary_data_18[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10153,10 +12354,10 @@ static const unsigned char temp_binary_data_13[] =
 "     transform=\"matrix(2.0118261,0,0,1.1767472,-17.196083,107.47646)\"\n"
 "     inkscape:transform-center-x=\"-2.8793028e-06\" /></svg>\n";
 
-const char* expand_arrow_active_svg = (const char*) temp_binary_data_13;
+const char* expand_arrow_active_svg = (const char*) temp_binary_data_18;
 
 //================== expand_arrow_inactive.svg ==================
-static const unsigned char temp_binary_data_14[] =
+static const unsigned char temp_binary_data_19[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10236,10 +12437,10 @@ static const unsigned char temp_binary_data_14[] =
 "     transform=\"matrix(0,-2.0118261,1.1767472,0,107.47646,517.19607)\"\n"
 "     inkscape:transform-center-x=\"-31.271791\" /></svg>\n";
 
-const char* expand_arrow_inactive_svg = (const char*) temp_binary_data_14;
+const char* expand_arrow_inactive_svg = (const char*) temp_binary_data_19;
 
 //================== folder_icon.svg ==================
-static const unsigned char temp_binary_data_15[] =
+static const unsigned char temp_binary_data_20[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10365,10 +12566,10 @@ static const unsigned char temp_binary_data_15[] =
 "     y=\"0\" />\n"
 "</svg>\n";
 
-const char* folder_icon_svg = (const char*) temp_binary_data_15;
+const char* folder_icon_svg = (const char*) temp_binary_data_20;
 
 //================== hear-others.svg ==================
-static const unsigned char temp_binary_data_16[] =
+static const unsigned char temp_binary_data_21[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10475,10 +12676,10 @@ static const unsigned char temp_binary_data_16[] =
 "         id=\"path901\"\n"
 "         inkscape:connector-curvature=\"0\" /></g></g></svg>\n";
 
-const char* hearothers_svg = (const char*) temp_binary_data_16;
+const char* hearothers_svg = (const char*) temp_binary_data_21;
 
 //================== incoming_allowed.svg ==================
-static const unsigned char temp_binary_data_17[] =
+static const unsigned char temp_binary_data_22[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10585,10 +12786,10 @@ static const unsigned char temp_binary_data_17[] =
 "1 2.4,2.8 2.4,5.7 0,2.9 -1.6,4.9 -2.4,5.7 -0.8,0.8 -80.00003,88 -80.00003,88 -1.5,1.5 -3.6,2.3 -5.7,2.3 -2.1,0 -4.1,-0.8 -5.7,-2.3 z\"\n"
 "     style=\"fill:#e6e6e6\" /></svg>\n";
 
-const char* incoming_allowed_svg = (const char*) temp_binary_data_17;
+const char* incoming_allowed_svg = (const char*) temp_binary_data_22;
 
 //================== incoming_allowed_active.svg ==================
-static const unsigned char temp_binary_data_18[] =
+static const unsigned char temp_binary_data_23[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10694,10 +12895,10 @@ static const unsigned char temp_binary_data_18[] =
 "2 6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* incoming_allowed_active_svg = (const char*) temp_binary_data_18;
+const char* incoming_allowed_active_svg = (const char*) temp_binary_data_23;
 
 //================== incoming_disallowed.svg ==================
-static const unsigned char temp_binary_data_19[] =
+static const unsigned char temp_binary_data_24[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10793,10 +12994,10 @@ static const unsigned char temp_binary_data_19[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7305\" /></svg>\n";
 
-const char* incoming_disallowed_svg = (const char*) temp_binary_data_19;
+const char* incoming_disallowed_svg = (const char*) temp_binary_data_24;
 
 //================== lgc_bar.wav ==================
-static const unsigned char temp_binary_data_20[] =
+static const unsigned char temp_binary_data_25[] =
 { 82,73,70,70,30,3,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,250,2,0,0,0,0,0,0,149,33,255,62,19,87,14,105,118,116,67,121,174,119,75,112,225,99,117,83,28,64,12,43,106,21,86,0,213,236,182,219,179,205,51,
 195,133,188,172,185,135,186,198,190,232,197,110,207,152,218,214,230,93,243,154,255,245,10,225,20,21,29,43,35,29,39,198,40,87,40,225,37,203,33,69,28,209,21,184,14,114,7,90,0,191,249,250,243,52,239,164,235,88,233,89,232,152,232,253,233,90,236,139,239,70,
 243,102,247,156,251,187,255,145,3,236,6,181,9,198,11,37,13,178,13,156,13,196,12,112,11,148,9,107,7,8,5,151,2,49,0,249,253,2,252,101,250,47,249,101,248,11,248,31,248,143,248,95,249,105,250,175,251,13,253,122,254,222,255,39,1,79,2,57,3,245,3,103,4,155,
@@ -10808,10 +13009,10 @@ static const unsigned char temp_binary_data_20[] =
 4,0,252,255,4,0,252,255,3,0,253,255,1,0,0,0,255,255,0,0,0,0,255,255,2,0,253,255,2,0,255,255,2,0,253,255,3,0,254,255,2,0,255,255,1,0,254,255,3,0,254,255,1,0,0,0,255,255,2,0,253,255,4,0,252,255,2,0,255,255,0,0,1,0,255,255,0,0,255,255,1,0,0,0,0,0,0,0,255,
 255,1,0,0,0,0,0,1,0,255,255,0,0,1,0,254,255,3,0,254,255,1,0,0,0,254,255,3,0,254,255,0,0,2,0,252,255,5,0,252,255,2,0,255,255,0,0,1,0,254,255,3,0,253,255,2,0,255,255,0,0,0,0,2,0,252,255,5,0,251,255,3,0,0,0,255,255,0,0,1,0,254,255,0,0 };
 
-const char* lgc_bar_wav = (const char*) temp_binary_data_20;
+const char* lgc_bar_wav = (const char*) temp_binary_data_25;
 
 //================== link.svg ==================
-static const unsigned char temp_binary_data_21[] =
+static const unsigned char temp_binary_data_26[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -10889,10 +13090,10 @@ static const unsigned char temp_binary_data_21[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* link_svg = (const char*) temp_binary_data_21;
+const char* link_svg = (const char*) temp_binary_data_26;
 
 //================== link_all.svg ==================
-static const unsigned char temp_binary_data_22[] =
+static const unsigned char temp_binary_data_27[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11054,10 +13255,10 @@ static const unsigned char temp_binary_data_22[] =
 "     style=\"fill:#9d9d9d;fill-opacity:1;stroke:#cccccc;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:type=\"star\" /></svg>\n";
 
-const char* link_all_svg = (const char*) temp_binary_data_22;
+const char* link_all_svg = (const char*) temp_binary_data_27;
 
 //================== link_up.svg ==================
-static const unsigned char temp_binary_data_23[] =
+static const unsigned char temp_binary_data_28[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11209,10 +13410,10 @@ static const unsigned char temp_binary_data_23[] =
 "     style=\"fill:#cccccc;fill-opacity:1;stroke:#cccccc;stroke-width:15;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:nodetypes=\"cccsssccscssscsc\" /></svg>\n";
 
-const char* link_up_svg = (const char*) temp_binary_data_23;
+const char* link_up_svg = (const char*) temp_binary_data_28;
 
 //================== list_icon1.png ==================
-static const unsigned char temp_binary_data_24[] =
+static const unsigned char temp_binary_data_29[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,80,0,0,0,66,8,6,0,0,0,192,15,81,61,0,0,0,4,103,65,77,65,0,0,177,143,11,252,97,5,0,0,10,59,105,67,67,80,80,104,111,116,111,115,104,111,112,32,73,67,67,32,112,114,111,102,105,108,101,0,0,72,137,157,150,
 119,84,83,217,22,135,207,189,55,189,80,146,16,138,148,208,107,104,82,2,72,13,189,72,145,46,42,49,9,16,74,192,144,0,34,54,68,84,112,68,81,145,166,8,50,40,224,128,163,67,145,177,34,138,133,1,81,177,235,4,25,68,212,113,112,20,27,150,73,100,173,25,223,188,
 121,239,205,155,223,31,247,126,107,159,189,207,221,103,239,125,214,186,0,144,252,131,5,194,76,88,9,128,12,161,88,20,225,231,197,136,141,139,103,96,7,1,12,240,0,3,108,0,224,112,179,179,66,22,248,70,2,153,2,124,216,140,108,153,19,248,23,189,186,14,32,249,
@@ -11265,10 +13466,10 @@ static const unsigned char temp_binary_data_24[] =
 13,184,67,125,156,53,6,28,144,52,147,235,219,27,218,234,35,209,7,96,72,210,120,93,33,189,156,102,113,86,43,208,191,59,242,165,176,171,137,19,89,76,146,220,166,195,228,94,216,1,58,64,7,232,0,93,127,20,224,108,195,50,102,18,248,84,168,214,167,128,207,145,
 178,122,71,238,111,94,42,173,156,153,237,5,70,128,249,138,114,229,146,164,39,1,27,183,21,56,26,97,253,119,91,210,173,37,53,216,30,103,185,92,46,87,103,233,27,11,230,64,135,215,3,163,141,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* list_icon1_png = (const char*) temp_binary_data_24;
+const char* list_icon1_png = (const char*) temp_binary_data_29;
 
 //================== loop_icon.svg ==================
-static const unsigned char temp_binary_data_25[] =
+static const unsigned char temp_binary_data_30[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11407,10 +13608,10 @@ static const unsigned char temp_binary_data_25[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* loop_icon_svg = (const char*) temp_binary_data_25;
+const char* loop_icon_svg = (const char*) temp_binary_data_30;
 
 //================== met.svg ==================
-static const unsigned char temp_binary_data_26[] =
+static const unsigned char temp_binary_data_31[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11504,10 +13705,10 @@ static const unsigned char temp_binary_data_26[] =
 "     d=\"M 272.02882,378.01479 391.67282,150.47536 407.40159,121.313\"\n"
 "     style=\"fill:none;stroke:#cccccc;stroke-width:22;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#TriangleInS)\" /></svg>\n";
 
-const char* met_svg = (const char*) temp_binary_data_26;
+const char* met_svg = (const char*) temp_binary_data_31;
 
 //================== mic.svg ==================
-static const unsigned char temp_binary_data_27[] =
+static const unsigned char temp_binary_data_32[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11582,10 +13783,10 @@ static const unsigned char temp_binary_data_27[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7563\" /></svg>\n";
 
-const char* mic_svg = (const char*) temp_binary_data_27;
+const char* mic_svg = (const char*) temp_binary_data_32;
 
 //================== mic_disabled.svg ==================
-static const unsigned char temp_binary_data_28[] =
+static const unsigned char temp_binary_data_33[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11661,10 +13862,10 @@ static const unsigned char temp_binary_data_28[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7573\" /></svg>\n";
 
-const char* mic_disabled_svg = (const char*) temp_binary_data_28;
+const char* mic_disabled_svg = (const char*) temp_binary_data_33;
 
 //================== mic_pointing.svg ==================
-static const unsigned char temp_binary_data_29[] =
+static const unsigned char temp_binary_data_34[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11793,10 +13994,10 @@ static const unsigned char temp_binary_data_29[] =
 "       d=\"m 154.00949,66.298434 c -4.18442,-4.18442 -4.18442,-10.966085 0,-15.140885 4.18443,-4.18443 10.95647,-4.18443 15.1409,0 L 456.30795,338.31512 c 4.18444,4.18442 4.18444,10.95646 0,15.1409 -4.1748,4.18442 -10.95647,4.18442 -15.14089,0\"\n"
 "       style=\"display:inline;fill:#ff5555;fill-opacity:1;fill-rule:nonzero;stroke-width:8.06606885;stroke:#ff5555;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none\" /></g></svg>\n";
 
-const char* mic_pointing_svg = (const char*) temp_binary_data_29;
+const char* mic_pointing_svg = (const char*) temp_binary_data_34;
 
 //================== move_updown.svg ==================
-static const unsigned char temp_binary_data_30[] =
+static const unsigned char temp_binary_data_35[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -11934,10 +14135,10 @@ static const unsigned char temp_binary_data_30[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* move_updown_svg = (const char*) temp_binary_data_30;
+const char* move_updown_svg = (const char*) temp_binary_data_35;
 
 //================== mute-others.svg ==================
-static const unsigned char temp_binary_data_31[] =
+static const unsigned char temp_binary_data_36[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12041,10 +14242,10 @@ static const unsigned char temp_binary_data_31[] =
 "         inkscape:connector-curvature=\"0\"\n"
 "         sodipodi:nodetypes=\"ccsccc\" /></g></g></svg>\n";
 
-const char* muteothers_svg = (const char*) temp_binary_data_31;
+const char* muteothers_svg = (const char*) temp_binary_data_36;
 
 //================== network.svg ==================
-static const unsigned char temp_binary_data_32[] =
+static const unsigned char temp_binary_data_37[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12133,10 +14334,10 @@ static const unsigned char temp_binary_data_32[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* network_svg = (const char*) temp_binary_data_32;
+const char* network_svg = (const char*) temp_binary_data_37;
 
 //================== outgoing_allowed.svg ==================
-static const unsigned char temp_binary_data_33[] =
+static const unsigned char temp_binary_data_38[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12239,10 +14440,10 @@ static const unsigned char temp_binary_data_33[] =
 "6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_allowed_svg = (const char*) temp_binary_data_33;
+const char* outgoing_allowed_svg = (const char*) temp_binary_data_38;
 
 //================== outgoing_allowed_active.svg ==================
-static const unsigned char temp_binary_data_34[] =
+static const unsigned char temp_binary_data_39[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12319,10 +14520,10 @@ static const unsigned char temp_binary_data_34[] =
 "       id=\"path7039\"\n"
 "       d=\"m 367,192 v 79.7 c 0,60.2 -49.8,109.2 -110,109.2 -60.2,0 -110,-49 -110,-109.2 V 192 h -19 v 79.7 c 0,67.2 53,122.6 120,127.5 V 462 h -73 v 18 h 161 v -18 h -69 v -62.8 c 66,-4.9 117,-60.3 117,-127.5 V 192 Z\" /></g></svg>\n";
 
-const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_34;
+const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_39;
 
 //================== outgoing_disallowed.svg ==================
-static const unsigned char temp_binary_data_35[] =
+static const unsigned char temp_binary_data_40[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12421,10 +14622,10 @@ static const unsigned char temp_binary_data_35[] =
 "062 -19.86549,54.19122 6.33,5.09225 10.38879,12.90972 10.38879,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_disallowed_svg = (const char*) temp_binary_data_35;
+const char* outgoing_disallowed_svg = (const char*) temp_binary_data_40;
 
 //================== paste_icon.svg ==================
-static const unsigned char temp_binary_data_36[] =
+static const unsigned char temp_binary_data_41[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12499,10 +14700,10 @@ static const unsigned char temp_binary_data_36[] =
 "     x=\"176\" />\n"
 "</svg>\n";
 
-const char* paste_icon_svg = (const char*) temp_binary_data_36;
+const char* paste_icon_svg = (const char*) temp_binary_data_41;
 
 //================== pause_icon.svg ==================
-static const unsigned char temp_binary_data_37[] =
+static const unsigned char temp_binary_data_42[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12633,10 +14834,10 @@ static const unsigned char temp_binary_data_37[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* pause_icon_svg = (const char*) temp_binary_data_37;
+const char* pause_icon_svg = (const char*) temp_binary_data_42;
 
 //================== people.png ==================
-static const unsigned char temp_binary_data_38[] =
+static const unsigned char temp_binary_data_43[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,6,106,73,68,65,84,104,129,237,152,109,140,92,101,21,128,159,243,222,187,187,109,55,181,161,235,206,206,220,217,45,149,18,208,93,81,139,31,80,164,104,170,96,20,149,63,146,136,74,76,109,76,44,160,72,2,13,38,126,70,82,136,52,45,34,
 63,42,152,104,248,168,10,126,166,137,223,245,163,5,137,18,9,138,27,91,74,217,214,221,123,222,105,183,221,33,105,75,157,238,220,123,252,49,119,54,227,118,102,118,27,183,250,103,158,63,51,247,220,243,158,143,251,222,247,188,231,190,208,161,67,135,14,29,
@@ -12663,10 +14864,10 @@ static const unsigned char temp_binary_data_38[] =
 155,45,202,179,37,251,190,184,75,85,83,239,253,119,255,91,123,109,201,42,143,197,113,188,105,161,109,171,234,231,84,213,84,245,202,133,182,61,67,28,199,59,85,245,128,153,45,216,113,76,157,108,33,191,232,189,255,233,217,140,59,171,131,45,85,61,74,173,
 249,58,151,148,163,40,90,62,95,229,182,167,18,141,152,153,120,239,31,18,145,115,114,28,57,203,151,91,200,211,187,14,29,58,116,232,208,161,195,185,226,223,191,160,18,11,195,92,207,96,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* people_png = (const char*) temp_binary_data_38;
+const char* people_png = (const char*) temp_binary_data_43;
 
 //================== people.svg ==================
-static const unsigned char temp_binary_data_39[] =
+static const unsigned char temp_binary_data_44[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12748,10 +14949,10 @@ static const unsigned char temp_binary_data_39[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* people_svg = (const char*) temp_binary_data_39;
+const char* people_svg = (const char*) temp_binary_data_44;
 
 //================== person.png ==================
-static const unsigned char temp_binary_data_40[] =
+static const unsigned char temp_binary_data_45[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,3,82,73,68,65,84,104,129,237,152,77,104,92,101,20,134,159,51,51,25,77,34,34,193,76,38,55,18,41,152,133,63,75,211,212,186,40,232,34,32,136,224,34,96,23,181,186,146,174,138,32,88,92,74,192,157,27,197,46,68,218,133,46,138,224,207,202,
 223,66,55,213,166,117,89,151,70,195,220,115,111,162,17,196,140,237,152,153,121,93,56,133,18,19,103,198,156,22,132,251,172,46,247,188,223,247,158,119,238,207,220,239,131,130,130,130,130,130,130,255,49,22,61,97,154,166,135,205,236,69,51,59,34,41,1,48,51,
@@ -12767,10 +14968,10 @@ static const unsigned char temp_binary_data_40[] =
 146,78,37,73,114,218,204,218,255,165,233,189,144,52,146,101,217,9,96,25,88,55,179,67,131,252,48,3,5,112,247,179,192,49,224,67,73,87,246,215,106,159,134,204,14,2,207,74,58,51,51,51,243,66,95,253,32,147,186,251,38,48,177,223,230,134,228,151,36,73,38,111,
 179,103,65,65,65,65,65,193,237,229,47,213,25,86,225,205,242,241,224,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* person_png = (const char*) temp_binary_data_40;
+const char* person_png = (const char*) temp_binary_data_45;
 
 //================== person.svg ==================
-static const unsigned char temp_binary_data_41[] =
+static const unsigned char temp_binary_data_46[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12840,10 +15041,10 @@ static const unsigned char temp_binary_data_41[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* person_svg = (const char*) temp_binary_data_41;
+const char* person_svg = (const char*) temp_binary_data_46;
 
 //================== play_icon.svg ==================
-static const unsigned char temp_binary_data_42[] =
+static const unsigned char temp_binary_data_47[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12965,10 +15166,10 @@ static const unsigned char temp_binary_data_42[] =
 "     id=\"path4930\" />\n"
 "</svg>\n";
 
-const char* play_icon_svg = (const char*) temp_binary_data_42;
+const char* play_icon_svg = (const char*) temp_binary_data_47;
 
 //================== power.svg ==================
-static const unsigned char temp_binary_data_43[] =
+static const unsigned char temp_binary_data_48[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13043,10 +15244,10 @@ static const unsigned char temp_binary_data_43[] =
 "       id=\"path4471\"\n"
 "       style=\"stroke:none;stroke-opacity:1;fill:#b2b2b2;fill-opacity:1\" /></g></svg>\n";
 
-const char* power_svg = (const char*) temp_binary_data_43;
+const char* power_svg = (const char*) temp_binary_data_48;
 
 //================== power_sel.svg ==================
-static const unsigned char temp_binary_data_44[] =
+static const unsigned char temp_binary_data_49[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13121,10 +15322,10 @@ static const unsigned char temp_binary_data_44[] =
 "       id=\"path4471\"\n"
 "       d=\"m 354.9038,193.4519 a 22,22 0 0 1 -22,-22 V -8.5480978 a 22,22 0 0 1 44,0 V 171.4519 a 22,22 0 0 1 -22,22 z\" /></g></svg>\n";
 
-const char* power_sel_svg = (const char*) temp_binary_data_44;
+const char* power_sel_svg = (const char*) temp_binary_data_49;
 
 //================== record.svg ==================
-static const unsigned char temp_binary_data_45[] =
+static const unsigned char temp_binary_data_50[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13248,10 +15449,10 @@ static const unsigned char temp_binary_data_45[] =
 "     r=\"10.826572\" />\n"
 "</svg>\n";
 
-const char* record_svg = (const char*) temp_binary_data_45;
+const char* record_svg = (const char*) temp_binary_data_50;
 
 //================== record_active.svg ==================
-static const unsigned char temp_binary_data_46[] =
+static const unsigned char temp_binary_data_51[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13375,10 +15576,10 @@ static const unsigned char temp_binary_data_46[] =
 "     r=\"10.826573\" />\n"
 "</svg>\n";
 
-const char* record_active_svg = (const char*) temp_binary_data_46;
+const char* record_active_svg = (const char*) temp_binary_data_51;
 
 //================== record_active_alt.svg ==================
-static const unsigned char temp_binary_data_47[] =
+static const unsigned char temp_binary_data_52[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13502,10 +15703,10 @@ static const unsigned char temp_binary_data_47[] =
 "     style=\"fill:#f74848;fill-opacity:1;stroke:#cccccc;stroke-width:1.03096;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" />\n"
 "</svg>\n";
 
-const char* record_active_alt_svg = (const char*) temp_binary_data_47;
+const char* record_active_alt_svg = (const char*) temp_binary_data_52;
 
 //================== reset_buffer_icon.svg ==================
-static const unsigned char temp_binary_data_48[] =
+static const unsigned char temp_binary_data_53[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13577,10 +15778,10 @@ static const unsigned char temp_binary_data_48[] =
 "     d=\"M 96.73077,88.727418 93.56857,411.27258\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:24;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" /></svg>\n";
 
-const char* reset_buffer_icon_svg = (const char*) temp_binary_data_48;
+const char* reset_buffer_icon_svg = (const char*) temp_binary_data_53;
 
 //================== send_group.svg ==================
-static const unsigned char temp_binary_data_49[] =
+static const unsigned char temp_binary_data_54[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13675,10 +15876,10 @@ static const unsigned char temp_binary_data_49[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_svg = (const char*) temp_binary_data_49;
+const char* send_group_svg = (const char*) temp_binary_data_54;
 
 //================== send_group_small.svg ==================
-static const unsigned char temp_binary_data_50[] =
+static const unsigned char temp_binary_data_55[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13773,10 +15974,10 @@ static const unsigned char temp_binary_data_50[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_small_svg = (const char*) temp_binary_data_50;
+const char* send_group_small_svg = (const char*) temp_binary_data_55;
 
 //================== settings_icon.svg ==================
-static const unsigned char temp_binary_data_51[] =
+static const unsigned char temp_binary_data_56[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13844,10 +16045,10 @@ static const unsigned char temp_binary_data_51[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>";
 
-const char* settings_icon_svg = (const char*) temp_binary_data_51;
+const char* settings_icon_svg = (const char*) temp_binary_data_56;
 
 //================== skipback_icon.svg ==================
-static const unsigned char temp_binary_data_52[] =
+static const unsigned char temp_binary_data_57[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13920,10 +16121,10 @@ static const unsigned char temp_binary_data_52[] =
 "     x1=\"112\" />\n"
 "</svg>\n";
 
-const char* skipback_icon_svg = (const char*) temp_binary_data_52;
+const char* skipback_icon_svg = (const char*) temp_binary_data_57;
 
 //================== sonobus_logo_96.png ==================
-static const unsigned char temp_binary_data_53[] =
+static const unsigned char temp_binary_data_58[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,96,0,0,0,96,8,6,0,0,0,226,152,119,56,0,0,0,9,112,72,89,115,0,0,5,137,0,0,5,137,1,109,104,157,250,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,
 111,114,103,155,238,60,26,0,0,19,120,73,68,65,84,120,156,237,157,121,124,28,197,149,199,191,213,61,35,141,102,116,75,22,178,45,11,219,128,108,99,203,54,62,98,59,118,240,193,97,3,159,128,179,16,7,18,47,11,187,192,230,19,178,9,36,155,108,178,217,108,112,
 14,18,242,225,78,54,108,178,201,2,27,236,112,132,195,24,135,144,64,240,250,36,1,108,131,111,19,31,178,37,91,178,14,235,154,123,186,107,255,40,205,120,70,26,205,244,28,58,252,89,253,230,83,154,86,117,119,85,247,123,85,239,189,122,245,170,6,70,48,130,17,
@@ -13997,10 +16198,10 @@ static const unsigned char temp_binary_data_53[] =
 215,244,70,151,105,2,219,80,214,205,179,64,235,224,189,78,102,24,234,8,229,98,212,50,216,101,168,213,152,147,176,182,128,163,19,229,185,220,133,10,17,217,196,32,76,158,12,4,134,154,1,241,80,138,10,89,44,64,109,118,228,66,141,51,220,168,13,191,27,56,143,
 90,248,8,70,48,130,17,140,96,4,35,24,193,8,70,48,12,241,127,224,50,254,113,39,185,17,225,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_logo_96_png = (const char*) temp_binary_data_53;
+const char* sonobus_logo_96_png = (const char*) temp_binary_data_58;
 
 //================== sonobus_title_small.png ==================
-static const unsigned char temp_binary_data_54[] =
+static const unsigned char temp_binary_data_59[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,1,157,0,0,0,96,8,6,0,0,0,198,164,175,209,0,0,0,9,112,72,89,115,0,0,1,118,0,0,1,118,1,233,206,71,139,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,
 46,111,114,103,155,238,60,26,0,0,32,0,73,68,65,84,120,156,237,157,119,96,19,229,255,199,223,151,61,155,166,77,210,116,179,10,66,25,181,101,200,158,178,17,197,34,163,8,226,15,183,248,69,17,5,17,5,190,184,253,226,0,199,215,9,50,100,40,10,42,10,2,50,101,
 151,34,20,40,133,238,54,163,105,218,140,38,77,147,187,251,253,113,45,22,104,51,218,148,22,191,247,42,71,175,119,207,61,207,115,151,220,125,238,249,60,159,1,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
@@ -14233,10 +16434,10 @@ static const unsigned char temp_binary_data_54[] =
 171,217,70,130,177,58,51,130,49,12,200,70,112,179,135,178,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
 176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,220,82,254,31,201,193,32,51,22,181,193,39,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_title_small_png = (const char*) temp_binary_data_54;
+const char* sonobus_title_small_png = (const char*) temp_binary_data_59;
 
 //================== speaker.svg ==================
-static const unsigned char temp_binary_data_55[] =
+static const unsigned char temp_binary_data_60[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14313,10 +16514,10 @@ static const unsigned char temp_binary_data_55[] =
 " 2523,887 2380,823 2221,823 Z\"\n"
 "       style=\"fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-opacity:1\" /></g></svg>\n";
 
-const char* speaker_svg = (const char*) temp_binary_data_55;
+const char* speaker_svg = (const char*) temp_binary_data_60;
 
 //================== speaker_disabled.svg ==================
-static const unsigned char temp_binary_data_56[] =
+static const unsigned char temp_binary_data_61[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14387,10 +16588,10 @@ static const unsigned char temp_binary_data_56[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7431\" /></svg>\n";
 
-const char* speaker_disabled_svg = (const char*) temp_binary_data_56;
+const char* speaker_disabled_svg = (const char*) temp_binary_data_61;
 
 //================== triangle_disclosure.svg ==================
-static const unsigned char temp_binary_data_57[] =
+static const unsigned char temp_binary_data_62[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14469,10 +16670,10 @@ static const unsigned char temp_binary_data_57[] =
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:23.9998;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:type=\"star\" /></svg>\n";
 
-const char* triangle_disclosure_svg = (const char*) temp_binary_data_57;
+const char* triangle_disclosure_svg = (const char*) temp_binary_data_62;
 
 //================== triangle_disclosure_right.svg ==================
-static const unsigned char temp_binary_data_58[] =
+static const unsigned char temp_binary_data_63[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14552,10 +16753,10 @@ static const unsigned char temp_binary_data_58[] =
 "     transform=\"matrix(0,-2.0118261,1.1767472,0,7.4764537,517.19607)\"\n"
 "     inkscape:transform-center-x=\"-31.271791\" /></svg>\n";
 
-const char* triangle_disclosure_right_svg = (const char*) temp_binary_data_58;
+const char* triangle_disclosure_right_svg = (const char*) temp_binary_data_63;
 
 //================== urei_main.wav ==================
-static const unsigned char temp_binary_data_59[] =
+static const unsigned char temp_binary_data_64[] =
 { 82,73,70,70,112,2,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,76,2,0,0,24,255,34,1,177,206,124,146,140,144,94,144,113,144,31,145,103,144,174,145,135,144,16,146,213,144,70,146,72,145,96,146,211,145,98,146,
 121,146,79,146,46,147,55,146,227,147,48,146,128,148,73,146,249,148,145,146,72,149,168,146,93,155,215,235,234,18,48,11,3,16,147,12,226,14,78,13,34,14,204,13,163,13,17,14,93,13,35,14,71,13,17,14,78,13,226,13,111,13,171,13,142,13,128,13,160,13,99,13,162,
 13,86,13,152,13,82,13,132,13,89,13,105,13,94,13,85,13,96,13,73,13,90,13,67,13,81,13,59,13,72,13,52,13,58,13,52,13,49,13,44,13,41,13,40,13,32,13,32,13,23,13,22,13,19,13,16,13,12,13,9,13,0,13,255,12,253,12,250,12,246,12,242,12,239,12,235,12,234,12,226,
@@ -14566,10 +16767,10 @@ static const unsigned char temp_binary_data_59[] =
 10,141,10,135,10,123,10,125,10,110,10,105,10,97,10,86,10,81,10,69,10,62,10,53,10,42,10,32,10,25,10,13,10,0,10,248,9,231,9,221,9,211,9,192,9,183,9,164,9,148,9,134,9,113,9,97,9,75,9,52,9,30,9,4,9,233,8,207,8,172,8,133,8,103,8,51,8,13,8,211,7,158,7,94,7,
 27,7,212,6,135,6,64,6,234,5,0,0 };
 
-const char* urei_main_wav = (const char*) temp_binary_data_59;
+const char* urei_main_wav = (const char*) temp_binary_data_64;
 
 //================== wordmaker.g ==================
-static const unsigned char temp_binary_data_60[] =
+static const unsigned char temp_binary_data_65[] =
 { 123,10,60,115,116,97,114,116,62,10,60,118,101,114,98,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,
 99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,118,101,114,98,62,60,97,100,118,101,114,98,62,59,10,125,10,10,123,10,60,97,100,106,101,99,116,105,118,101,62,10,97,98,97,115,105,99,59,10,97,98,97,116,105,99,
 59,10,97,98,105,101,110,116,59,10,97,98,106,101,99,116,59,10,97,98,108,97,122,101,59,10,97,98,108,101,59,10,97,98,108,111,111,109,59,10,97,98,111,114,97,108,59,10,97,98,111,117,116,59,10,97,98,111,118,101,59,10,97,98,114,111,97,100,59,10,97,98,114,117,
@@ -16366,10 +18567,10 @@ static const unsigned char temp_binary_data_60[] =
 59,10,119,105,100,101,59,10,119,105,100,101,108,121,59,10,119,105,108,100,59,10,119,105,108,100,108,121,59,10,119,105,115,101,108,121,59,10,119,105,116,104,97,108,59,10,119,105,116,104,105,110,59,10,119,111,114,115,101,59,10,119,111,114,115,116,59,10,
 119,114,111,110,103,59,10,119,114,121,108,121,59,10,121,101,97,59,10,121,101,97,104,59,10,121,101,97,114,108,121,59,10,121,101,116,59,10,121,111,110,59,10,121,111,110,100,101,114,59,10,122,105,103,122,97,103,59,10,125,10,0,0 };
 
-const char* wordmaker_g = (const char*) temp_binary_data_60;
+const char* wordmaker_g = (const char*) temp_binary_data_65;
 
 //================== x_icon.svg ==================
-static const unsigned char temp_binary_data_61[] =
+static const unsigned char temp_binary_data_66[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16500,7 +18701,7 @@ static const unsigned char temp_binary_data_61[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* x_icon_svg = (const char*) temp_binary_data_61;
+const char* x_icon_svg = (const char*) temp_binary_data_66;
 
 
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
@@ -16513,7 +18714,12 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
     switch (hash)
     {
-        case 0xfb1660a3:  numBytes = 17742; return localized_es_txt;
+        case 0xf89c3ef6:  numBytes = 25323; return localized_de_txt;
+        case 0xfb1660a3:  numBytes = 24860; return localized_es_txt;
+        case 0xfcbd21c1:  numBytes = 25788; return localized_fr_txt;
+        case 0x01f7daa0:  numBytes = 25316; return localized_it_txt;
+        case 0x02a0f4ac:  numBytes = 27476; return localized_ja_txt;
+        case 0x0de9c6f9:  numBytes = 24742; return localized_pt_txt;
         case 0xb8757689:  numBytes = 2846; return bar_click_wav;
         case 0x24af1e6c:  numBytes = 2708; return beat_click_wav;
         case 0x55b214fd:  numBytes = 2645; return chat_svg;
@@ -16584,7 +18790,12 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
 const char* namedResourceList[] =
 {
+    "localized_de_txt",
     "localized_es_txt",
+    "localized_fr_txt",
+    "localized_it_txt",
+    "localized_ja_txt",
+    "localized_pt_txt",
     "bar_click_wav",
     "beat_click_wav",
     "chat_svg",
@@ -16650,7 +18861,12 @@ const char* namedResourceList[] =
 
 const char* originalFilenames[] =
 {
+    "localized_de.txt",
     "localized_es.txt",
+    "localized_fr.txt",
+    "localized_it.txt",
+    "localized_ja.txt",
+    "localized_pt.txt",
     "bar_click.wav",
     "beat_click.wav",
     "chat.svg",
