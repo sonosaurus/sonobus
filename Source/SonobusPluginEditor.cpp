@@ -4986,13 +4986,18 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
 
     String resname = String("localized_") + slang + String("_txt");
     String resfname = String("localized_") + sflang + String("_txt");
+    String resfullfilename = String("localized_") + lang.toLowerCase() + String(".txt");
+    String resfilename = String("localized_") + slang + String(".txt");
 
     const char * rawdata = BinaryData::getNamedResource(resname.toRawUTF8(), retbytes);
     const char * rawdataf = BinaryData::getNamedResource(resfname.toRawUTF8(), retfbytes);
     
     File   userfilename;
     if (JUCEApplication::isStandaloneApp() && mSettingsFolder.getFullPathName().isNotEmpty()) {
-        userfilename = mSettingsFolder.getChildFile(String::formatted("localized_%s.txt", slang.toRawUTF8()));
+        userfilename = mSettingsFolder.getChildFile(resfullfilename);
+        if (!userfilename.existsAsFile()) {
+            userfilename = mSettingsFolder.getChildFile(resfilename);
+        }
     }
 
 
