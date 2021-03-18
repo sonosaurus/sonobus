@@ -4952,7 +4952,8 @@ void SonobusAudioProcessorEditor::initializeLanguages()
     languages.add(TRANS("French"));  languagesNative.add(CharPointer_UTF8 ("fran\xc3\xa7""ais")); codes.add("fr");
     languages.add(TRANS("Italian"));  languagesNative.add("italiano"); codes.add("it");
     languages.add(TRANS("German"));  languagesNative.add("Deutsch"); codes.add("de");
-    languages.add(TRANS("Portuguese"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas")); codes.add("pt");
+    languages.add(TRANS("Portuguese (Portugal)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Portugal)")); codes.add("pt-pt");
+    languages.add(TRANS("Portuguese (Brazil)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Brasil)")); codes.add("pt-br");
 
     //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
     languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
@@ -4991,7 +4992,7 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
 
     const char * rawdata = BinaryData::getNamedResource(resname.toRawUTF8(), retbytes);
     const char * rawdataf = BinaryData::getNamedResource(resfname.toRawUTF8(), retfbytes);
-    
+
     File   userfilename;
     if (JUCEApplication::isStandaloneApp() && mSettingsFolder.getFullPathName().isNotEmpty()) {
         userfilename = mSettingsFolder.getChildFile(resfullfilename);

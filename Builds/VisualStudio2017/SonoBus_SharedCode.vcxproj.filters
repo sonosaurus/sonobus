@@ -5636,7 +5636,10 @@
     <None Include="..\..\localization\localized_ja.txt">
       <Filter>SonoBus\Resources\localization</Filter>
     </None>
-    <None Include="..\..\localization\localized_pt.txt">
+    <None Include="..\..\localization\localized_pt-br.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_pt-pt.txt">
       <Filter>SonoBus\Resources\localization</Filter>
     </None>
     <None Include="..\..\images\bar_click.wav">

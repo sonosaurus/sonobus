@@ -2102,7 +2102,7 @@ static const unsigned char temp_binary_data_4[] =
 
 const char* localized_ja_txt = (const char*) temp_binary_data_4;
 
-//================== localized_pt.txt ==================
+//================== localized_pt-br.txt ==================
 static const unsigned char temp_binary_data_5[] =
 "language: Portuguese (pt)\n"
 "countries: Portugal (pt), Brazil (br)\n"
@@ -2517,10 +2517,426 @@ static const unsigned char temp_binary_data_5[] =
 "\"Link Delay Time with other inputs\" = \"Tempo de atraso do link com outras entradas\"\n"
 "\"Additional Monitoring Delay\" = \"Atraso de monitoramento adicional\"\n";
 
-const char* localized_pt_txt = (const char*) temp_binary_data_5;
+const char* localized_ptbr_txt = (const char*) temp_binary_data_5;
+
+//================== localized_pt-pt.txt ==================
+static const unsigned char temp_binary_data_6[] =
+"\"language: Portuguese (pt)\" = \"PLEASE PUT SUGGESTED EDITS IN A NEW COLUMN SO IT IS OBVIOUS WHEN CHANGES ARE MADE -->\"\n"
+"\"countries: Portugal (pt), Brazil (br)\" = \"Green items are NEW and need checking (17 Mar 2021)\"\n"
+"\"\" = \"\"\n"
+"\"Noise Floor\" = \"N\xc3\xadvel M\xc3\xadnimo de Ru\xc3\xad""do\"\n"
+"\"Ratio\" = \"Ratio\"\n"
+"\"Attack\" = \"Attack\"\n"
+"\"Release\" = \"Release\"\n"
+"\"Noise Gate\" = \"Noise Gate\"\n"
+"\"In Gain\" = \"Ganho inicial\"\n"
+"\"In Pan\" = \"Pan inicial\"\n"
+"\"C\" = \"C\"\n"
+"\"In Pan 1\" = \"Pan inicial 1\"\n"
+"\"In Pan 2\" = \"Pan inicial 2\"\n"
+"\"Dry Level\" = \"N\xc3\xadvel sem efeitos\"\n"
+"\"Output Level\" = \"N\xc3\xadvel de Sa\xc3\xad""da\"\n"
+"\"Default Net Buffer Time\" = \"Tempo de buffer de rede padr\xc3\xa3o\"\n"
+"\"Send Channels\" = \"Canais de envio\"\n"
+"\"Metronome Enabled\" = \"Metronomo ativi\"\n"
+"\"Send Metronome Audio\" = \"Enviar \xc3\x81udio do Metr\xc3\xb3nomo\"\n"
+"\"Metronome Gain\" = \"Ganho do metr\xc3\xb3nomo\"\n"
+"\"Metronome Tempo\" = \"Tempo do Metr\xc3\xb3nomo\"\n"
+"\"Send Playback Audio\" = \"Enviar Reprodu\xc3\xa7\xc3\xa3o de \xc3\x81udio\"\n"
+"\"Hear Latency Test\" = \"Ouvir o Teste de Lat\xc3\xaancia\"\n"
+"\"Record Metronome to File\" = \"Gravar Metr\xc3\xb4nomo para Arquivo\"\n"
+"\"Main Reverb Enabled\" = \"Reverb ligado\"\n"
+"\"Main Reverb Level\" = \"Volume geral do reverb\"\n"
+"\"Main Reverb Size\" = \"Dura\xc3\xa7\xc3\xa3o do Reverb\"\n"
+"\"Main Reverb Damping\" = \"Amortecimento de reverbera\xc3\xa7\xc3\xa3o principal\"\n"
+"\"Pre-Delay Time\" = \"Tempo de pr\xc3\xa9-atraso\"\n"
+"\"Main Reverb Model\" = \"Tipo de Reverb\"\n"
+"\"Main Send Mute\" = \"Silenciar Envio Geral\"\n"
+"\"Main Receive Mute\" = \"Silenciar Recep\xc3\xa7\xc3\xa3o Geral\"\n"
+"\"Main In Mute\" = \"Silenciar entrada geral\"\n"
+"\"Main Monitor Solo\" = \"Solo Monitor Principal\"\n"
+"\"Def Auto Net Buffer Mode\" = \"Padr\xc3\xa3o autom\xc3\xa1tico do buffer de internet\"\n"
+"\"Def Send Format\" = \"Formato de envio padr\xc3\xa3o\"\n"
+"\"Dynamic Resampling\" = \"Reamostragem Din\xc3\xa2mica\"\n"
+"\"Reconnect Last\" = \"Reconectar \xc3\xbaltimo\"\n"
+"\"Could not find format for filename\" = \"N\xc3\xa3o foi poss\xc3\xadvel encontrar o formato do arquivo\"\n"
+"\"Error creating writer for \" = \"Erro ao criar descri\xc3\xa7\xc3\xa3o para\"\n"
+"\"Error creating output file: \" = \"Erro ao criar ficheiro\"\n"
+"\"Error creating directory for recording: \" = \"Erro ao criar pasta para grava\xc3\xa7\xc3\xa3o:\"\n"
+"\"SonoBus\" = \"SonoBus\"\n"
+"\"Pan: Center\" = \"Pan: Centro\"\n"
+"\"Pan: \" = \"Pan:\"\n"
+"\"MUTE\" = \"MUDO\"\n"
+"\"Mutes your input preventing everyone from hearing you, without any indicator\" = \"Silencia entrada evitando que todos possam ouvi-lo, sem qualquer indica\xc3\xa7\xc3\xa3o\"\n"
+"\"SOLO\" = \"SOLO\"\n"
+"\"Listen to only yourself, and other soloed users. Alt-click to exclusively solo yourself.\" = \"Ou\xc3\xa7""a apenas voc\xc3\xaa mesmo e outros usu\xc3\xa1rios em solo. Alt-click para solo apenas a si\"\n"
+"\"Silences your Input, none of your audio (including file playback) will be sent to users and they will see a muted indicator\" = \"Silencia entrada, nenhum \xc3\xa1udio (incluindo a reprodu\xc3\xa7\xc3\xa3o de arquivo) ser\xc3\xa1 enviado aos usu\xc3"
+"\xa1rios e eles ver\xc3\xa3o um indicador de mudo\"\n"
+"\"Mutes/Unmutes all users, no audio data will be received when users are muted\" = \"Desativa / ativa o som de todos os usu\xc3\xa1rios, nenhum dado de \xc3\xa1udio ser\xc3\xa1 recebido quando os usu\xc3\xa1rios estiverem sem som\"\n"
+"\"When pressed, mutes others and unmutes you momentarily (push to talk).\" = \"Quando pressionado, silencia outros e ativa-o momentaneamente (carregue para falar).\"\n"
+"\" Use the \\'T\\' key as a shortcut.\" = \" Use a tecla \\'T\\' como atalho.\"\n"
+"\"Metronome On/Off\" = \"Metr\xc3\xb3nomo Ligado / Desligado\"\n"
+"\"Metronome Options\" = \"Op\xc3\xa7\xc3\xb5""es de Metr\xc3\xb3nomo\"\n"
+"\"Level\" = \"N\xc3\xadvel\"\n"
+"\"Tempo\" = \"Tempo\"\n"
+"\"Send Metronome to All\" = \"Enviar metr\xc3\xb3nomo para todos\"\n"
+"\"In Level\" = \"N\xc3\xadvel de Entrada\"\n"
+"\"This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring\" = \"Isso reduz ou aumenta o n\xc3\xadvel da sua entrada de \xc3\xa1udio e afetar\xc3\xa1 o n\xc3\xad"
+"vel deste \xc3\xa1udio enviado para outras pessoas e a sua pr\xc3\xb3pria monitoriza\xc3\xa7\xc3\xa3o\"\n"
+"\"Monitor\" = \"Monitor\"\n"
+"\"This adjusts the level of the monitoring of your input, that only you hear\" = \"Ajusta o n\xc3\xadvel de monitoriza\xc3\xa7\xc3\xa3o entrada, que s\xc3\xb3 voc\xc3\xaa ouve\"\n"
+"\"Out Level\" = \"N\xc3\xadvel de Sa\xc3\xad""da\"\n"
+"\"This is the main volume control which affects everything you hear\" = \"Este \xc3\xa9 o controle de volume principal que afeta tudo que voc\xc3\xaa ouve\"\n"
+"\"RECENTS\" = \"RECENTES\"\n"
+"\"PRIVATE GROUP\" = \"GRUPO PRIVADO\"\n"
+"\"PUBLIC GROUPS\" = \"GRUPOS P\xc3\x9a""BLICOS\"\n"
+"\"DIRECT\" = \"DIRETO\"\n"
+"\"Local Address:\" = \"Endere\xc3\xa7o local:\"\n"
+"\"Host: \" = \"Hospedeiro:\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise.\" = \"Conecte-se diretamente a outras inst\xc3\xa2ncias do SonoBus na sua rede local com o endere\xc3\xa7o local anunciado\"\n"
+"\"IPaddress:port\" = \"Endere\xc3\xa7o IP: porta\"\n"
+"\"Connect...\" = \"Ligar...\"\n"
+"\"Direct Connect\" = \"Liga\xc3\xa7\xc3\xa3o direta\"\n"
+"\"Connect to Group\" = \"Ligar ao grupo\"\n"
+"\"optional\" = \"opcional\"\n"
+"\"Your Displayed Name:\" = \"Nome a exibir:\"\n"
+"\"Password:\" = \"Senha:\"\n"
+"\"Group Name:\" = \"Nome do Grupo:\"\n"
+"\"Connection Server:\" = \"Servidor de liga\xc3\xa7\xc3\xa3o:\"\n"
+"\"Generate a random group name\" = \"Gerar um nome de grupo aleat\xc3\xb3rio\"\n"
+"\"Copy connection information to the clipboard to share\" = \"Copie as informa\xc3\xa7\xc3\xb5""es de liga\xc3\xa7\xc3\xa3o para a \xc3\xa1rea de transfer\xc3\xaancia para partilhar\"\n"
+"\"Paste connection information from the clipboard\" = \"Cole as informa\xc3\xa7\xc3\xb5""es de liga\xc3\xa7\xc3\xa3o da \xc3\xa1rea de transfer\xc3\xaancia\"\n"
+"\"The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).\" = \"O servidor de conex\xc3\xa3o \xc3\xa9 usado apenas para ajudar os usu\xc3\xa1rios a se enco"
+"ntrarem, nenhum \xc3\xa1udio passa por ele. Todo o \xc3\xa1udio \xc3\xa9 enviado diretamente entre os usu\xc3\xa1rios (ponto a ponto).\"\n"
+"\"Clear All\" = \"Limpar Tudo\"\n"
+"\"Active Public Groups\" = \"Grupos P\xc3\xba""blicos Ativos\"\n"
+"\"Select existing group below OR \" = \"Selecione o grupo existente abaixo OU\"\n"
+"\"Create Group...\" = \"Criar Grupo...\"\n"
+"\"enter group name\" = \"insira o nome do grupo\"\n"
+"\"Choose a descriptive group name that includes geographic information and genre\" = \"Escolha um nome de grupo descritivo que inclua informa\xc3\xa7\xc3\xb5""es geogr\xc3\xa1""ficas e estilo musical\"\n"
+"\"Patchbay\" = \"Patchbay\"\n"
+"\"Setup Audio\" = \"Configurar \xc3\x81udio\"\n"
+"\"Press to copy/share link to group\" = \"Pressione para copiar / partilhar liga\xc3\xa7\xc3\xa3o para o grupo\"\n"
+"\"Connect\" = \"Ligar\"\n"
+"\"Manual\" = \"Manual\"\n"
+"\"Auto Up\" = \"Auto up\"\n"
+"\"Auto\" = \"Auto\"\n"
+"\"Initial Auto\" = \"Auto inicial\"\n"
+"\"Default Jitter Buffer\" = \"Jitter Buffer Padr\xc3\xa3o\"\n"
+"\"Default Send Quality:\" = \"Qualidade de Envio Padr\xc3\xa3o:\"\n"
+"\"Make Latency Test Audible\" = \"Tornar o Teste de Lat\xc3\xaancia Aud\xc3\xadvel\"\n"
+"\"Metronome output recorded in full mix\" = \"Gravar metr\xc3\xb3nomo na mistura geral\"\n"
+"\"Record feature creates the following files:\" = \"A grava\xc3\xa7\xc3\xa3o cria os seguintes arquivos:\"\n"
+"\"Full Mix\" = \"Mistura Geral\"\n"
+"\"Full Mix without yourself\" = \"Mistura Geral sem o utlizador local\"\n"
+"\"Yourself\" = \"Utilizador\"\n"
+"\"Each Connected User\" = \"Cada utilizador ligado\"\n"
+"\"FLAC\" = \"FLAC\"\n"
+"\"WAV\" = \"WAV\"\n"
+"\"OGG\" = \"OGG\"\n"
+"\"16 bit\" = \"16 bits\"\n"
+"\"24 bit\" = \"24 bits\"\n"
+"\"Audio File Format:\" = \"Formato de Arquivo de \xc3\x81udio:\"\n"
+"\"Record Location:\" = \"Localiza\xc3\xa7\xc3\xa3o da grava\xc3\xa7\xc3\xa3o\"\n"
+"\"Use Specific UDP Port\" = \"Usar a porta UDP espec\xc3\xad""fica\"\n"
+"\"Use Drift Correction\" = \"Usar corre\xc3\xa7\xc3\xa3o de desvio\"\n"
+"\"Auto-Reconnect to Last Group\" = \"Reconectar automaticamente ao \xc3\xbaltimo grupo\"\n"
+"\"Override Device Sample Rate\" = \"Substituir frequ\xc3\xaancia de amostra do dispositivo\"\n"
+"\"Automatically check for updates\" = \"Verificar atualiza\xc3\xa7\xc3\xb5""es automaticamente\"\n"
+"\"Sliders Snap to Mouse Click\" = \"Os controles deslizantes ajustam-se com o clique do rato\"\n"
+"\"Use Input FX Limiter\" = \"Use o limitador de entrada dos efeitos\"\n"
+"\"Change all connected\" = \"Mudar todos os utilizadores ligados\"\n"
+"\"Version: \" = \"Vers\xc3\xa3o:\"\n"
+"\"FX\" = \"FX\"\n"
+"\"In FX\" = \"FX de entrada\"\n"
+"\"Match # Inputs\" = \"Emparelhar # Entradas\"\n"
+"\"Send Mono\" = \"Enviar Mono\"\n"
+"\"Send Stereo\" = \"Enviar est\xc3\xa9reo\"\n"
+"\"# Send Channels\" = \"# Canais de envio\"\n"
+"\"Size\" = \"Tamanho\"\n"
+"\"Damping\" = \"Amortecimento\"\n"
+"\"Pre-Delay\" = \"Pr\xc3\xa9-Atraso\"\n"
+"\"Reverb\" = \"Reverb\"\n"
+"\"Freeverb\" = \"Freeverb\"\n"
+"\"MVerb\" = \"MVerb\"\n"
+"\"Zita\" = \"Zita\"\n"
+"\"Start/Stop recording audio to file\" = \"Iniciar / parar a grava\xc3\xa7\xc3\xa3o de \xc3\xa1udio para o ficheiro\"\n"
+"\"Load audio file for playback\" = \"Carregar arquivo de \xc3\xa1udio para reprodu\xc3\xa7\xc3\xa3o\"\n"
+"\"Send File Playback to All\" = \"Enviar reprodu\xc3\xa7\xc3\xa3o de arquivo para todos\"\n"
+"\"Filled in Group information from clipboard! Press \\'Connect to Group\\' to join...\" = \"Preencha informa\xc3\xa7\xc3\xb5""es do grupo a partir da \xc3\xa1rea de transfer\xc3\xaancia Pressione \\'Ligar ao Grupo\\' para entrar ...\"\n"
+"\"Quit Confirmation\" = \"Confirma\xc3\xa7\xc3\xa3o de sa\xc3\xad""da\"\n"
+"\"You are connected, are you sure you want to quit?\" = \"Est\xc3\xa1 ligado, tem certeza de que deseja sair?\"\n"
+"\"Quit\" = \"Sair\"\n"
+"\"Share this link with others to connect with SonoBus:\" = \"Partilhe esta liga\xc3\xa7\xc3\xa3o com outras pessoas para se ligar com o SonoBus:\"\n"
+"\"Or share this link:\" = \"Ou partilhe esta liga\xc3\xa7\xc3\xa3o:\"\n"
+"\"Last Session: \" = \"\xc3\x9altima Sess\xc3\xa3o:\"\n"
+"\"Total: \" = \"Total:\"\n"
+"\"Not sending your audio anywhere\" = \"N\xc3\xa3o est\xc3\xa1 a enviar \xc3\xa1udio\"\n"
+"\"Sending your audio to others\" = \"A enviar \xc3\xa1udio para outros utilizadores\"\n"
+"\"Muted everyone\" = \"Todos silenciados\"\n"
+"\"Unmuted all who were not muted previously\" = \"Reativados todos os que n\xc3\xa3o estavam silenciados anteriormente\"\n"
+"\"Sending your metronome to all users\" = \"A enviar o metr\xc3\xb3nomo para todos os utilizadores\"\n"
+"\"Now only you will hear your metronome\" = \"Agora s\xc3\xb3 voc\xc3\xaa vai ouvir o seu metr\xc3\xb3nomo\"\n"
+"\"Sending file playback to all users\" = \"A enviar a reprodu\xc3\xa7\xc3\xa3o do ficheiro para todos os utilizadores\"\n"
+"\"Now only you will hear the file playback\" = \"S\xc3\xb3 voc\xc3\xaa vai ouvir a reprodu\xc3\xa7\xc3\xa3o do ficheiro\"\n"
+"\"Copied connection info to clipboard for you to share with others\" = \"Informa\xc3\xa7\xc3\xb5""es de conex\xc3\xa3o copiadas para a \xc3\xa1rea de transfer\xc3\xaancia para partilhar com outros utilizadores\"\n"
+"\"Copied group connection info to clipboard for you to share with others\" = \"Informa\xc3\xa7\xc3\xb5""es de conex\xc3\xa3o de grupo copiadas para a \xc3\xa1rea de transfer\xc3\xaancia para partilhar com outros utilizadores\"\n"
+"\"Finished recording to \" = \"Grava\xc3\xa7\xc3\xa3o terminada para\"\n"
+"\"Last recorded file: \" = \"\xc3\x9altimo ficheiro gravado:\"\n"
+"\"Started recording output\" = \"Grava\xc3\xa7\xc3\xa3o iniciada\"\n"
+"\"Recording audio to: \" = \"Gravando \xc3\xa1udio para:\"\n"
+"\"Recording multi-track audio to: \" = \"Gravando \xc3\xa1udio multipista para:\"\n"
+"\"Choose an audio file to open...\" = \"Escolha um ficheiro de \xc3\xa1udio para abrir ...\"\n"
+"\"Choose the folder for new recordings\" = \"Escolha a pasta para novas grava\xc3\xa7\xc3\xb5""es\"\n"
+"\"Filled in Group from link! Press \\'Connect to Group\\' to join...\" = \"Preenchido Grupo a partir do liga\xc3\xa7\xc3\xa3o! Pressione \\'Ligar ao Grupo\\' para entrar ...\"\n"
+"\"You need to specify a group name!\" = \"Precisa especificar um nome de grupo!\"\n"
+"\"You need to specify a user name!\" = \"Precisa especificar um nome de utilizador\"\n"
+"\"Server address is invalid!\" = \"O endere\xc3\xa7o do servidor \xc3\xa9 inv\xc3\xa1lido!\"\n"
+"\"All who join the same Group will be able to connect with each other.\" = \"Todos os que ingressem no mesmo Grupo poder\xc3\xa3o ligar-se entre si\"\n"
+"\"AUDIO\" = \"\xc3\x81UDIO\"\n"
+"\"OPTIONS\" = \"OP\xc3\x87\xc3\x95""ES\"\n"
+"\"HELP\" = \"AJUDA\"\n"
+"\"RECORDING\" = \"GRAVA\xc3\x87\xc3\x83O\"\n"
+"\"Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first.\" = \"Usar placas de som com drivers ASIO \xc3\xa9 altamente recomendado. Se o su"
+"a placa n\xc3\xa3o tem dispon\xc3\xadvel, instale ASIO4ALL (asio4all.org) e configure antecipadamente.\"\n"
+"\"Disconnect\" = \"Desligar\"\n"
+"\"[P] \" = \"[P]\"\n"
+"\"Waiting for other users to join group\" = \"Esperando que outros usu\xc3\xa1rios entrem no grupo\"\n"
+"\"Press Connect button to start.\" = \"Pressione o bot\xc3\xa3o Ligar para iniciar.\"\n"
+"\"Please use headphones if you are using a microphone!\" = \"Use Auscultadores se estiver a usar um microfone!\"\n"
+"\"Connected to server\" = \"Ligado ao servidor\"\n"
+"\"Already connected with this user name\" = \"J\xc3\xa1 h\xc3\xa1 algu\xc3\xa9m ligado com este nome de utilisador\"\n"
+"\"Connect failed: \" = \"Falha na liga\xc3\xa7\xc3\xa3o\"\n"
+"\"Disconnected from server\" = \"Desligado do servidor\"\n"
+"\"Disconnect failed: \" = \"Desligar falhou:\"\n"
+"\"Joined Group: \" = \"Grupo ingressado:\"\n"
+"\"Failed to join group: \" = \"Falha ao entrar no grupo:\"\n"
+"\"Left Group: \" = \"Deixou o grupo:\"\n"
+"\"Failed to leave group: \" = \"Falha ao sair do grupo:\"\n"
+"\"Trim to New\" = \"Cortar para novo\"\n"
+"\"Share File\" = \"Compartilhar ficheiro\"\n"
+"\"Reveal File\" = \"Mostrar ficheiro\"\n"
+"\"Mute All Input\" = \"Silenciar todas as entradas\"\n"
+"\"Toggle Mute all input\" = \"Alternar Silenciar todas as entradas\"\n"
+"\"Popup\" = \"Aparecer\"\n"
+"\"Mute All Users\" = \"Silenciar todos os utilizadores\"\n"
+"\"Toggle Mute all users\" = \"Alternar Silenciar todos os utilizadores\"\n"
+"\"Play/Pause\" = \"Tocar/Pausar\"\n"
+"\"Toggle file playback\" = \"Alternar reprodu\xc3\xa7\xc3\xa3o de ficheiro\"\n"
+"\"Loop\" = \"Loop\"\n"
+"\"Toggle file looping\" = \"Alternar loop de ficheiro\"\n"
+"\"Trim file from selection to new file\" = \"Crie novo ficheiro a partir da selec\xc3\xa7\xc3\xa3o\"\n"
+"\"Close File\" = \"Fechar ficheiro\"\n"
+"\"Close file\" = \"Fechar ficheiro\"\n"
+"\"Open File\" = \"Abrir ficheiro\"\n"
+"\"Open Audio file\" = \"Abrir ficheiro de \xc3\x81udio\"\n"
+"\"Share file\" = \"Partilhar ficheiro\"\n"
+"\"Reveal file\" = \"Mostrar ficheiro\"\n"
+"\"Show Options\" = \"Mostrar Op\xc3\xa7\xc3\xb5""es\"\n"
+"\"Record\" = \"Gravar\"\n"
+"\"Toggle Record\" = \"Alternar grava\xc3\xa7\xc3\xa3o\"\n"
+"\"Check For New Version\" = \"Verifique se h\xc3\xa1 uma nova vers\xc3\xa3o\"\n"
+"\"Check for New Version\" = \"Verifique se h\xc3\xa1 uma nova vers\xc3\xa3o\"\n"
+"\"File\" = \"Ficheiro\"\n"
+"\"Transport\" = \"Transporte\"\n"
+"\"Help\" = \"Ajuda\"\n"
+"\"PUBLIC\" = \"P\xc3\x9a""BLICO\"\n"
+"\"password protected,\" = \"protegido por senha,\"\n"
+"\"on\" = \"em\"\n"
+"\"to\" = \"para\"\n"
+"\" active users\" = \" utlizadores ativos\"\n"
+"\" active user\" = \" utilizador ativo\"\n"
+"\"Save current state\" = \"Guardar estado atual\"\n"
+"\"Error whilst saving\" = \"Erro ao gravar\"\n"
+"\"Couldn\\'t write to the specified file!\" = \"N\xc3\xa3o foi poss\xc3\xadvel gravar no ficheiro especificado!\"\n"
+"\"Load a saved state\" = \"Carregar uma configura\xc3\xa7\xc3\xa3o gravada\"\n"
+"\"Error whilst loading\" = \"Erro ao carregar\"\n"
+"\"Couldn\\'t read from the specified file!\" = \"N\xc3\xa3o foi poss\xc3\xadvel ler do ficheiro especificado!\"\n"
+"\"Audio/MIDI Settings\" = \"Configura\xc3\xa7\xc3\xb5""es de \xc3\xa1udio/MIDI\"\n"
+"\"Audio Settings\" = \"Configura\xc3\xa7\xc3\xb5""es de \xc3\xa1udio\"\n"
+"\"Audio/MIDI Settings...\" = \"Configura\xc3\xa7\xc3\xb5""es de \xc3\xa1udio/MIDI...\"\n"
+"\"Save current state...\" = \"Salvar estado atual...\"\n"
+"\"Load a saved state...\" = \"Carregar um estado salvo...\"\n"
+"\"Reset to default state\" = \"Redefinir para o estado padr\xc3\xa3o\"\n"
+"\"Threshold\" = \"N\xc3\xadvel de refer\xc3\xaancia\"\n"
+"\"Makeup Gain\" = \"Ganho de compensa\xc3\xa7\xc3\xa3o\"\n"
+"\"Compressor\" = \"Compressor\"\n"
+"\"Autoset Makeup\" = \"Ganho de compensa\xc3\xa7\xc3\xa3o auto\"\n"
+"\"Gain\" = \"Ganho\"\n"
+"\"High Shelf\" = \"High Self\"\n"
+"\"Low Shelf\" = \"Low shelf\"\n"
+"\"Freq 1\" = \"Freq 1\"\n"
+"\"Q\" = \"Q\"\n"
+"\"Freq 2\" = \"Freq 2\"\n"
+"\"Parametric EQ\" = \"EQ Param\xc3\xa9trico\"\n"
+"\"Level: \" = \"N\xc3\xadvel:\"\n"
+"\"Remote address:\" = \"Endere\xc3\xa7o remoto:\"\n"
+"\"Disable Sending\" = \"Desativar envio\"\n"
+"\"Toggles receive muting, preventing audio from being heard for this user\" = \"Alterna receber silenciamento, evitando que o \xc3\xa1udio seja ouvido por este utilizador\"\n"
+"\"Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Ou\xc3\xa7""a apenas este utilizador e outros utilizadores em solo. Clique com a tecla Alt pressionada para isolar exclusivamente este utilizador\"\n"
+"\"Pan\" = \"Pan\"\n"
+"\"Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto).\" = \"Redefine o buffer de jitter para o m\xc3\xadnimo. Segure a tecla Alt para redefinir para todos (com autom\xc3\xa1tico).\"\n"
+"\"Jitter Buffer\" = \"Jitter Buffer\"\n"
+"\"Change for all\" = \"Mude para todos os utilizadores\"\n"
+"\"Send Quality\" = \"Qualidade de Envio\"\n"
+"\"No Preference\" = \"Sem Prefer\xc3\xaancia\"\n"
+"\"Preferred Recv Quality\" = \"Qualidade de Recep\xc3\xa7\xc3\xa3o Preferida\"\n"
+"\"Latency (ms)\" = \"Lat\xc3\xaancia (ms)\"\n"
+"\"Ping\" = \"Ping\"\n"
+"\"PRESS\" = \"PRESSIONE\"\n"
+"\"Send Quality:\" = \"Qualidade de Envio:\"\n"
+"\"Recv Jitter Buffer:\" = \"Jitter Buffer de chegada\"\n"
+"\"Reset Dropped\" = \"Descartar drops\"\n"
+"\"Remove\" = \"Retirar\"\n"
+"\"Removes user from your own connections, does not affect the whole group\" = \"Remove o utilisados das suas pr\xc3\xb3prias liga\xc3\xa7\xc3\xb5""es, n\xc3\xa3o afeta o grupo\"\n"
+"\"Other end muted us\" = \"O outro lado silenciou-o\"\n"
+"\"SEND DISABLED\" = \"ENVIAR DESATIVADO\"\n"
+"\"Other side is muted\" = \"O outro lado est\xc3\xa1 em mudo\"\n"
+"\"You muted them\" = \"Silenciou os outros utilizadores\"\n"
+"\"****\" = \"****\"\n"
+"\"Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router.\" = \"N\xc3\xa3o foi poss\xc3\xad"
+"vel conectar com o utilizador; um ou ambos podem precisar configurar o firewall interno ou router de rede para permitir que SonoBus funcione entre ambos. Consulte a documenta\xc3\xa7\xc3\xa3o de ajuda para habilitar o encaminhamento de portas no seu "
+"router.\"\n"
+"\"Connecting...\" = \"A ligar ...\"\n"
+"\"Measured actual round-trip latency:\" = \"Lat\xc3\xaancia de ida e volta medida:\"\n"
+"\"Est. Outgoing:\" = \"Est. Sa\xc3\xad""da:\"\n"
+"\"Est. Incoming:\" = \"Est. Entrada:\"\n"
+"\"Jitter:\" = \"Jitter:\"\n"
+"\"Measuring actual round-trip latency\" = \"A medir a lat\xc3\xaancia real de ida e volta\"\n"
+"\"Mute All\" = \"Silenciar Tudo\"\n"
+"\"Unmute All\" = \"Ligar tudo\"\n"
+"\"none\" = \"nenhum\"\n"
+"\"Show advanced settings...\" = \"Mostrar configura\xc3\xa7\xc3\xb5""es avan\xc3\xa7""adas...\"\n"
+"\"Error when trying to open audio device!\" = \"Erro ao tentar abrir dispositivo de \xc3\xa1udio!\"\n"
+"\"(no audio output channels found)\" = \"(nenhum canal de sa\xc3\xad""da de \xc3\xa1udio encontrado)\"\n"
+"\"Active Output Channels:\" = \"Canais de Sa\xc3\xad""da Ativos:\"\n"
+"\"(no audio input channels found)\" = \"(nenhum canal de entrada de \xc3\xa1udio encontrado)\"\n"
+"\"Active Input Channels:\" = \"Canais de Entrada Ativos:\"\n"
+"\"Control Panel\" = \"Painel de Controle\"\n"
+"\"Opens the device\\'s own control panel\" = \"Abre o painel de controle do pr\xc3\xb3prio dispositivo\"\n"
+"\"Reset Device\" = \"Redefinir o Dispositivo\"\n"
+"\"Resets the audio interface - sometimes needed after changing a device\\'s properties in its custom control panel\" = \"Redefine o interface de \xc3\xa1udio - pode ser preciso alterar as propriedades no painel de controle pr\xc3\xb3prio do interface"
+"\"\n"
+"\"Output:\" = \"Sa\xc3\xad""da:\"\n"
+"\"Device:\" = \"Dispositivo:\"\n"
+"\"Test\" = \"Teste\"\n"
+"\"Plays a test tone\" = \"Toca som de teste\"\n"
+"\"Input:\" = \"Entrada:\"\n"
+"\"Sample rate:\" = \"Frequ\xc3\xaancia de amostragem:\"\n"
+"\"Audio Buffer Size:\" = \"Tamanho do Buffer de \xc3\x81udio:\"\n"
+"\"Audio device type:\" = \"Tipo de dispositivo de \xc3\xa1udio:\"\n"
+"\"No MIDI inputs available\" = \"Sem entradas MIDI dispon\xc3\xadveis\"\n"
+"\"Active MIDI inputs:\" = \"Entradas MIDI ativas:\"\n"
+"\"Bluetooth MIDI\" = \"MIDI Bluetooth\"\n"
+"\"Scan for bluetooth MIDI devices\" = \"Procurar dispositivos bluetooth MIDI\"\n"
+"\"MIDI Output:\" = \"Sa\xc3\xad""da MIDI:\"\n"
+"\"Default Jitter Buffer Time\" = \"Tempo de buffer de jitter padr\xc3\xa3o\"\n"
+"\"Default User Level\" = \"Volume padr\xc3\xa3o do utilizador\"\n"
+"\"Sync to Host\" = \"Sincronizar com o Hospedeiro\"\n"
+"\"Metronome\" = \"Metr\xc3\xb3nomo\"\n"
+"\"File Playback\" = \"Reprodu\xc3\xa7\xc3\xa3o do ficheiro\"\n"
+"\"Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks.\" = \"Ligue-se diretamente a outr"
+"as inst\xc3\xa2ncias do SonoBus na sua rede local com um endere\xc3\xa7o local. \xc3\x89 experimental, o uso de um grupo privado \xc3\xa9 recomendado e funciona bem em redes locais.\"\n"
+"\"Connect to Raw Address...\" = \"Conectar a endere\xc3\xa7o bruto ...\"\n"
+"\"Shows full information for connected users\" = \"Mostra informa\xc3\xa7\xc3\xb5""es completas para utilizadores ligados\"\n"
+"\"Shows minimal information for connected users\" = \"Mostra informa\xc3\xa7\xc3\xb5""es m\xc3\xadnimas para utilizadores ligados\"\n"
+"\"INPUT MIXER\" = \"MISTURA DE ENTRADA\"\n"
+"\"MON DELAY\" = \"ATRASO DA MONI\xc3\x87\xc3\x83O\"\n"
+"\"Control additional self-monitoring delay, which can help mitigate synchronization with others\" = \"Controle o atraso de automonitoriza\xc3\xa7\xc3\xa3o adicional, o que pode ajudar a mitigar a sincroniza\xc3\xa7\xc3\xa3o com outros\"\n"
+"\"Synchronize metronome tempo with plugin host\" = \"Sincronizar o metr\xc3\xb3nomo com o host\"\n"
+"\"Show the connections page, while staying connected to current group\" = \"Mostra a p\xc3\xa1gina de liga\xc3\xa7\xc3\xa3o, enquanto permanece ligado ao grupo atual\"\n"
+"\"Show/Hide Chat\" = \"Mostrar / ocultar chat\"\n"
+"\"Use Drift Correction (NOT RECOMMENDED)\" = \"Use corre\xc3\xa7\xc3\xa3o de desvio (N\xc3\x83O RECOMENDADO)\"\n"
+"\"Sliders Snap to Clicked Position\" = \"Os controles deslizantes ajustam-se \xc3\xa0 posi\xc3\xa7\xc3\xa3o clicada\"\n"
+"\"Send Multichannel\" = \"Enviar multipista\"\n"
+"\"Choose a location and name to store the setup\" = \"Escolha um local e nome para gravar a configura\xc3\xa7\xc3\xa3o\"\n"
+"\"Choose a setup file to load\" = \"Escolha um ficheiro de configura\xc3\xa7\xc3\xa3o para carrregar\"\n"
+"\"Error while loading\" = \"Erro ao carregar\"\n"
+"\"Invalid setup!\" = \"Configura\xc3\xa7\xc3\xa3o inv\xc3\xa1lida!\"\n"
+"\"Error while saving\" = \"Erro ao guardar\"\n"
+"\"Waiting for other users to join group\" = \"\xc3\x81 espera que outros utilizadores entrem no grupo\"\n"
+"\" - joined group\" = \" - juntou-se ao grupo\"\n"
+"\" - left group\" = \" - deixou o grupo\"\n"
+"\"Close Audio File\" = \"Fechar ficheiro de \xc3\xa1udio\"\n"
+"\"Close audio file\" = \"Fechar ficheiro de \xc3\xa1udio\"\n"
+"\"Open Audio File...\" = \"Abrir ficheiro de \xc3\xa1udio ...\"\n"
+"\"Share Audio File\" = \"Partilhar ficheiro de \xc3\xa1udio\"\n"
+"\"Share audio file\" = \"Partilhar ficheiro de \xc3\xa1udio\"\n"
+"\"Reveal Audio File\" = \"Mostrar ficheiro de \xc3\xa1udio\"\n"
+"\"Reveal audio file\" = \"Mostrar ficheiro de \xc3\xa1udio\"\n"
+"\"Load Setup...\" = \"Carregar configura\xc3\xa7\xc3\xa3o ...\"\n"
+"\"Load Setup file\" = \"Carregar ficheiro de configura\xc3\xa7\xc3\xa3o\"\n"
+"\"Save Setup...\" = \"Guardar configura\xc3\xa7\xc3\xa3o ...\"\n"
+"\"Save Setup file\" = \"Guardar ficheiro de configura\xc3\xa7\xc3\xa3o\"\n"
+"\"Show or hide chat area\" = \"Mostrar ou ocultar a \xc3\xa1rea de Chat\"\n"
+"\"View\" = \"Visualizar\"\n"
+"\"Load Recent Setup\" = \"Carregar configura\xc3\xa7\xc3\xa3o recente\"\n"
+"\"Send Level: \" = \"N\xc3\xadvel de envio:\"\n"
+"\"Reverb Send\" = \"Envio para reverb\"\n"
+"\"Enable the main reverb at the bottom of the window to hear the effect\" = \"Ative o reverberb principal na parte inferior da janela para ouvir o efeito\"\n"
+"\"Main Reverb Send\" = \"Envio principal para o reverb\"\n"
+"\"Crashed Last Time\" = \"Crashou anteriormente\"\n"
+"\"Looks like you crashed on launch last time, restoring default settings!\" = \"Parece que crashou na inicializa\xc3\xa7\xc3\xa3o da \xc3\xbaltima vez, a restaurar as configura\xc3\xa7\xc3\xb5""es padr\xc3\xa3o!\"\n"
+"\"Chat\" = \"Chat\"\n"
+"\"Enter message here...\" = \"Escreva a mensagem aqui ...\"\n"
+"\"Send\" = \"Enviar\"\n"
+"\"Save Chat\" = \"Salvar Chat\"\n"
+"\"Clear Chat\" = \"Limpar Chat\"\n"
+"\"Add New Input Group\" = \"Adicionar Novo Grupo de Entrada\"\n"
+"\"CLEAR\" = \"APAGAR\"\n"
+"\"Remove all input groups\" = \"Remova todos os grupos de entrada\"\n"
+"\"Monitor: \" = \"Monitor:\"\n"
+"\"Pre Level: \" = \"Pr\xc3\xa9-n\xc3\xadvel:\"\n"
+"\"Set name for this group that others will see\" = \"Defina um nome para este grupo visivel a outros utilizadores\"\n"
+"\"Click to toggle extra information visibility\" = \"Clique para alternar a visibilidade de informa\xc3\xa7\xc3\xb5""es extras\"\n"
+"\"Mute this channel for both sending and monitoring\" = \"Silencie este canal para envio e monitoramento\"\n"
+"\"Solo - Listen to only this user, and other soloed users. Alt-click to exclusively solo this user.\" = \"Solo - Ou\xc3\xa7""a apenas este utilizador e outros utilizadores em solo. Clique com a tecla Alt pressionada para isolar exclusivamente este ut"
+"ilizador\"\n"
+"\"Solo - Listen to only this channel for this user\" = \"Solo - Ou\xc3\xa7""a apenas este canal para este utlizador\"\n"
+"\"Solo - Listen to only this channel, does not affect sending\" = \"Solo - Ou\xc3\xa7""a apenas este canal, n\xc3\xa3o afeta o envio\"\n"
+"\"Monitor output level\" = \"Monitorizar o n\xc3\xadvel de sa\xc3\xad""da\"\n"
+"\"Change channel layout\" = \"Alterar a configura\xc3\xa7\xc3\xa3o do canal\"\n"
+"\"Select Input channel source (or drag to rearrange)\" = \"Selecione a fonte do canal de entrada (ou arraste para reorganizar)\"\n"
+"\"mono\" = \"mono\"\n"
+"\"Choose destination output channels\" = \"Escolha os canais de sa\xc3\xad""da\"\n"
+"\"Choose destination monitoring channels\" = \"Escolha os canais de monitoramento de sa\xc3\xad""da\"\n"
+"\"Edit input effects (applied before sending)\" = \"Editar efeitos de entrada (aplicados antes de enviar)\"\n"
+"\"Edit effects\" = \"Editar efeitos\"\n"
+"\"M.FX\" = \"M.FX\"\n"
+"\"Edit input monitoring effects (applied to local monitoring only)\" = \"Editar efeitos de monitoriza\xc3\xa7\xc3\xa3o de entrada (aplicado apenas \xc3\xa0 monitoriza\xc3\xa7\xc3\xa3o local)\"\n"
+"\"Edit monitoring effects\" = \"Editar efeitos de monitoriza\xc3\xa7\xc3\xa3o\"\n"
+"\"ch\" = \"CH\"\n"
+"\"Confirm Remove of All Inputs\" = \"Confirme a remo\xc3\xa7\xc3\xa3o de todas as entradas\"\n"
+"\"ADD INPUT GROUP:\" = \"ADICIONE GRUPO DE ENTRADA:\"\n"
+"\"Mono\" = \"Mono\"\n"
+"\"Stereo\" = \"Est\xc3\xa9reo\"\n"
+"\"channel\" = \"canal\"\n"
+"\"CHANGE CHANNEL LAYOUT:\" = \"MUDAR A CONFIGURA\xc3\x87\xc3\x83O DO CANAL:\"\n"
+"\"<Restore Original Layout>\" = \"<Restaurar Configura\xc3\xa7\xc3\xa3o Original>\"\n"
+"\"SELECT INPUTS:\" = \"SELECIONE AS ENTRADAS:\"\n"
+"\"SELECT INPUT:\" = \"SELECIONE A ENTRADA:\"\n"
+"\"CHANGE LAYOUT...\" = \"ALTERAR CONFIGURA\xc3\x87\xc3\x83O ...\"\n"
+"\"REMOVE\" = \"RETIRAR\"\n"
+"\"SELECT MONITOR OUT:\" = \"SELECIONE O MONITOR DE SA\xc3\x8d""DA:\"\n"
+"\"Change all\" = \"Alterar tudo\"\n"
+"\"Removes pending user from list\" = \"Remove usu\xc3\xa1rio pendente da lista\"\n"
+"\"Estimated Round-trip Latency:\" = \"Lat\xc3\xaancia estimada de ida e volta:\"\n"
+"\"Round-trip Network Ping:\" = \"Ping de rede de ida e volta:\"\n"
+"\"Est. Jitter:\" = \"Est. Jitter:\"\n"
+"\"Legacy-mode, ask them \\r\\n to install latest version\" = \"Modo legacy, pe\xc3\xa7""a aos utilizadores para instalar a \xc3\xbaltima vers\xc3\xa3o\"\n"
+"\"Delay Time\" = \"Tempo de atraso\"\n"
+"\"One-way\" = \"Ida\"\n"
+"\"Round-trip\" = \"Ida e volta\"\n"
+"\"Set From Peers\" = \"Configurar a partir dos outros utilizadores\"\n"
+"\"Pressing this will calculate an average latency for all connected peers and set the monitoring delay time accordingly, based on one-way or round-trip choice selection\" = \"Pressionar ir\xc3\xa1 calcular uma lat\xc3\xaancia m\xc3\xa9""dia para todo"
+"s os utilizadores ligados e definir o tempo de atraso de monitoriza\xc3\xa7\xc3\xa3o, com base na sele\xc3\xa7\xc3\xa3o de escolha de ida ou volta\"\n"
+"\"Link Delay Time with other inputs\" = \"Tempo de atraso da liga\xc3\xa7\xc3\xa3o com outras entradas\"\n"
+"\"Additional Monitoring Delay\" = \"Atraso adicional de monitoriza\xc3\xa7\xc3\xa3o\"\n";
+
+const char* localized_ptpt_txt = (const char*) temp_binary_data_6;
 
 //================== bar_click.wav ==================
-static const unsigned char temp_binary_data_6[] =
+static const unsigned char temp_binary_data_7[] =
 { 82,73,70,70,22,11,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,242,10,0,0,106,255,178,254,205,253,132,254,61,255,155,253,134,252,106,250,68,251,238,3,59,9,135,5,24,253,10,243,65,241,161,254,192,19,220,34,
 171,37,57,30,73,11,214,236,192,209,33,205,212,224,83,252,182,1,230,226,117,194,242,205,49,5,160,68,193,109,209,114,146,86,103,41,151,249,25,218,122,222,23,243,179,239,53,208,59,175,103,158,211,162,30,191,61,237,214,31,142,66,246,67,202,52,191,55,28,79,
 180,95,73,88,177,55,98,4,132,205,140,161,89,140,101,151,57,182,68,205,194,211,52,216,170,233,237,12,5,59,84,98,63,120,120,120,172,91,3,43,189,1,67,237,16,228,130,215,116,193,80,169,106,156,104,157,195,172,195,210,36,7,11,47,116,62,4,63,161,62,52,70,152,
@@ -2561,10 +2977,10 @@ static const unsigned char temp_binary_data_6[] =
 57,0,36,0,32,0,24,0,23,0,4,0,237,255,211,255,197,255,204,255,212,255,236,255,245,255,1,0,4,0,7,0,12,0,25,0,31,0,39,0,26,0,12,0,251,255,242,255,242,255,250,255,2,0,9,0,2,0,254,255,247,255,246,255,250,255,254,255,0,0,2,0,251,255,251,255,247,255,0,0,3,0,
 10,0,6,0,4,0,252,255,252,255,0,0,4,0,10,0,6,0,4,0,252,255,254,255,250,255,0,0,254,255,255,255,255,255,255,255,0,0,0,0,0,0 };
 
-const char* bar_click_wav = (const char*) temp_binary_data_6;
+const char* bar_click_wav = (const char*) temp_binary_data_7;
 
 //================== beat_click.wav ==================
-static const unsigned char temp_binary_data_7[] =
+static const unsigned char temp_binary_data_8[] =
 { 82,73,70,70,140,10,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,104,10,0,0,28,249,58,6,151,72,207,101,199,104,160,116,88,110,95,98,168,79,136,50,103,21,4,248,170,222,75,201,157,181,156,163,71,148,120,139,
 249,140,201,154,41,179,20,209,25,241,172,17,229,47,195,71,245,87,7,98,217,104,112,109,238,106,141,91,140,64,129,32,16,0,243,224,213,196,7,174,48,159,232,153,116,157,217,168,140,186,46,205,54,219,172,229,52,243,196,8,64,37,155,67,142,92,65,104,148,97,
 158,75,248,49,22,33,105,29,220,32,25,32,218,18,193,247,206,212,230,180,6,161,164,154,246,158,81,171,159,188,236,207,53,228,101,249,247,14,15,36,9,54,179,66,231,74,169,80,99,85,112,88,93,84,153,66,113,35,157,254,191,221,122,199,26,189,243,186,45,187,49,
@@ -2602,10 +3018,10 @@ static const unsigned char temp_binary_data_7[] =
 250,255,255,255,7,0,8,0,7,0,11,0,11,0,18,0,19,0,16,0,11,0,1,0,248,255,244,255,236,255,244,255,242,255,252,255,250,255,1,0,252,255,255,255,2,0,5,0,6,0,13,0,4,0,12,0,0,0,2,0,253,255,253,255,250,255,252,255,251,255,253,255,254,255,253,255,0,0,0,0,2,0,4,
 0,2,0,3,0,1,0,254,255,2,0,0,0,1,0,1,0,253,255,0,0,251,255,0,0,253,255,3,0,255,255,2,0,2,0,254,255,1,0,254,255,2,0,2,0,2,0,0,0,1,0,255,255,254,255,1,0,252,255,1,0,0,0,0,0,0,0,0,0,255,255,1,0,0,0,255,255,3,0,252,255,3,0,254,255,0,0 };
 
-const char* beat_click_wav = (const char*) temp_binary_data_7;
+const char* beat_click_wav = (const char*) temp_binary_data_8;
 
 //================== chat.svg ==================
-static const unsigned char temp_binary_data_8[] =
+static const unsigned char temp_binary_data_9[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -2672,10 +3088,10 @@ static const unsigned char temp_binary_data_8[] =
 "     d=\"M 402,58.000909 H 97.999994 A 56.16,56.16 0 0 0 41.999996,114.00091 v 192.00001 a 56.16,56.16 0 0 0 55.999997,56 h 39.999997 v 79.99999 l 93.72,-78.13999 a 8,8 0 0 1 5.13,-1.86 H 402 a 56.16,56.16 0 0 0 56,-56 V 114.00091 A 56.16,56.16 0 0 0"
 " 402,58.000909 Z\" /></svg>\n";
 
-const char* chat_svg = (const char*) temp_binary_data_8;
+const char* chat_svg = (const char*) temp_binary_data_9;
 
 //================== chat_dots.svg ==================
-static const unsigned char temp_binary_data_9[] =
+static const unsigned char temp_binary_data_10[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -2757,10 +3173,10 @@ static const unsigned char temp_binary_data_9[] =
 "     r=\"32\"\n"
 "     id=\"circle6958\" /></svg>\n";
 
-const char* chat_dots_svg = (const char*) temp_binary_data_9;
+const char* chat_dots_svg = (const char*) temp_binary_data_10;
 
 //================== chevron_forward.svg ==================
-static const unsigned char temp_binary_data_10[] =
+static const unsigned char temp_binary_data_11[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -2828,10 +3244,10 @@ static const unsigned char temp_binary_data_10[] =
 "     id=\"polyline1019\" />\n"
 "</svg>\n";
 
-const char* chevron_forward_svg = (const char*) temp_binary_data_10;
+const char* chevron_forward_svg = (const char*) temp_binary_data_11;
 
 //================== copy_icon.svg ==================
-static const unsigned char temp_binary_data_11[] =
+static const unsigned char temp_binary_data_12[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -2906,10 +3322,10 @@ static const unsigned char temp_binary_data_11[] =
 "     d=\"M383.5,128l.5-24a56.16,56.16,0,0,0-56-56H112a64.19,64.19,0,0,0-64,64V328a56.16,56.16,0,0,0,56,56h24\" />\n"
 "</svg>\n";
 
-const char* copy_icon_svg = (const char*) temp_binary_data_11;
+const char* copy_icon_svg = (const char*) temp_binary_data_12;
 
 //================== DejaVuSans.ttf ==================
-static const unsigned char temp_binary_data_12[] =
+static const unsigned char temp_binary_data_13[] =
 { 0,1,0,0,0,20,1,0,0,4,0,64,70,70,84,77,115,193,244,240,0,0,1,76,0,0,0,28,71,68,69,70,148,207,142,230,0,0,1,104,0,0,2,148,71,80,79,83,86,128,196,53,0,0,3,252,0,0,158,138,71,83,85,66,193,208,64,89,0,0,162,136,0,0,21,222,77,65,84,72,167,50,56,125,0,0,184,
 104,0,0,6,62,79,83,47,50,89,45,118,45,0,0,190,168,0,0,0,86,99,109,97,112,192,73,38,0,0,0,191,0,0,0,23,26,99,118,116,32,0,105,29,57,0,0,214,28,0,0,1,254,102,112,103,109,113,52,118,106,0,0,216,28,0,0,0,171,103,97,115,112,0,7,0,7,0,0,216,200,0,0,0,12,103,
 108,121,102,97,12,247,6,0,0,216,212,0,8,123,228,104,101,97,100,12,230,1,214,0,9,84,184,0,0,0,54,104,104,101,97,13,159,31,203,0,9,84,240,0,0,0,36,104,109,116,120,37,161,223,173,0,9,85,20,0,0,97,150,107,101,114,110,12,153,8,59,0,9,182,172,0,0,63,252,108,
@@ -11912,10 +12328,10 @@ static const unsigned char temp_binary_data_12[] =
 43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,
 43,43,43,29,0,0 };
 
-const char* DejaVuSans_ttf = (const char*) temp_binary_data_12;
+const char* DejaVuSans_ttf = (const char*) temp_binary_data_13;
 
 //================== dice_icon_128.png ==================
-static const unsigned char temp_binary_data_13[] =
+static const unsigned char temp_binary_data_14[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,128,0,0,0,128,8,6,0,0,0,195,62,97,203,0,0,0,6,98,75,71,68,0,59,0,0,0,85,52,179,151,147,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,7,12,20,59,33,210,3,100,86,
 0,0,14,94,73,68,65,84,120,218,237,157,121,144,20,213,29,199,63,179,23,179,130,44,114,136,23,106,98,44,145,132,160,136,138,43,38,26,53,152,50,40,200,17,47,226,129,23,81,2,138,150,85,106,76,162,198,28,94,139,70,87,84,76,208,120,1,70,100,181,4,35,30,81,
 81,99,66,129,90,10,165,4,49,32,107,68,34,176,202,236,53,147,63,126,223,174,157,218,218,21,119,167,167,167,187,231,125,171,182,106,119,122,182,251,189,223,251,245,251,221,191,7,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,113,70,
@@ -11971,10 +12387,10 @@ static const unsigned char temp_binary_data_13[] =
 138,214,86,255,134,232,91,96,165,170,170,138,225,195,135,83,90,90,138,67,30,157,31,173,173,44,95,190,156,45,91,182,56,98,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,56,236,16,255,7,76,189,120,76,223,155,3,94,0,0,0,0,73,69,78,68,
 174,66,96,130,0,0 };
 
-const char* dice_icon_128_png = (const char*) temp_binary_data_13;
+const char* dice_icon_128_png = (const char*) temp_binary_data_14;
 
 //================== dispfull.svg ==================
-static const unsigned char temp_binary_data_14[] =
+static const unsigned char temp_binary_data_15[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12084,10 +12500,10 @@ static const unsigned char temp_binary_data_14[] =
 "       id=\"rect6668-1\"\n"
 "       style=\"fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:21.1031;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" /></g></svg>\n";
 
-const char* dispfull_svg = (const char*) temp_binary_data_14;
+const char* dispfull_svg = (const char*) temp_binary_data_15;
 
 //================== dispminimal.svg ==================
-static const unsigned char temp_binary_data_15[] =
+static const unsigned char temp_binary_data_16[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12158,10 +12574,10 @@ static const unsigned char temp_binary_data_15[] =
 "     rx=\"7.7217793\"\n"
 "     ry=\"17.39216\" /></svg>\n";
 
-const char* dispminimal_svg = (const char*) temp_binary_data_15;
+const char* dispminimal_svg = (const char*) temp_binary_data_16;
 
 //================== dots.svg ==================
-static const unsigned char temp_binary_data_16[] =
+static const unsigned char temp_binary_data_17[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12262,20 +12678,20 @@ static const unsigned char temp_binary_data_16[] =
 "     cy=\"378.0148\"\n"
 "     r=\"20\" /></svg>\n";
 
-const char* dots_svg = (const char*) temp_binary_data_16;
+const char* dots_svg = (const char*) temp_binary_data_17;
 
 //================== dots_icon.png ==================
-static const unsigned char temp_binary_data_17[] =
+static const unsigned char temp_binary_data_18[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,55,0,0,0,55,8,6,0,0,0,168,219,210,70,0,0,0,6,98,75,71,68,0,0,0,0,0,0,249,67,187,127,0,0,0,9,112,72,89,115,0,0,46,35,0,0,46,35,1,120,165,63,118,0,0,0,7,116,73,77,69,7,228,6,27,19,11,49,229,19,18,210,
 0,0,0,247,73,68,65,84,104,222,237,151,59,14,65,65,24,70,15,81,18,165,210,163,102,31,18,61,91,176,4,86,32,118,192,14,36,122,196,30,238,30,60,10,81,162,162,210,140,78,184,133,43,70,206,223,76,49,95,50,57,153,226,255,78,46,73,18,254,117,242,252,241,8,39,
 156,112,194,9,247,43,112,13,96,10,236,129,107,56,39,64,45,235,135,115,25,47,241,54,48,7,138,79,238,46,64,23,88,197,248,115,245,23,96,0,37,96,6,84,99,132,27,190,0,123,76,25,24,196,8,215,78,153,235,196,8,87,249,112,238,167,224,142,41,115,135,24,225,150,
 41,115,139,24,225,70,192,249,77,230,4,140,99,132,219,0,189,176,207,158,205,57,236,185,109,172,13,101,5,52,67,67,217,1,183,112,78,128,22,176,206,242,241,194,23,234,215,14,232,91,156,133,211,10,180,2,173,64,43,208,10,180,2,173,64,43,208,10,180,2,139,179,
 112,90,129,86,160,21,104,5,90,129,86,160,21,104,5,90,129,86,96,113,22,78,56,225,132,19,238,203,115,7,251,83,94,163,113,150,91,80,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* dots_icon_png = (const char*) temp_binary_data_17;
+const char* dots_icon_png = (const char*) temp_binary_data_18;
 
 //================== expand_arrow_active.svg ==================
-static const unsigned char temp_binary_data_18[] =
+static const unsigned char temp_binary_data_19[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12354,10 +12770,10 @@ static const unsigned char temp_binary_data_18[] =
 "     transform=\"matrix(2.0118261,0,0,1.1767472,-17.196083,107.47646)\"\n"
 "     inkscape:transform-center-x=\"-2.8793028e-06\" /></svg>\n";
 
-const char* expand_arrow_active_svg = (const char*) temp_binary_data_18;
+const char* expand_arrow_active_svg = (const char*) temp_binary_data_19;
 
 //================== expand_arrow_inactive.svg ==================
-static const unsigned char temp_binary_data_19[] =
+static const unsigned char temp_binary_data_20[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12437,10 +12853,10 @@ static const unsigned char temp_binary_data_19[] =
 "     transform=\"matrix(0,-2.0118261,1.1767472,0,107.47646,517.19607)\"\n"
 "     inkscape:transform-center-x=\"-31.271791\" /></svg>\n";
 
-const char* expand_arrow_inactive_svg = (const char*) temp_binary_data_19;
+const char* expand_arrow_inactive_svg = (const char*) temp_binary_data_20;
 
 //================== folder_icon.svg ==================
-static const unsigned char temp_binary_data_20[] =
+static const unsigned char temp_binary_data_21[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12566,10 +12982,10 @@ static const unsigned char temp_binary_data_20[] =
 "     y=\"0\" />\n"
 "</svg>\n";
 
-const char* folder_icon_svg = (const char*) temp_binary_data_20;
+const char* folder_icon_svg = (const char*) temp_binary_data_21;
 
 //================== hear-others.svg ==================
-static const unsigned char temp_binary_data_21[] =
+static const unsigned char temp_binary_data_22[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12676,10 +13092,10 @@ static const unsigned char temp_binary_data_21[] =
 "         id=\"path901\"\n"
 "         inkscape:connector-curvature=\"0\" /></g></g></svg>\n";
 
-const char* hearothers_svg = (const char*) temp_binary_data_21;
+const char* hearothers_svg = (const char*) temp_binary_data_22;
 
 //================== incoming_allowed.svg ==================
-static const unsigned char temp_binary_data_22[] =
+static const unsigned char temp_binary_data_23[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12786,10 +13202,10 @@ static const unsigned char temp_binary_data_22[] =
 "1 2.4,2.8 2.4,5.7 0,2.9 -1.6,4.9 -2.4,5.7 -0.8,0.8 -80.00003,88 -80.00003,88 -1.5,1.5 -3.6,2.3 -5.7,2.3 -2.1,0 -4.1,-0.8 -5.7,-2.3 z\"\n"
 "     style=\"fill:#e6e6e6\" /></svg>\n";
 
-const char* incoming_allowed_svg = (const char*) temp_binary_data_22;
+const char* incoming_allowed_svg = (const char*) temp_binary_data_23;
 
 //================== incoming_allowed_active.svg ==================
-static const unsigned char temp_binary_data_23[] =
+static const unsigned char temp_binary_data_24[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12895,10 +13311,10 @@ static const unsigned char temp_binary_data_23[] =
 "2 6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* incoming_allowed_active_svg = (const char*) temp_binary_data_23;
+const char* incoming_allowed_active_svg = (const char*) temp_binary_data_24;
 
 //================== incoming_disallowed.svg ==================
-static const unsigned char temp_binary_data_24[] =
+static const unsigned char temp_binary_data_25[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -12994,10 +13410,10 @@ static const unsigned char temp_binary_data_24[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7305\" /></svg>\n";
 
-const char* incoming_disallowed_svg = (const char*) temp_binary_data_24;
+const char* incoming_disallowed_svg = (const char*) temp_binary_data_25;
 
 //================== lgc_bar.wav ==================
-static const unsigned char temp_binary_data_25[] =
+static const unsigned char temp_binary_data_26[] =
 { 82,73,70,70,30,3,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,250,2,0,0,0,0,0,0,149,33,255,62,19,87,14,105,118,116,67,121,174,119,75,112,225,99,117,83,28,64,12,43,106,21,86,0,213,236,182,219,179,205,51,
 195,133,188,172,185,135,186,198,190,232,197,110,207,152,218,214,230,93,243,154,255,245,10,225,20,21,29,43,35,29,39,198,40,87,40,225,37,203,33,69,28,209,21,184,14,114,7,90,0,191,249,250,243,52,239,164,235,88,233,89,232,152,232,253,233,90,236,139,239,70,
 243,102,247,156,251,187,255,145,3,236,6,181,9,198,11,37,13,178,13,156,13,196,12,112,11,148,9,107,7,8,5,151,2,49,0,249,253,2,252,101,250,47,249,101,248,11,248,31,248,143,248,95,249,105,250,175,251,13,253,122,254,222,255,39,1,79,2,57,3,245,3,103,4,155,
@@ -13009,10 +13425,10 @@ static const unsigned char temp_binary_data_25[] =
 4,0,252,255,4,0,252,255,3,0,253,255,1,0,0,0,255,255,0,0,0,0,255,255,2,0,253,255,2,0,255,255,2,0,253,255,3,0,254,255,2,0,255,255,1,0,254,255,3,0,254,255,1,0,0,0,255,255,2,0,253,255,4,0,252,255,2,0,255,255,0,0,1,0,255,255,0,0,255,255,1,0,0,0,0,0,0,0,255,
 255,1,0,0,0,0,0,1,0,255,255,0,0,1,0,254,255,3,0,254,255,1,0,0,0,254,255,3,0,254,255,0,0,2,0,252,255,5,0,252,255,2,0,255,255,0,0,1,0,254,255,3,0,253,255,2,0,255,255,0,0,0,0,2,0,252,255,5,0,251,255,3,0,0,0,255,255,0,0,1,0,254,255,0,0 };
 
-const char* lgc_bar_wav = (const char*) temp_binary_data_25;
+const char* lgc_bar_wav = (const char*) temp_binary_data_26;
 
 //================== link.svg ==================
-static const unsigned char temp_binary_data_26[] =
+static const unsigned char temp_binary_data_27[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13090,10 +13506,10 @@ static const unsigned char temp_binary_data_26[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* link_svg = (const char*) temp_binary_data_26;
+const char* link_svg = (const char*) temp_binary_data_27;
 
 //================== link_all.svg ==================
-static const unsigned char temp_binary_data_27[] =
+static const unsigned char temp_binary_data_28[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13255,10 +13671,10 @@ static const unsigned char temp_binary_data_27[] =
 "     style=\"fill:#9d9d9d;fill-opacity:1;stroke:#cccccc;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:type=\"star\" /></svg>\n";
 
-const char* link_all_svg = (const char*) temp_binary_data_27;
+const char* link_all_svg = (const char*) temp_binary_data_28;
 
 //================== link_up.svg ==================
-static const unsigned char temp_binary_data_28[] =
+static const unsigned char temp_binary_data_29[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13410,10 +13826,10 @@ static const unsigned char temp_binary_data_28[] =
 "     style=\"fill:#cccccc;fill-opacity:1;stroke:#cccccc;stroke-width:15;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:nodetypes=\"cccsssccscssscsc\" /></svg>\n";
 
-const char* link_up_svg = (const char*) temp_binary_data_28;
+const char* link_up_svg = (const char*) temp_binary_data_29;
 
 //================== list_icon1.png ==================
-static const unsigned char temp_binary_data_29[] =
+static const unsigned char temp_binary_data_30[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,80,0,0,0,66,8,6,0,0,0,192,15,81,61,0,0,0,4,103,65,77,65,0,0,177,143,11,252,97,5,0,0,10,59,105,67,67,80,80,104,111,116,111,115,104,111,112,32,73,67,67,32,112,114,111,102,105,108,101,0,0,72,137,157,150,
 119,84,83,217,22,135,207,189,55,189,80,146,16,138,148,208,107,104,82,2,72,13,189,72,145,46,42,49,9,16,74,192,144,0,34,54,68,84,112,68,81,145,166,8,50,40,224,128,163,67,145,177,34,138,133,1,81,177,235,4,25,68,212,113,112,20,27,150,73,100,173,25,223,188,
 121,239,205,155,223,31,247,126,107,159,189,207,221,103,239,125,214,186,0,144,252,131,5,194,76,88,9,128,12,161,88,20,225,231,197,136,141,139,103,96,7,1,12,240,0,3,108,0,224,112,179,179,66,22,248,70,2,153,2,124,216,140,108,153,19,248,23,189,186,14,32,249,
@@ -13466,10 +13882,10 @@ static const unsigned char temp_binary_data_29[] =
 13,184,67,125,156,53,6,28,144,52,147,235,219,27,218,234,35,209,7,96,72,210,120,93,33,189,156,102,113,86,43,208,191,59,242,165,176,171,137,19,89,76,146,220,166,195,228,94,216,1,58,64,7,232,0,93,127,20,224,108,195,50,102,18,248,84,168,214,167,128,207,145,
 178,122,71,238,111,94,42,173,156,153,237,5,70,128,249,138,114,229,146,164,39,1,27,183,21,56,26,97,253,119,91,210,173,37,53,216,30,103,185,92,46,87,103,233,27,11,230,64,135,215,3,163,141,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* list_icon1_png = (const char*) temp_binary_data_29;
+const char* list_icon1_png = (const char*) temp_binary_data_30;
 
 //================== loop_icon.svg ==================
-static const unsigned char temp_binary_data_30[] =
+static const unsigned char temp_binary_data_31[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13608,10 +14024,10 @@ static const unsigned char temp_binary_data_30[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* loop_icon_svg = (const char*) temp_binary_data_30;
+const char* loop_icon_svg = (const char*) temp_binary_data_31;
 
 //================== met.svg ==================
-static const unsigned char temp_binary_data_31[] =
+static const unsigned char temp_binary_data_32[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13705,10 +14121,10 @@ static const unsigned char temp_binary_data_31[] =
 "     d=\"M 272.02882,378.01479 391.67282,150.47536 407.40159,121.313\"\n"
 "     style=\"fill:none;stroke:#cccccc;stroke-width:22;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#TriangleInS)\" /></svg>\n";
 
-const char* met_svg = (const char*) temp_binary_data_31;
+const char* met_svg = (const char*) temp_binary_data_32;
 
 //================== mic.svg ==================
-static const unsigned char temp_binary_data_32[] =
+static const unsigned char temp_binary_data_33[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13783,10 +14199,10 @@ static const unsigned char temp_binary_data_32[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7563\" /></svg>\n";
 
-const char* mic_svg = (const char*) temp_binary_data_32;
+const char* mic_svg = (const char*) temp_binary_data_33;
 
 //================== mic_disabled.svg ==================
-static const unsigned char temp_binary_data_33[] =
+static const unsigned char temp_binary_data_34[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13862,10 +14278,10 @@ static const unsigned char temp_binary_data_33[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7573\" /></svg>\n";
 
-const char* mic_disabled_svg = (const char*) temp_binary_data_33;
+const char* mic_disabled_svg = (const char*) temp_binary_data_34;
 
 //================== mic_pointing.svg ==================
-static const unsigned char temp_binary_data_34[] =
+static const unsigned char temp_binary_data_35[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -13994,10 +14410,10 @@ static const unsigned char temp_binary_data_34[] =
 "       d=\"m 154.00949,66.298434 c -4.18442,-4.18442 -4.18442,-10.966085 0,-15.140885 4.18443,-4.18443 10.95647,-4.18443 15.1409,0 L 456.30795,338.31512 c 4.18444,4.18442 4.18444,10.95646 0,15.1409 -4.1748,4.18442 -10.95647,4.18442 -15.14089,0\"\n"
 "       style=\"display:inline;fill:#ff5555;fill-opacity:1;fill-rule:nonzero;stroke-width:8.06606885;stroke:#ff5555;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none\" /></g></svg>\n";
 
-const char* mic_pointing_svg = (const char*) temp_binary_data_34;
+const char* mic_pointing_svg = (const char*) temp_binary_data_35;
 
 //================== move_updown.svg ==================
-static const unsigned char temp_binary_data_35[] =
+static const unsigned char temp_binary_data_36[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14135,10 +14551,10 @@ static const unsigned char temp_binary_data_35[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* move_updown_svg = (const char*) temp_binary_data_35;
+const char* move_updown_svg = (const char*) temp_binary_data_36;
 
 //================== mute-others.svg ==================
-static const unsigned char temp_binary_data_36[] =
+static const unsigned char temp_binary_data_37[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14242,10 +14658,10 @@ static const unsigned char temp_binary_data_36[] =
 "         inkscape:connector-curvature=\"0\"\n"
 "         sodipodi:nodetypes=\"ccsccc\" /></g></g></svg>\n";
 
-const char* muteothers_svg = (const char*) temp_binary_data_36;
+const char* muteothers_svg = (const char*) temp_binary_data_37;
 
 //================== network.svg ==================
-static const unsigned char temp_binary_data_37[] =
+static const unsigned char temp_binary_data_38[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14334,10 +14750,10 @@ static const unsigned char temp_binary_data_37[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* network_svg = (const char*) temp_binary_data_37;
+const char* network_svg = (const char*) temp_binary_data_38;
 
 //================== outgoing_allowed.svg ==================
-static const unsigned char temp_binary_data_38[] =
+static const unsigned char temp_binary_data_39[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14440,10 +14856,10 @@ static const unsigned char temp_binary_data_38[] =
 "6.33,5.09225 10.3888,12.90972 10.3888,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_allowed_svg = (const char*) temp_binary_data_38;
+const char* outgoing_allowed_svg = (const char*) temp_binary_data_39;
 
 //================== outgoing_allowed_active.svg ==================
-static const unsigned char temp_binary_data_39[] =
+static const unsigned char temp_binary_data_40[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14520,10 +14936,10 @@ static const unsigned char temp_binary_data_39[] =
 "       id=\"path7039\"\n"
 "       d=\"m 367,192 v 79.7 c 0,60.2 -49.8,109.2 -110,109.2 -60.2,0 -110,-49 -110,-109.2 V 192 h -19 v 79.7 c 0,67.2 53,122.6 120,127.5 V 462 h -73 v 18 h 161 v -18 h -69 v -62.8 c 66,-4.9 117,-60.3 117,-127.5 V 192 Z\" /></g></svg>\n";
 
-const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_39;
+const char* outgoing_allowed_active_svg = (const char*) temp_binary_data_40;
 
 //================== outgoing_disallowed.svg ==================
-static const unsigned char temp_binary_data_40[] =
+static const unsigned char temp_binary_data_41[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14622,10 +15038,10 @@ static const unsigned char temp_binary_data_40[] =
 "062 -19.86549,54.19122 6.33,5.09225 10.38879,12.90972 10.38879,21.66515 0,1.1546 -0.077,2.29083 -0.2107,3.40762 24.6388,4.90044 50.1525,6.55372 76.891,4.94529 1.7613,-16.56588 2.3097,-32.32834 1.6781,-47.31225 z\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke-width:0.540292\" /></svg>\n";
 
-const char* outgoing_disallowed_svg = (const char*) temp_binary_data_40;
+const char* outgoing_disallowed_svg = (const char*) temp_binary_data_41;
 
 //================== paste_icon.svg ==================
-static const unsigned char temp_binary_data_41[] =
+static const unsigned char temp_binary_data_42[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14700,10 +15116,10 @@ static const unsigned char temp_binary_data_41[] =
 "     x=\"176\" />\n"
 "</svg>\n";
 
-const char* paste_icon_svg = (const char*) temp_binary_data_41;
+const char* paste_icon_svg = (const char*) temp_binary_data_42;
 
 //================== pause_icon.svg ==================
-static const unsigned char temp_binary_data_42[] =
+static const unsigned char temp_binary_data_43[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14834,10 +15250,10 @@ static const unsigned char temp_binary_data_42[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* pause_icon_svg = (const char*) temp_binary_data_42;
+const char* pause_icon_svg = (const char*) temp_binary_data_43;
 
 //================== people.png ==================
-static const unsigned char temp_binary_data_43[] =
+static const unsigned char temp_binary_data_44[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,6,106,73,68,65,84,104,129,237,152,109,140,92,101,21,128,159,243,222,187,187,109,55,181,161,235,206,206,220,217,45,149,18,208,93,81,139,31,80,164,104,170,96,20,149,63,146,136,74,76,109,76,44,160,72,2,13,38,126,70,82,136,52,45,34,
 63,42,152,104,248,168,10,126,166,137,223,245,163,5,137,18,9,138,27,91,74,217,214,221,123,222,105,183,221,33,105,75,157,238,220,123,252,49,119,54,227,118,102,118,27,183,250,103,158,63,51,247,220,243,158,143,251,222,247,188,231,190,208,161,67,135,14,29,
@@ -14864,10 +15280,10 @@ static const unsigned char temp_binary_data_43[] =
 155,45,202,179,37,251,190,184,75,85,83,239,253,119,255,91,123,109,201,42,143,197,113,188,105,161,109,171,234,231,84,213,84,245,202,133,182,61,67,28,199,59,85,245,128,153,45,216,113,76,157,108,33,191,232,189,255,233,217,140,59,171,131,45,85,61,74,173,
 249,58,151,148,163,40,90,62,95,229,182,167,18,141,152,153,120,239,31,18,145,115,114,28,57,203,151,91,200,211,187,14,29,58,116,232,208,161,195,185,226,223,191,160,18,11,195,92,207,96,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* people_png = (const char*) temp_binary_data_43;
+const char* people_png = (const char*) temp_binary_data_44;
 
 //================== people.svg ==================
-static const unsigned char temp_binary_data_44[] =
+static const unsigned char temp_binary_data_45[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -14949,10 +15365,10 @@ static const unsigned char temp_binary_data_44[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* people_svg = (const char*) temp_binary_data_44;
+const char* people_svg = (const char*) temp_binary_data_45;
 
 //================== person.png ==================
-static const unsigned char temp_binary_data_45[] =
+static const unsigned char temp_binary_data_46[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,48,0,0,0,48,8,6,0,0,0,87,2,249,135,0,0,0,9,112,72,89,115,0,0,1,98,0,0,1,98,1,95,39,208,83,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,111,114,
 103,155,238,60,26,0,0,3,82,73,68,65,84,104,129,237,152,77,104,92,101,20,134,159,51,51,25,77,34,34,193,76,38,55,18,41,152,133,63,75,211,212,186,40,232,34,32,136,224,34,96,23,181,186,146,174,138,32,88,92,74,192,157,27,197,46,68,218,133,46,138,224,207,202,
 223,66,55,213,166,117,89,151,70,195,220,115,111,162,17,196,140,237,152,153,121,93,56,133,18,19,103,198,156,22,132,251,172,46,247,188,223,247,158,119,238,207,220,239,131,130,130,130,130,130,130,255,49,22,61,97,154,166,135,205,236,69,51,59,34,41,1,48,51,
@@ -14968,10 +15384,10 @@ static const unsigned char temp_binary_data_45[] =
 146,78,37,73,114,218,204,218,255,165,233,189,144,52,146,101,217,9,96,25,88,55,179,67,131,252,48,3,5,112,247,179,192,49,224,67,73,87,246,215,106,159,134,204,14,2,207,74,58,51,51,51,243,66,95,253,32,147,186,251,38,48,177,223,230,134,228,151,36,73,38,111,
 179,103,65,65,65,65,65,193,237,229,47,213,25,86,225,205,242,241,224,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* person_png = (const char*) temp_binary_data_45;
+const char* person_png = (const char*) temp_binary_data_46;
 
 //================== person.svg ==================
-static const unsigned char temp_binary_data_46[] =
+static const unsigned char temp_binary_data_47[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15041,10 +15457,10 @@ static const unsigned char temp_binary_data_46[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* person_svg = (const char*) temp_binary_data_46;
+const char* person_svg = (const char*) temp_binary_data_47;
 
 //================== play_icon.svg ==================
-static const unsigned char temp_binary_data_47[] =
+static const unsigned char temp_binary_data_48[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15166,10 +15582,10 @@ static const unsigned char temp_binary_data_47[] =
 "     id=\"path4930\" />\n"
 "</svg>\n";
 
-const char* play_icon_svg = (const char*) temp_binary_data_47;
+const char* play_icon_svg = (const char*) temp_binary_data_48;
 
 //================== power.svg ==================
-static const unsigned char temp_binary_data_48[] =
+static const unsigned char temp_binary_data_49[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15244,10 +15660,10 @@ static const unsigned char temp_binary_data_48[] =
 "       id=\"path4471\"\n"
 "       style=\"stroke:none;stroke-opacity:1;fill:#b2b2b2;fill-opacity:1\" /></g></svg>\n";
 
-const char* power_svg = (const char*) temp_binary_data_48;
+const char* power_svg = (const char*) temp_binary_data_49;
 
 //================== power_sel.svg ==================
-static const unsigned char temp_binary_data_49[] =
+static const unsigned char temp_binary_data_50[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15322,10 +15738,10 @@ static const unsigned char temp_binary_data_49[] =
 "       id=\"path4471\"\n"
 "       d=\"m 354.9038,193.4519 a 22,22 0 0 1 -22,-22 V -8.5480978 a 22,22 0 0 1 44,0 V 171.4519 a 22,22 0 0 1 -22,22 z\" /></g></svg>\n";
 
-const char* power_sel_svg = (const char*) temp_binary_data_49;
+const char* power_sel_svg = (const char*) temp_binary_data_50;
 
 //================== record.svg ==================
-static const unsigned char temp_binary_data_50[] =
+static const unsigned char temp_binary_data_51[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15449,10 +15865,10 @@ static const unsigned char temp_binary_data_50[] =
 "     r=\"10.826572\" />\n"
 "</svg>\n";
 
-const char* record_svg = (const char*) temp_binary_data_50;
+const char* record_svg = (const char*) temp_binary_data_51;
 
 //================== record_active.svg ==================
-static const unsigned char temp_binary_data_51[] =
+static const unsigned char temp_binary_data_52[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15576,10 +15992,10 @@ static const unsigned char temp_binary_data_51[] =
 "     r=\"10.826573\" />\n"
 "</svg>\n";
 
-const char* record_active_svg = (const char*) temp_binary_data_51;
+const char* record_active_svg = (const char*) temp_binary_data_52;
 
 //================== record_active_alt.svg ==================
-static const unsigned char temp_binary_data_52[] =
+static const unsigned char temp_binary_data_53[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15703,10 +16119,10 @@ static const unsigned char temp_binary_data_52[] =
 "     style=\"fill:#f74848;fill-opacity:1;stroke:#cccccc;stroke-width:1.03096;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" />\n"
 "</svg>\n";
 
-const char* record_active_alt_svg = (const char*) temp_binary_data_52;
+const char* record_active_alt_svg = (const char*) temp_binary_data_53;
 
 //================== reset_buffer_icon.svg ==================
-static const unsigned char temp_binary_data_53[] =
+static const unsigned char temp_binary_data_54[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15778,10 +16194,10 @@ static const unsigned char temp_binary_data_53[] =
 "     d=\"M 96.73077,88.727418 93.56857,411.27258\"\n"
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:24;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\" /></svg>\n";
 
-const char* reset_buffer_icon_svg = (const char*) temp_binary_data_53;
+const char* reset_buffer_icon_svg = (const char*) temp_binary_data_54;
 
 //================== send_group.svg ==================
-static const unsigned char temp_binary_data_54[] =
+static const unsigned char temp_binary_data_55[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15876,10 +16292,10 @@ static const unsigned char temp_binary_data_54[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_svg = (const char*) temp_binary_data_54;
+const char* send_group_svg = (const char*) temp_binary_data_55;
 
 //================== send_group_small.svg ==================
-static const unsigned char temp_binary_data_55[] =
+static const unsigned char temp_binary_data_56[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -15974,10 +16390,10 @@ static const unsigned char temp_binary_data_55[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>\n";
 
-const char* send_group_small_svg = (const char*) temp_binary_data_55;
+const char* send_group_small_svg = (const char*) temp_binary_data_56;
 
 //================== settings_icon.svg ==================
-static const unsigned char temp_binary_data_56[] =
+static const unsigned char temp_binary_data_57[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16045,10 +16461,10 @@ static const unsigned char temp_binary_data_56[] =
 "         rdf:about=\"\"><dc:format>image/svg+xml</dc:format><dc:type\n"
 "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata></svg>";
 
-const char* settings_icon_svg = (const char*) temp_binary_data_56;
+const char* settings_icon_svg = (const char*) temp_binary_data_57;
 
 //================== skipback_icon.svg ==================
-static const unsigned char temp_binary_data_57[] =
+static const unsigned char temp_binary_data_58[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16121,10 +16537,10 @@ static const unsigned char temp_binary_data_57[] =
 "     x1=\"112\" />\n"
 "</svg>\n";
 
-const char* skipback_icon_svg = (const char*) temp_binary_data_57;
+const char* skipback_icon_svg = (const char*) temp_binary_data_58;
 
 //================== sonobus_logo_96.png ==================
-static const unsigned char temp_binary_data_58[] =
+static const unsigned char temp_binary_data_59[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,96,0,0,0,96,8,6,0,0,0,226,152,119,56,0,0,0,9,112,72,89,115,0,0,5,137,0,0,5,137,1,109,104,157,250,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,46,
 111,114,103,155,238,60,26,0,0,19,120,73,68,65,84,120,156,237,157,121,124,28,197,149,199,191,213,61,35,141,102,116,75,22,178,45,11,219,128,108,99,203,54,62,98,59,118,240,193,97,3,159,128,179,16,7,18,47,11,187,192,230,19,178,9,36,155,108,178,217,108,112,
 14,18,242,225,78,54,108,178,201,2,27,236,112,132,195,24,135,144,64,240,250,36,1,108,131,111,19,31,178,37,91,178,14,235,154,123,186,107,255,40,205,120,70,26,205,244,28,58,252,89,253,230,83,154,86,117,119,85,247,123,85,239,189,122,245,170,6,70,48,130,17,
@@ -16198,10 +16614,10 @@ static const unsigned char temp_binary_data_58[] =
 215,244,70,151,105,2,219,80,214,205,179,64,235,224,189,78,102,24,234,8,229,98,212,50,216,101,168,213,152,147,176,182,128,163,19,229,185,220,133,10,17,217,196,32,76,158,12,4,134,154,1,241,80,138,10,89,44,64,109,118,228,66,141,51,220,168,13,191,27,56,143,
 90,248,8,70,48,130,17,140,96,4,35,24,193,8,70,48,12,241,127,224,50,254,113,39,185,17,225,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_logo_96_png = (const char*) temp_binary_data_58;
+const char* sonobus_logo_96_png = (const char*) temp_binary_data_59;
 
 //================== sonobus_title_small.png ==================
-static const unsigned char temp_binary_data_59[] =
+static const unsigned char temp_binary_data_60[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,1,157,0,0,0,96,8,6,0,0,0,198,164,175,209,0,0,0,9,112,72,89,115,0,0,1,118,0,0,1,118,1,233,206,71,139,0,0,0,25,116,69,88,116,83,111,102,116,119,97,114,101,0,119,119,119,46,105,110,107,115,99,97,112,101,
 46,111,114,103,155,238,60,26,0,0,32,0,73,68,65,84,120,156,237,157,119,96,19,229,255,199,223,151,61,155,166,77,210,116,179,10,66,25,181,101,200,158,178,17,197,34,163,8,226,15,183,248,69,17,5,17,5,190,184,253,226,0,199,215,9,50,100,40,10,42,10,2,50,101,
 151,34,20,40,133,238,54,163,105,218,140,38,77,147,187,251,253,113,45,22,104,51,218,148,22,191,247,42,71,175,119,207,61,207,115,151,220,125,238,249,60,159,1,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
@@ -16434,10 +16850,10 @@ static const unsigned char temp_binary_data_59[] =
 171,217,70,130,177,58,51,130,49,12,200,70,112,179,135,178,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,
 176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,176,220,82,254,31,201,193,32,51,22,181,193,39,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* sonobus_title_small_png = (const char*) temp_binary_data_59;
+const char* sonobus_title_small_png = (const char*) temp_binary_data_60;
 
 //================== speaker.svg ==================
-static const unsigned char temp_binary_data_60[] =
+static const unsigned char temp_binary_data_61[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16514,10 +16930,10 @@ static const unsigned char temp_binary_data_60[] =
 " 2523,887 2380,823 2221,823 Z\"\n"
 "       style=\"fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-opacity:1\" /></g></svg>\n";
 
-const char* speaker_svg = (const char*) temp_binary_data_60;
+const char* speaker_svg = (const char*) temp_binary_data_61;
 
 //================== speaker_disabled.svg ==================
-static const unsigned char temp_binary_data_61[] =
+static const unsigned char temp_binary_data_62[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16588,10 +17004,10 @@ static const unsigned char temp_binary_data_61[] =
 "     fill-rule=\"nonzero\"\n"
 "     id=\"path7431\" /></svg>\n";
 
-const char* speaker_disabled_svg = (const char*) temp_binary_data_61;
+const char* speaker_disabled_svg = (const char*) temp_binary_data_62;
 
 //================== triangle_disclosure.svg ==================
-static const unsigned char temp_binary_data_62[] =
+static const unsigned char temp_binary_data_63[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16670,10 +17086,10 @@ static const unsigned char temp_binary_data_62[] =
 "     style=\"fill:#e6e6e6;fill-opacity:1;stroke:#e6e6e6;stroke-width:23.9998;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1\"\n"
 "     sodipodi:type=\"star\" /></svg>\n";
 
-const char* triangle_disclosure_svg = (const char*) temp_binary_data_62;
+const char* triangle_disclosure_svg = (const char*) temp_binary_data_63;
 
 //================== triangle_disclosure_right.svg ==================
-static const unsigned char temp_binary_data_63[] =
+static const unsigned char temp_binary_data_64[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -16753,10 +17169,10 @@ static const unsigned char temp_binary_data_63[] =
 "     transform=\"matrix(0,-2.0118261,1.1767472,0,7.4764537,517.19607)\"\n"
 "     inkscape:transform-center-x=\"-31.271791\" /></svg>\n";
 
-const char* triangle_disclosure_right_svg = (const char*) temp_binary_data_63;
+const char* triangle_disclosure_right_svg = (const char*) temp_binary_data_64;
 
 //================== urei_main.wav ==================
-static const unsigned char temp_binary_data_64[] =
+static const unsigned char temp_binary_data_65[] =
 { 82,73,70,70,112,2,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,68,172,0,0,136,88,1,0,2,0,16,0,100,97,116,97,76,2,0,0,24,255,34,1,177,206,124,146,140,144,94,144,113,144,31,145,103,144,174,145,135,144,16,146,213,144,70,146,72,145,96,146,211,145,98,146,
 121,146,79,146,46,147,55,146,227,147,48,146,128,148,73,146,249,148,145,146,72,149,168,146,93,155,215,235,234,18,48,11,3,16,147,12,226,14,78,13,34,14,204,13,163,13,17,14,93,13,35,14,71,13,17,14,78,13,226,13,111,13,171,13,142,13,128,13,160,13,99,13,162,
 13,86,13,152,13,82,13,132,13,89,13,105,13,94,13,85,13,96,13,73,13,90,13,67,13,81,13,59,13,72,13,52,13,58,13,52,13,49,13,44,13,41,13,40,13,32,13,32,13,23,13,22,13,19,13,16,13,12,13,9,13,0,13,255,12,253,12,250,12,246,12,242,12,239,12,235,12,234,12,226,
@@ -16767,10 +17183,10 @@ static const unsigned char temp_binary_data_64[] =
 10,141,10,135,10,123,10,125,10,110,10,105,10,97,10,86,10,81,10,69,10,62,10,53,10,42,10,32,10,25,10,13,10,0,10,248,9,231,9,221,9,211,9,192,9,183,9,164,9,148,9,134,9,113,9,97,9,75,9,52,9,30,9,4,9,233,8,207,8,172,8,133,8,103,8,51,8,13,8,211,7,158,7,94,7,
 27,7,212,6,135,6,64,6,234,5,0,0 };
 
-const char* urei_main_wav = (const char*) temp_binary_data_64;
+const char* urei_main_wav = (const char*) temp_binary_data_65;
 
 //================== wordmaker.g ==================
-static const unsigned char temp_binary_data_65[] =
+static const unsigned char temp_binary_data_66[] =
 { 123,10,60,115,116,97,114,116,62,10,60,118,101,114,98,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,
 99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,118,101,114,98,62,60,97,100,118,101,114,98,62,59,10,125,10,10,123,10,60,97,100,106,101,99,116,105,118,101,62,10,97,98,97,115,105,99,59,10,97,98,97,116,105,99,
 59,10,97,98,105,101,110,116,59,10,97,98,106,101,99,116,59,10,97,98,108,97,122,101,59,10,97,98,108,101,59,10,97,98,108,111,111,109,59,10,97,98,111,114,97,108,59,10,97,98,111,117,116,59,10,97,98,111,118,101,59,10,97,98,114,111,97,100,59,10,97,98,114,117,
@@ -18567,10 +18983,10 @@ static const unsigned char temp_binary_data_65[] =
 59,10,119,105,100,101,59,10,119,105,100,101,108,121,59,10,119,105,108,100,59,10,119,105,108,100,108,121,59,10,119,105,115,101,108,121,59,10,119,105,116,104,97,108,59,10,119,105,116,104,105,110,59,10,119,111,114,115,101,59,10,119,111,114,115,116,59,10,
 119,114,111,110,103,59,10,119,114,121,108,121,59,10,121,101,97,59,10,121,101,97,104,59,10,121,101,97,114,108,121,59,10,121,101,116,59,10,121,111,110,59,10,121,111,110,100,101,114,59,10,122,105,103,122,97,103,59,10,125,10,0,0 };
 
-const char* wordmaker_g = (const char*) temp_binary_data_65;
+const char* wordmaker_g = (const char*) temp_binary_data_66;
 
 //================== x_icon.svg ==================
-static const unsigned char temp_binary_data_66[] =
+static const unsigned char temp_binary_data_67[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -18701,7 +19117,7 @@ static const unsigned char temp_binary_data_66[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* x_icon_svg = (const char*) temp_binary_data_66;
+const char* x_icon_svg = (const char*) temp_binary_data_67;
 
 
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
@@ -18719,7 +19135,8 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
         case 0xfcbd21c1:  numBytes = 25788; return localized_fr_txt;
         case 0x01f7daa0:  numBytes = 25316; return localized_it_txt;
         case 0x02a0f4ac:  numBytes = 27476; return localized_ja_txt;
-        case 0x0de9c6f9:  numBytes = 24742; return localized_pt_txt;
+        case 0x3f8af949:  numBytes = 24742; return localized_ptbr_txt;
+        case 0x578b00fd:  numBytes = 24729; return localized_ptpt_txt;
         case 0xb8757689:  numBytes = 2846; return bar_click_wav;
         case 0x24af1e6c:  numBytes = 2708; return beat_click_wav;
         case 0x55b214fd:  numBytes = 2645; return chat_svg;
@@ -18795,7 +19212,8 @@ const char* namedResourceList[] =
     "localized_fr_txt",
     "localized_it_txt",
     "localized_ja_txt",
-    "localized_pt_txt",
+    "localized_ptbr_txt",
+    "localized_ptpt_txt",
     "bar_click_wav",
     "beat_click_wav",
     "chat_svg",
@@ -18866,7 +19284,8 @@ const char* originalFilenames[] =
     "localized_fr.txt",
     "localized_it.txt",
     "localized_ja.txt",
-    "localized_pt.txt",
+    "localized_pt-br.txt",
+    "localized_pt-pt.txt",
     "bar_click.wav",
     "beat_click.wav",
     "chat.svg",
