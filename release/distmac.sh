@@ -37,8 +37,28 @@ if ! ./codesign.sh ; then
   exit 1
 fi
 
+# make installer package (and sign it)
 
-if ./makedmg.sh $VERSION ; then
+if ! packagesbuild  macpkg/SonoBus.pkgproj ; then
+  echo 
+  echo Error building package
+  echo
+  exit 1
+fi
+
+mkdir -p SonoBusPkg
+rm -f SonoBusPkg/*
+
+if ! productsign --sign ${INSTSIGNID} --timestamp  macpkg/build/SonoBus\ Installer.pkg SonoBusPkg/SonoBus\ Installer.pkg ; then
+  echo 
+  echo Error signing package
+  echo
+  exit 1
+fi
+
+# make dmg with package inside it
+
+if ./makepkgdmg.sh $VERSION ; then
 
    ./notarizedmg.sh ${VERSION}/sonobus-${VERSION}-mac.dmg
 
