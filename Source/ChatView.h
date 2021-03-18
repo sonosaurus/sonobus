@@ -21,11 +21,15 @@ public:
 
     void addNewChatMessage(const SBChatEvent & mesg, bool refresh=true);
     void addNewChatMessages(const Array<SBChatEvent> & mesgs, bool refresh=false);
-    void refreshMessages();
+    void refreshMessages(); // only new ones not yet rendered
+    void refreshAllMessages(); // re-render all messages
+
     void clearAll();
 
     bool haveNewSinceLastView() const;
     void setFocusToChat();
+
+    void setUseFixedWidthFont(bool flag);
 
     bool keyPressed (const KeyPress & key) override;
 
@@ -51,7 +55,6 @@ protected:
     SonobusAudioProcessor& processor;
     AooServerConnectionInfo & currConnectionInfo;
 
-    
     double mLastChatMessageStamp = 0.0;
     double mLastChatShowTimeStamp = 0.0;
     double mLastChatUserMessageStamp = 0.0;
@@ -93,6 +96,9 @@ protected:
 
     Font mChatNameFont;
     Font mChatMesgFont;
+    Font mChatMesgFixedFont;
+    Font mChatEditFont;
+    Font mChatEditFixedFont;
     Font mChatSpacerFont;
     String mLastChatEventFrom;
     std::map<String,Colour> mChatUserColors;

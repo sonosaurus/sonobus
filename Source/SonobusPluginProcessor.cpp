@@ -89,6 +89,8 @@ static String sliderSnapKey("SliderSnapToMouse");
 static String peerDisplayModeKey("PeerDisplayMode");
 static String lastChatWidthKey("lastChatWidth");
 static String lastChatShownKey("lastChatShown");
+static String chatUseFixedWidthFontKey("chatFixedWidthFont");
+static String chatFontSizeOffsetKey("chatFontSizeOffset");
 static String linkMonitoringDelayTimesKey("linkMonDelayTimes");
 static String langOverrideCodeKey("langOverrideCode");
 
@@ -7514,6 +7516,8 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
     extraTree.setProperty(lastChatWidthKey, var((int)mLastChatWidth), nullptr);
     extraTree.setProperty(lastChatShownKey, mLastChatShown, nullptr);
+    extraTree.setProperty(chatFontSizeOffsetKey, var((int)mChatFontSizeOffset), nullptr);
+    extraTree.setProperty(chatUseFixedWidthFontKey, mChatUseFixedWidthFont, nullptr);
     extraTree.setProperty(linkMonitoringDelayTimesKey, mLinkMonitoringDelayTimes, nullptr);
     extraTree.setProperty(lastUsernameKey, mCurrentUsername, nullptr);
     extraTree.setProperty(langOverrideCodeKey, mLangOverrideCode, nullptr);
@@ -7618,6 +7622,8 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setLastChatShown(extraTree.getProperty(lastChatShownKey, mLastChatShown));
             mCurrentUsername = extraTree.getProperty(lastUsernameKey, mCurrentUsername);
             mLangOverrideCode = extraTree.getProperty(langOverrideCodeKey, mLangOverrideCode);
+            setChatFontSizeOffset((int) extraTree.getProperty(chatFontSizeOffsetKey, (int)mChatFontSizeOffset));
+            setChatUseFixedWidthFont(extraTree.getProperty(chatUseFixedWidthFontKey, mChatUseFixedWidthFont));;
 
         }
 

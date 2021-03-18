@@ -1271,7 +1271,7 @@ void PeersContainerView::updatePeerViews(int specific)
         
         if (latinfo.legacy && !latinfo.isreal) {
             if (pvf->stopLatencyTestTimestampMs > 0) {
-                pvf->latencyLabel->setText(TRANS("****"), dontSendNotification);
+                pvf->latencyLabel->setText("****", dontSendNotification);
             } else {
                 pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
             }
@@ -1388,7 +1388,7 @@ void PeersContainerView::startLatencyTest(int i)
     pvf->wasRecvActiveAtLatencyTest = processor.getRemotePeerRecvActive(i);
     pvf->wasSendActiveAtLatencyTest = processor.getRemotePeerSendActive(i);
     
-    pvf->latencyLabel->setText(TRANS("****"), dontSendNotification);
+    pvf->latencyLabel->setText("****", dontSendNotification);
 
     processor.startRemotePeerLatencyTest(i);             
 }

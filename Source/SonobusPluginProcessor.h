@@ -688,6 +688,10 @@ public:
     int getLastChatWidth() const { return mLastChatWidth; }
     void setLastChatShown(bool shown) { mLastChatShown = shown; }
     bool getLastChatShown() const { return mLastChatShown; }
+    void setChatUseFixedWidthFont(bool shown) { mChatUseFixedWidthFont = shown; }
+    bool getChatUseFixedWidthFont() const { return mChatUseFixedWidthFont; }
+    void setChatFontSizeOffset(int offset) { mChatFontSizeOffset = offset;}
+    int getChatFontSizeOffset() const { return mChatFontSizeOffset; }
 
     // language
     void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
@@ -888,6 +892,8 @@ private:
 
     int mLastChatWidth = 250;
     bool mLastChatShown = false;
+    bool mChatUseFixedWidthFont = false;
+    int mChatFontSizeOffset = 0;
 
     int mActiveSendChannels = 0;
 

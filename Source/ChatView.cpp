@@ -10,6 +10,9 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
 {
     mChatNameFont = Font(13);
     mChatMesgFont = Font(16);
+    mChatMesgFixedFont = Font(Font::getDefaultMonospacedFontName(), 15, Font::plain);
+    mChatEditFont = Font(14);
+    mChatEditFixedFont = Font(Font::getDefaultMonospacedFontName(), 15, Font::plain);
     mChatSpacerFont = Font(6);
 
     setOpaque(true);
@@ -34,7 +37,7 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
         commitChatMessage();
     };
 
-    mChatSendTextEditor->setFont(Font(14));
+    mChatSendTextEditor->setFont(processor.getChatUseFixedWidthFont() ? mChatEditFixedFont : mChatEditFont);
 
     mCloseButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> ximg(Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
@@ -120,6 +123,11 @@ void ChatView::paint (Graphics& g)
 void ChatView::resized()
 {
     mainBox.performLayout(getLocalBounds().reduced(2));
+}
+
+void ChatView::setUseFixedWidthFont(bool flag) {
+    processor.setChatUseFixedWidthFont(flag);
+    mChatSendTextEditor->setFont(flag ? mChatEditFixedFont : mChatEditFont);
 }
 
 void ChatView::setFocusToChat()
@@ -232,12 +240,30 @@ void ChatView::refreshMessages()
     }
 }
 
+void ChatView::refreshAllMessages()
+{
+    // re-render all messages
+    lastShownCount = 0;
+    mLastChatMessageStamp = 0;
+    mLastChatViewStamp = 0;
+
+    mChatTextEditor->clear();
+    processNewChatMessages(0, allChatEvents.size());
+}
+
+
 void ChatView::showMenu(bool show)
 {
     Array<GenericItemChooserItem> items;
 
     items.add(GenericItemChooserItem(TRANS("Save Chat"), {}, nullptr, false));
-    items.add(GenericItemChooserItem(TRANS("Clear Chat"), {}, nullptr, true));
+    items.add(GenericItemChooserItem(TRANS("Clear Chat"), {}, nullptr, false));
+
+    if (processor.getChatUseFixedWidthFont()) {
+        items.add(GenericItemChooserItem(TRANS("Use Variable Width Font"), {}, nullptr, true));
+    } else {
+        items.add(GenericItemChooserItem(TRANS("Use Fixed Width Font"), {}, nullptr, true));
+    }
 
     Component* dw = mMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = mMenuButton->findParentComponentOfClass<Component>();
@@ -245,15 +271,29 @@ void ChatView::showMenu(bool show)
 
     SafePointer<ChatView> safeThis(this);
 
-    auto callback = [safeThis](GenericItemChooser* chooser,int index) mutable {
+    auto callback = [safeThis,dw,bounds](GenericItemChooser* chooser,int index) mutable {
         if (!safeThis) return;
 
         if (index == 0) {
             // save
             safeThis->showSaveChat();
         } else if (index == 1) {
-            // clear
-            safeThis->clearAll();
+
+            Array<GenericItemChooserItem> citems;
+            citems.add(GenericItemChooserItem(TRANS("Confirm Clear Chat")));
+
+            auto callback = [safeThis](GenericItemChooser* chooser,int index) mutable {
+                if (!safeThis) return;
+
+                safeThis->clearAll();
+            };
+
+            GenericItemChooser::launchPopupChooser(citems, bounds, dw, callback, -1, dw ? dw->getHeight()-30 : 0);
+        }
+        else if (index == 2) {
+            // fixed/variable width
+            safeThis->setUseFixedWidthFont(!safeThis->processor.getChatUseFixedWidthFont());
+            safeThis->refreshAllMessages();
         }
     };
 
@@ -363,6 +403,8 @@ void ChatView::processNewChatMessages(int index, int count)
     bool doscroll = abs(botind - startCaretInd) < 10;
     //DBG("index: " << startCaretInd << "  botind: " << botind  << "  locbounds: " << mChatTextEditor->getLocalBounds().toString() << "  doscroll: " << (int)doscroll);
 
+    bool fixedwidth = processor.getChatUseFixedWidthFont();
+
     for (int i=index; i < index+count && i < allChatEvents.size(); ++i) {
         auto & event = allChatEvents.getReference(i);
 
@@ -400,11 +442,11 @@ void ChatView::processNewChatMessages(int index, int count)
             mChatTextEditor->setFont(mChatNameFont);
             mChatTextEditor->insertTextAtCaret("==  ");
             mChatTextEditor->insertTextAtCaret(event.message);
-            if (showtime) {
-                mChatTextEditor->insertTextAtCaret("      ");
-                mChatTextEditor->insertTextAtCaret(Time::getCurrentTime().toString(false, true, false));
-                mLastChatShowTimeStamp = nowtime;
-            }
+
+            mChatTextEditor->insertTextAtCaret("      ");
+            mChatTextEditor->insertTextAtCaret(Time::getCurrentTime().toString(false, true, false));
+            mLastChatShowTimeStamp = nowtime;
+
             mChatTextEditor->insertTextAtCaret("\n");
         }
         else {
@@ -421,7 +463,11 @@ void ChatView::processNewChatMessages(int index, int count)
             }
 
             mChatTextEditor->setColour(TextEditor::textColourId, usecolor);
-            mChatTextEditor->setFont(mChatMesgFont);
+            if (fixedwidth) {
+                mChatTextEditor->setFont(mChatMesgFixedFont);
+            } else {
+                mChatTextEditor->setFont(mChatMesgFont);
+            }
 
             if (parseStringForUrl(event.message, urlranges)) {
                 // found URLS, write them out in blue
