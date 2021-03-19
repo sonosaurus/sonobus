@@ -4105,23 +4105,27 @@ void SonobusAudioProcessorEditor::showChatPanel(bool show, bool allowresize)
 {
 
 #if !(JUCE_IOS || JUCE_ANDROID)
-        // attempt resize
-        if (allowresize && show && !isNarrow) {
-            auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
-            int maxwidth = display ? display->userArea.getWidth() : 1600;
-            int newwidth = jmin(maxwidth, getWidth() + mChatView->getWidth());
-            mAboutToShowChat = true;
-            if (abs(newwidth - getWidth()) > 10) {
-                mChatShowDidResize = true;
-                setSize(newwidth, getHeight());
-            }
-            else {
+    // attempt resize
+    if (allowresize && show && !isNarrow) {
+        auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
+        int maxwidth = display ? display->userArea.getWidth() : 1600;
+        int newwidth = jmin(maxwidth, getWidth() + mChatView->getWidth());
+        mAboutToShowChat = true;
+        if (abs(newwidth - getWidth()) > 10 ) {
+            if (abs(newwidth - getWidth()) < mChatView->getWidth()) {
                 mChatShowDidResize = false;
+            } else {
+                mChatShowDidResize = true;
             }
+            setSize(newwidth, getHeight());
         }
-        else if (show) {
+        else {
             mChatShowDidResize = false;
         }
+    }
+    else if (show) {
+        mChatShowDidResize = false;
+    }
 #else
     mChatShowDidResize = false;
 #endif
@@ -4390,7 +4394,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     //inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(3, 4));
     inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    inputButtonBox.items.add(FlexItem(8, 6).withMargin(0).withFlex(0));
+    inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
 
     inputRightBox.items.clear();
     inputRightBox.flexDirection = FlexBox::Direction::column;

@@ -355,6 +355,7 @@ void ChatView::clearAll()
     allChatEvents.clearQuick();
     mLastChatMessageStamp = 0;
     mLastChatViewStamp = 0;
+    mLastChatUserMessageStamp = 0;
     mLastChatEventFrom.clear();
     lastShownCount = 0;
     mUrlRanges.clear();
