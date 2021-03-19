@@ -6,6 +6,16 @@
 #include "ChatView.h"
 #include "GenericItemChooser.h"
 
+void FocusTextEditor::focusGained (FocusChangeType gtype)
+{
+    TextEditor::focusGained(gtype);
+
+    if (onFocusGained != nullptr) {
+        onFocusGained(gtype);
+    }
+}
+
+
 ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connectinfo) : processor(proc), currConnectionInfo(connectinfo)
 {
     updateFontSizes();
@@ -24,13 +34,20 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
     mChatTextEditor->setScrollToShowCursor(false);
     mChatTextEditor->addMouseListener(this, false);
 
-    mChatSendTextEditor = std::make_unique<TextEditor>();
+    mChatSendTextEditor = std::make_unique<FocusTextEditor>();
     mChatSendTextEditor->setMultiLine(true);
     mChatSendTextEditor->setScrollbarsShown(true);
     mChatSendTextEditor->setTextToShowWhenEmpty(TRANS("Enter message here..."), Colour(0x88bbbbbb));
     mChatSendTextEditor->onReturnKey = [this]() {
         commitChatMessage();
     };
+    mChatSendTextEditor->onFocusGained = [this](FocusChangeType gtype) {
+        chatTextGainedFocus(gtype);
+    };
+    mChatSendTextEditor->onFocusLost = [this]() {
+        chatTextLostFocus();
+    };
+
 
     mChatSendTextEditor->setFont(processor.getChatUseFixedWidthFont() ? mChatEditFixedFont : mChatEditFont);
 
@@ -69,7 +86,7 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
     // make the button heights a bit more for touchscreen purposes
     minitemheight = 44;
     menubuttw = 40;
-    titleheight = 40;
+    titleheight = 34;
 #endif
     int chatsendh = minitemheight + 16;
 
@@ -117,8 +134,40 @@ void ChatView::paint (Graphics& g)
 
 void ChatView::resized()
 {
-    mainBox.performLayout(getLocalBounds().reduced(2));
+    if (mKeyboardVisible) {
+        int keybh = 0;
+        // silly heuristics
+#if JUCE_IOS || JUCE_ANDROID
+        auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
+        int maxheight = display ? display->userArea.getHeight() : 500;
+        int maxwidth = display ? display->userArea.getWidth() : 300;
+        keybh = maxwidth > 700 ? (maxwidth / 1.8f) : (maxwidth / 1.5f);
+        keybh = jmin(maxheight > 700 ?  350 : 174, keybh);
+        //keybh = (int) (maxwidth / 1.5f);
+#endif
+        mainBox.performLayout(getLocalBounds().withTrimmedBottom(keybh).reduced(2));
+    }
+    else {
+        mainBox.performLayout(getLocalBounds().reduced(2));
+    }
 }
+
+void ChatView::chatTextGainedFocus(FocusChangeType ctype)
+{
+#if JUCE_IOS || JUCE_ANDROID
+    mKeyboardVisible = true;
+    resized();
+#endif
+}
+
+void ChatView::chatTextLostFocus()
+{
+#if JUCE_IOS || JUCE_ANDROID
+    mKeyboardVisible = false;
+    resized();
+#endif
+}
+
 
 void ChatView::setUseFixedWidthFont(bool flag) {
     processor.setChatUseFixedWidthFont(flag);

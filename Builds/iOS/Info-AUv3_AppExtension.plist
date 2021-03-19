@@ -4,13 +4,15 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleVersion</key>
-    <string>46</string>
+    <string>57</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>UIStatusBarHidden</key>
     <false/>
     <key>UIStatusBarStyle</key>
     <string>UIStatusBarStyleLightContent</string>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -27,8 +29,6 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>This app requires audio input. If you do not have an audio interface connected it will use the built-in microphone.</string>
     <key>LSRequiresIPhoneOS</key>
-    <true/>
-    <key>UIViewControllerBasedStatusBarAppearance</key>
     <true/>
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>

@@ -10,6 +10,17 @@
 #include "SonoDrawableButton.h"
 #include <map>
 
+class FocusTextEditor : public TextEditor
+{
+public:
+    
+    FocusTextEditor(const String & name = {}) : TextEditor(name) {}
+
+    void focusGained (FocusChangeType) override;
+
+    std::function<void(FocusChangeType)> onFocusGained;
+};
+
 class ChatView : public Component
 {
 public:
@@ -54,6 +65,9 @@ protected:
 
     bool findUrlAtPos(juce::Point<int>, String & retstr);
 
+    void chatTextGainedFocus(FocusChangeType ctype);
+    void chatTextLostFocus();
+
     SonobusAudioProcessor& processor;
     AooServerConnectionInfo & currConnectionInfo;
 
@@ -64,6 +78,8 @@ protected:
     double mLastChatViewStamp = 0.0;
 
     bool mUserScrolled = false;
+
+    bool mKeyboardVisible = false;
 
     uint32 mLastUrlCheckStampMs = 0;
     bool mOverUrl = false;
@@ -76,7 +92,7 @@ protected:
 
     std::unique_ptr<Component> mChatContainer;
     std::unique_ptr<TextEditor> mChatTextEditor;
-    std::unique_ptr<TextEditor> mChatSendTextEditor;
+    std::unique_ptr<FocusTextEditor> mChatSendTextEditor;
     std::unique_ptr<SonoDrawableButton> mMenuButton;
     std::unique_ptr<SonoDrawableButton> mCloseButton;
     std::unique_ptr<Label> mTitleLabel;

@@ -4058,10 +4058,10 @@ void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, fl
 
 #if JUCE_IOS || JUCE_ANDROID
         const int defWidth = 260;
-        const int defHeight = 108;
+        const int defHeight = 120;
 #else
         const int defWidth = 260;
-        const int defHeight = 108;
+        const int defHeight = 115;
 #endif
 
 
@@ -4075,8 +4075,8 @@ void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, fl
         latMatchBox.performLayout(mLatMatchApproveContainer->getLocalBounds());
 
         String mesg;
-        mesg << name << TRANS(" requests to use a matched group latency of:");
-        mesg << " " << lrintf(latencyms) << " ms.";
+        mesg << name << " " << TRANS("requests to use a matched group latency of:");
+        mesg << " " << lrintf(latencyms) << " ms";
         
         mLatMatchApproveLabel->setText(mesg, dontSendNotification);
 
@@ -4328,6 +4328,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     int toolwidth = 44;
 #if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
+    iconheight = 22; // 24;
     minitemheight = 44;
     knobitemheight = 90;
     minpassheight = 38;

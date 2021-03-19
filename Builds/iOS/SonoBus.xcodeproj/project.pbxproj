@@ -104,6 +104,7 @@
 		E9ADB40DE67A23C6FF002C5C /* SonoStandaloneFilterApp.cpp */ = {isa = PBXBuildFile; fileRef = 11C463763953CFD72F2DFB4E; };
 		EBB5DEA9B0F3BDD40EE36F91 /* GenericItemChooser.cpp */ = {isa = PBXBuildFile; fileRef = 4B308700AB4B98028C716CF5; };
 		ED2A2414FF69987111EA37C4 /* UIKit.framework */ = {isa = PBXBuildFile; fileRef = 5BC3101B3C0129A9667DC565; };
+		EE591B76B090B41117DD06C0 /* LatencyMatchView.cpp */ = {isa = PBXBuildFile; fileRef = 395DD1BFA94D74A3DB0A12D6; };
 		F30FC1347851AAE5F7A36B1A /* EffectParams.cpp */ = {isa = PBXBuildFile; fileRef = EA7B811305AE6872DB4EA4E8; };
 		F8B99D89556A5375897D8507 /* OscOutboundPacketStream.cpp */ = {isa = PBXBuildFile; fileRef = 5BC195B4A17567562F5E1C83; };
 		FA335C627047E61FFC17372C /* include_juce_gui_extra.mm */ = {isa = PBXBuildFile; fileRef = F511C93BFD383025E9E1B913; };
@@ -179,6 +180,7 @@
 		35C88E99BCB508A95003E052 /* Foundation.framework */ /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		35CC80507EEE6A2B4B71A6C6 /* server.hpp */ /* server.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = server.hpp; path = ../../deps/aoo/lib/src/server.hpp; sourceTree = SOURCE_ROOT; };
 		371CE29C40C1223E7CC70DB4 /* record_active.svg */ /* record_active.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = record_active.svg; path = ../../images/record_active.svg; sourceTree = SOURCE_ROOT; };
+		395DD1BFA94D74A3DB0A12D6 /* LatencyMatchView.cpp */ /* LatencyMatchView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LatencyMatchView.cpp; path = ../../Source/LatencyMatchView.cpp; sourceTree = SOURCE_ROOT; };
 		3972617268D9765CC8EEB158 /* CompressorView.h */ /* CompressorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CompressorView.h; path = ../../Source/CompressorView.h; sourceTree = SOURCE_ROOT; };
 		39B19482CAE1F62C09C6C8E1 /* AUv3 AppExtension */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SonoBus.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CA5320CE1922585FBEB602B /* triangle_disclosure.svg */ /* triangle_disclosure.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = triangle_disclosure.svg; path = ../../images/triangle_disclosure.svg; sourceTree = SOURCE_ROOT; };
@@ -338,6 +340,7 @@
 		D604E91829E35725D49773FB /* RandomSentenceGenerator.h */ /* RandomSentenceGenerator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RandomSentenceGenerator.h; path = ../../Source/RandomSentenceGenerator.h; sourceTree = SOURCE_ROOT; };
 		D771F44318BAFDD3DF288749 /* net_utils.cpp */ /* net_utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = net_utils.cpp; path = ../../deps/aoo/lib/src/net_utils.cpp; sourceTree = SOURCE_ROOT; };
 		D9E243525E6CA13EECDF9383 /* common.cpp */ /* common.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = common.cpp; path = ../../deps/aoo/lib/src/common.cpp; sourceTree = SOURCE_ROOT; };
+		DA7720FE739CD4D676200680 /* LatencyMatchView.h */ /* LatencyMatchView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LatencyMatchView.h; path = ../../Source/LatencyMatchView.h; sourceTree = SOURCE_ROOT; };
 		DB680FD4B9E762D64BA2CDD1 /* juce_opengl */ /* juce_opengl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_opengl; path = ../../deps/juce/modules/juce_opengl; sourceTree = SOURCE_ROOT; };
 		DDA889F8F53FF1787DEC6FAF /* SonobusPluginEditor.cpp */ /* SonobusPluginEditor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SonobusPluginEditor.cpp; path = ../../Source/SonobusPluginEditor.cpp; sourceTree = SOURCE_ROOT; };
 		E0AEDBB60813613446FEA267 /* include_juce_audio_plugin_client_VST_utils.mm */ /* include_juce_audio_plugin_client_VST_utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_plugin_client_VST_utils.mm; path = ../../ios/JuceLibraryCode/include_juce_audio_plugin_client_VST_utils.mm; sourceTree = SOURCE_ROOT; };
@@ -578,6 +581,8 @@
 				949DB97D0F113A2C35D48D5F,
 				28879F4E10A0E3071D5F445D,
 				72DAB61E51B3FEE700D5B715,
+				395DD1BFA94D74A3DB0A12D6,
+				DA7720FE739CD4D676200680,
 				9A7EAB5145EA1D51837DCE05,
 				467B6C650D505890D2CF4934,
 				14B5A911A3A1AAEDBBBEAA95,
@@ -1022,6 +1027,7 @@
 				F30FC1347851AAE5F7A36B1A,
 				EBB5DEA9B0F3BDD40EE36F91,
 				7F7A72BC96B1413463F800FF,
+				EE591B76B090B41117DD06C0,
 				4C7C1EF53342A6D9A6CECEEF,
 				355E68444976773D8056C637,
 				2E86D275104DCBE60338645D,
@@ -1116,7 +1122,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1179,7 +1185,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1242,7 +1248,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1303,7 +1309,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1367,7 +1373,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1481,7 +1487,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1596,7 +1602,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1660,7 +1666,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.13-53\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
