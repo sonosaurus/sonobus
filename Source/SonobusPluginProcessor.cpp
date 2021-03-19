@@ -260,6 +260,7 @@ struct SonobusAudioProcessor::RemotePeer {
     float gain = 1.0f;
 
     float buffertimeMs = 0.0f;
+    float padBufferTimeMs = 0.0f;
     AutoNetBufferMode  autosizeBufferMode = AutoNetBufferModeAutoFull;
     bool sendActive = false;
     bool recvActive = false;
@@ -294,6 +295,7 @@ struct SonobusAudioProcessor::RemotePeer {
     double lastNetBufDecrTime = 0;
     float netBufAutoBaseline = 0.0f;
     bool autoNetbufInitCompleted = false;
+    bool latencyMatched = false;
     bool resetSafetyMuted = true;
     float pingTime = 0.0f; // ms
     double lastSendPingTimeMs = -1;
@@ -2227,6 +2229,18 @@ void SonobusAudioProcessor::doReceiveData()
 #define SONOBUS_MSG_PINGACK_LEN 7
 #define SONOBUS_FULLMSG_PINGACK SONOBUS_MSG_DOMAIN SONOBUS_MSG_PINGACK
 
+#define SONOBUS_MSG_REQLATINFO "/reqlatinfo"
+#define SONOBUS_MSG_REQLATINFO_LEN 12
+#define SONOBUS_FULLMSG_REQLATINFO SONOBUS_MSG_DOMAIN SONOBUS_MSG_REQLATINFO
+
+#define SONOBUS_MSG_LATINFO "/latinfo"
+#define SONOBUS_MSG_LATINFO_LEN 8
+#define SONOBUS_FULLMSG_LATINFO SONOBUS_MSG_DOMAIN SONOBUS_MSG_LATINFO
+
+#define SONOBUS_MSG_SUGGESTLAT "/suggestlat"
+#define SONOBUS_MSG_SUGGESTLAT_LEN 11
+#define SONOBUS_FULLMSG_SUGGESTLAT SONOBUS_MSG_DOMAIN SONOBUS_MSG_SUGGESTLAT
+
 
 enum {
     SONOBUS_MSGTYPE_UNKNOWN = 0,
@@ -2234,7 +2248,10 @@ enum {
     SONOBUS_MSGTYPE_LAYOUTINFO,
     SONOBUS_MSGTYPE_CHAT,
     SONOBUS_MSGTYPE_PING,
-    SONOBUS_MSGTYPE_PINGACK
+    SONOBUS_MSGTYPE_PINGACK,
+    SONOBUS_MSGTYPE_REQLATINFO,
+    SONOBUS_MSGTYPE_LATINFO,
+    SONOBUS_MSGTYPE_SUGGESTLAT
 };
 
 static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rettype)
@@ -2278,6 +2295,27 @@ static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rett
         {
             rettype = SONOBUS_MSGTYPE_CHAT;
             offset += SONOBUS_MSG_CHAT_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_REQLATINFO_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_REQLATINFO, SONOBUS_MSG_REQLATINFO_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_REQLATINFO;
+            offset += SONOBUS_MSG_REQLATINFO_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_LATINFO_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_LATINFO, SONOBUS_MSG_LATINFO_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_LATINFO;
+            offset += SONOBUS_MSG_LATINFO_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_SUGGESTLAT_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_SUGGESTLAT, SONOBUS_MSG_SUGGESTLAT_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_SUGGESTLAT;
+            offset += SONOBUS_MSG_SUGGESTLAT_LEN;
             return offset;
         }
         else {
@@ -2435,6 +2473,70 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
 
 
         }
+        else if (type == SONOBUS_MSGTYPE_REQLATINFO) {
+            // received from the other side
+            // args: none
+
+            auto latinfo = getAllLatInfo();
+
+            char buf[AOO_MAXPACKETSIZE];
+            osc::OutboundPacketStream outmsg(buf, sizeof(buf));
+
+            String jsonstr = JSON::toString(latinfo, true, 6);
+
+            if (jsonstr.getNumBytesAsUTF8() > AOO_MAXPACKETSIZE - 100) {
+                DBG("Info too big for packet!");
+                return false;
+            }
+
+
+            try {
+                outmsg << osc::BeginMessage(SONOBUS_FULLMSG_LATINFO)
+                << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
+                << osc::EndMessage;
+            }
+            catch (const osc::Exception& e){
+                DBG("exception in reqlat message constructions: " << e.what());
+                return false;
+            }
+
+            endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
+
+            DBG("Received REQLAT from " << endpoint->ipaddr << ":" << endpoint->port);
+
+        }
+        else if (type == SONOBUS_MSGTYPE_LATINFO) {
+            // peerinfo message arguments:
+            // blob containing JSON
+            auto it = message.ArgumentsBegin();
+
+            const void *infojson;
+            osc::osc_bundle_element_size_t size;
+
+            (it++)->AsBlob(infojson, size);
+
+            String jsonstr = String::createStringFromData(infojson, size);
+
+            juce::var infodata;
+            auto result = juce::JSON::parse(jsonstr, infodata);
+            if (result.failed()) {
+                DBG("Peerinfo Json parsing failed: " << result.getErrorMessage());
+                return false;
+            }
+
+            handleLatInfo(infodata);
+
+        }
+        else if (type == SONOBUS_MSGTYPE_SUGGESTLAT) {
+            // received from the other side
+            // args: s:username  f:latency
+
+            auto it = message.ArgumentsBegin();
+            auto username = (it++)->AsString();
+            auto latency = (it++)->AsFloat();
+
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::peerRequestedLatencyMatch, this, username, latency);
+        }
         return true;
     } catch (const osc::Exception& e){
         DBG("exception in handleOtherMessage: " << e.what());
@@ -2484,6 +2586,169 @@ bool SonobusAudioProcessor::sendChatEvent(const SBChatEvent & event)
 
     return true;
 }
+
+void SonobusAudioProcessor::handleLatInfo(const juce::var & infolist)
+{
+    const ScopedLock sl (mLatInfoLock);
+
+    // received a latinfo list from elsewhere, add it to our list
+    // todo remove any duplicates
+
+    if (!infolist.isArray()) return;
+
+    for (int i=0; i < infolist.size(); ++i) {
+        auto infodata = infolist[i];
+
+        LatInfo latinfo;
+        latinfo.sourceName = infodata.getProperty("srcname", "");
+        latinfo.destName = infodata.getProperty("destname", "");
+        latinfo.latencyMs = infodata.getProperty("latms", 0.0f);
+
+        if (latinfo.sourceName.isNotEmpty() && latinfo.destName.isNotEmpty()) {
+            mLatInfoList.add(latinfo);
+        }
+
+        DBG("latinfo: srcname: " << latinfo.sourceName << "  dest: " << latinfo.destName << "  latms: " << latinfo.latencyMs);
+    }
+}
+
+juce::var SonobusAudioProcessor::getAllLatInfo()
+{
+    juce::var infolist;
+
+    const ScopedReadLock sl (mCoreLock);
+
+    for (int i=0;  i < mRemotePeers.size(); ++i) {
+        auto * peer = mRemotePeers.getUnchecked(i);
+        if (!peer) continue;
+        DynamicObject::Ptr item = new DynamicObject(); // this will delete itself
+        LatencyInfo latinfo;
+        getRemotePeerLatencyInfo(i, latinfo);
+
+        item->setProperty("srcname", peer->userName);
+        item->setProperty("destname", mCurrentUsername);
+        item->setProperty("latms", latinfo.incomingMs);
+
+        infolist.append(item.get());
+    }
+
+    return infolist;
+}
+
+void SonobusAudioProcessor::sendReqLatInfoToAll()
+{
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+
+    try {
+
+        msg << osc::BeginMessage(SONOBUS_FULLMSG_REQLATINFO)
+        << osc::EndMessage;
+
+    }
+    catch (const osc::Exception& e){
+        DBG("exception in reqlat message constructions: " << e.what());
+        return;
+    }
+
+    const ScopedReadLock sl (mCoreLock);
+    for (int i=0;  i < mRemotePeers.size(); ++i) {
+        auto * peer = mRemotePeers.getUnchecked(i);
+
+        DBG("Sending reqlat message to " << i);
+        this->sendPeerMessage(peer, msg.Data(), (int32_t) msg.Size());
+    }
+}
+
+void SonobusAudioProcessor::sendLatencyMatchToAll(float latency)
+{
+    // suggest to all that they should adjust all receiving latencies to be this value
+
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+
+    try {
+
+        msg << osc::BeginMessage(SONOBUS_FULLMSG_SUGGESTLAT)
+        << mCurrentUsername.toRawUTF8()
+        << latency
+        << osc::EndMessage;
+
+    }
+    catch (const osc::Exception& e){
+        DBG("exception in suggestlat message constructions: " << e.what());
+        return;
+    }
+
+    const ScopedReadLock sl (mCoreLock);
+    for (int i=0;  i < mRemotePeers.size(); ++i) {
+        auto * peer = mRemotePeers.getUnchecked(i);
+
+        DBG("Sending suggestlat: " << latency << " message to " << i);
+        this->sendPeerMessage(peer, msg.Data(), (int32_t) msg.Size());
+    }
+
+}
+
+
+void SonobusAudioProcessor::beginLatencyMatchProcedure()
+{
+    {
+        const ScopedLock sl (mLatInfoLock);
+        mLatInfoList.clearQuick();
+
+        // add our own info
+        handleLatInfo(getAllLatInfo());
+    }
+
+    sendReqLatInfoToAll();
+}
+
+bool SonobusAudioProcessor::isLatencyMatchProcedureReady()
+{
+    // we expect an entry for every directional path in the mesh
+    const ScopedLock sl (mLatInfoLock);
+    int totpeers = mRemotePeers.size() + 1;
+    int predictedSize =  (totpeers*(totpeers - 1));
+
+    return mLatInfoList.size() >= predictedSize;
+}
+
+void SonobusAudioProcessor::getLatencyInfoList(Array<LatInfo> & retlist)
+{
+    const ScopedLock sl (mLatInfoLock);
+    retlist.addArray(mLatInfoList);
+}
+
+void SonobusAudioProcessor::commitLatencyMatch(float latency)
+{
+    // Adjust the jitter buffer for each peer with extra values to pad up to the requested latency
+
+    const ScopedReadLock sl (mCoreLock);
+    for (int i=0;  i < mRemotePeers.size(); ++i) {
+        auto * peer = mRemotePeers.getUnchecked(i);
+
+        float pingms= peer->smoothPingTime.xbar;
+        const auto absizeMs = 1e3*currSamplesPerBlock/getSampleRate();
+        float basebuftimeMs = jmax((double) (peer->netBufAutoBaseline > 0.0 ? peer->netBufAutoBaseline : peer->buffertimeMs), absizeMs);
+        auto halfping = pingms*0.5f;
+        auto recvcodecLat = peer->recvFormat.codec == CodecOpus ? 2.5f : 0.0f; // Opus adds codec latency
+
+        auto baseline = /*absizeMs + */ recvcodecLat +  peer->remoteInLatMs + halfping + basebuftimeMs;
+
+        if (baseline < latency) {
+            // we can add some padding
+            auto padms =  (latency - baseline);
+            auto newbuftime = basebuftimeMs + padms;
+            DBG("Adding " << padms << " ms of padding for peer: " << i);
+            setRemotePeerBufferTime(i, newbuftime);
+            // now set the auto baseline
+        }
+        peer->latencyMatched = true;
+
+    }
+}
+
 
 
 void SonobusAudioProcessor::handleRemotePeerInfoUpdate(RemotePeer * peer, const juce::var & infodata)
@@ -2542,7 +2807,7 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
         auto buftimeMs = jmax((double)peer->buffertimeMs, 1e3 * currSamplesPerBlock / getSampleRate());
         info->setProperty("jitbuf", buftimeMs);
 
-        String jsonstr = JSON::toString(info.get(), true);
+        String jsonstr = JSON::toString(info.get(), true, 6);
 
         if (jsonstr.getNumBytesAsUTF8() > AOO_MAXPACKETSIZE - 100) {
             DBG("Info too big for packet!");
@@ -3403,7 +3668,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                     const float nodropsthresh = 10.0; // no drops in 10 seconds
                     const float adjustlimit = 10; // don't adjust more often than once every 10 seconds
 
-                    if (peer->lastNetBufDecrTime > 0 && peer->buffertimeMs > peer->netBufAutoBaseline) {
+                    if (peer->lastNetBufDecrTime > 0 && peer->buffertimeMs > peer->netBufAutoBaseline && !peer->latencyMatched) {
                         double deltatime = (nowtime - peer->lastNetBufDecrTime) * 1e-3;
                         double deltadroptime = (nowtime - peer->lastDroptime) * 1e-3;
                         if (deltatime > adjustlimit) {
@@ -4555,6 +4820,7 @@ void SonobusAudioProcessor::setRemotePeerBufferTime(int index, float bufferMs)
         remote->autoNetbufInitCompleted = false;
         remote->lastDroptime = Time::getMillisecondCounterHiRes();
         remote->resetSafetyMuted = bufferMs == 0.0f;
+        remote->latencyMatched = false;
 
         //if (remote->autosizeBufferMode == AutoNetBufferModeOff) {
         // clear drop count
@@ -6516,7 +6782,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     bool sendmet = mSendMet.get();
 
     inGain = mMainInMute.get() ? 0.0f : inGain;
-    
+
+    drynow = (mAnythingSoloed.get() && !mMainMonitorSolo.get()) ? 0.0f : drynow;
+
     int numSamples = buffer.getNumSamples();
 
 
@@ -6709,7 +6977,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         mInputChannelGroups[i].processMonitor(inputPostBuffer, srcstart,
                                               inputBuffer, dstch, dstcnt,
                                               numSamples, utmgain,
-                                              revbuffer, 0, fxchannels, mainReverbEnabled);
+                                              revbuffer, 0, fxchannels, mainReverbEnabled, drynow);
 
         srcstart += mInputChannelGroups[i].params.numChannels;
     }
@@ -7150,7 +7418,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
 
     // BEGIN MAIN OUTPUT BUFFER WRITING
-    drynow = (anysoloed && !mMainMonitorSolo.get()) ? 0.0f : drynow;
+
 
     bool inrevdirect = !(anysoloed && !mMainMonitorSolo.get()) && drynow == 0.0;
     bool dryrampit =  (fabsf(drynow - mLastDry) > 0.00001);

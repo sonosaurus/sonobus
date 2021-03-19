@@ -97,7 +97,7 @@ public:
 
     void processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor);
 
-    void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor, AudioBuffer<float> * reverbbuffer=nullptr, int revStartChan=0, int revNumChans=2, bool revEnabled=false);
+    void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor, AudioBuffer<float> * reverbbuffer=nullptr, int revStartChan=0, int revNumChans=2, bool revEnabled=false, float revgainfactor=1.0f);
 
     void processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, bool revEnabled, float gainfactor=1.0f);
 

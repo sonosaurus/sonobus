@@ -376,7 +376,7 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
 void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan,
                                    AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
                                    int numSamples, float gainfactor,
-                                   AudioBuffer<float> * reverbbuffer, int revStartChan, int revNumChans, bool revEnabled)
+                                   AudioBuffer<float> * reverbbuffer, int revStartChan, int revNumChans, bool revEnabled, float revgainfactor)
 {
 
     // apply monitor level
@@ -517,7 +517,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
 
     // apply to reverb buffer
     if (reverbbuffer) {
-        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, targmon);
+        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, targmon * revgainfactor);
     }
 
     _lastmonstereopan[0] = params.panStereo[0];

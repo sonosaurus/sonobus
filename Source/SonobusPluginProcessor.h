@@ -165,6 +165,12 @@ public:
         int signal_type = 0;
         int min_preferred_blocksize = 120;
     };
+
+    struct LatInfo {
+        String sourceName;
+        String destName;
+        float latencyMs = 0.0f; // one way latency from source->dest in ms
+    };
     
     int32 getCurrSamplesPerBlock() const { return currSamplesPerBlock; }
     
@@ -602,6 +608,7 @@ public:
         virtual void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) {}
         virtual void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) {}
         virtual void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & chatevent) {}
+        virtual void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) {}
     };
     
     void addClientListener(ClientListener * l) {
@@ -676,6 +683,12 @@ public:
 
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
     void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
+
+    void beginLatencyMatchProcedure();
+    bool isLatencyMatchProcedureReady();
+    void sendLatencyMatchToAll(float latency);
+    void getLatencyInfoList(Array<LatInfo> & retlist);
+    void commitLatencyMatch(float latency);
 
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
@@ -797,7 +810,12 @@ private:
     
     void loadPeerCacheFromState();
     void storePeerCacheToState();
-    
+
+
+    void handleLatInfo(const juce::var & obj);
+    juce::var getAllLatInfo();
+    void sendReqLatInfoToAll();
+
     ListenerList<ClientListener> clientListeners;
 
     
@@ -966,7 +984,13 @@ private:
     
     RangedAudioParameter * mDefaultAudioFormatParam;
 
-    
+
+
+
+    CriticalSection  mLatInfoLock;
+    Array<LatInfo> mLatInfoList;
+
+
     void initFormats();
     
     bool mRemoteSendMatrix[MAX_PEERS][MAX_PEERS];
@@ -1047,3 +1071,19 @@ private:
     UndoManager                  mUndoManager;
 
 };
+
+
+inline bool operator==(const SonobusAudioProcessor::LatInfo& lhs, const SonobusAudioProcessor::LatInfo& rhs) {
+    // compare all except timestamp
+     return (lhs.sourceName == rhs.sourceName
+             && lhs.destName == rhs.destName
+             );
+}
+
+inline bool operator!=(const SonobusAudioProcessor::LatInfo& lhs, const SonobusAudioProcessor::LatInfo& rhs){ return !(lhs == rhs); }
+
+inline bool operator<(const SonobusAudioProcessor::LatInfo& lhs, const SonobusAudioProcessor::LatInfo& rhs)
+{
+    // default sorting alpha
+    return (lhs.sourceName.compareIgnoreCase(rhs.sourceName) < 0);
+}

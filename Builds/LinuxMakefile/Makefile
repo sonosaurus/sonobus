@@ -35,7 +35,7 @@ ifeq ($(CONFIG),Debug)
     TARGET_ARCH := 
   endif
 
-  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DDEBUG=1" "-D_DEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.16-56\"" "-DLOGLEVEL=2" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.16" "-DJUCE_APP_VERSION_HEX=0x10310" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
+  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DDEBUG=1" "-D_DEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.17-57\"" "-DLOGLEVEL=2" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.17" "-DJUCE_APP_VERSION_HEX=0x10311" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
 
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
@@ -77,7 +77,7 @@ ifeq ($(CONFIG),Release)
     TARGET_ARCH := 
   endif
 
-  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DNDEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.16-56\"" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.16" "-DJUCE_APP_VERSION_HEX=0x10310" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
+  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DNDEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.17-57\"" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.17" "-DJUCE_APP_VERSION_HEX=0x10311" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
 
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
@@ -149,6 +149,7 @@ OBJECTS_SHARED_CODE := \
   $(JUCE_OBJDIR)/EffectParams_776c8b80.o \
   $(JUCE_OBJDIR)/GenericItemChooser_fff315a.o \
   $(JUCE_OBJDIR)/JitterBufferMeter_9383ad7e.o \
+  $(JUCE_OBJDIR)/LatencyMatchView_eaef9f35.o \
   $(JUCE_OBJDIR)/LatencyMeasurer_f2b67553.o \
   $(JUCE_OBJDIR)/Metronome_fd219413.o \
   $(JUCE_OBJDIR)/mtdm_3a9da6a.o \
@@ -385,6 +386,11 @@ $(JUCE_OBJDIR)/GenericItemChooser_fff315a.o: ../../Source/GenericItemChooser.cpp
 $(JUCE_OBJDIR)/JitterBufferMeter_9383ad7e.o: ../../Source/JitterBufferMeter.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling JitterBufferMeter.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/LatencyMatchView_eaef9f35.o: ../../Source/LatencyMatchView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling LatencyMatchView.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/LatencyMeasurer_f2b67553.o: ../../Source/LatencyMeasurer.cpp

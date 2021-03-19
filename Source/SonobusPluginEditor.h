@@ -29,6 +29,7 @@ class SonobusAudioProcessorEditor;
 class ChannelGroupsView;
 class MonitorDelayView;
 class ChatView;
+class LatencyMatchView;
 
 //==============================================================================
 /**
@@ -135,6 +136,7 @@ public:
     void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) override;
     void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) override;
     void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg) override;
+    void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) override;
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
@@ -178,6 +180,8 @@ private:
     void showMetConfig(bool flag);
     void showEffectsConfig(bool flag);
 
+    void showGroupMenu(bool show);
+
     void showConnectPopup(bool flag);
 
     void showFormatChooser(int peerindex);
@@ -213,6 +217,8 @@ private:
 
     void showFilePopupMenu(Component * source);
 
+    void showLatencyMatchPrompt(const String & name, float latencyms);
+    void showLatencyMatchView(bool show);
 
     void updateSliderSnap();
 
@@ -258,9 +264,6 @@ private:
     std::unique_ptr<Label> mServerStatusLabel;
     std::unique_ptr<Label> mServerInfoLabel;
     std::unique_ptr<Label> mMainStatusLabel;
-
-
-
 
     std::unique_ptr<Label> mConnectionTimeLabel;
     std::unique_ptr<Label> mFileRecordingLabel;
@@ -409,7 +412,13 @@ private:
     std::unique_ptr<Label>  mReverbPreDelayLabel;
     std::unique_ptr<Slider> mReverbPreDelaySlider;
 
-    
+    // latency match stuff
+    std::unique_ptr<Component>  mLatMatchApproveContainer;
+    std::unique_ptr<Label>  mLatMatchApproveLabel;
+    std::unique_ptr<TextButton> mApproveLatMatchButton;
+    std::unique_ptr<LatencyMatchView> mLatMatchView;
+
+
     std::unique_ptr<FileChooser> mFileChooser;
     File  mCurrOpenDir;
     URL mCurrentAudioFile;
@@ -435,7 +444,10 @@ private:
 
     WeakReference<Component> monDelayCalloutBox;
 
-    
+    WeakReference<Component> latmatchCalloutBox;
+    WeakReference<Component> latmatchViewCalloutBox;
+
+
     std::unique_ptr<PatchMatrixView> mPatchMatrixView;
     //std::unique_ptr<DialogWindow> mPatchbayWindow;
     WeakReference<Component> patchbayCalloutBox;
@@ -464,6 +476,7 @@ private:
             PeerFailedJoinEvent,
             PublicGroupModifiedEvent,
             PublicGroupDeletedEvent,
+            PeerRequestedLatencyMatchEvent,
             Error
         };
         
@@ -471,12 +484,14 @@ private:
         ClientEvent(Type type_, const String & mesg) : type(type_), success(true), message(mesg) {}
         ClientEvent(Type type_, bool success_, const String & mesg) : type(type_), success(success_), message(mesg) {}
         ClientEvent(Type type_, const String & group_, bool success_, const String & mesg, const String & user_="") : type(type_), success(success_), message(mesg), user(user_), group(group_) {}
+        ClientEvent(Type type_, const String & mesg, float val) : type(type_), success(true), message(mesg), floatVal(val) {}
 
         Type type = None;
         bool success = false;
         String message;
         String user;
         String group;
+        float floatVal = 0.0f;
     };
     Array<ClientEvent> clientEvents;
 
@@ -657,6 +672,9 @@ private:
     FlexBox optionsRecOthersBox;
     FlexBox optionsMetRecordBox;
     FlexBox optionsRecordDirBox;
+
+    FlexBox latMatchBox;
+    FlexBox latMatchButtBox;
 
     Image iaaHostIcon;
 

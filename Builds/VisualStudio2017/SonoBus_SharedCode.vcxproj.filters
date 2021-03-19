@@ -604,6 +604,9 @@
     <ClCompile Include="..\..\Source\JitterBufferMeter.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\LatencyMatchView.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\LatencyMeasurer.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
@@ -3025,6 +3028,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\JitterBufferMeter.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\LatencyMatchView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\LatencyMeasurer.h">

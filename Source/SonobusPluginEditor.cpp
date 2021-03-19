@@ -17,6 +17,7 @@
 #include "MonitorDelayView.h"
 #include "ChatView.h"
 #include "AutoUpdater.h"
+#include "LatencyMatchView.h"
 
 #include <sstream>
 
@@ -714,9 +715,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mSettingsButton->setAlpha(0.7);
     mSettingsButton->addMouseListener(this, false);
 
-    mMainLinkButton = std::make_unique<SonoDrawableButton>("link",  DrawableButton::ButtonStyle::ImageFitted);
+    mMainLinkButton = std::make_unique<SonoDrawableButton>("link",  DrawableButton::ButtonStyle::ImageOnButtonBackground);
     mMainLinkButton->addListener(this);
-    mMainLinkButton->setTooltip(TRANS("Press to copy/share link to group"));
+    mMainLinkButton->setTooltip(TRANS("Press for group action menu"));
     
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
     mPeerContainer->addListener(this);
@@ -1716,6 +1717,16 @@ void SonobusAudioProcessorEditor::sbChatEventReceived(SonobusAudioProcessor *com
     triggerAsyncUpdate();
 }
 
+void SonobusAudioProcessorEditor::peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency)
+{
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PeerRequestedLatencyMatchEvent, username, latency));
+    }
+
+    triggerAsyncUpdate();
+}
+
 
 //////////////////////////
 
@@ -2204,24 +2215,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
 
     else if (buttonThatWasClicked == mMainLinkButton.get()) {
-#if JUCE_IOS || JUCE_ANDROID
-        String message;
-        bool singleurl = true;
-        if (mConnectView->copyInfoToClipboard(singleurl, &message)) {
-            URL url(message);
-            if (url.isWellFormed()) {
-                Array<URL> urlarray;
-                urlarray.add(url);
-                ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
-            } else {
-                ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });       
-            }
-        }        
-#else
-        if (mConnectView->copyInfoToClipboard()) {
-            showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, mMainLinkButton.get());
-        }
-#endif
+
+        showGroupMenu(true);
+
     }
 
     else if (buttonThatWasClicked == mSettingsButton.get()) {
@@ -3040,6 +3036,55 @@ void SonobusAudioProcessorEditor::showPatchbay(bool flag)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(patchbayCalloutBox.get())) {
             box->dismiss();
             patchbayCalloutBox = nullptr;
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::showLatencyMatchView(bool show)
+{
+    // jlcc
+    if (show && latmatchCalloutBox == nullptr) {
+
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        const int defWidth = 260;
+        const int defHeight = 250;
+#else
+        const int defWidth = 260;
+        const int defHeight = 300;
+#endif
+
+        if (!mLatMatchView) {
+            mLatMatchView = std::make_unique<LatencyMatchView>(processor);
+        }
+
+
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+
+
+        mLatMatchView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        wrap->setViewedComponent(mLatMatchView.get(), false);
+        mLatMatchView->setVisible(true);
+
+        mLatMatchView->startLatMatchProcess();
+
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        latmatchCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+            box->dismiss();
+            latmatchCalloutBox = nullptr;
         }
     }
 }
@@ -3903,6 +3948,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         else if (ev.type == ClientEvent::PeerFailedJoinEvent) {
             mPeerContainer->peerFailedJoin(ev.group, ev.user);
         }
+        else if (ev.type == ClientEvent::PeerRequestedLatencyMatchEvent) {
+
+            showLatencyMatchPrompt(ev.message, ev.floatVal);
+        }
     }
 
     if (haveNewChatEvents.compareAndSetBool(false, true))
@@ -3922,7 +3971,134 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
     }
 }
 
+void SonobusAudioProcessorEditor::showGroupMenu(bool show)
+{
+    Array<GenericItemChooserItem> items;
 
+#if JUCE_IOS || JUCE_ANDROID
+    items.add(GenericItemChooserItem(TRANS("Share Group Link"), {}, nullptr, false));
+#else
+    items.add(GenericItemChooserItem(TRANS("Copy Group Link"), {}, nullptr, false));
+#endif
+
+    items.add(GenericItemChooserItem(TRANS("Group Latency Match..."), {}, nullptr, true));
+
+
+    Component* dw = mMainLinkButton->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = mMainLinkButton->findParentComponentOfClass<Component>();
+    Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+
+    SafePointer<SonobusAudioProcessorEditor> safeThis(this);
+
+    auto callback = [safeThis,dw,bounds](GenericItemChooser* chooser,int index) mutable {
+        if (!safeThis) return;
+
+        if (index == 0) {
+            // copy group link
+#if JUCE_IOS || JUCE_ANDROID
+            String message;
+            bool singleurl = true;
+            if (safeThis->mConnectView->copyInfoToClipboard(singleurl, &message)) {
+                URL url(message);
+                if (url.isWellFormed()) {
+                    Array<URL> urlarray;
+                    urlarray.add(url);
+                    ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
+                } else {
+                    ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });
+                }
+            }
+#else
+            if (safeThis->mConnectView->copyInfoToClipboard()) {
+                safeThis->showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, safeThis->mMainLinkButton.get());
+            }
+#endif
+        } else if (index == 1) {
+            // group latency
+            safeThis->showLatencyMatchView(true);
+        }
+    };
+
+    GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, -1, dw ? dw->getHeight()-30 : 0);
+}
+
+
+void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, float latencyms)
+{
+    if (!mLatMatchApproveContainer) {
+        mLatMatchApproveContainer = std::make_unique<Component>();
+        mLatMatchApproveLabel = std::make_unique<Label>();
+        mApproveLatMatchButton = std::make_unique<TextButton>();
+        mApproveLatMatchButton->setButtonText(TRANS("Match Latency"));
+
+        mLatMatchApproveContainer->addAndMakeVisible(mApproveLatMatchButton.get());
+        mLatMatchApproveContainer->addAndMakeVisible(mLatMatchApproveLabel.get());
+
+        latMatchButtBox.items.clear();
+        latMatchButtBox.flexDirection = FlexBox::Direction::row;
+        latMatchButtBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+        latMatchButtBox.items.add(FlexItem(100, 48, *mApproveLatMatchButton).withMargin(0).withFlex(0));
+        latMatchButtBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+
+        latMatchBox.items.clear();
+        latMatchBox.flexDirection = FlexBox::Direction::column;
+        latMatchBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+        latMatchBox.items.add(FlexItem(100, 40, *mLatMatchApproveLabel).withMargin(0).withFlex(1));
+        latMatchBox.items.add(FlexItem(100, 40, latMatchButtBox).withMargin(0).withFlex(0));
+        latMatchBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
+
+    }
+
+
+    // jlcc
+    if (latmatchCalloutBox == nullptr) {
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        const int defWidth = 260;
+        const int defHeight = 108;
+#else
+        const int defWidth = 260;
+        const int defHeight = 108;
+#endif
+
+
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+
+        mLatMatchApproveContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        wrap->setViewedComponent(mLatMatchApproveContainer.get(), false);
+        mLatMatchApproveContainer->setVisible(true);
+
+        latMatchBox.performLayout(mLatMatchApproveContainer->getLocalBounds());
+
+        String mesg;
+        mesg << name << TRANS(" requests to use a matched group latency of:");
+        mesg << " " << lrintf(latencyms) << " ms.";
+        
+        mLatMatchApproveLabel->setText(mesg, dontSendNotification);
+
+        mApproveLatMatchButton->onClick = [this,latencyms]() {
+            processor.commitLatencyMatch(latencyms);
+
+            // dismiss it
+            if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+                box->dismiss();
+                latmatchCalloutBox = nullptr;
+            }
+        };
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        latmatchCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+
+}
 
 
 void SonobusAudioProcessorEditor::showChatPanel(bool show, bool allowresize)
@@ -4208,11 +4384,13 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     inputButtonBox.items.clear();
     inputButtonBox.flexDirection = FlexBox::Direction::row;
-    inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.2));
+    inputButtonBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0.1));
     inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mInSoloButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    //inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
-    //inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.2));
+    //inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(3, 4));
+    inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(8, 6).withMargin(0).withFlex(0));
 
     inputRightBox.items.clear();
     inputRightBox.flexDirection = FlexBox::Direction::column;
@@ -4447,8 +4625,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     mainGroupLayoutBox.items.add(FlexItem(1, 4));
     mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mPeerLayoutMinimalButton).withMargin(0).withFlex(0));
     mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mPeerLayoutFullButton).withMargin(0).withFlex(0));
-    mainGroupLayoutBox.items.add(FlexItem(3, 4));
-    mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    //mainGroupLayoutBox.items.add(FlexItem(3, 4));
+    //mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     mainGroupLayoutBox.items.add(FlexItem(4, 4));
     mainGroupLayoutBox.items.add(FlexItem(24, minitemheight, *mMainPeerLabel).withMargin(0).withFlex(0));
     mainGroupLayoutBox.items.add(FlexItem(minButtonWidth, minitemheight - 8, mainGroupUserBox).withMargin(0).withFlex(1));
