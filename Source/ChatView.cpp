@@ -8,12 +8,7 @@
 
 ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connectinfo) : processor(proc), currConnectionInfo(connectinfo)
 {
-    mChatNameFont = Font(13);
-    mChatMesgFont = Font(16);
-    mChatMesgFixedFont = Font(Font::getDefaultMonospacedFontName(), 15, Font::plain);
-    mChatEditFont = Font(14);
-    mChatEditFixedFont = Font(Font::getDefaultMonospacedFontName(), 15, Font::plain);
-    mChatSpacerFont = Font(6);
+    updateFontSizes();
 
     setOpaque(true);
 
@@ -129,6 +124,24 @@ void ChatView::setUseFixedWidthFont(bool flag) {
     processor.setChatUseFixedWidthFont(flag);
     mChatSendTextEditor->setFont(flag ? mChatEditFixedFont : mChatEditFont);
 }
+
+void ChatView::updateFontSizes()
+{
+    auto offset = processor.getChatFontSizeOffset();
+
+    mChatNameFont = Font(13 + offset);
+    mChatMesgFont = Font(16 + offset);
+    mChatMesgFixedFont = Font(Font::getDefaultMonospacedFontName(), 15+offset, Font::plain);
+    mChatEditFont = Font(14 + offset);
+    mChatEditFixedFont = Font(Font::getDefaultMonospacedFontName(), 15+offset, Font::plain);
+    mChatSpacerFont = Font(6+offset);
+
+    if (mChatSendTextEditor) {
+        mChatSendTextEditor->setFont(processor.getChatUseFixedWidthFont() ? mChatEditFixedFont : mChatEditFont);
+    }
+
+}
+
 
 void ChatView::setFocusToChat()
 {
@@ -251,12 +264,20 @@ void ChatView::refreshAllMessages()
     processNewChatMessages(0, allChatEvents.size());
 }
 
+struct FontSizeItemData : public GenericItemChooserItem::UserData
+{
+public:
+    FontSizeItemData(const FontSizeItemData & other) : offset(other.offset) {}
+    FontSizeItemData(int offs) : offset(offs) {}
+
+    int offset;
+};
 
 void ChatView::showMenu(bool show)
 {
     Array<GenericItemChooserItem> items;
 
-    items.add(GenericItemChooserItem(TRANS("Save Chat"), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("Save Chat..."), {}, nullptr, false));
     items.add(GenericItemChooserItem(TRANS("Clear Chat"), {}, nullptr, false));
 
     if (processor.getChatUseFixedWidthFont()) {
@@ -264,6 +285,7 @@ void ChatView::showMenu(bool show)
     } else {
         items.add(GenericItemChooserItem(TRANS("Use Fixed Width Font"), {}, nullptr, true));
     }
+    items.add(GenericItemChooserItem(TRANS("Font Size..."), {}, nullptr, false));
 
     Component* dw = mMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = mMenuButton->findParentComponentOfClass<Component>();
@@ -294,6 +316,33 @@ void ChatView::showMenu(bool show)
             // fixed/variable width
             safeThis->setUseFixedWidthFont(!safeThis->processor.getChatUseFixedWidthFont());
             safeThis->refreshAllMessages();
+        } else if (index == 3) {
+            // font size popup
+            Array<GenericItemChooserItem> citems;
+            citems.add(GenericItemChooserItem(TRANS("Tiny"), {}, std::make_shared<FontSizeItemData>(-3)));
+            citems.add(GenericItemChooserItem(TRANS("Small"), {}, std::make_shared<FontSizeItemData>(-1)));
+            citems.add(GenericItemChooserItem(TRANS("Normal"), {}, std::make_shared<FontSizeItemData>(0)));
+            citems.add(GenericItemChooserItem(TRANS("Large"), {}, std::make_shared<FontSizeItemData>(2)));
+            citems.add(GenericItemChooserItem(TRANS("Huge"), {}, std::make_shared<FontSizeItemData>(4)));
+
+            int selindex = safeThis->processor.getChatFontSizeOffset() + 2;
+
+            auto callback = [safeThis](GenericItemChooser* chooser,int index) mutable {
+                if (!safeThis) return;
+                auto & selitem = chooser->getItems().getReference(index);
+                int offset = 0;
+                auto dclitem = std::dynamic_pointer_cast<FontSizeItemData>(selitem.userdata);
+                if (dclitem) {
+                    offset = dclitem->offset;
+                }
+                safeThis->processor.setChatFontSizeOffset(offset);
+                safeThis->updateFontSizes();
+                safeThis->refreshAllMessages();
+            };
+
+            //Rectangle<int> bounds =  dw->getLocalArea(nullptr, chooser->getScreenBounds());
+
+            GenericItemChooser::launchPopupChooser(citems, bounds, dw, callback, selindex, dw ? dw->getHeight()-30 : 0, true);
         }
     };
 

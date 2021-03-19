@@ -187,6 +187,9 @@ void GenericItemChooser::listBoxItemClicked (int rowNumber, const MouseEvent& e)
         if (CallOutBox* const cb = findParentComponentOfClass<CallOutBox>()) {
             cb->dismiss();
         }
+    } else {
+        setCurrentRow(rowNumber);
+        repaint();
     }
 }
 

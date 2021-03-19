@@ -48,6 +48,8 @@ protected:
     void showMenu(bool show);
     void showSaveChat();
 
+    void updateFontSizes();
+
     bool parseStringForUrl(const String & str, Array<Range<int> > & retranges);
 
     bool findUrlAtPos(juce::Point<int>, String & retstr);

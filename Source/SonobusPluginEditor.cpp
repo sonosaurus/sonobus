@@ -3551,7 +3551,7 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         
         if (processor.getNumberRemotePeers() == 0 && mPeerContainer->getPendingPeerCount() == 0) {
             String labstr;
-            labstr << TRANS("Waiting for other users to join group \"") << currGroup << "\"...";
+            labstr << TRANS("Waiting for other users to join group") << " \"" << currGroup << "\"...";
             mMainMessageLabel->setText(labstr, dontSendNotification);
             mMainMessageLabel->setVisible(true);
         } else {
