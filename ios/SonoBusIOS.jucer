@@ -72,8 +72,22 @@
     </GROUP>
     <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
       <GROUP id="{D7B7ACDE-8C3C-464D-61D5-CA7DC65C96D0}" name="localization">
+        <FILE id="k3xnut" name="localized_de.txt" compile="0" resource="1"
+              file="../localization/localized_de.txt"/>
         <FILE id="dOiQNZ" name="localized_es.txt" compile="0" resource="1"
               file="../localization/localized_es.txt"/>
+        <FILE id="NRTyhp" name="localized_fr.txt" compile="0" resource="1"
+              file="../localization/localized_fr.txt"/>
+        <FILE id="y5yKJG" name="localized_it.txt" compile="0" resource="1"
+              file="../localization/localized_it.txt"/>
+        <FILE id="SuQnrx" name="localized_ja.txt" compile="0" resource="1"
+              file="../localization/localized_ja.txt"/>
+        <FILE id="ntxTyT" name="localized_nl.txt" compile="0" resource="1"
+              file="../localization/localized_nl.txt"/>
+        <FILE id="qud69I" name="localized_pt-br.txt" compile="0" resource="1"
+              file="../localization/localized_pt-br.txt"/>
+        <FILE id="ZWGksP" name="localized_pt-pt.txt" compile="0" resource="1"
+              file="../localization/localized_pt-pt.txt"/>
       </GROUP>
       <FILE id="xiA07t" name="bar_click.wav" compile="0" resource="1" file="../images/bar_click.wav"/>
       <FILE id="fRSnh7" name="beat_click.wav" compile="0" resource="1" file="../images/beat_click.wav"/>

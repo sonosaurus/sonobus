@@ -1788,7 +1788,9 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
                     if (saveSettingsIfNeeded) {
                         saveSettingsIfNeeded();
                     }
-                    JUCEApplication::getInstance()->quit();
+                    Timer::callAfterDelay(500, [] {
+                        JUCEApplication::getInstance()->quit();
+                    });
                 }
             }
         }));
