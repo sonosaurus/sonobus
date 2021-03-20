@@ -283,7 +283,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     }
 
 
-    initializeLanguages();
     setupLocalisation(processor.getLanguageOverrideCode());
 
     sonoLookAndFeel.setLanguageCode(mActiveLanguageCode);
@@ -583,14 +582,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mDrySlider->setTextBoxIsEditable(true);
     mInGainSlider->setTextBoxIsEditable(true);
 
-    
-    mBufferTimeSlider    = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
-    mBufferTimeSlider->setName("time");
-    mBufferTimeSlider->setSliderSnapsToMousePosition(false);
-    mBufferTimeSlider->setChangeNotificationOnlyOnRelease(true);
-    mBufferTimeSlider->setDoubleClickReturnValue(true, 15.0);
-    mBufferTimeSlider->setTextBoxIsEditable(true);
-    mBufferTimeSlider->setScrollWheelEnabled(false);
 
 
     mInGainLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Level"));
@@ -623,7 +614,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mInGainAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInGain, *mInGainSlider);
     mDryAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDry, *mDrySlider);
     mWetAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramWet, *mOutGainSlider);
-    mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
     mMainSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainSendMute, *mMainMuteButton);
     mMainRecvMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainRecvMute, *mMainRecvMuteButton);
 
@@ -765,184 +755,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatEdgeResizer = std::make_unique<ResizableEdgeComponent>(mChatView.get(), mChatSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
 
 
-    mRecOptionsComponent = std::make_unique<Component>();
-    mOptionsComponent = std::make_unique<Component>();
-
     mConnectView = std::make_unique<ConnectView>(processor, currConnectionInfo);
     mConnectView->setWantsKeyboardFocus(true);
     mConnectView->updateServerFieldsFromConnectionInfo();
-
-
-
-    mOptionsAutosizeDefaultChoice = std::make_unique<SonoChoiceButton>();
-    mOptionsAutosizeDefaultChoice->addChoiceListener(this);
-    mOptionsAutosizeDefaultChoice->addItem(TRANS("Manual"), SonobusAudioProcessor::AutoNetBufferModeOff);
-    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto Up"), SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly);
-    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto"), SonobusAudioProcessor::AutoNetBufferModeAutoFull);
-    mOptionsAutosizeDefaultChoice->addItem(TRANS("Initial Auto"), SonobusAudioProcessor::AutoNetBufferModeInitAuto);
-    
-    mOptionsFormatChoiceDefaultChoice = std::make_unique<SonoChoiceButton>();
-    mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
-    int numformats = processor.getNumberAudioCodecFormats();
-    for (int i=0; i < numformats; ++i) {
-        mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
-    }
-
-    mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
-    configLabel(mOptionsAutosizeStaticLabel.get(), false);
-    mOptionsAutosizeStaticLabel->setJustificationType(Justification::centredLeft);
-    
-    mOptionsFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Default Send Quality:"));
-    configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
-    mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
-
-
-    mOptionsLanguageChoice = std::make_unique<SonoChoiceButton>();
-    mOptionsLanguageChoice->addChoiceListener(this);
-    auto overridelang = processor.getLanguageOverrideCode();
-    int langsel = -1;
-    for (int i=0; i < languages.size(); ++i) {
-        String itemname;
-        if (languagesNative[i] != languages[i] && !languagesNative[i].isEmpty()) {
-            itemname = languagesNative[i] + " - " + languages[i];
-        }
-        else {
-            itemname = languages[i];
-        }
-        mOptionsLanguageChoice->addItem(itemname, i);
-        if (overridelang == codes[i]) {
-            langsel = i;
-        }
-    }
-
-    if (langsel >= 0) {
-        mOptionsLanguageChoice->setSelectedId(langsel);
-    }
-
-    mOptionsLanguageLabel = std::make_unique<Label>("", TRANS("Language:"));
-    configLabel(mOptionsLanguageLabel.get(), false);
-    mOptionsLanguageLabel->setJustificationType(Justification::centredRight);
-
-
-    //mOptionsHearLatencyButton = std::make_unique<ToggleButton>(TRANS("Make Latency Test Audible"));
-    //mOptionsHearLatencyButton->addListener(this);
-    //mHearLatencyTestAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramHearLatencyTest, *mOptionsHearLatencyButton);
-
-    mOptionsMetRecordedButton = std::make_unique<ToggleButton>(TRANS("Metronome output recorded in full mix"));
-    mOptionsMetRecordedButton->addListener(this);
-    mMetRecordedAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetIsRecorded, *mOptionsMetRecordedButton);
-
-    
-    mOptionsRecFilesStaticLabel = std::make_unique<Label>("", TRANS("Record feature creates the following files:"));
-    configLabel(mOptionsRecFilesStaticLabel.get(), false);
-    mOptionsRecFilesStaticLabel->setJustificationType(Justification::centredLeft);
-
-    mOptionsRecMixButton = std::make_unique<ToggleButton>(TRANS("Full Mix"));
-    mOptionsRecMixButton->addListener(this);
-
-    mOptionsRecMixMinusButton = std::make_unique<ToggleButton>(TRANS("Full Mix without yourself"));
-    mOptionsRecMixMinusButton->addListener(this);
-
-    mOptionsRecSelfButton = std::make_unique<ToggleButton>(TRANS("Yourself"));
-    mOptionsRecSelfButton->addListener(this);
-
-    mOptionsRecOthersButton = std::make_unique<ToggleButton>(TRANS("Each Connected User"));
-    mOptionsRecOthersButton->addListener(this);
-
-    mRecFormatChoice = std::make_unique<SonoChoiceButton>();
-    mRecFormatChoice->addChoiceListener(this);
-    mRecFormatChoice->addItem(TRANS("FLAC"), SonobusAudioProcessor::FileFormatFLAC);
-    mRecFormatChoice->addItem(TRANS("WAV"), SonobusAudioProcessor::FileFormatWAV);
-    mRecFormatChoice->addItem(TRANS("OGG"), SonobusAudioProcessor::FileFormatOGG);
-
-    mRecBitsChoice = std::make_unique<SonoChoiceButton>();
-    mRecBitsChoice->addChoiceListener(this);
-    mRecBitsChoice->addItem(TRANS("16 bit"), 16);
-    mRecBitsChoice->addItem(TRANS("24 bit"), 24);
-
-
-    mRecFormatStaticLabel = std::make_unique<Label>("", TRANS("Audio File Format:"));
-    configLabel(mRecFormatStaticLabel.get(), false);
-    mRecFormatStaticLabel->setJustificationType(Justification::centredRight);
-
-
-    mRecLocationStaticLabel = std::make_unique<Label>("", TRANS("Record Location:"));
-    configLabel(mRecLocationStaticLabel.get(), false);
-    mRecLocationStaticLabel->setJustificationType(Justification::centredRight);
-
-    mRecLocationButton = std::make_unique<TextButton>("fileloc");
-    mRecLocationButton->setButtonText("");
-    mRecLocationButton->setLookAndFeel(&smallLNF);
-    mRecLocationButton->addListener(this);
-
-
-    
-    
-    mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
-    mOptionsUseSpecificUdpPortButton->addListener(this);
-
-    mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction (NOT RECOMMENDED)"));
-    mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
-
-    mOptionsAutoReconnectButton = std::make_unique<ToggleButton>(TRANS("Auto-Reconnect to Last Group"));
-    mAutoReconnectAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramAutoReconnectLast, *mOptionsAutoReconnectButton);
-
-    mOptionsOverrideSamplerateButton = std::make_unique<ToggleButton>(TRANS("Override Device Sample Rate"));
-    mOptionsOverrideSamplerateButton->addListener(this);
-
-    mOptionsShouldCheckForUpdateButton = std::make_unique<ToggleButton>(TRANS("Automatically check for updates"));
-    mOptionsShouldCheckForUpdateButton->addListener(this);
-
-    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Clicked Position"));
-    mOptionsSliderSnapToMouseButton->addListener(this);
-
-
-    mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
-    mOptionsInputLimiterButton->addListener(this);
-
-    mOptionsChangeAllFormatButton = std::make_unique<ToggleButton>(TRANS("Change all connected"));
-    mOptionsChangeAllFormatButton->addListener(this);
-    mOptionsChangeAllFormatButton->setLookAndFeel(&smallLNF);
-
-    mOptionsUdpPortEditor = std::make_unique<TextEditor>("udp");
-    mOptionsUdpPortEditor->addListener(this);
-    mOptionsUdpPortEditor->setFont(Font(16));
-    mOptionsUdpPortEditor->setText(""); // 100.36.128.246:11000
-    mOptionsUdpPortEditor->setKeyboardType(TextEditor::numericKeyboard);
-    mOptionsUdpPortEditor->setInputRestrictions(5, "0123456789");
-    
-    configEditor(mOptionsUdpPortEditor.get());
-
-
-    mOptionsDefaultLevelSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
-    mOptionsDefaultLevelSlider->setName("uservol");
-    mOptionsDefaultLevelSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
-    mOptionsDefaultLevelSlider->setScrollWheelEnabled(false);
-    configLevelSlider(mOptionsDefaultLevelSlider.get());
-    mOptionsDefaultLevelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
-    mOptionsDefaultLevelSlider->setTextBoxIsEditable(true);
-    //mOptionsDefaultLevelSlider->setSliderStyle(Slider::SliderStyle::LinearBar);
-
-    mDefaultLevelAttachment =  std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDefaultPeerLevel, *mOptionsDefaultLevelSlider);
-
-
-
-    mOptionsDefaultLevelSliderLabel = std::make_unique<Label>("", TRANS("Default User Level"));
-    configLabel(mOptionsDefaultLevelSliderLabel.get(), false);
-    mOptionsDefaultLevelSliderLabel->setJustificationType(Justification::centredLeft);
-
-
-
-
-
-
-#if JUCE_IOS
-    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
-#else
-    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + ProjectInfo::versionString);
-#endif
-    configLabel(mVersionLabel.get(), true);
-    mVersionLabel->setJustificationType(Justification::centredRight);
 
 
     // effects
@@ -1152,43 +967,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //mInputChannelsViewport->setScrollOnDragEnabled(true);
 #endif
     
-    mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
-    mOptionsComponent->addAndMakeVisible(mBufferTimeSlider.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsAutosizeDefaultChoice.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceDefaultChoice.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
-    //mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsAutoReconnectButton.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsInputLimiterButton.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsDefaultLevelSlider.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsDefaultLevelSliderLabel.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
-    mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsLanguageChoice.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
-    //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
-    if (JUCEApplicationBase::isStandaloneApp()) {
-        mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
-        mOptionsComponent->addAndMakeVisible(mOptionsShouldCheckForUpdateButton.get());
-    }
-    mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
 
-
-
-    mRecOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
-    mRecOptionsComponent->addAndMakeVisible(mOptionsRecFilesStaticLabel.get());
-    mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixButton.get());
-    mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfButton.get());
-    mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixMinusButton.get());
-    mRecOptionsComponent->addAndMakeVisible(mOptionsRecOthersButton.get());
-    mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
-    mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
-    mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
-    mRecOptionsComponent->addAndMakeVisible(mRecLocationButton.get());
-    mRecOptionsComponent->addAndMakeVisible(mRecLocationStaticLabel.get());
 
     
     addAndMakeVisible(mMainViewport.get());
@@ -1733,19 +1512,7 @@ void SonobusAudioProcessorEditor::peerRequestedLatencyMatch(SonobusAudioProcesso
 
 void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, int index, int ident)
 {
-    if (comp == mOptionsFormatChoiceDefaultChoice.get()) {
-        processor.setDefaultAudioCodecFormat(index);
-    }
-    else if (comp == mOptionsAutosizeDefaultChoice.get()) {
-        processor.setDefaultAutoresizeBufferMode((SonobusAudioProcessor::AutoNetBufferMode) ident);
-    }
-    else if (comp == mRecFormatChoice.get()) {
-        processor.setDefaultRecordingFormat((SonobusAudioProcessor::RecordFileFormat) ident);
-    }
-    else if (comp == mRecBitsChoice.get()) {
-        processor.setDefaultRecordingBitsPerSample(ident);
-    }
-    else if (comp == mReverbModelChoice.get()) {
+    if (comp == mReverbModelChoice.get()) {
         processor.setMainReverbModel((SonobusAudioProcessor::ReverbModel) ident);
     }
     else if (comp == mSendChannelsChoice.get()) {
@@ -1753,49 +1520,6 @@ void SonobusAudioProcessorEditor::choiceButtonSelected(SonoChoiceButton *comp, i
         processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendChannels)->setValueNotifyingHost(fval);
         updateLayout();
     }
-    else if (comp == mOptionsLanguageChoice.get()) {
-        String code = codes[ident];
-        //app->mainConfig.languageOverrideCode =  codes[comp->getRowId()].toStdString();
-
-        String message;
-        String title;
-        if (JUCEApplication::isStandaloneApp()) {
-            message = TRANS("In order to change the language, the application must be closed and restarted by you.");
-            title = TRANS("App restart required");
-        } else {
-            message = TRANS("In order to change the language, the plugin host must close the session and reload it.");
-            title = TRANS("Host session reload required");
-        }
-
-        AlertWindow::showOkCancelBox(AlertWindow::WarningIcon,
-                                     title,
-                                     message,
-                                     TRANS("Change and Close"),
-                                     TRANS("Cancel"),
-                                     this,
-                                     ModalCallbackFunction::create( [this,code](int result) {
-            if (result) {
-                String langOverride = code;
-                if (!setupLocalisation(langOverride)) {
-                    DBG("Error overriding language with " << langOverride);
-
-                    langOverride = "";
-                }
-
-                processor.setLanguageOverrideCode(langOverride);
-
-                if (JUCEApplication::isStandaloneApp()) {
-                    if (saveSettingsIfNeeded) {
-                        saveSettingsIfNeeded();
-                    }
-                    Timer::callAfterDelay(500, [] {
-                        JUCEApplication::getInstance()->quit();
-                    });
-                }
-            }
-        }));
-    }
-
 }
 
 
@@ -1841,59 +1565,9 @@ void SonobusAudioProcessorEditor::updateChannelState(bool force)
 
 void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
 {
-    mOptionsFormatChoiceDefaultChoice->setSelectedItemIndex(processor.getDefaultAudioCodecFormat(), dontSendNotification);
-    mOptionsAutosizeDefaultChoice->setSelectedId((int)processor.getDefaultAutoresizeBufferMode(), dontSendNotification);
-
-    mOptionsChangeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
-    
-    int port = processor.getUseSpecificUdpPort();
-    if (port > 0) {
-        mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
-        mOptionsUdpPortEditor->setEnabled(true);
-        mOptionsUdpPortEditor->setAlpha(1.0);
-        if (!ignorecheck) {
-            mOptionsUseSpecificUdpPortButton->setToggleState(true, dontSendNotification);
-        }
+    if (mOptionsView != nullptr)  {
+        mOptionsView->updateState();
     }
-    else {
-        port = processor.getUdpLocalPort();
-        mOptionsUdpPortEditor->setEnabled(mOptionsUseSpecificUdpPortButton->getToggleState());
-        mOptionsUdpPortEditor->setAlpha(mOptionsUseSpecificUdpPortButton->getToggleState() ? 1.0 : 0.6);
-        mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
-        if (!ignorecheck) {
-            mOptionsUseSpecificUdpPortButton->setToggleState(false, dontSendNotification);        
-        }
-    }
-
-    
-    if (JUCEApplication::isStandaloneApp()) {
-        if (getShouldOverrideSampleRateValue) {
-            Value * val = getShouldOverrideSampleRateValue();
-            mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
-        }
-        if (getShouldCheckForNewVersionValue) {
-            Value * val = getShouldCheckForNewVersionValue();
-            mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
-        }
-    }
-
-    mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
-
-    uint32 recmask = processor.getDefaultRecordingOptions();
-    
-    mOptionsRecOthersButton->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, dontSendNotification);
-    mOptionsRecMixButton->setToggleState((recmask & SonobusAudioProcessor::RecordMix) != 0, dontSendNotification);
-    mOptionsRecMixMinusButton->setToggleState((recmask & SonobusAudioProcessor::RecordMixMinusSelf) != 0, dontSendNotification);
-    mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
-    
-    mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
-    mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
-
-    File recdir = File(processor.getDefaultRecordingDirectory());
-    String dispath = recdir.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
-    if (dispath.startsWith(".")) dispath = processor.getDefaultRecordingDirectory();
-    mRecLocationButton->setButtonText(dispath);
-    
 }
 
 
@@ -2028,11 +1702,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
 void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
 {
     DBG("Return pressed");
-    
-    if (&ed == mOptionsUdpPortEditor.get()) {
-        int port = mOptionsUdpPortEditor->getText().getIntValue();
-        changeUdpPort(port);
-    }
+
 }
 
 void SonobusAudioProcessorEditor::textEditorEscapeKeyPressed (TextEditor& ed)
@@ -2046,24 +1716,10 @@ void SonobusAudioProcessorEditor::textEditorTextChanged (TextEditor&)
 
 void SonobusAudioProcessorEditor::textEditorFocusLost (TextEditor& ed)
 {
-    // only one we care about live is udp port
-    if (&ed == mOptionsUdpPortEditor.get()) {
-        int port = mOptionsUdpPortEditor->getText().getIntValue();
-        changeUdpPort(port);
-    }
+
 }
 
-void SonobusAudioProcessorEditor::changeUdpPort(int port)
-{
-    if (port >= 0) {
-        DBG("changing udp port to: " << port);
-        processor.setUseSpecificUdpPort(port);
 
-        updateState();
-    } 
-    updateOptionsState(true);
-    
-}
 
 
 void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
@@ -2101,8 +1757,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mSetupAudioButton.get()) {
         if (!settingsCalloutBox) {
             showSettings(true);
-            mSettingsTab->setCurrentTabIndex(0);
-        }        
+            if (mOptionsView) {
+                mOptionsView->showAudioTab();
+            }
+        }
     }
     else if (buttonThatWasClicked == mPatchbayButton.get()) {
         if (!patchbayCalloutBox) {
@@ -2117,23 +1775,6 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         mInputChannelsContainer->rebuildChannelViews();
         resized();
 
-    }
-    else if (buttonThatWasClicked == mRecLocationButton.get()) {
-        // browse folder chooser
-        SafePointer<SonobusAudioProcessorEditor> safeThis (this);
-
-        if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
-        {
-            RuntimePermissions::request (RuntimePermissions::readExternalStorage,
-                                         [safeThis] (bool granted) mutable
-                                         {
-                if (granted)
-                    safeThis->buttonClicked (safeThis->mRecLocationButton.get());
-            });
-            return;
-        }
-
-        chooseRecDirBrowser();
     }
     else if (buttonThatWasClicked == mMetConfigButton.get()) {
         if (!metCalloutBox) {
@@ -2359,14 +2000,6 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         updateLayout();
         resized();
     }
-    else if (buttonThatWasClicked == mOptionsInputLimiterButton.get()) {
-        CompressorParams params;
-        for (int j=0; j < processor.getInputGroupCount(); ++j) {
-            processor.getInputLimiterParams(j, params);
-            params.enabled = mOptionsInputLimiterButton->getToggleState();
-            processor.setInputLimiterParams(j, params);
-        }
-    }
     else if (buttonThatWasClicked == mPlayButton.get()) {
         if (mPlayButton->getToggleState()) {
             processor.getTransportSource().start();
@@ -2399,58 +2032,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         showFilePopupMenu(mFileMenuButton.get());
     }
 
-    else if (buttonThatWasClicked == mOptionsRecMixButton.get()
-             || buttonThatWasClicked == mOptionsRecSelfButton.get()
-             || buttonThatWasClicked == mOptionsRecOthersButton.get()
-             || buttonThatWasClicked == mOptionsRecMixMinusButton.get()
-             ) {
-        uint32 recmask = 0;        
-        recmask |= (mOptionsRecMixButton->getToggleState() ? SonobusAudioProcessor::RecordMix : 0);
-        recmask |= (mOptionsRecOthersButton->getToggleState() ? SonobusAudioProcessor::RecordIndividualUsers : 0);
-        recmask |= (mOptionsRecSelfButton->getToggleState() ? SonobusAudioProcessor::RecordSelf : 0);
-        recmask |= (mOptionsRecMixMinusButton->getToggleState() ? SonobusAudioProcessor::RecordMixMinusSelf : 0);
-
-        // ensure at least one is selected
-        if (recmask == 0) { 
-            recmask = SonobusAudioProcessor::RecordMix;
-            mOptionsRecMixButton->setToggleState(true, dontSendNotification);
-        }
-        
-        processor.setDefaultRecordingOptions(recmask);
-    }
-    else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
-        processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());
-    }
-    else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
-        if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {
-            // toggled off, change back to use system chosen port
-            changeUdpPort(0);
-        } else {
-            updateOptionsState(true);
-        }
-    }
-    else if (buttonThatWasClicked == mOptionsOverrideSamplerateButton.get()) {
-
-        if (JUCEApplicationBase::isStandaloneApp() && getShouldOverrideSampleRateValue) {
-            Value * val = getShouldOverrideSampleRateValue();
-            val->setValue((bool)mOptionsOverrideSamplerateButton->getToggleState());
-        }
-    }
-    else if (buttonThatWasClicked == mOptionsShouldCheckForUpdateButton.get()) {
-
-        if (JUCEApplicationBase::isStandaloneApp() && getShouldCheckForNewVersionValue) {
-            Value * val = getShouldCheckForNewVersionValue();
-            val->setValue((bool)mOptionsShouldCheckForUpdateButton->getToggleState());
-
-            if (mOptionsShouldCheckForUpdateButton->getToggleState()) {
-                startTimer(CheckForNewVersionTimerId, 3000);
-            }
-        }
-    }
-    else if (buttonThatWasClicked == mOptionsSliderSnapToMouseButton.get()) {
-        processor.setSlidersSnapToMousePosition(mOptionsSliderSnapToMouseButton->getToggleState());
-        updateSliderSnap();
-    }
+    
     else {
         
        
@@ -2514,54 +2096,6 @@ void SonobusAudioProcessorEditor::openFileBrowser()
     }
 }
 
-void SonobusAudioProcessorEditor::chooseRecDirBrowser()
-{
-    SafePointer<SonobusAudioProcessorEditor> safeThis (this);
-
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir = File(processor.getDefaultRecordingDirectory());
-
-        mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
-                                           recdir,
-                                           "",
-                                           true, false, getTopLevelComponent()));
-
-
-
-        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-
-                DBG("Chose directory: " <<  url.toString(false));
-
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-                    if (lfile.isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(lfile.getFullPathName());
-                    } else {
-                        safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
-                    }
-
-                    safeThis->updateOptionsState();
-                }
-            }
-
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
-
-        }, nullptr);
-
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
-}
 
 void SonobusAudioProcessorEditor::showSaveSettingsPreset()
 {
@@ -2843,7 +2377,7 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
     snapset(mInGainSlider.get());
     snapset(mOutGainSlider.get());
     snapset(mDrySlider.get());
-    snapset(mOptionsDefaultLevelSlider.get());
+    //snapset(mOptionsDefaultLevelSlider.get());
 
     mPeerContainer->applyToAllSliders(snapset);
     mInputChannelsContainer->applyToAllSliders(snapset);
@@ -3220,7 +2754,7 @@ void SonobusAudioProcessorEditor::componentMovedOrResized (Component& component,
 
 void SonobusAudioProcessorEditor::componentParentHierarchyChanged (Component& component)
 {
-    if (&component == mSettingsTab.get()) {
+    if (&component == mOptionsView.get()) {
         if (component.getParentComponent() == nullptr) {
             DBG("setting parent changed: " << (uint64) component.getParentComponent());
             settingsClosedTimestamp = Time::getMillisecondCounter();
@@ -3287,132 +2821,27 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         defHeight = jmin(defHeight + 8, dw->getHeight() - 24);
         
         bool firsttime = false;
-        if (!mSettingsTab) {
-            mSettingsTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
-            mSettingsTab->setTabBarDepth(36);
-            mSettingsTab->setOutline(0);
-            mSettingsTab->getTabbedButtonBar().setMinimumTabScaleFactor(0.1f);
-            mSettingsTab->addComponentListener(this);
+        if (!mOptionsView) {
+            mOptionsView = std::make_unique<OptionsView>(processor, getAudioDeviceManager);
+            mOptionsView->getShouldOverrideSampleRateValue = getShouldOverrideSampleRateValue;
+            mOptionsView->getShouldCheckForNewVersionValue = getShouldCheckForNewVersionValue;
+            mOptionsView->updateSliderSnap = [this]() {  updateSliderSnap();  };
+            mOptionsView->setupLocalisation = [this](const String & lang) {  return setupLocalisation(lang);  };
+            mOptionsView->saveSettingsIfNeeded = [this]() {  if (saveSettingsIfNeeded) saveSettingsIfNeeded();  };
+
+            mOptionsView->addComponentListener(this);
             firsttime = true;
         }
 
-        
-        if (JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
-        {
-            if (!mAudioDeviceSelector) {
-                int minNumInputs  = std::numeric_limits<int>::max(), maxNumInputs  = 0,
-                minNumOutputs = std::numeric_limits<int>::max(), maxNumOutputs = 0;
-                
-                auto updateMinAndMax = [] (int newValue, int& minValue, int& maxValue)
-                {
-                    minValue = jmin (minValue, newValue);
-                    maxValue = jmax (maxValue, newValue);
-                };
-                
-                /*
-                if (channelConfiguration.size() > 0)
-                {
-                    auto defaultConfig =  channelConfiguration.getReference (0);
-                    updateMinAndMax ((int) defaultConfig.numIns,  minNumInputs,  maxNumInputs);
-                    updateMinAndMax ((int) defaultConfig.numOuts, minNumOutputs, maxNumOutputs);
-                }
-                 */
-                
-                if (auto* bus = processor.getBus (true, 0)) {
-                    auto maxsup = bus->getMaxSupportedChannels();
-                    updateMinAndMax (maxsup, minNumInputs, maxNumInputs);
-                    updateMinAndMax (bus->getDefaultLayout().size(), minNumInputs, maxNumInputs);
-                    if (bus->isNumberOfChannelsSupported(1)) {
-                        updateMinAndMax (1, minNumInputs, maxNumInputs);                
-                    }
-                    if (bus->isNumberOfChannelsSupported(0)) {
-                        updateMinAndMax (0, minNumInputs, maxNumInputs);
-                    }
-                }
-                
-                if (auto* bus = processor.getBus (false, 0)) {
-                    auto maxsup = bus->getMaxSupportedChannels();
-                    updateMinAndMax (maxsup, minNumOutputs, maxNumOutputs);
-                    updateMinAndMax (bus->getDefaultLayout().size(), minNumOutputs, maxNumOutputs);
-                    if (bus->isNumberOfChannelsSupported(1)) {
-                        updateMinAndMax (1, minNumOutputs, maxNumOutputs);                
-                    }
-                    if (bus->isNumberOfChannelsSupported(0)) {
-                        updateMinAndMax (0, minNumOutputs, maxNumOutputs);
-                    }
-                }
-                
-                
-                minNumInputs  = jmin (minNumInputs,  maxNumInputs);
-                minNumOutputs = jmin (minNumOutputs, maxNumOutputs);
-
-
-            
-                mAudioDeviceSelector = std::make_unique<AudioDeviceSelectorComponent>(*getAudioDeviceManager(),
-                                                                                      minNumInputs, maxNumInputs,
-                                                                                      minNumOutputs, maxNumOutputs,
-                                                                                      false, // show MIDI input
-                                                                                      false,
-                                                                                      false, false);
-                
-#if JUCE_IOS || JUCE_ANDROID
-                mAudioDeviceSelector->setItemHeight(44);
-#endif
-                
-                mAudioOptionsViewport = std::make_unique<Viewport>();
-                mAudioOptionsViewport->setViewedComponent(mAudioDeviceSelector.get(), false);
-
-                
-            }
-
-            if (firsttime) {
-                mSettingsTab->addTab(TRANS("AUDIO"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mAudioOptionsViewport.get(), false);
-            }
-            
-        }
-
-
-        if (firsttime) {
-            mOtherOptionsViewport = std::make_unique<Viewport>();
-            mOtherOptionsViewport->setViewedComponent(mOptionsComponent.get(), false);
-
-            mSettingsTab->addTab(TRANS("OPTIONS"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mOtherOptionsViewport.get(), false);
-           // mSettingsTab->addTab(TRANS("HELP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mHelpComponent.get(), false);
-
-            mRecordOptionsViewport = std::make_unique<Viewport>();
-            mRecordOptionsViewport->setViewedComponent(mRecOptionsComponent.get(), false);
-
-            mSettingsTab->addTab(TRANS("RECORDING"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecordOptionsViewport.get(), false);
-
-        }
-        
 
         auto wrap = std::make_unique<Component>();
 
-        wrap->addAndMakeVisible(mSettingsTab.get());
+        wrap->addAndMakeVisible(mOptionsView.get());
 
-        mSettingsTab->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
-        
-        if (mAudioDeviceSelector) {
-            mAudioDeviceSelector->setBounds(Rectangle<int>(0,0,defWidth - 10,mAudioDeviceSelector->getHeight()));
-        }
-        mOptionsComponent->setBounds(Rectangle<int>(0,0,defWidth - 10, minOptionsHeight));
-        mRecOptionsComponent->setBounds(Rectangle<int>(0,0,defWidth - 10, minRecOptionsHeight));
+        mOptionsView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
 
         wrap->setSize(defWidth,defHeight);
-        
-        optionsBox.performLayout(mOptionsComponent->getLocalBounds());
 
-        recOptionsBox.performLayout(mRecOptionsComponent->getLocalBounds());
-
-        mOptionsAutosizeStaticLabel->setBounds(mBufferTimeSlider->getBounds().removeFromLeft(mBufferTimeSlider->getWidth()*0.75));
-
-        auto deflabbounds = mOptionsDefaultLevelSlider->getBounds().removeFromLeft(mOptionsDefaultLevelSlider->getWidth()*0.75);
-        deflabbounds.removeFromBottom(mOptionsDefaultLevelSlider->getHeight()*0.4);
-        mOptionsDefaultLevelSliderLabel->setBounds(deflabbounds);
-        mOptionsDefaultLevelSlider->setMouseDragSensitivity(jmax(128, mOptionsDefaultLevelSlider->getWidth()));
-
-        
         updateOptionsState();
         
        
@@ -3429,12 +2858,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
 #if JUCE_WINDOWS
         if (firsttime && JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
         {
-            // on windows, if current audio device type isn't ASIO, prompt them that it should be
-            auto devtype = getAudioDeviceManager()->getCurrentAudioDeviceType();
-            if (!devtype.equalsIgnoreCase("ASIO")) {
-                auto mesg = String(TRANS("Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first."));
-                showPopTip(mesg, 0, mSettingsTab->getTabbedButtonBar().getTabButton(0), 320);
-            }
+            mOptionsView->showWarnings();
         }
 #endif
 
@@ -3560,10 +2984,6 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
     }
     
 
-    CompressorParams limparams;
-    processor.getInputLimiterParams(0, limparams);
-    mOptionsInputLimiterButton->setToggleState(limparams.enabled, dontSendNotification);
-    
     if (processor.getMainReverbModel() == SonobusAudioProcessor::ReverbModelFreeverb) {
         mReverbPreDelaySlider->setVisible(false);
         mReverbPreDelayLabel->setVisible(false);
@@ -3639,15 +3059,7 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         if (JUCEApplication::isStandaloneApp()) {
 
             mSetupAudioButton->setVisible(processor.getNumberRemotePeers() == 0);
-            
-            if (getShouldOverrideSampleRateValue) {
-                Value * val = getShouldOverrideSampleRateValue();
-                mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
-            }
-            if (getShouldCheckForNewVersionValue) {
-                Value * val = getShouldCheckForNewVersionValue();
-                mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
-            }
+
         } else {
             mSetupAudioButton->setVisible(false);            
         }
@@ -4434,176 +3846,6 @@ void SonobusAudioProcessorEditor::updateLayout()
     paramsBox.flexDirection = FlexBox::Direction::column;
     paramsBox.items.add(FlexItem(minmainw, minitemheight + minitemheight + 4, inputMainBox).withMargin(2).withFlex(0));
 
-    
-    // options
-    optionsNetbufBox.items.clear();
-    optionsNetbufBox.flexDirection = FlexBox::Direction::row;
-    optionsNetbufBox.items.add(FlexItem(12, 12));
-    optionsNetbufBox.items.add(FlexItem(minButtonWidth, minitemheight, *mBufferTimeSlider).withMargin(0).withFlex(3));
-    optionsNetbufBox.items.add(FlexItem(4, 12));
-    optionsNetbufBox.items.add(FlexItem(80, minitemheight, *mOptionsAutosizeDefaultChoice).withMargin(0).withFlex(0));
-
-    optionsSendQualBox.items.clear();
-    optionsSendQualBox.flexDirection = FlexBox::Direction::row;
-    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceStaticLabel).withMargin(0).withFlex(1));
-    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceDefaultChoice).withMargin(0).withFlex(1));
-
-    optionsLanguageBox.items.clear();
-    optionsLanguageBox.flexDirection = FlexBox::Direction::row;
-    optionsLanguageBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsLanguageLabel).withMargin(0).withFlex(1));
-    optionsLanguageBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsLanguageChoice).withMargin(0).withFlex(3));
-
-    //optionsHearlatBox.items.clear();
-    //optionsHearlatBox.flexDirection = FlexBox::Direction::row;
-    //optionsHearlatBox.items.add(FlexItem(10, 12));
-    //optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
-
-    optionsDefaultLevelBox.items.clear();
-    optionsDefaultLevelBox.flexDirection = FlexBox::Direction::row;
-    optionsDefaultLevelBox.items.add(FlexItem(12, 12));
-    //optionsDefaultLevelBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsDefaultLevelSliderLabel).withMargin(0).withFlex(1));
-    //optionsDefaultLevelBox.items.add(FlexItem(4, 12));
-    optionsDefaultLevelBox.items.add(FlexItem(100, minitemheight, *mOptionsDefaultLevelSlider).withMargin(0).withFlex(1));
-
-
-    optionsUdpBox.items.clear();
-    optionsUdpBox.flexDirection = FlexBox::Direction::row;
-    optionsUdpBox.items.add(FlexItem(10, 12));
-    optionsUdpBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsUseSpecificUdpPortButton).withMargin(0).withFlex(1));
-    optionsUdpBox.items.add(FlexItem(90, minitemheight, *mOptionsUdpPortEditor).withMargin(0).withFlex(0));
-
-    optionsDynResampleBox.items.clear();
-    optionsDynResampleBox.flexDirection = FlexBox::Direction::row;
-    optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
-    optionsDynResampleBox.items.add(FlexItem(180, minpassheight, *mOptionsDynamicResamplingButton).withMargin(0).withFlex(1));
-
-    optionsAutoReconnectBox.items.clear();
-    optionsAutoReconnectBox.flexDirection = FlexBox::Direction::row;
-    optionsAutoReconnectBox.items.add(FlexItem(10, 12).withFlex(0));
-    optionsAutoReconnectBox.items.add(FlexItem(180, minpassheight, *mOptionsAutoReconnectButton).withMargin(0).withFlex(1));
-
-    optionsOverrideSamplerateBox.items.clear();
-    optionsOverrideSamplerateBox.flexDirection = FlexBox::Direction::row;
-    optionsOverrideSamplerateBox.items.add(FlexItem(10, 12).withFlex(0));
-    optionsOverrideSamplerateBox.items.add(FlexItem(180, minpassheight, *mOptionsOverrideSamplerateButton).withMargin(0).withFlex(1));
-
-    optionsInputLimitBox.items.clear();
-    optionsInputLimitBox.flexDirection = FlexBox::Direction::row;
-    optionsInputLimitBox.items.add(FlexItem(10, 12).withFlex(0));
-    optionsInputLimitBox.items.add(FlexItem(180, minpassheight, *mOptionsInputLimiterButton).withMargin(0).withFlex(1));
-
-    optionsChangeAllQualBox.items.clear();
-    optionsChangeAllQualBox.flexDirection = FlexBox::Direction::row;
-    optionsChangeAllQualBox.items.add(FlexItem(10, 12).withFlex(1));
-    optionsChangeAllQualBox.items.add(FlexItem(180, minpassheight, *mOptionsChangeAllFormatButton).withMargin(0).withFlex(0));
-
-    optionsCheckForUpdateBox.items.clear();
-    optionsCheckForUpdateBox.flexDirection = FlexBox::Direction::row;
-    optionsCheckForUpdateBox.items.add(FlexItem(10, 12).withFlex(0));
-    optionsCheckForUpdateBox.items.add(FlexItem(180, minpassheight, *mOptionsShouldCheckForUpdateButton).withMargin(0).withFlex(1));
-
-    optionsSnapToMouseBox.items.clear();
-    optionsSnapToMouseBox.flexDirection = FlexBox::Direction::row;
-    optionsSnapToMouseBox.items.add(FlexItem(10, 12).withFlex(0));
-    optionsSnapToMouseBox.items.add(FlexItem(180, minpassheight, *mOptionsSliderSnapToMouseButton).withMargin(0).withFlex(1));
-
-    
-    optionsBox.items.clear();
-    optionsBox.flexDirection = FlexBox::Direction::column;
-    optionsBox.items.add(FlexItem(4, 6));
-    optionsBox.items.add(FlexItem(100, 15, *mVersionLabel).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 4));
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsLanguageBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 4));
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsSendQualBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 4));
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 6));
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 6));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
-    //optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
-    if (JUCEApplicationBase::isStandaloneApp()) {
-        optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
-        optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
-    }
-    optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
-
-    minOptionsHeight = 0;
-    for (auto & item : optionsBox.items) {
-        minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
-    }
-
-    // record options
-    
-    optionsMetRecordBox.items.clear();
-    optionsMetRecordBox.flexDirection = FlexBox::Direction::row;
-    optionsMetRecordBox.items.add(FlexItem(10, 12));
-
-    optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
-
-    int indentw = 40;
-
-    optionsRecordDirBox.items.clear();
-    optionsRecordDirBox.flexDirection = FlexBox::Direction::row;
-    optionsRecordDirBox.items.add(FlexItem(115, minitemheight, *mRecLocationStaticLabel).withMargin(0).withFlex(0));
-    optionsRecordDirBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecLocationButton).withMargin(0).withFlex(3));
-
-    optionsRecordFormatBox.items.clear();
-    optionsRecordFormatBox.flexDirection = FlexBox::Direction::row;
-    optionsRecordFormatBox.items.add(FlexItem(115, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(0));
-    optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatChoice).withMargin(0).withFlex(1));
-    optionsRecordFormatBox.items.add(FlexItem(2, 4));
-    optionsRecordFormatBox.items.add(FlexItem(80, minitemheight, *mRecBitsChoice).withMargin(0).withFlex(0.25));
-
-    optionsRecMixBox.items.clear();
-    optionsRecMixBox.flexDirection = FlexBox::Direction::row;
-    optionsRecMixBox.items.add(FlexItem(indentw, 12));
-    optionsRecMixBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecMixButton).withMargin(0).withFlex(1));
-
-    optionsRecMixMinusBox.items.clear();
-    optionsRecMixMinusBox.flexDirection = FlexBox::Direction::row;
-    optionsRecMixMinusBox.items.add(FlexItem(indentw, 12));
-    optionsRecMixMinusBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecMixMinusButton).withMargin(0).withFlex(1));
-
-    optionsRecSelfBox.items.clear();
-    optionsRecSelfBox.flexDirection = FlexBox::Direction::row;
-    optionsRecSelfBox.items.add(FlexItem(indentw, 12));
-    optionsRecSelfBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfButton).withMargin(0).withFlex(1));
-
-    optionsRecOthersBox.items.clear();
-    optionsRecOthersBox.flexDirection = FlexBox::Direction::row;
-    optionsRecOthersBox.items.add(FlexItem(indentw, 12));
-    optionsRecOthersBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecOthersButton).withMargin(0).withFlex(1));
-
-    
-    recOptionsBox.items.clear();
-    recOptionsBox.flexDirection = FlexBox::Direction::column;
-    recOptionsBox.items.add(FlexItem(4, 6));
-#if !(JUCE_IOS || JUCE_ANDROID)
-    recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordDirBox).withMargin(2).withFlex(0));
-#endif
-    recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordFormatBox).withMargin(2).withFlex(0));
-    recOptionsBox.items.add(FlexItem(4, 4));
-    recOptionsBox.items.add(FlexItem(100, minpassheight, *mOptionsRecFilesStaticLabel).withMargin(2).withFlex(0));
-    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecMixBox).withMargin(2).withFlex(0));
-    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecMixMinusBox).withMargin(2).withFlex(0));
-    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecSelfBox).withMargin(2).withFlex(0));
-    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecOthersBox).withMargin(2).withFlex(0));
-    recOptionsBox.items.add(FlexItem(4, 4));
-    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
-    minRecOptionsHeight = 0;
-    for (auto & item : recOptionsBox.items) {
-        minRecOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
-    }
-    
-
-
-
 
 
     mainGroupBox.items.clear();
@@ -5127,28 +4369,6 @@ void SonobusAudioProcessorEditor::trimAudioFile(const String & fname, double sta
 
 }
 
-void SonobusAudioProcessorEditor::initializeLanguages()
-{
-    // TODO smarter way of figuring out what languages are available
-    languages.add(TRANS("System Default Language")); languagesNative.add(""); codes.add("");
-
-    languages.add(TRANS("English")); languagesNative.add("English"); codes.add("en");
-    languages.add(TRANS("Spanish")); languagesNative.add(CharPointer_UTF8 ("espa\xc3\xb1ol")); codes.add("es");
-    languages.add(TRANS("French"));  languagesNative.add(CharPointer_UTF8 ("fran\xc3\xa7""ais")); codes.add("fr");
-    languages.add(TRANS("Italian"));  languagesNative.add("italiano"); codes.add("it");
-    languages.add(TRANS("German"));  languagesNative.add("Deutsch"); codes.add("de");
-    languages.add(TRANS("Portuguese (Portugal)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Portugal)")); codes.add("pt-pt");
-    languages.add(TRANS("Portuguese (Brazil)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Brasil)")); codes.add("pt-br");
-
-    //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
-    languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
-
-    //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh_hans");
-    //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh_hant");
-
-    // TOOD - parse any user files with localized_%s.txt in our settings folder and add as options if not existing already
-
-}
 
 bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
 {

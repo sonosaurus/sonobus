@@ -21,6 +21,7 @@
 #include "ConnectView.h"
 #include "ChannelGroupsView.h"
 #include "PeersContainerView.h"
+#include "OptionsView.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -197,7 +198,6 @@ private:
     
     void updateOptionsState(bool ignorecheck=false);
 
-    void changeUdpPort(int port);
     
     String generateNewUsername(const AooServerConnectionInfo & info);
 
@@ -221,9 +221,6 @@ private:
     void showLatencyMatchView(bool show);
 
     void updateSliderSnap();
-
-    void initializeLanguages();
-
 
 
     void showSaveSettingsPreset();
@@ -305,8 +302,7 @@ private:
 
     std::unique_ptr<DrawableRectangle> mFileAreaBg;
 
-    std::unique_ptr<Slider> mBufferTimeSlider;
-    
+
     std::unique_ptr<Label> mInGainLabel;
     std::unique_ptr<Label> mDryLabel;
     std::unique_ptr<Label> mWetLabel;
@@ -314,67 +310,18 @@ private:
 
     std::unique_ptr<ConnectView> mConnectView;
 
+    std::unique_ptr<OptionsView> mOptionsView;
 
-    std::unique_ptr<TabbedComponent> mSettingsTab;
-
-    
-    std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
-    std::unique_ptr<Viewport> mAudioOptionsViewport;
-    std::unique_ptr<Viewport> mOtherOptionsViewport;
-    std::unique_ptr<Viewport> mRecordOptionsViewport;
-
-
-    std::unique_ptr<Component> mOptionsComponent;
-    std::unique_ptr<Component> mRecOptionsComponent;
-    int minOptionsHeight = 0;
-    int minRecOptionsHeight = 0;
-    int minServerConnectHeight = 0;
+    //std::unique_ptr<TabbedComponent> mSettingsTab;
 
     uint32 settingsClosedTimestamp = 0;
+    int minServerConnectHeight = 0;
 
     std::unique_ptr<Component> mMetContainer;
 
     std::unique_ptr<Component> mEffectsContainer;
 
-    
-    std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
-    std::unique_ptr<SonoChoiceButton> mOptionsFormatChoiceDefaultChoice;
-    std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
-    std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
 
-    std::unique_ptr<ToggleButton> mOptionsUseSpecificUdpPortButton;
-    std::unique_ptr<TextEditor>  mOptionsUdpPortEditor;
-    std::unique_ptr<Label> mVersionLabel;
-    std::unique_ptr<ToggleButton> mOptionsChangeAllFormatButton;
-
-    std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
-    std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
-    std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
-    std::unique_ptr<ToggleButton> mOptionsOverrideSamplerateButton;
-    std::unique_ptr<ToggleButton> mOptionsShouldCheckForUpdateButton;
-    std::unique_ptr<ToggleButton> mOptionsAutoReconnectButton;
-    std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
-
-    std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
-    std::unique_ptr<Label> mOptionsDefaultLevelSliderLabel;
-    std::unique_ptr<Slider> mOptionsDefaultLevelSlider;
-
-    std::unique_ptr<SonoChoiceButton> mOptionsLanguageChoice;
-    std::unique_ptr<Label> mOptionsLanguageLabel;
-
-
-    std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
-    std::unique_ptr<ToggleButton> mOptionsRecMixButton;
-    std::unique_ptr<ToggleButton> mOptionsRecMixMinusButton;
-    std::unique_ptr<ToggleButton> mOptionsRecSelfButton;
-    std::unique_ptr<ToggleButton> mOptionsRecOthersButton;
-    std::unique_ptr<SonoChoiceButton> mRecFormatChoice;
-    std::unique_ptr<SonoChoiceButton> mRecBitsChoice;
-    std::unique_ptr<Label> mRecFormatStaticLabel;
-    std::unique_ptr<Label> mRecLocationStaticLabel;
-    std::unique_ptr<TextButton> mRecLocationButton;
-
-    
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
     std::unique_ptr<SonoDrawableButton> mPlayButton;
@@ -649,30 +596,6 @@ private:
     FlexBox inPannerLabelBox;
     FlexBox inPannerBox;
 
-    FlexBox optionsBox;
-    FlexBox optionsNetbufBox;
-    FlexBox optionsSendQualBox;
-    FlexBox optionsHearlatBox;
-    FlexBox optionsUdpBox;
-    FlexBox optionsDynResampleBox;
-    FlexBox optionsOverrideSamplerateBox;
-    FlexBox optionsCheckForUpdateBox;
-    FlexBox optionsChangeAllQualBox;
-    FlexBox optionsInputLimitBox;
-    FlexBox optionsAutoReconnectBox;
-    FlexBox optionsSnapToMouseBox;
-    FlexBox optionsDefaultLevelBox;
-    FlexBox optionsLanguageBox;
-
-    FlexBox recOptionsBox;
-    FlexBox optionsRecordFormatBox;
-    FlexBox optionsRecMixBox;
-    FlexBox optionsRecSelfBox;
-    FlexBox optionsRecMixMinusBox;
-    FlexBox optionsRecOthersBox;
-    FlexBox optionsMetRecordBox;
-    FlexBox optionsRecordDirBox;
-
     FlexBox latMatchBox;
     FlexBox latMatchButtBox;
 
@@ -705,7 +628,6 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainSendMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainRecvMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetTempoAttachment;
@@ -715,17 +637,13 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mHearLatencyTestAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetRecordedAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mReverbEnableAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbSizeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbDampingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbPreDelayAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mDynamicResamplingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonSoloAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonMuteAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mAutoReconnectAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDefaultLevelAttachment;
 
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;
@@ -734,10 +652,6 @@ private:
 
     File mSettingsFolder;
     
-    // language stuff
-    StringArray languages;
-    StringArray languagesNative;
-    StringArray codes;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

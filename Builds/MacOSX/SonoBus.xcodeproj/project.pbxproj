@@ -67,6 +67,7 @@
 		55125E4FA2E95642D369DFFA /* include_juce_audio_plugin_client_utils.cpp */ = {isa = PBXBuildFile; fileRef = 8197704B6F67CEDAF82C3DD8; };
 		5B2B7FE93FB4DA4CF13EBE61 /* include_juce_dsp.mm */ = {isa = PBXBuildFile; fileRef = C7769A02C6DF7B9F3A95ABA7; };
 		5DA1D6E2AB71A8299B31075D /* OpenGL.framework */ = {isa = PBXBuildFile; fileRef = 6D02418450EA924CED99C454; };
+		6288564D70E9502885BF2B73 /* OptionsView.cpp */ = {isa = PBXBuildFile; fileRef = 93458AEE3EDF9BAE1A7E241F; };
 		6440E9AFD0D20790C5A661D6 /* OscReceivedElements.cpp */ = {isa = PBXBuildFile; fileRef = 66D31C5B4E80204F24CC609D; };
 		6616BFD4F4DAC38A30E86CFB /* include_juce_audio_formats.mm */ = {isa = PBXBuildFile; fileRef = DCC58A61382509AB1AB97723; };
 		668A5E12D69FB6A3FCE8614A /* AAX */ = {isa = PBXBuildFile; fileRef = 60C13D32E36A6E6DFC1BB0EE; };
@@ -187,6 +188,7 @@
 		371CE29C40C1223E7CC70DB4 /* record_active.svg */ /* record_active.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = record_active.svg; path = ../../images/record_active.svg; sourceTree = SOURCE_ROOT; };
 		395DD1BFA94D74A3DB0A12D6 /* LatencyMatchView.cpp */ /* LatencyMatchView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LatencyMatchView.cpp; path = ../../Source/LatencyMatchView.cpp; sourceTree = SOURCE_ROOT; };
 		3972617268D9765CC8EEB158 /* CompressorView.h */ /* CompressorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CompressorView.h; path = ../../Source/CompressorView.h; sourceTree = SOURCE_ROOT; };
+		3A42430C3DDA23589ED01488 /* OptionsView.h */ /* OptionsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OptionsView.h; path = ../../Source/OptionsView.h; sourceTree = SOURCE_ROOT; };
 		3CA5320CE1922585FBEB602B /* triangle_disclosure.svg */ /* triangle_disclosure.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = triangle_disclosure.svg; path = ../../images/triangle_disclosure.svg; sourceTree = SOURCE_ROOT; };
 		3CFEE772A51DBF2CBBB8CB05 /* ChatView.cpp */ /* ChatView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ChatView.cpp; path = ../../Source/ChatView.cpp; sourceTree = SOURCE_ROOT; };
 		3E3B798DA2C8DE415AE4C564 /* source.hpp */ /* source.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = source.hpp; path = ../../deps/aoo/lib/src/source.hpp; sourceTree = SOURCE_ROOT; };
@@ -290,6 +292,7 @@
 		9160479834E2DF8557270330 /* juce_gui_extra */ /* juce_gui_extra */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_gui_extra; path = ../../deps/juce/modules/juce_gui_extra; sourceTree = SOURCE_ROOT; };
 		916FB18C27B3D735190F663C /* codec_opus.cpp */ /* codec_opus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = codec_opus.cpp; path = ../../deps/aoo/lib/src/codec_opus.cpp; sourceTree = SOURCE_ROOT; };
 		924E859244C57AD117EC6572 /* juce_cryptography */ /* juce_cryptography */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_cryptography; path = ../../deps/juce/modules/juce_cryptography; sourceTree = SOURCE_ROOT; };
+		93458AEE3EDF9BAE1A7E241F /* OptionsView.cpp */ /* OptionsView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OptionsView.cpp; path = ../../Source/OptionsView.cpp; sourceTree = SOURCE_ROOT; };
 		935EA89ABCCA2C861AEE4F20 /* include_ff_meters.cpp */ /* include_ff_meters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_ff_meters.cpp; path = ../../JuceLibraryCode/include_ff_meters.cpp; sourceTree = SOURCE_ROOT; };
 		9419D5F06208DD276B6E223D /* sonobus_title_small.png */ /* sonobus_title_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sonobus_title_small.png; path = ../../images/sonobus_title_small.png; sourceTree = SOURCE_ROOT; };
 		949DB97D0F113A2C35D48D5F /* GenericItemChooser.h */ /* GenericItemChooser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericItemChooser.h; path = ../../Source/GenericItemChooser.h; sourceTree = SOURCE_ROOT; };
@@ -695,6 +698,8 @@
 				07AFC24FDD26FBB824C3D8F1,
 				9FC2D47996059738276B1FF7,
 				A13B6C661B4E890B07EAFF85,
+				93458AEE3EDF9BAE1A7E241F,
+				3A42430C3DDA23589ED01488,
 				498AB6C4E449EC54DBFCF20D,
 				86F932458EEC9310D46C93BE,
 				11521D5C1F70EEC3394713E1,
@@ -1408,6 +1413,7 @@
 				4C7C1EF53342A6D9A6CECEEF,
 				355E68444976773D8056C637,
 				2E86D275104DCBE60338645D,
+				6288564D70E9502885BF2B73,
 				6900F15A638A946D73977EC3,
 				8BC89AD78876B6B507197A8A,
 				D94D845FECAA961CC2081FD6,

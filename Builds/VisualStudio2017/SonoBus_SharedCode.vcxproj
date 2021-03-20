@@ -293,6 +293,7 @@
     <ClCompile Include="..\..\Source\LatencyMeasurer.cpp"/>
     <ClCompile Include="..\..\Source\Metronome.cpp"/>
     <ClCompile Include="..\..\Source\mtdm.cc"/>
+    <ClCompile Include="..\..\Source\OptionsView.cpp"/>
     <ClCompile Include="..\..\Source\PeersContainerView.cpp"/>
     <ClCompile Include="..\..\Source\RandomSentenceGenerator.cpp"/>
     <ClCompile Include="..\..\Source\RunCumulantor.cpp"/>
@@ -2439,6 +2440,7 @@
     <ClInclude Include="..\..\Source\MonitorDelayView.h"/>
     <ClInclude Include="..\..\Source\mtdm.h"/>
     <ClInclude Include="..\..\Source\MVerb.h"/>
+    <ClInclude Include="..\..\Source\OptionsView.h"/>
     <ClInclude Include="..\..\Source\ParametricEqView.h"/>
     <ClInclude Include="..\..\Source\PeersContainerView.h"/>
     <ClInclude Include="..\..\Source\RandomSentenceGenerator.h"/>

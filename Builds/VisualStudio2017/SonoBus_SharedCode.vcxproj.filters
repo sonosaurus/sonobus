@@ -616,6 +616,9 @@
     <ClCompile Include="..\..\Source\mtdm.cc">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\OptionsView.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\PeersContainerView.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
@@ -3052,6 +3055,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MVerb.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\OptionsView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\ParametricEqView.h">

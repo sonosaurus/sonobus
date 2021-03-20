@@ -153,6 +153,7 @@ OBJECTS_SHARED_CODE := \
   $(JUCE_OBJDIR)/LatencyMeasurer_f2b67553.o \
   $(JUCE_OBJDIR)/Metronome_fd219413.o \
   $(JUCE_OBJDIR)/mtdm_3a9da6a.o \
+  $(JUCE_OBJDIR)/OptionsView_8c526744.o \
   $(JUCE_OBJDIR)/PeersContainerView_4663f1fe.o \
   $(JUCE_OBJDIR)/RandomSentenceGenerator_94be970e.o \
   $(JUCE_OBJDIR)/RunCumulantor_64a7204.o \
@@ -406,6 +407,11 @@ $(JUCE_OBJDIR)/Metronome_fd219413.o: ../../Source/Metronome.cpp
 $(JUCE_OBJDIR)/mtdm_3a9da6a.o: ../../Source/mtdm.cc
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling mtdm.cc"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/OptionsView_8c526744.o: ../../Source/OptionsView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling OptionsView.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/PeersContainerView_4663f1fe.o: ../../Source/PeersContainerView.cpp

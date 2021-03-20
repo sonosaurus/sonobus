@@ -262,6 +262,8 @@
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
       <FILE id="CTpEGU" name="mtdm.h" compile="0" resource="0" file="Source/mtdm.h"/>
       <FILE id="WJp4ti" name="MVerb.h" compile="0" resource="0" file="Source/MVerb.h"/>
+      <FILE id="YX3l57" name="OptionsView.cpp" compile="1" resource="0" file="Source/OptionsView.cpp"/>
+      <FILE id="uyewT0" name="OptionsView.h" compile="0" resource="0" file="Source/OptionsView.h"/>
       <FILE id="gfwKQY" name="ParametricEqView.h" compile="0" resource="0"
             file="Source/ParametricEqView.h"/>
       <FILE id="HNtjtj" name="PeersContainerView.cpp" compile="1" resource="0"
