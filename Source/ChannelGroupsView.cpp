@@ -1266,8 +1266,8 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mMainChannelView->linkButton->onClick = [this]() {
                 processor.setRemotePeerViewExpanded(mPeerIndex, mMainChannelView->linkButton->getToggleState());
-                updateLayout();
                 updateChannelViews();
+                updateLayout();
                 setMetersActive(metersActive);
                 resized();
             };
@@ -2702,6 +2702,15 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     mMainChannelView->monfxButton->setVisible(false);
 
 
+    if (!expanded) {
+        // hide all the subchannel views
+        for (int i=0; i < mChannelViews.size(); ++i) {
+            if (specific >= 0 && specific != i) continue;
+            ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
+            pvf->setVisible(false);
+        }
+    }
+
 
     for (int i=0; expanded && i < mChannelViews.size(); ++i, ++chi) {
         if (specific >= 0 && specific != i) continue;
@@ -2717,7 +2726,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
 
 
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
-
+        pvf->setVisible(true);
         pvf->group = changroup;
         pvf->groupChanCount = chcnt;
         pvf->chanIndex = chi;
