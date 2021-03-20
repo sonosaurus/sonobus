@@ -55,7 +55,8 @@ Or if you prefer, you can build it yourself following the [build instructions](#
 
 # Building
 
-The original GitHub repository for this project is at [github.com/essej/sonobus](https://github.com/essej/sonobus).
+The original GitHub repository for this project is at
+[github.com/sonosaurus/sonobus](https://github.com/sonosaurus/sonobus).
 
 To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. 
 
