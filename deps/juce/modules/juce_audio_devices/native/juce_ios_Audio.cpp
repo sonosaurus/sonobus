@@ -1462,8 +1462,8 @@ bool iOSAudioIODevice::isHeadphonesConnected() const                { return pim
 bool iOSAudioIODevice::setInputGain (float val)  { return pimpl->setInputGain(val); }
 float iOSAudioIODevice::getInputGain () const  { return pimpl->getInputGain(); }
 
-bool iOSAudioIODevice::setAllowBluetoothInput (float val)  { return pimpl->setAllowBluetoothInput(val); }
-float iOSAudioIODevice::getAllowBluetoothInput () const  { return pimpl->getAllowBluetoothInput(); }
+void iOSAudioIODevice::setAllowBluetoothInput (bool val)  { pimpl->setAllowBluetoothInput(val); }
+bool iOSAudioIODevice::getAllowBluetoothInput () const  { return pimpl->getAllowBluetoothInput(); }
 
     
 //==============================================================================
