@@ -876,7 +876,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mIAAHostButton->addListener(this);
 
     
-    
+    mPeerRecImage = Drawable::createFromImageData(BinaryData::rectape_svg, BinaryData::rectape_svgSize);
+    mPeerRecImage->setInterceptsMouseClicks(false, false);
+
     {
         mRecordingButton = std::make_unique<SonoDrawableButton>("record", DrawableButton::ButtonStyle::ImageFitted);
         std::unique_ptr<Drawable> recimg(Drawable::createFromImageData(BinaryData::record_svg, BinaryData::record_svgSize));
@@ -981,6 +983,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     addAndMakeVisible(mMainUserLabel.get());
     addAndMakeVisible(mMainPersonImage.get());
     addAndMakeVisible(mMainGroupImage.get());
+    addChildComponent(mPeerRecImage.get());
     addAndMakeVisible(mPeerLayoutFullButton.get());
     addAndMakeVisible(mPeerLayoutMinimalButton.get());
 
@@ -1174,9 +1177,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
    // Make sure that before the constructor has finished, you've set the
    // editor's size to whatever you need it to be.
 
-    auto defHeight = 440;
+    auto defHeight = 560;
 #if JUCE_WINDOWS
-    defHeight = 470;
+    defHeight = 590;
 #endif
     
     setSize (760, defHeight);
@@ -1653,6 +1656,13 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
         }
 
         mChatButton->setToggleState(mChatView->haveNewSinceLastView(), dontSendNotification);
+
+        auto anyrec = processor.isAnyRemotePeerRecording() || processor.isRecordingToFile();
+        if (mPeerRecImage->isVisible() != anyrec) {
+            mPeerRecImage->setVisible(anyrec);
+            mPeerRecImage->repaint();
+            resized();
+        }
 
 #if 0
         if (JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
@@ -3038,6 +3048,7 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         mMainPersonImage->setVisible(false);
         mMainPeerLabel->setVisible(false);
         mMainLinkButton->setVisible(false);
+        mPeerRecImage->setVisible(false);
 
         mMainMessageLabel->setVisible(true);
 
@@ -3680,7 +3691,13 @@ void SonobusAudioProcessorEditor::resized()
     //auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mMainGroupImage->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mMainGroupImage->getHeight()).expanded(2, 2);
     auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mMainGroupImage->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mMainUserLabel->getBottom() - mMainGroupImage->getY());
     mMainLinkButton->setBounds(grouptextbounds);
-    
+
+
+    const auto precwidth = 20;
+    auto peerrecbounds = Rectangle<int>(mMainLinkButton->getRight() - precwidth - 4, mMainLinkButton->getY() + mMainLinkButton->getHeight()/2 - precwidth/2, precwidth,  precwidth);
+    mPeerRecImage->setTransformToFit(peerrecbounds.toFloat(), RectanglePlacement::fillDestination);
+
+
     mDragDropBg->setRectangle (getLocalBounds().toFloat());
 
 

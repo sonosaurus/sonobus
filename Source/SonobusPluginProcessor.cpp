@@ -334,6 +334,7 @@ struct SonobusAudioProcessor::RemotePeer {
     float remoteInLatMs = 0.0f;
     float remoteOutLatMs = 0.0f;
     int remoteNetType = RemoteNetTypeUnknown;
+    bool remoteIsRecording = false;
     bool hasRemoteInfo = false;
 
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> fileWriter;
@@ -2779,6 +2780,11 @@ void SonobusAudioProcessor::handleRemotePeerInfoUpdate(RemotePeer * peer, const 
         DBG("peerinfo: Got remote net type: " << nettype);
         peer->remoteNetType = nettype;
     }
+    if (infodata.hasProperty("rec")) {
+        bool isrec = infodata.getProperty("rec", false);
+        DBG("peerinfo: Got remote recording: " << (int)isrec);
+        peer->remoteIsRecording = isrec;
+    }
 
     peer->hasRemoteInfo = true;
 
@@ -2792,6 +2798,8 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
     // not great, better than nothing - TODO make this accurate
     info->setProperty("inlat", 1e3 * currSamplesPerBlock / getSampleRate());
     info->setProperty("outlat", 1e3 * currSamplesPerBlock / getSampleRate());
+    info->setProperty("rec", isRecordingToFile());
+
     // nettype TODO
 
     char buf[AOO_MAXPACKETSIZE];
@@ -5250,6 +5258,27 @@ bool SonobusAudioProcessor::isRemotePeerLatencyTestActive(int index)
         return remote->activeLatencyTest;
     }
     return false;      
+}
+
+
+bool SonobusAudioProcessor::isAnyRemotePeerRecording() const
+{
+    const ScopedReadLock sl (mCoreLock);
+    for (int index=0; index < mRemotePeers.size(); ++index) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        if (remote->remoteIsRecording) return true;
+    }
+    return false;
+}
+
+bool  SonobusAudioProcessor::isRemotePeerRecording(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index > 0 && index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->remoteIsRecording;
+    }
+    return false;
 }
 
 
@@ -8301,7 +8330,9 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
 
         //DBG("Started recording file " << usefile.getFullPathName());
     }
-    
+
+    sendRemotePeerInfoUpdate();
+
     return ret;
 }
 
@@ -8364,6 +8395,8 @@ bool SonobusAudioProcessor::stopRecordingToFile()
         DBG("Stopped recording user files");
         didit = true;
     }
+
+    sendRemotePeerInfoUpdate();
 
     return didit;
 }

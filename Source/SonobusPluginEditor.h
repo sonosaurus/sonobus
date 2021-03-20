@@ -333,6 +333,9 @@ private:
     std::unique_ptr<Slider> mPlaybackSlider;
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
+    std::unique_ptr<Drawable> mPeerRecImage;
+
+
     // effects
     std::unique_ptr<TextButton> mEffectsButton;
 

@@ -441,7 +441,9 @@ public:
     bool isRemotePeerLatencyTestActive(int index);
     
 
-    
+    bool isAnyRemotePeerRecording() const;
+    bool isRemotePeerRecording(int index) const;
+
     void setRemotePeerCompressorParams(int index, int changroup, SonoAudio::CompressorParams & params);
     bool getRemotePeerCompressorParams(int index, int changroup, SonoAudio::CompressorParams & retparams);
 

@@ -5795,6 +5795,9 @@
     <None Include="..\..\images\record_active_alt.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\rectape.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\reset_buffer_icon.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>

@@ -242,6 +242,7 @@
 		6BD5B551FAD6E41DF42F1512 /* link.svg */ /* link.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = link.svg; path = ../../images/link.svg; sourceTree = SOURCE_ROOT; };
 		6C8912E9C818BCAD3A244C1F /* localized_pt-br.txt */ /* localized_pt-br.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = "localized_pt-br.txt"; path = "../../localization/localized_pt-br.txt"; sourceTree = SOURCE_ROOT; };
 		6DA4CA23A25969281FA46870 /* sink.cpp */ /* sink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = sink.cpp; path = ../../deps/aoo/lib/src/sink.cpp; sourceTree = SOURCE_ROOT; };
+		6E9FF5BDAA998CA6C6164114 /* rectape.svg */ /* rectape.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = rectape.svg; path = ../../images/rectape.svg; sourceTree = SOURCE_ROOT; };
 		6EEBD9470642ED2B55CF46FE /* Accelerate.framework */ /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		701288E426BBC5F8A99F33FA /* CoreMIDI.framework */ /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		70B884D4780BC61B91C5CEAC /* juce_gui_basics */ /* juce_gui_basics */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_gui_basics; path = ../../deps/juce/modules/juce_gui_basics; sourceTree = SOURCE_ROOT; };
@@ -779,6 +780,7 @@
 				2F3D258ACECB14217C54DFD4,
 				371CE29C40C1223E7CC70DB4,
 				CA2052614D466A3F22C8C54F,
+				6E9FF5BDAA998CA6C6164114,
 				5AAB31C21BFB2D518ECFBF53,
 				861AECE913C2D820005F5D2D,
 				745A7F064CCBD34B8D18745A,
@@ -1142,7 +1144,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1205,7 +1207,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1268,7 +1270,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1329,7 +1331,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1393,7 +1395,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1507,7 +1509,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1622,7 +1624,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1686,7 +1688,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.17-57\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
