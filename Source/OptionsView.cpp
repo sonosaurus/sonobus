@@ -62,6 +62,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
     setColour (separatorColourId, Colour::fromFloatRGBA(0.3f, 0.3f, 0.3f, 0.3f));
 
+    sonoSliderLNF.textJustification = Justification::centredRight;
+    sonoSliderLNF.sliderTextJustification = Justification::centredRight;
+
     initializeLanguages();
 
     mRecOptionsComponent = std::make_unique<Component>();
@@ -205,6 +208,12 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Clicked Position"));
     mOptionsSliderSnapToMouseButton->addListener(this);
 
+#if JUCE_IOS
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        mOptionsAllowBluetoothInput = std::make_unique<ToggleButton>(TRANS("Allow Bluetooth Input"));
+        mOptionsAllowBluetoothInput->addListener(this);
+    }
+#endif
 
     mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
     mOptionsInputLimiterButton->addListener(this);
@@ -270,9 +279,13 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsComponent->addAndMakeVisible(mOptionsLanguageChoice.get());
     mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
+
     if (JUCEApplicationBase::isStandaloneApp()) {
         mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
         mOptionsComponent->addAndMakeVisible(mOptionsShouldCheckForUpdateButton.get());
+        if (mOptionsAllowBluetoothInput) {
+            mOptionsComponent->addAndMakeVisible(mOptionsAllowBluetoothInput.get());
+        }
     }
     mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
 
@@ -473,6 +486,12 @@ void OptionsView::updateState(bool ignorecheck)
             Value * val = getShouldCheckForNewVersionValue();
             mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
         }
+
+        if (getAllowBluetoothInputValue && mOptionsAllowBluetoothInput) {
+            Value * val = getAllowBluetoothInputValue();
+            mOptionsAllowBluetoothInput->setToggleState((bool)val->getValue(), dontSendNotification);
+        }
+
     }
 
     mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
@@ -503,6 +522,10 @@ void OptionsView::updateState(bool ignorecheck)
     if (getShouldCheckForNewVersionValue) {
         Value * val = getShouldCheckForNewVersionValue();
         mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+    }
+    if (mOptionsAllowBluetoothInput && getAllowBluetoothInputValue) {
+        Value * val = getAllowBluetoothInputValue();
+        mOptionsAllowBluetoothInput->setToggleState((bool)val->getValue(), dontSendNotification);
     }
 }
 
@@ -607,6 +630,13 @@ void OptionsView::updateLayout()
     optionsSnapToMouseBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsSnapToMouseBox.items.add(FlexItem(180, minpassheight, *mOptionsSliderSnapToMouseButton).withMargin(0).withFlex(1));
 
+    optionsAllowBluetoothBox.items.clear();
+    optionsAllowBluetoothBox.flexDirection = FlexBox::Direction::row;
+    if (mOptionsAllowBluetoothInput) {
+        optionsAllowBluetoothBox.items.add(FlexItem(10, 12).withFlex(0));
+        optionsAllowBluetoothBox.items.add(FlexItem(180, minpassheight, *mOptionsAllowBluetoothInput).withMargin(0).withFlex(1));
+    }
+
 
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
@@ -629,6 +659,9 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
+        if (mOptionsAllowBluetoothInput) {
+            optionsBox.items.add(FlexItem(100, minpassheight, optionsAllowBluetoothBox).withMargin(2).withFlex(0));
+        }
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
@@ -875,6 +908,19 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         if (JUCEApplicationBase::isStandaloneApp() && getShouldOverrideSampleRateValue) {
             Value * val = getShouldOverrideSampleRateValue();
             val->setValue((bool)mOptionsOverrideSamplerateButton->getToggleState());
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsAllowBluetoothInput.get()) {
+
+        if (JUCEApplicationBase::isStandaloneApp() && getAllowBluetoothInputValue && getAudioDeviceManager) {
+            Value * val = getAllowBluetoothInputValue();
+            val->setValue((bool)mOptionsAllowBluetoothInput->getToggleState());
+#if JUCE_IOS
+            // get current audio device and change a setting if necessary
+            if (auto device = dynamic_cast<iOSAudioIODevice*> (getAudioDeviceManager()->getCurrentAudioDevice())) {
+                device->setAllowBluetoothInput((bool)val->getValue());
+            }
+#endif
         }
     }
     else if (buttonThatWasClicked == mOptionsShouldCheckForUpdateButton.get()) {

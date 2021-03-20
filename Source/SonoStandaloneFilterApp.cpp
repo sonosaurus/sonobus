@@ -133,9 +133,12 @@ public:
             DBG("CRASH SENTINEL STILL EXISTS, moving old settings away!");
             File oldfile = settingsFile.getSiblingFile(String("POSSIBLY_BAD_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S"));
             settingsFile.moveFileTo(oldfile);
-            AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                              TRANS("Crashed Last Time"),
-                                              TRANS("Looks like you crashed on launch last time, restoring default settings!"));
+            Timer::callAfterDelay (800, []()
+            {
+                AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
+                                                  TRANS("Crashed Last Time"),
+                                                  TRANS("Looks like you crashed on launch last time, restoring default settings!"));
+            });
         }
         else {
             crashSentinelFile.create();
@@ -180,6 +183,8 @@ public:
                 if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded())) {
                     sonoeditor->saveSettingsIfNeeded = [this]() {
                         mainWindow->pluginHolder->savePluginState();
+                        mainWindow->pluginHolder->saveAudioDeviceState();
+                        appProperties.saveIfNeeded();
                     };
                 }
             }
@@ -211,8 +216,10 @@ public:
     void shutdown() override
     {
         DBG("shutdown");
-        if (mainWindow.get() != nullptr)
+        if (mainWindow.get() != nullptr) {
             mainWindow->pluginHolder->savePluginState();
+            mainWindow->pluginHolder->saveAudioDeviceState();
+        }
 
 #if JUCE_ANDROID
         setAndroidForegroundServiceActive(false);
@@ -264,6 +271,7 @@ public:
         DBG("suspended");
         if (mainWindow.get() != nullptr) {
             mainWindow->pluginHolder->savePluginState();
+            mainWindow->pluginHolder->saveAudioDeviceState();
 
             if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
                 if (sonoproc->getNumberRemotePeers() == 0 && !mainWindow->pluginHolder->isInterAppAudioConnected()) {
@@ -283,10 +291,13 @@ public:
             }
 
         }
-        
+
         appProperties.saveIfNeeded();
 
-
+        auto props = appProperties.getUserSettings()->getAllProperties();
+        for (auto & prop : props.getAllKeys()) {
+            DBG("save state key: " << prop );
+        }
         
         Desktop::getInstance().setScreenSaverEnabled(true);        
     }
@@ -335,7 +346,7 @@ public:
         DBG("Requested quit");
         if (mainWindow.get() != nullptr) {
             mainWindow->pluginHolder->savePluginState();
-
+            mainWindow->pluginHolder->saveAudioDeviceState();
         }
 
         appProperties.saveIfNeeded();

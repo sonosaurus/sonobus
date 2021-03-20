@@ -70,6 +70,7 @@ public:
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };
     std::function<Value*()> getShouldCheckForNewVersionValue; // = []() { return 0; };
+    std::function<Value*()> getAllowBluetoothInputValue; // = []() { return 0; };
     std::function<void()> updateSliderSnap; // = []() { return 0; };
     std::function<bool(const String &)> setupLocalisation; // = []() { return 0; };
     std::function<void()> saveSettingsIfNeeded; // = []() { return 0; };
@@ -130,6 +131,7 @@ protected:
     std::unique_ptr<ToggleButton> mOptionsShouldCheckForUpdateButton;
     std::unique_ptr<ToggleButton> mOptionsAutoReconnectButton;
     std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
+    std::unique_ptr<ToggleButton> mOptionsAllowBluetoothInput;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
     std::unique_ptr<Label> mOptionsDefaultLevelSliderLabel;
@@ -167,6 +169,7 @@ protected:
     FlexBox optionsSnapToMouseBox;
     FlexBox optionsDefaultLevelBox;
     FlexBox optionsLanguageBox;
+    FlexBox optionsAllowBluetoothBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;

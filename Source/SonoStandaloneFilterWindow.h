@@ -97,9 +97,15 @@ public:
 #endif
           autoOpenMidiDevices (shouldAutoOpenMidiDevices),
           shouldOverrideSampleRate (var(true)),
+          allowBluetoothInput (var(false)),
           shouldCheckForNewVersion (var(true))
     {
         createPlugin();
+
+        auto props = settings->getAllProperties();
+        for (auto & prop : props.getAllKeys()) {
+            DBG("state key: " << prop );
+        }
 
         auto inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns
                                                            : processor->getMainBusNumInputChannels());
@@ -186,6 +192,7 @@ public:
 
     Value& getShouldOverrideSampleRateValue()                           { return shouldOverrideSampleRate; }
     Value& getShouldCheckForNewVersionValue()                           { return shouldCheckForNewVersion; }
+    Value& getAllowBluetoothInputValue()                           { return allowBluetoothInput; }
 
     StringArray& getRecentSetupFiles()                           { return recentSetupFiles; }
     String& getLastRecentsFolder()                           { return lastRecentsSetupFolder; }
@@ -346,6 +353,7 @@ public:
 
             settings->setValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue());
             settings->setValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue());
+            settings->setValue ("allowBluetoothInput", (bool) allowBluetoothInput.getValue());
 
             auto recentSetupXml = std::make_unique<XmlElement>("PATHLIST");
             for (auto fname : recentSetupFiles) {
@@ -356,6 +364,10 @@ public:
             settings->setValue ("recentSetupFiles", recentSetupXml.get());
             settings->setValue ("lastRecentsSetupFolder", lastRecentsSetupFolder);
 
+            auto props = settings->getAllProperties();
+            for (auto & prop : props.getAllKeys()) {
+                DBG("after state key: " << prop );
+            }
 
 #if ! (JUCE_IOS || JUCE_ANDROID)
             //  settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
@@ -382,6 +394,7 @@ public:
 
             shouldOverrideSampleRate.setValue (settings->getBoolValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue()));
             shouldCheckForNewVersion.setValue (settings->getBoolValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue()));
+            allowBluetoothInput.setValue (settings->getBoolValue ("allowBluetoothInput", (bool) allowBluetoothInput.getValue()));
 
             auto setupfiles = settings->getXmlValue("recentSetupFiles");
             if (setupfiles) {
@@ -432,6 +445,13 @@ public:
                                   true,
                                   preferredDefaultDeviceName,
                                   prefSetupOptions.get());
+
+#if JUCE_IOS
+        // get current audio device and change a setting if necessary
+        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice())) {
+            device->setAllowBluetoothInput((bool)allowBluetoothInput.getValue());
+        }
+#endif
     }
 
     //==============================================================================
@@ -535,6 +555,7 @@ public:
     bool autoOpenMidiDevices;
 
     Value shouldOverrideSampleRate;
+    Value allowBluetoothInput;
 
     Value shouldCheckForNewVersion;
     StringArray recentSetupFiles;
@@ -678,6 +699,7 @@ private:
 
         deviceManager.removeMidiInputCallback ({}, &player);
         deviceManager.removeAudioCallback (this);
+
     }
 
     void timerCallback() override
@@ -955,6 +977,7 @@ private:
                     sonoeditor->getIAAHostIcon = [this](int size) { return owner.pluginHolder->getIAAHostIcon(size);  };
                     sonoeditor->switchToHostApplication = [this]() { return owner.pluginHolder->switchToHostApplication(); };
                     sonoeditor->getShouldOverrideSampleRateValue = [this]() { return &(owner.pluginHolder->getShouldOverrideSampleRateValue()); };
+                    sonoeditor->getAllowBluetoothInputValue = [this]() { return &(owner.pluginHolder->getAllowBluetoothInputValue()); };
                     sonoeditor->getShouldCheckForNewVersionValue = [this]() { return &(owner.pluginHolder->getShouldCheckForNewVersionValue()); };
                     sonoeditor->getRecentSetupFiles = [this]() { return &(owner.pluginHolder->getRecentSetupFiles()); };
                     sonoeditor->getLastRecentsFolder = [this]() { return &owner.pluginHolder->getLastRecentsFolder(); };
