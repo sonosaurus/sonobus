@@ -1566,9 +1566,11 @@ void ChannelGroupsView::updateLayoutForRemotePeer(bool notify)
     int minSliderWidth = isNarrow ? 90 : 100;
     int meterwidth = 10;
     int mainmeterwidth = 10;
+    int muteminbuttwidth = isNarrow ? 30 : 52;
     int mutebuttwidth = isNarrow ? 42 : 52;
     int linkbuttwidth = 50;
     int destbuttwidth = 44;
+    int destminbuttwidth = isNarrow ? 36 : 44;
     int monsliderwidth =  0 ;
     int namewidth = isNarrow ? 88 :  110;
     int addrowheight = minitemheight - 2;
@@ -1728,12 +1730,12 @@ void ChannelGroupsView::updateLayoutForRemotePeer(bool notify)
             //pvf->monbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(1));
             if (isNarrow) {
                 pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
-                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
                 pvf->monbox.items.add(FlexItem(3, 3));
-                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
                 pvf->monbox.items.add(FlexItem(3, 3));
 
-                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
 
                 pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
 
@@ -1757,7 +1759,7 @@ void ChannelGroupsView::updateLayoutForRemotePeer(bool notify)
 
 
                 if (destbuttvisible) {
-                    pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(destminbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(1).withMaxWidth(destbuttwidth));
                     pvf->monbox.items.add(FlexItem(2, 3));
                 }
 
@@ -1903,7 +1905,7 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
 {
     int minitemheight =  30;
     int mincheckheight = 32;
-    int minPannerWidth = isNarrow ? 56 : 64;
+    int minPannerWidth = isNarrow ? 50 : 64;
     int minButtonWidth = 60;
     int maxPannerWidth = 130;
     int compactMaxPannerWidth = 90;
@@ -1911,8 +1913,10 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
     int meterwidth = 10;
     int mainmeterwidth = 10;
     int mutebuttwidth = isNarrow ? 42 : 52;
+    int muteminbuttwidth = isNarrow ? 30 : 52;
     int linkbuttwidth = 50;
     int destbuttwidth = 44;
+    int destminbuttwidth = isNarrow ? 36 : 44;
     int monsliderwidth =  40;
     int namewidth = isNarrow ? 88 : 100;
     int addrowheight = minitemheight - 2;
@@ -2107,11 +2111,11 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
             if (isNarrow) {
                 if (!ismetorfile) {
                     pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
-                    pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
                     pvf->monbox.items.add(FlexItem(3, 3));
-                    pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->soloButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
                     pvf->monbox.items.add(FlexItem(3, 3));
-                    pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->fxButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
                 }
 
                 pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
@@ -2124,18 +2128,18 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
                 {
                     pvf->monbox.items.add(FlexItem(2, 3));
                     pvf->monbox.items.add(FlexItem(minPannerWidth, minitemheight, *pvf->panSlider).withMargin(0).withFlex(1).withMaxWidth(maxPannerWidth));
-                    pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
+                    pvf->monbox.items.add(FlexItem(1, 3).withFlex(0.1).withMaxWidth(meterwidth + 10));
                 }
 
                 pvf->monbox.items.add(FlexItem(monsliderwidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(0));
                 pvf->monbox.items.add(FlexItem(2, 3));
 
-                pvf->monbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->monfxButton).withMargin(0).withFlex(0));
+                pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->monfxButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
                 pvf->monbox.items.add(FlexItem(2, 3));
 
 
                 if (destbuttvisible) {
-                    pvf->monbox.items.add(FlexItem(destbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(0));
+                    pvf->monbox.items.add(FlexItem(destminbuttwidth, minitemheight, *pvf->destButton).withMargin(0).withFlex(1).withMaxWidth(destbuttwidth));
                     pvf->monbox.items.add(FlexItem(2, 3));
                 }
 
@@ -3743,10 +3747,6 @@ void ChannelGroupsView::mouseDown (const MouseEvent& event)
             clearClipIndicators();
             return;
         }
-        else if (event.eventComponent == mMainChannelView->nameLabel.get()) {
-            listeners.call (&ChannelGroupsView::Listener::nameLabelClicked, this);
-            return;
-        }
     }
 
     if (mMetChannelView) {
@@ -3838,6 +3838,13 @@ void ChannelGroupsView::mouseDrag (const MouseEvent& event)
 
 void ChannelGroupsView::mouseUp (const MouseEvent& event)
 {
+    if (mMainChannelView) {
+        if (event.eventComponent == mMainChannelView->nameLabel.get()) {
+            listeners.call (&ChannelGroupsView::Listener::nameLabelClicked, this);
+            return;
+        }
+    }
+
     for (int i=0; i < mChannelViews.size(); ++i) {
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 

@@ -72,8 +72,15 @@ void PeerViewInfo::resized()
 
     if (recvOptionsButton) {
         auto leftedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) + 2;
-        if (isNarrow) leftedge = 4;
-        recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), recvActualBitrateLabel->getRight() - leftedge, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
+        if (isNarrow) {
+            //leftedge = 4;
+            leftedge = (staticSendQualLabel->getRight() + (bufferLabel->getX() - staticSendQualLabel->getRight()) / 2) + 2;
+
+            recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), bufferLabel->getRight() - leftedge + 2, bufferLabel->getBottom() - staticBufferLabel->getY());
+        }
+        else {
+            recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), recvActualBitrateLabel->getRight() - leftedge, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
+        }
 
 
         if (recvOptionsButton->getWidth() > 260) {
@@ -83,18 +90,35 @@ void PeerViewInfo::resized()
         } else {
             bufferMinFrontButton->setVisible(false);            
         }
-        
-        auto rect = Rectangle<int>(recvOptionsButton->getX() +  3, recvOptionsButton->getBottom() - triheight - 1, triwidth, triheight);
-        recvButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
+
+        if (isNarrow) {
+            auto rect = Rectangle<int>(recvOptionsButton->getX() +  3, recvOptionsButton->getBottom() - recvOptionsButton->getHeight()/2 - triheight + 2, triwidth, triheight);
+            recvButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
+        }
+        else {
+            auto rect = Rectangle<int>(recvOptionsButton->getX() +  3, recvOptionsButton->getBottom() - triheight - 1, triwidth, triheight);
+            recvButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
+        }
     }
 
     if (sendOptionsButton) {
-        auto rightedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) - 3;
-        if (isNarrow) rightedge = (sendActualBitrateLabel->getRight() + (latActiveButton->getX() - sendActualBitrateLabel->getRight()) / 2) - 3;
-        sendOptionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), rightedge - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
+        int rightedge;
+        if (isNarrow) {
+            rightedge = (sendQualityLabel->getRight() + (staticBufferLabel->getX() - sendQualityLabel->getRight()) / 2) - 3;
 
-        auto rect = Rectangle<int>(sendOptionsButton->getX() + 3, sendOptionsButton->getBottom() - triheight - 1, triwidth, triheight);        
-        sendButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
+            sendOptionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), rightedge - staticSendQualLabel->getX(), sendQualityLabel->getBottom() - staticSendQualLabel->getY());
+
+            auto rect = Rectangle<int>(sendOptionsButton->getX() + 3, sendOptionsButton->getBottom() - sendOptionsButton->getHeight()/2 - triheight + 2, triwidth, triheight);
+            sendButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
+        }
+        else {
+            rightedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) - 3;
+
+            sendOptionsButton->setBounds(staticSendQualLabel->getX(), staticSendQualLabel->getY(), rightedge - staticSendQualLabel->getX(), sendActualBitrateLabel->getBottom() - staticSendQualLabel->getY());
+
+            auto rect = Rectangle<int>(sendOptionsButton->getX() + 3, sendOptionsButton->getBottom() - triheight - 1, triwidth, triheight);
+            sendButtonImage->setTransformToFit(rect.toFloat(), RectanglePlacement::stretchToFit);
+        }
     }
 
 
@@ -382,7 +406,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     pvf->latActiveButton->setClickingTogglesState(true);
-    pvf->latActiveButton->setTriggeredOnMouseDown(true);
+    pvf->latActiveButton->setTriggeredOnMouseDown(false);
     pvf->latActiveButton->setLookAndFeel(&pvf->smallLnf);
     pvf->latActiveButton->addListener(this);
     pvf->latActiveButton->addMouseListener(this, false);
@@ -881,30 +905,72 @@ void PeersContainerView::updateLayout()
         pvf->netstatbox.items.add(FlexItem(20, textheight, pvf->pingbox).withMargin(0).withFlex(1));
 #endif
         
-        
-        pvf->squalbox.items.clear();
-        pvf->squalbox.flexDirection = FlexBox::Direction::row;
-        pvf->squalbox.items.add(FlexItem(60, textheight, *pvf->staticSendQualLabel).withMargin(0).withFlex(1));
-        pvf->squalbox.items.add(FlexItem(40, textheight, *pvf->sendQualityLabel).withMargin(0).withFlex(2));
 
-        pvf->netbufbox.items.clear();
-        pvf->netbufbox.flexDirection = FlexBox::Direction::row;
-        pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
-        pvf->netbufbox.items.add(FlexItem(88, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(1).withMaxWidth(105));
-        pvf->netbufbox.items.add(FlexItem(40, textheight, *pvf->bufferLabel).withMargin(0).withFlex(3).withMaxWidth(116));
-        pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1.5));
+        if (isNarrow) {
+            pvf->squalbox.items.clear();
+            pvf->squalbox.flexDirection = FlexBox::Direction::column;
+            pvf->squalbox.items.add(FlexItem(60, textheight, *pvf->staticSendQualLabel).withMargin(0).withFlex(0));
+            pvf->squalbox.items.add(FlexItem(60, textheight, *pvf->sendQualityLabel).withMargin(0).withFlex(0));
+            pvf->staticSendQualLabel->setJustificationType(Justification::centred);
+            pvf->sendQualityLabel->setJustificationType(Justification::centred);
 
-        
-        pvf->optionsstatbox.items.clear();
-        pvf->optionsstatbox.flexDirection = FlexBox::Direction::column;
-        pvf->optionsstatbox.items.add(FlexItem(100, textheight, pvf->squalbox).withMargin(0).withFlex(0));
-        pvf->optionsstatbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
 
-        
-        pvf->recvstatbox.items.clear();
-        pvf->recvstatbox.flexDirection = FlexBox::Direction::column;
-        pvf->recvstatbox.items.add(FlexItem(100, textheight, pvf->netbufbox).withMargin(0).withFlex(0));
-        pvf->recvstatbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(0));
+            pvf->netbufbox.items.clear();
+            pvf->netbufbox.flexDirection = FlexBox::Direction::column;
+            //pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
+            pvf->netbufbox.items.add(FlexItem(60, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(0)/*.withMaxWidth(105)*/);
+            pvf->netbufbox.items.add(FlexItem(60, textheight, *pvf->bufferLabel).withMargin(0).withFlex(0)/*.withMaxWidth(116)*/);
+            //pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1.5));
+            pvf->staticBufferLabel->setJustificationType(Justification::centred);
+
+
+            pvf->optionsstatbox.items.clear();
+            pvf->optionsstatbox.flexDirection = FlexBox::Direction::column;
+            pvf->optionsstatbox.items.add(FlexItem(70, 2*textheight, pvf->squalbox).withMargin(0).withFlex(0));
+            //pvf->optionsstatbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
+            pvf->sendActualBitrateLabel->setVisible(false);
+
+
+            pvf->recvstatbox.items.clear();
+            pvf->recvstatbox.flexDirection = FlexBox::Direction::row;
+            pvf->recvstatbox.items.add(FlexItem(2, 10).withFlex(0));
+            pvf->recvstatbox.items.add(FlexItem(60, 2*textheight, pvf->netbufbox).withMargin(0).withFlex(1));
+            pvf->recvstatbox.items.add(FlexItem(2, 10).withFlex(0));
+            //pvf->recvstatbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(0));
+            pvf->recvActualBitrateLabel->setVisible(false);
+
+        }
+        else {
+            pvf->squalbox.items.clear();
+            pvf->squalbox.flexDirection = FlexBox::Direction::row;
+            pvf->squalbox.items.add(FlexItem(60, textheight, *pvf->staticSendQualLabel).withMargin(0).withFlex(1));
+            pvf->squalbox.items.add(FlexItem(40, textheight, *pvf->sendQualityLabel).withMargin(0).withFlex(2));
+            pvf->staticSendQualLabel->setJustificationType(Justification::centredRight);
+            pvf->sendQualityLabel->setJustificationType(Justification::centredLeft);
+
+            pvf->netbufbox.items.clear();
+            pvf->netbufbox.flexDirection = FlexBox::Direction::row;
+            pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1));
+            pvf->netbufbox.items.add(FlexItem(88, textheight, *pvf->staticBufferLabel).withMargin(0).withFlex(1).withMaxWidth(105));
+            pvf->netbufbox.items.add(FlexItem(40, textheight, *pvf->bufferLabel).withMargin(0).withFlex(3).withMaxWidth(116));
+            pvf->netbufbox.items.add(FlexItem(0, 10).withFlex(1.5));
+            pvf->staticBufferLabel->setJustificationType(Justification::centredRight);
+
+
+            pvf->optionsstatbox.items.clear();
+            pvf->optionsstatbox.flexDirection = FlexBox::Direction::column;
+            pvf->optionsstatbox.items.add(FlexItem(100, textheight, pvf->squalbox).withMargin(0).withFlex(0));
+            pvf->optionsstatbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
+            pvf->sendActualBitrateLabel->setVisible(true);
+
+
+            pvf->recvstatbox.items.clear();
+            pvf->recvstatbox.flexDirection = FlexBox::Direction::column;
+            pvf->recvstatbox.items.add(FlexItem(100, textheight, pvf->netbufbox).withMargin(0).withFlex(0));
+            pvf->recvstatbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(0));
+            pvf->recvActualBitrateLabel->setVisible(true);
+
+        }
 
         
         // options
@@ -983,6 +1049,7 @@ void PeersContainerView::updateLayout()
 
         if (isNarrow) {
 
+            /*
             pvf->recvbox.items.add(FlexItem(1, 5));
             pvf->recvbox.items.add(FlexItem(60, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1));
             pvf->recvbox.items.add(FlexItem(3, 5));
@@ -992,6 +1059,15 @@ void PeersContainerView::updateLayout()
             pvf->sendbox.items.add(FlexItem(5, 2).withFlex(0));
             pvf->sendbox.items.add(FlexItem(100, minitemheight, pvf->recvstatbox).withMargin(0).withFlex(1));
             pvf->sendbox.items.add(FlexItem(3, 5));
+             */
+
+            pvf->recvbox.items.add(FlexItem(1, 5));
+            pvf->recvbox.items.add(FlexItem(40, minitemheight, pvf->optionsstatbox).withMargin(0).withFlex(1).withMaxWidth(300));
+            pvf->recvbox.items.add(FlexItem(3, 5));
+            pvf->recvbox.items.add(FlexItem(80, minitemheight, pvf->recvstatbox).withMargin(0).withFlex(1));
+            pvf->recvbox.items.add(FlexItem(5, 5));
+            pvf->recvbox.items.add(FlexItem(60, minitemheight, pvf->netstatbox).withMargin(0).withFlex(1).withMaxWidth(130));
+            pvf->recvbox.items.add(FlexItem(3, 2).withFlex(0));
 
         }
         else {
@@ -1031,10 +1107,10 @@ void PeersContainerView::updateLayout()
             pvf->mainnarrowbox.items.add(FlexItem(changroupminbounds.getWidth(), changroupminbounds.getHeight(), *pvf->channelGroups).withMargin(0).withFlex(0));
 
             if (fullmode) {
-                pvf->mainnarrowbox.items.add(FlexItem(2, 4));
+                pvf->mainnarrowbox.items.add(FlexItem(2, 2));
                 pvf->mainnarrowbox.items.add(FlexItem(260, minitemheight, pvf->recvbox).withMargin(0).withFlex(0));
-                pvf->mainnarrowbox.items.add(FlexItem(2, 4));
-                pvf->mainnarrowbox.items.add(FlexItem(260, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
+                //pvf->mainnarrowbox.items.add(FlexItem(2, 4));
+                //pvf->mainnarrowbox.items.add(FlexItem(260, minitemheight, pvf->sendbox).withMargin(0).withFlex(0));
             }
 
             int nbh = 0;
@@ -1772,6 +1848,7 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
             break;
         }
         else if (event.eventComponent == pvf->latActiveButton.get()) {
+#if 0
             uint32 nowtimems = Time::getMillisecondCounter();
             SonobusAudioProcessor::LatencyInfo latinfo;
             processor.getRemotePeerLatencyInfo(i, latinfo);
@@ -1788,6 +1865,7 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
 
                 }
             }
+#endif
             break;
         }
 
