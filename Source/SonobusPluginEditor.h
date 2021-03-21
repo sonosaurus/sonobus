@@ -111,7 +111,7 @@ public:
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
 
 
-    void connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup = false);
+    void connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup = false, bool copyInfoOnly=false);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
 

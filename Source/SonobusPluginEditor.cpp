@@ -33,7 +33,6 @@ enum {
     separatorColourId = 0x1002850,
 };
 
-#define DEFAULT_SERVER_HOST "aoo.sonobus.net"
 #define SONOBUS_SCHEME "sonobus"
 
 using namespace SonoAudio;
@@ -322,7 +321,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         
         currConnectionInfo.userName = username;
 
-        currConnectionInfo.serverHost = "aoo.sonobus.net";
+        currConnectionInfo.serverHost = DEFAULT_SERVER_HOST;
         currConnectionInfo.serverPort = DEFAULT_SERVER_PORT;
     }
 
@@ -2438,12 +2437,13 @@ bool SonobusAudioProcessorEditor::loadAudioFromURL(URL fileurl)
 }
 
 // XXX
-void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup)
+void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup, bool copyInfoOnly)
 {
     currConnectionInfo = info;
 
-    mConnectView->connectWithInfo(currConnectionInfo, allowEmptyGroup);
-
+    if (!copyInfoOnly) {
+        mConnectView->connectWithInfo(currConnectionInfo, allowEmptyGroup);
+    }
 }
 
 
