@@ -48,6 +48,7 @@ public:
     void textEditorFocusLost (TextEditor&) override;
 
     juce::Rectangle<int> getMinimumContentBounds() const;
+    juce::Rectangle<int> getPreferredContentBounds() const;
 
 
     void updateState(bool ignorecheck=false);
@@ -183,7 +184,8 @@ protected:
 
     std::unique_ptr<TabbedComponent> mSettingsTab;
 
-    int minHeight;
+    int minHeight = 0;
+    int prefHeight = 0;
     bool firsttime = true;
 
     // language stuff

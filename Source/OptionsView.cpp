@@ -402,6 +402,12 @@ juce::Rectangle<int> OptionsView::getMinimumContentBounds() const {
     return Rectangle<int>(0,0,defWidth,defHeight);
 }
 
+juce::Rectangle<int> OptionsView::getPreferredContentBounds() const
+{
+    return Rectangle<int> (0, 0, 300, prefHeight);
+}
+
+
 void OptionsView::timerCallback(int timerid)
 {
 
@@ -740,6 +746,7 @@ void OptionsView::updateLayout()
     mainBox.flexDirection = FlexBox::Direction::column;
     mainBox.items.add(FlexItem(100, minitemheight, *mSettingsTab).withMargin(0).withFlex(1));
 
+    prefHeight = jmax(minOptionsHeight, minRecOptionsHeight) + mSettingsTab->getTabBarDepth();
 }
 
 void OptionsView::resized()  {

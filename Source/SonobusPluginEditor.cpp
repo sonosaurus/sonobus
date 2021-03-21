@@ -2827,9 +2827,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         int defHeight = 400;
 #endif
         
-        defWidth = jmin(defWidth + 8, dw->getWidth() - 20);
-        defHeight = jmin(defHeight + 8, dw->getHeight() - 24);
-        
+
         bool firsttime = false;
         if (!mOptionsView) {
             mOptionsView = std::make_unique<OptionsView>(processor, getAudioDeviceManager);
@@ -2843,6 +2841,14 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
             mOptionsView->addComponentListener(this);
             firsttime = true;
         }
+
+
+        auto prefbounds = mOptionsView->getPreferredContentBounds();
+
+        defHeight = prefbounds.getHeight();
+
+        defWidth = jmin(defWidth + 8, dw->getWidth() - 30);
+        defHeight = jmin(defHeight + 8, dw->getHeight() - 90); // 24
 
 
         auto wrap = std::make_unique<Component>();
@@ -3710,9 +3716,6 @@ void SonobusAudioProcessorEditor::resized()
     if (mConnectView) {
         mConnectView->setBounds(getLocalBounds());
     }
-
-
-
 
     mConnectionTimeLabel->setBounds(mConnectButton->getBounds().removeFromBottom(16));
     
