@@ -43,6 +43,7 @@ void OptionsView::initializeLanguages()
     languages.add(TRANS("German"));  languagesNative.add("Deutsch"); codes.add("de");
     languages.add(TRANS("Portuguese (Portugal)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Portugal)")); codes.add("pt-pt");
     languages.add(TRANS("Portuguese (Brazil)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Brasil)")); codes.add("pt-br");
+    languages.add(TRANS("Dutch"));  languagesNative.add("Nederlands"); codes.add("nl");
 
     //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
     languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time

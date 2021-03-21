@@ -23,6 +23,9 @@ namespace BinaryData
     extern const char*   localized_ja_txt;
     const int            localized_ja_txtSize = 27476;
 
+    extern const char*   localized_nl_txt;
+    const int            localized_nl_txtSize = 24118;
+
     extern const char*   localized_ptbr_txt;
     const int            localized_ptbr_txtSize = 24718;
 
@@ -216,7 +219,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 69;
+    const int namedResourceListSize = 70;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

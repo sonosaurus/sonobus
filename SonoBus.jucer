@@ -83,6 +83,8 @@
               file="localization/localized_it.txt"/>
         <FILE id="savrqR" name="localized_ja.txt" compile="0" resource="1"
               file="localization/localized_ja.txt"/>
+        <FILE id="lw1RBl" name="localized_nl.txt" compile="0" resource="1"
+              file="localization/localized_nl.txt"/>
         <FILE id="f3GTRA" name="localized_pt-br.txt" compile="0" resource="1"
               file="localization/localized_pt-br.txt"/>
         <FILE id="BmlWxd" name="localized_pt-pt.txt" compile="0" resource="1"

@@ -283,6 +283,7 @@
 		8B99100DF3411FD71C81019B /* triangle_disclosure_right.svg */ /* triangle_disclosure_right.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = triangle_disclosure_right.svg; path = ../../images/triangle_disclosure_right.svg; sourceTree = SOURCE_ROOT; };
 		8C8795B8DFF7D255EDD9BFEC /* ReverbSendView.h */ /* ReverbSendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ReverbSendView.h; path = ../../Source/ReverbSendView.h; sourceTree = SOURCE_ROOT; };
 		8CDC178271AB7A7B3C287B09 /* OscReceivedElements.h */ /* OscReceivedElements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscReceivedElements.h; path = ../../deps/aoo/deps/oscpack/osc/OscReceivedElements.h; sourceTree = SOURCE_ROOT; };
+		8D50AC6A7DCB41C0787185CD /* localized_nl.txt */ /* localized_nl.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = localized_nl.txt; path = ../../localization/localized_nl.txt; sourceTree = SOURCE_ROOT; };
 		8D5C8B4A9BF937F9E03BEAAD /* Info-AU.plist */ /* Info-AU.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info-AU.plist"; path = "Info-AU.plist"; sourceTree = SOURCE_ROOT; };
 		8E8234218E2E7F7AE98839FE /* OscTypes.cpp */ /* OscTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OscTypes.cpp; path = ../../deps/aoo/deps/oscpack/osc/OscTypes.cpp; sourceTree = SOURCE_ROOT; };
 		8EE09F9675F6DBED654BCB7B /* SonoLookAndFeel.h */ /* SonoLookAndFeel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonoLookAndFeel.h; path = ../../Source/SonoLookAndFeel.h; sourceTree = SOURCE_ROOT; };
@@ -515,6 +516,7 @@
 				D3788400A98B03D3BD73DEF0,
 				84C9C265ADB6A91A9F09B46D,
 				F0AA8DAC27A453124D84D790,
+				8D50AC6A7DCB41C0787185CD,
 				6C8912E9C818BCAD3A244C1F,
 				D5745D60E3C90D1D76D6527C,
 			);

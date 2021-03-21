@@ -5648,6 +5648,9 @@
     <None Include="..\..\localization\localized_ja.txt">
       <Filter>SonoBus\Resources\localization</Filter>
     </None>
+    <None Include="..\..\localization\localized_nl.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
     <None Include="..\..\localization\localized_pt-br.txt">
       <Filter>SonoBus\Resources\localization</Filter>
     </None>

@@ -3305,6 +3305,7 @@
     <None Include="..\..\localization\localized_fr.txt"/>
     <None Include="..\..\localization\localized_it.txt"/>
     <None Include="..\..\localization\localized_ja.txt"/>
+    <None Include="..\..\localization\localized_nl.txt"/>
     <None Include="..\..\localization\localized_pt-br.txt"/>
     <None Include="..\..\localization\localized_pt-pt.txt"/>
     <None Include="..\..\images\bar_click.wav"/>

@@ -4393,6 +4393,16 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
     String displang = SystemStats::getDisplayLanguage();
     String lang = SystemStats::getDisplayLanguage();
 
+    String origslang = lang.initialSectionNotContaining("_").initialSectionNotContaining("-").toLowerCase();
+
+    // currently ignore the system default language if it's one of our
+    // non-vetted translations
+    if (origslang == "nl"
+        || origslang == "ja") {
+        // force default to english
+        displang = lang = "en-us";
+    }
+
     if (overrideLang.isNotEmpty()) {
         displang = lang = overrideLang;
     }
