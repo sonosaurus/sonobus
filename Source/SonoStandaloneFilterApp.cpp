@@ -86,13 +86,24 @@ public:
         options.filenameSuffix      = ".settings";
         options.osxLibrarySubFolder = "Application Support/" + getApplicationName();
        #if JUCE_LINUX
-        options.folderName          = "~/.config";
+        options.folderName          = "~/.config/sonobus";
        #else
         options.folderName          = "";
        #endif
 
         appProperties.setStorageParameters (options);
 
+#if JUCE_LINUX
+        // we moved linux settings location in 1.3.19, one time change
+        File oldsettings("~/.config/SonoBus.settings");
+        if (oldsettings.exists()) {
+            File newsettings = options.getDefaultFile();
+            if (!newsettings.getParentDirectory().exists()) {
+                newsettings.getParentDirectory().createDirectory();
+                oldsettings.moveFileTo(newsettings);
+            }
+        }
+#endif
     }
 
     ~SonobusStandaloneFilterApp()

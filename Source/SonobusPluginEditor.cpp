@@ -273,7 +273,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         options.filenameSuffix      = ".settings";
         options.osxLibrarySubFolder = "Application Support/" + JUCEApplication::getInstance()->getApplicationName();
 #if JUCE_LINUX
-        options.folderName          = "~/.config";
+        options.folderName          = "~/.config/sonobus";
 #else
         options.folderName          = "";
 #endif
