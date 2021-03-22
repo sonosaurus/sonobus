@@ -14,7 +14,6 @@ PREREQS="libjack-jackd2-dev \
 	libxinerama-dev \
 	libxrandr-dev \
 	libxcursor-dev \
-	libgl-dev \
 	libfreetype6-dev \
 	libcurl4-openssl-dev \
 	"

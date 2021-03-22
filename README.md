@@ -55,7 +55,7 @@ The first thing to do in a terminal is go to the Linux build directory:
 Make sure you have `libopus` and the `libopus` development package
 (libopus-dev), as well as JACK (jackd) and its development package. Also
 libasound2-dev , libx11-dev, libxext-dev, libxinerama-dev, libxrandr-dev,
-libxcursor-dev, libgl-dev, libfreetype6-dev,
+libxcursor-dev, libfreetype6-dev,
 libcurl4-openssl-dev.
 
 Other distributions may have slightly different package names for these, for
