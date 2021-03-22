@@ -16,11 +16,11 @@ if ! cp build/SonoBus  ${PREFIX}/bin/SonoBus ; then
 fi
 
 mkdir -p ${PREFIX}/share/applications
-cp  sonobus.desktop ${PREFIX}/share/applications/sonobus.desktop
+cp sonobus.desktop ${PREFIX}/share/applications/sonobus.desktop
 chmod +x ${PREFIX}/share/applications/sonobus.desktop
 
 mkdir -p ${PREFIX}/share/pixmaps
-cp  ../../images/sonobus_logo@2x.png ${PREFIX}/share/pixmaps/sonobus.png
+cp ../../images/sonobus_logo@2x.png ${PREFIX}/share/pixmaps/sonobus.png
 
 if [ -d build/SonoBus.vst3 ] ; then
   mkdir -p ${PREFIX}/lib/vst3

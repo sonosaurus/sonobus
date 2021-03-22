@@ -1,0 +1,8 @@
+Package: sonobus
+Version: 1.3.2
+Depends: libopus0, opus-tools
+Priority: optional
+Homepage: https://sonobus.net/
+Architecture: amd64
+Maintainer: Zipdox
+Description: SonoBus is an easy to use application for streaming high-quality, low-latency peer-to-peer audio between devices over the internet or a local network.
