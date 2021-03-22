@@ -257,7 +257,9 @@ void LatestVersionCheckerAndUpdater::askUserForLocationToDownload (const Version
                          //{ getAppSettings().getStoredPath (Ids::jucePath, TargetOS::getThisOS()).get() });
                          { dloadLoc });                         
 
+#if JUCE_MODAL_LOOPS_PERMITTED
     if (chooser.browseForDirectory())
+#endif
     {
         auto targetFolder = chooser.getResult();
 
@@ -571,6 +573,8 @@ private:
 
 void restartProcess (const File& targetFolder)
 {
+#if JUCE_MAC || JUCE_LINUX || JUCE_WINDOWS
+
    #if JUCE_MAC || JUCE_LINUX
     #if JUCE_MAC
      auto newProcess = targetFolder.getChildFile ("SonoBus.app").getChildFile ("Contents").getChildFile ("MacOS").getChildFile ("SonoBus");
@@ -586,7 +590,6 @@ void restartProcess (const File& targetFolder)
                     + targetFolder.getChildFile ("SonoBus.exe").getFullPathName().quoted() + " & exit /b ) else ( timeout /t 10 >nul ) ) )\"";
    #endif
 
-#if (!JUCE_IOS)
     if (newProcess.existsAsFile())
     {
         ChildProcess restartProcess;

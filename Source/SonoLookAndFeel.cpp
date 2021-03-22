@@ -803,7 +803,7 @@ PopupMenu::Options SonoLookAndFeel::getOptionsForComboBoxPopupMenu (ComboBox& bo
                                .withMaximumNumColumns (1)
                                .withStandardItemHeight (label.getHeight());
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     auto * dw = box.findParentComponentOfClass<AudioProcessorEditor>();
     if (dw) {
         options = options.withParentComponent(dw);

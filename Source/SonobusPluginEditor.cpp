@@ -34,6 +34,24 @@ enum {
 #define DEFAULT_SERVER_HOST "aoo.sonobus.net"
 #define SONOBUS_SCHEME "sonobus"
 
+class SonobusConnectTabbedComponent : public TabbedComponent
+{
+public:
+    SonobusConnectTabbedComponent(TabbedButtonBar::Orientation orientation, SonobusAudioProcessorEditor & editor_) : TabbedComponent(orientation), editor(editor_) {
+
+    }
+
+    void currentTabChanged (int newCurrentTabIndex, const String& newCurrentTabName) override {
+
+        editor.connectTabChanged(newCurrentTabIndex);
+    }
+
+protected:
+    SonobusAudioProcessorEditor & editor;
+
+};
+
+
 class SonobusAudioProcessorEditor::PatchMatrixView : public Component, public BeatToggleGridDelegate
 {
 public:
@@ -258,11 +276,14 @@ void SonobusAudioProcessorEditor::configEditor(TextEditor *editor, bool passwd)
 SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p),  sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12),
 recentsListModel(this),
-recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsInfoFont(13, Font::plain)
+recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsInfoFont(13, Font::plain),
+publicGroupsListModel(this)
 {
     LookAndFeel::setDefaultLookAndFeel(&sonoLookAndFeel);
     
     sonoLookAndFeel.setUsingNativeAlertWindows(true);
+
+    // setupLocalisation();  // NOT YET!
 
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
@@ -338,7 +359,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mInGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mInGainSlider->setName("ingain");
-    mInGainSlider->setSliderSnapsToMousePosition(false);
+    mInGainSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mInGainSlider->setTextBoxIsEditable(true);
     mInGainSlider->setScrollWheelEnabled(false);
 
@@ -480,7 +501,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mMainPushToTalkButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mMainPushToTalkButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     String pttmessage = TRANS("When pressed, mutes others and unmutes you momentarily (push to talk).");
-#if (!JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
     pttmessage += TRANS(" Use the 'T' key as a shortcut.");
 #endif
     mMainPushToTalkButton->setTooltip(pttmessage);
@@ -561,12 +582,12 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     mDrySlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mDrySlider->setName("dry");
-    mDrySlider->setSliderSnapsToMousePosition(false);
+    mDrySlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mDrySlider->setScrollWheelEnabled(false);
 
     mOutGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxRight);
     mOutGainSlider->setName("wet");
-    mOutGainSlider->setSliderSnapsToMousePosition(false);
+    mOutGainSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mOutGainSlider->setScrollWheelEnabled(false);
 
     configLevelSlider(mInGainSlider.get());
@@ -608,7 +629,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     int largeEditorFontsize = 16;
     int smallerEditorFontsize = 14;
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     largeEditorFontsize = 18;
     smallerEditorFontsize = 16;
 #endif
@@ -644,7 +665,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
 
     
-    mConnectTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
+    mConnectTab = std::make_unique<SonobusConnectTabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop, *this);
     mConnectTab->setOutline(0);
     mConnectTab->setTabBarDepth(36);
     mConnectTab->getTabbedButtonBar().setMinimumTabScaleFactor(0.1f);
@@ -654,7 +675,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mDirectConnectContainer = std::make_unique<Component>();
     mServerConnectContainer = std::make_unique<Component>();
+    mPublicServerConnectContainer = std::make_unique<Component>();
     mServerConnectViewport = std::make_unique<Viewport>();
+    mPublicServerConnectViewport = std::make_unique<Viewport>();
     mRecentsContainer = std::make_unique<Component>();
 
     mRecentsGroup = std::make_unique<GroupComponent>("", TRANS("RECENTS"));
@@ -663,7 +686,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecentsGroup->setTextLabelPosition(Justification::centred);
     
     mConnectTab->addTab(TRANS("RECENTS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecentsContainer.get(), false);
-    mConnectTab->addTab(TRANS("GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectViewport.get(), false);
+    mConnectTab->addTab(TRANS("PRIVATE GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectViewport.get(), false);
+    mConnectTab->addTab(TRANS("PUBLIC GROUPS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mPublicServerConnectContainer.get(), false);
     mConnectTab->addTab(TRANS("DIRECT"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mDirectConnectContainer.get(), false);
     
 
@@ -676,6 +700,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mRemoteAddressStaticLabel = std::make_unique<Label>("remaddrst", TRANS("Host: "));
     mRemoteAddressStaticLabel->setJustificationType(Justification::centredRight);
+    mRemoteAddressStaticLabel->setWantsKeyboardFocus(true);
 
     mDirectConnectDescriptionLabel = std::make_unique<Label>("remaddrst", TRANS("Connect directly to other instances of SonoBus on your local network with the local address that they advertise."));
     mDirectConnectDescriptionLabel->setJustificationType(Justification::topLeft);
@@ -736,13 +761,13 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mServerGroupPassStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Password:"));
     configServerLabel(mServerGroupPassStaticLabel.get());
 
-    mServerHostStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Using Server:"));
+    mServerHostStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Connection Server:"));
     configServerLabel(mServerHostStaticLabel.get());
     
 
     mServerGroupEditor = std::make_unique<TextEditor>("groupedit");
     mServerGroupEditor->setFont(Font(16));
-    mServerGroupEditor->setText(currConnectionInfo.groupName);
+    mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "");
     configEditor(mServerGroupEditor.get());
 
     mServerGroupPasswordEditor = std::make_unique<TextEditor>("grouppass"); // 0x25cf
@@ -787,7 +812,8 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mServerInfoLabel->setColour(Label::textColourId, Colour(0x99dddddd));
     mServerInfoLabel->setMinimumHorizontalScale(0.85);
 
-    mServerAudioInfoLabel = std::make_unique<Label>("servinfo", TRANS("The server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer)."));
+    String servinfo = TRANS("The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).");
+    mServerAudioInfoLabel = std::make_unique<Label>("servinfo", servinfo);
     mServerAudioInfoLabel->setJustificationType(Justification::centredTop);
     mServerAudioInfoLabel->setFont(14);
     mServerAudioInfoLabel->setColour(Label::textColourId, Colour(0x99aaaaaa));
@@ -814,7 +840,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecentsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mRecentsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
     mRecentsListBox->setOutlineThickness (1);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     mRecentsListBox->getViewport()->setScrollOnDragEnabled(true);
 #endif
     mRecentsListBox->getViewport()->setScrollBarsShown(true, false);
@@ -824,6 +850,68 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecentsListBox->setRowSelectedOnMouseDown(true);
     mRecentsListBox->setRowClickedOnMouseDown(false);
     
+
+    mPublicGroupsListBox = std::make_unique<ListBox>("publicgroupslist");
+    mPublicGroupsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
+    mPublicGroupsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
+    mPublicGroupsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
+    mPublicGroupsListBox->setOutlineThickness (1);
+#if JUCE_IOS || JUCE_ANDROID
+    mPublicGroupsListBox->getViewport()->setScrollOnDragEnabled(true);
+#endif
+    mPublicGroupsListBox->getViewport()->setScrollBarsShown(true, false);
+    mPublicGroupsListBox->setMultipleSelectionEnabled (false);
+    mPublicGroupsListBox->setRowHeight(38);
+    mPublicGroupsListBox->setModel (&publicGroupsListModel);
+    mPublicGroupsListBox->setRowSelectedOnMouseDown(true);
+    mPublicGroupsListBox->setRowClickedOnMouseDown(false);
+
+
+    mPublicServerHostEditor = std::make_unique<TextEditor>("pubsrvaddredit");
+    mPublicServerHostEditor->setFont(Font(14));
+    configEditor(mPublicServerHostEditor.get());
+    mPublicServerHostEditor->setTooltip(servinfo);
+
+    mPublicServerHostStaticLabel = std::make_unique<Label>("pubaddrst", TRANS("Connection Server:"));
+    configServerLabel(mPublicServerHostStaticLabel.get());
+    mPublicServerHostStaticLabel->setWantsKeyboardFocus(true);
+
+    mPublicServerUserStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Your Displayed Name:"));
+    configServerLabel(mPublicServerUserStaticLabel.get());
+    mPublicServerUserStaticLabel->setMinimumHorizontalScale(0.8);
+
+    mPublicServerStatusInfoLabel = std::make_unique<Label>("pubsrvinfo", "");
+    configServerLabel(mPublicServerStatusInfoLabel.get());
+
+
+    mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
+    mPublicServerUsernameEditor->setFont(Font(16));
+    mPublicServerUsernameEditor->setText(currConnectionInfo.userName);
+    configEditor(mPublicServerUsernameEditor.get());
+
+    mPublicGroupComponent = std::make_unique<GroupComponent>("", TRANS("Active Public Groups"));
+    mPublicGroupComponent->setColour(GroupComponent::textColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.8));
+    mPublicGroupComponent->setColour(GroupComponent::outlineColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.1));
+    mPublicGroupComponent->setTextLabelPosition(Justification::centred);
+
+    mPublicServerInfoStaticLabel = std::make_unique<Label>("pubinfo", TRANS("Select existing group below OR "));
+    configServerLabel(mPublicServerInfoStaticLabel.get());
+    mPublicServerInfoStaticLabel->setFont(16);
+    mPublicServerInfoStaticLabel->setMinimumHorizontalScale(0.8);
+
+    mPublicServerAddGroupButton = std::make_unique<TextButton>("addgroup");
+    mPublicServerAddGroupButton->setButtonText(TRANS("Create Group..."));
+    mPublicServerAddGroupButton->addListener(this);
+    mPublicServerAddGroupButton->setColour(TextButton::buttonColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.6));
+    mPublicServerAddGroupButton->setWantsKeyboardFocus(true);
+
+    mPublicServerGroupEditor = std::make_unique<TextEditor>("pubgroupedit");
+    mPublicServerGroupEditor->setFont(Font(16));
+    mPublicServerGroupEditor->setText(currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "");
+    configEditor(mPublicServerGroupEditor.get());
+    mPublicServerGroupEditor->setTextToShowWhenEmpty(TRANS("enter group name"), Colour(0x44ffffff));
+    mPublicServerGroupEditor->setTooltip(TRANS("Choose a descriptive group name that includes geographic information and genre"));
+
 
     mPatchbayButton = std::make_unique<TextButton>("patch");
     mPatchbayButton->setButtonText(TRANS("Patchbay"));
@@ -859,7 +947,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mMainLinkButton = std::make_unique<SonoDrawableButton>("link",  DrawableButton::ButtonStyle::ImageFitted);
     mMainLinkButton->addListener(this);
-
+    mMainLinkButton->setTooltip(TRANS("Press to copy/share link to group"));
     
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
     
@@ -948,7 +1036,17 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     configLabel(mRecFormatStaticLabel.get(), false);
     mRecFormatStaticLabel->setJustificationType(Justification::centredRight);
 
-    
+
+    mRecLocationStaticLabel = std::make_unique<Label>("", TRANS("Record Location:"));
+    configLabel(mRecLocationStaticLabel.get(), false);
+    mRecLocationStaticLabel->setJustificationType(Justification::centredRight);
+
+    mRecLocationButton = std::make_unique<TextButton>("fileloc");
+    mRecLocationButton->setButtonText("");
+    mRecLocationButton->setLookAndFeel(&smallLNF);
+    mRecLocationButton->addListener(this);
+
+
     
     
     mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
@@ -957,11 +1055,17 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction"));
     mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
 
+    mOptionsAutoReconnectButton = std::make_unique<ToggleButton>(TRANS("Auto-Reconnect to Last Group"));
+    mAutoReconnectAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramAutoReconnectLast, *mOptionsAutoReconnectButton);
+
     mOptionsOverrideSamplerateButton = std::make_unique<ToggleButton>(TRANS("Override Device Sample Rate"));
     mOptionsOverrideSamplerateButton->addListener(this);
 
     mOptionsShouldCheckForUpdateButton = std::make_unique<ToggleButton>(TRANS("Automatically check for updates"));
     mOptionsShouldCheckForUpdateButton->addListener(this);
+
+    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Click Position"));
+    mOptionsSliderSnapToMouseButton->addListener(this);
 
 
     mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
@@ -980,7 +1084,11 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     
     configEditor(mOptionsUdpPortEditor.get());
 
+#if JUCE_IOS
+    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
+#else
     mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + ProjectInfo::versionString);
+#endif
     configLabel(mVersionLabel.get(), true);
     mVersionLabel->setJustificationType(Justification::centredRight);
 
@@ -1239,7 +1347,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         
     }
     
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     mPeerViewport->setScrollOnDragEnabled(true);
 #endif
     
@@ -1252,6 +1360,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsAutoReconnectButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsInputLimiterButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
@@ -1260,6 +1369,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
         mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
         mOptionsComponent->addAndMakeVisible(mOptionsShouldCheckForUpdateButton.get());
     }
+    mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
 
 
 
@@ -1272,7 +1382,9 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
-    
+    mRecOptionsComponent->addAndMakeVisible(mRecLocationButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecLocationStaticLabel.get());
+
     
     addAndMakeVisible(mPeerViewport.get());
     addAndMakeVisible(mTitleLabel.get());
@@ -1364,7 +1476,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     mServerConnectContainer->addAndMakeVisible(mServerUserStaticLabel.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupEditor.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupRandomButton.get());
-#if ! JUCE_IOS
+#if ! (JUCE_IOS || JUCE_ANDROID)
     mServerConnectContainer->addAndMakeVisible(mServerPasteButton.get());
     mServerConnectContainer->addAndMakeVisible(mServerCopyButton.get());
 #else
@@ -1380,6 +1492,19 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 
     mRecentsContainer->addAndMakeVisible(mRecentsListBox.get());
     mRecentsContainer->addAndMakeVisible(mClearRecentsButton.get());
+
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicGroupComponent.get());
+    mPublicGroupComponent->addAndMakeVisible(mPublicGroupsListBox.get());
+
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerHostEditor.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerHostStaticLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerUserStaticLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerUsernameEditor.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerAddGroupButton.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerInfoStaticLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerStatusInfoLabel.get());
+    mPublicServerConnectContainer->addAndMakeVisible(mPublicServerGroupEditor.get());
+
 
     mConnectComponent->addAndMakeVisible(mConnectComponentBg.get());
     mConnectComponent->addAndMakeVisible(mConnectTab.get());
@@ -1400,7 +1525,10 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     addChildComponent(mDragDropBg.get());
 
     mServerConnectViewport->setViewedComponent(mServerConnectContainer.get());
-    
+
+    //mPublicServerConnectViewport->setViewedComponent(mPublicServerConnectContainer.get());
+
+
     inPannersContainer->addAndMakeVisible (mInMonPanLabel1.get());
     inPannersContainer->addAndMakeVisible (mInMonPanLabel2.get());
     inPannersContainer->addAndMakeVisible (mInMonPanMonoSlider.get());
@@ -1427,7 +1555,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
     commandManager.registerAllCommandsForTarget (this);
 
     if (JUCEApplicationBase::isStandaloneApp()) {
-#if !JUCE_IOS
+#if !(JUCE_IOS || JUCE_ANDROID)
         processor.startAooServer();
 #endif
         setResizable(true, false);
@@ -1457,7 +1585,7 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
             // show connect immediately
             showConnectPopup(true);
             // switch to group page
-            mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+            mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 1 : 0);
 
             updateServerStatusLabel(TRANS("Filled in Group information from clipboard! Press 'Connect to Group' to join..."), false);
         }
@@ -1513,7 +1641,14 @@ recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsIn
 #endif
     
     setSize (760, defHeight);
-       
+
+
+    if (processor.getAutoReconnectToLast()) {
+        updateRecents();
+        connectWithInfo(recents.getReference(0));
+    }
+
+
 }
 
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
@@ -1566,7 +1701,7 @@ static void doActuallyQuit (int result, SonobusAudioProcessorEditor* editor)
 bool SonobusAudioProcessorEditor::requestedQuit()
 {
     // allow quit if we are not connected
-    if (currConnected) {
+    if (currConnected && currGroup.isNotEmpty()) {
         // pop up confirmation
         AlertWindow::showOkCancelBox (AlertWindow::WarningIcon,
         TRANS("Quit Confirmation"),
@@ -1584,15 +1719,25 @@ bool SonobusAudioProcessorEditor::requestedQuit()
 
 bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * retmessage)
 {
-    String message = TRANS("Share this link with others to connect with SonoBus: \n\n");
+    String message = TRANS("Share this link with others to connect with SonoBus:") + " \n\n";
 
     String hostport = mServerHostEditor->getText();        
     if (hostport.isEmpty()) {
         hostport = "aoo.sonobus.net";
     }
     
-    String groupName = mServerGroupEditor->getText();
-    String groupPassword = mServerGroupPasswordEditor->getText();
+    String groupName;
+    String groupPassword;
+
+    if (!currConnected) {
+        if (mConnectTab->getCurrentContentComponent() == mServerConnectViewport.get()) {
+            groupName = mServerGroupEditor->getText();
+            groupPassword = mServerGroupPasswordEditor->getText();
+        }
+    } else {
+        groupName = currConnectionInfo.groupName;
+        groupPassword = currConnectionInfo.groupPassword;
+    }
 
     String urlstr1;
     urlstr1 << String("sonobus://") << hostport << String("/");
@@ -1610,11 +1755,16 @@ bool SonobusAudioProcessorEditor::copyInfoToClipboard(bool singleURL, String * r
             url = url.withParameter("p", groupPassword);
             url2 = url2.withParameter("p", groupPassword);
         }
-        
+
+        if (currConnected && currConnectionInfo.groupIsPublic) {
+            url = url.withParameter("public", "1");
+            url2 = url2.withParameter("public", "1");
+        }
+
         //message += url.toString(true);
         //message += "\n\n";
 
-        //message += TRANS("Or share this link:\n");
+        //message += TRANS("Or share this link:") + "\n";
         message += url2.toString(true);
         message += "\n";
 
@@ -1649,6 +1799,13 @@ bool SonobusAudioProcessorEditor::handleSonobusURL(const URL & url)
         } else {
             currConnectionInfo.groupPassword = "";                    
         }
+
+        if ((ind = pnames.indexOf("public", true)) >= 0) {
+            currConnectionInfo.groupIsPublic = pvals[ind].getIntValue() > 0;
+        } else {
+            currConnectionInfo.groupIsPublic = false;
+        }
+
     }
 
     if (url.getScheme() == "sonobus") {
@@ -1724,15 +1881,22 @@ bool SonobusAudioProcessorEditor::attemptToPasteConnectionFromClipboard()
 void SonobusAudioProcessorEditor::updateServerFieldsFromConnectionInfo()
 {
     if (currConnectionInfo.serverPort == DEFAULT_SERVER_PORT) {
-        mServerHostEditor->setText( currConnectionInfo.serverHost);
+        mServerHostEditor->setText( currConnectionInfo.serverHost, false);
+        mPublicServerHostEditor->setText( currConnectionInfo.serverHost, false);
     } else {
         String hostport;
         hostport << currConnectionInfo.serverHost << ":" << currConnectionInfo.serverPort;
-        mServerHostEditor->setText( hostport);
+        mServerHostEditor->setText( hostport, false);
+        mPublicServerHostEditor->setText( hostport, false);
     }
-    mServerUsernameEditor->setText(currConnectionInfo.userName);
-    mServerGroupEditor->setText(currConnectionInfo.groupName);
-    mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword);
+    mServerUsernameEditor->setText(currConnectionInfo.userName, false);
+    mPublicServerUsernameEditor->setText(currConnectionInfo.userName, false);
+    if (currConnectionInfo.groupIsPublic) {
+        mPublicServerGroupEditor->setText(currConnectionInfo.groupName, false);
+    } else {
+        mServerGroupEditor->setText(currConnectionInfo.groupName, false);
+    }
+    mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
 }
 
 bool SonobusAudioProcessorEditor::isInterestedInFileDrag (const StringArray& /*files*/) 
@@ -1796,6 +1960,22 @@ void SonobusAudioProcessorEditor::configLevelSlider(Slider * slider)
     slider->setLookAndFeel(&sonoSliderLNF);
 }
 
+void SonobusAudioProcessorEditor::connectTabChanged (int newCurrentTabIndex)
+{
+    // normaliza index to have recents as 0
+    int adjindex = mConnectTab->getNumTabs() < 4 ? newCurrentTabIndex + 1 : newCurrentTabIndex;
+
+    // public groups
+    if (adjindex == 2) {
+        publicGroupLogin();
+    }
+    else if (adjindex == 1) {
+        // private groups
+        resetPrivateGroupLabels();
+    }
+}
+
+
 
 //////////////////
 // these client listener callbacks will be from a different thread
@@ -1849,6 +2029,27 @@ void SonobusAudioProcessorEditor::aooClientGroupLeft(SonobusAudioProcessor *comp
     }
     triggerAsyncUpdate();
 }
+
+void SonobusAudioProcessorEditor::aooClientPublicGroupModified(SonobusAudioProcessor *comp, const String & group, int count, const String & errmesg)
+{
+    DBG("Public group add/modified " << group << " count: " << (int)count << "   mesg: " << errmesg);
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PublicGroupModifiedEvent, group, true, errmesg));
+    }
+    triggerAsyncUpdate();
+}
+
+void SonobusAudioProcessorEditor::aooClientPublicGroupDeleted(SonobusAudioProcessor *comp, const String & group,  const String & errmesg)
+{
+    DBG("Public group delete " << group << "   mesg: " << errmesg);
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PublicGroupDeletedEvent, group, true, errmesg));
+    }
+    triggerAsyncUpdate();
+}
+
 
 void SonobusAudioProcessorEditor::aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user)  
 {
@@ -2017,7 +2218,9 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
             mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
         }
     }
-    
+
+    mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
+
     uint32 recmask = processor.getDefaultRecordingOptions();
     
     mOptionsRecOthersButton->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, dontSendNotification);
@@ -2028,6 +2231,10 @@ void SonobusAudioProcessorEditor::updateOptionsState(bool ignorecheck)
     mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
     mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
 
+    File recdir = File(processor.getDefaultRecordingDirectory());
+    String dispath = recdir.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+    if (dispath.startsWith(".")) dispath = processor.getDefaultRecordingDirectory();
+    mRecLocationButton->setButtonText(dispath);
     
 }
 
@@ -2087,7 +2294,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             mFileRecordingLabel->setText(SonoUtility::durationToString(processor.getElapsedRecordTime(), true), dontSendNotification);
         }
 
-        if (processor.isConnectedToServer()) {
+        if (processor.isConnectedToServer() && processor.getCurrentJoinedGroup().isNotEmpty()) {
             mConnectionTimeLabel->setText(SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
         }
 
@@ -2150,6 +2357,53 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
     }
 }
 
+void SonobusAudioProcessorEditor::publicGroupLogin()
+{
+    String hostport = mPublicServerHostEditor->getText();
+    DBG("Public host enter pressed");
+    // parse it
+    StringArray toks = StringArray::fromTokens(hostport, ":", "");
+    String host = "aoo.sonobus.net";
+    int port = DEFAULT_SERVER_PORT;
+
+    if (toks.size() >= 1) {
+        host = toks[0].trim();
+    }
+    if (toks.size() >= 2) {
+        port = toks[1].trim().getIntValue();
+    }
+
+    AooServerConnectionInfo info;
+    info.userName = mPublicServerUsernameEditor->getText();
+    info.serverHost = host;
+    info.serverPort = port;
+
+    bool connchanged = (info.serverHost != currConnectionInfo.serverHost
+                        || info.serverPort != currConnectionInfo.serverPort
+                        || info.userName != currConnectionInfo.userName);
+
+    if (connchanged
+        || !processor.getWatchPublicGroups()
+        || !processor.isConnectedToServer()
+        ) {
+
+        if (connchanged && processor.isConnectedToServer()) {
+            processor.disconnectFromServer();
+        }
+        else if (!processor.getWatchPublicGroups() && processor.isConnectedToServer()) {
+            processor.setWatchPublicGroups(true);
+        }
+
+        if (!processor.isConnectedToServer()) {
+
+            Timer::callAfterDelay(100, [this,info] {
+                connectWithInfo(info, true);
+                updatePublicGroups();
+            });
+        }
+    }
+}
+
 void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
 {
     DBG("Return pressed");
@@ -2158,11 +2412,28 @@ void SonobusAudioProcessorEditor::textEditorReturnKeyPressed (TextEditor& ed)
         int port = mOptionsUdpPortEditor->getText().getIntValue();
         changeUdpPort(port);
     }
+    else if (&ed == mPublicServerHostEditor.get() || &ed == mPublicServerUsernameEditor.get()) {
+        publicGroupLogin();
+    }
+    else if (&ed == mPublicServerGroupEditor.get()) {
+        buttonClicked(mPublicServerAddGroupButton.get());
+    }
+
 
     
-    if (mConnectComponent->isVisible()) {
+    if (mConnectComponent->isVisible() && mServerConnectButton->isShowing()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
         mServerConnectButton->grabKeyboardFocus();
+        //mServerConnectButton->setWantsKeyboardFocus(false);
+    }
+    else if (mConnectComponent->isVisible() && mPublicServerAddGroupButton->isShowing()) {
+        //mServerConnectButton->setWantsKeyboardFocus(true);
+        mPublicServerAddGroupButton->grabKeyboardFocus();
+        //mServerConnectButton->setWantsKeyboardFocus(false);
+    }
+    else if (mConnectComponent->isVisible() && mDirectConnectButton->isShowing()) {
+        //mServerConnectButton->setWantsKeyboardFocus(true);
+        mDirectConnectButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
     }
 }
@@ -2190,6 +2461,10 @@ void SonobusAudioProcessorEditor::textEditorFocusLost (TextEditor& ed)
         int port = mOptionsUdpPortEditor->getText().getIntValue();
         changeUdpPort(port);
     }
+    else if (&ed == mPublicServerHostEditor.get() || &ed == mPublicServerUsernameEditor.get()) {
+        publicGroupLogin();
+    }
+
 }
 
 void SonobusAudioProcessorEditor::changeUdpPort(int port)
@@ -2230,11 +2505,16 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mConnectButton.get()) {
         
-        if (processor.isConnectedToServer()) {
+        if (processor.isConnectedToServer() && processor.getCurrentJoinedGroup().isNotEmpty()) {
             mConnectionTimeLabel->setText(TRANS("Last Session: ") + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
             mConnectButton->setTextJustification(Justification::centredTop);
 
-            processor.disconnectFromServer();
+            if (processor.getWatchPublicGroups()) {
+                processor.leaveServerGroup(processor.getCurrentJoinedGroup());
+            }
+            else {
+                processor.disconnectFromServer();
+            }
             updateState();
         }
         else {
@@ -2250,40 +2530,70 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         
     }
     else if (buttonThatWasClicked == mServerConnectButton.get()) {
-
+        bool wasconnected = false;
         if (processor.isConnectedToServer()) {
             mConnectionTimeLabel->setText(TRANS("Total: ") + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
 
             processor.disconnectFromServer();    
             updateState();
+            wasconnected = true;
         }
-        else {
-            String hostport = mServerHostEditor->getText();        
 
-            // parse it
-            StringArray toks = StringArray::fromTokens(hostport, ":", "");
-            String host = "aoo.sonobus.net";
-            int port = DEFAULT_SERVER_PORT;
-            
-            if (toks.size() >= 1) {
-                host = toks[0].trim();
-            }
-            if (toks.size() >= 2) {
-                port = toks[1].trim().getIntValue();
-            }
-            
-            AooServerConnectionInfo info;
-            info.userName = mServerUsernameEditor->getText();
-            info.groupName = mServerGroupEditor->getText();
-            info.groupPassword = mServerGroupPasswordEditor->getText();
-            info.serverHost = host;
-            info.serverPort = port;
-            
-            connectWithInfo(info);                       
-            
-            mConnectionTimeLabel->setText("", dontSendNotification);
+        String hostport = mServerHostEditor->getText();
 
+        // parse it
+        StringArray toks = StringArray::fromTokens(hostport, ":", "");
+        String host = "aoo.sonobus.net";
+        int port = DEFAULT_SERVER_PORT;
+
+        if (toks.size() >= 1) {
+            host = toks[0].trim();
         }
+        if (toks.size() >= 2) {
+            port = toks[1].trim().getIntValue();
+        }
+
+        AooServerConnectionInfo info;
+        info.userName = mServerUsernameEditor->getText();
+        info.groupName = mServerGroupEditor->getText();
+        info.groupPassword = mServerGroupPasswordEditor->getText();
+        info.groupIsPublic = false;
+        info.serverHost = host;
+        info.serverPort = port;
+
+        connectWithInfo(info);
+
+        mConnectionTimeLabel->setText("", dontSendNotification);
+
+    }
+    else if (buttonThatWasClicked == mPublicServerAddGroupButton.get()) {
+
+        String hostport = mPublicServerHostEditor->getText();
+
+        // parse it
+        StringArray toks = StringArray::fromTokens(hostport, ":", "");
+        String host = "aoo.sonobus.net";
+        int port = DEFAULT_SERVER_PORT;
+
+        if (toks.size() >= 1) {
+            host = toks[0].trim();
+        }
+        if (toks.size() >= 2) {
+            port = toks[1].trim().getIntValue();
+        }
+
+        AooServerConnectionInfo info;
+        info.userName = mPublicServerUsernameEditor->getText();
+        info.groupName = mPublicServerGroupEditor->getText();
+        info.groupPassword = "";
+        info.groupIsPublic = true;
+        info.serverHost = host;
+        info.serverPort = port;
+
+        connectWithInfo(info);
+
+        mConnectionTimeLabel->setText("", dontSendNotification);
+
     }
     else if (buttonThatWasClicked == mSetupAudioButton.get()) {
         if (!settingsCalloutBox) {
@@ -2304,6 +2614,23 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         } else {
             showInPanners(false);
         }        
+    }
+    else if (buttonThatWasClicked == mRecLocationButton.get()) {
+        // browse folder chooser
+        SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+        if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
+        {
+            RuntimePermissions::request (RuntimePermissions::readExternalStorage,
+                                         [safeThis] (bool granted) mutable
+                                         {
+                if (granted)
+                    safeThis->buttonClicked (safeThis->mRecLocationButton.get());
+            });
+            return;
+        }
+
+        chooseRecDirBrowser();
     }
     else if (buttonThatWasClicked == mMetConfigButton.get()) {
         if (!metCalloutBox) {
@@ -2346,11 +2673,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mMainRecvMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
-        
-        if (mMainRecvMuteButton->getToggleState()) {
-            showPopTip(TRANS("Muted everyone"), 3000, mMainRecvMuteButton.get());
-        } else {
-            showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMainRecvMuteButton.get());
+
+        if (processor.getNumberRemotePeers() > 0 && settingsCalloutBox == nullptr) {
+            if (mMainRecvMuteButton->getToggleState()) {
+                showPopTip(TRANS("Muted everyone"), 3000, mMainRecvMuteButton.get());
+            } else {
+                showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMainRecvMuteButton.get());
+            }
         }
     }
     else if (buttonThatWasClicked == mMetSendButton.get()) {
@@ -2381,11 +2710,12 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
     }
     else if (buttonThatWasClicked == mServerCopyButton.get()) {
-        copyInfoToClipboard();
-        showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
+        if (copyInfoToClipboard()) {
+            showPopTip(TRANS("Copied connection info to clipboard for you to share with others"), 3000, mServerCopyButton.get());
+        }
     }
     else if (buttonThatWasClicked == mMainLinkButton.get()) {
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         String message;
         bool singleurl = true;
         if (copyInfoToClipboard(singleurl, &message)) {
@@ -2399,14 +2729,15 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
         }        
 #else
-        copyInfoToClipboard();
-        showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, mMainLinkButton.get());
+        if (copyInfoToClipboard()) {
+            showPopTip(TRANS("Copied group connection info to clipboard for you to share with others"), 3000, mMainLinkButton.get());
+        }
 #endif
     }
     else if (buttonThatWasClicked == mServerShareButton.get()) {
         String message;
         bool singleurl = false;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         singleurl = true;
 #endif
         if (copyInfoToClipboard(singleurl, &message)) {
@@ -2441,7 +2772,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             //updateServerStatusLabel("Stopped Recording");
 
             String filepath;
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
             filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
             //showPopTip(TRANS("Finished recording to ") + filepath, 4000, mRecordingButton.get(), 130);
 #else
@@ -2459,16 +2790,25 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             resized();
             
         } else {
+
+            SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+            if (! RuntimePermissions::isGranted (RuntimePermissions::writeExternalStorage))
+            {
+                RuntimePermissions::request (RuntimePermissions::writeExternalStorage,
+                                             [safeThis] (bool granted) mutable
+                                             {
+                    if (granted)
+                        safeThis->buttonClicked (safeThis->mRecordingButton.get());
+                });
+                return;
+            }
+
             // create new timestamped filename
             String filename = Time::getCurrentTime().formatted("SonoBusSession_%Y-%m-%d_%H.%M.%S");
 
-#if (JUCE_IOS)
-            auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
-#else
-            auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
-            parentDir = parentDir.getChildFile("SonoBus");
+            auto parentDir = File(processor.getDefaultRecordingDirectory());
             parentDir.createDirectory();
-#endif
 
             File file (parentDir.getNonexistentChildFile (filename, ".flac"));
 
@@ -2478,12 +2818,12 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 lastRecordedFile = file;
                 String filepath;
 
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
                 showPopTip(TRANS("Started recording output"), 2000, mRecordingButton.get());
 #endif
                 if (processor.getDefaultRecordingOptions() == SonobusAudioProcessor::RecordMix) {
                     
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
                     filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
 #else
                     filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
@@ -2492,13 +2832,18 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                     mRecordingButton->setTooltip(TRANS("Recording audio to: ") + filepath);
                 } else 
                 {
-#if (JUCE_IOS)
+#if (JUCE_IOS || JUCE_ANDROID)
                     filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
 #else
                     filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
 #endif
                     mRecordingButton->setTooltip(TRANS("Recording multi-track audio to: ") + filepath);
                 }
+            }
+            else {
+                // show error starting record
+                String lasterr = processor.getLastErrorMessage();
+                showPopTip(lasterr, 0, mRecordingButton.get());
             }
             
             mFileRecordingLabel->setText("", dontSendNotification);
@@ -2528,7 +2873,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 }
                 else {
                     if (mCurrOpenDir.getFullPathName().isEmpty()) {
-                        mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+                        mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
                         DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
                     }
                     mCurrOpenDir.revealToUser();
@@ -2587,6 +2932,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mConnectCloseButton.get()) {
         mConnectComponent->setVisible(false);
         mConnectButton->setTextJustification(Justification::centred);
+
+        processor.setWatchPublicGroups(false);
+        
         updateState();
     }
     else if (buttonThatWasClicked == mOptionsRecMixButton.get()
@@ -2641,6 +2989,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
         }
     }
+    else if (buttonThatWasClicked == mOptionsSliderSnapToMouseButton.get()) {
+        processor.setSlidersSnapToMousePosition(mOptionsSliderSnapToMouseButton->getToggleState());
+        updateSliderSnap();
+    }
     else {
         
        
@@ -2653,9 +3005,9 @@ void SonobusAudioProcessorEditor::openFileBrowser()
 
     if (FileChooser::isPlatformDialogAvailable())
     {
-#if !(JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
         if (mCurrOpenDir.getFullPathName().isEmpty()) {
-            mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+            mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
             DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
             
         }
@@ -2704,16 +3056,92 @@ void SonobusAudioProcessorEditor::openFileBrowser()
     }
 }
 
+void SonobusAudioProcessorEditor::chooseRecDirBrowser()
+{
+    SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+    if (FileChooser::isPlatformDialogAvailable())
+    {
+        File recdir = File(processor.getDefaultRecordingDirectory());
+
+        mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
+                                           recdir,
+                                           "",
+                                           true, false, getTopLevelComponent()));
+
+
+
+        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                                   [safeThis] (const FileChooser& chooser) mutable
+                                   {
+            auto results = chooser.getURLResults();
+            if (safeThis != nullptr && results.size() > 0)
+            {
+                auto url = results.getReference (0);
+
+                DBG("Chose directory: " <<  url.toString(false));
+
+                if (url.isLocalFile()) {
+                    File lfile = url.getLocalFile();
+                    if (lfile.isDirectory()) {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getFullPathName());
+                    } else {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
+                    }
+
+                    safeThis->updateOptionsState();
+                }
+            }
+
+            if (safeThis) {
+                safeThis->mFileChooser.reset();
+            }
+
+        }, nullptr);
+
+    }
+    else {
+        DBG("Need to enable code signing");
+    }
+}
+
+void SonobusAudioProcessorEditor::updateSliderSnap()
+{
+    // set level slider snap to mouse property based on processor state and size of slider
+    auto snap = processor.getSlidersSnapToMousePosition();
+
+    int minsize = 60;
+
+    std::function<void(Slider *)> snapset = [&](Slider * slider){
+        slider->setSliderSnapsToMousePosition(slider->getWidth() > minsize && snap);
+    };
+
+    snapset(mInGainSlider.get());
+    snapset(mOutGainSlider.get());
+    snapset(mDrySlider.get());
+    snapset(mInMonPanSlider1.get());
+    snapset(mInMonPanSlider2.get());
+    snapset(mInMonPanStereoSlider.get());
+    snapset(mInMonPanMonoSlider.get());
+
+    mPeerContainer->applyToAllSliders(snapset);
+}
+
+
 void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
 {
     URL url(urlstr);
     if (url.isWellFormed()) {
-        if (!currConnected) {
+        if (!currConnected || currGroup.isEmpty()) {
             if (handleSonobusURL(url)) {
-                showConnectPopup(true);
+
+                // connect immediately
+                connectWithInfo(currConnectionInfo);
+
+                //showConnectPopup(true);
                 // switch to group page
-                mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
-                updateServerStatusLabel(TRANS("Filled in Group from link! Press 'Connect to Group' to join..."), false);
+                //mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+                //updateServerStatusLabel(TRANS("Filled in Group from link! Press 'Connect to Group' to join..."), false);
             }
         }
     }
@@ -2744,27 +3172,46 @@ bool SonobusAudioProcessorEditor::loadAudioFromURL(URL fileurl)
 }
 
 
-void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo & info)
+void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup)
 {
     currConnectionInfo = info;
     
-    if (currConnectionInfo.groupName.isEmpty()) {
-        mServerStatusLabel->setText(TRANS("You need to specify a group name!"), dontSendNotification);
-        mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
-        mServerGroupEditor->repaint();
-        mServerInfoLabel->setVisible(false);
-        mServerStatusLabel->setVisible(true);
+    if (currConnectionInfo.groupName.isEmpty() && !allowEmptyGroup) {
+        if (info.groupIsPublic) {
+            mPublicServerStatusInfoLabel->setText(TRANS("You need to specify a group name!"), dontSendNotification);
+            mPublicServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mPublicServerGroupEditor->repaint();
+            mPublicServerStatusInfoLabel->setVisible(true);
+        }
+        else {
+            mServerStatusLabel->setText(TRANS("You need to specify a group name!"), dontSendNotification);
+            mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mServerGroupEditor->repaint();
+            mServerInfoLabel->setVisible(false);
+            mServerStatusLabel->setVisible(true);
+        }
         return;
     }
     else {
         mServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
         mServerGroupEditor->repaint();
+        mPublicServerGroupEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mPublicServerGroupEditor->repaint();
     }
     
     if (currConnectionInfo.userName.isEmpty()) {
-        mServerStatusLabel->setText(TRANS("You need to specify a user name!"), dontSendNotification);
-        mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
-        mServerUsernameEditor->repaint();
+        String mesg = TRANS("You need to specify a user name!");
+
+        if (info.groupIsPublic) {
+            mPublicServerStatusInfoLabel->setText(mesg, dontSendNotification);
+            mPublicServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mPublicServerUsernameEditor->repaint();
+        } else {
+            mServerStatusLabel->setText(mesg, dontSendNotification);
+            mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mServerUsernameEditor->repaint();
+        }
+
         mServerInfoLabel->setVisible(false);
         mServerStatusLabel->setVisible(true);
         return;
@@ -2772,6 +3219,8 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
     else {
         mServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
         mServerUsernameEditor->repaint();
+        mPublicServerUsernameEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mPublicServerUsernameEditor->repaint();
     }
     
     //mServerGroupPasswordEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
@@ -2780,16 +3229,31 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
     
     if (currConnectionInfo.serverHost.isNotEmpty() && currConnectionInfo.serverPort != 0) 
     {
-        processor.connectToServer(currConnectionInfo.serverHost, currConnectionInfo.serverPort, currConnectionInfo.userName, currConnectionInfo.userPassword);
-        updateState();
+        processor.disconnectFromServer();
+
+        Timer::callAfterDelay(100, [this] {
+            processor.connectToServer(currConnectionInfo.serverHost, currConnectionInfo.serverPort, currConnectionInfo.userName, currConnectionInfo.userPassword);
+            updateState();
+        });
 
         mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
         mServerHostEditor->repaint();
+
+        mPublicServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff050505));
+        mPublicServerHostEditor->repaint();
     }
     else {
-        mServerStatusLabel->setText(TRANS("Server address is invalid!"), dontSendNotification);
-        mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
-        mServerHostEditor->repaint();
+        String mesg = TRANS("Server address is invalid!");
+        if (info.groupIsPublic) {
+            mPublicServerStatusInfoLabel->setText(mesg, dontSendNotification);
+            mPublicServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mPublicServerHostEditor->repaint();
+        } else {
+            mServerStatusLabel->setText(mesg, dontSendNotification);
+            mServerHostEditor->setColour(TextEditor::backgroundColourId, Colour(0xff880000));
+            mServerHostEditor->repaint();
+        }
+
         mServerInfoLabel->setVisible(false);
         mServerStatusLabel->setVisible(true);
     }
@@ -2853,7 +3317,7 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
 
         Component* dw = this; 
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defWidth = 230; 
         const int defHeight = 96;
 #else
@@ -2899,7 +3363,7 @@ void SonobusAudioProcessorEditor::showEffectsConfig(bool flag)
         
         Component* dw = this; 
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defWidth = 260; 
         const int defHeight = 154;
 #else
@@ -2948,7 +3412,7 @@ void SonobusAudioProcessorEditor::showInEffectsConfig(bool flag, Component * fro
         Component* dw = this; 
         
         int defWidth = 260;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int defHeight = 180;
 #else
         int defHeight = 156;
@@ -3076,21 +3540,35 @@ void SonobusAudioProcessorEditor::updateRecents()
     mRecentsListBox->deselectAllRows();
 }
 
+void SonobusAudioProcessorEditor::updatePublicGroups()
+{
+    publicGroupsListModel.updateState();
+    mPublicGroupsListBox->updateContent();
+    mPublicGroupsListBox->repaint();
+    mPublicGroupsListBox->deselectAllRows();
+}
+
+void SonobusAudioProcessorEditor::resetPrivateGroupLabels()
+{
+    if (!mServerInfoLabel) return;
+
+    mServerInfoLabel->setText(TRANS("All who join the same Group will be able to connect with each other."), dontSendNotification);
+    mServerInfoLabel->setVisible(true);
+    mServerStatusLabel->setVisible(false);
+}
+
 void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
 {
     if (flag) {
         mConnectComponent->toFront(true);
         
-        mServerInfoLabel->setText(TRANS("All who join the same Group will be able to connect with each other."), dontSendNotification);
-        mServerInfoLabel->setVisible(true);
-        mServerStatusLabel->setVisible(false);
-
+        resetPrivateGroupLabels();
         updateServerFieldsFromConnectionInfo();
         
         updateRecents();
         
         if (firstTimeConnectShow) {
-            if (mConnectTab->getNumTabs() > 2) {
+            if (mConnectTab->getNumTabs() > 3) {
                 if (recentsListModel.getNumRows() > 0) {
                     // show recents tab first
                     mConnectTab->setCurrentTabIndex(0);
@@ -3100,7 +3578,11 @@ void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
             }
             firstTimeConnectShow = false;
         }
-        
+
+        if (mConnectTab->getCurrentContentComponent() == mPublicServerConnectContainer.get()) {
+            publicGroupLogin();
+        }
+
         mConnectComponent->setVisible(true);
     }
     else {
@@ -3245,12 +3727,12 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         
         Component* dw = this; 
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int defWidth = 300;
         int defHeight = 420;
 #else
         int defWidth = 320;
-        int defHeight = 360;
+        int defHeight = 400;
 #endif
         
         defWidth = jmin(defWidth + 8, dw->getWidth() - 20);
@@ -3314,7 +3796,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
                                                                                       false,
                                                                                       false, false);
                 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
                 mAudioDeviceSelector->setItemHeight(44);
 #endif
                 
@@ -3378,7 +3860,20 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         }
         
         settingsClosedTimestamp = 0;
-        
+
+
+#if JUCE_WINDOWS
+        if (firsttime && JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
+        {
+            // on windows, if current audio device type isn't ASIO, prompt them that it should be
+            auto devtype = getAudioDeviceManager()->getCurrentAudioDeviceType();
+            if (!devtype.equalsIgnoreCase("ASIO")) {
+                auto mesg = String(TRANS("Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first."));
+                showPopTip(mesg, 0, mSettingsTab->getTabbedButtonBar().getTabButton(0), 320);
+            }
+        }
+#endif
+
     }
     else {
         // dismiss it
@@ -3396,7 +3891,9 @@ void SonobusAudioProcessorEditor::updateState()
     mLocalAddressLabel->setText(locstr, dontSendNotification);
 
     currConnected = processor.isConnectedToServer();
-    if (currConnected) {
+    currGroup = processor.getCurrentJoinedGroup();
+
+    if (currConnected && currGroup.isNotEmpty()) {
         mConnectButton->setButtonText(TRANS("Disconnect"));
         mConnectButton->setTextJustification(Justification::centredTop);
         mConnectButton->setToggleState(true, dontSendNotification);
@@ -3516,10 +4013,11 @@ void SonobusAudioProcessorEditor::updateState()
         mReverbPreDelayLabel->setVisible(true);        
     }
   
-    currGroup = processor.getCurrentJoinedGroup();
-    if (!currGroup.isEmpty() && currConnected) 
+    if (!currGroup.isEmpty() && currConnected)
     {
-        mMainGroupLabel->setText(currGroup, dontSendNotification);
+        String grouptext;
+        grouptext << (currConnectionInfo.groupIsPublic ? TRANS("[P] ") : "") << currGroup;
+        mMainGroupLabel->setText(grouptext, dontSendNotification);
         String userstr;
 
         if (processor.getNumberRemotePeers() > 0) {
@@ -3562,7 +4060,7 @@ void SonobusAudioProcessorEditor::updateState()
 
         if (processor.getNumberRemotePeers() == 0 /* || !currConnected */ ) {
             String message;
-            message += TRANS("Press Connect button to start.\n\nPlease use headphones if you are using a microphone!");
+            message += TRANS("Press Connect button to start.") + "\n\n" + TRANS("Please use headphones if you are using a microphone!");
             mMainMessageLabel->setText(message, dontSendNotification);
         } else {
             mMainMessageLabel->setText("", dontSendNotification);
@@ -3570,7 +4068,7 @@ void SonobusAudioProcessorEditor::updateState()
 
         
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         mPatchbayButton->setVisible(false);
         mSetupAudioButton->setVisible(false);
 #else
@@ -3695,8 +4193,10 @@ void SonobusAudioProcessorEditor::updateServerStatusLabel(const String & mesg, b
     
     if (!mainonly) {
         mServerStatusLabel->setText(mesg, dontSendNotification);
+        mPublicServerStatusInfoLabel->setText(mesg, dontSendNotification);
         mServerInfoLabel->setVisible(false);
         mServerStatusLabel->setVisible(true);
+        mPublicServerStatusInfoLabel->setVisible(true);
     }
 }
 
@@ -3769,7 +4269,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                     currConnectionInfo.userName = generateNewUsername(currConnectionInfo);
 
                     DBG("Trying again with name: " << currConnectionInfo.userName);
-                    connectWithInfo(currConnectionInfo);
+                    connectWithInfo(currConnectionInfo, true);
                     
                     return;
                     
@@ -3781,14 +4281,34 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             
             // now attempt to join group
             if (ev.success) {
-                currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
-                processor.addRecentServerConnectionInfo(currConnectionInfo);
 
-                processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword);                
+                if (currConnectionInfo.groupName.isNotEmpty()) {
+
+                    currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
+                    processor.addRecentServerConnectionInfo(currConnectionInfo);
+
+                    processor.setWatchPublicGroups(false);
+
+                    processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword, currConnectionInfo.groupIsPublic);
+                }
+                else {
+                    // we've connected but have not specified group, assume we want to see public groups
+                    processor.setWatchPublicGroups(true);
+                    updatePublicGroups();
+                }
+
+                updateServerFieldsFromConnectionInfo();
             }
             else {
                 // switch to group page
-                mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 2 ? 1 : 0);
+                int adjindex = mConnectTab->getCurrentTabIndex() + (mConnectTab->getNumTabs() > 3 ? 0 : 1);
+                if (adjindex != 1 && adjindex != 2) {
+                    if (currConnectionInfo.groupIsPublic) {
+                        mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 2 : 1);
+                    } else {
+                        mConnectTab->setCurrentTabIndex(mConnectTab->getNumTabs() > 3 ? 1 : 0);
+                    }
+                }
             }
             
             updateServerStatusLabel(statstr, false);
@@ -3837,6 +4357,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             updatePeerState(true);
             updateState();
         }
+        else if (ev.type == ClientEvent::PublicGroupModifiedEvent) {
+            updatePublicGroups();
+        }
+        else if (ev.type == ClientEvent::PublicGroupDeletedEvent) {
+            updatePublicGroups();
+        }
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
             updatePeerState(true);
@@ -3880,7 +4406,7 @@ void SonobusAudioProcessorEditor::resized()
 
     Component::resized();
  
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     const int narrowthresh = 480; //520;
 #else
     const int narrowthresh = 588; //520;
@@ -3911,7 +4437,7 @@ void SonobusAudioProcessorEditor::resized()
     
     mPeerContainer->setBounds(Rectangle<int>(0, 0, std::max(peersminbounds.getWidth(), mPeerViewport->getWidth() - 10), std::max(peersminbounds.getHeight() + 5, mPeerViewport->getHeight())));
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     mSetupAudioButton->setSize(150, 1);
 #else
     mSetupAudioButton->setSize(150, 50);	
@@ -3942,23 +4468,25 @@ void SonobusAudioProcessorEditor::resized()
     mConnectComponentBg->setRectangle (mConnectComponent->getLocalBounds().toFloat());
 
     if (getWidth() > 700) {
-        if (mConnectTab->getNumTabs() > 2) {
+        if (mConnectTab->getNumTabs() > 3) {
             // move recents to main connect component, out of tab
+            int adjcurrtab = jmax(0, mConnectTab->getCurrentTabIndex() - 1);
+
             mConnectTab->removeTab(0);
             mRecentsGroup->addAndMakeVisible(mRecentsContainer.get());
             mConnectComponent->addAndMakeVisible(mRecentsGroup.get());
 
-            mConnectTab->setCurrentTabIndex(0);
+            mConnectTab->setCurrentTabIndex(adjcurrtab);
             updateLayout();
         }
     } else {
-        if (mConnectTab->getNumTabs() < 3) {
+        if (mConnectTab->getNumTabs() < 4) {
             int tabsel = mConnectTab->getCurrentTabIndex();
             mRecentsGroup->removeChildComponent(mRecentsContainer.get());
             mRecentsGroup->setVisible(false);
             
             mConnectTab->addTab(TRANS("RECENTS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecentsContainer.get(), false);
-            mConnectTab->moveTab(2, 0);
+            mConnectTab->moveTab(3, 0);
             mConnectTab->setCurrentTabIndex(tabsel + 1);
             updateLayout();
         }
@@ -3973,7 +4501,17 @@ void SonobusAudioProcessorEditor::resized()
     remoteBox.performLayout(mDirectConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mDirectConnectContainer->getWidth()), mDirectConnectContainer->getHeight()));
     serverBox.performLayout(mServerConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mServerConnectContainer->getWidth()), mServerConnectContainer->getHeight()));
 
-    if (mConnectTab->getNumTabs() < 3) {
+    //mPublicServerConnectContainer->setBounds(0,0,
+    //                                   mPublicServerConnectViewport->getWidth() - (mPublicServerConnectViewport->getHeight() < minServerConnectHeight ? mPublicServerConnectViewport->getScrollBarThickness() : 0 ),
+    //                                   jmax(minServerConnectHeight, mPublicServerConnectViewport->getHeight()));
+
+
+    publicGroupsBox.performLayout(mPublicServerConnectContainer->getLocalBounds());
+
+    mPublicGroupsListBox->setBounds(mPublicGroupComponent->getLocalBounds().reduced(4).withTrimmedTop(10));
+
+
+    if (mConnectTab->getNumTabs() < 4) {
         mRecentsContainer->setBounds(mRecentsGroup->getLocalBounds().reduced(4).withTrimmedTop(10));
     }
     recentsBox.performLayout(mRecentsContainer->getLocalBounds());
@@ -4020,7 +4558,9 @@ void SonobusAudioProcessorEditor::resized()
     if (auto * callout = dynamic_cast<CallOutBox*>(inPannerCalloutBox.get())) {
         callout->updatePosition(dw->getLocalArea(nullptr, mPanButton->getScreenBounds()), dw->getLocalBounds());
     }
-    
+
+    updateSliderSnap();
+
 }
 
 
@@ -4043,7 +4583,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     int knoblabelheight = 18;
     int panbuttwidth = 26;
     
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
     minitemheight = 44;
     knobitemheight = 90;
@@ -4225,6 +4765,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsDynResampleBox.items.add(FlexItem(180, minpassheight, *mOptionsDynamicResamplingButton).withMargin(0).withFlex(1));
 
+    optionsAutoReconnectBox.items.clear();
+    optionsAutoReconnectBox.flexDirection = FlexBox::Direction::row;
+    optionsAutoReconnectBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsAutoReconnectBox.items.add(FlexItem(180, minpassheight, *mOptionsAutoReconnectButton).withMargin(0).withFlex(1));
+
     optionsOverrideSamplerateBox.items.clear();
     optionsOverrideSamplerateBox.flexDirection = FlexBox::Direction::row;
     optionsOverrideSamplerateBox.items.add(FlexItem(10, 12).withFlex(0));
@@ -4245,6 +4790,11 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsCheckForUpdateBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsCheckForUpdateBox.items.add(FlexItem(180, minpassheight, *mOptionsShouldCheckForUpdateButton).withMargin(0).withFlex(1));
 
+    optionsSnapToMouseBox.items.clear();
+    optionsSnapToMouseBox.flexDirection = FlexBox::Direction::row;
+    optionsSnapToMouseBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsSnapToMouseBox.items.add(FlexItem(180, minpassheight, *mOptionsSliderSnapToMouseButton).withMargin(0).withFlex(1));
+
     
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
@@ -4259,11 +4809,13 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
-    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
@@ -4278,10 +4830,15 @@ void SonobusAudioProcessorEditor::updateLayout()
     optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
 
     int indentw = 40;
-    
+
+    optionsRecordDirBox.items.clear();
+    optionsRecordDirBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordDirBox.items.add(FlexItem(115, minitemheight, *mRecLocationStaticLabel).withMargin(0).withFlex(0));
+    optionsRecordDirBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecLocationButton).withMargin(0).withFlex(3));
+
     optionsRecordFormatBox.items.clear();
     optionsRecordFormatBox.flexDirection = FlexBox::Direction::row;
-    optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(1));
+    optionsRecordFormatBox.items.add(FlexItem(115, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(0));
     optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatChoice).withMargin(0).withFlex(1));
     optionsRecordFormatBox.items.add(FlexItem(2, 4));
     optionsRecordFormatBox.items.add(FlexItem(80, minitemheight, *mRecBitsChoice).withMargin(0).withFlex(0.25));
@@ -4310,6 +4867,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
     recOptionsBox.items.add(FlexItem(4, 6));
+#if !(JUCE_IOS || JUCE_ANDROID)
+    recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordDirBox).withMargin(2).withFlex(0));
+#endif
     recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordFormatBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(4, 4));
     recOptionsBox.items.add(FlexItem(100, minpassheight, *mOptionsRecFilesStaticLabel).withMargin(2).withFlex(0));
@@ -4457,11 +5017,11 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     servStatusBox.items.clear();
     servStatusBox.flexDirection = FlexBox::Direction::row;
-#if (!JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerPasteButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));
 #endif
     servStatusBox.items.add(FlexItem(servLabelWidth, minpassheight, *mServerStatusLabel).withMargin(2).withFlex(1));
-#if (!JUCE_IOS)
+#if !(JUCE_IOS || JUCE_ANDROID)
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerCopyButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));
 #else
     servStatusBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerShareButton).withMargin(2).withFlex(0).withMaxHeight(minitemheight));    
@@ -4488,14 +5048,47 @@ void SonobusAudioProcessorEditor::updateLayout()
     serverBox.items.add(FlexItem(180, minitemheight, servUserBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
     serverBox.items.add(FlexItem(5, 6).withFlex(1).withMaxHeight(14));
     serverBox.items.add(FlexItem(minButtonWidth, minitemheight, servButtonBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
-    serverBox.items.add(FlexItem(5, 10).withFlex(0));
+    serverBox.items.add(FlexItem(5, 10).withFlex(1));
     serverBox.items.add(FlexItem(100, minitemheight, servAddressBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
     serverBox.items.add(FlexItem(80, minpassheight, *mServerAudioInfoLabel).withMargin(2).withFlex(1).withMaxWidth(maxservboxwidth).withMaxHeight(60));
-    serverBox.items.add(FlexItem(5, 8).withFlex(1));
+    serverBox.items.add(FlexItem(5, 8).withFlex(0));
 
     minServerConnectHeight = 4*minitemheight + 3*minpassheight + 58;
 
-    
+    // public groups stuff
+
+    publicServAddressBox.items.clear();
+    publicServAddressBox.flexDirection = FlexBox::Direction::row;
+    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerHostStaticLabel).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(150, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerStatusInfoLabel).withMargin(2).withFlex(0.75));
+
+    publicServUserBox.items.clear();
+    publicServUserBox.flexDirection = FlexBox::Direction::row;
+    publicServUserBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerUserStaticLabel).withMargin(2).withFlex(1));
+    publicServUserBox.items.add(FlexItem(172, minitemheight, *mPublicServerUsernameEditor).withMargin(2).withFlex(1));
+
+    publicAddGroupBox.items.clear();
+    publicAddGroupBox.flexDirection = FlexBox::Direction::row;
+    publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerInfoStaticLabel).withMargin(2).withFlex(0.5));
+    publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerAddGroupButton).withMargin(2).withFlex(1).withMaxWidth(180));
+    //publicAddGroupBox.items.add(FlexItem(4, 8).withFlex(0.25));
+    publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerGroupEditor).withMargin(2).withFlex(1));
+
+
+    publicGroupsBox.items.clear();
+    publicGroupsBox.flexDirection = FlexBox::Direction::column;
+    publicGroupsBox.items.add(FlexItem(5, 3).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(100, minitemheight, publicServAddressBox).withMargin(2).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicServUserBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
+    publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicAddGroupBox).withMargin(2).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(5, 7).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(100, minitemheight, *mPublicGroupComponent).withMargin(2).withFlex(1));
+
+
+
     mainGroupUserBox.items.clear();
     mainGroupUserBox.flexDirection = FlexBox::Direction::row;
     mainGroupUserBox.items.add(FlexItem(0, 6).withFlex(0));
@@ -4655,7 +5248,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     toolbarBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0.1));
 
    
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
 #else
     if (processor.getCurrentJoinedGroup().isEmpty() && processor.getNumberRemotePeers() > 1) {
         toolbarBox.items.add(FlexItem(6, 6).withMargin(1).withFlex(0.2));
@@ -4703,7 +5296,7 @@ void SonobusAudioProcessorEditor::updateLayout()
         transportBox.items.add(FlexItem(44, minitemheight, *mFileSendAudioButton).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(44, minitemheight, *mDismissTransportButton).withMargin(0).withFlex(0));
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         transportBox.items.add(FlexItem(6, 6).withMargin(1).withFlex(0));
 #else
         transportBox.items.add(FlexItem(14, 6).withMargin(1).withFlex(0));        
@@ -4764,7 +5357,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     connectHorizBox.items.clear();
     connectHorizBox.flexDirection = FlexBox::Direction::row;
     connectHorizBox.items.add(FlexItem(100, 100, *mConnectTab).withMargin(3).withFlex(1));
-    if (mConnectTab->getNumTabs() < 3) {
+    if (mConnectTab->getNumTabs() < 4) {
         connectHorizBox.items.add(FlexItem(335, 100, *mRecentsGroup).withMargin(3).withFlex(0));
     }
 
@@ -4818,7 +5411,7 @@ void SonobusAudioProcessorEditor::showFilePopupMenu(Component * source)
 {
     Array<GenericItemChooserItem> items;
     items.add(GenericItemChooserItem(TRANS("Trim to New")));
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     items.add(GenericItemChooserItem(TRANS("Share File")));    
 #else
     items.add(GenericItemChooserItem(TRANS("Reveal File")));
@@ -4910,7 +5503,7 @@ void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser 
             trimCurrentAudioFile(false);
         }
         else if (index == 1) {
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             // share
             Array<URL> urlarray;
             urlarray.add(mCurrentAudioFile);
@@ -5064,6 +5657,70 @@ void SonobusAudioProcessorEditor::trimAudioFile(const String & fname, double sta
 
 }
 
+
+bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
+{
+    String displang = SystemStats::getDisplayLanguage();
+    String lang = SystemStats::getDisplayLanguage();
+
+    if (overrideLang.isNotEmpty()) {
+        displang = lang = overrideLang;
+    }
+
+    LocalisedStrings::setCurrentMappings(nullptr);
+
+    bool retval = false;
+
+    int retbytes = 0;
+    int retfbytes = 0;
+    String region = SystemStats::getUserRegion();
+
+    String sflang = lang.initialSectionNotContaining("_").toLowerCase().replace("-", "");
+    String slang = lang.initialSectionNotContaining("_").initialSectionNotContaining("-").toLowerCase();
+
+    String resname = String::formatted("localized_%s_txt", slang.toRawUTF8());
+    String resfname = String::formatted("localized_%s_txt", sflang.toRawUTF8());
+
+    const char * rawdata = BinaryData::getNamedResource(resname.toRawUTF8(), retbytes);
+    const char * rawdataf = BinaryData::getNamedResource(resfname.toRawUTF8(), retfbytes);
+
+    if (rawdataf) {
+        DBG("Found fulldisp localization for language: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resfname);
+        LocalisedStrings * lstrings = new LocalisedStrings(String::createStringFromData(rawdataf, retfbytes), true);
+
+        LocalisedStrings::setCurrentMappings(lstrings);
+        retval = true;
+    }
+    else if (rawdata) {
+        DBG("Found localization for language: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resname);
+        LocalisedStrings * lstrings = new LocalisedStrings(String::createStringFromData(rawdata, retbytes), true);
+
+        LocalisedStrings::setCurrentMappings(lstrings);
+        retval = true;
+    }
+    else if (lang.startsWith("en")) {
+        // special case, since untranslated is english
+        retval = true;
+    }
+    else {
+        DBG("Couldn't find mapping for lang: " << lang << "  region: " << region << " displang: " <<  displang <<  "  - resname: " << resname);
+        retval = false;
+    }
+
+#ifdef JUCE_ANDROID
+   // Font::setFallbackFontName("Droid Sans Fallback");
+#endif
+
+    if (retval) {
+        mActiveLanguageCode = displang.toStdString();
+    } else {
+        mActiveLanguageCode = "en-us"; // indicates we are using english
+    }
+
+    return retval;
+}
+
+
 #pragma mark - ApplicationCommandTarget
 
 void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) {
@@ -5135,14 +5792,14 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
                           TRANS("Popup"), 0);
-            info.setActive(!currConnected);
+            info.setActive(!currConnected || currGroup.isEmpty());
             info.addDefaultKeypress ('n', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::Disconnect:
             info.setInfo (TRANS("Disconnect"),
                           TRANS("Disconnect"),
                           TRANS("Popup"), 0);
-            info.setActive(currConnected);
+            info.setActive(currConnected && currGroup.isNotEmpty());
             info.addDefaultKeypress ('d', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::ShowOptions:
@@ -5231,7 +5888,7 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             }
             else {
                 if (mCurrOpenDir.getFullPathName().isEmpty()) {
-                    mCurrOpenDir = File::getSpecialLocation (File::userDocumentsDirectory).getChildFile("SonoBus");
+                    mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
                 }
                 mCurrOpenDir.revealToUser();
             }
@@ -5243,14 +5900,14 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::Connect:
             DBG("got connect!");
-            if (!currConnected) {
+            if (!currConnected || currGroup.isEmpty()) {
                 buttonClicked(mConnectButton.get());
             }
             break;
         case SonobusCommands::Disconnect:
             DBG("got disconnect!");
             
-            if (currConnected) {
+            if (currConnected && currGroup.isNotEmpty()) {
                 buttonClicked(mConnectButton.get());
             }
 
@@ -5304,7 +5961,7 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
         case MenuFileIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::OpenFile);
             retval.addCommandItem (&parent.commandManager, SonobusCommands::CloseFile);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ShareFile);
 #else
             retval.addCommandItem (&parent.commandManager, SonobusCommands::RevealFile);            
@@ -5415,14 +6072,19 @@ void SonobusAudioProcessorEditor::RecentsListModel::paintListBoxItem (int rowNum
     g.drawFittedText (info.userName, adjwidth*xratio + iconsize, 0, adjwidth*(1.0f - xratio) - 4 - iconsize, groupheight, Justification::centredLeft, true);
 
     String infostr;
-    if (info.groupPassword.isNotEmpty()) {
-        infostr = TRANS("password protected, ");
+
+    if (info.groupIsPublic) {
+        infostr += TRANS("PUBLIC") + " ";
     }
 
-    infostr += TRANS("on ") + Time(info.timestamp).toString(true, true, false) + " " ;
+    if (info.groupPassword.isNotEmpty()) {
+        infostr += TRANS("password protected,") + " ";
+    }
+
+    infostr += TRANS("on") + " " + Time(info.timestamp).toString(true, true, false) + " " ;
     
     if (info.serverHost != "aoo.sonobus.net") {
-        infostr += TRANS("to ") +  info.serverHost;
+        infostr += TRANS("to") + " " +  info.serverHost;
     }
 
     g.setColour (parent->findColour(nameTextColourId).withAlpha(0.5f));
@@ -5451,6 +6113,113 @@ void SonobusAudioProcessorEditor::RecentsListModel::listBoxItemClicked (int rowN
 }
 
 void SonobusAudioProcessorEditor::RecentsListModel::selectedRowsChanged(int rowNumber)
+{
+
+}
+
+#pragma PublicGroupsListModel
+
+SonobusAudioProcessorEditor::PublicGroupsListModel::PublicGroupsListModel(SonobusAudioProcessorEditor * parent_) : parent(parent_)
+{
+    groupImage = ImageCache::getFromMemory(BinaryData::people_png, BinaryData::people_pngSize);
+    personImage = ImageCache::getFromMemory(BinaryData::person_png, BinaryData::person_pngSize);
+}
+
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::updateState()
+{
+    groups.clear();
+    parent->processor.getPublicGroupInfos(groups);
+}
+
+int SonobusAudioProcessorEditor::PublicGroupsListModel::getNumRows()
+{
+    return groups.size();
+}
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
+{
+    if (rowNumber >= groups.size()) return;
+
+    if (rowIsSelected) {
+        g.setColour (parent->findColour(selectedColourId));
+        g.fillRect(Rectangle<int>(0,0,width,height));
+    }
+
+    g.setColour(parent->findColour(separatorColourId));
+    g.drawLine(0, height-1, width, height);
+
+
+    g.setColour (parent->findColour(nameTextColourId));
+    g.setFont (parent->recentsGroupFont);
+
+    AooPublicGroupInfo & info = groups.getReference(rowNumber);
+
+    float xratio = 0.7;
+    int removewidth = 0 ; // jmin(36, height - 6);
+    float yratio = 1.0; // 0.6
+    float adjwidth = width - removewidth;
+
+    // DebugLogC("Paint %s", text.toRawUTF8());
+    float iconsize = height*yratio;
+    float groupheight = height*yratio;
+    g.drawImageWithin(groupImage, 0, 0, iconsize, iconsize, RectanglePlacement::fillDestination);
+    g.drawFittedText (info.groupName, iconsize + 4, 0, adjwidth*xratio - 8 - iconsize, groupheight, Justification::centredLeft, true);
+
+    g.setFont (parent->recentsNameFont);
+    g.setColour (parent->findColour(nameTextColourId).withAlpha(0.8f));
+    g.drawImageWithin(personImage, adjwidth*xratio, 0, iconsize, iconsize, RectanglePlacement::fillDestination);
+    String usertext;
+    usertext << info.activeCount << (info.activeCount > 1 ? TRANS(" active users") : TRANS(" active user"));
+    g.drawFittedText (usertext, adjwidth*xratio + iconsize, 0, adjwidth*(1.0f - xratio) - 4 - iconsize, groupheight, Justification::centredLeft, true);
+
+
+    //g.setColour (parent->findColour(nameTextColourId).withAlpha(0.5f));
+    //g.setFont (parent->recentsInfoFont);
+    //g.drawFittedText (infostr, 14, height * yratio, adjwidth - 24, height * (1.0f - yratio), Justification::centredTop, true);
+
+    cachedWidth = width;
+}
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::listBoxItemClicked (int rowNumber, const MouseEvent& e)
+{
+    // use this
+    DBG("Clicked " << rowNumber << "  x: " << e.getPosition().x << "  width: " << cachedWidth);
+
+    if (rowNumber >= groups.size() || rowNumber < 0) {
+        DBG("Clicked out of bounds row!");
+        return;
+    }
+
+    auto & ginfo = groups.getReference(rowNumber);
+
+    if (parent->processor.isConnectedToServer()) {
+        parent->currConnectionInfo.groupName = ginfo.groupName;
+        parent->currConnectionInfo.groupPassword.clear();
+        parent->currConnectionInfo.groupIsPublic = true;
+        parent->currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
+        parent->processor.addRecentServerConnectionInfo(parent->currConnectionInfo);
+
+        bool isPublic = true;
+        parent->processor.joinServerGroup(parent->currConnectionInfo.groupName, parent->currConnectionInfo.groupPassword, isPublic);
+
+        parent->processor.setWatchPublicGroups(false);
+    }
+    else {
+
+        AooServerConnectionInfo cinfo;
+        cinfo.userName = parent->mPublicServerUsernameEditor->getText();
+        cinfo.groupName = ginfo.groupName;
+        cinfo.groupIsPublic = true;
+        cinfo.serverHost = parent->currConnectionInfo.serverHost;
+        cinfo.serverPort = parent->currConnectionInfo.serverPort;
+
+        parent->connectWithInfo(cinfo);
+    }
+
+}
+
+void SonobusAudioProcessorEditor::PublicGroupsListModel::selectedRowsChanged(int rowNumber)
 {
 
 }

@@ -42,11 +42,23 @@ struct AooServerConnectionInfo
     String userPassword;
     String groupName;
     String groupPassword;
+    bool   groupIsPublic = false;
     String serverHost;
     int    serverPort;
     
     int64 timestamp; // milliseconds since 1970
 };
+
+struct AooPublicGroupInfo
+{
+    AooPublicGroupInfo() {}
+
+    String groupName;
+    int    activeCount = 0;
+
+    int64 timestamp = 0; // milliseconds since 1970
+};
+
 
 inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs) {
     // compare all except timestamp
@@ -200,6 +212,7 @@ public:
     static String paramDynamicResampling;
     static String paramMainInMute;
     static String paramMainMonitorSolo;
+    static String paramAutoReconnectLast;
 
     struct EndpointState;
     struct RemoteSink;
@@ -229,10 +242,14 @@ public:
     void setAutoconnectToGroupPeers(bool flag);
     bool getAutoconnectToGroupPeers() const { return mAutoconnectGroupPeers; }
 
-    bool joinServerGroup(const String & group, const String & groupsecret = "");
+    bool joinServerGroup(const String & group, const String & groupsecret = "", bool isPublic=false);
     bool leaveServerGroup(const String & group);
     String getCurrentJoinedGroup() const ;
-    
+    bool setWatchPublicGroups(bool flag);
+    bool getWatchPublicGroups() const { return mWatchPublicGroups; }
+
+    int getPublicGroupInfos(Array<AooPublicGroupInfo> & retarray);
+
     void addRecentServerConnectionInfo(const AooServerConnectionInfo & cinfo);
     void removeRecentServerConnectionInfo(int index);
     int getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray);
@@ -272,6 +289,8 @@ public:
 
     int getRemotePeerOverrideSendChannelCount(int index) const;
     void setRemotePeerOverrideSendChannelCount(int index, int numchans);
+
+    int getRemotePeerActualSendChannelCount(int index) const;
 
     
     void setRemotePeerBufferTime(int index, float bufferMs);
@@ -395,7 +414,16 @@ public:
     AutoNetBufferMode getDefaultAutoresizeBufferMode() const { return (AutoNetBufferMode) defaultAutoNetbufMode; }
     
     bool getSendingFilePlaybackAudio() const { return mSendPlaybackAudio.get(); }
-    
+
+    bool getAutoReconnectToLast() const { return mAutoReconnectLast.get(); }
+
+    // misc settings
+    bool getSlidersSnapToMousePosition() const { return mSliderSnapToMouse; }
+    void setSlidersSnapToMousePosition(bool flag) {  mSliderSnapToMouse = flag; }
+
+
+
+
     // sets and gets the format we send out
     void setRemotePeerAudioCodecFormat(int index, int formatIndex);
     int getRemotePeerAudioCodecFormat(int index) const;
@@ -435,6 +463,8 @@ public:
         virtual void aooClientLoginResult(SonobusAudioProcessor *comp, bool success, const String & errmesg="") {}
         virtual void aooClientGroupJoined(SonobusAudioProcessor *comp, bool success, const String & group,  const String & errmesg="") {}
         virtual void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") {}
+        virtual void aooClientPublicGroupModified(SonobusAudioProcessor *comp, const String & group, int count, const String & errmesg="") {}
+        virtual void aooClientPublicGroupDeleted(SonobusAudioProcessor *comp, const String & group,  const String & errmesg="") {}
         virtual void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) {}
@@ -471,6 +501,10 @@ public:
     bool stopRecordingToFile();
     bool isRecordingToFile();
     double getElapsedRecordTime() const { return mElapsedRecordSamples / getSampleRate(); }
+    String getLastErrorMessage() const { return mLastError; }
+
+    void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
+    String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
 
     uint32 getDefaultRecordingOptions() const { return mDefaultRecordingOptions; }
     void setDefaultRecordingOptions(uint32 opts) { mDefaultRecordingOptions = opts; }
@@ -601,6 +635,7 @@ private:
     Atomic<float>   mMainReverbPreDelay  { 20.0f }; // ms
     Atomic<int>   mMainReverbModel  { ReverbModelMVerb };
     Atomic<bool>   mDynamicResampling  { false };
+    Atomic<bool>   mAutoReconnectLast  { false };
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
@@ -615,7 +650,7 @@ private:
     
     Atomic<bool>   mAnythingSoloed  { false };
 
-    
+
     int defaultAutoNetbufMode = AutoNetBufferModeAutoFull;
     
     bool mChangingDefaultAudioCodecChangesAll = false;
@@ -664,6 +699,11 @@ private:
     bool mIsConnectedToServer = false;
     String mCurrentJoinedGroup;
     double mSessionConnectionStamp = 0.0;
+    bool mWatchPublicGroups = false;
+
+    double mPrevSampleRate = 0.0;
+    Atomic<bool> mPendingUnmute {false}; // jlc
+    uint32 mPendingUnmuteAtStamp = 0;
 
     // we will add sinks for any peer we invite, as part of a RemoteSource
     
@@ -692,6 +732,9 @@ private:
     
     CriticalSection  mRemotesLock;
 
+    std::map<String,AooPublicGroupInfo> mPublicGroupInfos;
+    CriticalSection  mPublicGroupsLock;
+
     
     
     Array<AudioCodecFormatInfo> mAudioFormats;
@@ -706,13 +749,14 @@ private:
     
     
     void notifySendThread() {
-        mHasStuffToSend = true;
+        mNeedSendSentinel += 1;
         mSendWaitable.signal();
     }
     
     WaitableEvent  mSendWaitable;
-    volatile bool mHasStuffToSend = false;
-    
+    Atomic<int>   mNeedSendSentinel  { 0 };
+
+
     std::unique_ptr<SendThread> mSendThread;
     std::unique_ptr<RecvThread> mRecvThread;
     std::unique_ptr<EventThread> mEventThread;
@@ -765,6 +809,8 @@ private:
     uint32 mDefaultRecordingOptions = RecordMix;
     RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
     int mDefaultRecordingBitsPerSample = 16;
+    String mDefaultRecordDir;
+    String mLastError;
 
     volatile bool writingPossible = false;
     volatile bool userWritingPossible = false;
@@ -791,6 +837,8 @@ private:
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    
+    // misc
+    bool mSliderSnapToMouse = false;
 
 
 

@@ -104,7 +104,7 @@ public:
     void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
 
     
-    void connectWithInfo(const AooServerConnectionInfo & info);
+    void connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup = false);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
 
@@ -121,6 +121,8 @@ public:
     void aooClientLoginResult(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
     void aooClientGroupJoined(SonobusAudioProcessor *comp, bool success, const String & group,  const String & errmesg="") override;
     void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") override;
+    void aooClientPublicGroupModified(SonobusAudioProcessor *comp, const String & group, int count, const String & errmesg="") override;
+    void aooClientPublicGroupDeleted(SonobusAudioProcessor *comp, const String & group,  const String & errmesg="") override;
     void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) override;
@@ -138,10 +140,16 @@ public:
     void handleURL(const String & urlstr);
     
     void updateRecents();
-    
+
+    void updatePublicGroups();
+    void resetPrivateGroupLabels();
+
     // if returns true signifies go ahead and quit now, otherwise we'll handle it
     bool requestedQuit();
-    
+
+    void connectTabChanged (int newCurrentTabIndex);
+
+
 private:
 
     void updateLayout();
@@ -182,7 +190,11 @@ private:
     bool copyInfoToClipboard(bool singleURL=false, String * retmessage = nullptr);
     void updateServerFieldsFromConnectionInfo();
 
+    void publicGroupLogin();
+
+
     void openFileBrowser();
+    void chooseRecDirBrowser();
 
     bool loadAudioFromURL(URL fileurl);
     
@@ -195,7 +207,12 @@ private:
 
     void showFilePopupMenu(Component * source);
 
-    
+
+    void updateSliderSnap();
+
+    bool setupLocalisation(const String & overrideLang = {});
+
+
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SonobusAudioProcessor& processor;
@@ -235,6 +252,17 @@ private:
 
     std::unique_ptr<Label> mServerHostStaticLabel;
     std::unique_ptr<TextEditor> mServerHostEditor;
+
+    std::unique_ptr<Label> mPublicServerHostStaticLabel;
+    std::unique_ptr<TextEditor> mPublicServerHostEditor;
+    std::unique_ptr<TextEditor> mPublicServerUsernameEditor;
+    std::unique_ptr<Label> mPublicServerStatusInfoLabel;
+    std::unique_ptr<Label> mPublicServerUserStaticLabel;
+    std::unique_ptr<GroupComponent> mPublicGroupComponent;
+    std::unique_ptr<Label> mPublicServerInfoStaticLabel;
+    std::unique_ptr<TextButton> mPublicServerAddGroupButton;
+    std::unique_ptr<TextEditor> mPublicServerGroupEditor;
+
 
     std::unique_ptr<Label> mServerUserStaticLabel;
     std::unique_ptr<TextEditor> mServerUsernameEditor;
@@ -311,6 +339,8 @@ private:
     std::unique_ptr<Component> mDirectConnectContainer;
     std::unique_ptr<Viewport> mServerConnectViewport;
     std::unique_ptr<Component> mServerConnectContainer;
+    std::unique_ptr<Viewport> mPublicServerConnectViewport;
+    std::unique_ptr<Component> mPublicServerConnectContainer;
     std::unique_ptr<Component> mRecentsContainer;
     std::unique_ptr<GroupComponent> mRecentsGroup;
 
@@ -354,6 +384,8 @@ private:
     std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
     std::unique_ptr<ToggleButton> mOptionsOverrideSamplerateButton;
     std::unique_ptr<ToggleButton> mOptionsShouldCheckForUpdateButton;
+    std::unique_ptr<ToggleButton> mOptionsAutoReconnectButton;
+    std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
 
@@ -365,6 +397,8 @@ private:
     std::unique_ptr<SonoChoiceButton> mRecFormatChoice;
     std::unique_ptr<SonoChoiceButton> mRecBitsChoice;
     std::unique_ptr<Label> mRecFormatStaticLabel;
+    std::unique_ptr<Label> mRecLocationStaticLabel;
+    std::unique_ptr<TextButton> mRecLocationButton;
 
     
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
@@ -447,7 +481,9 @@ private:
     
 
     File lastRecordedFile;
-    
+
+    String mActiveLanguageCode;
+
     // client state stuff
     CriticalSection clientStateLock;
     struct ClientEvent {
@@ -463,6 +499,8 @@ private:
             PeerChangedState,
             PeerPendingJoinEvent,
             PeerFailedJoinEvent,
+            PublicGroupModifiedEvent,
+            PublicGroupDeletedEvent,
             Error
         };
         
@@ -512,8 +550,33 @@ private:
     std::unique_ptr<ListBox> mRecentsListBox;
     std::unique_ptr<SonoTextButton> mClearRecentsButton;
 
-    
-    
+    // public groups stuff
+    class PublicGroupsListModel : public ListBoxModel
+    {
+    public:
+        PublicGroupsListModel(SonobusAudioProcessorEditor * parent_);
+        int getNumRows() override;
+        void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
+        void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
+        void selectedRowsChanged(int lastRowSelected) override;
+
+        void updateState();
+
+    protected:
+        SonobusAudioProcessorEditor * parent;
+
+        Image groupImage;
+        Image personImage;
+
+        int cachedWidth = 0;
+
+        Array<AooPublicGroupInfo> groups;
+    };
+    PublicGroupsListModel publicGroupsListModel;
+
+    std::unique_ptr<ListBox> mPublicGroupsListBox;
+
+
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
     
@@ -604,7 +667,13 @@ private:
     FlexBox servAddressBox;
     FlexBox servButtonBox;
     FlexBox localAddressBox;
-    
+
+    FlexBox publicGroupsBox;
+    FlexBox publicServAddressBox;
+    FlexBox publicServUserBox;
+    FlexBox publicAddGroupBox;
+
+
     FlexBox middleBox;
 
     FlexBox remoteSourceBox;
@@ -672,6 +741,8 @@ private:
     FlexBox optionsCheckForUpdateBox;
     FlexBox optionsChangeAllQualBox;
     FlexBox optionsInputLimitBox;
+    FlexBox optionsAutoReconnectBox;
+    FlexBox optionsSnapToMouseBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;
@@ -680,6 +751,7 @@ private:
     FlexBox optionsRecMixMinusBox;
     FlexBox optionsRecOthersBox;
     FlexBox optionsMetRecordBox;
+    FlexBox optionsRecordDirBox;
 
     Image iaaHostIcon;
 
@@ -731,6 +803,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mDynamicResamplingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonSoloAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonMuteAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mAutoReconnectAttachment;
 
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;

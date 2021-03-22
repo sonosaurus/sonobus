@@ -30,6 +30,16 @@
 #define AOONET_MSG_SERVER_GROUP_LEAVE \
     AOO_MSG_DOMAIN AOONET_MSG_SERVER AOONET_MSG_GROUP AOONET_MSG_LEAVE
 
+#define AOONET_MSG_SERVER_GROUP_PUBLIC_ADD \
+    AOO_MSG_DOMAIN AOONET_MSG_SERVER AOONET_MSG_GROUP AOONET_MSG_PUBLIC AOONET_MSG_ADD
+
+#define AOONET_MSG_SERVER_GROUP_PUBLIC_DEL \
+    AOO_MSG_DOMAIN AOONET_MSG_SERVER AOONET_MSG_GROUP AOONET_MSG_PUBLIC AOONET_MSG_DEL
+
+#define AOONET_MSG_SERVER_GROUP_PUBLIC \
+    AOO_MSG_DOMAIN AOONET_MSG_SERVER AOONET_MSG_GROUP AOONET_MSG_PUBLIC
+
+
 #define AOONET_MSG_GROUP_JOIN \
     AOONET_MSG_GROUP AOONET_MSG_JOIN
 
@@ -41,6 +51,17 @@
 
 #define AOONET_MSG_PEER_LEAVE \
     AOONET_MSG_PEER AOONET_MSG_LEAVE
+
+#define AOONET_MSG_GROUP_PUBLIC_ADD \
+    AOONET_MSG_GROUP AOONET_MSG_PUBLIC AOONET_MSG_ADD
+
+#define AOONET_MSG_GROUP_PUBLIC_DEL \
+    AOONET_MSG_GROUP AOONET_MSG_PUBLIC AOONET_MSG_DEL
+
+#define AOONET_MSG_GROUP_PUBLIC \
+    AOONET_MSG_GROUP AOONET_MSG_PUBLIC
+
+
 
 namespace aoo {
 namespace net {
@@ -287,8 +308,12 @@ int32_t aoonet_client_group_join(aoonet_client *client, const char *group, const
     return client->group_join(group, pwd);
 }
 
-int32_t aoo::net::client::group_join(const char *group, const char *pwd){
-    push_command(std::make_unique<group_join_cmd>(group, encrypt(pwd)));
+int32_t aoonet_client_group_join_public(aoonet_client *client, const char *group, const char *pwd){
+    return client->group_join(group, pwd, true);
+}
+
+int32_t aoo::net::client::group_join(const char *group, const char *pwd, bool is_public){
+    push_command(std::make_unique<group_join_cmd>(group, encrypt(pwd), is_public));
 
     signal();
 
@@ -301,6 +326,18 @@ int32_t aoonet_client_group_leave(aoonet_client *client, const char *group){
 
 int32_t aoo::net::client::group_leave(const char *group){
     push_command(std::make_unique<group_leave_cmd>(group));
+
+    signal();
+
+    return 1;
+}
+
+int32_t aoonet_client_group_watch_public(aoonet_client *client, bool watch){
+    return client->group_watch_public(watch);
+}
+
+int32_t aoo::net::client::group_watch_public(bool watch) {
+    push_command(std::make_unique<group_watchpublic_cmd>(watch));
 
     signal();
 
@@ -645,11 +682,11 @@ void client::do_login(){
     send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
 }
 
-void client::do_group_join(const std::string &group, const std::string &pwd){
+void client::do_group_join(const std::string &group, const std::string &pwd, bool is_public){
     char buf[AOO_MAXPACKETSIZE];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
     msg << osc::BeginMessage(AOONET_MSG_SERVER_GROUP_JOIN)
-        << group.c_str() << pwd.c_str() << osc::EndMessage;
+        << group.c_str() << pwd.c_str() << is_public << osc::EndMessage;
 
     send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
 }
@@ -659,6 +696,15 @@ void client::do_group_leave(const std::string &group){
     osc::OutboundPacketStream msg(buf, sizeof(buf));
     msg << osc::BeginMessage(AOONET_MSG_SERVER_GROUP_LEAVE)
         << group.c_str() << osc::EndMessage;
+
+    send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
+}
+
+void client::do_group_watch_public(bool watch){
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+    msg << osc::BeginMessage(AOONET_MSG_SERVER_GROUP_PUBLIC)
+        << watch << osc::EndMessage;
 
     send_server_message_tcp(msg.Data(), (int32_t) msg.Size());
 }
@@ -945,6 +991,12 @@ void client::handle_server_message_tcp(const osc::ReceivedMessage& msg){
             handle_group_join(msg);
         } else if (!strcmp(pattern, AOONET_MSG_GROUP_LEAVE)){
             handle_group_leave(msg);
+        } else if (!strcmp(pattern, AOONET_MSG_GROUP_PUBLIC)){
+            //
+        } else if (!strcmp(pattern, AOONET_MSG_GROUP_PUBLIC_ADD)){
+            handle_public_group_add(msg);
+        } else if (!strcmp(pattern, AOONET_MSG_GROUP_PUBLIC_DEL)){
+            handle_public_group_del(msg);
         } else if (!strcmp(pattern, AOONET_MSG_PEER_JOIN)){
             handle_peer_add(msg);
         } else if (!strcmp(pattern, AOONET_MSG_PEER_LEAVE)){
@@ -1045,6 +1097,28 @@ void client::handle_group_leave(const osc::ReceivedMessage& msg){
         push_event(std::move(e));
     }
 }
+
+void client::handle_public_group_add(const osc::ReceivedMessage& msg){
+    auto it = msg.ArgumentsBegin();
+    std::string group = (it++)->AsString();
+    int32_t usercnt = (it++)->AsInt32();
+
+    LOG_VERBOSE("aoo_client: public group add/changed " << group << " users: " << usercnt);
+
+    auto e = std::make_unique<group_event>(AOONET_CLIENT_GROUP_PUBLIC_ADD_EVENT, group.c_str(), usercnt);
+    push_event(std::move(e));
+}
+
+void client::handle_public_group_del(const osc::ReceivedMessage& msg){
+    auto it = msg.ArgumentsBegin();
+    std::string group = (it++)->AsString();
+
+    LOG_VERBOSE("aoo_client: public group deleted " << group);
+
+    auto e = std::make_unique<group_event>(AOONET_CLIENT_GROUP_PUBLIC_DEL_EVENT, group.c_str(), 0);
+    push_event(std::move(e));
+}
+
 
 void client::handle_peer_add(const osc::ReceivedMessage& msg){
     auto it = msg.ArgumentsBegin();

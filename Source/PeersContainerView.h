@@ -221,7 +221,9 @@ public:
     void clearClipIndicators();
     
     Rectangle<int> getMinimumContentBounds() const;
-    
+
+    void applyToAllSliders(std::function<void(Slider *)> & routine);
+
     void updateLayout();
     
 protected:

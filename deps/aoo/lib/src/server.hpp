@@ -69,6 +69,8 @@ private:
     void handle_group_join(const osc::ReceivedMessage& msg);
 
     void handle_group_leave(const osc::ReceivedMessage& msg);
+
+    void handle_group_public(const osc::ReceivedMessage& msg);
 };
 
 struct user {
@@ -79,7 +81,8 @@ struct user {
     const std::string name;
     const std::string password;
     client_endpoint *endpoint = nullptr;
-
+    bool watch_public_groups = false;
+    
     bool is_active() const { return endpoint != nullptr; }
 
     void on_close(server& s);
@@ -96,12 +99,13 @@ private:
 };
 
 struct group {
-    group(const std::string& _name, const std::string& _pwd)
-        : name(_name), password(_pwd){}
+    group(const std::string& _name, const std::string& _pwd, bool _ispublic=false)
+        : name(_name), password(_pwd), is_public(_ispublic) {}
     ~group() { LOG_VERBOSE("removed group " << name); }
 
     const std::string name;
     const std::string password;
+    const bool is_public;
 
     bool add_user(std::shared_ptr<user> usr);
 
@@ -158,7 +162,7 @@ public:
     std::shared_ptr<user> find_user(const std::string& name);
 
     std::shared_ptr<group> get_group(const std::string& name,
-                                     const std::string& pwd, error& e);
+                                     const std::string& pwd, bool is_public, error& e);
 
     std::shared_ptr<group> find_group(const std::string& name);
 
@@ -172,6 +176,13 @@ public:
     void on_user_joined_group(user& usr, group& grp);
 
     void on_user_left_group(user& usr, group& grp);
+
+    void on_user_wants_public_groups(user& usr);
+
+    void on_public_group_modified(group& grp);
+    void on_public_group_removed(group& grp);
+
+
 private:
     int tcpsocket_;
     int udpsocket_;

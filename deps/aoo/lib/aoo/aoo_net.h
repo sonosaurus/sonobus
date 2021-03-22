@@ -62,6 +62,15 @@ extern "C"
 #define AOONET_MSG_GROUP "/group"
 #define AOONET_MSG_GROUP_LEN 6
 
+#define AOONET_MSG_PUBLIC "/public"
+#define AOONET_MSG_PUBLIC_LEN 7
+
+#define AOONET_MSG_ADD "/add"
+#define AOONET_MSG_ADD_LEN 4
+
+#define AOONET_MSG_DEL "/del"
+#define AOONET_MSG_DEL_LEN 4
+
 #define AOONET_MSG_JOIN "/join"
 #define AOONET_MSG_JOIN_LEN 5
 
@@ -90,6 +99,8 @@ typedef enum aoonet_event_type
     AOONET_CLIENT_DISCONNECT_EVENT,
     AOONET_CLIENT_GROUP_JOIN_EVENT,
     AOONET_CLIENT_GROUP_LEAVE_EVENT,
+    AOONET_CLIENT_GROUP_PUBLIC_ADD_EVENT,
+    AOONET_CLIENT_GROUP_PUBLIC_DEL_EVENT,
     AOONET_CLIENT_PEER_PREJOIN_EVENT,
     AOONET_CLIENT_PEER_JOIN_EVENT,
     AOONET_CLIENT_PEER_JOINFAIL_EVENT,
@@ -221,8 +232,14 @@ AOO_API int32_t aoonet_client_disconnect(aoonet_client *client);
 // join an AOO group
 AOO_API int32_t aoonet_client_group_join(aoonet_client *client, const char *group, const char *pwd);
 
+// join/create an AOO public group
+AOO_API int32_t aoonet_client_group_join_public(aoonet_client *client, const char *group, const char *pwd);
+
 // leave an AOO group
 AOO_API int32_t aoonet_client_group_leave(aoonet_client *client, const char *group);
+
+// leave an AOO group
+AOO_API int32_t aoonet_client_group_watch_public(aoonet_client *client, bool watch);
 
 // handle messages from peers (threadsafe, but not reentrant)
 // 'addr' should be sockaddr *

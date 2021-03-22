@@ -243,7 +243,7 @@ public:
         int knobitemheight = 62;
         int enablewidth = 44;
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         // make the button heights a bit more for touchscreen purposes
         minitemheight = 40;
         knobitemheight = 80;
@@ -382,7 +382,7 @@ public:
         int knoblabelheight = 18;
         int knobitemheight = 32;
         
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         // make the button heights a bit more for touchscreen purposes
         minitemheight = 40;
         knobitemheight = 40;

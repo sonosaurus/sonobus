@@ -367,7 +367,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->recvSoloButton->setTooltip(TRANS("Listen to only this user, and other soloed users. Alt-click to exclusively solo this user."));
 
     
-    pvf->latActiveButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted); // (TRANS("Latency\nTest"));
+    pvf->latActiveButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
     pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -781,7 +781,7 @@ void PeersContainerView::updateLayout()
     
     int mutebuttwidth = 52;
     
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
     minitemheight = 44;
     mincheckheight = 40;
@@ -1159,6 +1159,15 @@ Rectangle<int> PeersContainerView::getMinimumContentBounds() const
     return Rectangle<int>(0,0,peersMinWidth, peersMinHeight);
 }
 
+void PeersContainerView::applyToAllSliders(std::function<void(Slider *)> & routine)
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        routine(pvf->levelSlider.get());
+        routine(pvf->panSlider1.get());
+        routine(pvf->panSlider2.get());
+    }
+}
 
 void PeersContainerView::updatePeerViews(int specific)
 {
@@ -1234,6 +1243,7 @@ void PeersContainerView::updatePeerViews(int specific)
 
         if (recvactive) {
             recvtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x93 ")) // down arrow
+            << processor.getRemotePeerChannelCount(i) << "ch "
             << recvfinfo.name
             << String::formatted(" | %d kb/s", lrintf(recvrate * 8 * 1e-3));
 
@@ -1292,12 +1302,10 @@ void PeersContainerView::updatePeerViews(int specific)
             //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : ""), dontSendNotification);
             String latlab = juce::CharPointer_UTF8 ("\xe2\x86\x91"); // up arrow
             latlab << (int)lrintf(latinfo.outgoingMs) << "   "; 
-            //latlab << String::formatted(TRANS("%.1f"), latinfo.outgoingMs) << "   ";
             //latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")) << (int)lrintf(latinfo.incomingMs);
             latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")); // down arrow
             latlab << (int)lrintf(latinfo.incomingMs) ;
-            //latlab << String::formatted("%.1f", latinfo.incomingMs) ;
-            ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)             
+            ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)
             latlab << (latinfo.estimated ? " *" : "");
             
             pvf->latencyLabel->setText(latlab, dontSendNotification);
@@ -1347,7 +1355,9 @@ void PeersContainerView::updatePeerViews(int specific)
         
         int formatindex = processor.getRemotePeerAudioCodecFormat(i);
         pvf->formatChoiceButton->setSelectedItemIndex(formatindex >= 0 ? formatindex : processor.getDefaultAudioCodecFormat(), dontSendNotification);
-        pvf->sendQualityLabel->setText(processor.getAudioCodeFormatName(formatindex), dontSendNotification);
+        String sendqual;
+        sendqual << processor.getRemotePeerActualSendChannelCount(i) << "ch " << processor.getAudioCodeFormatName(formatindex);
+        pvf->sendQualityLabel->setText(sendqual, dontSendNotification);
         
         pvf->recvMeter->setMeterSource (processor.getRemotePeerRecvMeterSource(i));        
 
@@ -1482,10 +1492,10 @@ void PeersContainerView::stopLatencyTest(int i)
 
 String PeersContainerView::generateLatencyMessage(const SonobusAudioProcessor::LatencyInfo &latinfo)
 {
-    String messagestr = String::formatted(TRANS("Measured actual round-trip latency: %d ms"), (int) lrintf(latinfo.totalRoundtripMs));
-    messagestr += String::formatted(TRANS("\nEst. Outgoing: %.1f ms"), (latinfo.outgoingMs));
-    messagestr += String::formatted(TRANS("\nEst. Incoming: %.1f ms"), (latinfo.incomingMs));
-    //messagestr += String::formatted(TRANS("\nJitter: %.1f ms"), (latinfo.jitterMs));
+    String messagestr = TRANS("Measured actual round-trip latency:") + String::formatted(" %d ms", (int) lrintf(latinfo.totalRoundtripMs));
+    messagestr += "\n" + TRANS("Est. Outgoing:") + String::formatted(" %.1f ms", (latinfo.outgoingMs));
+    messagestr += "\n" + TRANS("Est. Incoming:") + String::formatted(" %.1f ms", (latinfo.incomingMs));
+    //messagestr += TRANS("\nJitter:") + String::formatted(" %.1f ms", (latinfo.jitterMs));
     return messagestr;
 }
 
@@ -1711,7 +1721,7 @@ void PeersContainerView::showPanners(int index, bool flag)
         }
         
         const int defWidth = 140;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 50;
 #else
         const int defHeight = 42;
@@ -1766,7 +1776,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
         }
         
         const int defWidth = 280;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 180;
 #else
         const int defHeight = 152;
@@ -1823,7 +1833,7 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
         }
         
         const int defWidth = 245;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 144;
 #else
         const int defHeight = 116;
@@ -1878,7 +1888,7 @@ void PeersContainerView::showEffects(int index, bool flag, Component * fromView)
         }
         
         int defWidth = 260;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int defHeight = 180;
 #else
         int defHeight = 156;

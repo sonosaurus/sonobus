@@ -90,7 +90,7 @@
 #endif
 
 #ifndef    JUCE_DIRECTSOUND
- //#define JUCE_DIRECTSOUND 1
+ #define   JUCE_DIRECTSOUND 0
 #endif
 
 #ifndef    JUCE_ALSA
@@ -106,11 +106,11 @@
 #endif
 
 #ifndef    JUCE_USE_ANDROID_OBOE
- //#define JUCE_USE_ANDROID_OBOE 1
+ #define   JUCE_USE_ANDROID_OBOE 1
 #endif
 
 #ifndef    JUCE_USE_OBOE_STABILIZED_CALLBACK
- //#define JUCE_USE_OBOE_STABILIZED_CALLBACK 0
+ #define   JUCE_USE_OBOE_STABILIZED_CALLBACK 1
 #endif
 
 #ifndef    JUCE_USE_ANDROID_OPENSLES

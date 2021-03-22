@@ -60,11 +60,15 @@ extern juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
 
 #include "SonobusPluginEditor.h"
 
+#if JUCE_ANDROID
+#include "android/SonoBusActivity.h"
+#endif
+
 namespace juce
 {
 
 //==============================================================================
-class SonobusStandaloneFilterApp  : public JUCEApplication
+class SonobusStandaloneFilterApp  : public JUCEApplication, public Timer
 {
 public:
     SonobusStandaloneFilterApp()
@@ -87,6 +91,13 @@ public:
         LookAndFeel::setDefaultLookAndFeel(&sonoLNF);
     }
 
+    ~SonobusStandaloneFilterApp()
+    {
+#if JUCE_ANDROID && JUCE_OPENGL
+        detachGL();
+#endif
+    }
+
     const String getApplicationName() override              { return JucePlugin_Name; }
     const String getApplicationVersion() override           { return JucePlugin_VersionString; }
     bool moreThanOneInstanceAllowed() override              { return true; }
@@ -102,8 +113,14 @@ public:
 
         AudioDeviceManager::AudioDeviceSetup setupOptions;
         setupOptions.sampleRate = 48000;
+#if JUCE_MAC
+        setupOptions.bufferSize = 128;
+#elif JUCE_ANDROID
+        setupOptions.bufferSize = 192;
+#else
         setupOptions.bufferSize = 256;
-        
+#endif
+
         return new StandaloneFilterWindow (getApplicationName(),
                                            LookAndFeel::getDefaultLookAndFeel().findColour (ResizableWindow::backgroundColourId),
                                            appProperties.getUserSettings(),
@@ -132,8 +149,27 @@ public:
         
         Desktop::getInstance().setScreenSaverEnabled(false);
 
+
+#if JUCE_ANDROID && JUCE_OPENGL
+        attachGL();
+#endif
+
 #if JUCE_MAC
         disableAppNap();
+#endif
+
+#if JUCE_ANDROID
+        startTimer(500);
+#endif
+
+    }
+
+    void timerCallback() override
+    {
+#if JUCE_ANDROID
+        DBG("setting foreground service active");
+        setAndroidForegroundServiceActive(true);
+        stopTimer();
 #endif
     }
 
@@ -142,9 +178,17 @@ public:
         DBG("shutdown");
         if (mainWindow.get() != nullptr)
             mainWindow->pluginHolder->savePluginState();
-        
+
+#if JUCE_ANDROID
+        setAndroidForegroundServiceActive(false);
+  #if JUCE_OPENGL
+        detachGL();
+  #endif
+#endif
+
         mainWindow = nullptr;
         appProperties.saveIfNeeded();
+
     }
     
     void urlOpened(const URL & url) override {
@@ -191,6 +235,15 @@ public:
                     // shutdown audio engine
                     DBG("no connections shutting down audio");
                     mainWindow->getDeviceManager().closeAudioDevice();
+
+#if JUCE_ANDROID
+                    setAndroidForegroundServiceActive(false);
+#endif
+                }
+                else {
+#if JUCE_ANDROID
+                    setAndroidForegroundServiceActive(true);
+#endif
                 }
             }
 
@@ -202,7 +255,19 @@ public:
         
         Desktop::getInstance().setScreenSaverEnabled(true);        
     }
-    
+
+    void setAndroidForegroundServiceActive(bool flag)
+    {
+    #if JUCE_ANDROID
+        LocalRef<jobject> activity (getMainActivity());
+
+        if (activity != nullptr) {
+            getEnv()->CallVoidMethod(activity.get(), SonoBusActivity.setForegroundServiceActive, flag);
+        }
+    #endif
+    }
+
+
     void resumed() override
     {
         Desktop::getInstance().setScreenSaverEnabled(false);
@@ -222,6 +287,10 @@ public:
             DBG("was not actve: restarting");
             mainWindow->getDeviceManager().restartLastAudioDevice();
         }
+
+#if JUCE_ANDROID
+        setAndroidForegroundServiceActive(true);
+#endif
 
     }
     
@@ -266,10 +335,42 @@ public:
     {
         DBG("Memory warning");
     }
-    
+
+    void attachGL()
+    {
+        if (mainWindow) {
+#if JUCE_OPENGL  && JUCE_ANDROID
+            DBG("activating GL context");
+            openGLContext.makeActive();
+            DBG("OPEN GL attaching to " << (long) mainWindow.get());
+            openGLContext.attachTo (*mainWindow);
+#endif
+        }
+    }
+
+    void detachGL()
+    {
+
+    #if JUCE_OPENGL && JUCE_ANDROID
+        DBG("About to detach opengl context");
+        if (openGLContext.isAttached()) {
+            openGLContext.detach();
+            DBG("About to deactivate opengl context");
+            openGLContext.deactivateCurrentContext();
+            DBG("done detach opengl context");
+        }
+    #endif
+    }
+
 protected:
+
+#if JUCE_OPENGL
+    OpenGLContext openGLContext;
+#endif
+
     ApplicationProperties appProperties;
     std::unique_ptr<StandaloneFilterWindow> mainWindow;
+
 };
 
 } // namespace juce

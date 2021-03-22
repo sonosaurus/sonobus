@@ -29,15 +29,36 @@ intercepted, please keep that in mind. All audio is sent directly between users 
 
 # Installing
 
+## Windows and Mac
 There are binary releases for macOS and Windows available at [sonobus.net](https://sonobus.net) or in the releases of this repository on GitHub.
 
-For Linux, read the [build instructions](#on-linux) below.
+## Linux
+For Linux there is a Snap installation available at [snapcraft.io/sonobus](https://snapcraft.io/sonobus) which should let you install it easily 
+on many different distributions. You can install it from the graphical snap-store, or using the following command line assuming snap is already installed:
+
+    sudo snap install sonobus
+
+Currently the Snap build supports JACK v1 (not v2), so you will want to make sure you have the jackd1 package installed instead of jackd2. For instance, on Ubuntu you would need to do an:
+
+    sudo apt install jackd1
+
+After installing you will want to connect sonobus with alsa and jack1 and alsa with the following commands:
+
+    sudo snap connect sonobus:jack1
+	sudo snap connect sonobus:alsa
+
+### Raspberry Pi
+
+You can either install the Snap of SonoBus on your existing Raspberry Pi distribution, or you can use the Jambox dedicated image which also includes other popular remote network jamming software, including SonoBus. Check it out at [github.com/kdoren/jambox-pi-gen](https://github.com/kdoren/jambox-pi-gen), and grab the latest release image.
+
+Or if you prefer, you can build it yourself following the [build instructions](#on-linux) below.
 
 # Building
 
+The original GitHub repository for this project is at
+[github.com/sonosaurus/sonobus](https://github.com/sonosaurus/sonobus).
+
 To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. 
-On Linux, you'll just need to have `libopus` and `libjack` installed, as
-well as their appropriate development packages.
 
 ### On macOS
 
@@ -45,9 +66,14 @@ Open the Xcode project at `Builds/MacOSX/SonoBus.xcodeproj`, choose the target y
 
 ### On Windows
 
-Using Visual Studio 2017, open the solution at `Builds/VisualStudio2017/SonoBus.sln`, choose the target you want to build and go for it.
+Using Visual Studio 2017, open the solution at `Builds\VisualStudio2017\SonoBus.sln`, choose the target you want to build and go for it.
 
 ### On Linux
+
+The first thing to do in a terminal is go to the Linux build directory:
+
+    cd Builds/LinuxMakefile
+
 
 Make sure you have `libopus` and the `libopus` development package
 (libopus-dev), as well as JACK (jackd) and its development package. Also
@@ -55,31 +81,31 @@ libasound2-dev , libx11-dev, libxext-dev, libxinerama-dev, libxrandr-dev,
 libxcursor-dev, libgl-dev, libfreetype6-dev,
 libcurl4-openssl-dev.
 
-For Ubuntu, the command to make sure all these are installed is:
-
-    sudo apt update
-    sudo apt install libasound2-dev libjack-jackd2-dev \
-       libopus-dev \
-       libcurl4-openssl-dev  \
-       libfreetype6-dev \
-       libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
-       libgl-dev
-
 Other distributions may have slightly different package names for these, for
 instance in Debian, you might substitute libcurl4-gnutls-dev.
 
-After they are installed, build SonoBus with the following:
+If you are using Ubuntu, you can run the following script to install all the
+prerequisites (scripts for other distributions wanted, please contribute them
+if you can):
 
-    cd Builds/LinuxMakefile
+    ./ubuntu_get_prereqs.sh
+
+There are other scripts for some other distributions.
+After they are installed, build SonoBus with the following command, both the
+standalone application and the VST3 plugin will be built:
+
     ./build.sh
 
 When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`. You can install it using the installation script.
 
     sudo ./install.sh
 
+It defaults to installing in /usr/local, but if you want to install it
+elsewhere, just specify it as the first argument on the commandline of the script.
 If you wish to uninstall you can run the uninstall script in the same directory.
 
     sudo ./uninstall.sh
+
 
 # License and 3rd Party Software
 
@@ -90,7 +116,7 @@ It is built using JUCE 6 (slightly modified on a public fork), and AOO (Audio ov
 
 My github forks of these that are referenced via `git-subrepo` in this repository are:
 
-> https://github.com/essej/JUCE  in the sono6 branch.
+> https://github.com/essej/JUCE  in the sono6good branch.
 
 > https://github.com/essej/aoo.git   in the sono branch.
 
