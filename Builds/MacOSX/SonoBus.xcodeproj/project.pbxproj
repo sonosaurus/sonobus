@@ -66,7 +66,6 @@
 		540B4E84E7CEDF6A8F977DEA /* sonobus_logo@2x.png */ = {isa = PBXBuildFile; fileRef = 55BDFBF20E697D3744401CBF; };
 		55125E4FA2E95642D369DFFA /* include_juce_audio_plugin_client_utils.cpp */ = {isa = PBXBuildFile; fileRef = 8197704B6F67CEDAF82C3DD8; };
 		5B2B7FE93FB4DA4CF13EBE61 /* include_juce_dsp.mm */ = {isa = PBXBuildFile; fileRef = C7769A02C6DF7B9F3A95ABA7; };
-		5DA1D6E2AB71A8299B31075D /* OpenGL.framework */ = {isa = PBXBuildFile; fileRef = 6D02418450EA924CED99C454; };
 		6288564D70E9502885BF2B73 /* OptionsView.cpp */ = {isa = PBXBuildFile; fileRef = 93458AEE3EDF9BAE1A7E241F; };
 		6440E9AFD0D20790C5A661D6 /* OscReceivedElements.cpp */ = {isa = PBXBuildFile; fileRef = 66D31C5B4E80204F24CC609D; };
 		6616BFD4F4DAC38A30E86CFB /* include_juce_audio_formats.mm */ = {isa = PBXBuildFile; fileRef = DCC58A61382509AB1AB97723; };
@@ -108,7 +107,6 @@
 		D210069F9EC665E2A50C98B9 /* VersionInfo.cpp */ = {isa = PBXBuildFile; fileRef = 29864E8DFCEC2D17AB65E225; };
 		D94D845FECAA961CC2081FD6 /* RunCumulantor.cpp */ = {isa = PBXBuildFile; fileRef = F86BC7D818C3DAD819FA7EE6; };
 		DB9F4B724E238A4480FA2D52 /* CrossPlatformUtilsWindows.cpp */ = {isa = PBXBuildFile; fileRef = D57D9AFF12F10AD96735FB29; };
-		DD77C73E22590C7875EF2DB8 /* include_juce_opengl.mm */ = {isa = PBXBuildFile; fileRef = 781FDC317867A21C53B65070; };
 		DE71686313905F8993635ADA /* include_juce_cryptography.mm */ = {isa = PBXBuildFile; fileRef = 538FD52D0F49C75E4F2244F4; };
 		DF0C30F2DB086332D7DD8318 /* SonoTextButton.cpp */ = {isa = PBXBuildFile; fileRef = 3027DD604A471E4CAE673924; };
 		DF59192CBC93681461F01D05 /* include_juce_audio_plugin_client_VST2.cpp */ = {isa = PBXBuildFile; fileRef = 1C9C027BFD4C8D99679BF7A2; };
@@ -250,7 +248,6 @@
 		6BD5B551FAD6E41DF42F1512 /* link.svg */ /* link.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = link.svg; path = ../../images/link.svg; sourceTree = SOURCE_ROOT; };
 		6BEF4C70E943117FB714ADC9 /* include_juce_graphics.mm */ /* include_juce_graphics.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_graphics.mm; path = ../../JuceLibraryCode/include_juce_graphics.mm; sourceTree = SOURCE_ROOT; };
 		6C8912E9C818BCAD3A244C1F /* localized_pt-br.txt */ /* localized_pt-br.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = "localized_pt-br.txt"; path = "../../localization/localized_pt-br.txt"; sourceTree = SOURCE_ROOT; };
-		6D02418450EA924CED99C454 /* OpenGL.framework */ /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		6DA4CA23A25969281FA46870 /* sink.cpp */ /* sink.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = sink.cpp; path = ../../deps/aoo/lib/src/sink.cpp; sourceTree = SOURCE_ROOT; };
 		6E9FF5BDAA998CA6C6164114 /* rectape.svg */ /* rectape.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = rectape.svg; path = ../../images/rectape.svg; sourceTree = SOURCE_ROOT; };
 		6EEBD9470642ED2B55CF46FE /* Accelerate.framework */ /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
@@ -262,7 +259,6 @@
 		759C774C55AFA0438FBBDF18 /* Icon.icns */ /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = file.icns; name = Icon.icns; path = Icon.icns; sourceTree = SOURCE_ROOT; };
 		7610E4F9A8DD3E98356EC7CC /* OscPrintReceivedElements.cpp */ /* OscPrintReceivedElements.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OscPrintReceivedElements.cpp; path = ../../deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp; sourceTree = SOURCE_ROOT; };
 		770DF6E145DA9F0414500ADC /* QuartzCore.framework */ /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		781FDC317867A21C53B65070 /* include_juce_opengl.mm */ /* include_juce_opengl.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_opengl.mm; path = ../../JuceLibraryCode/include_juce_opengl.mm; sourceTree = SOURCE_ROOT; };
 		7886D8610318E3A1E8E146F2 /* juce_data_structures */ /* juce_data_structures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_data_structures; path = ../../deps/juce/modules/juce_data_structures; sourceTree = SOURCE_ROOT; };
 		79B47F29A192DE435B03C467 /* include_juce_core.mm */ /* include_juce_core.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_core.mm; path = ../../JuceLibraryCode/include_juce_core.mm; sourceTree = SOURCE_ROOT; };
 		812D1487188455E396DE72BE /* ChannelGroupsView.h */ /* ChannelGroupsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ChannelGroupsView.h; path = ../../Source/ChannelGroupsView.h; sourceTree = SOURCE_ROOT; };
@@ -366,7 +362,6 @@
 		D9E243525E6CA13EECDF9383 /* common.cpp */ /* common.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = common.cpp; path = ../../deps/aoo/lib/src/common.cpp; sourceTree = SOURCE_ROOT; };
 		DA7720FE739CD4D676200680 /* LatencyMatchView.h */ /* LatencyMatchView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LatencyMatchView.h; path = ../../Source/LatencyMatchView.h; sourceTree = SOURCE_ROOT; };
 		DB3B2B5B8CC6889969C6F783 /* Shared_Code.entitlements */ /* Shared_Code.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Shared_Code.entitlements; path = Shared_Code.entitlements; sourceTree = SOURCE_ROOT; };
-		DB680FD4B9E762D64BA2CDD1 /* juce_opengl */ /* juce_opengl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_opengl; path = ../../deps/juce/modules/juce_opengl; sourceTree = SOURCE_ROOT; };
 		DCC58A61382509AB1AB97723 /* include_juce_audio_formats.mm */ /* include_juce_audio_formats.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_formats.mm; path = ../../JuceLibraryCode/include_juce_audio_formats.mm; sourceTree = SOURCE_ROOT; };
 		DDA889F8F53FF1787DEC6FAF /* SonobusPluginEditor.cpp */ /* SonobusPluginEditor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SonobusPluginEditor.cpp; path = ../../Source/SonobusPluginEditor.cpp; sourceTree = SOURCE_ROOT; };
 		E0156C018BCDF58508FD245A /* RecentFilesMenuTemplate.nib */ /* RecentFilesMenuTemplate.nib */ = {isa = PBXFileReference; lastKnownFileType = file.nib; name = RecentFilesMenuTemplate.nib; path = RecentFilesMenuTemplate.nib; sourceTree = SOURCE_ROOT; };
@@ -419,7 +414,6 @@
 				ADAEE3C5AA09775ABC1D720A,
 				0E025ED2B9EF033C74973366,
 				26309A19AD14C508A6ABA30D,
-				5DA1D6E2AB71A8299B31075D,
 				9502DD290687C4FF0DCC6495,
 				72DB798AA1319628E8DF8631,
 			);
@@ -439,7 +433,6 @@
 				ADAEE3C5AA09775ABC1D720A,
 				0E025ED2B9EF033C74973366,
 				26309A19AD14C508A6ABA30D,
-				5DA1D6E2AB71A8299B31075D,
 				9502DD290687C4FF0DCC6495,
 				72DB798AA1319628E8DF8631,
 			);
@@ -459,7 +452,6 @@
 				ADAEE3C5AA09775ABC1D720A,
 				0E025ED2B9EF033C74973366,
 				26309A19AD14C508A6ABA30D,
-				5DA1D6E2AB71A8299B31075D,
 				9502DD290687C4FF0DCC6495,
 				72DB798AA1319628E8DF8631,
 			);
@@ -479,7 +471,6 @@
 				ADAEE3C5AA09775ABC1D720A,
 				0E025ED2B9EF033C74973366,
 				26309A19AD14C508A6ABA30D,
-				5DA1D6E2AB71A8299B31075D,
 				9502DD290687C4FF0DCC6495,
 				72DB798AA1319628E8DF8631,
 			);
@@ -499,7 +490,6 @@
 				ADAEE3C5AA09775ABC1D720A,
 				0E025ED2B9EF033C74973366,
 				26309A19AD14C508A6ABA30D,
-				5DA1D6E2AB71A8299B31075D,
 				9502DD290687C4FF0DCC6495,
 				72DB798AA1319628E8DF8631,
 			);
@@ -556,7 +546,6 @@
 				46763C75D3B937ACFC6EDBD5,
 				35C88E99BCB508A95003E052,
 				B990B226134C0AADEE92D98D,
-				6D02418450EA924CED99C454,
 				770DF6E145DA9F0414500ADC,
 				72F3148F968AC28B87CBBEFF,
 			);
@@ -775,7 +764,6 @@
 				6BEF4C70E943117FB714ADC9,
 				17CAABF982427E0CBE2FC0BE,
 				4F3702146FA00E6E55E7FC8C,
-				781FDC317867A21C53B65070,
 				50DA45EF02F11085FEC1884A,
 				C1F04940EF29448710143F65,
 			);
@@ -824,7 +812,6 @@
 				2B7EAA61FFE6446F552029EE,
 				70B884D4780BC61B91C5CEAC,
 				9160479834E2DF8557270330,
-				DB680FD4B9E762D64BA2CDD1,
 			);
 			name = "JUCE Modules";
 			sourceTree = "<group>";
@@ -1447,7 +1434,6 @@
 				A8566ADA0ED81AE35448686B,
 				0B3DD618A6EBCB0F5AFEEC51,
 				229AC30E841053BCFB7F8419,
-				DD77C73E22590C7875EF2DB8,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1544,13 +1530,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1590,7 +1576,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Release;
@@ -1616,14 +1601,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1666,7 +1651,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = aaxplugin;
 			};
@@ -1691,13 +1675,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=1",
@@ -1737,7 +1721,6 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Release;
@@ -1763,14 +1746,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=1",
@@ -1813,7 +1796,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = component;
 			};
@@ -1846,14 +1828,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1892,7 +1874,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Debug;
@@ -1916,13 +1897,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=0",
@@ -1964,7 +1945,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst3;
 			};
@@ -2037,13 +2017,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -2085,7 +2065,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst;
 			};
@@ -2161,14 +2140,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -2210,7 +2189,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst;
 			};
@@ -2235,13 +2213,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -2284,7 +2262,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = aaxplugin;
 			};
@@ -2309,13 +2286,13 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=1",
@@ -2358,7 +2335,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = component;
 			};
@@ -2385,14 +2361,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=0",
@@ -2434,7 +2410,6 @@
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 				WRAPPER_EXTENSION = vst3;
 			};
@@ -2459,14 +2434,14 @@
 					"_DEBUG=1",
 					"DEBUG=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.3.18-58\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.3.19-59\\\"",
 					"LOGLEVEL=2",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=1.3.18",
-					"JUCE_APP_VERSION_HEX=0x10312",
+					"JUCE_APP_VERSION=1.3.19",
+					"JUCE_APP_VERSION_HEX=0x10313",
 					"JucePlugin_Build_VST=1",
 					"JucePlugin_Build_VST3=1",
 					"JucePlugin_Build_AU=1",
@@ -2505,7 +2480,6 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 				VALID_ARCHS = "i386 x86_64 arm64 arm64e";
 			};
 			name = Debug;

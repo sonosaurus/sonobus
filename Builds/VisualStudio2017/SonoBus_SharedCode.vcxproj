@@ -96,7 +96,7 @@
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.18-58&quot;;LOGLEVEL=2;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.18;JUCE_APP_VERSION_HEX=0x10312;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.19-59&quot;;LOGLEVEL=2;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.19;JUCE_APP_VERSION_HEX=0x10313;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -136,7 +136,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.18-58&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.18;JUCE_APP_VERSION_HEX=0x10312;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.19-59&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.19;JUCE_APP_VERSION_HEX=0x10313;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -180,7 +180,7 @@
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.18-58&quot;;LOGLEVEL=2;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.18;JUCE_APP_VERSION_HEX=0x10312;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.19-59&quot;;LOGLEVEL=2;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.19;JUCE_APP_VERSION_HEX=0x10313;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -224,7 +224,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.18-58&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.18;JUCE_APP_VERSION_HEX=0x10312;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.19-59&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.19;JUCE_APP_VERSION_HEX=0x10313;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -2337,36 +2337,6 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_gui_extra\juce_gui_extra.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLContext.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLHelpers.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLImage.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLTexture.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\juce_opengl.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_ff_meters.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_audio_basics.cpp"/>
@@ -2383,7 +2353,6 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_graphics.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_basics.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp"/>
-    <ClCompile Include="..\..\JuceLibraryCode\include_juce_opengl.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\deps\aoo\lib\aoo\aoo.h"/>
@@ -3272,28 +3241,6 @@
     <ClInclude Include="..\..\deps\juce\modules\juce_gui_extra\misc\juce_WebBrowserComponent.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_gui_extra\native\juce_mac_CarbonViewWrapperComponent.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_gui_extra\juce_gui_extra.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Draggable3DOrientation.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Matrix3D.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Quaternion.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Vector3D.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_MissingGLDefinitions.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_android.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_ios.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_linux_X11.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_osx.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_win32.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGLExtensions.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLContext.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLHelpers.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLImage.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLRenderer.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLTexture.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\utils\juce_OpenGLAppComponent.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\juce_opengl.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h"/>
