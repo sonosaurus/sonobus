@@ -121,6 +121,7 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
     mainBox.flexDirection = FlexBox::Direction::row;
     mainBox.items.add(FlexItem(minButtonWidth, 4, chatContainerBox).withMargin(0).withFlex(1));
 
+    refreshAllMessages();
 }
 
 ChatView::~ChatView()
@@ -276,7 +277,7 @@ void ChatView::mouseDrag (const MouseEvent& event)
 
 void ChatView::addNewChatMessage(const SBChatEvent & mesg, bool refresh)
 {
-    allChatEvents.add(mesg);
+    processor.getAllChatEvents().add(mesg);
 
     if (refresh) {
         refreshMessages();
@@ -285,7 +286,7 @@ void ChatView::addNewChatMessage(const SBChatEvent & mesg, bool refresh)
 
 void ChatView::addNewChatMessages(const Array<SBChatEvent> & mesgs, bool refresh)
 {
-    allChatEvents.addArray(mesgs);
+    processor.getAllChatEvents().addArray(mesgs);
 
     if (refresh) {
         refreshMessages();
@@ -295,10 +296,10 @@ void ChatView::addNewChatMessages(const Array<SBChatEvent> & mesgs, bool refresh
 void ChatView::refreshMessages()
 {
     // only new ones since last refresh
-    int count = jmin(allChatEvents.size(), jmax(0, allChatEvents.size() - lastShownCount));
+    int count = jmin(processor.getAllChatEvents().size(), jmax(0, processor.getAllChatEvents().size() - lastShownCount));
 
     if (count > 0) {
-        processNewChatMessages(allChatEvents.size() - count, count);
+        processNewChatMessages(processor.getAllChatEvents().size() - count, count);
     }
 }
 
@@ -310,7 +311,7 @@ void ChatView::refreshAllMessages()
     mLastChatViewStamp = 0;
 
     mChatTextEditor->clear();
-    processNewChatMessages(0, allChatEvents.size());
+    processNewChatMessages(0, processor.getAllChatEvents().size());
 }
 
 struct FontSizeItemData : public GenericItemChooserItem::UserData
@@ -401,7 +402,7 @@ void ChatView::showMenu(bool show)
 void ChatView::clearAll()
 {
     mChatTextEditor->clear();
-    allChatEvents.clearQuick();
+    processor.getAllChatEvents().clearQuick();
     mLastChatMessageStamp = 0;
     mLastChatViewStamp = 0;
     mLastChatUserMessageStamp = 0;
@@ -498,11 +499,13 @@ void ChatView::processNewChatMessages(int index, int count)
 
     // calculate if we should auto-scroll
     auto startCaretInd = mChatTextEditor->getCaretPosition();
-    auto botind = mChatTextEditor->getTextIndexAt(mChatTextEditor->getLocalBounds().getRight(), mChatTextEditor->getLocalBounds().getBottom());
+    auto botind =  getWidth() > 0 ? mChatTextEditor->getTextIndexAt(mChatTextEditor->getLocalBounds().getRight(), mChatTextEditor->getLocalBounds().getBottom()) : 0;
     bool doscroll = abs(botind - startCaretInd) < 10;
     //DBG("index: " << startCaretInd << "  botind: " << botind  << "  locbounds: " << mChatTextEditor->getLocalBounds().toString() << "  doscroll: " << (int)doscroll);
 
     bool fixedwidth = processor.getChatUseFixedWidthFont();
+
+    auto & allChatEvents = processor.getAllChatEvents();
 
     for (int i=index; i < index+count && i < allChatEvents.size(); ++i) {
         auto & event = allChatEvents.getReference(i);
@@ -674,8 +677,9 @@ void ChatView::commitChatMessage()
     event.type = SBChatEvent::SelfType;
 
     // process self
-    allChatEvents.add(event);
-    processNewChatMessages(allChatEvents.size()-1, 1);
+
+    processor.getAllChatEvents().add(event);
+    processNewChatMessages(processor.getAllChatEvents().size()-1, 1);
 
     mChatSendTextEditor->clear();
     mChatSendTextEditor->repaint();

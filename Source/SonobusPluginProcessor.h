@@ -708,6 +708,11 @@ public:
     bool getChatUseFixedWidthFont() const { return mChatUseFixedWidthFont; }
     void setChatFontSizeOffset(int offset) { mChatFontSizeOffset = offset;}
     int getChatFontSizeOffset() const { return mChatFontSizeOffset; }
+    Array<SBChatEvent, CriticalSection> & getAllChatEvents() { return mAllChatEvents; }
+
+    void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
+    juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
+
 
     // language
     void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
@@ -915,6 +920,12 @@ private:
     bool mLastChatShown = false;
     bool mChatUseFixedWidthFont = false;
     int mChatFontSizeOffset = 0;
+    // chat message storage, thread-safe
+    Array<SBChatEvent, CriticalSection> mAllChatEvents;
+
+    int mPluginWindowWidth = 800;
+    int mPluginWindowHeight = 600;
+
 
     int mActiveSendChannels = 0;
 

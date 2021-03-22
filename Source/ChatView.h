@@ -87,7 +87,6 @@ protected:
     MouseCursor mHandCursor = { MouseCursor::PointingHandCursor };
     MouseCursor mTextCursor = { MouseCursor::IBeamCursor };
 
-    Array<SBChatEvent> allChatEvents;
     int lastShownCount = 0;
 
     std::unique_ptr<Component> mChatContainer;

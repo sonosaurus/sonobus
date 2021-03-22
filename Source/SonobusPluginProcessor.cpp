@@ -93,6 +93,8 @@ static String chatUseFixedWidthFontKey("chatFixedWidthFont");
 static String chatFontSizeOffsetKey("chatFontSizeOffset");
 static String linkMonitoringDelayTimesKey("linkMonDelayTimes");
 static String langOverrideCodeKey("langOverrideCode");
+static String lastWindowWidthKey("lastWindowWidth");
+static String lastWindowHeightKey("lastWindowHeight");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -2470,6 +2472,7 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             String message (CharPointer_UTF8((it++)->AsString()));
 
             SBChatEvent chatevent(SBChatEvent::UserType, group, from, targets, tags, message);
+            mAllChatEvents.add(chatevent);
             clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
 
 
@@ -7818,6 +7821,8 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(linkMonitoringDelayTimesKey, mLinkMonitoringDelayTimes, nullptr);
     extraTree.setProperty(lastUsernameKey, mCurrentUsername, nullptr);
     extraTree.setProperty(langOverrideCodeKey, mLangOverrideCode, nullptr);
+    extraTree.setProperty(lastWindowWidthKey, var((int)mPluginWindowWidth), nullptr);
+    extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
 
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
@@ -7921,6 +7926,9 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             mLangOverrideCode = extraTree.getProperty(langOverrideCodeKey, mLangOverrideCode);
             setChatFontSizeOffset((int) extraTree.getProperty(chatFontSizeOffsetKey, (int)mChatFontSizeOffset));
             setChatUseFixedWidthFont(extraTree.getProperty(chatUseFixedWidthFontKey, mChatUseFixedWidthFont));;
+
+            setLastPluginBounds(juce::Rectangle<int>(0, 0, extraTree.getProperty(lastWindowWidthKey, (int)mPluginWindowWidth),
+                                                     extraTree.getProperty(lastWindowHeightKey, (int)mPluginWindowHeight)));
 
         }
 

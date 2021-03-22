@@ -1094,7 +1094,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     updateState();
 
     //updateServerFieldsFromConnectionInfo();
-    
+
+    // Make sure that before the constructor has finished, you've set the
+    // editor's size to whatever you need it to be.
+
+    auto defbounds = processor.getLastPluginBounds();
+
+    setSize (defbounds.getWidth(), defbounds.getHeight());
+
+
     setResizeLimits(320, 340, 10000, 10000);
 
     commandManager.registerAllCommandsForTarget (this);
@@ -1176,12 +1184,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
    // Make sure that before the constructor has finished, you've set the
    // editor's size to whatever you need it to be.
 
-    auto defHeight = 560;
-#if JUCE_WINDOWS
-    defHeight = 590;
-#endif
-    
-    setSize (760, defHeight);
+    //auto defbounds = processor.getLastPluginBounds();
+
+    //setSize (defbounds.getWidth(), defbounds.getHeight());
 
 
     if (processor.getAutoReconnectToLast()) {
@@ -1489,11 +1494,7 @@ void SonobusAudioProcessorEditor::aooClientPeerChangedState(SonobusAudioProcesso
 
 void SonobusAudioProcessorEditor::sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg)
 {
-    {
-        const ScopedLock sl (chatStateLock);
-        newChatEvents.add(mesg);
-        haveNewChatEvents = true;
-    }
+    haveNewChatEvents = true;
 
     triggerAsyncUpdate();
 }
@@ -3388,12 +3389,6 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
     if (haveNewChatEvents.compareAndSetBool(false, true))
     {
-        {
-            const ScopedLock sl (chatStateLock);
-            mChatView->addNewChatMessages(newChatEvents);
-            newChatEvents.clearQuick();
-        }
-
         mChatView->refreshMessages();
     }
 
@@ -3617,7 +3612,10 @@ void SonobusAudioProcessorEditor::resized()
     
     auto mainBounds = getLocalBounds();
     const auto menuHeight = getLookAndFeel().getDefaultMenuBarHeight();
+
+    processor.setLastPluginBounds(mainBounds); // just relative
     
+
     if (mMenuBar) {
         auto menuBounds = mainBounds.removeFromTop(menuHeight);
         mMenuBar->setBounds(menuBounds);
