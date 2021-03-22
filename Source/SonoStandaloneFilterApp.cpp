@@ -93,7 +93,6 @@ public:
 
         appProperties.setStorageParameters (options);
 
-        LookAndFeel::setDefaultLookAndFeel(&sonoLNF);
     }
 
     ~SonobusStandaloneFilterApp()
@@ -202,6 +201,8 @@ public:
         else {
             crashSentinelFile.create();
         }
+
+        LookAndFeel::setDefaultLookAndFeel(&sonoLNF);
 
         auto wind = new StandaloneFilterWindow (getApplicationName(),
                                            LookAndFeel::getDefaultLookAndFeel().findColour (ResizableWindow::backgroundColourId),
