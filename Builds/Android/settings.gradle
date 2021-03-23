@@ -1,0 +1,2 @@
+rootProject.name = 'SonoBus'
+include ':app'
