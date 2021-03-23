@@ -4,7 +4,7 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleVersion</key>
-    <string>59</string>
+    <string>60</string>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -33,7 +33,7 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.3.19</string>
+    <string>1.4.0</string>
     <key>NSHumanReadableCopyright</key>
     <string>2021 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
@@ -54,7 +54,7 @@
         <key>subtype</key>
         <string>NBus</string>
         <key>version</key>
-        <integer>66323</integer>
+        <integer>66560</integer>
         <key>resourceUsage</key>
         <dict>
           <key>network.client</key>

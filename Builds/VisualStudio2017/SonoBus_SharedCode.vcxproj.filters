@@ -23,9 +23,6 @@
     <Filter Include="SonoBus\Resources">
       <UniqueIdentifier>{9714E930-7F84-44CB-3191-0295B18EAAD4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="SonoBus\Source\android">
-      <UniqueIdentifier>{8AB97271-B6FF-51BC-4F51-EC3DF5D38135}</UniqueIdentifier>
-    </Filter>
     <Filter Include="SonoBus\Source">
       <UniqueIdentifier>{C6AE8753-7351-CBAD-7016-0A9A6F845393}</UniqueIdentifier>
     </Filter>
@@ -543,9 +540,6 @@
     </ClCompile>
     <ClCompile Include="..\..\deps\aoo\deps\oscpack\osc\OscTypes.cpp">
       <Filter>SonoBus\deps\osc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\android\SonoBusActivity.cpp">
-      <Filter>SonoBus\Source\android</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\AutoUpdater.cpp">
       <Filter>SonoBus\Source</Filter>
@@ -2927,9 +2921,6 @@
     </ClInclude>
     <ClInclude Include="..\..\deps\aoo\deps\oscpack\osc\OscTypes.h">
       <Filter>SonoBus\deps\osc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\android\SonoBusActivity.h">
-      <Filter>SonoBus\Source\android</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AutoUpdater.h">
       <Filter>SonoBus\Source</Filter>

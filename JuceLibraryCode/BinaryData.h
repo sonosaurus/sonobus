@@ -30,7 +30,7 @@ namespace BinaryData
     const int            localized_ptbr_txtSize = 24718;
 
     extern const char*   localized_ptpt_txt;
-    const int            localized_ptpt_txtSize = 24447;
+    const int            localized_ptpt_txtSize = 24314;
 
     extern const char*   bar_click_wav;
     const int            bar_click_wavSize = 2846;

@@ -35,7 +35,7 @@ ifeq ($(CONFIG),Debug)
     TARGET_ARCH := 
   endif
 
-  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DDEBUG=1" "-D_DEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.19-59\"" "-DLOGLEVEL=2" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.19" "-DJUCE_APP_VERSION_HEX=0x10313" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
+  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DDEBUG=1" "-D_DEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.4.0-60\"" "-DLOGLEVEL=2" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.4.0" "-DJUCE_APP_VERSION_HEX=0x10400" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
 
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
@@ -77,7 +77,7 @@ ifeq ($(CONFIG),Release)
     TARGET_ARCH := 
   endif
 
-  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DNDEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.19-59\"" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.19" "-DJUCE_APP_VERSION_HEX=0x10313" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
+  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DNDEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.4.0-60\"" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.4.0" "-DJUCE_APP_VERSION_HEX=0x10400" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
 
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
@@ -136,7 +136,6 @@ OBJECTS_SHARED_CODE := \
   $(JUCE_OBJDIR)/OscPrintReceivedElements_6e7e89f4.o \
   $(JUCE_OBJDIR)/OscReceivedElements_694ce973.o \
   $(JUCE_OBJDIR)/OscTypes_bb5e81a8.o \
-  $(JUCE_OBJDIR)/SonoBusActivity_25108813.o \
   $(JUCE_OBJDIR)/AutoUpdater_f72a57b.o \
   $(JUCE_OBJDIR)/BeatToggleGrid_31823899.o \
   $(JUCE_OBJDIR)/ChannelGroup_97aa65c5.o \
@@ -321,11 +320,6 @@ $(JUCE_OBJDIR)/OscReceivedElements_694ce973.o: ../../deps/aoo/deps/oscpack/osc/O
 $(JUCE_OBJDIR)/OscTypes_bb5e81a8.o: ../../deps/aoo/deps/oscpack/osc/OscTypes.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling OscTypes.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/SonoBusActivity_25108813.o: ../../Source/android/SonoBusActivity.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling SonoBusActivity.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/AutoUpdater_f72a57b.o: ../../Source/AutoUpdater.cpp
