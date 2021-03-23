@@ -12,9 +12,9 @@ function die {
 # 'Notarization-PASSWORD' -- the password is something like azcy-sdjd-defe-nufj
 #account_pwd=$(security find-generic-password -a ${USER} -s Notarization-PASSWORD -w)
 account_pwd="@keychain:Notarization-PASSWORD"
-account_name="apple@essej.net" # obvsiouly you need to replace this with your developer account..
+account_name="${APPLEID}" # obvsiouly you need to replace this with your developer account..
 
-account_options="-u ${account_name} -p ${account_pwd} --asc-provider JesseChappell99501092"
+account_options="-u ${account_name} -p ${account_pwd} --asc-provider ${APPLEASC}"
 
 RED="\033[1;31m"
 GREEN="\033[1;32m"
@@ -27,6 +27,8 @@ RESET="\033[0m"
 
 do_submit=1
 do_getresult=1
+
+uuidfile=""
 
 apps=()
 main_app=""
@@ -42,6 +44,14 @@ while test "$#" -gt 0; do
       --resume)
           do_submit=0
           ;;
+      --submit=*)
+          do_getresult=0
+          uuidfile="$optarg"
+          ;;
+      --resume=*)
+          do_submit=0
+          uuidfile="$optarg"          
+          ;;
       --primary-bundle-id=*)
           bundle_id="$optarg"
           ;;
@@ -51,8 +61,8 @@ while test "$#" -gt 0; do
           echo "    Your (specific) password for the notarization service must be stored in the Keychain"
           echo "    under the name 'Notarization-PASSWORD'"
           echo "options:"
-          echo "    --submit-only  : submit the bundle for notarization, saves the uuid in a /tmp file and returns."
-          echo "    --resume       : retrieve the uuid from the /tmp file, and check its status on apple servers"
+          echo "    --submit[=uuidfile]  : submit the bundle for notarization, saves the uuid in a /tmp file and returns."
+          echo "    --resume[=uuidfile]     : retrieve the uuid from the /tmp file, and check its status on apple servers"
           echo "                     if the notarization succeed, staple the app bundle."
           echo "    --primary-bundle-id : if submitting a .pkg or a .dmg you must specify a primary bundle id."
           exit 0
@@ -112,9 +122,13 @@ if [ -z "${bundle_id}" ]; then
     die "Bundle id not found...";
 fi
 
-uuidfile="/tmp/notarize-app-${bundle_id}.uuid"
+if [ -z "$uuidfile" ] ; then
+  uuidfile="/tmp/notarize-app-${bundle_id}.uuid"
+fi
 
 tmpfile="/tmp/notarize-app-${bundle_id}"
+
+ok=0
 
 if (( $do_submit )); then
     if (( $is_app )); then

@@ -8,14 +8,44 @@
 
 namespace BinaryData
 {
+    extern const char*   localized_de_txt;
+    const int            localized_de_txtSize = 25323;
+
     extern const char*   localized_es_txt;
-    const int            localized_es_txtSize = 18131;
+    const int            localized_es_txtSize = 24727;
+
+    extern const char*   localized_fr_txt;
+    const int            localized_fr_txtSize = 25788;
+
+    extern const char*   localized_it_txt;
+    const int            localized_it_txtSize = 25198;
+
+    extern const char*   localized_ja_txt;
+    const int            localized_ja_txtSize = 27476;
+
+    extern const char*   localized_nl_txt;
+    const int            localized_nl_txtSize = 24118;
+
+    extern const char*   localized_ptbr_txt;
+    const int            localized_ptbr_txtSize = 24718;
+
+    extern const char*   localized_ptpt_txt;
+    const int            localized_ptpt_txtSize = 24314;
 
     extern const char*   bar_click_wav;
     const int            bar_click_wavSize = 2846;
 
     extern const char*   beat_click_wav;
     const int            beat_click_wavSize = 2708;
+
+    extern const char*   chat_svg;
+    const int            chat_svgSize = 2645;
+
+    extern const char*   chat_dots_svg;
+    const int            chat_dots_svgSize = 3019;
+
+    extern const char*   chevron_forward_svg;
+    const int            chevron_forward_svgSize = 2060;
 
     extern const char*   copy_icon_svg;
     const int            copy_icon_svgSize = 2218;
@@ -26,11 +56,23 @@ namespace BinaryData
     extern const char*   dice_icon_128_png;
     const int            dice_icon_128_pngSize = 3793;
 
+    extern const char*   dispfull_svg;
+    const int            dispfull_svgSize = 4166;
+
+    extern const char*   dispminimal_svg;
+    const int            dispminimal_svgSize = 2585;
+
     extern const char*   dots_svg;
     const int            dots_svgSize = 3598;
 
     extern const char*   dots_icon_png;
     const int            dots_icon_pngSize = 362;
+
+    extern const char*   expand_arrow_active_svg;
+    const int            expand_arrow_active_svgSize = 3072;
+
+    extern const char*   expand_arrow_inactive_svg;
+    const int            expand_arrow_inactive_svgSize = 3098;
 
     extern const char*   folder_icon_svg;
     const int            folder_icon_svgSize = 4871;
@@ -52,6 +94,12 @@ namespace BinaryData
 
     extern const char*   link_svg;
     const int            link_svgSize = 3128;
+
+    extern const char*   link_all_svg;
+    const int            link_all_svgSize = 6607;
+
+    extern const char*   link_up_svg;
+    const int            link_up_svgSize = 6397;
 
     extern const char*   list_icon1_png;
     const int            list_icon1_pngSize = 3637;
@@ -76,6 +124,9 @@ namespace BinaryData
 
     extern const char*   muteothers_svg;
     const int            muteothers_svgSize = 8680;
+
+    extern const char*   network_svg;
+    const int            network_svgSize = 8054;
 
     extern const char*   outgoing_allowed_svg;
     const int            outgoing_allowed_svgSize = 10153;
@@ -122,6 +173,9 @@ namespace BinaryData
     extern const char*   record_active_alt_svg;
     const int            record_active_alt_svgSize = 3829;
 
+    extern const char*   rectape_svg;
+    const int            rectape_svgSize = 2514;
+
     extern const char*   reset_buffer_icon_svg;
     const int            reset_buffer_icon_svgSize = 3285;
 
@@ -152,6 +206,9 @@ namespace BinaryData
     extern const char*   triangle_disclosure_svg;
     const int            triangle_disclosure_svgSize = 3068;
 
+    extern const char*   triangle_disclosure_right_svg;
+    const int            triangle_disclosure_right_svgSize = 3099;
+
     extern const char*   urei_main_wav;
     const int            urei_main_wavSize = 632;
 
@@ -162,7 +219,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 51;
+    const int namedResourceListSize = 70;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

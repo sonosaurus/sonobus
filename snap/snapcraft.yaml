@@ -56,7 +56,7 @@ parts:
     after: [desktop]
     plugin: make
     source: https://github.com/essej/sonobus.git
-    source-tag: '1.3.2'
+    source-tag: '1.4.0'
     source-subdir: "Builds/LinuxMakefile"
     build-packages:
       - libjack-dev
@@ -78,11 +78,11 @@ parts:
     make-parameters: ["Standalone", "VST3"]
     override-build: |
       snapcraftctl build
-      strip --strip-unneeded Builds/LinuxMakefile/build/SonoBus
+      strip --strip-unneeded Builds/LinuxMakefile/build/sonobus
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin
       mkdir -p $SNAPCRAFT_PART_INSTALL/lib/vst3
-      cp -a Builds/LinuxMakefile/build/SonoBus $SNAPCRAFT_PART_INSTALL/bin/
-      cp -a Builds/LinuxMakefile/build/SonoBus.vst3 $SNAPCRAFT_PART_INSTALL/lib/vst3/
+      cp -a Builds/LinuxMakefile/build/sonobus $SNAPCRAFT_PART_INSTALL/bin/
+      cp -a Builds/LinuxMakefile/build/sonobus.vst3 $SNAPCRAFT_PART_INSTALL/lib/vst3/
     stage-packages:
       - jackd1
       - libopus0
@@ -92,13 +92,12 @@ parts:
       - libxinerama1
       - libxrandr2
       - libxcursor1
-      - libgl1
       - libfreetype6
       - libcurl4
 
 apps:
   sonobus:
-    command: bin/SonoBus
+    command: bin/sonobus
     command-chain:
       - bin/desktop-launch
       - snap/command-chain/alsa-launch
@@ -108,7 +107,6 @@ apps:
       - network
       - network-bind
       - x11
-      - opengl
       - desktop
       - desktop-legacy
       - jack1

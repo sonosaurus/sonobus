@@ -6,10 +6,10 @@
 
 #include <JuceHeader.h>
 
-#include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
 #include "SonoDrawableButton.h"
 #include "EffectsBaseView.h"
+#include "EffectParams.h"
 
 //==============================================================================
 /*
@@ -96,15 +96,10 @@ public:
 
    
     
-    void paint (Graphics& g) override
-    {
-       
-    }
-    
     class Listener {
     public:
         virtual ~Listener() {}
-        virtual void expanderParamsChanged(ExpanderView *comp, SonobusAudioProcessor::CompressorParams &params) {}
+        virtual void expanderParamsChanged(ExpanderView *comp, SonoAudio::CompressorParams &params) {}
     };
     
     void addListener(Listener * listener) { listeners.add(listener); }
@@ -217,7 +212,7 @@ public:
         
     }
 
-    void updateParams(const SonobusAudioProcessor::CompressorParams & params) {
+    void updateParams(const SonoAudio::CompressorParams & params) {
         mParams = params;
         
         thresholdSlider.setValue(mParams.thresholdDb, dontSendNotification);
@@ -230,7 +225,7 @@ public:
         headerComponent.repaint();
     }
     
-    const SonobusAudioProcessor::CompressorParams & getParams() const { 
+    const SonoAudio::CompressorParams & getParams() const {
         return mParams;         
     }
     
@@ -261,7 +256,7 @@ private:
     FlexBox releaseBox;
 
 
-    SonobusAudioProcessor::CompressorParams mParams;
+    SonoAudio::CompressorParams mParams;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ExpanderView)
 };

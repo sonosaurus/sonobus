@@ -97,9 +97,15 @@ public:
 #endif
           autoOpenMidiDevices (shouldAutoOpenMidiDevices),
           shouldOverrideSampleRate (var(true)),
+          allowBluetoothInput (var(false)),
           shouldCheckForNewVersion (var(true))
     {
         createPlugin();
+
+        auto props = settings->getAllProperties();
+        for (auto & prop : props.getAllKeys()) {
+            DBG("state key: " << prop );
+        }
 
         auto inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns
                                                            : processor->getMainBusNumInputChannels());
@@ -186,6 +192,10 @@ public:
 
     Value& getShouldOverrideSampleRateValue()                           { return shouldOverrideSampleRate; }
     Value& getShouldCheckForNewVersionValue()                           { return shouldCheckForNewVersion; }
+    Value& getAllowBluetoothInputValue()                           { return allowBluetoothInput; }
+
+    StringArray& getRecentSetupFiles()                           { return recentSetupFiles; }
+    String& getLastRecentsFolder()                           { return lastRecentsSetupFolder; }
 
     
     //==============================================================================
@@ -223,7 +233,7 @@ public:
 
             if (! fc.getResult().replaceWithData (data.getData(), data.getSize()))
                 AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                                  TRANS("Error whilst saving"),
+                                                  TRANS("Error while saving"),
                                                   TRANS("Couldn't write to the specified file!"));
         }
        #else
@@ -247,7 +257,7 @@ public:
                 processor->setStateInformation (data.getData(), (int) data.getSize());
             else
                 AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                                  TRANS("Error whilst loading"),
+                                                  TRANS("Error while loading"),
                                                   TRANS("Couldn't read from the specified file!"));
         }
        #else
@@ -343,6 +353,21 @@ public:
 
             settings->setValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue());
             settings->setValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue());
+            settings->setValue ("allowBluetoothInput", (bool) allowBluetoothInput.getValue());
+
+            auto recentSetupXml = std::make_unique<XmlElement>("PATHLIST");
+            for (auto fname : recentSetupFiles) {
+                auto pathchild = recentSetupXml->createNewChildElement("PATH");
+                pathchild->addTextElement(fname);
+            }
+
+            settings->setValue ("recentSetupFiles", recentSetupXml.get());
+            settings->setValue ("lastRecentsSetupFolder", lastRecentsSetupFolder);
+
+            auto props = settings->getAllProperties();
+            for (auto & prop : props.getAllKeys()) {
+                DBG("after state key: " << prop );
+            }
 
 #if ! (JUCE_IOS || JUCE_ANDROID)
             //  settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
@@ -369,6 +394,22 @@ public:
 
             shouldOverrideSampleRate.setValue (settings->getBoolValue ("shouldOverrideSampleRate", (bool) shouldOverrideSampleRate.getValue()));
             shouldCheckForNewVersion.setValue (settings->getBoolValue ("shouldCheckForNewVersion", (bool) shouldCheckForNewVersion.getValue()));
+            allowBluetoothInput.setValue (settings->getBoolValue ("allowBluetoothInput", (bool) allowBluetoothInput.getValue()));
+
+            auto setupfiles = settings->getXmlValue("recentSetupFiles");
+            if (setupfiles) {
+                recentSetupFiles.clearQuick();
+                for (int i=0; i < setupfiles->getNumChildElements(); ++i) {
+                    auto child = setupfiles->getChildElement(i);
+                    if (child->getNumChildElements() > 0 && child->getFirstChildElement()->isTextElement()) {
+                        auto fname = child->getFirstChildElement()->getText();
+                        recentSetupFiles.add(fname);
+                    }
+                }
+                DBG("Loaded recent setups: " << recentSetupFiles.joinIntoString("\n"));
+            }
+
+            lastRecentsSetupFolder = settings->getValue("lastRecentsSetupFolder", lastRecentsSetupFolder);
 
            #if ! (JUCE_IOS || JUCE_ANDROID)
             shouldMuteInput.setValue (settings->getBoolValue ("shouldMuteInput", false));
@@ -404,6 +445,13 @@ public:
                                   true,
                                   preferredDefaultDeviceName,
                                   prefSetupOptions.get());
+
+#if JUCE_IOS
+        // get current audio device and change a setting if necessary
+        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice())) {
+            device->setAllowBluetoothInput((bool)allowBluetoothInput.getValue());
+        }
+#endif
     }
 
     //==============================================================================
@@ -411,10 +459,29 @@ public:
     {
         if (settings != nullptr && processor != nullptr)
         {
-            MemoryBlock data;
-            processor->getStateInformation (data);
+            auto * sonobusprocessor = dynamic_cast<SonobusAudioProcessor*>(processor.get());
 
-            settings->setValue ("filterState", data.toBase64Encoding());
+            bool usexmlstate = sonobusprocessor != nullptr;
+
+            MemoryBlock data;
+
+            if (usexmlstate && sonobusprocessor) {
+                sonobusprocessor->getStateInformationWithOptions (data, true, usexmlstate);
+                std::unique_ptr<XmlElement> filtxml = juce::parseXML(String::createStringFromData(data.getData(), (int)data.getSize()));
+                if (filtxml) {
+                    settings->setValue ("filterStateXML", filtxml.get());
+                    // remove old binary one
+                    settings->removeValue("filterState");
+                } else {
+                    // failed for some reason try it binary-style
+                    data.reset();
+                    processor->getStateInformation (data);
+                    settings->setValue ("filterState", data.toBase64Encoding());
+                }
+            } else {
+                processor->getStateInformation (data);
+                settings->setValue ("filterState", data.toBase64Encoding());
+            }
         }
     }
 
@@ -423,6 +490,16 @@ public:
         if (settings != nullptr)
         {
             MemoryBlock data;
+            auto * sonobusprocessor = dynamic_cast<SonobusAudioProcessor*>(processor.get());
+
+            if (sonobusprocessor != nullptr && settings->containsKey("filterStateXML")) {
+                String filtxml = settings->getValue ("filterStateXML");
+                data.replaceWith(filtxml.toUTF8(), filtxml.getNumBytesAsUTF8());
+                if (data.getSize() > 0) {
+                    sonobusprocessor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), true, true);
+                    return;
+                }
+            }
 
             if (data.fromBase64Encoding (settings->getValue ("filterState")) && data.getSize() > 0)
                 processor->setStateInformation (data.getData(), (int) data.getSize());
@@ -478,9 +555,11 @@ public:
     bool autoOpenMidiDevices;
 
     Value shouldOverrideSampleRate;
+    Value allowBluetoothInput;
 
     Value shouldCheckForNewVersion;
-
+    StringArray recentSetupFiles;
+    String  lastRecentsSetupFolder;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     StringArray lastMidiDevices;
@@ -620,6 +699,7 @@ private:
 
         deviceManager.removeMidiInputCallback ({}, &player);
         deviceManager.removeAudioCallback (this);
+
     }
 
     void timerCallback() override
@@ -678,7 +758,7 @@ public:
                             bool autoOpenMidiDevices = false
                            #endif
                             )
-        : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton),
+        : DocumentWindow (title, backgroundColour, DocumentWindow::allButtons),
           optionsButton ("Options")
     {
         
@@ -686,7 +766,7 @@ public:
        #if JUCE_IOS || JUCE_ANDROID
         setTitleBarHeight (0);
        #else
-        setTitleBarButtonsRequired (DocumentWindow::minimiseButton | DocumentWindow::closeButton, false);
+        setTitleBarButtonsRequired (DocumentWindow::minimiseButton | DocumentWindow::closeButton | DocumentWindow::maximiseButton, false);
 
         Component::addAndMakeVisible (optionsButton);
         optionsButton.addListener (this);
@@ -891,11 +971,16 @@ private:
                 // hack to allow editor to get devicemanager
                 if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(editor.get())) {
                     sonoeditor->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
+                    sonoeditor->getInputChannelGroupsView()->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
+                    sonoeditor->getPeersContainerView()->getAudioDeviceManager = [this]() { return &owner.getDeviceManager();  };
                     sonoeditor->isInterAppAudioConnected = [this]() { return owner.pluginHolder->isInterAppAudioConnected();  };
                     sonoeditor->getIAAHostIcon = [this](int size) { return owner.pluginHolder->getIAAHostIcon(size);  };
                     sonoeditor->switchToHostApplication = [this]() { return owner.pluginHolder->switchToHostApplication(); };
                     sonoeditor->getShouldOverrideSampleRateValue = [this]() { return &(owner.pluginHolder->getShouldOverrideSampleRateValue()); };
+                    sonoeditor->getAllowBluetoothInputValue = [this]() { return &(owner.pluginHolder->getAllowBluetoothInputValue()); };
                     sonoeditor->getShouldCheckForNewVersionValue = [this]() { return &(owner.pluginHolder->getShouldCheckForNewVersionValue()); };
+                    sonoeditor->getRecentSetupFiles = [this]() { return &(owner.pluginHolder->getRecentSetupFiles()); };
+                    sonoeditor->getLastRecentsFolder = [this]() { return &owner.pluginHolder->getLastRecentsFolder(); };
                 }
                 
                 editor->addComponentListener (this);

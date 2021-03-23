@@ -3,9 +3,11 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2021 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAAX,buildAU,buildStandalone,buildVST,buildVST3,enableIAA"
-              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.3.3-43&quot;"
-              pluginDesc="SonoBus - Network Audio" version="1.3.3" cppLanguageStandard="17"
-              projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'">
+              pluginManufacturerCode="Sono" pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.4.0-60&quot;"
+              pluginDesc="SonoBus - Network Audio" version="1.4.0" cppLanguageStandard="17"
+              projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aumf'"
+              pluginCharacteristicsValue="pluginEditorRequiresKeys,pluginProducesMidiOut,pluginWantsMidiIn"
+              pluginAAXCategory="0" pluginVST3Category="Fx,Network">
   <MAINGROUP id="i87g34" name="SonoBus">
     <GROUP id="{A463ADFB-B23B-B2B4-881B-B7CE9954D0D4}" name="deps">
       <GROUP id="{81488E5D-9CA2-F73A-62B1-4376F46E70B1}" name="aoo">
@@ -71,17 +73,41 @@
     </GROUP>
     <GROUP id="{45E6E779-87D2-18D9-1A29-7DFF68963CE8}" name="Resources">
       <GROUP id="{27D9C081-01A6-D1FA-EE85-8BB5B06DEC98}" name="localization">
+        <FILE id="ARXTY1" name="localized_de.txt" compile="0" resource="1"
+              file="localization/localized_de.txt"/>
         <FILE id="EW6KtM" name="localized_es.txt" compile="0" resource="1"
               file="localization/localized_es.txt"/>
+        <FILE id="LiCEY2" name="localized_fr.txt" compile="0" resource="1"
+              file="localization/localized_fr.txt"/>
+        <FILE id="qkis37" name="localized_it.txt" compile="0" resource="1"
+              file="localization/localized_it.txt"/>
+        <FILE id="savrqR" name="localized_ja.txt" compile="0" resource="1"
+              file="localization/localized_ja.txt"/>
+        <FILE id="lw1RBl" name="localized_nl.txt" compile="0" resource="1"
+              file="localization/localized_nl.txt"/>
+        <FILE id="f3GTRA" name="localized_pt-br.txt" compile="0" resource="1"
+              file="localization/localized_pt-br.txt"/>
+        <FILE id="BmlWxd" name="localized_pt-pt.txt" compile="0" resource="1"
+              file="localization/localized_pt-pt.txt"/>
       </GROUP>
       <FILE id="O1xtq9" name="bar_click.wav" compile="0" resource="1" file="images/bar_click.wav"/>
       <FILE id="dmiruB" name="beat_click.wav" compile="0" resource="1" file="images/beat_click.wav"/>
+      <FILE id="ZwykWL" name="chat.svg" compile="0" resource="1" file="images/chat.svg"/>
+      <FILE id="e7ilAE" name="chat_dots.svg" compile="0" resource="1" file="images/chat_dots.svg"/>
+      <FILE id="j4WSQR" name="chevron_forward.svg" compile="0" resource="1"
+            file="images/chevron_forward.svg"/>
       <FILE id="N4OxEE" name="copy_icon.svg" compile="0" resource="1" file="images/copy_icon.svg"/>
       <FILE id="uEQ8X0" name="DejaVuSans.ttf" compile="0" resource="1" file="Source/DejaVuSans.ttf"/>
       <FILE id="vgfrLE" name="dice_icon_128.png" compile="0" resource="1"
             file="images/dice_icon_128.png"/>
+      <FILE id="IShDmK" name="dispfull.svg" compile="0" resource="1" file="images/dispfull.svg"/>
+      <FILE id="tr3LNt" name="dispminimal.svg" compile="0" resource="1" file="images/dispminimal.svg"/>
       <FILE id="wSd24I" name="dots.svg" compile="0" resource="1" file="images/dots.svg"/>
       <FILE id="f23oIJ" name="dots_icon.png" compile="0" resource="1" file="images/dots_icon.png"/>
+      <FILE id="yCKT31" name="expand_arrow_active.svg" compile="0" resource="1"
+            file="images/expand_arrow_active.svg"/>
+      <FILE id="qPAYdx" name="expand_arrow_inactive.svg" compile="0" resource="1"
+            file="images/expand_arrow_inactive.svg"/>
       <FILE id="zGzv4L" name="folder_icon.svg" compile="0" resource="1" file="images/folder_icon.svg"/>
       <FILE id="Ef5mFO" name="hear-others.svg" compile="0" resource="1" file="images/hear-others.svg"/>
       <FILE id="esS2r1" name="incoming_allowed.svg" compile="0" resource="1"
@@ -94,6 +120,8 @@
             file="images/launchicon@2x.png" xcodeResource="1"/>
       <FILE id="sjyJRV" name="lgc_bar.wav" compile="0" resource="1" file="images/lgc_bar.wav"/>
       <FILE id="MghBBn" name="link.svg" compile="0" resource="1" file="images/link.svg"/>
+      <FILE id="eRRGU0" name="link_all.svg" compile="0" resource="1" file="images/link_all.svg"/>
+      <FILE id="TeqH5W" name="link_up.svg" compile="0" resource="1" file="images/link_up.svg"/>
       <FILE id="JiJ7Pk" name="list_icon1.png" compile="0" resource="1" file="images/list_icon1.png"/>
       <FILE id="QOhFEr" name="loop_icon.svg" compile="0" resource="1" file="images/loop_icon.svg"/>
       <FILE id="V0RVkS" name="met.svg" compile="0" resource="1" file="images/met.svg"/>
@@ -104,6 +132,7 @@
             file="images/mic_pointing.svg"/>
       <FILE id="qzYa50" name="move_updown.svg" compile="0" resource="1" file="images/move_updown.svg"/>
       <FILE id="OmtN5U" name="mute-others.svg" compile="0" resource="1" file="images/mute-others.svg"/>
+      <FILE id="EGsWAe" name="network.svg" compile="0" resource="1" file="images/network.svg"/>
       <FILE id="C2rj32" name="outgoing_allowed.svg" compile="0" resource="1"
             file="images/outgoing_allowed.svg"/>
       <FILE id="QMiY36" name="outgoing_allowed_active.svg" compile="0" resource="1"
@@ -124,6 +153,7 @@
             file="images/record_active.svg"/>
       <FILE id="KcXBdG" name="record_active_alt.svg" compile="0" resource="1"
             file="images/record_active_alt.svg"/>
+      <FILE id="RlTmSw" name="rectape.svg" compile="0" resource="1" file="images/rectape.svg"/>
       <FILE id="Oh0fU2" name="reset_buffer_icon.svg" compile="0" resource="1"
             file="images/reset_buffer_icon.svg"/>
       <FILE id="zhDqf1" name="send_group.svg" compile="0" resource="1" file="images/send_group.svg"/>
@@ -152,25 +182,32 @@
             file="images/speaker_disabled.svg"/>
       <FILE id="LQviC0" name="triangle_disclosure.svg" compile="0" resource="1"
             file="images/triangle_disclosure.svg"/>
+      <FILE id="tGsCp7" name="triangle_disclosure_right.svg" compile="0"
+            resource="1" file="images/triangle_disclosure_right.svg"/>
       <FILE id="s7j6h6" name="urei_main.wav" compile="0" resource="1" file="images/urei_main.wav"/>
       <FILE id="ECSpem" name="wordmaker.g" compile="0" resource="1" file="Source/wordmaker.g"/>
       <FILE id="WXgZln" name="x_icon.svg" compile="0" resource="1" file="images/x_icon.svg"/>
     </GROUP>
     <GROUP id="{8B5A5237-BB6D-D858-EEFD-65C77FD9F609}" name="Source">
-      <GROUP id="{EA074842-E3B9-65D3-9E3E-6ADA162133AC}" name="android">
-        <FILE id="qVlIty" name="SonoBusActivity.cpp" compile="1" resource="0"
-              file="Source/android/SonoBusActivity.cpp"/>
-        <FILE id="PYULgp" name="SonoBusActivity.h" compile="0" resource="0"
-              file="Source/android/SonoBusActivity.h"/>
-      </GROUP>
       <FILE id="iPS8ca" name="AutoUpdater.cpp" compile="1" resource="0" file="Source/AutoUpdater.cpp"/>
       <FILE id="OnDXWG" name="AutoUpdater.h" compile="0" resource="0" file="Source/AutoUpdater.h"/>
       <FILE id="vFh6KF" name="BeatToggleGrid.cpp" compile="1" resource="0"
             file="Source/BeatToggleGrid.cpp"/>
       <FILE id="IeUqt0" name="BeatToggleGrid.h" compile="0" resource="0"
             file="Source/BeatToggleGrid.h"/>
+      <FILE id="zcPgs7" name="ChannelGroup.cpp" compile="1" resource="0"
+            file="Source/ChannelGroup.cpp"/>
+      <FILE id="YkS21z" name="ChannelGroup.h" compile="0" resource="0" file="Source/ChannelGroup.h"/>
+      <FILE id="s0Q4FO" name="ChannelGroupsView.cpp" compile="1" resource="0"
+            file="Source/ChannelGroupsView.cpp"/>
+      <FILE id="lMcu0Z" name="ChannelGroupsView.h" compile="0" resource="0"
+            file="Source/ChannelGroupsView.h"/>
+      <FILE id="xuAmXM" name="ChatView.cpp" compile="1" resource="0" file="Source/ChatView.cpp"/>
+      <FILE id="LqLqSd" name="ChatView.h" compile="0" resource="0" file="Source/ChatView.h"/>
       <FILE id="zsNFlO" name="CompressorView.h" compile="0" resource="0"
             file="Source/CompressorView.h"/>
+      <FILE id="Q31sYW" name="ConnectView.cpp" compile="1" resource="0" file="Source/ConnectView.cpp"/>
+      <FILE id="jHErvF" name="ConnectView.h" compile="0" resource="0" file="Source/ConnectView.h"/>
       <FILE id="JhBMID" name="CrossPlatformUtils.h" compile="0" resource="0"
             file="Source/CrossPlatformUtils.h"/>
       <FILE id="Pd0jq9" name="CrossPlatformUtilsAndroid.cpp" compile="1"
@@ -184,6 +221,9 @@
       <FILE id="PmOEYR" name="CrossPlatformUtilsWindows.cpp" compile="1"
             resource="0" file="Source/CrossPlatformUtilsWindows.cpp"/>
       <FILE id="vwX9iv" name="DebugLogC.h" compile="0" resource="0" file="Source/DebugLogC.h"/>
+      <FILE id="JOcDk5" name="EffectParams.cpp" compile="1" resource="0"
+            file="Source/EffectParams.cpp"/>
+      <FILE id="oRa9X8" name="EffectParams.h" compile="0" resource="0" file="Source/EffectParams.h"/>
       <FILE id="Lqoz1p" name="EffectsBaseView.h" compile="0" resource="0"
             file="Source/EffectsBaseView.h"/>
       <FILE id="cEg5VP" name="ExpanderView.h" compile="0" resource="0" file="Source/ExpanderView.h"/>
@@ -200,6 +240,10 @@
             file="Source/JitterBufferMeter.cpp"/>
       <FILE id="kZPlJM" name="JitterBufferMeter.h" compile="0" resource="0"
             file="Source/JitterBufferMeter.h"/>
+      <FILE id="YhpwjB" name="LatencyMatchView.cpp" compile="1" resource="0"
+            file="Source/LatencyMatchView.cpp"/>
+      <FILE id="C3UZm4" name="LatencyMatchView.h" compile="0" resource="0"
+            file="Source/LatencyMatchView.h"/>
       <FILE id="HDtnq4" name="LatencyMeasurer.cpp" compile="1" resource="0"
             file="Source/LatencyMeasurer.cpp"/>
       <FILE id="CAs5yt" name="LatencyMeasurer.h" compile="0" resource="0"
@@ -210,9 +254,13 @@
             file="Source/LocalLatencyMeasurer.h"/>
       <FILE id="JIOwEt" name="Metronome.cpp" compile="1" resource="0" file="Source/Metronome.cpp"/>
       <FILE id="qPvWp5" name="Metronome.h" compile="0" resource="0" file="Source/Metronome.h"/>
+      <FILE id="vmvN5E" name="MonitorDelayView.h" compile="0" resource="0"
+            file="Source/MonitorDelayView.h"/>
       <FILE id="YymWs0" name="mtdm.cc" compile="1" resource="0" file="Source/mtdm.cc"/>
       <FILE id="CTpEGU" name="mtdm.h" compile="0" resource="0" file="Source/mtdm.h"/>
       <FILE id="WJp4ti" name="MVerb.h" compile="0" resource="0" file="Source/MVerb.h"/>
+      <FILE id="YX3l57" name="OptionsView.cpp" compile="1" resource="0" file="Source/OptionsView.cpp"/>
+      <FILE id="uyewT0" name="OptionsView.h" compile="0" resource="0" file="Source/OptionsView.h"/>
       <FILE id="gfwKQY" name="ParametricEqView.h" compile="0" resource="0"
             file="Source/ParametricEqView.h"/>
       <FILE id="HNtjtj" name="PeersContainerView.cpp" compile="1" resource="0"
@@ -223,6 +271,8 @@
             file="Source/RandomSentenceGenerator.cpp"/>
       <FILE id="p5BMQt" name="RandomSentenceGenerator.h" compile="0" resource="0"
             file="Source/RandomSentenceGenerator.h"/>
+      <FILE id="vX4xAn" name="ReverbSendView.h" compile="0" resource="0"
+            file="Source/ReverbSendView.h"/>
       <FILE id="RQrK2V" name="RunCumulantor.cpp" compile="1" resource="0"
             file="Source/RunCumulantor.cpp"/>
       <FILE id="dbEjZv" name="RunCumulantor.h" compile="0" resource="0" file="Source/RunCumulantor.h"/>
@@ -271,7 +321,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="opus" microphonePermissionNeeded="1"
                extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                smallIcon="ZWiivf" bigIcon="cVyJ9b" iosDevelopmentTeamID="XCS435894D"
-               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;43&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+               customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;60&lt;/string&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
                prebuildCommand="../../scripts/mac_prebuild.sh" vstLegacyFolder="../VST2_SDK"
                aaxFolder="../AAX_SDK_2p3p2">
@@ -282,9 +332,6 @@
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
                        libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"
                        enablePluginBinaryCopyStep="0"/>
-        <CONFIGURATION isDebug="0" name="ReleaseVST2" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/mac/include&#10;"
-                       libraryPath="../../deps/mac/lib" osxCompatibility="10.9 SDK"
-                       defines="DONT_USE_MULTIBUS" enablePluginBinaryCopyStep="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="deps/juce/modules"/>
@@ -300,7 +347,6 @@
         <MODULEPATH id="juce_graphics" path="deps/juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="deps/juce/modules"/>
         <MODULEPATH id="juce_gui_extra" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
         <MODULEPATH id="ff_meters" path="deps"/>
         <MODULEPATH id="juce_dsp" path="deps/juce/modules"/>
       </MODULEPATHS>
@@ -311,13 +357,11 @@
                 vstLegacyFolder="../VST2_SDK">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
-                       defines="LOGLEVEL=2"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"/>
-        <CONFIGURATION isDebug="0" name="ReleaseVST2" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
-                       defines="DONT_USE_MULTIBUS"/>
+                       defines="LOGLEVEL=2" targetName="sonobus"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps"
+                       targetName="sonobus"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
         <MODULEPATH id="juce_gui_extra" path="deps/juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="deps/juce/modules"/>
         <MODULEPATH id="juce_graphics" path="deps/juce/modules"/>
@@ -345,13 +389,15 @@
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
                        vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;"/>
-        <CONFIGURATION isDebug="0" name="ReleaseVST2" libraryPath="..\..\deps\windows\Release"
+        <CONFIGURATION isDebug="1" name="Debug32" headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
+                       libraryPath="..\..\deps\windows\Debug32" useRuntimeLibDLL="0"
+                       defines="LOGLEVEL=2" winArchitecture="Win32"/>
+        <CONFIGURATION isDebug="0" name="Release32" libraryPath="..\..\deps\windows\Release32"
                        headerPath="..\..\deps\aoo\lib&#10;..\..\deps\aoo\deps&#10;..\..\deps\windows&#10;..\..\..\asiosdk\common"
                        useRuntimeLibDLL="0" enablePluginBinaryCopyStep="0" vst3BinaryLocation="&quot;C:\Users\jesse\VST3&quot;"
-                       vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;" defines="DONT_USE_MULTIBUS"/>
+                       vstBinaryLocation="&quot;C:\Users\jesse\VST2&quot;" winArchitecture="Win32"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
         <MODULEPATH id="juce_gui_extra" path="deps/juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="deps/juce/modules"/>
         <MODULEPATH id="juce_graphics" path="deps/juce/modules"/>
@@ -369,40 +415,6 @@
         <MODULEPATH id="juce_dsp" path="deps/juce/modules"/>
       </MODULEPATHS>
     </VS2017>
-    <ANDROIDSTUDIO targetFolder="Builds/Android" externalLibraries="opus" extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC&#10;JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0&#10;JUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME=&quot;com_sonosaurus_sonobus_SonoBusActivity&quot;&#10;JUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH=&quot;com/sonosaurus/sonobus/SonoBusActivity&quot;"
-                   smallIcon="tb00W2" bigIcon="rlxTrd" androidMinimumSDK="24" microphonePermissionNeeded="1"
-                   androidEnableContentSharing="1" androidManifestCustomXmlElements="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#10;&#10;&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;  package=&quot;com.sonosaurus.sonobus&quot;&gt;&#10;&#10; &lt;uses-permission android:name=&quot;android.permission.FOREGROUND_SERVICE&quot;/&gt;&#10;  &lt;supports-screens android:smallScreens=&quot;true&quot; android:normalScreens=&quot;true&quot; android:largeScreens=&quot;true&quot; android:anyDensity=&quot;true&quot;&#10;                    android:xlargeScreens=&quot;true&quot;/&gt;&#10;  &#10;  &lt;application android:label=&quot;@string/app_name&quot; android:name=&quot;com.rmsl.juce.JuceApp&quot; android:icon=&quot;@mipmap/ic_launcher&quot; android:roundIcon=&quot;@mipmap/ic_launcher_round&quot; android:hardwareAccelerated=&quot;false&quot;&gt;&#10;&#10;      &lt;service   android:name=&quot;SonoBusService&quot;   android:enabled=&quot;true&quot;   android:exported=&quot;false&quot;  /&gt;&#10;&#10;    &lt;activity  android:label=&quot;@string/app_name&quot; android:configChanges=&quot;keyboardHidden|orientation|screenSize&quot;&#10;              android:screenOrientation=&quot;unspecified&quot; android:launchMode=&quot;singleTask&quot;  android:hardwareAccelerated=&quot;false&quot;&gt;&#10;     &#10;    &lt;/activity&gt;&#10;    &#10;  &lt;/application&gt;&#10;&lt;/manifest&gt;&#10;"
-                   androidAdditionalJavaFolders="Source/android/java" androidActivitySubClassName="com.sonosaurus.sonobus.SonoBusActivity"
-                   androidRepositories="maven { url 'https://maven.google.com' }"
-                   androidTargetSDK="29" androidDependencies="implementation 'androidx.appcompat:appcompat:1.0.2'"
-                   androidKeyStore="${user.home}/.android/sonoupload.keystore" androidKeyStorePass="${sonoupload_keystore_password}"
-                   androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
-                   androidTheme="@android:style/Theme.NoTitleBar">
-      <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/android&#10;"
-                       libraryPath="../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/android&#10;"
-                       libraryPath="../../deps/android/${ANDROID_ABI}"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_graphics" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_events" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_dsp" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_data_structures" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_cryptography" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_core" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="deps/juce/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="deps/juce/modules"/>
-        <MODULEPATH id="ff_meters" path="deps"/>
-      </MODULEPATHS>
-    </ANDROIDSTUDIO>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="ff_meters" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
@@ -421,7 +433,6 @@
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
   <LIVE_SETTINGS>
     <OSX/>
@@ -431,5 +442,5 @@
   <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
                FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK="0" JUCE_WEB_BROWSER="0"
                JUCE_JACK="1" JUCE_ASIO="1" JUCE_DIRECTSOUND="0" JUCE_USE_ANDROID_OBOE="1"
-               JUCE_USE_OBOE_STABILIZED_CALLBACK="1"/>
+               JUCE_USE_OBOE_STABILIZED_CALLBACK="1" JUCE_USE_MP3AUDIOFORMAT="1"/>
 </JUCERPROJECT>

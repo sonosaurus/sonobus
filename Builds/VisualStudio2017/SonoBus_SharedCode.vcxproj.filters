@@ -23,9 +23,6 @@
     <Filter Include="SonoBus\Resources">
       <UniqueIdentifier>{9714E930-7F84-44CB-3191-0295B18EAAD4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="SonoBus\Source\android">
-      <UniqueIdentifier>{8AB97271-B6FF-51BC-4F51-EC3DF5D38135}</UniqueIdentifier>
-    </Filter>
     <Filter Include="SonoBus\Source">
       <UniqueIdentifier>{C6AE8753-7351-CBAD-7016-0A9A6F845393}</UniqueIdentifier>
     </Filter>
@@ -73,6 +70,9 @@
     </Filter>
     <Filter Include="JUCE Modules\juce_audio_devices\audio_io">
       <UniqueIdentifier>{BF23FC10-1D57-2A9B-706F-6DD8A7B593D4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JUCE Modules\juce_audio_devices\midi_io\ump">
+      <UniqueIdentifier>{386862D5-4DCC-A4B3-5642-60A201E303EF}</UniqueIdentifier>
     </Filter>
     <Filter Include="JUCE Modules\juce_audio_devices\midi_io">
       <UniqueIdentifier>{092EFC17-7C95-7E04-0ACA-0D61A462EE81}</UniqueIdentifier>
@@ -488,21 +488,6 @@
     <Filter Include="JUCE Modules\juce_gui_extra">
       <UniqueIdentifier>{A4D76113-9EDC-DA60-D89B-5BACF7F1C426}</UniqueIdentifier>
     </Filter>
-    <Filter Include="JUCE Modules\juce_opengl\geometry">
-      <UniqueIdentifier>{1A9221A3-E993-70B2-6EA2-8E1DB5FF646A}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="JUCE Modules\juce_opengl\native">
-      <UniqueIdentifier>{CC2DAD7A-5B45-62AB-4C54-6FE6B1AE86C3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="JUCE Modules\juce_opengl\opengl">
-      <UniqueIdentifier>{599138A9-EA63-53DD-941F-ABE3412D2949}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="JUCE Modules\juce_opengl\utils">
-      <UniqueIdentifier>{422A4014-8587-1AE6-584F-32A62613A37B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="JUCE Modules\juce_opengl">
-      <UniqueIdentifier>{9FBFF5E5-56F1-34A1-2C85-F760DA2B1EB7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="JUCE Modules">
       <UniqueIdentifier>{FE955B6B-68AC-AA07-70D8-2413F6DB65C8}</UniqueIdentifier>
     </Filter>
@@ -556,13 +541,22 @@
     <ClCompile Include="..\..\deps\aoo\deps\oscpack\osc\OscTypes.cpp">
       <Filter>SonoBus\deps\osc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\android\SonoBusActivity.cpp">
-      <Filter>SonoBus\Source\android</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\AutoUpdater.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\BeatToggleGrid.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ChannelGroup.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ChannelGroupsView.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ChatView.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\ConnectView.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsAndroid.cpp">
@@ -580,10 +574,16 @@
     <ClCompile Include="..\..\Source\CrossPlatformUtilsWindows.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\EffectParams.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\GenericItemChooser.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\JitterBufferMeter.cpp">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\LatencyMatchView.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\LatencyMeasurer.cpp">
@@ -593,6 +593,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\mtdm.cc">
+      <Filter>SonoBus\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\OptionsView.cpp">
       <Filter>SonoBus\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\PeersContainerView.cpp">
@@ -751,6 +754,21 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\audio_io\juce_AudioIODeviceType.cpp">
       <Filter>JUCE Modules\juce_audio_devices\audio_io</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPMidi1ToMidi2DefaultTranslator.cpp">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPSysEx7.cpp">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPTests.cpp">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPUtils.cpp">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPView.cpp">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\juce_MidiDevices.cpp">
       <Filter>JUCE Modules\juce_audio_devices\midi_io</Filter>
     </ClCompile>
@@ -847,6 +865,9 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\resampler\SincResamplerStereo.cpp">
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph\resampler</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ChannelCountConverter.cpp">
+      <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ClipToRange.cpp">
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
     </ClCompile>
@@ -857,6 +878,9 @@
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MonoToMultiConverter.cpp">
+      <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MultiToMonoConverter.cpp">
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\RampLinear.cpp">
@@ -934,7 +958,7 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\juce_mac_CoreAudio.cpp">
       <Filter>JUCE Modules\juce_audio_devices\native</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\juce_mac_CoreMidi.cpp">
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\juce_mac_CoreMidi.mm">
       <Filter>JUCE Modules\juce_audio_devices\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\juce_win32_ASIO.cpp">
@@ -1508,6 +1532,9 @@
       <Filter>JUCE Modules\juce_core\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_core\native\juce_posix_NamedPipe.cpp">
+      <Filter>JUCE Modules\juce_core\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_core\native\juce_wasm_SystemStats.cpp">
       <Filter>JUCE Modules\juce_core\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_core\native\juce_win32_Files.cpp">
@@ -2761,39 +2788,6 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_gui_extra\juce_gui_extra.mm">
       <Filter>JUCE Modules\juce_gui_extra</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLContext.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLHelpers.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLImage.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLTexture.cpp">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
-      <Filter>JUCE Modules\juce_opengl\utils</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\juce_opengl.cpp">
-      <Filter>JUCE Modules\juce_opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\juce_opengl.mm">
-      <Filter>JUCE Modules\juce_opengl</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp">
       <Filter>JUCE Library Code</Filter>
     </ClCompile>
@@ -2840,9 +2834,6 @@
       <Filter>JUCE Library Code</Filter>
     </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp">
-      <Filter>JUCE Library Code</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\JuceLibraryCode\include_juce_opengl.cpp">
       <Filter>JUCE Library Code</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2931,22 +2922,34 @@
     <ClInclude Include="..\..\deps\aoo\deps\oscpack\osc\OscTypes.h">
       <Filter>SonoBus\deps\osc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\android\SonoBusActivity.h">
-      <Filter>SonoBus\Source\android</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\AutoUpdater.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\BeatToggleGrid.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\ChannelGroup.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ChannelGroupsView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ChatView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\CompressorView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ConnectView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\CrossPlatformUtils.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\DebugLogC.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\EffectParams.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\EffectsBaseView.h">
@@ -2970,6 +2973,9 @@
     <ClInclude Include="..\..\Source\JitterBufferMeter.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\LatencyMatchView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\LatencyMeasurer.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
@@ -2982,10 +2988,16 @@
     <ClInclude Include="..\..\Source\Metronome.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\MonitorDelayView.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\mtdm.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MVerb.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\OptionsView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\ParametricEqView.h">
@@ -2995,6 +3007,9 @@
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RandomSentenceGenerator.h">
+      <Filter>SonoBus\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ReverbSendView.h">
       <Filter>SonoBus\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RunCumulantor.h">
@@ -3201,6 +3216,54 @@
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\audio_io\juce_SystemAudioVolume.h">
       <Filter>JUCE Modules\juce_audio_devices\audio_io</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPacket.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPackets.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPBytestreamInputHandler.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPConversion.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPConverters.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPDispatcher.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPFactory.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPIterator.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPMidi1ToBytestreamTranslator.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPMidi1ToMidi2DefaultTranslator.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPProtocols.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPReceiver.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPSysEx7.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPU32InputHandler.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPUtils.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPView.h">
+      <Filter>JUCE Modules\juce_audio_devices\midi_io\ump</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\juce_MidiDevices.h">
       <Filter>JUCE Modules\juce_audio_devices\midi_io</Filter>
     </ClInclude>
@@ -3327,6 +3390,9 @@
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\resampler\SincResamplerStereo.h">
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph\resampler</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ChannelCountConverter.h">
+      <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ClipToRange.h">
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
     </ClInclude>
@@ -3337,6 +3403,9 @@
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MonoToMultiConverter.h">
+      <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MultiToMonoConverter.h">
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\flowgraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\RampLinear.h">
@@ -5424,72 +5493,6 @@
     <ClInclude Include="..\..\deps\juce\modules\juce_gui_extra\juce_gui_extra.h">
       <Filter>JUCE Modules\juce_gui_extra</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Draggable3DOrientation.h">
-      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Matrix3D.h">
-      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Quaternion.h">
-      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Vector3D.h">
-      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_MissingGLDefinitions.h">
-      <Filter>JUCE Modules\juce_opengl\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_android.h">
-      <Filter>JUCE Modules\juce_opengl\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_ios.h">
-      <Filter>JUCE Modules\juce_opengl\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_linux_X11.h">
-      <Filter>JUCE Modules\juce_opengl\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_osx.h">
-      <Filter>JUCE Modules\juce_opengl\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_win32.h">
-      <Filter>JUCE Modules\juce_opengl\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGLExtensions.h">
-      <Filter>JUCE Modules\juce_opengl\native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLContext.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLHelpers.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLImage.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLRenderer.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLTexture.h">
-      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\utils\juce_OpenGLAppComponent.h">
-      <Filter>JUCE Modules\juce_opengl\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\juce_opengl.h">
-      <Filter>JUCE Modules\juce_opengl</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h">
       <Filter>JUCE Library Code</Filter>
     </ClInclude>
@@ -5504,13 +5507,43 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\localization\localized_de.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
     <None Include="..\..\localization\localized_es.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_fr.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_it.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_ja.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_nl.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_pt-br.txt">
+      <Filter>SonoBus\Resources\localization</Filter>
+    </None>
+    <None Include="..\..\localization\localized_pt-pt.txt">
       <Filter>SonoBus\Resources\localization</Filter>
     </None>
     <None Include="..\..\images\bar_click.wav">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\beat_click.wav">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\chat.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\chat_dots.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\chevron_forward.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\copy_icon.svg">
@@ -5522,10 +5555,22 @@
     <None Include="..\..\images\dice_icon_128.png">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\dispfull.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\dispminimal.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\dots.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\dots_icon.png">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\expand_arrow_active.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\expand_arrow_inactive.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\folder_icon.svg">
@@ -5547,6 +5592,12 @@
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\link.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\link_all.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\link_up.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\list_icon1.png">
@@ -5571,6 +5622,9 @@
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\mute-others.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\network.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\outgoing_allowed.svg">
@@ -5618,6 +5672,9 @@
     <None Include="..\..\images\record_active_alt.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
+    <None Include="..\..\images\rectape.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
     <None Include="..\..\images\reset_buffer_icon.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
@@ -5658,6 +5715,9 @@
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\triangle_disclosure.svg">
+      <Filter>SonoBus\Resources</Filter>
+    </None>
+    <None Include="..\..\images\triangle_disclosure_right.svg">
       <Filter>SonoBus\Resources</Filter>
     </None>
     <None Include="..\..\images\urei_main.wav">

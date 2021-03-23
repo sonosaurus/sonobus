@@ -18,6 +18,8 @@ class EffectsBaseView    : public Component
 public:
     EffectsBaseView() : sonoSliderLNF(14), smallLNF(12)
     {
+        bgColor = Colour(0xff101010);
+
         headerComponent.addAndMakeVisible(enableButton);
         headerComponent.addAndMakeVisible(titleLabel);
         headerComponent.addAndMakeVisible(dragButton);
@@ -43,6 +45,17 @@ public:
     {
     }
 
+    void paint (Graphics& g) override
+    {
+        auto bounds = getLocalBounds().toFloat().withTrimmedBottom(1);
+        const float cornrad = 8.0;
+        Path rrpath;
+        rrpath.addRoundedRectangle(bounds.getX() , bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornrad, cornrad, false, false, true, true);
+
+        g.setColour(bgColor);
+        g.fillPath(rrpath);
+    }
+
     class HeaderComponent : public Component
     {
     public:
@@ -61,7 +74,7 @@ public:
             
             g.setColour(usecolor);  
 
-            auto bounds = getLocalBounds().withTrimmedTop(2).withTrimmedBottom(2);
+            auto bounds = getLocalBounds().withTrimmedTop(2).withTrimmedBottom(0);
             g.fillRoundedRectangle(bounds.toFloat(), 6.0);
         }
         
@@ -166,7 +179,37 @@ protected:
         slider.setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
         //slider.setLookAndFeel(&sonoSliderLNF);
     }
-    
+
+    void configLevelSlider(Slider & slider, bool monmode, const String & valuePrefix)
+    {
+        //slider->setTextValueSuffix(" dB");
+        slider.setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+        slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+        slider.setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
+        slider.setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+
+        slider.setTextBoxStyle(Slider::TextBoxAbove, true, 100, 12);
+
+        if (monmode) {
+            slider.setRange(0.0, 1.0, 0.0);
+            slider.setMouseDragSensitivity(90);
+        } else {
+            slider.setRange(0.0, 2.0, 0.0);
+        }
+        slider.setSkewFactor(0.5);
+        slider.setDoubleClickReturnValue(true, 1.0);
+        slider.setTextBoxIsEditable(true);
+        slider.setSliderSnapsToMousePosition(false);
+        slider.setScrollWheelEnabled(false);
+        slider.valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
+
+        slider.textFromValueFunction = [valuePrefix](float v) -> String { return valuePrefix + Decibels::toString(Decibels::gainToDecibels(v), 1); };
+
+    #if JUCE_IOS
+        //slider->setPopupDisplayEnabled(true, false, this);
+    #endif
+    }
+
     void configLabel(Label & label, bool bright=false) 
     {
         if (bright) {
@@ -182,6 +225,8 @@ protected:
     
     SonoBigTextLookAndFeel sonoSliderLNF;
     SonoBigTextLookAndFeel smallLNF;
+
+    Colour   bgColor;
 
     SonoDrawableButton enableButton = { "enable", DrawableButton::ButtonStyle::ImageFitted };    
     HeaderComponent headerComponent = { *this };

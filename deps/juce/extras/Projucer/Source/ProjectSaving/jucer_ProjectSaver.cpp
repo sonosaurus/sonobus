@@ -250,20 +250,24 @@ OwnedArray<LibraryModule> ProjectSaver::getModules()
     OwnedArray<LibraryModule> modules;
     project.getEnabledModules().createRequiredModules (modules);
 
+    auto isCommandLine = ProjucerApplication::getApp().isRunningCommandLine;
+
     for (auto* module : modules)
     {
         if (! module->isValid())
         {
-            addError ("At least one of your JUCE module paths is invalid!\n"
-                      "Please go to the Modules settings page and ensure each path points to the correct JUCE modules folder.");
+            addError (String ("At least one of your JUCE module paths is invalid!\n")
+                + (isCommandLine ? "Please ensure each module path points to the correct JUCE modules folder."
+                                 : "Please go to the Modules settings page and ensure each path points to the correct JUCE modules folder."));
 
             return {};
         }
 
         if (project.getEnabledModules().getExtraDependenciesNeeded (module->getID()).size() > 0)
         {
-            addError ("At least one of your modules has missing dependencies!\n"
-                      "Please go to the settings page of the highlighted modules and add the required dependencies.");
+            addError (String ("At least one of your modules has missing dependencies!\n")
+                + (isCommandLine ? "Please add the required dependencies, or run the command again with the \"--fix-missing-dependencies\" option."
+                                 : "Please go to the settings page of the highlighted modules and add the required dependencies."));
 
             return {};
         }
@@ -531,7 +535,7 @@ void ProjectSaver::writeAppHeader (MemoryOutputStream& out, const OwnedArray<Lib
         << " /** If you've hit this error then the version of the Projucer that was used to generate this project is" << newLine
         << "     older than the version of the JUCE modules being included. To fix this error, re-save your project" << newLine
         << "     using the latest version of the Projucer or, if you aren't using the Projucer to manage your project," << newLine
-        << "     remove the JUCE_PROJUCER_VERSION define from the AppConfig.h file." << newLine
+        << "     remove the JUCE_PROJUCER_VERSION define." << newLine
         << " */" << newLine
         << " #error \"This project was last saved using an outdated version of the Projucer! Re-save this project with the latest version to fix this error.\"" << newLine
         << "#endif" << newLine

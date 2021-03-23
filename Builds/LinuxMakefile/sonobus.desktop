@@ -2,7 +2,7 @@
 Name=SonoBus
 Comment=High Quality Network Audio Streaming 
 GenericName=Network Audio Streaming Software
-Exec=SonoBus
+Exec=sonobus
 Icon=sonobus
 Terminal=false
 Type=Application

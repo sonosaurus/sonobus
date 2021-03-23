@@ -17,24 +17,30 @@ if [ -n "${AAXSIGNCMD}" ]; then
  ${AAXSIGNCMD}  --in SonoBus/SonoBus.aaxplugin --out SonoBus/SonoBus.aaxplugin
 fi
 
-# notarize them
+mkdir -p tmp
 
-if ! ./notarize-app.sh SonoBus/SonoBus.app ; then
+# notarize them in parallel
+./notarize-app.sh --submit=tmp/sbapp.uuid  SonoBus/SonoBus.app
+./notarize-app.sh --submit=tmp/sbau.uuid SonoBus/SonoBus.component
+./notarize-app.sh --submit=tmp/sbvst3.uuid SonoBus/SonoBus.vst3
+./notarize-app.sh --submit=tmp/sbvst2.uuid SonoBus/SonoBus.vst 
+
+if ! ./notarize-app.sh --resume=tmp/sbapp.uuid SonoBus/SonoBus.app ; then
   echo Notarization App failed
   exit 2
 fi
 
-if ! ./notarize-app.sh SonoBus/SonoBus.component ; then
+if ! ./notarize-app.sh --resume=tmp/sbau.uuid SonoBus/SonoBus.component ; then
   echo Notarization AU failed
   exit 2
 fi
 
-if ! ./notarize-app.sh SonoBus/SonoBus.vst3 ; then
+if ! ./notarize-app.sh --resume=tmp/sbvst3.uuid SonoBus/SonoBus.vst3 ; then
   echo Notarization VST3 failed
   exit 2
 fi
   
-if ! ./notarize-app.sh SonoBus/SonoBus.vst ; then
+if ! ./notarize-app.sh --resume=tmp/sbvst2.uuid SonoBus/SonoBus.vst ; then
   echo Notarization VST2 failed
   exit 2
 fi

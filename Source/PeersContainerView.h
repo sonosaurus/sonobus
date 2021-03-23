@@ -13,6 +13,8 @@
 #include "GenericItemChooser.h"
 #include "CompressorView.h"
 
+#include "ChannelGroupsView.h"
+
 class JitterBufferMeter;
 
 class PeerViewInfo : public Component{
@@ -32,8 +34,7 @@ public:
 
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;
-    
-    std::unique_ptr<Label> nameLabel;
+
     std::unique_ptr<Label> addrLabel;
     std::unique_ptr<Label> staticAddrLabel;
     std::unique_ptr<ToggleButton> sendMutedButton;
@@ -42,14 +43,7 @@ public:
     std::unique_ptr<SonoDrawableButton> latActiveButton;
     std::unique_ptr<SonoDrawableButton> sendOptionsButton;
     std::unique_ptr<SonoDrawableButton> recvOptionsButton;
-    std::unique_ptr<TextButton> fxButton;
-    std::unique_ptr<TextButton> panButton;
     std::unique_ptr<Label>  statusLabel;
-    std::unique_ptr<Label>  levelLabel;
-    std::unique_ptr<Slider> levelSlider;
-    std::unique_ptr<Label>  panLabel;
-    std::unique_ptr<Slider> panSlider1;
-    std::unique_ptr<Slider> panSlider2;
     std::unique_ptr<Label>  bufferTimeLabel;
     std::unique_ptr<Slider> bufferTimeSlider;        
     std::unique_ptr<SonoChoiceButton> autosizeButton;
@@ -58,18 +52,14 @@ public:
     std::unique_ptr<TextButton> optionsResetDropButton;
     std::unique_ptr<TextButton> optionsRemoveButton;
     std::unique_ptr<SonoChoiceButton> remoteSendFormatChoiceButton;
+    std::unique_ptr<ToggleButton> changeAllRecvFormatButton;
     std::unique_ptr<SonoDrawableButton> bufferMinButton;
     std::unique_ptr<SonoDrawableButton> bufferMinFrontButton;
     std::unique_ptr<Drawable> recvButtonImage;
     std::unique_ptr<Drawable> sendButtonImage;
 
-    std::unique_ptr<Component> effectsContainer;
-
-    std::unique_ptr<CompressorView> compressorView;
-   
 
     
-    std::unique_ptr<Component> pannersContainer;
     std::unique_ptr<Component> sendOptionsContainer;
     std::unique_ptr<Component> recvOptionsContainer;
 
@@ -93,6 +83,9 @@ public:
     double fillRatio = 0.0;
     std::unique_ptr<JitterBufferMeter> jitterBufferMeter;
 
+    std::unique_ptr<ChannelGroupsView> channelGroups;
+
+
     std::unique_ptr<DrawableRectangle> sendStatsBg;
     std::unique_ptr<DrawableRectangle> recvStatsBg;
     std::unique_ptr<DrawableRectangle> pingBg;
@@ -105,8 +98,6 @@ public:
     FlexBox mainnarrowbox;
     FlexBox mainsendbox;
     FlexBox mainrecvbox;
-    FlexBox namebox;
-    FlexBox nameaddrbox;
     FlexBox sendbox;
     FlexBox sendmeterbox;
     FlexBox recvbox;
@@ -147,6 +138,8 @@ public:
     bool wasSendActiveAtLatencyTest = false;
     
     bool singlePanner = true;
+    bool isNarrow = false;
+    bool fullMode = true;
     
     Colour bgColor;
     Colour borderColor;
@@ -165,6 +158,7 @@ public:
     
     std::unique_ptr<Label>  nameLabel;
     std::unique_ptr<Label>  messageLabel;
+    std::unique_ptr<TextButton>  removeButton;
 
     FlexBox mainbox;
 
@@ -177,13 +171,20 @@ public Button::Listener,
 public Slider::Listener,
 public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
-public CompressorView::Listener,
-public EffectsBaseView::HeaderListener,
+public ChannelGroupsView::Listener,
 public MultiTimer
 {
 public:
     PeersContainerView(SonobusAudioProcessor&);
-    
+
+    class Listener {
+    public:
+        virtual ~Listener() {}
+        virtual void internalSizesChanged(PeersContainerView *comp) {}
+    };
+    void addListener(Listener * listener) { listeners.add(listener); }
+    void removeListener(Listener * listener) { listeners.remove(listener); }
+
     void paint(Graphics & g) override;
     
     void resized() override;
@@ -202,7 +203,7 @@ public:
     void resetPendingUsers();
     void peerPendingJoin(String & group, String & user);
     void peerFailedJoin(String & group, String & user);
-    int getPendingPeerCount() const { return mPendingUsers.size(); }
+    int getPendingPeerCount() const { return (int)mPendingUsers.size(); }
     
     void rebuildPeerViews();
     void updatePeerViews(int specific=-1);
@@ -214,18 +215,24 @@ public:
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
     
-    void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) override;
 
+    // channelgroupsview
+    void channelLayoutChanged(ChannelGroupsView *comp) override;
+    void nameLabelClicked(ChannelGroupsView *comp) override;
 
     void clearClipIndicators();
     
-    Rectangle<int> getMinimumContentBounds() const;
+    juce::Rectangle<int> getMinimumContentBounds() const;
 
     void applyToAllSliders(std::function<void(Slider *)> & routine);
 
     void updateLayout();
-    
+
+    std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
+
+    void setPeerDisplayMode(SonobusAudioProcessor::PeerDisplayMode mode);
+
+
 protected:
     
     void startLatencyTest(int i);
@@ -243,12 +250,12 @@ protected:
     PendingPeerViewInfo * createPendingPeerViewInfo();
     
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
-    void showPanners(int index, bool flag);
     void showSendOptions(int index, bool flag, Component * fromView=nullptr);
     void showRecvOptions(int index, bool flag, Component * fromView=nullptr);
-    void showEffects(int index, bool flag, Component * fromView=nullptr);
 
-    
+
+    ListenerList<Listener> listeners;
+
     OwnedArray<PeerViewInfo> mPeerViews;
     SonobusAudioProcessor& processor;
 
@@ -266,6 +273,9 @@ protected:
 
     OwnedArray<PendingPeerViewInfo> mPendingPeerViews;
 
+    std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
+
+
     
     WeakReference<Component> pannerCalloutBox;
     WeakReference<Component> recvOptionsCalloutBox;
@@ -275,8 +285,10 @@ protected:
     FlexBox peersBox;
     int peersMinHeight = 120;
     int peersMinWidth = 400;
-    
+
+    int mLastWidth = 0;
     bool isNarrow = false;
+    bool peerModeFull = true; // default
 
     uint32 lastUpdateTimestampMs = 0;
     

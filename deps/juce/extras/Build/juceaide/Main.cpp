@@ -246,6 +246,7 @@ juce::build_tools::PlistOptions parsePlistOptions (const juce::File& file,
     updateField ("FILE_SHARING_ENABLED",                 result.fileSharingEnabled);
     updateField ("DOCUMENT_BROWSER_ENABLED",             result.documentBrowserEnabled);
     updateField ("STATUS_BAR_HIDDEN",                    result.statusBarHidden);
+    updateField ("REQUIRES_FULL_SCREEN",                 result.requiresFullScreen);
     updateField ("BACKGROUND_AUDIO_ENABLED",             result.backgroundAudioEnabled);
     updateField ("BACKGROUND_BLE_ENABLED",               result.backgroundBleEnabled);
     updateField ("PUSH_NOTIFICATIONS_ENABLED",           result.pushNotificationsEnabled);
@@ -260,6 +261,7 @@ juce::build_tools::PlistOptions parsePlistOptions (const juce::File& file,
     updateField ("PLUGIN_AU_MAIN_TYPE",                  result.auMainType);
     updateField ("IS_AU_SANDBOX_SAFE",                   result.isAuSandboxSafe);
     updateField ("IS_PLUGIN_SYNTH",                      result.isPluginSynth);
+    updateField ("SUPPRESS_AU_PLIST_RESOURCE_USAGE",     result.suppressResourceUsage);
     updateField ("BUNDLE_ID",                            result.bundleIdentifier);
     updateField ("ICON_FILE",                            result.iconFile);
 

@@ -17,14 +17,20 @@
 #include "CompressorView.h"
 #include "ExpanderView.h"
 #include "ParametricEqView.h"
+#include "EffectParams.h"
+#include "ConnectView.h"
+#include "ChannelGroupsView.h"
+#include "PeersContainerView.h"
+#include "OptionsView.h"
 
-class PeersContainerView;
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
 
 class SonobusAudioProcessorEditor;
-
-
+class ChannelGroupsView;
+class MonitorDelayView;
+class ChatView;
+class LatencyMatchView;
 
 //==============================================================================
 /**
@@ -42,10 +48,9 @@ public ApplicationCommandTarget,
 public AsyncUpdater,
 public FileDragAndDropTarget,
 public GenericItemChooser::Listener,
-public CompressorView::Listener,
-public ExpanderView::Listener,
-public ParametricEqView::Listener,
-public EffectsBaseView::HeaderListener
+public ConnectView::Listener,
+public ChannelGroupsView::Listener,
+public PeersContainerView::Listener
 {
 public:
     SonobusAudioProcessorEditor (SonobusAudioProcessor&);
@@ -64,7 +69,8 @@ public:
 
     void componentVisibilityChanged (Component& component) override;
     void componentParentHierarchyChanged (Component& component) override;
-    
+    void componentMovedOrResized (Component&, bool wasmoved, bool wasresized);
+
     void sliderValueChanged (Slider* slider) override;
 
     void parameterChanged (const String&, float newValue) override;
@@ -86,9 +92,15 @@ public:
         return findFirstTargetParentComponent();
     }
 
-    
+    // connectview
+    void connectionsChanged(ConnectView *comp) override;
 
-    
+    // channelgroupsview
+    void channelLayoutChanged(ChannelGroupsView *comp) override;
+
+    // PeerContainerView
+    void internalSizesChanged(PeersContainerView *comp) override;
+
     void textEditorReturnKeyPressed (TextEditor&) override;
     void textEditorEscapeKeyPressed (TextEditor&) override;
     void textEditorTextChanged (TextEditor&) override;
@@ -98,13 +110,8 @@ public:
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
 
-    void compressorParamsChanged(CompressorView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void expanderParamsChanged(ExpanderView *comp, SonobusAudioProcessor::CompressorParams & params) override;
-    void parametricEqParamsChanged(ParametricEqView *comp, SonobusAudioProcessor::ParametricEqParams & params) override;
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
 
-    
-    void connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup = false);
+    void connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup = false, bool copyInfoOnly=false);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
 
@@ -129,6 +136,8 @@ public:
     void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) override;
     void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) override;
+    void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg) override;
+    void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) override;
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
@@ -136,25 +145,33 @@ public:
     std::function<void()> switchToHostApplication; // = []() { return 0; };
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };
     std::function<Value*()> getShouldCheckForNewVersionValue; // = []() { return 0; };
+    std::function<Value*()> getAllowBluetoothInputValue; // = []() { return 0; };
+
+    std::function<StringArray*()> getRecentSetupFiles; // = []() { return 0; };
+    std::function<String*()> getLastRecentsFolder; // = []() { return 0; };
+
+    std::function<void()> saveSettingsIfNeeded; // = []() { return 0; };
 
     void handleURL(const String & urlstr);
     
-    void updateRecents();
 
-    void updatePublicGroups();
-    void resetPrivateGroupLabels();
+    ChannelGroupsView * getInputChannelGroupsView() { return mInputChannelsContainer.get(); }
+    PeersContainerView * getPeersContainerView() { return mPeerContainer.get(); }
 
     // if returns true signifies go ahead and quit now, otherwise we'll handle it
     bool requestedQuit();
 
-    void connectTabChanged (int newCurrentTabIndex);
 
+    bool loadSettingsFromFile(const File & file);
+    bool saveSettingsToFile(const File & file);
+
+    bool setupLocalisation(const String & overrideLang = {});
 
 private:
 
     void updateLayout();
 
-    void updateState();
+    void updateState(bool rebuildInputChannels = true);
     
     void configKnobSlider(Slider *);
     //void configLabel(Label * lab, bool val);
@@ -162,19 +179,19 @@ private:
     void configEditor(TextEditor *editor, bool passwd = false);
 
     void showPatchbay(bool flag);
-    void showInPanners(bool flag);
     void showMetConfig(bool flag);
     void showEffectsConfig(bool flag);
-    void showInEffectsConfig(bool flag, Component * fromView=nullptr);
+
+    void showGroupMenu(bool show);
 
     void showConnectPopup(bool flag);
-
-    bool handleSonobusURL(const URL & url);
 
     void showFormatChooser(int peerindex);
     
     void showSettings(bool flag);
-    
+
+    void showMonitorDelayView(bool flag);
+
     void updateServerStatusLabel(const String & mesg, bool mainonly=true);
     void updateChannelState(bool force=false);
     bool updatePeerState(bool force=false);
@@ -182,15 +199,9 @@ private:
     
     void updateOptionsState(bool ignorecheck=false);
 
-    void changeUdpPort(int port);
     
     String generateNewUsername(const AooServerConnectionInfo & info);
 
-    bool attemptToPasteConnectionFromClipboard();
-    bool copyInfoToClipboard(bool singleURL=false, String * retmessage = nullptr);
-    void updateServerFieldsFromConnectionInfo();
-
-    void publicGroupLogin();
 
 
     void openFileBrowser();
@@ -207,11 +218,16 @@ private:
 
     void showFilePopupMenu(Component * source);
 
+    void showLatencyMatchPrompt(const String & name, float latencyms);
+    void showLatencyMatchView(bool show);
 
     void updateSliderSnap();
 
-    bool setupLocalisation(const String & overrideLang = {});
 
+    void showSaveSettingsPreset();
+    void showLoadSettingsPreset();
+
+    void showChatPanel(bool show, bool allowresize=true);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -229,12 +245,8 @@ private:
     std::unique_ptr<ImageComponent> mTitleImage;
     
 
-    std::unique_ptr<Label> mLocalAddressStaticLabel;
-    std::unique_ptr<Label> mLocalAddressLabel;
-
-    std::unique_ptr<TextButton> mDirectConnectButton;
-
     std::unique_ptr<SonoTextButton> mConnectButton;
+    std::unique_ptr<SonoDrawableButton> mAltConnectButton;
 
     std::unique_ptr<Label> mMainGroupLabel;
     std::unique_ptr<Label> mMainUserLabel;
@@ -243,42 +255,8 @@ private:
     std::unique_ptr<ImageComponent> mMainPersonImage;
     std::unique_ptr<Label> mMainMessageLabel;
 
-    
-    std::unique_ptr<Label> mRemoteAddressStaticLabel;
-    std::unique_ptr<TextEditor> mAddRemoteHostEditor;
-    std::unique_ptr<Label> mDirectConnectDescriptionLabel;
-
-    std::unique_ptr<TextButton> mServerConnectButton;
-
-    std::unique_ptr<Label> mServerHostStaticLabel;
-    std::unique_ptr<TextEditor> mServerHostEditor;
-
-    std::unique_ptr<Label> mPublicServerHostStaticLabel;
-    std::unique_ptr<TextEditor> mPublicServerHostEditor;
-    std::unique_ptr<TextEditor> mPublicServerUsernameEditor;
-    std::unique_ptr<Label> mPublicServerStatusInfoLabel;
-    std::unique_ptr<Label> mPublicServerUserStaticLabel;
-    std::unique_ptr<GroupComponent> mPublicGroupComponent;
-    std::unique_ptr<Label> mPublicServerInfoStaticLabel;
-    std::unique_ptr<TextButton> mPublicServerAddGroupButton;
-    std::unique_ptr<TextEditor> mPublicServerGroupEditor;
-
-
-    std::unique_ptr<Label> mServerUserStaticLabel;
-    std::unique_ptr<TextEditor> mServerUsernameEditor;
-    std::unique_ptr<Label> mServerUserPassStaticLabel;
-    std::unique_ptr<TextEditor> mServerUserPasswordEditor;
-
-    std::unique_ptr<Label> mServerGroupStaticLabel;
-    std::unique_ptr<TextEditor> mServerGroupEditor;
-    std::unique_ptr<Label> mServerGroupPassStaticLabel;
-    std::unique_ptr<TextEditor> mServerGroupPasswordEditor;
-
-    std::unique_ptr<SonoDrawableButton> mServerGroupRandomButton;
-    std::unique_ptr<SonoDrawableButton> mServerPasteButton;
-    std::unique_ptr<SonoDrawableButton> mServerCopyButton;
-    std::unique_ptr<SonoDrawableButton> mServerShareButton;
-    std::unique_ptr<Label> mServerAudioInfoLabel;
+    std::unique_ptr<SonoDrawableButton> mPeerLayoutFullButton;
+    std::unique_ptr<SonoDrawableButton> mPeerLayoutMinimalButton;
 
 
     std::unique_ptr<Label> mServerStatusLabel;
@@ -295,17 +273,13 @@ private:
 
     std::unique_ptr<Slider> mInGainSlider;
 
-    std::unique_ptr<TextButton> mPanButton;
+    std::unique_ptr<TextButton> mInMixerButton;
 
-    std::unique_ptr<Slider> mInMonPanMonoSlider;
-    std::unique_ptr<Slider> mInMonPanStereoSlider;
-    std::unique_ptr<Slider> mInMonPanSlider1;
-    std::unique_ptr<Slider> mInMonPanSlider2;
-    std::unique_ptr<Label> mInMonPanLabel1;
-    std::unique_ptr<Label> mInMonPanLabel2;
 
     std::unique_ptr<TextButton> mInMuteButton;
     std::unique_ptr<TextButton> mInSoloButton;
+
+    std::unique_ptr<TextButton> mMonDelayButton;
 
     
     std::unique_ptr<Slider> mDrySlider;
@@ -318,6 +292,7 @@ private:
     std::unique_ptr<SonoDrawableButton> mMetConfigButton;
     std::unique_ptr<SonoDrawableButton> mMetEnableButton;
     std::unique_ptr<SonoDrawableButton> mMetSendButton;
+    std::unique_ptr<TextButton> mMetSyncButton;
     std::unique_ptr<Label> mMetTempoSliderLabel;
     std::unique_ptr<Slider> mMetTempoSlider;
     std::unique_ptr<Label> mMetLevelSliderLabel;
@@ -328,79 +303,26 @@ private:
 
     std::unique_ptr<DrawableRectangle> mFileAreaBg;
 
-    std::unique_ptr<Slider> mBufferTimeSlider;
-    
+
     std::unique_ptr<Label> mInGainLabel;
     std::unique_ptr<Label> mDryLabel;
     std::unique_ptr<Label> mWetLabel;
     std::unique_ptr<Label> mOutGainLabel;
 
-    std::unique_ptr<TabbedComponent> mConnectTab;
-    std::unique_ptr<Component> mDirectConnectContainer;
-    std::unique_ptr<Viewport> mServerConnectViewport;
-    std::unique_ptr<Component> mServerConnectContainer;
-    std::unique_ptr<Viewport> mPublicServerConnectViewport;
-    std::unique_ptr<Component> mPublicServerConnectContainer;
-    std::unique_ptr<Component> mRecentsContainer;
-    std::unique_ptr<GroupComponent> mRecentsGroup;
+    std::unique_ptr<ConnectView> mConnectView;
 
-    std::unique_ptr<Component> mConnectComponent;
-    std::unique_ptr<DrawableRectangle> mConnectComponentBg;
-    std::unique_ptr<Label> mConnectTitle;
-    std::unique_ptr<SonoDrawableButton> mConnectCloseButton;
+    std::unique_ptr<OptionsView> mOptionsView;
 
-    
-    std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
-    std::unique_ptr<Viewport> mAudioOptionsViewport;
-    std::unique_ptr<Viewport> mOtherOptionsViewport;
-    std::unique_ptr<Viewport> mRecordOptionsViewport;
+    //std::unique_ptr<TabbedComponent> mSettingsTab;
 
-    std::unique_ptr<TabbedComponent> mSettingsTab;
-
-    std::unique_ptr<Component> mOptionsComponent;
-    std::unique_ptr<Component> mRecOptionsComponent;
-    int minOptionsHeight = 0;
-    int minRecOptionsHeight = 0;
+    uint32 settingsClosedTimestamp = 0;
     int minServerConnectHeight = 0;
-    
+
     std::unique_ptr<Component> mMetContainer;
 
     std::unique_ptr<Component> mEffectsContainer;
-    std::unique_ptr<Component> mInEffectsContainer;
 
-    
-    std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
-    std::unique_ptr<SonoChoiceButton> mOptionsFormatChoiceDefaultChoice;
-    std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
-    std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
 
-    std::unique_ptr<ToggleButton> mOptionsUseSpecificUdpPortButton;
-    std::unique_ptr<TextEditor>  mOptionsUdpPortEditor;
-    std::unique_ptr<Label> mVersionLabel;
-    std::unique_ptr<ToggleButton> mOptionsChangeAllFormatButton;
-
-    std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
-    std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
-    std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
-    std::unique_ptr<ToggleButton> mOptionsOverrideSamplerateButton;
-    std::unique_ptr<ToggleButton> mOptionsShouldCheckForUpdateButton;
-    std::unique_ptr<ToggleButton> mOptionsAutoReconnectButton;
-    std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
-
-    std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
-
-    std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
-    std::unique_ptr<ToggleButton> mOptionsRecMixButton;
-    std::unique_ptr<ToggleButton> mOptionsRecMixMinusButton;
-    std::unique_ptr<ToggleButton> mOptionsRecSelfButton;
-    std::unique_ptr<ToggleButton> mOptionsRecOthersButton;
-    std::unique_ptr<SonoChoiceButton> mRecFormatChoice;
-    std::unique_ptr<SonoChoiceButton> mRecBitsChoice;
-    std::unique_ptr<Label> mRecFormatStaticLabel;
-    std::unique_ptr<Label> mRecLocationStaticLabel;
-    std::unique_ptr<TextButton> mRecLocationButton;
-
-    
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
     std::unique_ptr<SonoDrawableButton> mPlayButton;
@@ -411,18 +333,16 @@ private:
     std::unique_ptr<Slider> mPlaybackSlider;
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
+    std::unique_ptr<Drawable> mPeerRecImage;
+
+
     // effects
     std::unique_ptr<TextButton> mEffectsButton;
-    std::unique_ptr<TextButton> mInEffectsButton;
-    std::unique_ptr<CompressorView> mInCompressorView;
-    std::unique_ptr<DrawableRectangle> mCompressorBg;
+
     std::unique_ptr<DrawableRectangle> mReverbHeaderBg;
 
-    
-    std::unique_ptr<ExpanderView> mInExpanderView;
-    std::unique_ptr<DrawableRectangle> mExpanderBg;
+    std::unique_ptr<MonitorDelayView> mMonitorDelayView;
 
-    std::unique_ptr<ParametricEqView> mInEqView;
 
     
     std::unique_ptr<SonoChoiceButton> mSendChannelsChoice;
@@ -443,7 +363,13 @@ private:
     std::unique_ptr<Label>  mReverbPreDelayLabel;
     std::unique_ptr<Slider> mReverbPreDelaySlider;
 
-    
+    // latency match stuff
+    std::unique_ptr<Component>  mLatMatchApproveContainer;
+    std::unique_ptr<Label>  mLatMatchApproveLabel;
+    std::unique_ptr<TextButton> mApproveLatMatchButton;
+    std::unique_ptr<LatencyMatchView> mLatMatchView;
+
+
     std::unique_ptr<FileChooser> mFileChooser;
     File  mCurrOpenDir;
     URL mCurrentAudioFile;
@@ -460,19 +386,19 @@ private:
     std::unique_ptr<foleys::LevelMeter> inputMeter;
     std::unique_ptr<foleys::LevelMeter> outputMeter;
 
-    
-    std::unique_ptr<Component> inPannersContainer;
-    WeakReference<Component> inPannerCalloutBox;
 
     //std::unique_ptr<Component> serverContainer;
     WeakReference<Component> serverCalloutBox;
 
     WeakReference<Component> metCalloutBox;
     WeakReference<Component> effectsCalloutBox;
-    WeakReference<Component> inEffectsCalloutBox;
 
-    
-    
+    WeakReference<Component> monDelayCalloutBox;
+
+    WeakReference<Component> latmatchCalloutBox;
+    WeakReference<Component> latmatchViewCalloutBox;
+
+
     std::unique_ptr<PatchMatrixView> mPatchMatrixView;
     //std::unique_ptr<DialogWindow> mPatchbayWindow;
     WeakReference<Component> patchbayCalloutBox;
@@ -501,6 +427,7 @@ private:
             PeerFailedJoinEvent,
             PublicGroupModifiedEvent,
             PublicGroupDeletedEvent,
+            PeerRequestedLatencyMatchEvent,
             Error
         };
         
@@ -508,95 +435,54 @@ private:
         ClientEvent(Type type_, const String & mesg) : type(type_), success(true), message(mesg) {}
         ClientEvent(Type type_, bool success_, const String & mesg) : type(type_), success(success_), message(mesg) {}
         ClientEvent(Type type_, const String & group_, bool success_, const String & mesg, const String & user_="") : type(type_), success(success_), message(mesg), user(user_), group(group_) {}
+        ClientEvent(Type type_, const String & mesg, float val) : type(type_), success(true), message(mesg), floatVal(val) {}
 
         Type type = None;
         bool success = false;
         String message;
         String user;
         String group;
+        float floatVal = 0.0f;
     };
     Array<ClientEvent> clientEvents;
-    
-    class RecentsListModel : public ListBoxModel
-    {
-    public:
-        RecentsListModel(SonobusAudioProcessorEditor * parent_);
-        int getNumRows() override;
-        void     paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
-        void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
-        void selectedRowsChanged(int lastRowSelected) override;
 
-        void updateState();
+    CriticalSection    chatStateLock;
+    Array<SBChatEvent> newChatEvents;
+    Atomic<bool>  haveNewChatEvents = { false };
 
-    protected:
-        SonobusAudioProcessorEditor * parent;
-
-        Image groupImage;
-        Image personImage;
-        std::unique_ptr<Drawable> removeImage;
-        
-        int cachedWidth = 0;
-        int removeButtonX = 0;
-        
-        Array<AooServerConnectionInfo> recents;
-    };
-    RecentsListModel recentsListModel;
-    Font recentsGroupFont;
-    Font recentsNameFont;
-    Font recentsInfoFont;
-    bool firstTimeConnectShow = true;
-    uint32 settingsClosedTimestamp = 0;
-
-    std::unique_ptr<ListBox> mRecentsListBox;
-    std::unique_ptr<SonoTextButton> mClearRecentsButton;
-
-    // public groups stuff
-    class PublicGroupsListModel : public ListBoxModel
-    {
-    public:
-        PublicGroupsListModel(SonobusAudioProcessorEditor * parent_);
-        int getNumRows() override;
-        void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
-        void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
-        void selectedRowsChanged(int lastRowSelected) override;
-
-        void updateState();
-
-    protected:
-        SonobusAudioProcessorEditor * parent;
-
-        Image groupImage;
-        Image personImage;
-
-        int cachedWidth = 0;
-
-        Array<AooPublicGroupInfo> groups;
-    };
-    PublicGroupsListModel publicGroupsListModel;
-
-    std::unique_ptr<ListBox> mPublicGroupsListBox;
-
+    std::unique_ptr<ChatView> mChatView;
+    std::unique_ptr<ComponentBoundsConstrainer> mChatSizeConstrainer;
+    std::unique_ptr<ResizableEdgeComponent> mChatEdgeResizer;
+    std::unique_ptr<SonoDrawableButton> mChatButton;
+    bool mAboutToShowChat = false;
+    bool mChatShowDidResize = false;
+    bool mChatWasVisible = false;
+    bool mChatOverlay = false;
+    bool mIgnoreChatViewResize = false;
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
     
-    std::unique_ptr<Viewport> mPeerViewport;
+    std::unique_ptr<Viewport> mMainViewport;
+    std::unique_ptr<Component> mMainContainer;
     std::unique_ptr<PeersContainerView> mPeerContainer;
+
+    std::unique_ptr<Viewport> mInputChannelsViewport;
+    std::unique_ptr<ChannelGroupsView> mInputChannelsContainer;
 
     int peersHeight = 0;
     bool isNarrow = false;
     bool settingsWasShownOnDown = false;
-    bool firstShowInEffects = true;
     WeakReference<Component> settingsCalloutBox;
 
     int inChannels = 0;
     int outChannels = 0;
-    
+
     String currGroup;
     bool  currConnected = false;
     
     bool mSendChannelsOverridden = false;
-    
+
     bool mPushToTalkKeyDown = false;
     bool mPushToTalkWasMuted = true;
     
@@ -616,7 +502,10 @@ private:
         SonobusAudioProcessorEditor & parent;
     };
 
-    
+
+    void populateRecentSetupsMenu(PopupMenu & popup);
+    void addToRecentsSetups(const File & file);
+
     SonobusCommandManager commandManager { *this };
 
     
@@ -631,6 +520,7 @@ private:
         PopupMenu getMenuForIndex (int topLevelMenuIndex, const String& /*menuName*/) override;
         void menuItemSelected (int menuItemID, int topLevelMenuIndex) override;
 
+        
     protected:
         SonobusAudioProcessorEditor & parent;
     };
@@ -638,41 +528,30 @@ private:
     std::unique_ptr<SonobusMenuBarModel> menuBarModel;
     std::unique_ptr<MenuBarComponent> mMenuBar;
 
+
     
     std::unique_ptr<RandomSentenceGenerator> mRandomSentence;
 
 
-    std::unique_ptr<ConcertinaPanel> mInEffectsConcertina;
 
-    
     FlexBox mainBox;
     FlexBox titleBox;
     FlexBox titleVBox;
 
     FlexBox mainGroupUserBox;
-    
+    FlexBox mainGroupBox;
+    FlexBox mainUserBox;
+
+    FlexBox mainGroupLayoutBox;
+
+
     FlexBox knobBox;    
     
     FlexBox remoteBox;
     FlexBox inputBox;
     FlexBox addressBox;
 
-    FlexBox serverBox;
-    FlexBox servStatusBox;
-    FlexBox servGroupBox;
-    FlexBox servGroupPassBox;
-    FlexBox servUserBox;
-    FlexBox servUserPassBox;
-    //FlexBox inputBox;
-    FlexBox servAddressBox;
-    FlexBox servButtonBox;
-    FlexBox localAddressBox;
-
-    FlexBox publicGroupsBox;
-    FlexBox publicServAddressBox;
-    FlexBox publicServUserBox;
-    FlexBox publicAddGroupBox;
-
+    FlexBox connectBox;
 
     FlexBox middleBox;
 
@@ -700,8 +579,8 @@ private:
     FlexBox inputPannerBox;
 
     FlexBox outputMainBox;
-    
-    
+
+
     FlexBox metBox;
     FlexBox metVolBox;
     FlexBox metTempoBox;
@@ -715,43 +594,14 @@ private:
     FlexBox reverbSizeBox;
     FlexBox reverbDampBox;
     FlexBox reverbPreDelayBox;
-    
-    FlexBox inEffectsBox;
-    
-    FlexBox connectMainBox;
-    FlexBox connectHorizBox;
-    FlexBox connectTitleBox;
 
-    FlexBox connectBox;
 
-    FlexBox recentsBox;
-    FlexBox clearRecentsBox;
-    
     FlexBox inPannerMainBox;
     FlexBox inPannerLabelBox;
     FlexBox inPannerBox;
 
-    FlexBox optionsBox;
-    FlexBox optionsNetbufBox;
-    FlexBox optionsSendQualBox;
-    FlexBox optionsHearlatBox;
-    FlexBox optionsUdpBox;
-    FlexBox optionsDynResampleBox;
-    FlexBox optionsOverrideSamplerateBox;
-    FlexBox optionsCheckForUpdateBox;
-    FlexBox optionsChangeAllQualBox;
-    FlexBox optionsInputLimitBox;
-    FlexBox optionsAutoReconnectBox;
-    FlexBox optionsSnapToMouseBox;
-
-    FlexBox recOptionsBox;
-    FlexBox optionsRecordFormatBox;
-    FlexBox optionsRecMixBox;
-    FlexBox optionsRecSelfBox;
-    FlexBox optionsRecMixMinusBox;
-    FlexBox optionsRecOthersBox;
-    FlexBox optionsMetRecordBox;
-    FlexBox optionsRecordDirBox;
+    FlexBox latMatchBox;
+    FlexBox latMatchButtBox;
 
     Image iaaHostIcon;
 
@@ -780,35 +630,32 @@ private:
     std::unique_ptr<CustomTooltipWindow> tooltipWindow;
     
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPanMonoAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan1Attachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInMonPan2Attachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainSendMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainRecvMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetTempoAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSyncAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetEnableAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mHearLatencyTestAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetRecordedAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mReverbEnableAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbSizeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbDampingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mReverbPreDelayAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mDynamicResamplingAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonSoloAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mInMonMuteAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mAutoReconnectAttachment;
 
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;
 
     bool iaaConnected = false;
+
+    File mSettingsFolder;
     
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

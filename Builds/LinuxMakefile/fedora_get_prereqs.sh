@@ -14,7 +14,6 @@ PREREQS="libopusenc \
 	libXinerama-devel \
 	libXrandr-devel \
 	libXcursor-devel \
-	mesa-libGL-devel \
 	freetype-devel \
 	libcurl-devel
         "

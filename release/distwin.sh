@@ -15,14 +15,23 @@ if [ -z "$CERTFILE" ] ; then
 fi
 
 BUILDDIR='../Builds/VisualStudio2017/x64/Release'
+BUILDDIR32='../Builds/VisualStudio2017/Win32/Release32'
 
 mkdir -p SonoBus/Plugins
 
 cp -v ../doc/README_WINDOWS.txt SonoBus/README.txt
 cp -v ${BUILDDIR}/Standalone\ Plugin/SonoBus.exe SonoBus/
 cp -v ${BUILDDIR}/VST3/SonoBus.vst3 SonoBus/Plugins/
-cp -v ${BUILDDIR}VST2/VST/SonoBus.dll SonoBus/Plugins/
+cp -v ${BUILDDIR}/VST/SonoBus.dll SonoBus/Plugins/
 cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins/
+
+mkdir -p SonoBus/Plugins32
+
+cp -v ${BUILDDIR32}/Standalone\ Plugin/SonoBus.exe SonoBus/SonoBus32.exe
+cp -v ${BUILDDIR32}/VST3/SonoBus.vst3 SonoBus/Plugins32/
+cp -v ${BUILDDIR32}/VST/SonoBus.dll SonoBus/Plugins32/
+#cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins32/
+
 
 # sign AAX
 if [ -n "${AAXSIGNCMD}" ]; then
@@ -42,10 +51,11 @@ iscc /O"instoutput" "/Ssigntool=signtool.exe sign /t http://timestamp.digicert.c
 
 #signtool.exe sign /v /t "http://timestamp.digicert.com" /f SonosaurusCodeSigningSectigoCert.p12 /p "$CERTPASS" instoutput/
 
-ZIPFILE=sonobus-${VERSION}-win.zip
+#ZIPFILE=sonobus-${VERSION}-win.zip
+#cp -v ../doc/README_WINDOWS.txt instoutput/README.txt
+#rm -f ${ZIPFILE}
+#(cd instoutput; zip  ../${ZIPFILE} SonoBus\ Installer.exe README.txt )
 
-cp -v ../doc/README_WINDOWS.txt instoutput/README.txt
-
-rm -f ${ZIPFILE}
-
-(cd instoutput; zip  ../${ZIPFILE} SonoBus\ Installer.exe README.txt )
+EXEFILE=sonobus-${VERSION}-win.exe
+rm -f ${EXEFILE}
+cp instoutput/SonoBus-${VERSION}-Installer.exe ${EXEFILE}

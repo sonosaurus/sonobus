@@ -310,6 +310,8 @@ int32_t aoo::sink::get_sourceoption(void *endpoint, int32_t id,
         case aoo_opt_buffer_fill_ratio:
             CHECKARG(float);
             return src->get_buffer_fill_ratio(as<float>(p));
+        case aoo_opt_userformat:
+            return src->get_userformat(static_cast<char*>(p), size);
         // unsupported
         default:
             LOG_WARNING("aoo_sink: unsupported source option " << opt);
@@ -559,6 +561,13 @@ int32_t sink::handle_format_message(void *endpoint, aoo_replyfn fn,
     osc::osc_bundle_element_size_t size;
     (it++)->AsBlob(settings, size);
 
+    const void *userfmt = nullptr;
+    osc::osc_bundle_element_size_t ufsize = 0;
+
+    if (msg.ArgumentCount() > 8) {
+        (it++)->AsBlob(userfmt, ufsize);
+    }
+
     if (id < 0){
         LOG_WARNING("bad ID for " << AOO_MSG_FORMAT << " message");
         return 0;
@@ -573,7 +582,7 @@ int32_t sink::handle_format_message(void *endpoint, aoo_replyfn fn,
         src->set_protocol_flags(protocol_flags_);
     }
 
-    return src->handle_format(*this, salt, f, (const char *)settings, size, version);
+    return src->handle_format(*this, salt, f, (const char *)settings, size, version, (const char *) userfmt, ufsize);
 }
 
 int32_t sink::handle_data_message(void *endpoint, aoo_replyfn fn,
@@ -722,6 +731,18 @@ int32_t source_desc::get_buffer_fill_ratio(float &ratio){
     return 1;
 }
 
+int32_t source_desc::get_userformat(char *buf, int32_t size){
+    shared_lock lock(mutex_);
+    if (userformat_.empty()) return 0;
+
+    if (size < userformat_.size()) {
+        // return how much space is needed in buffer (negative)
+        return -(int32_t)userformat_.size();
+    }
+    std::copy(userformat_.begin(), userformat_.end(), buf);
+    return (int32_t)userformat_.size();
+}
+
 
 void source_desc::update(const sink &s){
     // take writer lock!
@@ -783,7 +804,8 @@ void source_desc::do_update(const sink &s){
 // /aoo/sink/<id>/format <src> <salt> <numchannels> <samplerate> <blocksize> <codec> <settings...>
 
 int32_t source_desc::handle_format(const sink& s, int32_t salt, const aoo_format& f,
-                                   const char *settings, int32_t size, int32_t version){
+                                   const char *settings, int32_t size, int32_t version,
+                                   const char *userformat, int32_t ufsize){
     // take writer lock!
     unique_lock lock(mutex_);
 
@@ -809,6 +831,11 @@ int32_t source_desc::handle_format(const sink& s, int32_t salt, const aoo_format
     
     // read format
     decoder_->read_format(f, settings, size);
+
+    // user format
+    if (userformat) {
+        userformat_.assign(userformat, userformat+ufsize);
+    }
 
     do_update(s);
 

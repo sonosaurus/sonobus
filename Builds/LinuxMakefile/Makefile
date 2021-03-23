@@ -35,34 +35,34 @@ ifeq ($(CONFIG),Debug)
     TARGET_ARCH := 
   endif
 
-  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DDEBUG=1" "-D_DEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.3-43\"" "-DLOGLEVEL=2" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.3" "-DJUCE_APP_VERSION_HEX=0x10303" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
+  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DDEBUG=1" "-D_DEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.4.0-60\"" "-DLOGLEVEL=2" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.4.0" "-DJUCE_APP_VERSION_HEX=0x10400" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
 
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST := -shared -Wl,--no-undefined
-  JUCE_TARGET_VST := SonoBus.so
+  JUCE_TARGET_VST := sonobus.so
   JUCE_VSTDESTDIR := $(HOME)/.vst
-  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/SonoBus.so $(JUCE_VSTDESTDIR)
+  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/sonobus.so $(JUCE_VSTDESTDIR)
 
   JUCE_CPPFLAGS_VST3 :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST3 := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST3 := -shared -Wl,--no-undefined
-  JUCE_VST3DIR := SonoBus.vst3
+  JUCE_VST3DIR := sonobus.vst3
   VST3_PLATFORM_ARCH := $(shell $(CXX) make_helpers/arch_detection.cpp 2>&1 | tr '\n' ' ' | sed "s/.*JUCE_ARCH \([a-zA-Z0-9_-]*\).*/\1/")
   JUCE_VST3SUBDIR := Contents/$(VST3_PLATFORM_ARCH)-linux
-  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/SonoBus.so
+  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/sonobus.so
   JUCE_VST3DESTDIR := $(HOME)/.vst3
   JUCE_COPYCMD_VST3 := $(JUCE_OUTDIR)/$(JUCE_VST3DIR) $(JUCE_VST3DESTDIR)
 
   JUCE_CPPFLAGS_STANDALONE_PLUGIN :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0"
-  JUCE_TARGET_STANDALONE_PLUGIN := SonoBus
+  JUCE_TARGET_STANDALONE_PLUGIN := sonobus
 
   JUCE_CPPFLAGS_SHARED_CODE :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0" "-DJUCE_SHARED_CODE=1"
-  JUCE_TARGET_SHARED_CODE := SonoBus.a
+  JUCE_TARGET_SHARED_CODE := sonobus.a
 
   JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -fPIC -g -ggdb -O0 -march=native $(CFLAGS)
   JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++17 $(CXXFLAGS)
-  JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) $(shell pkg-config --libs alsa freetype2 libcurl opus) -fvisibility=hidden -lm -lrt -ldl -lpthread -lGL -lopus $(LDFLAGS)
+  JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) $(shell pkg-config --libs alsa freetype2 libcurl opus) -fvisibility=hidden -lm -lrt -ldl -lpthread -lopus $(LDFLAGS)
 
   CLEANCMD = rm -rf $(JUCE_OUTDIR)/$(TARGET) $(JUCE_OBJDIR)
 endif
@@ -77,76 +77,34 @@ ifeq ($(CONFIG),Release)
     TARGET_ARCH := 
   endif
 
-  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DNDEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.3-43\"" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.3" "-DJUCE_APP_VERSION_HEX=0x10303" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
+  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DNDEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.4.0-60\"" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.4.0" "-DJUCE_APP_VERSION_HEX=0x10400" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
 
   JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST := -shared -Wl,--no-undefined
-  JUCE_TARGET_VST := SonoBus.so
+  JUCE_TARGET_VST := sonobus.so
   JUCE_VSTDESTDIR := $(HOME)/.vst
-  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/SonoBus.so $(JUCE_VSTDESTDIR)
+  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/sonobus.so $(JUCE_VSTDESTDIR)
 
   JUCE_CPPFLAGS_VST3 :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
   JUCE_CFLAGS_VST3 := -fPIC -fvisibility=hidden
   JUCE_LDFLAGS_VST3 := -shared -Wl,--no-undefined
-  JUCE_VST3DIR := SonoBus.vst3
+  JUCE_VST3DIR := sonobus.vst3
   VST3_PLATFORM_ARCH := $(shell $(CXX) make_helpers/arch_detection.cpp 2>&1 | tr '\n' ' ' | sed "s/.*JUCE_ARCH \([a-zA-Z0-9_-]*\).*/\1/")
   JUCE_VST3SUBDIR := Contents/$(VST3_PLATFORM_ARCH)-linux
-  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/SonoBus.so
+  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/sonobus.so
   JUCE_VST3DESTDIR := $(HOME)/.vst3
   JUCE_COPYCMD_VST3 := $(JUCE_OUTDIR)/$(JUCE_VST3DIR) $(JUCE_VST3DESTDIR)
 
   JUCE_CPPFLAGS_STANDALONE_PLUGIN :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0"
-  JUCE_TARGET_STANDALONE_PLUGIN := SonoBus
+  JUCE_TARGET_STANDALONE_PLUGIN := sonobus
 
   JUCE_CPPFLAGS_SHARED_CODE :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0" "-DJUCE_SHARED_CODE=1"
-  JUCE_TARGET_SHARED_CODE := SonoBus.a
+  JUCE_TARGET_SHARED_CODE := sonobus.a
 
   JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -fPIC -O3 -march=native $(CFLAGS)
   JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++17 $(CXXFLAGS)
-  JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) $(shell pkg-config --libs alsa freetype2 libcurl opus) -fvisibility=hidden -lm -lrt -ldl -lpthread -lGL -lopus $(LDFLAGS)
-
-  CLEANCMD = rm -rf $(JUCE_OUTDIR)/$(TARGET) $(JUCE_OBJDIR)
-endif
-
-ifeq ($(CONFIG),ReleaseVST2)
-  JUCE_BINDIR := build
-  JUCE_LIBDIR := build
-  JUCE_OBJDIR := build/intermediate/ReleaseVST2
-  JUCE_OUTDIR := build
-
-  ifeq ($(TARGET_ARCH),)
-    TARGET_ARCH := 
-  endif
-
-  JUCE_CPPFLAGS := $(DEPFLAGS) "-DLINUX=1" "-DNDEBUG=1" "-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.3.3-43\"" "-DDONT_USE_MULTIBUS" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCER_LINUX_MAKE_6D53C8B4=1" "-DJUCE_APP_VERSION=1.3.3" "-DJUCE_APP_VERSION_HEX=0x10303" $(shell pkg-config --cflags alsa freetype2 libcurl opus) -pthread -I../../deps/juce/modules/juce_audio_processors/format_types/VST3_SDK -I../../../VST2_SDK -I../../JuceLibraryCode -I../../deps -I../../deps/juce/modules -I../../deps/aoo/lib -I../../deps/aoo/deps $(CPPFLAGS)
-
-  JUCE_CPPFLAGS_VST :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
-  JUCE_CFLAGS_VST := -fPIC -fvisibility=hidden
-  JUCE_LDFLAGS_VST := -shared -Wl,--no-undefined
-  JUCE_TARGET_VST := SonoBus.so
-  JUCE_VSTDESTDIR := $(HOME)/.vst
-  JUCE_COPYCMD_VST := $(JUCE_OUTDIR)/SonoBus.so $(JUCE_VSTDESTDIR)
-
-  JUCE_CPPFLAGS_VST3 :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=0" "-DJucePlugin_Build_Unity=0"
-  JUCE_CFLAGS_VST3 := -fPIC -fvisibility=hidden
-  JUCE_LDFLAGS_VST3 := -shared -Wl,--no-undefined
-  JUCE_VST3DIR := SonoBus.vst3
-  VST3_PLATFORM_ARCH := $(shell $(CXX) make_helpers/arch_detection.cpp 2>&1 | tr '\n' ' ' | sed "s/.*JUCE_ARCH \([a-zA-Z0-9_-]*\).*/\1/")
-  JUCE_VST3SUBDIR := Contents/$(VST3_PLATFORM_ARCH)-linux
-  JUCE_TARGET_VST3 := $(JUCE_VST3DIR)/$(JUCE_VST3SUBDIR)/SonoBus.so
-  JUCE_VST3DESTDIR := $(HOME)/.vst3
-  JUCE_COPYCMD_VST3 := $(JUCE_OUTDIR)/$(JUCE_VST3DIR) $(JUCE_VST3DESTDIR)
-
-  JUCE_CPPFLAGS_STANDALONE_PLUGIN :=  "-DJucePlugin_Build_VST=0" "-DJucePlugin_Build_VST3=0" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0"
-  JUCE_TARGET_STANDALONE_PLUGIN := SonoBus
-
-  JUCE_CPPFLAGS_SHARED_CODE :=  "-DJucePlugin_Build_VST=1" "-DJucePlugin_Build_VST3=1" "-DJucePlugin_Build_AU=0" "-DJucePlugin_Build_AUv3=0" "-DJucePlugin_Build_RTAS=0" "-DJucePlugin_Build_AAX=0" "-DJucePlugin_Build_Standalone=1" "-DJucePlugin_Build_Unity=0" "-DJUCE_SHARED_CODE=1"
-  JUCE_TARGET_SHARED_CODE := SonoBus.a
-
-  JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -fPIC -O3 -march=native $(CFLAGS)
-  JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++17 $(CXXFLAGS)
-  JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) $(shell pkg-config --libs alsa freetype2 libcurl opus) -fvisibility=hidden -lm -lrt -ldl -lpthread -lGL -lopus $(LDFLAGS)
+  JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) $(shell pkg-config --libs alsa freetype2 libcurl opus) -fvisibility=hidden -lm -lrt -ldl -lpthread -lopus $(LDFLAGS)
 
   CLEANCMD = rm -rf $(JUCE_OUTDIR)/$(TARGET) $(JUCE_OBJDIR)
 endif
@@ -178,17 +136,23 @@ OBJECTS_SHARED_CODE := \
   $(JUCE_OBJDIR)/OscPrintReceivedElements_6e7e89f4.o \
   $(JUCE_OBJDIR)/OscReceivedElements_694ce973.o \
   $(JUCE_OBJDIR)/OscTypes_bb5e81a8.o \
-  $(JUCE_OBJDIR)/SonoBusActivity_25108813.o \
   $(JUCE_OBJDIR)/AutoUpdater_f72a57b.o \
   $(JUCE_OBJDIR)/BeatToggleGrid_31823899.o \
+  $(JUCE_OBJDIR)/ChannelGroup_97aa65c5.o \
+  $(JUCE_OBJDIR)/ChannelGroupsView_7dcc7b5d.o \
+  $(JUCE_OBJDIR)/ChatView_916ba26.o \
+  $(JUCE_OBJDIR)/ConnectView_47bf4d90.o \
   $(JUCE_OBJDIR)/CrossPlatformUtilsAndroid_3c3075d2.o \
   $(JUCE_OBJDIR)/CrossPlatformUtilsLinux_9477f957.o \
   $(JUCE_OBJDIR)/CrossPlatformUtilsWindows_777bb7e6.o \
+  $(JUCE_OBJDIR)/EffectParams_776c8b80.o \
   $(JUCE_OBJDIR)/GenericItemChooser_fff315a.o \
   $(JUCE_OBJDIR)/JitterBufferMeter_9383ad7e.o \
+  $(JUCE_OBJDIR)/LatencyMatchView_eaef9f35.o \
   $(JUCE_OBJDIR)/LatencyMeasurer_f2b67553.o \
   $(JUCE_OBJDIR)/Metronome_fd219413.o \
   $(JUCE_OBJDIR)/mtdm_3a9da6a.o \
+  $(JUCE_OBJDIR)/OptionsView_8c526744.o \
   $(JUCE_OBJDIR)/PeersContainerView_4663f1fe.o \
   $(JUCE_OBJDIR)/RandomSentenceGenerator_94be970e.o \
   $(JUCE_OBJDIR)/RunCumulantor_64a7204.o \
@@ -217,7 +181,6 @@ OBJECTS_SHARED_CODE := \
   $(JUCE_OBJDIR)/include_juce_graphics_f817e147.o \
   $(JUCE_OBJDIR)/include_juce_gui_basics_e3f79785.o \
   $(JUCE_OBJDIR)/include_juce_gui_extra_6dee1c1a.o \
-  $(JUCE_OBJDIR)/include_juce_opengl_a8a032b.o \
 
 .PHONY: clean all strip VST VST3 Standalone
 
@@ -359,11 +322,6 @@ $(JUCE_OBJDIR)/OscTypes_bb5e81a8.o: ../../deps/aoo/deps/oscpack/osc/OscTypes.cpp
 	@echo "Compiling OscTypes.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
-$(JUCE_OBJDIR)/SonoBusActivity_25108813.o: ../../Source/android/SonoBusActivity.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling SonoBusActivity.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
-
 $(JUCE_OBJDIR)/AutoUpdater_f72a57b.o: ../../Source/AutoUpdater.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling AutoUpdater.cpp"
@@ -372,6 +330,26 @@ $(JUCE_OBJDIR)/AutoUpdater_f72a57b.o: ../../Source/AutoUpdater.cpp
 $(JUCE_OBJDIR)/BeatToggleGrid_31823899.o: ../../Source/BeatToggleGrid.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling BeatToggleGrid.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/ChannelGroup_97aa65c5.o: ../../Source/ChannelGroup.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling ChannelGroup.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/ChannelGroupsView_7dcc7b5d.o: ../../Source/ChannelGroupsView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling ChannelGroupsView.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/ChatView_916ba26.o: ../../Source/ChatView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling ChatView.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/ConnectView_47bf4d90.o: ../../Source/ConnectView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling ConnectView.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/CrossPlatformUtilsAndroid_3c3075d2.o: ../../Source/CrossPlatformUtilsAndroid.cpp
@@ -389,6 +367,11 @@ $(JUCE_OBJDIR)/CrossPlatformUtilsWindows_777bb7e6.o: ../../Source/CrossPlatformU
 	@echo "Compiling CrossPlatformUtilsWindows.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
+$(JUCE_OBJDIR)/EffectParams_776c8b80.o: ../../Source/EffectParams.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling EffectParams.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
 $(JUCE_OBJDIR)/GenericItemChooser_fff315a.o: ../../Source/GenericItemChooser.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling GenericItemChooser.cpp"
@@ -397,6 +380,11 @@ $(JUCE_OBJDIR)/GenericItemChooser_fff315a.o: ../../Source/GenericItemChooser.cpp
 $(JUCE_OBJDIR)/JitterBufferMeter_9383ad7e.o: ../../Source/JitterBufferMeter.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling JitterBufferMeter.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/LatencyMatchView_eaef9f35.o: ../../Source/LatencyMatchView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling LatencyMatchView.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/LatencyMeasurer_f2b67553.o: ../../Source/LatencyMeasurer.cpp
@@ -412,6 +400,11 @@ $(JUCE_OBJDIR)/Metronome_fd219413.o: ../../Source/Metronome.cpp
 $(JUCE_OBJDIR)/mtdm_3a9da6a.o: ../../Source/mtdm.cc
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling mtdm.cc"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/OptionsView_8c526744.o: ../../Source/OptionsView.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling OptionsView.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/PeersContainerView_4663f1fe.o: ../../Source/PeersContainerView.cpp
@@ -552,11 +545,6 @@ $(JUCE_OBJDIR)/include_juce_gui_basics_e3f79785.o: ../../JuceLibraryCode/include
 $(JUCE_OBJDIR)/include_juce_gui_extra_6dee1c1a.o: ../../JuceLibraryCode/include_juce_gui_extra.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling include_juce_gui_extra.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/include_juce_opengl_a8a032b.o: ../../JuceLibraryCode/include_juce_opengl.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling include_juce_opengl.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_SHARED_CODE) $(JUCE_CFLAGS_SHARED_CODE) -o "$@" -c "$<"
 
 clean:

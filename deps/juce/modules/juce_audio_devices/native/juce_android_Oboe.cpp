@@ -35,7 +35,7 @@ namespace juce
 
 template <typename OboeDataFormat>  struct OboeAudioIODeviceBufferHelpers {};
 
-template<>
+template <>
 struct OboeAudioIODeviceBufferHelpers<int16>
 {
     static oboe::AudioFormat oboeAudioFormat() { return oboe::AudioFormat::I16; }
@@ -71,7 +71,7 @@ struct OboeAudioIODeviceBufferHelpers<int16>
     }
 };
 
-template<>
+template <>
 struct OboeAudioIODeviceBufferHelpers<float>
 {
     static oboe::AudioFormat oboeAudioFormat() { return oboe::AudioFormat::Float; }
@@ -1272,6 +1272,7 @@ public:
             case 22:  return "USB headset";
             case 23:  return "hearing aid";
             case 24:  return "built-in speaker safe";
+            case 25:  return {};
             default:  jassertfalse; return {}; // type not supported yet, needs to be added!
         }
     }

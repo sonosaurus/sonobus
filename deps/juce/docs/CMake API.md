@@ -143,6 +143,21 @@ If the "Product -> Archive" action isn't working, the following steps may help c
       XCODE_ATTRIBUTE_SKIP_INSTALL "NO")
   ```
 
+To archive an AUv3 plugin, `XCODE_ATTRIBUTE_INSTALL_PATH` must point to the PlugIns directory of the
+final app bundle but only for the AUv3 target. In code, that might look like this:
+
+    set_target_properties(my_plugin_Standalone PROPERTIES
+        XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
+        XCODE_ATTRIBUTE_SKIP_INSTALL "NO")
+
+    get_target_property(output_name my_plugin_Standalone OUTPUT_NAME)
+
+    # On iOS, the AUv3 should go in <bundle_dir>/PlugIns
+    # On macOS, the AUv3 should go in <bundle_dir>/Contents/PlugIns
+    set_target_properties(my_plugin_AUv3 PROPERTIES
+        XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)/${output_name}.app/PlugIns"
+        XCODE_ATTRIBUTE_SKIP_INSTALL "NO")
+
 ### Building universal binaries for macOS
 
 Building universal binaries that will run on both arm64 and x86_64 can be achieved by
@@ -197,13 +212,11 @@ included JUCE in your own project.
 
 #### `JUCE_ENABLE_MODULE_SOURCE_GROUPS`
 
-This option controls whether dummy targets are added to the build, where these targets contain all
-of the source files for each module added with `juce_add_module(s)`. If you're planning to use an
-IDE and want to be able to browse all of JUCE's source files, this may be useful. However, it will
-increase the size of generated IDE projects and might slow down configuration a bit. If you enable
-this, you should probably also add `set_property(GLOBAL PROPERTY USE_FOLDERS YES)` to your top level
-CMakeLists, otherwise the module sources will be added directly to the top level of the project,
-instead of in a nice 'Modules' subfolder.
+This option will make module source files browsable in IDE projects. It has no effect in non-IDE
+projects. This option is off by default, as it will increase the size of generated IDE projects and
+might slow down configuration a bit. If you enable this, you should probably also add
+`set_property(GLOBAL PROPERTY USE_FOLDERS YES)` to your top level CMakeLists as this is required for
+source grouping to work.
 
 #### `JUCE_COPY_PLUGIN_AFTER_BUILD`
 
@@ -280,6 +293,9 @@ attributes directly to these creation functions, rather than adding them later.
 
 - `STATUS_BAR_HIDDEN`
   - May be either TRUE or FALSE. Adds the appropriate entries to an iOS app's Info.plist.
+  
+ - `REQUIRES_FULL_SCREEN`
+   - May be either TRUE or FALSE. Adds the appropriate entries to an iOS app's Info.plist.
 
 - `BACKGROUND_AUDIO_ENABLED`
   - May be either TRUE or FALSE. Adds the appropriate entries to an iOS app's Info.plist.
@@ -314,6 +330,12 @@ attributes directly to these creation functions, rather than adding them later.
   - A path to an xcassets directory, containing icons and/or launch images for this target. If this
     is specified, the ICON_BIG and ICON_SMALL arguments will not have an effect on iOS, and a launch
     storyboard will not be used.
+
+- `TARGETED_DEVICE_FAMILY`
+  - Specifies the device families on which the product must be capable of running. Allowed values
+    are "1", "2", and "1,2"; these correspond to "iPhone/iPod touch", "iPad", and "iPhone/iPod and
+    iPad" respectively. This will default to "1,2", meaning that the target will target iPhone,
+    iPod, and iPad.
 
 - `ICON_BIG`, `ICON_SMALL`
   - Paths to image files that will be used to generate app icons. If only one of these parameters
@@ -412,11 +434,13 @@ attributes directly to these creation functions, rather than adding them later.
 
 - `PLUGIN_MANUFACTURER_CODE`
   - A four-character unique ID for your company. For AU compatibility, this must contain at least
-    one upper-case letter.
+    one upper-case letter. GarageBand 10.3 requires the first letter to be upper-case, and the
+    remaining letters to be lower-case.
 
 - `PLUGIN_CODE`
-  - A four-character unique ID for your plugin. For AU compatibility, this must contain at least
-    one upper-case letter.
+  - A four-character unique ID for your plugin. For AU compatibility, this must contain exactly one
+    upper-case letter. GarageBand 10.3 requires the first letter to be upper-case, and the remaining
+    letters to be lower-case.
 
 - `DESCRIPTION`
   - A short description of your plugin.
@@ -479,6 +503,13 @@ attributes directly to these creation functions, rather than adding them later.
 
 - `AU_SANDBOX_SAFE`
   - May be either TRUE or FALSE. Adds the appropriate entries to an AU plugin's Info.plist.
+
+- `SUPPRESS_AU_PLIST_RESOURCE_USAGE`
+  - May be either TRUE or FALSE. Defaults to FALSE. Set this to TRUE to disable the `resourceUsage`
+    key in the target's plist. This is useful for AU plugins that must access resources which cannot
+    be declared in the resourceUsage block, such as UNIX domain sockets. In particular,
+    PACE-protected AU plugins may require this option to be enabled in order for the plugin to load
+    in GarageBand.
 
 - `AAX_CATEGORY`
   - Should be one of: `AAX_ePlugInCategory_None`, `AAX_ePlugInCategory_EQ`,

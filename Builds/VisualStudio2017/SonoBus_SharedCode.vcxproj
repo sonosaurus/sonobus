@@ -12,9 +12,13 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseVST2|x64">
-      <Configuration>ReleaseVST2</Configuration>
-      <Platform>x64</Platform>
+    <ProjectConfiguration Include="Debug32|Win32">
+      <Configuration>Debug32</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release32|Win32">
+      <Configuration>Release32</Configuration>
+      <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -37,7 +41,15 @@
     <PlatformToolset>v141</PlatformToolset>
     <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'"
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug32|Win32'"
+                 Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v141</PlatformToolset>
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release32|Win32'"
                  Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
@@ -63,10 +75,14 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\Shared Code\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SonoBus</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">$(SolutionDir)$(Platform)\$(Configuration)\Shared Code\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">$(Platform)\$(Configuration)\Shared Code\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">SonoBus</TargetName>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug32|Win32'">$(SolutionDir)$(Platform)\$(Configuration)\Shared Code\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug32|Win32'">$(Platform)\$(Configuration)\Shared Code\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug32|Win32'">SonoBus</TargetName>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug32|Win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release32|Win32'">$(SolutionDir)$(Platform)\$(Configuration)\Shared Code\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release32|Win32'">$(Platform)\$(Configuration)\Shared Code\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release32|Win32'">SonoBus</TargetName>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release32|Win32'">true</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -80,7 +96,7 @@
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.3-43&quot;;LOGLEVEL=2;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.3;JUCE_APP_VERSION_HEX=0x10303;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.4.0-60&quot;;LOGLEVEL=2;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.4.0;JUCE_APP_VERSION_HEX=0x10400;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -120,7 +136,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.3-43&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.3;JUCE_APP_VERSION_HEX=0x10303;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.4.0-60&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.4.0;JUCE_APP_VERSION_HEX=0x10400;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -152,7 +168,52 @@
       <OutputFile>$(IntDir)\SonoBus.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseVST2|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug32|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <HeaderFileName/>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.4.0-60&quot;;LOGLEVEL=2;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.4.0;JUCE_APP_VERSION_HEX=0x10400;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)\</ProgramDataBaseFileName>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <OutputFile>$(OutDir)\SonoBus.lib</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib; msvcrt.lib;;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)\SonoBus.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>$(IntDir)\SonoBus.bsc</OutputFile>
+    </Bscmake>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release32|Win32'">
     <Midl>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
@@ -163,7 +224,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>..\..\deps\juce\modules\juce_audio_processors\format_types\VST3_SDK;..\..\..\VST2_SDK;..\..\JuceLibraryCode;..\..\..\AAX_SDK_2p3p2;..\..\..\AAX_SDK_2p3p2\Interfaces;..\..\..\AAX_SDK_2p3p2\Interfaces\ACF;..\..\deps;..\..\deps\juce\modules;..\..\deps\aoo\lib;..\..\deps\aoo\deps;..\..\deps\windows;..\..\..\asiosdk\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.3.3-43&quot;;DONT_USE_MULTIBUS;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.3.3;JUCE_APP_VERSION_HEX=0x10303;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1;SONOBUS_BUILD_VERSION=&quot;1.4.0-60&quot;;USE_CODEC_OPUS=1;_USE_MATH_DEFINES;AOO_STATIC;AOO_TIMEFILTER_CHECK=0;WINVER=0x0601;_WIN32_WINNT=0x0601;JUCER_VS2017_78A5024=1;JUCE_APP_VERSION=1.4.0;JUCE_APP_VERSION_HEX=0x10400;JucePlugin_Build_VST=1;JucePlugin_Build_VST3=1;JucePlugin_Build_AU=0;JucePlugin_Build_AUv3=0;JucePlugin_Build_RTAS=0;JucePlugin_Build_AAX=1;JucePlugin_Build_Standalone=1;JucePlugin_Build_Unity=0;JUCE_SHARED_CODE=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -185,6 +246,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)\SonoBus.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
@@ -194,6 +256,9 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>$(IntDir)\SonoBus.bsc</OutputFile>
     </Bscmake>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\aoo\lib\src\client.cpp"/>
@@ -211,17 +276,23 @@
     <ClCompile Include="..\..\deps\aoo\deps\oscpack\osc\OscPrintReceivedElements.cpp"/>
     <ClCompile Include="..\..\deps\aoo\deps\oscpack\osc\OscReceivedElements.cpp"/>
     <ClCompile Include="..\..\deps\aoo\deps\oscpack\osc\OscTypes.cpp"/>
-    <ClCompile Include="..\..\Source\android\SonoBusActivity.cpp"/>
     <ClCompile Include="..\..\Source\AutoUpdater.cpp"/>
     <ClCompile Include="..\..\Source\BeatToggleGrid.cpp"/>
+    <ClCompile Include="..\..\Source\ChannelGroup.cpp"/>
+    <ClCompile Include="..\..\Source\ChannelGroupsView.cpp"/>
+    <ClCompile Include="..\..\Source\ChatView.cpp"/>
+    <ClCompile Include="..\..\Source\ConnectView.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsAndroid.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsLinux.cpp"/>
     <ClCompile Include="..\..\Source\CrossPlatformUtilsWindows.cpp"/>
+    <ClCompile Include="..\..\Source\EffectParams.cpp"/>
     <ClCompile Include="..\..\Source\GenericItemChooser.cpp"/>
     <ClCompile Include="..\..\Source\JitterBufferMeter.cpp"/>
+    <ClCompile Include="..\..\Source\LatencyMatchView.cpp"/>
     <ClCompile Include="..\..\Source\LatencyMeasurer.cpp"/>
     <ClCompile Include="..\..\Source\Metronome.cpp"/>
     <ClCompile Include="..\..\Source\mtdm.cc"/>
+    <ClCompile Include="..\..\Source\OptionsView.cpp"/>
     <ClCompile Include="..\..\Source\PeersContainerView.cpp"/>
     <ClCompile Include="..\..\Source\RandomSentenceGenerator.cpp"/>
     <ClCompile Include="..\..\Source\RunCumulantor.cpp"/>
@@ -351,6 +422,21 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\audio_io\juce_AudioIODeviceType.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPMidi1ToMidi2DefaultTranslator.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPSysEx7.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPTests.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPUtils.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPView.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\juce_MidiDevices.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -447,6 +533,9 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\resampler\SincResamplerStereo.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ChannelCountConverter.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ClipToRange.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -457,6 +546,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MonoToMultiConverter.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MultiToMonoConverter.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\RampLinear.cpp">
@@ -532,9 +624,6 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\juce_mac_CoreAudio.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\juce_mac_CoreMidi.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_audio_devices\native\juce_win32_ASIO.cpp">
@@ -1063,6 +1152,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_core\native\juce_posix_NamedPipe.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\juce\modules\juce_core\native\juce_wasm_SystemStats.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\deps\juce\modules\juce_core\native\juce_win32_Files.cpp">
@@ -2244,36 +2336,6 @@
     <ClCompile Include="..\..\deps\juce\modules\juce_gui_extra\juce_gui_extra.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLContext.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLHelpers.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLImage.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLTexture.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\juce\modules\juce_opengl\juce_opengl.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_ff_meters.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_audio_basics.cpp"/>
@@ -2290,7 +2352,6 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_graphics.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_basics.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp"/>
-    <ClCompile Include="..\..\JuceLibraryCode\include_juce_opengl.cpp"/>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\deps\aoo\lib\aoo\aoo.h"/>
@@ -2321,12 +2382,16 @@
     <ClInclude Include="..\..\deps\aoo\deps\oscpack\osc\OscPrintReceivedElements.h"/>
     <ClInclude Include="..\..\deps\aoo\deps\oscpack\osc\OscReceivedElements.h"/>
     <ClInclude Include="..\..\deps\aoo\deps\oscpack\osc\OscTypes.h"/>
-    <ClInclude Include="..\..\Source\android\SonoBusActivity.h"/>
     <ClInclude Include="..\..\Source\AutoUpdater.h"/>
     <ClInclude Include="..\..\Source\BeatToggleGrid.h"/>
+    <ClInclude Include="..\..\Source\ChannelGroup.h"/>
+    <ClInclude Include="..\..\Source\ChannelGroupsView.h"/>
+    <ClInclude Include="..\..\Source\ChatView.h"/>
     <ClInclude Include="..\..\Source\CompressorView.h"/>
+    <ClInclude Include="..\..\Source\ConnectView.h"/>
     <ClInclude Include="..\..\Source\CrossPlatformUtils.h"/>
     <ClInclude Include="..\..\Source\DebugLogC.h"/>
+    <ClInclude Include="..\..\Source\EffectParams.h"/>
     <ClInclude Include="..\..\Source\EffectsBaseView.h"/>
     <ClInclude Include="..\..\Source\ExpanderView.h"/>
     <ClInclude Include="..\..\Source\faustCompressor.h"/>
@@ -2334,15 +2399,19 @@
     <ClInclude Include="..\..\Source\faustParametricEQ.h"/>
     <ClInclude Include="..\..\Source\GenericItemChooser.h"/>
     <ClInclude Include="..\..\Source\JitterBufferMeter.h"/>
+    <ClInclude Include="..\..\Source\LatencyMatchView.h"/>
     <ClInclude Include="..\..\Source\LatencyMeasurer.h"/>
     <ClInclude Include="..\..\Source\LevelMeterLookAndFeelMethods.h"/>
     <ClInclude Include="..\..\Source\LocalLatencyMeasurer.h"/>
     <ClInclude Include="..\..\Source\Metronome.h"/>
+    <ClInclude Include="..\..\Source\MonitorDelayView.h"/>
     <ClInclude Include="..\..\Source\mtdm.h"/>
     <ClInclude Include="..\..\Source\MVerb.h"/>
+    <ClInclude Include="..\..\Source\OptionsView.h"/>
     <ClInclude Include="..\..\Source\ParametricEqView.h"/>
     <ClInclude Include="..\..\Source\PeersContainerView.h"/>
     <ClInclude Include="..\..\Source\RandomSentenceGenerator.h"/>
+    <ClInclude Include="..\..\Source\ReverbSendView.h"/>
     <ClInclude Include="..\..\Source\RunCumulantor.h"/>
     <ClInclude Include="..\..\Source\RunningCumulant.h"/>
     <ClInclude Include="..\..\Source\SonobusPluginEditor.h"/>
@@ -2411,6 +2480,22 @@
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\audio_io\juce_AudioIODevice.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\audio_io\juce_AudioIODeviceType.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\audio_io\juce_SystemAudioVolume.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPacket.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPackets.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPBytestreamInputHandler.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPConversion.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPConverters.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPDispatcher.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPFactory.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPIterator.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPMidi1ToBytestreamTranslator.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPMidi1ToMidi2DefaultTranslator.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPProtocols.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPReceiver.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPSysEx7.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPU32InputHandler.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPUtils.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\ump\juce_UMPView.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\juce_MidiDevices.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\midi_io\juce_MidiMessageCollector.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\include\oboe\AudioStream.h"/>
@@ -2453,10 +2538,12 @@
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\resampler\PolyphaseResamplerStereo.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\resampler\SincResampler.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\resampler\SincResamplerStereo.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ChannelCountConverter.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ClipToRange.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\FlowGraphNode.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\ManyToMultiConverter.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MonoToMultiConverter.h"/>
+    <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\MultiToMonoConverter.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\RampLinear.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\SampleRateConverter.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_audio_devices\native\oboe\src\flowgraph\SinkFloat.h"/>
@@ -3152,42 +3239,34 @@
     <ClInclude Include="..\..\deps\juce\modules\juce_gui_extra\misc\juce_WebBrowserComponent.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_gui_extra\native\juce_mac_CarbonViewWrapperComponent.h"/>
     <ClInclude Include="..\..\deps\juce\modules\juce_gui_extra\juce_gui_extra.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Draggable3DOrientation.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Matrix3D.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Quaternion.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\geometry\juce_Vector3D.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_MissingGLDefinitions.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_android.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_ios.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_linux_X11.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_osx.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGL_win32.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\native\juce_OpenGLExtensions.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLContext.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLHelpers.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLImage.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLRenderer.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\opengl\juce_OpenGLTexture.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\utils\juce_OpenGLAppComponent.h"/>
-    <ClInclude Include="..\..\deps\juce\modules\juce_opengl\juce_opengl.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\JucePluginDefines.h"/>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\localization\localized_de.txt"/>
     <None Include="..\..\localization\localized_es.txt"/>
+    <None Include="..\..\localization\localized_fr.txt"/>
+    <None Include="..\..\localization\localized_it.txt"/>
+    <None Include="..\..\localization\localized_ja.txt"/>
+    <None Include="..\..\localization\localized_nl.txt"/>
+    <None Include="..\..\localization\localized_pt-br.txt"/>
+    <None Include="..\..\localization\localized_pt-pt.txt"/>
     <None Include="..\..\images\bar_click.wav"/>
     <None Include="..\..\images\beat_click.wav"/>
+    <None Include="..\..\images\chat.svg"/>
+    <None Include="..\..\images\chat_dots.svg"/>
+    <None Include="..\..\images\chevron_forward.svg"/>
     <None Include="..\..\images\copy_icon.svg"/>
     <None Include="..\..\Source\DejaVuSans.ttf"/>
     <None Include="..\..\images\dice_icon_128.png"/>
+    <None Include="..\..\images\dispfull.svg"/>
+    <None Include="..\..\images\dispminimal.svg"/>
     <None Include="..\..\images\dots.svg"/>
     <None Include="..\..\images\dots_icon.png"/>
+    <None Include="..\..\images\expand_arrow_active.svg"/>
+    <None Include="..\..\images\expand_arrow_inactive.svg"/>
     <None Include="..\..\images\folder_icon.svg"/>
     <None Include="..\..\images\hear-others.svg"/>
     <None Include="..\..\images\incoming_allowed.svg"/>
@@ -3195,6 +3274,8 @@
     <None Include="..\..\images\incoming_disallowed.svg"/>
     <None Include="..\..\images\lgc_bar.wav"/>
     <None Include="..\..\images\link.svg"/>
+    <None Include="..\..\images\link_all.svg"/>
+    <None Include="..\..\images\link_up.svg"/>
     <None Include="..\..\images\list_icon1.png"/>
     <None Include="..\..\images\loop_icon.svg"/>
     <None Include="..\..\images\met.svg"/>
@@ -3203,6 +3284,7 @@
     <None Include="..\..\images\mic_pointing.svg"/>
     <None Include="..\..\images\move_updown.svg"/>
     <None Include="..\..\images\mute-others.svg"/>
+    <None Include="..\..\images\network.svg"/>
     <None Include="..\..\images\outgoing_allowed.svg"/>
     <None Include="..\..\images\outgoing_allowed_active.svg"/>
     <None Include="..\..\images\outgoing_disallowed.svg"/>
@@ -3218,6 +3300,7 @@
     <None Include="..\..\images\record.svg"/>
     <None Include="..\..\images\record_active.svg"/>
     <None Include="..\..\images\record_active_alt.svg"/>
+    <None Include="..\..\images\rectape.svg"/>
     <None Include="..\..\images\reset_buffer_icon.svg"/>
     <None Include="..\..\images\send_group.svg"/>
     <None Include="..\..\images\send_group_small.svg"/>
@@ -3232,6 +3315,7 @@
     <None Include="..\..\images\speaker.svg"/>
     <None Include="..\..\images\speaker_disabled.svg"/>
     <None Include="..\..\images\triangle_disclosure.svg"/>
+    <None Include="..\..\images\triangle_disclosure_right.svg"/>
     <None Include="..\..\images\urei_main.wav"/>
     <None Include="..\..\Source\wordmaker.g"/>
     <None Include="..\..\images\x_icon.svg"/>

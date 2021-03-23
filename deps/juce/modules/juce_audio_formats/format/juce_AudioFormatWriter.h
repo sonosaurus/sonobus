@@ -237,10 +237,14 @@ public:
         */
         void setFlushInterval (int numSamplesPerFlush) noexcept;
 
+        /** return pointer to writer */
+        AudioFormatWriter * getWriter() const;
+
     private:
         class Buffer;
         std::unique_ptr<Buffer> buffer;
     };
+
 
 protected:
     //==============================================================================

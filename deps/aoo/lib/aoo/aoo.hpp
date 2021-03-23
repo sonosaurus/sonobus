@@ -167,7 +167,11 @@ public:
         return set_option(aoo_opt_respect_codec_change_requests, AOO_ARG(n));
     }
 
-    
+    int32_t set_userformat(void * ufmt, int32_t size){
+        return set_option(aoo_opt_userformat, ufmt, size);
+    }
+
+
     virtual int32_t set_option(int32_t opt, void *ptr, int32_t size) = 0;
     virtual int32_t get_option(int32_t opt, void *ptr, int32_t size) = 0;
 

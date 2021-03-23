@@ -1,0 +1,1113 @@
+// SPDX-License-Identifier: GPLv3-or-later
+// Copyright (C) 2021 Jesse Chappell
+
+#include "OptionsView.h"
+
+
+using namespace SonoAudio;
+
+class SonobusOptionsTabbedComponent : public TabbedComponent
+{
+public:
+    SonobusOptionsTabbedComponent(TabbedButtonBar::Orientation orientation, OptionsView & editor_) : TabbedComponent(orientation), editor(editor_) {
+
+    }
+
+    void currentTabChanged (int newCurrentTabIndex, const String& newCurrentTabName) override {
+
+        editor.optionsTabChanged(newCurrentTabIndex);
+    }
+
+protected:
+    OptionsView & editor;
+
+};
+
+
+enum {
+    nameTextColourId = 0x1002830,
+    selectedColourId = 0x1002840,
+    separatorColourId = 0x1002850,
+};
+
+
+void OptionsView::initializeLanguages()
+{
+    // TODO smarter way of figuring out what languages are available
+    languages.add(TRANS("System Default Language")); languagesNative.add(""); codes.add("");
+
+    languages.add(TRANS("English")); languagesNative.add("English"); codes.add("en");
+    languages.add(TRANS("Spanish")); languagesNative.add(CharPointer_UTF8 ("espa\xc3\xb1ol")); codes.add("es");
+    languages.add(TRANS("French"));  languagesNative.add(CharPointer_UTF8 ("fran\xc3\xa7""ais")); codes.add("fr");
+    languages.add(TRANS("Italian"));  languagesNative.add("italiano"); codes.add("it");
+    languages.add(TRANS("German"));  languagesNative.add("Deutsch"); codes.add("de");
+    languages.add(TRANS("Portuguese (Portugal)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Portugal)")); codes.add("pt-pt");
+    languages.add(TRANS("Portuguese (Brazil)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Brasil)")); codes.add("pt-br");
+    languages.add(TRANS("Dutch"));  languagesNative.add("Nederlands"); codes.add("nl");
+
+    //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
+    languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
+
+    //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh_hans");
+    //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh_hant");
+
+    // TOOD - parse any user files with localized_%s.txt in our settings folder and add as options if not existing already
+
+}
+
+
+OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceManager*()> getaudiodevicemanager)
+: Component(), getAudioDeviceManager(getaudiodevicemanager), processor(proc), smallLNF(14), sonoSliderLNF(13)
+{
+    setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
+    setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
+    setColour (separatorColourId, Colour::fromFloatRGBA(0.3f, 0.3f, 0.3f, 0.3f));
+
+    sonoSliderLNF.textJustification = Justification::centredRight;
+    sonoSliderLNF.sliderTextJustification = Justification::centredRight;
+
+    initializeLanguages();
+
+    mRecOptionsComponent = std::make_unique<Component>();
+    mOptionsComponent = std::make_unique<Component>();
+
+    mSettingsTab = std::make_unique<TabbedComponent>(TabbedButtonBar::Orientation::TabsAtTop);
+    mSettingsTab->setTabBarDepth(36);
+    mSettingsTab->setOutline(0);
+    mSettingsTab->getTabbedButtonBar().setMinimumTabScaleFactor(0.1f);
+    //mSettingsTab->addComponentListener(this);
+
+    mBufferTimeSlider    = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
+    mBufferTimeSlider->setName("time");
+    mBufferTimeSlider->setSliderSnapsToMousePosition(false);
+    mBufferTimeSlider->setChangeNotificationOnlyOnRelease(true);
+    mBufferTimeSlider->setDoubleClickReturnValue(true, 15.0);
+    mBufferTimeSlider->setTextBoxIsEditable(true);
+    mBufferTimeSlider->setScrollWheelEnabled(false);
+
+    mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
+
+    mOptionsAutosizeDefaultChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsAutosizeDefaultChoice->addChoiceListener(this);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Manual"), SonobusAudioProcessor::AutoNetBufferModeOff);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto Up"), SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto"), SonobusAudioProcessor::AutoNetBufferModeAutoFull);
+    mOptionsAutosizeDefaultChoice->addItem(TRANS("Initial Auto"), SonobusAudioProcessor::AutoNetBufferModeInitAuto);
+
+    mOptionsFormatChoiceDefaultChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
+    int numformats = processor.getNumberAudioCodecFormats();
+    for (int i=0; i < numformats; ++i) {
+        mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
+    }
+
+    mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
+    configLabel(mOptionsAutosizeStaticLabel.get(), false);
+    mOptionsAutosizeStaticLabel->setJustificationType(Justification::centredLeft);
+
+    mOptionsFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Default Send Quality:"));
+    configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
+    mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
+
+
+    mOptionsLanguageChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsLanguageChoice->addChoiceListener(this);
+    auto overridelang = processor.getLanguageOverrideCode();
+    int langsel = -1;
+    for (int i=0; i < languages.size(); ++i) {
+        String itemname;
+        if (languagesNative[i] != languages[i] && !languagesNative[i].isEmpty()) {
+            itemname = languagesNative[i] + " - " + languages[i];
+        }
+        else {
+            itemname = languages[i];
+        }
+        mOptionsLanguageChoice->addItem(itemname, i);
+        if (overridelang == codes[i]) {
+            langsel = i;
+        }
+    }
+
+    if (langsel >= 0) {
+        mOptionsLanguageChoice->setSelectedId(langsel);
+    }
+
+    mOptionsLanguageLabel = std::make_unique<Label>("", TRANS("Language:"));
+    configLabel(mOptionsLanguageLabel.get(), false);
+    mOptionsLanguageLabel->setJustificationType(Justification::centredRight);
+
+
+    //mOptionsHearLatencyButton = std::make_unique<ToggleButton>(TRANS("Make Latency Test Audible"));
+    //mOptionsHearLatencyButton->addListener(this);
+    //mHearLatencyTestAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramHearLatencyTest, *mOptionsHearLatencyButton);
+
+    mOptionsMetRecordedButton = std::make_unique<ToggleButton>(TRANS("Metronome output recorded in full mix"));
+    mOptionsMetRecordedButton->addListener(this);
+    mMetRecordedAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMetIsRecorded, *mOptionsMetRecordedButton);
+
+
+    mOptionsRecFilesStaticLabel = std::make_unique<Label>("", TRANS("Record feature creates the following files:"));
+    configLabel(mOptionsRecFilesStaticLabel.get(), false);
+    mOptionsRecFilesStaticLabel->setJustificationType(Justification::centredLeft);
+
+    mOptionsRecMixButton = std::make_unique<ToggleButton>(TRANS("Full Mix"));
+    mOptionsRecMixButton->addListener(this);
+
+    mOptionsRecMixMinusButton = std::make_unique<ToggleButton>(TRANS("Full Mix without yourself"));
+    mOptionsRecMixMinusButton->addListener(this);
+
+    mOptionsRecSelfButton = std::make_unique<ToggleButton>(TRANS("Yourself"));
+    mOptionsRecSelfButton->addListener(this);
+
+    mOptionsRecOthersButton = std::make_unique<ToggleButton>(TRANS("Each Connected User"));
+    mOptionsRecOthersButton->addListener(this);
+
+    mRecFormatChoice = std::make_unique<SonoChoiceButton>();
+    mRecFormatChoice->addChoiceListener(this);
+    mRecFormatChoice->addItem(TRANS("FLAC"), SonobusAudioProcessor::FileFormatFLAC);
+    mRecFormatChoice->addItem(TRANS("WAV"), SonobusAudioProcessor::FileFormatWAV);
+    mRecFormatChoice->addItem(TRANS("OGG"), SonobusAudioProcessor::FileFormatOGG);
+
+    mRecBitsChoice = std::make_unique<SonoChoiceButton>();
+    mRecBitsChoice->addChoiceListener(this);
+    mRecBitsChoice->addItem(TRANS("16 bit"), 16);
+    mRecBitsChoice->addItem(TRANS("24 bit"), 24);
+
+
+    mRecFormatStaticLabel = std::make_unique<Label>("", TRANS("Audio File Format:"));
+    configLabel(mRecFormatStaticLabel.get(), false);
+    mRecFormatStaticLabel->setJustificationType(Justification::centredRight);
+
+
+    mRecLocationStaticLabel = std::make_unique<Label>("", TRANS("Record Location:"));
+    configLabel(mRecLocationStaticLabel.get(), false);
+    mRecLocationStaticLabel->setJustificationType(Justification::centredRight);
+
+    mRecLocationButton = std::make_unique<TextButton>("fileloc");
+    mRecLocationButton->setButtonText("");
+    mRecLocationButton->setLookAndFeel(&smallLNF);
+    mRecLocationButton->addListener(this);
+
+
+
+
+    mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
+    mOptionsUseSpecificUdpPortButton->addListener(this);
+
+    mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction (NOT RECOMMENDED)"));
+    mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
+
+    mOptionsAutoReconnectButton = std::make_unique<ToggleButton>(TRANS("Auto-Reconnect to Last Group"));
+    mAutoReconnectAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramAutoReconnectLast, *mOptionsAutoReconnectButton);
+
+    mOptionsOverrideSamplerateButton = std::make_unique<ToggleButton>(TRANS("Override Device Sample Rate"));
+    mOptionsOverrideSamplerateButton->addListener(this);
+
+    mOptionsShouldCheckForUpdateButton = std::make_unique<ToggleButton>(TRANS("Automatically check for updates"));
+    mOptionsShouldCheckForUpdateButton->addListener(this);
+
+    mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Clicked Position"));
+    mOptionsSliderSnapToMouseButton->addListener(this);
+
+#if JUCE_IOS
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        mOptionsAllowBluetoothInput = std::make_unique<ToggleButton>(TRANS("Allow Bluetooth Input"));
+        mOptionsAllowBluetoothInput->addListener(this);
+    }
+#endif
+
+    mOptionsInputLimiterButton = std::make_unique<ToggleButton>(TRANS("Use Input FX Limiter"));
+    mOptionsInputLimiterButton->addListener(this);
+
+    mOptionsChangeAllFormatButton = std::make_unique<ToggleButton>(TRANS("Change all connected"));
+    mOptionsChangeAllFormatButton->addListener(this);
+    mOptionsChangeAllFormatButton->setLookAndFeel(&smallLNF);
+
+    mOptionsUdpPortEditor = std::make_unique<TextEditor>("udp");
+    mOptionsUdpPortEditor->addListener(this);
+    mOptionsUdpPortEditor->setFont(Font(16));
+    mOptionsUdpPortEditor->setText(""); // 100.36.128.246:11000
+    mOptionsUdpPortEditor->setKeyboardType(TextEditor::numericKeyboard);
+    mOptionsUdpPortEditor->setInputRestrictions(5, "0123456789");
+
+    configEditor(mOptionsUdpPortEditor.get());
+
+
+    mOptionsDefaultLevelSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
+    mOptionsDefaultLevelSlider->setName("uservol");
+    mOptionsDefaultLevelSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
+    mOptionsDefaultLevelSlider->setScrollWheelEnabled(false);
+    configLevelSlider(mOptionsDefaultLevelSlider.get());
+    mOptionsDefaultLevelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
+    mOptionsDefaultLevelSlider->setTextBoxIsEditable(true);
+    //mOptionsDefaultLevelSlider->setSliderStyle(Slider::SliderStyle::LinearBar);
+
+    mDefaultLevelAttachment =  std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDefaultPeerLevel, *mOptionsDefaultLevelSlider);
+
+
+
+    mOptionsDefaultLevelSliderLabel = std::make_unique<Label>("", TRANS("Default User Level"));
+    configLabel(mOptionsDefaultLevelSliderLabel.get(), false);
+    mOptionsDefaultLevelSliderLabel->setJustificationType(Justification::centredLeft);
+
+
+
+#if JUCE_IOS
+    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
+#else
+    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + ProjectInfo::versionString);
+#endif
+    configLabel(mVersionLabel.get(), true);
+    mVersionLabel->setJustificationType(Justification::centredRight);
+
+    addAndMakeVisible(mSettingsTab.get());
+
+    mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
+    mOptionsComponent->addAndMakeVisible(mBufferTimeSlider.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsAutosizeDefaultChoice.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceDefaultChoice.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
+    //mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsAutoReconnectButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsInputLimiterButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDefaultLevelSlider.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDefaultLevelSliderLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsChangeAllFormatButton.get());
+    mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsLanguageChoice.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
+    //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
+
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        mOptionsComponent->addAndMakeVisible(mOptionsOverrideSamplerateButton.get());
+        mOptionsComponent->addAndMakeVisible(mOptionsShouldCheckForUpdateButton.get());
+        if (mOptionsAllowBluetoothInput) {
+            mOptionsComponent->addAndMakeVisible(mOptionsAllowBluetoothInput.get());
+        }
+    }
+    mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
+
+
+
+    mRecOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecFilesStaticLabel.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixMinusButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecOthersButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecLocationButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mRecLocationStaticLabel.get());
+
+
+    if (JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager && getAudioDeviceManager())
+    {
+        if (!mAudioDeviceSelector) {
+            int minNumInputs  = std::numeric_limits<int>::max(), maxNumInputs  = 0,
+            minNumOutputs = std::numeric_limits<int>::max(), maxNumOutputs = 0;
+
+            auto updateMinAndMax = [] (int newValue, int& minValue, int& maxValue)
+            {
+                minValue = jmin (minValue, newValue);
+                maxValue = jmax (maxValue, newValue);
+            };
+
+            /*
+            if (channelConfiguration.size() > 0)
+            {
+                auto defaultConfig =  channelConfiguration.getReference (0);
+                updateMinAndMax ((int) defaultConfig.numIns,  minNumInputs,  maxNumInputs);
+                updateMinAndMax ((int) defaultConfig.numOuts, minNumOutputs, maxNumOutputs);
+            }
+             */
+
+            if (auto* bus = processor.getBus (true, 0)) {
+                auto maxsup = bus->getMaxSupportedChannels();
+                updateMinAndMax (maxsup, minNumInputs, maxNumInputs);
+                updateMinAndMax (bus->getDefaultLayout().size(), minNumInputs, maxNumInputs);
+                if (bus->isNumberOfChannelsSupported(1)) {
+                    updateMinAndMax (1, minNumInputs, maxNumInputs);
+                }
+                if (bus->isNumberOfChannelsSupported(0)) {
+                    updateMinAndMax (0, minNumInputs, maxNumInputs);
+                }
+            }
+
+            if (auto* bus = processor.getBus (false, 0)) {
+                auto maxsup = bus->getMaxSupportedChannels();
+                updateMinAndMax (maxsup, minNumOutputs, maxNumOutputs);
+                updateMinAndMax (bus->getDefaultLayout().size(), minNumOutputs, maxNumOutputs);
+                if (bus->isNumberOfChannelsSupported(1)) {
+                    updateMinAndMax (1, minNumOutputs, maxNumOutputs);
+                }
+                if (bus->isNumberOfChannelsSupported(0)) {
+                    updateMinAndMax (0, minNumOutputs, maxNumOutputs);
+                }
+            }
+
+
+            minNumInputs  = jmin (minNumInputs,  maxNumInputs);
+            minNumOutputs = jmin (minNumOutputs, maxNumOutputs);
+
+
+
+            mAudioDeviceSelector = std::make_unique<AudioDeviceSelectorComponent>(*getAudioDeviceManager(),
+                                                                                  minNumInputs, maxNumInputs,
+                                                                                  minNumOutputs, maxNumOutputs,
+                                                                                  false, // show MIDI input
+                                                                                  false,
+                                                                                  false, false);
+
+#if JUCE_IOS || JUCE_ANDROID
+            mAudioDeviceSelector->setItemHeight(44);
+#endif
+
+            mAudioOptionsViewport = std::make_unique<Viewport>();
+            mAudioOptionsViewport->setViewedComponent(mAudioDeviceSelector.get(), false);
+
+
+        }
+
+        if (firsttime) {
+            mSettingsTab->addTab(TRANS("AUDIO"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mAudioOptionsViewport.get(), false);
+        }
+
+    }
+
+    mOtherOptionsViewport = std::make_unique<Viewport>();
+    mOtherOptionsViewport->setViewedComponent(mOptionsComponent.get(), false);
+
+    mSettingsTab->addTab(TRANS("OPTIONS"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mOtherOptionsViewport.get(), false);
+   // mSettingsTab->addTab(TRANS("HELP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mHelpComponent.get(), false);
+
+    mRecordOptionsViewport = std::make_unique<Viewport>();
+    mRecordOptionsViewport->setViewedComponent(mRecOptionsComponent.get(), false);
+
+    mSettingsTab->addTab(TRANS("RECORDING"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecordOptionsViewport.get(), false);
+
+
+    updateLayout();
+}
+
+OptionsView::~OptionsView() {}
+
+juce::Rectangle<int> OptionsView::getMinimumContentBounds() const {
+    int defWidth = 200;
+    int defHeight = 100;
+    return Rectangle<int>(0,0,defWidth,defHeight);
+}
+
+juce::Rectangle<int> OptionsView::getPreferredContentBounds() const
+{
+    return Rectangle<int> (0, 0, 300, prefHeight);
+}
+
+
+void OptionsView::timerCallback(int timerid)
+{
+
+}
+
+
+
+void OptionsView::configLabel(Label *label, bool val)
+{
+    if (val) {
+        label->setFont(12);
+        label->setColour(Label::textColourId, Colour(0x90eeeeee));
+        label->setJustificationType(Justification::centred);
+    }
+    else {
+        label->setFont(14);
+        //label->setColour(Label::textColourId, Colour(0xaaeeeeee));
+        label->setJustificationType(Justification::centredLeft);
+    }
+}
+
+void OptionsView::configLevelSlider(Slider * slider)
+{
+    //slider->setVelocityBasedMode(true);
+    //slider->setVelocityModeParameters(2.5, 1, 0.05);
+    //slider->setTextBoxStyle(Slider::NoTextBox, true, 40, 18);
+    slider->setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+    slider->setTextBoxStyle(Slider::TextBoxAbove, true, 50, 14);
+    slider->setMouseDragSensitivity(128);
+    slider->setScrollWheelEnabled(false);
+    //slider->setPopupDisplayEnabled(true, false, this);
+    slider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+    slider->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
+    slider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+
+    slider->setLookAndFeel(&sonoSliderLNF);
+}
+
+void OptionsView::configEditor(TextEditor *editor, bool passwd)
+{
+    editor->addListener(this);
+    if (passwd)  {
+        editor->setIndents(8, 6);
+    } else {
+        editor->setIndents(8, 8);
+    }
+}
+
+void OptionsView::updateState(bool ignorecheck)
+{
+    mOptionsFormatChoiceDefaultChoice->setSelectedItemIndex(processor.getDefaultAudioCodecFormat(), dontSendNotification);
+    mOptionsAutosizeDefaultChoice->setSelectedId((int)processor.getDefaultAutoresizeBufferMode(), dontSendNotification);
+
+    mOptionsChangeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
+
+    int port = processor.getUseSpecificUdpPort();
+    if (port > 0) {
+        mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
+        mOptionsUdpPortEditor->setEnabled(true);
+        mOptionsUdpPortEditor->setAlpha(1.0);
+        if (!ignorecheck) {
+            mOptionsUseSpecificUdpPortButton->setToggleState(true, dontSendNotification);
+        }
+    }
+    else {
+        port = processor.getUdpLocalPort();
+        mOptionsUdpPortEditor->setEnabled(mOptionsUseSpecificUdpPortButton->getToggleState());
+        mOptionsUdpPortEditor->setAlpha(mOptionsUseSpecificUdpPortButton->getToggleState() ? 1.0 : 0.6);
+        mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
+        if (!ignorecheck) {
+            mOptionsUseSpecificUdpPortButton->setToggleState(false, dontSendNotification);
+        }
+    }
+
+
+    if (JUCEApplication::isStandaloneApp()) {
+        if (getShouldOverrideSampleRateValue) {
+            Value * val = getShouldOverrideSampleRateValue();
+            mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+        }
+        if (getShouldCheckForNewVersionValue) {
+            Value * val = getShouldCheckForNewVersionValue();
+            mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+        }
+
+        if (getAllowBluetoothInputValue && mOptionsAllowBluetoothInput) {
+            Value * val = getAllowBluetoothInputValue();
+            mOptionsAllowBluetoothInput->setToggleState((bool)val->getValue(), dontSendNotification);
+        }
+
+    }
+
+    mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
+
+    uint32 recmask = processor.getDefaultRecordingOptions();
+
+    mOptionsRecOthersButton->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, dontSendNotification);
+    mOptionsRecMixButton->setToggleState((recmask & SonobusAudioProcessor::RecordMix) != 0, dontSendNotification);
+    mOptionsRecMixMinusButton->setToggleState((recmask & SonobusAudioProcessor::RecordMixMinusSelf) != 0, dontSendNotification);
+    mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
+
+    mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
+    mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
+
+    File recdir = File(processor.getDefaultRecordingDirectory());
+    String dispath = recdir.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+    if (dispath.startsWith(".")) dispath = processor.getDefaultRecordingDirectory();
+    mRecLocationButton->setButtonText(dispath);
+
+    CompressorParams limparams;
+    processor.getInputLimiterParams(0, limparams);
+    mOptionsInputLimiterButton->setToggleState(limparams.enabled, dontSendNotification);
+
+    if (getShouldOverrideSampleRateValue) {
+        Value * val = getShouldOverrideSampleRateValue();
+        mOptionsOverrideSamplerateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+    }
+    if (getShouldCheckForNewVersionValue) {
+        Value * val = getShouldCheckForNewVersionValue();
+        mOptionsShouldCheckForUpdateButton->setToggleState((bool)val->getValue(), dontSendNotification);
+    }
+    if (mOptionsAllowBluetoothInput && getAllowBluetoothInputValue) {
+        Value * val = getAllowBluetoothInputValue();
+        mOptionsAllowBluetoothInput->setToggleState((bool)val->getValue(), dontSendNotification);
+    }
+}
+
+
+void OptionsView::updateLayout()
+{
+    int minKnobWidth = 50;
+    int minSliderWidth = 50;
+    int minPannerWidth = 40;
+    int maxPannerWidth = 100;
+    int minitemheight = 36;
+    int knobitemheight = 80;
+    int minpassheight = 30;
+    int setitemheight = 36;
+    int minButtonWidth = 90;
+    int sliderheight = 44;
+    int inmeterwidth = 22 ;
+    int outmeterwidth = 22 ;
+    int servLabelWidth = 72;
+    int iconheight = 24;
+    int iconwidth = iconheight;
+    int knoblabelheight = 18;
+    int panbuttwidth = 26;
+
+#if JUCE_IOS || JUCE_ANDROID
+    // make the button heights a bit more for touchscreen purposes
+    minitemheight = 44;
+    knobitemheight = 90;
+    minpassheight = 38;
+    panbuttwidth = 32;
+#endif
+
+    // options
+    optionsNetbufBox.items.clear();
+    optionsNetbufBox.flexDirection = FlexBox::Direction::row;
+    optionsNetbufBox.items.add(FlexItem(12, 12));
+    optionsNetbufBox.items.add(FlexItem(minButtonWidth, minitemheight, *mBufferTimeSlider).withMargin(0).withFlex(3));
+    optionsNetbufBox.items.add(FlexItem(4, 12));
+    optionsNetbufBox.items.add(FlexItem(80, minitemheight, *mOptionsAutosizeDefaultChoice).withMargin(0).withFlex(0));
+
+    optionsSendQualBox.items.clear();
+    optionsSendQualBox.flexDirection = FlexBox::Direction::row;
+    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceStaticLabel).withMargin(0).withFlex(1));
+    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceDefaultChoice).withMargin(0).withFlex(1));
+
+    optionsLanguageBox.items.clear();
+    optionsLanguageBox.flexDirection = FlexBox::Direction::row;
+    optionsLanguageBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsLanguageLabel).withMargin(0).withFlex(1));
+    optionsLanguageBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsLanguageChoice).withMargin(0).withFlex(3));
+
+    //optionsHearlatBox.items.clear();
+    //optionsHearlatBox.flexDirection = FlexBox::Direction::row;
+    //optionsHearlatBox.items.add(FlexItem(10, 12));
+    //optionsHearlatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsHearLatencyButton).withMargin(0).withFlex(1));
+
+    optionsDefaultLevelBox.items.clear();
+    optionsDefaultLevelBox.flexDirection = FlexBox::Direction::row;
+    optionsDefaultLevelBox.items.add(FlexItem(12, 12));
+    //optionsDefaultLevelBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsDefaultLevelSliderLabel).withMargin(0).withFlex(1));
+    //optionsDefaultLevelBox.items.add(FlexItem(4, 12));
+    optionsDefaultLevelBox.items.add(FlexItem(100, minitemheight, *mOptionsDefaultLevelSlider).withMargin(0).withFlex(1));
+
+
+    optionsUdpBox.items.clear();
+    optionsUdpBox.flexDirection = FlexBox::Direction::row;
+    optionsUdpBox.items.add(FlexItem(10, 12));
+    optionsUdpBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsUseSpecificUdpPortButton).withMargin(0).withFlex(1));
+    optionsUdpBox.items.add(FlexItem(90, minitemheight, *mOptionsUdpPortEditor).withMargin(0).withFlex(0));
+
+    optionsDynResampleBox.items.clear();
+    optionsDynResampleBox.flexDirection = FlexBox::Direction::row;
+    optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsDynResampleBox.items.add(FlexItem(180, minpassheight, *mOptionsDynamicResamplingButton).withMargin(0).withFlex(1));
+
+    optionsAutoReconnectBox.items.clear();
+    optionsAutoReconnectBox.flexDirection = FlexBox::Direction::row;
+    optionsAutoReconnectBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsAutoReconnectBox.items.add(FlexItem(180, minpassheight, *mOptionsAutoReconnectButton).withMargin(0).withFlex(1));
+
+    optionsOverrideSamplerateBox.items.clear();
+    optionsOverrideSamplerateBox.flexDirection = FlexBox::Direction::row;
+    optionsOverrideSamplerateBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsOverrideSamplerateBox.items.add(FlexItem(180, minpassheight, *mOptionsOverrideSamplerateButton).withMargin(0).withFlex(1));
+
+    optionsInputLimitBox.items.clear();
+    optionsInputLimitBox.flexDirection = FlexBox::Direction::row;
+    optionsInputLimitBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsInputLimitBox.items.add(FlexItem(180, minpassheight, *mOptionsInputLimiterButton).withMargin(0).withFlex(1));
+
+    optionsChangeAllQualBox.items.clear();
+    optionsChangeAllQualBox.flexDirection = FlexBox::Direction::row;
+    optionsChangeAllQualBox.items.add(FlexItem(10, 12).withFlex(1));
+    optionsChangeAllQualBox.items.add(FlexItem(180, minpassheight, *mOptionsChangeAllFormatButton).withMargin(0).withFlex(0));
+
+    optionsCheckForUpdateBox.items.clear();
+    optionsCheckForUpdateBox.flexDirection = FlexBox::Direction::row;
+    optionsCheckForUpdateBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsCheckForUpdateBox.items.add(FlexItem(180, minpassheight, *mOptionsShouldCheckForUpdateButton).withMargin(0).withFlex(1));
+
+    optionsSnapToMouseBox.items.clear();
+    optionsSnapToMouseBox.flexDirection = FlexBox::Direction::row;
+    optionsSnapToMouseBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsSnapToMouseBox.items.add(FlexItem(180, minpassheight, *mOptionsSliderSnapToMouseButton).withMargin(0).withFlex(1));
+
+    optionsAllowBluetoothBox.items.clear();
+    optionsAllowBluetoothBox.flexDirection = FlexBox::Direction::row;
+    if (mOptionsAllowBluetoothInput) {
+        optionsAllowBluetoothBox.items.add(FlexItem(10, 12).withFlex(0));
+        optionsAllowBluetoothBox.items.add(FlexItem(180, minpassheight, *mOptionsAllowBluetoothInput).withMargin(0).withFlex(1));
+    }
+
+
+    optionsBox.items.clear();
+    optionsBox.flexDirection = FlexBox::Direction::column;
+    optionsBox.items.add(FlexItem(4, 6));
+    optionsBox.items.add(FlexItem(100, 15, *mVersionLabel).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 4));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsLanguageBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 4));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsSendQualBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 4));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 6));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 6));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
+    //optionsBox.items.add(FlexItem(100, minpassheight, optionsHearlatBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
+        if (mOptionsAllowBluetoothInput) {
+            optionsBox.items.add(FlexItem(100, minpassheight, optionsAllowBluetoothBox).withMargin(2).withFlex(0));
+        }
+        optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
+    }
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
+
+    minOptionsHeight = 0;
+    for (auto & item : optionsBox.items) {
+        minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
+    }
+
+    // record options
+
+    optionsMetRecordBox.items.clear();
+    optionsMetRecordBox.flexDirection = FlexBox::Direction::row;
+    optionsMetRecordBox.items.add(FlexItem(10, 12));
+
+    optionsMetRecordBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMetRecordedButton).withMargin(0).withFlex(1));
+
+    int indentw = 40;
+
+    optionsRecordDirBox.items.clear();
+    optionsRecordDirBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordDirBox.items.add(FlexItem(115, minitemheight, *mRecLocationStaticLabel).withMargin(0).withFlex(0));
+    optionsRecordDirBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecLocationButton).withMargin(0).withFlex(3));
+
+    optionsRecordFormatBox.items.clear();
+    optionsRecordFormatBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordFormatBox.items.add(FlexItem(115, minitemheight, *mRecFormatStaticLabel).withMargin(0).withFlex(0));
+    optionsRecordFormatBox.items.add(FlexItem(minButtonWidth, minitemheight, *mRecFormatChoice).withMargin(0).withFlex(1));
+    optionsRecordFormatBox.items.add(FlexItem(2, 4));
+    optionsRecordFormatBox.items.add(FlexItem(80, minitemheight, *mRecBitsChoice).withMargin(0).withFlex(0.25));
+
+    optionsRecMixBox.items.clear();
+    optionsRecMixBox.flexDirection = FlexBox::Direction::row;
+    optionsRecMixBox.items.add(FlexItem(indentw, 12));
+    optionsRecMixBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecMixButton).withMargin(0).withFlex(1));
+
+    optionsRecMixMinusBox.items.clear();
+    optionsRecMixMinusBox.flexDirection = FlexBox::Direction::row;
+    optionsRecMixMinusBox.items.add(FlexItem(indentw, 12));
+    optionsRecMixMinusBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecMixMinusButton).withMargin(0).withFlex(1));
+
+    optionsRecSelfBox.items.clear();
+    optionsRecSelfBox.flexDirection = FlexBox::Direction::row;
+    optionsRecSelfBox.items.add(FlexItem(indentw, 12));
+    optionsRecSelfBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfButton).withMargin(0).withFlex(1));
+
+    optionsRecOthersBox.items.clear();
+    optionsRecOthersBox.flexDirection = FlexBox::Direction::row;
+    optionsRecOthersBox.items.add(FlexItem(indentw, 12));
+    optionsRecOthersBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecOthersButton).withMargin(0).withFlex(1));
+
+
+    recOptionsBox.items.clear();
+    recOptionsBox.flexDirection = FlexBox::Direction::column;
+    recOptionsBox.items.add(FlexItem(4, 6));
+#if !(JUCE_IOS || JUCE_ANDROID)
+    recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordDirBox).withMargin(2).withFlex(0));
+#endif
+    recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordFormatBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(4, 4));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, *mOptionsRecFilesStaticLabel).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecMixBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecMixMinusBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecSelfBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecOthersBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(4, 4));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
+    minRecOptionsHeight = 0;
+    for (auto & item : recOptionsBox.items) {
+        minRecOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
+    }
+
+
+    mainBox.items.clear();
+    mainBox.flexDirection = FlexBox::Direction::column;
+    mainBox.items.add(FlexItem(100, minitemheight, *mSettingsTab).withMargin(0).withFlex(1));
+
+    prefHeight = jmax(minOptionsHeight, minRecOptionsHeight) + mSettingsTab->getTabBarDepth();
+}
+
+void OptionsView::resized()  {
+
+    mainBox.performLayout(getLocalBounds().reduced(2, 2));
+
+    auto innerbounds = mSettingsTab->getLocalBounds();
+
+    if (mAudioDeviceSelector) {
+        mAudioDeviceSelector->setBounds(Rectangle<int>(0,0,innerbounds.getWidth() - 10,mAudioDeviceSelector->getHeight()));
+    }
+    mOptionsComponent->setBounds(Rectangle<int>(0,0,innerbounds.getWidth() - 10, minOptionsHeight));
+    mRecOptionsComponent->setBounds(Rectangle<int>(0,0,innerbounds.getWidth() - 10, minRecOptionsHeight));
+
+
+
+    optionsBox.performLayout(mOptionsComponent->getLocalBounds());
+    recOptionsBox.performLayout(mRecOptionsComponent->getLocalBounds());
+
+    mOptionsAutosizeStaticLabel->setBounds(mBufferTimeSlider->getBounds().removeFromLeft(mBufferTimeSlider->getWidth()*0.75));
+
+    auto deflabbounds = mOptionsDefaultLevelSlider->getBounds().removeFromLeft(mOptionsDefaultLevelSlider->getWidth()*0.75);
+    deflabbounds.removeFromBottom(mOptionsDefaultLevelSlider->getHeight()*0.4);
+    mOptionsDefaultLevelSliderLabel->setBounds(deflabbounds);
+    mOptionsDefaultLevelSlider->setMouseDragSensitivity(jmax(128, mOptionsDefaultLevelSlider->getWidth()));
+}
+
+void OptionsView::showAudioTab()
+{
+    if (mSettingsTab->getNumTabs() == 3) {
+        mSettingsTab->setCurrentTabIndex(0);
+    }
+}
+
+void OptionsView::showOptionsTab()
+{
+    mSettingsTab->setCurrentTabIndex(mSettingsTab->getNumTabs() == 3 ? 1 : 0);
+}
+
+void OptionsView::showRecordingTab()
+{
+    mSettingsTab->setCurrentTabIndex(mSettingsTab->getNumTabs() == 3 ? 2 : 1);
+}
+
+
+void OptionsView::optionsTabChanged (int newCurrentTabIndex)
+{
+
+}
+
+void OptionsView::showWarnings()
+{
+#if JUCE_WINDOWS
+    if (JUCEApplicationBase::isStandaloneApp() && getAudioDeviceManager())
+    {
+        // on windows, if current audio device type isn't ASIO, prompt them that it should be
+        auto devtype = getAudioDeviceManager()->getCurrentAudioDeviceType();
+        if (!devtype.equalsIgnoreCase("ASIO")) {
+            auto mesg = String(TRANS("Using an ASIO audio device type is strongly recommended. If your audio interface did not come with one, please install ASIO4ALL (asio4all.org) and configure it first."));
+            showPopTip(mesg, 0, mSettingsTab->getTabbedButtonBar().getTabButton(0), 320);
+        }
+
+    }
+#endif
+}
+
+void OptionsView::textEditorReturnKeyPressed (TextEditor& ed)
+{
+    DBG("Return pressed");
+    if (&ed == mOptionsUdpPortEditor.get()) {
+        int port = mOptionsUdpPortEditor->getText().getIntValue();
+        changeUdpPort(port);
+    }
+}
+
+void OptionsView::textEditorEscapeKeyPressed (TextEditor& ed)
+{
+    DBG("escape pressed");
+}
+
+void OptionsView::textEditorTextChanged (TextEditor& ed)
+{
+
+}
+
+
+void OptionsView::textEditorFocusLost (TextEditor& ed)
+{
+    // only one we care about live is udp port
+    if (&ed == mOptionsUdpPortEditor.get()) {
+        int port = mOptionsUdpPortEditor->getText().getIntValue();
+        changeUdpPort(port);
+    }
+}
+
+void OptionsView::changeUdpPort(int port)
+{
+    if (port >= 0) {
+        DBG("changing udp port to: " << port);
+        processor.setUseSpecificUdpPort(port);
+
+        //updateState();
+    }
+    updateState(true);
+
+}
+
+void OptionsView::buttonClicked (Button* buttonThatWasClicked)
+{
+    if (buttonThatWasClicked == mRecLocationButton.get()) {
+        // browse folder chooser
+        SafePointer<OptionsView> safeThis (this);
+
+        if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
+        {
+            RuntimePermissions::request (RuntimePermissions::readExternalStorage,
+                                         [safeThis] (bool granted) mutable
+                                         {
+                if (granted)
+                    safeThis->buttonClicked (safeThis->mRecLocationButton.get());
+            });
+            return;
+        }
+
+        chooseRecDirBrowser();
+    }
+    else if (buttonThatWasClicked == mOptionsInputLimiterButton.get()) {
+        CompressorParams params;
+        for (int j=0; j < processor.getInputGroupCount(); ++j) {
+            processor.getInputLimiterParams(j, params);
+            params.enabled = mOptionsInputLimiterButton->getToggleState();
+            processor.setInputLimiterParams(j, params);
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsRecMixButton.get()
+             || buttonThatWasClicked == mOptionsRecSelfButton.get()
+             || buttonThatWasClicked == mOptionsRecOthersButton.get()
+             || buttonThatWasClicked == mOptionsRecMixMinusButton.get()
+             ) {
+        uint32 recmask = 0;
+        recmask |= (mOptionsRecMixButton->getToggleState() ? SonobusAudioProcessor::RecordMix : 0);
+        recmask |= (mOptionsRecOthersButton->getToggleState() ? SonobusAudioProcessor::RecordIndividualUsers : 0);
+        recmask |= (mOptionsRecSelfButton->getToggleState() ? SonobusAudioProcessor::RecordSelf : 0);
+        recmask |= (mOptionsRecMixMinusButton->getToggleState() ? SonobusAudioProcessor::RecordMixMinusSelf : 0);
+
+        // ensure at least one is selected
+        if (recmask == 0) {
+            recmask = SonobusAudioProcessor::RecordMix;
+            mOptionsRecMixButton->setToggleState(true, dontSendNotification);
+        }
+
+        processor.setDefaultRecordingOptions(recmask);
+    }
+    else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
+        processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());
+    }
+    else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
+        if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {
+            // toggled off, change back to use system chosen port
+            changeUdpPort(0);
+        } else {
+            updateState(true);
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsOverrideSamplerateButton.get()) {
+
+        if (JUCEApplicationBase::isStandaloneApp() && getShouldOverrideSampleRateValue) {
+            Value * val = getShouldOverrideSampleRateValue();
+            val->setValue((bool)mOptionsOverrideSamplerateButton->getToggleState());
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsAllowBluetoothInput.get()) {
+
+        if (JUCEApplicationBase::isStandaloneApp() && getAllowBluetoothInputValue && getAudioDeviceManager) {
+            Value * val = getAllowBluetoothInputValue();
+            val->setValue((bool)mOptionsAllowBluetoothInput->getToggleState());
+#if JUCE_IOS
+            // get current audio device and change a setting if necessary
+            if (auto device = dynamic_cast<iOSAudioIODevice*> (getAudioDeviceManager()->getCurrentAudioDevice())) {
+                device->setAllowBluetoothInput((bool)val->getValue());
+            }
+#endif
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsShouldCheckForUpdateButton.get()) {
+
+        if (JUCEApplicationBase::isStandaloneApp() && getShouldCheckForNewVersionValue) {
+            Value * val = getShouldCheckForNewVersionValue();
+            val->setValue((bool)mOptionsShouldCheckForUpdateButton->getToggleState());
+
+            //if (mOptionsShouldCheckForUpdateButton->getToggleState()) {
+            //    startTimer(CheckForNewVersionTimerId, 3000);
+            //}
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsSliderSnapToMouseButton.get()) {
+        bool newval = mOptionsSliderSnapToMouseButton->getToggleState();
+        processor.setSlidersSnapToMousePosition(newval);
+
+        mOptionsDefaultLevelSlider->setSliderSnapsToMousePosition(newval);
+        
+        if (updateSliderSnap) {
+            updateSliderSnap();
+        }
+    }
+}
+
+
+void OptionsView::choiceButtonSelected(SonoChoiceButton *comp, int index, int ident)
+{
+    if (comp == mOptionsFormatChoiceDefaultChoice.get()) {
+        processor.setDefaultAudioCodecFormat(index);
+    }
+    else if (comp == mOptionsAutosizeDefaultChoice.get()) {
+        processor.setDefaultAutoresizeBufferMode((SonobusAudioProcessor::AutoNetBufferMode) ident);
+    }
+    else if (comp == mRecFormatChoice.get()) {
+        processor.setDefaultRecordingFormat((SonobusAudioProcessor::RecordFileFormat) ident);
+    }
+    else if (comp == mRecBitsChoice.get()) {
+        processor.setDefaultRecordingBitsPerSample(ident);
+    }
+    else if (comp == mOptionsLanguageChoice.get()) {
+        String code = codes[ident];
+        //app->mainConfig.languageOverrideCode =  codes[comp->getRowId()].toStdString();
+
+        String message;
+        String title;
+        if (JUCEApplication::isStandaloneApp()) {
+            message = TRANS("In order to change the language, the application must be closed and restarted by you.");
+            title = TRANS("App restart required");
+        } else {
+            message = TRANS("In order to change the language, the plugin host must close the plugin view and reopen it.");
+            title = TRANS("Host session reload required");
+        }
+
+        AlertWindow::showOkCancelBox(AlertWindow::WarningIcon,
+                                     title,
+                                     message,
+                                     TRANS("Change and Close"),
+                                     TRANS("Cancel"),
+                                     this,
+                                     ModalCallbackFunction::create( [this,code](int result) {
+            if (result) {
+                String langOverride = code;
+                if (setupLocalisation == nullptr || !setupLocalisation(langOverride)) {
+                    DBG("Error overriding language with " << langOverride);
+
+                    langOverride = "";
+                }
+
+                processor.setLanguageOverrideCode(langOverride);
+
+                if (JUCEApplication::isStandaloneApp()) {
+                    if (saveSettingsIfNeeded) {
+                        saveSettingsIfNeeded();
+                    }
+                    Timer::callAfterDelay(500, [] {
+                        JUCEApplication::getInstance()->quit();
+                    });
+                }
+            }
+        }));
+    }
+
+}
+
+void OptionsView::chooseRecDirBrowser()
+{
+    SafePointer<OptionsView> safeThis (this);
+
+    if (FileChooser::isPlatformDialogAvailable())
+    {
+        File recdir = File(processor.getDefaultRecordingDirectory());
+
+        mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
+                                           recdir,
+                                           "",
+                                           true, false, getTopLevelComponent()));
+
+
+
+        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                                   [safeThis] (const FileChooser& chooser) mutable
+                                   {
+            auto results = chooser.getURLResults();
+            if (safeThis != nullptr && results.size() > 0)
+            {
+                auto url = results.getReference (0);
+
+                DBG("Chose directory: " <<  url.toString(false));
+
+                if (url.isLocalFile()) {
+                    File lfile = url.getLocalFile();
+                    if (lfile.isDirectory()) {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getFullPathName());
+                    } else {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
+                    }
+
+                    safeThis->updateState();
+                }
+            }
+
+            if (safeThis) {
+                safeThis->mFileChooser.reset();
+            }
+
+        }, nullptr);
+
+    }
+    else {
+        DBG("Need to enable code signing");
+    }
+}
+
+
+
+void OptionsView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
+{
+    popTip.reset(new BubbleMessageComponent());
+    popTip->setAllowedPlacement(BubbleComponent::above);
+    
+    if (target) {
+        if (auto * parent = target->findParentComponentOfClass<AudioProcessorEditor>()) {
+            parent->addChildComponent (popTip.get());
+        } else {
+            addChildComponent(popTip.get());            
+        }
+    }
+    else {
+        addChildComponent(popTip.get());
+    }
+    
+    AttributedString text(message);
+    text.setJustification (Justification::centred);
+    text.setColour (findColour (TextButton::textColourOffId));
+    text.setFont(Font(12));
+    if (target) {
+        popTip->showAt(target, text, timeoutMs);
+    }
+    else {
+        Rectangle<int> topbox(getWidth()/2 - maxwidth/2, 0, maxwidth, 2);
+        popTip->showAt(topbox, text, timeoutMs);
+    }
+    popTip->toFront(false);
+}
+
+void OptionsView::paint(Graphics & g)
+{
+    /*
+    //g.fillAll (Colours::black);
+    Rectangle<int> bounds = getLocalBounds();
+
+    bounds.reduce(1, 1);
+    bounds.removeFromLeft(3);
+    
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
+    g.setColour(outlineColor);
+    g.drawRoundedRectangle(bounds.toFloat(), 6.0f, 0.5f);
+*/
+}
+

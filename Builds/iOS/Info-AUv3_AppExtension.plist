@@ -4,13 +4,15 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleVersion</key>
-    <string>41</string>
+    <string>59</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>UIStatusBarHidden</key>
     <false/>
     <key>UIStatusBarStyle</key>
     <string>UIStatusBarStyleLightContent</string>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -43,9 +45,9 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.3</string>
+    <string>1.4.0</string>
     <key>NSHumanReadableCopyright</key>
-    <string>2020 Sonosaurus LLC</string>
+    <string>2021 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>UISupportsDocumentBrowser</key>
@@ -74,7 +76,7 @@
             <key>subtype</key>
             <string>NBus</string>
             <key>version</key>
-            <integer>65539</integer>
+            <integer>66560</integer>
             <key>sandboxSafe</key>
             <true/>
             <key>tags</key>

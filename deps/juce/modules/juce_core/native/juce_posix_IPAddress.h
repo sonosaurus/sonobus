@@ -25,6 +25,19 @@ namespace juce
 
 namespace
 {
+    struct InterfaceInfo
+    {
+        IPAddress interfaceAddress, broadcastAddress;
+        String name;
+    };
+
+    inline bool operator== (const InterfaceInfo& lhs, const InterfaceInfo& rhs)
+    {
+        return lhs.interfaceAddress == rhs.interfaceAddress
+            && lhs.broadcastAddress == rhs.broadcastAddress;
+    }
+
+   #if ! JUCE_WASM
     static IPAddress makeAddress (const sockaddr_in6* addr_in)
     {
         if (addr_in == nullptr)
@@ -53,19 +66,7 @@ namespace
 
         return IPAddress (ntohl (addr_in->sin_addr.s_addr));
     }
-
-    struct InterfaceInfo
-    {
-        IPAddress interfaceAddress, broadcastAddress;
-        String name;
-    };
-
-    bool operator== (const InterfaceInfo& lhs, const InterfaceInfo& rhs)
-    {
-        return lhs.interfaceAddress == rhs.interfaceAddress
-            && lhs.broadcastAddress == rhs.broadcastAddress;
-    }
-
+    
     bool populateInterfaceInfo (struct ifaddrs* ifa, InterfaceInfo& interfaceInfo)
     {
         if (ifa->ifa_addr != nullptr)
@@ -94,10 +95,15 @@ namespace
 
         return false;
     }
+   #endif
 
     Array<InterfaceInfo> getAllInterfaceInfo()
     {
         Array<InterfaceInfo> interfaces;
+
+       #if JUCE_WASM
+        // TODO
+       #else
         struct ifaddrs* ifaddr = nullptr;
 
         if (getifaddrs (&ifaddr) != -1)
@@ -112,6 +118,7 @@ namespace
 
             freeifaddrs (ifaddr);
         }
+       #endif
 
         return interfaces;
     }

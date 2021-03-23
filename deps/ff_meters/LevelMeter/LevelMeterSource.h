@@ -98,8 +98,9 @@ private:
 
         float getAvgRMS () const
         {
-            if (rmsHistory.size() > 0)
+            if (rmsHistory.size() > 0) {
                 return std::sqrt(std::accumulate (rmsHistory.begin(), rmsHistory.end(), 0.0f) / static_cast<float>(rmsHistory.size()));
+            }
                 
             return float (std::sqrt (rmsSum));
         }
@@ -134,7 +135,8 @@ private:
     private:
         void pushNextRMS (const float newRMS)
         {
-            const double squaredRMS = std::min (newRMS * newRMS, 1.0f);
+            const double squaredRMS = !std::isnormal(newRMS) ? 0.0 :  std::min (newRMS * newRMS, 1.0f);
+
             if (rmsHistory.size() > 0)
             {
                 rmsHistory [(size_t) rmsPtr] = squaredRMS;
@@ -187,13 +189,13 @@ public:
      Call this method to measure a block af levels to be displayed in the meters
      */
     template<typename FloatType>
-    void measureBlock (const juce::AudioBuffer<FloatType>& buffer)
+    void measureBlock (const juce::AudioBuffer<FloatType>& buffer, int startSample=0, int numSamples=0)
     {
         lastMeasurement = juce::Time::currentTimeMillis();
         if (! suspended)
         {
             const int         numChannels = buffer.getNumChannels ();
-            const int         numSamples  = buffer.getNumSamples ();
+            numSamples  = numSamples <= 0 ? buffer.getNumSamples () : numSamples;
 
 #if FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK
 #warning The use of levels.resize() is not realtime safe. Please call resize from the message thread and set this config setting to 0 via Projucer.
@@ -202,8 +204,8 @@ public:
 
             for (int channel=0; channel < std::min (numChannels, int (levels.size())); ++channel) {
                 levels [size_t (channel)].setLevels (lastMeasurement,
-                                                     buffer.getMagnitude (channel, 0, numSamples),
-                                                     buffer.getRMSLevel  (channel, 0, numSamples),
+                                                     buffer.getMagnitude (channel, startSample, numSamples),
+                                                     buffer.getRMSLevel  (channel, startSample, numSamples),
                                                      holdMSecs);
             }
         }

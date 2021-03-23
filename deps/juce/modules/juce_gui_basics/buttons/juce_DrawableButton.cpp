@@ -104,7 +104,18 @@ Rectangle<float> DrawableButton::getImageBounds() const
         {
             r = r.withTrimmedBottom (jmin (16, proportionOfHeight (0.25f)));
         }
-
+        else if (getStyle() == ImageBelowTextLabel)
+        {
+            r = r.withTrimmedTop (jmin (14, proportionOfHeight (0.25f)));
+        }
+        else if (getStyle() == ImageLeftOfTextLabel)
+        {
+            r = r.withTrimmedRight (proportionOfWidth (0.5f));
+        }
+        else if (getStyle() == ImageRightOfTextLabel)
+        {
+            r = r.withTrimmedLeft (proportionOfWidth (0.5f));
+        }
         r = r.reduced (indentX, indentY);
     }
 

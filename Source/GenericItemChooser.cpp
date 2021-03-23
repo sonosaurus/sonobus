@@ -7,15 +7,17 @@
 enum {
     nameTextColourId = 0x1002830,
     currentNameTextColourId = 0x1002850,
-    selectedColourId = 0x1002840
+    selectedColourId = 0x1002840,
+    separatorColourId = 0x1002860,
+    disabledColourId = 0x1002870
 };
 
 
-CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChooserItem> & items, Rectangle<int> targetBounds, Component * targetComponent, GenericItemChooser::Listener * listener, int tag, int selectedIndex, int maxheight)
+CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChooserItem> & items, Rectangle<int> targetBounds, Component * targetComponent, GenericItemChooser::Listener * listener, int tag, int selectedIndex, int maxheight, bool dismissSel)
 {
     
     auto chooser = std::make_unique<GenericItemChooser>(items, tag);
-
+    chooser->dismissOnSelected = dismissSel;
     if (selectedIndex >= 0) {
         chooser->setCurrentRow(selectedIndex);
     }
@@ -33,13 +35,37 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     return box;
 }
 
+CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChooserItem> & items, juce::Rectangle<int> targetBounds, Component * targetComponent, std::function<void (GenericItemChooser* chooser,int index)> onSelectedFunction, int selectedIndex, int maxheight, bool dismissSel)
+{
+    auto chooser = std::make_unique<GenericItemChooser>(items, 0);
+    chooser->dismissOnSelected = dismissSel;
+
+    if (selectedIndex >= 0) {
+        chooser->setCurrentRow(selectedIndex);
+    }
+
+    chooser->onSelected = onSelectedFunction;
+
+    if (maxheight > 0) {
+        chooser->setMaxHeight(maxheight);
+    }
+
+    CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent);
+    box.setDismissalMouseClicksAreAlwaysConsumed(true);
+    // box.setArrowSize(0);
+    return box;
+}
 
 
 GenericItemChooser::GenericItemChooser(const Array<GenericItemChooserItem> & items_, int tag_)   : font (16.0, Font::plain), catFont(15.0, Font::plain), items(items_), tag(tag_)
 
 {
     currentIndex = -1;
+#if JUCE_IOS || JUCE_ANDROID
     rowHeight = 42;
+#else
+    rowHeight = 32;
+#endif
     numRows = items.size();
     
     // Create our table component and add it to this component..
@@ -55,6 +81,8 @@ GenericItemChooser::GenericItemChooser(const Array<GenericItemChooserItem> & ite
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.8f));
     setColour (currentNameTextColourId, Colour::fromFloatRGBA(0.4f, 0.8f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour (0xff3d70c8).withAlpha(0.5f));
+    setColour (separatorColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.5f));
+    setColour (disabledColourId, Colour::fromFloatRGBA(0.7f, 0.7f, 0.7f, 0.7f));
 
     
     table.setOutlineThickness (0);
@@ -109,7 +137,7 @@ int GenericItemChooser::getAutoWidth()
         targw = jmax(targw, tsize);
     }
     
-    return targw + 20;
+    return targw + 30;
 }
 
 
@@ -145,7 +173,24 @@ int GenericItemChooser::getNumRows()
 void GenericItemChooser::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 {
     listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
-    
+
+    if (items[rowNumber].disabled) {
+        // not selectable
+        return;
+    }
+
+    if (onSelected) {
+        onSelected(this, rowNumber);
+    }
+
+    if (dismissOnSelected) {
+        if (CallOutBox* const cb = findParentComponentOfClass<CallOutBox>()) {
+            cb->dismiss();
+        }
+    } else {
+        setCurrentRow(rowNumber);
+        repaint();
+    }
 }
 
 void GenericItemChooser::selectedRowsChanged(int lastRowSelected)
@@ -156,13 +201,21 @@ void GenericItemChooser::selectedRowsChanged(int lastRowSelected)
 
 void GenericItemChooser::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
 {
-    
-    if (rowIsSelected) {
+
+    if (items[rowNumber].separator) {
+        g.setColour (findColour(separatorColourId));
+        g.drawLine(0, 0, width, 0);
+    }
+
+    if (rowIsSelected && !items[rowNumber].disabled) {
         g.setColour (findColour(selectedColourId));
         g.fillRect(Rectangle<int>(0,0,width,height));
     }
     
-    if (rowNumber == currentIndex) {
+    if (items[rowNumber].disabled) {
+        g.setColour (findColour(disabledColourId));
+    }
+    else if (rowNumber == currentIndex) {
         g.setColour (findColour(currentNameTextColourId));
     }
     else {
@@ -173,7 +226,8 @@ void GenericItemChooser::paintListBoxItem (int rowNumber, Graphics &g, int width
 
     int imagewidth = 0;
 
-    
+
+
     if (rowNumber < items.size()) {
         if (items[rowNumber].image.isValid()) {
             imagewidth = height-8;

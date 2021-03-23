@@ -39,33 +39,11 @@ the users in a group can find each other.
 INSTALLATION (Mac)
 =======================
 
-The software is distributed as a DMG disk image. Once you've double-clicked
-it you will be able to install the standalone application or whichever
-plugin varieties you want by simply dragging them to the folder aliases
-directly below each item in the DMG's window. 
-
-Note: You may be asked for permission when dragging some of the plugins, 
-or it may not work at all, if you don't already have those particular 
-plugin sytem folders created yet. The folder names are listed below for
-each plugin type, in case you need to create them first yourself.
-
-More information about the plugin folder locations is below in case you need
-it. But simply dragging them into the appropriate folder in the DMG should
-be all you need.
-
----------------
-
-If you have trouble dragging them from the DMG, copy the
-appropriate plugin one of the locations below. You can get to this from
-the Finder, by holding down Option as you click the Go menu in
-Finder's menubar, then select Library, then you can browse to the
-folder or create the folder if necessary.
-
-Audio Unit  /Library/Audio/Plug-Ins/Components
-VST2        /Library/Audio/Plug-Ins/VST
-VST3        /Library/Audio/Plug-Ins/VST3
-AAX         /Library/Application Support/Avid/Audio/Plug-Ins
-
+The software is distributed as an installer package inside a DMG disk image. 
+Once you've double-clicked the SonoBus Installer package it will guide you
+through the steps and you can choose to install the application along with
+all the audio plugin types you may use. It needs administrator privileges to 
+install the plugins in the system-wide locations.
 
 
 GETTING STARTED (Mac)
@@ -96,6 +74,16 @@ If you see a yellow bar across the top saying that your audio input is
 muted to avoid feedback, you can press the button on the top right to
 Unmute Input. If you are using a microphone input, you will NEED
 headphones, make sure to connect them before you unmute the input.
+
+On the main screen you will see an Input Mixer button, pressing that will
+bring up the area which lets you specify what inputs you want to use and how
+they should be mixed to be sent out to people you connect with. You can add
+multiple channel "groups" here if you have a combination of inputs you want
+to send out (for instance, an instrument and a vocal mic, etc). You can
+choose to send a mono (one channel), or stereo (two channels) signal to
+others you connect with, or you can choose to Send Multichannel which will
+send all of your input groups individually to others, letting them have the
+ability to mix your inputs themselves.
 
 
 CONNECTING WITH OTHERS
@@ -139,7 +127,6 @@ the bottom of the window or in each user's area.
 
 
 
-
-
 ================================
-Copyright 2020, Jesse Chappell, Sonosaurus LLC
+Copyright 2021, Jesse Chappell, Sonosaurus LLC
+This software is licensed under the GNU General Public License v3
