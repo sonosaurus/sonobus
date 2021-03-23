@@ -5532,7 +5532,9 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         // default
         retpeer->numChanGroups = 1;
         retpeer->chanGroups[0].params.numChannels = 0;
-        retpeer->chanGroups[0].params.gain = mDefUserLevel.get();
+        retpeer->chanGroups[0].params.gain = 1.0f;
+
+        retpeer->gain = mDefUserLevel.get();
 
         findAndLoadCacheForPeer(retpeer);
 
