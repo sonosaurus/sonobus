@@ -12,7 +12,7 @@ if [ -d "$1" ] ; then
   	exit 1
   fi
   
-  for f in *.zip *.dmg; do
+  for f in *.exe *.dmg; do
 
     ## Check if the glob gets expanded to existing files.
     ## If not, f here will be exactly the pattern above
@@ -24,14 +24,14 @@ if [ -d "$1" ] ; then
   done
 
   if [ -z "$havezip" ] ; then
-  	echo "No Zip files!"
+  	echo "No archive files!"
 	exit 1
   fi
   
-  FILES=`echo *.zip *.dmg`
+  FILES=`echo *.exe *.dmg`
   
   echo "Making release $1 with assets: ${FILES}"
-  gitrelease.sh essej/sonobus $1 -- *.zip *.dmg < notes.md
+  gitrelease.sh sonosaurus/sonobus $1 -- *.exe *.dmg < notes.md
 
   echo
   echo "Done!"
