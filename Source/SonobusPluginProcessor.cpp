@@ -6821,13 +6821,13 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
 
     if (numSamples != lastSamplesPerBlock) {
-        DBG("blocksize changed from " << lastSamplesPerBlock << " to " << numSamples);
+        //DBG("blocksize changed from " << lastSamplesPerBlock << " to " << numSamples);
         blocksizeCounter = 0;
     }
     else if (blocksizeCounter >= 0) {
         ++blocksizeCounter;
 
-        if (blocksizeCounter > 5) { // change currblocksize if stable
+        if (blocksizeCounter > 30) { // change currblocksize if stable
             DBG("sample frames stabilized at: " << numSamples);
             currSamplesPerBlock = numSamples;
             blocksizeCounter = -1;

@@ -2821,10 +2821,10 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         Component* dw = this; 
         
 #if JUCE_IOS || JUCE_ANDROID
-        int defWidth = 300;
+        int defWidth = 320;
         int defHeight = 420;
 #else
-        int defWidth = 320;
+        int defWidth = 340;
         int defHeight = 400;
 #endif
         
