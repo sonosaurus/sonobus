@@ -320,7 +320,7 @@ static const unsigned char temp_binary_data_0[] =
 "\"Scan for bluetooth MIDI devices\" = \"Suche nach Bluetooth-MIDI-Ger\xc3\xa4ten\"\n"
 "\"MIDI Output:\" = \"MIDI-Ausgang:\"\n"
 "\"Default Jitter Buffer Time\" = \"Standard-Jitter-Pufferzeit\"\n"
-"\"Default User Level\" = \"Standardbenutzerebene\"\n"
+"\"Default User Level\" = \"Standart Benutzerlautst\xc3\xa4rke\"\n"
 "\"Sync to Host\" = \"Mit Host synchronisieren\"\n"
 "\"Metronome\" = \"Metronom\"\n"
 "\"File Playback\" = \"Datei-Wiedergabe\"\n"
@@ -19580,7 +19580,7 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
     switch (hash)
     {
-        case 0xf89c3ef6:  numBytes = 25323; return localized_de_txt;
+        case 0xf89c3ef6:  numBytes = 25330; return localized_de_txt;
         case 0xfb1660a3:  numBytes = 24727; return localized_es_txt;
         case 0xfcbd21c1:  numBytes = 25788; return localized_fr_txt;
         case 0x01f7daa0:  numBytes = 25198; return localized_it_txt;

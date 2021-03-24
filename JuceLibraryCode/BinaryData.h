@@ -9,7 +9,7 @@
 namespace BinaryData
 {
     extern const char*   localized_de_txt;
-    const int            localized_de_txtSize = 25323;
+    const int            localized_de_txtSize = 25330;
 
     extern const char*   localized_es_txt;
     const int            localized_es_txtSize = 24727;
