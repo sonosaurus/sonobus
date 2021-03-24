@@ -300,7 +300,7 @@ countries: de
 "Scan for bluetooth MIDI devices" = "Suche nach Bluetooth-MIDI-Geräten"
 "MIDI Output:" = "MIDI-Ausgang:"
 "Default Jitter Buffer Time" = "Standard-Jitter-Pufferzeit"
-"Default User Level" = "Standardbenutzerebene"
+"Default User Level" = "Standart Benutzerlautstärke"
 "Sync to Host" = "Mit Host synchronisieren"
 "Metronome" = "Metronom"
 "File Playback" = "Datei-Wiedergabe"
