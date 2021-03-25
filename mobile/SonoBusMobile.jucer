@@ -358,7 +358,7 @@
                    androidKeyStore="${user.home}/.android/sonoupload.keystore" androidKeyStorePass="${sonoupload_keystore_password}"
                    androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
                    androidTheme="@android:style/Theme.NoTitleBar" androidActivitySubClassName="com.sonosaurus.sonobus.SonoBusActivity"
-                   androidVersionCode="59">
+                   androidVersionCode="62">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../deps/aoo/lib&#10;../../deps/aoo/deps&#10;../../deps/android&#10;"
                        libraryPath="../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>
