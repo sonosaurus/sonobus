@@ -22,7 +22,7 @@ chmod +x ${PREFIX}/share/applications/sonobus.desktop
 mkdir -p ${PREFIX}/share/pixmaps
 cp ../../images/sonobus_logo@2x.png ${PREFIX}/share/pixmaps/sonobus.png
 
-if [ -d build/SonoBus.vst3 ] ; then
+if [ -d build/sonobus.vst3 ] ; then
   mkdir -p ${PREFIX}/lib/vst3
   cp -a build/sonobus.vst3 ${PREFIX}/lib/vst3/
 
