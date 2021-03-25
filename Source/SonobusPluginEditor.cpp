@@ -3357,9 +3357,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         }
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
-            String mesg;
-            mesg << ev.user << TRANS(" - joined group");
-            mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+
+            if (!currConnectionInfo.groupIsPublic) {
+                String mesg;
+                mesg << ev.user << TRANS(" - joined group");
+                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            }
 
             // delay update
             Timer::callAfterDelay(200, [this] {
@@ -3368,9 +3371,11 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             });
         }
         else if (ev.type == ClientEvent::PeerLeaveEvent) {
-            String mesg;
-            mesg << ev.user << TRANS(" - left group");
-            mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            if (!currConnectionInfo.groupIsPublic) {
+                String mesg;
+                mesg << ev.user << TRANS(" - left group");
+                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            }
 
             updatePeerState(true);
             updateState(false);
