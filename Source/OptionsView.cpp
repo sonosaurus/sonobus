@@ -938,9 +938,9 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         recmask |= (mOptionsRecSelfButton->getToggleState() ? SonobusAudioProcessor::RecordSelf : 0);
         recmask |= (mOptionsRecMixMinusButton->getToggleState() ? SonobusAudioProcessor::RecordMixMinusSelf : 0);
 
-        // ensure at least one is selected
-        if (recmask == 0) {
-            recmask = SonobusAudioProcessor::RecordMix;
+        // check full mix if none checked or if user only checked "Each Connected User"
+        if (recmask == 0 || recmask == SonobusAudioProcessor::RecordIndividualUsers) {
+            recmask |= SonobusAudioProcessor::RecordMix;
             mOptionsRecMixButton->setToggleState(true, dontSendNotification);
         }
 
