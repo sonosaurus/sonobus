@@ -1003,6 +1003,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
 
 
     if (!mPeerMode) {
+        pvf->nameLabel->setColour(Label::outlineColourId, Colour(0x66666666));
         pvf->nameLabel->setColour(Label::backgroundColourId, Colours::black);
         pvf->nameLabel->setTooltip(TRANS("Set name for this group that others will see"));
     } else {
@@ -1354,6 +1355,7 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             mMetChannelView->nameLabel->setText(TRANS("Metronome"), dontSendNotification);
             mMetChannelView->nameLabel->setEditable(false);
             mMetChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
+            mMetChannelView->nameLabel->setColour(Label::outlineColourId, Colours::transparentBlack);
 
             mMetLevelAttachment   = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMetGain, *mMetChannelView->levelSlider);
 
@@ -1429,6 +1431,7 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             mFileChannelView->nameLabel->setEditable(false);
             mFileChannelView->nameLabel->setText(TRANS("File Playback"), dontSendNotification);
             mFileChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
+            mFileChannelView->nameLabel->setColour(Label::outlineColourId, Colours::transparentBlack);
 
             mFileChannelView->linkButton->setClickingTogglesState(true);
             std::unique_ptr<Drawable> grpimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));

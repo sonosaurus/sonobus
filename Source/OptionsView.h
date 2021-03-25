@@ -138,6 +138,9 @@ protected:
     std::unique_ptr<Label> mOptionsDefaultLevelSliderLabel;
     std::unique_ptr<Slider> mOptionsDefaultLevelSlider;
 
+    std::unique_ptr<Label> mOptionsAutoDropThreshLabel;
+    std::unique_ptr<Slider> mOptionsAutoDropThreshSlider;
+
     std::unique_ptr<SonoChoiceButton> mOptionsLanguageChoice;
     std::unique_ptr<Label> mOptionsLanguageLabel;
 
@@ -171,6 +174,7 @@ protected:
     FlexBox optionsDefaultLevelBox;
     FlexBox optionsLanguageBox;
     FlexBox optionsAllowBluetoothBox;
+    FlexBox optionsAutoDropThreshBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;

@@ -421,7 +421,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeSlider->setName("buffer");
     pvf->bufferTimeSlider->setRange(0, 1000, 1);
     pvf->bufferTimeSlider->setTextValueSuffix(" ms");
-    pvf->bufferTimeSlider->getProperties().set ("noFill", true);
+    //pvf->bufferTimeSlider->getProperties().set ("noFill", true);
     pvf->bufferTimeSlider->setSkewFactor(0.4);
     pvf->bufferTimeSlider->setDoubleClickReturnValue(true, 20.0);
     pvf->bufferTimeSlider->setTextBoxIsEditable(true);
@@ -429,6 +429,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeSlider->setChangeNotificationOnlyOnRelease(true);
     pvf->bufferTimeSlider->setScrollWheelEnabled(false);
     pvf->bufferTimeSlider->setPopupDisplayEnabled(true, false, this);
+    pvf->bufferTimeSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
 
     pvf->bufferTimeSlider->addListener(this);
 
@@ -991,7 +992,7 @@ void PeersContainerView::updateLayout()
         pvf->optionsRemoteQualityBox.flexDirection = FlexBox::Direction::row;
         pvf->optionsRemoteQualityBox.items.add(FlexItem(80, minitemheight, *pvf->staticRemoteSendFormatChoiceLabel).withMargin(0).withFlex(0));
         pvf->optionsRemoteQualityBox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->remoteSendFormatChoiceButton).withMargin(0).withFlex(2));
-        pvf->optionsRemoteQualityBox.items.add(FlexItem(60, minitemheight, *pvf->changeAllRecvFormatButton).withMargin(0).withFlex(0));
+        pvf->optionsRemoteQualityBox.items.add(FlexItem(68, minitemheight, *pvf->changeAllRecvFormatButton).withMargin(0).withFlex(0));
 
         
         pvf->optionsSendMutedBox.items.clear();
@@ -1740,7 +1741,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
             dw = this;
         }
         
-        const int defWidth = 280;
+        const int defWidth = 300;
 #if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 180;
 #else

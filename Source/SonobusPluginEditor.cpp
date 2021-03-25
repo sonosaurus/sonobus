@@ -406,6 +406,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mInMixerButton->addListener(this);
     mInMixerButton->setClickingTogglesState(true);
     mInMixerButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.1, 0.3, 0.4, 1.0));
+    mInMixerButton->setTooltip(TRANS("This button shows/hides the Input Mixer where you can organize your audio input levels, panning, and effects before your signal is sent out. You can also control how you monitor yourself."));
 
     mInMuteButton = std::make_unique<TextButton>("mute");
     mInMuteButton->setButtonText(TRANS("MUTE"));
@@ -773,6 +774,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mSendChannelsChoice->addItem(TRANS("Send Stereo"), 2);
     mSendChannelsChoice->addItem(TRANS("Send Multichannel"), 0);
     mSendChannelsChoice->setLookAndFeel(&smallLNF);
+
+    mSendChannelsChoice->setTooltip(TRANS("This controls how many channels of audio you send out to other connected users. Mono and Stereo send 1 or 2 channels respectively mixed from all of your inputs that you set up in the Input Mixer. If you choose Send Multichannel, it will send all of the inputs you specify in the Input Mixer separately to everyone connected, where they can mix all the channels themselves."));
+
 
     mSendChannelsLabel = std::make_unique<Label>("sendch", TRANS("# Send Channels"));
     configLabel(mSendChannelsLabel.get(), true);

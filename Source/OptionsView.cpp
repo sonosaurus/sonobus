@@ -84,6 +84,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mBufferTimeSlider->setDoubleClickReturnValue(true, 15.0);
     mBufferTimeSlider->setTextBoxIsEditable(true);
     mBufferTimeSlider->setScrollWheelEnabled(false);
+    mBufferTimeSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
+
+    mBufferTimeSlider->setTooltip(TRANS("This controls controls the default jitter buffer size to start with. When using the Auto modes, it is recommended to keep the value at the minimum so it starts from the lowest possible value. Generally you will only want to set this higher if you are using a Manual mode default which is not recommended."));
 
     mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
 
@@ -94,12 +97,17 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto"), SonobusAudioProcessor::AutoNetBufferModeAutoFull);
     mOptionsAutosizeDefaultChoice->addItem(TRANS("Initial Auto"), SonobusAudioProcessor::AutoNetBufferModeInitAuto);
 
+    mOptionsAutosizeDefaultChoice->setTooltip(TRANS("This controls how the jitter buffers are automatically adjusted based on network conditions. The Auto mode is the recommended choice as it will adjust the jitter buffers up or down based on current conditions. The Auto-Up will only make the buffers larger. The Initial Auto will do an initial adjustment from the smallest value and once it stabilizes will no longer change, even if network conditions worsen. Manual will let you set the jitter buffer manually, leaving it up to you to deal with if network conditions change, but can be useful with known users."));
+
     mOptionsFormatChoiceDefaultChoice = std::make_unique<SonoChoiceButton>();
     mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
         mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
     }
+
+    mOptionsFormatChoiceDefaultChoice->setTooltip(TRANS("The default send quality will be used when you first connect with someone. The values specified with a kbps/ch are Opus compressed audio and use less network bandwidth at the expense of a little latency. It is not recommended to use less than 96 kpbs/ch, as that will increase latency more. The PCM 16bit (and above) use uncompressed audio data and will use the most network bandwidth, but have the least latency and CPU load. If you are connecting with a known small group who all have network service that can support it, using PCM 16 bit is recommended for the lowest latency. Otherwise 96 kbps/ch is a good default."));
+
 
     mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
     configLabel(mOptionsAutosizeStaticLabel.get(), false);
@@ -245,10 +253,34 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mDefaultLevelAttachment =  std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDefaultPeerLevel, *mOptionsDefaultLevelSlider);
 
 
-
     mOptionsDefaultLevelSliderLabel = std::make_unique<Label>("", TRANS("Default User Level"));
     configLabel(mOptionsDefaultLevelSliderLabel.get(), false);
     mOptionsDefaultLevelSliderLabel->setJustificationType(Justification::centredLeft);
+
+
+    mOptionsAutoDropThreshSlider = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
+    mOptionsAutoDropThreshSlider->setRange(1.0, 20.0, 0.1);
+    mOptionsAutoDropThreshSlider->setSkewFactor(0.5);
+    mOptionsAutoDropThreshSlider->setName("dropthresh");
+    mOptionsAutoDropThreshSlider->setTextValueSuffix(" " + TRANS("sec"));
+    mOptionsAutoDropThreshSlider->setSliderSnapsToMousePosition(false);
+    mOptionsAutoDropThreshSlider->setChangeNotificationOnlyOnRelease(true);
+    mOptionsAutoDropThreshSlider->setDoubleClickReturnValue(true, 5.0);
+    mOptionsAutoDropThreshSlider->setTextBoxIsEditable(false);
+    mOptionsAutoDropThreshSlider->setScrollWheelEnabled(false);
+    mOptionsAutoDropThreshSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
+
+    mOptionsAutoDropThreshSlider->onValueChange = [this]() {
+        auto thresh = 1.0 / jmax(1.0, mOptionsAutoDropThreshSlider->getValue());
+        processor.setAutoresizeBufferDropRateThreshold(thresh);
+    };
+
+    mOptionsAutoDropThreshSlider->setTooltip(TRANS("This controls how sensitive the auto-jitter buffer adjustment is when there are audio dropouts. The jitter buffer size will be increased if there are any dropouts within the number of seconds specified here. When this value is smaller it will be less likely to increase the jitter buffer size automatically."));
+
+
+    mOptionsAutoDropThreshLabel = std::make_unique<Label>("", TRANS("Auto Adjust Drop Threshold"));
+    configLabel(mOptionsAutoDropThreshLabel.get(), false);
+    mOptionsAutoDropThreshLabel->setJustificationType(Justification::centredLeft);
 
 
 
@@ -279,6 +311,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsComponent->addAndMakeVisible(mVersionLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsLanguageChoice.get());
     mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshSlider.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshLabel.get());
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
 
     if (JUCEApplicationBase::isStandaloneApp()) {
@@ -464,6 +498,8 @@ void OptionsView::updateState(bool ignorecheck)
 
     mOptionsChangeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
 
+    mOptionsAutoDropThreshSlider->setValue(1 / jmax(0.001f, processor.getAutoresizeBufferDropRateThreshold()), dontSendNotification);
+
     int port = processor.getUseSpecificUdpPort();
     if (port > 0) {
         mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
@@ -595,6 +631,11 @@ void OptionsView::updateLayout()
     //optionsDefaultLevelBox.items.add(FlexItem(4, 12));
     optionsDefaultLevelBox.items.add(FlexItem(100, minitemheight, *mOptionsDefaultLevelSlider).withMargin(0).withFlex(1));
 
+    optionsAutoDropThreshBox.items.clear();
+    optionsAutoDropThreshBox.flexDirection = FlexBox::Direction::row;
+    optionsAutoDropThreshBox.items.add(FlexItem(42, 12));
+    optionsAutoDropThreshBox.items.add(FlexItem(100, minitemheight, *mOptionsAutoDropThreshSlider).withMargin(0).withFlex(1));
+
 
     optionsUdpBox.items.clear();
     optionsUdpBox.flexDirection = FlexBox::Direction::row;
@@ -656,7 +697,9 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(4, 6));
+    optionsBox.items.add(FlexItem(4, 3));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsAutoDropThreshBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 10));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 6));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsInputLimitBox).withMargin(2).withFlex(0));
@@ -772,6 +815,9 @@ void OptionsView::resized()  {
     deflabbounds.removeFromBottom(mOptionsDefaultLevelSlider->getHeight()*0.4);
     mOptionsDefaultLevelSliderLabel->setBounds(deflabbounds);
     mOptionsDefaultLevelSlider->setMouseDragSensitivity(jmax(128, mOptionsDefaultLevelSlider->getWidth()));
+
+    mOptionsAutoDropThreshLabel->setBounds(mOptionsAutoDropThreshSlider->getBounds().removeFromLeft(mOptionsAutoDropThreshSlider->getWidth()*0.75));
+
 }
 
 void OptionsView::showAudioTab()

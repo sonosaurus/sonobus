@@ -33,8 +33,9 @@ public:
         //timeSlider.setDoubleClickReturnValue(true, -60.0);
         configBarSlider(timeSlider);
         timeSlider.addListener(this);
-        timeSlider.getProperties().set ("noFill", true);
+        //timeSlider.getProperties().set ("noFill", true);
         timeSlider.setTextBoxIsEditable(true);
+        timeSlider.setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
 
         timeLabel.setText(TRANS("Delay Time"), dontSendNotification);
         configLabel(timeLabel);

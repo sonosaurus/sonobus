@@ -391,6 +391,11 @@ public:
     void setRemotePeerAutoresizeBufferMode(int index, AutoNetBufferMode flag);
     AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index, bool & initCompleted) const;
 
+    // acceptable limit for drop rate in dropinstance/second, above which it will adjust the jitter buffer in Auto modes
+    void setAutoresizeBufferDropRateThreshold(float);
+    float getAutoresizeBufferDropRateThreshold() const { return mAutoresizeDropRateThresh; }
+
+
     bool getRemotePeerReceiveBufferFillRatio(int index, float & retratio, float & retstddev) const;
 
     
@@ -897,6 +902,10 @@ private:
     int mUseSpecificUdpPort = 0;
 
     bool mLinkMonitoringDelayTimes = true;
+
+    // acceptable limit for drop rate in dropinstance/second
+    // above which it will adjust the jitter buffer in Auto modes
+    float mAutoresizeDropRateThresh = 0.2f;
 
     bool hasInitializedInMonPanners = false;
     

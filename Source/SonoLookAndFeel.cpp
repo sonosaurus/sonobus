@@ -558,7 +558,7 @@ void SonoLookAndFeel::drawLabel (Graphics& g, Label& label)
     g.setColour(olcolor);
     if (!olcolor.isTransparent()) {
         if (labelCornerRadius > 0.0f) {
-            g.fillRoundedRectangle(label.getLocalBounds().toFloat(), labelCornerRadius);
+            g.fillRoundedRectangle(label.getLocalBounds().reduced(1).toFloat(), labelCornerRadius);
         } else {
             g.fillAll (olcolor);
         }
@@ -589,7 +589,7 @@ void SonoLookAndFeel::drawLabel (Graphics& g, Label& label)
     if (!olcolor.isTransparent()) {
         g.setColour (olcolor);
         if (labelCornerRadius > 0.0f) {
-            g.drawRoundedRectangle(label.getLocalBounds().toFloat(), labelCornerRadius, 1.0f);
+            g.drawRoundedRectangle(label.getLocalBounds().reduced(1).toFloat(), labelCornerRadius, 1.0f);
         } else {
             g.drawRect (label.getLocalBounds());        
         }
@@ -1049,27 +1049,37 @@ void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, in
 {
     if (slider.isBar())
     {
-        g.setColour (slider.findColour (Slider::trackColourId));
         if (slider.getProperties().contains ("fromCentre")) {
             auto centrex = x + width*0.5f;
             auto centrey = y + height*0.5f;
             
             if (!slider.getProperties().contains ("noFill")) {
+                g.setColour (slider.findColour (Slider::trackColourId));
+
                 g.fillRect (slider.isHorizontal() ? Rectangle<float> (sliderPos > centrex ? centrex : sliderPos, y + 0.5f, sliderPos > centrex ? sliderPos - centrex : centrex - sliderPos, height - 1.0f)
                             : Rectangle<float> (x + 0.5f, sliderPos < centrey ? sliderPos : centrey, width - 1.0f, sliderPos < centrey ?  centrey - sliderPos : sliderPos - centrey));
             }
             
             // draw line
+            g.setColour (slider.findColour (Slider::thumbColourId));
+
             g.fillRect (slider.isHorizontal() ? Rectangle<float> (sliderPos - 1, y + 0.5f, 2, height - 1.0f)
                         : Rectangle<float> (x + 0.5f, sliderPos - 1, width - 1.0f, 2));
         }
         else {
             
             if (!slider.getProperties().contains ("noFill")) {
+
+                g.setColour (slider.findColour (Slider::trackColourId));
+
                 g.fillRect (slider.isHorizontal() ? Rectangle<float> (static_cast<float> (x), y + 0.5f, sliderPos - x, height - 1.0f)
                             : Rectangle<float> (x + 0.5f, sliderPos, width - 1.0f, y + (height - sliderPos)));
             }
-            else {
+            //else
+
+            g.setColour (slider.findColour (Slider::thumbColourId));
+
+            {
                 // draw line
                 g.fillRect (slider.isHorizontal() ? Rectangle<float> (sliderPos - 1, y + 0.5f, 3, height - 1.0f)
                             : Rectangle<float> (x + 0.5f, sliderPos - 1, width - 1.0f, 3));
