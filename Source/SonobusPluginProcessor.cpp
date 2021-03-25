@@ -95,6 +95,7 @@ static String linkMonitoringDelayTimesKey("linkMonDelayTimes");
 static String langOverrideCodeKey("langOverrideCode");
 static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
+static String autoresizeDropRateThreshKey("autoDropRateThresh");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -3528,7 +3529,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                 if (peer->autosizeBufferMode != AutoNetBufferModeOff) {
                     // see if our drop rate exceeds threshold, and increase buffersize if so
                     double nowtime = Time::getMillisecondCounterHiRes();
-                    const float dropratethresh = peer->autosizeBufferMode == AutoNetBufferModeInitAuto ? 1.0f : 1.0f/10.0f; // 1 every 10 seconds
+                    const float dropratethresh = peer->autosizeBufferMode == AutoNetBufferModeInitAuto ? 1.0f : mAutoresizeDropRateThresh;
                     const float adjustlimit = 0.5f; // don't adjust more often than once every 0.5 seconds
 
                     bool autoinitdone = peer->autosizeBufferMode == AutoNetBufferModeInitAuto && peer->autoNetbufInitCompleted;
@@ -4898,6 +4899,14 @@ SonobusAudioProcessor::AutoNetBufferMode SonobusAudioProcessor::getRemotePeerAut
     }
     return AutoNetBufferModeOff;    
 }
+
+// acceptable limit for drop rate in dropinstance/second, above which it will adjust the jitter buffer in Auto modes
+void SonobusAudioProcessor::setAutoresizeBufferDropRateThreshold(float thresh)
+{
+    mAutoresizeDropRateThresh = thresh;
+}
+
+
 
 bool SonobusAudioProcessor::getRemotePeerReceiveBufferFillRatio(int index, float & retratio, float & retstddev) const
 {
@@ -7825,6 +7834,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(langOverrideCodeKey, mLangOverrideCode, nullptr);
     extraTree.setProperty(lastWindowWidthKey, var((int)mPluginWindowWidth), nullptr);
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
+    extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
 
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
@@ -7932,6 +7942,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setLastPluginBounds(juce::Rectangle<int>(0, 0, extraTree.getProperty(lastWindowWidthKey, (int)mPluginWindowWidth),
                                                      extraTree.getProperty(lastWindowHeightKey, (int)mPluginWindowHeight)));
 
+            setAutoresizeBufferDropRateThreshold(extraTree.getProperty(autoresizeDropRateThreshKey, (float)mAutoresizeDropRateThresh));
         }
 
 

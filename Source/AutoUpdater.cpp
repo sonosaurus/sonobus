@@ -238,7 +238,7 @@ private:
 
     Label titleLabel, contentLabel, releaseNotesLabel;
     TextEditor releaseNotesEditor;
-    TextButton chooseButton { "Choose Location..." }, cancelButton { "Cancel" };
+    TextButton chooseButton { TRANS("Download Installer") }, cancelButton { TRANS("Cancel") };
     ToggleButton dontAskAgainButton { "Don't ask again" };
     std::unique_ptr<Drawable> appIcon;
     Rectangle<int> appIconBounds { 10, 10, 64, 64 };
@@ -252,47 +252,27 @@ void LatestVersionCheckerAndUpdater::askUserForLocationToDownload (const Version
     if (!dloadLoc.exists()) {
         dloadLoc = File::getSpecialLocation(File::userDesktopDirectory);
     }
-    
-    FileChooser chooser ("Please select the location into which you would like to download the new version",
-                         //{ getAppSettings().getStoredPath (Ids::jucePath, TargetOS::getThisOS()).get() });
-                         { dloadLoc });                         
+
+    // only ask if Downloads or desktop doesn't exist
+    if (!dloadLoc.exists())
+    {
+        FileChooser chooser ("Please select the location into which you would like to download the new version",
+                             //{ getAppSettings().getStoredPath (Ids::jucePath, TargetOS::getThisOS()).get() });
+                             { dloadLoc });
 
 #if JUCE_MODAL_LOOPS_PERMITTED
-    if (chooser.browseForDirectory())
+        if (chooser.browseForDirectory())
 #endif
-    {
-        auto targetFolder = chooser.getResult();
-
-        // By default we will install into 'targetFolder/JUCE', but we should install into
-        // 'targetFolder' if that is an existing JUCE directory.
-#if 0
-        bool willOverwriteJuceFolder = [&targetFolder]
         {
-            if (isJUCEFolder (targetFolder))
-                return true;
 
-            targetFolder = targetFolder.getChildFile ("SonoBus");
 
-            return isJUCEFolder (targetFolder);
-        }();
-
-        targetFolder = targetFolder.getChildFile ("SonoBus");
-
-#endif
-        
-#if 0
-        auto targetFolderPath = targetFolder.getFullPathName();
-        if (targetFolder.exists())
-        {
-            if (! AlertWindow::showOkCancelBox (AlertWindow::WarningIcon, "Existing File Or Directory",
-                                                "Do you want to move\n\n" + targetFolderPath + "\n\nto\n\n" + targetFolderPath + "_old?"))
-            {
-                return;
-            }
+            dloadLoc = chooser.getResult();
         }
-#endif
-        downloadAndInstall (asset, targetFolder);
+
     }
+
+    downloadAndInstall (asset, dloadLoc);
+
 }
 
 void LatestVersionCheckerAndUpdater::askUserAboutNewVersion (const String& newVersionString,

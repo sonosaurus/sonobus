@@ -17,7 +17,7 @@ LatencyMatchView::LatencyMatchView(SonobusAudioProcessor& proc) :  sonoSliderLNF
 
     mMainSlider = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxAbove);
     mMainSlider->setTextValueSuffix(" ms");
-    mMainSlider->getProperties().set ("noFill", true);
+    //mMainSlider->getProperties().set ("noFill", true);
     mMainSlider->setScrollWheelEnabled(false);
 
     mTitleLabel = std::make_unique<Label>("title", TRANS("Group Latency Match"));

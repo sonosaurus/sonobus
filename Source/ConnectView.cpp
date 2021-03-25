@@ -85,7 +85,7 @@ publicGroupsListModel(this)
     mRemoteAddressStaticLabel->setJustificationType(Justification::centredRight);
     mRemoteAddressStaticLabel->setWantsKeyboardFocus(true);
 
-    mDirectConnectDescriptionLabel = std::make_unique<Label>("remaddrst", TRANS("Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks."));
+    mDirectConnectDescriptionLabel = std::make_unique<Label>("dirconndesc", TRANS("Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks."));
     mDirectConnectDescriptionLabel->setJustificationType(Justification::topLeft);
 
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
@@ -143,21 +143,21 @@ publicGroupsListModel(this)
     configEditor(mServerUserPasswordEditor.get());
 
 
-    mServerUserStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Your Displayed Name:"));
+    mServerUserStaticLabel = std::make_unique<Label>("serveruserst", TRANS("Your Displayed Name:"));
     configServerLabel(mServerUserStaticLabel.get());
     mServerUserStaticLabel->setMinimumHorizontalScale(0.8);
 
-    mServerUserPassStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Password:"));
+    mServerUserPassStaticLabel = std::make_unique<Label>("serveruserpassst", TRANS("Password:"));
     configServerLabel(mServerUserPassStaticLabel.get());
 
-    mServerGroupStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Group Name:"));
+    mServerGroupStaticLabel = std::make_unique<Label>("servergroupst", TRANS("Group Name:"));
     configServerLabel(mServerGroupStaticLabel.get());
     mServerGroupStaticLabel->setMinimumHorizontalScale(0.8);
 
-    mServerGroupPassStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Password:"));
+    mServerGroupPassStaticLabel = std::make_unique<Label>("servergrouppassst", TRANS("Password:"));
     configServerLabel(mServerGroupPassStaticLabel.get());
 
-    mServerHostStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Connection Server:"));
+    mServerHostStaticLabel = std::make_unique<Label>("serverhostst", TRANS("Connection Server:"));
     configServerLabel(mServerHostStaticLabel.get());
 
 
@@ -208,14 +208,14 @@ publicGroupsListModel(this)
     mServerInfoLabel->setColour(Label::textColourId, Colour(0x99dddddd));
     mServerInfoLabel->setMinimumHorizontalScale(0.85);
 
-    String servinfo = TRANS("The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).");
-    mServerAudioInfoLabel = std::make_unique<Label>("servinfo", servinfo);
+    String servaudioinfo = TRANS("The connection server is only used to help users find each other, no audio passes through it. All audio is sent directly between users (peer to peer).");
+    mServerAudioInfoLabel = std::make_unique<Label>("servaudioinfo", servaudioinfo);
     mServerAudioInfoLabel->setJustificationType(Justification::centredTop);
     mServerAudioInfoLabel->setFont(14);
     mServerAudioInfoLabel->setColour(Label::textColourId, Colour(0x99aaaaaa));
     mServerAudioInfoLabel->setMinimumHorizontalScale(0.75);
 
-    mMainStatusLabel = std::make_unique<Label>("servstat", "");
+    mMainStatusLabel = std::make_unique<Label>("mainstat", "");
     mMainStatusLabel->setJustificationType(Justification::centredRight);
     mMainStatusLabel->setFont(13);
     mMainStatusLabel->setColour(Label::textColourId, Colour(0x66ffffff));
@@ -261,19 +261,19 @@ publicGroupsListModel(this)
     mPublicServerHostEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerHostEditor->setFont(Font(14));
     configEditor(mPublicServerHostEditor.get());
-    mPublicServerHostEditor->setTooltip(servinfo);
+    mPublicServerHostEditor->setTooltip(servaudioinfo);
 
     mPublicServerHostStaticLabel = std::make_unique<Label>("pubaddrst", TRANS("Connection Server:"));
     configServerLabel(mPublicServerHostStaticLabel.get());
     mPublicServerHostStaticLabel->setWantsKeyboardFocus(true);
 
-    mPublicServerUserStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Your Displayed Name:"));
+    mPublicServerUserStaticLabel = std::make_unique<Label>("pubuserst", TRANS("Your Displayed Name:"));
     configServerLabel(mPublicServerUserStaticLabel.get());
     mPublicServerUserStaticLabel->setMinimumHorizontalScale(0.8);
 
     mPublicServerStatusInfoLabel = std::make_unique<Label>("pubsrvinfo", "");
     configServerLabel(mPublicServerStatusInfoLabel.get());
-
+    mPublicServerStatusInfoLabel->setJustificationType(Justification::centredLeft);
 
     mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerUsernameEditor->setFont(Font(16));
@@ -285,7 +285,7 @@ publicGroupsListModel(this)
     mPublicGroupComponent->setColour(GroupComponent::outlineColourId, Colour::fromFloatRGBA(0.8, 0.8, 0.8, 0.1));
     mPublicGroupComponent->setTextLabelPosition(Justification::centred);
 
-    mPublicServerInfoStaticLabel = std::make_unique<Label>("pubinfo", TRANS("Select existing group below OR "));
+    mPublicServerInfoStaticLabel = std::make_unique<Label>("pubinfost", TRANS("Select existing group below OR "));
     configServerLabel(mPublicServerInfoStaticLabel.get());
     mPublicServerInfoStaticLabel->setFont(16);
     mPublicServerInfoStaticLabel->setMinimumHorizontalScale(0.8);
@@ -539,15 +539,17 @@ void ConnectView::updateLayout()
 
     // public groups stuff
 
+    int staticlabelmaxw = 180;
+
     publicServAddressBox.items.clear();
     publicServAddressBox.flexDirection = FlexBox::Direction::row;
-    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerHostStaticLabel).withMargin(2).withFlex(1));
-    publicServAddressBox.items.add(FlexItem(150, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerHostStaticLabel).withMargin(2).withFlex(1).withMaxWidth(staticlabelmaxw));
+    publicServAddressBox.items.add(FlexItem(150, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1).withMaxWidth(220));
     publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerStatusInfoLabel).withMargin(2).withFlex(0.75));
 
     publicServUserBox.items.clear();
     publicServUserBox.flexDirection = FlexBox::Direction::row;
-    publicServUserBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerUserStaticLabel).withMargin(2).withFlex(1));
+    publicServUserBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerUserStaticLabel).withMargin(2).withFlex(1).withMaxWidth(staticlabelmaxw));
     publicServUserBox.items.add(FlexItem(172, minitemheight, *mPublicServerUsernameEditor).withMargin(2).withFlex(1));
 
     publicAddGroupBox.items.clear();
@@ -558,14 +560,16 @@ void ConnectView::updateLayout()
     publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerGroupEditor).withMargin(2).withFlex(1));
 
 
+    int maxpubservboxwidth = 600;
+
     publicGroupsBox.items.clear();
     publicGroupsBox.flexDirection = FlexBox::Direction::column;
     publicGroupsBox.items.add(FlexItem(5, 3).withFlex(0));
     publicGroupsBox.items.add(FlexItem(100, minitemheight, publicServAddressBox).withMargin(2).withFlex(0));
     publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
-    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicServUserBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicServUserBox).withMargin(2).withFlex(0).withMaxWidth(maxpubservboxwidth));
     publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
-    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicAddGroupBox).withMargin(2).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicAddGroupBox).withMargin(2).withFlex(0).withMaxWidth(maxpubservboxwidth));
     publicGroupsBox.items.add(FlexItem(5, 7).withFlex(0));
     publicGroupsBox.items.add(FlexItem(100, minitemheight, *mPublicGroupComponent).withMargin(2).withFlex(1));
 
@@ -652,6 +656,7 @@ void ConnectView::resized()  {
 
 
     publicGroupsBox.performLayout(mPublicServerConnectContainer->getLocalBounds());
+    //publicGroupsBox.performLayout(mPublicServerConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mPublicServerConnectContainer->getWidth()), mPublicServerConnectContainer->getHeight()));
 
     mPublicGroupsListBox->setBounds(mPublicGroupComponent->getLocalBounds().reduced(4).withTrimmedTop(10));
 

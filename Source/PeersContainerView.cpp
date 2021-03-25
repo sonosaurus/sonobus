@@ -421,7 +421,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeSlider->setName("buffer");
     pvf->bufferTimeSlider->setRange(0, 1000, 1);
     pvf->bufferTimeSlider->setTextValueSuffix(" ms");
-    pvf->bufferTimeSlider->getProperties().set ("noFill", true);
+    //pvf->bufferTimeSlider->getProperties().set ("noFill", true);
     pvf->bufferTimeSlider->setSkewFactor(0.4);
     pvf->bufferTimeSlider->setDoubleClickReturnValue(true, 20.0);
     pvf->bufferTimeSlider->setTextBoxIsEditable(true);
@@ -429,6 +429,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeSlider->setChangeNotificationOnlyOnRelease(true);
     pvf->bufferTimeSlider->setScrollWheelEnabled(false);
     pvf->bufferTimeSlider->setPopupDisplayEnabled(true, false, this);
+    pvf->bufferTimeSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
 
     pvf->bufferTimeSlider->addListener(this);
 
@@ -463,7 +464,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->sendButtonImage->setAlpha(0.7f);
 
     
-    pvf->bufferTimeLabel = std::make_unique<Label>("level", TRANS("Jitter Buffer"));
+    pvf->bufferTimeLabel = std::make_unique<Label>("buf", TRANS("Jitter Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
 
     pvf->recvOptionsButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageFitted);
@@ -492,7 +493,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
         pvf->formatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i);
     }
 
-    pvf->staticFormatChoiceLabel = std::make_unique<Label>("fmt", TRANS("Send Quality"));
+    pvf->staticFormatChoiceLabel = std::make_unique<Label>("sendfmtst", TRANS("Send Quality"));
     configLabel(pvf->staticFormatChoiceLabel.get(), LabelTypeRegular);
 
 
@@ -503,7 +504,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
         pvf->remoteSendFormatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i);
     }
 
-    pvf->staticRemoteSendFormatChoiceLabel = std::make_unique<Label>("fmt", TRANS("Preferred Recv Quality"));
+    pvf->staticRemoteSendFormatChoiceLabel = std::make_unique<Label>("recvfmtst", TRANS("Preferred Recv Quality"));
     configLabel(pvf->staticRemoteSendFormatChoiceLabel.get(), LabelTypeRegular);
 
     pvf->changeAllRecvFormatButton = std::make_unique<ToggleButton>(TRANS("Change all"));
@@ -511,11 +512,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->changeAllRecvFormatButton->setLookAndFeel(&pvf->smallLnf);
 
 
-    pvf->staticLatencyLabel = std::make_unique<Label>("lat", TRANS("Latency (ms)"));
+    pvf->staticLatencyLabel = std::make_unique<Label>("latst", TRANS("Latency (ms)"));
     configLabel(pvf->staticLatencyLabel.get(), LabelTypeSmallDim);
     pvf->staticLatencyLabel->setJustificationType(Justification::centred);
     
-    pvf->staticPingLabel = std::make_unique<Label>("ping", TRANS("Ping"));
+    pvf->staticPingLabel = std::make_unique<Label>("pingst", TRANS("Ping"));
     configLabel(pvf->staticPingLabel.get(), LabelTypeSmallDim);
 
     pvf->latencyLabel = std::make_unique<Label>("lat", TRANS("PRESS"));
@@ -525,9 +526,9 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->pingLabel = std::make_unique<Label>("ping");
     configLabel(pvf->pingLabel.get(), LabelTypeSmall);
 
-    pvf->staticSendQualLabel = std::make_unique<Label>("lat", TRANS("Send Quality:"));
+    pvf->staticSendQualLabel = std::make_unique<Label>("sendqualst", TRANS("Send Quality:"));
     configLabel(pvf->staticSendQualLabel.get(), LabelTypeSmallDim);
-    pvf->staticBufferLabel = std::make_unique<Label>("ping", TRANS("Recv Jitter Buffer:"));
+    pvf->staticBufferLabel = std::make_unique<Label>("bufst", TRANS("Recv Jitter Buffer:"));
     configLabel(pvf->staticBufferLabel.get(), LabelTypeSmallDim);
     
     pvf->sendQualityLabel = std::make_unique<Label>("qual", "");
@@ -991,7 +992,7 @@ void PeersContainerView::updateLayout()
         pvf->optionsRemoteQualityBox.flexDirection = FlexBox::Direction::row;
         pvf->optionsRemoteQualityBox.items.add(FlexItem(80, minitemheight, *pvf->staticRemoteSendFormatChoiceLabel).withMargin(0).withFlex(0));
         pvf->optionsRemoteQualityBox.items.add(FlexItem(minButtonWidth, minitemheight, *pvf->remoteSendFormatChoiceButton).withMargin(0).withFlex(2));
-        pvf->optionsRemoteQualityBox.items.add(FlexItem(60, minitemheight, *pvf->changeAllRecvFormatButton).withMargin(0).withFlex(0));
+        pvf->optionsRemoteQualityBox.items.add(FlexItem(68, minitemheight, *pvf->changeAllRecvFormatButton).withMargin(0).withFlex(0));
 
         
         pvf->optionsSendMutedBox.items.clear();
@@ -1740,7 +1741,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
             dw = this;
         }
         
-        const int defWidth = 280;
+        const int defWidth = 300;
 #if JUCE_IOS || JUCE_ANDROID
         const int defHeight = 180;
 #else

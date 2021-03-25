@@ -110,7 +110,7 @@ protected:
     Font myFont;
     float fontScale;
     
-    float labelCornerRadius = 6.0f;
+    float labelCornerRadius = 4.0f;
     String languageCode;
 
 public:
