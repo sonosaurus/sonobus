@@ -273,7 +273,7 @@ publicGroupsListModel(this)
 
     mPublicServerStatusInfoLabel = std::make_unique<Label>("pubsrvinfo", "");
     configServerLabel(mPublicServerStatusInfoLabel.get());
-
+    mPublicServerStatusInfoLabel->setJustificationType(Justification::centredLeft);
 
     mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerUsernameEditor->setFont(Font(16));
@@ -539,15 +539,17 @@ void ConnectView::updateLayout()
 
     // public groups stuff
 
+    int staticlabelmaxw = 180;
+
     publicServAddressBox.items.clear();
     publicServAddressBox.flexDirection = FlexBox::Direction::row;
-    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerHostStaticLabel).withMargin(2).withFlex(1));
-    publicServAddressBox.items.add(FlexItem(150, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1));
+    publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerHostStaticLabel).withMargin(2).withFlex(1).withMaxWidth(staticlabelmaxw));
+    publicServAddressBox.items.add(FlexItem(150, minpassheight, *mPublicServerHostEditor).withMargin(2).withFlex(1).withMaxWidth(220));
     publicServAddressBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerStatusInfoLabel).withMargin(2).withFlex(0.75));
 
     publicServUserBox.items.clear();
     publicServUserBox.flexDirection = FlexBox::Direction::row;
-    publicServUserBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerUserStaticLabel).withMargin(2).withFlex(1));
+    publicServUserBox.items.add(FlexItem(servLabelWidth, minitemheight, *mPublicServerUserStaticLabel).withMargin(2).withFlex(1).withMaxWidth(staticlabelmaxw));
     publicServUserBox.items.add(FlexItem(172, minitemheight, *mPublicServerUsernameEditor).withMargin(2).withFlex(1));
 
     publicAddGroupBox.items.clear();
@@ -558,14 +560,16 @@ void ConnectView::updateLayout()
     publicAddGroupBox.items.add(FlexItem(100, minitemheight, *mPublicServerGroupEditor).withMargin(2).withFlex(1));
 
 
+    int maxpubservboxwidth = 600;
+
     publicGroupsBox.items.clear();
     publicGroupsBox.flexDirection = FlexBox::Direction::column;
     publicGroupsBox.items.add(FlexItem(5, 3).withFlex(0));
     publicGroupsBox.items.add(FlexItem(100, minitemheight, publicServAddressBox).withMargin(2).withFlex(0));
     publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
-    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicServUserBox).withMargin(2).withFlex(0).withMaxWidth(maxservboxwidth));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicServUserBox).withMargin(2).withFlex(0).withMaxWidth(maxpubservboxwidth));
     publicGroupsBox.items.add(FlexItem(5, 4).withFlex(0));
-    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicAddGroupBox).withMargin(2).withFlex(0));
+    publicGroupsBox.items.add(FlexItem(180, minitemheight, publicAddGroupBox).withMargin(2).withFlex(0).withMaxWidth(maxpubservboxwidth));
     publicGroupsBox.items.add(FlexItem(5, 7).withFlex(0));
     publicGroupsBox.items.add(FlexItem(100, minitemheight, *mPublicGroupComponent).withMargin(2).withFlex(1));
 
@@ -652,6 +656,7 @@ void ConnectView::resized()  {
 
 
     publicGroupsBox.performLayout(mPublicServerConnectContainer->getLocalBounds());
+    //publicGroupsBox.performLayout(mPublicServerConnectContainer->getLocalBounds().withSizeKeepingCentre(jmin(400, mPublicServerConnectContainer->getWidth()), mPublicServerConnectContainer->getHeight()));
 
     mPublicGroupsListBox->setBounds(mPublicGroupComponent->getLocalBounds().reduced(4).withTrimmedTop(10));
 
