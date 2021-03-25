@@ -31,26 +31,22 @@ On other distros you'll have to insall the following development packages manual
 * `libcurl4-openssl-dev` or `libcurl4-gnutls-dev`
 
 ### Building
-Run the build script:
+Run the build script, both the standalone application and the VST3 plugin will be built:
 ```
 ./build.sh
 ```
 
 ### Installing
-Run the install script:
+When the build finishes, the executable will be at `Builds/LinuxMakefile/build/sonobus`. You can install it
+by running the install script:
 ```
 sudo ./install.sh
 ```
+It defaults to installing in /usr/local, but if you want to install it
+elsewhere, just specify the base directory as the first argument on the commandline of the script.
 
 ### Uninstalling
-Run the uninstall script:
+If you wish to uninstall you can run the uninstall script:
 ```
 sudo ./uninstall.sh
 ```
-
-### Packaging
-Currently, SonoBus can only be packaged in Debian packages. Run the script:
-```
-./mkdeb.sh
-```
-This will output sonobus.deb which can be installed using dpkg or via your distro's graphical software manager.

@@ -74,37 +74,8 @@ The first thing to do in a terminal is go to the Linux build directory:
 
     cd Builds/LinuxMakefile
 
-
-Make sure you have `libopus` and the `libopus` development package
-(libopus-dev), as well as JACK (jackd) and its development package. Also
-libasound2-dev , libx11-dev, libxext-dev, libxinerama-dev, libxrandr-dev,
-libxcursor-dev, libfreetype6-dev,
-libcurl4-openssl-dev.
-
-Other distributions may have slightly different package names for these, for
-instance in Debian, you might substitute libcurl4-gnutls-dev.
-
-If you are using Ubuntu, you can run the following script to install all the
-prerequisites (scripts for other distributions wanted, please contribute them
-if you can):
-
-    ./ubuntu_get_prereqs.sh
-
-There are other scripts for some other distributions.
-After they are installed, build SonoBus with the following command, both the
-standalone application and the VST3 plugin will be built:
-
-    ./build.sh
-
-When it finishes, the executable will be at `Builds/LinuxMakefile/build/SonoBus`. You can install it using the installation script.
-
-    sudo ./install.sh
-
-It defaults to installing in /usr/local, but if you want to install it
-elsewhere, just specify it as the first argument on the commandline of the script.
-If you wish to uninstall you can run the uninstall script in the same directory.
-
-    sudo ./uninstall.sh
+And read the [BUILDING.md](Builds/LinuxMakefile/BUILDING.md) file for
+further instructions.
 
 
 # License and 3rd Party Software
