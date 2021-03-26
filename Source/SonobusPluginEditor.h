@@ -448,7 +448,7 @@ private:
 
     CriticalSection    chatStateLock;
     Array<SBChatEvent> newChatEvents;
-    Atomic<bool>  haveNewChatEvents = { false };
+    Atomic<bool>  haveNewChatEvents  { false };
 
     std::unique_ptr<ChatView> mChatView;
     std::unique_ptr<ComponentBoundsConstrainer> mChatSizeConstrainer;
