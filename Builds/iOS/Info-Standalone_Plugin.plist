@@ -4,7 +4,7 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleVersion</key>
-    <string>62</string>
+    <string>64</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>UIStatusBarHidden</key>
@@ -55,12 +55,13 @@
     <key>UISupportsDocumentBrowser</key>
     <true/>
     <key>UIRequiresFullScreen</key>
-    <true/>
+    <false/>
     <key>UISupportedInterfaceOrientations</key>
     <array>
-      <string>UIInterfaceOrientationPortrait</string>
       <string>UIInterfaceOrientationLandscapeLeft</string>
       <string>UIInterfaceOrientationLandscapeRight</string>
+      <string>UIInterfaceOrientationPortrait</string>
+      <string>UIInterfaceOrientationPortraitUpsideDown</string>
     </array>
     <key>UIBackgroundModes</key>
     <array>

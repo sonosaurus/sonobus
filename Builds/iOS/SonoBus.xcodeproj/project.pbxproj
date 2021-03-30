@@ -64,6 +64,7 @@
 		6900F15A638A946D73977EC3 /* PeersContainerView.cpp */ = {isa = PBXBuildFile; fileRef = 86F932458EEC9310D46C93BE; };
 		6B5BC6AC120E92EB7DE9D640 /* include_juce_audio_plugin_client_utils.cpp */ = {isa = PBXBuildFile; fileRef = 9492D2123C61363804C43EC5; };
 		6CDEBED59FC222684E3667E5 /* sink.cpp */ = {isa = PBXBuildFile; fileRef = 6DA4CA23A25969281FA46870; };
+		72CF4D04A58C1448398FEAE5 /* LaunchScreen.storyboard */ = {isa = PBXBuildFile; fileRef = 778EBB11407A49234CCCAB0E; };
 		72DB798AA1319628E8DF8631 /* WebKit.framework */ = {isa = PBXBuildFile; fileRef = 72F3148F968AC28B87CBBEFF; };
 		73C43D9E909B55C6043977A0 /* md5.c */ = {isa = PBXBuildFile; fileRef = 972EB5B8FE78BF8EFB14F886; };
 		7E8A8627B7DD7BB7620A66E2 /* SonobusPluginEditor.cpp */ = {isa = PBXBuildFile; fileRef = DDA889F8F53FF1787DEC6FAF; };
@@ -255,6 +256,7 @@
 		7610E4F9A8DD3E98356EC7CC /* OscPrintReceivedElements.cpp */ /* OscPrintReceivedElements.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OscPrintReceivedElements.cpp; path = ../../deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp; sourceTree = SOURCE_ROOT; };
 		770DF6E145DA9F0414500ADC /* QuartzCore.framework */ /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		778916280B9E4780F88FCC6E /* BinaryData.h */ /* BinaryData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BinaryData.h; path = ../../mobile/JuceLibraryCode/BinaryData.h; sourceTree = SOURCE_ROOT; };
+		778EBB11407A49234CCCAB0E /* LaunchScreen.storyboard */ /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ../../images/LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
 		7886D8610318E3A1E8E146F2 /* juce_data_structures */ /* juce_data_structures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_data_structures; path = ../../deps/juce/modules/juce_data_structures; sourceTree = SOURCE_ROOT; };
 		812D1487188455E396DE72BE /* ChannelGroupsView.h */ /* ChannelGroupsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ChannelGroupsView.h; path = ../../Source/ChannelGroupsView.h; sourceTree = SOURCE_ROOT; };
 		81F9B95533340C6C1DC4893F /* VersionInfo.h */ /* VersionInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = VersionInfo.h; path = ../../Source/VersionInfo.h; sourceTree = SOURCE_ROOT; };
@@ -472,6 +474,7 @@
 				82713E29D7F5444426914EC8,
 				983E790D2F2D7033319BB321,
 				55F6F1357CAE7A04A065F0D1,
+				778EBB11407A49234CCCAB0E,
 				55BDFBF20E697D3744401CBF,
 			);
 			name = Resources;
@@ -1003,6 +1006,7 @@
 			files = (
 				4ADDF3100FED442E80EA56B2,
 				FB34F18C6223731F88329C09,
+				72CF4D04A58C1448398FEAE5,
 				540B4E84E7CEDF6A8F977DEA,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1013,6 +1017,7 @@
 			files = (
 				4ADDF3100FED442E80EA56B2,
 				FB34F18C6223731F88329C09,
+				72CF4D04A58C1448398FEAE5,
 				540B4E84E7CEDF6A8F977DEA,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1158,7 +1163,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1221,7 +1226,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1284,7 +1289,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1345,7 +1350,7 @@
 					"NDEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"USE_CODEC_OPUS=1",
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
@@ -1409,7 +1414,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1523,7 +1528,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1638,7 +1643,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",
@@ -1702,7 +1707,7 @@
 					"DEBUG=1",
 					"JUCE_CONTENT_SHARING=1",
 					"JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1",
-					"SONOBUS_BUILD_VERSION=\\\"1.4.2-62\\\"",
+					"SONOBUS_BUILD_VERSION=\\\"1.4.2-64\\\"",
 					"LOGLEVEL=2",
 					"JUCE_IOS_AUDIO_LOGGING=1",
 					"USE_CODEC_OPUS=1",

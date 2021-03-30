@@ -392,7 +392,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
         monitorDelayParamsChanged = false;
     }
 
-    bool domondelay = _monitorDelayActive.get();
+    bool domondelay = _monitorDelayActive.load();
     int mondelayfade = 0;
 
     auto * usefrombuffer = &frombuffer;
@@ -415,7 +415,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
             }
 
             if (domondelay) {
-                if (_monitorDelayTimeChanged.get() && !_monitorDelayTimeChanging) {
+                if (_monitorDelayTimeChanged.load() && !_monitorDelayTimeChanging) {
                     _monitorDelayTimeChanged = false;
                     mondelayfade = -1.0f; // fade out
                     _monitorDelayTimeChanging = true;

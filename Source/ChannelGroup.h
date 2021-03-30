@@ -159,9 +159,9 @@ public:
     bool monitorDelayParamsChanged = false;
     double _monitorDelayTimeSamples = 0.0;
     int _monitorDelayChans = 0;
-    Atomic<bool>  _monitorDelayTimeChanged = false;
+    std::atomic<bool>  _monitorDelayTimeChanged { false };
     bool  _monitorDelayTimeChanging = false;
-    Atomic<bool>  _monitorDelayActive  { false };
+    std::atomic<bool>  _monitorDelayActive  { false };
     bool   _monitorDelayLastActive = false;
     CriticalSection _monitorDelayLock;
 
