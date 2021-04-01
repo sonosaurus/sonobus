@@ -326,6 +326,7 @@ private:
     std::unique_ptr<SonoDrawableButton> mRecordingButton;
     std::unique_ptr<SonoDrawableButton> mFileBrowseButton;
     std::unique_ptr<SonoDrawableButton> mPlayButton;
+    std::unique_ptr<SonoDrawableButton> mSkipBackButton;
     std::unique_ptr<SonoDrawableButton> mDismissTransportButton;
     std::unique_ptr<SonoDrawableButton> mLoopButton;
     std::unique_ptr<SonoDrawableButton> mFileSendAudioButton;

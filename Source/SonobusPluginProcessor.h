@@ -1052,6 +1052,12 @@ private:
     SonoAudio::ChannelGroup  mMetChannelGroup;
     SonoAudio::ChannelGroup  mFilePlaybackChannelGroup;
 
+    float _lastfplaygain = 0.0f;
+
+    // and a replicant one for recording purposes
+    SonoAudio::ChannelGroup  mRecMetChannelGroup;
+    SonoAudio::ChannelGroup  mRecFilePlaybackChannelGroup;
+
     
     // recording stuff
     

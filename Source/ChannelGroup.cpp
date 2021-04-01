@@ -201,11 +201,11 @@ void ChannelGroup::setMonitoringDelayTimeMs(double delayms)
 void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer,
                                  AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
                                  AudioBuffer<float>& silentBuffer,
-                                 int numSamples, float gainfactor)
+                                 int numSamples, float gainfactor, ProcessState * oprocstate)
 {
     // called from audio thread context
 
-
+    auto & procstate = oprocstate != nullptr ? *oprocstate : mainProcState;
 
     int chstart = params.chanStartIndex;
     int numchan = params.numChannels;
@@ -220,17 +220,17 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer,
     if (&frombuffer == &tobuffer) {
         // inplace, just apply gain, ignore destchans
         for (int i = chstart; i < chstart+numchan && i < frombufNumChan ; ++i) {
-            tobuffer.applyGainRamp(i, 0, numSamples, _lastgain, dogain);
+            tobuffer.applyGainRamp(i, 0, numSamples, procstate.lastlevel, dogain);
         }
     }
     else {
         for (int i = chstart, desti=destStartChan; i < chstart+numchan && i < frombufNumChan && desti < destStartChan+destNumChans && desti < tobufNumChan; ++i, ++desti) {
-            tobuffer.addFromWithRamp(desti, 0, frombuffer.getReadPointer(i), numSamples, _lastgain, dogain);
+            tobuffer.addFromWithRamp(desti, 0, frombuffer.getReadPointer(i), numSamples, procstate.lastlevel, dogain);
         }
     }
 
 
-    _lastgain = dogain;
+    procstate.lastlevel = dogain;
 
     // these all operate ONLY when the channel group has 1 or 2 channels (and when the effects have been initialized)
     if (params.numChannels <= 0 || params.numChannels > 2 || !compressor) {
@@ -311,12 +311,15 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer,
 
 void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan,
                                AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
-                               int numSamples, float gainfactor)
+                               int numSamples, float gainfactor, ProcessState * oprocstate)
 {
     int fromNumChan = frombuffer.getNumChannels();
     int toNumChan = tobuffer.getNumChannels();
 
     if (fromNumChan == 0) return;
+
+    auto & procstate = oprocstate != nullptr ? *oprocstate : mainProcState;
+
 
     if (destNumChans == 2) {
         //tobuffer.clear(0, numSamples);
@@ -325,7 +328,7 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
             int pani = 0;
             for (int i=fromStartChan; i < fromStartChan + params.numChannels && i < fromNumChan; ++i, ++pani) {
                 const float upan = (params.numChannels != 2 ? params.pan[pani] : i==fromStartChan ? params.panStereo[0] : params.panStereo[1]);
-                const float lastpan = (params.numChannels != 2 ? _lastpan[pani] : i==fromStartChan ? _laststereopan[0] : _laststereopan[1]);
+                const float lastpan = (params.numChannels != 2 ? procstate.lastpan[pani] : i==fromStartChan ? procstate.laststereopan[0] : procstate.laststereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
@@ -366,17 +369,17 @@ void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan
     }
     
 
-    _laststereopan[0] = params.panStereo[0];
-    _laststereopan[1] = params.panStereo[1];
+    procstate.laststereopan[0] = params.panStereo[0];
+    procstate.laststereopan[1] = params.panStereo[1];
     for (int pani=0; pani < params.numChannels; ++pani) {
-        _lastpan[pani] = params.pan[pani];
+        procstate.lastpan[pani] = params.pan[pani];
     }
 }
 
 void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan,
                                    AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
-                                   int numSamples, float gainfactor,
-                                   AudioBuffer<float> * reverbbuffer, int revStartChan, int revNumChans, bool revEnabled, float revgainfactor)
+                                   int numSamples, float gainfactor, ProcessState * oprocstate,
+                                   AudioBuffer<float> * reverbbuffer, int revStartChan, int revNumChans, bool revEnabled, float revgainfactor, ProcessState * orevprocstate)
 {
 
     // apply monitor level
@@ -385,6 +388,9 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
 
     int fromNumChan = frombuffer.getNumChannels();
     int toNumChan = tobuffer.getNumChannels();
+
+    auto & procstate = oprocstate != nullptr ? *oprocstate : monProcState;
+    auto & revprocstate = orevprocstate != nullptr ? *orevprocstate : revProcState;
 
 
     if (monitorDelayParamsChanged) {
@@ -473,7 +479,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
             int pani = 0;
             for (int i=useFromStartChan; i < useFromStartChan + params.numChannels && i < useFromNumChan; ++i, ++pani) {
                 const float upan = (params.numChannels != 2 ? params.pan[pani] : i==useFromStartChan ? params.panStereo[0] : params.panStereo[1]);
-                const float lastpan = (params.numChannels != 2 ? _lastmonpan[pani] : i==useFromStartChan ? _lastmonstereopan[0] : _lastmonstereopan[1]);
+                const float lastpan = (params.numChannels != 2 ? procstate.lastpan[pani] : i==useFromStartChan ? procstate.laststereopan[0] : procstate.laststereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
@@ -482,10 +488,10 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
                 pgain *= params.centerPanLaw + (fabsf(upan) * (1.0f - params.centerPanLaw));
                 pgain *= targmon;
 
-                if (fabsf(upan - lastpan) > 0.00001f || fabsf(_lastmonitor - targmon) > 0.00001f) {
+                if (fabsf(upan - lastpan) > 0.00001f || fabsf(procstate.lastlevel - targmon) > 0.00001f) {
                     float plastgain = channel == destStartChan ? (lastpan >= 0.0f ? (1.0f - lastpan) : 1.0f) : (lastpan >= 0.0f ? 1.0f : (1.0f+lastpan));
                     plastgain *= params.centerPanLaw + (fabsf(lastpan) * (1.0f - params.centerPanLaw));
-                    plastgain *= _lastmonitor;
+                    plastgain *= procstate.lastlevel;
 
                     tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(i), numSamples, plastgain, pgain);
                 } else {
@@ -499,7 +505,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
         int channel = destStartChan;
         for (int srcchan = useFromStartChan; srcchan < useFromStartChan + params.numChannels && srcchan < useFromNumChan && channel < toNumChan; ++srcchan) {
 
-            tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
+            tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(srcchan), numSamples, procstate.lastlevel, targmon);
 
         }
     }
@@ -511,34 +517,36 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
             //int srcchan = channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
             //int srcchan = chanStartIndex  channel < mainBusInputChannels ? channel : mainBusInputChannels - 1;
 
-            tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(srcchan), numSamples, _lastmonitor, targmon);
+            tobuffer.addFromWithRamp(channel, 0, usefrombuffer->getReadPointer(srcchan), numSamples, procstate.lastlevel, targmon);
         }
     }
 
     // apply to reverb buffer
     if (reverbbuffer) {
-        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, targmon * revgainfactor);
+        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, targmon * revgainfactor, &revprocstate);
     }
 
-    _lastmonstereopan[0] = params.panStereo[0];
-    _lastmonstereopan[1] = params.panStereo[1];
+    procstate.laststereopan[0] = params.panStereo[0];
+    procstate.laststereopan[1] = params.panStereo[1];
     for (int pani=0; pani < params.numChannels; ++pani) {
-        _lastmonpan[pani] = params.pan[pani];
+        procstate.lastpan[pani] = params.pan[pani];
     }
 
-    _lastmonitor = targmon;
+    procstate.lastlevel = targmon;
 
 }
 
 void ChannelGroup::processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans,
                                       AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
-                                      int numSamples, bool revEnabled, float gainfactor)
+                                      int numSamples, bool revEnabled, float gainfactor, ProcessState * oprocstate)
 {
     int fromMaxChans = frombuffer.getNumChannels();
     int destMaxChans = tobuffer.getNumChannels();
 
+    auto & procstate = oprocstate != nullptr ? *oprocstate : revProcState;
+
     const float targrevgain = gainfactor * params.reverbSend * (revEnabled ? 1.0f : 0.0f);
-    const float lastrevgain = _lastrevgain;
+    const float lastrevgain = procstate.lastlevel;
 
     if (fromNumChans > 0 && destNumChans == 2) {
         //tobuffer.clear(0, numSamples);
@@ -547,7 +555,7 @@ void ChannelGroup::processReverbSend (AudioBuffer<float>& frombuffer, int fromSt
             int pani = 0;
             for (int i=fromStartChan; i < fromStartChan + fromNumChans && i < fromMaxChans; ++i, ++pani) {
                 const float upan = (fromNumChans != 2 ? params.pan[pani] : i==fromStartChan ? params.panStereo[0] : params.panStereo[1]);
-                const float lastpan = (params.numChannels != 2 ? _lastrevpan[pani] : i==fromStartChan ? _lastrevstereopan[0] : _lastrevstereopan[1]);
+                const float lastpan = (params.numChannels != 2 ? procstate.lastpan[pani] : i==fromStartChan ? procstate.laststereopan[0] : procstate.laststereopan[1]);
 
                 // -1 is left, 1 is right
                 float pgain = channel == destStartChan ? (upan >= 0.0f ? (1.0f - upan) : 1.0f) : (upan >= 0.0f ? 1.0f : (1.0f+upan)) ;
@@ -589,13 +597,13 @@ void ChannelGroup::processReverbSend (AudioBuffer<float>& frombuffer, int fromSt
         }
     }
 
-    _lastrevstereopan[0] = params.panStereo[0];
-    _lastrevstereopan[1] = params.panStereo[1];
+    procstate.laststereopan[0] = params.panStereo[0];
+    procstate.laststereopan[1] = params.panStereo[1];
     for (int pani=0; pani < params.numChannels; ++pani) {
-        _lastrevpan[pani] = params.pan[pani];
+        procstate.lastpan[pani] = params.pan[pani];
     }
 
-    _lastrevgain = targrevgain;
+    procstate.lastlevel = targrevgain;
 }
 
 

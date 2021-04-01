@@ -912,6 +912,14 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         mPlayButton->setColour(DrawableButton::backgroundOnColourId, Colours::transparentBlack);
         mPlayButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
+        mSkipBackButton = std::make_unique<SonoDrawableButton>("skipb", DrawableButton::ButtonStyle::ImageFitted);
+        std::unique_ptr<Drawable> skipbimg(Drawable::createFromImageData(BinaryData::skipback_icon_svg, BinaryData::skipback_icon_svgSize));
+        mSkipBackButton->setImages(skipbimg.get(), nullptr, nullptr, nullptr, nullptr);
+        mSkipBackButton->addListener(this);
+        mSkipBackButton->setColour(DrawableButton::backgroundOnColourId, Colours::transparentBlack);
+        mSkipBackButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+        mSkipBackButton->setTooltip(TRANS("Return to start of file"));
+
         mLoopButton = std::make_unique<SonoDrawableButton>("play", DrawableButton::ButtonStyle::ImageFitted);
         std::unique_ptr<Drawable> loopimg(Drawable::createFromImageData(BinaryData::loop_icon_svg, BinaryData::loop_icon_svgSize));
         mLoopButton->setImages(loopimg.get(), nullptr, nullptr, nullptr, nullptr);
@@ -919,6 +927,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         mLoopButton->addListener(this);
         mLoopButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.6, 0.3, 0.6, 0.5));
         mLoopButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+        mLoopButton->setTooltip(TRANS("Toggle loop range"));
 
         mDismissTransportButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
         std::unique_ptr<Drawable> ximg(Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
@@ -963,6 +972,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         mFileMenuButton->addListener(this);
         mFileMenuButton->setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
         mFileMenuButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        mFileMenuButton->setTooltip(TRANS("Additional file commands"));
 
         
     }
@@ -1053,6 +1063,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         addAndMakeVisible(mFileBrowseButton.get());
         addAndMakeVisible(mFileRecordingLabel.get());
         addChildComponent(mPlayButton.get());
+        addChildComponent(mSkipBackButton.get());
         addChildComponent(mLoopButton.get());
         addChildComponent(mDismissTransportButton.get());
         addChildComponent(mWaveformThumbnail.get());
@@ -1585,6 +1596,7 @@ void SonobusAudioProcessorEditor::updateTransportState()
 
             mPlayButton->setVisible(true);
             mLoopButton->setVisible(true);
+            mSkipBackButton->setVisible(true);
             mDismissTransportButton->setVisible(true);
             mWaveformThumbnail->setVisible(true);
             mPlaybackSlider->setVisible(true);
@@ -1594,6 +1606,7 @@ void SonobusAudioProcessorEditor::updateTransportState()
         } else {
             mPlayButton->setVisible(false);
             mLoopButton->setVisible(false);
+            mSkipBackButton->setVisible(false);
             mDismissTransportButton->setVisible(false);
             mWaveformThumbnail->setVisible(false);
             mPlaybackSlider->setVisible(false);
@@ -2022,6 +2035,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
         
         commandManager.commandStatusChanged();
+    }
+    else if (buttonThatWasClicked == mSkipBackButton.get()) {
+        processor.getTransportSource().setPosition(0.0);
+        mWaveformThumbnail->updateState();
     }
     else if (buttonThatWasClicked == mLoopButton.get()) {
 
@@ -3768,6 +3785,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     int iconwidth = iconheight;
     int knoblabelheight = 18;
     int toolwidth = 44;
+    int mintoolwidth = 38;
 #if JUCE_IOS || JUCE_ANDROID
     // make the button heights a bit more for touchscreen purposes
     iconheight = 22; // 24;
@@ -4097,9 +4115,11 @@ void SonobusAudioProcessorEditor::updateLayout()
         transportWaveBox.items.add(FlexItem(isNarrow ? 17 : 3, 6).withMargin(0).withFlex(0));
 
         transportBox.items.add(FlexItem(9, 6).withMargin(0).withFlex(0));
-        transportBox.items.add(FlexItem(toolwidth, minitemheight, *mPlayButton).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(mintoolwidth, minitemheight, *mPlayButton).withMargin(0).withFlex(1).withMaxWidth(toolwidth));
         transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
-        transportBox.items.add(FlexItem(toolwidth, minitemheight, *mLoopButton).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(mintoolwidth, minitemheight, *mSkipBackButton).withMargin(0).withFlex(1).withMaxWidth(toolwidth));
+        transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(mintoolwidth, minitemheight, *mLoopButton).withMargin(0).withFlex(1).withMaxWidth(toolwidth));
         transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(40, minitemheight, *mFileMenuButton).withMargin(0).withFlex(0));
         
@@ -4118,9 +4138,9 @@ void SonobusAudioProcessorEditor::updateLayout()
             
         transportBox.items.add(FlexItem(minKnobWidth, minitemheight, *mPlaybackSlider).withMargin(0).withFlex(0));
         transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
-        transportBox.items.add(FlexItem(toolwidth, minitemheight, *mFileSendAudioButton).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(mintoolwidth, minitemheight, *mFileSendAudioButton).withMargin(0).withFlex(1).withMaxWidth(toolwidth));
         transportBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
-        transportBox.items.add(FlexItem(toolwidth, minitemheight, *mDismissTransportButton).withMargin(0).withFlex(0));
+        transportBox.items.add(FlexItem(mintoolwidth, minitemheight, *mDismissTransportButton).withMargin(0).withFlex(1).withMaxWidth(toolwidth));
 #if JUCE_IOS || JUCE_ANDROID
         transportBox.items.add(FlexItem(6, 6).withMargin(1).withFlex(0));
 #else
@@ -4521,6 +4541,13 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
             info.addDefaultKeypress ('l', ModifierKeys::noModifiers);
             break;
+        case SonobusCommands::SkipBack:
+            info.setInfo (TRANS("Return To Start"),
+                          TRANS("Return to start of file"),
+                          TRANS("Popup"), 0);
+            info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
+            info.addDefaultKeypress ('0', ModifierKeys::noModifiers);
+            break;
         case SonobusCommands::TrimSelectionToNewFile:
             info.setInfo (TRANS("Trim to New"),
                           TRANS("Trim file from selection to new file"),
@@ -4631,6 +4658,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::LoadSetupFile);
     cmds.add(SonobusCommands::SaveSetupFile);
     cmds.add(SonobusCommands::ChatToggle);
+    cmds.add(SonobusCommands::SkipBack);
 }
 
 bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
@@ -4650,6 +4678,9 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             if (mPlayButton->isVisible()) {
                 mPlayButton->setToggleState(!mPlayButton->getToggleState(), sendNotification);
             }
+            break;
+        case SonobusCommands::SkipBack:
+            buttonClicked(mSkipBackButton.get());
             break;
         case SonobusCommands::ToggleLoop:
             DBG("got loop toggle!");
