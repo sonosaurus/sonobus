@@ -742,8 +742,14 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mMetChannelGroup.params.name = TRANS("Metronome");
     mMetChannelGroup.params.numChannels = 1;
 
+    mRecMetChannelGroup.params.name = TRANS("Metronome");
+    mRecMetChannelGroup.params.numChannels = 1;
+
     mFilePlaybackChannelGroup.params.name = TRANS("File Playback");
     mFilePlaybackChannelGroup.params.numChannels = 2;
+
+    mRecFilePlaybackChannelGroup.params.name = TRANS("File Playback");
+    mRecFilePlaybackChannelGroup.params.numChannels = 2;
 
 
     mTransportSource.addChangeListener(this);
@@ -1480,6 +1486,9 @@ void SonobusAudioProcessor::setMetronomeMonitorDelayParams(SonoAudio::DelayParam
     //mInputChannelGroups[changroup].monitorDelayParamsChanged = true;
     // commit them now
     mMetChannelGroup.commitMonitorDelayParams();
+
+    mRecMetChannelGroup.params.monitorDelayParams = params;
+    mRecMetChannelGroup.commitMonitorDelayParams();
 }
 
 bool SonobusAudioProcessor::getMetronomeMonitorDelayParams(SonoAudio::DelayParams & retparams)
@@ -1493,6 +1502,10 @@ void SonobusAudioProcessor::setMetronomeChannelDestStartAndCount(int start, int 
     mMetChannelGroup.params.monDestStartIndex = start;
     mMetChannelGroup.params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
     mMetChannelGroup.commitMonitorDelayParams(); // need to do this too
+
+    mRecMetChannelGroup.params.monDestStartIndex = start;
+    mRecMetChannelGroup.params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
+    mRecMetChannelGroup.commitMonitorDelayParams(); // need to do this too
 }
 
 bool SonobusAudioProcessor::getMetronomeChannelDestStartAndCount(int & retstart, int & retcount)
@@ -1506,6 +1519,7 @@ bool SonobusAudioProcessor::getMetronomeChannelDestStartAndCount(int & retstart,
 void SonobusAudioProcessor::setMetronomePan(float pan)
 {
     mMetChannelGroup.params.pan[0] = pan;
+    mRecMetChannelGroup.params.pan[0] = pan;
 }
 
 float SonobusAudioProcessor::getMetronomePan() const
@@ -1541,6 +1555,10 @@ void SonobusAudioProcessor::setFilePlaybackMonitorDelayParams(SonoAudio::DelayPa
     //mInputChannelGroups[changroup].monitorDelayParamsChanged = true;
     // commit them now
     mFilePlaybackChannelGroup.commitMonitorDelayParams();
+
+    mRecFilePlaybackChannelGroup.params.monitorDelayParams = params;
+    mRecFilePlaybackChannelGroup.commitMonitorDelayParams();
+
 }
 
 bool SonobusAudioProcessor::getFilePlaybackMonitorDelayParams(SonoAudio::DelayParams & retparams)
@@ -1554,6 +1572,10 @@ void SonobusAudioProcessor::setFilePlaybackDestStartAndCount(int start, int coun
     mFilePlaybackChannelGroup.params.monDestStartIndex = start;
     mFilePlaybackChannelGroup.params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
     mFilePlaybackChannelGroup.commitMonitorDelayParams(); // need to do this too
+
+    mRecFilePlaybackChannelGroup.params.monDestStartIndex = start;
+    mRecFilePlaybackChannelGroup.params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
+    mRecFilePlaybackChannelGroup.commitMonitorDelayParams(); // need to do this too
 }
 
 bool SonobusAudioProcessor::getFilePlaybackDestStartAndCount(int & retstart, int & retcount)
@@ -1566,6 +1588,7 @@ bool SonobusAudioProcessor::getFilePlaybackDestStartAndCount(int & retstart, int
 void SonobusAudioProcessor::setFilePlaybackGain(float gain)
 {
     mFilePlaybackChannelGroup.params.gain = gain;
+    mRecFilePlaybackChannelGroup.params.gain = gain;
     //mTransportSource.setGain(gain);
 }
 
@@ -1578,6 +1601,7 @@ float SonobusAudioProcessor::getFilePlaybackGain() const
 void SonobusAudioProcessor::setFilePlaybackMonitor(float mgain)
 {
     mFilePlaybackChannelGroup.params.monitor = mgain;
+    mRecFilePlaybackChannelGroup.params.monitor = mgain;
 }
 
 float SonobusAudioProcessor::getFilePlaybackMonitor() const
@@ -6536,6 +6560,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
     mMetChannelGroup.init(sampleRate);
     mFilePlaybackChannelGroup.init(sampleRate);
+    mRecMetChannelGroup.init(sampleRate);
+    mRecFilePlaybackChannelGroup.init(sampleRate);
 
 
     if (lrintf(mPrevSampleRate) != lrintf(sampleRate) || blocksizechanged) {
@@ -7019,7 +7045,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
         mInputChannelGroups[i].processMonitor(inputPostBuffer, srcstart,
                                               inputBuffer, dstch, dstcnt,
-                                              numSamples, utmgain,
+                                              numSamples, utmgain, nullptr, 
                                               revbuffer, 0, fxchannels, mainReverbEnabled, drynow);
 
         srcstart += mInputChannelGroups[i].params.numChannels;
@@ -7055,23 +7081,27 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
         filePlaybackMeterSource.measureBlock(fileBuffer);
 
+        int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
+        mFilePlaybackChannelGroup.params.numChannels = srcchans;
+        mFilePlaybackChannelGroup.commitMonitorDelayParams(); // need to do this too
+
+        mRecFilePlaybackChannelGroup.params.numChannels = srcchans;
+        mRecFilePlaybackChannelGroup.commitMonitorDelayParams(); // need to do this too
+
         if (sendfileaudio) {
-            int srcchans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
-            mFilePlaybackChannelGroup.params.numChannels = srcchans;
-            mFilePlaybackChannelGroup.commitMonitorDelayParams(); // need to do this too
 
             //add to main buffer for going out, mix as appropriate depending on how many channels being sent
             if (sendPanChannels == 1) {
                 float fgain = sendPanChannels == 1 && srcchans > 0 ? (1.0f/std::max(1.0f, (float)(srcchans))): 1.0f;
                 fgain *= mFilePlaybackChannelGroup.params.gain;
-                auto lastfgain = mFilePlaybackChannelGroup._lastfgain;
+                auto lastfgain = _lastfplaygain;
 
                 for (int channel = 0; channel < srcchans; ++channel) {
                     //sendWorkBuffer.addFrom(0, 0, fileBuffer, channel, 0, numSamples, fgain);
                     sendWorkBuffer.addFromWithRamp(0, 0, fileBuffer.getReadPointer(channel), numSamples, fgain, lastfgain);
                 }
 
-                mFilePlaybackChannelGroup._lastfgain = fgain;
+                _lastfplaygain = fgain;
             }
             else if (sendPanChannels > 2){
                 // straight-thru
@@ -7081,7 +7111,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 auto filech = filestartch; // XXX
                 //sendWorkBuffer.addFrom (filech, 0, fileBuffer, 0, 0, numSamples);
                 auto fgain = mFilePlaybackChannelGroup.params.gain;
-                auto lastfgain = mFilePlaybackChannelGroup._lastfgain;
+                auto lastfgain = _lastfplaygain;
 
                 for (int channel = 0; channel < srcchans && filech < sendWorkBuffer.getNumChannels(); ++channel) {
                     //sendWorkBuffer.addFrom(filech, 0, fileBuffer, channel, 0, numSamples);
@@ -7089,7 +7119,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     ++filech;
                 }
 
-                mFilePlaybackChannelGroup._lastfgain = fgain;
+                _lastfplaygain = fgain;
             }
             else if (sendPanChannels == 2) {
                 // change dest ch target
@@ -7099,7 +7129,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
                 mFilePlaybackChannelGroup.processPan(fileBuffer, 0, sendWorkBuffer, dstch, dstcnt, numSamples, fgain);
 
-                mFilePlaybackChannelGroup._lastfgain = fgain;
+                _lastfplaygain = fgain;
             }
         }
 
@@ -7691,20 +7721,20 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 }
 
                 if (hasfiledata) {
-                    int dstch = mFilePlaybackChannelGroup.params.monDestStartIndex;
-                    int dstcnt = jmin(totalOutputChannels, mFilePlaybackChannelGroup.params.monDestChannels);
-                    auto fgain = mFilePlaybackChannelGroup.params.gain * wetnow;
+                    int dstch = mRecFilePlaybackChannelGroup.params.monDestStartIndex;
+                    int dstcnt = jmin(totalOutputChannels, mRecFilePlaybackChannelGroup.params.monDestChannels);
+                    auto fgain = mRecFilePlaybackChannelGroup.params.gain * wetnow;
                     // process the monitor part of the metchannelgroup
-                    mFilePlaybackChannelGroup.processMonitor(fileBuffer, 0, workBuffer, dstch, dstcnt, numSamples, fgain);
+                    mRecFilePlaybackChannelGroup.processMonitor(fileBuffer, 0, workBuffer, dstch, dstcnt, numSamples, fgain);
                 }
 
                 if (metenabled && metrecorded) {
-                    int dstch = mMetChannelGroup.params.monDestStartIndex;
-                    int dstcnt = jmin(totalOutputChannels, mMetChannelGroup.params.monDestChannels);
-                    auto fgain = mMetChannelGroup.params.gain * wetnow;
+                    int dstch = mRecMetChannelGroup.params.monDestStartIndex;
+                    int dstcnt = jmin(totalOutputChannels, mRecMetChannelGroup.params.monDestChannels);
+                    auto fgain = mRecMetChannelGroup.params.gain * wetnow;
 
                     // process the monitor part of the metchannelgroup
-                    mMetChannelGroup.processMonitor(metBuffer, 0, workBuffer, dstch, dstcnt, numSamples, fgain);
+                    mRecMetChannelGroup.processMonitor(metBuffer, 0, workBuffer, dstch, dstcnt, numSamples, fgain);
                 }
 
                 if (activeMixMinusWriter.load() != nullptr) {
