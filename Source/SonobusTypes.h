@@ -25,7 +25,8 @@ public:
         CheckForNewVersion,
         LoadSetupFile,
         SaveSetupFile,
-        ChatToggle
+        ChatToggle,
+        SkipBack
     };
     
 };

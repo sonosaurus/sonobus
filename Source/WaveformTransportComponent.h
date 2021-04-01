@@ -329,8 +329,15 @@ public:
     {
         if (e.eventComponent != this) return;
 
+#if JUCE_IOS || JUCE_ANDROID
+        const int dragxthresh = 16;
+        const int dragythresh = 24;
+#else
+        const int dragxthresh = 8;
+        const int dragythresh = 12;
+#endif
         if (!dragActive) {
-            if (abs(startDragX - e.x) > 3) {
+            if (abs(startDragX - e.x) > dragxthresh) {
                 dragActive = true;
                 
                 if (resetSelOnDrag) {
@@ -340,7 +347,7 @@ public:
                 
                 touchZooming = false;
             }
-            else if (abs(startDragY - e.y) > 5) {
+            else if (abs(startDragY - e.y) > dragythresh) {
                 dragActive = true;
                 
                 startDragY = lastDragY = e.y;
