@@ -56,7 +56,7 @@ parts:
     after: [desktop]
     plugin: make
     source: https://github.com/essej/sonobus.git
-    source-tag: '1.4.2'
+    source-tag: '1.4.3'
     source-subdir: "Builds/LinuxMakefile"
     build-packages:
       - libjack-dev
@@ -67,7 +67,6 @@ parts:
       - libxinerama-dev
       - libxrandr-dev
       - libxcursor-dev
-      - libgl-dev
       - libfreetype-dev
       - libcurl4-openssl-dev
     override-pull: |
