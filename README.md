@@ -33,23 +33,8 @@ intercepted, please keep that in mind. All audio is sent directly between users 
 There are binary releases for macOS and Windows available at [sonobus.net](https://sonobus.net) or in the releases of this repository on GitHub.
 
 ## Linux
-For Linux there is a Snap installation available at [snapcraft.io/sonobus](https://snapcraft.io/sonobus) which should let you install it easily 
-on many different distributions. You can install it from the graphical snap-store, or using the following command line assuming snap is already installed:
 
-    sudo snap install sonobus
-
-Currently the Snap build supports JACK v1 (not v2), so you will want to make sure you have the jackd1 package installed instead of jackd2. For instance, on Ubuntu you would need to do an:
-
-    sudo apt install jackd1
-
-After installing you will want to connect sonobus with alsa and jack1 and alsa with the following commands:
-
-    sudo snap connect sonobus:jack1
-	sudo snap connect sonobus:alsa
-
-### Raspberry Pi
-
-You can either install the Snap of SonoBus on your existing Raspberry Pi distribution, or you can use the Jambox dedicated image which also includes other popular remote network jamming software, including SonoBus. Check it out at [github.com/kdoren/jambox-pi-gen](https://github.com/kdoren/jambox-pi-gen), and grab the latest release image.
+There are packages available for Debian-based Linux distributions as well as a Snap package. See installation instructions at [sonobus.net/linux.html](https://sonobus.net/linux.html).
 
 Or if you prefer, you can build it yourself following the [build instructions](#on-linux) below.
 
