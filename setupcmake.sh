@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DEFS=""
+CONFIG="Release"
 
 if [ -n "${AAX_SDK_PATH}" ] ; then
   DEPS="$DEPS -DAAX_SDK_PATH=${AAX_SDK_PATH}"
@@ -12,10 +13,10 @@ fi
 
 
 if [ "$1" = "debug" ] ; then
-  cmake -DCMAKE_BUILD_TYPE=Debug $DEPS -B build
-else
-  cmake -DCMAKE_BUILD_TYPE=Release $DEPS  -B build
+  CONFIG="Debug"
 fi
+
+cmake -DCMAKE_BUILD_TYPE=$CONFIG $DEPS -B build
 
 
 
