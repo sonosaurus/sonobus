@@ -173,7 +173,59 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 
     juce_generate_juce_header("${target_name}")
 
+
+    set (HEADER_INCLUDES
+        deps/aoo/lib
+        deps/aoo/deps
+    )
+
+    set (LIB_PATHS  "")
+
+    set (PLAT_COMPILE_DEFS
+        $<$<CONFIG:Debug>:LOGLEVEL=2>
+        USE_CODEC_OPUS=1
+        AOO_TIMEFILTER_CHECK=0
+        AOO_STATIC)
+
+    set(PlatSourceFiles
+        Source/CrossPlatformUtils.h
+      )
+
+
+    # platform specific stuff
+    if (APPLE)
+        list (APPEND HEADER_INCLUDES deps/mac/include)
+        list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/mac/lib)
+        list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsMac.mm)
+    elseif (WIN32)
+        list (APPEND HEADER_INCLUDES deps/windows ../asiosdk/common)
+        list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsWindows.cpp)
+
+        if (NOT ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win64"))
+            list (APPEND LIB_PATHS
+                $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug32>
+                $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release32>
+            )
+        else()
+            list (APPEND LIB_PATHS
+                $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug>
+                $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release>
+            )
+        endif()
+
+        list (APPEND PLAT_COMPILE_DEFS
+            _USE_MATH_DEFINES
+            WINVER=0x0601
+            _WIN32_WINNT=0x0601)
+    else()
+        # Linux
+        list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsLinux.cpp)
+    endif()
+
+
+
     set(SourceFiles
+        ${PlatSourceFiles}
         Source/AutoUpdater.cpp
         Source/AutoUpdater.h
         Source/BeatToggleGrid.cpp
@@ -187,12 +239,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/CompressorView.h
         Source/ConnectView.cpp
         Source/ConnectView.h
-        Source/CrossPlatformUtils.h
-        Source/CrossPlatformUtilsAndroid.cpp
-        Source/CrossPlatformUtilsIOS.mm
-        Source/CrossPlatformUtilsLinux.cpp
-        Source/CrossPlatformUtilsMac.mm
-        Source/CrossPlatformUtilsWindows.cpp
         Source/DebugLogC.h
         Source/EffectParams.cpp
         Source/EffectParams.h
@@ -316,43 +362,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     #        INTERFACE
     #            $<TARGET_PROPERTY:"${target_name}",INCLUDE_DIRECTORIES>)
 
-    
-    set (HEADER_INCLUDES 
-        deps/aoo/lib 
-        deps/aoo/deps
-    )
-
-    set (LIB_PATHS  "")
-
-    set (PLAT_COMPILE_DEFS 
-        $<$<CONFIG:Debug>:LOGLEVEL=2>
-        USE_CODEC_OPUS=1
-        AOO_TIMEFILTER_CHECK=0
-        AOO_STATIC)
-
-    # platform specific stuff
-    if (APPLE)
-        list (APPEND HEADER_INCLUDES deps/mac/include)
-        list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/mac/lib)
-    elseif (WIN32)
-        list (APPEND HEADER_INCLUDES deps/windows ../asiosdk/common)
-	if (NOT ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win64"))
-	    list (APPEND LIB_PATHS 
-                $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug32>
-                $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release32>
-            )
-	else()
-            list (APPEND LIB_PATHS 
-                $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug>
-                $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release>
-            )
-	endif()
-
-        list (APPEND PLAT_COMPILE_DEFS 
-            _USE_MATH_DEFINES
-            WINVER=0x0601
-            _WIN32_WINNT=0x0601)
-    endif()
     
 
     target_include_directories("${target_name}"
@@ -481,6 +490,13 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     )
 
     set_target_properties(${target_name}_SBData PROPERTIES FOLDER "Targets")
+
+    if (UNIX AND NOT APPLE)
+       target_compile_options("${target_name}_SBData"
+         PRIVATE
+         -fPIC
+       )
+    endif()
 
 
     target_link_directories("${target_name}" INTERFACE
