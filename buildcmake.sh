@@ -3,7 +3,7 @@
 OPTS="--verbose"
 CONFIG="Release"
 
-if [ "$1" -eq "debug" ]; then
+if [ "$1" = "debug" ]; then
   CONFIG="Debug"
 fi
   

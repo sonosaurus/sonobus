@@ -496,7 +496,23 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
          PRIVATE
          -fPIC
        )
-    endif()
+
+       find_library(OPUS_LIB opus)
+       if (NOT OPUS_LIB)
+	 message(FATAL_ERROR "opus library not found, please install libopus develop package")
+       endif()
+     
+       if (TARGET ${target_name}_Standalone)
+           # make linux executable all lower case
+           string(TOLOWER ${target_name} tmptargname)
+
+           set_target_properties("${target_name}_Standalone"
+	     PROPERTIES
+	       OUTPUT_NAME ${tmptargname}
+           )
+       endif()
+
+   endif()
 
 
     target_link_directories("${target_name}" INTERFACE
