@@ -93,7 +93,10 @@ endif()
 
 if (AAX_SDK_PATH)
     juce_set_aax_sdk_path (${AAX_SDK_PATH})
-    list (APPEND FormatsToBuild AAX)
+    
+    if (APPLE OR ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win64"))
+      list (APPEND FormatsToBuild AAX)
+    endif()
 endif()
 
 if (VST2_SDK_PATH)
@@ -152,6 +155,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         VST2_CATEGORY "${vst2cat}"
         VST3_CATEGORIES "${vst3cats}"
         AAX_CATEGORY "AAX_ePlugInCategory_None"
+
         
         # mac settings
         HARDENED_RUNTIME_ENABLED TRUE
@@ -332,10 +336,18 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/mac/lib)
     elseif (WIN32)
         list (APPEND HEADER_INCLUDES deps/windows ../asiosdk/common)
-        list (APPEND LIB_PATHS 
-            $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug>
-            $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release>
-        )
+	if (NOT ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win64"))
+	    list (APPEND LIB_PATHS 
+                $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug32>
+                $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release32>
+            )
+	else()
+            list (APPEND LIB_PATHS 
+                $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug>
+                $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release>
+            )
+	endif()
+
         list (APPEND PLAT_COMPILE_DEFS 
             _USE_MATH_DEFINES
             WINVER=0x0601
@@ -390,6 +402,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         JUCE_ALSA=1
         JUCE_USE_ANDROID_OBOE=1
         JUCE_USE_OBOE_STABILIZED_CALLBACK=1
+	FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK=0
         SONOBUS_BUILD_VERSION="${VERSION}"
         ${PLAT_COMPILE_DEFS} )
 

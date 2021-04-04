@@ -1,10 +1,16 @@
 #!/bin/bash
 
 OPTS="--verbose"
+CONFIG="Release"
 
 if [ "$1" -eq "debug" ]; then
-  cmake --build build --config Debug $OPTS
-else
-  cmake --build build --config Release $OPTS
+  CONFIG="Debug"
+fi
+  
+  
+cmake --build build --config $CONFIG $OPTS
+
+if [ -d build32 ] ; then
+   cmake --build build32 --config $CONFIG $OPTS  
 fi
 
