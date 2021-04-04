@@ -329,12 +329,12 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     # platform specific stuff
     if (APPLE)
         list (APPEND HEADER_INCLUDES deps/mac/include)
-        list (APPEND LIB_PATHS deps/mac/lib)
+        list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/mac/lib)
     elseif (WIN32)
         list (APPEND HEADER_INCLUDES deps/windows ../asiosdk/common)
         list (APPEND LIB_PATHS 
-            $<$<CONFIG:Debug>:deps/windows/Debug>
-            $<$<CONFIG:Release>:deps/windows/Release>
+            $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Debug>
+            $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/deps/windows/Release>
         )
         list (APPEND PLAT_COMPILE_DEFS 
             _USE_MATH_DEFINES
@@ -418,7 +418,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/dots_menu.png
         images/expand_arrow_active.svg
         images/expand_arrow_inactive.svg
-        images/folder.png
         images/folder_icon.svg
         images/hear-others.svg
         images/incoming_allowed.svg
@@ -429,8 +428,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/link_all.svg
         images/link_up.svg
         images/list_icon1.png
-        images/loop_button.png
-        images/loop_button_selected.png
         images/loop_icon.svg
         images/met.svg
         images/mic.svg
@@ -444,25 +441,18 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/outgoing_disallowed.svg
         images/paste_icon.svg
         images/pause_icon.svg
-        images/pause_white.png
         images/people.png
         images/people.svg
         images/person.png
         images/person.svg
         images/play_icon.svg
-        images/play_white.png
         images/power.svg
         images/power_sel.svg
-        images/rec_normal.png
-        images/rec_sel.png
         images/record.svg
-        images/record_active.png
         images/record_active.svg
         images/record_active_alt.svg
-        images/record_inactive.png
         images/rectape.svg
         images/reset_buffer_icon.svg
-        images/sbicontest.png
         images/send_group.svg
         images/send_group_small.svg
         images/settings_icon.svg
