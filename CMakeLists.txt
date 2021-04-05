@@ -501,6 +501,13 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
        if (NOT OPUS_LIB)
 	 message(FATAL_ERROR "opus library not found, please install libopus develop package")
        endif()
+
+       if (JUCE_LINUX_TARGET_ARCHITECTURE MATCHES "arm" )
+          message(STATUS "ARM platform, adding -march=native")
+          target_compile_options(${target_name} PUBLIC
+           -march=native
+          )
+       endif()
      
        if (TARGET ${target_name}_Standalone)
            # make linux executable all lower case
