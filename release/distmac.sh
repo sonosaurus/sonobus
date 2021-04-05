@@ -26,7 +26,6 @@ cp -pLRv ${INSTBUILDDIR}/VST3/SonoBusInstrument.vst3 SonoBus/
 cp -pLRv ${BUILDDIR}/VST/SonoBus.vst  SonoBus/
 cp -pRHv ${BUILDDIR}/AAX/SonoBus.aaxplugin  SonoBus/
 
-exit
 
 #cp -pLRv ${BUILDDIR}/SonoBus.app  SonoBus/
 #cp -pLRv ${BUILDDIR}/SonoBus.component  SonoBus/
