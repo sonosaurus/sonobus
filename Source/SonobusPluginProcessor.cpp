@@ -6679,49 +6679,30 @@ void SonobusAudioProcessor::releaseResources()
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool SonobusAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     ignoreUnused (layouts);
     return true;
-  #else
+#else
     
 
-#if 0
-    // allow mono or stereo input
-    if (layouts.getMainInputChannelSet() != AudioChannelSet::mono()
-        && layouts.getMainInputChannelSet() != AudioChannelSet::stereo()
-        && layouts.getMainInputChannelSet() != AudioChannelSet::disabled()
-        ) {
-        return false;
-    }
-#endif
+    auto plugtype = PluginHostType::getPluginLoadedAs();
 
-#if 0
+    if (plugtype == AudioProcessor::wrapperType_VST) {
+        // for now only allow mono or stereo usage with VST2
+        // It really only exists for compatibility with OBS
 
-    // and mono or stereo output, or no output
-
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
-        && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo()
-        && layouts.getMainOutputChannelSet() != AudioChannelSet::disabled()) {
-        return false;
-    }
-
-    // other output buses can be mono or stereo
-    for (int i=1; i < layouts.outputBuses.size(); ++i) {
-        int chans = layouts.getNumChannels(false, i);
-        if (chans != 1 && chans != 2 && chans != 0) {
-            //DBG("sidechain outputs not mono or stereo bus: " << i << "  chans: " << chans);
+        if (layouts.getMainInputChannelSet() != AudioChannelSet::mono()
+            && layouts.getMainInputChannelSet() != AudioChannelSet::stereo()
+            && layouts.getMainInputChannelSet() != AudioChannelSet::disabled()
+            ) {
+            return false;
+        }
+        if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
+            && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo()
+            && layouts.getMainOutputChannelSet() != AudioChannelSet::disabled()) {
             return false;
         }
     }
-#endif
-    
-    // allow different input counts than outputs
-    
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-   // if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-   //     return false;
-   #endif
 
     return true;
   #endif
@@ -7758,10 +7739,14 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     activeMixWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
                 }
                 
-                mElapsedRecordSamples += numSamples;
             }
         }
     }
+
+    if (writingpossible || userwritingpossible) {
+        mElapsedRecordSamples += numSamples;
+    }
+
 
     lastSamplesPerBlock = numSamples;
 
