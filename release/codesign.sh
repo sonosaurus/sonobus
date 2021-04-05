@@ -7,11 +7,11 @@
 POPTS="--strict  --force --options=runtime --sign C7AF15C3BCF2AD2E5C102B9DB6502CFAE2C8CF3B --timestamp"
 AOPTS="--strict  --force --options=runtime --sign C7AF15C3BCF2AD2E5C102B9DB6502CFAE2C8CF3B --timestamp"
 
-codesign ${AOPTS} --entitlements ../Builds/MacOSX/Standalone_Plugin.entitlements SonoBus/SonoBus.app
-codesign ${POPTS} --entitlements ../Builds/MacOSX/AU.entitlements  SonoBus/SonoBus.component
-codesign ${POPTS} --entitlements ../Builds/MacOSX/VST3.entitlements SonoBus/SonoBus.vst3
-codesign ${POPTS} --entitlements ../Builds/MacOSX/VST3.entitlements SonoBus/SonoBusInstrument.vst3
-codesign ${POPTS} --entitlements ../Builds/MacOSX/VST.entitlements  SonoBus/SonoBus.vst
+codesign ${AOPTS} --entitlements SonoBus.entitlements SonoBus/SonoBus.app
+codesign ${POPTS} --entitlements SonoBus.entitlements  SonoBus/SonoBus.component
+codesign ${POPTS} --entitlements SonoBus.entitlements SonoBus/SonoBus.vst3
+codesign ${POPTS} --entitlements SonoBus.entitlements SonoBus/SonoBusInstrument.vst3
+codesign ${POPTS} --entitlements SonoBus.entitlements  SonoBus/SonoBus.vst
 
 # AAX is special
 if [ -n "${AAXSIGNCMD}" ]; then

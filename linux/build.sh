@@ -3,7 +3,7 @@
 cd ..
 ./setupcmake.sh
 
-make -C build clean
+#make -C build clean
 
 ./buildcmake.sh
 
