@@ -53,6 +53,8 @@ set(CMAKE_XCODE_GENERATE_SCHEME OFF)
 # No ZERO_CHECK target (it helps bust cache for cmake)
 set(CMAKE_SUPPRESS_REGENERATION true) 
 
+# prevent install all
+#set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
 # Adds all the module sources so they appear correctly in the IDE
 # Must be set before JUCE is added as a sub-dir (or any targets are made)
@@ -70,7 +72,7 @@ option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Show all module sources in IDE projects
 
 # include JUCE
 
-add_subdirectory(deps/juce)
+add_subdirectory(deps/juce EXCLUDE_FROM_ALL )
 
 
 juce_add_modules(deps/ff_meters)
