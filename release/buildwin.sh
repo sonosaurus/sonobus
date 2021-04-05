@@ -1,5 +1,15 @@
 #!/bin/bash
 
+cd ..
+
+./setupcmake.sh
+cmake --build --target clean
+
+./buildcmake.sh
+
+
+exit
+
 cd ../Builds/VisualStudio2017
 
 

@@ -388,7 +388,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             
                 # MacOS only: Sets the default executable that Xcode will open on build
                 # For this exact path to to work, manually build the AudioPluginHost.xcodeproj in the JUCE subdir 
-                XCODE_SCHEME_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/deps/juce/extras/AudioPluginHost/Builds/MacOSX/build/Debug/AudioPluginHost.app"
+                # XCODE_SCHEME_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/deps/juce/extras/AudioPluginHost/Builds/MacOSX/build/Debug/AudioPluginHost.app"
             
                 # Let us build the target in Xcode 
                 XCODE_GENERATE_SCHEME ON)
