@@ -1,4 +1,0 @@
-deb/usr
-deb/etc/apt/trusted.gpg.d
-build
-sonobus.deb

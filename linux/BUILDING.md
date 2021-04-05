@@ -37,8 +37,9 @@ Run the build script, both the standalone application and the VST3 plugin will b
 ```
 
 ### Installing
-When the build finishes, the executable will be at `Builds/LinuxMakefile/build/sonobus`. You can install it
-and the VST3 plugin by running the install script:
+When the build finishes, the executable will be at
+`../build/SonoBus_artefacts/Release/sonobus`. You can install it
+and the VST3 plugins by running the install script:
 ```
 sudo ./install.sh
 ```
