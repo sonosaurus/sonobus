@@ -1,5 +1,12 @@
 #!/bin/bash
 
+cd ..
+./setupcmake.sh
+make -C build clean
+./buildcmake.sh
+
+exit 0
+
 cd ../Builds/MacOSX
 
 # clean

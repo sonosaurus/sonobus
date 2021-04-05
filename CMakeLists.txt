@@ -133,10 +133,10 @@ set (MacPList "<plist version=\"1.0\">
 function(sono_add_custom_plugin_target target_name product_name formats is_instrument plugincode)
 
    if (is_instrument)
-        set (vst3cats "Instrument Network")
+        set (vst3cats Instrument Network)
         set (vst2cat "kPlugCategSynth")
     else()
-        set (vst3cats "Fx Network")        
+        set (vst3cats Fx Network)        
         set (vst2cat "kPlugCategEffect")
    endif()
 
@@ -540,7 +540,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         PUBLIC
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags
-            juce::juce_recommended_warning_flags)
+        #   juce::juce_recommended_warning_flags
+        )
             
 endfunction()
 
