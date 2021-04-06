@@ -2,8 +2,10 @@
 
 cd ..
 
-./setupcmake.sh
-cmake --build --target clean
+./setupcmakewin.sh
+
+cmake --build build --target clean
+cmake --build build32 --target clean
 
 ./buildcmake.sh
 

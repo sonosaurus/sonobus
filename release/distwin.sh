@@ -21,28 +21,31 @@ BUILDDIR32='../build32/SonoBus_artefacts/Release'
 INSTBUILDDIR='../build/SonoBusInst_artefacts/Release'
 INSTBUILDDIR32='../build32/SonoBusInst_artefacts/Release'
 
-mkdir -p SonoBus/Plugins
+rm -rf SonoBus
+
+mkdir -p SonoBus/Plugins/VST SonoBus/Plugins/VST3 SonoBus/Plugins/AAX
 
 cp -v ../doc/README_WINDOWS.txt SonoBus/README.txt
 cp -v ${BUILDDIR}/Standalone/SonoBus.exe SonoBus/
-cp -av ${BUILDDIR}/VST3/SonoBus.vst3 SonoBus/Plugins/
-cp -av ${INSTBUILDDIR}/VST3/SonoBusInstrument.vst3 SonoBus/Plugins/
-cp -v ${BUILDDIR}/VST/SonoBus.dll SonoBus/Plugins/
-cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins/
+cp -pHLRv ${BUILDDIR}/VST3/SonoBus.vst3 SonoBus/Plugins/VST3/
+cp -pHLRv ${INSTBUILDDIR}/VST3/SonoBusInstrument.vst3 SonoBus/Plugins/VST3/
+cp -v ${BUILDDIR}/VST/SonoBus.dll SonoBus/Plugins/VST/
+cp -pHLRv ${BUILDDIR}/AAX/SonoBus.aaxplugin SonoBus/Plugins/AAX/
 
-mkdir -p SonoBus/Plugins32
+
+mkdir -p SonoBus/Plugins32/VST SonoBus/Plugins32/VST3 SonoBus/Plugins32/AAX
 
 cp -v ${BUILDDIR32}/Standalone/SonoBus.exe SonoBus/SonoBus32.exe
-cp -av ${BUILDDIR32}/VST3/SonoBus.vst3 SonoBus/Plugins32/
-cp -av ${INSTBUILDDIR32}/VST3/SonoBusInstrument.vst3 SonoBus/Plugins32/
-cp -v ${BUILDDIR32}/VST/SonoBus.dll SonoBus/Plugins32/
+cp -pHLRv ${BUILDDIR32}/VST3/SonoBus.vst3 SonoBus/Plugins32/VST3/
+cp -pHLRv ${INSTBUILDDIR32}/VST3/SonoBusInstrument.vst3 SonoBus/Plugins32/VST3/
+cp -v ${BUILDDIR32}/VST/SonoBus.dll SonoBus/Plugins32/VST/
 
 
 
 # sign AAX
 if [ -n "${AAXSIGNCMD}" ]; then
   echo "Signing AAX plugin"
-  ${AAXSIGNCMD} --keypassword "${CERTPASS}"  --in 'SonoBus\Plugins\Sonobus.aaxplugin' --out 'SonoBus\Plugins\Sonobus.aaxplugin'
+  ${AAXSIGNCMD} --keypassword "${CERTPASS}"  --in 'SonoBus\Plugins\AAX\Sonobus.aaxplugin' --out 'SonoBus\Plugins\AAX\Sonobus.aaxplugin'
 fi
 
 
