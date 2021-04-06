@@ -4,7 +4,7 @@
 <plist version="1.0">
   <dict>
     <key>CFBundleVersion</key>
-    <string>65</string>
+    <string>67</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>UIStatusBarHidden</key>
@@ -45,7 +45,7 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.4.3</string>
+    <string>1.4.4</string>
     <key>NSHumanReadableCopyright</key>
     <string>2021 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
@@ -76,7 +76,7 @@
             <key>subtype</key>
             <string>NBus</string>
             <key>version</key>
-            <integer>66563</integer>
+            <integer>66564</integer>
             <key>sandboxSafe</key>
             <true/>
             <key>tags</key>
