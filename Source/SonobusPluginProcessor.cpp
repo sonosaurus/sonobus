@@ -2882,13 +2882,13 @@ void SonobusAudioProcessor::doSendData()
 
     // send stuff until there is nothing left to send
     
-    bool didsomething = true;
+    int32_t didsomething = 1;
 
     auto nowtimems = Time::getMillisecondCounterHiRes();
 
     while (didsomething) {
         //mAooSource->send();
-        didsomething = false;
+        didsomething = 0;
         
         didsomething |= mAooDummySource->send();
         
