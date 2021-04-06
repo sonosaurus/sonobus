@@ -38,6 +38,9 @@ endif()
 
 project(SonoBus VERSION 1.4.4)
 
+set(BUILDVERSION 67)
+
+
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
 # included JUCE directly in your source tree (perhaps as a submodule), you'll need to tell CMake to
@@ -110,7 +113,7 @@ endif()
 set (MacPList "<plist version=\"1.0\">
 <dict>
 <key>CFBundleVersion</key>
-<string>65</string>
+<string>${BUILDVERSION}</string>
 <key>CFBundleURLTypes</key>
 <array>
      <dict>
