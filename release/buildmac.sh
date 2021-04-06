@@ -1,9 +1,9 @@
 #!/bin/bash
 
 cd ..
-./setupcmake.sh
+rm -rf build
 
-make -C build clean
+./setupcmake.sh
 
 ./buildcmake.sh
 
