@@ -8327,7 +8327,12 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                     fileext = ".wav";
                 }
 
-                File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-" + remote->userName + fileext).getNonexistentSibling();
+                String userfilename = usefile.getFileNameWithoutExtension() + "-" + remote->userName + fileext;
+                userfilename = File::createLegalFileName(userfilename);
+
+                File thefile = recdir.getChildFile(userfilename).getNonexistentSibling();
+
+
                 if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
                     // flac has a max of FLAC__MAX_CHANNELS, if we exceed that, fallback to WAV

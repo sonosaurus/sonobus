@@ -1942,6 +1942,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             // create new timestamped filename
             String filename = (currGroup.isEmpty() ? "SonoBusSession" : currGroup) + String("_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
 
+            filename = File::createLegalFileName(filename);
+
             auto parentDir = File(processor.getDefaultRecordingDirectory());
             parentDir.createDirectory();
 
