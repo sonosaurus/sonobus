@@ -44,22 +44,43 @@ The original GitHub repository for this project is at
 [github.com/sonosaurus/sonobus](https://github.com/sonosaurus/sonobus).
 
 To build from source on macOS and Windows, all of the dependencies are a part of this GIT repository, including prebuilt Opus libraries. 
+The build now uses [CMake](https://cmake.org) 3.15 or above on macOS, Windows, and Linux platforms, see
+details below.
 
 ### On macOS
 
-Open the Xcode project at `Builds/MacOSX/SonoBus.xcodeproj`, choose the target you want to build and go for it.
+Make sure you have [CMake](https://cmake.org) >= 3.15 and XCode. Then run:
+```
+./setupcmake.sh
+./buildcmake.sh
+``` 
+The resulting application and plugins will end up under `build/SonoBus_artefacts/Release`
+when the build completes. If you would rather have an Xcode project to look
+at, use `./setupcmakexcode.sh` instead and use the Xcode project that gets
+produced at `buildXcode/SonoBus.xcodeproj`.
 
 ### On Windows
 
-Using Visual Studio 2017, open the solution at `Builds\VisualStudio2017\SonoBus.sln`, choose the target you want to build and go for it.
+You will need [CMake](https://cmake.org) >= 3.15, and  Visual Studio 2017
+installed. You'll also need Cygwin installed if you want to use the scripts
+below, but you can also use CMake in other ways if you prefer.
+
+```
+./setupcmakewin.sh
+./buildcmake.sh
+``` 
+The resulting application and plugins will end up under `build/SonoBus_artefacts/Release`
+when the build completes. The MSVC project/solution can be found in
+build/SonoBus_artefacts as well after the cmake setup step.
+
 
 ### On Linux
 
-The first thing to do in a terminal is go to the Linux build directory:
+The first thing to do in a terminal is go to the Linux directory:
 
-    cd Builds/LinuxMakefile
+    cd linux
 
-And read the [BUILDING.md](Builds/LinuxMakefile/BUILDING.md) file for
+And read the [BUILDING.md](linux/BUILDING.md) file for
 further instructions.
 
 
