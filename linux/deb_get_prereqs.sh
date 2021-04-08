@@ -14,7 +14,7 @@ PREREQS="libjack-jackd2-dev \
     libxinerama-dev \
     libxrandr-dev \
     libxcursor-dev \
-    libgl-dev \
+    cmake
     "
 FREETYPES=$(apt-cache pkgnames libfreetype)
 if [[ $FREETYPES == *"libfreetype6-dev"* ]]; then

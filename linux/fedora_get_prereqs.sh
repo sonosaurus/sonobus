@@ -15,7 +15,8 @@ PREREQS="libopusenc \
 	libXrandr-devel \
 	libXcursor-devel \
 	freetype-devel \
-	libcurl-devel
+	libcurl-devel \
+	cmake
         "
 
 echo ""
