@@ -8,3 +8,4 @@ Terminal=false
 Type=Application
 Categories=AudioVideo;Audio;Mixer;
 Keywords=live;online;music;conference;
+MimeType=x-scheme-handler/sonobus
