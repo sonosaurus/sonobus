@@ -16,7 +16,7 @@ if (WIN32)
 endif()
 
 # If we are compiling for Mac OS we want to target OS versions down to 10.9
-option(UniversalBinary "Build universal binary for mac" OFF)
+option(UniversalBinary "Build universal binary for mac" ON)
 
 if (APPLE)
     set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
