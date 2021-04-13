@@ -7656,8 +7656,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 if (activeSelfWriter.load() != nullptr) {
                     // we need to make sure the writer has at least all the inputs it expects
                     const float ** inbufs = inputPostBuffer.getArrayOfReadPointers();
-                    const float * useinbufs[mSelfRecordChannels];
-                    for (int i=0; i < mSelfRecordChannels; ++i) {
+                    const float * useinbufs[MAX_PANNERS];
+                    for (int i=0; i < mSelfRecordChannels && i < MAX_PANNERS; ++i) {
                         useinbufs[i] = i < inputPostBuffer.getNumChannels() ? inbufs[i] : silentBuffer.getReadPointer(0);
                     }
                     activeSelfWriter.load()->write (useinbufs, numSamples);
