@@ -1066,6 +1066,8 @@ private:
     int mDefaultRecordingBitsPerSample = 16;
     String mDefaultRecordDir;
     String mLastError;
+    int mSelfRecordChannels = 2;
+    int mActiveInputChannels = 2;
 
     std::atomic<bool> writingPossible = { false };
     std::atomic<bool> userWritingPossible = { false };
