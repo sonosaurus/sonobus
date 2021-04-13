@@ -44,9 +44,9 @@ Source: "SonoBus\SonoBus.exe";  DestDir: "{app}" ; Check: Is64BitInstallMode; Co
 ;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: {code:GetVST2Dir_64}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce
 Source: "SonoBus\Plugins\VST\SonoBus.dll"; DestDir: {code:GetVST2Dir|0}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce
 ;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: "{autopf64}\Steinberg\VSTPlugins"; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce
-Source: "SonoBus\Plugins\VST3\SonoBus.vst3"; DestDir: "{commoncf64}\VST3"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce recursesubdirs createallsubdirs
-Source: "SonoBus\Plugins\VST3\SonoBusInstrument.vst3"; DestDir: "{commoncf64}\VST3"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce recursesubdirs createallsubdirs
-Source: "SonoBus\Plugins\AAX\SonoBus.aaxplugin"; DestDir: "{commoncf64}\Avid\Audio\Plug-Ins"; Check: Is64BitInstallMode; Components:aax_64; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "SonoBus\Plugins\VST3\SonoBus.vst3"; DestDir: "{commoncf}\VST3"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce recursesubdirs createallsubdirs
+Source: "SonoBus\Plugins\VST3\SonoBusInstrument.vst3"; DestDir: "{commoncf}\VST3"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce recursesubdirs createallsubdirs
+Source: "SonoBus\Plugins\AAX\SonoBus.aaxplugin"; DestDir: "{commoncf}\Avid\Audio\Plug-Ins"; Check: Is64BitInstallMode; Components:aax_64; Flags: ignoreversion recursesubdirs createallsubdirs
 
 
 Source: "SonoBus\SonoBus32.exe"; DestDir: "{app}" ;  DestName:"SonoBus.exe"; Check: not Is64BitInstallMode;  Components:app32; Flags: ignoreversion signonce
@@ -61,7 +61,7 @@ Source: "SonoBus\README.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: i
 ; because we switched to folder-based VST3s 
 
 [InstallDelete]
-Type: files ; Name: "{commoncf64}\VST3\SonoBus.vst3"
+Type: files ; Name: "{commoncf}\VST3\SonoBus.vst3"
 Type: files ; Name: "{commoncf32}\VST3\SonoBus.vst3"
 
 
