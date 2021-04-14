@@ -54,10 +54,11 @@ parts:
 
   sonobus:
     after: [desktop]
-    plugin: make
-    source: https://github.com/essej/sonobus.git
-    source-tag: '1.4.3'
-    source-subdir: "Builds/LinuxMakefile"
+    plugin: cmake
+    source: https://github.com/sonosaurus/sonobus.git
+    #source: .
+    source-tag: '1.4.4'
+    # source-subdir: "Builds/LinuxMakefile"
     build-packages:
       - libjack-dev
       - libopus-dev
@@ -72,16 +73,16 @@ parts:
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version "$(git describe --tags)"
-    build-environment:
-      - CONFIG: "Release"
-    make-parameters: ["Standalone", "VST3"]
+    cmake-parameters:
+      - "-DCMAKE_BUILD_TYPE=Release"
     override-build: |
       snapcraftctl build
-      strip --strip-unneeded Builds/LinuxMakefile/build/sonobus
+      strip --strip-unneeded SonoBus_artefacts/Release/Standalone/sonobus
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin
       mkdir -p $SNAPCRAFT_PART_INSTALL/lib/vst3
-      cp -a Builds/LinuxMakefile/build/sonobus $SNAPCRAFT_PART_INSTALL/bin/
-      cp -a Builds/LinuxMakefile/build/sonobus.vst3 $SNAPCRAFT_PART_INSTALL/lib/vst3/
+      cp -a SonoBus_artefacts/Release/Standalone/sonobus $SNAPCRAFT_PART_INSTALL/bin/
+      cp -a SonoBus_artefacts/Release/VST3/SonoBus.vst3 $SNAPCRAFT_PART_INSTALL/lib/vst3/
+      cp -a SonoBusInst_artefacts/Release/VST3/SonoBusInstrument.vst3 $SNAPCRAFT_PART_INSTALL/lib/vst3/
     stage-packages:
       - jackd1
       - libopus0

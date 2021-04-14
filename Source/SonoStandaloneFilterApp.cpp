@@ -126,6 +126,7 @@ public:
     bool doImmediateQuit = false;
     bool doHeadless = false;
     String loadSetupFilename;
+    String cmdlineArgUrl;
 
     virtual StandalonePluginHolder* createHeadlessPlugin ()
     {
@@ -424,6 +425,11 @@ public:
             }
         }
 
+        // what args remain? assume it's a URL
+        if (arglist.arguments.size() > 0) {
+            cmdlineArgUrl = arglist.arguments.getLast().text;
+        }
+
     }
 
     //==============================================================================
@@ -468,6 +474,13 @@ public:
                             // only copy info
                             DBG("COPYING INITIAL");
                             sonoeditor->connectWithInfo(cmdlineConnInfo, false, true);
+                        }
+                        else if (cmdlineArgUrl.isNotEmpty()) {
+#if JUCE_LINUX
+                            // Linux only, as this is handled through other means on other platforms
+                            // handle the last arg as a connect URL
+                            sonoeditor->handleURL(cmdlineArgUrl);
+#endif
                         }
 
                         if (loadSetupFilename.isNotEmpty()) {

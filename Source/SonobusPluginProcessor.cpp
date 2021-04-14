@@ -2882,13 +2882,13 @@ void SonobusAudioProcessor::doSendData()
 
     // send stuff until there is nothing left to send
     
-    bool didsomething = true;
+    int32_t didsomething = 1;
 
     auto nowtimems = Time::getMillisecondCounterHiRes();
 
     while (didsomething) {
         //mAooSource->send();
-        didsomething = false;
+        didsomething = 0;
         
         didsomething |= mAooDummySource->send();
         
@@ -6679,49 +6679,30 @@ void SonobusAudioProcessor::releaseResources()
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool SonobusAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     ignoreUnused (layouts);
     return true;
-  #else
+#else
     
 
-#if 0
-    // allow mono or stereo input
-    if (layouts.getMainInputChannelSet() != AudioChannelSet::mono()
-        && layouts.getMainInputChannelSet() != AudioChannelSet::stereo()
-        && layouts.getMainInputChannelSet() != AudioChannelSet::disabled()
-        ) {
-        return false;
-    }
-#endif
+    auto plugtype = PluginHostType::getPluginLoadedAs();
 
-#if 0
+    if (plugtype == AudioProcessor::wrapperType_VST) {
+        // for now only allow mono or stereo usage with VST2
+        // It really only exists for compatibility with OBS
 
-    // and mono or stereo output, or no output
-
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
-        && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo()
-        && layouts.getMainOutputChannelSet() != AudioChannelSet::disabled()) {
-        return false;
-    }
-
-    // other output buses can be mono or stereo
-    for (int i=1; i < layouts.outputBuses.size(); ++i) {
-        int chans = layouts.getNumChannels(false, i);
-        if (chans != 1 && chans != 2 && chans != 0) {
-            //DBG("sidechain outputs not mono or stereo bus: " << i << "  chans: " << chans);
+        if (layouts.getMainInputChannelSet() != AudioChannelSet::mono()
+            && layouts.getMainInputChannelSet() != AudioChannelSet::stereo()
+            && layouts.getMainInputChannelSet() != AudioChannelSet::disabled()
+            ) {
+            return false;
+        }
+        if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
+            && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo()
+            && layouts.getMainOutputChannelSet() != AudioChannelSet::disabled()) {
             return false;
         }
     }
-#endif
-    
-    // allow different input counts than outputs
-    
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-   // if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-   //     return false;
-   #endif
 
     return true;
   #endif
@@ -6735,9 +6716,13 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
     auto maxchans = jmax(2, jmax(mainBusNumOutputChannels, mainBusNumInputChannels));
 
     int totsendchans = 0;
+    int selfrecchans = 0;
+
     for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
         totsendchans += mInputChannelGroups[cgi].params.numChannels;
     }
+    selfrecchans = totsendchans;
+
     // plus a possible metronome send
     if (mSendMet.get()) {
         totsendchans += 1;
@@ -6758,6 +6743,7 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
     int realsendchans = mSendChannels.get() <= 0 ? totsendchans : mSendChannels.get();
 
 
+    mActiveInputChannels = selfrecchans;
 
     meterRmsWindow = getSampleRate() * METER_RMS_SEC / currSamplesPerBlock;
 
@@ -7665,40 +7651,21 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 || activeSelfWriter.load() != nullptr
                 )
             {
-                // we need to mix the input, audio from remote peers, and the file playback together here
-                //workBuffer.clear(0, numSamples);
-                
-                for (int channel = 0; channel < totalRecordingChannels; ++channel) {
-                    if (channel >= inputBuffer.getNumChannels()) continue;
-                    //int usechan = channel < mainBusInputChannels ? channel : channel > 0 ? channel-1 : 0;
-                    auto usechan = channel;
 
-                    if (mDry.get() > 0.0f) {
-                        // copy input with monitor gain if > 0
-                        if (dryrampit) {
-                            workBuffer.copyFromWithRamp(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, mLastDry, drynow);
-                        }
-                        else {
-                            workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, drynow);
-                        }
-                    }
-                    else if (!anysoloed || mMainMonitorSolo.get()) {
-                        // monitoring is off, we just mix it into written file at full volume, as long as no one else is soloed
-                        workBuffer.copyFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
-                    }
-
-                }
-
-                // record self only
+                // write the raw (but processed) input
                 if (activeSelfWriter.load() != nullptr) {
-                    activeSelfWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
+                    // we need to make sure the writer has at least all the inputs it expects
+                    const float ** inbufs = inputPostBuffer.getArrayOfReadPointers();
+                    const float * useinbufs[MAX_PANNERS];
+                    for (int i=0; i < mSelfRecordChannels && i < MAX_PANNERS; ++i) {
+                        useinbufs[i] = i < inputPostBuffer.getNumChannels() ? inbufs[i] : silentBuffer.getReadPointer(0);
+                    }
+                    activeSelfWriter.load()->write (useinbufs, numSamples);
                 }
 
-                if (activeMixMinusWriter.load() != nullptr) {
-                    // clear workbuffer 
-                    workBuffer.clear();
-                }
-                
+                // we need to mix the input, audio from remote peers, and the file playback together here
+                workBuffer.clear(0, numSamples);
+
 
                 bool rampit =  (fabsf(wetnow - mLastWet) > 0.00001);
                 
@@ -7739,29 +7706,43 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
                 if (activeMixMinusWriter.load() != nullptr) {
                     activeMixMinusWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
-                
-                    if (activeMixWriter.load() != nullptr) {
-                        // put input back into work buffer
-                        for (int channel = 0; channel < totalRecordingChannels; ++channel) {
-                            int usechan = channel < mainBusInputChannels ? channel : channel > 0 ? channel-1 : 0;
-
-                            // copy input as-is
-                            workBuffer.addFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
-                        }
-
-                        // write out full mix
-                        activeMixWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);                        
-                    }
                 }
-                else if (activeMixWriter.load() != nullptr) {                
+
+                // mix in input
+                for (int channel = 0; channel < totalRecordingChannels; ++channel) {
+                    if (channel >= inputBuffer.getNumChannels()) continue;
+                    //int usechan = channel < mainBusInputChannels ? channel : channel > 0 ? channel-1 : 0;
+                    auto usechan = channel;
+
+                    if (mDry.get() > 0.0f) {
+                        // copy input with monitor gain if > 0
+                        if (dryrampit) {
+                            workBuffer.addFromWithRamp(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, mLastDry, drynow);
+                        }
+                        else {
+                            workBuffer.addFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, drynow);
+                        }
+                    }
+                    else if (!anysoloed || mMainMonitorSolo.get()) {
+                        // monitoring is off, we just mix it into written file at full volume, as long as no one else is soloed
+                        workBuffer.addFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
+                    }
+
+                }
+
+                if (activeMixWriter.load() != nullptr) {
                     // write out full mix
                     activeMixWriter.load()->write (workBuffer.getArrayOfReadPointers(), numSamples);
                 }
                 
-                mElapsedRecordSamples += numSamples;
             }
         }
     }
+
+    if (writingpossible || userwritingpossible) {
+        mElapsedRecordSamples += numSamples;
+    }
+
 
     lastSamplesPerBlock = numSamples;
 
@@ -8272,10 +8253,12 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         }
         
         if (recordOptions & RecordSelf) {
+            mSelfRecordChannels = mActiveInputChannels;
+
             File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-SELF" + usefile.getFileExtension()).getNonexistentSibling();
             if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {                
-                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
+                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), mSelfRecordChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
                     
@@ -8329,7 +8312,7 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
 
             for (auto & remote : mRemotePeers) {
 
-                int numchan = std::max(2, remote->recvChannels);
+                int numchan = remote->recvChannels;
 
                 AudioFormat * useformat = audioFormat.get();
                 String fileext = usefile.getFileExtension();
@@ -8342,7 +8325,12 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                     fileext = ".wav";
                 }
 
-                File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-" + remote->userName + fileext).getNonexistentSibling();
+                String userfilename = usefile.getFileNameWithoutExtension() + "-" + remote->userName + fileext;
+                userfilename = File::createLegalFileName(userfilename);
+
+                File thefile = recdir.getChildFile(userfilename).getNonexistentSibling();
+
+
                 if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
                     // flac has a max of FLAC__MAX_CHANNELS, if we exceed that, fallback to WAV
@@ -8461,16 +8449,23 @@ bool SonobusAudioProcessor::isRecordingToFile()
             );
 }
 
- bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
+void SonobusAudioProcessor::clearTransportURL()
+{
+    // unload the previous file source and delete it..
+    mTransportSource.stop();
+    mTransportSource.setSource (nullptr);
+    mCurrentAudioFileSource.reset();
+    mCurrTransportURL = URL();
+}
+
+bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 {
     if (!mDiskThread.isThreadRunning()) {
         mDiskThread.startThread (3);
     }
 
     // unload the previous file source and delete it..
-    mTransportSource.stop();
-    mTransportSource.setSource (nullptr);
-    mCurrentAudioFileSource.reset();
+    clearTransportURL();
     
     AudioFormatReader* reader = nullptr;
     
@@ -8488,6 +8483,7 @@ bool SonobusAudioProcessor::isRecordingToFile()
     
     if (reader != nullptr)
     {
+        mCurrTransportURL = audioURL;
         mCurrentAudioFileSource.reset (new AudioFormatReaderSource (reader, true));
 
         mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());

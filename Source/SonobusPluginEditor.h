@@ -69,7 +69,7 @@ public:
 
     void componentVisibilityChanged (Component& component) override;
     void componentParentHierarchyChanged (Component& component) override;
-    void componentMovedOrResized (Component&, bool wasmoved, bool wasresized);
+    void componentMovedOrResized (Component&, bool wasmoved, bool wasresized) override;
 
     void sliderValueChanged (Slider* slider) override;
 
@@ -208,7 +208,8 @@ private:
     void chooseRecDirBrowser();
 
     bool loadAudioFromURL(URL fileurl);
-    
+    bool updateTransportWithURL(URL fileurl);
+
     class TrimFileJob;
 
     void trimCurrentAudioFile(bool replaceExisting);

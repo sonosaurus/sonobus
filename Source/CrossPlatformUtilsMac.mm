@@ -4,8 +4,6 @@
 
 #include "CrossPlatformUtils.h"
 
-#include "../JuceLibraryCode/AppConfig.h"
-
 #include <juce_core/system/juce_TargetPlatform.h>
 
 #if JUCE_MAC

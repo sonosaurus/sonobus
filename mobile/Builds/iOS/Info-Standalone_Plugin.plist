@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleVersion</key>
+    <string>67</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>UIStatusBarHidden</key>
+    <false/>
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleLightContent</string>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>net.sonobus</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>sonobus</string>
+        </array>
+      </dict>
+    </array>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>SonoBus uses networking to communicate with other local services</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app requires audio input. If you do not have an audio interface connected it will use the built-in microphone.</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>CFBundleExecutable</key>
+    <string>${EXECUTABLE_NAME}</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.Sonosaurus.SonoBus</string>
+    <key>CFBundleName</key>
+    <string>SonoBus</string>
+    <key>CFBundleDisplayName</key>
+    <string>SonoBus</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.4.4</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>2021 Sonosaurus LLC</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>UISupportsDocumentBrowser</key>
+    <true/>
+    <key>UIRequiresFullScreen</key>
+    <false/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+      <string>UIInterfaceOrientationLandscapeLeft</string>
+      <string>UIInterfaceOrientationLandscapeRight</string>
+      <string>UIInterfaceOrientationPortrait</string>
+      <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    </array>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>audio</string>
+    </array>
+    <key>AudioComponents</key>
+    <array>
+      <dict>
+        <key>name</key>
+        <string>Sonosaurus: SonoBus</string>
+        <key>manufacturer</key>
+        <string>Sono</string>
+        <key>type</key>
+        <string>aurx</string>
+        <key>subtype</key>
+        <string>NBus</string>
+        <key>version</key>
+        <integer>66564</integer>
+      </dict>
+    </array>
+  </dict>
+</plist>

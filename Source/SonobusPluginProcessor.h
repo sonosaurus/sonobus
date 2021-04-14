@@ -700,6 +700,8 @@ public:
 
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
+    void clearTransportURL();
+    URL getCurrentLoadedTransportURL () const { return mCurrTransportURL; }
     AudioTransportSource & getTransportSource() { return mTransportSource; }
     AudioFormatManager & getFormatManager() { return mFormatManager; }
 
@@ -1066,6 +1068,8 @@ private:
     int mDefaultRecordingBitsPerSample = 16;
     String mDefaultRecordDir;
     String mLastError;
+    int mSelfRecordChannels = 2;
+    int mActiveInputChannels = 2;
 
     std::atomic<bool> writingPossible = { false };
     std::atomic<bool> userWritingPossible = { false };
@@ -1086,7 +1090,8 @@ private:
     std::unique_ptr<AudioFormatReaderSource> mCurrentAudioFileSource; // the FIFO used to buffer the incoming data
     AudioFormatManager mFormatManager;
     TimeSliceThread mDiskThread  { "audio file reader" };
-    
+    URL mCurrTransportURL;
+
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    

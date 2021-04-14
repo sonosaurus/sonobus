@@ -26,33 +26,44 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 
 [Components]
-Name: "app"; Description: "Standalone 64-bit application (.exe)"; Types: full custom; Check: Is64BitInstallMode;
-Name: "app32"; Description: "Standalone 32-bit application (.exe)"; Types: full custom; Check: not Is64BitInstallMode;
-Name: "vst2_64"; Description: "64-bit VST2 Plugin (.dll)"; Types: full custom; Check: Is64BitInstallMode;
-Name: "vst3_64"; Description: "64-bit VST3 Plugin (.vst3)"; Types: full custom; Check: Is64BitInstallMode;
-;Name: "aax_32"; Description: "32-bit AAX Plugin (.aaxplugin)"; Types: full custom;
-Name: "aax_64"; Description: "64-bit AAX Plugin (.aaxplugin)"; Types: full custom; Check: Is64BitInstallMode;
-Name: "vst2_32"; Description: "32-bit VST2 Plugin (.dll)"; Types: full custom;
-Name: "vst3_32"; Description: "32-bit VST3 Plugin (.vst3)"; Types: full custom;
+Name: "app"; Description: "Standalone 64-bit application (.exe)"; Types: full custom; Check: Is64BitInstallMode
+Name: "app32"; Description: "Standalone 32-bit application (.exe)"; Types: full custom; Check: not Is64BitInstallMode
+Name: "vst2_64"; Description: "64-bit VST2 Plugin (.dll)"; Types: full custom; Check: Is64BitInstallMode
+Name: "vst3_64"; Description: "64-bit VST3 Plugin (.vst3)"; Types: full custom; Check: Is64BitInstallMode
+;Name: "aax_32"; Description: "32-bit AAX Plugin (.aaxplugin)"; Types: full custom
+Name: "aax_64"; Description: "64-bit AAX Plugin (.aaxplugin)"; Types: full custom; Check: Is64BitInstallMode
+Name: "vst2_32"; Description: "32-bit VST2 Plugin (.dll)"; Types: full custom
+Name: "vst3_32"; Description: "32-bit VST3 Plugin (.vst3)"; Types: full custom
 
 ;Name: "manual"; Description: "User guide"; Types: full custom; Flags: fixed
 
 
 
 [Files]
-Source: "SonoBus\SonoBus.exe";  DestDir: "{app}" ; Check: Is64BitInstallMode; Components:app; Flags: ignoreversion signonce;
-;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: {code:GetVST2Dir_64}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce ;
-Source: "SonoBus\Plugins\SonoBus.dll"; DestDir: {code:GetVST2Dir|0}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce;
-;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: "{autopf64}\Steinberg\VSTPlugins\"; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce;
-Source: "SonoBus\Plugins\SonoBus.vst3"; DestDir: "{commoncf64}\VST3\"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce ;
-Source: "SonoBus\Plugins\SonoBus.aaxplugin"; DestDir: "{commoncf64}\Avid\Audio\Plug-Ins\"; Check: Is64BitInstallMode; Components:aax_64; Flags: ignoreversion recursesubdirs createallsubdirs ;
+Source: "SonoBus\SonoBus.exe";  DestDir: "{app}" ; Check: Is64BitInstallMode; Components:app; Flags: ignoreversion signonce
+;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: {code:GetVST2Dir_64}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce
+Source: "SonoBus\Plugins\VST\SonoBus.dll"; DestDir: {code:GetVST2Dir|0}; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce
+;Source: "SonoBus\Plugins\SonoBus.dll";  DestDir: "{autopf64}\Steinberg\VSTPlugins"; Check: Is64BitInstallMode; Components:vst2_64; Flags: ignoreversion signonce
+Source: "SonoBus\Plugins\VST3\SonoBus.vst3"; DestDir: "{commoncf}\VST3"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce recursesubdirs createallsubdirs
+Source: "SonoBus\Plugins\VST3\SonoBusInstrument.vst3"; DestDir: "{commoncf}\VST3"; Check: Is64BitInstallMode; Components:vst3_64; Flags: ignoreversion signonce recursesubdirs createallsubdirs
+Source: "SonoBus\Plugins\AAX\SonoBus.aaxplugin"; DestDir: "{commoncf}\Avid\Audio\Plug-Ins"; Check: Is64BitInstallMode; Components:aax_64; Flags: ignoreversion recursesubdirs createallsubdirs
 
-Source: "SonoBus\SonoBus32.exe"; DestDir: "{app}" ;  DestName:"SonoBus.exe"; Check: not Is64BitInstallMode;  Components:app32; Flags: ignoreversion signonce;
-Source: "SonoBus\Plugins32\SonoBus.dll"; DestDir: {code:GetVST2Dir|1}; Components:vst2_32; Flags: ignoreversion signonce;
-Source: "SonoBus\Plugins32\SonoBus.vst3"; DestDir: "{commoncf32}\VST3\"; Components:vst3_32; Flags: ignoreversion signonce ;
-;Source: "SonoBus\Plugins32\SonoBus.aaxplugin"; DestDir: "{commoncf32}\Avid\Audio\Plug-Ins\"; Components:aax_32; Flags: ignoreversion recursesubdirs createallsubdirs ;
+
+Source: "SonoBus\SonoBus32.exe"; DestDir: "{app}" ;  DestName:"SonoBus.exe"; Check: not Is64BitInstallMode;  Components:app32; Flags: ignoreversion signonce
+Source: "SonoBus\Plugins32\VST\SonoBus.dll"; DestDir: {code:GetVST2Dir|1}; Components:vst2_32; Flags: ignoreversion signonce
+Source: "SonoBus\Plugins32\VST3\SonoBus.vst3"; DestDir: "{commoncf32}\VST3\"; Components:vst3_32; Flags: ignoreversion signonce recursesubdirs createallsubdirs
+Source: "SonoBus\Plugins32\VST3\SonoBusInstrument.vst3"; DestDir: "{commoncf32}\VST3\"; Components:vst3_32; Flags: ignoreversion signonce recursesubdirs createallsubdirs
+;Source: "SonoBus\Plugins32\SonoBus.aaxplugin"; DestDir: "{commoncf32}\Avid\Audio\Plug-Ins"; Components:aax_32; Flags: ignoreversion recursesubdirs createallsubdirs
 
 Source: "SonoBus\README.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: isreadme
+
+
+; because we switched to folder-based VST3s 
+
+[InstallDelete]
+Type: files ; Name: "{commoncf}\VST3\SonoBus.vst3"
+Type: files ; Name: "{commoncf32}\VST3\SonoBus.vst3"
+
 
 
 [Icons]

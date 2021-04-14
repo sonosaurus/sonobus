@@ -1209,6 +1209,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         connectWithInfo(recents.getReference(0));
     }
 
+    // to make sure transport area is initialized with the current state
+    if (updateTransportWithURL(processor.getCurrentLoadedTransportURL())) {
+        processor.getTransportSource().sendChangeMessage();
+    }
 
 }
 
@@ -1942,6 +1946,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             // create new timestamped filename
             String filename = (currGroup.isEmpty() ? "SonoBusSession" : currGroup) + String("_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
 
+            filename = File::createLegalFileName(filename);
+
             auto parentDir = File(processor.getDefaultRecordingDirectory());
             parentDir.createDirectory();
 
@@ -2439,24 +2445,36 @@ bool SonobusAudioProcessorEditor::loadAudioFromURL(URL fileurl)
     bool ret = false;
     
     if (processor.loadURLIntoTransport (fileurl)) {
-        mCurrentAudioFile = std::move (fileurl);
         processor.getTransportSource().setLooping(mLoopButton->getToggleState());
+        ret = true;
+    }
+
+    updateTransportWithURL(fileurl);
+
+    return ret;
+}
+
+bool SonobusAudioProcessorEditor::updateTransportWithURL(URL fileurl)
+{
+    bool ret = false;
+
+    mCurrentAudioFile = std::move(fileurl);
+
+    if (!mCurrentAudioFile.isEmpty()) {
         updateLayout();
         resized();
-    }
-    else {
-        mCurrentAudioFile = std::move(fileurl);
+        ret = true;
     }
 
     updateTransportState();
 
     //zoomSlider.setValue (0, dontSendNotification);
-    
+
     mWaveformThumbnail->setURL (mCurrentAudioFile);
     commandManager.commandStatusChanged();
-
     return ret;
 }
+
 
 // XXX
 void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup, bool copyInfoOnly)
