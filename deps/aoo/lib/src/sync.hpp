@@ -9,6 +9,7 @@
 
 // for shared_lock
 #include <shared_mutex>
+#include <mutex>
 
 namespace aoo {
 
