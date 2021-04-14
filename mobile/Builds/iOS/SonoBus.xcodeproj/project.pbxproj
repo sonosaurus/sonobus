@@ -68,9 +68,7 @@
 		66B461447FC86E7E97E60B80 /* AUv3 AppExtension */ = {isa = PBXBuildFile; fileRef = 39B19482CAE1F62C09C6C8E1; };
 		68B3ECB9C5A4CA0C4AEFC83D /* include_juce_audio_plugin_client_VST_utils.mm */ = {isa = PBXBuildFile; fileRef = 0AA9729AFEB32A0246FAD80B; };
 		6ED32852E041D57ACFE69212 /* include_juce_audio_processors.mm */ = {isa = PBXBuildFile; fileRef = 57A012DCCBB25C4A68F7A55B; };
-		71E42B9A4C9C19FFBE98D2CA /* CrossPlatformUtilsWindows.cpp */ = {isa = PBXBuildFile; fileRef = 6620F445435CD15C34252976; };
 		72DB798AA1319628E8DF8631 /* WebKit.framework */ = {isa = PBXBuildFile; fileRef = 72F3148F968AC28B87CBBEFF; };
-		72FBA2DE5EB55A0765C56F6B /* CrossPlatformUtilsMac.mm */ = {isa = PBXBuildFile; fileRef = EA825915AAF7588175D462D0; };
 		7D24EFFF83031C170C477900 /* LatencyMatchView.cpp */ = {isa = PBXBuildFile; fileRef = 1084B0E84FF8C71B059AECDC; };
 		85EEA590F1A086BDAC71F462 /* RunningCumulant.c */ = {isa = PBXBuildFile; fileRef = 5310B50E507FFDA0188F4F87; };
 		8F1600C77BCBAFB2BD3DB8A8 /* include_ff_meters.cpp */ = {isa = PBXBuildFile; fileRef = 935EA89ABCCA2C861AEE4F20; };
@@ -78,7 +76,6 @@
 		9292857FDFF6D8A5E3BDC93F /* include_juce_data_structures.mm */ = {isa = PBXBuildFile; fileRef = D9891D81FA728B9D85EBA520; };
 		9502DD290687C4FF0DCC6495 /* QuartzCore.framework */ = {isa = PBXBuildFile; fileRef = 770DF6E145DA9F0414500ADC; };
 		9976D9A05571F9105DC0D84A /* CoreMIDI.framework */ = {isa = PBXBuildFile; fileRef = 701288E426BBC5F8A99F33FA; };
-		9EA17A5BF6153991884E1ED2 /* CrossPlatformUtilsLinux.cpp */ = {isa = PBXBuildFile; fileRef = 5D39202DEE071D9251022D3B; };
 		A096E1808DAB725D32B589A1 /* RandomSentenceGenerator.cpp */ = {isa = PBXBuildFile; fileRef = D1A8A7163958E19AC430D622; };
 		A139CAF5032AE7CC5C9DD63C /* Metronome.cpp */ = {isa = PBXBuildFile; fileRef = 03AA92BD7C5655F627DB9B27; };
 		A6A60B7566A8B91746D3BAFD /* ChannelGroupsView.cpp */ = {isa = PBXBuildFile; fileRef = E024475F065472A17E564F93; };
@@ -230,7 +227,6 @@
 		5BC3101B3C0129A9667DC565 /* UIKit.framework */ /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		5BD328EAB5FD224676DA2345 /* GenericItemChooser.h */ /* GenericItemChooser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericItemChooser.h; path = ../../../Source/GenericItemChooser.h; sourceTree = SOURCE_ROOT; };
 		5C92573CA82D46BA00B9CA74 /* aoo_pcm.h */ /* aoo_pcm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = aoo_pcm.h; path = ../../../deps/aoo/lib/aoo/aoo_pcm.h; sourceTree = SOURCE_ROOT; };
-		5D39202DEE071D9251022D3B /* CrossPlatformUtilsLinux.cpp */ /* CrossPlatformUtilsLinux.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = CrossPlatformUtilsLinux.cpp; path = ../../../Source/CrossPlatformUtilsLinux.cpp; sourceTree = SOURCE_ROOT; };
 		5D53A7269847AF77448F55D6 /* juce_opengl */ /* juce_opengl */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_opengl; path = ../../../deps/juce/modules/juce_opengl; sourceTree = SOURCE_ROOT; };
 		5D6B0E5E3CB1868E696C3A68 /* Standalone Plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SonoBus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5E071AA5DBF892D021C3BC0D /* codec_opus.cpp */ /* codec_opus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = codec_opus.cpp; path = ../../../deps/aoo/lib/src/codec_opus.cpp; sourceTree = SOURCE_ROOT; };
@@ -245,7 +241,6 @@
 		649442BBA2EC143BF72580A4 /* localized_de.txt */ /* localized_de.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = localized_de.txt; path = ../../../localization/localized_de.txt; sourceTree = SOURCE_ROOT; };
 		654752BDB36169A6DF401331 /* SonoChoiceButton.h */ /* SonoChoiceButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonoChoiceButton.h; path = ../../../Source/SonoChoiceButton.h; sourceTree = SOURCE_ROOT; };
 		65D4385C9458EB952446943C /* AutoUpdater.cpp */ /* AutoUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = AutoUpdater.cpp; path = ../../../Source/AutoUpdater.cpp; sourceTree = SOURCE_ROOT; };
-		6620F445435CD15C34252976 /* CrossPlatformUtilsWindows.cpp */ /* CrossPlatformUtilsWindows.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = CrossPlatformUtilsWindows.cpp; path = ../../../Source/CrossPlatformUtilsWindows.cpp; sourceTree = SOURCE_ROOT; };
 		676C5011753D72DEED7C9B6C /* BeatToggleGrid.cpp */ /* BeatToggleGrid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BeatToggleGrid.cpp; path = ../../../Source/BeatToggleGrid.cpp; sourceTree = SOURCE_ROOT; };
 		6786585D7F5FA7D813AAFAB0 /* SonoDrawableButton.cpp */ /* SonoDrawableButton.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SonoDrawableButton.cpp; path = ../../../Source/SonoDrawableButton.cpp; sourceTree = SOURCE_ROOT; };
 		67FCF5374C5085DFF4A4E0AA /* chevron_forward.svg */ /* chevron_forward.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = chevron_forward.svg; path = ../../../images/chevron_forward.svg; sourceTree = SOURCE_ROOT; };
@@ -370,7 +365,6 @@
 		E936B81A3EC850C70172B283 /* SonoStandaloneFilterApp.cpp */ /* SonoStandaloneFilterApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SonoStandaloneFilterApp.cpp; path = ../../../Source/SonoStandaloneFilterApp.cpp; sourceTree = SOURCE_ROOT; };
 		E989D3895C7A1B17163FE9F2 /* CrossPlatformUtilsAndroid.cpp */ /* CrossPlatformUtilsAndroid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = CrossPlatformUtilsAndroid.cpp; path = ../../../Source/CrossPlatformUtilsAndroid.cpp; sourceTree = SOURCE_ROOT; };
 		E9B3AC03E96BF913B8CE443E /* speaker.svg */ /* speaker.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = speaker.svg; path = ../../../images/speaker.svg; sourceTree = SOURCE_ROOT; };
-		EA825915AAF7588175D462D0 /* CrossPlatformUtilsMac.mm */ /* CrossPlatformUtilsMac.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = CrossPlatformUtilsMac.mm; path = ../../../Source/CrossPlatformUtilsMac.mm; sourceTree = SOURCE_ROOT; };
 		EBE7C1615448A2280E429C24 /* OptionsView.cpp */ /* OptionsView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OptionsView.cpp; path = ../../../Source/OptionsView.cpp; sourceTree = SOURCE_ROOT; };
 		ECCEBE3A8DA910DED88383B2 /* LatencyMatchView.h */ /* LatencyMatchView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LatencyMatchView.h; path = ../../../Source/LatencyMatchView.h; sourceTree = SOURCE_ROOT; };
 		ED4F129245E9DFA007CD27F6 /* include_juce_audio_utils.mm */ /* include_juce_audio_utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_utils.mm; path = ../../JuceLibraryCode/include_juce_audio_utils.mm; sourceTree = SOURCE_ROOT; };
@@ -591,9 +585,6 @@
 				AF956D0B58D6FED7B7C15B3D,
 				E989D3895C7A1B17163FE9F2,
 				F735461E92328AE656400DD1,
-				5D39202DEE071D9251022D3B,
-				EA825915AAF7588175D462D0,
-				6620F445435CD15C34252976,
 				854C6CD97D87D2D697DED9FA,
 				0779F139E48EDA42856C5018,
 				55E0328629E7D67CAA82F4D0,
@@ -1064,9 +1055,6 @@
 				1DAC85BE8ECAB5039BBB5B3D,
 				6311D24F8947753F5712AF3C,
 				5E2EE76AE59E47EDBAF5E3F7,
-				9EA17A5BF6153991884E1ED2,
-				72FBA2DE5EB55A0765C56F6B,
-				71E42B9A4C9C19FFBE98D2CA,
 				F5F9BBC0E5C490CD41B0825E,
 				001CD33EDCEAD972B23D85EE,
 				0A5A16A50EBCB6385D70BEAA,
@@ -1187,9 +1175,9 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
@@ -1197,10 +1185,10 @@
 				INFOPLIST_PREPROCESS = NO;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
@@ -1251,19 +1239,19 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
 				INSTALL_PATH = "@executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1313,18 +1301,18 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
@@ -1374,9 +1362,9 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
@@ -1384,10 +1372,10 @@
 				INFOPLIST_PREPROCESS = NO;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus.SonoBusAUv3;
 				PRODUCT_NAME = "SonoBus";
@@ -1440,9 +1428,9 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
@@ -1450,9 +1438,9 @@
 				INFOPLIST_PREPROCESS = NO;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
@@ -1554,9 +1542,9 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
@@ -1564,9 +1552,9 @@
 				INFOPLIST_PREPROCESS = NO;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus.SonoBusAUv3;
 				PRODUCT_NAME = "SonoBus";
@@ -1670,18 +1658,18 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
 				INSTALL_PATH = "@executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1733,17 +1721,17 @@
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(SRCROOT)/../../../deps",
 					"$(SRCROOT)/../../../deps/juce/modules",
-					"$(SRCROOT)/../../deps/aoo/lib",
-					"$(SRCROOT)/../../deps/aoo/deps",
-					"$(SRCROOT)/../../deps/ios/include",
+					"$(SRCROOT)/../../../deps/aoo/lib",
+					"$(SRCROOT)/../../../deps/aoo/deps",
+					"$(SRCROOT)/../../../deps/ios/include",
 					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../deps/ios/lib\"",
+					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../deps/aoo/lib $(SRCROOT)/../../deps/aoo/deps $(SRCROOT)/../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
 				OTHER_LDFLAGS = "-lSonoBus -lopus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";

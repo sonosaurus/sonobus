@@ -12,7 +12,7 @@ namespace BinaryData
     const int            localized_de_txtSize = 35097;
 
     extern const char*   localized_es_txt;
-    const int            localized_es_txtSize = 34343;
+    const int            localized_es_txtSize = 34306;
 
     extern const char*   localized_fr_txt;
     const int            localized_fr_txtSize = 35703;
@@ -21,7 +21,7 @@ namespace BinaryData
     const int            localized_it_txtSize = 34768;
 
     extern const char*   localized_ja_txt;
-    const int            localized_ja_txtSize = 38140;
+    const int            localized_ja_txtSize = 38332;
 
     extern const char*   localized_nl_txt;
     const int            localized_nl_txtSize = 32810;

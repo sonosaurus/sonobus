@@ -25,35 +25,35 @@ enable_language(ASM)
 
 if(JUCE_BUILD_CONFIGURATION MATCHES "DEBUG")
     link_directories(
-        "../../../deps/android/${ANDROID_ABI}"
+        "../../../../deps/android/${ANDROID_ABI}"
     )
 
     add_definitions("-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.4.4-67\"" "-DLOGLEVEL=2" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0" "-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME=\"com_sonosaurus_sonobus_SonoBusActivity\"" "-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH=\"com/sonosaurus/sonobus/SonoBusActivity\"" "-DJUCER_ANDROIDSTUDIO_7F0E4A25=1" "-DJUCE_APP_VERSION=1.4.4" "-DJUCE_APP_VERSION_HEX=0x10404" "-DDEBUG=1" "-D_DEBUG=1")
     include_directories( AFTER
-        "../../../deps/aoo/lib"
-        "../../../deps/aoo/deps"
-        "../../../deps/android"
+        "../../../../deps/aoo/lib"
+        "../../../../deps/aoo/deps"
+        "../../../../deps/android"
     )
 
     find_library(opus "opus" PATHS
-        "../../../deps/android/${ANDROID_ABI}"
+        "../../../../deps/android/${ANDROID_ABI}"
         NO_CMAKE_FIND_ROOT_PATH)
 
 
 elseif(JUCE_BUILD_CONFIGURATION MATCHES "RELEASE")
     link_directories(
-        "../../../deps/android/${ANDROID_ABI}"
+        "../../../../deps/android/${ANDROID_ABI}"
     )
 
     add_definitions("-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1" "-DSONOBUS_BUILD_VERSION=\"1.4.4-67\"" "-DUSE_CODEC_OPUS=1" "-DAOO_TIMEFILTER_CHECK=0" "-DAOO_STATIC" "-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0" "-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME=\"com_sonosaurus_sonobus_SonoBusActivity\"" "-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH=\"com/sonosaurus/sonobus/SonoBusActivity\"" "-DJUCER_ANDROIDSTUDIO_7F0E4A25=1" "-DJUCE_APP_VERSION=1.4.4" "-DJUCE_APP_VERSION_HEX=0x10404" "-DNDEBUG=1")
     include_directories( AFTER
-        "../../../deps/aoo/lib"
-        "../../../deps/aoo/deps"
-        "../../../deps/android"
+        "../../../../deps/aoo/lib"
+        "../../../../deps/aoo/deps"
+        "../../../../deps/android"
     )
 
     find_library(opus "opus" PATHS
-        "../../../deps/android/${ANDROID_ABI}"
+        "../../../../deps/android/${ANDROID_ABI}"
         NO_CMAKE_FIND_ROOT_PATH)
 
 
@@ -197,9 +197,6 @@ add_library( ${BINARY_NAME}
     "../../../../Source/CrossPlatformUtils.h"
     "../../../../Source/CrossPlatformUtilsAndroid.cpp"
     "../../../../Source/CrossPlatformUtilsIOS.mm"
-    "../../../../Source/CrossPlatformUtilsLinux.cpp"
-    "../../../../Source/CrossPlatformUtilsMac.mm"
-    "../../../../Source/CrossPlatformUtilsWindows.cpp"
     "../../../../Source/DebugLogC.h"
     "../../../../Source/EffectParams.cpp"
     "../../../../Source/EffectParams.h"
@@ -2061,7 +2058,6 @@ set_source_files_properties("../../../../Source/CompressorView.h" PROPERTIES HEA
 set_source_files_properties("../../../../Source/ConnectView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/CrossPlatformUtils.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/CrossPlatformUtilsIOS.mm" PROPERTIES HEADER_FILE_ONLY TRUE)
-set_source_files_properties("../../../../Source/CrossPlatformUtilsMac.mm" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/DebugLogC.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/EffectParams.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/EffectsBaseView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
