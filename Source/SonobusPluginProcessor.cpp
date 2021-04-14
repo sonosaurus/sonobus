@@ -8449,16 +8449,23 @@ bool SonobusAudioProcessor::isRecordingToFile()
             );
 }
 
- bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
+void SonobusAudioProcessor::clearTransportURL()
+{
+    // unload the previous file source and delete it..
+    mTransportSource.stop();
+    mTransportSource.setSource (nullptr);
+    mCurrentAudioFileSource.reset();
+    mCurrTransportURL = URL();
+}
+
+bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 {
     if (!mDiskThread.isThreadRunning()) {
         mDiskThread.startThread (3);
     }
 
     // unload the previous file source and delete it..
-    mTransportSource.stop();
-    mTransportSource.setSource (nullptr);
-    mCurrentAudioFileSource.reset();
+    clearTransportURL();
     
     AudioFormatReader* reader = nullptr;
     
@@ -8476,6 +8483,7 @@ bool SonobusAudioProcessor::isRecordingToFile()
     
     if (reader != nullptr)
     {
+        mCurrTransportURL = audioURL;
         mCurrentAudioFileSource.reset (new AudioFormatReaderSource (reader, true));
 
         mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());

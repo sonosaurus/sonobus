@@ -700,6 +700,8 @@ public:
 
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
+    void clearTransportURL();
+    URL getCurrentLoadedTransportURL () const { return mCurrTransportURL; }
     AudioTransportSource & getTransportSource() { return mTransportSource; }
     AudioFormatManager & getFormatManager() { return mFormatManager; }
 
@@ -1088,7 +1090,8 @@ private:
     std::unique_ptr<AudioFormatReaderSource> mCurrentAudioFileSource; // the FIFO used to buffer the incoming data
     AudioFormatManager mFormatManager;
     TimeSliceThread mDiskThread  { "audio file reader" };
-    
+    URL mCurrTransportURL;
+
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    

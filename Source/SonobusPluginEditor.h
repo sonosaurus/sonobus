@@ -208,7 +208,8 @@ private:
     void chooseRecDirBrowser();
 
     bool loadAudioFromURL(URL fileurl);
-    
+    bool updateTransportWithURL(URL fileurl);
+
     class TrimFileJob;
 
     void trimCurrentAudioFile(bool replaceExisting);
