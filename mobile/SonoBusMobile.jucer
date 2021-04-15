@@ -349,7 +349,7 @@
     </XCODE_IPHONE>
     <ANDROIDSTUDIO targetFolder="Builds/Android" extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC&#10;JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0&#10;JUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME=&quot;com_sonosaurus_sonobus_SonoBusActivity&quot;&#10;JUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH=&quot;com/sonosaurus/sonobus/SonoBusActivity&quot;"
                    externalLibraries="opus" smallIcon="gFXJgn" bigIcon="kMrPPT"
-                   androidAdditionalJavaFolders="../../Source/android/java" androidRepositories="maven { url 'https://maven.google.com' }"
+                   androidAdditionalJavaFolders="../Source/android/java" androidRepositories="maven { url 'https://maven.google.com' }"
                    androidDependencies="implementation 'androidx.appcompat:appcompat:1.0.2'"
                    androidCustomAppBuildGradleContent="ndkVersion &quot;22.0.7026061&quot;"
                    androidMinimumSDK="24" androidTargetSDK="29" microphonePermissionNeeded="1"
@@ -357,7 +357,7 @@
                    androidKeyStore="${user.home}/.android/sonoupload.keystore" androidKeyStorePass="${sonoupload_keystore_password}"
                    androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
                    androidTheme="@android:style/Theme.NoTitleBar" androidActivitySubClassName="com.sonosaurus.sonobus.SonoBusActivity"
-                   androidVersionCode="62">
+                   androidVersionCode="68">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/android&#10;"
                        libraryPath="../../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>

@@ -9,4 +9,4 @@ VERSION=$1
 
 FNAME=sonobus-$VERSION-android.apk
 
-cp -v app/build/outputs/apk/release_/release/app-release_-release.apk ../../release/android/$FNAME
+cp -v app/build/outputs/apk/release_/release/app-release_-release.apk ../../../release/android/$FNAME
