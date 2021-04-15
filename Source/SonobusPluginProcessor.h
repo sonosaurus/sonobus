@@ -689,6 +689,10 @@ public:
     int getDefaultRecordingBitsPerSample() const { return mDefaultRecordingBitsPerSample; }
     void setDefaultRecordingBitsPerSample(int fmt) { mDefaultRecordingBitsPerSample = fmt; }
 
+    bool getSelfRecordingPreFX() const { return mRecordInputPreFX; }
+    void setSelfRecordingPreFX(bool flag) { mRecordInputPreFX = flag; }
+
+
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
     void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
 
@@ -841,6 +845,7 @@ private:
     AudioSampleBuffer monitorBuffer;
     AudioSampleBuffer sendWorkBuffer;
     AudioSampleBuffer inputPostBuffer;
+    AudioSampleBuffer inputPreBuffer;
     AudioSampleBuffer fileBuffer;
     AudioSampleBuffer metBuffer;
     AudioSampleBuffer mainFxBuffer;
@@ -1066,6 +1071,7 @@ private:
     uint32 mDefaultRecordingOptions = RecordMix;
     RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
     int mDefaultRecordingBitsPerSample = 16;
+    bool mRecordInputPreFX = true;
     String mDefaultRecordDir;
     String mLastError;
     int mSelfRecordChannels = 2;
@@ -1076,18 +1082,19 @@ private:
     int totalRecordingChannels = 2;
     int64 mElapsedRecordSamples = 0;
     std::unique_ptr<TimeSliceThread> recordingThread;
-    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixWriter; // the FIFO used to buffer the incoming data
-    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixMinusWriter; // the FIFO used to buffer the incoming data
-    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedSelfWriter; // the FIFO used to buffer the incoming data
+    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixWriter;
+    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixMinusWriter;
+    OwnedArray<AudioFormatWriter::ThreadedWriter> threadedSelfWriters;
+    int  mSelfRecordChans[MAX_CHANGROUPS] { 0 };
 
     CriticalSection writerLock;
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeMixWriter { nullptr };
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeMixMinusWriter { nullptr };
-    std::atomic<AudioFormatWriter::ThreadedWriter*> activeSelfWriter { nullptr };
-  
+    std::atomic<AudioFormatWriter::ThreadedWriter*> activeSelfWriters[MAX_CHANGROUPS] { nullptr };
+
     // playing stuff
     AudioTransportSource mTransportSource;
-    std::unique_ptr<AudioFormatReaderSource> mCurrentAudioFileSource; // the FIFO used to buffer the incoming data
+    std::unique_ptr<AudioFormatReaderSource> mCurrentAudioFileSource;
     AudioFormatManager mFormatManager;
     TimeSliceThread mDiskThread  { "audio file reader" };
     URL mCurrTransportURL;

@@ -170,6 +170,10 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsRecOthersButton = std::make_unique<ToggleButton>(TRANS("Each Connected User"));
     mOptionsRecOthersButton->addListener(this);
 
+    mOptionsRecSelfPostFxButton = std::make_unique<ToggleButton>(TRANS("Record yourself including input FX"));
+    mOptionsRecSelfPostFxButton->addListener(this);
+
+
     mRecFormatChoice = std::make_unique<SonoChoiceButton>();
     mRecFormatChoice->addChoiceListener(this);
     mRecFormatChoice->addItem(TRANS("FLAC"), SonobusAudioProcessor::FileFormatFLAC);
@@ -332,6 +336,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixMinusButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecOthersButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfPostFxButton.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
@@ -545,6 +550,8 @@ void OptionsView::updateState(bool ignorecheck)
     mOptionsRecMixButton->setToggleState((recmask & SonobusAudioProcessor::RecordMix) != 0, dontSendNotification);
     mOptionsRecMixMinusButton->setToggleState((recmask & SonobusAudioProcessor::RecordMixMinusSelf) != 0, dontSendNotification);
     mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
+
+    mOptionsRecSelfPostFxButton->setToggleState(!processor.getSelfRecordingPreFX(), dontSendNotification);
 
     mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
     mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
@@ -763,6 +770,11 @@ void OptionsView::updateLayout()
     optionsRecOthersBox.items.add(FlexItem(indentw, 12));
     optionsRecOthersBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecOthersButton).withMargin(0).withFlex(1));
 
+    optionsRecordSelfPostFxBox.items.clear();
+    optionsRecordSelfPostFxBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordSelfPostFxBox.items.add(FlexItem(10, 12));
+    optionsRecordSelfPostFxBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfPostFxButton).withMargin(0).withFlex(1));
+
 
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
@@ -779,6 +791,7 @@ void OptionsView::updateLayout()
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecOthersBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(4, 4));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSelfPostFxBox).withMargin(2).withFlex(0));
     minRecOptionsHeight = 0;
     for (auto & item : recOptionsBox.items) {
         minRecOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
@@ -948,6 +961,9 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
         processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());
+    }
+    else if (buttonThatWasClicked == mOptionsRecSelfPostFxButton.get()) {
+        processor.setSelfRecordingPreFX(!mOptionsRecSelfPostFxButton->getToggleState());
     }
     else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
         if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {

@@ -150,6 +150,7 @@ protected:
     std::unique_ptr<ToggleButton> mOptionsRecMixMinusButton;
     std::unique_ptr<ToggleButton> mOptionsRecSelfButton;
     std::unique_ptr<ToggleButton> mOptionsRecOthersButton;
+    std::unique_ptr<ToggleButton> mOptionsRecSelfPostFxButton;
     std::unique_ptr<SonoChoiceButton> mRecFormatChoice;
     std::unique_ptr<SonoChoiceButton> mRecBitsChoice;
     std::unique_ptr<Label> mRecFormatStaticLabel;
@@ -184,6 +185,7 @@ protected:
     FlexBox optionsRecOthersBox;
     FlexBox optionsMetRecordBox;
     FlexBox optionsRecordDirBox;
+    FlexBox optionsRecordSelfPostFxBox;
 
 
     std::unique_ptr<TabbedComponent> mSettingsTab;

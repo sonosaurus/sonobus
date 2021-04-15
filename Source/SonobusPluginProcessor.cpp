@@ -84,6 +84,7 @@ static String changeRecvQualForAllKey("ChangeRecvQualForAll");
 static String defRecordOptionsKey("DefaultRecordingOptions");
 static String defRecordFormatKey("DefaultRecordingFormat");
 static String defRecordBitsKey("DefaultRecordingBitsPerSample");
+static String recordSelfPreFxKey("RecordSelfPreFx");
 static String defRecordDirKey("DefaultRecordDir");
 static String sliderSnapKey("SliderSnapToMouse");
 static String peerDisplayModeKey("PeerDisplayMode");
@@ -6784,6 +6785,7 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
     }
     if (inputPostBuffer.getNumSamples() < numSamples || inputPostBuffer.getNumChannels() != totsendchans) {
         inputPostBuffer.setSize(totsendchans, numSamples, false, false, true);
+        inputPreBuffer.setSize(totsendchans, numSamples, false, false, true);
     }
     if (fileBuffer.getNumSamples() < numSamples || fileBuffer.getNumChannels() != fileplaymaxchans) {
         fileBuffer.setSize(fileplaymaxchans, numSamples, false, false, true);
@@ -6835,6 +6837,9 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     int sendChans = mSendChannels.get();
     bool sendfileaudio = mSendPlaybackAudio.get();
     bool sendmet = mSendMet.get();
+
+    bool userwritingpossible = userWritingPossible.load();
+    bool writingpossible = writingPossible.load();
 
     inGain = mMainInMute.get() ? 0.0f : inGain;
 
@@ -6938,12 +6943,24 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
 
     inputPostBuffer.clear(0, numSamples);
+    if (writingpossible && mRecordInputPreFX) {
+        inputPreBuffer.clear(0, numSamples);
+    }
 
     // Input Gain and FX processing
     int destch = 0;
     for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i)
     {
         mInputChannelGroups[i].processBlock(buffer, inputPostBuffer, destch, mInputChannelGroups[i].params.numChannels, silentBuffer, numSamples, inGain);
+
+        if (writingpossible && mRecordInputPreFX) {
+            // copy input as-is for later recording
+            for (int ch = 0; ch < mInputChannelGroups[i].params.numChannels; ++ch) {
+                int usech = mInputChannelGroups[i].params.chanStartIndex + ch;
+                const auto * srcbuf = usech < buffer.getNumChannels() ? buffer.getReadPointer(usech) : silentBuffer.getReadPointer(0);
+                inputPreBuffer.copyFrom(destch + ch, 0, srcbuf, numSamples);
+            }
+        }
 
         destch += mInputChannelGroups[i].params.numChannels;
     }
@@ -7186,8 +7203,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     bool anysoloed = mMainMonitorSolo.get();
 
-    bool userwritingpossible = userWritingPossible.load();
-    bool writingpossible = writingPossible.load();
 
     // push data for going out
     {
@@ -7648,19 +7663,25 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         {
             if (activeMixWriter.load() != nullptr 
                 || activeMixMinusWriter.load() != nullptr
-                || activeSelfWriter.load() != nullptr
+                || activeSelfWriters[0].load() != nullptr
                 )
             {
-
-                // write the raw (but processed) input
-                if (activeSelfWriter.load() != nullptr) {
-                    // we need to make sure the writer has at least all the inputs it expects
-                    const float ** inbufs = inputPostBuffer.getArrayOfReadPointers();
-                    const float * useinbufs[MAX_PANNERS];
-                    for (int i=0; i < mSelfRecordChannels && i < MAX_PANNERS; ++i) {
-                        useinbufs[i] = i < inputPostBuffer.getNumChannels() ? inbufs[i] : silentBuffer.getReadPointer(0);
+                // write the raw (pre or post FX) input
+                if (activeSelfWriters[0].load() != nullptr) {
+                    const float ** inbufs = mRecordInputPreFX ? inputPreBuffer.getArrayOfReadPointers() : inputPostBuffer.getArrayOfReadPointers();
+                    int chindex = 0;
+                    for (int i=0; i < mInputChannelGroupCount; ++i) {
+                        int chcnt = mInputChannelGroups[i].params.numChannels;
+                        if (activeSelfWriters[i].load() != nullptr) {
+                            // we need to make sure the writer has at least all the inputs it expects
+                            const float * useinbufs[MAX_PANNERS];
+                            for (int j=0; j < mSelfRecordChans[i] && j < MAX_PANNERS; ++j) {
+                                useinbufs[j] = j < chcnt ? inbufs[chindex+j] : silentBuffer.getReadPointer(0);
+                            }
+                            activeSelfWriters[i].load()->write (useinbufs, numSamples);
+                        }
+                        chindex += chcnt;
                     }
-                    activeSelfWriter.load()->write (useinbufs, numSamples);
                 }
 
                 // we need to mix the input, audio from remote peers, and the file playback together here
@@ -7833,6 +7854,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(defRecordOptionsKey, var((int)mDefaultRecordingOptions), nullptr);
     extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
+    extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
     extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
@@ -7936,6 +7958,9 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
             bool linkmon = extraTree.getProperty(linkMonitoringDelayTimesKey, mLinkMonitoringDelayTimes);
             setLinkMonitoringDelayTimes(linkmon);
+
+            bool prefx = extraTree.getProperty(recordSelfPreFxKey, mRecordInputPreFX);
+            setSelfRecordingPreFX(prefx);
 
 
 #if !(JUCE_IOS || JUCE_ANDROID)
@@ -8229,7 +8254,9 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         // create writers for all appropriate things
 
         if (recordOptions & RecordMixMinusSelf) {
-            File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-MIXMINUS" + usefile.getFileExtension()).getNonexistentSibling();
+            String filename = usefile.getFileNameWithoutExtension() + "-MIXMINUS" + usefile.getFileExtension();
+            filename = File::createLegalFileName(filename);
+            File thefile = recdir.getChildFile(filename).getNonexistentSibling();
             if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {                
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
@@ -8255,32 +8282,41 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         if (recordOptions & RecordSelf) {
             mSelfRecordChannels = mActiveInputChannels;
 
-            File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-SELF" + usefile.getFileExtension()).getNonexistentSibling();
-            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
-            {                
-                if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), mSelfRecordChannels, bitsPerSample, {}, qualindex))
+            for (int i=0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
+                int chans = mInputChannelGroups[i].params.numChannels;
+                mSelfRecordChans[i] = chans;
+                String inname = mInputChannelGroups[i].params.name;
+                String filename = usefile.getFileNameWithoutExtension() + (inname.isEmpty() ? "-SELF" : ("-SELF-" + inname)) + usefile.getFileExtension();
+                filename = File::createLegalFileName(filename);
+                File thefile = recdir.getChildFile(filename).getNonexistentSibling();
+                if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
-                    fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
-                    
-                    // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
-                    // write the data to disk on our background thread.
-                    threadedSelfWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
-                    
-                    DBG("Created self output file: " << thefile.getFullPathName());
+                    if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), chans, bitsPerSample, {}, qualindex))
+                    {
+                        fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
 
-                    file = thefile;
-                    ret = true;
+                        // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
+                        // write the data to disk on our background thread.
+                        threadedSelfWriters.add (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
 
+                        DBG("Created self output file: " << thefile.getFullPathName());
+
+                        file = thefile;
+                        ret = true;
+
+                    } else {
+                        DBG("Error creating self writer for " << thefile.getFullPathName());
+                    }
                 } else {
-                    DBG("Error creating self writer for " << thefile.getFullPathName());
+                    DBG("Error creating self output file: " << thefile.getFullPathName());
                 }
-            } else {
-                DBG("Error creating self output file: " << thefile.getFullPathName());
             }
         }
 
         if (recordOptions & RecordMix) {
-            File thefile = recdir.getChildFile(usefile.getFileNameWithoutExtension() + "-MIX" + usefile.getFileExtension()).getNonexistentSibling();
+            String filename = usefile.getFileNameWithoutExtension() + "-MIX" + usefile.getFileExtension();
+            filename = File::createLegalFileName(filename);
+            File thefile = recdir.getChildFile(filename).getNonexistentSibling();
             if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {                
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
@@ -8360,10 +8396,18 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         const ScopedLock sl (writerLock);
         mElapsedRecordSamples = 0;
         activeMixWriter = threadedMixWriter.get();
-        activeSelfWriter = threadedSelfWriter.get();
         activeMixMinusWriter = threadedMixMinusWriter.get();
 
-        writingPossible.store(activeMixWriter || activeSelfWriter || activeMixMinusWriter);
+        for (int i=0; i < MAX_CHANGROUPS; ++i) {
+            if (i < threadedSelfWriters.size()) {
+                activeSelfWriters[i] = threadedSelfWriters.getUnchecked(i);
+            }
+            else {
+                activeSelfWriters[i] = nullptr;
+            }
+        }
+
+        writingPossible.store(activeMixWriter || threadedSelfWriters.size() || activeMixMinusWriter);
 
         userWritingPossible.store(userwriting);
 
@@ -8386,8 +8430,10 @@ bool SonobusAudioProcessor::stopRecordingToFile()
 
         const ScopedLock sl (writerLock);
         activeMixWriter = nullptr;
-        activeSelfWriter = nullptr;
         activeMixMinusWriter = nullptr;
+        for (int i=0; i < MAX_CHANGROUPS; ++i) {
+            activeSelfWriters[i] = nullptr;
+        }
 
         writingPossible.store(false);
         userWritingPossible.store(false);
@@ -8414,10 +8460,9 @@ bool SonobusAudioProcessor::stopRecordingToFile()
         didit = true;
     }
 
-    if (threadedSelfWriter) {
-        threadedSelfWriter.reset();
-        
-        DBG("Stopped recording self file");
+    if (!threadedSelfWriters.isEmpty()) {
+        threadedSelfWriters.clearQuick(true);
+        DBG("Stopped recording self file(s)");
         didit = true;
     }
 
@@ -8443,7 +8488,7 @@ bool SonobusAudioProcessor::stopRecordingToFile()
 bool SonobusAudioProcessor::isRecordingToFile()
 {
     return (activeMixWriter.load() != nullptr 
-            || activeSelfWriter.load() != nullptr 
+            || threadedSelfWriters.size() > 0
             || activeMixMinusWriter.load() != nullptr 
             || userWritingPossible.load()
             );
