@@ -207,8 +207,8 @@ private:
     void openFileBrowser();
     void chooseRecDirBrowser();
 
-    bool loadAudioFromURL(URL fileurl);
-    bool updateTransportWithURL(URL fileurl);
+    bool loadAudioFromURL(const URL & fileurl);
+    bool updateTransportWithURL(const URL & fileurl);
 
     class TrimFileJob;
 

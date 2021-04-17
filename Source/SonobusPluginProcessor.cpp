@@ -8522,13 +8522,16 @@ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
     else
 #endif
     {
-        if (reader == nullptr)
+        if (reader == nullptr) {
             reader = mFormatManager.createReaderFor (audioURL.createInputStream (false));
+        }
     }
-    
+
+
     if (reader != nullptr)
     {
-        mCurrTransportURL = audioURL;
+        mCurrTransportURL = URL(audioURL);
+
         mCurrentAudioFileSource.reset (new AudioFormatReaderSource (reader, true));
 
         mTransportSource.prepareToPlay(currSamplesPerBlock, getSampleRate());
@@ -8542,7 +8545,7 @@ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 
         return true;
     }
-    
+
     return false;
 }
 

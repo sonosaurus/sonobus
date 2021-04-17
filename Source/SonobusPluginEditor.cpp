@@ -2114,9 +2114,8 @@ void SonobusAudioProcessorEditor::openFileBrowser()
                 if (url.isLocalFile()) {
                     safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
                 }
-                
-                safeThis->loadAudioFromURL(std::move(url));
-                
+
+                safeThis->loadAudioFromURL(url);
             }
             
             if (safeThis) {
@@ -2440,10 +2439,10 @@ void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
     }
 }
 
-bool SonobusAudioProcessorEditor::loadAudioFromURL(URL fileurl)
+bool SonobusAudioProcessorEditor::loadAudioFromURL(const URL & fileurl)
 {
     bool ret = false;
-    
+
     if (processor.loadURLIntoTransport (fileurl)) {
         processor.getTransportSource().setLooping(mLoopButton->getToggleState());
         ret = true;
@@ -2454,11 +2453,11 @@ bool SonobusAudioProcessorEditor::loadAudioFromURL(URL fileurl)
     return ret;
 }
 
-bool SonobusAudioProcessorEditor::updateTransportWithURL(URL fileurl)
+bool SonobusAudioProcessorEditor::updateTransportWithURL(const URL & fileurl)
 {
     bool ret = false;
 
-    mCurrentAudioFile = std::move(fileurl);
+    mCurrentAudioFile = URL(fileurl);
 
     if (!mCurrentAudioFile.isEmpty()) {
         updateLayout();
