@@ -116,7 +116,38 @@ void ProgressBar::timerCallback()
         currentValue = newProgress;
         currentMessage = displayedMessage;
         repaint();
+
+        if (auto* handler = getAccessibilityHandler())
+            handler->notifyAccessibilityEvent (AccessibilityEvent::valueChanged);
     }
+}
+
+//==============================================================================
+std::unique_ptr<AccessibilityHandler> ProgressBar::createAccessibilityHandler()
+{
+    class ValueInterface  : public AccessibilityRangedNumericValueInterface
+    {
+    public:
+        explicit ValueInterface (ProgressBar& progressBarToWrap)
+            : progressBar (progressBarToWrap)
+        {
+        }
+
+        bool isReadOnly() const override                { return true; }
+        void setValue (double) override                 { jassertfalse; }
+        double getCurrentValue() const override         { return progressBar.progress; }
+        AccessibleValueRange getRange() const override  { return { { 0.0, 1.0 }, 0.001 }; }
+
+    private:
+        ProgressBar& progressBar;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueInterface)
+    };
+
+    return std::make_unique<AccessibilityHandler> (*this,
+                                                   AccessibilityRole::progressBar,
+                                                   AccessibilityActions{},
+                                                   AccessibilityHandler::Interfaces { std::make_unique<ValueInterface> (*this) });
 }
 
 } // namespace juce

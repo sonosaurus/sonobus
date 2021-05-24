@@ -113,7 +113,7 @@ public:
            startTimer (500);
     }
 
-    virtual ~StandalonePluginHolder() override
+    ~StandalonePluginHolder() override
     {
         stopTimer();
 
@@ -128,19 +128,31 @@ public:
         processor->disableNonMainBuses();
         processor->setRateAndBufferSizeDetails (44100, 512);
 
-        int inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns
-                                                          : processor->getMainBusNumInputChannels());
-
-        int outChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts
-                                                           : processor->getMainBusNumOutputChannels());
-
-        processorHasPotentialFeedbackLoop = (inChannels > 0 && outChannels > 0);
+        processorHasPotentialFeedbackLoop = (getNumInputChannels() > 0 && getNumOutputChannels() > 0);
     }
 
     virtual void deletePlugin()
     {
         stopPlaying();
         processor = nullptr;
+    }
+
+    int getNumInputChannels() const
+    {
+        if (processor == nullptr)
+            return 0;
+
+        return (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns
+                                                : processor->getMainBusNumInputChannels());
+    }
+
+    int getNumOutputChannels() const
+    {
+        if (processor == nullptr)
+            return 0;
+
+        return (channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts
+                                                : processor->getMainBusNumOutputChannels());
     }
 
     static String getFilePatterns (const String& fileSuffix)
@@ -305,18 +317,17 @@ public:
            #endif
         }
 
-        auto totalInChannels  = processor->getMainBusNumInputChannels();
-        auto totalOutChannels = processor->getMainBusNumOutputChannels();
+        auto inputChannels  = getNumInputChannels();
+        auto outputChannels = getNumOutputChannels();
 
-        if (channelConfiguration.size() > 0)
+        if (inputChannels == 0 && outputChannels == 0 && processor->isMidiEffect())
         {
-            auto defaultConfig = channelConfiguration.getReference (0);
-            totalInChannels  = defaultConfig.numIns;
-            totalOutChannels = defaultConfig.numOuts;
+            // add a dummy output channel for MIDI effect plug-ins so they can receive audio callbacks
+            outputChannels = 1;
         }
 
-        deviceManager.initialise (enableAudioInput ? totalInChannels : 0,
-                                  totalOutChannels,
+        deviceManager.initialise (enableAudioInput ? inputChannels : 0,
+                                  outputChannels,
                                   savedState.get(),
                                   true,
                                   preferredDefaultDeviceName,
@@ -397,6 +408,91 @@ public:
     Array<MidiDeviceInfo> lastMidiDevices;
 
 private:
+    /*  This class can be used to ensure that audio callbacks use buffers with a
+        predictable maximum size.
+
+        On some platforms (such as iOS 10), the expected buffer size reported in
+        audioDeviceAboutToStart may be smaller than the blocks passed to
+        audioDeviceIOCallback. This can lead to out-of-bounds reads if the render
+        callback depends on additional buffers which were initialised using the
+        smaller size.
+
+        As a workaround, this class will ensure that the render callback will
+        only ever be called with a block with a length less than or equal to the
+        expected block size.
+    */
+    class CallbackMaxSizeEnforcer  : public AudioIODeviceCallback
+    {
+    public:
+        explicit CallbackMaxSizeEnforcer (AudioIODeviceCallback& callbackIn)
+            : inner (callbackIn) {}
+
+        void audioDeviceAboutToStart (AudioIODevice* device) override
+        {
+            maximumSize = device->getCurrentBufferSizeSamples();
+            storedInputChannels .resize ((size_t) device->getActiveInputChannels() .countNumberOfSetBits());
+            storedOutputChannels.resize ((size_t) device->getActiveOutputChannels().countNumberOfSetBits());
+
+            inner.audioDeviceAboutToStart (device);
+        }
+
+        void audioDeviceIOCallback (const float** inputChannelData,
+                                    int numInputChannels,
+                                    float** outputChannelData,
+                                    int numOutputChannels,
+                                    int numSamples) override
+        {
+            jassert ((int) storedInputChannels.size()  == numInputChannels);
+            jassert ((int) storedOutputChannels.size() == numOutputChannels);
+            ignoreUnused (numInputChannels, numOutputChannels);
+
+            int position = 0;
+
+            while (position < numSamples)
+            {
+                const auto blockLength = jmin (maximumSize, numSamples - position);
+
+                initChannelPointers (inputChannelData,  storedInputChannels,  position);
+                initChannelPointers (outputChannelData, storedOutputChannels, position);
+
+                inner.audioDeviceIOCallback (storedInputChannels.data(),
+                                             (int) storedInputChannels.size(),
+                                             storedOutputChannels.data(),
+                                             (int) storedOutputChannels.size(),
+                                             blockLength);
+
+                position += blockLength;
+            }
+        }
+
+        void audioDeviceStopped() override
+        {
+            inner.audioDeviceStopped();
+        }
+
+    private:
+        struct GetChannelWithOffset
+        {
+            int offset;
+
+            template <typename Ptr>
+            auto operator() (Ptr ptr) const noexcept -> Ptr { return ptr + offset; }
+        };
+
+        template <typename Ptr, typename Vector>
+        void initChannelPointers (Ptr&& source, Vector&& target, int offset)
+        {
+            std::transform (source, source + target.size(), target.begin(), GetChannelWithOffset { offset });
+        }
+
+        AudioIODeviceCallback& inner;
+        int maximumSize = 0;
+        std::vector<const float*> storedInputChannels;
+        std::vector<float*> storedOutputChannels;
+    };
+
+    CallbackMaxSizeEnforcer maxSizeEnforcer { *this };
+
     //==============================================================================
     class SettingsComponent : public Component
     {
@@ -455,6 +551,24 @@ private:
             deviceSelector.setBounds (r);
         }
 
+        void childBoundsChanged (Component* childComp) override
+        {
+            if (childComp != &deviceSelector)
+                return;
+
+            const auto extraHeight = [&]
+            {
+                if (! owner.getProcessorHasPotentialFeedbackLoop())
+                    return 0;
+
+                const auto itemHeight = deviceSelector.getItemHeight();
+                const auto separatorHeight = (itemHeight >> 1);
+                return itemHeight + separatorHeight;
+            }();
+
+            setSize (getWidth(), deviceSelector.getHeight() + extraHeight);
+        }
+
     private:
         //==============================================================================
         StandalonePluginHolder& owner;
@@ -504,7 +618,7 @@ private:
                             const String& preferredDefaultDeviceName,
                             const AudioDeviceManager::AudioDeviceSetup* preferredSetupOptions)
     {
-        deviceManager.addAudioCallback (this);
+        deviceManager.addAudioCallback (&maxSizeEnforcer);
         deviceManager.addMidiInputDeviceCallback ({}, &player);
 
         reloadAudioDeviceState (enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
@@ -515,7 +629,7 @@ private:
         saveAudioDeviceState();
 
         deviceManager.removeMidiInputDeviceCallback ({}, &player);
-        deviceManager.removeAudioCallback (this);
+        deviceManager.removeAudioCallback (&maxSizeEnforcer);
     }
 
     void timerCallback() override
@@ -612,6 +726,10 @@ public:
         {
             centreWithSize (getWidth(), getHeight());
         }
+
+        if (auto* processor = getAudioProcessor())
+            if (auto* editor = processor->getActiveEditor())
+                setResizable (editor->isResizable(), false);
        #endif
     }
 
@@ -751,9 +869,9 @@ private:
                 notification.setBounds (r.removeFromTop (NotificationArea::height));
 
             if (editor != nullptr)
-                editor->setBounds (editor->getLocalArea (this, r.toFloat())
-                                          .withPosition (r.getTopLeft().toFloat().transformedBy (editor->getTransform().inverted()))
-                                     .toNearestInt());
+                editor->setBoundsConstrained (editor->getLocalArea (this, r.toFloat())
+                                                     .withPosition (r.getTopLeft().toFloat().transformedBy (editor->getTransform().inverted()))
+                                                .toNearestInt());
         }
 
     private:
@@ -815,10 +933,22 @@ private:
            #else
             if (editor != nullptr)
             {
-                auto rect = getSizeToContainEditor();
+                const int extraHeight = shouldShowNotification ? NotificationArea::height : 0;
+                const auto rect = getSizeToContainEditor();
 
-                setSize (rect.getWidth(),
-                         rect.getHeight() + (shouldShowNotification ? NotificationArea::height : 0));
+                if (auto* editorConstrainer = editor->getConstrainer())
+                {
+                    const auto borders = owner.getContentComponentBorder();
+                    const auto extraWindowWidth = borders.getLeftAndRight();
+                    const auto extraWindowHeight = extraHeight + borders.getTopAndBottom();
+
+                    owner.setResizeLimits (jmax (10, editorConstrainer->getMinimumWidth()  + extraWindowWidth),
+                                           jmax (10, editorConstrainer->getMinimumHeight() + extraWindowHeight),
+                                           editorConstrainer->getMaximumWidth()  + extraWindowWidth,
+                                           editorConstrainer->getMaximumHeight() + extraWindowHeight);
+                }
+
+                setSize (rect.getWidth(), rect.getHeight() + extraHeight);
             }
            #endif
         }

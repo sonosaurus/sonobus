@@ -751,7 +751,10 @@ public:
                   int numSamples,
                   Type gainToApplyToSource = Type (1)) noexcept
     {
-        jassert (&source != this || sourceChannel != destChannel);
+        jassert (&source != this
+                 || sourceChannel != destChannel
+                 || sourceStartSample + numSamples <= destStartSample
+                 || destStartSample + numSamples <= sourceStartSample);
         jassert (isPositiveAndBelow (destChannel, numChannels));
         jassert (destStartSample >= 0 && numSamples >= 0 && destStartSample + numSamples <= size);
         jassert (isPositiveAndBelow (sourceChannel, source.numChannels));
@@ -887,7 +890,10 @@ public:
                    int sourceStartSample,
                    int numSamples) noexcept
     {
-        jassert (&source != this || sourceChannel != destChannel);
+        jassert (&source != this
+                 || sourceChannel != destChannel
+                 || sourceStartSample + numSamples <= destStartSample
+                 || destStartSample + numSamples <= sourceStartSample);
         jassert (isPositiveAndBelow (destChannel, numChannels));
         jassert (destStartSample >= 0 && destStartSample + numSamples <= size);
         jassert (isPositiveAndBelow (sourceChannel, source.numChannels));
@@ -1122,7 +1128,7 @@ private:
 
     void allocateData()
     {
-       #if ! JUCE_PROJUCER_LIVE_BUILD && (! JUCE_GCC || (__GNUC__ * 100 + __GNUC_MINOR__) >= 409)
+       #if (! JUCE_GCC || (__GNUC__ * 100 + __GNUC_MINOR__) >= 409)
         static_assert (alignof (Type) <= detail::maxAlignment,
                        "AudioBuffer cannot hold types with alignment requirements larger than that guaranteed by malloc");
        #endif

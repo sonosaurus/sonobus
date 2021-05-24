@@ -59,8 +59,11 @@ namespace build_tools
 
         File iconFile;
         String projectName;
-        String version;
+        String marketingVersion;
+        String currentProjectVersion;
         String companyCopyright;
+
+        String applicationCategory;
 
         StringPairArray allPreprocessorDefs;
         String documentExtensions;

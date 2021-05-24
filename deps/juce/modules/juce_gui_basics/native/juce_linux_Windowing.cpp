@@ -41,6 +41,9 @@ public:
         // it's dangerous to create a window on a thread other than the message thread.
         JUCE_ASSERT_MESSAGE_MANAGER_IS_LOCKED
 
+        if (! XWindowSystem::getInstance()->isX11Available())
+            return;
+
         if (isAlwaysOnTop)
             ++numAlwaysOnTopPeers;
 
@@ -80,13 +83,18 @@ public:
     //==============================================================================
     void setBounds (const Rectangle<int>& newBounds, bool isNowFullScreen) override
     {
-        bounds = newBounds.withSize (jmax (1, newBounds.getWidth()),
-                                     jmax (1, newBounds.getHeight()));
+        const auto correctedNewBounds = newBounds.withSize (jmax (1, newBounds.getWidth()),
+                                                            jmax (1, newBounds.getHeight()));
+
+        if (bounds == correctedNewBounds && fullScreen == isNowFullScreen)
+            return;
+
+        bounds = correctedNewBounds;
 
         updateScaleFactorFromNewBounds (bounds, false);
 
-        auto physicalBounds = (parentWindow == 0 ? Desktop::getInstance().getDisplays().logicalToPhysical (bounds)
-                               : bounds * currentScaleFactor);
+        auto physicalBounds = parentWindow == 0 ? Desktop::getInstance().getDisplays().logicalToPhysical (bounds)
+                                                : bounds * currentScaleFactor;
 
         WeakReference<Component> deletionChecker (&component);
 
@@ -103,13 +111,16 @@ public:
 
     Point<int> getScreenPosition (bool physical) const
     {
-        auto parentPosition = XWindowSystem::getInstance()->getParentScreenPosition();
+        auto physicalParentPosition = XWindowSystem::getInstance()->getPhysicalParentScreenPosition();
+        auto parentPosition = parentWindow == 0 ? Desktop::getInstance().getDisplays().physicalToLogical (physicalParentPosition)
+                                                : physicalParentPosition / currentScaleFactor;
 
-        auto screenBounds = (parentWindow == 0 ? bounds
-                                               : bounds.translated (parentPosition.x, parentPosition.y));
+        auto screenBounds = parentWindow == 0 ? bounds
+                                              : bounds.translated (parentPosition.x, parentPosition.y);
 
         if (physical)
-            return Desktop::getInstance().getDisplays().logicalToPhysical (screenBounds.getTopLeft());
+            return parentWindow == 0 ? Desktop::getInstance().getDisplays().logicalToPhysical (screenBounds.getTopLeft())
+                                     : screenBounds.getTopLeft() * currentScaleFactor;
 
         return screenBounds.getTopLeft();
     }
@@ -259,12 +270,14 @@ public:
     //==============================================================================
     void repaint (const Rectangle<int>& area) override
     {
-        repainter->repaint (area.getIntersection (bounds.withZeroOrigin()));
+        if (repainter != nullptr)
+            repainter->repaint (area.getIntersection (bounds.withZeroOrigin()));
     }
 
     void performAnyPendingRepaintsNow() override
     {
-        repainter->performAnyPendingRepaintsNow();
+        if (repainter != nullptr)
+            repainter->performAnyPendingRepaintsNow();
     }
 
     void setIcon (const Image& newIcon) override
@@ -314,8 +327,8 @@ public:
 
             updateScaleFactorFromNewBounds (physicalBounds, true);
 
-            bounds = (parentWindow == 0 ? Desktop::getInstance().getDisplays().physicalToLogical (physicalBounds)
-                                        : physicalBounds / currentScaleFactor);
+            bounds = parentWindow == 0 ? Desktop::getInstance().getDisplays().physicalToLogical (physicalBounds)
+                                       : physicalBounds / currentScaleFactor;
         }
     }
 
@@ -433,9 +446,6 @@ private:
     //==============================================================================
     void updateScaleFactorFromNewBounds (const Rectangle<int>& newBounds, bool isPhysical)
     {
-        if (! JUCEApplicationBase::isStandaloneApp())
-            return;
-
         Point<int> translation = (parentWindow != 0 ? getScreenPosition (isPhysical) : Point<int>());
         const auto& desktop = Desktop::getInstance();
 

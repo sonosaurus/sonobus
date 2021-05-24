@@ -37,6 +37,7 @@
 #define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
 #define JUCE_GRAPHICS_INCLUDE_COREGRAPHICS_HELPERS 1
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
+#define JUCE_GUI_BASICS_INCLUDE_SCOPED_THREAD_DPI_AWARENESS_SETTER 1
 
 #include "juce_opengl.h"
 
@@ -53,7 +54,7 @@
  #endif
 
 //==============================================================================
-#elif JUCE_LINUX
+#elif JUCE_LINUX || JUCE_BSD
  /* Got an include error here?
 
     If you want to install OpenGL support, the packages to get are "mesa-common-dev"
@@ -90,7 +91,7 @@ namespace juce
 
 void OpenGLExtensionFunctions::initialise()
 {
-   #if JUCE_WINDOWS || JUCE_LINUX
+   #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     #define JUCE_INIT_GL_FUNCTION(name, returnType, params, callparams) \
         name = (type_ ## name) OpenGLHelpers::getExtensionFunction (#name);
 
@@ -272,7 +273,7 @@ private:
 #elif JUCE_WINDOWS
  #include "native/juce_OpenGL_win32.h"
 
-#elif JUCE_LINUX
+#elif JUCE_LINUX || JUCE_BSD
  #include "native/juce_OpenGL_linux_X11.h"
 
 #elif JUCE_ANDROID

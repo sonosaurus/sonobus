@@ -70,7 +70,6 @@
   #define CF_EXCLUDE_CSTD_HEADERS 1
   #include <TargetConditionals.h> // (needed to find out what platform we're using)
   #include <AvailabilityMacros.h>
-  #include "../native/juce_mac_ClangBugWorkaround.h"
 
   #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     #define     JUCE_IPHONE 1
@@ -154,7 +153,7 @@
 #endif
 
 //==============================================================================
-#if JUCE_LINUX || JUCE_ANDROID
+#if JUCE_LINUX || JUCE_ANDROID || JUCE_BSD
 
   #ifdef _DEBUG
     #define JUCE_DEBUG 1

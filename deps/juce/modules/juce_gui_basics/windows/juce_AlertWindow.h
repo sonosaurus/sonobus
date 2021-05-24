@@ -460,11 +460,16 @@ protected:
     void userTriedToCloseWindow() override;
     /** @internal */
     int getDesktopWindowStyleFlags() const override;
+    /** @internal */
+    float getDesktopScaleFactor() const override { return desktopScale; }
+    /** @internal */
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 private:
     //==============================================================================
     String text;
     TextLayout textLayout;
+    Label accessibleMessageLabel;
     AlertIconType alertIconType;
     ComponentBoundsConstrainer constrainer;
     ComponentDragger dragger;
@@ -479,6 +484,7 @@ private:
     StringArray textboxNames, comboBoxNames;
     Component* const associatedComponent;
     bool escapeKeyCancels = true;
+    float desktopScale = 1.0f;
 
     void exitAlert (Button* button);
     void updateLayout (bool onlyIncreaseSize);

@@ -352,6 +352,9 @@ public:
 
         if (owner.onValueChange != nullptr)
             owner.onValueChange();
+
+        if (auto* handler = owner.getAccessibilityHandler())
+            handler->notifyAccessibilityEvent (AccessibilityEvent::valueChanged);
     }
 
     void sendDragStart()
@@ -478,8 +481,10 @@ public:
         if (style != newStyle)
         {
             style = newStyle;
+
             owner.repaint();
             owner.lookAndFeelChanged();
+            owner.invalidateAccessibilityHandler();
         }
     }
 
@@ -580,6 +585,7 @@ public:
             owner.addAndMakeVisible (valueBox.get());
 
             valueBox->setWantsKeyboardFocus (false);
+            valueBox->setAccessible (false);
             valueBox->setText (previousTextBoxContent, dontSendNotification);
             valueBox->setTooltip (owner.getTooltip());
             updateTextBoxEnablement();
@@ -601,26 +607,24 @@ public:
             incButton.reset (lf.createSliderButton (owner, true));
             decButton.reset (lf.createSliderButton (owner, false));
 
-            owner.addAndMakeVisible (incButton.get());
-            owner.addAndMakeVisible (decButton.get());
-
-            incButton->onClick = [this] { incrementOrDecrement (incDecInterval); };
-            decButton->onClick = [this] { incrementOrDecrement (-incDecInterval); };
-
-            if (incDecButtonMode != incDecButtonsNotDraggable)
-            {
-                incButton->addMouseListener (&owner, false);
-                decButton->addMouseListener (&owner, false);
-            }
-            else
-            {
-                incButton->setRepeatSpeed (300, 100, 20);
-                decButton->setRepeatSpeed (300, 100, 20);
-            }
-
             auto tooltip = owner.getTooltip();
-            incButton->setTooltip (tooltip);
-            decButton->setTooltip (tooltip);
+
+            auto setupButton = [&] (Button& b, bool isIncrement)
+            {
+                owner.addAndMakeVisible (b);
+                b.onClick = [this, isIncrement] { incrementOrDecrement (isIncrement ? incDecInterval : -incDecInterval); };
+
+                if (incDecButtonMode != incDecButtonsNotDraggable)
+                    b.addMouseListener (&owner, false);
+                else
+                    b.setRepeatSpeed (300, 100, 20);
+
+                b.setTooltip (tooltip);
+                b.setAccessible (false);
+            };
+
+            setupButton (*incButton, true);
+            setupButton (*decButton, false);
         }
         else
         {
@@ -1249,7 +1253,6 @@ public:
     }
 
     //==============================================================================
-
     void resizeIncDecButtons()
     {
         auto buttonRect = sliderRect;
@@ -1720,6 +1723,52 @@ void Slider::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 {
     if (! (isEnabled() && pimpl->mouseWheelMove (e, wheel)))
         Component::mouseWheelMove (e, wheel);
+}
+
+std::unique_ptr<AccessibilityHandler> Slider::createAccessibilityHandler()
+{
+    class ValueInterface  : public AccessibilityValueInterface
+    {
+    public:
+        explicit ValueInterface (Slider& sliderToWrap)
+            : slider (sliderToWrap),
+              valueToControl (slider.isTwoValue() ? slider.getMaxValueObject() : slider.getValueObject())
+        {
+        }
+
+        bool isReadOnly() const override                         { return false; }
+
+        double getCurrentValue() const override                  { return valueToControl.getValue(); }
+        void setValue (double newValue) override                 { valueToControl = newValue; }
+
+        String getCurrentValueAsString() const override          { return slider.getTextFromValue (getCurrentValue()); }
+        void setValueAsString (const String& newValue) override  { setValue (slider.getValueFromText (newValue)); }
+
+        AccessibleValueRange getRange() const override
+        {
+            return { { slider.getMinimum(), slider.getMaximum() },
+                     getStepSize() };
+        }
+
+    private:
+        double getStepSize() const
+        {
+            auto interval = slider.getInterval();
+
+            return interval != 0.0 ? interval
+                                   : slider.proportionOfLengthToValue (0.01);
+        }
+
+        Slider& slider;
+        Value valueToControl;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueInterface)
+    };
+
+    return std::make_unique<AccessibilityHandler> (*this,
+                                                   AccessibilityRole::slider,
+                                                   AccessibilityActions{},
+                                                   AccessibilityHandler::Interfaces { std::make_unique<ValueInterface> (*this) });
 }
 
 } // namespace juce

@@ -39,6 +39,7 @@
 #define JUCE_EVENTS_INCLUDE_WIN32_MESSAGE_WINDOW 1
 #define JUCE_GRAPHICS_INCLUDE_COREGRAPHICS_HELPERS 1
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
+#define JUCE_GUI_BASICS_INCLUDE_SCOPED_THREAD_DPI_AWARENESS_SETTER 1
 
 #ifndef JUCE_PUSH_NOTIFICATIONS
  #define JUCE_PUSH_NOTIFICATIONS 0
@@ -108,7 +109,7 @@
  #endif
 
 //==============================================================================
-#elif JUCE_LINUX && JUCE_WEB_BROWSER
+#elif (JUCE_LINUX || JUCE_BSD) && JUCE_WEB_BROWSER
  JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wzero-as-null-pointer-constant", "-Wparentheses")
 
  // If you're missing this header, you need to install the webkit2gtk-4.0 package
@@ -167,7 +168,7 @@
  #include "native/juce_win32_SystemTrayIcon.cpp"
 
 //==============================================================================
-#elif JUCE_LINUX
+#elif JUCE_LINUX || JUCE_BSD
  JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wzero-as-null-pointer-constant")
 
  #include "native/juce_linux_XEmbedComponent.cpp"
@@ -187,4 +188,10 @@
  #if JUCE_WEB_BROWSER
   #include "native/juce_android_WebBrowserComponent.cpp"
  #endif
+#endif
+
+//==============================================================================
+#if ! JUCE_WINDOWS
+ juce::ScopedDPIAwarenessDisabler::ScopedDPIAwarenessDisabler()  { ignoreUnused (previousContext); }
+ juce::ScopedDPIAwarenessDisabler::~ScopedDPIAwarenessDisabler() {}
 #endif

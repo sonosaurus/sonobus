@@ -137,7 +137,7 @@ function(_juce_find_linux_target_architecture result)
     set("${result}" "${match_result}" PARENT_SCOPE)
 endfunction()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
     _juce_create_pkgconfig_target(JUCE_CURL_LINUX_DEPS libcurl)
     _juce_create_pkgconfig_target(JUCE_BROWSER_LINUX_DEPS webkit2gtk-4.0 gtk+-x11-3.0)
 
@@ -177,7 +177,7 @@ function(_juce_set_default_properties)
 
         set_property(GLOBAL PROPERTY JUCE_VST3_COPY_DIR "${prefix}/VST3")
         set_property(GLOBAL PROPERTY JUCE_AAX_COPY_DIR  "${prefix}/Avid/Audio/Plug-Ins")
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
         set_property(GLOBAL PROPERTY JUCE_VST_COPY_DIR  "$ENV{HOME}/.vst")
         set_property(GLOBAL PROPERTY JUCE_VST3_COPY_DIR "$ENV{HOME}/.vst3")
     endif()
@@ -290,6 +290,30 @@ endfunction()
 
 # ==================================================================================================
 
+function(_juce_should_build_module_source filename output_var)
+    get_filename_component(trimmed_name "${filename}" NAME_WE)
+
+    set(result TRUE)
+
+    set(pairs
+        "OSX\;Darwin"
+        "Windows\;Windows"
+        "Linux\;Linux"
+        "Android\;Android"
+        "iOS\;iOS")
+
+    foreach(pair IN LISTS pairs)
+        list(GET pair 0 suffix)
+        list(GET pair 1 system_name)
+
+        if((trimmed_name MATCHES "_${suffix}$") AND NOT (CMAKE_SYSTEM_NAME STREQUAL "${system_name}"))
+            set(result FALSE)
+        endif()
+    endforeach()
+
+    set("${output_var}" "${result}" PARENT_SCOPE)
+endfunction()
+
 function(_juce_module_sources module_path output_path built_sources other_sources)
     get_filename_component(module_parent_path ${module_path} DIRECTORY)
     get_filename_component(module_glob ${module_path} NAME)
@@ -302,31 +326,44 @@ function(_juce_module_sources module_path output_path built_sources other_source
     set(base_path "${module_glob}/${module_glob}")
 
     set(module_cpp ${all_module_files})
-    list(FILTER module_cpp INCLUDE REGEX "^${base_path}[^/]*\\.cpp$")
+    list(FILTER module_cpp INCLUDE REGEX "^${base_path}[^/]*\\.(c|cc|cpp|cxx|s|asm)$")
 
     if(APPLE)
         set(module_mm ${all_module_files})
-        list(FILTER module_mm INCLUDE REGEX "^${base_path}[^/]*\\.(mm|r)$")
+        list(FILTER module_mm INCLUDE REGEX "^${base_path}[^/]*\\.mm$")
 
         if(module_mm)
             set(module_mm_replaced ${module_mm})
             list(TRANSFORM module_mm_replaced REPLACE "\\.mm$" ".cpp")
             list(REMOVE_ITEM module_cpp ${module_mm_replaced})
-            list(APPEND module_cpp ${module_mm})
         endif()
+
+        set(module_apple_files ${all_module_files})
+        list(FILTER module_apple_files INCLUDE REGEX "${base_path}[^/]*\\.(m|mm|metal|r|swift)$")
+        list(APPEND module_cpp ${module_apple_files})
     endif()
 
     set(headers ${all_module_files})
 
-    if(NOT module_cpp STREQUAL "")
-        list(REMOVE_ITEM headers ${module_cpp})
+    set(module_files_to_build)
+
+    foreach(filename IN LISTS module_cpp)
+        _juce_should_build_module_source("${filename}" should_build_file)
+
+        if(should_build_file)
+            list(APPEND module_files_to_build "${filename}")
+        endif()
+    endforeach()
+
+    if(NOT "${module_files_to_build}" STREQUAL "")
+        list(REMOVE_ITEM headers ${module_files_to_build})
     endif()
 
-    foreach(source_list IN ITEMS module_cpp headers)
+    foreach(source_list IN ITEMS module_files_to_build headers)
         list(TRANSFORM ${source_list} PREPEND "${output_path}/")
     endforeach()
 
-    set(${built_sources} ${module_cpp} PARENT_SCOPE)
+    set(${built_sources} ${module_files_to_build} PARENT_SCOPE)
     set(${other_sources} ${headers} PARENT_SCOPE)
 endfunction()
 
@@ -348,11 +385,7 @@ function(_juce_get_platform_plugin_kinds out)
     endif()
 
     if(NOT CMAKE_SYSTEM_NAME STREQUAL "iOS" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
-        list(APPEND result AAX Unity VST)
-
-        if(NOT MINGW AND NOT MSYS)
-            list(APPEND result VST3)
-        endif()
+        list(APPEND result AAX Unity VST VST3)
     endif()
 
     set(${out} ${result} PARENT_SCOPE)
@@ -423,9 +456,8 @@ function(_juce_add_au_resource_fork shared_code_target au_target)
             -d "ppc_$ppc" -d "i386_$i386" -d "ppc64_$ppc64" -d "x86_64_$x86_64"
             -I "${secret_au_resource_dir}"
             -I "/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers"
-            -I "/Applications/Xcode.app/Contents/Developer/Extras/CoreAudio/AudioUnits/AUPublic/AUBase"
-            -I "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AudioUnit.framework/Headers"
-            -isysroot "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+            -I "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/AudioUnit.framework/Headers"
+            -isysroot "${CMAKE_OSX_SYSROOT}"
             "${au_rez_sources}"
             -useDF
             -o "${au_rez_output}"
@@ -446,7 +478,14 @@ function(_juce_link_frameworks target visibility)
             find_library("juce_found_${framework}" "${framework}" REQUIRED)
             target_link_libraries("${target}" "${visibility}" "${juce_found_${framework}}")
         elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
-            target_link_libraries("${target}" "${visibility}" "-framework ${framework}")
+            # CoreServices is only available on iOS 12+, we must link it weakly on earlier platforms
+            if((framework STREQUAL "CoreServices") AND (CMAKE_OSX_DEPLOYMENT_TARGET LESS 12.0))
+                set(framework_flags "-weak_framework ${framework}")
+            else()
+                set(framework_flags "-framework ${framework}")
+            endif()
+
+            target_link_libraries("${target}" "${visibility}" "${framework_flags}")
         endif()
     endforeach()
 endfunction()
@@ -554,7 +593,9 @@ function(juce_add_module module_path)
 
         target_link_libraries(juce_core INTERFACE juce::juce_atomic_wrapper)
 
-        if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        if(CMAKE_SYSTEM_NAME MATCHES ".*BSD")
+            target_link_libraries(juce_core INTERFACE execinfo)
+        elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
             target_sources(juce_core INTERFACE "${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c")
             target_include_directories(juce_core INTERFACE "${ANDROID_NDK}/sources/android/cpufeatures")
             target_link_libraries(juce_core INTERFACE android log)
@@ -563,8 +604,13 @@ function(juce_add_module module_path)
 
     if(${module_name} STREQUAL "juce_audio_processors")
         add_library(juce_vst3_headers INTERFACE)
+
+        target_compile_definitions(juce_vst3_headers INTERFACE "$<$<TARGET_EXISTS:juce_vst3_sdk>:JUCE_CUSTOM_VST3_SDK=1>")
+
         target_include_directories(juce_vst3_headers INTERFACE
-            "${base_path}/juce_audio_processors/format_types/VST3_SDK")
+            "$<$<TARGET_EXISTS:juce_vst3_sdk>:$<TARGET_PROPERTY:juce_vst3_sdk,INTERFACE_INCLUDE_DIRECTORIES>>"
+            "$<$<NOT:$<TARGET_EXISTS:juce_vst3_sdk>>:${base_path}/juce_audio_processors/format_types/VST3_SDK>")
+
         target_link_libraries(juce_audio_processors INTERFACE juce_vst3_headers)
 
         if(JUCE_ARG_ALIAS_NAMESPACE)
@@ -576,7 +622,7 @@ function(juce_add_module module_path)
 
     target_compile_definitions(${module_name} INTERFACE JUCE_MODULE_AVAILABLE_${module_name}=1)
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
         target_compile_definitions(${module_name} INTERFACE LINUX=1)
     endif()
 
@@ -614,7 +660,7 @@ function(juce_add_module module_path)
         endforeach()
 
         _juce_link_libs_from_metadata("${module_name}" "${metadata_dict}" iOSLibs)
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
         _juce_get_metadata("${metadata_dict}" linuxPackages module_linuxpackages)
 
         if(module_linuxpackages)
@@ -682,7 +728,7 @@ endfunction()
 # know they need it. Otherwise, we won't link anything.
 # See the NEEDS_CURL, NEEDS_WEB_BROWSER, and NEEDS_STORE_KIT options in the CMake/readme.md.
 function(_juce_link_optional_libraries target)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
         get_target_property(needs_curl ${target} JUCE_NEEDS_CURL)
 
         if(needs_curl)
@@ -743,6 +789,7 @@ endfunction()
 function(_juce_write_configure_time_info target)
     _juce_append_target_property(file_content EXECUTABLE_NAME                      ${target} JUCE_PRODUCT_NAME)
     _juce_append_target_property(file_content VERSION                              ${target} JUCE_VERSION)
+    _juce_append_target_property(file_content BUILD_VERSION                        ${target} JUCE_BUILD_VERSION)
     _juce_append_target_property(file_content PLIST_TO_MERGE                       ${target} JUCE_PLIST_TO_MERGE)
     _juce_append_target_property(file_content BUNDLE_ID                            ${target} JUCE_BUNDLE_ID)
     _juce_append_target_property(file_content XCODE_EXTRA_PLIST_ENTRIES            ${target} JUCE_XCODE_EXTRA_PLIST_ENTRIES)
@@ -856,16 +903,31 @@ function(juce_add_binary_data target)
 
     list(APPEND binary_file_names "${juce_binary_data_folder}/${JUCE_ARG_HEADER_NAME}")
 
+    set(newline_delimited_input)
+
+    foreach(name IN LISTS JUCE_ARG_SOURCES)
+        _juce_make_absolute_and_check(name)
+        set(newline_delimited_input "${newline_delimited_input}${name}\n")
+    endforeach()
+
+    set(input_file_list "${juce_binary_data_folder}/input_file_list")
+    file(WRITE "${input_file_list}" "${newline_delimited_input}")
+
     add_custom_command(OUTPUT ${binary_file_names}
         COMMAND juce::juceaide binarydata "${JUCE_ARG_NAMESPACE}" "${JUCE_ARG_HEADER_NAME}"
-            ${juce_binary_data_folder} ${JUCE_ARG_SOURCES}
+            ${juce_binary_data_folder} "${input_file_list}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        DEPENDS ${JUCE_ARG_SOURCES}
+        DEPENDS "${input_file_list}"
         VERBATIM)
 
     target_sources(${target} PRIVATE "${binary_file_names}")
     target_include_directories(${target} INTERFACE ${juce_binary_data_folder})
     target_compile_features(${target} PRIVATE cxx_std_11)
+
+    # This fixes an issue where Xcode is unable to find binary data during archive.
+    if(CMAKE_GENERATOR STREQUAL "Xcode")
+        set_target_properties(${target} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "./")
+    endif()
 
     if(JUCE_ARG_HEADER_NAME STREQUAL "BinaryData.h")
         target_compile_definitions(${target} INTERFACE JUCE_TARGET_HAS_BINARY_DATA=1)
@@ -1143,6 +1205,26 @@ function(_juce_configure_bundle source_target dest_target)
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER
                 $<TARGET_PROPERTY:${source_target},JUCE_BUNDLE_ID>)
     endif()
+
+    if(CMAKE_GENERATOR STREQUAL "Xcode")
+        get_target_property(product_name ${source_target} JUCE_PRODUCT_NAME)
+
+        set(install_path "$(LOCAL_APPS_DIR)")
+
+        if(juce_kind_string STREQUAL "AUv3 AppExtension")
+            set(install_path "${install_path}/${product_name}.app")
+
+            if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+                set(install_path "${install_path}/PlugIns")
+            else()
+                set(install_path "${install_path}/Contents/PlugIns")
+            endif()
+        endif()
+
+        set_target_properties(${dest_target} PROPERTIES
+            XCODE_ATTRIBUTE_INSTALL_PATH "${install_path}"
+            XCODE_ATTRIBUTE_SKIP_INSTALL "NO")
+    endif()
 endfunction()
 
 function(_juce_add_resources_rc source_target dest_target)
@@ -1202,6 +1284,7 @@ function(_juce_create_windows_package source_target dest_target extension defaul
 
     set_target_properties(${dest_target}
         PROPERTIES
+        PDB_OUTPUT_DIRECTORY "${products_folder}"
         LIBRARY_OUTPUT_DIRECTORY "${output_folder}/Contents/${arch_string}")
 
     get_target_property(icon_file ${source_target} JUCE_ICON_FILE)
@@ -1267,19 +1350,35 @@ function(_juce_copy_dir target from to)
         VERBATIM)
 endfunction()
 
-function(_juce_copy_after_build shared_code target from to)
-    get_target_property(wants_copy ${shared_code} JUCE_COPY_PLUGIN_AFTER_BUILD)
+function(_juce_set_copy_properties shared_code target from to_property)
+    get_target_property(destination "${shared_code}" "${to_property}")
 
-    if(wants_copy)
-        get_target_property(dest ${shared_code} ${to})
-
-        if(NOT dest)
-            message(FATAL_ERROR "Target '${target}' wants to be copied, but its property '${to}' is not set")
-        endif()
-
-        _juce_copy_dir(${target} "${from}" "$<GENEX_EVAL:$<TARGET_PROPERTY:${shared_code},${to}>>")
+    if(destination)
+        set_target_properties("${target}" PROPERTIES JUCE_PLUGIN_COPY_DIR "${destination}")
     endif()
+
+    set_target_properties("${target}" PROPERTIES JUCE_PLUGIN_ARTEFACT_FILE "${from}")
 endfunction()
+
+function(juce_enable_copy_plugin_step shared_code_target)
+    get_target_property(active_targets "${shared_code_target}" JUCE_ACTIVE_PLUGIN_TARGETS)
+
+    foreach(target IN LISTS active_targets)
+        get_target_property(source "${target}" JUCE_PLUGIN_ARTEFACT_FILE)
+
+        if(source)
+            get_target_property(dest   "${target}" JUCE_PLUGIN_COPY_DIR)
+
+            if(dest)
+                _juce_copy_dir("${target}" "${source}" "$<GENEX_EVAL:${dest}>")
+            else()
+                message(WARNING "Target '${target}' requested copy but no destination is set")
+            endif()
+        endif()
+    endforeach()
+endfunction()
+
+# ==================================================================================================
 
 function(_juce_set_plugin_target_properties shared_code_target kind)
     set(target_name ${shared_code_target}_${kind})
@@ -1306,13 +1405,13 @@ function(_juce_set_plugin_target_properties shared_code_target kind)
 
         set(output_path "${products_folder}/${product_name}.vst3")
 
-        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        if((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
             set_target_properties(${target_name} PROPERTIES
                 SUFFIX .so
                 LIBRARY_OUTPUT_DIRECTORY "${output_path}/Contents/${JUCE_LINUX_TARGET_ARCHITECTURE}-linux")
         endif()
 
-        _juce_copy_after_build(${shared_code_target} ${target_name} "${output_path}" JUCE_VST3_COPY_DIR)
+        _juce_set_copy_properties(${shared_code_target} ${target_name} "${output_path}" JUCE_VST3_COPY_DIR)
     elseif(kind STREQUAL "VST")
         set_target_properties(${target_name} PROPERTIES
             BUNDLE_EXTENSION vst
@@ -1327,7 +1426,7 @@ function(_juce_set_plugin_target_properties shared_code_target kind)
             set(output_path "$<TARGET_BUNDLE_DIR:${target_name}>")
         endif()
 
-        _juce_copy_after_build(${shared_code_target} ${target_name} "${output_path}" JUCE_VST_COPY_DIR)
+        _juce_set_copy_properties(${shared_code_target} ${target_name} "${output_path}" JUCE_VST_COPY_DIR)
     elseif(kind STREQUAL "AU")
         set_target_properties(${target_name} PROPERTIES
             BUNDLE_EXTENSION component
@@ -1337,7 +1436,7 @@ function(_juce_set_plugin_target_properties shared_code_target kind)
             XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE YES)
 
         set(output_path "$<TARGET_BUNDLE_DIR:${target_name}>")
-        _juce_copy_after_build(${shared_code_target} ${target_name} "${output_path}" JUCE_AU_COPY_DIR)
+        _juce_set_copy_properties(${shared_code_target} ${target_name} "${output_path}" JUCE_AU_COPY_DIR)
     elseif(kind STREQUAL "AUv3")
         set_target_properties(${target_name} PROPERTIES
             XCODE_PRODUCT_TYPE "com.apple.product-type.app-extension"
@@ -1358,7 +1457,7 @@ function(_juce_set_plugin_target_properties shared_code_target kind)
         _juce_create_windows_package(${shared_code_target} ${target_name} aaxplugin "${default_icon}" Win32 x64)
 
         set(output_path "${products_folder}/${product_name}.aaxplugin")
-        _juce_copy_after_build(${shared_code_target} ${target_name} "${output_path}" JUCE_AAX_COPY_DIR)
+        _juce_set_copy_properties(${shared_code_target} ${target_name} "${output_path}" JUCE_AAX_COPY_DIR)
     elseif(kind STREQUAL "Unity")
         set_target_properties(${target_name} PROPERTIES
             BUNDLE_EXTENSION bundle
@@ -1375,7 +1474,7 @@ function(_juce_set_plugin_target_properties shared_code_target kind)
 
         if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             set(output_path "$<TARGET_BUNDLE_DIR:${target_name}>")
-            _juce_copy_after_build(${shared_code_target} ${target_name} "${output_path}" JUCE_UNITY_COPY_DIR)
+            _juce_set_copy_properties(${shared_code_target} ${target_name} "${output_path}" JUCE_UNITY_COPY_DIR)
         else()
             # On windows and linux, the gui script needs to be copied next to the unity output
             add_custom_command(TARGET ${target_name} POST_BUILD
@@ -1383,11 +1482,11 @@ function(_juce_set_plugin_target_properties shared_code_target kind)
                 DEPENDS "${script_file}"
                 VERBATIM)
 
-            _juce_copy_after_build(${shared_code_target}
+            _juce_set_copy_properties(${shared_code_target}
                 ${target_name}
                 "$<TARGET_FILE:${target_name}>"
                 JUCE_UNITY_COPY_DIR)
-            _juce_copy_after_build(${shared_code_target}
+            _juce_set_copy_properties(${shared_code_target}
                 ${target_name}
                 "${script_file}"
                 JUCE_UNITY_COPY_DIR)
@@ -1439,7 +1538,7 @@ function(_juce_link_plugin_wrapper shared_code_target kind)
         add_library(${target_name} MODULE)
     endif()
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if((CMAKE_SYSTEM_NAME STREQUAL "Linux") OR (CMAKE_SYSTEM_NAME MATCHES ".*BSD"))
         target_link_libraries(${target_name} PRIVATE "-Wl,--no-undefined")
     endif()
 
@@ -1634,6 +1733,12 @@ function(_juce_configure_plugin_targets target)
             "$<TARGET_BUNDLE_DIR:${target}_AUv3>"
             "$<TARGET_BUNDLE_CONTENT_DIR:${target}_Standalone>/PlugIns")
     endif()
+
+    get_target_property(wants_copy "${target}" JUCE_COPY_PLUGIN_AFTER_BUILD)
+
+    if(wants_copy)
+        juce_enable_copy_plugin_step("${target}")
+    endif()
 endfunction()
 
 # ==================================================================================================
@@ -1682,6 +1787,8 @@ function(_juce_set_fallback_properties target)
     if(NOT final_version)
         message(FATAL_ERROR "Target ${target} must have its VERSION argument set, or must be part of a project with a PROJECT_VERSION")
     endif()
+
+    _juce_set_property_if_not_set(${target} BUILD_VERSION "${final_version}")
 
     get_target_property(custom_xcassets ${target} JUCE_CUSTOM_XCASSETS_FOLDER)
 
@@ -1805,23 +1912,9 @@ function(_juce_set_fallback_properties target)
     endif()
 
     # AAX category
-    set(aax_category_ints
-        0x00000000
-        0x00000001
-        0x00000002
-        0x00000004
-        0x00000008
-        0x00000010
-        0x00000020
-        0x00000040
-        0x00000080
-        0x00000100
-        0x00000200
-        0x00000400
-        0x00000800
-        0x00001000
-        0x00002000)
 
+    # The order of these strings is important, as the index of each string
+    # will be used to set an appropriate bit in the category bitfield.
     set(aax_category_strings
         ePlugInCategory_None
         ePlugInCategory_EQ
@@ -1849,11 +1942,29 @@ function(_juce_set_fallback_properties target)
 
     # Replace AAX category string with its integral representation
     get_target_property(actual_aax_category ${target} JUCE_AAX_CATEGORY)
-    list(FIND aax_category_strings ${actual_aax_category} aax_index)
 
-    if(aax_index GREATER_EQUAL 0)
-        list(GET aax_category_ints ${aax_index} aax_int_representation)
-        set_target_properties(${target} PROPERTIES JUCE_AAX_CATEGORY ${aax_int_representation})
+    set(aax_category_int "")
+
+    foreach(category_string IN LISTS actual_aax_category)
+        list(FIND aax_category_strings ${category_string} aax_index)
+
+        if(aax_index GREATER_EQUAL 0)
+            if(aax_index EQUAL 0)
+                set(aax_category_bit 0)
+            else()
+                set(aax_category_bit "1 << (${aax_index} - 1)")
+            endif()
+
+            if(aax_category_int STREQUAL "")
+                set(aax_category_int 0)
+            endif()
+
+            math(EXPR aax_category_int "${aax_category_int} | (${aax_category_bit})")
+        endif()
+    endforeach()
+
+    if(NOT aax_category_int STREQUAL "")
+        set_target_properties(${target} PROPERTIES JUCE_AAX_CATEGORY ${aax_category_int})
     endif()
 endfunction()
 
@@ -1862,6 +1973,7 @@ endfunction()
 function(_juce_initialise_target target)
     set(one_value_args
         VERSION
+        BUILD_VERSION
         PRODUCT_NAME
         PLIST_TO_MERGE
         BUNDLE_ID
@@ -1917,7 +2029,6 @@ function(_juce_initialise_target target)
         AU_EXPORT_PREFIX
         AU_SANDBOX_SAFE
         SUPPRESS_AU_PLIST_RESOURCE_USAGE
-        AAX_CATEGORY
         PLUGINHOST_AU                   # Set this true if you want to host AU plugins
         USE_LEGACY_COMPATIBILITY_PLUGIN_CODE
 
@@ -1934,6 +2045,7 @@ function(_juce_initialise_target target)
         HARDENED_RUNTIME_OPTIONS
         APP_SANDBOX_OPTIONS
         DOCUMENT_EXTENSIONS
+        AAX_CATEGORY
         IPHONE_SCREEN_ORIENTATIONS      # iOS only
         IPAD_SCREEN_ORIENTATIONS        # iOS only
         APP_GROUP_IDS)                  # iOS only
@@ -2207,7 +2319,8 @@ function(juce_add_pip header)
 
     target_compile_definitions(${JUCE_PIP_NAME}
         PRIVATE ${pip_moduleflags}
-        PUBLIC JUCE_VST3_CAN_REPLACE_VST2=0)
+        PUBLIC
+            JUCE_VST3_CAN_REPLACE_VST2=0)
 
     _juce_get_pip_targets(${JUCE_PIP_NAME} pip_targets)
 
@@ -2294,6 +2407,22 @@ function(juce_set_vst2_sdk_path path)
     target_include_directories(juce_vst2_sdk INTERFACE
         $<TARGET_PROPERTY:juce::juce_vst3_headers,INTERFACE_INCLUDE_DIRECTORIES>
         "${path}")
+endfunction()
+
+function(juce_set_vst3_sdk_path path)
+    if(TARGET juce_vst3_sdk)
+        message(FATAL_ERROR "juce_set_vst3_sdk_path should only be called once")
+    endif()
+
+    _juce_make_absolute(path)
+
+    if(NOT EXISTS "${path}")
+        message(FATAL_ERROR "Could not find VST3 SDK at the specified path: ${path}")
+    endif()
+
+    add_library(juce_vst3_sdk INTERFACE IMPORTED GLOBAL)
+
+    target_include_directories(juce_vst3_sdk INTERFACE "${path}")
 endfunction()
 
 # ==================================================================================================

@@ -534,6 +534,7 @@ public:
                 }
 
                 bool isUsingEditAndContinue = false;
+                const auto pdbFilename = getOwner().getIntDirFile (config, config.getOutputFilename (".pdb", true, type == UnityPlugIn));
 
                 {
                     auto* cl = group->createNewChildElement ("ClCompile");
@@ -559,7 +560,7 @@ public:
                     cl->createNewChildElement ("PrecompiledHeader")->addTextElement ("NotUsing");
                     cl->createNewChildElement ("AssemblerListingLocation")->addTextElement ("$(IntDir)\\");
                     cl->createNewChildElement ("ObjectFileName")->addTextElement ("$(IntDir)\\");
-                    cl->createNewChildElement ("ProgramDataBaseFileName")->addTextElement ("$(IntDir)\\");
+                    cl->createNewChildElement ("ProgramDataBaseFileName")->addTextElement (pdbFilename);
                     cl->createNewChildElement ("WarningLevel")->addTextElement ("Level" + String (config.getWarningLevel()));
                     cl->createNewChildElement ("SuppressStartupBanner")->addTextElement ("true");
                     cl->createNewChildElement ("MultiProcessorCompilation")->addTextElement (config.shouldUseMultiProcessorCompilation() ? "true" : "false");
@@ -605,7 +606,7 @@ public:
                     link->createNewChildElement ("IgnoreSpecificDefaultLibraries")->addTextElement (isDebug ? "libcmt.lib; msvcrt.lib;;%(IgnoreSpecificDefaultLibraries)"
                                                                                                             : "%(IgnoreSpecificDefaultLibraries)");
                     link->createNewChildElement ("GenerateDebugInformation")->addTextElement ((isDebug || config.shouldGenerateDebugSymbols()) ? "true" : "false");
-                    link->createNewChildElement ("ProgramDatabaseFile")->addTextElement (getOwner().getIntDirFile (config, config.getOutputFilename (".pdb", true, type == UnityPlugIn)));
+                    link->createNewChildElement ("ProgramDatabaseFile")->addTextElement (pdbFilename);
                     link->createNewChildElement ("SubSystem")->addTextElement (type == ConsoleApp ? "Console" : "Windows");
 
                     if (! config.is64Bit())
@@ -843,6 +844,17 @@ public:
                     if (projectItem.shouldBeCompiled())
                     {
                         auto extraCompilerFlags = owner.compilerFlagSchemesMap[projectItem.getCompilerFlagSchemeString()].get().toString();
+
+                        if (shouldAddBigobjFlag (path))
+                        {
+                            const String bigobjFlag ("/bigobj");
+
+                            if (! extraCompilerFlags.contains (bigobjFlag))
+                            {
+                                extraCompilerFlags << " " << bigobjFlag;
+                                extraCompilerFlags.trim();
+                            }
+                        }
 
                         if (extraCompilerFlags.isNotEmpty())
                             e->createNewChildElement ("AdditionalOptions")->addTextElement (extraCompilerFlags + " %(AdditionalOptions)");
@@ -1728,6 +1740,11 @@ protected:
         return path.getFileNameWithoutExtension().startsWithIgnoreCase ("include_juce_audio_plugin_client_RTAS_");
     }
 
+    static bool shouldAddBigobjFlag (const build_tools::RelativePath& path)
+    {
+        return path.getFileNameWithoutExtension().equalsIgnoreCase ("include_juce_gui_basics");
+    }
+
     StringArray getModuleLibs() const
     {
         StringArray result;
@@ -1757,6 +1774,8 @@ public:
     static String getDisplayName()        { return "Visual Studio 2015"; }
     static String getValueTreeTypeName()  { return "VS2015"; }
     static String getTargetFolderName()   { return "VisualStudio2015"; }
+
+    Identifier getExporterIdentifier() const override { return getValueTreeTypeName(); }
 
     int getVisualStudioVersion() const override                      { return 14; }
     String getSolutionComment() const override                       { return "# Visual Studio 2015"; }
@@ -1801,6 +1820,8 @@ public:
     static String getValueTreeTypeName()  { return "VS2017"; }
     static String getTargetFolderName()   { return "VisualStudio2017"; }
 
+    Identifier getExporterIdentifier() const override { return getValueTreeTypeName(); }
+
     int getVisualStudioVersion() const override                      { return 15; }
     String getSolutionComment() const override                       { return "# Visual Studio 2017"; }
     String getToolsVersion() const override                          { return "15.0"; }
@@ -1843,6 +1864,8 @@ public:
     static String getDisplayName()        { return "Visual Studio 2019"; }
     static String getValueTreeTypeName()  { return "VS2019"; }
     static String getTargetFolderName()   { return "VisualStudio2019"; }
+
+    Identifier getExporterIdentifier() const override { return getValueTreeTypeName(); }
 
     int getVisualStudioVersion() const override                      { return 16; }
     String getSolutionComment() const override                       { return "# Visual Studio 2019"; }

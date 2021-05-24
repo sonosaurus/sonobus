@@ -30,9 +30,9 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>6.0.7</string>
+    <string>6.0.8</string>
     <key>CFBundleVersion</key>
-    <string>6.0.7</string>
+    <string>6.0.8</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright (c) 2020 - Raw Material Software Limited</string>
     <key>NSHighResolutionCapable</key>
@@ -41,6 +41,8 @@
     <true/>
     <key>UISupportsDocumentBrowser</key>
     <true/>
+    <key>UIRequiresFullScreen</key>
+    <false/>
     <key>UISupportedInterfaceOrientations</key>
     <array>
       <string>UIInterfaceOrientationLandscapeLeft</string>

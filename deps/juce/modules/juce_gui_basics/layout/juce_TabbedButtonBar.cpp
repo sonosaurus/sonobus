@@ -210,7 +210,7 @@ TabbedButtonBar::TabbedButtonBar (Orientation orientationToUse)
     setInterceptsMouseClicks (false, true);
     behindFrontTab.reset (new BehindFrontTabComp (*this));
     addAndMakeVisible (behindFrontTab.get());
-    setFocusContainer (true);
+    setFocusContainerType (FocusContainerType::keyboardFocusContainer);
 }
 
 TabbedButtonBar::~TabbedButtonBar()
@@ -581,5 +581,11 @@ void TabbedButtonBar::showExtraItemsMenu()
 //==============================================================================
 void TabbedButtonBar::currentTabChanged (int, const String&) {}
 void TabbedButtonBar::popupMenuClickOnTab (int, const String&) {}
+
+//==============================================================================
+std::unique_ptr<AccessibilityHandler> TabbedButtonBar::createAccessibilityHandler()
+{
+    return std::make_unique<AccessibilityHandler> (*this, AccessibilityRole::group);
+}
 
 } // namespace juce

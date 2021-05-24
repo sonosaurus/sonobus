@@ -86,6 +86,12 @@ public:
     virtual Component* refreshComponentForRow (int rowNumber, bool isRowSelected,
                                                Component* existingComponentToUpdate);
 
+    /** This can be overridden to return a name for the specified row.
+
+        By default this will just return a string containing the row number.
+    */
+    virtual String getNameForRow (int rowNumber);
+
     /** This can be overridden to react to the user clicking on a row.
         @see listBoxItemDoubleClicked
     */
@@ -575,6 +581,8 @@ public:
     /** @internal */
     void startDragAndDrop (const MouseEvent&, const SparseSet<int>& rowsToDrag,
                            const var& dragDescription, bool allowDraggingToOtherWindows);
+    /** @internal */
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 private:
     //==============================================================================

@@ -157,10 +157,13 @@ namespace build_tools
         addPlistDictionaryKey (*dict, "CFBundleDisplayName",         projectName);
         addPlistDictionaryKey (*dict, "CFBundlePackageType",         getXcodePackageType (type));
         addPlistDictionaryKey (*dict, "CFBundleSignature",           getXcodeBundleSignature (type));
-        addPlistDictionaryKey (*dict, "CFBundleShortVersionString",  version);
-        addPlistDictionaryKey (*dict, "CFBundleVersion",             version);
+        addPlistDictionaryKey (*dict, "CFBundleShortVersionString",  marketingVersion);
+        addPlistDictionaryKey (*dict, "CFBundleVersion",             currentProjectVersion);
         addPlistDictionaryKey (*dict, "NSHumanReadableCopyright",    companyCopyright);
         addPlistDictionaryKey (*dict, "NSHighResolutionCapable", true);
+
+        if (applicationCategory.isNotEmpty())
+            addPlistDictionaryKey (*dict, "LSApplicationCategoryType", applicationCategory);
 
         auto replacedDocExtensions = StringArray::fromTokens (replacePreprocessorDefs (allPreprocessorDefs,
                                                                                        documentExtensions), ",", {});
@@ -340,7 +343,10 @@ namespace build_tools
         auto* tagsArray = componentDict->createNewChildElement ("array");
 
         tagsArray->createNewChildElement ("string")
-            ->addTextElement (isPluginSynth ? "Synth" : "Effects");
+                 ->addTextElement (isPluginSynth ? "Synth" : "Effects");
+
+        if (auMainType.removeCharacters ("'") == "aumi")
+            tagsArray->createNewChildElement ("string")->addTextElement ("MIDI");
 
         return { plistKey, plistEntry };
     }

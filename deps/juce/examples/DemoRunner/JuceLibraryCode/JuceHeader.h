@@ -19,7 +19,6 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_utils/juce_audio_utils.h>
-#include <juce_blocks_basics/juce_blocks_basics.h>
 #include <juce_box2d/juce_box2d.h>
 #include <juce_core/juce_core.h>
 #include <juce_cryptography/juce_cryptography.h>
@@ -55,7 +54,7 @@ namespace ProjectInfo
 {
     const char* const  projectName    = "DemoRunner";
     const char* const  companyName    = "Raw Material Software Limited";
-    const char* const  versionString  = "6.0.7";
-    const int          versionNumber  = 0x60007;
+    const char* const  versionString  = "6.0.8";
+    const int          versionNumber  = 0x60008;
 }
 #endif

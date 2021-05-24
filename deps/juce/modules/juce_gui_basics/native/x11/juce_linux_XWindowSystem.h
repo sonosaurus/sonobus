@@ -109,7 +109,7 @@ public:
 
     BorderSize<int> getBorderSize   (::Window) const;
     Rectangle<int>  getWindowBounds (::Window, ::Window parentWindow);
-    Point<int> getParentScreenPosition() const;
+    Point<int> getPhysicalParentScreenPosition() const;
 
     bool contains (::Window, Point<int> localPos) const;
 
@@ -158,11 +158,12 @@ public:
 
     void copyTextToClipboard (const String&);
     String getTextFromClipboard() const;
+    String getLocalClipboardContent() const noexcept  { return localClipboardContent; }
 
-    String getLocalClipboardContent() const    { return localClipboardContent; }
+    ::Display* getDisplay() noexcept                                { return display; }
+    const XWindowSystemUtilities::Atoms& getAtoms() const noexcept  { return atoms; }
 
-    ::Display* getDisplay()                    { return display; }
-    XWindowSystemUtilities::Atoms& getAtoms()  { return atoms; }
+    bool isX11Available() const noexcept  { return xIsAvailable; }
 
     //==============================================================================
     void handleWindowMessage (LinuxComponentPeer*, XEvent&) const;
