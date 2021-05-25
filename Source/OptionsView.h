@@ -50,6 +50,7 @@ public:
     juce::Rectangle<int> getMinimumContentBounds() const;
     juce::Rectangle<int> getPreferredContentBounds() const;
 
+    void grabInitialFocus();
 
     void updateState(bool ignorecheck=false);
     void updateLayout();

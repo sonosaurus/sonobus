@@ -22,7 +22,9 @@ public:
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
 
+        auto threshname = TRANS("Noise Floor");
         thresholdSlider.setName("thresh");
+        thresholdSlider.setTitle(threshname);
         thresholdSlider.setRange(-96.0f, 0.0f, 1);
         thresholdSlider.setSkewFactor(1.5);
         thresholdSlider.setTextValueSuffix(" dB");
@@ -30,11 +32,13 @@ public:
         configKnobSlider(thresholdSlider);
         thresholdSlider.addListener(this);
 
-        thresholdLabel.setText(TRANS("Noise Floor"), dontSendNotification);
+        thresholdLabel.setText(threshname, dontSendNotification);
+        thresholdLabel.setAccessible(false);
         configLabel(thresholdLabel);
 
-           
+        auto rationame = TRANS("Ratio");
         ratioSlider.setName("ratio");
+        ratioSlider.setTitle(rationame);
         ratioSlider.setRange(1.0f, 20.0f, 0.1);
         ratioSlider.setSkewFactor(0.5);
         ratioSlider.setTextValueSuffix(" : 1");
@@ -42,11 +46,13 @@ public:
         configKnobSlider(ratioSlider);
         ratioSlider.addListener(this);
         
-        ratioLabel.setText(TRANS("Ratio"), dontSendNotification);
+        ratioLabel.setText(rationame, dontSendNotification);
+        ratioLabel.setAccessible(false);
         configLabel(ratioLabel);
 
-           
+        auto attackname = TRANS("Attack");
         attackSlider.setName("attack");
+        attackSlider.setTitle(attackname);
         attackSlider.setRange(1.0f, 1000.0f, 1);
         attackSlider.setSkewFactor(0.5);
         attackSlider.setTextValueSuffix(" ms");
@@ -54,11 +60,14 @@ public:
         configKnobSlider(attackSlider);
         attackSlider.addListener(this);
         
-        attackLabel.setText(TRANS("Attack"), dontSendNotification);
+        attackLabel.setText(attackname, dontSendNotification);
+        attackLabel.setAccessible(false);
         configLabel(attackLabel);
 
            
+        auto relname = TRANS("Release");
         releaseSlider.setName("release");
+        releaseSlider.setTitle(relname);
         releaseSlider.setRange(1.0f, 1000.0f, 1);
         releaseSlider.setSkewFactor(0.5);
         releaseSlider.setTextValueSuffix(" ms");
@@ -66,14 +75,17 @@ public:
         configKnobSlider(releaseSlider);
         releaseSlider.addListener(this);
         
-        releaseLabel.setText(TRANS("Release"), dontSendNotification);
+        releaseLabel.setText(relname, dontSendNotification);
+        releaseLabel.setAccessible(false);
         configLabel(releaseLabel);
 
            
         // these are in the header component
-        enableButton.addListener(this);        
-        titleLabel.setText(TRANS("Noise Gate"), dontSendNotification);
-
+        auto noisename = TRANS("Noise Gate");
+        enableButton.addListener(this);
+        enableButton.setTitle(noisename);
+        titleLabel.setText(noisename, dontSendNotification);
+        titleLabel.setAccessible(false);
            
 
         addAndMakeVisible(thresholdSlider);

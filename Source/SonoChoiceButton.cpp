@@ -9,7 +9,8 @@ SonoChoiceButton::SonoChoiceButton()
     textLabel = std::make_unique<Label>();
     addAndMakeVisible(textLabel.get());
     textLabel->setJustificationType(Justification::centredLeft);
-    
+    textLabel->setAccessible(false);
+
     selIndex = 0;
     addListener(this);
     
@@ -72,6 +73,11 @@ String SonoChoiceButton::getItemText(int index) const
     }
     
     return "";
+}
+
+String SonoChoiceButton::getCurrentText() const
+{
+    return textLabel->getText();
 }
 
 
@@ -147,6 +153,11 @@ void SonoChoiceButton::paint(Graphics & g)
 
 void SonoChoiceButton::buttonClicked (Button* buttonThatWasClicked)
 {
+    showPopup();
+}
+
+void SonoChoiceButton::showPopup()
+{
     auto chooser = std::make_unique<GenericItemChooser>(items);
 
     chooser->setRowHeight(std::min(getHeight(), 40));
@@ -156,18 +167,68 @@ void SonoChoiceButton::buttonClicked (Button* buttonThatWasClicked)
     Component* dw = this->findParentComponentOfClass<DocumentWindow>();
 
     if (!dw) {
-        dw = this->findParentComponentOfClass<AudioProcessorEditor>();        
+        dw = this->findParentComponentOfClass<AudioProcessorEditor>();
     }
     if (!dw) {
-        dw = this->findParentComponentOfClass<Component>();        
+        dw = this->findParentComponentOfClass<Component>();
     }
-    
+
     chooser->setSize(jmin(chooser->getWidth(), dw->getWidth() - 16), jmin(chooser->getHeight(), dw->getHeight() - 20));
 
-    
+
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, getScreenBounds());
-    
+
+
     CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), bounds , dw);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     //box.setArrowSize(0);
+
+    box.grabKeyboardFocus();
+
+    activeCalloutBox = &box;
+}
+
+bool SonoChoiceButton::isPopupActive() const
+{
+    return activeCalloutBox.get() != nullptr;
+}
+
+
+//==============================================================================
+class SonoChoiceButtonAccessibilityHandler  : public AccessibilityHandler
+{
+public:
+    explicit SonoChoiceButtonAccessibilityHandler (SonoChoiceButton& comboBoxToWrap)
+        : AccessibilityHandler (comboBoxToWrap,
+                                AccessibilityRole::comboBox,
+                                getAccessibilityActions (comboBoxToWrap)),
+          comboBox (comboBoxToWrap)
+    {
+    }
+
+    AccessibleState getCurrentState() const override
+    {
+        auto state = AccessibilityHandler::getCurrentState().withExpandable();
+
+        return comboBox.isPopupActive() ? state.withExpanded() : state.withCollapsed();
+    }
+
+    String getTitle() const override  { return comboBox.getTitle() + ", " + comboBox.getCurrentText(); }
+
+private:
+    static AccessibilityActions getAccessibilityActions (SonoChoiceButton& comboBox)
+    {
+        return AccessibilityActions().addAction (AccessibilityActionType::press,    [&comboBox] { comboBox.showPopup(); })
+                                     .addAction (AccessibilityActionType::showMenu, [&comboBox] { comboBox.showPopup(); });
+    }
+
+    SonoChoiceButton& comboBox;
+
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonoChoiceButtonAccessibilityHandler)
+};
+
+std::unique_ptr<AccessibilityHandler> SonoChoiceButton::createAccessibilityHandler()
+{
+    return std::make_unique<SonoChoiceButtonAccessibilityHandler> (*this);
 }

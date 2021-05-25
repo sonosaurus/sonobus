@@ -39,6 +39,9 @@ public:
         dragButton.setImages(dragimg.get());
         dragButton.setInterceptsMouseClicks(false, false);
         dragButton.setAlpha(0.3);
+        dragButton.setAccessible(false);
+
+        setFocusContainerType(FocusContainerType::focusContainer);
     }
 
     virtual ~EffectsBaseView()
@@ -108,7 +111,7 @@ public:
     void mouseUp (const MouseEvent& event) override {
         if (event.eventComponent == &headerComponent) {
             if (!event.mouseWasDraggedSinceMouseDown()) {                
-                headerListeners.call (&EffectsBaseView::HeaderListener::effectsHeaderClicked, this, event);
+                headerListeners.call (&EffectsBaseView::HeaderListener::effectsHeaderClicked, this);
             }
         }
     }
@@ -119,7 +122,7 @@ public:
     class HeaderListener {
     public:
         virtual ~HeaderListener() {}
-        virtual void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) {}
+        virtual void effectsHeaderClicked(EffectsBaseView *comp) {}
     };
     
     void addHeaderListener(HeaderListener * listener) { headerListeners.add(listener); }

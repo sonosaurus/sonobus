@@ -63,6 +63,8 @@ ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bo
 
     addAndMakeVisible (effectsConcertina.get());
 
+    setFocusContainerType(FocusContainerType::focusContainer);
+
     updateLayout();
 }
 
@@ -306,7 +308,7 @@ void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float
     }
 }
 
-void ChannelGroupEffectsView::effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev)
+void ChannelGroupEffectsView::effectsHeaderClicked(EffectsBaseView *comp)
 {
     if (comp == compressorView.get()) {
         bool changed = effectsConcertina->setPanelSize(eqView.get(), 0, true);
@@ -400,6 +402,8 @@ ChannelGroupMonitorEffectsView::ChannelGroupMonitorEffectsView(SonobusAudioProce
 
 
     addAndMakeVisible (effectsConcertina.get());
+
+    setFocusContainerType(FocusContainerType::focusContainer);
 
     updateLayout();
 }
@@ -602,7 +606,7 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
 }
 
 
-void ChannelGroupMonitorEffectsView::effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev)
+void ChannelGroupMonitorEffectsView::effectsHeaderClicked(EffectsBaseView *comp)
 {
     if (comp == delayView.get()) {
         bool changed = effectsConcertina->setPanelSize(delayView.get(), 0, true);
@@ -651,7 +655,9 @@ ChannelGroupView::ChannelGroupView() : smallLnf(12), medLnf(14), sonoSliderLNF(1
 
     sonoSliderLNF.textJustification = Justification::centredLeft;
     panSliderLNF.textJustification = Justification::centredLeft;
-    
+
+    setFocusContainerType(FocusContainerType::focusContainer);
+
     //Random rcol;
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
 }
@@ -739,6 +745,7 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
     mInGainSlider->setScrollWheelEnabled(false);
 
     mAddButton = std::make_unique<TextButton>("+");
+    mAddButton->setTitle(TRANS("Add Input Group"));
     mAddButton->onClick = [this] {  addGroupPressed(); };
     mAddButton->setLookAndFeel(&addLnf);
     mAddButton->setTooltip(TRANS("Add New Input Group"));
@@ -1071,9 +1078,11 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->panLabel = std::make_unique<Label>("pan", TRANS("Pan"));
     configLabel(pvf->panLabel.get(), LabelTypeSmall);
     pvf->panLabel->setJustificationType(Justification::centredTop);
-    
+    pvf->panLabel->setAccessible(false);
+
     pvf->panSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::NoTextBox);
     //pvf->panSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 60, 12);
+    pvf->panSlider->setTitle(TRANS("Pan"));
     pvf->panSlider->setName(first ? "firstpan1": "pan1");
     pvf->panSlider->addListener(this);
     pvf->panSlider->getProperties().set ("fromCentre", true);
@@ -1113,10 +1122,13 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     //pvf->linkButton->setAlpha(0.6f);
     if (mPeerMode) {
         pvf->linkButton->setTooltip(TRANS("Change channel layout"));
+        pvf->linkButton->setTitle(TRANS("Channel Layout"));
+
         pvf->nameLabel->setInterceptsMouseClicks(true, false);
         pvf->nameLabel->addMouseListener(this, false);
     } else {
         pvf->linkButton->setTooltip(TRANS("Select Input channel source (or drag to rearrange)"));
+        pvf->linkButton->setTitle(TRANS("Input Source"));
         pvf->linkButton->addMouseListener(this, false);
         pvf->nameLabel->addMouseListener(this, false);
     }
@@ -1163,8 +1175,10 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->destButton->addListener(this);
     if (mPeerMode) {
         pvf->destButton->setTooltip(TRANS("Choose destination output channels"));
+        pvf->destButton->setTitle(TRANS("Output Destination"));
     } else {
         pvf->destButton->setTooltip(TRANS("Choose destination monitoring channels"));
+        pvf->destButton->setTitle(TRANS("Monitor Destination"));
     }
 
 
@@ -1181,8 +1195,10 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->fxButton->setLookAndFeel(&pvf->medLnf);
     if (!mPeerMode) {
         pvf->fxButton->setTooltip(TRANS("Edit input effects (applied before sending)"));
+        pvf->fxButton->setTitle(TRANS("Input Effects"));
     } else {
         pvf->fxButton->setTooltip(TRANS("Edit effects"));
+        pvf->fxButton->setTitle(TRANS("Effects"));
     }
 
     pvf->monfxButton = std::make_unique<TextButton>(TRANS("M.FX"));
@@ -1191,8 +1207,10 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->monfxButton->setLookAndFeel(&pvf->medLnf);
     if (!mPeerMode) {
         pvf->monfxButton->setTooltip(TRANS("Edit input monitoring effects (applied to local monitoring only)"));
+        pvf->monfxButton->setTitle(TRANS("Input Monitoring Effects"));
     } else {
         pvf->monfxButton->setTooltip(TRANS("Edit monitoring effects"));
+        pvf->monfxButton->setTitle(TRANS("Monitoring Effects"));
     }
 
     
@@ -3135,7 +3153,6 @@ void ChannelGroupsView::clearGroupsPressed()
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, -1, dw ? dw->getHeight()-30 : 0);
-
 }
 
 void ChannelGroupsView::addGroupPressed()
@@ -3669,6 +3686,7 @@ void ChannelGroupsView::showEffects(int index, bool flag, Component * fromView)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(effectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
+        mEffectsView->grabKeyboardFocus();
     }
     else {
         // dismiss it
@@ -3741,6 +3759,8 @@ void ChannelGroupsView::showMonitorEffects(int index, bool flag, Component * fro
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(monEffectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
+        mMonEffectsView->grabKeyboardFocus();
+
     }
     else {
         // dismiss it

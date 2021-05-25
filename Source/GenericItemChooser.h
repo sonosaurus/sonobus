@@ -42,6 +42,9 @@ public:
     
     // This is overloaded from TableListBoxModel, and must return the total number of rows in our table
     int getNumRows() override;
+    String getNameForRow (int rowNumber) override;
+    void deleteKeyPressed (int) override;
+    void returnKeyPressed (int) override;
 
     void 	paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
     

@@ -43,6 +43,7 @@ public:
         sendLabel.setText(TRANS("Reverb Send"), dontSendNotification);
         configLabel(sendLabel, true);
         sendLabel.setJustificationType(Justification::centredLeft);
+        sendLabel.setAccessible(false);
 
         infoLabel.setText(TRANS("Enable the main reverb at the bottom of the window to hear the effect"), dontSendNotification);
         configLabel(infoLabel);
@@ -184,7 +185,7 @@ public:
         //listeners.call (&ReverbSendView::Listener::reverbSendLevelChanged, this, mParams);
     }
 
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) override
+    void effectsHeaderClicked(EffectsBaseView *comp) override
     {
         //mParams.enabled = !enableButton.getToggleState();
         //processor.setMonitoringDelayActive(!enableButton.getToggleState());

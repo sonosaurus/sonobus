@@ -13,7 +13,9 @@ PeerViewInfo::PeerViewInfo() : smallLnf(12), medLnf(14), sonoSliderLNF(12), panS
 
     sonoSliderLNF.textJustification = Justification::centredLeft;
     panSliderLNF.textJustification = Justification::centredLeft;
-    
+
+    setFocusContainerType(FocusContainerType::focusContainer);
+
     //Random rcol;
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
 }
@@ -201,6 +203,8 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
 
     peerModeFull = processor.getPeerDisplayMode() == SonobusAudioProcessor::PeerDisplayModeFull;
 
+    //setFocusContainerType(FocusContainerType::focusContainer);
+
     rebuildPeerViews();
 }
 
@@ -350,6 +354,11 @@ void PeersContainerView::showPopTip(const String & message, int timeoutMs, Compo
         popTip->showAt(topbox, text, timeoutMs);
     }
     popTip->toFront(false);
+    // TODO make sure it is read for accessibility
+    popTip->setWantsKeyboardFocus(true);
+    popTip->setTitle(message);
+    popTip->setAccessible(true);
+    popTip->grabKeyboardFocus();
 }
 
 void PeersContainerView::paint(Graphics & g)
@@ -410,6 +419,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->latActiveButton->setLookAndFeel(&pvf->smallLnf);
     pvf->latActiveButton->addListener(this);
     pvf->latActiveButton->addMouseListener(this, false);
+    pvf->latActiveButton->setTitle(TRANS("Latency"));
 
     pvf->statusLabel = std::make_unique<Label>("status", "");
     configLabel(pvf->statusLabel.get(), LabelTypeRegular);
@@ -419,6 +429,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     
     pvf->bufferTimeSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
     pvf->bufferTimeSlider->setName("buffer");
+    pvf->bufferTimeSlider->setTitle(TRANS("Jitter Buffer"));
     pvf->bufferTimeSlider->setRange(0, 1000, 1);
     pvf->bufferTimeSlider->setTextValueSuffix(" ms");
     //pvf->bufferTimeSlider->getProperties().set ("noFill", true);
@@ -446,12 +457,14 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferMinButton->setImages(backimg.get());
     pvf->bufferMinButton->addListener(this);
     pvf->bufferMinButton->setTooltip(TRANS("Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto)."));
+    pvf->bufferMinButton->setTitle(TRANS("Reset Jitter Buffer"));
     pvf->bufferMinButton->setAlpha(0.8f);
 
     pvf->bufferMinFrontButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
     pvf->bufferMinFrontButton->setImages(backimg.get());
     pvf->bufferMinFrontButton->addListener(this);
     pvf->bufferMinFrontButton->setTooltip(TRANS("Resets jitter buffer to the minimum. Hold Alt key to reset for all (with auto)."));
+    pvf->bufferMinFrontButton->setTitle(TRANS("Reset Jitter Buffer"));
     pvf->bufferMinFrontButton->setAlpha(0.8f);
     
     pvf->recvButtonImage = Drawable::createFromImageData(BinaryData::triangle_disclosure_svg, BinaryData::triangle_disclosure_svgSize);
@@ -466,12 +479,14 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     
     pvf->bufferTimeLabel = std::make_unique<Label>("buf", TRANS("Jitter Buffer"));
     configLabel(pvf->bufferTimeLabel.get(), LabelTypeRegular);
+    pvf->bufferTimeLabel->setAccessible(false);
 
     pvf->recvOptionsButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ImageFitted);
     pvf->recvOptionsButton->addListener(this);
     pvf->recvOptionsButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->recvOptionsButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->recvOptionsButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    pvf->recvOptionsButton->setTitle(TRANS("Receive Options"));
 
     
     pvf->sendOptionsButton = std::make_unique<SonoDrawableButton>("settings",  DrawableButton::ButtonStyle::ImageFitted);
@@ -479,6 +494,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->sendOptionsButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->sendOptionsButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->sendOptionsButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    pvf->sendOptionsButton->setTitle(TRANS("Send Options"));
 
 
     pvf->changeAllFormatButton = std::make_unique<ToggleButton>(TRANS("Change for all"));
@@ -487,6 +503,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     
     pvf->formatChoiceButton = std::make_unique<SonoChoiceButton>();
+    pvf->formatChoiceButton->setTitle(TRANS("Send Quality"));
     pvf->formatChoiceButton->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
@@ -494,11 +511,13 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     }
 
     pvf->staticFormatChoiceLabel = std::make_unique<Label>("sendfmtst", TRANS("Send Quality"));
+    pvf->staticFormatChoiceLabel->setAccessible(false);
     configLabel(pvf->staticFormatChoiceLabel.get(), LabelTypeRegular);
 
 
     pvf->remoteSendFormatChoiceButton = std::make_unique<SonoChoiceButton>();
     pvf->remoteSendFormatChoiceButton->addChoiceListener(this);
+    pvf->remoteSendFormatChoiceButton->setTitle(TRANS("Preferred Receive Quality"));
     pvf->remoteSendFormatChoiceButton->addItem(TRANS("No Preference"), -1);
     for (int i=0; i < numformats; ++i) {
         pvf->remoteSendFormatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i);
@@ -506,6 +525,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
     pvf->staticRemoteSendFormatChoiceLabel = std::make_unique<Label>("recvfmtst", TRANS("Preferred Recv Quality"));
     configLabel(pvf->staticRemoteSendFormatChoiceLabel.get(), LabelTypeRegular);
+    pvf->staticRemoteSendFormatChoiceLabel->setAccessible(false);
 
     pvf->changeAllRecvFormatButton = std::make_unique<ToggleButton>(TRANS("Change all"));
     pvf->changeAllRecvFormatButton->addListener(this);
@@ -515,41 +535,51 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->staticLatencyLabel = std::make_unique<Label>("latst", TRANS("Latency (ms)"));
     configLabel(pvf->staticLatencyLabel.get(), LabelTypeSmallDim);
     pvf->staticLatencyLabel->setJustificationType(Justification::centred);
-    
+    pvf->staticLatencyLabel->setAccessible(false);
+
     pvf->staticPingLabel = std::make_unique<Label>("pingst", TRANS("Ping"));
     configLabel(pvf->staticPingLabel.get(), LabelTypeSmallDim);
+    pvf->staticPingLabel->setAccessible(false);
 
     pvf->latencyLabel = std::make_unique<Label>("lat", TRANS("PRESS"));
     configLabel(pvf->latencyLabel.get(), LabelTypeSmall);
     pvf->latencyLabel->setJustificationType(Justification::centred);
+    pvf->latencyLabel->setAccessible(false);
 
     pvf->pingLabel = std::make_unique<Label>("ping");
     configLabel(pvf->pingLabel.get(), LabelTypeSmall);
+    pvf->pingLabel->setAccessible(false);
 
     pvf->staticSendQualLabel = std::make_unique<Label>("sendqualst", TRANS("Send Quality:"));
     configLabel(pvf->staticSendQualLabel.get(), LabelTypeSmallDim);
     pvf->staticBufferLabel = std::make_unique<Label>("bufst", TRANS("Recv Jitter Buffer:"));
     configLabel(pvf->staticBufferLabel.get(), LabelTypeSmallDim);
-    
+    pvf->staticSendQualLabel->setAccessible(false);
+    pvf->staticBufferLabel->setAccessible(false);
+
     pvf->sendQualityLabel = std::make_unique<Label>("qual", "");
     configLabel(pvf->sendQualityLabel.get(), LabelTypeSmall);
     pvf->sendQualityLabel->setJustificationType(Justification::centredLeft);
+    pvf->sendQualityLabel->setAccessible(false);
 
     pvf->bufferLabel = std::make_unique<Label>("buf");
     configLabel(pvf->bufferLabel.get(), LabelTypeSmall);
     pvf->bufferLabel->setJustificationType(Justification::centredLeft);
+    pvf->bufferLabel->setAccessible(false);
 
     
     pvf->sendActualBitrateLabel = std::make_unique<Label>("sbit");
     configLabel(pvf->sendActualBitrateLabel.get(), LabelTypeSmall);
     pvf->sendActualBitrateLabel->setJustificationType(Justification::centred);
     pvf->sendActualBitrateLabel->setMinimumHorizontalScale(0.75);
+    pvf->sendActualBitrateLabel->setAccessible(false);
 
     pvf->recvActualBitrateLabel = std::make_unique<Label>("rbit");
     configLabel(pvf->recvActualBitrateLabel.get(), LabelTypeSmall);
     pvf->recvActualBitrateLabel->setJustificationType(Justification::centred);
     pvf->recvActualBitrateLabel->setMinimumHorizontalScale(0.75);
-    
+    pvf->recvActualBitrateLabel->setAccessible(false);
+
 
     pvf->channelGroups = std::make_unique<ChannelGroupsView>(processor, true);
     pvf->channelGroups->addListener(this);
@@ -577,7 +607,10 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 
 
     pvf->sendOptionsContainer = std::make_unique<Component>();
+    pvf->sendOptionsContainer->setFocusContainerType(FocusContainerType::focusContainer);
+
     pvf->recvOptionsContainer = std::make_unique<Component>();
+    pvf->recvOptionsContainer->setFocusContainerType(FocusContainerType::focusContainer);
 
     Colour statsbgcol = Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0); // 0.08
     Colour statsbordcol = Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.0); // 0.5 alpha 0.25
@@ -1636,8 +1669,11 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             else {
                 String messagestr = generateLatencyMessage(latinfo);
 
-                showPopTip(messagestr, 0, pvf->latActiveButton.get(), 300);
+                showPopTip(messagestr, 8000, pvf->latActiveButton.get(), 300);
                 pvf->latActiveButton->setToggleState(false, dontSendNotification);
+
+
+
             }
             return;
         }
@@ -1767,7 +1803,9 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
         recvOptionsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(recvOptionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
+            box->grabKeyboardFocus();
         }
+        pvf->recvOptionsContainer->grabKeyboardFocus();
     }
     else {
         // dismiss it
@@ -1824,6 +1862,7 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(sendOptionsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
+        pvf->sendOptionsContainer->grabKeyboardFocus();
     }
     else {
         // dismiss it

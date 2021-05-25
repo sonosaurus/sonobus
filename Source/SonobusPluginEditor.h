@@ -464,7 +464,9 @@ private:
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
-    
+
+    std::unique_ptr<Component> mTopLevelContainer;
+
     std::unique_ptr<Viewport> mMainViewport;
     std::unique_ptr<Component> mMainContainer;
     std::unique_ptr<PeersContainerView> mPeerContainer;

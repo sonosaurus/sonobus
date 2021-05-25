@@ -49,7 +49,6 @@ publicGroupsListModel(this)
     mConnectTab->getTabbedButtonBar().setColour(TabbedButtonBar::frontTextColourId, Colour::fromFloatRGBA(0.4, 0.8, 1.0, 1.0));
     mConnectTab->getTabbedButtonBar().setColour(TabbedButtonBar::frontOutlineColourId, Colour::fromFloatRGBA(0.4, 0.8, 1.0, 0.5));
 
-
     mDirectConnectContainer = std::make_unique<Component>();
     mServerConnectContainer = std::make_unique<Component>();
     mPublicServerConnectContainer = std::make_unique<Component>();
@@ -70,6 +69,7 @@ publicGroupsListModel(this)
     mConnectTab->addTab(TRANS("PRIVATE GROUP"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mServerConnectViewport.get(), false);
     mConnectTab->addTab(TRANS("PUBLIC GROUPS"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mPublicServerConnectContainer.get(), false);
     //mConnectTab->addTab(TRANS("DIRECT"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mDirectConnectContainer.get(), false);
+
 
 
 
@@ -104,12 +104,14 @@ publicGroupsListModel(this)
 
     mConnectCloseButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> ximg(Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
+    mConnectCloseButton->setTitle(TRANS("Close"));
     mConnectCloseButton->setImages(ximg.get());
     mConnectCloseButton->addListener(this);
     mConnectCloseButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
-    mConnectMenuButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
+    mConnectMenuButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> dotimg(Drawable::createFromImageData(BinaryData::dots_icon_png, BinaryData::dots_icon_pngSize));
+    mConnectMenuButton->setTitle(TRANS("Menu"));
     mConnectMenuButton->setImages(dotimg.get());
     mConnectMenuButton->addListener(this);
     mConnectMenuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -180,12 +182,14 @@ publicGroupsListModel(this)
 
     mServerCopyButton = std::make_unique<SonoDrawableButton>("copy", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> copyimg(Drawable::createFromImageData(BinaryData::copy_icon_svg, BinaryData::copy_icon_svgSize));
+    mServerCopyButton->setTitle(TRANS("Copy"));
     mServerCopyButton->setImages(copyimg.get());
     mServerCopyButton->addListener(this);
     mServerCopyButton->setTooltip(TRANS("Copy connection information to the clipboard to share"));
 
     mServerPasteButton = std::make_unique<SonoDrawableButton>("paste", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> pasteimg(Drawable::createFromImageData(BinaryData::paste_icon_svg, BinaryData::paste_icon_svgSize));
+    mServerPasteButton->setTitle(TRANS("Paste"));
     mServerPasteButton->setImages(pasteimg.get());
     mServerPasteButton->addListener(this);
     mServerPasteButton->setTooltip(TRANS("Paste connection information from the clipboard"));
@@ -230,6 +234,7 @@ publicGroupsListModel(this)
     mRecentsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
     mRecentsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mRecentsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
+    mRecentsListBox->setTitle(TRANS("Recents List"));
     mRecentsListBox->setOutlineThickness (1);
 #if JUCE_IOS || JUCE_ANDROID
     mRecentsListBox->getViewport()->setScrollOnDragEnabled(true);
@@ -246,6 +251,7 @@ publicGroupsListModel(this)
     mPublicGroupsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
     mPublicGroupsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mPublicGroupsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
+    mPublicGroupsListBox->setTitle(TRANS("Public Groups List"));
     mPublicGroupsListBox->setOutlineThickness (1);
 #if JUCE_IOS || JUCE_ANDROID
     mPublicGroupsListBox->getViewport()->setScrollOnDragEnabled(true);
@@ -370,6 +376,33 @@ juce::Rectangle<int> ConnectView::getMinimumContentBounds() const {
     int defHeight = 100;
     return Rectangle<int>(0,0,defWidth,defHeight);
 }
+
+void ConnectView::grabInitialFocus()
+{
+    if (auto * butt = mConnectTab->getTabbedButtonBar().getTabButton(mConnectTab->getCurrentTabIndex())) {
+        butt->setWantsKeyboardFocus(true);
+        butt->grabKeyboardFocus();
+    }
+}
+
+void ConnectView::escapePressed()
+{
+    if (!mServerGroupEditor->hasKeyboardFocus(false)
+        && !mServerHostEditor->hasKeyboardFocus(false)
+        && !mServerUsernameEditor->hasKeyboardFocus(false)
+        && !mServerUserPasswordEditor->hasKeyboardFocus(false)
+        && !mServerGroupPasswordEditor->hasKeyboardFocus(false)
+        && !mPublicServerHostEditor->hasKeyboardFocus(false)
+        && !mPublicServerGroupEditor->hasKeyboardFocus(false)
+        && !mPublicServerUsernameEditor->hasKeyboardFocus(false)
+        )
+    {
+        // close us down
+        setVisible(false);
+    }
+}
+
+
 
 void ConnectView::timerCallback(int timerid)
 {
@@ -1425,6 +1458,15 @@ int ConnectView::RecentsListModel::getNumRows()
     return recents.size();
 }
 
+String ConnectView::RecentsListModel::getNameForRow (int rowNumber)
+{
+    if (rowNumber< recents.size()) {
+        return recents[rowNumber].groupName;
+    }
+    return ListBoxModel::getNameForRow(rowNumber);
+}
+
+
 void ConnectView::RecentsListModel::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
 {
     if (rowNumber >= recents.size()) return;
@@ -1503,6 +1545,24 @@ void ConnectView::RecentsListModel::listBoxItemClicked (int rowNumber, const Mou
 void ConnectView::RecentsListModel::selectedRowsChanged(int rowNumber)
 {
 
+}
+
+void ConnectView::RecentsListModel::deleteKeyPressed (int rowNumber)
+{
+    DBG("delete key pressed");
+    if (rowNumber < recents.size()) {
+        parent->processor.removeRecentServerConnectionInfo(rowNumber);
+        parent->updateRecents();
+    }
+}
+
+void ConnectView::RecentsListModel::returnKeyPressed (int rowNumber)
+{
+    DBG("return key pressed: " << rowNumber);
+
+    if (rowNumber < recents.size()) {
+        parent->connectWithInfo(recents.getReference(rowNumber));
+    }
 }
 
 #pragma PublicGroupsListModel

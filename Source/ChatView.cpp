@@ -33,11 +33,13 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
     mChatTextEditor->setScrollbarsShown(true);
     mChatTextEditor->setScrollToShowCursor(false);
     mChatTextEditor->addMouseListener(this, false);
+    mChatTextEditor->setTitle(TRANS("Chat Text"));
 
     mChatSendTextEditor = std::make_unique<FocusTextEditor>();
     mChatSendTextEditor->setMultiLine(true);
     mChatSendTextEditor->setScrollbarsShown(true);
     mChatSendTextEditor->setTextToShowWhenEmpty(TRANS("Enter message here..."), Colour(0x88bbbbbb));
+    mChatSendTextEditor->setTitle(TRANS("Message Text"));
     mChatSendTextEditor->onReturnKey = [this]() {
         commitChatMessage();
     };
@@ -54,13 +56,15 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
     mCloseButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> ximg(Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
     mCloseButton->setImages(ximg.get());
+    mCloseButton->setTitle(TRANS("Close Chat"));
     mCloseButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     mCloseButton->onClick = [this]() {
         setVisible(false);
     };
 
-    mMenuButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
+    mMenuButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> dotsimg(Drawable::createFromImageData(BinaryData::dots_svg, BinaryData::dots_svgSize));
+    mMenuButton->setTitle(TRANS("Chat Menu"));
     mMenuButton->setImages(dotsimg.get());
     mMenuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     mMenuButton->onClick = [this]() {

@@ -60,7 +60,7 @@ public:
 
     void reverbSendLevelChanged(ReverbSendView *comp, float revlevel) override;
 
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
+    void effectsHeaderClicked(EffectsBaseView *comp) override;
 
 
     int  groupIndex = 0;
@@ -135,7 +135,7 @@ public:
 
     void reverbSendLevelChanged(ReverbSendView *comp, float revlevel) override;
 
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & ev) override;
+    void effectsHeaderClicked(EffectsBaseView *comp) override;
 
 
     int  groupIndex = 0;

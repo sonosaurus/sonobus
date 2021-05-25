@@ -79,6 +79,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mBufferTimeSlider    = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
     mBufferTimeSlider->setName("time");
+    mBufferTimeSlider->setTitle(TRANS("Default Jitter Buffer"));
     mBufferTimeSlider->setSliderSnapsToMousePosition(false);
     mBufferTimeSlider->setChangeNotificationOnlyOnRelease(true);
     mBufferTimeSlider->setDoubleClickReturnValue(true, 15.0);
@@ -112,6 +113,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
     configLabel(mOptionsAutosizeStaticLabel.get(), false);
     mOptionsAutosizeStaticLabel->setJustificationType(Justification::centredLeft);
+    mOptionsAutosizeStaticLabel->setAccessible(false);
 
     mOptionsFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Default Send Quality:"));
     configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
@@ -247,6 +249,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mOptionsDefaultLevelSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mOptionsDefaultLevelSlider->setName("uservol");
+    mOptionsDefaultLevelSlider->setTitle(TRANS("Default User Level"));
     mOptionsDefaultLevelSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mOptionsDefaultLevelSlider->setScrollWheelEnabled(false);
     configLevelSlider(mOptionsDefaultLevelSlider.get());
@@ -258,11 +261,13 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
 
     mOptionsDefaultLevelSliderLabel = std::make_unique<Label>("", TRANS("Default User Level"));
+    mOptionsDefaultLevelSliderLabel->setAccessible(false);
     configLabel(mOptionsDefaultLevelSliderLabel.get(), false);
     mOptionsDefaultLevelSliderLabel->setJustificationType(Justification::centredLeft);
 
-
+    auto autodropname = TRANS("Auto Adjust Drop Threshold");
     mOptionsAutoDropThreshSlider = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
+    mOptionsAutoDropThreshSlider->setTitle(autodropname);
     mOptionsAutoDropThreshSlider->setRange(1.0, 20.0, 0.1);
     mOptionsAutoDropThreshSlider->setSkewFactor(0.5);
     mOptionsAutoDropThreshSlider->setName("dropthresh");
@@ -282,7 +287,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutoDropThreshSlider->setTooltip(TRANS("This controls how sensitive the auto-jitter buffer adjustment is when there are audio dropouts. The jitter buffer size will be increased if there are any dropouts within the number of seconds specified here. When this value is smaller it will be less likely to increase the jitter buffer size automatically."));
 
 
-    mOptionsAutoDropThreshLabel = std::make_unique<Label>("", TRANS("Auto Adjust Drop Threshold"));
+    mOptionsAutoDropThreshLabel = std::make_unique<Label>("", autodropname);
+    mOptionsAutoDropThreshLabel->setAccessible(false);
     configLabel(mOptionsAutoDropThreshLabel.get(), false);
     mOptionsAutoDropThreshLabel->setJustificationType(Justification::centredLeft);
 
@@ -429,6 +435,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mSettingsTab->addTab(TRANS("RECORDING"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecordOptionsViewport.get(), false);
 
+    setFocusContainerType(FocusContainerType::focusContainer);
 
     updateLayout();
 }
@@ -452,6 +459,13 @@ void OptionsView::timerCallback(int timerid)
 
 }
 
+void OptionsView::grabInitialFocus()
+{
+    if (auto * butt = mSettingsTab->getTabbedButtonBar().getTabButton(mSettingsTab->getCurrentTabIndex())) {
+        butt->setWantsKeyboardFocus(true);
+        butt->grabKeyboardFocus();
+    }
+}
 
 
 void OptionsView::configLabel(Label *label, bool val)

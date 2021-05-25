@@ -48,6 +48,8 @@ public:
 
     juce::Rectangle<int> getMinimumContentBounds() const;
 
+    void grabInitialFocus();
+    void escapePressed();
 
     void updateState();
     void updateLayout();
@@ -172,6 +174,10 @@ protected:
     public:
         RecentsListModel(ConnectView * parent_);
         int getNumRows() override;
+        String getNameForRow (int rowNumber) override;
+        void deleteKeyPressed (int) override;
+        void returnKeyPressed (int) override;
+
         void     paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
         void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
         void selectedRowsChanged(int lastRowSelected) override;
