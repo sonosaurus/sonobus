@@ -114,6 +114,15 @@ public:
         return items.size();
     }
 
+    String getNameForRow (int rowNumber) override
+    {
+        if (rowNumber < items.size()) {
+            return items[rowNumber].name;
+        }
+        return ListBoxModel::getNameForRow(rowNumber);
+    }
+
+
     void paintListBoxItem (int row, Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (isPositiveAndBelow (row, items.size()))
@@ -791,6 +800,14 @@ public:
         int getNumRows() override
         {
             return items.size();
+        }
+
+        String getNameForRow (int rowNumber) override
+        {
+            if (rowNumber < items.size()) {
+                return items[rowNumber];
+            }
+            return ListBoxModel::getNameForRow(rowNumber);
         }
 
         void paintListBoxItem (int row, Graphics& g, int width, int height, bool) override
