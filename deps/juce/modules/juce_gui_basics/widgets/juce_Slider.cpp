@@ -1756,7 +1756,7 @@ std::unique_ptr<AccessibilityHandler> Slider::createAccessibilityHandler()
             auto interval = slider.getInterval();
 
             return interval != 0.0 ? interval
-                                   : slider.proportionOfLengthToValue (0.01);
+                                   : slider.proportionOfLengthToValue (0.1);
         }
 
         Slider& slider;
