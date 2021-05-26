@@ -190,6 +190,7 @@ public:
     SonoLookAndFeel smeterLnf;
     
     std::unique_ptr<Label> nameLabel;
+    std::unique_ptr<TextEditor> nameEditor;
     std::unique_ptr<TextButton> muteButton;
     std::unique_ptr<TextButton> soloButton;
     std::unique_ptr<TextButton> fxButton;

@@ -656,7 +656,7 @@ ChannelGroupView::ChannelGroupView() : smallLnf(12), medLnf(14), sonoSliderLNF(1
     sonoSliderLNF.textJustification = Justification::centredLeft;
     panSliderLNF.textJustification = Justification::centredLeft;
 
-    setFocusContainerType(FocusContainerType::focusContainer);
+    setFocusContainerType(FocusContainerType::keyboardFocusContainer);
 
     //Random rcol;
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
@@ -1001,20 +1001,35 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->nameLabel = std::make_unique<Label>("name", "");
     pvf->nameLabel->setJustificationType(Justification::centredLeft);
     pvf->nameLabel->setFont(15);
+
+    pvf->nameEditor = std::make_unique<TextEditor>("name");
+    pvf->nameEditor->setFont(15);
+    //pvf->nameEditor->setReadOnly(mPeerMode);
+    pvf->nameEditor->onTextChange = [this,pvf]() {
+        auto changroup = pvf->group;
+        nameLabelChanged(changroup, pvf->nameEditor->getText());
+    };
+
+    /*
     pvf->nameLabel->setEditable(!mPeerMode);
     pvf->nameLabel->onTextChange = [this,pvf]() {
         auto changroup = pvf->group;
         nameLabelChanged(changroup, pvf->nameLabel->getText());
     };
+     */
 
 
 
     if (!mPeerMode) {
-        pvf->nameLabel->setColour(Label::outlineColourId, Colour(0x66666666));
-        pvf->nameLabel->setColour(Label::backgroundColourId, Colours::black);
+        pvf->nameEditor->setColour(TextEditor::outlineColourId, Colour(0x66666666));
+        pvf->nameEditor->setColour(TextEditor::backgroundColourId, Colours::black);
+        //pvf->nameLabel->setColour(Label::outlineColourId, Colour(0x66666666));
+        //pvf->nameLabel->setColour(Label::backgroundColourId, Colours::black);
         pvf->nameLabel->setTooltip(TRANS("Set name for this group that others will see"));
     } else {
         pvf->nameLabel->setTooltip(TRANS("Click to toggle extra information visibility"));
+        //pvf->nameLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        //pvf->nameLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
     }
 
 
@@ -1131,6 +1146,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
         pvf->linkButton->setTitle(TRANS("Input Source"));
         pvf->linkButton->addMouseListener(this, false);
         pvf->nameLabel->addMouseListener(this, false);
+        pvf->nameEditor->addMouseListener(this, false);
     }
 
     if (mPeerMode) {
@@ -1282,6 +1298,8 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
         if (!mMainChannelView) {
             mMainChannelView.reset(createChannelGroupView(true));
             mMainChannelView->linkButton->setClickingTogglesState(true);
+            //mMainChannelView->nameLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+            //mMainChannelView->nameLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
             mMainChannelView->linkButton->onClick = [this]() {
                 processor.setRemotePeerViewExpanded(mPeerIndex, mMainChannelView->linkButton->getToggleState());
@@ -1374,12 +1392,16 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             mMetChannelView->nameLabel->setEditable(false);
             mMetChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
             mMetChannelView->nameLabel->setColour(Label::outlineColourId, Colours::transparentBlack);
+            //mMetChannelView->nameLabel->setReadOnly(true);
+            //mMetChannelView->nameLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+            //mMetChannelView->nameLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
             mMetLevelAttachment   = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMetGain, *mMetChannelView->levelSlider);
 
 
             std::unique_ptr<Drawable> grpimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
             mMetChannelView->linkButton->setButtonStyle(DrawableButton::ButtonStyle::ImageOnButtonBackground);
+            mMetChannelView->linkButton->setTitle(TRANS("Send Metronome"));
             mMetChannelView->linkButton->setImages(grpimg.get());
             mMetChannelView->linkButton->setClickingTogglesState(true);
             mMetSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramSendMetAudio, *mMetChannelView->linkButton);
@@ -1450,9 +1472,13 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             mFileChannelView->nameLabel->setText(TRANS("File Playback"), dontSendNotification);
             mFileChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
             mFileChannelView->nameLabel->setColour(Label::outlineColourId, Colours::transparentBlack);
+            //mFileChannelView->nameLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+            //mFileChannelView->nameLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+            //mFileChannelView->nameLabel->setReadOnly(true);
 
             mFileChannelView->linkButton->setClickingTogglesState(true);
             std::unique_ptr<Drawable> grpimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
+            mFileChannelView->linkButton->setTitle(TRANS("Send File Playback"));
             mFileChannelView->linkButton->setImages(grpimg.get());
             mFileChannelView->linkButton->setClickingTogglesState(true);
             mFileSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramSendFileAudio, *mFileChannelView->linkButton);
@@ -1558,6 +1584,7 @@ void ChannelGroupsView::setupChildren(ChannelGroupView * pvf)
     pvf->addAndMakeVisible(pvf->panLabel.get());
     pvf->addAndMakeVisible(pvf->nameLabel.get());
     pvf->addAndMakeVisible(pvf->chanLabel.get());
+    pvf->addChildComponent(pvf->nameEditor.get());
 
     pvf->addAndMakeVisible(pvf->meter.get());
     if (pvf->premeter) {
@@ -2084,7 +2111,12 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
             pvf->namebox.items.clear();
             pvf->namebox.flexDirection = FlexBox::Direction::row;
             //.withAlignSelf(FlexItem::AlignSelf::center));
-            pvf->namebox.items.add(FlexItem(namewidth, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
+
+            if (i >= mChannelViews.size()) {
+                pvf->namebox.items.add(FlexItem(namewidth, minitemheight, *pvf->nameLabel).withMargin(0).withFlex(1));
+            } else {
+                pvf->namebox.items.add(FlexItem(namewidth, minitemheight, *pvf->nameEditor).withMargin(0).withFlex(1));
+            }
 
             pvf->inbox.items.clear();
             pvf->inbox.flexDirection = FlexBox::Direction::row;
@@ -2386,6 +2418,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         mMetChannelView->levelSlider->setValue(processor.getMetronomeGain(), dontSendNotification);
         mMetChannelView->panSlider->setValue(processor.getMetronomePan(), dontSendNotification);
         mMetChannelView->showDivider = true;
+        mMetChannelView->nameEditor->setVisible(false);
 
         mMetChannelView->meter->setMeterSource (&processor.getMetronomeMeterSource());
         mMetChannelView->meter->setSelectedChannel(0);
@@ -2413,6 +2446,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         mFileChannelView->panLabel->setVisible(false);
         //mFileChannelView->panSlider->setValue(processor.getFilPlaybackPan(), dontSendNotification);
         mFileChannelView->showDivider = true;
+        mFileChannelView->nameEditor->setVisible(false);
 
         mFileChannelView->meter->setMeterSource (&processor.getFilePlaybackMeterSource());
         mFileChannelView->meter->setSelectedChannel(0);
@@ -2448,7 +2482,8 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
         //DBG("Got username: '" << username << "'");
 
-        pvf->nameLabel->setText(name, dontSendNotification);
+        //pvf->nameLabel->setText(name, dontSendNotification);
+        pvf->nameEditor->setText(name, dontSendNotification);
 
         String chantext;
         if (chstart + chi >= totalchans) {
@@ -2544,10 +2579,11 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         pvf->levelSlider->setVisible(isprimary);
         pvf->soloButton->setVisible(isprimary);
         pvf->muteButton->setVisible(isprimary);
-        pvf->nameLabel->setVisible(isprimary);
         pvf->destButton->setVisible(destbuttvisible);
         pvf->monitorSlider->setVisible(isprimary);
         pvf->monfxButton->setVisible(isprimary);
+        pvf->nameEditor->setVisible(isprimary);
+        pvf->nameLabel->setVisible(false);
 
 
         // effects aren't used if channel count is above 2, right now
@@ -2721,7 +2757,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     mMainChannelView->linkButton->setToggleState(expanded, dontSendNotification);
 
     mMainChannelView->monfxButton->setVisible(false);
-
+    mMainChannelView->nameEditor->setVisible(false);
 
     if (!expanded) {
         // hide all the subchannel views
@@ -2874,6 +2910,7 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
         pvf->destButton->setVisible(destbuttvisible);
         pvf->monitorSlider->setVisible(false);
         pvf->monfxButton->setVisible(false);
+        pvf->nameEditor->setVisible(false);
 
         const float disalpha = 0.4;
         pvf->nameLabel->setAlpha(connected ? 1.0 : 0.8);
@@ -3813,8 +3850,10 @@ void ChannelGroupsView::mouseDrag (const MouseEvent& event)
     for (int i=0; i < mChannelViews.size(); ++i) {
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 
-        if (event.eventComponent == pvf->linkButton.get()
-            || event.eventComponent == pvf->nameLabel.get()) {
+        if (!mPeerMode &&
+            (event.eventComponent == pvf->linkButton.get()
+            || event.eventComponent == pvf->nameLabel.get()
+            || event.eventComponent == pvf->nameEditor.get())) {
             auto adjpos =  getLocalPoint(event.eventComponent, event.getPosition());
             DBG("Dragging link button: " << adjpos.toString());
             if (abs(event.getDistanceFromDragStartY()) > 4 && !mDraggingActive) {
@@ -3881,7 +3920,8 @@ void ChannelGroupsView::mouseUp (const MouseEvent& event)
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
 
         if (event.eventComponent == pvf->linkButton.get()
-            || event.eventComponent == pvf->nameLabel.get()) {
+            || event.eventComponent == pvf->nameLabel.get()
+            || event.eventComponent == pvf->nameEditor.get()) {
             if (mDraggingActive) {
                 DBG("Mouse up after drag: " << event.getPosition().toString());
                 // commit it

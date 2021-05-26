@@ -125,6 +125,8 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
     mainBox.flexDirection = FlexBox::Direction::row;
     mainBox.items.add(FlexItem(minButtonWidth, 4, chatContainerBox).withMargin(0).withFlex(1));
 
+    setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+
     refreshAllMessages();
 }
 
