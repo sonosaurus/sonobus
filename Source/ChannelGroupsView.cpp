@@ -1005,10 +1005,26 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->nameEditor = std::make_unique<TextEditor>("name");
     pvf->nameEditor->setFont(15);
     //pvf->nameEditor->setReadOnly(mPeerMode);
-    pvf->nameEditor->onTextChange = [this,pvf]() {
+    auto edcb = [this,pvf]() {
         auto changroup = pvf->group;
         nameLabelChanged(changroup, pvf->nameEditor->getText());
     };
+    pvf->nameEditor->onFocusLost = edcb;
+
+    pvf->nameEditor->onReturnKey = [this,pvf]() {
+        auto changroup = pvf->group;
+        nameLabelChanged(changroup, pvf->nameEditor->getText());
+        pvf->nameEditor->giveAwayKeyboardFocus();
+    };
+
+    pvf->nameEditor->onEscapeKey = [this,pvf]() {
+        auto changroup = pvf->group;
+        if (!mPeerMode) {
+            pvf->nameEditor->setText(processor.getInputGroupName(changroup), dontSendNotification);
+        }
+        pvf->nameEditor->giveAwayKeyboardFocus();
+    };
+
 
     /*
     pvf->nameLabel->setEditable(!mPeerMode);
@@ -4157,8 +4173,10 @@ void ChannelGroupsView::nameLabelChanged (int changroup, const String & name) {
         processor.setRemotePeerChannelGroupName(mPeerIndex, changroup, name);
     }
     else {
-        processor.setInputGroupName(changroup, name);
-        processor.updateRemotePeerUserFormat();
+        if (processor.getInputGroupName(changroup) != name) {
+            processor.setInputGroupName(changroup, name);
+            processor.updateRemotePeerUserFormat();
+        }
     }
 }
 
