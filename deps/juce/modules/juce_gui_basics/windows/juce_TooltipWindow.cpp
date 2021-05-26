@@ -91,12 +91,14 @@ void TooltipWindow::displayTip (Point<int> screenPos, const String& tip)
         }
         else
         {
-            updatePosition (tip, screenPos, Desktop::getInstance().getDisplays().getDisplayForPoint (screenPos)->userArea);
+            const auto physicalPos = ScalingHelpers::scaledScreenPosToUnscaled (screenPos);
+            const auto scaledPos = ScalingHelpers::unscaledScreenPosToScaled (*this, physicalPos);
+            updatePosition (tip, scaledPos, Desktop::getInstance().getDisplays().getDisplayForPoint (screenPos)->userArea);
 
             addToDesktop (ComponentPeer::windowHasDropShadow
-                            | ComponentPeer::windowIsTemporary
-                            | ComponentPeer::windowIgnoresKeyPresses
-                            | ComponentPeer::windowIgnoresMouseClicks);
+                          | ComponentPeer::windowIsTemporary
+                          | ComponentPeer::windowIgnoresKeyPresses
+                          | ComponentPeer::windowIgnoresMouseClicks);
         }
 
        #if JUCE_DEBUG
@@ -106,7 +108,7 @@ void TooltipWindow::displayTip (Point<int> screenPos, const String& tip)
 
         for (auto* w : activeTooltipWindows)
         {
-            if (w != this && w->tipShowing == tipShowing && w->getParentComponent() == parent)
+            if (w != nullptr && w != this && w->tipShowing == tipShowing && w->getParentComponent() == parent)
             {
                 // Looks like you have more than one TooltipWindow showing the same tip..
                 // Be careful not to create more than one instance of this class with the
@@ -154,6 +156,14 @@ void TooltipWindow::hideTip()
         activeTooltipWindows.removeAllInstancesOf (this);
        #endif
     }
+}
+
+float TooltipWindow::getDesktopScaleFactor() const
+{
+    if (lastComponentUnderMouse != nullptr)
+        return Component::getApproximateScaleFactorForComponent (lastComponentUnderMouse);
+
+    return Component::getDesktopScaleFactor();
 }
 
 void TooltipWindow::timerCallback()

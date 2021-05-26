@@ -842,6 +842,7 @@ public:
         testLayout.setUpperZone (6);
     }
 
+    JUCE_BEGIN_IGNORE_WARNINGS_MSVC (6262)
     void runTest() override
     {
         beginTest ("initial zone layout");
@@ -2154,6 +2155,7 @@ public:
             }
         }
     }
+    JUCE_END_IGNORE_WARNINGS_MSVC
 
 private:
     //==============================================================================

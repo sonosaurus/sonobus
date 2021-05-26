@@ -152,7 +152,7 @@ void Label::attachToComponent (Component* owner, bool onLeft)
 
     if (ownerComponent != nullptr)
     {
-        setVisible (owner->isVisible());
+        setVisible (ownerComponent->isVisible());
         ownerComponent->addComponentListener (this);
         componentParentHierarchyChanged (*ownerComponent);
         componentMovedOrResized (*ownerComponent, true, true);
@@ -284,7 +284,9 @@ void Label::hideEditor (bool discardCurrentEditorContents)
         const bool changed = (! discardCurrentEditorContents)
                                && updateFromTextEditorContents (*outgoingEditor);
         outgoingEditor.reset();
-        repaint();
+
+        if (deletionChecker != nullptr)
+            repaint();
 
         if (changed)
             textWasEdited();

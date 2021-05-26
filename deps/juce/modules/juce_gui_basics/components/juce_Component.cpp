@@ -329,47 +329,48 @@ struct Component::ComponentHelpers
     }
 
     template <typename PointOrRect>
-    static PointOrRect convertFromParentSpace (const Component& comp, PointOrRect pointInParentSpace)
+    static PointOrRect convertFromParentSpace (const Component& comp, const PointOrRect pointInParentSpace)
     {
-        if (comp.affineTransform != nullptr)
-            pointInParentSpace = pointInParentSpace.transformedBy (comp.affineTransform->inverted());
+        const auto transformed = comp.affineTransform != nullptr ? pointInParentSpace.transformedBy (comp.affineTransform->inverted())
+                                                                 : pointInParentSpace;
 
         if (comp.isOnDesktop())
         {
             if (auto* peer = comp.getPeer())
-                pointInParentSpace = ScalingHelpers::unscaledScreenPosToScaled
-                                        (comp, peer->globalToLocal (ScalingHelpers::scaledScreenPosToUnscaled (pointInParentSpace)));
-            else
-                jassertfalse;
-        }
-        else
-        {
-            pointInParentSpace = ScalingHelpers::subtractPosition (pointInParentSpace, comp);
+                return ScalingHelpers::unscaledScreenPosToScaled (comp, peer->globalToLocal (ScalingHelpers::scaledScreenPosToUnscaled (transformed)));
+
+            jassertfalse;
+            return transformed;
         }
 
-        return pointInParentSpace;
+        if (comp.getParentComponent() == nullptr)
+            return ScalingHelpers::subtractPosition (ScalingHelpers::unscaledScreenPosToScaled (comp, ScalingHelpers::scaledScreenPosToUnscaled (transformed)), comp);
+
+        return ScalingHelpers::subtractPosition (transformed, comp);
     }
 
     template <typename PointOrRect>
-    static PointOrRect convertToParentSpace (const Component& comp, PointOrRect pointInLocalSpace)
+    static PointOrRect convertToParentSpace (const Component& comp, const PointOrRect pointInLocalSpace)
     {
-        if (comp.isOnDesktop())
+        const auto preTransform = [&]
         {
-            if (auto* peer = comp.getPeer())
-                pointInLocalSpace = ScalingHelpers::unscaledScreenPosToScaled
-                                        (peer->localToGlobal (ScalingHelpers::scaledScreenPosToUnscaled (comp, pointInLocalSpace)));
-            else
+            if (comp.isOnDesktop())
+            {
+                if (auto* peer = comp.getPeer())
+                    return ScalingHelpers::unscaledScreenPosToScaled (peer->localToGlobal (ScalingHelpers::scaledScreenPosToUnscaled (comp, pointInLocalSpace)));
+
                 jassertfalse;
-        }
-        else
-        {
-            pointInLocalSpace = ScalingHelpers::addPosition (pointInLocalSpace, comp);
-        }
+                return pointInLocalSpace;
+            }
 
-        if (comp.affineTransform != nullptr)
-            pointInLocalSpace = pointInLocalSpace.transformedBy (*comp.affineTransform);
+            if (comp.getParentComponent() == nullptr)
+                return ScalingHelpers::unscaledScreenPosToScaled (ScalingHelpers::scaledScreenPosToUnscaled (comp, ScalingHelpers::addPosition (pointInLocalSpace, comp)));
 
-        return pointInLocalSpace;
+            return ScalingHelpers::addPosition (pointInLocalSpace, comp);
+        }();
+
+        return comp.affineTransform != nullptr ? preTransform.transformedBy (*comp.affineTransform)
+                                               : preTransform;
     }
 
     template <typename PointOrRect>
@@ -381,7 +382,9 @@ struct Component::ComponentHelpers
         if (directParent == parent)
             return convertFromParentSpace (target, coordInParent);
 
+        JUCE_BEGIN_IGNORE_WARNINGS_MSVC (6011)
         return convertFromParentSpace (target, convertFromDistantParentSpace (parent, *directParent, coordInParent));
+        JUCE_END_IGNORE_WARNINGS_MSVC
     }
 
     template <typename PointOrRect>
@@ -392,8 +395,12 @@ struct Component::ComponentHelpers
             if (source == target)
                 return p;
 
+            JUCE_BEGIN_IGNORE_WARNINGS_MSVC (6011)
+
             if (source->isParentOf (target))
                 return convertFromDistantParentSpace (source, *target, p);
+
+            JUCE_END_IGNORE_WARNINGS_MSVC
 
             p = convertToParentSpace (*source, p);
             source = source->getParentComponent();
@@ -3013,9 +3020,9 @@ bool Component::isMouseOver (bool includeChildren) const
     {
         auto* c = ms.getComponentUnderMouse();
 
-        if (c == this || (includeChildren && isParentOf (c)))
+        if (c != nullptr && (c == this || (includeChildren && isParentOf (c))))
             if (ms.isDragging() || ! (ms.isTouch() || ms.isPen()))
-                if (c->reallyContains (c->getLocalPoint (nullptr, ms.getScreenPosition()).roundToInt(), false))
+                if (c->reallyContains (c->getLocalPoint (nullptr, ms.getScreenPosition().roundToInt()), false))
                     return true;
     }
 
