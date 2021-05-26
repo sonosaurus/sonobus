@@ -750,6 +750,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     mTopLevelContainer = std::make_unique<Component>();
 
+
     mMainContainer = std::make_unique<Component>();
 
     mMainViewport = std::make_unique<Viewport>();
@@ -768,7 +769,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatView = std::make_unique<ChatView>(processor, currConnectionInfo);
     mChatView->setVisible(false);
     mChatView->addComponentListener(this);
-    mChatView->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
 
     mChatButton = std::make_unique<SonoDrawableButton>("chat", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     std::unique_ptr<Drawable> chatdotsimg(Drawable::createFromImageData(BinaryData::chat_dots_svg, BinaryData::chat_dots_svgSize));
@@ -1164,6 +1164,13 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     // over everything
     addChildComponent(mDragDropBg.get());
 
+
+    mSettingsButton->setExplicitFocusOrder(1);
+    mConnectButton->setExplicitFocusOrder(2);
+
+    //mChatView->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+
+    //setFocusContainerType(FocusContainerType::focusContainer);
 
     //mPublicServerConnectViewport->setViewedComponent(mPublicServerConnectContainer.get());
 

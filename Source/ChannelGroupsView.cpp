@@ -1022,6 +1022,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
         if (!mPeerMode) {
             pvf->nameEditor->setText(processor.getInputGroupName(changroup), dontSendNotification);
         }
+        
         pvf->nameEditor->giveAwayKeyboardFocus();
     };
 
@@ -3295,8 +3296,9 @@ void ChannelGroupsView::showChangeGroupChannels(int changroup, Component * showf
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, showfrom->getScreenBounds());
 
     SafePointer<ChannelGroupsView> safeThis(this);
+    SafePointer<Component> safeSource(showfrom);
 
-    auto callback = [safeThis,changroup,totalins,totalouts](GenericItemChooser* chooser,int index) mutable {
+    auto callback = [safeThis,changroup,totalins,totalouts,safeSource](GenericItemChooser* chooser,int index) mutable {
         if (!safeThis || index == 0) return;
         int chstart = 0;
         int chcnt;
@@ -3305,6 +3307,12 @@ void ChannelGroupsView::showChangeGroupChannels(int changroup, Component * showf
         safeThis->processor.setInputGroupChannelStartAndCount(changroup, chstart, index);
         safeThis->processor.updateRemotePeerUserFormat();
         safeThis->rebuildChannelViews(true);
+
+        Timer::callAfterDelay(100, [safeSource](){
+            if (safeSource) {
+                safeSource->grabKeyboardFocus();
+            }
+        });
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, -1, dw ? dw->getHeight()-30 : 0);
@@ -3356,8 +3364,9 @@ void ChannelGroupsView::showChangePeerChannelsLayout(int chindex, Component * sh
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, showfrom->getScreenBounds());
 
     SafePointer<ChannelGroupsView> safeThis(this);
+    SafePointer<Component> safeSource(showfrom);
 
-    auto callback = [safeThis,changroup,chindex,totalins](GenericItemChooser* chooser,int index) mutable {
+    auto callback = [safeThis,changroup,chindex,totalins,safeSource](GenericItemChooser* chooser,int index) mutable {
         if (!safeThis || index == 0) return;
         // jlcc
         auto & selitem = chooser->getItems().getReference(index);
@@ -3437,6 +3446,12 @@ void ChannelGroupsView::showChangePeerChannelsLayout(int chindex, Component * sh
 
 
         safeThis->rebuildChannelViews(true);
+
+        Timer::callAfterDelay(100, [safeSource](){
+            if (safeSource) {
+                safeSource->grabKeyboardFocus();
+            }
+        });
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, selindex, dw ? dw->getHeight()-30 : 0);
@@ -3620,7 +3635,9 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, source->getScreenBounds());
 
     SafePointer<ChannelGroupsView> safeThis(this);
-    auto callback = [safeThis,changroup,inputnames, source](GenericItemChooser* chooser,int index) mutable {
+    SafePointer<Component> safeSource(source);
+
+    auto callback = [safeThis,changroup,inputnames, safeSource](GenericItemChooser* chooser,int index) mutable {
         // first ignore
         auto & items = chooser->getItems();
         if (!safeThis) return;
@@ -3644,9 +3661,9 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
             safeThis->rebuildChannelViews(true);
             return;
         }
-        else if (index == items.size()-2) {
+        else if (index == items.size()-2 && safeSource) {
             // second to last is change size
-            safeThis->showChangeGroupChannels(changroup, source);
+            safeThis->showChangeGroupChannels(changroup, safeSource);
             return;
         }
 
@@ -3673,6 +3690,12 @@ void ChannelGroupsView::inputButtonPressed(Component * source, int index, bool n
         safeThis->updateChannelViews();
         safeThis->updateLayout();
         safeThis->resized();
+
+        Timer::callAfterDelay(100, [safeSource](){
+            if (safeSource) {
+                safeSource->grabKeyboardFocus();
+            }
+        });
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, selindex, dw ? dw->getHeight()-30 : 0);
@@ -4123,8 +4146,9 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
     }
 
     SafePointer<ChannelGroupsView> safeThis(this);
+    SafePointer<Component> safeSource(source);
 
-    auto callback = [safeThis,changroup,ismet,isfile](GenericItemChooser* chooser,int index) mutable {
+    auto callback = [safeThis,safeSource,changroup,ismet,isfile](GenericItemChooser* chooser,int index) mutable {
         auto & items = chooser->getItems();
         auto & selitem = items.getReference(index);
         auto dclitem = std::dynamic_pointer_cast<DestChannelListItemData>(selitem.userdata);
@@ -4151,6 +4175,12 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
         safeThis->updateChannelViews();
         safeThis->updateLayout();
         safeThis->resized();
+
+        Timer::callAfterDelay(100, [safeSource](){
+            if (safeSource) {
+                safeSource->grabKeyboardFocus();
+            }
+        });
     };
 
 

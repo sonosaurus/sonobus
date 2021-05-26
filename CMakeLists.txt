@@ -19,7 +19,7 @@ endif()
 option(UniversalBinary "Build universal binary for mac" ON)
 
 if (APPLE)
-    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
+    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE INTERNAL "")
     if (UniversalBinary)
         set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
         #set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)        

@@ -93,6 +93,11 @@ void SonoChoiceButton::genericItemChooserSelected(GenericItemChooser *comp, int 
         dw->dismiss();
     }
 
+    setWantsKeyboardFocus(true);
+
+    Timer::callAfterDelay(200, [this](){
+        grabKeyboardFocus();
+    });
 }
 
 void SonoChoiceButton::resized()
