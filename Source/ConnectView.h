@@ -213,11 +213,15 @@ protected:
         void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
         void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
         void selectedRowsChanged(int lastRowSelected) override;
+        String getNameForRow (int rowNumber) override;
+        void returnKeyPressed (int) override;
 
         void updateState();
 
     protected:
         ConnectView * parent;
+
+        void groupSelected(int rowsel);
 
         Image groupImage;
         Image personImage;

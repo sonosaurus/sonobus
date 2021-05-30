@@ -1460,8 +1460,8 @@ int ConnectView::RecentsListModel::getNumRows()
 
 String ConnectView::RecentsListModel::getNameForRow (int rowNumber)
 {
-    if (rowNumber< recents.size()) {
-        return recents[rowNumber].groupName;
+    if (rowNumber < recents.size()) {
+        return recents.getReference(rowNumber).groupName;
     }
     return ListBoxModel::getNameForRow(rowNumber);
 }
@@ -1632,11 +1632,32 @@ void ConnectView::PublicGroupsListModel::paintListBoxItem (int rowNumber, Graphi
     cachedWidth = width;
 }
 
+String ConnectView::PublicGroupsListModel::getNameForRow (int rowNumber)
+{
+    if (rowNumber < groups.size()) {
+        return groups.getReference(rowNumber).groupName;
+    }
+    return ListBoxModel::getNameForRow(rowNumber);
+}
+
+void ConnectView::PublicGroupsListModel::returnKeyPressed (int rowNumber)
+{
+    DBG("return key pressed: " << rowNumber);
+
+    groupSelected(rowNumber);
+}
+
 void ConnectView::PublicGroupsListModel::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 {
     // use this
     DBG("Clicked " << rowNumber << "  x: " << e.getPosition().x << "  width: " << cachedWidth);
 
+    groupSelected(rowNumber);
+
+}
+
+void ConnectView::PublicGroupsListModel::groupSelected(int rowNumber)
+{
     if (rowNumber >= groups.size() || rowNumber < 0) {
         DBG("Clicked out of bounds row!");
         return;
@@ -1675,8 +1696,8 @@ void ConnectView::PublicGroupsListModel::listBoxItemClicked (int rowNumber, cons
 
         parent->connectWithInfo(cinfo);
     }
-
 }
+
 
 void ConnectView::PublicGroupsListModel::selectedRowsChanged(int rowNumber)
 {
