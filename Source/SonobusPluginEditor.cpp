@@ -609,6 +609,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mDrySlider->setTextBoxIsEditable(true);
     mInGainSlider->setTextBoxIsEditable(true);
 
+    mDrySlider->setWantsKeyboardFocus(true);
+    mOutGainSlider->setWantsKeyboardFocus(true);
+
 
 
     mInGainLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Level"));
@@ -796,7 +799,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mConnectView = std::make_unique<ConnectView>(processor, currConnectionInfo);
     mConnectView->setWantsKeyboardFocus(true);
     mConnectView->updateServerFieldsFromConnectionInfo();
-    mConnectView->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
     mConnectView->addComponentListener(this);
 
     // effects
@@ -1077,6 +1079,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //addAndMakeVisible(mMonDelayButton.get());
 
     mTopLevelContainer->addAndMakeVisible(mPatchbayButton.get());
+    mTopLevelContainer->addAndMakeVisible (mSettingsButton.get());
     mTopLevelContainer->addAndMakeVisible(mConnectButton.get());
     mTopLevelContainer->addChildComponent(mAltConnectButton.get());
     mTopLevelContainer->addAndMakeVisible(mMainStatusLabel.get());
@@ -1144,7 +1147,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mTopLevelContainer->addAndMakeVisible(mOutGainLabel.get());
     mTopLevelContainer->addAndMakeVisible(inputMeter.get());
     mTopLevelContainer->addAndMakeVisible(outputMeter.get());
-    mTopLevelContainer->addAndMakeVisible (mSettingsButton.get());
     mTopLevelContainer->addAndMakeVisible (mInMixerButton.get());
 
 
@@ -1164,12 +1166,12 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     addChildComponent(mDragDropBg.get());
 
 
-    mSettingsButton->setExplicitFocusOrder(1);
-    mConnectButton->setExplicitFocusOrder(2);
+    //mSettingsButton->setExplicitFocusOrder(1);
+    //mConnectButton->setExplicitFocusOrder(2);
 
     //mChatView->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
 
-    //setFocusContainerType(FocusContainerType::focusContainer);
+    //setFocusContainerType(FocusContainerType::keyboardFocusContainer);
 
     //mPublicServerConnectViewport->setViewedComponent(mPublicServerConnectContainer.get());
 
@@ -1742,6 +1744,9 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             if (dw) {
                 tooltipWindow = std::make_unique<CustomTooltipWindow>(this, dw);
             }
+
+            // first time thing
+            mConnectButton->grabKeyboardFocus();
         }
 
         if (processor.getLastChatShown() != mChatView->isVisible()) {
@@ -3002,7 +3007,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
-        
+
         settingsClosedTimestamp = 0;
 
 
@@ -3012,6 +3017,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
             mOptionsView->showWarnings();
         }
 #endif
+
 
         mOptionsView->grabInitialFocus();
 

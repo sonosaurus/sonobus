@@ -742,7 +742,7 @@ ChannelGroupView::ChannelGroupView() : smallLnf(12), medLnf(14), sonoSliderLNF(1
     sonoSliderLNF.textJustification = Justification::centredLeft;
     panSliderLNF.textJustification = Justification::centredLeft;
 
-    setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+    //setFocusContainerType(FocusContainerType::keyboardFocusContainer);
 
     //Random rcol;
     //itemColor = Colour::fromHSV(rcol.nextFloat(), 0.5f, 0.2f, 1.0f);
@@ -909,6 +909,7 @@ void ChannelGroupsView::configLevelSlider(Slider * slider, bool monmode)
     slider->setTextBoxIsEditable(true);
     slider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     slider->setScrollWheelEnabled(false);
+    slider->setWantsKeyboardFocus(true);
     slider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
 
     if (mPeerMode) {
@@ -946,6 +947,7 @@ void ChannelGroupsView::configKnobSlider(Slider * slider)
     slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
     slider->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
     slider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+    slider->setWantsKeyboardFocus(true);
 
     //slider->setLookAndFeel(&sonoSliderLNF);
     
@@ -1223,6 +1225,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->panSlider->setSliderSnapsToMousePosition(false);
     pvf->panSlider->setScrollWheelEnabled(false);
     pvf->panSlider->setMouseDragSensitivity(100);
+    pvf->panSlider->setWantsKeyboardFocus(true);
 
     pvf->panSlider->textFromValueFunction =  [](double v) -> String { if (fabs(v) < 0.01) return String(TRANS("Pan: Center")); return String(TRANS("Pan: ")) +  String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; };
     pvf->panSlider->valueFromTextFunction =  [](const String& s) -> double { return s.getDoubleValue()*1e-2f; };
@@ -1415,6 +1418,7 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             mMainChannelView->linkButton->setClickingTogglesState(true);
             //mMainChannelView->nameLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
             //mMainChannelView->nameLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+            mMainChannelView->nameLabel->setWantsKeyboardFocus(true);
 
             mMainChannelView->linkButton->onClick = [this]() {
                 processor.setRemotePeerViewExpanded(mPeerIndex, mMainChannelView->linkButton->getToggleState());
@@ -3937,6 +3941,9 @@ void ChannelGroupsView::showMonitorEffects(int index, bool flag, Component * fro
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(monEffectsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
+
+        mMonEffectsView->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+
         mMonEffectsView->grabKeyboardFocus();
 
     }
@@ -4012,7 +4019,8 @@ void ChannelGroupsView::showInputReverbView(bool flag, Component * fromView)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(inReverbCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
-        inReverbCalloutBox->grabKeyboardFocus();
+        inReverbCalloutBox->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+        mInputReverbView->grabKeyboardFocus();
 
     }
     else {

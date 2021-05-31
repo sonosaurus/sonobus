@@ -159,6 +159,7 @@ protected:
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxIsEditable(true);
         slider.setSliderSnapsToMousePosition(false);
+        slider.setWantsKeyboardFocus(true);
         //slider->setPopupDisplayEnabled(true, false, this);
         slider.setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
@@ -175,6 +176,7 @@ protected:
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxIsEditable(false);
         slider.setSliderSnapsToMousePosition(false);
+        slider.setWantsKeyboardFocus(true);
         //slider->setPopupDisplayEnabled(true, false, this);
         //slider.setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
         //slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
@@ -190,6 +192,7 @@ protected:
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         slider.setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
         slider.setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+        slider.setWantsKeyboardFocus(true);
 
         slider.setTextBoxStyle(Slider::TextBoxAbove, true, 100, 12);
 

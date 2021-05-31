@@ -435,7 +435,16 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mSettingsTab->addTab(TRANS("RECORDING"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecordOptionsViewport.get(), false);
 
-    setFocusContainerType(FocusContainerType::focusContainer);
+    setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+
+    mSettingsTab->setFocusContainerType(FocusContainerType::none);
+    mSettingsTab->getTabbedButtonBar().setFocusContainerType(FocusContainerType::none);
+    mSettingsTab->getTabbedButtonBar().setWantsKeyboardFocus(true);
+    mSettingsTab->setWantsKeyboardFocus(true);
+    for (int i=0; i < mSettingsTab->getTabbedButtonBar().getNumTabs(); ++i) {
+        mSettingsTab->getTabbedButtonBar().getTabButton(i)->setWantsKeyboardFocus(true);
+        mSettingsTab->getTabContentComponent(i)->setFocusContainerType(FocusContainerType::focusContainer);
+    }
 
     updateLayout();
 }
