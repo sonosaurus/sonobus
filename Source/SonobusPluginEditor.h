@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "JuceHeader.h"
+#include <JuceHeader.h>
 
 #include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
@@ -22,6 +22,7 @@
 #include "ChannelGroupsView.h"
 #include "PeersContainerView.h"
 #include "OptionsView.h"
+#include "ReverbView.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -192,6 +193,8 @@ private:
 
     void showMonitorDelayView(bool flag);
 
+    void showInputReverbView(bool flag);
+
     void updateServerStatusLabel(const String & mesg, bool mainonly=true);
     void updateChannelState(bool force=false);
     bool updatePeerState(bool force=false);
@@ -344,6 +347,7 @@ private:
     std::unique_ptr<DrawableRectangle> mReverbHeaderBg;
 
     std::unique_ptr<MonitorDelayView> mMonitorDelayView;
+
 
 
     
@@ -598,7 +602,6 @@ private:
     FlexBox reverbSizeBox;
     FlexBox reverbDampBox;
     FlexBox reverbPreDelayBox;
-
 
     FlexBox inPannerMainBox;
     FlexBox inPannerLabelBox;

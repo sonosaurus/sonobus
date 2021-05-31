@@ -272,6 +272,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/RandomSentenceGenerator.cpp
         Source/RandomSentenceGenerator.h
         Source/ReverbSendView.h
+        Source/ReverbView.h
         Source/RunCumulantor.cpp
         Source/RunCumulantor.h
         Source/RunningCumulant.h

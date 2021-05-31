@@ -71,7 +71,8 @@ struct ChannelGroupParams
     CompressorParams limiterParams;
 
     // reverb send
-    float reverbSend = 1.0f;
+    float inReverbSend = 0.0f;
+    float monReverbSend = 0.0f;
 
     // monitoring level
     float monitor = 1.0f;
@@ -102,14 +103,14 @@ public:
     };
 
 
-    void processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer,  int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor, ProcessState * procstate=nullptr);
+    void processBlock (AudioBuffer<float>& frombuffer, AudioBuffer<float>& tobuffer,  int destStartChan, int destNumChans, AudioBuffer<float>& silentBuffer, int numSamples, float gainfactor, ProcessState * procstate=nullptr, AudioBuffer<float> * reverbbuffer=nullptr, int revStartChan=0, int revNumChans=2, bool revEnabled=false, float revgainfactor=1.0f, ProcessState * revprocstate=nullptr);
 
     void processPan (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor, ProcessState * procstate=nullptr);
 
 
     void processMonitor (AudioBuffer<float>& frombuffer, int fromStartChan, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, float gainfactor, ProcessState * procstate = nullptr, AudioBuffer<float> * reverbbuffer=nullptr, int revStartChan=0, int revNumChans=2, bool revEnabled=false, float revgainfactor=1.0f, ProcessState * revprocstate=nullptr);
 
-    void processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, bool revEnabled, float gainfactor=1.0f, ProcessState * procstate = nullptr);
+    void processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans, AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans, int numSamples, bool revEnabled, bool inSend, float gainfactor=1.0f, ProcessState * procstate = nullptr);
 
     // shallow copy of parameters and state
     void copyParametersFrom(const ChannelGroup& other);
@@ -129,6 +130,7 @@ public:
 
     ProcessState mainProcState;
     ProcessState monProcState;
+    ProcessState inRevProcState;
     ProcessState revProcState;
 
     // compressor (only used for 1 or 2 channel groups)

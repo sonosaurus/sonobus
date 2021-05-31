@@ -64,7 +64,7 @@ String SonobusAudioProcessor::paramSendFileAudio    ("sendfileaudio");
 String SonobusAudioProcessor::paramHearLatencyTest   ("hearlatencytest");
 String SonobusAudioProcessor::paramMetIsRecorded   ("metisrecorded");
 String SonobusAudioProcessor::paramMainReverbEnabled  ("mainreverbenabled");
-String SonobusAudioProcessor::paramMainReverbLevel  ("mainreverblevel");
+String SonobusAudioProcessor::paramMainReverbLevel  ("nmainreverblevel");
 String SonobusAudioProcessor::paramMainReverbSize  ("mainreverbsize");
 String SonobusAudioProcessor::paramMainReverbDamping  ("mainreverbdamp");
 String SonobusAudioProcessor::paramMainReverbPreDelay  ("mainreverbpredelay");
@@ -73,6 +73,10 @@ String SonobusAudioProcessor::paramDynamicResampling  ("dynamicresampling");
 String SonobusAudioProcessor::paramAutoReconnectLast  ("reconnectlast");
 String SonobusAudioProcessor::paramDefaultPeerLevel  ("defPeerLevel");
 String SonobusAudioProcessor::paramSyncMetToHost  ("syncMetHost");
+String SonobusAudioProcessor::paramInputReverbLevel  ("inreverblevel");
+String SonobusAudioProcessor::paramInputReverbSize  ("inreverbsize");
+String SonobusAudioProcessor::paramInputReverbDamping  ("inreverbdamp");
+String SonobusAudioProcessor::paramInputReverbPreDelay  ("inreverbpredelay");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -644,6 +648,18 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
     std::make_unique<AudioParameterBool>(paramSyncMetToHost, TRANS ("Sync to Host"), JUCEApplicationBase::isStandaloneApp() ? false : true),
+    std::make_unique<AudioParameterFloat>(paramInputReverbLevel,     TRANS ("Input Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mInputReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
+                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
+    std::make_unique<AudioParameterFloat>(paramInputReverbSize,     TRANS ("Input Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbSize.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
+                                          [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
+    std::make_unique<AudioParameterFloat>(paramInputReverbDamping,     TRANS ("Input Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
+                                          [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
+    std::make_unique<AudioParameterFloat>(paramInputReverbPreDelay,     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
+                                          [](const String& s) -> float { return s.getFloatValue(); }),
 
 })
 {
@@ -678,6 +694,10 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramMainMonitorSolo, this);
     mState.addParameterListener (paramDefaultPeerLevel, this);
     mState.addParameterListener (paramSyncMetToHost, this);
+    mState.addParameterListener (paramInputReverbSize, this);
+    mState.addParameterListener (paramInputReverbLevel, this);
+    mState.addParameterListener (paramInputReverbDamping, this);
+    mState.addParameterListener (paramInputReverbPreDelay, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -1921,17 +1941,25 @@ bool SonobusAudioProcessor::getInputGroupSoloed(int changroup)
 
 
 
-void SonobusAudioProcessor::setInputReverbSend(int changroup, float rgain)
+void SonobusAudioProcessor::setInputReverbSend(int changroup, float rgain, bool input)
 {
     if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
-        mInputChannelGroups[changroup].params.reverbSend = rgain;
+        if (input) {
+            mInputChannelGroups[changroup].params.inReverbSend = rgain;
+        } else {
+            mInputChannelGroups[changroup].params.monReverbSend = rgain;
+        }
     }
 }
 
-float SonobusAudioProcessor::getInputReverbSend(int changroup)
+float SonobusAudioProcessor::getInputReverbSend(int changroup, bool input)
 {
     if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
-        return mInputChannelGroups[changroup].params.reverbSend;
+        if (input) {
+            return mInputChannelGroups[changroup].params.inReverbSend;
+        } else {
+            return mInputChannelGroups[changroup].params.monReverbSend;
+        }
     }
     return 0.0f;
 }
@@ -4346,7 +4374,7 @@ void SonobusAudioProcessor::setRemotePeerChannelReverbSend(int index, int changr
     const ScopedReadLock sl (mCoreLock);
     if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        remote->chanGroups[changroup].params.reverbSend = rgain;
+        remote->chanGroups[changroup].params.monReverbSend = rgain;
     }
 }
 
@@ -4357,7 +4385,7 @@ float SonobusAudioProcessor::getRemotePeerChannelReverbSend(int index, int chang
     const ScopedReadLock sl (mCoreLock);
     if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
-        revsend = remote->chanGroups[changroup].params.reverbSend;
+        revsend = remote->chanGroups[changroup].params.monReverbSend;
     }
     return revsend;
 }
@@ -6206,6 +6234,30 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
 
         mReverbParamsChanged = true;        
     }
+    else if (parameterID == paramInputReverbSize)
+    {
+        mInputReverbSize = newValue;
+
+        mInputReverb.setParameter(MVerbFloat::SIZE, jmap(mInputReverbSize.get(), 0.45f, 0.95f));
+        mInputReverb.setParameter(MVerbFloat::DECAY, jmap(mInputReverbSize.get(), 0.45f, 0.95f));
+    }
+    else if (parameterID == paramInputReverbLevel)
+    {
+        mInputReverbLevel = newValue;
+        mInputReverb.setParameter(MVerbFloat::GAIN, jmap(mInputReverbLevel.get(), 0.0f, 0.8f));
+    }
+    else if (parameterID == paramInputReverbDamping)
+    {
+        mInputReverbDamping = newValue;
+        mInputReverb.setParameter(MVerbFloat::DAMPINGFREQ, jmap(mInputReverbDamping.get(), 0.0f, 0.85f));
+
+    }
+    else if (parameterID == paramInputReverbPreDelay)
+    {
+        mInputReverbPreDelay = newValue;
+        mInputReverb.setParameter(MVerbFloat::PREDELAY, jmap(mInputReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
+    }
+
     else if (parameterID == paramSendFileAudio) {
         mSendPlaybackAudio = newValue > 0;
 
@@ -6441,7 +6493,8 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mMetronome->setSampleRate(sampleRate);
     mMainReverb->setSampleRate(sampleRate);
     mMReverb.setSampleRate(sampleRate);
-    
+    mInputReverb.setSampleRate(sampleRate);
+
     mZitaReverb.init(sampleRate);
     mZitaReverb.buildUserInterface(&mZitaControl);
 
@@ -6474,6 +6527,18 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mMReverb.setParameter(MVerbFloat::DAMPINGFREQ, jmap(mMainReverbDamping.get(), 0.0f, 0.85f));                
     mMReverb.setParameter(MVerbFloat::BANDWIDTHFREQ, 1.0f);
     mMReverb.setParameter(MVerbFloat::DENSITY, 0.5f);
+
+
+    mInputReverb.setParameter(MVerbFloat::MIX, 1.0f); // full wet
+    mInputReverb.setParameter(MVerbFloat::GAIN, jmap(mInputReverbLevel.get(), 0.0f, 0.8f));
+    mInputReverb.setParameter(MVerbFloat::SIZE, jmap(mInputReverbSize.get(), 0.45f, 0.95f));
+    mInputReverb.setParameter(MVerbFloat::DECAY, jmap(mInputReverbSize.get(), 0.45f, 0.95f));
+    mInputReverb.setParameter(MVerbFloat::EARLYMIX, 0.75f);
+    mInputReverb.setParameter(MVerbFloat::PREDELAY, jmap(mInputReverbPreDelay.get(), 0.0f, 100.0f, 0.0f, 0.5f)); // takes 0->1  where = 200ms
+    mInputReverb.setParameter(MVerbFloat::DAMPINGFREQ, mInputReverbDamping.get());
+    mInputReverb.setParameter(MVerbFloat::DAMPINGFREQ, jmap(mInputReverbDamping.get(), 0.0f, 0.85f));
+    mInputReverb.setParameter(MVerbFloat::BANDWIDTHFREQ, 1.0f);
+    mInputReverb.setParameter(MVerbFloat::DENSITY, 0.5f);
 
     
     mMainReverbParams.roomSize = jmap(mMainReverbSize.get(), 0.55f, 1.0f);
@@ -6796,6 +6861,9 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
     if (mainFxBuffer.getNumSamples() < numSamples || mainFxBuffer.getNumChannels() != maxchans) {
         mainFxBuffer.setSize(maxchans, numSamples, false, false, true);
     }
+    if (inputRevBuffer.getNumSamples() < numSamples || inputRevBuffer.getNumChannels() != maxchans) {
+        inputRevBuffer.setSize(maxchans, numSamples, false, false, true);
+    }
     if (silentBuffer.getNumSamples() < numSamples) {
         silentBuffer.setSize(1, numSamples, false, false, true);
         silentBuffer.clear();
@@ -6947,11 +7015,31 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         inputPreBuffer.clear(0, numSamples);
     }
 
+    bool inReverbEnabled = false;
+    for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i)
+    {
+        if (mInputChannelGroups[i].params.inReverbSend > 0.0f) {
+            inReverbEnabled = true;
+            break;
+        }
+    }
+
+    bool doinreverb = inReverbEnabled || mLastInputReverbEnabled;
+    int revfxchannels = 2;
+
+    if (doinreverb) {
+        inputRevBuffer.clear(0, numSamples);
+    }
+
+
     // Input Gain and FX processing
     int destch = 0;
     for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i)
     {
-        mInputChannelGroups[i].processBlock(buffer, inputPostBuffer, destch, mInputChannelGroups[i].params.numChannels, silentBuffer, numSamples, inGain);
+        auto * revbuf = doinreverb ? &inputRevBuffer : nullptr;
+
+        mInputChannelGroups[i].processBlock(buffer, inputPostBuffer, destch, mInputChannelGroups[i].params.numChannels, silentBuffer, numSamples, inGain,
+                                            nullptr, revbuf, 0, revfxchannels, inReverbEnabled);
 
         if (writingpossible && mRecordInputPreFX) {
             // copy input as-is for later recording
@@ -7195,6 +7283,33 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     mLastMetEnabled = metenabled;
 
 
+    // process and mix in input reverb into sendworkbuffer (if sending mono or stereo)
+    if (doinreverb) {
+
+        if (inReverbEnabled != mLastInputReverbEnabled && inReverbEnabled) {
+            mInputReverb.reset();
+        }
+
+        mInputReverb.process(inputRevBuffer.getArrayOfWritePointers(), inputRevBuffer.getArrayOfWritePointers(), numSamples);
+
+        if (inReverbEnabled != mLastInputReverbEnabled ) {
+            float sgain = inReverbEnabled ? 0.0f : 1.0f;
+            float egain = inReverbEnabled ? 1.0f : 0.0f;
+
+            inputRevBuffer.applyGainRamp(0, numSamples, sgain, egain);
+        }
+
+        if (sendCh == 1 || sendCh == 2) {
+            // mix it into send workbuffer
+            for (int channel = 0; channel < sendPanChannels && channel < 2; ++channel) {
+                sendWorkBuffer.addFrom(channel, 0, inputRevBuffer, channel, 0, numSamples);
+            }
+        }
+    }
+
+    mLastInputReverbEnabled = inReverbEnabled;
+
+
     // send meter post panning (and post file and met)
     sendMeterSource.measureBlock (sendWorkBuffer, 0, numSamples);
 
@@ -7370,7 +7485,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 remote->chanGroups[i].processPan(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, tempBuffer, dstch, dstcnt, numSamples, adjgain);
 
                 if (doreverb) {
-                    remote->chanGroups[i].processReverbSend(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, remote->chanGroups[i].params.numChannels, mainFxBuffer, 0, fxchannels, numSamples, mainReverbEnabled, adjgain);
+                    remote->chanGroups[i].processReverbSend(remote->workBuffer, remote->chanGroups[i].params.chanStartIndex, remote->chanGroups[i].params.numChannels, mainFxBuffer, 0, fxchannels, numSamples, mainReverbEnabled, false, adjgain);
                 }
 
             }
@@ -7617,7 +7732,26 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             buffer.addFrom(channel, 0, mainFxBuffer, channel, 0, numSamples);
         }        
     }
-    
+
+
+    // mix input reverb into main buffer
+    if (doinreverb) {
+        for (int channel = 0; channel < mainBusOutputChannels && channel < 2; ++channel) {
+            if (drynow > 0.0f || dryrampit) {
+                // attenuate reverb with monitor level if used
+                if (dryrampit) {
+                    buffer.addFromWithRamp(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
+                }
+                else {
+                    buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, drynow);
+                }
+            }
+            else if (inrevdirect) {
+                // add the full input reverb to mix, if monitoring is off
+                buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples);
+            }
+        }
+    }
 
     // add from file playback buffer
     if (hasfiledata) {
@@ -7739,14 +7873,26 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                         // copy input with monitor gain if > 0
                         if (dryrampit) {
                             workBuffer.addFromWithRamp(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, mLastDry, drynow);
+
+                            if (doinreverb && channel < 2) {
+                                workBuffer.addFromWithRamp(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
+                            }
                         }
                         else {
                             workBuffer.addFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples, drynow);
+
+                            if (doinreverb && channel < 2) {
+                                workBuffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(usechan), numSamples, drynow);
+                            }
                         }
                     }
                     else if (!anysoloed || mMainMonitorSolo.get()) {
                         // monitoring is off, we just mix it into written file at full volume, as long as no one else is soloed
                         workBuffer.addFrom(channel, 0, inputBuffer.getReadPointer(usechan), numSamples);
+
+                        if (doinreverb && channel < 2) {
+                            workBuffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(usechan), numSamples);
+                        }
                     }
 
                 }
@@ -8591,6 +8737,23 @@ void  SonobusAudioProcessor::setMainReverbPreDelay(float valuemsec)
 {
     mState.getParameter(paramMainReverbPreDelay)->setValueNotifyingHost(mState.getParameter(paramMainReverbPreDelay)->convertTo0to1(valuemsec));
 }
+
+void  SonobusAudioProcessor::setInputReverbWetLevel(float level)
+{
+    mState.getParameter(paramInputReverbLevel)->setValueNotifyingHost(level);
+}
+
+
+void  SonobusAudioProcessor::setInputReverbSize(float value)
+{
+    mState.getParameter(paramInputReverbSize)->setValueNotifyingHost(value);
+}
+
+void  SonobusAudioProcessor::setInputReverbPreDelay(float valuemsec)
+{
+    mState.getParameter(paramInputReverbPreDelay)->setValueNotifyingHost(mState.getParameter(paramInputReverbPreDelay)->convertTo0to1(valuemsec));
+}
+
 
 
 void SonobusAudioProcessor::setMainReverbModel(ReverbModel flag) 

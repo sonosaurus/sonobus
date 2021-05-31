@@ -16,6 +16,7 @@
 #include "ParametricEqView.h"
 #include "MonitorDelayView.h"
 #include "ReverbSendView.h"
+#include "ReverbView.h"
 
 class ChannelGroupEffectsView :
 public Component,
@@ -161,6 +162,60 @@ protected:
     juce::Rectangle<int> minBounds;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChannelGroupMonitorEffectsView)
+
+};
+
+class ChannelGroupReverbEffectsView :
+public Component,
+public ReverbView::Listener,
+public EffectsBaseView::HeaderListener
+{
+public:
+    ChannelGroupReverbEffectsView(SonobusAudioProcessor& proc);
+    virtual ~ChannelGroupReverbEffectsView();
+
+
+    class Listener {
+    public:
+        virtual ~Listener() {}
+        virtual void reverbEffectsEnableChanged(ChannelGroupReverbEffectsView *comp) {}
+    };
+
+    void addListener(Listener * listener) { listeners.add(listener); }
+    void removeListener(Listener * listener) { listeners.remove(listener); }
+
+
+    juce::Rectangle<int> getMinimumContentBounds() const;
+
+
+    void updateState();
+
+    void updateLayout();
+
+    void resized() override;
+
+    //void reverbSendLevelChanged(ReverbSendView *comp, float revlevel) override;
+
+    void effectsHeaderClicked(EffectsBaseView *comp) override;
+
+    bool firstShow = true;
+
+protected:
+
+    SonobusAudioProcessor& processor;
+
+    ListenerList<Listener> listeners;
+
+    std::unique_ptr<ConcertinaPanel> effectsConcertina;
+
+    std::unique_ptr<ReverbView> reverbView;
+
+
+    FlexBox effectsBox;
+
+    juce::Rectangle<int> minBounds;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChannelGroupReverbEffectsView)
 
 };
 
@@ -345,6 +400,7 @@ protected:
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth);
     void showEffects(int index, bool flag, Component * fromView=nullptr);
     void showMonitorEffects(int index, bool flag, Component * fromView=nullptr);
+    void showInputReverbView(bool flag, Component * fromView=nullptr);
 
     int getChanGroupFromIndex(int index);
     juce::Rectangle<int> getBoundsForChanGroup(int chgroup);
@@ -365,11 +421,14 @@ protected:
 
     std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
     std::unique_ptr<ChannelGroupMonitorEffectsView> mMonEffectsView;
+    std::unique_ptr<ChannelGroupReverbEffectsView> mInputReverbView;
+
 
 
     std::unique_ptr<Slider> mInGainSlider;
     std::unique_ptr<TextButton> mAddButton;
     std::unique_ptr<TextButton> mClearButton;
+    std::unique_ptr<TextButton> mInReverbButton;
 
     std::unique_ptr<DrawableRectangle> mInsertLine;
     std::unique_ptr<DrawableImage> mDragDrawable;
@@ -385,6 +444,7 @@ protected:
 
     WeakReference<Component> effectsCalloutBox;
     WeakReference<Component> monEffectsCalloutBox;
+    WeakReference<Component> inReverbCalloutBox;
 
     FlexBox channelsBox;
     FlexBox addrowBox;

@@ -42,24 +42,20 @@ ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bo
     eqView->addListener(this);
     eqView->addHeaderListener(this);
 
-    reverbSendView =  std::make_unique<ReverbSendView>(processor, true);
+    reverbSendView =  std::make_unique<ReverbSendView>(processor, false, true);
     reverbSendView->addListener(this);
     reverbSendView->addHeaderListener(this);
 
     effectsConcertina->addPanel(-1, expanderView.get(), false);
     effectsConcertina->addPanel(-1, compressorView.get(), false);
     effectsConcertina->addPanel(-1, eqView.get(), false);
-    if (peerMode) {
-        effectsConcertina->addPanel(-1, reverbSendView.get(), false);
-    }
+    effectsConcertina->addPanel(-1, reverbSendView.get(), false);
 
     effectsConcertina->setCustomPanelHeader(compressorView.get(), compressorView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(expanderView.get(), expanderView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(eqView.get(), eqView->getHeaderComponent(), false);
 
-    if (peerMode) {
-        effectsConcertina->setCustomPanelHeader(reverbSendView.get(), reverbSendView->getHeaderComponent(), false);
-    }
+    effectsConcertina->setCustomPanelHeader(reverbSendView.get(), reverbSendView->getHeaderComponent(), false);
 
     addAndMakeVisible (effectsConcertina.get());
 
@@ -80,12 +76,7 @@ juce::Rectangle<int> ChannelGroupEffectsView::getMinimumContentBounds() const {
     int defWidth = jmax(minbounds.getWidth(), minexpbounds.getWidth(), mineqbounds.getWidth(), minrevbounds.getWidth()) + 12;
     int defHeight = 0;
 
-    if (peerMode) {
-        defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight(), minrevbounds.getHeight()) + 4*headbounds.getHeight() + 8;
-    } else {
-        // don't include reverb send in input mode
-        defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight()) + 3*headbounds.getHeight() + 8;
-    }
+    defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight(), minrevbounds.getHeight()) + 4*headbounds.getHeight() + 8;
 
     return Rectangle<int>(0,0,defWidth,defHeight);
 }
@@ -159,10 +150,7 @@ void ChannelGroupEffectsView::updateStateForInput()
         eqView->updateParams(eqparams);
     }
 
-    if (reverbSendView->isVisible()) {
-        reverbSendView->setVisible(false);
-        reverbSendView->getHeaderComponent()->setVisible(false);
-    }
+    reverbSendView->updateParams(processor.getInputReverbSend(groupIndex, true));
 
     if (firstShow) {
         if (eqparams.enabled && !(compParams.enabled || expParams.enabled)) {
@@ -195,7 +183,7 @@ void ChannelGroupEffectsView::updateLayout()
     auto minrevbounds = reverbSendView->getMinimumContentBounds();
     auto minrevheadbounds = reverbSendView->getMinimumHeaderBounds();
 
-    int gcount = peerMode ? 4 : 3;
+    int gcount = 4 ;
 
     effectsBox.items.clear();
     effectsBox.flexDirection = FlexBox::Direction::column;
@@ -206,17 +194,13 @@ void ChannelGroupEffectsView::updateLayout()
     effectsConcertina->setPanelHeaderSize(expanderView.get(), minexpheadbounds.getHeight());
     effectsConcertina->setPanelHeaderSize(eqView.get(), mineqheadbounds.getHeight());
 
-    if (peerMode) {
-        effectsConcertina->setPanelHeaderSize(reverbSendView.get(), minrevheadbounds.getHeight());
-    }
+    effectsConcertina->setPanelHeaderSize(reverbSendView.get(), minrevheadbounds.getHeight());
 
     effectsConcertina->setMaximumPanelSize(compressorView.get(), mincompbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(expanderView.get(), minexpbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(eqView.get(), mineqbounds.getHeight());
 
-    if (peerMode) {
-        effectsConcertina->setMaximumPanelSize(reverbSendView.get(), minrevbounds.getHeight());
-    }
+    effectsConcertina->setMaximumPanelSize(reverbSendView.get(), minrevbounds.getHeight());
 
 }
 
@@ -304,7 +288,8 @@ void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float
         processor.setRemotePeerChannelReverbSend(peerIndex, groupIndex, revlevel);
     }
     else {
-        //processor.setInputReverbSend(groupIndex, revlevel);
+        // input mode
+        processor.setInputReverbSend(groupIndex, revlevel, true);
     }
 }
 
@@ -479,7 +464,7 @@ void ChannelGroupMonitorEffectsView::updateStateForInput()
         if (processor.getInputMonitorDelayParams(groupIndex, monDelayParams)) {
             delayView->updateParams(monDelayParams);
         }
-        reverbSendView->updateParams(processor.getInputReverbSend(groupIndex));
+        reverbSendView->updateParams(processor.getInputReverbSend(groupIndex, false));
 
         if (!reverbSendView->isVisible()) {
             reverbSendView->setVisible(true);
@@ -535,7 +520,7 @@ void ChannelGroupMonitorEffectsView::reverbSendLevelChanged(ReverbSendView *comp
         processor.setRemotePeerChannelReverbSend(peerIndex, groupIndex, revlevel);
     }
     else {
-        processor.setInputReverbSend(groupIndex, revlevel);
+        processor.setInputReverbSend(groupIndex, revlevel, false);
     }
 }
 
@@ -642,6 +627,107 @@ void ChannelGroupMonitorEffectsView::effectsHeaderClicked(EffectsBaseView *comp)
             listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
         }
     }
+}
+
+#pragma ChannelGroupReverbEffectsView
+
+ChannelGroupReverbEffectsView::ChannelGroupReverbEffectsView(SonobusAudioProcessor& proc)
+: Component(), processor(proc)
+{
+    effectsConcertina =  std::make_unique<ConcertinaPanel>();
+
+    reverbView =  std::make_unique<ReverbView>(processor, true);
+    reverbView->addListener(this);
+    //reverbSendView->addHeaderListener(this);
+
+
+    effectsConcertina->addPanel(-1, reverbView.get(), false);
+    effectsConcertina->setCustomPanelHeader(reverbView.get(), reverbView->getHeaderComponent(), false);
+
+
+    addAndMakeVisible (effectsConcertina.get());
+
+    setFocusContainerType(FocusContainerType::focusContainer);
+
+    updateLayout();
+}
+
+ChannelGroupReverbEffectsView::~ChannelGroupReverbEffectsView()
+{
+}
+
+juce::Rectangle<int> ChannelGroupReverbEffectsView::getMinimumContentBounds() const {
+    auto minrevbounds = reverbView->getMinimumContentBounds();
+    auto headrevbounds = reverbView->getMinimumHeaderBounds();
+
+
+    int defWidth = jmax(minrevbounds.getWidth(), 0) + 12;
+    int defHeight = 0;
+
+    defHeight = jmax(minrevbounds.getHeight() , 0) + headrevbounds.getHeight() + 8;
+
+    return Rectangle<int>(0,0,defWidth,defHeight);
+}
+
+
+void ChannelGroupReverbEffectsView::updateState()
+{
+    reverbView->updateParams();
+
+    if (firstShow) {
+        effectsConcertina->setPanelSize(reverbView.get(), 0, false);
+        firstShow = false;
+    }
+}
+
+
+
+
+void ChannelGroupReverbEffectsView::updateLayout()
+{
+    int minitemheight = 32;
+#if JUCE_IOS || JUCE_ANDROID
+    // make the button heights a bit more for touchscreen purposes
+    minitemheight = 40;
+#endif
+
+    auto minrevbounds = reverbView->getMinimumContentBounds();
+    auto minrevheadbounds = reverbView->getMinimumHeaderBounds();
+    int gcount = 1;
+
+
+    effectsBox.items.clear();
+    effectsBox.flexDirection = FlexBox::Direction::column;
+    effectsBox.items.add(FlexItem(4, 2));
+    effectsBox.items.add(FlexItem(minrevbounds.getWidth(), jmax(minrevbounds.getHeight(), 0) + gcount*minitemheight, *effectsConcertina).withMargin(1).withFlex(1));
+
+    effectsConcertina->setPanelHeaderSize(reverbView.get(), minrevheadbounds.getHeight());
+
+    effectsConcertina->setMaximumPanelSize(reverbView.get(), minrevbounds.getHeight());
+
+}
+
+void ChannelGroupReverbEffectsView::resized()  {
+
+    effectsBox.performLayout(getLocalBounds().reduced(2, 2));
+
+}
+
+
+
+
+void ChannelGroupReverbEffectsView::effectsHeaderClicked(EffectsBaseView *comp)
+{
+    /*
+    if (comp == reverbView.get()) {
+        bool changed = effectsConcertina->setPanelSize(reverbView.get(), 0, true);
+
+
+        updateState();
+
+        //listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
+    }
+     */
 }
 
 
@@ -756,6 +842,18 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
     //mClearButton->setLookAndFeel(&addLnf);
     mClearButton->setTooltip(TRANS("Remove all input groups"));
     addChildComponent(mClearButton.get());
+
+    mInReverbButton = std::make_unique<TextButton>(TRANS("In Reverb"));
+    //mClearButton->setLookAndFeel(&addLnf);
+    mInReverbButton->setTooltip(TRANS("Configure input reverb parameters"));
+    addChildComponent(mInReverbButton.get());
+    mInReverbButton->onClick = [this]() {
+        if (!inReverbCalloutBox) {
+            showInputReverbView(true);
+        } else {
+            showInputReverbView(false);
+        }
+    };
 
     mInsertLine = std::make_unique<DrawableRectangle>();
     //mInsertLine->setCornerSize(Point<float>(6,6));
@@ -2061,6 +2159,8 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
     addrowBox.items.add(FlexItem(4, 2).withMargin(0));
     addrowBox.items.add(FlexItem(linkbuttwidth, addrowheight, *mAddButton).withMargin(0).withFlex(0));
     addrowBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(1));
+    addrowBox.items.add(FlexItem(minButtonWidth, addrowheight, *mInReverbButton).withMargin(0).withFlex(0));
+    addrowBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(1));
     addrowBox.items.add(FlexItem(mutebuttwidth, addrowheight, *mClearButton).withMargin(0).withFlex(0));
     addrowBox.items.add(FlexItem(4, 2).withMargin(0));
 
@@ -2391,11 +2491,13 @@ void ChannelGroupsView::updateChannelViews(int specific)
 
         mAddButton->setVisible(false);
         mClearButton->setVisible(false);
+        mInReverbButton->setVisible(false);
     } else {
         updateInputModeChannelViews(specific);
 
         mAddButton->setVisible(true);
         mClearButton->setVisible(true);
+        mInReverbButton->setVisible(true);
     }
 }
 
@@ -3846,6 +3948,82 @@ void ChannelGroupsView::showMonitorEffects(int index, bool flag, Component * fro
         }
     }
 }
+
+void ChannelGroupsView::showInputReverbView(bool flag, Component * fromView)
+{
+    if (flag && inReverbCalloutBox == nullptr) {
+
+        if (!fromView) {
+            fromView = mInReverbButton.get();
+        }
+
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();
+
+        if (!dw) {
+            dw = this->findParentComponentOfClass<AudioProcessorEditor>();
+        }
+        if (!dw) {
+            dw = this->findParentComponentOfClass<Component>();
+        }
+        if (!dw) {
+            dw = this;
+        }
+
+        int defWidth = 260;
+#if JUCE_IOS || JUCE_ANDROID
+        int defHeight = 180;
+#else
+        int defHeight = 156;
+#endif
+
+        if (!mInputReverbView) {
+            mInputReverbView = std::make_unique<ChannelGroupReverbEffectsView>(processor);
+            //mInputReverbView->addListener(this);
+        }
+
+
+        auto minbounds = mInputReverbView->getMinimumContentBounds();
+        defWidth = minbounds.getWidth();
+        defHeight = minbounds.getHeight();
+
+
+        int extrawidth = 0;
+        if (defHeight > dw->getHeight() - 24) {
+            extrawidth = wrap->getScrollBarThickness() + 1;
+        }
+
+        wrap->setSize(jmin(defWidth + extrawidth, dw->getWidth() - 10), jmin(defHeight, dw->getHeight() - 24));
+
+
+        mInputReverbView->updateLayout();
+
+        mInputReverbView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        mInputReverbView->updateState();
+
+        wrap->setViewedComponent(mInputReverbView.get(), false);
+        mInputReverbView->setVisible(true);
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView->getScreenBounds());
+        DBG("in reverb callout bounds: " << bounds.toString());
+        inReverbCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(inReverbCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+        inReverbCalloutBox->grabKeyboardFocus();
+
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(inReverbCalloutBox.get())) {
+            box->dismiss();
+            inReverbCalloutBox = nullptr;
+        }
+    }
+}
+
 
 
 void ChannelGroupsView::mouseDown (const MouseEvent& event)

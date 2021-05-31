@@ -9,7 +9,8 @@ static String nameKey("name");
 static String gainKey("gain");
 static String channelStartIndexKey("chanstart");
 static String numChannelsKey("numchan");
-static String reverbSendKey("reverbsend");
+static String monReverbSendKey("monreverbsend");
+static String inReverbSendKey("inreverbsend");
 static String monitorLevelKey("monitorlev");
 static String peerMonoPanKey("pan");
 static String peerPan1Key("span1");
@@ -201,11 +202,13 @@ void ChannelGroup::setMonitoringDelayTimeMs(double delayms)
 void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer,
                                  AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
                                  AudioBuffer<float>& silentBuffer,
-                                 int numSamples, float gainfactor, ProcessState * oprocstate)
+                                 int numSamples, float gainfactor, ProcessState * oprocstate,
+                                 AudioBuffer<float> * reverbbuffer, int revStartChan, int revNumChans, bool revEnabled, float revgainfactor, ProcessState * orevprocstate)
 {
     // called from audio thread context
 
     auto & procstate = oprocstate != nullptr ? *oprocstate : mainProcState;
+    auto & revprocstate = orevprocstate != nullptr ? *orevprocstate : inRevProcState;
 
     int chstart = params.chanStartIndex;
     int numchan = params.numChannels;
@@ -233,80 +236,83 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer,
     procstate.lastlevel = dogain;
 
     // these all operate ONLY when the channel group has 1 or 2 channels (and when the effects have been initialized)
-    if (params.numChannels <= 0 || params.numChannels > 2 || !compressor) {
-        return;
-    }
-
-    // apply input expander
-    if (expanderParamsChanged) {
-        commitExpanderParams();
-        expanderParamsChanged = false;
-    }
-    if (_lastExpanderEnabled || params.expanderParams.enabled) {
-        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
-            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            expander->compute(numSamples, bufs, bufs);
-        } else if (destStartChan < tobufNumChan) {
-            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
-            expander->compute(numSamples, bufs, bufs);
+    if (params.numChannels > 0 && params.numChannels <= 2 && compressor)
+    {
+        // apply input expander
+        if (expanderParamsChanged) {
+            commitExpanderParams();
+            expanderParamsChanged = false;
         }
-    }
-    _lastExpanderEnabled = params.expanderParams.enabled;
-
-
-    // apply input compressor
-    if (compressorParamsChanged) {
-        commitCompressorParams();
-        compressorParamsChanged = false;
-    }
-    if (_lastCompressorEnabled || params.compressorParams.enabled) {
-        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
-            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            compressor->compute(numSamples, bufs, bufs);
-        } else if (destStartChan < tobufNumChan) {
-            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
-            compressor->compute(numSamples, bufs, bufs);
+        if (_lastExpanderEnabled || params.expanderParams.enabled) {
+            if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
+                float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+                expander->compute(numSamples, bufs, bufs);
+            } else if (destStartChan < tobufNumChan) {
+                float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
+                expander->compute(numSamples, bufs, bufs);
+            }
         }
-    }
-    _lastCompressorEnabled = params.compressorParams.enabled;
+        _lastExpanderEnabled = params.expanderParams.enabled;
 
 
-    // apply input EQ
-    if (eqParamsChanged) {
-        commitEqParams();
-        eqParamsChanged = false;
-    }
-    if (_lastEqEnabled || params.eqParams.enabled) {
-        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
-            // only 2 channels support for now... TODO
-            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            eq[0]->compute(numSamples, &bufs[0], &bufs[0]);
-            eq[1]->compute(numSamples, &bufs[1], &bufs[1]);
-        } else if (destStartChan < tobufNumChan) {
-            float *inbuf = tobuffer.getWritePointer(destStartChan);
-            float *outbuf = tobuffer.getWritePointer(destStartChan);
-            eq[0]->compute(numSamples, &inbuf, &outbuf);
+        // apply input compressor
+        if (compressorParamsChanged) {
+            commitCompressorParams();
+            compressorParamsChanged = false;
         }
-    }
-    _lastEqEnabled = params.eqParams.enabled;
-
-
-    // apply input limiter
-    if (limiterParamsChanged) {
-        commitLimiterParams();
-        limiterParamsChanged = false;
-    }
-    if (_lastLimiterEnabled || params.limiterParams.enabled) {
-        if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
-            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
-            limiter->compute(numSamples, bufs, bufs);
-        } else if (destStartChan < tobufNumChan) {
-            float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
-            limiter->compute(numSamples, bufs, bufs);
+        if (_lastCompressorEnabled || params.compressorParams.enabled) {
+            if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
+                float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+                compressor->compute(numSamples, bufs, bufs);
+            } else if (destStartChan < tobufNumChan) {
+                float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
+                compressor->compute(numSamples, bufs, bufs);
+            }
         }
-    }
-    _lastLimiterEnabled = params.limiterParams.enabled;
+        _lastCompressorEnabled = params.compressorParams.enabled;
 
+
+        // apply input EQ
+        if (eqParamsChanged) {
+            commitEqParams();
+            eqParamsChanged = false;
+        }
+        if (_lastEqEnabled || params.eqParams.enabled) {
+            if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
+                // only 2 channels support for now... TODO
+                float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+                eq[0]->compute(numSamples, &bufs[0], &bufs[0]);
+                eq[1]->compute(numSamples, &bufs[1], &bufs[1]);
+            } else if (destStartChan < tobufNumChan) {
+                float *inbuf = tobuffer.getWritePointer(destStartChan);
+                float *outbuf = tobuffer.getWritePointer(destStartChan);
+                eq[0]->compute(numSamples, &inbuf, &outbuf);
+            }
+        }
+        _lastEqEnabled = params.eqParams.enabled;
+
+
+        // apply input limiter
+        if (limiterParamsChanged) {
+            commitLimiterParams();
+            limiterParamsChanged = false;
+        }
+        if (_lastLimiterEnabled || params.limiterParams.enabled) {
+            if (tobufNumChan - destStartChan > 1 && numchan == 2 && destNumChans >= 2) {
+                float *bufs[2] = { tobuffer.getWritePointer(destStartChan), tobuffer.getWritePointer(destStartChan+1)};
+                limiter->compute(numSamples, bufs, bufs);
+            } else if (destStartChan < tobufNumChan) {
+                float *bufs[2] = { tobuffer.getWritePointer(destStartChan), silentBuffer.getWritePointer(0) }; // just a silent dummy buffer
+                limiter->compute(numSamples, bufs, bufs);
+            }
+        }
+        _lastLimiterEnabled = params.limiterParams.enabled;
+    }
+    
+    // apply to reverb buffer
+    if (reverbbuffer) {
+        processReverbSend(tobuffer, destStartChan, jmin(params.numChannels, destNumChans), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, true, revgainfactor, &revprocstate);
+    }
 }
 
 void ChannelGroup::processPan (AudioBuffer<float>& frombuffer, int fromStartChan,
@@ -523,7 +529,7 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
 
     // apply to reverb buffer
     if (reverbbuffer) {
-        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, targmon * revgainfactor, &revprocstate);
+        processReverbSend(*usefrombuffer, useFromStartChan, jmin(params.numChannels, useFromNumChan), *reverbbuffer, revStartChan, revNumChans, numSamples, revEnabled, false, targmon * revgainfactor, &revprocstate);
     }
 
     procstate.laststereopan[0] = params.panStereo[0];
@@ -538,14 +544,14 @@ void ChannelGroup::processMonitor (AudioBuffer<float>& frombuffer, int fromStart
 
 void ChannelGroup::processReverbSend (AudioBuffer<float>& frombuffer, int fromStartChan, int fromNumChans,
                                       AudioBuffer<float>& tobuffer, int destStartChan, int destNumChans,
-                                      int numSamples, bool revEnabled, float gainfactor, ProcessState * oprocstate)
+                                      int numSamples, bool revEnabled, bool inSend, float gainfactor,  ProcessState * oprocstate)
 {
     int fromMaxChans = frombuffer.getNumChannels();
     int destMaxChans = tobuffer.getNumChannels();
 
     auto & procstate = oprocstate != nullptr ? *oprocstate : revProcState;
 
-    const float targrevgain = gainfactor * params.reverbSend * (revEnabled ? 1.0f : 0.0f);
+    const float targrevgain = gainfactor * (inSend ? params.inReverbSend : params.monReverbSend) * (revEnabled ? 1.0f : 0.0f);
     const float lastrevgain = procstate.lastlevel;
 
     if (fromNumChans > 0 && destNumChans == 2) {
@@ -623,7 +629,8 @@ ValueTree ChannelGroupParams::getValueTree() const
 
     channelGroupTree.setProperty(peerPan1Key, panStereo[0], nullptr);
     channelGroupTree.setProperty(peerPan2Key, panStereo[1], nullptr);
-    channelGroupTree.setProperty(reverbSendKey, reverbSend, nullptr);
+    channelGroupTree.setProperty(monReverbSendKey, monReverbSend, nullptr);
+    channelGroupTree.setProperty(inReverbSendKey, inReverbSend, nullptr);
     channelGroupTree.setProperty(monitorLevelKey, monitor, nullptr);
 
     channelGroupTree.setProperty(monDestStartKey, monDestStartIndex, nullptr);
@@ -663,7 +670,8 @@ void ChannelGroupParams::setFromValueTree(const ValueTree & channelGroupTree)
     //pan = channelGroupTree.getProperty(peerMonoPanKey, pan);
     panStereo[0] = channelGroupTree.getProperty(peerPan1Key, panStereo[0]);
     panStereo[1] = channelGroupTree.getProperty(peerPan2Key, panStereo[1]);
-    reverbSend = channelGroupTree.getProperty(reverbSendKey, reverbSend);
+    monReverbSend = channelGroupTree.getProperty(monReverbSendKey, monReverbSend);
+    inReverbSend = channelGroupTree.getProperty(inReverbSendKey, inReverbSend);
     monitor = channelGroupTree.getProperty(monitorLevelKey, monitor);
 
     panDestStartIndex = channelGroupTree.getProperty(panDestStartKey, panDestStartIndex);
