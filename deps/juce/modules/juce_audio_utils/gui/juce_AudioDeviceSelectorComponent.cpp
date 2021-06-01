@@ -120,7 +120,7 @@ public:
             auto item = items[row];
             bool enabled = deviceManager.isMidiInputDeviceEnabled (item.identifier);
             if (enabled)
-                return item.name + "," + TRANS("selected");
+                return item.name + "," + TRANS("active");
             else
                 return item.name;
         }
@@ -831,7 +831,7 @@ public:
                 }
 
                 if (enabled)
-                    return items[row] + ", " + TRANS("selected") ;
+                    return items[row] + ", " + TRANS("active") ;
                 else
                     return items[row];
             }
