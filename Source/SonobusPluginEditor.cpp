@@ -1234,9 +1234,11 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 #if (JUCE_WINDOWS || JUCE_LINUX)
         mMenuBar = std::make_unique<MenuBarComponent>(menuBarModel.get());
+        mMenuBar->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+        mMenuBar->setWantsKeyboardFocus(true);
         addAndMakeVisible(mMenuBar.get());
 #endif
-        
+
         // look for link in clipboard        
         if (mConnectView->attemptToPasteConnectionFromClipboard()) {
             // show connect immediately
