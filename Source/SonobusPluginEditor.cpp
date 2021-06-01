@@ -1234,7 +1234,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 #if (JUCE_WINDOWS || JUCE_LINUX)
         mMenuBar = std::make_unique<MenuBarComponent>(menuBarModel.get());
-        mMenuBar->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+        //mMenuBar->setFocusContainerType(FocusContainerType::keyboardFocusContainer);
         mMenuBar->setWantsKeyboardFocus(true);
         addAndMakeVisible(mMenuBar.get());
 #endif
