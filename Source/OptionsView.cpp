@@ -86,6 +86,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mBufferTimeSlider->setTextBoxIsEditable(true);
     mBufferTimeSlider->setScrollWheelEnabled(false);
     mBufferTimeSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
+    mBufferTimeSlider->setWantsKeyboardFocus(true);
 
     mBufferTimeSlider->setTooltip(TRANS("This controls controls the default jitter buffer size to start with. When using the Auto modes, it is recommended to keep the value at the minimum so it starts from the lowest possible value. Generally you will only want to set this higher if you are using a Manual mode default which is not recommended."));
 
@@ -101,6 +102,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutosizeDefaultChoice->setTooltip(TRANS("This controls how the jitter buffers are automatically adjusted based on network conditions. The Auto mode is the recommended choice as it will adjust the jitter buffers up or down based on current conditions. The Auto-Up will only make the buffers larger. The Initial Auto will do an initial adjustment from the smallest value and once it stabilizes will no longer change, even if network conditions worsen. Manual will let you set the jitter buffer manually, leaving it up to you to deal with if network conditions change, but can be useful with known users."));
 
     mOptionsFormatChoiceDefaultChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsFormatChoiceDefaultChoice->setTitle(TRANS("Default Send Quality:"));
+
     mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
@@ -121,6 +124,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
 
     mOptionsLanguageChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsLanguageChoice->setTitle(TRANS("Language"));
     mOptionsLanguageChoice->addChoiceListener(this);
     auto overridelang = processor.getLanguageOverrideCode();
     int langsel = -1;
@@ -256,6 +260,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsDefaultLevelSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 80, 18);
     mOptionsDefaultLevelSlider->setTextBoxIsEditable(true);
     //mOptionsDefaultLevelSlider->setSliderStyle(Slider::SliderStyle::LinearBar);
+    mOptionsDefaultLevelSlider->setWantsKeyboardFocus(true);
 
     mDefaultLevelAttachment =  std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDefaultPeerLevel, *mOptionsDefaultLevelSlider);
 
@@ -278,6 +283,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutoDropThreshSlider->setTextBoxIsEditable(false);
     mOptionsAutoDropThreshSlider->setScrollWheelEnabled(false);
     mOptionsAutoDropThreshSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
+    mOptionsAutoDropThreshSlider->setWantsKeyboardFocus(true);
 
     mOptionsAutoDropThreshSlider->onValueChange = [this]() {
         auto thresh = 1.0 / jmax(1.0, mOptionsAutoDropThreshSlider->getValue());
