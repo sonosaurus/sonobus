@@ -729,7 +729,7 @@ public:
     {
         auto state = AccessibilityHandler::getCurrentState();
 
-        if (button.getClickingTogglesState())
+        if (button.getClickingTogglesState() || button.getRadioGroupId() != 0)
         {
             state = state.withCheckable();
 
