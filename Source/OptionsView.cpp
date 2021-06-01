@@ -448,8 +448,13 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mSettingsTab->getTabbedButtonBar().setWantsKeyboardFocus(true);
     mSettingsTab->setWantsKeyboardFocus(true);
     for (int i=0; i < mSettingsTab->getTabbedButtonBar().getNumTabs(); ++i) {
-        mSettingsTab->getTabbedButtonBar().getTabButton(i)->setWantsKeyboardFocus(true);
-        mSettingsTab->getTabContentComponent(i)->setFocusContainerType(FocusContainerType::focusContainer);
+        if (auto tabbut = mSettingsTab->getTabbedButtonBar().getTabButton(i)) {
+            tabbut->setRadioGroupId(3);
+            tabbut->setWantsKeyboardFocus(true);
+        }
+        if (auto tabcomp = mSettingsTab->getTabContentComponent(i)) {
+            tabcomp->setFocusContainerType(FocusContainerType::focusContainer);
+        }
     }
 
     updateLayout();
@@ -1184,6 +1189,7 @@ void OptionsView::showPopTip(const String & message, int timeoutMs, Component * 
         popTip->showAt(topbox, text, timeoutMs);
     }
     popTip->toFront(false);
+    AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::high);
 }
 
 void OptionsView::paint(Graphics & g)

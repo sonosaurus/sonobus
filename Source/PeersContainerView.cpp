@@ -357,8 +357,9 @@ void PeersContainerView::showPopTip(const String & message, int timeoutMs, Compo
     // TODO make sure it is read for accessibility
     popTip->setWantsKeyboardFocus(true);
     popTip->setTitle(message);
-    popTip->setAccessible(true);
-    popTip->grabKeyboardFocus();
+    //popTip->setAccessible(true);
+    //popTip->grabKeyboardFocus();
+    AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::medium);
 }
 
 void PeersContainerView::paint(Graphics & g)
@@ -414,7 +415,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->latActiveButton->setColour(SonoTextButton::outlineColourId, Colours::transparentBlack);
     pvf->latActiveButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.4, 0.2, 0.4, 0.7));
     pvf->latActiveButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    pvf->latActiveButton->setClickingTogglesState(true);
+    pvf->latActiveButton->setClickingTogglesState(false);
     pvf->latActiveButton->setTriggeredOnMouseDown(false);
     pvf->latActiveButton->setLookAndFeel(&pvf->smallLnf);
     pvf->latActiveButton->addListener(this);
@@ -1659,6 +1660,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             processor.getRemotePeerLatencyInfo(i, latinfo);
 
             if (latinfo.legacy) {
+                pvf->latActiveButton->setToggleState(!pvf->latActiveButton->getToggleState(), dontSendNotification);
                 if (pvf->latActiveButton->getToggleState()) {
                     startLatencyTest(i);
                     //showPopTip(TRANS("Measuring actual round-trip latency"), 4000, pvf->latActiveButton.get(), 140);

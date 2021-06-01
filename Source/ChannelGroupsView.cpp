@@ -1076,6 +1076,7 @@ void ChannelGroupsView::showPopTip(const String & message, int timeoutMs, Compon
         popTip->showAt(topbox, text, timeoutMs);
     }
     popTip->toFront(false);
+    AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::high);
 }
 
 void ChannelGroupsView::paint(Graphics & g)

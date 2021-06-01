@@ -380,7 +380,10 @@ publicGroupsListModel(this)
     mConnectTab->getTabbedButtonBar().setWantsKeyboardFocus(true);
     mConnectTab->setWantsKeyboardFocus(true);
     for (int i=0; i < mConnectTab->getTabbedButtonBar().getNumTabs(); ++i) {
-        mConnectTab->getTabbedButtonBar().getTabButton(i)->setWantsKeyboardFocus(true);
+        if (auto tabbut = mConnectTab->getTabbedButtonBar().getTabButton(i)) {
+            tabbut->setWantsKeyboardFocus(true);
+            tabbut->setRadioGroupId(2);
+        }
     }
 
 
@@ -1435,6 +1438,7 @@ void ConnectView::showPopTip(const String & message, int timeoutMs, Component * 
         popTip->showAt(topbox, text, timeoutMs);
     }
     popTip->toFront(false);
+    AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::medium);
 }
 
 void ConnectView::paint(Graphics & g)
