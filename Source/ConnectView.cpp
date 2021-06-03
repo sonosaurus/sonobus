@@ -1438,7 +1438,7 @@ void ConnectView::showPopTip(const String & message, int timeoutMs, Component * 
         popTip->showAt(topbox, text, timeoutMs);
     }
     popTip->toFront(false);
-    AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::medium);
+    //AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::medium);
 }
 
 void ConnectView::paint(Graphics & g)
