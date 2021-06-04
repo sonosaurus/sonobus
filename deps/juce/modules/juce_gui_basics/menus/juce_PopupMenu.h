@@ -471,6 +471,7 @@ public:
         Options withParentComponent (Component* parentComponent) const;
         Options withPreferredPopupDirection (PopupDirection direction) const;
         Options withInitiallySelectedItem (int idOfItemToBeSelected) const;
+        Options withTitle(const String & title) const;
 
         //==============================================================================
         Component* getParentComponent() const noexcept               { return parentComponent; }
@@ -484,6 +485,7 @@ public:
         int getItemThatMustBeVisible() const noexcept                { return visibleItemID; }
         PopupDirection getPreferredPopupDirection() const noexcept   { return preferredPopupDirection; }
         int getInitiallySelectedItemId() const noexcept              { return initiallySelectedItemId; }
+        const String & getTitle() const noexcept { return title; }
 
     private:
         //==============================================================================
@@ -494,6 +496,7 @@ public:
         int visibleItemID = 0, minWidth = 0, minColumns = 1, maxColumns = 0, standardHeight = 0, initiallySelectedItemId = 0;
         bool isWatchingForDeletion = false;
         PopupDirection preferredPopupDirection = PopupDirection::downwards;
+        String title;
     };
 
     //==============================================================================

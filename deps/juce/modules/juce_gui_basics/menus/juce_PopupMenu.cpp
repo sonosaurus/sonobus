@@ -42,6 +42,7 @@ class MouseSourceState;
 struct MenuWindow;
 
 static bool canBeTriggered (const PopupMenu::Item& item) noexcept        { return item.isEnabled && item.itemID != 0 && ! item.isSectionHeader; }
+static bool canBeHighlighted(const PopupMenu::Item& item) noexcept { return item.itemID != 0 && !item.isSectionHeader; }
 static bool hasActiveSubMenu (const PopupMenu::Item& item) noexcept      { return item.isEnabled && item.subMenu != nullptr && item.subMenu->items.size() > 0; }
 
 //==============================================================================
@@ -147,7 +148,7 @@ struct ItemComponent  : public Component
 
     void setHighlighted (bool shouldBeHighlighted)
     {
-        shouldBeHighlighted = shouldBeHighlighted && item.isEnabled;
+        //shouldBeHighlighted = shouldBeHighlighted && item.isEnabled;
 
         if (isHighlighted != shouldBeHighlighted)
         {
@@ -186,7 +187,12 @@ private:
 
         String getTitle() const override
         {
-            return itemComponent.item.text;
+            auto tmpstr = itemComponent.item.shortcutKeyDescription.isNotEmpty() ? itemComponent.item.text + ", " + itemComponent.item.shortcutKeyDescription
+                : itemComponent.item.text;
+            if (!itemComponent.item.isEnabled) {
+                tmpstr += ", " + TRANS("disabled");
+            }
+            return tmpstr;
         }
 
         AccessibleState getCurrentState() const override
@@ -297,25 +303,28 @@ private:
 //==============================================================================
 struct MenuWindow  : public Component
 {
-    MenuWindow (const PopupMenu& menu, MenuWindow* parentWindow,
-                Options opts, bool alignToRectangle, bool shouldDismissOnMouseUp,
-                ApplicationCommandManager** manager, float parentScaleFactor = 1.0f)
-       : Component ("menu"),
-         parent (parentWindow),
-         options (std::move (opts)),
-         managerOfChosenCommand (manager),
-         componentAttachedTo (options.getTargetComponent()),
-         dismissOnMouseUp (shouldDismissOnMouseUp),
-         windowCreationTime (Time::getMillisecondCounter()),
-         lastFocusedTime (windowCreationTime),
-         timeEnteredCurrentChildComp (windowCreationTime),
-         scaleFactor (parentWindow != nullptr ? parentScaleFactor : 1.0f)
+    MenuWindow(const PopupMenu& menu, MenuWindow* parentWindow,
+        Options opts, bool alignToRectangle, bool shouldDismissOnMouseUp,
+        ApplicationCommandManager** manager, float parentScaleFactor = 1.0f)
+        : Component("menu"),
+        parent(parentWindow),
+        options(std::move(opts)),
+        managerOfChosenCommand(manager),
+        componentAttachedTo(options.getTargetComponent()),
+        dismissOnMouseUp(shouldDismissOnMouseUp),
+        windowCreationTime(Time::getMillisecondCounter()),
+        lastFocusedTime(windowCreationTime),
+        timeEnteredCurrentChildComp(windowCreationTime),
+        scaleFactor(parentWindow != nullptr ? parentScaleFactor : 1.0f)
     {
-        setWantsKeyboardFocus (false);
-        setMouseClickGrabsKeyboardFocus (false);
-        setAlwaysOnTop (true);
-        setFocusContainerType (FocusContainerType::focusContainer);
-
+        setWantsKeyboardFocus(false);
+        setMouseClickGrabsKeyboardFocus(false);
+        setAlwaysOnTop(true);
+        setFocusContainerType(FocusContainerType::focusContainer);
+        if (options.getTitle().isNotEmpty()) {
+            setTitle(options.getTitle());
+        }
+    
         setLookAndFeel (parent != nullptr ? &(parent->getLookAndFeel())
                                           : menu.lookAndFeel.get());
 
@@ -1207,7 +1216,7 @@ struct MenuWindow  : public Component
 
             if (auto* mic = items.getUnchecked ((start + items.size()) % items.size()))
             {
-                if (canBeTriggered (mic->item) || hasActiveSubMenu (mic->item))
+                if (canBeHighlighted(mic->item) || hasActiveSubMenu (mic->item))
                 {
                     setCurrentlyHighlightedChild (mic);
                     return;
@@ -1966,6 +1975,11 @@ PopupMenu::Options PopupMenu::Options::withPreferredPopupDirection (PopupDirecti
 PopupMenu::Options PopupMenu::Options::withInitiallySelectedItem (int idOfItemToBeSelected) const
 {
     return with (*this, &Options::initiallySelectedItemId, idOfItemToBeSelected);
+}
+
+PopupMenu::Options PopupMenu::Options::withTitle(const String & title) const
+{
+    return with(*this, &Options::title, title);
 }
 
 Component* PopupMenu::createWindow (const Options& options,

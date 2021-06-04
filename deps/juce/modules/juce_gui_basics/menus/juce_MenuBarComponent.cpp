@@ -250,7 +250,8 @@ void MenuBarComponent::showMenu (int index)
 
             m.showMenuAsync (PopupMenu::Options().withTargetComponent (this)
                                                  .withTargetScreenArea (localAreaToGlobal (itemBounds))
-                                                 .withMinimumWidth (itemBounds.getWidth()),
+                                                 .withMinimumWidth (itemBounds.getWidth())
+                                                 .withTitle(itemComponent->getName() + " " + TRANS("Menu")),
                              [this, index] (int result) { menuDismissed (index, result); });
         }
     }
