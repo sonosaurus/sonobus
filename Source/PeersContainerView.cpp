@@ -357,8 +357,8 @@ void PeersContainerView::showPopTip(const String & message, int timeoutMs, Compo
     // TODO make sure it is read for accessibility
     popTip->setWantsKeyboardFocus(true);
     popTip->setTitle(message);
-    //popTip->setAccessible(true);
-    //popTip->grabKeyboardFocus();
+    popTip->setAccessible(true);
+    popTip->grabKeyboardFocus();
     //AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::medium);
 }
 
