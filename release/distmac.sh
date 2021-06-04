@@ -49,7 +49,16 @@ fi
 
 # make installer package (and sign it)
 
-if ! packagesbuild  macpkg/SonoBus.pkgproj ; then
+rm -f macpkg/SonoBusTemp.pkgproj
+
+if ! ./update_package_version.py ${VERSION} macpkg/SonoBus.pkgproj macpkg/SonoBusTemp.pkgproj ; then
+  echo
+  echo Error updating package project versions
+  echo
+  exit 1
+fi
+
+if ! packagesbuild  macpkg/SonoBusTemp.pkgproj ; then
   echo 
   echo Error building package
   echo
