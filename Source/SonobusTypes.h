@@ -26,7 +26,11 @@ public:
         LoadSetupFile,
         SaveSetupFile,
         ChatToggle,
-        SkipBack
+        SkipBack,
+        ShowFileMenu,
+        ShowTransportMenu,
+        ShowViewMenu,
+        ShowConnectMenu
     };
     
 };

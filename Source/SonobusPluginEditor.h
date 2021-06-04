@@ -494,6 +494,9 @@ private:
     bool mPushToTalkKeyDown = false;
     bool mPushToTalkWasMuted = true;
     
+    bool mAltReleaseIsPending = false;
+    bool mAltReleaseShouldAct = false;
+
     AooServerConnectionInfo currConnectionInfo;
     
     std::unique_ptr<TableListBox> mRemoteSinkListBox;

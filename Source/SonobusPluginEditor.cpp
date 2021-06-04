@@ -2938,6 +2938,8 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
 {
     DBG("Got key: " << key.getTextCharacter() << "  isdown: " << (key.isCurrentlyDown() ? 1 : 0) << " keycode: " << key.getKeyCode() << " pcode: " << (int)'p');
 
+    mAltReleaseShouldAct = false; // reset alt check
+
     if (key.isKeyCurrentlyDown('T')) {
         if (!mPushToTalkKeyDown) {
             DBG("T press");
@@ -2973,6 +2975,31 @@ bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
         return true;
     }
     
+#if 0
+    if (!mAltReleaseIsPending && ModifierKeys::currentModifiers.isAltDown()) {
+        DBG("Alt down");
+        mAltReleaseIsPending = true;
+        mAltReleaseShouldAct = true;
+    }
+    else if (mAltReleaseIsPending && !ModifierKeys::currentModifiers.isAltDown()) {
+        DBG("Alt release");
+        mAltReleaseIsPending = false;
+        // on windows focus menubar
+#if (JUCE_WINDOWS || JUCE_LINUX)
+        if (mAltReleaseShouldAct && mMenuBar) {
+            if (mMenuBar->hasKeyboardFocus(true)) {
+                PopupMenu::dismissAllActiveMenus();
+            }
+            else {
+                mMenuBar->grabKeyboardFocus();
+                mMenuBar->showMenu(0);
+            }
+        }
+#endif
+        mAltReleaseShouldAct = false;
+    }
+#endif
+
     return pttdown;
 }
 
@@ -4686,6 +4713,16 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
 
 #pragma mark - ApplicationCommandTarget
 
+enum
+{
+    MenuFileIndex = 0,
+    MenuConnectIndex,
+    MenuTransportIndex,
+    MenuViewIndex,
+    MenuHelpIndex
+};
+
+
 void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) {
     switch (cmdID) {
         case SonobusCommands::MuteAllInput:
@@ -4694,6 +4731,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(true);
             info.addDefaultKeypress ('m', ModifierKeys::noModifiers);
+            info.addDefaultKeypress('m', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::MuteAllPeers:
             info.setInfo (TRANS("Mute All Users"),
@@ -4714,7 +4752,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Toggle file looping"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('l', ModifierKeys::noModifiers);
+            info.addDefaultKeypress ('l', ModifierKeys::altModifier);
             break;
         case SonobusCommands::SkipBack:
             info.setInfo (TRANS("Return To Start"),
@@ -4812,6 +4850,34 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(true);
             break;
+        case SonobusCommands::ShowFileMenu:
+            info.setInfo(TRANS("Show File Menu"),
+                TRANS("Show File Menu"),
+                TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress('f', ModifierKeys::altModifier);
+            break;
+        case SonobusCommands::ShowConnectMenu:
+            info.setInfo(TRANS("Show Connect Menu"),
+                TRANS("Show Connect Menu"),
+                TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress('c', ModifierKeys::altModifier);
+            break;
+        case SonobusCommands::ShowViewMenu:
+            info.setInfo(TRANS("Show View Menu"),
+                TRANS("Show View Menu"),
+                TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress('v', ModifierKeys::altModifier);
+            break;
+        case SonobusCommands::ShowTransportMenu:
+            info.setInfo(TRANS("Show Transport Menu"),
+                TRANS("Show Transport Menu"),
+                TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress('t', ModifierKeys::altModifier);
+            break;
     }
 }
 
@@ -4834,6 +4900,11 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::SaveSetupFile);
     cmds.add(SonobusCommands::ChatToggle);
     cmds.add(SonobusCommands::SkipBack);
+    cmds.add(SonobusCommands::ShowFileMenu);
+    cmds.add(SonobusCommands::ShowTransportMenu);
+    cmds.add(SonobusCommands::ShowViewMenu);
+    cmds.add(SonobusCommands::ShowConnectMenu);
+
 }
 
 bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
@@ -4856,6 +4927,26 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::SkipBack:
             buttonClicked(mSkipBackButton.get());
+            break;
+        case SonobusCommands::ShowFileMenu:
+            if (mMenuBar) {
+                mMenuBar->showMenu(MenuFileIndex);
+            }
+            break;
+        case SonobusCommands::ShowTransportMenu:
+            if (mMenuBar) {
+                mMenuBar->showMenu(MenuTransportIndex);
+            }
+            break;
+        case SonobusCommands::ShowConnectMenu:
+            if (mMenuBar) {
+                mMenuBar->showMenu(MenuConnectIndex);
+            }
+            break;
+        case SonobusCommands::ShowViewMenu:
+            if (mMenuBar) {
+                mMenuBar->showMenu(MenuViewIndex);
+            }
             break;
         case SonobusCommands::ToggleLoop:
             DBG("got loop toggle!");
@@ -4976,14 +5067,7 @@ void SonobusAudioProcessorEditor::populateRecentSetupsMenu(PopupMenu & popup)
 
 #pragma MenuBarModel
 
-enum
-{
-    MenuFileIndex = 0,
-    MenuConnectIndex,
-    MenuTransportIndex,
-    MenuViewIndex,
-    MenuHelpIndex
-};
+
 
 StringArray SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuBarNames()
 {
