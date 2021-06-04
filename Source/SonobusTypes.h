@@ -30,7 +30,8 @@ public:
         ShowFileMenu,
         ShowTransportMenu,
         ShowViewMenu,
-        ShowConnectMenu
+        ShowConnectMenu,
+        ToggleFullInfoView
     };
     
 };

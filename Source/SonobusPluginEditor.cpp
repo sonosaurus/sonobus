@@ -4746,6 +4746,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
             info.addDefaultKeypress (' ', ModifierKeys::noModifiers);
+            info.addDefaultKeypress ('p', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::ToggleLoop:
             info.setInfo (TRANS("Loop"),
@@ -4760,6 +4761,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
             info.addDefaultKeypress ('0', ModifierKeys::noModifiers);
+            info.addDefaultKeypress ('0', ModifierKeys::commandModifier);
             break;
         case SonobusCommands::TrimSelectionToNewFile:
             info.setInfo (TRANS("Trim to New"),
@@ -4850,6 +4852,13 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(true);
             break;
+        case SonobusCommands::ToggleFullInfoView:
+            info.setInfo(TRANS("Toggle Full Info View"),
+                TRANS("Toggle Full Info View"),
+                TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress('i', ModifierKeys::commandModifier);
+            break;
         case SonobusCommands::ShowFileMenu:
             info.setInfo(TRANS("Show File Menu"),
                 TRANS("Show File Menu"),
@@ -4904,6 +4913,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::ShowTransportMenu);
     cmds.add(SonobusCommands::ShowViewMenu);
     cmds.add(SonobusCommands::ShowConnectMenu);
+    cmds.add(SonobusCommands::ToggleFullInfoView);
 
 }
 
@@ -4924,6 +4934,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             if (mPlayButton->isVisible()) {
                 mPlayButton->setToggleState(!mPlayButton->getToggleState(), sendNotification);
             }
+            break;
+        case SonobusCommands::ToggleFullInfoView:
+
+            buttonClicked(processor.getPeerDisplayMode() == SonobusAudioProcessor::PeerDisplayModeMinimal ?
+                          mPeerLayoutFullButton.get() : mPeerLayoutMinimalButton.get());
             break;
         case SonobusCommands::SkipBack:
             buttonClicked(mSkipBackButton.get());
@@ -5121,12 +5136,14 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             break;
         case MenuTransportIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::TogglePlayPause);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::SkipBack);
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleLoop);
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::RecordToggle);
             break;
         case MenuViewIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ChatToggle);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleFullInfoView);
             break;
 
         case MenuHelpIndex:
