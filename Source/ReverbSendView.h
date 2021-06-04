@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2021 Jesse Chappell
 
 
@@ -24,7 +24,7 @@ class ReverbSendView    : public EffectsBaseView,
    public EffectsBaseView::HeaderListener
 {
 public:
-    ReverbSendView(SonobusAudioProcessor & processor_, bool showdrag=true)  : sonoSliderLNF(14), processor(processor_), showDragIcon(showdrag)
+    ReverbSendView(SonobusAudioProcessor & processor_, bool showdrag=true, bool input=false)  : sonoSliderLNF(14), processor(processor_), showDragIcon(showdrag), inputMode(input)
     {
         sonoSliderLNF.textJustification = Justification::centredLeft;
 
@@ -43,8 +43,14 @@ public:
         sendLabel.setText(TRANS("Reverb Send"), dontSendNotification);
         configLabel(sendLabel, true);
         sendLabel.setJustificationType(Justification::centredLeft);
+        sendLabel.setAccessible(false);
 
-        infoLabel.setText(TRANS("Enable the main reverb at the bottom of the window to hear the effect"), dontSendNotification);
+        if (input) {
+            infoLabel.setText(TRANS("The input reverb settings can be edited at the top of the input mixer"), dontSendNotification);
+        } else {
+            infoLabel.setText(TRANS("Enable the main reverb at the bottom of the window to hear the effect"), dontSendNotification);
+        }
+
         configLabel(infoLabel);
         infoLabel.setJustificationType(Justification::centredLeft);
         infoLabel.setMinimumHorizontalScale(0.9);
@@ -52,7 +58,11 @@ public:
         // these are in the header component
         enableButton.setVisible(false);
         enableButton.addListener(this);
-        titleLabel.setText(TRANS("Main Reverb Send"), dontSendNotification);
+        if (input) {
+            titleLabel.setText(TRANS("Input Reverb Send"), dontSendNotification);
+        } else {
+            titleLabel.setText(TRANS("Main Reverb Send"), dontSendNotification);
+        }
 
         dragButton.setVisible(showDragIcon);
 
@@ -184,7 +194,7 @@ public:
         //listeners.call (&ReverbSendView::Listener::reverbSendLevelChanged, this, mParams);
     }
 
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) override
+    void effectsHeaderClicked(EffectsBaseView *comp) override
     {
         //mParams.enabled = !enableButton.getToggleState();
         //processor.setMonitoringDelayActive(!enableButton.getToggleState());
@@ -207,6 +217,13 @@ public:
             //}
 
             listeners.call (&ReverbSendView::Listener::reverbSendLevelChanged, this, reverbSendLevel);
+
+            auto active = reverbSendLevel > 0.0f;
+            if (active != enableButton.getToggleState()) {
+                //enableButton.setAlpha(active ? 1.0 : 0.5);
+                enableButton.setToggleState(active, dontSendNotification);
+                headerComponent.repaint();
+            }
         }
     }
 
@@ -223,10 +240,10 @@ public:
 
         sendSlider.setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
 
-        //auto active = mParams.enabled;
+        auto active = revSendLevel > 0.0f;
         //enableButton.setAlpha(active ? 1.0 : 0.5);
-        //enableButton.setToggleState(active, dontSendNotification);
-        //headerComponent.repaint();
+        enableButton.setToggleState(active, dontSendNotification);
+        headerComponent.repaint();
     }
 
     
@@ -240,7 +257,7 @@ private:
 
     Slider       sendSlider;
     bool showDragIcon = false;
-
+    bool inputMode = false;
     Label sendLabel;
     Label infoLabel;
 

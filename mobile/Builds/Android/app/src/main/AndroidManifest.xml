@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="62"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="68"
           android:versionName="1.4.5">
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:anyDensity="true"

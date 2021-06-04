@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
@@ -54,11 +54,18 @@ public:
     bool getShowArrow() const { return showArrow; }
     
     String getItemText(int index) const;
-    
+
+    String getCurrentText() const;
+
     void buttonClicked (Button* buttonThatWasClicked) override;
 
     void addChoiceListener(Listener * listener) { listeners.add(listener); }
     void removeChoiceListener(Listener * listener) { listeners.remove(listener); }
+
+    void showPopup();
+    bool isPopupActive() const;
+
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 protected:
     ListenerList<Listener> listeners;
@@ -70,7 +77,9 @@ protected:
     
     int selIndex;
     bool showArrow = true;
-    
+
+    WeakReference<Component> activeCalloutBox;
+
     SonoChoiceLookAndFeel lnf;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonoChoiceButton)

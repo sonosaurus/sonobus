@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
@@ -22,8 +22,9 @@ public:
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
-
+        auto threshname = TRANS("Threshold");
         thresholdSlider.setName("thresh");
+        thresholdSlider.setTitle(threshname);
         thresholdSlider.setRange(-60.0f, 0.0f, 1);
         thresholdSlider.setSkewFactor(1.5);
         thresholdSlider.setTextValueSuffix(" dB");
@@ -31,11 +32,14 @@ public:
         configKnobSlider(thresholdSlider);
         thresholdSlider.addListener(this);
 
-        thresholdLabel.setText(TRANS("Threshold"), dontSendNotification);
+        thresholdLabel.setText(threshname, dontSendNotification);
+        thresholdLabel.setAccessible(false);
         configLabel(thresholdLabel);
 
            
+        auto rationame = TRANS("Ratio");
         ratioSlider.setName("ratio");
+        ratioSlider.setTitle(rationame);
         ratioSlider.setRange(1.0f, 20.0f, 0.1);
         ratioSlider.setSkewFactor(0.5);
         ratioSlider.setTextValueSuffix(" : 1");
@@ -43,11 +47,14 @@ public:
         configKnobSlider(ratioSlider);
         ratioSlider.addListener(this);
         
-        ratioLabel.setText(TRANS("Ratio"), dontSendNotification);
+        ratioLabel.setText(rationame, dontSendNotification);
+        ratioLabel.setAccessible(false);
         configLabel(ratioLabel);
 
            
+        auto attackname = TRANS("Attack");
         attackSlider.setName("attack");
+        attackSlider.setTitle(attackname);
         attackSlider.setRange(1.0f, 1000.0f, 1);
         attackSlider.setSkewFactor(0.5);
         attackSlider.setTextValueSuffix(" ms");
@@ -55,11 +62,14 @@ public:
         configKnobSlider(attackSlider);
         attackSlider.addListener(this);
         
-        attackLabel.setText(TRANS("Attack"), dontSendNotification);
+        attackLabel.setText(attackname, dontSendNotification);
+        attackLabel.setAccessible(false);
         configLabel(attackLabel);
 
            
+        auto relname = TRANS("Release");
         releaseSlider.setName("release");
+        releaseSlider.setTitle(relname);
         releaseSlider.setRange(1.0f, 1000.0f, 1);
         releaseSlider.setSkewFactor(0.5);
         releaseSlider.setTextValueSuffix(" ms");
@@ -67,11 +77,14 @@ public:
         configKnobSlider(releaseSlider);
         releaseSlider.addListener(this);
         
-        releaseLabel.setText(TRANS("Release"), dontSendNotification);
+        releaseLabel.setText(relname, dontSendNotification);
+        releaseLabel.setAccessible(false);
         configLabel(releaseLabel);
 
            
+        auto mugainname = TRANS("Makeup Gain");
         makeupGainSlider.setName("makeup");
+        makeupGainSlider.setTitle(mugainname);
         makeupGainSlider.setRange(0.0f, 60.0f, 1);
         makeupGainSlider.setSkewFactor(0.75);
         makeupGainSlider.setTextValueSuffix(" dB");
@@ -79,11 +92,14 @@ public:
         configKnobSlider(makeupGainSlider);
         makeupGainSlider.addListener(this);
 
-        makeupGainLabel.setText(TRANS("Makeup Gain"), dontSendNotification);
+        makeupGainLabel.setText(mugainname, dontSendNotification);
+        makeupGainLabel.setAccessible(false);
         configLabel(makeupGainLabel);
 
-        titleLabel.setText(TRANS("Compressor"), dontSendNotification);
-        
+        auto compname = TRANS("Compressor");
+        titleLabel.setText(compname, dontSendNotification);
+        titleLabel.setAccessible(false);
+        enableButton.setTitle(compname);
         enableButton.addListener(this);
 
 

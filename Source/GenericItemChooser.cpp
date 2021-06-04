@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
@@ -21,6 +21,7 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     if (selectedIndex >= 0) {
         chooser->setCurrentRow(selectedIndex);
     }
+
     if (listener) {
         chooser->addListener(listener);
     }
@@ -32,6 +33,8 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     // box.setArrowSize(0);
+    box.grabKeyboardFocus();
+
     return box;
 }
 
@@ -53,6 +56,8 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     // box.setArrowSize(0);
+    box.grabKeyboardFocus();
+
     return box;
 }
 
@@ -109,6 +114,9 @@ GenericItemChooser::~GenericItemChooser()
 void GenericItemChooser::setCurrentRow(int index)
 {
     currentIndex = index;
+    SparseSet<int> selrows;
+    selrows.addRange(Range<int>(index,index+1));
+    table.setSelectedRows(selrows);
     table.updateContent();
 }
 
@@ -170,9 +178,20 @@ int GenericItemChooser::getNumRows()
     return numRows;
 }
 
+String GenericItemChooser::getNameForRow (int rowNumber)
+{
+    if (rowNumber< items.size()) {
+        return items[rowNumber].name;
+    }
+    return ListBoxModel::getNameForRow(rowNumber);
+}
+
+
 void GenericItemChooser::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 {
     listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
+
+    DBG("listbox clicked");
 
     if (items[rowNumber].disabled) {
         // not selectable
@@ -196,8 +215,42 @@ void GenericItemChooser::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 void GenericItemChooser::selectedRowsChanged(int lastRowSelected)
 {
     // notify listeners
+    DBG("Selected rows changed");
+}
+
+void GenericItemChooser::deleteKeyPressed (int)
+{
+    DBG("delete key pressed");
 
 }
+
+void GenericItemChooser::returnKeyPressed (int rowNumber)
+{
+    DBG("return key pressed: " << rowNumber);
+
+    listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
+
+    if (rowNumber < items.size() && items[rowNumber].disabled) {
+        // not selectable
+        return;
+    }
+
+    if (onSelected) {
+        onSelected(this, rowNumber);
+    }
+
+    if (dismissOnSelected) {
+
+        if (CallOutBox* const cb = findParentComponentOfClass<CallOutBox>()) {
+            cb->giveAwayKeyboardFocus();
+            cb->dismiss();
+        }
+    } else {
+        setCurrentRow(rowNumber);
+        repaint();
+    }
+}
+
 
 void GenericItemChooser::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
 {

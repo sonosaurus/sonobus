@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
@@ -256,6 +256,10 @@ public:
     static String paramAutoReconnectLast;
     static String paramDefaultPeerLevel;
     static String paramSyncMetToHost;
+    static String paramInputReverbLevel;
+    static String paramInputReverbSize;
+    static String paramInputReverbDamping;
+    static String paramInputReverbPreDelay;
 
     struct EndpointState;
     struct RemoteSink;
@@ -514,8 +518,8 @@ public:
     bool getInputGroupSoloed(int changroup);
 
 
-    void setInputReverbSend(int changroup, float rgain);
-    float getInputReverbSend(int changroup);
+    void setInputReverbSend(int changroup, float rgain, bool input=false);
+    float getInputReverbSend(int changroup, bool input=false);
 
 
     void setInputEqParams(int changroup, SonoAudio::ParametricEqParams & params);
@@ -639,6 +643,13 @@ public:
     float getMainReverbPreDelay() const { return mMainReverbPreDelay.get(); }
     void setMainReverbModel(ReverbModel flag);
     ReverbModel getMainReverbModel() const { return (ReverbModel) mMainReverbModel.get(); }
+
+    void  setInputReverbWetLevel(float level);
+    float getInputReverbWetLevel() const { return mInputReverbLevel.get(); }
+    void  setInputReverbSize(float value);
+    float getInputReverbSize() const { return mInputReverbSize.get(); }
+    void  setInputReverbPreDelay(float valuemsec);
+    float getInputReverbPreDelay() const { return mInputReverbPreDelay.get(); }
 
 
     void setMetronomeMonitorDelayParams(SonoAudio::DelayParams & params);
@@ -849,6 +860,7 @@ private:
     AudioSampleBuffer fileBuffer;
     AudioSampleBuffer metBuffer;
     AudioSampleBuffer mainFxBuffer;
+    AudioSampleBuffer inputRevBuffer;
     AudioSampleBuffer silentBuffer; // only ever has one channel
     int mTempBufferSamples = 0;
     int mTempBufferChannels = 0;
@@ -874,7 +886,7 @@ private:
     Atomic<bool>   mHearLatencyTest  { false };
     Atomic<bool>   mMetIsRecorded  { true };
     Atomic<bool>   mMainReverbEnabled  { false };
-    Atomic<float>   mMainReverbLevel  { 0.0626f };
+    Atomic<float>   mMainReverbLevel  { 1.0f };
     Atomic<float>   mMainReverbSize  { 0.15f };
     Atomic<float>   mMainReverbDamping  { 0.5f };
     Atomic<float>   mMainReverbPreDelay  { 20.0f }; // ms
@@ -883,6 +895,11 @@ private:
     Atomic<bool>   mAutoReconnectLast  { false };
     Atomic<float>   mDefUserLevel    { 1.0f };
     Atomic<bool>   mSyncMetToHost  { false };
+
+    Atomic<float>   mInputReverbLevel  { 1.0f };
+    Atomic<float>   mInputReverbSize  { 0.15f };
+    Atomic<float>   mInputReverbDamping  { 0.5f };
+    Atomic<float>   mInputReverbPreDelay  { 20.0f }; // ms
 
     float mLastInputGain    = 0.0f;
     float mLastDry    = 0.0f;
@@ -894,7 +911,8 @@ private:
     bool mLastMainReverbEnabled = false;
     bool mReverbParamsChanged = false;
     bool mLastHasMainFx = false;
-    
+    bool mLastInputReverbEnabled = false;
+
     Atomic<bool>   mAnythingSoloed  { false };
 
 
@@ -1054,6 +1072,10 @@ private:
     MapUI  mZitaControl;
 
     ReverbModel mLastReverbModel = ReverbModelMVerb;
+
+    // input reverb
+    MVerbFloat mInputReverb;
+
 
     // met and playback channel groups
     SonoAudio::ChannelGroup  mMetChannelGroup;

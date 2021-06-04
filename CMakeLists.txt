@@ -19,7 +19,7 @@ endif()
 option(UniversalBinary "Build universal binary for mac" ON)
 
 if (APPLE)
-    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
+    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE INTERNAL "")
     if (UniversalBinary)
         set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
         #set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)        
@@ -36,9 +36,9 @@ endif()
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(SonoBus VERSION 1.4.5)
+project(SonoBus VERSION 1.4.6)
 
-set(BUILDVERSION 68)
+set(BUILDVERSION 69)
 
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
@@ -272,6 +272,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/RandomSentenceGenerator.cpp
         Source/RandomSentenceGenerator.h
         Source/ReverbSendView.h
+        Source/ReverbView.h
         Source/RunCumulantor.cpp
         Source/RunCumulantor.h
         Source/RunningCumulant.h

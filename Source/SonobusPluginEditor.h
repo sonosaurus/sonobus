@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
 
 #pragma once
 
-#include "JuceHeader.h"
+#include <JuceHeader.h>
 
 #include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
@@ -22,6 +22,7 @@
 #include "ChannelGroupsView.h"
 #include "PeersContainerView.h"
 #include "OptionsView.h"
+#include "ReverbView.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -192,6 +193,8 @@ private:
 
     void showMonitorDelayView(bool flag);
 
+    void showInputReverbView(bool flag);
+
     void updateServerStatusLabel(const String & mesg, bool mainonly=true);
     void updateChannelState(bool force=false);
     bool updatePeerState(bool force=false);
@@ -207,8 +210,8 @@ private:
     void openFileBrowser();
     void chooseRecDirBrowser();
 
-    bool loadAudioFromURL(URL fileurl);
-    bool updateTransportWithURL(URL fileurl);
+    bool loadAudioFromURL(const URL & fileurl);
+    bool updateTransportWithURL(const URL & fileurl);
 
     class TrimFileJob;
 
@@ -346,6 +349,7 @@ private:
     std::unique_ptr<MonitorDelayView> mMonitorDelayView;
 
 
+
     
     std::unique_ptr<SonoChoiceButton> mSendChannelsChoice;
     std::unique_ptr<Label>  mSendChannelsLabel;
@@ -464,7 +468,9 @@ private:
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
-    
+
+    std::unique_ptr<Component> mTopLevelContainer;
+
     std::unique_ptr<Viewport> mMainViewport;
     std::unique_ptr<Component> mMainContainer;
     std::unique_ptr<PeersContainerView> mPeerContainer;
@@ -488,6 +494,9 @@ private:
     bool mPushToTalkKeyDown = false;
     bool mPushToTalkWasMuted = true;
     
+    bool mAltReleaseIsPending = false;
+    bool mAltReleaseShouldAct = false;
+
     AooServerConnectionInfo currConnectionInfo;
     
     std::unique_ptr<TableListBox> mRemoteSinkListBox;
@@ -596,7 +605,6 @@ private:
     FlexBox reverbSizeBox;
     FlexBox reverbDampBox;
     FlexBox reverbPreDelayBox;
-
 
     FlexBox inPannerMainBox;
     FlexBox inPannerLabelBox;

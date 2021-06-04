@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2021 Jesse Chappell
 
 
@@ -48,6 +48,8 @@ public:
 
     juce::Rectangle<int> getMinimumContentBounds() const;
 
+    void grabInitialFocus();
+    void escapePressed();
 
     void updateState();
     void updateLayout();
@@ -172,6 +174,10 @@ protected:
     public:
         RecentsListModel(ConnectView * parent_);
         int getNumRows() override;
+        String getNameForRow (int rowNumber) override;
+        void deleteKeyPressed (int) override;
+        void returnKeyPressed (int) override;
+
         void     paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
         void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
         void selectedRowsChanged(int lastRowSelected) override;
@@ -207,11 +213,15 @@ protected:
         void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
         void listBoxItemClicked (int rowNumber, const MouseEvent& e) override;
         void selectedRowsChanged(int lastRowSelected) override;
+        String getNameForRow (int rowNumber) override;
+        void returnKeyPressed (int) override;
 
         void updateState();
 
     protected:
         ConnectView * parent;
+
+        void groupSelected(int rowsel);
 
         Image groupImage;
         Image personImage;

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
@@ -21,8 +21,9 @@ public:
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
-
+        auto hsgainname = TRANS("High Shelf Gain");
         highShelfGainSlider.setName("hsgain");
+        highShelfGainSlider.setTitle(hsgainname);
         highShelfGainSlider.setRange(-24.0f, 24.0f, 0.1);
         highShelfGainSlider.setSkewFactor(1.0);
         highShelfGainSlider.setTextValueSuffix(" dB");
@@ -33,10 +34,12 @@ public:
         highShelfGainSlider.getProperties().set ("fromCentre", true);
 
         highShelfGainLabel.setText(TRANS("Gain"), dontSendNotification);
+        highShelfGainLabel.setAccessible(false);
         configLabel(highShelfGainLabel);
 
-           
+        auto hishelfname = TRANS("High Shelf");
         highShelfFreqSlider.setName("hsfreq");
+        highShelfFreqSlider.setTitle(hishelfname);
         highShelfFreqSlider.setRange(500.0f, 16000.0f, 1);
         highShelfFreqSlider.setSkewFactor(0.5);
         highShelfFreqSlider.setTextValueSuffix(" Hz");
@@ -46,11 +49,13 @@ public:
         highShelfFreqSlider.setMouseDragSensitivity(160);
         highShelfFreqSlider.addListener(this);
 
-        highShelfFreqLabel.setText(TRANS("High Shelf"), dontSendNotification);
+        highShelfFreqLabel.setText(hishelfname, dontSendNotification);
+        highShelfFreqLabel.setAccessible(false);
         configLabel(highShelfFreqLabel, true);
 
-        
+        auto lsgainname = TRANS("Low Shelf Gain");
         lowShelfGainSlider.setName("lsgain");
+        lowShelfGainSlider.setTitle(lsgainname);
         lowShelfGainSlider.setRange(-24.0f, 24.0f, 0.1);
         lowShelfGainSlider.setSkewFactor(1.0);
         lowShelfGainSlider.setTextValueSuffix(" dB");
@@ -61,10 +66,13 @@ public:
         lowShelfGainSlider.getProperties().set ("fromCentre", true);
 
         lowShelfGainLabel.setText(TRANS("Gain"), dontSendNotification);
+        lowShelfGainLabel.setAccessible(false);
         configLabel(lowShelfGainLabel);
 
-           
+
+        auto lsname = TRANS("Low Shelf");
         lowShelfFreqSlider.setName("lsfreq");
+        lowShelfFreqSlider.setTitle(lsname);
         lowShelfFreqSlider.setRange(20.0f, 2000.0f, 1);
         lowShelfFreqSlider.setSkewFactor(0.25);
         lowShelfFreqSlider.setTextValueSuffix(" Hz");
@@ -74,11 +82,14 @@ public:
         //configBarSlider(lowShelfFreqSlider);        
         lowShelfFreqSlider.addListener(this);
 
-        lowShelfFreqLabel.setText(TRANS("Low Shelf"), dontSendNotification);
+        lowShelfFreqLabel.setText(lsname, dontSendNotification);
+        lowShelfFreqLabel.setAccessible(false);
         configLabel(lowShelfFreqLabel, true);
 
         
+        auto p1gainname = TRANS("Gain 1");
         para1GainSlider.setName("para1gain");
+        para1GainSlider.setTitle(p1gainname);
         para1GainSlider.setRange(-24.0f, 24.0f, 0.1);
         para1GainSlider.setSkewFactor(1.0);
         para1GainSlider.setTextValueSuffix(" dB");
@@ -89,10 +100,13 @@ public:
         para1GainSlider.getProperties().set ("fromCentre", true);
 
         para1GainLabel.setText(TRANS("Gain"), dontSendNotification);
+        para1GainLabel.setAccessible(false);
         configLabel(para1GainLabel);
 
            
+        auto p1freqname = TRANS("Freq 1");
         para1FreqSlider.setName("para1freq");
+        para1FreqSlider.setTitle(p1freqname);
         para1FreqSlider.setRange(40.0f, 10000.0f, 1);
         para1FreqSlider.setSkewFactor(0.3);
         para1FreqSlider.setTextValueSuffix(" Hz");
@@ -102,11 +116,14 @@ public:
         //configBarSlider(para1FreqSlider);
         para1FreqSlider.addListener(this);
 
-        para1FreqLabel.setText(TRANS("Freq 1"), dontSendNotification);
+        para1FreqLabel.setText(p1freqname, dontSendNotification);
+        para1FreqLabel.setAccessible(false);
         configLabel(para1FreqLabel, true);
 
         
+        auto p1qname = TRANS("Q 1");
         para1QSlider.setName("para1q");
+        para1QSlider.setTitle(p1qname);
         para1QSlider.setRange(0.4f, 100.0f, 0.1f);
         para1QSlider.setSkewFactor(0.35);
         para1QSlider.setTextValueSuffix("");
@@ -116,9 +133,12 @@ public:
         para1QSlider.addListener(this);
 
         para1QLabel.setText(TRANS("Q"), dontSendNotification);
+        para1QLabel.setAccessible(false);
         configLabel(para1QLabel);
 
-        para2GainSlider.setName("para1gain");
+        auto p2gainname = TRANS("Gain 2");
+        para2GainSlider.setName("para2gain");
+        para2GainSlider.setTitle(p2gainname);
         para2GainSlider.setRange(-24.0f, 24.0f, 0.1);
         para2GainSlider.setSkewFactor(1.0);
         para2GainSlider.setTextValueSuffix(" dB");
@@ -129,10 +149,12 @@ public:
         para2GainSlider.getProperties().set ("fromCentre", true);
 
         para2GainLabel.setText(TRANS("Gain"), dontSendNotification);
+        para2GainLabel.setAccessible(false);
         configLabel(para2GainLabel);
         
-        
+        auto p2freqname = TRANS("Freq 2");
         para2FreqSlider.setName("para2freq");
+        para2FreqSlider.setTitle(p2freqname);
         para2FreqSlider.setRange(40.0f, 10000.0f, 1);
         para2FreqSlider.setSkewFactor(0.3);
         para2FreqSlider.setTextValueSuffix(" Hz");
@@ -142,11 +164,13 @@ public:
         //configBarSlider(para2FreqSlider);
         para2FreqSlider.addListener(this);
         
-        para2FreqLabel.setText(TRANS("Freq 2"), dontSendNotification);
+        para2FreqLabel.setText(p2freqname, dontSendNotification);
+        para2FreqLabel.setAccessible(false);
         configLabel(para2FreqLabel, true);
         
-        
+        auto p2qname = TRANS("Q 2");
         para2QSlider.setName("para2q");
+        para2QSlider.setTitle(p2qname);
         para2QSlider.setRange(0.4f, 100.0f, 0.1);
         para2QSlider.setSkewFactor(0.35);
         para2QSlider.setTextValueSuffix("");
@@ -156,14 +180,16 @@ public:
         para2QSlider.addListener(this);
         
         para2QLabel.setText(TRANS("Q"), dontSendNotification);
+        para2QLabel.setAccessible(false);
         configLabel(para2QLabel);
         
         
-        
+        auto peqname = TRANS("Parametric EQ");
         enableButton.addListener(this);
-        
-        titleLabel.setText(TRANS("Parametric EQ"), dontSendNotification);
+        enableButton.setTitle(peqname);
 
+        titleLabel.setText(peqname, dontSendNotification);
+        titleLabel.setAccessible(false);
                    
         lowShelfBg.setCornerSize(Point<float>(6,6));
         lowShelfBg.setFill (bgfillcol);
@@ -185,7 +211,19 @@ public:
         para2Bg.setStrokeFill (bgstrokecol);
         para2Bg.setStrokeThickness(0.5);
         
-        
+
+        int order = 1;
+        lowShelfFreqSlider.setExplicitFocusOrder(order++);
+        lowShelfGainSlider.setExplicitFocusOrder(order++);
+        para1FreqSlider.setExplicitFocusOrder(order++);
+        para1GainSlider.setExplicitFocusOrder(order++);
+        para1QSlider.setExplicitFocusOrder(order++);
+        para2FreqSlider.setExplicitFocusOrder(order++);
+        para2GainSlider.setExplicitFocusOrder(order++);
+        para2QSlider.setExplicitFocusOrder(order++);
+        highShelfFreqSlider.setExplicitFocusOrder(order++);
+        highShelfGainSlider.setExplicitFocusOrder(order++);
+
         addAndMakeVisible(lowShelfBg);
         addAndMakeVisible(highShelfBg);
         addAndMakeVisible(para1Bg);
@@ -235,8 +273,6 @@ public:
     
     void setupLayout()
     {
-#if 1
-
         int minKnobWidth = 54;
         int minitemheight = 32;
         int knoblabelheight = 18;
@@ -375,134 +411,7 @@ public:
         
         minBounds.setSize(jmax(180, 5*minKnobWidth + 18), 2 * (knobitemheight + knoblabelheight) + 14);
         minHeaderBounds.setSize(jmax(180, 5*minKnobWidth * 5 + 18),  minitemheight + 8);
-#else
-        
-        int minKnobWidth = 70;
-        int minitemheight = 32;
-        int knoblabelheight = 18;
-        int knobitemheight = 32;
-        
-#if JUCE_IOS || JUCE_ANDROID
-        // make the button heights a bit more for touchscreen purposes
-        minitemheight = 40;
-        knobitemheight = 40;
-#endif
 
-        highShelfGainBox.items.clear();
-        highShelfGainBox.flexDirection = FlexBox::Direction::column;
-        //highShelfGainBox.items.add(FlexItem(minKnobWidth, knoblabelheight, highShelfGainLabel).withMargin(0).withFlex(0));
-        highShelfGainBox.items.add(FlexItem(minKnobWidth, knobitemheight, highShelfGainSlider).withMargin(0).withFlex(1));
-
-        highShelfFreqBox.items.clear();
-        highShelfFreqBox.flexDirection = FlexBox::Direction::column;
-        //highShelfFreqBox.items.add(FlexItem(minKnobWidth, knoblabelheight, highShelfFreqLabel).withMargin(0).withFlex(0));
-        highShelfFreqBox.items.add(FlexItem(minKnobWidth, knobitemheight, highShelfFreqSlider).withMargin(0).withFlex(1));
-
-        highShelfBox.items.clear();
-        highShelfBox.flexDirection = FlexBox::Direction::column;
-        highShelfBox.items.add(FlexItem(minKnobWidth, knobitemheight , highShelfGainBox).withMargin(0).withFlex(1));
-        highShelfBox.items.add(FlexItem(minKnobWidth, knobitemheight , highShelfFreqBox).withMargin(0).withFlex(1));
-
-        
-        lowShelfGainBox.items.clear();
-        lowShelfGainBox.flexDirection = FlexBox::Direction::column;
-        //lowShelfGainBox.items.add(FlexItem(minKnobWidth, knoblabelheight, lowShelfGainLabel).withMargin(0).withFlex(0));
-        lowShelfGainBox.items.add(FlexItem(minKnobWidth, knobitemheight, lowShelfGainSlider).withMargin(0).withFlex(1));
-
-        lowShelfFreqBox.items.clear();
-        lowShelfFreqBox.flexDirection = FlexBox::Direction::column;
-        //lowShelfFreqBox.items.add(FlexItem(minKnobWidth, knoblabelheight, lowShelfFreqLabel).withMargin(0).withFlex(0));
-        lowShelfFreqBox.items.add(FlexItem(minKnobWidth, knobitemheight, lowShelfFreqSlider).withMargin(0).withFlex(1));
-
-        lowShelfBox.items.clear();
-        lowShelfBox.flexDirection = FlexBox::Direction::column;
-        lowShelfBox.items.add(FlexItem(minKnobWidth, knobitemheight , lowShelfGainBox).withMargin(0).withFlex(1));
-        lowShelfBox.items.add(FlexItem(minKnobWidth, knobitemheight , lowShelfFreqBox).withMargin(0).withFlex(1));
-
-        
-        para1GainBox.items.clear();
-        para1GainBox.flexDirection = FlexBox::Direction::column;
-        //para1GainBox.items.add(FlexItem(minKnobWidth, knoblabelheight, para1GainLabel).withMargin(0).withFlex(0));
-        para1GainBox.items.add(FlexItem(minKnobWidth, knobitemheight, para1GainSlider).withMargin(0).withFlex(1));
-
-        para1FreqBox.items.clear();
-        para1FreqBox.flexDirection = FlexBox::Direction::column;
-        //para1FreqBox.items.add(FlexItem(minKnobWidth, knoblabelheight, para1FreqLabel).withMargin(0).withFlex(0));
-        para1FreqBox.items.add(FlexItem(minKnobWidth, knobitemheight, para1FreqSlider).withMargin(0).withFlex(1));
-
-        para1QBox.items.clear();
-        para1QBox.flexDirection = FlexBox::Direction::column;
-        //para1QBox.items.add(FlexItem(minKnobWidth, knoblabelheight, para1QLabel).withMargin(0).withFlex(0));
-        para1QBox.items.add(FlexItem(minKnobWidth, knobitemheight, para1QSlider).withMargin(0).withFlex(1));
-
-        para1Box.items.clear();
-        para1Box.flexDirection = FlexBox::Direction::column;
-        para1Box.items.add(FlexItem(minKnobWidth, knobitemheight , para1GainBox).withMargin(0).withFlex(1));
-        para1Box.items.add(FlexItem(minKnobWidth, knobitemheight , para1FreqBox).withMargin(0).withFlex(1));
-        para1Box.items.add(FlexItem(minKnobWidth, knobitemheight , para1QBox).withMargin(0).withFlex(1));
-
-        
-        para2GainBox.items.clear();
-        para2GainBox.flexDirection = FlexBox::Direction::column;
-        //para2GainBox.items.add(FlexItem(minKnobWidth, knoblabelheight, para2GainLabel).withMargin(0).withFlex(0));
-        para2GainBox.items.add(FlexItem(minKnobWidth, knobitemheight, para2GainSlider).withMargin(0).withFlex(1));
-
-        para2FreqBox.items.clear();
-        para2FreqBox.flexDirection = FlexBox::Direction::column;
-        //para2FreqBox.items.add(FlexItem(minKnobWidth, knoblabelheight, para2FreqLabel).withMargin(0).withFlex(0));
-        para2FreqBox.items.add(FlexItem(minKnobWidth, knobitemheight, para2FreqSlider).withMargin(0).withFlex(1));
-
-        para2QBox.items.clear();
-        para2QBox.flexDirection = FlexBox::Direction::column;
-        //para2QBox.items.add(FlexItem(minKnobWidth, knoblabelheight, para2QLabel).withMargin(0).withFlex(0));
-        para2QBox.items.add(FlexItem(minKnobWidth, knobitemheight, para2QSlider).withMargin(0).withFlex(1));
-        
-        para2Box.items.clear();
-        para2Box.flexDirection = FlexBox::Direction::column;
-        para2Box.items.add(FlexItem(minKnobWidth, knobitemheight , para2GainBox).withMargin(0).withFlex(1));
-        para2Box.items.add(FlexItem(minKnobWidth, knobitemheight , para2FreqBox).withMargin(0).withFlex(1));
-        para2Box.items.add(FlexItem(minKnobWidth, knobitemheight , para2QBox).withMargin(0).withFlex(1));
-
-
-        paraBox.items.clear();
-        paraBox.flexDirection = FlexBox::Direction::row;
-        paraBox.items.add(FlexItem(minKnobWidth, knobitemheight , para1Box).withMargin(0).withFlex(1));
-        paraBox.items.add(FlexItem(3, 5).withMargin(0).withFlex(0));
-        paraBox.items.add(FlexItem(minKnobWidth, knobitemheight , para2Box).withMargin(0).withFlex(1));
-
-        
-        checkBox.items.clear();
-        checkBox.flexDirection = FlexBox::Direction::row;
-        checkBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(0));
-        checkBox.items.add(FlexItem(minitemheight, minitemheight, enableButton).withMargin(0).withFlex(0));
-        checkBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
-        checkBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(1));
-
-        headerComponent.headerBox.items.clear();
-        headerComponent.headerBox.flexDirection = FlexBox::Direction::column;
-        headerComponent.headerBox.items.add(FlexItem(150, minitemheight, checkBox).withMargin(0).withFlex(1));
-
-        
-        knobBox.items.clear();
-        knobBox.flexDirection = FlexBox::Direction::row;
-        knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(0));
-        knobBox.items.add(FlexItem(minKnobWidth, knobitemheight , lowShelfBox).withMargin(0).withFlex(1));
-        knobBox.items.add(FlexItem(3, 5).withMargin(0).withFlex(0));
-        knobBox.items.add(FlexItem(2*minKnobWidth, knobitemheight , paraBox).withMargin(0).withFlex(1));
-        knobBox.items.add(FlexItem(3, 5).withMargin(0).withFlex(0));
-        knobBox.items.add(FlexItem(minKnobWidth, knobitemheight , highShelfBox).withMargin(0).withFlex(1));
-        knobBox.items.add(FlexItem(4, 5).withMargin(0).withFlex(0));
-        
-        mainBox.items.clear();
-        mainBox.flexDirection = FlexBox::Direction::column;
-        //mainBox.items.add(FlexItem(150, minitemheight, checkBox).withMargin(0).withFlex(0));
-        //mainBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(0));
-        mainBox.items.add(FlexItem(4*minKnobWidth + 14, 2 * (knoblabelheight), knobBox).withMargin(0).withFlex(1));
-        mainBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(0));
-        
-        minBounds.setSize(jmax(180, 4*minKnobWidth + 16), 3 * (knobitemheight) + 2);
-        minHeaderBounds.setSize(jmax(180, minKnobWidth * 4 + 16),  minitemheight + 8);
-#endif
         
     }
     
@@ -516,24 +425,14 @@ public:
         para1Bg.setRectangle (para1FreqLabel.getBounds().withBottom(para1GainSlider.getBottom()).withRight(para1QSlider.getRight()).expanded(2).toFloat());
         para2Bg.setRectangle (para2FreqLabel.getBounds().withBottom(para2GainSlider.getBottom()).withRight(para2QSlider.getRight()).expanded(2).toFloat());
 
-#if 0
-        lowShelfGainLabel.setBounds(lowShelfGainSlider.getBounds().removeFromLeft(lowShelfGainSlider.getWidth() / 2));
-        lowShelfFreqLabel.setBounds(lowShelfFreqSlider.getBounds().removeFromLeft(lowShelfFreqSlider.getWidth() / 2));
-        highShelfGainLabel.setBounds(highShelfGainSlider.getBounds().removeFromLeft(highShelfGainSlider.getWidth() / 2));
-        highShelfFreqLabel.setBounds(highShelfFreqSlider.getBounds().removeFromLeft(highShelfFreqSlider.getWidth() / 2));
-        para1GainLabel.setBounds(para1GainSlider.getBounds().removeFromLeft(para1GainSlider.getWidth() / 2));
-        para1FreqLabel.setBounds(para1FreqSlider.getBounds().removeFromLeft(para1FreqSlider.getWidth() / 2));
-        para1QLabel.setBounds(para1QSlider.getBounds().removeFromLeft(para1QSlider.getWidth() / 2));
-        para2GainLabel.setBounds(para2GainSlider.getBounds().removeFromLeft(para2GainSlider.getWidth() / 2));
-        para2FreqLabel.setBounds(para2FreqSlider.getBounds().removeFromLeft(para2FreqSlider.getWidth() / 2));
-        para2QLabel.setBounds(para2QSlider.getBounds().removeFromLeft(para2QSlider.getWidth() / 2));
-#endif
     }
 
     void buttonClicked (Button* buttonThatWasClicked) override
     {
         if (buttonThatWasClicked == &enableButton) {
             mParams.enabled = enableButton.getToggleState();
+            headerListeners.call (&EffectsBaseView::HeaderListener::effectsHeaderClicked, this);
+
             headerComponent.repaint();
             updateActiveBgs();
         }

@@ -71,6 +71,23 @@ struct SimpleDeviceManagerInputLevelMeter  : public Component,
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDeviceManagerInputLevelMeter)
 };
 
+static void drawTextLayout (Graphics& g, Component& owner, StringRef text, const Rectangle<int>& textBounds, bool enabled)
+{
+    const auto textColour = owner.findColour (ListBox::textColourId, true).withMultipliedAlpha (enabled ? 1.0f : 0.6f);
+
+    AttributedString attributedString { text };
+    attributedString.setColour (textColour);
+    attributedString.setFont ((float) textBounds.getHeight() * 0.6f);
+    attributedString.setJustification (Justification::centredLeft);
+    attributedString.setWordWrap (AttributedString::WordWrap::none);
+
+    TextLayout textLayout;
+    textLayout.createLayout (attributedString,
+                             (float) textBounds.getWidth(),
+                             (float) textBounds.getHeight());
+    textLayout.draw (g, textBounds.toFloat());
+}
+
 
 //==============================================================================
 class AudioDeviceSelectorComponent::MidiInputSelectorComponentListBox  : public ListBox,
@@ -97,6 +114,20 @@ public:
         return items.size();
     }
 
+    String getNameForRow (int row) override
+    {
+        if (isPositiveAndBelow (row, items.size())) {
+            auto item = items[row];
+            bool enabled = deviceManager.isMidiInputDeviceEnabled (item.identifier);
+            if (enabled)
+                return item.name + "," + TRANS("active");
+            else
+                return item.name;
+        }
+        return ListBoxModel::getNameForRow(row);
+    }
+
+
     void paintListBoxItem (int row, Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (isPositiveAndBelow (row, items.size()))
@@ -114,9 +145,7 @@ public:
             getLookAndFeel().drawTickBox (g, *this, (float) x - tickW, ((float) height - tickW) * 0.5f, tickW, tickW,
                                           enabled, true, true, false);
 
-            g.setFont ((float) height * 0.6f);
-            g.setColour (findColour (ListBox::textColourId, true).withMultipliedAlpha (enabled ? 1.0f : 0.6f));
-            g.drawText (item.name, x + 5, 0, width - x - 5, height, Justification::centredLeft, true);
+            drawTextLayout (g, *this, item.name, { x + 5, 0, width - x - 5, height }, enabled);
         }
     }
 
@@ -453,6 +482,7 @@ public:
                 {
                     outputChanList.reset (new ChannelSelectorListBox (setup, ChannelSelectorListBox::audioOutputType,
                                                                       TRANS ("(no audio output channels found)")));
+                    outputChanList->setTitle(TRANS("Active Output Channels:"));
                     addAndMakeVisible (outputChanList.get());
                     outputChanLabel.reset (new Label ({}, TRANS("Active Output Channels:")));
                     outputChanLabel->setJustificationType (Justification::centredRight);
@@ -474,6 +504,7 @@ public:
                 {
                     inputChanList.reset (new ChannelSelectorListBox (setup, ChannelSelectorListBox::audioInputType,
                                                                      TRANS("(no audio input channels found)")));
+                    inputChanList->setTitle(TRANS("Active Input Channels:"));
                     addAndMakeVisible (inputChanList.get());
                     inputChanLabel.reset (new Label ({}, TRANS("Active Input Channels:")));
                     inputChanLabel->setJustificationType (Justification::centredRight);
@@ -778,6 +809,35 @@ public:
             return items.size();
         }
 
+        String getNameForRow (int row) override
+        {
+            if (isPositiveAndBelow (row, items.size())) {
+                bool enabled = false;
+                auto config = setup.manager->getAudioDeviceSetup();
+
+                if (setup.useStereoPairs)
+                {
+                    if (type == audioInputType)
+                        enabled = config.inputChannels[row * 2] || config.inputChannels[row * 2 + 1];
+                    else if (type == audioOutputType)
+                        enabled = config.outputChannels[row * 2] || config.outputChannels[row * 2 + 1];
+                }
+                else
+                {
+                    if (type == audioInputType)
+                        enabled = config.inputChannels[row];
+                    else if (type == audioOutputType)
+                        enabled = config.outputChannels[row];
+                }
+
+                if (enabled)
+                    return items[row] + ", " + TRANS("active") ;
+                else
+                    return items[row];
+            }
+            return ListBoxModel::getNameForRow(row);
+        }
+
         void paintListBoxItem (int row, Graphics& g, int width, int height, bool) override
         {
             if (isPositiveAndBelow (row, items.size()))
@@ -809,10 +869,7 @@ public:
                 getLookAndFeel().drawTickBox (g, *this, (float) x - tickW, ((float) height - tickW) * 0.5f, tickW, tickW,
                                               enabled, true, true, false);
 
-                g.setFont (jmin ((float)height * 0.6f, 16.0f));
-                g.setColour (findColour (ListBox::textColourId, true).withMultipliedAlpha (enabled ? 1.0f : 0.6f));
-                //g.drawText (item, x + 5, 0, width - x - 5, height, Justification::centredLeft, true);
-                g.drawFittedText (item, x + 5, 0, width - x - 5, height, Justification::centredLeft, 1);
+                drawTextLayout (g, *this, item, { x + 5, 0, width - x - 5, height }, enabled);
             }
         }
 
@@ -1006,6 +1063,7 @@ AudioDeviceSelectorComponent::AudioDeviceSelectorComponent (AudioDeviceManager& 
     {
         midiInputsList.reset (new MidiInputSelectorComponentListBox (deviceManager,
                                                                      "(" + TRANS("No MIDI inputs available") + ")"));
+        midiInputsList->setTitle(TRANS ("Active MIDI inputs:"));
         addAndMakeVisible (midiInputsList.get());
 
         midiInputsLabel.reset (new Label ({}, TRANS ("Active MIDI inputs:")));

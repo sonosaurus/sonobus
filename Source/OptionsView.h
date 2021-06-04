@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2021 Jesse Chappell
 
 
@@ -50,6 +50,7 @@ public:
     juce::Rectangle<int> getMinimumContentBounds() const;
     juce::Rectangle<int> getPreferredContentBounds() const;
 
+    void grabInitialFocus();
 
     void updateState(bool ignorecheck=false);
     void updateLayout();

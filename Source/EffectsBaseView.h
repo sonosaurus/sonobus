@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
@@ -39,6 +39,9 @@ public:
         dragButton.setImages(dragimg.get());
         dragButton.setInterceptsMouseClicks(false, false);
         dragButton.setAlpha(0.3);
+        dragButton.setAccessible(false);
+
+        setFocusContainerType(FocusContainerType::focusContainer);
     }
 
     virtual ~EffectsBaseView()
@@ -108,7 +111,7 @@ public:
     void mouseUp (const MouseEvent& event) override {
         if (event.eventComponent == &headerComponent) {
             if (!event.mouseWasDraggedSinceMouseDown()) {                
-                headerListeners.call (&EffectsBaseView::HeaderListener::effectsHeaderClicked, this, event);
+                headerListeners.call (&EffectsBaseView::HeaderListener::effectsHeaderClicked, this);
             }
         }
     }
@@ -119,7 +122,7 @@ public:
     class HeaderListener {
     public:
         virtual ~HeaderListener() {}
-        virtual void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) {}
+        virtual void effectsHeaderClicked(EffectsBaseView *comp) {}
     };
     
     void addHeaderListener(HeaderListener * listener) { headerListeners.add(listener); }
@@ -156,6 +159,7 @@ protected:
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxIsEditable(true);
         slider.setSliderSnapsToMousePosition(false);
+        slider.setWantsKeyboardFocus(true);
         //slider->setPopupDisplayEnabled(true, false, this);
         slider.setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
@@ -172,6 +176,7 @@ protected:
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxIsEditable(false);
         slider.setSliderSnapsToMousePosition(false);
+        slider.setWantsKeyboardFocus(true);
         //slider->setPopupDisplayEnabled(true, false, this);
         //slider.setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
         //slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
@@ -187,6 +192,7 @@ protected:
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         slider.setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
         slider.setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+        slider.setWantsKeyboardFocus(true);
 
         slider.setTextBoxStyle(Slider::TextBoxAbove, true, 100, 12);
 

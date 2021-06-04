@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
 
@@ -42,6 +42,9 @@ public:
     
     // This is overloaded from TableListBoxModel, and must return the total number of rows in our table
     int getNumRows() override;
+    String getNameForRow (int rowNumber) override;
+    void deleteKeyPressed (int) override;
+    void returnKeyPressed (int) override;
 
     void 	paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
     

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2021 Jesse Chappell
 
 
@@ -26,6 +26,7 @@ class MonitorDelayView    : public EffectsBaseView,
 public:
     MonitorDelayView(SonobusAudioProcessor & processor_)  : processor(processor_)
     {
+        timeSlider.setTitle(TRANS("Delay Time"));
         timeSlider.setName("time");
         timeSlider.setRange(0.0f, 500.0f, 0.1);
         timeSlider.setSkewFactor(0.4);
@@ -38,6 +39,7 @@ public:
         timeSlider.setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
 
         timeLabel.setText(TRANS("Delay Time"), dontSendNotification);
+        timeLabel.setAccessible(false);
         configLabel(timeLabel);
         timeLabel.setJustificationType(Justification::centredLeft);
 
@@ -56,8 +58,11 @@ public:
         };
 
         // these are in the header component
-        enableButton.addListener(this);        
+        enableButton.addListener(this);
+        enableButton.setTitle(TRANS("Additional Monitoring Delay"));
+
         titleLabel.setText(TRANS("Additional Monitoring Delay"), dontSendNotification);
+        titleLabel.setAccessible(false);
 
         dragButton.setVisible(false);
 
@@ -196,7 +201,7 @@ public:
         listeners.call (&MonitorDelayView::Listener::monitorDelayParamsChanged, this, mParams);
     }
 
-    void effectsHeaderClicked(EffectsBaseView *comp, const MouseEvent & event) override
+    void effectsHeaderClicked(EffectsBaseView *comp) override
     {
         mParams.enabled = !enableButton.getToggleState();
         //processor.setMonitoringDelayActive(!enableButton.getToggleState());

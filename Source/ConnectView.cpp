@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPLv3-or-later
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2021 Jesse Chappell
 
 #include "ConnectView.h"
@@ -49,7 +49,6 @@ publicGroupsListModel(this)
     mConnectTab->getTabbedButtonBar().setColour(TabbedButtonBar::frontTextColourId, Colour::fromFloatRGBA(0.4, 0.8, 1.0, 1.0));
     mConnectTab->getTabbedButtonBar().setColour(TabbedButtonBar::frontOutlineColourId, Colour::fromFloatRGBA(0.4, 0.8, 1.0, 0.5));
 
-
     mDirectConnectContainer = std::make_unique<Component>();
     mServerConnectContainer = std::make_unique<Component>();
     mPublicServerConnectContainer = std::make_unique<Component>();
@@ -73,9 +72,12 @@ publicGroupsListModel(this)
 
 
 
+
     mLocalAddressLabel = std::make_unique<TextEditor>("localaddr");
     mLocalAddressLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+    mLocalAddressLabel->setTitle(TRANS("Local Address:Port"));
     mLocalAddressLabel->setReadOnly(true);
+    mLocalAddressLabel->setWantsKeyboardFocus(true);
     //mLocalAddressLabel->setJustificationType(Justification::centredLeft);
     mLocalAddressStaticLabel = std::make_unique<Label>("localaddrst", TRANS("Local Address:"));
     mLocalAddressStaticLabel->setJustificationType(Justification::centredRight);
@@ -83,12 +85,12 @@ publicGroupsListModel(this)
 
     mRemoteAddressStaticLabel = std::make_unique<Label>("remaddrst", TRANS("Host: "));
     mRemoteAddressStaticLabel->setJustificationType(Justification::centredRight);
-    mRemoteAddressStaticLabel->setWantsKeyboardFocus(true);
 
     mDirectConnectDescriptionLabel = std::make_unique<Label>("dirconndesc", TRANS("Connect directly to other instances of SonoBus on your local network with the local address that they advertise. This is experimental, using a private group is recommended instead, and works fine on local networks."));
     mDirectConnectDescriptionLabel->setJustificationType(Justification::topLeft);
 
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
+    mAddRemoteHostEditor->setTitle(TRANS("Remote Host:Port"));
     mAddRemoteHostEditor->setFont(Font(16));
     mAddRemoteHostEditor->setText("", false); // 100.36.128.246:11000
     mAddRemoteHostEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
@@ -104,12 +106,14 @@ publicGroupsListModel(this)
 
     mConnectCloseButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> ximg(Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
+    mConnectCloseButton->setTitle(TRANS("Close"));
     mConnectCloseButton->setImages(ximg.get());
     mConnectCloseButton->addListener(this);
     mConnectCloseButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
-    mConnectMenuButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
+    mConnectMenuButton = std::make_unique<SonoDrawableButton>("menu", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> dotimg(Drawable::createFromImageData(BinaryData::dots_icon_png, BinaryData::dots_icon_pngSize));
+    mConnectMenuButton->setTitle(TRANS("Menu"));
     mConnectMenuButton->setImages(dotimg.get());
     mConnectMenuButton->addListener(this);
     mConnectMenuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -129,10 +133,12 @@ publicGroupsListModel(this)
     mServerConnectButton->setWantsKeyboardFocus(true);
 
     mServerHostEditor = std::make_unique<TextEditor>("srvaddredit");
+    mServerHostEditor->setTitle(TRANS("Connection Server"));
     mServerHostEditor->setFont(Font(14));
     configEditor(mServerHostEditor.get());
 
     mServerUsernameEditor = std::make_unique<TextEditor>("srvaddredit");
+    mServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
     mServerUsernameEditor->setFont(Font(16));
     mServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mServerUsernameEditor.get());
@@ -162,11 +168,13 @@ publicGroupsListModel(this)
 
 
     mServerGroupEditor = std::make_unique<TextEditor>("groupedit");
+    mServerGroupEditor->setTitle(TRANS("Group Name:"));
     mServerGroupEditor->setFont(Font(16));
     mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mServerGroupEditor.get());
 
     mServerGroupPasswordEditor = std::make_unique<TextEditor>("grouppass"); // 0x25cf
+    mServerGroupPasswordEditor->setTitle(TRANS("Optional Group Password"));
     mServerGroupPasswordEditor->setFont(Font(14));
     mServerGroupPasswordEditor->setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
     mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
@@ -174,18 +182,21 @@ publicGroupsListModel(this)
 
     mServerGroupRandomButton = std::make_unique<SonoDrawableButton>("randgroup", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> randimg(Drawable::createFromImageData(BinaryData::dice_icon_128_png, BinaryData::dice_icon_128_pngSize));
+    mServerGroupRandomButton->setTitle(TRANS("Randomize Group Name"));
     mServerGroupRandomButton->setImages(randimg.get());
     mServerGroupRandomButton->addListener(this);
     mServerGroupRandomButton->setTooltip(TRANS("Generate a random group name"));
 
     mServerCopyButton = std::make_unique<SonoDrawableButton>("copy", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> copyimg(Drawable::createFromImageData(BinaryData::copy_icon_svg, BinaryData::copy_icon_svgSize));
+    mServerCopyButton->setTitle(TRANS("Copy Share Link"));
     mServerCopyButton->setImages(copyimg.get());
     mServerCopyButton->addListener(this);
     mServerCopyButton->setTooltip(TRANS("Copy connection information to the clipboard to share"));
 
     mServerPasteButton = std::make_unique<SonoDrawableButton>("paste", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> pasteimg(Drawable::createFromImageData(BinaryData::paste_icon_svg, BinaryData::paste_icon_svgSize));
+    mServerPasteButton->setTitle(TRANS("Paste Share Link"));
     mServerPasteButton->setImages(pasteimg.get());
     mServerPasteButton->addListener(this);
     mServerPasteButton->setTooltip(TRANS("Paste connection information from the clipboard"));
@@ -230,6 +241,7 @@ publicGroupsListModel(this)
     mRecentsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
     mRecentsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mRecentsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
+    mRecentsListBox->setTitle(TRANS("Recents List"));
     mRecentsListBox->setOutlineThickness (1);
 #if JUCE_IOS || JUCE_ANDROID
     mRecentsListBox->getViewport()->setScrollOnDragEnabled(true);
@@ -246,6 +258,7 @@ publicGroupsListModel(this)
     mPublicGroupsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
     mPublicGroupsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mPublicGroupsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
+    mPublicGroupsListBox->setTitle(TRANS("Public Groups List"));
     mPublicGroupsListBox->setOutlineThickness (1);
 #if JUCE_IOS || JUCE_ANDROID
     mPublicGroupsListBox->getViewport()->setScrollOnDragEnabled(true);
@@ -259,13 +272,13 @@ publicGroupsListModel(this)
 
 
     mPublicServerHostEditor = std::make_unique<TextEditor>("pubsrvaddredit");
+    mPublicServerHostEditor->setTitle(TRANS("Connection Server:"));
     mPublicServerHostEditor->setFont(Font(14));
     configEditor(mPublicServerHostEditor.get());
     mPublicServerHostEditor->setTooltip(servaudioinfo);
 
     mPublicServerHostStaticLabel = std::make_unique<Label>("pubaddrst", TRANS("Connection Server:"));
     configServerLabel(mPublicServerHostStaticLabel.get());
-    mPublicServerHostStaticLabel->setWantsKeyboardFocus(true);
 
     mPublicServerUserStaticLabel = std::make_unique<Label>("pubuserst", TRANS("Your Displayed Name:"));
     configServerLabel(mPublicServerUserStaticLabel.get());
@@ -276,6 +289,7 @@ publicGroupsListModel(this)
     mPublicServerStatusInfoLabel->setJustificationType(Justification::centredLeft);
 
     mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
+    mPublicServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
     mPublicServerUsernameEditor->setFont(Font(16));
     mPublicServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mPublicServerUsernameEditor.get());
@@ -297,6 +311,7 @@ publicGroupsListModel(this)
     mPublicServerAddGroupButton->setWantsKeyboardFocus(true);
 
     mPublicServerGroupEditor = std::make_unique<TextEditor>("pubgroupedit");
+    mPublicServerGroupEditor->setTitle(TRANS("Public Group Name"));
     mPublicServerGroupEditor->setFont(Font(16));
     mPublicServerGroupEditor->setText(currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mPublicServerGroupEditor.get());
@@ -359,6 +374,18 @@ publicGroupsListModel(this)
     mRandomSentence = std::make_unique<RandomSentenceGenerator>(gramstream);
     mRandomSentence->capEveryWord = true;
 
+    setFocusContainerType(FocusContainerType::keyboardFocusContainer);
+    mConnectTab->setFocusContainerType(FocusContainerType::none);
+    mConnectTab->getTabbedButtonBar().setFocusContainerType(FocusContainerType::none);
+    mConnectTab->getTabbedButtonBar().setWantsKeyboardFocus(true);
+    mConnectTab->setWantsKeyboardFocus(true);
+    for (int i=0; i < mConnectTab->getTabbedButtonBar().getNumTabs(); ++i) {
+        if (auto tabbut = mConnectTab->getTabbedButtonBar().getTabButton(i)) {
+            tabbut->setWantsKeyboardFocus(true);
+            tabbut->setRadioGroupId(2);
+        }
+    }
+
 
     updateLayout();
 }
@@ -370,6 +397,33 @@ juce::Rectangle<int> ConnectView::getMinimumContentBounds() const {
     int defHeight = 100;
     return Rectangle<int>(0,0,defWidth,defHeight);
 }
+
+void ConnectView::grabInitialFocus()
+{
+    if (auto * butt = mConnectTab->getTabbedButtonBar().getTabButton(mConnectTab->getCurrentTabIndex())) {
+        butt->setWantsKeyboardFocus(true);
+        butt->grabKeyboardFocus();
+    }
+}
+
+void ConnectView::escapePressed()
+{
+    if (!mServerGroupEditor->hasKeyboardFocus(false)
+        && !mServerHostEditor->hasKeyboardFocus(false)
+        && !mServerUsernameEditor->hasKeyboardFocus(false)
+        && !mServerUserPasswordEditor->hasKeyboardFocus(false)
+        && !mServerGroupPasswordEditor->hasKeyboardFocus(false)
+        && !mPublicServerHostEditor->hasKeyboardFocus(false)
+        && !mPublicServerGroupEditor->hasKeyboardFocus(false)
+        && !mPublicServerUsernameEditor->hasKeyboardFocus(false)
+        )
+    {
+        // close us down
+        setVisible(false);
+    }
+}
+
+
 
 void ConnectView::timerCallback(int timerid)
 {
@@ -1384,6 +1438,7 @@ void ConnectView::showPopTip(const String & message, int timeoutMs, Component * 
         popTip->showAt(topbox, text, timeoutMs);
     }
     popTip->toFront(false);
+    //AccessibilityHandler::postAnnouncement(message, AccessibilityHandler::AnnouncementPriority::medium);
 }
 
 void ConnectView::paint(Graphics & g)
@@ -1424,6 +1479,15 @@ int ConnectView::RecentsListModel::getNumRows()
 {
     return recents.size();
 }
+
+String ConnectView::RecentsListModel::getNameForRow (int rowNumber)
+{
+    if (rowNumber < recents.size()) {
+        return recents.getReference(rowNumber).groupName;
+    }
+    return ListBoxModel::getNameForRow(rowNumber);
+}
+
 
 void ConnectView::RecentsListModel::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
 {
@@ -1505,6 +1569,24 @@ void ConnectView::RecentsListModel::selectedRowsChanged(int rowNumber)
 
 }
 
+void ConnectView::RecentsListModel::deleteKeyPressed (int rowNumber)
+{
+    DBG("delete key pressed");
+    if (rowNumber < recents.size()) {
+        parent->processor.removeRecentServerConnectionInfo(rowNumber);
+        parent->updateRecents();
+    }
+}
+
+void ConnectView::RecentsListModel::returnKeyPressed (int rowNumber)
+{
+    DBG("return key pressed: " << rowNumber);
+
+    if (rowNumber < recents.size()) {
+        parent->connectWithInfo(recents.getReference(rowNumber));
+    }
+}
+
 #pragma PublicGroupsListModel
 
 ConnectView::PublicGroupsListModel::PublicGroupsListModel(ConnectView * parent_) : parent(parent_)
@@ -1572,11 +1654,32 @@ void ConnectView::PublicGroupsListModel::paintListBoxItem (int rowNumber, Graphi
     cachedWidth = width;
 }
 
+String ConnectView::PublicGroupsListModel::getNameForRow (int rowNumber)
+{
+    if (rowNumber < groups.size()) {
+        return groups.getReference(rowNumber).groupName;
+    }
+    return ListBoxModel::getNameForRow(rowNumber);
+}
+
+void ConnectView::PublicGroupsListModel::returnKeyPressed (int rowNumber)
+{
+    DBG("return key pressed: " << rowNumber);
+
+    groupSelected(rowNumber);
+}
+
 void ConnectView::PublicGroupsListModel::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 {
     // use this
     DBG("Clicked " << rowNumber << "  x: " << e.getPosition().x << "  width: " << cachedWidth);
 
+    groupSelected(rowNumber);
+
+}
+
+void ConnectView::PublicGroupsListModel::groupSelected(int rowNumber)
+{
     if (rowNumber >= groups.size() || rowNumber < 0) {
         DBG("Clicked out of bounds row!");
         return;
@@ -1615,8 +1718,8 @@ void ConnectView::PublicGroupsListModel::listBoxItemClicked (int rowNumber, cons
 
         parent->connectWithInfo(cinfo);
     }
-
 }
+
 
 void ConnectView::PublicGroupsListModel::selectedRowsChanged(int rowNumber)
 {
