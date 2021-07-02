@@ -36,9 +36,9 @@ endif()
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(SonoBus VERSION 1.4.6)
+project(SonoBus VERSION 1.4.7)
 
-set(BUILDVERSION 69)
+set(BUILDVERSION 70)
 
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
@@ -411,6 +411,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
         JUCE_USE_MP3AUDIOFORMAT=1
+        JUCE_LOAD_CURL_SYMBOLS_LAZILY=1
         JUCE_ASIO=1
         JUCE_WASAPI=1
         JUCE_DIRECTSOUND=0
