@@ -1,0 +1,75 @@
+TITLE:: AooAddr
+summary:: Represents an AOO network endpoint
+categories:: External Control>OSC
+related:: Classes/AooSend, Classes/AooSendCtl, Classes/AooReceive, Classes/AooReceiveCtl, Classes/AooClient
+
+DESCRIPTION::
+(put long description here)
+
+
+CLASSMETHODS::
+
+METHOD:: new
+(describe method here)
+
+ARGUMENT:: ip
+(describe argument here)
+
+ARGUMENT:: port
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: peer
+(describe method here)
+
+ARGUMENT:: group
+(describe argument here)
+
+ARGUMENT:: user
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+INSTANCEMETHODS::
+
+METHOD:: hash
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: ==
+(describe method here)
+
+ARGUMENT:: that
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: ip
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: group
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: user
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: port
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::

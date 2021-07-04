@@ -3,6 +3,8 @@ Audio over OSC based audio streaming
 
 "Audio over OSC" aka *AoO* is aimed to be a message based audio system inspired by Open Sound Control OSC_ as a syntax format. It is dedicated to send audio in real time from arbitrary sources to arbitrary sinks on demand.
 
+**WARNING**: AOO is still alpha software, there are breaking changes between pre-releases!
+
 history
 -------
 

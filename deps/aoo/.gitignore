@@ -11,3 +11,5 @@
 lib/src/lib/oscpack/examples**
 lib/src/lib/oscpack/tests**
 lib/src/lib/oscpack/ip**
+build**
+install**

@@ -1,0 +1,55 @@
+TITLE:: AooFormatOpus
+summary:: Opus codec settings
+categories:: Server>Abstractions
+related:: Classes/AooSendCtl, Classes/AooReceiveCtl
+
+DESCRIPTION::
+Opus is a high quality and low latency codec for sending compressed audio over the internet (https://opus-codec.org/).
+
+
+CLASSMETHODS::
+
+METHOD:: new
+See the instance methods for the meaning of each parameter. All parameters are optional.
+
+
+INSTANCEMETHODS::
+
+METHOD:: channels
+number of channels (default: UGen channel size)
+
+METHOD:: blockSize
+block size in samples (default: 480).
+
+Opus works with block sizes that are multiples of 2.5 ms (@ 48 kHz). The minimum block size is 120 samples (= 2.5 ms @ 48 kHz), the maximum block size is 2880 samples (= 60 ms @ 48 kHz).
+
+The value of code::blockSize:: is automatically rounded down to the nearest Opus block size.
+
+note::Higher block sizes yield better compression and audio quality, but introduce more latency.::
+
+METHOD:: sampleRate
+sample rate in Herz (default: 48000 Hz). Possible values: 48000, 24000, 16000, 12000, 8000.
+
+
+SUBSECTION:: Advanced settings
+
+METHOD:: bitRate
+the emphasis::total:: bit rate in bit/s (default: unspecified, but OK for most cases).
+
+note::For a stereo stream, a bit rate of 64000 bit/s effectively means 32000 bit/s per channel.::
+
+64000 bit/s per channel is considered transparent. Pass the Symbol code::\max:: to use the maximum bit rate.
+
+METHOD:: complexity
+the computational complexity, given as an Integer between 0 and 10 (default: 9).
+
+Higher values give better audio quality, but take more CPU time.
+
+METHOD:: signalType
+the signal type (default: code::\auto::).
+
+table::
+## code::\voice:: || optimized for speech
+## code::\music:: || optimized for music
+## code::\auto:: || automatic
+::

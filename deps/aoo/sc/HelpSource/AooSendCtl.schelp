@@ -1,0 +1,199 @@
+TITLE:: AooSendCtl
+summary:: Client-side representation of an AooSend UGen
+categories:: Server>Abstractions
+related:: Classes/AooSend, Classes/AooReceive, Classes/AooReceiveCtl, Classes/AooAddr, Classes/AooClient
+
+DESCRIPTION::
+(put long description here)
+
+
+CLASSMETHODS::
+
+METHOD:: ugenClass
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: initClass
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+
+INSTANCEMETHODS::
+
+METHOD:: prFind
+(describe method here)
+
+ARGUMENT:: sink
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: add
+(describe method here)
+
+ARGUMENT:: addr
+(describe argument here)
+
+ARGUMENT:: id
+(describe argument here)
+
+ARGUMENT:: channelOnset
+(describe argument here)
+
+ARGUMENT:: action
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prAdd
+(describe method here)
+
+ARGUMENT:: sink
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: removeAll
+(describe method here)
+
+ARGUMENT:: action
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: channelOnset
+(describe method here)
+
+ARGUMENT:: addr
+(describe argument here)
+
+ARGUMENT:: id
+(describe argument here)
+
+ARGUMENT:: onset
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: packetSize
+(describe method here)
+
+ARGUMENT:: size
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: pingInterval
+(describe method here)
+
+ARGUMENT:: sec
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: resendBufsize
+(describe method here)
+
+ARGUMENT:: sec
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: timeFilterBW
+(describe method here)
+
+ARGUMENT:: bw
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prHandleEvent
+(describe method here)
+
+ARGUMENT:: type
+(describe argument here)
+
+ARGUMENT::  ... args
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: remove
+(describe method here)
+
+ARGUMENT:: addr
+(describe argument here)
+
+ARGUMENT:: id
+(describe argument here)
+
+ARGUMENT:: action
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: redundancy
+(describe method here)
+
+ARGUMENT:: n
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: accept
+(describe method here)
+
+ARGUMENT:: enable
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: init
+(describe method here)
+
+ARGUMENT:: synth
+(describe argument here)
+
+ARGUMENT:: synthIndex
+(describe argument here)
+
+ARGUMENT:: port
+(describe argument here)
+
+ARGUMENT:: id
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: format
+(describe method here)
+
+ARGUMENT:: fmt
+(describe argument here)
+
+ARGUMENT:: action
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prRemove
+(describe method here)
+
+ARGUMENT:: sink
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: sinks
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::

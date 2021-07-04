@@ -1,6 +1,266 @@
----
-variables:
-  SRCDIR: pd/
+### global variables
 
-include:
-  - https://git.iem.at/pd/iem-ci/raw/master/pd-lib-builder/gitlab-iem.yml
+variables:
+  PDVERSION: 0.51-1
+  VST2DIR: /tmp/vst2sdk
+  VST3DIR: /tmp/vst3sdk
+  SC_PATH: /tmp/supercollider
+
+### script snippets
+
+.script:deps: &script_deps
+# supercollider
+  - git clone https://github.com/supercollider/supercollider.git "${SC_PATH}"
+  - pushd "${SC_PATH}"
+  - git submodule update --init
+  - popd
+# submodules (Opus)
+  - git submodule update --init
+  - cmake -Hdeps/opus -Bdeps/opus/build -DOPUS_STACK_PROTECTOR=OFF
+   -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -DCMAKE_INSTALL_PREFIX=deps/opus
+  - make -C deps/opus/build install VERBOSE=1
+
+.script:cmake: &script_cmake
+  - prefix="$(pwd)/build/${CI_JOB_NAME%_*}"
+  - cmake -H. -Bbuild -DSTATIC_LIBS=${STATIC_LIBS} -DCMAKE_INSTALL_PREFIX="$prefix/aoo"
+   -DPD_EXTENSION=${PD_EXTENSION} -DPD_DIR="${PD_PATH}" -DPD_INSTALLDIR="$prefix/pd"
+   -DSUPERNOVA=${SUPERNOVA} -DSC_INCLUDEDIR="${SC_PATH}" -DSC_INSTALLDIR="$prefix/sc"
+
+### build snippets
+.script:make: &script_make
+  - make -C build VERBOSE=1
+.script:make_install: &script_make_install
+  - make -C build install/strip VERBOSE=1
+
+#######################################################################
+### configuration templates (to be used for snapshot and release builds)
+.build:script:
+  stage: build
+  script:
+    - *script_make
+    - *script_make_install
+  artifacts:
+    name: ${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_JOB_NAME%_*}
+    paths:
+      - "build/${CI_JOB_NAME%_*}/aoo"
+      - "build/${CI_JOB_NAME%_*}/pd/aoo"
+      - "build/${CI_JOB_NAME%_*}/sc/aoo"
+
+.snapshot:
+  except:
+    - tags
+  artifacts:
+    expire_in: 1 week
+
+.release:
+  only:
+    - tags
+
+.build:linux: &build_linux
+  extends: .build:script
+  image: gcc
+  variables:
+    SUPERNOVA: 1
+    STATIC_LIBS: 1
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends make cmake git
+      puredata-dev puredata
+    - *script_deps
+    - *script_cmake
+
+.build:linux_i386: &build_linux_i386
+  extends: .build:linux
+  image: registry.git.iem.at/devtools/docker/debiancross:i386
+  variables:
+    PD_EXTENSION: l_i386
+
+.build:linux_armhf: &build_linux_armhf
+  extends: .build:linux
+  image: registry.git.iem.at/devtools/docker/debiancross:armhf
+  variables:
+    PD_EXTENSION: l_arm
+
+.build:linux_arm64: &build_linux_arm64
+  extends: .build:linux
+  image: registry.git.iem.at/devtools/docker/debiancross:arm64
+  variables:
+    PD_EXTENSION: l_arm64
+
+.build:macos: &build_macos
+  extends: .build:script
+  tags:
+     - osx
+  variables:
+    SUPERNOVA: 1
+  before_script:
+    - wget -q -O Pd.tgz http://msp.ucsd.edu/Software/pd-${PDVERSION}.mac.tar.gz
+    - rm -rf /Applications/Pd*.app/
+    - tar xvf Pd.tgz -C /Applications/
+    - rm -f Pd.tgz
+    - *script_deps
+    - *script_cmake
+
+.build:w32: &build_w32
+  extends: .build:script
+  tags:
+    - windows
+  variables:
+    IEMCI_CONFIGURATIONS: mingw32
+    SUPERNOVA: 1
+    STATIC_LIBS: 1
+    PD_URL: http://msp.ucsd.edu/Software/pd-${PDVERSION}-i386.msw.zip
+  before_script:
+    - pacman --noconfirm -S cmake
+    - wget -q -O Pd.zip ${PD_URL}
+# install locally to avoid hassles with Windows vs. Unix file paths.
+# NOTE: PD_PATH is also used in .script:cmake.
+    - export PD_PATH=/tmp/pd
+    - rm -rf "${PD_PATH}"; mkdir -p "${PD_PATH}"
+    - unzip -q Pd.zip -d "${PD_PATH}"
+    - mv -v "${PD_PATH}"/*/* "${PD_PATH}"
+    - *script_deps
+    - *script_cmake
+
+.build:w64: &build_w64
+  extends: .build:w32
+  variables:
+    IEMCI_CONFIGURATIONS: mingw64
+    PD_EXTENSION: m_amd64
+    PD_URL: http://msp.ucsd.edu/Software/pd-${PDVERSION}.msw.zip
+
+### job templates
+.Linux:
+  <<: *build_linux
+.Linux_i386:
+  allow_failure: false
+  <<: *build_linux_i386
+.Linux_ARMhf:
+  allow_failure: false
+  <<: *build_linux_armhf
+.Linux_ARM64:
+  allow_failure: false
+  <<: *build_linux_arm64
+.Darwin:
+  <<: *build_macos
+.w32:
+  <<: *build_w32
+.w64:
+  <<: *build_w64
+
+#######################################################################
+### create deken packages and (optionally) upload them;
+### if you want to automatically upload a package, you need to
+### set DEKEN_USERNAME/DEKEN_PASSWORD in the CI-project settings.
+### (https://git.iem.at/help/ci/variables/README#variables)
+.package:
+  stage: deploy
+  image: debian:buster
+  variables:
+    DEKEN_ROOT: "yes"
+  before_script:
+    - apt-get update && apt-get --no-install-recommends -y install deken zip
+  script:
+# create zip files for all platform (e.g. aoo_v0.3.0_w32.zip)
+    - rm -f ./*.zip
+    - root=$(pwd)
+# Pd + SuperCollider:
+    - for dir in ./build/*; do
+        for lib in pd sc; do
+          name=aoo_${lib}_${CI_COMMIT_REF_NAME}_$(basename "$dir").zip;
+          echo create $name;
+          (cd "$dir/$lib" && zip -r "${root}/${name}" ./aoo)
+        ; done
+      ; done
+# C/C++ library:
+    - for dir in ./build/*; do
+        name=aoo_${CI_COMMIT_REF_NAME}_$(basename "$dir").zip;
+        echo create $name;
+        (cd "$dir" && zip -r "${root}/${name}" ./aoo)
+      ; done
+# Deken:
+    - rm -f ./*.dek
+    - rm -rf ./pd/aoo
+    - mkdir -p ./pd/aoo
+# create a single deken package containing binaries for all platforms
+    - for dir in ./build/*/pd/aoo; do cp -r $dir/* ./pd/aoo; done
+    - deken package --version="${CI_COMMIT_TAG#v}" ./pd/aoo
+# upload deken package (optional)
+    - test -z "${CI_COMMIT_TAG}" || test -z "${DEKEN_USERNAME}" || test -z "${DEKEN_PASSWORD}" || deken upload --no-source-error ./*.dek
+  artifacts:
+    name: ${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_package
+    paths:
+      - ./*.dek
+      - ./*.zip
+
+
+#######################################################################
+### the actual jobs: (linux,macos,windows)*(release,snapshot)
+
+### release jobs
+Linux:
+  extends:
+    - .Linux
+    - .release
+Linux_i386:
+  extends:
+    - .Linux_i386
+    - .release
+Linux_ARMhf:
+  extends:
+    - .Linux_ARMhf
+    - .release
+Linux_ARM64:
+  extends:
+    - .Linux_ARM64
+    - .release
+Darwin:
+  extends:
+    - .Darwin
+    - .release
+w32:
+  extends:
+    - .w32
+    - .release
+w64:
+  extends:
+    - .w64
+    - .release
+package:
+  extends:
+    - .package
+    - .release
+
+### snapshot jobs
+Linux_snapshot:
+  extends:
+    - .Linux
+    - .snapshot
+Linux_i386_snapshot:
+  extends:
+    - .Linux_i386
+    - .snapshot
+Linux_ARMhf_snapshot:
+  extends:
+    - .Linux_ARMhf
+    - .snapshot
+Linux_ARM64_snapshot:
+  extends:
+    - .Linux_ARM64
+    - .snapshot
+Darwin_snapshot:
+  extends:
+    - .Darwin
+    - .snapshot
+w32_snapshot:
+  extends:
+    - .w32
+    - .snapshot
+w64_snapshot:
+  extends:
+    - .w64
+    - .snapshot
+package_snapshot:
+  extends:
+    - .package
+    - .snapshot
+

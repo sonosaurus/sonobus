@@ -1,0 +1,89 @@
+TITLE:: AooSend
+summary:: Send an AOO stream
+categories:: UGens>Streaming
+related:: Classes/AooSendCtl, Classes/AooReceive, Classes/AooReceiveCtl, Classes/AooAddr, Classes/AooClient
+
+DESCRIPTION::
+(put long description here)
+
+
+CLASSMETHODS::
+
+METHOD:: kr
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: ar
+(describe method here)
+
+ARGUMENT:: port
+(describe argument here)
+
+ARGUMENT:: id
+(describe argument here)
+
+ARGUMENT:: state
+(describe argument here)
+
+ARGUMENT:: channels
+(describe argument here)
+
+ARGUMENT:: tag
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+INSTANCEMETHODS::
+
+METHOD:: synthIndex
+(describe method here)
+
+ARGUMENT:: index
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: id
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: port
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: optimizeGraph
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: tag
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: desc
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: init
+(describe method here)
+
+ARGUMENT:: tag
+(describe argument here)
+
+ARGUMENT::  ... args
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::

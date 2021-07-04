@@ -1,0 +1,46 @@
+TITLE:: AooReceive
+summary:: Receive AOO streams
+categories:: UGens>Streaming
+related:: Classes/AooReceiveCtl, Classes/AooSend, Classes/AooSendCtl, Classes/AooClient
+
+DESCRIPTION::
+This UGen creates an AOO sink on the Server. It receives audio stream from one or more AOO sources (e.g. link::Classes/AooSend::) and sends the signal to its outputs. If more than one source send to the same channel, the signals are simply summed.
+
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+ARGUMENT:: port
+the (fixed) port number where to listen for incoming messages/replies.
+
+note::The port number can be shared among several instances of code::AooSend:: and/or code::AooReceive:: emphasis::within a single application::.::
+
+ARGUMENT:: id
+a fixed, positive Integer which uniquely identifies the AOO sink on the given port.
+
+note::There must be no two code::AooReceive:: objects with the same ID on the same port. You can, however, have two code::AooReceive:: objects with the same ID but on different ports!::
+
+ARGUMENT:: numChannels
+the (fixed) number of output channels.
+
+ARGUMENT:: bufsize
+the buffer size in seconds (default: 0.025).
+
+Increase this value for unstable or jittery networks. If the buffer size is large enough, lost packets might even get resent.
+
+For live performances, you might want to set the buffer size as low as possible (and risk occasional drop outs). For reliable streaming, you would use a larger buffer size.
+
+note::While the PCM format will simply replace dropped packets with silence, the Opus codec tries to interpolate and mask them. See link::Classes/AooSendCtl#-format::.::
+
+ARGUMENT:: tag
+a Symbol which uniquely identifies this UGen within a SynthDef.
+
+This is only needed if you have more than one code::AooReceive:: instance in a given SynthDef.
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::

@@ -1,0 +1,33 @@
+TITLE:: AooFormatPCM
+summary:: PCM format settings
+categories:: Server>Abstractions
+related:: Classes/AooSendCtl, Classes/AooReceiveCtl
+
+DESCRIPTION::
+Uncompressed PCM audio.
+
+
+CLASSMETHODS::
+
+METHOD:: new
+See the instance methods for the meaning of each parameter. All parameters are optional.
+
+INSTANCEMETHODS::
+
+METHOD:: channels
+number of channels (default: UGen channel size)
+
+METHOD:: blockSize
+block size in samples (default: Server block size)
+
+METHOD:: sampleRate
+sample rate in Herz (default: Server sample rate)
+
+METHOD:: bitDepth
+the bit depth in number of bytes (default: 32-bit).
+table::
+## 2 || 16 bit (integer)
+## 3 || 24 bit (integer)
+## 4 || 32 bit (float)
+## 8 || 64 bit (float)
+::

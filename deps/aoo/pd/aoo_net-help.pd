@@ -1,0 +1,348 @@
+#N canvas 430 15 658 774 12;
+#X declare -lib aoo;
+#X obj 379 266 declare -lib aoo;
+#X msg 73 363 disconnect;
+#X msg 343 363 disconnect;
+#X text 38 25 [aoo_server] / [aoo_client]: objects for UDP hole punching
+;
+#X obj 64 531 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 334 533 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X msg 62 621 add test bar 1;
+#X msg 70 646 remove;
+#X msg 346 647 uninvite;
+#X msg 336 622 invite test foo 1;
+#X msg 203 691 \; pd dsp \$1;
+#X obj 203 670 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X msg 77 673 start;
+#X msg 124 673 stop;
+#N canvas 54 179 501 392 server 0;
+#X obj 32 244 aoo_server 8002;
+#X floatatom 32 269 5 0 0 0 - - -;
+#N canvas 71 488 756 237 events 0;
+#X obj 37 37 inlet;
+#X obj 37 62 print aoo_server;
+#X msg 37 93 user_join <user> <id> <ip> <port>;
+#X text 288 92 a new user connected to the server;
+#X text 290 123 a user disconnected from the server;
+#X msg 37 123 user_leave <user> <id> <ip> <port>;
+#X text 290 156 a user joined a group;
+#X text 292 189 a user left a group;
+#X msg 37 156 group_join <group> <user> <id>;
+#X msg 38 189 group_leave <group> <user> <id>;
+#X connect 0 0 1 0;
+#X restore 134 269 pd events;
+#X text 32 300 outlets:;
+#X text 45 322 1) number of connected users;
+#X text 45 342 2) events;
+#X text 25 29 [aoo_server]: the UDP punch hole server;
+#X text 28 56 creation arguments:;
+#X text 45 78 1) port number;
+#X text 28 144 NOTE: If you want to connect clients over the public
+internet \, your server machine must be publicly accessible and the
+given port number must be known by all clients.;
+#X text 28 107 Use this object to host an AOO server for a local network
+or the public internet., f 58;
+#X text 29 198 Each user is identified by its name or unique ID. A
+single user can join multiple groups., f 49;
+#X connect 0 0 1 0;
+#X connect 0 1 2 0;
+#X restore 129 267 pd server;
+#N canvas 719 21 750 739 client 0;
+#X text 24 21 [aoo_client]: the client;
+#X text 26 111 creation arguments:;
+#X text 50 131 1) port number, f 15;
+#X obj 25 606 aoo_client;
+#X text 25 155 messages:;
+#X msg 35 282 disconnect;
+#X text 385 578 outlets:;
+#X msg 47 466 group_leave <group>;
+#X msg 44 346 group_join <group> <password>;
+#X text 264 276 Disconnect from the server.;
+#X text 263 300 Both method are *asynchronous* and will output 1 on
+success or 0 on failure.;
+#N canvas 531 18 869 742 osc 0;
+#X msg 37 72 disconnect;
+#X obj 539 121 oscformat bazoo;
+#X msg 539 95 1 2 3;
+#X msg 528 65 disconnect;
+#X msg 677 107 disconnect;
+#X msg 45 115 broadcast <bytes>;
+#X msg 53 144 send_group <group> <bytes>;
+#X msg 75 238 send <bytes>;
+#X msg 82 269 list <bytes>;
+#X text 181 116 send an OSC message to all peers;
+#X text 253 142 send to all peers in a given group, f 35;
+#X text 298 174 send to a single peer;
+#X msg 68 205 send_peer <IP> <port> <bytes>;
+#X msg 106 362 target;
+#X msg 100 331 target <group>;
+#X msg 89 299 target <group> <user>;
+#X msg 60 175 send_peer <group> <user> <bytes>;
+#X text 176 234 send an OSC message to the current target (more efficient
+than the methods above), f 43;
+#X text 180 270 "send" selector is optional;
+#X text 251 300 target a single peer;
+#X text 211 334 target a group;
+#X text 161 362 broadcast (= default);
+#X msg 112 394 offset <f>;
+#X obj 48 689 print A;
+#X text 144 639 The third outlet outputs the sender as;
+#X msg 551 174 target test2 C;
+#X msg 557 200 target;
+#X msg 562 251 offset \$1;
+#X obj 562 228 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
+10 -262144 -1 -1 0 256;
+#X msg 121 506 schedule \$1;
+#X obj 121 485 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 218 483 1: automatically schedule OSC bundle elements according
+to their timetags (= default)., f 47;
+#X text 219 518 0: don't schedule \, instead output the required delay.
+, f 54;
+#X text 145 609 Incoming OSC messages are sent to the second outlet
+as a list of bytes., f 71;
+#X obj 48 661 oscparse;
+#X obj 48 636 route list;
+#X obj 570 332 oscparse;
+#X obj 570 307 route list;
+#X obj 719 371 oscparse;
+#X obj 719 346 route list;
+#X obj 719 399 print C;
+#X obj 570 359 print B;
+#X text 143 668 <delay> is the difference in ms between the OSC timetag
+and the current system time. It is always 0 for immediate OSC messages.
+Late messages (= timetag expired before arrival) have a negative delay.
+, f 85;
+#X obj 27 635 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 519 306 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 668 346 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 27 608 aoo_client 9992;
+#X obj 519 280 aoo_client 9993;
+#X obj 668 320 aoo_client 9994;
+#X msg 28 44 connect localhost 8002 A _ test2 _;
+#X msg 122 568 discard_late \$1;
+#X obj 122 546 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 246 547 Discard late bundles. This is only relevant for automatic
+scheduling. With manual scheduling \, users can simply filter messages
+with a negative delay., f 58;
+#X msg 519 39 connect localhost 8002 B _ test2 _;
+#X msg 546 147 target test2 A;
+#X msg 669 67 connect localhost 8002 C _ test2 _, f 23;
+#X obj 684 164 oscformat bazoo;
+#X msg 684 139 1 2 3;
+#X msg 702 244 target;
+#X msg 707 292 offset \$1;
+#X obj 707 269 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
+10 -262144 -1 -1 0 256;
+#X msg 691 191 target test2 A;
+#X msg 696 218 target test2 B;
+#X msg 115 456 offset -1;
+#X text 200 456 No offset (send as regular OSC message). This is the
+default., f 61;
+#X msg 621 225 -1;
+#X msg 766 266 -1;
+#X text 198 390 Set the timetag offset in ms. This will schedule OSC
+messages as bundles \, with a timetag based on the current NTP time
++ offset. NOTE: "offset" is ignored for OSC bundles \, because they
+already contain a timetag!, f 66;
+#X msg 421 639 list <group> <name> <delay>;
+#X connect 0 0 46 0;
+#X connect 1 0 47 0;
+#X connect 2 0 1 0;
+#X connect 3 0 47 0;
+#X connect 4 0 48 0;
+#X connect 5 0 46 0;
+#X connect 6 0 46 0;
+#X connect 7 0 46 0;
+#X connect 8 0 46 0;
+#X connect 12 0 46 0;
+#X connect 13 0 46 0;
+#X connect 14 0 46 0;
+#X connect 15 0 46 0;
+#X connect 16 0 46 0;
+#X connect 22 0 46 0;
+#X connect 25 0 47 0;
+#X connect 26 0 47 0;
+#X connect 27 0 47 0;
+#X connect 28 0 27 0;
+#X connect 29 0 46 0;
+#X connect 30 0 29 0;
+#X connect 34 0 23 0;
+#X connect 35 0 34 0;
+#X connect 35 1 23 0;
+#X connect 36 0 41 0;
+#X connect 37 0 36 0;
+#X connect 37 1 41 0;
+#X connect 38 0 40 0;
+#X connect 39 0 38 0;
+#X connect 39 1 40 0;
+#X connect 46 0 43 0;
+#X connect 46 1 35 0;
+#X connect 46 2 23 0;
+#X connect 47 0 44 0;
+#X connect 47 1 37 0;
+#X connect 47 2 41 0;
+#X connect 48 0 45 0;
+#X connect 48 1 39 0;
+#X connect 48 2 40 0;
+#X connect 49 0 46 0;
+#X connect 50 0 46 0;
+#X connect 51 0 50 0;
+#X connect 53 0 47 0;
+#X connect 54 0 47 0;
+#X connect 55 0 48 0;
+#X connect 56 0 48 0;
+#X connect 57 0 56 0;
+#X connect 58 0 48 0;
+#X connect 59 0 48 0;
+#X connect 60 0 59 0;
+#X connect 61 0 48 0;
+#X connect 62 0 48 0;
+#X connect 63 0 46 0;
+#X connect 65 0 27 0;
+#X connect 66 0 59 0;
+#X restore 261 577 pd osc messages;
+#X text 396 603 1) connection status (1|0);
+#X text 396 627 2) events/replies;
+#N canvas 936 498 593 267 events/replies 0;
+#X msg 32 76 group_join <group> <result>;
+#X msg 33 104 group_leave <group> <result>;
+#X text 244 96 <result> is 1 on success and 0 on failure, f 42;
+#X msg 33 222 peer <group> <user> <id> <IP> <port>;
+#X msg 32 143 peer_join <group> <user> <id> <IP> <port>;
+#X msg 32 180 peer_leave <group> <user> <id> <IP> <port>;
+#X text 344 180 a peer has left the group;
+#X text 335 141 a new peer has joined the group;
+#X msg 32 37 list <bytes...>;
+#X text 153 37 OSC message received from peer;
+#X text 244 74 reply for [group_join( resp. [group_leave(;
+#X text 305 222 reply for [peer_list(;
+#X restore 528 627 pd events/replies;
+#X text 268 488 Both methods are asynchronous and will output a [group_join(
+resp. [group_leave( message on success/failure (see "replies")., f
+63;
+#X text 268 402 You will get a [peer_join( message for every existing
+peer in the group (see "events")., f 63;
+#X msg 58 533 peer_list;
+#X text 267 368 The group password is shared by all users. If you don't
+care too much about security \, just use the group name itself., f
+63;
+#X text 60 577 Send OSC messages to peers:;
+#X text 284 123 A peer is defined by its group name \, user name \,
+user ID \, IP address and port number., f 56;
+#X msg 33 229 connect <hostname> <port> <username> <password> <groupname>
+<password>, f 37;
+#X msg 25 181 connect <hostname> <port> <username> <password>, f 26
+;
+#X text 312 228 Connect to the server and immediately join a group.
+;
+#X text 314 248 See [join_group(.;
+#X text 267 346 Join group. You must be logged in as a user.;
+#X text 196 466 Leave a group.;
+#X text 141 530 Get a list all a peers. This will output a series of
+[peer( messages. See "events/replies"., f 70;
+#X text 25 52 Clients connect to the server and join a group to obtain
+the (public) IP addresses of their peers. This enables peers to send
+each other messages over the interent which usually isn't possible
+because of NAT. For more info see https://en.wikipedia.org/wiki/UDP_hole_punching.
+, f 93;
+#X text 284 104 Each user on a given server has a unique name and ID.
+;
+#X text 232 173 Connect to the server as a user. The password can be
+chosen freely. Although it will be hashed \, better don't use the one
+of your online banking account :-), f 68;
+#X text 269 439 NOTE: it's possible to join several groups simultanously!
+, f 62;
+#X text 396 651 3) peer (see "osc messages");
+#X connect 5 0 3 0;
+#X connect 7 0 3 0;
+#X connect 8 0 3 0;
+#X connect 17 0 3 0;
+#X connect 22 0 3 0;
+#X restore 208 267 pd client;
+#X obj 91 444 oscformat bazoo;
+#X msg 91 417 1 2 3;
+#X msg 358 440 1 2 3;
+#X obj 358 469 oscformat hooray;
+#X text 43 266 More info:;
+#X obj 115 533 route list;
+#X obj 115 557 oscparse;
+#X obj 385 534 route list;
+#X obj 385 560 oscparse;
+#X obj 64 507 aoo_client 9990;
+#X obj 334 507 aoo_client 9991;
+#X obj 62 704 aoo_send~ 9990 1;
+#X obj 336 703 aoo_receive~ 9991 1;
+#X text 115 391 send a message to all peers;
+#X text 45 301 <hostname> <port> <username> <password> <groupname>
+<password>, f 64;
+#X msg 65 335 connect localhost 8002 foo _ test _;
+#X msg 334 335 connect localhost 8002 bar _ test _;
+#X obj 91 392 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X obj 358 391 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X text 403 387 send a message to a single peer (test|foo), f 32;
+#X obj 358 411 t b b;
+#X msg 409 440 target test foo;
+#X obj 115 586 print FOO;
+#X obj 385 589 print BAR;
+#X obj 62 731 print FOO;
+#X obj 466 730 print BAR;
+#X text 40 76 A client on a given port first connects to an AOO server.
+For the internet \, the server has to be publicly accessable. For local
+networks \, the server can be private \, i.e. run on a user's machine.
+, f 76;
+#X text 38 51 These objects allow peers to easily communicate with
+each other in a network., f 78;
+#X text 41 168 A peer is referenced by its group and user name \, so
+that <group> <user> effectively replaces <host> <port> in all relevant
+methods and events., f 77;
+#X text 41 208 All AOO objects on the same port share the same peer
+list.;
+#X text 40 130 Once the client has joined a group \, it receives a
+list of all existing peers in that group and is notified whenever a
+peer joins/leaves the group., f 77;
+#X text 41 234 You can always use the public AOO server of the IEM:
+vrr.iem.at 7077, f 70;
+#X connect 1 0 25 0;
+#X connect 2 0 26 0;
+#X connect 6 0 27 0;
+#X connect 7 0 27 0;
+#X connect 8 0 28 0;
+#X connect 9 0 28 0;
+#X connect 11 0 10 0;
+#X connect 12 0 27 0;
+#X connect 13 0 27 0;
+#X connect 16 0 25 0;
+#X connect 17 0 16 0;
+#X connect 18 0 19 0;
+#X connect 19 0 26 0;
+#X connect 21 0 22 0;
+#X connect 21 1 38 0;
+#X connect 22 0 38 0;
+#X connect 23 0 24 0;
+#X connect 23 1 39 0;
+#X connect 24 0 39 0;
+#X connect 25 0 4 0;
+#X connect 25 1 21 0;
+#X connect 25 2 38 0;
+#X connect 26 0 5 0;
+#X connect 26 1 23 0;
+#X connect 26 2 39 0;
+#X connect 27 0 40 0;
+#X connect 28 1 41 0;
+#X connect 31 0 25 0;
+#X connect 32 0 26 0;
+#X connect 33 0 17 0;
+#X connect 34 0 36 0;
+#X connect 36 0 18 0;
+#X connect 36 1 37 0;
+#X connect 37 0 26 0;

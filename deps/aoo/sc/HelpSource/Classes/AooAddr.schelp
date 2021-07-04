@@ -1,0 +1,30 @@
+TITLE:: AooAddr
+summary:: Represents an AOO network endpoint
+categories:: External Control>OSC
+related:: Classes/AooPeer, Classes/AooSendCtl, Classes/AooReceiveCtl, Classes/AooClient
+
+DESCRIPTION::
+AooAddr describes a network endpoint as a pair of IP address + port.
+
+
+CLASSMETHODS::
+
+METHOD:: new
+
+ARGUMENT:: ip
+the IP address/hostname as a String or Symbol.
+
+ARGUMENT:: port
+the port number as an Integer.
+
+
+INSTANCEMETHODS::
+
+METHOD:: ip
+the IP address/hostname (Symbol), e.g. code::'192.168.1.10':: or code::'vrr.iem.at'::.
+
+Currently, AOO only supports the IPv4 protocol, but it will add IPv6 support in the future.
+
+METHOD:: port
+the port number (Integer).
+

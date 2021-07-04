@@ -1,0 +1,43 @@
+TITLE:: AooSend
+summary:: Send an AOO stream
+categories:: UGens>Streaming
+related:: Classes/AooSendCtl, Classes/AooReceive, Classes/AooReceiveCtl, Classes/AooAddr, Classes/AooClient
+
+DESCRIPTION::
+This UGen creates an AOO source on the Server. It takes an array of input signals and streams them over the network to one or more AOO sinks (e.g. link::Classes/AooReceive::).
+
+See link::Classes/AooSendCtl:: for how to add/remove sinks, change the streaming format, receive events, etc.
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+ARGUMENT:: port
+the (fixed) port number where to listen for incoming messages/replies.
+
+note::The port number can be shared among several instances of code::AooSend:: and/or code::AooReceive:: emphasis::within a single application::.::
+
+ARGUMENT:: id
+a fixed, positive Integer which uniquely identifies the AOO sink on the given port. This argument is fixed.
+
+note::There must be no two code::AooSend:: objects with the same ID on the same port. You can, however, have two code::AooSend:: objects with the same ID but on different ports!::
+
+ARGUMENT:: state
+turn streaming on (1) or off (0). You can set this value at control rate.
+
+This allows for a "message based audio" approach, where you can send short snippets of audio instead of a continuous stream that mostly consists of silence. On the one hand, it saves bandwith; on the other hand, it tells the receiver that an "audio event" has happened.
+
+ARGUMENT:: channels
+on or more UGen inputs. The size of code::channels:: determines the max. number of channels that you can send. You can, however, stream fewer channels by setting the code::channels:: argument in link::Classes/AooFormat::, see link::Classes/AooSendCtl#-format::.
+
+ARGUMENT:: tag
+a Symbol which uniquely identifies this UGen within a SynthDef.
+
+This is only needed if you have more than one code::AooSend:: instance in a given SynthDef.
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::

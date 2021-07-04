@@ -1,0 +1,41 @@
+TITLE:: AooPeer
+summary:: Represents an AOO peer
+categories:: External Control>OSC
+related:: Classes/AooAddr, Classes/AooSendCtl, Classes/AooReceiveCtl, Classes/AooClient
+
+DESCRIPTION::
+Describes a peer in an AOO network (see link::Classes/AooClient::). It is defined by its user name and the group that it is part of.
+
+
+CLASSMETHODS::
+
+METHOD:: new
+
+ARGUMENT:: group
+the group name as a Symbol.
+
+ARGUMENT:: user
+the user name as a Symbol.
+
+
+INSTANCEMETHODS::
+
+METHOD:: user
+the user name (Symbol).
+
+METHOD:: group
+the group name (Symbol).
+
+METHOD:: id
+the user ID (Integer), which uniquely identifies the user on the AOO server.
+
+METHOD:: ip
+the IP address.
+
+METHOD:: port
+the port number.
+
+
+DISCUSSION::
+code::id::, code::ip:: and code::port:: are only set if the code::AooPeer:: instance has been returned by code::AooClient::. If the code::AooPeer:: instance has been created by the user, those members are code::nil::.
+

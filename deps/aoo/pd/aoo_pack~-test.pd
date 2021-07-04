@@ -1,4 +1,4 @@
-#N canvas 93 17 847 759 12;
+#N canvas 93 17 847 782 12;
 #X declare -lib aoo -path osc;
 #X obj 168 119 osc~ 440;
 #X msg 88 135 set \$1;
@@ -74,13 +74,13 @@
 #X obj 419 316 metro 1000;
 #X msg 341 159 format pcm 256 44100 2;
 #X text 269 17 for pipelist;
-#X obj 471 651 array get foo;
-#X obj 471 675 list length;
-#X floatatom 471 699 5 0 0 0 - - -;
-#X obj 472 627 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+#X obj 478 619 array get foo;
+#X obj 478 643 list length;
+#X floatatom 478 667 5 0 0 0 - - -;
+#X obj 479 595 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X text 493 624 test drop out;
-#X obj 465 595 table foo 5e+006;
+#X text 500 592 test drop out;
+#X obj 472 563 table foo 5e+006;
 #X obj 304 652 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
 10 -262144 -1 -1 0 256;
 #X msg 263 567 add localhost 9999 1;
@@ -116,6 +116,11 @@
 #X obj 178 445 nbx 5 14 0 100 0 0 empty empty empty 0 -8 0 10 -262144
 -1 -1 0 256;
 #X msg 370 649 redundancy 2;
+#X msg 454 699 format pcm;
+#X msg 457 727 format opus;
+#X msg 360 760 packetsize \$1;
+#X msg 360 736 512;
+#X msg 397 737 1600;
 #X connect 0 0 23 0;
 #X connect 1 0 23 0;
 #X connect 2 0 1 0;
@@ -203,3 +208,8 @@
 #X connect 95 0 31 0;
 #X connect 96 0 95 1;
 #X connect 97 0 85 0;
+#X connect 98 0 85 0;
+#X connect 99 0 85 0;
+#X connect 100 0 85 0;
+#X connect 101 0 100 0;
+#X connect 102 0 100 0;
