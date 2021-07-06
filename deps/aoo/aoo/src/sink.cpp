@@ -105,7 +105,7 @@ aoo_error aoo::sink_imp::control(int32_t ctl, intptr_t index,
             // single source
             ip_address addr((const sockaddr *)ep->address, ep->addrlen);
 
-            push_request(source_request { request_type::invite, addr, ep->id });
+            push_request(source_request { request_type::uninvite, addr, ep->id });
         } else {
             // all sources
             push_request(source_request { request_type::uninvite_all });
