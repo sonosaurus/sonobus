@@ -9,6 +9,7 @@
 
 #include "aoo/aoo.hpp"
 #include "aoo/aoo_net.hpp"
+#include "common/net_utils.hpp"
 
 #include <map>
 #include <string>
@@ -266,10 +267,17 @@ public:
     struct RemoteSource;
     struct RemotePeer;
 
+    int32_t handleAooServerEvent(const aoo_event *event, int32_t level);
+    int32_t handleAooClientEvent(const aoo_event *event, int32_t level);
+    int32_t handleAooSinkEvent(const aoo_event *event, int32_t level, int32_t sinkId);
+    int32_t handleAooSourceEvent(const aoo_event *event, int32_t level, int32_t sourceId);
+
+#if 0
     int32_t handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId);
     int32_t handleSinkEvents(const aoo_event ** events, int32_t n, int32_t sinkId);
     int32_t handleServerEvents(const aoo_event ** events, int32_t n);
     int32_t handleClientEvents(const aoo_event ** events, int32_t n);
+#endif
 
     // server stuff
     void startAooServer();
@@ -306,9 +314,12 @@ public:
     String getCurrentUsername() const { return mCurrentUsername; }
 
     // peer stuff
-    
+
+    EndpointState * findEndpoint(const aoo::ip_address & ipaddr);
+
+    EndpointState * findOrAddEndpoint(const aoo::ip_address & ipaddr);
     EndpointState * findOrAddEndpoint(const String & host, int port);
-    EndpointState * findOrAddRawEndpoint(void * rawaddr);
+    EndpointState * findOrAddRawEndpoint(const void * rawaddr, int addrlen);
 
     int getUdpLocalPort() const { return mUdpLocalPort; }
     IPAddress getLocalIPAddress() const { return mLocalIPAddress; }
@@ -740,6 +751,9 @@ public:
     void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
     String getLanguageOverrideCode() const { return mLangOverrideCode; }
 
+    static int32_t udpsend(void *user, const char *msg, int32_t size,
+                           const void *addr, int32_t addrlen, uint32_t flags);
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
@@ -790,10 +804,10 @@ private:
 
     void updateSafetyMuting(RemotePeer * peer);
 
-    void setupSourceFormat(RemotePeer * peer, aoo::isource * source, bool latencymode=false);
+    void setupSourceFormat(RemotePeer * peer, aoo::source * source, bool latencymode=false);
     bool formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, aoo_format_storage & retformat);
 
-    void setupSourceUserFormat(RemotePeer * peer, aoo::isource * source);
+    void setupSourceUserFormat(RemotePeer * peer, aoo::source * source);
 
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);
@@ -829,7 +843,7 @@ private:
     void restoreLayoutFormatForPeer(RemotePeer * remote, bool resetmulti=false);
 
 
-    int connectRemotePeerRaw(void * sockaddr, const String & username = "", const String & groupname = "", bool reciprocate=true);
+    int connectRemotePeerRaw(const void * sockaddr, int addrlen, const String & username = "", const String & groupname = "", bool reciprocate=true);
 
     int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
 
@@ -976,10 +990,10 @@ private:
     foleys::LevelMeterSource metMeterSource;
 
     // AOO stuff
-    aoo::isource::pointer mAooDummySource;
+    aoo::source::pointer mAooDummySource;
 
-    aoo::net::iserver::pointer mAooServer;
-    aoo::net::iclient::pointer mAooClient;
+    aoo::net::server::pointer mAooServer;
+    aoo::net::client::pointer mAooClient;
 
     std::unique_ptr<EndpointState> mServerEndpoint;
     
@@ -997,10 +1011,12 @@ private:
     // we will add sinks for any peer we invite, as part of a RemoteSource
     
     
-    std::unique_ptr<DatagramSocket> mUdpSocket;
+    //std::unique_ptr<DatagramSocket> mUdpSocket;
+    int mUdpSocketHandle = -1;
     int mUdpLocalPort;
     IPAddress mLocalIPAddress;
-    
+    aoo::ip_address mLocalClientAddress;
+
     class SendThread;
     class RecvThread;
     class EventThread;

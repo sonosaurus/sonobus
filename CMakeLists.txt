@@ -180,7 +180,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 
 
     set (HEADER_INCLUDES
-        deps/aoo/lib
+        deps/aoo
+        deps/aoo/include
         deps/aoo/deps
     )
 
@@ -302,49 +303,52 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/mtdm.h
         Source/zitaRev.h
     )
-    set(AOOSourceFiles        
-        deps/aoo/lib/src/SLIP.hpp
-        deps/aoo/lib/src/client.cpp
-        deps/aoo/lib/src/client.hpp
-        deps/aoo/lib/src/codec_opus.cpp
-        deps/aoo/lib/src/codec_pcm.cpp
-        deps/aoo/lib/src/common.cpp
-        deps/aoo/lib/src/common.hpp
-        deps/aoo/lib/src/lockfree.hpp
-        deps/aoo/lib/src/net_utils.cpp
-        deps/aoo/lib/src/net_utils.hpp
-        deps/aoo/lib/src/server.cpp
-        deps/aoo/lib/src/server.hpp
-        deps/aoo/lib/src/sink.cpp
-        deps/aoo/lib/src/sink.hpp
-        deps/aoo/lib/src/source.cpp
-        deps/aoo/lib/src/source.hpp
-        deps/aoo/lib/src/sync.cpp
-        deps/aoo/lib/src/sync.hpp
-        deps/aoo/lib/src/time.cpp
-        deps/aoo/lib/src/time.hpp
-        deps/aoo/lib/src/time_dll.hpp
-        deps/aoo/lib/aoo/aoo.h
-        deps/aoo/lib/aoo/aoo.hpp
-        deps/aoo/lib/aoo/aoo_net.h
-        deps/aoo/lib/aoo/aoo_net.hpp
-        deps/aoo/lib/aoo/aoo_opus.h
-        deps/aoo/lib/aoo/aoo_pcm.h
-        deps/aoo/lib/aoo/aoo_types.h
-        deps/aoo/lib/aoo/aoo_utils.hpp
-        
-        deps/aoo/deps/md5/md5.c
+    set(AOOSourceFiles
+        deps/aoo/aoo/src/source.cpp
+        deps/aoo/aoo/src/codec.hpp
+        deps/aoo/aoo/src/net
+        deps/aoo/aoo/src/net/SLIP.hpp
+        deps/aoo/aoo/src/net/client.cpp
+        deps/aoo/aoo/src/net/server.hpp
+        deps/aoo/aoo/src/net/commands.hpp
+        deps/aoo/aoo/src/net/client.hpp
+        deps/aoo/aoo/src/net/server.cpp
+        deps/aoo/aoo/src/sink.cpp
+        deps/aoo/aoo/src/resampler.hpp
+        deps/aoo/aoo/src/codec
+        deps/aoo/aoo/src/codec/opus.cpp
+        deps/aoo/aoo/src/codec/pcm.cpp
+        deps/aoo/aoo/src/timer.cpp
+        deps/aoo/aoo/src/imp.hpp
+        deps/aoo/aoo/src/buffer.cpp
+        deps/aoo/aoo/src/aoo.cpp
+        deps/aoo/aoo/src/timer.hpp
+        deps/aoo/aoo/src/time_dll.hpp
+        deps/aoo/aoo/src/buffer.hpp
+        deps/aoo/aoo/src/source.hpp
+        deps/aoo/aoo/src/sink.hpp
+        deps/aoo/aoo/src/resampler.cpp
+        deps/aoo/common/lockfree.hpp
+        deps/aoo/common/net_utils.hpp
+        deps/aoo/common/time.hpp
+        deps/aoo/common/sync.cpp
+        deps/aoo/common/sync.hpp
+        deps/aoo/common/ntp.cpp
+        deps/aoo/common/utils.hpp
+        deps/aoo/common/net_utils.cpp
+        deps/aoo/common/time.cpp      
         deps/aoo/deps/md5/md5.h
+        deps/aoo/deps/md5/md5.c
         deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp
-        deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp
-        deps/aoo/deps/oscpack/osc/OscReceivedElements.cpp
-        deps/aoo/deps/oscpack/osc/OscTypes.cpp
-        deps/aoo/deps/oscpack/osc/MessageMappingOscPacketListener.h
-        deps/aoo/deps/oscpack/osc/OscException.h
-        deps/aoo/deps/oscpack/osc/OscHostEndianness.h
-        deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.h
         deps/aoo/deps/oscpack/osc/OscPacketListener.h
+        deps/aoo/deps/oscpack/osc/OscTypes.cpp
         deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.h
+        deps/aoo/deps/oscpack/osc/MessageMappingOscPacketListener.h
+        deps/aoo/deps/oscpack/osc/OscHostEndianness.h
+        deps/aoo/deps/oscpack/osc/OscException.h
+        deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.h
+        deps/aoo/deps/oscpack/osc/OscReceivedElements.cpp
+        deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp
         deps/aoo/deps/oscpack/osc/OscReceivedElements.h
         deps/aoo/deps/oscpack/osc/OscTypes.h
     )
