@@ -6991,7 +6991,13 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
             retpeer->chanGroups[chgrpi].init(getSampleRate());
         };
 
-
+        aoo_net_peer_info peerinfo;
+        if (mAooClient->get_peer_info(retpeer->endpoint->address.address_ptr(), retpeer->endpoint->address.length(), &peerinfo) == AOO_OK) {
+            bool legacy = (peerinfo.flags & AOO_ENDPOINT_LEGACY) ? true : false;
+            retpeer->oursource->set_binary_data_msg(!legacy);
+            retpeer->latencysource->set_binary_data_msg(!legacy);
+            retpeer->echosource->set_binary_data_msg(!legacy);
+        }
 
         // now add it, once initialized
         {

@@ -188,7 +188,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     set (LIB_PATHS  "")
 
     set (PLAT_COMPILE_DEFS
-        $<$<CONFIG:Debug>:LOGLEVEL=2>
+        $<$<CONFIG:Debug>:AOO_LOGLEVEL=AOO_LOGLEVEL_VERBOSE>
         USE_CODEC_OPUS=1
         AOO_TIMEFILTER_CHECK=0
         AOO_STATIC)
@@ -336,7 +336,15 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         deps/aoo/common/ntp.cpp
         deps/aoo/common/utils.hpp
         deps/aoo/common/net_utils.cpp
-        deps/aoo/common/time.cpp      
+        deps/aoo/common/time.cpp
+        deps/aoo/include/aoo/aoo_types.h
+        deps/aoo/include/aoo/aoo_net.h
+        deps/aoo/include/aoo/codec
+        deps/aoo/include/aoo/codec/aoo_opus.h
+        deps/aoo/include/aoo/codec/aoo_pcm.h
+        deps/aoo/include/aoo/aoo_net.hpp
+        deps/aoo/include/aoo/aoo.hpp
+        deps/aoo/include/aoo/aoo.h
         deps/aoo/deps/md5/md5.h
         deps/aoo/deps/md5/md5.c
         deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp
