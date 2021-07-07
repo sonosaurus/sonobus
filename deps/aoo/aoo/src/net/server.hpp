@@ -135,6 +135,7 @@ struct user {
     const std::string password;
     const int32_t id;
     const uint32_t version;
+    bool legacy = false;
 private:
     group_list groups_;
     client_endpoint *endpoint_ = nullptr;

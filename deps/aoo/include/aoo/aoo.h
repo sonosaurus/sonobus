@@ -494,7 +494,8 @@ typedef struct aoo_format_storage
 
 enum aoo_endpoint_flags
 {
-    AOO_ENDPOINT_RELAY = 1
+    AOO_ENDPOINT_RELAY = 1,
+    AOO_ENDPOINT_LEGACY = 2
 };
 
 // create a new AoO source instance

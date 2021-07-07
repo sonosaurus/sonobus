@@ -86,7 +86,8 @@ typedef struct aoo_net_connect_request {
 } aoo_net_connect_request;
 
 enum aoo_net_server_flags {
-    AOO_NET_SERVER_RELAY = 1
+    AOO_NET_SERVER_RELAY = 1,
+    AOO_NET_SERVER_LEGACY = 256
 };
 
 typedef struct aoo_net_connect_reply {

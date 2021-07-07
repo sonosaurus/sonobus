@@ -432,10 +432,10 @@ aoo_error decoder_ctl(void *x, int32_t ctl, void *ptr, int32_t size){
 aoo_error serialize(const aoo_format *f, char *buf, int32_t *size){
     if (*size >= 16){
         auto fmt = (const aoo_format_opus *)f;
-        aoo::to_bytes<int32_t>(fmt->application_type, buf);
-        aoo::to_bytes<int32_t>(fmt->bitrate, buf + 4);
-        aoo::to_bytes<int32_t>(fmt->complexity, buf + 8);
-        aoo::to_bytes<int32_t>(fmt->signal_type, buf + 12);
+        aoo::to_bytes<int32_t>(fmt->bitrate, buf);
+        aoo::to_bytes<int32_t>(fmt->complexity, buf + 4);
+        aoo::to_bytes<int32_t>(fmt->signal_type, buf + 8);
+        aoo::to_bytes<int32_t>(fmt->application_type, buf + 12);
         *size = 16;
 
         return AOO_OK;
@@ -463,10 +463,10 @@ aoo_error deserialize(const aoo_format *header, const char *buf,
     fmt->header.nchannels = header->nchannels;
     fmt->header.samplerate = header->samplerate;
     // options
-    fmt->application_type = aoo::from_bytes<int32_t>(buf);
-    fmt->bitrate = aoo::from_bytes<int32_t>(buf + 4);
-    fmt->complexity = aoo::from_bytes<int32_t>(buf + 8);
-    fmt->signal_type = aoo::from_bytes<int32_t>(buf + 12);
+    fmt->bitrate = aoo::from_bytes<int32_t>(buf);
+    fmt->complexity = aoo::from_bytes<int32_t>(buf + 4);
+    fmt->signal_type = aoo::from_bytes<int32_t>(buf + 8);
+    fmt->application_type = aoo::from_bytes<int32_t>(buf + 12);
 
     return AOO_OK;
 }

@@ -492,7 +492,7 @@ aoo_error aoo::net::client_imp::handle_message(const char *data, int32_t n,
     int32_t onset;
     auto err = aoo_parse_pattern(data, n, &type, &id, &onset);
     if (err != AOO_OK){
-        LOG_WARNING("aoo_client: not an AOO NET message!");
+        LOG_VERBOSE("aoo_client: not an AOO NET message!");
         return AOO_ERROR_UNSPECIFIED;
     }
 
@@ -824,6 +824,7 @@ void client_imp::perform_login(const ip_address_list& addrlist){
     state_.store(client_state::login);
 
     char buf[AOO_MAXPACKETSIZE];
+
     osc::OutboundPacketStream msg(buf, sizeof(buf));
     msg << osc::BeginMessage(AOO_NET_MSG_SERVER_LOGIN)
         << (int32_t)make_version()
@@ -833,8 +834,18 @@ void client_imp::perform_login(const ip_address_list& addrlist){
         msg << addr.name_unmapped() << addr.port();
     }
     msg << osc::EndMessage;
-
     send_server_message(msg.Data(), msg.Size());
+
+    // send legacy one second, just in case we are talking to a legacy server
+    osc::OutboundPacketStream msg2(buf, sizeof(buf));
+    msg2 << osc::BeginMessage(AOO_NET_MSG_SERVER_LOGIN)
+         << username_.c_str() << password_.c_str();
+    for (auto& addr : addrlist){
+        // unmap IPv4 addresses for IPv4 only servers
+        msg2 << addr.name_unmapped() << addr.port();
+    }
+    msg2 << osc::EndMessage;
+    send_server_message(msg2.Data(), msg2.Size());
 }
 
 void client_imp::perform_timeout(){
@@ -1123,7 +1134,7 @@ void client_imp::handle_server_message(const char *data, int32_t n){
     int32_t onset;
     auto err = parse_pattern(data, n, type, onset);
     if (err != AOO_OK){
-        LOG_WARNING("aoo_client: not an AOO NET message!");
+        LOG_VERBOSE("aoo_client: not an AOO NET message!");
         return;
     }
 
@@ -1185,10 +1196,15 @@ void client_imp::handle_login(const osc::ReceivedMessage& msg){
         int32_t status = (it++)->AsInt32();
 
         if (status > 0){
-            int32_t id = (it++)->AsInt32();
-            // for backwards compatibility (LATER remove check)
-            uint32_t flags = (it != msg.ArgumentsEnd()) ?
-                (uint32_t)(it++)->AsInt32() : 0;
+            int32_t id = -1;
+            uint32_t flags = 0;
+            if (msg.ArgumentCount() > 2){
+                id = (it++)->AsInt32();
+                flags = (it != msg.ArgumentsEnd()) ? (uint32_t)(it++)->AsInt32() : 0;
+            } else {
+                // legacy client login only send status + errmsg
+                flags |= AOO_NET_SERVER_LEGACY;
+            }
             // connected!
             state_.store(client_state::connected);
             LOG_VERBOSE("aoo_client: successfully logged in (user ID: "
@@ -1271,8 +1287,20 @@ void client_imp::handle_peer_add(const osc::ReceivedMessage& msg){
     auto it = msg.ArgumentsBegin();
     std::string group = (it++)->AsString();
     std::string user = (it++)->AsString();
-    int32_t id = (it++)->AsInt32();
-    count -= 3;
+    int32_t id = 0;
+    count -= 2;
+    int32_t flags = 0;
+    bool legacy = false;
+
+    // LEGACY: older sonobus did not have this id field
+    if (msg.TypeTags()[2] == 'i') {
+        id = (it++)->AsInt32();
+        count -= 1;
+    }
+    else {
+        legacy = true;
+        server_flags_ |= AOO_NET_SERVER_LEGACY;
+    }
 
     ip_address_list addrlist;
     while (count >= 2){
@@ -1288,12 +1316,12 @@ void client_imp::handle_peer_add(const osc::ReceivedMessage& msg){
     peer_lock lock(peers_);
     // check if peer already exists (shouldn't happen)
     for (auto& p: peers_){
-        if (p.match(group, id)){
+        if (p.match(group, id) || (legacy && p.match(group, user))){
             LOG_ERROR("aoo_client: peer " << p << " already added");
             return;
         }
     }
-    peers_.emplace_front(*this, id, group, user, std::move(addrlist));
+    peers_.emplace_front(*this, id, group, user, std::move(addrlist), flags);
 
     auto e = std::make_unique<peer_event>(
                 AOO_NET_PEER_HANDSHAKE_EVENT,
@@ -1307,13 +1335,13 @@ void client_imp::handle_peer_remove(const osc::ReceivedMessage& msg){
     auto it = msg.ArgumentsBegin();
     std::string group = (it++)->AsString();
     std::string user = (it++)->AsString();
-    int32_t id = (it++)->AsInt32();
+    int32_t id =  msg.ArgumentCount() > 2 ? (it++)->AsInt32() : -1;
 
     peer_lock lock(peers_);
     auto result = std::find_if(peers_.begin(), peers_.end(),
-        [&](auto& p){ return p.match(group, id); });
+        [&](auto& p){ return (id >= 0) ? p.match(group, id) : p.match(group,user); });
     if (result == peers_.end()){
-        LOG_ERROR("aoo_client: couldn't remove " << group << "|" << user);
+        LOG_ERROR("aoo_client: couldn't remove " << group << "|" << user << "|" << id);
         return;
     }
 
@@ -1699,8 +1727,8 @@ bool udp_client::is_server_address(const ip_address& addr){
 /*///////////////////// peer //////////////////////////*/
 
 peer::peer(client_imp& client, int32_t id, const std::string& group,
-           const std::string& user, ip_address_list&& addrlist)
-    : client_(&client), id_(id), group_(group), user_(user),
+           const std::string& user, ip_address_list&& addrlist, int32_t flags)
+    : client_(&client), id_(id), flags_(flags), group_(group), user_(user),
       addresses_(std::move(addrlist))
 {
     start_time_ = time_tag::now();
@@ -1735,7 +1763,7 @@ bool peer::match(const std::string& group, int32_t id)
 
 std::ostream& operator << (std::ostream& os, const peer& p)
 {
-    os << p.group_ << "|" << p.user_;
+    os << p.group_ << "|" << p.user_ << "|" << p.id_;
     return os;
 }
 
@@ -1803,17 +1831,31 @@ void peer::send(const sendfn& reply, time_tag now){
         // until we get a reply from one of them (see handle_message())
         if (delta >= client_->request_interval()){
             char buf[64];
+            char buf2[68];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
+            osc::OutboundPacketStream msg2(buf2, sizeof(buf2));
+
             // Include user ID, so peers can identify us even
             // if we're behind a symmetric NAT.
             // NOTE: This trick doesn't work if both parties are
             // behind a symmetrict NAT; in that case, UDP hole punching
             // simply doesn't work.
+
+
+
             msg << osc::BeginMessage(AOO_NET_MSG_PEER_PING)
                 << (int32_t)id_ << osc::EndMessage;
 
+            // legacy sonobus used 64 bit token field, so for backwards compat, send this too
+            msg2 << osc::BeginMessage(AOO_NET_MSG_PEER_PING)
+            << (int64_t)id_ << osc::EndMessage;
+
             for (auto& addr : addresses_){
+                LOG_DEBUG("aoo_client: send handshake peer ping to: " << *this << " = " <<  addr.name() << ":" << addr.port());
                 client_->udp().send_peer_message(msg.Data(), msg.Size(),
+                                                 addr, reply, relay());
+
+                client_->udp().send_peer_message(msg2.Data(), msg2.Size(),
                                                  addr, reply, relay());
             }
 
@@ -1847,7 +1889,7 @@ bool peer::handle_first_message(const osc::ReceivedMessage &msg, int onset,
     // (for backwards compatibility with older AOO clients)
     auto pattern = msg.AddressPattern() + onset;
     if (!strcmp(pattern, AOO_NET_MSG_PING)){
-        if (msg.ArgumentCount() > 0){
+        if (msg.ArgumentCount() > 0 && msg.TypeTags()[0] == 'i'){
             try {
                 auto it = msg.ArgumentsBegin();
                 int32_t id = it->AsInt32();
@@ -1862,6 +1904,11 @@ bool peer::handle_first_message(const osc::ReceivedMessage &msg, int onset,
                 LOG_ERROR("aoo_client: got bad " << pattern
                           << " message from peer: " << e.what());
             }
+        }
+        else if (msg.ArgumentCount() > 0 && msg.TypeTags()[0] == 'h'){
+            // LEGACY: old sonobus pings use a 64bit "token" here
+            LOG_VERBOSE("aoo_client: legacy ping detected from peer " << *this);
+            flags_ |= AOO_ENDPOINT_LEGACY;
         } else {
             // ignore silently!
         }
@@ -1875,9 +1922,19 @@ bool peer::handle_first_message(const osc::ReceivedMessage &msg, int onset,
 void peer::handle_message(const osc::ReceivedMessage &msg, int onset,
                           const ip_address& addr)
 {
+    auto pattern = msg.AddressPattern() + onset;
+
     if (!connected()){
         if (!handle_first_message(msg, onset, addr)){
             return;
+        }
+
+        if (!strcmp(pattern, AOO_NET_MSG_PING)){
+            if (msg.ArgumentCount() > 0 && msg.TypeTags()[0] == 'h'){
+                // LEGACY: old sonobus pings use a 64bit "token" here
+                LOG_VERBOSE("aoo_client: legacy ping detected from peer " << *this);
+                flags_ |= AOO_ENDPOINT_LEGACY;
+            }
         }
 
         // push event
@@ -1892,7 +1949,6 @@ void peer::handle_message(const osc::ReceivedMessage &msg, int onset,
                     << (relay() ? " (relayed)" : ""));
     }
 
-    auto pattern = msg.AddressPattern() + onset;
     try {
         if (!strcmp(pattern, AOO_NET_MSG_PING)){
             LOG_DEBUG("aoo_client: got ping from " << *this);

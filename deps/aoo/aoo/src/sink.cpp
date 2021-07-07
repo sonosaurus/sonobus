@@ -680,7 +680,7 @@ aoo_error sink_imp::handle_format_message(const osc::ReceivedMessage& msg,
     osc::osc_bundle_element_size_t size;
     (it++)->AsBlob(settings, size);
     // for backwards comptability (later remove check)
-    uint32_t flags = (it != msg.ArgumentsEnd()) ?
+    uint32_t flags = (it != msg.ArgumentsEnd() && it->IsInt32()) ?
                 (uint32_t)(it++)->AsInt32() : 0;
 
     if (id < 0){

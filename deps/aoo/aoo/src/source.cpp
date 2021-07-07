@@ -201,6 +201,15 @@ aoo_error aoo::source_imp::control(int32_t ctl, intptr_t index,
         CHECKARG(aoo_bool);
         as<aoo_bool>(ptr) = dynamic_resampling_.load();
         break;
+    // set/get dynamic resampling
+    case AOO_CTL_SET_BINARY_DATA_MSG:
+        CHECKARG(aoo_bool);
+        binary_.store(as<aoo_bool>(ptr));
+        break;
+    case AOO_CTL_GET_BINARY_DATA_MSG:
+        CHECKARG(aoo_bool);
+        as<aoo_bool>(ptr) = binary_.load();
+        break;
     // set/get time DLL filter bandwidth
     case AOO_CTL_SET_DLL_BANDWIDTH:
         CHECKARG(float);
@@ -886,7 +895,9 @@ void source_imp::send_format(const sendfn& fn){
 
             msg << osc::BeginMessage(address) << id() << (int32_t)make_version()
                 << salt << f.header.nchannels << f.header.samplerate << f.header.blocksize
-                << f.header.codec << osc::Blob(options, size) << (int32_t)s.flags << osc::EndMessage;
+                << f.header.codec << osc::Blob(options, size)
+                // << (int32_t)s.flags  // WHY?
+                << osc::EndMessage;
 
             fn(msg.Data(), msg.Size(), s.address, s.flags);
         }

@@ -312,13 +312,22 @@ void server_imp::on_user_joined_group(user& usr, group& grp){
                 osc::OutboundPacketStream msg(buf, sizeof(buf));
                 msg << osc::BeginMessage(AOO_NET_MSG_CLIENT_PEER_JOIN)
                     << grp.name.c_str() << u.name.c_str();
+
+                user & destusr = (&u == peer.get()) ? usr : *peer;
                 // only v0.2-pre3 and abvoe
-                if (peer->version > 0){
+                if (destusr.version > 0){
                     msg << u.id;
                 }
                 // send *unmapped* addresses in case the client is IPv4 only
+                int cnt = 0;
+                auto addrcnt = u.endpoint()->public_addresses().size();
                 for (auto& addr : u.endpoint()->public_addresses()){
+                    if (destusr.legacy && addrcnt > 2) {
+                        --addrcnt;
+                        continue;
+                    }
                     msg << addr.name_unmapped() << addr.port();
+                    LOG_VERBOSE("aoo_server: dest: " << destusr.name << "peeraddr: " << addr.name_unmapped() << ":" << addr.port());
                 }
                 msg << osc::EndMessage;
 
@@ -889,7 +898,8 @@ bool client_endpoint::handle_message(const char *data, int32_t n){
                 handle_group_leave(msg);
             } else {
                 LOG_ERROR("aoo_server: unknown server message " << pattern);
-                return false;
+                // LEGACY: ignore unknown server messages for now
+                //return false;
             }
         } else if (type == AOO_TYPE_RELAY){
             // use public address!
@@ -939,13 +949,22 @@ void client_endpoint::handle_login(const osc::ReceivedMessage& msg)
     int32_t result = 0;
     uint32_t version = 0;
     std::string errmsg;
+    bool legacy = false;
 
     auto it = msg.ArgumentsBegin();
     auto count = msg.ArgumentCount();
-    if (count > 6){
+    if (count > 6 && msg.TypeTags()[0] == 'i'){
+        // this is the latest format (version as integer 1st parameter)
         version = (uint32_t)(it++)->AsInt32();
         count--;
     }
+    else if (count > 6 && msg.TypeTags()[6] == 'h'){
+        // LEGACY: this is to handle older sonobus clients that have a token as the 7th
+        legacy = true;
+        LOG_VERBOSE("aoo_server: client login is legacy");
+        count--;
+    }
+
     // for now accept login messages without version.
     // LATER they should fail, so clients have to upgrade.
     if (version == 0 || check_version(version)){
@@ -968,6 +987,7 @@ void client_endpoint::handle_login(const osc::ReceivedMessage& msg)
                     count -= 2;
                 }
                 user_->set_endpoint(this);
+                user_->legacy = legacy;
 
                 LOG_VERBOSE("aoo_server: login: id: " << user_->id
                             << ", username: " << username << ", password: " << password);
@@ -988,7 +1008,7 @@ void client_endpoint::handle_login(const osc::ReceivedMessage& msg)
     char buf[AOO_MAXPACKETSIZE];
     osc::OutboundPacketStream reply(buf, sizeof(buf));
     reply << osc::BeginMessage(AOO_NET_MSG_CLIENT_LOGIN) << result;
-    if (result){
+    if (result && !legacy){
         reply << user_->id;
         reply << (int32_t)server_->flags();
     } else {

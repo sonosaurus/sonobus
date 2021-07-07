@@ -55,7 +55,7 @@ using ip_address_list = std::vector<ip_address>;
 class peer {
 public:
     peer(client_imp& client, int32_t id, const std::string& group,
-         const std::string& user, ip_address_list&& addrlist);
+         const std::string& user, ip_address_list&& addrlist, int32_t flags=0);
 
     ~peer();
 
