@@ -419,7 +419,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         JUCE_ALSA=1
         JUCE_USE_ANDROID_OBOE=1
         JUCE_USE_OBOE_STABILIZED_CALLBACK=1
-	FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK=0
+        JUCE_LOAD_CURL_SYMBOLS_LAZILY=1
+        FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK=0
         SONOBUS_BUILD_VERSION="${VERSION}"
         ${PLAT_COMPILE_DEFS} )
 
