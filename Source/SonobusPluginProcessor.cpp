@@ -1300,7 +1300,7 @@ bool SonobusAudioProcessor::setWatchPublicGroups(bool flag)
 
     mWatchPublicGroups = flag;
 
-    #warning IMPLEMENT PUBLIC GROUPS
+    JUCE_COMPILER_WARNING ("IMPLEMENT PUBLIC GROUPS");
 
     int32_t retval = 0; // mAooClient->group_watch_public(flag);
     const ScopedLock sl (mPublicGroupsLock);
@@ -1572,7 +1572,7 @@ bool SonobusAudioProcessor::setRequestRemotePeerSendAudioCodecFormat(int index, 
         const AudioCodecFormatInfo & info = mAudioFormats.getReference(formatIndex);
 
         if (formatInfoToAooFormat(info, remote->recvChannels, fmt)) {
-            #warning IMPLEMENT SOURCE CODEC CHANGE
+            JUCE_COMPILER_WARNING ("IMPLEMENT SOURCE CODEC CHANGE");
             //remote->oursink->request_source_codec_change(remote->endpoint, remote->remoteSourceId, fmt.header);
 
             remote->reqRemoteSendFormatIndex = formatIndex; 
@@ -3624,7 +3624,7 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const aoo_event *event, int32_
                     // check for layout
                     bool gotuserformat = false;
                     char userfmtdata[1024];
-#warning TODO: USERFORMAT
+                    JUCE_COMPILER_WARNING ("TODO: USERFORMAT");
                     /*
                     int32_t retsize = peer->oursink->get_sourceoption(e->endpoint, e->id, aoo_opt_userformat, userfmtdata, sizeof(userfmtdata));
                     if (retsize > 0) {
@@ -7336,7 +7336,7 @@ void SonobusAudioProcessor::setupSourceUserFormat(RemotePeer * peer, aoo::source
 
     fmttree.writeToStream(stream);
 
-#warning TODO: USERFORMAT
+    JUCE_COMPILER_WARNING ("TODO: USERFORMAT");
    // source->set_userformat(destData.getData(), (int32_t) destData.getSize());
 }
 
