@@ -4219,6 +4219,8 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const aoo_event *event, int3
         default:
             break;
     }
+
+    return AOO_OK;
 }
 
 
