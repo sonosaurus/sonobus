@@ -3362,6 +3362,8 @@ int32_t SonobusAudioProcessor::handleAooServerEvent(const aoo_event *event, int3
             DBG("Got unknown server event: " << event->type);
             break;
     }
+
+    return AOO_OK;
 }
 
 int32_t SonobusAudioProcessor::handleAooClientEvent(const aoo_event *event, int32_t level)
@@ -3553,6 +3555,8 @@ int32_t SonobusAudioProcessor::handleAooClientEvent(const aoo_event *event, int3
         DBG("Got unknown client event: " << event->type);
         break;
     }
+
+    return AOO_OK;
 }
 
 
@@ -3965,6 +3969,8 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const aoo_event *event, int32_
         default:
             break;
     }
+
+    return AOO_OK;
 }
 
 int32_t SonobusAudioProcessor::handleAooSourceEvent(const aoo_event *event, int32_t level, int32_t sourceId)
