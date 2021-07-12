@@ -223,7 +223,7 @@ private:
 struct SonobusAudioProcessor::EndpointState {
     EndpointState(aoo::ip_address addr) : address(addr) {
 
-        ipaddr = address.name();
+        ipaddr = address.name_unmapped();
         port = address.port();
     }
 
@@ -6872,7 +6872,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
                                            [](void *user, const aoo_event *event, int32_t level){
             auto * pp = static_cast<ProcessorIdPair *>(user);
             pp->processor->handleAooSinkEvent(event, level, pp->id);
-        }, &retpeer->oursinkpp, AOO_EVENT_CALLBACK);
+        }, &retpeer->oursinkpp, AOO_EVENT_POLL);
 
         retpeer->latsinkpp.processor = this;
         retpeer->latencysink->get_id(retpeer->latsinkpp.id);
@@ -6880,7 +6880,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
                                            [](void *user, const aoo_event *event, int32_t level){
             auto * pp = static_cast<ProcessorIdPair *>(user);
             pp->processor->handleAooSinkEvent(event, level, pp->id);
-        }, &retpeer->latsinkpp, AOO_EVENT_CALLBACK);
+        }, &retpeer->latsinkpp, AOO_EVENT_POLL);
 
         retpeer->echosinkpp.processor = this;
         retpeer->echosink->get_id(retpeer->echosinkpp.id);
@@ -6888,7 +6888,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
                                            [](void *user, const aoo_event *event, int32_t level){
             auto * pp = static_cast<ProcessorIdPair *>(user);
             pp->processor->handleAooSinkEvent(event, level, pp->id);
-        }, &retpeer->echosinkpp, AOO_EVENT_CALLBACK);
+        }, &retpeer->echosinkpp, AOO_EVENT_POLL);
 
 
         retpeer->oursourcepp.processor = this;
@@ -6897,7 +6897,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
                                            [](void *user, const aoo_event *event, int32_t level){
             auto * pp = static_cast<ProcessorIdPair *>(user);
             pp->processor->handleAooSourceEvent(event, level, pp->id);
-        }, &retpeer->oursourcepp, AOO_EVENT_CALLBACK);
+        }, &retpeer->oursourcepp, AOO_EVENT_POLL);
 
         retpeer->latsourcepp.processor = this;
         retpeer->latencysource->get_id(retpeer->latsourcepp.id);
@@ -6905,7 +6905,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
                                            [](void *user, const aoo_event *event, int32_t level){
             auto * pp = static_cast<ProcessorIdPair *>(user);
             pp->processor->handleAooSourceEvent(event, level, pp->id);
-        }, &retpeer->latsourcepp, AOO_EVENT_CALLBACK);
+        }, &retpeer->latsourcepp, AOO_EVENT_POLL);
 
         retpeer->echosourcepp.processor = this;
         retpeer->echosource->get_id(retpeer->echosourcepp.id);
@@ -6913,7 +6913,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
                                            [](void *user, const aoo_event *event, int32_t level){
             auto * pp = static_cast<ProcessorIdPair *>(user);
             pp->processor->handleAooSourceEvent(event, level, pp->id);
-        }, &retpeer->echosourcepp, AOO_EVENT_CALLBACK);
+        }, &retpeer->echosourcepp, AOO_EVENT_POLL);
 
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getMainBusNumOutputChannels());
         retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
