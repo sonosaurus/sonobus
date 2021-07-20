@@ -3753,18 +3753,19 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const aoo_event *event, int32_
 
             break;
         }
-        case AOO_BLOCK_LOST_EVENT:
+        case AOO_BUFFER_UNDERRUN_EVENT:
+        //case AOO_BLOCK_LOST_EVENT:
         {
             aoo_block_lost_event *e = (aoo_block_lost_event *)event;
 
             EndpointState * es = (EndpointState *) findOrAddRawEndpoint(e->ep.address, e->ep.addrlen);
 
-            DBG("Got source block lost event from " << es->ipaddr << ":" << es->port << "   " << e->ep.id << " -- " << e->count);
+            DBG("Got source underrun event from " << es->ipaddr << ":" << es->port << "   " << e->ep.id << " -- " << e->count);
 
             const ScopedReadLock sl (mCoreLock);
             RemotePeer * peer = findRemotePeer(es, sinkId);
             if (peer) {
-                peer->dataPacketsDropped += e->count;
+                peer->dataPacketsDropped += 1; // e->count;
 
                 if (peer->autosizeBufferMode != AutoNetBufferModeOff) {
                     // see if our drop rate exceeds threshold, and increase buffersize if so
@@ -3842,6 +3843,16 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const aoo_event *event, int32_
             EndpointState * es = (EndpointState *) findOrAddRawEndpoint(e->ep.address, e->ep.addrlen);
 
             DBG("Got source block reordered event from " << es->ipaddr << ":" << es->port << "  " << e->ep.id << " -- " << e->count);
+
+            break;
+        }
+        case AOO_BLOCK_DROPPED_EVENT:
+        {
+            aoo_block_dropped_event *e = (aoo_block_dropped_event *)event;
+
+            EndpointState * es = (EndpointState *) findOrAddRawEndpoint(e->ep.address, e->ep.addrlen);
+
+            DBG("Got source block dropped event from " << es->ipaddr << ":" << es->port << "  " << e->ep.id << " -- " << e->count);
 
             break;
         }
@@ -8710,14 +8721,14 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             // calculate fill ratio before processing the sink
             float retratio = 0.0f;
             aoo_endpoint aep = { remote->endpoint->address.address_ptr(), (int32_t) remote->endpoint->address.length(), remote->remoteSourceId };
-            /*
+
             if (remote->oursink->get_buffer_fill_ratio(aep, retratio) == AOO_OK) {
                 remote->fillRatio.Z *= 0.95;
                 remote->fillRatio.push(retratio);
                 remote->fillRatioSlow.Z *= 0.99;
                 remote->fillRatioSlow.push(retratio);
             }
-*/
+
             
             {
                 // get audio data coming in from outside into tempbuf
