@@ -903,6 +903,8 @@ void source_desc::update(const sink_imp& s){
         auto reblock = (double)s.blocksize() / (double)decoder_->blocksize();
         minblocks_ = std::ceil(downsample * reblock);
         nbuffers = std::max<int32_t>(nbuffers, minblocks_);
+        int32_t aqbuffers = nbuffers; // minblocks_; // force
+
         LOG_DEBUG("source_desc: buffersize (ms): " << s.buffersize()
                   << ", samples: " << bufsize << ", nbuffers: " << nbuffers
                   << ", minimum: " << minblocks_);
@@ -919,9 +921,9 @@ void source_desc::update(const sink_imp& s){
         auto nbytes = sizeof(block_data::header) + nsamples * sizeof(aoo_sample);
         // align to 8 bytes
         nbytes = (nbytes + 7) & ~7;
-        audioqueue_.resize(nbytes, nbuffers);
+        audioqueue_.resize(nbytes, aqbuffers);
         // fill buffer
-        for (int i = 0; i < nbuffers; ++i){
+        for (int i = 0; i < aqbuffers; ++i){
             auto b = (block_data *)audioqueue_.write_data();
             // push nominal samplerate, channel + silence
             b->header.samplerate = sr;
@@ -944,6 +946,7 @@ void source_desc::update(const sink_imp& s){
         auto hwsamples = (double)decoder_->samplerate() / MINSAMPLERATE * MAXHWBUFSIZE;
         auto minbuffers = std::ceil(hwsamples / (double)decoder_->blocksize());
         auto jitterbufsize = std::max<int32_t>(nbuffers, minbuffers);
+        //auto jitterbufsize = nbuffers;
         // LATER optimize max. block size
         jitterbuffer_.resize(jitterbufsize, nsamples * sizeof(double));
         LOG_DEBUG("jitter buffer: " << jitterbufsize << " blocks");
@@ -1047,9 +1050,10 @@ float source_desc::get_buffer_fill_ratio(){
         auto nsamples = decoder_->nchannels() * decoder_->blocksize();
         auto available = (double)audioqueue_.read_available() +
                 (double)resampler_.size() / (double)nsamples;
-        auto ratio = available / (double)audioqueue_.capacity();
-        LOG_DEBUG("fill ratio: " << ratio << ", audioqueue: " << audioqueue_.read_available()
-                  << ", resampler: " << (double)resampler_.size() / (double)nsamples);
+        auto ratio = (available + jitterbuffer_.size()) / (double)(audioqueue_.capacity() + jitterbuffer_.capacity());
+        //LOG_DEBUG("fill ratio: " << ratio << ", audioqueue: " << audioqueue_.read_available()
+        //          << ", resampler: " << (double)resampler_.size() / (double)nsamples << "  jitter: " << jitterbuffer_.size());
+
         // FIXME sometimes the result is bigger than 1.0
         return std::min<float>(1.0, ratio);
     } else {
