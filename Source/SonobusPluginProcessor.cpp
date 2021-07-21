@@ -3184,7 +3184,11 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
 
 int32_t SonobusAudioProcessor::sendPeerMessage(RemotePeer * peer, const char *msg, int32_t n)
 {
-    return endpoint_send(peer->endpoint, msg, n);
+    if (mAooClient) {
+        mAooClient->send_message(msg, n, peer->endpoint->address.address(), peer->endpoint->address.length(), 0);
+    } else {
+        return endpoint_send(peer->endpoint, msg, n);
+    }
 }
 
 
