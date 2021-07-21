@@ -93,7 +93,13 @@ aoo_error aoo::sink_imp::control(int32_t ctl, intptr_t index,
         }
         ip_address addr((const sockaddr *)ep->address, ep->addrlen);
 
-        push_request(source_request { request_type::invite, addr, ep->id });
+        uint32_t flags = 0;
+        if (ptr != nullptr) {
+            CHECKARG(uint32_t);
+            flags = as<uint32_t>(ptr);
+        }
+
+        push_request(source_request { request_type::invite, addr, ep->id, flags });
 
         break;
     }
@@ -374,7 +380,7 @@ aoo_error aoo::sink_imp::send(aoo_sendfn fn, void *user){
             source_lock lock2(sources_);
             auto src = find_source(r.address, r.id);
             if (!src){
-                src = add_source(r.address, r.id);
+                src = add_source(r.address, r.id, r.flags);
             }
             src->invite(*this);
             break;
@@ -640,9 +646,9 @@ aoo::source_desc * sink_imp::get_source_arg(intptr_t index){
     return src;
 }
 
-source_desc * sink_imp::add_source(const ip_address& addr, aoo_id id){
+source_desc * sink_imp::add_source(const ip_address& addr, aoo_id id, uint32_t flags){
     // add new source
-    sources_.emplace_front(addr, id, elapsed_time());
+    sources_.emplace_front(addr, id, elapsed_time(), flags);
     return &sources_.front();
 }
 
@@ -839,8 +845,8 @@ sink_event::sink_event(aoo_event_type _type, const source_desc &desc)
 
 /*////////////////////////// source_desc /////////////////////////////*/
 
-source_desc::source_desc(const ip_address& addr, aoo_id id, double time)
-    : addr_(addr), id_(id), last_packet_time_(time)
+source_desc::source_desc(const ip_address& addr, aoo_id id, double time, uint32_t flags)
+    : addr_(addr), id_(id), flags_(flags), last_packet_time_(time)
 {
     // reserve some memory, so we don't have to allocate memory
     // when pushing events in the audio thread.
@@ -2038,7 +2044,7 @@ void source_desc::send_invitation(const sink_imp& s, const sendfn& fn){
 
     fn(msg.Data(), msg.Size(), addr_, flags_);
 
-    LOG_DEBUG("send /invite to source " << id_);
+    LOG_DEBUG("send /invite to source " << id_ << "  flags: " << flags_);
 }
 
 // called without lock!

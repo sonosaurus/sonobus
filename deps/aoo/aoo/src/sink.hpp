@@ -103,12 +103,13 @@ struct source_request {
     source_request(request_type _type)
         : type(_type) {}
 
-    source_request(request_type _type, const ip_address& _addr, aoo_id _id)
-        : type(_type), address(_addr), id(_id) {}
+    source_request(request_type _type, const ip_address& _addr, aoo_id _id, uint32_t _flags=0)
+        : type(_type), address(_addr), id(_id), flags(_flags) {}
 
     request_type type;
     ip_address address;
     aoo_id id = -1;
+    uint32_t flags = 0;
 };
 
 class sink_imp;
@@ -126,7 +127,7 @@ struct net_packet : data_packet {
 
 class source_desc {
 public:
-    source_desc(const ip_address& addr, aoo_id id, double time);
+    source_desc(const ip_address& addr, aoo_id id, double time, uint32_t flags=0);
 
     source_desc(const source_desc& other) = delete;
     source_desc& operator=(const source_desc& other) = delete;
@@ -379,7 +380,7 @@ private:
 
     source_desc *get_source_arg(intptr_t index);
 
-    source_desc *add_source(const ip_address& addr, aoo_id id);
+    source_desc *add_source(const ip_address& addr, aoo_id id, uint32_t flags=0);
 
     void reset_sources();
 
