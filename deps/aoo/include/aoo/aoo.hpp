@@ -258,7 +258,7 @@ public:
     // type-safe convenience methods for frequently used controls
 
     aoo_error invite_source(const aoo_endpoint& ep, uint32_t flags=0) {
-        return control(AOO_CTL_INVITE_SOURCE, (intptr_t)&ep, &flags, sizeof(uint32_t));
+        return control(AOO_CTL_INVITE_SOURCE, (intptr_t)&ep, AOO_ARG(flags));
     }
 
     aoo_error uninvite_source(const aoo_endpoint& ep){

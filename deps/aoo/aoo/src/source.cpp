@@ -75,7 +75,13 @@ aoo_error aoo::source_imp::control(int32_t ctl, intptr_t index,
         if (!ep){
             return AOO_ERROR_UNSPECIFIED;
         }
-        return add_sink(*ep, 0); // ignore flags
+        uint32_t flags = 0;
+        if (ptr != nullptr) {
+            CHECKARG(uint32_t);
+            flags = as<uint32_t>(ptr);
+        }
+
+        return add_sink(*ep, flags);
     }
     // remove sink(s)
     case AOO_CTL_REMOVE_SINK:
