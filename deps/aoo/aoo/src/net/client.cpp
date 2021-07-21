@@ -1241,8 +1241,8 @@ void client_imp::handle_login(const osc::ReceivedMessage& msg){
     }
 }
 
-static osc::ReceivedPacket unwrap_message(const osc::ReceivedMessage& msg,
-    ip_address& addr, ip_address::ip_type type)
+static void unwrap_message(const osc::ReceivedMessage& msg,
+    ip_address& addr, ip_address::ip_type type, const char * & retdata, std::size_t & retsize)
 {
     auto it = msg.ArgumentsBegin();
 
@@ -1255,12 +1255,18 @@ static osc::ReceivedPacket unwrap_message(const osc::ReceivedMessage& msg,
     osc::osc_bundle_element_size_t blobSize;
     (it++)->AsBlob(blobData, blobSize);
 
-    return osc::ReceivedPacket((const char *)blobData, blobSize);
+    retdata = (const char *)blobData;
+    retsize = blobSize;
+    //    return osc::ReceivedPacket((const char *)blobData, blobSize);
 }
 
 void client_imp::handle_relay_message(const osc::ReceivedMessage &msg){
     ip_address addr;
-    auto packet = unwrap_message(msg, addr, type());
+    const char * retmsg = 0;
+    std::size_t retsize = 0;
+    unwrap_message(msg, addr, type(), retmsg, retsize);
+
+    osc::ReceivedPacket packet (retmsg, retsize);
     osc::ReceivedMessage relayMsg(packet);
 
     // for now, we only handle peer OSC messages
@@ -1610,12 +1616,15 @@ aoo_error udp_client::handle_message(const char *data, int32_t n,
 
 void udp_client::handle_relay_message(const osc::ReceivedMessage &msg){
     ip_address addr;
-    auto packet = unwrap_message(msg, addr, client_->type());
+    const char * retmsg = 0;
+    std::size_t retsize = 0;
+    unwrap_message(msg, addr, client_->type(), retmsg, retsize);
+
 #if DEBUG_RELAY
     LOG_DEBUG("aoo_client: got relayed message " << packet.Contents());
 #endif
 
-    client_->handle_message(packet.Contents(), packet.Size(),
+    client_->handle_message(retmsg, retsize,
                             addr.address(), addr.length());
 }
 
@@ -1803,6 +1812,7 @@ void peer::send(const sendfn& reply, time_tag now){
                 start_time_ = now; // reset timer
                 last_pingtime_ = 0;
                 flags_ |= AOO_ENDPOINT_RELAY;
+                flags_ &= ~(AOO_ENDPOINT_LEGACY);
                 return;
             }
 
