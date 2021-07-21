@@ -4055,7 +4055,7 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const aoo_event *event, int3
                     peer->remoteSinkId = e->ep.id;
 
                     // add their sink
-                    peer->oursource->add_sink(e->ep, peer->remoteSinkId);
+                    peer->oursource->add_sink(e->ep, peer->aooPeerInfo.flags);
                     //peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
 
                     if (peer->sendAllow) {
@@ -4089,7 +4089,7 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const aoo_event *event, int3
 
                         peer->remoteSinkId = e->ep.id;
 
-                        peer->oursource->add_sink(e->ep);
+                        peer->oursource->add_sink(e->ep, peer->aooPeerInfo.flags);
                         //peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
 
                         if (peer->sendAllow) {
@@ -4113,12 +4113,12 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const aoo_event *event, int3
                     else {
                         // find by echo id
                         if (auto * echopeer = findRemotePeerByEchoId(es, sourceId)) {
-                            echopeer->echosource->add_sink(e->ep);
+                            echopeer->echosource->add_sink(e->ep, echopeer->aooPeerInfo.flags);
                             echopeer->echosource->start();
                             DBG("Invite to echo source adding sink " << e->ep.id);
                         }
                         else if (auto * latpeer = findRemotePeerByLatencyId(es, sourceId)) {
-                            echopeer->latencysource->add_sink(e->ep);
+                            echopeer->latencysource->add_sink(e->ep, latpeer->aooPeerInfo.flags);
                             echopeer->latencysource->start();
                             DBG("Invite to our latency source adding sink " << e->ep.id);
                         }
@@ -6643,7 +6643,7 @@ bool SonobusAudioProcessor::startRemotePeerLatencyTest(int index, float duration
             
             // start our latency source sending to remote's echosink
             aoo_endpoint asep = { remote->endpoint->address.address_ptr(), (int32_t) remote->endpoint->address.length(), remote->remoteSinkId+ECHO_ID_OFFSET };
-            remote->latencysource->add_sink(asep);
+            remote->latencysource->add_sink(asep, remote->aooPeerInfo.flags);
             remote->latencysource->start();
             
 #if 1
