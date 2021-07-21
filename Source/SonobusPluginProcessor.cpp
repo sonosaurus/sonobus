@@ -3982,6 +3982,10 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const aoo_event *event, int32_
                     }
 
                 }
+
+                if (peer->resetSafetyMuted) {
+                    updateSafetyMuting(peer);
+                }
             }
 
 
