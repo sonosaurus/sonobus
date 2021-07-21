@@ -2703,7 +2703,11 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
                 return false;
             }
 
-            endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
+            if (mAooClient) {
+                mAooClient->send_message(outmsg.Data(), (int) outmsg.Size(), endpoint->address.address(), endpoint->address.length(), 0);
+            } else {
+                endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
+            }
 
             DBG("Received ping from " << endpoint->ipaddr << ":" << endpoint->port << "  stamp: " << tt);
 
