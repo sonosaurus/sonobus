@@ -394,6 +394,8 @@ struct SonobusAudioProcessor::RemotePeer {
     bool remoteIsRecording = false;
     bool hasRemoteInfo = false;
 
+    aoo_net_peer_info aooPeerInfo;
+
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> fileWriter;
 
 
@@ -3585,7 +3587,7 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const aoo_event *event, int32_
                     peer->oursink->uninvite_source(bogusep); // get rid of existing bogus one
 
                     if (peer->recvAllow) {
-                        peer->oursink->invite_source(e->ep);
+                        peer->oursink->invite_source(e->ep, peer->aooPeerInfo.flags);
                         //peer->recvActive = true;
                     } else {
                         DBG("we aren't accepting recv right now, politely decline it");
@@ -4071,7 +4073,7 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const aoo_event *event, int3
 
                     DBG("Inviting them back to our sink");
                     peer->remoteSourceId = peer->remoteSinkId;
-                    peer->oursink->invite_source(e->ep);
+                    peer->oursink->invite_source(e->ep, peer->aooPeerInfo.flags);
 
                     // now remove dummy handshake one
                     aoo_endpoint dummyep = {es->address.address_ptr(), (int32_t)es->address.length(), dummyid };
@@ -5307,10 +5309,10 @@ int SonobusAudioProcessor::connectRemotePeerRaw(const void * sockaddr, int addrl
     // special - use 0
     aoo_endpoint aep = { endpoint->address.address_ptr(), (int32_t) endpoint->address.length(), 0 };
 
-    bool ret = remote->oursink->invite_source(aep) == AOO_OK;
+    bool ret = remote->oursink->invite_source(aep, remote->aooPeerInfo.flags) == AOO_OK;
     
     if (ret) {
-        DBG("Successfully invited remote peer at " << endpoint->ipaddr << ":" << endpoint->port << " - ourId " << remote->ourId);
+        DBG("Successfully invited remote peer at " << endpoint->ipaddr << ":" << endpoint->port << " - ourId " << remote->ourId << "  flags: " << (int)remote->aooPeerInfo.flags);
         remote->connected = true;
         remote->invitedPeer = reciprocate;
         //remote->recvActive = reciprocate;
@@ -5342,7 +5344,7 @@ int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, cons
 
     // special - use 0
     aoo_endpoint aep = { endpoint->address.address_ptr(), (int32_t) endpoint->address.length(), 0 };
-    bool ret = remote->oursink->invite_source(aep) == AOO_OK;
+    bool ret = remote->oursink->invite_source(aep, remote->aooPeerInfo.flags) == AOO_OK;
     
     if (ret) {
         DBG("Successfully invited remote peer at " <<  host << ":" << port << " - ourId " << remote->ourId);
@@ -6268,7 +6270,7 @@ void SonobusAudioProcessor::setRemotePeerRecvActive(int index, bool active)
         if (active) {
             DBG("inviting peer " <<  remote->ourId << " source " << remote->remoteSourceId);
             aoo_endpoint aep = { remote->endpoint->address.address_ptr(), (int32_t) remote->endpoint->address.length(), remote->remoteSourceId };
-            remote->oursink->invite_source(aep);
+            remote->oursink->invite_source(aep, remote->aooPeerInfo.flags);
         } else {
             DBG("uninviting peer " <<  remote->ourId << " source " << remote->remoteSourceId);
             aoo_endpoint aep = { remote->endpoint->address.address_ptr(), (int32_t) remote->endpoint->address.length(), remote->remoteSourceId };
@@ -6637,7 +6639,7 @@ bool SonobusAudioProcessor::startRemotePeerLatencyTest(int index, float duration
             remote->latencysource->remove_all();
 
             aoo_endpoint aep = { remote->endpoint->address.address_ptr(), (int32_t) remote->endpoint->address.length(), remote->remoteSourceId+ECHO_ID_OFFSET };
-            remote->latencysink->invite_source(aep);
+            remote->latencysink->invite_source(aep, remote->aooPeerInfo.flags);
             
             // start our latency source sending to remote's echosink
             aoo_endpoint asep = { remote->endpoint->address.address_ptr(), (int32_t) remote->endpoint->address.length(), remote->remoteSinkId+ECHO_ID_OFFSET };
@@ -7010,9 +7012,8 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
             retpeer->chanGroups[chgrpi].init(getSampleRate());
         };
 
-        aoo_net_peer_info peerinfo;
-        if (mAooClient->get_peer_info(retpeer->endpoint->address.address_ptr(), retpeer->endpoint->address.length(), &peerinfo) == AOO_OK) {
-            bool legacy = (peerinfo.flags & AOO_ENDPOINT_LEGACY) ? true : false;
+        if (mAooClient->get_peer_info(retpeer->endpoint->address.address_ptr(), retpeer->endpoint->address.length(), &(retpeer->aooPeerInfo)) == AOO_OK) {
+            bool legacy = (retpeer->aooPeerInfo.flags & AOO_ENDPOINT_LEGACY) ? true : false;
             retpeer->oursource->set_binary_data_msg(!legacy);
             retpeer->latencysource->set_binary_data_msg(!legacy);
             retpeer->echosource->set_binary_data_msg(!legacy);
