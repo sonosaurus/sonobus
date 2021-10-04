@@ -67,14 +67,6 @@ public:
         }
     }
 
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
-    {
-        if (hasCustomComponent() && customComponent->getAccessibilityHandler() != nullptr)
-            return nullptr;
-
-        return std::make_unique<ItemAccessibilityHandler> (*this);
-    }
-
     void setMouseIsOverButton (bool isOver)            { mouseIsOverButton = isOver; }
     TreeViewItem& getRepresentedItem() const noexcept  { return item; }
 
@@ -97,6 +89,11 @@ private:
             return itemComponent.getRepresentedItem().getAccessibilityName();
         }
 
+        String getHelp() const override
+        {
+            return itemComponent.getRepresentedItem().getTooltip();
+        }
+
         AccessibleState getCurrentState() const override
         {
             auto& treeItem = itemComponent.getRepresentedItem();
@@ -112,12 +109,14 @@ private:
             }
 
             if (treeItem.mightContainSubItems())
+            {
                 state = state.withExpandable();
 
-            if (treeItem.isOpen())
-                state = state.withExpanded();
-            else
-                state = state.withCollapsed();
+                if (treeItem.isOpen())
+                    state = state.withExpanded();
+                else
+                    state = state.withCollapsed();
+            }
 
             if (treeItem.isSelected())
                 state = state.withSelected();
@@ -217,7 +216,14 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ItemAccessibilityHandler)
     };
 
-    //==============================================================================
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
+    {
+        if (hasCustomComponent() && customComponent->getAccessibilityHandler() != nullptr)
+            return nullptr;
+
+        return std::make_unique<ItemAccessibilityHandler> (*this);
+    }
+
     bool hasCustomComponent() const noexcept  { return customComponent.get() != nullptr; }
 
     TreeViewItem& item;
@@ -237,7 +243,6 @@ class TreeView::ContentComponent  : public Component,
 public:
     ContentComponent (TreeView& tree)  : owner (tree)
     {
-        setAccessible (false);
     }
 
     //==============================================================================
@@ -273,7 +278,10 @@ public:
     ItemComponent* getItemComponentAt (Point<int> p)
     {
         auto iter = std::find_if (itemComponents.cbegin(), itemComponents.cend(),
-                                  [p] (const std::unique_ptr<ItemComponent>& c) { return c->getBounds().contains (p); });
+                                  [p] (const std::unique_ptr<ItemComponent>& c)
+                                  {
+                                      return c->getBounds().contains (p);
+                                  });
 
         if (iter != itemComponents.cend())
             return iter->get();
@@ -283,19 +291,33 @@ public:
 
     ItemComponent* getComponentForItem (const TreeViewItem* item) const
     {
-        if (item != nullptr)
-        {
-            auto iter = std::find_if (itemComponents.cbegin(), itemComponents.cend(),
-                                      [item] (const std::unique_ptr<ItemComponent>& c)
-                                      {
-                                          return &c->getRepresentedItem() == item;
-                                      });
+        const auto iter = std::find_if (itemComponents.begin(), itemComponents.end(),
+                                        [item] (const std::unique_ptr<ItemComponent>& c)
+                                        {
+                                            return &c->getRepresentedItem() == item;
+                                        });
 
-            if (iter != itemComponents.cend())
-                return iter->get();
-        }
+        if (iter != itemComponents.end())
+            return iter->get();
 
         return nullptr;
+    }
+
+    void itemBeingDeleted (const TreeViewItem* item)
+    {
+        const auto iter = std::find_if (itemComponents.begin(), itemComponents.end(),
+                                        [item] (const std::unique_ptr<ItemComponent>& c)
+                                        {
+                                            return &c->getRepresentedItem() == item;
+                                        });
+
+        if (iter != itemComponents.end())
+        {
+            if (isMouseDraggingInChildComp (*(iter->get())))
+                owner.hideDragHighlight();
+
+            itemComponents.erase (iter);
+        }
     }
 
     void updateComponents()
@@ -313,7 +335,7 @@ public:
                 auto newComp = std::make_unique<ItemComponent> (*treeItem);
 
                 addAndMakeVisible (*newComp);
-                newComp->addMouseListener (this, true);
+                newComp->addMouseListener (this, false);
                 componentsToKeep.push_back (newComp.get());
 
                 itemComponents.push_back (std::move (newComp));
@@ -332,16 +354,18 @@ public:
             }
             else
             {
-                if (isMouseDraggingInChildComp (*comp))
-                    comp->setSize (0, 0);
-                else
-                    itemComponents.erase (itemComponents.begin() + i);
+                itemComponents.erase (itemComponents.begin() + i);
             }
         }
     }
 
 private:
     //==============================================================================
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
+    {
+        return createIgnoredAccessibilityHandler (*this);
+    }
+
     void mouseDownInternal (const MouseEvent& e)
     {
         updateItemUnderMouse (e);
@@ -458,7 +482,7 @@ private:
     void mouseMoveInternal (const MouseEvent& e)  { updateItemUnderMouse (e); }
     void mouseExitInternal (const MouseEvent& e)  { updateItemUnderMouse (e); }
 
-    bool isMouseDraggingInChildComp (const Component& comp) const
+    static bool isMouseDraggingInChildComp (const Component& comp)
     {
         for (auto& ms : Desktop::getInstance().getMouseSources())
             if (ms.isDragging())
@@ -621,7 +645,8 @@ private:
 };
 
 //==============================================================================
-class TreeView::TreeViewport  : public Viewport
+class TreeView::TreeViewport  : public Viewport,
+                                private Timer
 {
 public:
     TreeViewport() = default;
@@ -645,9 +670,7 @@ public:
         lastX = newVisibleArea.getX();
         updateComponents (hasScrolledSideways);
 
-        if (auto* tree = getParentComponent())
-            if (auto* handler = tree->getAccessibilityHandler())
-                handler->notifyAccessibilityEvent (AccessibilityEvent::structureChanged);
+        startTimer (50);
     }
 
     ContentComponent* getContentComp() const noexcept
@@ -665,6 +688,20 @@ public:
     }
 
 private:
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
+    {
+        return createIgnoredAccessibilityHandler (*this);
+    }
+
+    void timerCallback() override
+    {
+        stopTimer();
+
+        if (auto* tree = getParentComponent())
+            if (auto* handler = tree->getAccessibilityHandler())
+                handler->notifyAccessibilityEvent (AccessibilityEvent::structureChanged);
+    }
+
     int lastX = -1;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TreeViewport)
@@ -674,7 +711,6 @@ private:
 TreeView::TreeView (const String& name)  : Component (name)
 {
     viewport = std::make_unique<TreeViewport>();
-    viewport->setAccessible (false);
     addAndMakeVisible (viewport.get());
     viewport->setViewedComponent (new ContentComponent (*this));
 
@@ -822,8 +858,9 @@ TreeViewItem* TreeView::getItemOnRow (int index) const
 
 TreeViewItem* TreeView::getItemAt (int y) const noexcept
 {
-    if (auto* itemComponent = viewport->getContentComp()->getItemComponentAt (Point<int> (0, y)))
-        return &itemComponent->getRepresentedItem();
+    if (auto* contentComp = viewport->getContentComp())
+        if (auto* itemComponent = contentComp->getItemComponentAt (contentComp->getLocalPoint (this, Point<int> (0, y))))
+            return &itemComponent->getRepresentedItem();
 
     return nullptr;
 }
@@ -1384,6 +1421,12 @@ TreeViewItem::TreeViewItem()
 {
     static int nextUID = 0;
     uid = nextUID++;
+}
+
+TreeViewItem::~TreeViewItem()
+{
+    if (ownerView != nullptr)
+        ownerView->viewport->getContentComp()->itemBeingDeleted (this);
 }
 
 String TreeViewItem::getUniqueName() const

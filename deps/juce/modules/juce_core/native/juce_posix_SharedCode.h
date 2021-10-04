@@ -99,8 +99,16 @@ static MaxNumFileHandlesInitialiser maxNumFileHandlesInitialiser;
 #endif
 
 //==============================================================================
-JUCE_DECLARE_DEPRECATED_STATIC (const juce_wchar File::separator = '/';)
-JUCE_DECLARE_DEPRECATED_STATIC (const StringRef File::separatorString ("/");)
+#if JUCE_ALLOW_STATIC_NULL_VARIABLES
+
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wdeprecated-declarations")
+
+const juce_wchar File::separator = '/';
+const StringRef File::separatorString ("/");
+
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+
+#endif
 
 juce_wchar File::getSeparatorChar()    { return '/'; }
 StringRef File::getSeparatorString()   { return "/"; }
@@ -576,6 +584,9 @@ void MemoryMappedFile::openInternal (const File& file, AccessMode mode, bool exc
         {
             range = Range<int64>();
         }
+
+        close (fileHandle);
+        fileHandle = 0;
     }
 }
 
@@ -835,8 +846,6 @@ void InterProcessLock::exit()
 }
 
 //==============================================================================
-void JUCE_API juce_threadEntryPoint (void*);
-
 #if JUCE_ANDROID
 extern JavaVM* androidJNIJavaVM;
 #endif
@@ -865,11 +874,8 @@ static void* threadEntryProc (void* userData)
     return nullptr;
 }
 
-#if JUCE_ANDROID && JUCE_MODULE_AVAILABLE_juce_audio_devices && \
-   ((JUCE_USE_ANDROID_OPENSLES || (! defined(JUCE_USE_ANDROID_OPENSLES) && JUCE_ANDROID_API_VERSION > 8)) \
- || (JUCE_USE_ANDROID_OBOE || (! defined(JUCE_USE_ANDROID_OBOE) && JUCE_ANDROID_API_VERSION > 15)))
-
-  #define JUCE_ANDROID_REALTIME_THREAD_AVAILABLE 1
+#if JUCE_ANDROID && JUCE_MODULE_AVAILABLE_juce_audio_devices && (JUCE_USE_ANDROID_OPENSLES || JUCE_USE_ANDROID_OBOE)
+ #define JUCE_ANDROID_REALTIME_THREAD_AVAILABLE 1
 #endif
 
 #if JUCE_ANDROID_REALTIME_THREAD_AVAILABLE
@@ -953,9 +959,11 @@ void JUCE_CALLTYPE Thread::setCurrentThreadName (const String& name)
 
 bool Thread::setThreadPriority (void* handle, int priority)
 {
+    constexpr auto maxInputPriority = 10;
+    constexpr auto lowestRealtimePriority = 8;
+
     struct sched_param param;
     int policy;
-    priority = jlimit (0, 10, priority);
 
     if (handle == nullptr)
         handle = (void*) pthread_self();
@@ -963,12 +971,19 @@ bool Thread::setThreadPriority (void* handle, int priority)
     if (pthread_getschedparam ((pthread_t) handle, &policy, &param) != 0)
         return false;
 
-    policy = priority == 0 ? SCHED_OTHER : SCHED_RR;
+    policy = priority < lowestRealtimePriority ? SCHED_OTHER : SCHED_RR;
 
-    const int minPriority = sched_get_priority_min (policy);
-    const int maxPriority = sched_get_priority_max (policy);
+    const auto minPriority = sched_get_priority_min (policy);
+    const auto maxPriority = sched_get_priority_max (policy);
 
-    param.sched_priority = ((maxPriority - minPriority) * priority) / 10 + minPriority;
+    param.sched_priority = [&]
+    {
+        if (policy == SCHED_OTHER)
+            return 0;
+
+        return jmap (priority, lowestRealtimePriority, maxInputPriority, minPriority, maxPriority);
+    }();
+
     return pthread_setschedparam ((pthread_t) handle, policy, &param) == 0;
 }
 

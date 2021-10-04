@@ -26,10 +26,6 @@
 namespace juce
 {
 
-bool juce_handleXEmbedEvent (ComponentPeer*, void*);
-Window juce_getCurrentFocusWindow (ComponentPeer*);
-
-//==============================================================================
 ::Window juce_createKeyProxyWindow (ComponentPeer*);
 void juce_deleteKeyProxyWindow (::Window);
 
@@ -388,7 +384,7 @@ private:
     //==============================================================================
     bool getXEmbedMappedFlag()
     {
-        XWindowSystemUtilities::GetXProperty embedInfo (client, infoAtom, 0, 2, false, infoAtom);
+        XWindowSystemUtilities::GetXProperty embedInfo (getDisplay(), client, infoAtom, 0, 2, false, infoAtom);
 
         if (embedInfo.success && embedInfo.actualFormat == 32
              && embedInfo.numItems >= 2 && embedInfo.data != nullptr)

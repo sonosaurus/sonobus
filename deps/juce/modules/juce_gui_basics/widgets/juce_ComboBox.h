@@ -431,14 +431,15 @@ public:
     void valueChanged (Value&) override;
     /** @internal */
     void parentHierarchyChanged() override;
-    /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
+    //==============================================================================
+   #ifndef DOXYGEN
     // These methods' bool parameters have changed: see their new method signatures.
-    JUCE_DEPRECATED (void clear (bool));
-    JUCE_DEPRECATED (void setSelectedId (int, bool));
-    JUCE_DEPRECATED (void setSelectedItemIndex (int, bool));
-    JUCE_DEPRECATED (void setText (const String&, bool));
+    [[deprecated]] void clear (bool);
+    [[deprecated]] void setSelectedId (int, bool);
+    [[deprecated]] void setSelectedItemIndex (int, bool);
+    [[deprecated]] void setText (const String&, bool);
+   #endif
 
 private:
     //==============================================================================
@@ -461,6 +462,7 @@ private:
 
     std::unique_ptr<Drawable> image;
     
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
     PopupMenu::Item* getItemForId (int) const noexcept;
     PopupMenu::Item* getItemForIndex (int) const noexcept;
     bool selectIfEnabled (int index);

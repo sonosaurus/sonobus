@@ -35,11 +35,12 @@
 
   ID:                 juce_audio_formats
   vendor:             juce
-  version:            6.0.8
+  version:            6.1.2
   name:               JUCE audio file format codecs
   description:        Classes for reading and writing various audio file formats.
   website:            http://www.juce.com/juce
   license:            GPL/Commercial
+  minimumCppStandard: 14
 
   dependencies:       juce_audio_basics
   OSXFrameworks:      CoreAudio CoreMIDI QuartzCore AudioToolbox

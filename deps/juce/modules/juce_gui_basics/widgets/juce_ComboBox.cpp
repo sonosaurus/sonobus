@@ -509,14 +509,11 @@ void ComboBox::showPopupIfNotActive()
     {
         menuActive = true;
 
-        SafePointer<ComboBox> safePointer (this);
-
         // as this method was triggered by a mouse event, the same mouse event may have
         // exited the modal state of other popups currently on the screen. By calling
         // showPopup asynchronously, we are giving the other popups a chance to properly
         // close themselves
-        MessageManager::callAsync ([safePointer]() mutable { if (safePointer != nullptr) safePointer->showPopup(); });
-
+        MessageManager::callAsync ([safePointer = SafePointer<ComboBox> { this }]() mutable { if (safePointer != nullptr) safePointer->showPopup(); });
         repaint();
     }
 }
@@ -689,6 +686,7 @@ public:
     }
 
     String getTitle() const override  { return comboBox.getText(); }
+    String getHelp() const override   { return comboBox.getTooltip(); }
 
 private:
     static AccessibilityActions getAccessibilityActions (ComboBox& comboBox)

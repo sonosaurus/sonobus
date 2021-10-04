@@ -25,7 +25,13 @@ namespace juce
 
 class iOSAudioIODevice;
 
-static const char* const iOSAudioDeviceName = "iOS Audio";
+constexpr const char* const iOSAudioDeviceName = "iOS Audio";
+
+#ifndef JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES
+ #define JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES
+#endif
+
+constexpr std::initializer_list<double> iOSExplicitSampleRates { JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES };
 
 //==============================================================================
 struct AudioSessionHolder
@@ -58,6 +64,8 @@ static const char* getRoutingChangeReason (AVAudioSessionRouteChangeReason reaso
     }
 }
 
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes")
+
 bool getNotificationValueForKey (NSNotification* notification, NSString* key, NSUInteger& value) noexcept
 {
     if (notification != nil)
@@ -75,6 +83,8 @@ bool getNotificationValueForKey (NSNotification* notification, NSString* key, NS
     jassertfalse;
     return false;
 }
+
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
 } // namespace juce
 
@@ -278,10 +288,15 @@ struct iOSAudioIODevice::Pimpl      : public AudioPlayHead,
        #endif
 
         if (category == AVAudioSessionCategoryPlayAndRecord)
-            options |= (AVAudioSessionCategoryOptionDefaultToSpeaker
-                      // | AVAudioSessionCategoryOptionAllowBluetooth // you don't really want this for an audio app, as using bluetooth input devices SUCKS
-                        | AVAudioSessionCategoryOptionAllowAirPlay
-                        | AVAudioSessionCategoryOptionAllowBluetoothA2DP);
+        {
+            options |= (AVAudioSessionCategoryOptionDefaultToSpeaker;
+                      // | AVAudioSessionCategoryOptionAllowBluetooth // you don't really want by default unless specified for an audio app, as using bluetooth input devices SUCKS
+
+           #if defined (__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
+            if (@available (iOS 10.0, *))
+                options |= AVAudioSessionCategoryOptionAllowBluetoothA2DP | AVAudioSessionCategoryOptionAllowAirPlay;
+           #endif
+        }
 
         JUCE_NSERROR_CHECK ([[AVAudioSession sharedInstance] setCategory: category
                                                              withOptions: options
@@ -357,6 +372,12 @@ struct iOSAudioIODevice::Pimpl      : public AudioPlayHead,
     // depending on whether the headphones are plugged in or not!
     void updateAvailableSampleRates()
     {
+        if (iOSExplicitSampleRates.size() != 0)
+        {
+            availableSampleRates = Array<double> (iOSExplicitSampleRates);
+            return;
+        }
+
         availableSampleRates.clear();
 
         AudioUnitRemovePropertyListenerWithUserData (audioUnit,

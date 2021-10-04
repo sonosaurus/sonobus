@@ -498,19 +498,18 @@ void LookAndFeel::playAlertSound()
 class iOSMessageBox
 {
 public:
-    iOSMessageBox (const String& title, const String& message,
-                   NSString* button1, NSString* button2, NSString* button3,
-                   ModalComponentManager::Callback* cb, const bool async)
-        : result (0), resultReceived (false), callback (cb), isAsync (async)
+    iOSMessageBox (const MessageBoxOptions& opts, std::unique_ptr<ModalComponentManager::Callback>&& cb)
+        : callback (std::move (cb))
     {
         if (currentlyFocusedPeer != nullptr)
         {
-            UIAlertController* alert = [UIAlertController alertControllerWithTitle: juceStringToNS (title)
-                                                                           message: juceStringToNS (message)
+            UIAlertController* alert = [UIAlertController alertControllerWithTitle: juceStringToNS (opts.getTitle())
+                                                                           message: juceStringToNS (opts.getMessage())
                                                                     preferredStyle: UIAlertControllerStyleAlert];
-            addButton (alert, button1, 0);
-            addButton (alert, button2, 1);
-            addButton (alert, button3, 2);
+
+            addButton (alert, opts.getButtonText (0));
+            addButton (alert, opts.getButtonText (1));
+            addButton (alert, opts.getButtonText (2));
 
             [currentlyFocusedPeer->controller presentViewController: alert
                                                            animated: YES
@@ -530,105 +529,145 @@ public:
 
         JUCE_AUTORELEASEPOOL
         {
-            while (! resultReceived)
+            while (result < 0)
                 [[NSRunLoop mainRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
         }
 
         return result;
     }
 
-    void buttonClicked (const int buttonIndex) noexcept
+    void buttonClicked (int buttonIndex) noexcept
     {
         result = buttonIndex;
-        resultReceived = true;
 
         if (callback != nullptr)
+        {
             callback->modalStateFinished (result);
-
-        if (isAsync)
             delete this;
+        }
     }
 
 private:
-    int result;
-    bool resultReceived;
-    std::unique_ptr<ModalComponentManager::Callback> callback;
-    const bool isAsync;
-
-    void addButton (UIAlertController* alert, NSString* text, int index)
+    void addButton (UIAlertController* alert, const String& text)
     {
-        if (text != nil)
-            [alert addAction: [UIAlertAction actionWithTitle: text
+        if (! text.isEmpty())
+        {
+            const auto index = [[alert actions] count];
+
+            [alert addAction: [UIAlertAction actionWithTitle: juceStringToNS (text)
                                                        style: UIAlertActionStyleDefault
-                                                     handler: ^(UIAlertAction*) { this->buttonClicked (index); }]];
+                                                     handler: ^(UIAlertAction*) { this->buttonClicked ((int) index); }]];
+        }
     }
+
+    int result = -1;
+    std::unique_ptr<ModalComponentManager::Callback> callback;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (iOSMessageBox)
 };
 
 //==============================================================================
+static int showDialog (const MessageBoxOptions& options,
+                       ModalComponentManager::Callback* callbackIn,
+                       AlertWindowMappings::MapFn mapFn)
+{
+   #if JUCE_MODAL_LOOPS_PERMITTED
+    if (callbackIn == nullptr)
+    {
+        JUCE_AUTORELEASEPOOL
+        {
+            jassert (mapFn != nullptr);
+
+            iOSMessageBox messageBox (options, nullptr);
+            return mapFn (messageBox.getResult());
+        }
+    }
+   #endif
+
+    new iOSMessageBox (options, AlertWindowMappings::getWrappedCallback (callbackIn, mapFn));
+    return 0;
+}
+
 #if JUCE_MODAL_LOOPS_PERMITTED
-void JUCE_CALLTYPE NativeMessageBox::showMessageBox (AlertWindow::AlertIconType /*iconType*/,
+void JUCE_CALLTYPE NativeMessageBox::showMessageBox (MessageBoxIconType /*iconType*/,
                                                      const String& title, const String& message,
                                                      Component* /*associatedComponent*/)
 {
-    JUCE_AUTORELEASEPOOL
-    {
-        iOSMessageBox mb (title, message, @"OK", nil, nil, nullptr, false);
-        ignoreUnused (mb.getResult());
-    }
+    showDialog (MessageBoxOptions()
+                  .withTitle (title)
+                  .withMessage (message)
+                  .withButton (TRANS("OK")),
+                nullptr, AlertWindowMappings::messageBox);
+}
+
+int JUCE_CALLTYPE NativeMessageBox::show (const MessageBoxOptions& options)
+{
+    return showDialog (options, nullptr, AlertWindowMappings::noMapping);
 }
 #endif
 
-void JUCE_CALLTYPE NativeMessageBox::showMessageBoxAsync (AlertWindow::AlertIconType /*iconType*/,
+void JUCE_CALLTYPE NativeMessageBox::showMessageBoxAsync (MessageBoxIconType /*iconType*/,
                                                           const String& title, const String& message,
                                                           Component* /*associatedComponent*/,
                                                           ModalComponentManager::Callback* callback)
 {
-    new iOSMessageBox (title, message, @"OK", nil, nil, callback, true);
+    showDialog (MessageBoxOptions()
+                  .withTitle (title)
+                  .withMessage (message)
+                  .withButton (TRANS("OK")),
+                callback, AlertWindowMappings::messageBox);
 }
 
-bool JUCE_CALLTYPE NativeMessageBox::showOkCancelBox (AlertWindow::AlertIconType /*iconType*/,
+bool JUCE_CALLTYPE NativeMessageBox::showOkCancelBox (MessageBoxIconType /*iconType*/,
                                                       const String& title, const String& message,
                                                       Component* /*associatedComponent*/,
                                                       ModalComponentManager::Callback* callback)
 {
-    std::unique_ptr<iOSMessageBox> mb (new iOSMessageBox (title, message, @"Cancel", @"OK",
-                                                          nil, callback, callback != nullptr));
-
-    if (callback == nullptr)
-        return mb->getResult() == 1;
-
-    mb.release();
-    return false;
+    return showDialog (MessageBoxOptions()
+                         .withTitle (title)
+                         .withMessage (message)
+                         .withButton (TRANS("OK"))
+                         .withButton (TRANS("Cancel")),
+                       callback, AlertWindowMappings::okCancel) != 0;
 }
 
-int JUCE_CALLTYPE NativeMessageBox::showYesNoCancelBox (AlertWindow::AlertIconType /*iconType*/,
+int JUCE_CALLTYPE NativeMessageBox::showYesNoCancelBox (MessageBoxIconType /*iconType*/,
                                                         const String& title, const String& message,
                                                         Component* /*associatedComponent*/,
                                                         ModalComponentManager::Callback* callback)
 {
-    std::unique_ptr<iOSMessageBox> mb (new iOSMessageBox (title, message, @"Cancel", @"Yes", @"No", callback, callback != nullptr));
-
-    if (callback == nullptr)
-        return mb->getResult();
-
-    mb.release();
-    return 0;
+    return showDialog (MessageBoxOptions()
+                         .withTitle (title)
+                         .withMessage (message)
+                         .withButton (TRANS("Yes"))
+                         .withButton (TRANS("No"))
+                         .withButton (TRANS("Cancel")),
+                       callback, AlertWindowMappings::yesNoCancel);
 }
 
-int JUCE_CALLTYPE NativeMessageBox::showYesNoBox (AlertWindow::AlertIconType /*iconType*/,
+int JUCE_CALLTYPE NativeMessageBox::showYesNoBox (MessageBoxIconType /*iconType*/,
                                                   const String& title, const String& message,
                                                   Component* /*associatedComponent*/,
                                                   ModalComponentManager::Callback* callback)
 {
-    std::unique_ptr<iOSMessageBox> mb (new iOSMessageBox (title, message, @"No", @"Yes", nil, callback, callback != nullptr));
+    return showDialog (MessageBoxOptions()
+                         .withTitle (title)
+                         .withMessage (message)
+                         .withButton (TRANS("Yes"))
+                         .withButton (TRANS("No")),
+                       callback, AlertWindowMappings::okCancel);
+}
 
-    if (callback == nullptr)
-        return mb->getResult();
+void JUCE_CALLTYPE NativeMessageBox::showAsync (const MessageBoxOptions& options,
+                                                ModalComponentManager::Callback* callback)
+{
+    showDialog (options, callback, AlertWindowMappings::noMapping);
+}
 
-    mb.release();
-    return 0;
+void JUCE_CALLTYPE NativeMessageBox::showAsync (const MessageBoxOptions& options,
+                                                std::function<void (int)> callback)
+{
+    showAsync (options, ModalCallbackFunction::create (callback));
 }
 
 //==============================================================================
@@ -700,6 +739,77 @@ bool Desktop::canUseSemiTransparentWindows() noexcept
     return true;
 }
 
+bool Desktop::isDarkModeActive() const
+{
+   #if defined (__IPHONE_12_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_12_0
+    if (@available (iOS 12.0, *))
+        return [[[UIScreen mainScreen] traitCollection] userInterfaceStyle] == UIUserInterfaceStyleDark;
+   #endif
+
+    return false;
+}
+
+class Desktop::NativeDarkModeChangeDetectorImpl
+{
+public:
+    NativeDarkModeChangeDetectorImpl()
+    {
+        static DelegateClass delegateClass;
+
+        delegate = [delegateClass.createInstance() init];
+        object_setInstanceVariable (delegate, "owner", this);
+
+        JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wundeclared-selector")
+        [[NSNotificationCenter defaultCenter] addObserver: delegate
+                                                 selector: @selector (darkModeChanged:)
+                                                     name: UIViewComponentPeer::getDarkModeNotificationName()
+                                                   object: nil];
+        JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+    }
+
+    ~NativeDarkModeChangeDetectorImpl()
+    {
+        object_setInstanceVariable (delegate, "owner", nullptr);
+        [[NSNotificationCenter defaultCenter] removeObserver: delegate];
+        [delegate release];
+    }
+
+    void darkModeChanged()
+    {
+        Desktop::getInstance().darkModeChanged();
+    }
+
+private:
+    struct DelegateClass  : public ObjCClass<NSObject>
+    {
+        DelegateClass()  : ObjCClass<NSObject> ("JUCEDelegate_")
+        {
+            addIvar<NativeDarkModeChangeDetectorImpl*> ("owner");
+
+            JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wundeclared-selector")
+            addMethod (@selector (darkModeChanged:), darkModeChanged, "v@:@");
+            JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+
+            registerClass();
+        }
+
+        static void darkModeChanged (id self, SEL, NSNotification*)
+        {
+            if (auto* owner = getIvar<NativeDarkModeChangeDetectorImpl*> (self, "owner"))
+                owner->darkModeChanged();
+        }
+    };
+
+    id delegate = nil;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NativeDarkModeChangeDetectorImpl)
+};
+
+std::unique_ptr<Desktop::NativeDarkModeChangeDetectorImpl> Desktop::createNativeDarkModeChangeDetectorImpl()
+{
+    return std::make_unique<NativeDarkModeChangeDetectorImpl>();
+}
+
 Point<float> MouseInputSource::getCurrentRawMousePosition()
 {
     return juce_lastMousePos;
@@ -738,19 +848,22 @@ static Rectangle<int> getRecommendedWindowBounds()
 
 static BorderSize<int> getSafeAreaInsets (float masterScale)
 {
-   #if defined (__IPHONE_11_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_0
-    UIEdgeInsets safeInsets = TemporaryWindow().window.safeAreaInsets;
+   #if defined (__IPHONE_11_0)
+    if (@available (iOS 11.0, *))
+    {
+        UIEdgeInsets safeInsets = TemporaryWindow().window.safeAreaInsets;
 
-    auto getInset = [&] (CGFloat original) { return roundToInt (original / masterScale); };
+        auto getInset = [&] (CGFloat original) { return roundToInt (original / masterScale); };
 
-    return { getInset (safeInsets.top),    getInset (safeInsets.left),
-             getInset (safeInsets.bottom), getInset (safeInsets.right) };
-   #else
+        return { getInset (safeInsets.top),    getInset (safeInsets.left),
+                 getInset (safeInsets.bottom), getInset (safeInsets.right) };
+    }
+   #endif
+
     auto statusBarSize = [UIApplication sharedApplication].statusBarFrame.size;
     auto statusBarHeight = jmin (statusBarSize.width, statusBarSize.height);
 
     return { roundToInt (statusBarHeight / masterScale), 0, 0, 0 };
-   #endif
 }
 
 void Displays::findDisplays (float masterScale)

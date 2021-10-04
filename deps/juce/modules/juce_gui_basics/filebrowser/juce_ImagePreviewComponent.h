@@ -45,7 +45,6 @@ public:
     /** Destructor. */
     ~ImagePreviewComponent() override;
 
-
     //==============================================================================
     /** @internal */
     void selectedFileChanged (const File& newSelectedFile) override;
@@ -53,14 +52,13 @@ public:
     void paint (Graphics&) override;
     /** @internal */
     void timerCallback() override;
-    /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 private:
     File fileToLoad;
     Image currentThumbnail;
     String currentDetails;
 
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
     void getThumbSize (int& w, int& h) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ImagePreviewComponent)

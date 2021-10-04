@@ -1,8 +1,174 @@
 JUCE breaking changes
 =====================
 
-Develop
+develop
 =======
+
+Change
+------
+Functions on AudioPluginInstance that can add parameters have been made
+private.
+
+Possible Issues
+---------------
+Code implementing custom plugin formats may stop building if it calls these
+functions.
+
+Workaround
+----------
+When implementing custom plugin formats, ensure that the plugin parameters
+derive from AudioPluginInstance::HostedParameter and then use
+addHostedParameter, addHostedParameterGroup or setHostedParameterTree to add
+the parameters to the plugin instance.
+
+Rationale
+---------
+In a plugin host, it is very important to be able to uniquely identify
+parameters across different versions of the same plugin. To make this possible,
+we needed to introduce a way of retrieving a unique ID for each parameter,
+which is now possible using the HostedParameter class. However, we also needed
+to enforce that all AudioPluginInstances can only have parameters which are of
+the type HostedParameter, which required hiding the old functions.
+
+
+Version 6.1.0
+=============
+
+Change
+------
+juce::gl::loadFunctions() no longer loads extension functions.
+
+Possible Issues
+---------------
+Code that depended on extension functions being loaded automatically may cease
+to function correctly.
+
+Workaround
+----------
+Extension functions can now be loaded using juce::gl::loadExtensions().
+
+Rationale
+---------
+There are a great number of extension functions, and on some systems these can
+be slow to load (i.e. a second or so). Projects that do not require these
+extension functions should not have to pay for this unnecessary overhead. Now,
+only core functions will be loaded by default, and extensions can be loaded
+explicitly in projects that require such functionality.
+
+
+Change
+------
+Thread::setPriority() will no longer set a realtime scheduling policy for all
+threads with non-zero priorities on POSIX systems.
+
+Possible Issues
+---------------
+Threads that implicitly relied on using a realtime policy will no longer
+request a realtime policy if their priority is 7 or lower.
+
+Workaround
+----------
+For threads that require a realtime policy on POSIX systems, request a priority
+of 8 or higher by calling Thread::setPriority() or
+Thread::setCurrentThreadPriority().
+
+Rationale
+---------
+By default, new Thread instances have a priority of 5. Previously, non-zero
+priorities corresponded to realtime scheduling policies, meaning that new
+Threads would use the realtime scheduling policy unless they explicitly
+requested a priority of 0. However, most threads do not and should not require
+realtime scheduling. Setting a realtime policy on all newly-created threads may
+degrade performance, as multiple realtime threads will end up fighting for
+limited resources.
+
+
+Change
+------
+The JUCE_GLSL_VERSION preprocessor definition has been removed.
+
+Possible Issues
+---------------
+Code which used this definition will no longer compile.
+
+Workaround
+----------
+Use OpenGLHelpers::getGLSLVersionString to retrieve a version string which is
+consistent with the capabilities of the current OpenGL context.
+
+Rationale
+---------
+A compile-time version string is not very useful, as OpenGL versions and
+capabilities can change at runtime. Replacing this macro with a function allows
+querying the capabilities of the current context at runtime.
+
+
+Change
+------
+The minimum support CMake version is now 3.15.
+
+Possible Issues
+---------------
+It will no longer be possible to configure JUCE projects with CMake versions
+between 3.12 and 3.14 inclusive.
+
+Workaround
+----------
+No workaround is available.
+
+Rationale
+---------
+Moving to 3.15 allows us to use target_link_directories and
+target_link_options, which were introduced in 3.13, which in turn allows us to
+provide support for bundled precompiled libraries in modules. Plugins already
+required CMake 3.15, so this change just brings other target types in line with
+the requirements for plugins.
+
+
+Change
+------
+The default value of JUCE_MODAL_LOOPS_PERMITTED has been changed from 1 to 0.
+
+Possible Issues
+---------------
+With JUCE_MODAL_LOOPS_PERMITTED set to 0 code that previously relied upon modal
+loops will need to be rewritten to use asynchronous versions of the modal
+functions. There is no non-modal alternative to
+AlterWindow::showNativeDialogBox and the previously modal behaviour of the
+MultiDocumentPanel destructor has changed.
+
+Workaround
+----------
+Set JUCE_MODAL_LOOPS_PERMITTED back to 1.
+
+Rationale
+---------
+Modal operations are a frequent source of problems, particularly when used in
+plug-ins. On Android modal loops are not possible, so people wanting to target
+Android often have an unwelcome surprise when then have to rewrite what they
+assumed to be platform independent code. Changing the default addresses these
+problems.
+
+
+Change
+------
+The minimum supported C++ standard is now C++14 and the oldest supported
+compilers on macOS and Linux are now Xcode 9.2, GCC 5.0 and Clang 3.4.
+
+Possible Issues
+---------------
+Older compilers will no longer be able to compile JUCE. People using Xcode 8.5
+on OS X 10.11 will need to update the operating system to OS X 10.12 to be able
+to use Xcode 9.2.
+
+Workaround
+----------
+No workaround is available.
+
+Rationale
+---------
+This compiler upgrade will allow the use of C++14 within the framework.
+
 
 Change
 ------

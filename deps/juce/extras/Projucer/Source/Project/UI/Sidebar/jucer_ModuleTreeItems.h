@@ -270,7 +270,7 @@ private:
         Array<Value> exporterModulePathValues, globalPathValues;
         Value useGlobalPathValue;
 
-        OwnedArray <Project::ConfigFlag> configFlags;
+        OwnedArray<Project::ConfigFlag> configFlags;
 
         PropertyGroupComponent group;
         Project& project;
@@ -378,7 +378,7 @@ private:
                 {
                     missingDependencies = enabledModules.getExtraDependenciesNeeded (moduleID);
 
-                    AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
+                    AlertWindow::showMessageBoxAsync (MessageBoxIconType::WarningIcon,
                                                       "Adding Missing Dependencies",
                                                       "Couldn't locate some of these modules - you'll need to find their "
                                                       "folders manually and add them to the list.");

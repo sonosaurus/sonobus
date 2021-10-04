@@ -38,6 +38,7 @@ public:
 
     const String& getName() const noexcept    { return name; }
 
+private:
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
     {
         class ComponentHandler  : public AccessibilityHandler
@@ -49,13 +50,6 @@ public:
                                         getAccessibilityActions (item)),
                   itemComponent (item)
             {
-            }
-
-            AccessibleState getCurrentState() const override
-            {
-                auto state = AccessibilityHandler::getCurrentState().withSelectable();
-
-                return state.isFocused() ? state.withSelected() : state;
             }
 
             String getTitle() const override  { return itemComponent.name; }
@@ -77,7 +71,6 @@ public:
         return std::make_unique<ComponentHandler> (*this);
     }
 
-private:
     MenuBarComponent& owner;
     const String name;
 };
@@ -250,8 +243,7 @@ void MenuBarComponent::showMenu (int index)
 
             m.showMenuAsync (PopupMenu::Options().withTargetComponent (this)
                                                  .withTargetScreenArea (localAreaToGlobal (itemBounds))
-                                                 .withMinimumWidth (itemBounds.getWidth())
-                                                 .withTitle(itemComponent->getName() + " " + TRANS("Menu")),
+                                                 .withMinimumWidth (itemBounds.getWidth()),
                              [this, index] (int result) { menuDismissed (index, result); });
         }
     }

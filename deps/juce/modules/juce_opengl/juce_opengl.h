@@ -35,11 +35,12 @@
 
   ID:                 juce_opengl
   vendor:             juce
-  version:            6.0.8
+  version:            6.1.2
   name:               JUCE OpenGL classes
   description:        Classes for rendering OpenGL in a JUCE window.
   website:            http://www.juce.com/juce
   license:            GPL/Commercial
+  minimumCppStandard: 14
 
   dependencies:       juce_gui_extra
   OSXFrameworks:      OpenGL
@@ -70,17 +71,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 
 //==============================================================================
-/** This macro is a helper for use in GLSL shader code which needs to compile on both OpenGL 2.1 and OpenGL 3.0.
-    It's mandatory in OpenGL 3.0 to specify the GLSL version.
-*/
-#if JUCE_OPENGL_ES
- #define JUCE_GLSL_VERSION "#version 300 es"
-#else
- #define JUCE_GLSL_VERSION "#version 150"
-#endif
-
-//==============================================================================
-#if JUCE_OPENGL_ES || defined (DOXYGEN)
+#if JUCE_OPENGL_ES || DOXYGEN
  /** This macro is a helper for use in GLSL shader code which needs to compile on both GLES and desktop GL.
      Since it's mandatory in GLES to mark a variable with a precision, but the keywords don't exist in normal GLSL,
      these macros define the various precision keywords only on GLES.

@@ -52,7 +52,7 @@ public:
     TreeViewItem();
 
     /** Destructor. */
-    virtual ~TreeViewItem() = default;
+    virtual ~TreeViewItem();
 
     //==============================================================================
     /** Returns the number of sub-items that have been added to this item.
@@ -313,13 +313,9 @@ public:
         callback. But if you do return a component, it will be positioned in the
         TreeView so that it can be used to represent this item.
 
-        The component returned will be managed by the TreeView, so always return
-        a new component, and don't keep a reference to it, as the TreeView will
-        delete it later when it goes off the screen or is no longer needed. Also
-        bear in mind that if the component keeps a reference to the item that
-        created it, that item could be deleted before the component. Its position
-        and size will be completely managed by the tree, so don't attempt to move it
-        around.
+        The component returned will be managed by the TreeView and will be deleted
+        later when it goes off the screen or is no longer needed. Its position and
+        size will be completely managed by the tree, so don't attempt to move it around.
 
         Something you may want to do with your component is to give it a pointer to
         the TreeView that created it. This is perfectly safe, and there's no danger
@@ -918,8 +914,6 @@ public:
     void itemDragExit (const SourceDetails&) override;
     /** @internal */
     void itemDropped (const SourceDetails&) override;
-    /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 private:
     friend class TreeViewItem;
@@ -932,6 +926,7 @@ private:
     class TreeAccessibilityHandler;
     struct InsertPoint;
 
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
     void itemsChanged() noexcept;
     void updateVisibleItems();
     void updateButtonUnderMouse (const MouseEvent&);
@@ -950,11 +945,6 @@ private:
     std::unique_ptr<TargetGroupHighlight> dragTargetGroupHighlight;
     int indentSize = -1;
     bool defaultOpenness = false, rootItemVisible = true, multiSelectEnabled = false, openCloseButtonsVisible = true;
-
-   #if JUCE_CATCH_DEPRECATED_CODE_MISUSE
-    // this method has been deprecated - see the new version..
-    virtual int paintOpenCloseButton (Graphics&, int, int, bool) { return 0; }
-   #endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TreeView)
 };

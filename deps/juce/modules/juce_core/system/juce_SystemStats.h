@@ -63,6 +63,7 @@ public:
         MacOSX_10_14    = MacOSX | 14,
         MacOSX_10_15    = MacOSX | 15,
         MacOS_11        = MacOSX | 16,
+        MacOS_12        = MacOSX | 17,
 
         Win2000         = Windows | 1,
         WinXP           = Windows | 2,
@@ -233,8 +234,10 @@ public:
 
 
     //==============================================================================
-    // This method was spelt wrong! Please change your code to use getCpuSpeedInMegahertz() instead
-    JUCE_DEPRECATED_WITH_BODY (static int getCpuSpeedInMegaherz(), { return getCpuSpeedInMegahertz(); })
+   #ifndef DOXYGEN
+    [[deprecated ("This method was spelt wrong! Please change your code to use getCpuSpeedInMegahertz instead.")]]
+    static int getCpuSpeedInMegaherz() { return getCpuSpeedInMegahertz(); }
+   #endif
 
 private:
     SystemStats() = delete; // uses only static methods

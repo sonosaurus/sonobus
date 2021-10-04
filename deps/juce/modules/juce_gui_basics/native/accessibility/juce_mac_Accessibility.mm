@@ -23,15 +23,19 @@
   ==============================================================================
 */
 
+static void juceFreeAccessibilityPlatformSpecificData (NSAccessibilityElement<NSAccessibility>*)  {}
+
 namespace juce
 {
-
-#if (defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10)
 
 #if (! defined MAC_OS_X_VERSION_10_13) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_13
  using NSAccessibilityRole = NSString*;
  using NSAccessibilityNotificationName = NSString*;
 #endif
+
+#define JUCE_NATIVE_ACCESSIBILITY_INCLUDED 1
+
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wunguarded-availability", "-Wunguarded-availability-new")
 
 //==============================================================================
 class AccessibilityHandler::AccessibilityNativeImpl
@@ -48,34 +52,25 @@ public:
 
 private:
     //==============================================================================
-    class AccessibilityElement  : public ObjCClass<NSAccessibilityElement<NSAccessibility>>
+    class AccessibilityElement  : public AccessibleObjCClass<NSAccessibilityElement<NSAccessibility>>
     {
-    private:
-        struct Deleter
-        {
-            void operator() (NSAccessibilityElement<NSAccessibility>* element) const
-            {
-                object_setInstanceVariable (element, "handler", nullptr);
-                [element release];
-            }
-        };
-
     public:
-        using Holder = std::unique_ptr<NSAccessibilityElement<NSAccessibility>, Deleter>;
-
         static Holder create (AccessibilityHandler& handler)
         {
-            static AccessibilityElement cls;
-            Holder element ([cls.createInstance() init]);
-            object_setInstanceVariable (element.get(), "handler", &handler);
-            return element;
+            if (@available (macOS 10.10, *))
+            {
+                static AccessibilityElement cls;
+                Holder element ([cls.createInstance() init]);
+                object_setInstanceVariable (element.get(), "handler", &handler);
+                return element;
+            }
+
+            return {};
         }
 
     private:
-        AccessibilityElement()  : ObjCClass<NSAccessibilityElement<NSAccessibility>> ("JUCEAccessibilityElement_")
+        AccessibilityElement()
         {
-            addIvar<AccessibilityHandler*> ("handler");
-
             addMethod (@selector (accessibilityNotifiesWhenDestroyed),     getAccessibilityNotifiesWhenDestroyed, "c@:");
             addMethod (@selector (isAccessibilityElement),                 getIsAccessibilityElement,             "c@:");
             addMethod (@selector (isAccessibilityEnabled),                 getIsAccessibilityEnabled,             "c@:");
@@ -101,21 +96,16 @@ private:
             addMethod (@selector (accessibilityOrientation),               getAccessibilityOrientation,           "i@:@");
 
             addMethod (@selector (accessibilityInsertionPointLineNumber),  getAccessibilityInsertionPointLineNumber, "i@:");
-            addMethod (@selector (accessibilitySharedCharacterRange),      getAccessibilitySharedCharacterRange,     @encode (NSRange), "@:");
-            addMethod (@selector (accessibilitySharedTextUIElements),      getAccessibilitySharedTextUIElements,     "@@:");
             addMethod (@selector (accessibilityVisibleCharacterRange),     getAccessibilityVisibleCharacterRange,    @encode (NSRange), "@:");
             addMethod (@selector (accessibilityNumberOfCharacters),        getAccessibilityNumberOfCharacters,       "i@:");
             addMethod (@selector (accessibilitySelectedText),              getAccessibilitySelectedText,             "@@:");
             addMethod (@selector (accessibilitySelectedTextRange),         getAccessibilitySelectedTextRange,        @encode (NSRange), "@:");
-            addMethod (@selector (accessibilitySelectedTextRanges),        getAccessibilitySelectedTextRanges,       "@@:");
             addMethod (@selector (accessibilityAttributedStringForRange:), getAccessibilityAttributedStringForRange, "@@:", @encode (NSRange));
             addMethod (@selector (accessibilityRangeForLine:),             getAccessibilityRangeForLine,             @encode (NSRange), "@:i");
             addMethod (@selector (accessibilityStringForRange:),           getAccessibilityStringForRange,           "@@:", @encode (NSRange));
             addMethod (@selector (accessibilityRangeForPosition:),         getAccessibilityRangeForPosition,         @encode (NSRange), "@:", @encode (NSPoint));
             addMethod (@selector (accessibilityRangeForIndex:),            getAccessibilityRangeForIndex,            @encode (NSRange), "@:i");
             addMethod (@selector (accessibilityFrameForRange:),            getAccessibilityFrameForRange,            @encode (NSRect), "@:", @encode (NSRange));
-            addMethod (@selector (accessibilityRTFForRange:),              getAccessibilityRTFForRange,              "@@:", @encode (NSRange));
-            addMethod (@selector (accessibilityStyleRangeForIndex:),       getAccessibilityStyleRangeForIndex,       @encode (NSRange), "@:i");
             addMethod (@selector (accessibilityLineForIndex:),             getAccessibilityLineForIndex,             "i@:i");
             addMethod (@selector (setAccessibilitySelectedTextRange:),     setAccessibilitySelectedTextRange,        "v@:", @encode (NSRange));
 
@@ -150,34 +140,7 @@ private:
             registerClass();
         }
 
-    private:
-        static AccessibilityHandler* getHandler (id self)            { return getIvar<AccessibilityHandler*> (self, "handler"); }
-
-        template <typename MemberFn>
-        static auto getInterface (id self, MemberFn fn) noexcept -> decltype ((std::declval<AccessibilityHandler>().*fn)())
-        {
-            if (auto* handler = getHandler (self))
-                return (handler->*fn)();
-
-            return nullptr;
-        }
-
-        static AccessibilityTextInterface*  getTextInterface  (id self) noexcept  { return getInterface (self, &AccessibilityHandler::getTextInterface); }
-        static AccessibilityValueInterface* getValueInterface (id self) noexcept  { return getInterface (self, &AccessibilityHandler::getValueInterface); }
-        static AccessibilityTableInterface* getTableInterface (id self) noexcept  { return getInterface (self, &AccessibilityHandler::getTableInterface); }
-        static AccessibilityCellInterface*  getCellInterface  (id self) noexcept  { return getInterface (self, &AccessibilityHandler::getCellInterface); }
-
-        static bool hasEditableText (AccessibilityHandler& handler) noexcept
-        {
-            return handler.getRole() == AccessibilityRole::editableText
-                && handler.getTextInterface() != nullptr;
-        }
-
-        static bool nameIsAccessibilityValue (AccessibilityRole role) noexcept
-        {
-            return role == AccessibilityRole::staticText;
-        }
-
+        //==============================================================================
         static bool isSelectable (AccessibleState state) noexcept
         {
             return state.isSelectable() || state.isMultiSelectable();
@@ -223,26 +186,8 @@ private:
             }
         }
 
-        static BOOL performActionIfSupported (id self, AccessibilityActionType actionType)
-        {
-            if (auto* handler = getHandler (self))
-                if (handler->getActions().invoke (actionType))
-                    return YES;
-
-            return NO;
-        }
-
         //==============================================================================
         static BOOL getAccessibilityNotifiesWhenDestroyed (id, SEL)  { return YES; }
-
-        static BOOL getIsAccessibilityElement (id self, SEL)
-        {
-            if (auto* handler = getHandler (self))
-                return ! handler->isIgnored()
-                      && handler->getRole() != AccessibilityRole::window;
-
-            return NO;
-        }
 
         static BOOL getIsAccessibilityEnabled (id self, SEL)
         {
@@ -289,7 +234,7 @@ private:
         {
             if (auto* handler = getHandler (self))
             {
-                if (auto* child = handler->getChildAt (convertToIntPoint (flippedScreenPoint (point))))
+                if (auto* child = handler->getChildAt (roundToIntPoint (flippedScreenPoint (point))))
                     return (id) child->getNativeImplementation();
 
                 return self;
@@ -317,12 +262,25 @@ private:
             {
                 auto children = handler->getChildren();
 
-                NSMutableArray* accessibleChildren = [NSMutableArray arrayWithCapacity: (NSUInteger) children.size()];
+                auto* accessibleChildren = [NSMutableArray arrayWithCapacity: (NSUInteger) children.size()];
 
                 for (auto* childHandler : children)
                     [accessibleChildren addObject: (id) childHandler->getNativeImplementation()];
 
                 return accessibleChildren;
+            }
+
+            return nil;
+        }
+
+        static id getAccessibilityValue (id self, SEL)
+        {
+            if (auto* handler = getHandler (self))
+            {
+                if (handler->getCurrentState().isCheckable())
+                    return handler->getCurrentState().isChecked() ? @(1) : @(0);
+
+                return getAccessibilityValueFromInterfaces (*handler);
             }
 
             return nil;
@@ -373,14 +331,6 @@ private:
             }
         }
 
-        static BOOL getIsAccessibilityModal (id self, SEL)
-        {
-            if (auto* handler = getHandler (self))
-                return handler->getComponent().isCurrentlyModal();
-
-            return NO;
-        }
-
         static NSRect getAccessibilityFrame (id self, SEL)
         {
             if (auto* handler = getHandler (self))
@@ -395,37 +345,43 @@ private:
             {
                 switch (handler->getRole())
                 {
-                    case AccessibilityRole::button:       return NSAccessibilityButtonRole;
-                    case AccessibilityRole::toggleButton: return NSAccessibilityCheckBoxRole;
-                    case AccessibilityRole::radioButton:  return NSAccessibilityRadioButtonRole;
-                    case AccessibilityRole::comboBox:     return NSAccessibilityPopUpButtonRole;
-                    case AccessibilityRole::image:        return NSAccessibilityImageRole;
-                    case AccessibilityRole::slider:       return NSAccessibilitySliderRole;
-                    case AccessibilityRole::staticText:   return NSAccessibilityStaticTextRole;
-                    case AccessibilityRole::editableText: return NSAccessibilityTextAreaRole;
-                    case AccessibilityRole::menuItem:     return NSAccessibilityMenuItemRole;
-                    case AccessibilityRole::menuBar:      return NSAccessibilityMenuRole;
-                    case AccessibilityRole::popupMenu:    return NSAccessibilityWindowRole;
-                    case AccessibilityRole::table:        return NSAccessibilityListRole;
-                    case AccessibilityRole::tableHeader:  return NSAccessibilityGroupRole;
-                    case AccessibilityRole::column:       return NSAccessibilityColumnRole;
-                    case AccessibilityRole::row:          return NSAccessibilityRowRole;
-                    case AccessibilityRole::cell:         return NSAccessibilityCellRole;
-                    case AccessibilityRole::hyperlink:    return NSAccessibilityLinkRole;
-                    case AccessibilityRole::list:         return NSAccessibilityOutlineRole;
-                    case AccessibilityRole::listItem:     return NSAccessibilityRowRole;
-                    case AccessibilityRole::tree:         return NSAccessibilityOutlineRole;
-                    case AccessibilityRole::treeItem:     return NSAccessibilityRowRole;
-                    case AccessibilityRole::progressBar:  return NSAccessibilityProgressIndicatorRole;
-                    case AccessibilityRole::group:        return NSAccessibilityGroupRole;
-                    case AccessibilityRole::dialogWindow: return NSAccessibilityWindowRole;
-                    case AccessibilityRole::window:       return NSAccessibilityWindowRole;
-                    case AccessibilityRole::scrollBar:    return NSAccessibilityScrollBarRole;
-                    case AccessibilityRole::tooltip:      return NSAccessibilityWindowRole;
-                    case AccessibilityRole::splashScreen: return NSAccessibilityWindowRole;
-                    case AccessibilityRole::ignored:      return NSAccessibilityUnknownRole;
-                    case AccessibilityRole::unspecified:  return NSAccessibilityGroupRole;
-                    default:                              break;
+                    case AccessibilityRole::popupMenu:
+                    case AccessibilityRole::tooltip:
+                    case AccessibilityRole::splashScreen:
+                    case AccessibilityRole::dialogWindow:
+                    case AccessibilityRole::window:        return NSAccessibilityWindowRole;
+
+                    case AccessibilityRole::tableHeader:
+                    case AccessibilityRole::unspecified:
+                    case AccessibilityRole::group:         return NSAccessibilityGroupRole;
+
+                    case AccessibilityRole::label:
+                    case AccessibilityRole::staticText:    return NSAccessibilityStaticTextRole;
+
+                    case AccessibilityRole::tree:
+                    case AccessibilityRole::list:          return NSAccessibilityOutlineRole;
+
+                    case AccessibilityRole::listItem:
+                    case AccessibilityRole::treeItem:      return NSAccessibilityRowRole;
+
+                    case AccessibilityRole::button:        return NSAccessibilityButtonRole;
+                    case AccessibilityRole::toggleButton:  return NSAccessibilityCheckBoxRole;
+                    case AccessibilityRole::radioButton:   return NSAccessibilityRadioButtonRole;
+                    case AccessibilityRole::comboBox:      return NSAccessibilityPopUpButtonRole;
+                    case AccessibilityRole::image:         return NSAccessibilityImageRole;
+                    case AccessibilityRole::slider:        return NSAccessibilitySliderRole;
+                    case AccessibilityRole::editableText:  return NSAccessibilityTextAreaRole;
+                    case AccessibilityRole::menuItem:      return NSAccessibilityMenuItemRole;
+                    case AccessibilityRole::menuBar:       return NSAccessibilityMenuRole;
+                    case AccessibilityRole::table:         return NSAccessibilityListRole;
+                    case AccessibilityRole::column:        return NSAccessibilityColumnRole;
+                    case AccessibilityRole::row:           return NSAccessibilityRowRole;
+                    case AccessibilityRole::cell:          return NSAccessibilityCellRole;
+                    case AccessibilityRole::hyperlink:     return NSAccessibilityLinkRole;
+                    case AccessibilityRole::progressBar:   return NSAccessibilityProgressIndicatorRole;
+                    case AccessibilityRole::scrollBar:     return NSAccessibilityScrollBarRole;
+
+                    case AccessibilityRole::ignored:       break;
                 }
 
                 return NSAccessibilityUnknownRole;
@@ -469,77 +425,12 @@ private:
             return NSAccessibilityUnknownRole;
         }
 
-        static NSString* getAccessibilityTitle (id self, SEL)
-        {
-            if (auto* handler = getHandler (self))
-            {
-                if (nameIsAccessibilityValue (handler->getRole()))
-                    return @"";
-
-                auto title = handler->getTitle();
-
-                if (title.isEmpty() && handler->getComponent().isOnDesktop())
-                    title = getAccessibleApplicationOrPluginName();
-
-                return juceStringToNS (title);
-            }
-
-            return nil;
-        }
-
         static NSString* getAccessibilityLabel (id self, SEL)
         {
             if (auto* handler = getHandler (self))
                 return juceStringToNS (handler->getDescription());
 
             return nil;
-        }
-
-        static NSString* getAccessibilityHelp (id self, SEL)
-        {
-            if (auto* handler = getHandler (self))
-                return juceStringToNS (handler->getHelp());
-
-            return nil;
-        }
-
-        static id getAccessibilityValue (id self, SEL)
-        {
-            if (auto* handler = getHandler (self))
-            {
-                if (nameIsAccessibilityValue (handler->getRole()))
-                    return juceStringToNS (handler->getTitle());
-
-                if (hasEditableText (*handler))
-                {
-                    auto* textInterface = handler->getTextInterface();
-                    return juceStringToNS (textInterface->getText ({ 0, textInterface->getTotalNumCharacters() }));
-                }
-
-                if (handler->getCurrentState().isCheckable())
-                    return handler->getCurrentState().isChecked() ? @(1) : @(0);
-
-                if (auto* valueInterface = handler->getValueInterface())
-                    return juceStringToNS (valueInterface->getCurrentValueAsString());
-            }
-
-            return nil;
-        }
-
-        static void setAccessibilityValue (id self, SEL, NSString* value)
-        {
-            if (auto* handler = getHandler (self))
-            {
-                if (hasEditableText (*handler))
-                {
-                    handler->getTextInterface()->setText (nsStringToJuce (value));
-                    return;
-                }
-
-                if (auto* valueInterface = handler->getValueInterface())
-                    if (! valueInterface->isReadOnly())
-                        valueInterface->setValueAsString (nsStringToJuce (value));
-            }
         }
 
         //==============================================================================
@@ -549,16 +440,6 @@ private:
                 return [self accessibilityLineForIndex: textInterface->getTextInsertionOffset()];
 
             return 0;
-        }
-
-        static NSRange getAccessibilitySharedCharacterRange (id self, SEL)
-        {
-            return [self accessibilityVisibleCharacterRange];
-        }
-
-        static NSArray* getAccessibilitySharedTextUIElements (id self, SEL)
-        {
-            return [NSArray arrayWithObject: self];
         }
 
         static NSRange getAccessibilityVisibleCharacterRange (id self, SEL)
@@ -588,14 +469,16 @@ private:
         static NSRange getAccessibilitySelectedTextRange (id self, SEL)
         {
             if (auto* textInterface = getTextInterface (self))
-                return juceRangeToNS (textInterface->getSelection());
+            {
+                const auto currentSelection = textInterface->getSelection();
+
+                if (currentSelection.isEmpty())
+                    return NSMakeRange ((NSUInteger) textInterface->getTextInsertionOffset(), 0);
+
+                return juceRangeToNS (currentSelection);
+            }
 
             return NSMakeRange (0, 0);
-        }
-
-        static NSArray* getAccessibilitySelectedTextRanges (id self, SEL)
-        {
-            return [NSArray arrayWithObject: [NSValue valueWithRange: [self accessibilitySelectedTextRange]]];
         }
 
         static NSAttributedString* getAccessibilityAttributedStringForRange (id self, SEL, NSRange range)
@@ -642,7 +525,7 @@ private:
             {
                 if (auto* textInterface = handler->getTextInterface())
                 {
-                    auto screenPoint = convertToIntPoint (flippedScreenPoint (position));
+                    auto screenPoint = roundToIntPoint (flippedScreenPoint (position));
 
                     if (handler->getComponent().getScreenBounds().contains (screenPoint))
                     {
@@ -674,16 +557,6 @@ private:
             return NSZeroRect;
         }
 
-        static NSData* getAccessibilityRTFForRange (id, SEL, NSRange)
-        {
-            return nil;
-        }
-
-        static NSRange getAccessibilityStyleRangeForIndex (id self, SEL, NSInteger)
-        {
-            return [self accessibilityVisibleCharacterRange];
-        }
-
         static NSInteger getAccessibilityLineForIndex (id self, SEL, NSInteger index)
         {
             if (auto* textInterface = getTextInterface (self))
@@ -700,21 +573,10 @@ private:
         static void setAccessibilitySelectedTextRange (id self, SEL, NSRange selectedRange)
         {
             if (auto* textInterface = getTextInterface (self))
-            {
-                textInterface->setSelection ({});
                 textInterface->setSelection (nsRangeToJuce (selectedRange));
-            }
         }
 
         //==============================================================================
-        static NSInteger getAccessibilityRowCount (id self, SEL)
-        {
-            if (auto* tableInterface = getTableInterface (self))
-                return tableInterface->getNumRows();
-
-            return 0;
-        }
-
         static NSArray* getAccessibilityRows (id self, SEL)
         {
             NSMutableArray* rows = [[NSMutableArray new] autorelease];
@@ -748,14 +610,6 @@ private:
         static void setAccessibilitySelectedRows (id self, SEL, NSArray* selected)
         {
             setSelectedChildren ([self accessibilityRows], selected);
-        }
-
-        static NSInteger getAccessibilityColumnCount (id self, SEL)
-        {
-            if (auto* tableInterface = getTableInterface (self))
-                return tableInterface->getNumColumns();
-
-            return 0;
         }
 
         static NSArray* getAccessibilityColumns (id self, SEL)
@@ -794,24 +648,6 @@ private:
         }
 
         //==============================================================================
-        static NSRange getAccessibilityRowIndexRange (id self, SEL)
-        {
-            if (auto* cellInterface = getCellInterface (self))
-                return NSMakeRange ((NSUInteger) cellInterface->getRowIndex(),
-                                    (NSUInteger) cellInterface->getRowSpan());
-
-            return NSMakeRange (0, 0);
-        }
-
-        static NSRange getAccessibilityColumnIndexRange (id self, SEL)
-        {
-            if (auto* cellInterface = getCellInterface (self))
-                return NSMakeRange ((NSUInteger) cellInterface->getColumnIndex(),
-                                    (NSUInteger) cellInterface->getColumnSpan());
-
-            return NSMakeRange (0, 0);
-        }
-
         static NSInteger getAccessibilityIndex (id self, SEL)
         {
             if (auto* handler = getHandler (self))
@@ -849,52 +685,8 @@ private:
         }
 
         //==============================================================================
-        static BOOL accessibilityPerformPress (id self, SEL)     { return performActionIfSupported (self, AccessibilityActionType::press); }
         static BOOL accessibilityPerformShowMenu (id self, SEL)  { return performActionIfSupported (self, AccessibilityActionType::showMenu); }
-
         static BOOL accessibilityPerformRaise (id self, SEL)     { [self setAccessibilityFocused: YES]; return YES; }
-
-        static BOOL accessibilityPerformIncrement (id self, SEL)
-        {
-            if (auto* valueInterface = getValueInterface (self))
-            {
-                if (! valueInterface->isReadOnly())
-                {
-                    auto range = valueInterface->getRange();
-
-                    if (range.isValid())
-                    {
-                        valueInterface->setValue (jlimit (range.getMinimumValue(),
-                                                          range.getMaximumValue(),
-                                                          valueInterface->getCurrentValue() + range.getInterval()));
-                        return YES;
-                    }
-                }
-            }
-
-            return NO;
-        }
-
-        static BOOL accessibilityPerformDecrement (id self, SEL)
-        {
-            if (auto* valueInterface = getValueInterface (self))
-            {
-                if (! valueInterface->isReadOnly())
-                {
-                    auto range = valueInterface->getRange();
-
-                    if (range.isValid())
-                    {
-                        valueInterface->setValue (jlimit (range.getMinimumValue(),
-                                                          range.getMaximumValue(),
-                                                          valueInterface->getCurrentValue() - range.getInterval()));
-                        return YES;
-                    }
-                }
-            }
-
-            return NO;
-        }
 
         static BOOL accessibilityPerformDelete (id self, SEL)
         {
@@ -928,21 +720,16 @@ private:
                 const auto currentState = handler->getCurrentState();
 
                 for (auto textSelector : { @selector (accessibilityInsertionPointLineNumber),
-                                           @selector (accessibilitySharedCharacterRange),
-                                           @selector (accessibilitySharedTextUIElements),
                                            @selector (accessibilityVisibleCharacterRange),
                                            @selector (accessibilityNumberOfCharacters),
                                            @selector (accessibilitySelectedText),
                                            @selector (accessibilitySelectedTextRange),
-                                           @selector (accessibilitySelectedTextRanges),
                                            @selector (accessibilityAttributedStringForRange:),
                                            @selector (accessibilityRangeForLine:),
                                            @selector (accessibilityStringForRange:),
                                            @selector (accessibilityRangeForPosition:),
                                            @selector (accessibilityRangeForIndex:),
                                            @selector (accessibilityFrameForRange:),
-                                           @selector (accessibilityRTFForRange:),
-                                           @selector (accessibilityStyleRangeForIndex:),
                                            @selector (accessibilityLineForIndex:),
                                            @selector (setAccessibilitySelectedTextRange:) })
                 {
@@ -984,7 +771,6 @@ private:
                     if (selector == @selector (accessibilityValue))
                         return valueInterface != nullptr
                             || hasEditableText (*handler)
-                            || nameIsAccessibilityValue (role)
                             || currentState.isCheckable();
 
                     auto hasEditableValue = [valueInterface] { return valueInterface != nullptr && ! valueInterface->isReadOnly(); };
@@ -1055,6 +841,22 @@ AccessibilityNativeHandle* AccessibilityHandler::getNativeImplementation() const
     return (AccessibilityNativeHandle*) nativeImpl->getAccessibilityElement();
 }
 
+static bool areAnyAccessibilityClientsActive()
+{
+    const String voiceOverKeyString ("voiceOverOnOffKey");
+    const String applicationIDString ("com.apple.universalaccess");
+
+    CFUniquePtr<CFStringRef> cfKey (voiceOverKeyString.toCFString());
+    CFUniquePtr<CFStringRef> cfID  (applicationIDString.toCFString());
+
+    CFUniquePtr<CFPropertyListRef> value (CFPreferencesCopyAppValue (cfKey.get(), cfID.get()));
+
+    if (value != nullptr)
+        return CFBooleanGetValue ((CFBooleanRef) value.get());
+
+    return false;
+}
+
 static void sendAccessibilityEvent (id accessibilityElement,
                                     NSAccessibilityNotificationName notification,
                                     NSDictionary* userInfo)
@@ -1064,24 +866,48 @@ static void sendAccessibilityEvent (id accessibilityElement,
     NSAccessibilityPostNotificationWithUserInfo (accessibilityElement, notification, userInfo);
 }
 
+static void sendHandlerNotification (const AccessibilityHandler& handler,
+                                     NSAccessibilityNotificationName notification)
+{
+    if (! areAnyAccessibilityClientsActive() || notification == NSAccessibilityNotificationName{})
+        return;
+
+    if (id accessibilityElement = (id) handler.getNativeImplementation())
+    {
+        sendAccessibilityEvent (accessibilityElement, notification,
+                                (notification == NSAccessibilityLayoutChangedNotification
+                                   ? @{ NSAccessibilityUIElementsKey: @[ accessibilityElement ] }
+                                   : nil));
+    }
+}
+
+static NSAccessibilityNotificationName layoutChangedNotification()
+{
+    if (@available (macOS 10.9, *))
+        return NSAccessibilityLayoutChangedNotification;
+
+    static NSString* layoutChangedString = @"AXLayoutChanged";
+    return layoutChangedString;
+}
+
 void notifyAccessibilityEventInternal (const AccessibilityHandler& handler, InternalAccessibilityEvent eventType)
 {
     auto notification = [eventType]
     {
         switch (eventType)
         {
-            case InternalAccessibilityEvent::elementCreated:    return NSAccessibilityCreatedNotification;
-            case InternalAccessibilityEvent::elementDestroyed:  return NSAccessibilityUIElementDestroyedNotification;
-            case InternalAccessibilityEvent::focusChanged:      return NSAccessibilityFocusedUIElementChangedNotification;
-            case InternalAccessibilityEvent::windowOpened:      return NSAccessibilityWindowCreatedNotification;
-            case InternalAccessibilityEvent::windowClosed:      break;
+            case InternalAccessibilityEvent::elementCreated:         return NSAccessibilityCreatedNotification;
+            case InternalAccessibilityEvent::elementDestroyed:       return NSAccessibilityUIElementDestroyedNotification;
+            case InternalAccessibilityEvent::elementMovedOrResized:  return layoutChangedNotification();
+            case InternalAccessibilityEvent::focusChanged:           return NSAccessibilityFocusedUIElementChangedNotification;
+            case InternalAccessibilityEvent::windowOpened:           return NSAccessibilityWindowCreatedNotification;
+            case InternalAccessibilityEvent::windowClosed:           break;
         }
 
         return NSAccessibilityNotificationName{};
     }();
 
-    if (notification != NSAccessibilityNotificationName{})
-        sendAccessibilityEvent ((id) handler.getNativeImplementation(), notification, nil);
+    sendHandlerNotification (handler, notification);
 }
 
 void AccessibilityHandler::notifyAccessibilityEvent (AccessibilityEvent eventType) const
@@ -1095,54 +921,43 @@ void AccessibilityHandler::notifyAccessibilityEvent (AccessibilityEvent eventTyp
 
             case AccessibilityEvent::textChanged:
             case AccessibilityEvent::valueChanged:          return NSAccessibilityValueChangedNotification;
-            case AccessibilityEvent::structureChanged:      return NSAccessibilityLayoutChangedNotification;
+            case AccessibilityEvent::titleChanged:          return NSAccessibilityTitleChangedNotification;
+            case AccessibilityEvent::structureChanged:      return layoutChangedNotification();
         }
 
         return NSAccessibilityNotificationName{};
     }();
 
-    if (notification != NSAccessibilityNotificationName{})
-    {
-        id accessibilityElement = (id) getNativeImplementation();
-
-        sendAccessibilityEvent (accessibilityElement, notification,
-                                (notification == NSAccessibilityLayoutChangedNotification
-                                   ? @{ NSAccessibilityUIElementsKey: accessibilityElement }
-                                   : nil));
-    }
+    sendHandlerNotification (*this, notification);
 }
 
 void AccessibilityHandler::postAnnouncement (const String& announcementString, AnnouncementPriority priority)
 {
-    auto nsPriority = [priority]
-    {
-        switch (priority)
+    if (! areAnyAccessibilityClientsActive())
+        return;
+
+     if (@available (macOS 10.10, *))
+     {
+        auto nsPriority = [priority]
         {
-            case AnnouncementPriority::low:    return NSAccessibilityPriorityLow;
-            case AnnouncementPriority::medium: return NSAccessibilityPriorityMedium;
-            case AnnouncementPriority::high:   return NSAccessibilityPriorityHigh;
-        }
+            switch (priority)
+            {
+                case AnnouncementPriority::low:    return NSAccessibilityPriorityLow;
+                case AnnouncementPriority::medium: return NSAccessibilityPriorityMedium;
+                case AnnouncementPriority::high:   return NSAccessibilityPriorityHigh;
+            }
 
-        jassertfalse;
-        return NSAccessibilityPriorityLow;
-    }();
+            jassertfalse;
+            return NSAccessibilityPriorityLow;
+        }();
 
-    sendAccessibilityEvent ((id) [NSApp mainWindow],
-                            NSAccessibilityAnnouncementRequestedNotification,
-                            @{ NSAccessibilityAnnouncementKey: juceStringToNS (announcementString),
-                               NSAccessibilityPriorityKey:     @(nsPriority) });
+        sendAccessibilityEvent ((id) [NSApp mainWindow],
+                                NSAccessibilityAnnouncementRequestedNotification,
+                                @{ NSAccessibilityAnnouncementKey: juceStringToNS (announcementString),
+                                   NSAccessibilityPriorityKey:     @(nsPriority) });
+     }
 }
 
-AccessibilityHandler::AccessibilityNativeImpl* AccessibilityHandler::createNativeImpl (AccessibilityHandler& handler)
-{
-    return new AccessibilityHandler::AccessibilityNativeImpl (handler);
-}
-
-void AccessibilityHandler::DestroyNativeImpl::operator() (AccessibilityHandler::AccessibilityNativeImpl* impl) const noexcept
-{
-    delete impl;
-}
-
-#endif
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
 } // namespace juce

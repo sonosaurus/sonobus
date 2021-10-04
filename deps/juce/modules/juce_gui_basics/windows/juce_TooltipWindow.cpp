@@ -32,6 +32,7 @@ TooltipWindow::TooltipWindow (Component* parentComp, int delayMs)
 {
     setAlwaysOnTop (true);
     setOpaque (true);
+    setAccessible (false);
 
     if (parentComp != nullptr)
         parentComp->addChildComponent (this);
@@ -119,18 +120,12 @@ void TooltipWindow::displayTip (Point<int> screenPos, const String& tip)
        #endif
 
         toFront (false);
-
-        if (auto* handler = getAccessibilityHandler())
-        {
-            setDescription (tip);
-            handler->grabFocus();
-        }
     }
 }
 
 String TooltipWindow::getTipFor (Component& c)
 {
-    if (Process::isForegroundProcess()
+    if (isForegroundOrEmbeddedProcess (&c)
          && ! ModifierKeys::currentModifiers.isAnyMouseButtonDown())
     {
         if (auto* ttc = dynamic_cast<TooltipClient*> (&c))
@@ -145,9 +140,6 @@ void TooltipWindow::hideTip()
 {
     if (! reentrant)
     {
-        if (auto* handler = getAccessibilityHandler())
-            handler->giveAwayFocus();
-
         tipShowing.clear();
         removeFromDesktop();
         setVisible (false);
@@ -164,6 +156,11 @@ float TooltipWindow::getDesktopScaleFactor() const
         return Component::getApproximateScaleFactorForComponent (lastComponentUnderMouse);
 
     return Component::getDesktopScaleFactor();
+}
+
+std::unique_ptr<AccessibilityHandler> TooltipWindow::createAccessibilityHandler()
+{
+    return createIgnoredAccessibilityHandler (*this);
 }
 
 void TooltipWindow::timerCallback()
@@ -194,6 +191,14 @@ void TooltipWindow::timerCallback()
         if (tipChanged || mouseWasClicked || mouseMovedQuickly)
             lastCompChangeTime = now;
 
+        auto showTip = [this, &mouseSource, &mousePos, &newTip]
+        {
+            bool mouseHasMovedSinceClick = mouseSource.getLastMouseDownPosition() != lastMousePos;
+
+            if (mouseHasMovedSinceClick)
+                displayTip (mousePos.roundToInt(), newTip);
+        };
+
         if (isVisible() || now < lastHideTime + 500)
         {
             // if a tip is currently visible (or has just disappeared), update to a new one
@@ -208,27 +213,20 @@ void TooltipWindow::timerCallback()
             }
             else if (tipChanged)
             {
-                displayTip (mousePos.roundToInt(), newTip);
+                showTip();
             }
         }
         else
         {
-            // if there isn't currently a tip, but one is needed, only let it
-            // appear after a timeout..
+            // if there isn't currently a tip, but one is needed, only let it appear after a timeout
             if (newTip.isNotEmpty()
-                 && newTip != tipShowing
-                 && now > lastCompChangeTime + (uint32) millisecondsBeforeTipAppears)
+                && newTip != tipShowing
+                && now > lastCompChangeTime + (uint32) millisecondsBeforeTipAppears)
             {
-                displayTip (mousePos.roundToInt(), newTip);
+                showTip();
             }
         }
     }
-}
-
-//==============================================================================
-std::unique_ptr<AccessibilityHandler> TooltipWindow::createAccessibilityHandler()
-{
-    return std::make_unique<AccessibilityHandler> (*this, AccessibilityRole::tooltip);
 }
 
 } // namespace juce

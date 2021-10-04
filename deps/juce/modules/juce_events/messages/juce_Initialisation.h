@@ -84,7 +84,7 @@ public:
 
     See the JUCEApplication and JUCEApplicationBase class documentation for more details.
 */
-#ifdef DOXYGEN
+#if DOXYGEN
  #define START_JUCE_APPLICATION(AppClass)
 #else
  #if JUCE_WINDOWS && ! defined (_CONSOLE)
@@ -101,12 +101,16 @@ public:
  #if JUCE_IOS
 
   #define JUCE_CREATE_APPLICATION_DEFINE(AppClass) \
+    JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes") \
     juce::JUCEApplicationBase* juce_CreateApplication() { return new AppClass(); } \
-    void* juce_GetIOSCustomDelegateClass()              { return nullptr; }
+    void* juce_GetIOSCustomDelegateClass()              { return nullptr; } \
+    JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
   #define JUCE_CREATE_APPLICATION_DEFINE_CUSTOM_DELEGATE(AppClass, DelegateClass) \
+    JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes") \
     juce::JUCEApplicationBase* juce_CreateApplication() { return new AppClass(); } \
-    void* juce_GetIOSCustomDelegateClass()              { return [DelegateClass class]; }
+    void* juce_GetIOSCustomDelegateClass()              { return [DelegateClass class]; } \
+    JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
   #define JUCE_MAIN_FUNCTION_DEFINITION \
     extern "C" JUCE_MAIN_FUNCTION \
@@ -153,8 +157,10 @@ public:
  #else
 
   #define START_JUCE_APPLICATION(AppClass) \
+     JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes") \
      JUCE_CREATE_APPLICATION_DEFINE(AppClass) \
-     JUCE_MAIN_FUNCTION_DEFINITION
+     JUCE_MAIN_FUNCTION_DEFINITION \
+     JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
   #if JUCE_IOS
     /**
