@@ -289,7 +289,7 @@ struct iOSAudioIODevice::Pimpl      : public AudioPlayHead,
 
         if (category == AVAudioSessionCategoryPlayAndRecord)
         {
-            options |= (AVAudioSessionCategoryOptionDefaultToSpeaker;
+            options |= (AVAudioSessionCategoryOptionDefaultToSpeaker);
                       // | AVAudioSessionCategoryOptionAllowBluetooth // you don't really want by default unless specified for an audio app, as using bluetooth input devices SUCKS
 
            #if defined (__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
