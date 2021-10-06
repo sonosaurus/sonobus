@@ -719,7 +719,11 @@ void SystemClipboard::copyTextToClipboard (const String& text)
 
 String SystemClipboard::getTextFromClipboard()
 {
-    return nsStringToJuce ([[UIPasteboard generalPasteboard] valueForPasteboardType: @"public.text"]);
+    id value = [[UIPasteboard generalPasteboard] valueForPasteboardType: @"public.text"];
+    if ([value isKindOfClass:[NSString class]]) {
+        return nsStringToJuce (value);
+    }
+    return {};
 }
 
 //==============================================================================
