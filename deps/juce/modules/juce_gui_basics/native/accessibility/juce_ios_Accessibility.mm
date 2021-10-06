@@ -209,6 +209,7 @@ private:
             addMethod (@selector (accessibilityActivate),  accessibilityPerformActivate,  "c@:");
             addMethod (@selector (accessibilityIncrement), accessibilityPerformIncrement, "c@:");
             addMethod (@selector (accessibilityDecrement), accessibilityPerformDecrement, "c@:");
+            addMethod (@selector (accessibilityPerformEscape),  accessibilityEscape,  "c@:");
 
             addMethod (@selector (accessibilityDataTableCellElementForRow:column:), getAccessibilityDataTableCellElementForRowColumn, "@@:ii");
             addMethod (@selector (accessibilityRowCount),                           getAccessibilityRowCount,                         "i@:");
@@ -396,6 +397,18 @@ private:
                     return accessibilityPerformPress (self, {});
             }
 
+            return NO;
+        }
+
+        static BOOL accessibilityEscape (id self, SEL)
+        {
+            if (auto* handler = getHandler (self)) {
+                // HACK - look for parent that is a CalloutBox and dismiss it
+                if (CallOutBox* const cb = handler->getComponent().findParentComponentOfClass<CallOutBox>()) {
+                    cb->dismiss();
+                    return YES;
+                }
+            }
             return NO;
         }
 
