@@ -722,7 +722,7 @@ class ButtonAccessibilityHandler  : public AccessibilityHandler
 public:
     explicit ButtonAccessibilityHandler (Button& buttonToWrap, AccessibilityRole roleIn)
         : AccessibilityHandler (buttonToWrap,
-                                isRadioButton (buttonToWrap) ? AccessibilityRole::radioButton : roleIn,
+                                isRadioButton (buttonToWrap) ? AccessibilityRole::radioButton : buttonToWrap.getClickingTogglesState() ? AccessibilityRole::toggleButton : roleIn,
                                 getAccessibilityActions (buttonToWrap, roleIn)),
           button (buttonToWrap)
     {
@@ -732,7 +732,7 @@ public:
     {
         auto state = AccessibilityHandler::getCurrentState();
 
-        if (isToggleButton (getRole()) || isRadioButton (button))
+        if (isToggleButton (getRole()) || isRadioButton (button) || button.getClickingTogglesState())
         {
             state = state.withCheckable();
 
@@ -771,7 +771,7 @@ private:
         auto actions = AccessibilityActions().addAction (AccessibilityActionType::press,
                                                          [&button] { button.triggerClick(); });
 
-        if (isToggleButton (role))
+        if (isToggleButton (role) || button.getClickingTogglesState())
             actions = actions.addAction (AccessibilityActionType::toggle,
                                          [&button] { button.setToggleState (! button.getToggleState(), sendNotification); });
 
