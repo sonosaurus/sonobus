@@ -186,12 +186,6 @@ public:
         @see getDragSourceCustomData, DragAndDropContainer::startDragging
     */
     virtual var getDragSourceDescription (const SparseSet<int>& currentlySelectedRows);
-
-private:
-   #if JUCE_CATCH_DEPRECATED_CODE_MISUSE
-    // This method's signature has changed to take a MouseEvent parameter - please update your code!
-    JUCE_DEPRECATED_WITH_BODY (virtual int backgroundClicked(), { return 0; })
-   #endif
 };
 
 
@@ -332,8 +326,6 @@ public:
     void tableColumnDraggingChanged (TableHeaderComponent*, int) override;
     /** @internal */
     void resized() override;
-    /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 private:
     //==============================================================================
@@ -345,6 +337,7 @@ private:
     int columnIdNowBeingDragged = 0;
     bool autoSizeOptionsShown = true;
 
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
     void updateColumnComponents() const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TableListBox)

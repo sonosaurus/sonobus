@@ -1202,6 +1202,10 @@ void Component::sendMovedResizedMessages (bool wasMoved, bool wasResized)
             l.componentMovedOrResized (*this, wasMoved, wasResized);
         });
     }
+
+    if ((wasMoved || wasResized) && ! checker.shouldBailOut())
+        if (auto* handler = getAccessibilityHandler())
+            notifyAccessibilityEventInternal (*handler, InternalAccessibilityEvent::elementMovedOrResized);
 }
 
 void Component::setSize (int w, int h)                  { setBounds (getX(), getY(), w, h); }
@@ -1378,14 +1382,19 @@ void Component::getInterceptsMouseClicks (bool& allowsClicksOnThisComponent,
 
 bool Component::contains (Point<int> point)
 {
-    if (ComponentHelpers::hitTest (*this, point))
+    return containsInternal (point.toFloat());
+}
+
+bool Component::containsInternal (Point<float> point)
+{
+    if (ComponentHelpers::hitTest (*this, point.roundToInt()))
     {
         if (parentComponent != nullptr)
-            return parentComponent->contains (ComponentHelpers::convertToParentSpace (*this, point));
+            return parentComponent->containsInternal (ComponentHelpers::convertToParentSpace (*this, point));
 
         if (flags.hasHeavyweightPeerFlag)
             if (auto* peer = getPeer())
-                return peer->contains (ComponentHelpers::localPositionToRawPeerPos (*this, point), true);
+                return peer->contains (ComponentHelpers::localPositionToRawPeerPos (*this, point).roundToInt(), true);
     }
 
     return false;
@@ -1393,24 +1402,34 @@ bool Component::contains (Point<int> point)
 
 bool Component::reallyContains (Point<int> point, bool returnTrueIfWithinAChild)
 {
-    if (! contains (point))
+    return reallyContainsInternal (point.toFloat(), returnTrueIfWithinAChild);
+}
+
+bool Component::reallyContainsInternal (Point<float> point, bool returnTrueIfWithinAChild)
+{
+    if (! containsInternal (point))
         return false;
 
     auto* top = getTopLevelComponent();
-    auto* compAtPosition = top->getComponentAt (top->getLocalPoint (this, point));
+    auto* compAtPosition = top->getComponentAtInternal (top->getLocalPoint (this, point));
 
     return (compAtPosition == this) || (returnTrueIfWithinAChild && isParentOf (compAtPosition));
 }
 
 Component* Component::getComponentAt (Point<int> position)
 {
-    if (flags.visibleFlag && ComponentHelpers::hitTest (*this, position))
+    return getComponentAtInternal (position.toFloat());
+}
+
+Component* Component::getComponentAtInternal (Point<float> position)
+{
+    if (flags.visibleFlag && ComponentHelpers::hitTest (*this, position.roundToInt()))
     {
         for (int i = childComponentList.size(); --i >= 0;)
         {
-            auto* child = childComponentList.getUnchecked(i);
+            auto* child = childComponentList.getUnchecked (i);
 
-            child = child->getComponentAt (ComponentHelpers::convertFromParentSpace (*child, position));
+            child = child->getComponentAtInternal (ComponentHelpers::convertFromParentSpace (*child, position));
 
             if (child != nullptr)
                 return child;
@@ -1709,9 +1728,6 @@ void Component::enterModalState (bool shouldTakeKeyboardFocus,
 
         if (shouldTakeKeyboardFocus)
             grabKeyboardFocus();
-
-        if (auto* handler = getAccessibilityHandler())
-            notifyAccessibilityEventInternal (*handler, InternalAccessibilityEvent::focusChanged);
     }
     else
     {
@@ -1737,12 +1753,10 @@ void Component::exitModalState (int returnValue)
         }
         else
         {
-            WeakReference<Component> target (this);
-
-            MessageManager::callAsync ([=]
+            MessageManager::callAsync ([target = WeakReference<Component> { this }, returnValue]
             {
-                if (auto* c = target.get())
-                    c->exitModalState (returnValue);
+                if (target != nullptr)
+                    target->exitModalState (returnValue);
             });
         }
     }
@@ -2290,12 +2304,10 @@ void Component::internalModalInputAttempt()
 //==============================================================================
 void Component::postCommandMessage (int commandID)
 {
-    WeakReference<Component> target (this);
-
-    MessageManager::callAsync ([=]
+    MessageManager::callAsync ([target = WeakReference<Component> { this }, commandID]
     {
-        if (auto* c = target.get())
-            c->handleCommandMessage (commandID);
+        if (target != nullptr)
+            target->handleCommandMessage (commandID);
     });
 }
 
@@ -2353,6 +2365,8 @@ void Component::internalMouseEnter (MouseInputSource source, Point<float> relati
                          this, this, time, relativePos, time, 0, false);
     mouseEnter (me);
 
+    flags.cachedMouseInsideComponent = true;
+
     if (checker.shouldBailOut())
         return;
 
@@ -2372,6 +2386,8 @@ void Component::internalMouseExit (MouseInputSource source, Point<float> relativ
 
     if (flags.repaintOnMouseActivityFlag)
         repaint();
+
+    flags.cachedMouseInsideComponent = false;
 
     BailOutChecker checker (this);
 
@@ -2671,13 +2687,17 @@ void Component::internalKeyboardFocusGain (FocusChangeType cause,
 {
     focusGained (cause);
 
-    if (safePointer != nullptr)
-    {
+    if (safePointer == nullptr)
+        return;
+
+    if (hasKeyboardFocus (false))
         if (auto* handler = getAccessibilityHandler())
             handler->grabFocus();
 
-        internalChildKeyboardFocusChange (cause, safePointer);
-    }
+    if (safePointer == nullptr)
+        return;
+
+    internalChildKeyboardFocusChange (cause, safePointer);
 }
 
 void Component::internalKeyboardFocusLoss (FocusChangeType cause)
@@ -3016,13 +3036,16 @@ void Component::sendEnablementChangeMessage()
 //==============================================================================
 bool Component::isMouseOver (bool includeChildren) const
 {
+    if (! MessageManager::getInstance()->isThisTheMessageThread())
+        return flags.cachedMouseInsideComponent;
+
     for (auto& ms : Desktop::getInstance().getMouseSources())
     {
         auto* c = ms.getComponentUnderMouse();
 
         if (c != nullptr && (c == this || (includeChildren && isParentOf (c))))
             if (ms.isDragging() || ! (ms.isTouch() || ms.isPen()))
-                if (c->reallyContains (c->getLocalPoint (nullptr, ms.getScreenPosition().roundToInt()), false))
+                if (c->reallyContainsInternal (c->getLocalPoint (nullptr, ms.getScreenPosition()), false))
                     return true;
     }
 
@@ -3133,9 +3156,20 @@ void Component::setAccessible (bool shouldBeAccessible)
         invalidateAccessibilityHandler();
 }
 
+bool Component::isAccessible() const noexcept
+{
+    return (! flags.accessibilityIgnoredFlag
+            && (parentComponent == nullptr || parentComponent->isAccessible()));
+}
+
 std::unique_ptr<AccessibilityHandler> Component::createAccessibilityHandler()
 {
     return std::make_unique<AccessibilityHandler> (*this, AccessibilityRole::unspecified);
+}
+
+std::unique_ptr<AccessibilityHandler> Component::createIgnoredAccessibilityHandler (Component& comp)
+{
+    return std::make_unique<AccessibilityHandler> (comp, AccessibilityRole::ignored);
 }
 
 void Component::invalidateAccessibilityHandler()
@@ -3145,7 +3179,7 @@ void Component::invalidateAccessibilityHandler()
 
 AccessibilityHandler* Component::getAccessibilityHandler()
 {
-    if (flags.accessibilityIgnoredFlag)
+    if (! isAccessible() || getWindowHandle() == nullptr)
         return nullptr;
 
     if (accessibilityHandler == nullptr

@@ -82,8 +82,12 @@ public:
         filters.trim();
         filters.removeEmptyStrings();
 
-        [panel setTitle: juceStringToNS (owner.title)];
+        NSString* nsTitle = juceStringToNS (owner.title);
+        [panel setTitle: nsTitle];
+
+        JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wdeprecated-declarations")
         [panel setAllowedFileTypes: createAllowedTypesArray (filters)];
+        JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
         if (! isSave)
         {
@@ -93,6 +97,7 @@ public:
             [openPanel setCanChooseFiles: selectsFiles];
             [openPanel setAllowsMultipleSelection: selectMultiple];
             [openPanel setResolvesAliases: YES];
+            [openPanel setMessage: nsTitle]; // equivalent to the title bar since 10.11
 
             if (owner.treatFilePackagesAsDirs)
                 [openPanel setTreatsFilePackagesAsDirectories: YES];
@@ -116,7 +121,7 @@ public:
         if (isSave || selectsDirectories)
             [panel setCanCreateDirectories: YES];
 
-        [panel setLevel:NSModalPanelWindowLevel];
+        [panel setLevel: NSModalPanelWindowLevel];
 
         if (owner.startingFile.isDirectory())
         {
@@ -214,12 +219,15 @@ private:
 
         exitModalState (0);
 
-        if (panel != nil && result ==
-                             #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
-                               NSModalResponseOK)
-                             #else
-                               NSFileHandlingPanelOKButton)
-                             #endif
+        const auto okResult = []() -> NSInteger
+        {
+            if (@available (macOS 10.9, *))
+                return NSModalResponseOK;
+
+            return NSFileHandlingPanelOKButton;
+        }();
+
+        if (panel != nil && result == okResult)
         {
             auto addURLResult = [&chooserResults] (NSURL* urlToAdd)
             {

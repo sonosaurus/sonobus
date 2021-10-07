@@ -28,8 +28,8 @@
     See also SystemStats::getJUCEVersion() for a string version.
 */
 #define JUCE_MAJOR_VERSION      6
-#define JUCE_MINOR_VERSION      0
-#define JUCE_BUILDNUMBER        8
+#define JUCE_MINOR_VERSION      1
+#define JUCE_BUILDNUMBER        2
 
 /** Current JUCE version number.
 
@@ -55,6 +55,7 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include <mutex>
 #include <numeric>
@@ -151,13 +152,6 @@ JUCE_END_IGNORE_WARNINGS_MSVC
 
 /** This macro is added to all JUCE public function declarations. */
 #define JUCE_PUBLIC_FUNCTION        JUCE_API JUCE_CALLTYPE
-
-#if (! defined (JUCE_CATCH_DEPRECATED_CODE_MISUSE)) && JUCE_DEBUG && ! DOXYGEN
- /** This turns on some non-essential bits of code that should prevent old code from compiling
-     in cases where method signatures have changed, etc.
- */
- #define JUCE_CATCH_DEPRECATED_CODE_MISUSE 1
-#endif
 
 #ifndef DOXYGEN
  #define JUCE_NAMESPACE juce  // This old macro is deprecated: you should just use the juce namespace directly.

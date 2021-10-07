@@ -32,6 +32,8 @@ namespace WindowsFileHelpers
 {
     //==============================================================================
    #if JUCE_WINDOWS
+    JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wnested-anon-types")
+
     typedef struct _REPARSE_DATA_BUFFER {
       ULONG  ReparseTag;
       USHORT ReparseDataLength;
@@ -57,6 +59,8 @@ namespace WindowsFileHelpers
         } GenericReparseBuffer;
       } DUMMYUNIONNAME;
     } *PREPARSE_DATA_BUFFER, REPARSE_DATA_BUFFER;
+
+    JUCE_END_IGNORE_WARNINGS_GCC_LIKE
    #endif
 
     //==============================================================================
@@ -158,8 +162,16 @@ namespace WindowsFileHelpers
 }
 
 //==============================================================================
-JUCE_DECLARE_DEPRECATED_STATIC (const juce_wchar File::separator = '\\';)
-JUCE_DECLARE_DEPRECATED_STATIC (const StringRef File::separatorString ("\\");)
+#if JUCE_ALLOW_STATIC_NULL_VARIABLES
+
+JUCE_BEGIN_IGNORE_WARNINGS_MSVC (4996)
+
+const juce_wchar File::separator = '\\';
+const StringRef File::separatorString ("\\");
+
+JUCE_END_IGNORE_WARNINGS_MSVC
+
+#endif
 
 juce_wchar File::getSeparatorChar()    { return '\\'; }
 StringRef File::getSeparatorString()   { return "\\"; }
@@ -874,8 +886,8 @@ bool File::createShortcut (const String& description, const File& linkFileToCrea
 class DirectoryIterator::NativeIterator::Pimpl
 {
 public:
-    Pimpl (const File& directory, const String& wildCard)
-        : directoryWithWildCard (directory.getFullPathName().isNotEmpty() ? File::addTrailingSeparator (directory.getFullPathName()) + wildCard : String()),
+    Pimpl (const File& directory, const String& wildCardIn)
+        : directoryWithWildCard (directory.getFullPathName().isNotEmpty() ? File::addTrailingSeparator (directory.getFullPathName()) + wildCardIn : String()),
           handle (INVALID_HANDLE_VALUE)
     {
     }
@@ -925,8 +937,8 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pimpl)
 };
 
-DirectoryIterator::NativeIterator::NativeIterator (const File& directory, const String& wildCard)
-    : pimpl (new DirectoryIterator::NativeIterator::Pimpl (directory, wildCard))
+DirectoryIterator::NativeIterator::NativeIterator (const File& directory, const String& wildCardIn)
+    : pimpl (new DirectoryIterator::NativeIterator::Pimpl (directory, wildCardIn))
 {
 }
 

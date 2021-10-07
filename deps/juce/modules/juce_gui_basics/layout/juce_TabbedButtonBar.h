@@ -336,8 +336,6 @@ public:
     void resized() override;
     /** @internal */
     void lookAndFeelChanged() override;
-    /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 protected:
     //==============================================================================
@@ -366,6 +364,7 @@ private:
     std::unique_ptr<BehindFrontTabComp> behindFrontTab;
     std::unique_ptr<Button> extraTabsButton;
 
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
     void showExtraItemsMenu();
     void updateTabPositions (bool animate);
 

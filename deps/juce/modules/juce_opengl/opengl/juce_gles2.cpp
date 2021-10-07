@@ -1253,7 +1253,9 @@
     JUCE_GL_FUNCTIONS_GL_ES_VERSION_2_0_DYNAMIC \
     JUCE_GL_FUNCTIONS_GL_ES_VERSION_3_0_DYNAMIC \
     JUCE_GL_FUNCTIONS_GL_ES_VERSION_3_1_DYNAMIC \
-    JUCE_GL_FUNCTIONS_GL_ES_VERSION_3_2_DYNAMIC \
+    JUCE_GL_FUNCTIONS_GL_ES_VERSION_3_2_DYNAMIC
+
+#define JUCE_EXTENSION_GL_FUNCTIONS \
     JUCE_GL_FUNCTIONS_GL_AMD_framebuffer_multisample_advanced \
     JUCE_GL_FUNCTIONS_GL_AMD_performance_monitor \
     JUCE_GL_FUNCTIONS_GL_ANGLE_framebuffer_blit \
@@ -1384,23 +1386,33 @@
 
 #define X(returns, name, params) \
     extern "C" KHRONOS_APICALL returns KHRONOS_APIENTRY name params; \
-    returns (* const& ::juce::gl::name) params = ::name;
+    returns (KHRONOS_APIENTRY* const& ::juce::gl::name) params = ::name;
 JUCE_STATIC_GL_FUNCTIONS
 #undef X
 
 #define X(returns, name, params) \
-    static returns (* juce_ ## name) params = nullptr; \
-    returns (* const& ::juce::gl::name) params = juce_ ## name;
+    static returns (KHRONOS_APIENTRY* juce_ ## name) params = nullptr; \
+    returns (KHRONOS_APIENTRY* const& ::juce::gl::name) params = juce_ ## name;
 JUCE_DYNAMIC_GL_FUNCTIONS
+JUCE_EXTENSION_GL_FUNCTIONS
 #undef X
 
 void juce::gl::loadFunctions()
 {
    #define X(returns, name, params) \
-       juce_ ## name = reinterpret_cast<returns (*) params> (::juce::OpenGLHelpers::getExtensionFunction (#name));
+       juce_ ## name = reinterpret_cast<returns (KHRONOS_APIENTRY*) params> (::juce::OpenGLHelpers::getExtensionFunction (#name));
     JUCE_DYNAMIC_GL_FUNCTIONS
+   #undef X
+}
+
+void juce::gl::loadExtensions()
+{
+   #define X(returns, name, params) \
+       juce_ ## name = reinterpret_cast<returns (KHRONOS_APIENTRY*) params> (::juce::OpenGLHelpers::getExtensionFunction (#name));
+    JUCE_EXTENSION_GL_FUNCTIONS
    #undef X
 }
 
 #undef JUCE_STATIC_GL_FUNCTIONS
 #undef JUCE_DYNAMIC_GL_FUNCTIONS
+#undef JUCE_EXTENSION_GL_FUNCTIONS

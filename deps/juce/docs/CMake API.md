@@ -2,9 +2,7 @@
 
 ## System Requirements
 
-- Console and GUI projects require CMake 3.12 or higher.
-- Plugin projects require CMake 3.15 or higher.
-- All iOS targets require CMake 3.14 or higher (3.15 or higher for plugins targeting iOS).
+- All project types require CMake 3.15 or higher.
 - Android targets are not currently supported.
 - WebView2 on Windows via JUCE_USE_WIN_WEBVIEW2 flag in juce_gui_extra is not currently supported.
 
@@ -136,6 +134,22 @@ Note that the static library produced by `juce_add_binary_data` automatically se
 
 Building universal binaries that will run on both arm64 and x86_64 can be achieved by
 configuring the CMake project with `"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"`.
+
+### Building with Clang on Windows
+
+Clang-cl (Clang with MSVC-like command-line) should work by default. If you are generating a Visual
+Studio project, and have installed the LLVM package which is distributed with Visual Studio, then
+you can configure a Clang-cl build by passing "-T ClangCL" on your configuration commandline.
+
+If you wish to use Clang with GNU-like command-line instead, you can pass
+`-DCMAKE_CXX_COMPILER=clang++` and `-DCMAKE_C_COMPILER=clang` on your configuration commandline.
+clang++ and clang must be on your `PATH` for this to work. Only more recent versions of CMake
+support Clang's GNU-like command-line on Windows. CMake 3.12 is not supported, CMake 3.15 has
+support, CMake 3.20 or higher is recommended.  Note that CMake doesn't seem to automatically link a
+runtime library when building in this configuration, but this can be remedied by setting the
+`MSVC_RUNTIME_LIBRARY` property. See the [official
+documentation](https://cmake.org/cmake/help/v3.15/prop_tgt/MSVC_RUNTIME_LIBRARY.html) of this
+property for usage recommendations.
 
 ### A note about compile definitions
 
@@ -385,6 +399,9 @@ attributes directly to these creation functions, rather than adding them later.
 
 - `PUSH_NOTIFICATIONS_ENABLED`
   - Sets app entitlements to allow push notifications. False by default.
+
+- `NETWORK_MULTICAST_ENABLED`
+  - Sets app entitlements to allow IP multicast or broadcast on macOS/iOS. False by default.
 
 - `HARDENED_RUNTIME_ENABLED`
   - Enables macOS' hardened runtime for this target. Required for notarisation. False by default.

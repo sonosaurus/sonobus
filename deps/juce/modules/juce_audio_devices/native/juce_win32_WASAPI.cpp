@@ -23,6 +23,8 @@
 namespace juce
 {
 
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wlanguage-extension-token")
+
 #ifndef JUCE_WASAPI_LOGGING
  #define JUCE_WASAPI_LOGGING 0
 #endif
@@ -865,7 +867,7 @@ public:
     {
     }
 
-    ~WASAPIInputDevice()
+    ~WASAPIInputDevice() override
     {
         close();
     }
@@ -882,8 +884,7 @@ public:
         closeClient();
         captureClient = nullptr;
         reservoir.reset();
-        reservoirReadPos = 0;
-        reservoirWritePos = 0;
+        queue = SingleThreadedAbstractFifo();
     }
 
     template <class SourceType>
@@ -901,13 +902,12 @@ public:
         else                            updateFormatWithType ((AudioData::Int16*)   nullptr);
     }
 
-    bool start (int userBufferSize)
+    bool start (int userBufferSizeIn)
     {
-        reservoirSize = (int) (actualBufferSize + (UINT32) userBufferSize);
-        reservoirMask = nextPowerOfTwo (reservoirSize) - 1;
-        reservoir.setSize ((size_t) ((reservoirMask + 1) * bytesPerFrame), true);
-        reservoirReadPos = 0;
-        reservoirWritePos = 0;
+        const auto reservoirSize = nextPowerOfTwo ((int) (actualBufferSize + (UINT32) userBufferSizeIn));
+
+        queue = SingleThreadedAbstractFifo (reservoirSize);
+        reservoir.setSize ((size_t) (queue.getSize() * bytesPerFrame), true);
         xruns = 0;
 
         if (! check (client->Start()))
@@ -925,93 +925,80 @@ public:
         UINT32 numSamplesAvailable;
         DWORD flags;
 
-        while (captureClient->GetBuffer (&inputData, &numSamplesAvailable, &flags, nullptr, nullptr)
-                  != MAKE_HRESULT (0, 0x889, 0x1) /* AUDCLNT_S_BUFFER_EMPTY */)
+        while (captureClient->GetBuffer (&inputData, &numSamplesAvailable, &flags, nullptr, nullptr) != MAKE_HRESULT (0, 0x889, 0x1) /* AUDCLNT_S_BUFFER_EMPTY */)
             captureClient->ReleaseBuffer (numSamplesAvailable);
     }
 
-    int getNumSamplesInReservoir() const noexcept    { return reservoirWritePos.load() - reservoirReadPos.load(); }
+    int getNumSamplesInReservoir() const noexcept    { return queue.getNumReadable(); }
 
     void handleDeviceBuffer()
     {
         if (numChannels <= 0)
             return;
 
-        uint8* inputData;
-        UINT32 numSamplesAvailable;
-        DWORD flags;
+        uint8* inputData = nullptr;
+        UINT32 numSamplesAvailable = 0;
+        DWORD flags = 0;
 
         while (check (captureClient->GetBuffer (&inputData, &numSamplesAvailable, &flags, nullptr, nullptr)) && numSamplesAvailable > 0)
         {
             if ((flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) != 0)
                 xruns++;
 
-            int samplesLeft = (int) numSamplesAvailable;
-
-            while (samplesLeft > 0)
+            if (numSamplesAvailable > (UINT32) queue.getRemainingSpace())
             {
-                auto localWrite = reservoirWritePos.load() & reservoirMask;
-                auto samplesToDo = jmin (samplesLeft, reservoirMask + 1 - localWrite);
-                auto samplesToDoBytes = samplesToDo * bytesPerFrame;
+                captureClient->ReleaseBuffer (0);
+                return;
+            }
 
-                void* reservoirPtr = addBytesToPointer (reservoir.getData(), localWrite * bytesPerFrame);
+            auto offset = 0;
+
+            for (const auto& block : queue.write ((int) numSamplesAvailable))
+            {
+                const auto samplesToDoBytes = block.getLength() * bytesPerFrame;
+
+                auto* reservoirPtr = addBytesToPointer (reservoir.getData(), block.getStart() * bytesPerFrame);
 
                 if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0)
                     zeromem (reservoirPtr, (size_t) samplesToDoBytes);
                 else
-                    memcpy (reservoirPtr, inputData, (size_t) samplesToDoBytes);
+                    memcpy (reservoirPtr, inputData + offset * bytesPerFrame, (size_t) samplesToDoBytes);
 
-                reservoirWritePos += samplesToDo;
-                inputData += samplesToDoBytes;
-                samplesLeft -= samplesToDo;
+                offset += block.getLength();
             }
-
-            if (getNumSamplesInReservoir() > reservoirSize)
-                reservoirReadPos = reservoirWritePos.load() - reservoirSize;
 
             captureClient->ReleaseBuffer (numSamplesAvailable);
         }
     }
 
-    void copyBuffersFromReservoir (float** destBuffers, int numDestBuffers, int bufferSize)
+    void copyBuffersFromReservoir (float* const* destBuffers, const int numDestBuffers, const int bufferSize)
     {
         if ((numChannels <= 0 && bufferSize == 0) || reservoir.isEmpty())
             return;
 
-        int offset = jmax (0, bufferSize - getNumSamplesInReservoir());
+        auto offset = jmax (0, bufferSize - queue.getNumReadable());
 
         if (offset > 0)
-        {
             for (int i = 0; i < numDestBuffers; ++i)
                 zeromem (destBuffers[i], (size_t) offset * sizeof (float));
 
-            bufferSize -= offset;
-            reservoirReadPos -= offset / 2;
-        }
-
-        while (bufferSize > 0)
+        for (const auto& block : queue.read (jmin (queue.getNumReadable(), bufferSize)))
         {
-            auto localRead = reservoirReadPos.load() & reservoirMask;
-            auto samplesToDo = jmin (bufferSize, getNumSamplesInReservoir(), reservoirMask + 1 - localRead);
+            for (auto i = 0; i < numDestBuffers; ++i)
+                converter->convertSamples (destBuffers[i] + offset,
+                                           0,
+                                           addBytesToPointer (reservoir.getData(), block.getStart() * bytesPerFrame),
+                                           channelMaps.getUnchecked (i),
+                                           block.getLength());
 
-            if (samplesToDo <= 0)
-                break;
-
-            auto reservoirOffset = localRead * bytesPerFrame;
-
-            for (int i = 0; i < numDestBuffers; ++i)
-                converter->convertSamples (destBuffers[i] + offset, 0, addBytesToPointer (reservoir.getData(), reservoirOffset), channelMaps.getUnchecked(i), samplesToDo);
-
-            bufferSize -= samplesToDo;
-            offset += samplesToDo;
-            reservoirReadPos += samplesToDo;
+            offset += block.getLength();
         }
     }
 
     ComSmartPtr<IAudioCaptureClient> captureClient;
     MemoryBlock reservoir;
-    int reservoirSize, reservoirMask, xruns;
-    std::atomic<int> reservoirReadPos, reservoirWritePos;
+    SingleThreadedAbstractFifo queue;
+    int xruns = 0;
 
     std::unique_ptr<AudioData::Converter> converter;
 
@@ -1028,7 +1015,7 @@ public:
     {
     }
 
-    ~WASAPIOutputDevice()
+    ~WASAPIOutputDevice() override
     {
         close();
     }
@@ -1093,7 +1080,7 @@ public:
         return (int) actualBufferSize;
     }
 
-    void copyBuffers (const float** srcBuffers, int numSrcBuffers, int bufferSize,
+    void copyBuffers (const float* const* srcBuffers, int numSrcBuffers, int bufferSize,
                       WASAPIInputDevice* inputDevice, Thread& thread)
     {
         if (numChannels <= 0)
@@ -1150,11 +1137,11 @@ class WASAPIAudioIODevice  : public AudioIODevice,
 {
 public:
     WASAPIAudioIODevice (const String& deviceName,
-                         const String& typeName,
+                         const String& typeNameIn,
                          const String& outputDeviceID,
                          const String& inputDeviceID,
                          WASAPIDeviceMode mode)
-        : AudioIODevice (deviceName, typeName),
+        : AudioIODevice (deviceName, typeNameIn),
           Thread ("JUCE WASAPI"),
           outputDeviceId (outputDeviceID),
           inputDeviceId (inputDeviceID),
@@ -1162,7 +1149,7 @@ public:
     {
     }
 
-    ~WASAPIAudioIODevice()
+    ~WASAPIAudioIODevice() override
     {
         cancelPendingUpdate();
         close();
@@ -1659,7 +1646,7 @@ public:
     {
     }
 
-    ~WASAPIAudioIODeviceType()
+    ~WASAPIAudioIODeviceType() override
     {
         if (notifyClient != nullptr)
             enumerator->UnregisterEndpointNotificationCallback (notifyClient);
@@ -1967,5 +1954,7 @@ float JUCE_CALLTYPE SystemAudioVolume::getGain()              { return WasapiCla
 bool  JUCE_CALLTYPE SystemAudioVolume::setGain (float gain)   { return WasapiClasses::MMDeviceMasterVolume().setGain (gain); }
 bool  JUCE_CALLTYPE SystemAudioVolume::isMuted()              { return WasapiClasses::MMDeviceMasterVolume().isMuted(); }
 bool  JUCE_CALLTYPE SystemAudioVolume::setMuted (bool mute)   { return WasapiClasses::MMDeviceMasterVolume().setMuted (mute); }
+
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
 } // namespace juce

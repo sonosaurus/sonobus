@@ -39,7 +39,11 @@ static UIInterfaceOrientation getWindowOrientation()
     UIApplication* sharedApplication = [UIApplication sharedApplication];
 
    #if (defined (__IPHONE_13_0) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_13_0)
-    return [[[[sharedApplication windows] firstObject] windowScene] interfaceOrientation];
+    for (UIScene* scene in [sharedApplication connectedScenes])
+        if ([scene isKindOfClass: [UIWindowScene class]])
+            return [(UIWindowScene*) scene interfaceOrientation];
+
+    return UIInterfaceOrientationPortrait;
    #else
     return [sharedApplication statusBarOrientation];
    #endif
@@ -132,6 +136,12 @@ using namespace juce;
 - (BOOL) canBecomeFirstResponder;
 
 - (BOOL) textView: (UITextView*) textView shouldChangeTextInRange: (NSRange) range replacementText: (NSString*) text;
+
+- (void) traitCollectionDidChange: (UITraitCollection*) previousTraitCollection;
+
+- (BOOL) isAccessibilityElement;
+- (CGRect) accessibilityFrame;
+- (NSArray*) accessibilityElements;
 @end
 
 //==============================================================================
@@ -262,6 +272,11 @@ public:
         return getMouseTime ([e timestamp]);
     }
 
+    static NSString* getDarkModeNotificationName()
+    {
+        return @"ViewDarkModeChanged";
+    }
+
     static MultiTouchMapper<UITouch*> currentTouches;
 
 private:
@@ -288,27 +303,26 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (UIViewComponentPeer)
 };
 
+static UIViewComponentPeer* getViewPeer (JuceUIViewController* c)
+{
+    if (JuceUIView* juceView = (JuceUIView*) [c view])
+        return juceView->owner;
+
+    //jassertfalse;
+    return nullptr;
+}
+
 static void sendScreenBoundsUpdate (JuceUIViewController* c)
 {
-    JuceUIView* juceView = (JuceUIView*) [c view];
-
-    if (juceView != nil && juceView->owner != nullptr)
-        juceView->owner->updateScreenBounds();
+    if (auto* peer = getViewPeer (c))
+        peer->updateScreenBounds();
 }
 
 static bool isKioskModeView (JuceUIViewController* c)
 {
-    JuceUIView* juceView = (JuceUIView*) [c view];
+    if (auto* peer = getViewPeer (c))
+        return Desktop::getInstance().getKioskModeComponent() == &(peer->getComponent());
 
-    if (juceView == nil || juceView->owner == nullptr)
-    {
-        // jassertfalse;
-        return false;
-    }
-
-    if (juceView != nil && juceView->owner != nullptr) {
-        return Desktop::getInstance().getKioskModeComponent() == &(juceView->owner->getComponent());
-    }
     return false;
 }
 
@@ -539,6 +553,45 @@ MultiTouchMapper<UITouch*> UIViewComponentPeer::currentTouches;
                                              nsStringToJuce (text));
 }
 
+- (void) traitCollectionDidChange: (UITraitCollection*) previousTraitCollection
+{
+    [super traitCollectionDidChange: previousTraitCollection];
+
+   #if defined (__IPHONE_12_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_12_0
+    if (@available (iOS 12.0, *))
+    {
+        const auto wasDarkModeActive = ([previousTraitCollection userInterfaceStyle] == UIUserInterfaceStyleDark);
+
+        if (wasDarkModeActive != Desktop::getInstance().isDarkModeActive())
+            [[NSNotificationCenter defaultCenter] postNotificationName: UIViewComponentPeer::getDarkModeNotificationName()
+                                                                object: nil];
+    }
+   #endif
+}
+
+- (BOOL) isAccessibilityElement
+{
+    return NO;
+}
+
+- (CGRect) accessibilityFrame
+{
+    if (owner != nullptr)
+        if (auto* handler = owner->getComponent().getAccessibilityHandler())
+            return convertToCGRect (handler->getComponent().getScreenBounds());
+
+    return CGRectZero;
+}
+
+- (NSArray*) accessibilityElements
+{
+    if (owner != nullptr)
+        if (auto* handler = owner->getComponent().getAccessibilityHandler())
+            return getContainerAccessibilityElements (*handler);
+
+    return nil;
+}
+
 @end
 
 //==============================================================================
@@ -588,9 +641,7 @@ UIViewComponentPeer::UIViewComponentPeer (Component& comp, int windowStyleFlags,
 
    #if JUCE_COREGRAPHICS_DRAW_ASYNC
     if (! getComponentAsyncLayerBackedViewDisabled (component))
-    {
         [[view layer] setDrawsAsynchronously: YES];
-    }
    #endif
 
     if (isSharedWindow)

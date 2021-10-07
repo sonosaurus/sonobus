@@ -35,11 +35,12 @@
 
   ID:                 juce_gui_extra
   vendor:             juce
-  version:            6.0.8
+  version:            6.1.2
   name:               JUCE extended GUI classes
   description:        Miscellaneous GUI classes for specialised tasks.
   website:            http://www.juce.com/juce
   license:            GPL/Commercial
+  minimumCppStandard: 14
 
   dependencies:       juce_gui_basics
   OSXFrameworks:      WebKit
@@ -105,7 +106,6 @@
 #include "embedding/juce_NSViewComponent.h"
 #include "embedding/juce_UIViewComponent.h"
 #include "embedding/juce_XEmbedComponent.h"
-#include "embedding/juce_ScopedDPIAwarenessDisabler.h"
 #include "embedding/juce_HWNDComponent.h"
 #include "misc/juce_AppleRemote.h"
 #include "misc/juce_BubbleMessageComponent.h"

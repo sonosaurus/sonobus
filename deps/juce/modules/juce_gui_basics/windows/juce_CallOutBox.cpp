@@ -69,7 +69,7 @@ public:
 
     void timerCallback() override
     {
-        if (! Process::isForegroundProcess())
+        if (! isForegroundOrEmbeddedProcess (&callout))
             callout.dismiss();
     }
 

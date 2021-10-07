@@ -228,11 +228,6 @@ public:
         repaint();
     }
 
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
-    {
-        return nullptr;
-    }
-
 private:
     //==============================================================================
     FileListComponent& owner;
@@ -242,9 +237,14 @@ private:
     Image icon;
     int index = 0;
     bool highlighted = false, isDirectory = false;
-    bool selectRowOnMouseUp;
-    bool isDraggingToScroll;
+    bool selectRowOnMouseUp = false;
+    bool isDraggingToScroll = false;
     
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
+    {
+        return createIgnoredAccessibilityHandler (*this);
+    }
+
     void updateIcon (const bool onlyUpdateIfCached)
     {
         if (icon.isNull())

@@ -718,8 +718,6 @@ public:
     void setTemporaryUnderlining (const Array<Range<int>>&) override;
     /** @internal */
     VirtualKeyboardType getKeyboardType() override    { return keyboardType; }
-    /** @internal */
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 protected:
     //==============================================================================
@@ -797,6 +795,7 @@ private:
     ListenerList<Listener> listeners;
     Array<Range<int>> underlinedSections;
 
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
     void moveCaret (int newCaretPos);
     void moveCaretTo (int newPosition, bool isSelecting);
     void recreateCaret();
@@ -828,6 +827,7 @@ private:
     bool undoOrRedo (bool shouldUndo);
     UndoManager* getUndoManager() noexcept;
     void setSelection (Range<int>) noexcept;
+    Point<int> getTextOffset() const noexcept;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TextEditor)
 };

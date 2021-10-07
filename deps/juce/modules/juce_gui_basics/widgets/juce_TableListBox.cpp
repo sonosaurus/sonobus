@@ -257,6 +257,8 @@ public:
             return {};
         }
 
+        String getHelp() const override  { return rowComponent.getTooltip(); }
+
         AccessibleState getCurrentState() const override
         {
             if (auto* m = rowComponent.owner.getModel())
@@ -575,9 +577,15 @@ std::unique_ptr<AccessibilityHandler> TableListBox::createAccessibilityHandler()
 
         const AccessibilityHandler* getCellHandler (int row, int column) const override
         {
-            if (isPositiveAndBelow (row, getNumRows()) && isPositiveAndBelow (column, getNumColumns()))
-                if (auto* cellComponent = tableListBox.getCellComponent (tableListBox.getHeader().getColumnIdOfIndex (column, false), row))
-                    return cellComponent->getAccessibilityHandler();
+            if (isPositiveAndBelow (row, getNumRows()))
+            {
+                if (isPositiveAndBelow (column, getNumColumns()))
+                    if (auto* cellComponent = tableListBox.getCellComponent (tableListBox.getHeader().getColumnIdOfIndex (column, false), row))
+                        return cellComponent->getAccessibilityHandler();
+
+                if (auto* rowComp = tableListBox.getComponentForRowNumber (row))
+                    return rowComp->getAccessibilityHandler();
+            }
 
             return nullptr;
         }

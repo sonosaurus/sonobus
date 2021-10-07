@@ -109,9 +109,11 @@ private:
     DelayLine<SampleType, DelayLineInterpolationTypes::Thiran> dryDelayLine;
     AudioBuffer<SampleType> bufferDry;
 
+    SingleThreadedAbstractFifo fifo;
     SampleType mix = 1.0;
     MixingRule currentMixingRule = MixingRule::linear;
     double sampleRate = 44100.0;
+    int maximumWetLatencyInSamples = 0;
 };
 
 } // namespace dsp
