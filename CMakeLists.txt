@@ -287,6 +287,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonoTextButton.cpp
         Source/SonoTextButton.h
         Source/SonoUtility.h
+        Source/SoundboardView.cpp
+        Source/SoundboardView.h
         Source/SonobusPluginEditor.cpp
         Source/SonobusPluginEditor.h
         Source/SonobusPluginProcessor.cpp
@@ -490,6 +492,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/skipback_icon.svg
         images/sonobus_logo_96.png
         images/sonobus_title_small.png
+        images/soundboard.svg
         images/speaker.svg
         images/speaker_disabled.svg
         images/triangle_disclosure.svg

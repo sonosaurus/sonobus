@@ -16,6 +16,7 @@
 #include "ChannelGroupsView.h"
 #include "MonitorDelayView.h"
 #include "ChatView.h"
+#include "SoundboardView.h"
 #include "AutoUpdater.h"
 #include "LatencyMatchView.h"
 
@@ -786,6 +787,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatButton->setImages(chatimg.get(), nullptr, nullptr, nullptr, chatdotsimg.get());
     mChatButton->onClick = [this]() {
         bool newshown = !mChatView->isVisible();
+        if (newshown && mSoundboardView->isVisible()) {
+            this->showSoundboardPanel(false, false);
+        }
         this->showChatPanel(newshown);
         resized();
     };
@@ -802,6 +806,30 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatSizeConstrainer = std::make_unique<ComponentBoundsConstrainer>();
     mChatSizeConstrainer->setSizeLimits(180, 100, 1200, 10000);
     mChatEdgeResizer = std::make_unique<ResizableEdgeComponent>(mChatView.get(), mChatSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
+
+
+    // Soundboard
+    mSoundboardView = std::make_unique<SoundboardView>();
+    mSoundboardView->setVisible(false);
+    mSoundboardView->addComponentListener(this);
+
+    mSoundboardButton = std::make_unique<SonoDrawableButton>("soundboard", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> soundboardimg(Drawable::createFromImageData(BinaryData::soundboard_svg, BinaryData::soundboard_svgSize));
+    mSoundboardButton->setImages(soundboardimg.get());
+    mSoundboardButton->onClick = [this]() {
+       bool newshown = !mSoundboardView->isVisible();
+       if (newshown && mChatView->isVisible()) {
+           this->showChatPanel(false, false);
+       }
+       this->showSoundboardPanel(newshown);
+       resized();
+    };
+    mSoundboardButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mSoundboardButton->setTooltip(TRANS("Show/Hide Soundboard"));
+
+    mSoundboardSizeConstrainer = std::make_unique<ComponentBoundsConstrainer>();
+    mSoundboardSizeConstrainer->setSizeLimits(180, 100, 1200, 10000);
+    mSoundboardEdgeResizer = std::make_unique<ResizableEdgeComponent>(mSoundboardView.get(), mSoundboardSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
 
 
     mConnectView = std::make_unique<ConnectView>(processor, currConnectionInfo);
@@ -1134,6 +1162,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
 
     mTopLevelContainer->addAndMakeVisible(mChatButton.get());
+    mTopLevelContainer->addAndMakeVisible(mSoundboardButton.get());
 
     
 
@@ -1170,6 +1199,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     mTopLevelContainer->addChildComponent(mChatView.get());
     mChatView->addAndMakeVisible(mChatEdgeResizer.get());
+
+    mTopLevelContainer->addChildComponent(mSoundboardView.get());
+    mSoundboardView->addAndMakeVisible(mSoundboardEdgeResizer.get());
 
 
     addAndMakeVisible(mTopLevelContainer.get());
@@ -2901,6 +2933,20 @@ void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& compone
 
         mAboutToShowChat = false;
     }
+    else if (&component == mSoundboardView.get()) {
+        if (!mSoundboardView->isVisible() && mSoundboardWasVisible) {
+            if (mSoundboardShowDidResize) {
+                // reduce size
+                int newwidth = getWidth() - mSoundboardView->getWidth();
+                setSize(newwidth, getHeight());
+            } else {
+                resized();
+            }
+        }
+
+        mSoundboardWasVisible = mSoundboardView->isVisible();
+        mAboutToShowSoundboard = false;
+    }
     else if (&component == mConnectView.get()) {
         mTopLevelContainer->setEnabled(!mConnectView->isVisible());
         if (!mConnectView->isVisible()) {
@@ -2916,7 +2962,15 @@ void SonobusAudioProcessorEditor::componentMovedOrResized (Component& component,
     if (&component == mChatView.get()) {
         if (mChatView->isVisible()) {
             processor.setLastChatWidth(mChatView->getWidth());
-            if (!mIgnoreChatViewResize) {
+            if (!mIgnoreResize) {
+                resized();
+            }
+        }
+    }
+    else if (&component == mSoundboardView.get()) {
+        if (mSoundboardView->isVisible()) {
+            processor.setLastSoundboardWidth(mSoundboardView->getWidth());
+            if (!mIgnoreResize) {
                 resized();
             }
         }
@@ -3789,6 +3843,37 @@ void SonobusAudioProcessorEditor::showChatPanel(bool show, bool allowresize)
 #endif
 }
 
+void SonobusAudioProcessorEditor::showSoundboardPanel(bool show, bool allowresize)
+{
+#if !(JUCE_IOS || JUCE_ANDROID)
+    // attempt resize
+    if (allowresize && show && !isNarrow) {
+        auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
+        int maxwidth = display ? display->userArea.getWidth() : 1600;
+        int newwidth = jmin(maxwidth, getWidth() + mSoundboardView->getWidth());
+        mAboutToShowSoundboard = true;
+        if (abs(newwidth - getWidth()) > 10 ) {
+            if (abs(newwidth - getWidth()) < mSoundboardView->getWidth()) {
+                mSoundboardShowDidResize = false;
+            } else {
+               mSoundboardShowDidResize = true;
+            }
+            setSize(newwidth, getHeight());
+        }
+        else {
+           mSoundboardShowDidResize = false;
+        }
+    }
+    else if (show) {
+       mSoundboardShowDidResize = false;
+    }
+#else
+   mSoundboardShowDidResize = false;
+#endif
+
+    mSoundboardView->setVisible(show);
+}
+
 
 void SonobusAudioProcessorEditor::parentHierarchyChanged()
 {    
@@ -3819,6 +3904,10 @@ void SonobusAudioProcessorEditor::resized()
 
     if (mChatView->isVisible()) {
         narrowthresh += mChatView->getWidth();
+    }
+
+    if (mSoundboardView->isVisible()) {
+       narrowthresh += mSoundboardView->getWidth();
     }
 
     bool nownarrow = getWidth() < narrowthresh;
@@ -3853,10 +3942,19 @@ void SonobusAudioProcessorEditor::resized()
     if (mChatView->isVisible() || mAboutToShowChat) {
         if (!isNarrow || !mChatOverlay) {
             // take it off
-            mIgnoreChatViewResize = true;
+            mIgnoreResize = true;
             mChatView->setBounds(mainBounds.removeFromRight(chatwidth));
-            mIgnoreChatViewResize = false;
+            mIgnoreResize = false;
         }
+    }
+
+    int soundboardwidth = processor.getLastSoundboardWidth();
+    mSoundboardView->setBounds(getLocalBounds().removeFromRight(soundboardwidth));
+
+    if (mSoundboardView->isVisible() || mAboutToShowSoundboard) {
+        mIgnoreResize = true;
+        mSoundboardView->setBounds(mainBounds.removeFromRight(soundboardwidth));
+        mIgnoreResize = false;
     }
 
     mTopLevelContainer->setBounds(getLocalBounds());
@@ -3865,6 +3963,8 @@ void SonobusAudioProcessorEditor::resized()
 
 
     mChatEdgeResizer->setBounds(mChatView->getLocalBounds().withWidth(5));
+
+    mSoundboardEdgeResizer->setBounds(mSoundboardView->getLocalBounds().withWidth(5));
 
 
     int inchantargwidth = mMainViewport->getWidth() - 10;
@@ -4053,6 +4153,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     //inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(3, 4));
     inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
+    inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mSoundboardButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
 
     inputRightBox.items.clear();

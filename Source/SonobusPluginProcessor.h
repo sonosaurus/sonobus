@@ -732,6 +732,10 @@ public:
     int getChatFontSizeOffset() const { return mChatFontSizeOffset; }
     Array<SBChatEvent, CriticalSection> & getAllChatEvents() { return mAllChatEvents; }
 
+    // soundboard
+    void setLastSoundboardWidth(int width) { mLastSoundboardWidth = width; }
+    int getLastSoundboardWidth() const { return mLastSoundboardWidth; }
+
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
 
@@ -956,6 +960,8 @@ private:
     int mChatFontSizeOffset = 0;
     // chat message storage, thread-safe
     Array<SBChatEvent, CriticalSection> mAllChatEvents;
+
+    int mLastSoundboardWidth = 250;
 
     int mPluginWindowWidth = 800;
     int mPluginWindowHeight = 600;
