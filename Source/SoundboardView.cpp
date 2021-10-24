@@ -11,14 +11,39 @@ SoundboardView::SoundboardView()
 
     createSoundboardTitle();
     createBasePanels();
+
+    updateButtons();
+}
+
+void SoundboardView::updateButtons()
+{
+    buttonBox.items.clear();
+    mSoundButtons.clear();
+
+    // 7 is placeholder value, see also SdbVw::createBasePanels: TITLE_HEIGHT * 7.
+    // In the future: determine buttons based on the selected soundboard.
+    for (int i = 1; i <= 7; ++i) {
+        auto sound = (i == 5) ? "Mambo" : "Sound";
+        auto testTextButton = std::make_unique<TextButton>(std::string(sound) + " Number " + std::to_string(i), std::string(sound) + " " + std::to_string(i));
+        testTextButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+        addAndMakeVisible(testTextButton.get());
+
+        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *testTextButton).withMargin(0).withFlex(0));
+        mSoundButtons.push_back(std::move(testTextButton));
+    }
 }
 
 void SoundboardView::createBasePanels()
 {
+    buttonBox.items.clear();
+    buttonBox.flexDirection = FlexBox::Direction::column;
+
     soundboardContainerBox.items.clear();
     soundboardContainerBox.flexDirection = FlexBox::Direction::column;
+    soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, titleBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT * 7, buttonBox).withMargin(0).withFlex(0));
 
     mainBox.items.clear();
     mainBox.flexDirection = FlexBox::Direction::row;

@@ -45,6 +45,12 @@ private:
     FlexBox titleBox;
 
     /**
+     * Layout containing all the buttons that play soundboard
+     * sounds.
+     */
+    FlexBox buttonBox;
+
+    /**
      * Label showing the panel title.
      */
     std::unique_ptr<Label> mTitleLabel;
@@ -53,6 +59,11 @@ private:
      * Button that closes the soundboard panel.
      */
     std::unique_ptr<SonoDrawableButton> mCloseButton;
+
+    /**
+     * All the buttons that can play a sound.
+     */
+    std::vector<std::unique_ptr<TextButton>> mSoundButtons;
 
     /**
      * Creates the outer UI panels.
@@ -73,6 +84,12 @@ private:
      * Creates the close button of the title panel.
      */
     void createSoundboardTitleCloseButton();
+
+    /**
+     * Adds buttons for all available sounds for the selected soundboard.
+     * Removes buttons of sounds that are not available anymore.
+     */
+    void updateButtons();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };
