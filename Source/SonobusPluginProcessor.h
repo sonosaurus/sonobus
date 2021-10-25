@@ -20,6 +20,8 @@
 
 #include "zitaRev.h"
 
+#include "SoundboardProcessor.h"
+
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -242,6 +244,7 @@ public:
     static String paramMetTempo;
     static String paramSendMetAudio;
     static String paramSendFileAudio;
+    static String paramSendSoundboardAudio;
     static String paramHearLatencyTest;
     static String paramMetIsRecorded;
     static String paramMainReverbEnabled;
@@ -735,6 +738,7 @@ public:
     // soundboard
     void setLastSoundboardWidth(int width) { mLastSoundboardWidth = width; }
     int getLastSoundboardWidth() const { return mLastSoundboardWidth; }
+    SoundboardProcessor* getSoundboardProcessor() { return soundboardProcessor.get(); }
 
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
@@ -887,6 +891,7 @@ private:
     Atomic<float>   mMetGain    { 0.5f };
     Atomic<double>   mMetTempo    { 100.0f };
     Atomic<bool>   mSendPlaybackAudio  { false };
+    Atomic<bool>   mSendSoundboardAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };
     Atomic<bool>   mMetIsRecorded  { true };
     Atomic<bool>   mMainReverbEnabled  { false };
@@ -1126,6 +1131,9 @@ private:
     AudioFormatManager mFormatManager;
     TimeSliceThread mDiskThread  { "audio file reader" };
     URL mCurrTransportURL;
+
+    // soundboard
+    std::unique_ptr<SoundboardProcessor> soundboardProcessor;
 
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;

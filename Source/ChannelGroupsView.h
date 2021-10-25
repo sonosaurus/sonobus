@@ -417,6 +417,7 @@ protected:
 
     std::unique_ptr<ChannelGroupView> mFileChannelView; // used for input
     std::unique_ptr<ChannelGroupView> mMetChannelView; // used for input
+    std::unique_ptr<ChannelGroupView> mSoundboardChannelView; // used for init
 
 
     std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
@@ -439,6 +440,7 @@ protected:
 
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mSoundboardSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
 
 

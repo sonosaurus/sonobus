@@ -460,6 +460,16 @@ void ChannelGroupMonitorEffectsView::updateStateForInput()
             reverbSendView->getHeaderComponent()->setVisible(false);
         }
     }
+    else if (groupIndex == -3) {
+        // soundboard
+        monDelayParams = processor.getSoundboardProcessor()->getMonitorDelayParams();
+        delayView->updateParams(monDelayParams);
+
+        if (reverbSendView->isVisible()) {
+            reverbSendView->setVisible(false);
+            reverbSendView->getHeaderComponent()->setVisible(false);
+        }
+    }
     else {
         if (processor.getInputMonitorDelayParams(groupIndex, monDelayParams)) {
             delayView->updateParams(monDelayParams);
@@ -553,6 +563,10 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
             processor.getFilePlaybackMonitorDelayParams(eparam);
             wason = eparam.enabled;
             processor.setFilePlaybackMonitorDelayParams(params);
+        } else if (groupIndex == -3) {
+            eparam = processor.getSoundboardProcessor()->getMonitorDelayParams();
+            wason = eparam.enabled;
+            processor.getSoundboardProcessor()->setMonitorDelayParams(params);
         } else {
             wason = processor.getInputMonitorEffectsActive(groupIndex);
             processor.setInputMonitorDelayParams(groupIndex, params);
@@ -579,6 +593,12 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
             if (eparam.delayTimeMs != deltimems) {
                 eparam.delayTimeMs = deltimems;
                 processor.setFilePlaybackMonitorDelayParams(eparam);
+            }
+
+            eparam = processor.getSoundboardProcessor()->getMonitorDelayParams();
+            if (eparam.delayTimeMs != deltimems) {
+                eparam.delayTimeMs = deltimems;
+                processor.getSoundboardProcessor()->setMonitorDelayParams(eparam);
             }
         }
 
@@ -615,6 +635,11 @@ void ChannelGroupMonitorEffectsView::effectsHeaderClicked(EffectsBaseView *comp)
                     processor.getFilePlaybackMonitorDelayParams(params);
                     params.enabled = !params.enabled;
                     processor.setFilePlaybackMonitorDelayParams(params);
+                }
+                else if (groupIndex == -3) {
+                    params = processor.getSoundboardProcessor()->getMonitorDelayParams();
+                    params.enabled = !params.enabled;
+                    processor.getSoundboardProcessor()->setMonitorDelayParams(params);
                 }
                 else {
                     processor.getInputMonitorDelayParams(groupIndex, params);
@@ -1028,7 +1053,7 @@ void ChannelGroupsView::resized()
 
     if (mMetChannelView && mMetChannelView->isVisible()) {
         // resize bg border
-        auto mfbounds = Rectangle<int>(mMetChannelView->getX() - 3, mMetChannelView->getY(), mMetChannelView->getWidth() + 6, mFileChannelView->getBottom() - mMetChannelView->getY() + 4);
+        auto mfbounds = Rectangle<int>(mMetChannelView->getX() - 3, mMetChannelView->getY(), mMetChannelView->getWidth() + 6, mSoundboardChannelView->getBottom() - mMetChannelView->getY() + 4);
         mMetFileBg->setRectangle (mfbounds.toFloat());
     }
 
@@ -1392,6 +1417,9 @@ void ChannelGroupsView::setMetersActive(bool flag)
     if (mFileChannelView) {
         mFileChannelView->meter->setRefreshRateHz(rate);
     }
+    if (mSoundboardChannelView) {
+        mSoundboardChannelView->meter->setRefreshRateHz(rate);
+    }
 
 
     for (int i=0; i < mChannelViews.size(); ++i) {
@@ -1663,6 +1691,67 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
             //mFileChannelView->premeter->setVisible(false);
             //mFileChannelView->premeter->setRefreshRateHz(0);
 
+        }
+        if (!mSoundboardChannelView) {
+            mSoundboardChannelView.reset(createChannelGroupView(true));
+            mSoundboardChannelView->nameLabel->setEditable(false);
+            mSoundboardChannelView->nameLabel->setText(TRANS("Soundboard"), dontSendNotification);
+            mSoundboardChannelView->nameLabel->setColour(Label::backgroundColourId, Colours::transparentBlack);
+            mSoundboardChannelView->nameLabel->setColour(Label::outlineColourId, Colours::transparentBlack);
+
+            mSoundboardChannelView->linkButton->setClickingTogglesState(true);
+            std::unique_ptr<Drawable> grpimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
+            mSoundboardChannelView->linkButton->setTitle(TRANS("Send Soundboard"));
+            mSoundboardChannelView->linkButton->setImages(grpimg.get());
+            mSoundboardChannelView->linkButton->setClickingTogglesState(true);
+            mSoundboardSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramSendSoundboardAudio, *mSoundboardChannelView->linkButton);
+            mSoundboardChannelView->linkButton->setButtonStyle(DrawableButton::ButtonStyle::ImageOnButtonBackground);
+            mSoundboardChannelView->linkButton->setForegroundImageRatio(1.0f);
+            mSoundboardChannelView->linkButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.65));
+            mSoundboardChannelView->linkButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+            mSoundboardChannelView->linkButton->setTooltip(TRANS("Send Soundboard to All"));
+
+            mSoundboardChannelView->soloButton->onClick = []() {};
+            mSoundboardChannelView->muteButton->onClick = []() {};
+            mSoundboardChannelView->fxButton->onClick = []() {};
+
+            mSoundboardChannelView->monfxButton->onClick = [this]() {
+               if (!monEffectsCalloutBox) {
+                   showMonitorEffects(-3, true, mSoundboardChannelView->monfxButton.get());
+               }
+               else {
+                   showMonitorEffects(-3, false);
+               }
+            };
+
+            mSoundboardChannelView->destButton->onClick = [this]() {
+                // when shown it will be for the first one
+                showDestSelectionMenu(mSoundboardChannelView->destButton.get(), -3);
+            };
+
+            mSoundboardChannelView->levelSlider->onValueChange = [this]() {
+                processor.getSoundboardProcessor()->setGain(mSoundboardChannelView->levelSlider->getValue());
+            };
+
+            //mSoundboardChannelView->panSlider->onValueChange = [this]() {
+            //    processor.setSoundboardPlaybackPan(mSoundboardChannelView->panSlider->getValue());
+            //};
+
+            mSoundboardChannelView->monitorSlider->onValueChange = [this]() {
+                processor.getSoundboardProcessor()->setMonitorGain(mSoundboardChannelView->monitorSlider->getValue());
+            };
+
+            setupChildren(mSoundboardChannelView.get());
+
+            mSoundboardChannelView->muteButton->setVisible(false);
+            mSoundboardChannelView->soloButton->setVisible(false);
+            mSoundboardChannelView->fxButton->setVisible(false);
+            mSoundboardChannelView->panSlider->setVisible(false);
+
+            mSoundboardChannelView->premeter->setVisible(false);
+            mSoundboardChannelView->premeter->setRefreshRateHz(0);
+            //mSoundboardChannelView->premeter->setVisible(false);
+            //mSoundboardChannelView->premeter->setRefreshRateHz(0);
         }
 
         mMetFileBg->setVisible(true);
@@ -2176,8 +2265,8 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
     channelsBox.items.add(FlexItem(8, bgaph).withMargin(0));
     peersheight += addrowheight + gaph + bgaph;
 
-    // all the inputs, plus two extra (met and file playback)
-    for (int i =  0; i < mChannelViews.size() + 2; ++i, ++chi) {
+    // all the inputs, plus three extra (met and file playback and soundboard)
+    for (int i =  0; i < mChannelViews.size() + 3; ++i, ++chi) {
         if (i==0) {
             chi = 0; // ensure this
         }
@@ -2201,18 +2290,25 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
             chi = 0;
         }
 
-        bool ismetorfile = false;
+        bool ismetorfileorsoundboard = false;
 
         ChannelGroupView * pvf;
         if (i == mChannelViews.size()) {
             pvf = mMetChannelView.get();
-            ismetorfile = true;
-        } else if (i > mChannelViews.size()) {
+            ismetorfileorsoundboard = true;
+        } else if (i == mChannelViews.size() + 1) {
             pvf = mFileChannelView.get();
             auto numfilechan = processor.getFilePlaybackMeterSource().getNumChannels();
             mainmeterwidth = numfilechan * (numfilechan > 2 ? 6 : meterwidth);
-            ismetorfile = true;
-        } else {
+            ismetorfileorsoundboard = true;
+        }
+        else if (i > mChannelViews.size()) {
+            pvf = mSoundboardChannelView.get();
+            auto numsoundboardchan = processor.getSoundboardProcessor()->getMeterSource().getNumChannels();
+            mainmeterwidth = numsoundboardchan * (numsoundboardchan > 2 ? 6 : meterwidth);
+            ismetorfileorsoundboard = true;
+        }
+        else {
             pvf = mChannelViews.getUnchecked(i);
         }
 
@@ -2254,7 +2350,7 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
 
 
             pvf->inbox.items.add(FlexItem(namewidth, minitemheight, pvf->namebox).withMargin(0).withFlex(0));
-            if (!isNarrow && !ismetorfile) {
+            if (!isNarrow && !ismetorfileorsoundboard) {
                 pvf->inbox.items.add(FlexItem(6, 3));
                 pvf->inbox.items.add(FlexItem(mutebuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(0));
                 pvf->inbox.items.add(FlexItem(3, 3));
@@ -2284,7 +2380,7 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
             pvf->monbox.flexDirection = FlexBox::Direction::row;
             //pvf->monbox.items.add(FlexItem(minSliderWidth, minitemheight, *pvf->monitorSlider).withMargin(0).withFlex(1));
             if (isNarrow) {
-                if (!ismetorfile) {
+                if (!ismetorfileorsoundboard) {
                     pvf->monbox.items.add(FlexItem(3, 3).withFlex(0.25));
                     pvf->monbox.items.add(FlexItem(muteminbuttwidth, minitemheight, *pvf->muteButton).withMargin(0).withFlex(1).withMaxWidth(mutebuttwidth));
                     pvf->monbox.items.add(FlexItem(3, 3));
@@ -2413,7 +2509,7 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
                 peersheight += mbh + 2;
             }
 
-            if (i < mChannelViews.size()+1) {
+            if (i < mChannelViews.size()+2) {
                 channelsBox.items.add(FlexItem(3, 4));
                 peersheight += 4;
             }
@@ -2487,6 +2583,11 @@ void ChannelGroupsView::applyToAllSliders(std::function<void(Slider *)> & routin
         routine(mMetChannelView->monitorSlider.get());
     }
 
+    if (mSoundboardChannelView) {
+        routine(mSoundboardChannelView->levelSlider.get());
+        routine(mSoundboardChannelView->panSlider.get());
+        routine(mSoundboardChannelView->monitorSlider.get());
+    }
 }
 
 void ChannelGroupsView::updateChannelViews(int specific)
@@ -2526,7 +2627,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
     int chi = 0;
 
 
-    // met and file playback
+    // met and file playback and soundboard
     if (mMetChannelView) {
         String desttext;
         int destcnt, deststart;
@@ -2579,6 +2680,32 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
         processor.getFilePlaybackMonitorDelayParams(eparams);
         mFileChannelView->monfxButton->setToggleState(eparams.enabled, dontSendNotification);
 
+    }
+
+    if (mSoundboardChannelView) {
+        String desttext;
+        int destcnt, deststart;
+        processor.getSoundboardProcessor()->getDestStartAndCount(deststart, destcnt);
+        if (destcnt == 1) {
+            desttext << deststart + 1;
+        } else {
+            desttext << deststart + 1 << "-" << deststart+destcnt;
+        }
+        mSoundboardChannelView->destButton->setButtonText(desttext);
+        mSoundboardChannelView->monitorSlider->setVisible(true);
+        mSoundboardChannelView->monitorSlider->setValue(processor.getSoundboardProcessor()->getMonitorGain(), dontSendNotification);
+        mSoundboardChannelView->levelSlider->setValue(processor.getSoundboardProcessor()->getGain(), dontSendNotification);
+        mSoundboardChannelView->panSlider->setVisible(false);
+        mSoundboardChannelView->panLabel->setVisible(false);
+        //mSoundboardChannelView->panSlider->setValue(processor.getSoundboardPan(), dontSendNotification);
+        mSoundboardChannelView->showDivider = true;
+        mSoundboardChannelView->nameEditor->setVisible(false);
+
+        mSoundboardChannelView->meter->setMeterSource(&processor.getSoundboardProcessor()->getMeterSource());
+        mSoundboardChannelView->meter->setSelectedChannel(0);
+
+        SonoAudio::DelayParams eparams = processor.getSoundboardProcessor()->getMonitorDelayParams();
+        mSoundboardChannelView->monfxButton->setToggleState(eparams.enabled, dontSendNotification);
     }
 
 
@@ -4056,6 +4183,12 @@ void ChannelGroupsView::mouseDown (const MouseEvent& event)
             return;
         }
     }
+    if (mSoundboardChannelView) {
+        if (event.eventComponent == mSoundboardChannelView->meter.get()) {
+            clearClipIndicators();
+            return;
+        }
+    }
 
     for (int i=0; i < mChannelViews.size(); ++i) {
         ChannelGroupView * pvf = mChannelViews.getUnchecked(i);
@@ -4205,6 +4338,13 @@ void ChannelGroupsView::clearClipIndicators()
         mFileChannelView->meter->clearMaxLevelDisplay(-1);
     }
 
+    if (mSoundboardChannelView) {
+        mSoundboardChannelView->premeter->clearClipIndicator();
+        mSoundboardChannelView->premeter->clearMaxLevelDisplay(-1);
+        mSoundboardChannelView->meter->clearClipIndicator();
+        mSoundboardChannelView->meter->clearMaxLevelDisplay(-1);
+    }
+
 }
 
 
@@ -4213,7 +4353,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
     if (index >= mChannelViews.size()) return;
 
     ChannelGroupView * pvf = nullptr;
-    bool ismet = false, isfile = false;
+    bool ismet = false, isfile = false, issoundboard = false;
 
     if (index == -1) {
         pvf = mMetChannelView.get();
@@ -4221,6 +4361,9 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
     } else if (index == -2) {
         pvf = mFileChannelView.get();
         isfile = true;
+    } else if (index == -3) {
+        pvf = mSoundboardChannelView.get();
+        issoundboard = true;
     } else {
         pvf = mChannelViews.getUnchecked(index);
     }
@@ -4252,6 +4395,12 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
         else if (isfile) {
             processor.getFilePlaybackDestStartAndCount(destst, destcnt);
             chcnt = processor.getFilePlaybackMeterSource().getNumChannels();
+            maxchcnt = chcnt;
+            chcnt = jmin(2, chcnt, totalouts);
+        }
+        else if (issoundboard) {
+            processor.getSoundboardProcessor()->getDestStartAndCount(destst, destcnt);
+            chcnt = processor.getSoundboardProcessor()->getMeterSource().getNumChannels();
             maxchcnt = chcnt;
             chcnt = jmin(2, chcnt, totalouts);
         }
@@ -4335,7 +4484,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
     SafePointer<ChannelGroupsView> safeThis(this);
     SafePointer<Component> safeSource(source);
 
-    auto callback = [safeThis,safeSource,changroup,ismet,isfile](GenericItemChooser* chooser,int index) mutable {
+    auto callback = [safeThis,safeSource,changroup,ismet,isfile,issoundboard](GenericItemChooser* chooser,int index) mutable {
         auto & items = chooser->getItems();
         auto & selitem = items.getReference(index);
         auto dclitem = std::dynamic_pointer_cast<DestChannelListItemData>(selitem.userdata);
@@ -4351,6 +4500,9 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
         }
         else if (isfile) {
             safeThis->processor.setFilePlaybackDestStartAndCount(dclitem->startIndex, dclitem->count);
+        }
+        else if (issoundboard) {
+            safeThis->processor.getSoundboardProcessor()->getDestStartAndCount(dclitem->startIndex, dclitem->count);
         }
         else if (safeThis->mPeerMode) {
             safeThis->processor.setRemotePeerChannelGroupDestStartAndCount(safeThis->mPeerIndex, changroup, dclitem->startIndex, dclitem->count);

@@ -671,6 +671,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendSoundboardAudio, this);
     //processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
@@ -1359,6 +1360,7 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendSoundboardAudio, this);
     //processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
@@ -3392,6 +3394,13 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramSendSoundboardAudio) {
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
