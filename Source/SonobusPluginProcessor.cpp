@@ -575,7 +575,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
 //==============================================================================
 SonobusAudioProcessor::SonobusAudioProcessor()
      : AudioProcessor ( getDefaultLayout() ),
-mState (*this, &mUndoManager, "SonoBusAoO",
+       mState (*this, &mUndoManager, "SonoBusAoO",
 {
     std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
@@ -663,7 +663,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
 }),
-    soundboardProcessor(std::make_unique<SoundboardProcessor>())
+       soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>())
 {
     mState.addParameterListener (paramInGain, this);
     mState.addParameterListener (paramDry, this);
@@ -4827,7 +4827,7 @@ void SonobusAudioProcessor::updateRemotePeerSendChannels(int index, RemotePeer *
             totinchans += mFilePlaybackChannelGroup.params.numChannels;
         }
         if (mSendSoundboardAudio.get()) {
-            totinchans += soundboardProcessor->getNumberOfChannels();
+            totinchans += soundboardChannelProcessor->getNumberOfChannels();
         }
 
         newchancnt = isAnythingRoutedToPeer(index) ? getMainBusNumOutputChannels() :  remote->nominalSendChannels <= 0 ? totinchans : remote->nominalSendChannels;
@@ -5981,7 +5981,7 @@ ValueTree SonobusAudioProcessor::getSendUserFormatLayoutTree()
             chstart += tmpgrp.numChannels;
         }
         if (mSendSoundboardAudio.get()) {
-            ChannelGroupParams tmpgrp = soundboardProcessor->getChannelGroupParams();
+            ChannelGroupParams tmpgrp = soundboardChannelProcessor->getChannelGroupParams();
             tmpgrp.chanStartIndex = chstart;
             fmttree.appendChild(tmpgrp.getChannelLayoutValueTree(), nullptr);
             chstart += tmpgrp.numChannels;
@@ -6607,9 +6607,9 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
 
     int totsendchans = 0;
     int fileplaychans = mCurrentAudioFileSource ? mCurrentAudioFileSource->getAudioFormatReader()->numChannels : 2;
-    int soundboardchans = soundboardProcessor->getFileSourceNumberOfChannels();
+    int soundboardchans = soundboardChannelProcessor->getFileSourceNumberOfChannels();
 
-    soundboardProcessor->prepareToPlay(sampleRate, meterRmsWindow, currSamplesPerBlock);
+    soundboardChannelProcessor->prepareToPlay(sampleRate, meterRmsWindow, currSamplesPerBlock);
 
     for (int cgi=0; cgi < mInputChannelGroupCount && cgi < MAX_CHANGROUPS ; ++cgi) {
         totsendchans += mInputChannelGroups[cgi].params.numChannels;
@@ -6761,7 +6761,7 @@ void SonobusAudioProcessor::releaseResources()
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
     mTransportSource.releaseResources();
-    soundboardProcessor->releaseResources();
+    soundboardChannelProcessor->releaseResources();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -6824,9 +6824,9 @@ void SonobusAudioProcessor::ensureBuffers(int numSamples)
 
     meterRmsWindow = getSampleRate() * METER_RMS_SEC / currSamplesPerBlock;
 
-    int soundboardplaychans = soundboardProcessor->getFileSourceNumberOfChannels();
+    int soundboardplaychans = soundboardChannelProcessor->getFileSourceNumberOfChannels();
 
-    soundboardProcessor->ensureBuffers(numSamples, maxchans, meterRmsWindow);
+    soundboardChannelProcessor->ensureBuffers(numSamples, maxchans, meterRmsWindow);
 
     if (mSendSoundboardAudio.get()) {
         // plus a possible soundboard sending
@@ -6981,7 +6981,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
     if (sendsoundboardaudio) {
         // plus a possible soundboard sending
-        totsendchans += soundboardProcessor->getFileSourceNumberOfChannels();
+        totsendchans += soundboardChannelProcessor->getFileSourceNumberOfChannels();
     }
 
     int realsendchans = sendChans <= 0 ? totsendchans :sendChans;
@@ -7263,10 +7263,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     }
 
-    bool hassoundboarddata = soundboardProcessor->processAudioBlock(fileBuffer, numSamples);
+    bool hassoundboarddata = soundboardChannelProcessor->processAudioBlock(fileBuffer, numSamples);
     if (hassoundboarddata && sendsoundboardaudio) {
         int startChannel = sendfileaudio ? filestartch + fileChannels : filestartch;
-        soundboardProcessor->sendAudioBlock(fileBuffer, sendWorkBuffer, numSamples, sendPanChannels, startChannel);
+        soundboardChannelProcessor->sendAudioBlock(fileBuffer, sendWorkBuffer, numSamples, sendPanChannels, startChannel);
     }
     
     // process metronome
@@ -7808,7 +7808,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
 
     if (hassoundboarddata) {
-        soundboardProcessor->processMonitor(buffer, numSamples, totalOutputChannels);
+        soundboardChannelProcessor->processMonitor(buffer, numSamples, totalOutputChannels);
     }
 
     if (metenabled) {
@@ -7897,7 +7897,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 }
 
                 if (hassoundboarddata) {
-                    soundboardProcessor->processMonitor(workBuffer, numSamples, totalOutputChannels, wetnow);
+                    soundboardChannelProcessor->processMonitor(workBuffer, numSamples, totalOutputChannels, wetnow);
                 }
 
                 if (metenabled && metrecorded) {

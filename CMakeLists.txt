@@ -287,10 +287,14 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonoTextButton.cpp
         Source/SonoTextButton.h
         Source/SonoUtility.h
-        Source/SoundboardView.cpp
-        Source/SoundboardView.h
+        Source/Soundboard.cpp
+        Source/Soundboard.h
+        Source/SoundboardChannelProcessor.cpp
+        Source/SoundboardChannelProcessor.h
         Source/SoundboardProcessor.cpp
         Source/SoundboardProcessor.h
+        Source/SoundboardView.cpp
+        Source/SoundboardView.h
         Source/SonobusPluginEditor.cpp
         Source/SonobusPluginEditor.h
         Source/SonobusPluginProcessor.cpp

@@ -8,6 +8,8 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonoDrawableButton.h"
+#include "SonoChoiceButton.h"
+#include "SoundboardProcessor.h"
 
 /**
  * User Interface element for the Soundboard.
@@ -28,6 +30,13 @@ private:
     constexpr static const float TITLE_HEIGHT = 32;
     constexpr static const float TITLE_FONT_HEIGHT = 18;
     constexpr static const float ELEMENT_MARGIN = 4;
+
+    /**
+     * Controller for soundboard view.
+     */
+    std::unique_ptr<SoundboardProcessor> processor;
+
+    SoundboardProcessor* getSoundboardProcessor() { return processor.get(); };
 
     /**
      * The outer soundboard panel box.
@@ -51,6 +60,11 @@ private:
     FlexBox buttonBox;
 
     /**
+     * Layout for all the soundboard selection and management controls.
+     */
+    FlexBox soundboardSelectionBox;
+
+    /**
      * Label showing the panel title.
      */
     std::unique_ptr<Label> mTitleLabel;
@@ -59,6 +73,16 @@ private:
      * Button that closes the soundboard panel.
      */
     std::unique_ptr<SonoDrawableButton> mCloseButton;
+
+    /**
+     * Button that shows soundboard menu options when clicked.
+     */
+    std::unique_ptr<SonoDrawableButton> mMenuButton;
+
+    /**
+     * Combo box where the user can select which available soundboard to use.
+     */
+    std::unique_ptr<SonoChoiceButton> mBoardSelectComboBox;
 
     /**
      * All the buttons that can play a sound.
@@ -84,6 +108,16 @@ private:
      * Creates the close button of the title panel.
      */
     void createSoundboardTitleCloseButton();
+
+    /**
+     * Creates the menu button.
+     */
+    void createSoundboardMenu();
+
+    /**
+     * Creates the control panel for selecting and managing different soundboards.
+     */
+    void createSoundboardSelectionPanel();
 
     /**
      * Adds buttons for all available sounds for the selected soundboard.

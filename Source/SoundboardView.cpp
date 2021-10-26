@@ -5,11 +5,12 @@
 
 #include "SoundboardView.h"
 
-SoundboardView::SoundboardView()
+SoundboardView::SoundboardView() : processor(std::make_unique<SoundboardProcessor>())
 {
     setOpaque(true);
 
     createSoundboardTitle();
+    createSoundboardSelectionPanel();
     createBasePanels();
 
     updateButtons();
@@ -40,8 +41,9 @@ void SoundboardView::createBasePanels()
 
     soundboardContainerBox.items.clear();
     soundboardContainerBox.flexDirection = FlexBox::Direction::column;
-    soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, titleBox).withMargin(0).withFlex(0));
+    soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT * 7, buttonBox).withMargin(0).withFlex(0));
 
@@ -54,12 +56,14 @@ void SoundboardView::createSoundboardTitle()
 {
     createSoundboardTitleLabel();
     createSoundboardTitleCloseButton();
+    createSoundboardMenu();
 
     titleBox.items.clear();
     titleBox.flexDirection = FlexBox::Direction::row;
     titleBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
     titleBox.items.add(FlexItem(MENU_BUTTON_WIDTH, ELEMENT_MARGIN, *mCloseButton).withMargin(0).withFlex(0));
     titleBox.items.add(FlexItem(TITLE_LABEL_WIDTH, ELEMENT_MARGIN, *mTitleLabel).withMargin(0).withFlex(1));
+    titleBox.items.add(FlexItem(MENU_BUTTON_WIDTH, ELEMENT_MARGIN, *mMenuButton).withMargin(0).withFlex(0));
     titleBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
 }
 
@@ -83,6 +87,40 @@ void SoundboardView::createSoundboardTitleCloseButton()
         setVisible(false);
     };
     addAndMakeVisible(mCloseButton.get());
+}
+
+void SoundboardView::createSoundboardMenu()
+{
+    mMenuButton = std::make_unique<SonoDrawableButton>("menu", SonoDrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> imageMenu(Drawable::createFromImageData(BinaryData::dots_svg, BinaryData::dots_svgSize));
+    mMenuButton->setTitle(TRANS("Soundboard Menu"));
+    mMenuButton->setImages(imageMenu.get());
+    mMenuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    //mMenuButton->onClick = [this]() {
+    //    showMenu();
+    //};
+    addAndMakeVisible(mMenuButton.get());
+}
+
+void SoundboardView::createSoundboardSelectionPanel()
+{
+    mBoardSelectComboBox = std::make_unique<SonoChoiceButton>();
+    mBoardSelectComboBox->setTitle(TRANS("Soundboard #1"));
+    mBoardSelectComboBox->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
+    //mBoardSelectComboBox->addChoiceListener(this);
+
+    for (int i = 1; i <= 4 /* Number of soundboards */; ++i) {
+        mBoardSelectComboBox->addItem(TRANS("Soundboard #") + std::to_string(i), i - 1 /* identifier */);
+    }
+    mBoardSelectComboBox->setSelectedId(0);
+
+    addAndMakeVisible(mBoardSelectComboBox.get());
+
+    soundboardSelectionBox.items.clear();
+    soundboardSelectionBox.flexDirection = FlexBox::Direction::row;
+    soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
+    soundboardSelectionBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mBoardSelectComboBox).withMargin(0).withFlex(1));
+    soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
 }
 
 void SoundboardView::paint(Graphics& g)
