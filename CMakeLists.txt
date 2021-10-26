@@ -205,6 +205,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     elseif (WIN32)
         list (APPEND HEADER_INCLUDES deps/windows ../asiosdk/common)
         list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsWindows.cpp)
+        include_directories(asiosdk/common)
 
 	message (STATUS "Win generator platform is: ${CMAKE_VS_PLATFORM_NAME}" )
         if ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")

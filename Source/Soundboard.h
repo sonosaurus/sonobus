@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "string"
 #include "vector"
+#include "JuceHeader.h"
 
 /**
  * A sound file that can be played on a soundboard.
@@ -20,31 +20,37 @@ public:
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.
      */
-    SoundSample(std::string name, std::string filePath);
+    SoundSample(String name, String filePath);
 
-    std::string getName();
-    void setName(std::string newName);
+    String getName();
+    void setName(String newName);
 
     /**
      * @return The absolute file path of the underlying sound file.
      */
-    std::string getFilePath();
+    String getFilePath();
 
     /**
      * @param filePath The absolute file path of the underlying sound file.
      */
-    void setFilePath(std::string filePath);
+    void setFilePath(String filePath);
+
+    ValueTree serialize() const;
 
 private:
+    constexpr static const char SAMPLE_KEY[] = "soundSample";
+    constexpr static const char NAME_KEY[] = "name";
+    constexpr static const char FILE_PATH_KEY[] = "filePath";
+
     /**
      * The name representing the sound sample.
      */
-    std::string name;
+    String name;
 
     /**
      * The absolute file path of the underlying sound file.
      */
-    std::string filePath;
+    String filePath;
 };
 
 /**
@@ -60,21 +66,27 @@ public:
      *
      * @param name The name of the soundboard.
      */
-    explicit Soundboard(std::string name);
+    explicit Soundboard(String name);
 
-    std::string getName();
-    void setName(std::string);
+    String getName();
+    void setName(String);
 
     /**
      * Get the list of sound samples that are part of this soundboard.
      */
     std::vector<SoundSample>& getSamples();
 
+    ValueTree serialize() const;
+
 private:
+    constexpr static const char SOUNDBOARD_KEY[] = "soundboard";
+    constexpr static const char NAME_KEY[] = "name";
+    constexpr static const char SAMPLES_KEY[] = "samples";
+
     /**
      * The name of the soundboard.
      */
-    std::string name;
+    String name;
 
     /**
      * All the sounds that are available on the soundboard.
