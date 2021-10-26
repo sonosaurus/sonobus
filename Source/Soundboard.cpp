@@ -73,3 +73,8 @@ ValueTree Soundboard::serialize() const
 
     return tree;
 }
+
+void Soundboard::saveToFile(const File& file) const
+{
+    serialize().createXml()->writeTo(file);
+}

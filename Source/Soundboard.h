@@ -78,6 +78,8 @@ public:
 
     ValueTree serialize() const;
 
+    void saveToFile(const File& file) const;
+
 private:
     constexpr static const char SOUNDBOARD_KEY[] = "soundboard";
     constexpr static const char NAME_KEY[] = "name";
