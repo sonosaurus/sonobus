@@ -122,8 +122,8 @@ public:
      *
      * @return true whether an audio block was processed, false otherwise.
      */
-    bool processAudioBlock(AudioBuffer<float>& fileBuffer, int numSamples);
-    void sendAudioBlock(AudioBuffer<float>& fileBuffer, AudioBuffer<float>& sendWorkBuffer, int numSamples, int sendPanChannels, int startChannel);
+    bool processAudioBlock(int numSamples);
+    void sendAudioBlock(AudioBuffer<float>& sendWorkBuffer, int numSamples, int sendPanChannels, int startChannel);
 
     void releaseResources();
 };
