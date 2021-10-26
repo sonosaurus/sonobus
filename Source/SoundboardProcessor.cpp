@@ -1,6 +1,5 @@
-//
-// Created by Hannah Schellekens on 2021-10-26.
-//
-
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
+// Copyright (C) 2020 Jesse Chappell
 
 #include "SoundboardProcessor.h"
+

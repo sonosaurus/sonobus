@@ -7263,10 +7263,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     }
 
-    bool hassoundboarddata = soundboardChannelProcessor->processAudioBlock(fileBuffer, numSamples);
+    bool hassoundboarddata = soundboardChannelProcessor->processAudioBlock(numSamples);
     if (hassoundboarddata && sendsoundboardaudio) {
         int startChannel = sendfileaudio ? filestartch + fileChannels : filestartch;
-        soundboardChannelProcessor->sendAudioBlock(fileBuffer, sendWorkBuffer, numSamples, sendPanChannels, startChannel);
+        soundboardChannelProcessor->sendAudioBlock(sendWorkBuffer, numSamples, sendPanChannels, startChannel);
     }
     
     // process metronome

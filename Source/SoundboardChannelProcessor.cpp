@@ -1,6 +1,5 @@
-//
-// Created by Sten on 24-10-2021.
-//
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
+// Copyright (C) 2020 Jesse Chappell
 
 #include "SoundboardChannelProcessor.h"
 
@@ -131,16 +130,16 @@ void SoundboardChannelProcessor::changeListenerCallback(ChangeBroadcaster* sourc
     }
 }
 
-bool SoundboardChannelProcessor::processAudioBlock(AudioBuffer<float>& fileBuffer, int numSamples)
+bool SoundboardChannelProcessor::processAudioBlock(int numSamples)
 {
     if (transportSource.getTotalLength() <= 0) {
         return false;
     }
 
-    AudioSourceChannelInfo info(&fileBuffer, 0, numSamples);
+    AudioSourceChannelInfo info(&buffer, 0, numSamples);
     transportSource.getNextAudioBlock(info);
 
-    meterSource.measureBlock(fileBuffer);
+    meterSource.measureBlock(buffer);
 
     int sourceChannels = getFileSourceNumberOfChannels();
     channelGroup.params.numChannels = sourceChannels;
@@ -151,7 +150,7 @@ bool SoundboardChannelProcessor::processAudioBlock(AudioBuffer<float>& fileBuffe
     return true;
 }
 
-void SoundboardChannelProcessor::sendAudioBlock(AudioBuffer<float>& fileBuffer, AudioBuffer<float>& sendWorkBuffer, int numSamples, int sendPanChannels, int startChannel)
+void SoundboardChannelProcessor::sendAudioBlock(AudioBuffer<float>& sendWorkBuffer, int numSamples, int sendPanChannels, int startChannel)
 {
     int sourceChannels = getFileSourceNumberOfChannels();
     float gain = channelGroup.params.gain;
@@ -163,14 +162,14 @@ void SoundboardChannelProcessor::sendAudioBlock(AudioBuffer<float>& fileBuffer, 
         }
 
         for (int channel = 0; channel < sourceChannels; ++channel) {
-            sendWorkBuffer.addFromWithRamp(0, 0, fileBuffer.getReadPointer(channel), numSamples, gain, lastGain);
+            sendWorkBuffer.addFromWithRamp(0, 0, buffer.getReadPointer(channel), numSamples, gain, lastGain);
         }
     }
     else if (sendPanChannels > 2) {
         // straight-tru
         int destinationChannel = startChannel;
         for( int channel = 0; channel < sourceChannels && destinationChannel < sendWorkBuffer.getNumChannels(); ++channel) {
-            sendWorkBuffer.addFromWithRamp(destinationChannel, 0, fileBuffer.getReadPointer(channel), numSamples, gain, lastGain);
+            sendWorkBuffer.addFromWithRamp(destinationChannel, 0, buffer.getReadPointer(channel), numSamples, gain, lastGain);
             ++destinationChannel;
         }
     }
@@ -179,7 +178,7 @@ void SoundboardChannelProcessor::sendAudioBlock(AudioBuffer<float>& fileBuffer, 
         int dstch = channelGroup.params.panDestStartIndex;  // todo change dest ch target
         int dstcnt = jmin(sendPanChannels, channelGroup.params.panDestChannels);
 
-        channelGroup.processPan(fileBuffer, 0, sendWorkBuffer, dstch, dstcnt, numSamples, gain);
+        channelGroup.processPan(buffer, 0, sendWorkBuffer, dstch, dstcnt, numSamples, gain);
     }
 
     lastGain = gain;
