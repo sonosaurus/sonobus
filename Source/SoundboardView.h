@@ -125,5 +125,10 @@ private:
      */
     void updateButtons();
 
+    /**
+     * Shows the context menu for the SoundBoard View main menu button.
+     */
+    void showMenuButtonContextMenu();
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };
