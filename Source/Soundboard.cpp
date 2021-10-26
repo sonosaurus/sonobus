@@ -10,7 +10,7 @@ SoundSample::SoundSample(String newName, String newFilePath)
         : name(std::move(newName)), filePath(std::move(newFilePath))
 {}
 
-String SoundSample::getName()
+String SoundSample::getName() const
 {
     return this->name;
 }
@@ -20,7 +20,7 @@ void SoundSample::setName(String newName)
     this->name = std::move(newName);
 }
 
-String SoundSample::getFilePath()
+String SoundSample::getFilePath() const
 {
     return this->filePath;
 }
@@ -50,7 +50,7 @@ Soundboard::Soundboard(String newName)
         : name(std::move(newName)), samples(std::vector<SoundSample>())
 {}
 
-String Soundboard::getName()
+String Soundboard::getName() const
 {
     return this->name;
 }
@@ -60,7 +60,12 @@ void Soundboard::setName(String newName)
     this->name = std::move(newName);
 }
 
-std::vector<SoundSample> &Soundboard::getSamples()
+const std::vector<SoundSample>& Soundboard::getSamples() const
+{
+    return this->samples;
+}
+
+std::vector<SoundSample>& Soundboard::getSamples()
 {
     return this->samples;
 }
@@ -89,7 +94,7 @@ Soundboard Soundboard::deserialize(ValueTree tree)
     auto& samples = soundboard.getSamples();
     for( int i = 0; i < samplesTree.getNumChildren(); ++i )
     {
-        samples.push_back(SoundSample::deserialize(tree.getChild(i)));
+        samples.emplace_back(SoundSample::deserialize(tree.getChild(i)));
     }
 
     return soundboard;

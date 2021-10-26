@@ -31,6 +31,18 @@ public:
      */
     void onDeleteSoundboard();
 
+    /**
+     * Gets the soundboard at the given index.
+     *
+     * If the index is out of bounds, undefined behavior may occur.
+     *
+     * @param [in] index The index of the soundboard.
+     * @return The Soundboard at position `index`.
+     */
+    const Soundboard& getSoundboard(size_t index) const { return soundboards[index]; }
+
+    size_t getNumberOfSoundboards() const { return soundboards.size(); }
+
 private:
     /**
      * File where the soundboards data is stored, relative to the user home directory.

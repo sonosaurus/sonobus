@@ -25,13 +25,13 @@ public:
     SoundSample(SoundSample&& other) noexcept : name(std::move(other.name)),
                                                 filePath(std::move(other.filePath)) { }
 
-    String getName();
+    String getName() const;
     void setName(String newName);
 
     /**
      * @return The absolute file path of the underlying sound file.
      */
-    String getFilePath();
+    String getFilePath() const;
 
     /**
      * @param filePath The absolute file path of the underlying sound file.
@@ -95,13 +95,14 @@ public:
      */
     explicit Soundboard(String name);
 
-    String getName();
+    String getName() const;
     void setName(String);
 
     /**
      * Get the list of sound samples that are part of this soundboard.
      */
     std::vector<SoundSample>& getSamples();
+    const std::vector<SoundSample>& getSamples() const;
 
     /**
      * Serialize the soundboard.

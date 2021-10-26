@@ -28,6 +28,7 @@ void SoundboardView::createBasePanels()
     soundboardContainerBox.items.add(
             FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    // TODO: 7 is placeholder height
     soundboardContainerBox.items.add(
             FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT * 7, buttonBox).withMargin(0).withFlex(0));
 
@@ -94,8 +95,10 @@ void SoundboardView::createSoundboardSelectionPanel()
     mBoardSelectComboBox->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
     //mBoardSelectComboBox->addChoiceListener(this);
 
-    for (int i = 1; i <= 4 /* Number of soundboards */; ++i) {
-        mBoardSelectComboBox->addItem(TRANS("Soundboard #") + std::to_string(i), i - 1 /* identifier */);
+    auto soundboards = processor->getNumberOfSoundboards();
+    for( int i = 0; i < soundboards; ++i )
+    {
+        mBoardSelectComboBox->addItem(processor->getSoundboard(i).getName(), i);
     }
     mBoardSelectComboBox->setSelectedId(0);
 
@@ -114,17 +117,20 @@ void SoundboardView::updateButtons()
     buttonBox.items.clear();
     mSoundButtons.clear();
 
-    // 7 is placeholder value, see also SdbVw::createBasePanels: TITLE_HEIGHT * 7.
-    // In the future: determine buttons based on the selected soundboard.
-    for (int i = 1; i <= 7; ++i) {
-        auto sound = (i == 5) ? "Mambo" : "Sound";
-        auto testTextButton = std::make_unique<TextButton>(std::string(sound) + " Number " + std::to_string(i),
-                                                           std::string(sound) + " " + std::to_string(i));
-        testTextButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-        addAndMakeVisible(testTextButton.get());
+    auto selectedBoardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedBoardIndex >= processor->getNumberOfSoundboards()) {
+        return;
+    }
 
-        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *testTextButton).withMargin(0).withFlex(0));
-        mSoundButtons.push_back(std::move(testTextButton));
+    auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
+
+    for (const auto &sample : selectedBoard.getSamples()) {
+        auto textButton = std::make_unique<TextButton>(sample.getName(), sample.getName());
+        textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+        addAndMakeVisible(textButton.get());
+
+        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *textButton).withMargin(0).withFlex(0));
+        mSoundButtons.emplace_back(std::move(textButton));
     }
 }
 
