@@ -39,6 +39,13 @@ ValueTree SoundSample::serialize() const
     return tree;
 }
 
+SoundSample SoundSample::deserialize(const ValueTree tree)
+{
+    SoundSample soundSample(tree.getProperty(NAME_KEY), tree.getProperty(FILE_PATH_KEY));
+
+    return soundSample;
+}
+
 Soundboard::Soundboard(String newName)
         : name(std::move(newName)), samples(std::vector<SoundSample>())
 {}
@@ -74,7 +81,27 @@ ValueTree Soundboard::serialize() const
     return tree;
 }
 
+Soundboard Soundboard::deserialize(ValueTree tree)
+{
+    Soundboard soundboard(tree.getProperty(NAME_KEY));
+
+    auto samplesTree = tree.getChildWithName(SAMPLES_KEY);
+    auto& samples = soundboard.getSamples();
+    for( int i = 0; i < samplesTree.getNumChildren(); ++i )
+    {
+        samples.push_back(SoundSample::deserialize(tree.getChild(i)));
+    }
+
+    return soundboard;
+}
+
 void Soundboard::saveToFile(const File& file) const
 {
     serialize().createXml()->writeTo(file);
+}
+
+Soundboard Soundboard::readFromFile(const File& file)
+{
+    XmlDocument doc(file);
+    return Soundboard::deserialize(ValueTree::fromXml(*(doc.getDocumentElement())));
 }

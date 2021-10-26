@@ -22,6 +22,9 @@ public:
      */
     SoundSample(String name, String filePath);
 
+    SoundSample(SoundSample&& other) : name(std::move(other.name)),
+                                       filePath(std::move(other.filePath)) { }
+
     String getName();
     void setName(String newName);
 
@@ -36,6 +39,8 @@ public:
     void setFilePath(String filePath);
 
     ValueTree serialize() const;
+
+    static SoundSample deserialize(ValueTree tree);
 
 private:
     constexpr static const char SAMPLE_KEY[] = "soundSample";
@@ -79,6 +84,10 @@ public:
     ValueTree serialize() const;
 
     void saveToFile(const File& file) const;
+
+    static Soundboard deserialize(ValueTree tree);
+
+    static Soundboard readFromFile(const File& file);
 
 private:
     constexpr static const char SOUNDBOARD_KEY[] = "soundboard";
