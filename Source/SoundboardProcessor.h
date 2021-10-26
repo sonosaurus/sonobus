@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Soundboard.h"
-#include "SoundboardView.h"
 #include <vector>
 
 /**
