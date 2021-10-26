@@ -16,24 +16,6 @@ SoundboardView::SoundboardView() : processor(std::make_unique<SoundboardProcesso
     updateButtons();
 }
 
-void SoundboardView::updateButtons()
-{
-    buttonBox.items.clear();
-    mSoundButtons.clear();
-
-    // 7 is placeholder value, see also SdbVw::createBasePanels: TITLE_HEIGHT * 7.
-    // In the future: determine buttons based on the selected soundboard.
-    for (int i = 1; i <= 7; ++i) {
-        auto sound = (i == 5) ? "Mambo" : "Sound";
-        auto testTextButton = std::make_unique<TextButton>(std::string(sound) + " Number " + std::to_string(i), std::string(sound) + " " + std::to_string(i));
-        testTextButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-        addAndMakeVisible(testTextButton.get());
-
-        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *testTextButton).withMargin(0).withFlex(0));
-        mSoundButtons.push_back(std::move(testTextButton));
-    }
-}
-
 void SoundboardView::createBasePanels()
 {
     buttonBox.items.clear();
@@ -43,9 +25,11 @@ void SoundboardView::createBasePanels()
     soundboardContainerBox.flexDirection = FlexBox::Direction::column;
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, titleBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
+    soundboardContainerBox.items.add(
+            FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT * 7, buttonBox).withMargin(0).withFlex(0));
+    soundboardContainerBox.items.add(
+            FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT * 7, buttonBox).withMargin(0).withFlex(0));
 
     mainBox.items.clear();
     mainBox.flexDirection = FlexBox::Direction::row;
@@ -79,7 +63,8 @@ void SoundboardView::createSoundboardTitleLabel()
 void SoundboardView::createSoundboardTitleCloseButton()
 {
     mCloseButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
-    std::unique_ptr<Drawable> imageCross(Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
+    std::unique_ptr<Drawable> imageCross(
+            Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
     mCloseButton->setImages(imageCross.get());
     mCloseButton->setTitle(TRANS("Close Soundboard"));
     mCloseButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -96,9 +81,9 @@ void SoundboardView::createSoundboardMenu()
     mMenuButton->setTitle(TRANS("Soundboard Menu"));
     mMenuButton->setImages(imageMenu.get());
     mMenuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    //mMenuButton->onClick = [this]() {
-    //    showMenu();
-    //};
+    mMenuButton->onClick = [this]() {
+        showMenuButtonContextMenu();
+    };
     addAndMakeVisible(mMenuButton.get());
 }
 
@@ -119,11 +104,62 @@ void SoundboardView::createSoundboardSelectionPanel()
     soundboardSelectionBox.items.clear();
     soundboardSelectionBox.flexDirection = FlexBox::Direction::row;
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
-    soundboardSelectionBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mBoardSelectComboBox).withMargin(0).withFlex(1));
+    soundboardSelectionBox.items.add(
+            FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mBoardSelectComboBox).withMargin(0).withFlex(1));
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
 }
 
-void SoundboardView::paint(Graphics& g)
+void SoundboardView::updateButtons()
+{
+    buttonBox.items.clear();
+    mSoundButtons.clear();
+
+    // 7 is placeholder value, see also SdbVw::createBasePanels: TITLE_HEIGHT * 7.
+    // In the future: determine buttons based on the selected soundboard.
+    for (int i = 1; i <= 7; ++i) {
+        auto sound = (i == 5) ? "Mambo" : "Sound";
+        auto testTextButton = std::make_unique<TextButton>(std::string(sound) + " Number " + std::to_string(i),
+                                                           std::string(sound) + " " + std::to_string(i));
+        testTextButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+        addAndMakeVisible(testTextButton.get());
+
+        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *testTextButton).withMargin(0).withFlex(0));
+        mSoundButtons.push_back(std::move(testTextButton));
+    }
+}
+
+void SoundboardView::showMenuButtonContextMenu()
+{
+    Array<GenericItemChooserItem> items;
+
+    items.add(GenericItemChooserItem(TRANS("New soundboard"), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("Rename soundboard"), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("Delete soundboard"), {}, nullptr, false));
+
+    Component *parent = mMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!parent) {
+        parent = mMenuButton->findParentComponentOfClass<Component>();
+    }
+    Rectangle<int> bounds = parent->getLocalArea(nullptr, mMenuButton->getScreenBounds());
+
+    SafePointer<SoundboardView> safeThis(this);
+    auto callback = [safeThis](GenericItemChooser *chooser, int index) mutable {
+        switch (index) {
+            case 0:
+                safeThis->processor->onAddSoundboard();
+                break;
+            case 1:
+                safeThis->processor->onRenameSoundboard();
+                break;
+            case 2:
+                safeThis->processor->onDeleteSoundboard();
+        }
+    };
+
+    GenericItemChooser::launchPopupChooser(items, bounds, parent, callback, -1, parent->getHeight() - 30);
+}
+
+void SoundboardView::paint(Graphics &g)
 {
     g.fillAll(Colour(0xff272727));
 }
