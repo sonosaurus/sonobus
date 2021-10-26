@@ -94,14 +94,3 @@ Soundboard Soundboard::deserialize(ValueTree tree)
 
     return soundboard;
 }
-
-void Soundboard::saveToFile(const File& file) const
-{
-    serialize().createXml()->writeTo(file);
-}
-
-Soundboard Soundboard::readFromFile(const File& file)
-{
-    XmlDocument doc(file);
-    return Soundboard::deserialize(ValueTree::fromXml(*(doc.getDocumentElement())));
-}
