@@ -17,19 +17,26 @@ class SoundboardProcessor
 {
 public:
     /**
-     * Gets called whenever the process of adding a soundboard must start.
+     * Adds a new soundboard.
+     *
+     * @param name The name of the soundboard to create.
      */
-    void onAddSoundboard();
+    void addSoundboard(const String& name);
 
     /**
      * Gets called whenever the process of renaming a soundboard must start.
+     *
+     * @param toRename Reference to the soundboard to rename.
+     * @param newName The new name for the soundboard.
      */
-    void onRenameSoundboard();
+    void renameSoundboard(Soundboard& toRename, String newName);
 
     /**
-     * Gets called whenever the process of deleting a soundboard must start.
+     * Deletes a soundboard.
+     *
+     * @param toRemove A reference to the soundboard to remove.
      */
-    void onDeleteSoundboard();
+    void deleteSoundboard(Soundboard& toRemove);
 
     /**
      * Gets the soundboard at the given index.
@@ -39,9 +46,9 @@ public:
      * @param [in] index The index of the soundboard.
      * @return The Soundboard at position `index`.
      */
-    const Soundboard& getSoundboard(size_t index) const { return soundboards[index]; }
+    [[nodiscard]] const Soundboard& getSoundboard(size_t index) const { return soundboards[index]; }
 
-    size_t getNumberOfSoundboards() const { return soundboards.size(); }
+    [[nodiscard]] size_t getNumberOfSoundboards() const { return soundboards.size(); }
 
 private:
     /**

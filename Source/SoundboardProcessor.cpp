@@ -6,19 +6,19 @@
 #include "SoundboardProcessor.h"
 #include <iostream>
 
-void SoundboardProcessor::onAddSoundboard()
+void SoundboardProcessor::addSoundboard(const String& name)
 {
-    // TODO: Actually prompt the user.
-    std::cout << "Adding soundboard... (not implemented)" << std::endl;
+    auto newSoundboard = Soundboard(name);
+    soundboards.push_back(std::move(newSoundboard));
 }
 
-void SoundboardProcessor::onRenameSoundboard()
+void SoundboardProcessor::renameSoundboard(Soundboard& toRename, String newName)
 {
     // TODO: Actually prompt the user.
     std::cout << "Renaming current soundboard... (not implemented)" << std::endl;
 }
 
-void SoundboardProcessor::onDeleteSoundboard()
+void SoundboardProcessor::deleteSoundboard(Soundboard& toRemove)
 {
     // TODO: Actually prompt the user.
     std::cout << "Deleting soundboard... (not implemented)" << std::endl;

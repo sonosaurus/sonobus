@@ -130,5 +130,20 @@ private:
      */
     void showMenuButtonContextMenu();
 
+    /**
+     * Call this method whenever the "New Soundboard" option is clicked.
+     */
+    void clickedAddSoundboard();
+
+    /**
+     * Call this method whenever the "Rename Soundboard" option is clicked.
+     */
+    void clickedRenameSoundboard();
+
+    /**
+     * Call this method whenever the "Delete Soundboard" option is clicked.
+     */
+    void clickedDeleteSoundboard();
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };

@@ -4,6 +4,8 @@
 
 
 #include "SoundboardView.h"
+#include "SoundboardEditView.h"
+#include <iostream>
 
 SoundboardView::SoundboardView() : processor(std::make_unique<SoundboardProcessor>())
 {
@@ -96,8 +98,7 @@ void SoundboardView::createSoundboardSelectionPanel()
     //mBoardSelectComboBox->addChoiceListener(this);
 
     auto soundboards = processor->getNumberOfSoundboards();
-    for( int i = 0; i < soundboards; ++i )
-    {
+    for (int i = 0; i < soundboards; ++i) {
         mBoardSelectComboBox->addItem(processor->getSoundboard(i).getName(), i);
     }
     mBoardSelectComboBox->setSelectedId(0);
@@ -122,9 +123,9 @@ void SoundboardView::updateButtons()
         return;
     }
 
-    auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
+    auto &selectedBoard = processor->getSoundboard(selectedBoardIndex);
 
-    for (const auto &sample : selectedBoard.getSamples()) {
+    for (const auto &sample: selectedBoard.getSamples()) {
         auto textButton = std::make_unique<TextButton>(sample.getName(), sample.getName());
         textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
         addAndMakeVisible(textButton.get());
@@ -148,21 +149,54 @@ void SoundboardView::showMenuButtonContextMenu()
     }
     Rectangle<int> bounds = parent->getLocalArea(nullptr, mMenuButton->getScreenBounds());
 
-    SafePointer<SoundboardView> safeThis(this);
+    SafePointer <SoundboardView> safeThis(this);
     auto callback = [safeThis](GenericItemChooser *chooser, int index) mutable {
         switch (index) {
             case 0:
-                safeThis->processor->onAddSoundboard();
+                safeThis->clickedAddSoundboard();
                 break;
             case 1:
-                safeThis->processor->onRenameSoundboard();
+                safeThis->clickedRenameSoundboard();
                 break;
             case 2:
-                safeThis->processor->onDeleteSoundboard();
+                safeThis->clickedDeleteSoundboard();
         }
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, parent, callback, -1, parent->getHeight() - 30);
+}
+
+void SoundboardView::clickedAddSoundboard()
+{
+    auto callback = [this](const String& name) {
+        processor->addSoundboard(name);
+
+        // TODO: Replace with actual update to the soundboard combobox.
+        std::cout << "Soundboards:" << std::endl;
+        auto soundboards = processor->getNumberOfSoundboards();
+        for (int i = 0; i < soundboards; ++i) {
+            std::cout << "> " << processor->getSoundboard(i).getName() << std::endl;
+        }
+    };
+
+    auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
+    content->setSize(256, 100);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            mTitleLabel->getScreenBounds(),
+            nullptr
+    );
+}
+
+void SoundboardView::clickedRenameSoundboard()
+{
+    // TODO: Add functionality.
+}
+
+void SoundboardView::clickedDeleteSoundboard()
+{
+    // TODO: Add functionality.
 }
 
 void SoundboardView::paint(Graphics &g)
