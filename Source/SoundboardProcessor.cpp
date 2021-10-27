@@ -6,6 +6,12 @@
 #include "SoundboardProcessor.h"
 #include <iostream>
 
+
+SoundboardProcessor::SoundboardProcessor()
+{
+    loadFromDisk();
+}
+
 void SoundboardProcessor::addSoundboard(const String& name)
 {
     auto newSoundboard = Soundboard(name);
@@ -42,6 +48,10 @@ void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
 
 void SoundboardProcessor::readSoundboardsFromFile(const File& file)
 {
+    if (!file.existsAsFile()) {
+        return;
+    }
+
     XmlDocument doc(file);
     auto tree = ValueTree::fromXml(*doc.getDocumentElement());
 

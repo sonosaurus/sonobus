@@ -16,6 +16,8 @@
 class SoundboardProcessor
 {
 public:
+    SoundboardProcessor();
+
     /**
      * Adds a new soundboard.
      *
