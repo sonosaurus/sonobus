@@ -10,6 +10,8 @@ void SoundboardProcessor::addSoundboard(const String& name)
 {
     auto newSoundboard = Soundboard(name);
     soundboards.push_back(std::move(newSoundboard));
+
+    saveToDisk();
 }
 
 void SoundboardProcessor::renameSoundboard(Soundboard& toRename, String newName)
@@ -31,6 +33,9 @@ void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
     for (const auto &soundboard : soundboards) {
         tree.addChild(soundboard.serialize(), 0, nullptr);
     }
+
+    // Make sure  the parent directory exists
+    file.getParentDirectory().createDirectory();
 
     tree.createXml()->writeTo(file);
 }
