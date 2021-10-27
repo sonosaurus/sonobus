@@ -36,8 +36,9 @@ void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
 {
     ValueTree tree(SOUNDBOARDS_KEY);
 
+    int i = 0;
     for (const auto &soundboard : soundboards) {
-        tree.addChild(soundboard.serialize(), 0, nullptr);
+        tree.addChild(soundboard.serialize(), i++, nullptr);
     }
 
     // Make sure  the parent directory exists

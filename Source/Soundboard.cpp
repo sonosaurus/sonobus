@@ -79,8 +79,10 @@ ValueTree Soundboard::serialize() const
     ValueTree samplesTree(SAMPLES_KEY);
 
     tree.addChild(samplesTree, 0, nullptr);
+
+    int i = 0;
     for (const auto &sample : samples) {
-        samplesTree.addChild(sample.serialize(), 0, nullptr);
+        samplesTree.addChild(sample.serialize(), i++, nullptr);
     }
 
     return tree;
