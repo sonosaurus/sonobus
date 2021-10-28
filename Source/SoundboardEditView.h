@@ -22,7 +22,7 @@ public:
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
      * @param soundboard The soundboard that must be edited, or null when a new soundboard must be created.
      */
-    explicit SoundboardEditView(std::function<void (String)> callback, Soundboard* soundboard = nullptr);
+    explicit SoundboardEditView(std::function<void (String)> callback, const Soundboard* soundboard = nullptr);
 
     /**
      * @return The soundboard name that was entered.

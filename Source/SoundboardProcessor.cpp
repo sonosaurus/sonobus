@@ -4,15 +4,14 @@
 
 
 #include "SoundboardProcessor.h"
-#include <iostream>
-
+#include <utility>
 
 SoundboardProcessor::SoundboardProcessor()
 {
     loadFromDisk();
 }
 
-Soundboard& SoundboardProcessor::addSoundboard(const String& name)
+Soundboard &SoundboardProcessor::addSoundboard(const String &name)
 {
     auto newSoundboard = Soundboard(name);
     soundboards.push_back(std::move(newSoundboard));
@@ -22,10 +21,12 @@ Soundboard& SoundboardProcessor::addSoundboard(const String& name)
     return soundboards[getNumberOfSoundboards() - 1];
 }
 
-void SoundboardProcessor::renameSoundboard(Soundboard& toRename, String newName)
+void SoundboardProcessor::renameSoundboard(int index, String newName)
 {
-    // TODO: Actually prompt the user.
-    std::cout << "Renaming current soundboard... (not implemented)" << std::endl;
+    auto& toRename = soundboards[index];
+    toRename.setName(std::move(newName));
+
+    saveToDisk();
 }
 
 void SoundboardProcessor::deleteSoundboard(int index)
@@ -35,7 +36,7 @@ void SoundboardProcessor::deleteSoundboard(int index)
     saveToDisk();
 }
 
-int SoundboardProcessor::getIndexOfSoundboard(const Soundboard& soundboard) const
+int SoundboardProcessor::getIndexOfSoundboard(const Soundboard &soundboard) const
 {
     auto numberOfSoundboards = getNumberOfSoundboards();
     for (int i = 0; i < numberOfSoundboards; ++i) {
@@ -47,12 +48,12 @@ int SoundboardProcessor::getIndexOfSoundboard(const Soundboard& soundboard) cons
     return -1;
 }
 
-void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
+void SoundboardProcessor::writeSoundboardsToFile(const File &file) const
 {
     ValueTree tree(SOUNDBOARDS_KEY);
 
     int i = 0;
-    for (const auto &soundboard : soundboards) {
+    for (const auto &soundboard: soundboards) {
         tree.addChild(soundboard.serialize(), i++, nullptr);
     }
 
@@ -62,7 +63,7 @@ void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
     tree.createXml()->writeTo(file);
 }
 
-void SoundboardProcessor::readSoundboardsFromFile(const File& file)
+void SoundboardProcessor::readSoundboardsFromFile(const File &file)
 {
     if (!file.existsAsFile()) {
         return;
@@ -73,7 +74,7 @@ void SoundboardProcessor::readSoundboardsFromFile(const File& file)
 
     soundboards.clear();
 
-    for (const auto &child : tree) {
+    for (const auto &child: tree) {
         soundboards.emplace_back(Soundboard::deserialize(child));
     }
 }

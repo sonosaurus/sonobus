@@ -7,7 +7,7 @@
 
 #include <utility>
 
-SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, Soundboard* soundboard)
+SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, const Soundboard* soundboard)
         : editModeEnabled(soundboard != nullptr),
           initialName(soundboard == nullptr ? "" : soundboard->getName()),
           submitCallback(std::move(callback))

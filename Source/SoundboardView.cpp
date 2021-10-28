@@ -5,7 +5,6 @@
 
 #include "SoundboardView.h"
 #include "SoundboardEditView.h"
-#include <iostream>
 
 SoundboardView::SoundboardView() : processor(std::make_unique<SoundboardProcessor>())
 {
@@ -109,7 +108,7 @@ void SoundboardView::createSoundboardSelectionPanel()
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
 }
 
-void SoundboardView::updateSoundboardSelector(Soundboard *selected)
+void SoundboardView::updateSoundboardSelector(Soundboard* selected)
 {
     // Index shenanigans will go wrong when there are no soundboards, so return early:
     // doesn't matter anyway as the soundboard selector only need to be cleared.
@@ -154,9 +153,9 @@ void SoundboardView::updateButtons()
         return;
     }
 
-    auto &selectedBoard = processor->getSoundboard(selectedBoardIndex);
+    auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
 
-    for (const auto &sample: selectedBoard.getSamples()) {
+    for (const auto& sample: selectedBoard.getSamples()) {
         auto textButton = std::make_unique<TextButton>(sample.getName(), sample.getName());
         textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
         addAndMakeVisible(textButton.get());
@@ -188,14 +187,14 @@ void SoundboardView::showMenuButtonContextMenu()
     items.add(GenericItemChooserItem(TRANS("Rename soundboard"), {}, nullptr, false));
     items.add(GenericItemChooserItem(TRANS("Delete soundboard"), {}, nullptr, false));
 
-    Component *parent = mMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
+    Component* parent = mMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
     if (!parent) {
         parent = mMenuButton->findParentComponentOfClass<Component>();
     }
     Rectangle<int> bounds = parent->getLocalArea(nullptr, mMenuButton->getScreenBounds());
 
     SafePointer <SoundboardView> safeThis(this);
-    auto callback = [safeThis](GenericItemChooser *chooser, int index) mutable {
+    auto callback = [safeThis](GenericItemChooser* chooser, int index) mutable {
         switch (index) {
             case 0:
                 safeThis->clickedAddSoundboard();
@@ -213,8 +212,8 @@ void SoundboardView::showMenuButtonContextMenu()
 
 void SoundboardView::clickedAddSoundboard()
 {
-    auto callback = [this](const String &name) {
-        Soundboard &createdSoundboard = processor->addSoundboard(name);
+    auto callback = [this](const String& name) {
+        Soundboard& createdSoundboard = processor->addSoundboard(name);
         updateSoundboardSelector(&createdSoundboard);
     };
 
@@ -230,7 +229,21 @@ void SoundboardView::clickedAddSoundboard()
 
 void SoundboardView::clickedRenameSoundboard()
 {
-    // TODO: Add functionality.
+    auto callback = [this](const String& name) {
+        int selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+        processor->renameSoundboard(selectedSoundboardIndex, name);
+        updateSoundboardSelector();
+    };
+
+    auto& currentSoundboard = processor->getSoundboard(mBoardSelectComboBox->getSelectedItemIndex());
+    auto content = std::make_unique<SoundboardEditView>(callback, &currentSoundboard);
+    content->setSize(256, 100);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            mBoardSelectComboBox->getScreenBounds(),
+            nullptr
+    );
 }
 
 void SoundboardView::clickedDeleteSoundboard()
@@ -249,14 +262,14 @@ void SoundboardView::clickedDeleteSoundboard()
     items.add(GenericItemChooserItem(TRANS("No, keep soundboard"), {}, nullptr, true));
     items.add(GenericItemChooserItem(TRANS("Yes, delete soundboard"), {}, nullptr, false));
 
-    Component *parent = mBoardSelectComboBox->findParentComponentOfClass<AudioProcessorEditor>();
+    Component* parent = mBoardSelectComboBox->findParentComponentOfClass<AudioProcessorEditor>();
     if (!parent) {
         parent = mBoardSelectComboBox->findParentComponentOfClass<Component>();
     }
     Rectangle<int> bounds = parent->getLocalArea(nullptr, mBoardSelectComboBox->getScreenBounds());
 
     SafePointer <SoundboardView> safeThis(this);
-    auto callback = [safeThis](GenericItemChooser *chooser, int index) mutable {
+    auto callback = [safeThis](GenericItemChooser* chooser, int index) mutable {
         // Delete soundboard.
         if (index == 2) {
             int selectedIndex = safeThis->mBoardSelectComboBox->getSelectedItemIndex();
@@ -268,7 +281,7 @@ void SoundboardView::clickedDeleteSoundboard()
     GenericItemChooser::launchPopupChooser(items, bounds, parent, callback, -1, 128);
 }
 
-void SoundboardView::paint(Graphics &g)
+void SoundboardView::paint(Graphics& g)
 {
     g.fillAll(Colour(0xff272727));
 }

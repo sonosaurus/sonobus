@@ -27,12 +27,12 @@ public:
     Soundboard& addSoundboard(const String& name);
 
     /**
-     * Gets called whenever the process of renaming a soundboard must start.
+     * Renames a soundboard.
      *
-     * @param toRename Reference to the soundboard to rename.
+     * @param toRename The index of the soundboard to rename.
      * @param newName The new name for the soundboard.
      */
-    void renameSoundboard(Soundboard& toRename, String newName);
+    void renameSoundboard(int index, String newName);
 
     /**
      * Deletes a soundboard.
