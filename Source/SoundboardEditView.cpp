@@ -22,6 +22,9 @@ SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, So
 
     mInputField = std::make_unique<TextEditor>("nameInput");
     mInputField->setText(initialName);
+    mInputField->onReturnKey = [this]() {
+        submitDialog();
+    };
     addAndMakeVisible(mInputField.get());
 
     mSubmitButton = std::make_unique<SonoTextButton>(isEditMode() ? TRANS("Rename Soundboard") : TRANS("Create Soundboard"));
