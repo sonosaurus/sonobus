@@ -37,9 +37,9 @@ public:
     /**
      * Deletes a soundboard.
      *
-     * @param toRemove A reference to the soundboard to remove.
+     * @param toRemove The index of the soundboard to remove.
      */
-    void deleteSoundboard(Soundboard& toRemove);
+    void deleteSoundboard(int index);
 
     /**
      * Gets the soundboard at the given index.

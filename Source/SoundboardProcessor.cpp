@@ -28,10 +28,11 @@ void SoundboardProcessor::renameSoundboard(Soundboard& toRename, String newName)
     std::cout << "Renaming current soundboard... (not implemented)" << std::endl;
 }
 
-void SoundboardProcessor::deleteSoundboard(Soundboard& toRemove)
+void SoundboardProcessor::deleteSoundboard(int index)
 {
-    // TODO: Actually prompt the user.
-    std::cout << "Deleting soundboard... (not implemented)" << std::endl;
+    soundboards.erase(soundboards.begin() + index);
+
+    saveToDisk();
 }
 
 int SoundboardProcessor::getIndexOfSoundboard(const Soundboard& soundboard) const

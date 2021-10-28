@@ -109,11 +109,16 @@ void SoundboardView::createSoundboardSelectionPanel()
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
 }
 
-void SoundboardView::updateSoundboardSelector(Soundboard* selected)
+void SoundboardView::updateSoundboardSelector(Soundboard *selected)
 {
     // Index shenanigans will go wrong when there are no soundboards, so return early:
     // doesn't matter anyway as the soundboard selector only need to be cleared.
     if (processor->getNumberOfSoundboards() == 0) {
+        // Apparently, when you clear items the last item name is still visible, but no items are present.
+        // Enjoy this amazing hack.
+        mBoardSelectComboBox->clearItems();
+        mBoardSelectComboBox->addItem("", 0);
+        mBoardSelectComboBox->setSelectedItemIndex(0);
         mBoardSelectComboBox->clearItems();
         return;
     }
@@ -130,9 +135,10 @@ void SoundboardView::updateSoundboardSelector(Soundboard* selected)
 
     // Select new item.
     if (selected == nullptr) {
-        mBoardSelectComboBox->setSelectedItemIndex(previouslySelectedIndex < 0 ? 0 : previouslySelectedIndex);
-    }
-    else {
+        int minimum = previouslySelectedIndex < 0 ? 0 : previouslySelectedIndex;
+        int minimumAndMaximum = minimum >= soundboardCount ? soundboardCount - 1 : minimum;
+        mBoardSelectComboBox->setSelectedItemIndex(minimumAndMaximum);
+    } else {
         int newIndex = processor->getIndexOfSoundboard(*selected);
         mBoardSelectComboBox->setSelectedItemIndex(newIndex);
     }
@@ -159,8 +165,10 @@ void SoundboardView::updateButtons()
         mSoundButtons.emplace_back(std::move(textButton));
     }
 
-    mAddSampleButton = std::make_unique<SonoDrawableButton>("addSample", SonoDrawableButton::ButtonStyle::ImageOnButtonBackground);
-    std::unique_ptr<Drawable> imageAdd(Drawable::createFromImageData(BinaryData::plus_icon_svg, BinaryData::plus_icon_svgSize));
+    mAddSampleButton = std::make_unique<SonoDrawableButton>("addSample",
+                                                            SonoDrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> imageAdd(
+            Drawable::createFromImageData(BinaryData::plus_icon_svg, BinaryData::plus_icon_svgSize));
     mAddSampleButton->setTooltip(TRANS("Add Sample"));
     mAddSampleButton->setImages(imageAdd.get());
     mAddSampleButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -176,7 +184,6 @@ void SoundboardView::updateButtons()
 void SoundboardView::showMenuButtonContextMenu()
 {
     Array<GenericItemChooserItem> items;
-
     items.add(GenericItemChooserItem(TRANS("New soundboard"), {}, nullptr, false));
     items.add(GenericItemChooserItem(TRANS("Rename soundboard"), {}, nullptr, false));
     items.add(GenericItemChooserItem(TRANS("Delete soundboard"), {}, nullptr, false));
@@ -206,8 +213,8 @@ void SoundboardView::showMenuButtonContextMenu()
 
 void SoundboardView::clickedAddSoundboard()
 {
-    auto callback = [this](const String& name) {
-        Soundboard& createdSoundboard = processor->addSoundboard(name);
+    auto callback = [this](const String &name) {
+        Soundboard &createdSoundboard = processor->addSoundboard(name);
         updateSoundboardSelector(&createdSoundboard);
     };
 
@@ -228,7 +235,37 @@ void SoundboardView::clickedRenameSoundboard()
 
 void SoundboardView::clickedDeleteSoundboard()
 {
-    // TODO: Add functionality.
+    // Cannot delete if there are no soundboards.
+    if (processor->getNumberOfSoundboards() == 0) {
+        return;
+    }
+
+    Array<GenericItemChooserItem> items;
+
+    auto titleItem = GenericItemChooserItem(TRANS("Delete soundboard?"), {}, nullptr, false);
+    titleItem.disabled = true;
+    items.add(titleItem);
+
+    items.add(GenericItemChooserItem(TRANS("No, keep soundboard"), {}, nullptr, true));
+    items.add(GenericItemChooserItem(TRANS("Yes, delete soundboard"), {}, nullptr, false));
+
+    Component *parent = mBoardSelectComboBox->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!parent) {
+        parent = mBoardSelectComboBox->findParentComponentOfClass<Component>();
+    }
+    Rectangle<int> bounds = parent->getLocalArea(nullptr, mBoardSelectComboBox->getScreenBounds());
+
+    SafePointer <SoundboardView> safeThis(this);
+    auto callback = [safeThis](GenericItemChooser *chooser, int index) mutable {
+        // Delete soundboard.
+        if (index == 2) {
+            int selectedIndex = safeThis->mBoardSelectComboBox->getSelectedItemIndex();
+            safeThis->processor->deleteSoundboard(selectedIndex);
+            safeThis->updateSoundboardSelector();
+        }
+    };
+
+    GenericItemChooser::launchPopupChooser(items, bounds, parent, callback, -1, 128);
 }
 
 void SoundboardView::paint(Graphics &g)
