@@ -25,6 +25,9 @@ SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, So
     mInputField->onReturnKey = [this]() {
         submitDialog();
     };
+    mInputField->onEscapeKey = [this]() {
+        dismissDialog();
+    };
     addAndMakeVisible(mInputField.get());
 
     mSubmitButton = std::make_unique<SonoTextButton>(isEditMode() ? TRANS("Rename Soundboard") : TRANS("Create Soundboard"));
@@ -33,13 +36,26 @@ SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, So
     };
     addAndMakeVisible(mSubmitButton.get());
 
+    mCancelButton = std::make_unique<SonoTextButton>(TRANS("Cancel"));
+    mCancelButton->onClick = [this]() {
+        dismissDialog();
+    };
+    addAndMakeVisible(mCancelButton.get());
+
+    buttonBox.flexDirection = FlexBox::Direction::row;
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    buttonBox.items.add(FlexItem(VIEW_WIDTH / 4 * 2.2, CONTROL_HEIGHT, *mSubmitButton).withMargin(0).withFlex(3));
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    buttonBox.items.add(FlexItem(VIEW_WIDTH / 4, CONTROL_HEIGHT, *mCancelButton).withMargin(0).withFlex(1));
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
     contentBox.flexDirection = FlexBox::Direction::column;
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     contentBox.items.add(FlexItem(VIEW_WIDTH, CONTROL_HEIGHT, *mMessageLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     contentBox.items.add(FlexItem(VIEW_WIDTH - 24, CONTROL_HEIGHT, *mInputField).withMargin(4).withFlex(0));
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, CONTROL_HEIGHT, *mSubmitButton).withMargin(4).withFlex(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, CONTROL_HEIGHT, buttonBox).withMargin(4).withFlex(0));
 
     mainBox.items.clear();
     mainBox.flexDirection = FlexBox::Direction::row;
@@ -54,9 +70,19 @@ String SoundboardEditView::getInputName() const
 void SoundboardEditView::submitDialog()
 {
     auto inputtedName = mInputField->getText().trim();
+    if (inputtedName.isEmpty()) {
+        mInputField->setColour(TextEditor::backgroundColourId, Colour(0xcc911707));
+        return;
+    }
+
     this->initialName = inputtedName;
     submitCallback(inputtedName);
 
+    dismissDialog();
+}
+
+void SoundboardEditView::dismissDialog()
+{
     auto callOutBox = findParentComponentOfClass<CallOutBox>();
     if (callOutBox) {
         callOutBox->dismiss();

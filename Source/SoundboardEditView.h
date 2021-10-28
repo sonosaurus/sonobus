@@ -11,6 +11,7 @@
 
 /**
  * Dialog for creating/renaming a soundboard.
+ * Meant for use in a CallOutBox.
  *
  * @author Hannah Schellekens
  */
@@ -77,6 +78,11 @@ private:
     FlexBox contentBox;
 
     /**
+     * Box for the dialog buttons.
+     */
+    FlexBox buttonBox;
+
+    /**
      * Label showing the prompt to the user.
      */
     std::unique_ptr<Label> mMessageLabel;
@@ -92,9 +98,19 @@ private:
     std::unique_ptr<SonoTextButton> mSubmitButton;
 
     /**
+     * The button that cancels the dialog and closes without modifying state.
+     */
+    std::unique_ptr<SonoTextButton> mCancelButton;
+
+    /**
      * Submit the input.
      */
     void submitDialog();
+
+    /**
+     * Closes the dialog.
+     */
+    void dismissDialog();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardEditView)
 };
