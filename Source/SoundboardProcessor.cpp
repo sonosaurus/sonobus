@@ -12,12 +12,14 @@ SoundboardProcessor::SoundboardProcessor()
     loadFromDisk();
 }
 
-void SoundboardProcessor::addSoundboard(const String& name)
+Soundboard& SoundboardProcessor::addSoundboard(const String& name)
 {
     auto newSoundboard = Soundboard(name);
     soundboards.push_back(std::move(newSoundboard));
 
     saveToDisk();
+
+    return soundboards[getNumberOfSoundboards() - 1];
 }
 
 void SoundboardProcessor::renameSoundboard(Soundboard& toRename, String newName)
@@ -30,6 +32,18 @@ void SoundboardProcessor::deleteSoundboard(Soundboard& toRemove)
 {
     // TODO: Actually prompt the user.
     std::cout << "Deleting soundboard... (not implemented)" << std::endl;
+}
+
+int SoundboardProcessor::getIndexOfSoundboard(const Soundboard& soundboard) const
+{
+    auto numberOfSoundboards = getNumberOfSoundboards();
+    for (int i = 0; i < numberOfSoundboards; ++i) {
+        auto soundboardInList = &getSoundboard(i);
+        if (&soundboard == soundboardInList) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void SoundboardProcessor::writeSoundboardsToFile(const File& file) const

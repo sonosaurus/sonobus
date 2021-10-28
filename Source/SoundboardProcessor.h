@@ -22,8 +22,9 @@ public:
      * Adds a new soundboard.
      *
      * @param name The name of the soundboard to create.
+     * @return Reference to the created soundboard.
      */
-    void addSoundboard(const String& name);
+    Soundboard& addSoundboard(const String& name);
 
     /**
      * Gets called whenever the process of renaming a soundboard must start.
@@ -50,7 +51,18 @@ public:
      */
     [[nodiscard]] const Soundboard& getSoundboard(size_t index) const { return soundboards[index]; }
 
+    /**
+     * @return The current amount of soundboards present.
+     */
     [[nodiscard]] size_t getNumberOfSoundboards() const { return soundboards.size(); }
+
+    /**
+     * Get the index of the given soundboard object in the list of soundboards.
+     *
+     * @param soundboard Check where this soundboard is in the list of soundboards.
+     * @return The index of the soundboard, or -1 when it is not present in the list.
+     */
+    [[nodiscard]] int getIndexOfSoundboard(const Soundboard &soundboard) const;
 
 private:
     /**

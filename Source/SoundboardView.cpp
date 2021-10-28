@@ -16,6 +16,9 @@ SoundboardView::SoundboardView() : processor(std::make_unique<SoundboardProcesso
     createBasePanels();
 
     updateButtons();
+    updateSoundboardSelector();
+
+    mBoardSelectComboBox->setSelectedItemIndex(0);
 }
 
 void SoundboardView::createBasePanels()
@@ -93,16 +96,9 @@ void SoundboardView::createSoundboardMenu()
 void SoundboardView::createSoundboardSelectionPanel()
 {
     mBoardSelectComboBox = std::make_unique<SonoChoiceButton>();
-    mBoardSelectComboBox->setTitle(TRANS("Soundboard #1"));
+    mBoardSelectComboBox->setTitle(TRANS("Select Soundboard"));
     mBoardSelectComboBox->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
     //mBoardSelectComboBox->addChoiceListener(this);
-
-    auto soundboards = processor->getNumberOfSoundboards();
-    for (int i = 0; i < soundboards; ++i) {
-        mBoardSelectComboBox->addItem(processor->getSoundboard(i).getName(), i);
-    }
-    mBoardSelectComboBox->setSelectedId(0);
-
     addAndMakeVisible(mBoardSelectComboBox.get());
 
     soundboardSelectionBox.items.clear();
@@ -111,6 +107,35 @@ void SoundboardView::createSoundboardSelectionPanel()
     soundboardSelectionBox.items.add(
             FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mBoardSelectComboBox).withMargin(0).withFlex(1));
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
+}
+
+void SoundboardView::updateSoundboardSelector(Soundboard* selected)
+{
+    // Index shenanigans will go wrong when there are no soundboards, so return early:
+    // doesn't matter anyway as the soundboard selector only need to be cleared.
+    if (processor->getNumberOfSoundboards() == 0) {
+        mBoardSelectComboBox->clearItems();
+        return;
+    }
+
+    // The index of the item that was selected before the repopulation.
+    auto previouslySelectedIndex = mBoardSelectComboBox->getSelectedItemIndex();
+
+    // Repopulate the selector.
+    mBoardSelectComboBox->clearItems();
+    auto soundboardCount = processor->getNumberOfSoundboards();
+    for (int i = 0; i < soundboardCount; ++i) {
+        mBoardSelectComboBox->addItem(processor->getSoundboard(i).getName(), i);
+    }
+
+    // Select new item.
+    if (selected == nullptr) {
+        mBoardSelectComboBox->setSelectedItemIndex(previouslySelectedIndex < 0 ? 0 : previouslySelectedIndex);
+    }
+    else {
+        int newIndex = processor->getIndexOfSoundboard(*selected);
+        mBoardSelectComboBox->setSelectedItemIndex(newIndex);
+    }
 }
 
 void SoundboardView::updateButtons()
@@ -182,14 +207,8 @@ void SoundboardView::showMenuButtonContextMenu()
 void SoundboardView::clickedAddSoundboard()
 {
     auto callback = [this](const String& name) {
-        processor->addSoundboard(name);
-
-        // TODO: Replace with actual update to the soundboard combobox.
-        std::cout << "Soundboards:" << std::endl;
-        auto soundboards = processor->getNumberOfSoundboards();
-        for (int i = 0; i < soundboards; ++i) {
-            std::cout << "> " << processor->getSoundboard(i).getName() << std::endl;
-        }
+        Soundboard& createdSoundboard = processor->addSoundboard(name);
+        updateSoundboardSelector(&createdSoundboard);
     };
 
     auto content = std::make_unique<SoundboardEditView>(callback, nullptr);

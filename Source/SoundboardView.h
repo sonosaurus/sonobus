@@ -130,6 +130,15 @@ private:
     void createSoundboardSelectionPanel();
 
     /**
+     * Updates the soundboard selector to contain exactly all soundboards that are
+     * currently loaded in the soundboard state.
+     *
+     * @param selected The soundboard that must be selected after update, `null' when the current
+     * selection can stay.
+     */
+    void updateSoundboardSelector(Soundboard* selected = nullptr);
+
+    /**
      * Adds buttons for all available sounds for the selected soundboard.
      * Removes buttons of sounds that are not available anymore.
      */
