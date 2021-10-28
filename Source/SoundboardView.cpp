@@ -133,6 +133,19 @@ void SoundboardView::updateButtons()
         buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *textButton).withMargin(0).withFlex(0));
         mSoundButtons.emplace_back(std::move(textButton));
     }
+
+    mAddSampleButton = std::make_unique<SonoDrawableButton>("addSample", SonoDrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> imageAdd(Drawable::createFromImageData(BinaryData::plus_icon_svg, BinaryData::plus_icon_svgSize));
+    mAddSampleButton->setTooltip(TRANS("Add Sample"));
+    mAddSampleButton->setImages(imageAdd.get());
+    mAddSampleButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mAddSampleButton->setLookAndFeel(&dashedButtonLookAndFeel);
+    mAddSampleButton->onClick = [this]() {
+
+    };
+    addAndMakeVisible(mAddSampleButton.get());
+
+    buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mAddSampleButton).withMargin(0).withFlex(0));
 }
 
 void SoundboardView::showMenuButtonContextMenu()

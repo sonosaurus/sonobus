@@ -65,6 +65,11 @@ private:
     FlexBox soundboardSelectionBox;
 
     /**
+     * Look and feel for dashed buttons.
+     */
+     SonoDashedBorderButtonLookAndFeel dashedButtonLookAndFeel;
+
+    /**
      * Label showing the panel title.
      */
     std::unique_ptr<Label> mTitleLabel;
@@ -88,6 +93,11 @@ private:
      * All the buttons that can play a sound.
      */
     std::vector<std::unique_ptr<TextButton>> mSoundButtons;
+
+    /**
+     * Button that adds a new sample to the current soundboard.
+     */
+    std::unique_ptr<SonoDrawableButton> mAddSampleButton;
 
     /**
      * Creates the outer UI panels.

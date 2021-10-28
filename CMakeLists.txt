@@ -488,6 +488,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/person.png
         images/person.svg
         images/play_icon.svg
+        images/plus_icon.svg
         images/power.svg
         images/power_sel.svg
         images/record.svg
@@ -507,7 +508,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/triangle_disclosure.svg
         images/triangle_disclosure_right.svg
         images/urei_main.wav
-        images/x_icon.svg        
+        images/x_icon.svg
     )
 
     set_target_properties(${target_name}_SBData PROPERTIES FOLDER "Targets")
