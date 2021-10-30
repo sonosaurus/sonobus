@@ -352,12 +352,17 @@ void SoundboardView::clickedAddSoundSample()
 void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample)
 {
     auto callback = [this, &sample](SampleEditView& editView) {
-        auto sampleName = editView.getSampleName();
-        auto filePath = editView.getAbsoluteFilePath();
+        if (editView.isDeleteSample()) {
+            processor->deleteSoundSample(sample);
+        }
+        else {
+            auto sampleName = editView.getSampleName();
+            auto filePath = editView.getAbsoluteFilePath();
 
-        sample.setName(sampleName);
-        sample.setFilePath(filePath);
-        processor->editSoundSample(sample);
+            sample.setName(sampleName);
+            sample.setFilePath(filePath);
+            processor->editSoundSample(sample);
+        }
         updateButtons();
     };
 

@@ -36,9 +36,6 @@ public:
      */
     SoundSample(String name, String filePath, bool loop = false);
 
-    SoundSample(SoundSample&& other) noexcept : name(std::move(other.name)),
-                                                filePath(std::move(other.filePath)), loop(other.loop) { }
-
     String getName() const;
     void setName(String newName);
 
