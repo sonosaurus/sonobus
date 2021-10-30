@@ -15,6 +15,30 @@ public:
 
     void setPlaybackPosition(double value);
 
+    /**
+     * Function that gets called whenever the button is clicked with the primary button.
+     * onClick also gets called before this callback.
+     */
+    std::function<void()> onPrimaryClick;
+
+    /**
+     * Function that gets called whenever the button is clicked with the secondary button.
+     * onClick also gets called before this callback.
+     */
+    std::function<void()> onSecondaryClick;
+
+    void internalClickCallback(const ModifierKeys& mods) override
+    {
+        TextButton::internalClickCallback(mods);
+
+        if (mods.isLeftButtonDown()) {
+            onPrimaryClick();
+        }
+        else if (mods.isRightButtonDown()) {
+            onSecondaryClick();
+        }
+    }
+
     void paintButton(Graphics& graphics, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
 private:

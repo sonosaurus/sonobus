@@ -164,7 +164,7 @@ void SoundboardView::updateButtons()
 
         auto buttonAddress = textButton.get();
         SafePointer<SoundboardView> safeThis(this);
-        textButton->onClick = [safeThis, &sample, buttonAddress]() {
+        textButton->onPrimaryClick = [safeThis, &sample, buttonAddress]() {
             safeThis->playSample(sample);
             safeThis->currentlyPlayingButton = buttonAddress;
         };
@@ -357,8 +357,9 @@ void SoundboardView::onPlaybackPositionChanged(SoundboardChannelProcessor& chann
         return;
     }
 
-    auto position = channelProcessor.getLength() != 0.0 ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
-                                                        : 0.0;
+    auto position = channelProcessor.getLength() != 0.0
+            ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
+            : 0.0;
     currentlyPlayingButton->setPlaybackPosition(position);
     currentlyPlayingButton->repaint();
 }
