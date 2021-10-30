@@ -166,19 +166,7 @@ void SoundboardView::updateButtons()
         SafePointer<SoundboardView> safeThis(this);
         textButton->onClick = [safeThis, &sample, buttonAddress]() {
             safeThis->playSample(sample);
-            auto channelProcessor = safeThis->processor->getChannelProcessor();
-            auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
-            if (!isLoadSuccessful) {
-                AlertWindow::showMessageBoxAsync(
-                    AlertWindow::WarningIcon,
-                    TRANS("Cannot play file"),
-                    TRANS("The selected audio file failed to load. The file cannot be played.")
-                );
-                return;
-            }
-
             safeThis->currentlyPlayingButton = buttonAddress;
-            channelProcessor->play();
         };
         addAndMakeVisible(textButton.get());
 
