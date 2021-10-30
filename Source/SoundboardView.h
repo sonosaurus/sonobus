@@ -8,6 +8,7 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonoDrawableButton.h"
+#include "SonoPlaybackProgressButton.h"
 #include "SonoChoiceButton.h"
 #include "SoundboardProcessor.h"
 
@@ -16,10 +17,11 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardView : public Component, public SonoChoiceButton::Listener
+class SoundboardView : public Component, public SonoChoiceButton::Listener, private PlaybackPositionListener
 {
 public:
     SoundboardView(SoundboardChannelProcessor* channelProcessor);
+    ~SoundboardView();
 
     void paint(Graphics&) override;
     void resized() override;
@@ -94,7 +96,12 @@ private:
     /**
      * All the buttons that can play a sound.
      */
-    std::vector<std::unique_ptr<TextButton>> mSoundButtons;
+    std::vector<std::unique_ptr<SonoPlaybackProgressButton>> mSoundButtons;
+
+    /**
+     * Pointer to the button that is currently playing audio.
+     */
+    SonoPlaybackProgressButton* currentlyPlayingButton;
 
     /**
      * Button that adds a new sample to the current soundboard.
@@ -163,5 +170,7 @@ private:
      */
     void clickedDeleteSoundboard();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
+    void onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor) override;
+
+JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };

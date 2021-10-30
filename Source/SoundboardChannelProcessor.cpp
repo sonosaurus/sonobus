@@ -16,6 +16,7 @@ SoundboardChannelProcessor::SoundboardChannelProcessor()
 
 SoundboardChannelProcessor::~SoundboardChannelProcessor()
 {
+    stopTimer();
     transportSource.setSource(nullptr);
     transportSource.removeChangeListener(this);
 }
@@ -127,6 +128,7 @@ void SoundboardChannelProcessor::changeListenerCallback(ChangeBroadcaster* sourc
     if (!transportSource.isPlaying() && transportSource.getCurrentPosition() >= transportSource.getLengthInSeconds()) {
         // We are at the end, return to start
         transportSource.setPosition(0.0);
+        notifyPlaybackPositionListeners();
     }
 }
 
@@ -236,16 +238,19 @@ bool SoundboardChannelProcessor::loadFile(const URL& audioFileUrl)
 void SoundboardChannelProcessor::play()
 {
     transportSource.start();
+    startTimerHz(TIMER_HZ);
 }
 
 void SoundboardChannelProcessor::pause()
 {
+    stopTimer();
     transportSource.stop();
 }
 
 void SoundboardChannelProcessor::seek(double position)
 {
     transportSource.setPosition(position);
+    notifyPlaybackPositionListeners();
 }
 
 bool SoundboardChannelProcessor::isPlaying()
@@ -261,4 +266,16 @@ double SoundboardChannelProcessor::getCurrentPosition()
 double SoundboardChannelProcessor::getLength()
 {
     return transportSource.getLengthInSeconds();
+}
+
+void SoundboardChannelProcessor::timerCallback()
+{
+    notifyPlaybackPositionListeners();
+}
+
+void SoundboardChannelProcessor::notifyPlaybackPositionListeners()
+{
+    for (auto& listener : listeners) {
+        listener->onPlaybackPositionChanged(*this);
+    }
 }

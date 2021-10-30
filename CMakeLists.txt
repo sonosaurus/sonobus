@@ -283,6 +283,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonoDrawableButton.h
         Source/SonoLookAndFeel.cpp
         Source/SonoLookAndFeel.h
+        Source/SonoPlaybackProgressButton.cpp
+        Source/SonoPlaybackProgressButton.h
         Source/SonoStandaloneFilterApp.cpp
         Source/SonoStandaloneFilterWindow.h
         Source/SonoTextButton.cpp

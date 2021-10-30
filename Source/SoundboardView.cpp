@@ -8,6 +8,8 @@
 
 SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor) : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
 {
+    processor->getChannelProcessor()->attach(*this);
+
     setOpaque(true);
 
     createSoundboardTitle();
@@ -16,6 +18,11 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor) : p
 
     updateSoundboardSelector();
     updateButtons();
+}
+
+SoundboardView::~SoundboardView()
+{
+    processor->getChannelProcessor()->detach(*this);
 }
 
 void SoundboardView::createBasePanels()
@@ -136,6 +143,7 @@ void SoundboardView::updateSoundboardSelector()
 
 void SoundboardView::updateButtons()
 {
+    currentlyPlayingButton = nullptr;
     buttonBox.items.clear();
     mSoundButtons.clear();
 
@@ -147,11 +155,12 @@ void SoundboardView::updateButtons()
     auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
 
     for (const auto& sample: selectedBoard.getSamples()) {
-        auto textButton = std::make_unique<TextButton>(sample.getName(), sample.getName());
+        auto textButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
         textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
-        auto channelProcessor = processor->getChannelProcessor();
-        textButton->onClick = [&sample, channelProcessor]() {
+        auto buttonAddress = textButton.get();
+        textButton->onClick = [this, &sample, buttonAddress]() {
+            auto channelProcessor = this->processor->getChannelProcessor();
             auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
             if (!isLoadSuccessful) {
                 AlertWindow::showMessageBoxAsync(
@@ -162,6 +171,7 @@ void SoundboardView::updateButtons()
                 return;
             }
 
+            this->currentlyPlayingButton = buttonAddress;
             channelProcessor->play();
         };
         addAndMakeVisible(textButton.get());
@@ -306,4 +316,16 @@ void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int in
 {
     processor->selectSoundboard(index);
     updateButtons();
+}
+
+void SoundboardView::onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor)
+{
+    if (currentlyPlayingButton == nullptr) {
+        return;
+    }
+
+    auto position = channelProcessor.getLength() != 0.0 ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
+                                                        : 0.0;
+    currentlyPlayingButton->setPlaybackPosition(position);
+    currentlyPlayingButton->repaint();
 }

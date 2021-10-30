@@ -5,16 +5,36 @@
 
 #pragma once
 
+#include <list>
 #include "JuceHeader.h"
 #include "ChannelGroup.h"
+
+class SoundboardChannelProcessor;
+
+class PlaybackPositionListener
+{
+public:
+    virtual ~PlaybackPositionListener() = default;
+
+    /**
+     * Called when playback position of the currently playing file is changed.
+     *
+     * Note: during file playback, this is called repeatedly with a fixed time interval.
+     * It may be that the playback position has not actually changed value in this time.
+     *
+     * @param channelProcessor The channel processor that is playing the audio.
+     */
+    virtual void onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor) {};
+};
 
 /**
  * Provides a player for a single audio file.
  */
-class SoundboardChannelProcessor : public ChangeListener
+class SoundboardChannelProcessor : public ChangeListener, private Timer
 {
 private:
     constexpr static const int READ_AHEAD_BUFFER_SIZE = 65536;
+    constexpr static const int TIMER_HZ = 20;
 
     AudioSampleBuffer buffer;
     foleys::LevelMeterSource meterSource;
@@ -29,10 +49,16 @@ private:
 
     float lastGain = 0.0f;
 
+    std::list<PlaybackPositionListener*> listeners;
+
     /**
      * Unloads the currently loaded file (if any).
      */
     void unloadFile();
+
+    void timerCallback() override;
+
+    void notifyPlaybackPositionListeners();
 
 public:
     SoundboardChannelProcessor();
@@ -126,4 +152,8 @@ public:
     void sendAudioBlock(AudioBuffer<float>& sendWorkBuffer, int numSamples, int sendPanChannels, int startChannel);
 
     void releaseResources();
+
+    void attach(PlaybackPositionListener& listener) { listeners.emplace_back(&listener); }
+
+    void detach(PlaybackPositionListener& listener) { listeners.remove(&listener); }
 };
