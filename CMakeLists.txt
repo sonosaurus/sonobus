@@ -277,6 +277,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/RunCumulantor.cpp
         Source/RunCumulantor.h
         Source/RunningCumulant.h
+        Source/SampleEditView.cpp
+        Source/SampleEditView.h
         Source/SonoChoiceButton.cpp
         Source/SonoChoiceButton.h
         Source/SonoDrawableButton.cpp

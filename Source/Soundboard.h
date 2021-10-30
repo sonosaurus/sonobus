@@ -16,6 +16,19 @@
 class SoundSample
 {
 public:
+
+#if (JUCE_IOS || JUCE_MAC)
+    /**
+     * The file extensions of sound file types that are supported by the soundboard.
+     */
+    constexpr static const char SUPPORTED_EXTENSIONS[] = "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf";
+#else
+    /**
+     * The file extensions of sound file types that are supported by the soundboard.
+     */
+    constexpr static const char SUPPORTED_EXTENSIONS[] = "*.wav;*.flac;*.aif;*.ogg;*.mp3";
+#endif
+
     /**
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.

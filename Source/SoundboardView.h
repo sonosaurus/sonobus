@@ -20,10 +20,11 @@
 class SoundboardView : public Component, public SonoChoiceButton::Listener, private PlaybackPositionListener
 {
 public:
-    SoundboardView(SoundboardChannelProcessor* channelProcessor);
+    explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
     ~SoundboardView();
 
     void paint(Graphics&) override;
+
     void resized() override;
 
     void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
@@ -71,7 +72,12 @@ private:
     /**
      * Look and feel for dashed buttons.
      */
-     SonoDashedBorderButtonLookAndFeel dashedButtonLookAndFeel;
+    SonoDashedBorderButtonLookAndFeel dashedButtonLookAndFeel;
+
+    /**
+     * The parent directory of the last chosen browse directory.
+     */
+    std::unique_ptr<String> mLastSampleBrowseDirectory;
 
     /**
      * Label showing the panel title.
@@ -151,6 +157,13 @@ private:
     void updateButtons();
 
     /**
+     * Plays the sound of the given sample.
+     *
+     * @param sample The sample to play.
+     */
+    void playSample(const SoundSample& sample);
+
+    /**
      * Shows the context menu for the SoundBoard View main menu button.
      */
     void showMenuButtonContextMenu();
@@ -170,7 +183,12 @@ private:
      */
     void clickedDeleteSoundboard();
 
+    /**
+     * Call this method whenever the a new sound sample must be created.
+     */
+    void clickedAddSoundSample();
+
     void onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor) override;
 
-JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };

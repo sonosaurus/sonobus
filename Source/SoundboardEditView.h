@@ -19,6 +19,16 @@ class SoundboardEditView : public Component
 {
 public:
     /**
+     * The recommended width of the SoundboardEditView.
+     */
+    constexpr static const float DEFAULT_VIEW_WIDTH = 256;
+
+    /**
+     * The recommended height of the SoundboardEditView.
+     */
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 106;
+
+    /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
      * @param soundboard The soundboard that must be edited, or null when a new soundboard must be created.
      */
@@ -47,7 +57,6 @@ public:
     void resized() override;
 
 private:
-    constexpr static const float VIEW_WIDTH = 256;
     constexpr static const float ELEMENT_MARGIN = 4;
     constexpr static const float CONTROL_HEIGHT = 24;
 

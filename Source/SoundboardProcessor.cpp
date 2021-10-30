@@ -52,6 +52,24 @@ void SoundboardProcessor::selectSoundboard(int index)
     saveToDisk();
 }
 
+SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath)
+{
+    // Per definition: do nothing when no soundboard is selected.
+    if (!selectedSoundboardIndex.has_value()) {
+        return nullptr;
+    }
+
+    auto& soundboard = soundboards[selectedSoundboardIndex.value()];
+    auto& sampleList = soundboard.getSamples();
+
+    SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath));
+    sampleList.emplace_back(std::move(sampleToAdd));
+
+    saveToDisk();
+
+    return &sampleList[sampleList.size() - 1];
+}
+
 void SoundboardProcessor::writeSoundboardsToFile(const File &file) const
 {
     ValueTree tree(SOUNDBOARDS_KEY);

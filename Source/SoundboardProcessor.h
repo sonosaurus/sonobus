@@ -72,7 +72,18 @@ public:
     /**
      * @return The index of the currently selected soundboard.
      */
-    [[nodiscard]] const std::optional<int> getSelectedSoundboardIndex() const { return selectedSoundboardIndex; }
+    [[nodiscard]] std::optional<int> getSelectedSoundboardIndex() const { return selectedSoundboardIndex; }
+
+    /**
+     * Adds the given sample to the currently selected soundboard.
+     * Does nothing when no soundboard is selected.
+     *
+     * @param name The name of the new sample.
+     * @param absolutePath The absolute path to the file of the new sample.
+     *
+     * @return Pointer to the added sound sample, nullptr when no sound was added.
+     */
+    SoundSample* addSoundSample(String name, String absolutePath);
 
     /**
      * @return The channel processor for playing and sending audio.
