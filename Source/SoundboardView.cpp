@@ -302,7 +302,11 @@ void SoundboardView::clickedDeleteSoundboard()
 void SoundboardView::clickedAddSoundSample()
 {
     auto callback = [this](SampleEditView& editView) {
-        /* TODO: On save sound */
+        auto sampleName = editView.getSampleName();
+        auto filePath = editView.getAbsoluteFilePath();
+
+        processor->addSoundSample(sampleName, filePath);
+        updateButtons();
     };
 
     auto content = std::make_unique<SampleEditView>(callback, nullptr, mLastSampleBrowseDirectory.get());
