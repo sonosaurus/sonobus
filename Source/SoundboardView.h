@@ -150,6 +150,13 @@ private:
     void updateButtons();
 
     /**
+     * Plays the sound of the given sample.
+     *
+     * @param sample The sample to play.
+     */
+    void playSample(const SoundSample& sample);
+
+    /**
      * Shows the context menu for the SoundBoard View main menu button.
      */
     void showMenuButtonContextMenu();

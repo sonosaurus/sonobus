@@ -154,19 +154,9 @@ void SoundboardView::updateButtons()
         auto textButton = std::make_unique<TextButton>(sample.getName(), sample.getName());
         textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
-        auto channelProcessor = processor->getChannelProcessor();
-        textButton->onClick = [&sample, channelProcessor]() {
-            auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
-            if (!isLoadSuccessful) {
-                AlertWindow::showMessageBoxAsync(
-                        AlertWindow::WarningIcon,
-                        TRANS("Cannot play file"),
-                        TRANS("The selected audio file failed to load. The file cannot be played.")
-                );
-                return;
-            }
-
-            channelProcessor->play();
+        SafePointer<SoundboardView> safeThis(this);
+        textButton->onClick = [safeThis, &sample]() {
+            safeThis->playSample(sample);
         };
         addAndMakeVisible(textButton.get());
 
@@ -194,6 +184,22 @@ void SoundboardView::updateButtons()
 
     // Trigger repaint
     resized();
+}
+
+void SoundboardView::playSample(const SoundSample& sample)
+{
+    auto channelProcessor = processor->getChannelProcessor();
+    auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
+    if (!isLoadSuccessful) {
+        AlertWindow::showMessageBoxAsync(
+                AlertWindow::WarningIcon,
+                TRANS("Cannot play file"),
+                TRANS("The selected audio file failed to load. The file cannot be played.")
+        );
+        return;
+    }
+
+    channelProcessor->play();
 }
 
 void SoundboardView::showMenuButtonContextMenu()
