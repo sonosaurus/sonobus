@@ -227,9 +227,6 @@ bool SoundboardChannelProcessor::loadFile(const URL& audioFileUrl)
     currentTransportURL = URL(audioFileUrl);
     currentFileSource.reset(new AudioFormatReaderSource(reader, true));
 
-    // TODO: I'm not sure if this is really necessary. It would really complicate separation of concerns though...
-//    transportSource.prepareToPlay(currentSamplesPerBlock, currentSampleRate);
-
     transportSource.setSource(currentFileSource.get(), READ_AHEAD_BUFFER_SIZE, &diskThread, reader->sampleRate, reader->numChannels);
 
     return true;
@@ -251,6 +248,11 @@ void SoundboardChannelProcessor::seek(double position)
 {
     transportSource.setPosition(position);
     notifyPlaybackPositionListeners();
+}
+
+void SoundboardChannelProcessor::setLooping(bool looping)
+{
+    transportSource.setLooping(looping);
 }
 
 bool SoundboardChannelProcessor::isPlaying()

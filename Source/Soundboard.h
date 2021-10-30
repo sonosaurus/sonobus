@@ -32,11 +32,12 @@ public:
     /**
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.
+     * @param loop Whether the sample should loop on playback.
      */
-    SoundSample(String name, String filePath);
+    SoundSample(String name, String filePath, bool loop = false);
 
     SoundSample(SoundSample&& other) noexcept : name(std::move(other.name)),
-                                                filePath(std::move(other.filePath)) { }
+                                                filePath(std::move(other.filePath)), loop(other.loop) { }
 
     String getName() const;
     void setName(String newName);
@@ -50,6 +51,9 @@ public:
      * @param filePath The absolute file path of the underlying sound file.
      */
     void setFilePath(String filePath);
+
+    bool isLoop() const;
+    void setLoop(bool newLoop);
 
     /**
      * Serialize the sound sample.
@@ -83,6 +87,11 @@ private:
     constexpr static const char FILE_PATH_KEY[] = "filePath";
 
     /**
+     * Key for the loop property of the root node in the serialization tree data structure.
+     */
+    constexpr static const char LOOP_KEY[] = "loop";
+
+    /**
      * The name representing the sound sample.
      */
     String name;
@@ -91,6 +100,11 @@ private:
      * The absolute file path of the underlying sound file.
      */
     String filePath;
+
+    /**
+     * Whether the sample should loop (indefinitely).
+     */
+    bool loop;
 };
 
 /**

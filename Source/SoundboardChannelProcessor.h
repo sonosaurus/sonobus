@@ -94,6 +94,15 @@ public:
     void seek(double position);
 
     /**
+     * Sets whether the player should loop the current file.
+     *
+     * When loading a new file, the looping setting is remembered.
+     *
+     * @param looping Whether the player should loop the file.
+     */
+    void setLooping(bool looping);
+
+    /**
      * Returns whether a loaded file is currently playing.
      *
      * @return True when a file is currently playing, false otherwise.

@@ -222,6 +222,7 @@ void SoundboardView::playSample(const SoundSample& sample)
         return;
     }
 
+    channelProcessor->setLooping(sample.isLoop());
     channelProcessor->play();
 }
 
