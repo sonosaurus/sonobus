@@ -22,6 +22,7 @@ public:
     explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
 
     void paint(Graphics&) override;
+
     void resized() override;
 
     void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
@@ -69,7 +70,12 @@ private:
     /**
      * Look and feel for dashed buttons.
      */
-     SonoDashedBorderButtonLookAndFeel dashedButtonLookAndFeel;
+    SonoDashedBorderButtonLookAndFeel dashedButtonLookAndFeel;
+
+    /**
+     * The parent directory of the last chosen browse directory.
+     */
+    std::unique_ptr<String> mLastSampleBrowseDirectory;
 
     /**
      * Label showing the panel title.

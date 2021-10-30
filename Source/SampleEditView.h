@@ -31,8 +31,14 @@ public:
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
      * @param soundSample The sample that must be edited, or null when a new sample must be created.
+     * @param lastOpenedDirectoryString Where to store the directory that was last opened using the browse button,
+     *              or nullptr when the last directory should not be stored.
      */
-    explicit SampleEditView(std::function<void (SampleEditView&)> callback, const SoundSample* soundSample = nullptr);
+    explicit SampleEditView(
+            std::function<void(SampleEditView&)> callback,
+            const SoundSample* soundSample = nullptr,
+            String* lastOpenedDirectoryString = nullptr
+    );
 
     /**
      * @return The sample name that was entered.
@@ -49,16 +55,19 @@ public:
      *
      * @return true if the dialog is in edit mode.
      */
-    [[nodiscard]] bool isEditMode() const { return editModeEnabled; }
+    [[nodiscard]] bool isEditMode() const
+    { return editModeEnabled; }
 
     /**
      * Whether the dialog is in create mode.
      *
      * @return true if the dialog is in create mode.
      */
-    [[nodiscard]] bool isCreateMode() const { return !editModeEnabled; }
+    [[nodiscard]] bool isCreateMode() const
+    { return !editModeEnabled; }
 
     void paint(Graphics&) override;
+
     void resized() override;
 
 private:
@@ -81,10 +90,16 @@ private:
     String initialFilePath = "";
 
     /**
+     * The directory that was last opened by the file chooser.
+     * nullptr when this should not be stored.
+     */
+    String* lastOpenedDirectory = nullptr;
+
+    /**
      * Function to call whenever the submit button is clicked.
      * Parameter is the inputted name.
      */
-    std::function<void (SampleEditView&)> submitCallback;
+    std::function<void(SampleEditView&)> submitCallback;
 
     /**
      * Outer layout.

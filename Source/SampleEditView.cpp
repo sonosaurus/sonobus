@@ -8,10 +8,14 @@
 #include <utility>
 #include <iostream>
 
-SampleEditView::SampleEditView(std::function<void(SampleEditView&)> callback, const SoundSample* soundSample)
-        : editModeEnabled(soundSample != nullptr),
-          initialName(soundSample == nullptr ? "" : soundSample->getName()),
-          submitCallback(std::move(callback))
+SampleEditView::SampleEditView(
+        std::function<void(SampleEditView&)> callback,
+        const SoundSample* soundSample,
+        String* lastOpenedDirectoryString
+) : editModeEnabled(soundSample != nullptr),
+    initialName(soundSample == nullptr ? "" : soundSample->getName()),
+    submitCallback(std::move(callback)),
+    lastOpenedDirectory(lastOpenedDirectoryString)
 {
     setOpaque(true);
 
@@ -121,9 +125,16 @@ String SampleEditView::getAbsoluteFilePath() const
 
 void SampleEditView::browseFilePath()
 {
+    // Determine where to open the file chooser.
+    File defaultDirectory = File::getSpecialLocation(File::userMusicDirectory);
+    if (lastOpenedDirectory != nullptr) {
+        defaultDirectory = File(*lastOpenedDirectory);
+    }
+
+    // Open the file chooser.
     mFileChooser = std::make_unique<FileChooser>(
             TRANS("Select an audio file..."),
-            File::getSpecialLocation(File::userMusicDirectory),
+            defaultDirectory,
             SoundSample::SUPPORTED_EXTENSIONS
     );
     auto folderFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
@@ -131,7 +142,12 @@ void SampleEditView::browseFilePath()
     mFileChooser->launchAsync(folderFlags, [this](const FileChooser& chooser) {
         File chosenFile = chooser.getResult();
         mFilePathInput->setText(chosenFile.getFullPathName(), true);
+
         inferSampleName();
+
+        if (lastOpenedDirectory != nullptr) {
+            *lastOpenedDirectory = chosenFile.getParentDirectory().getFullPathName();
+        }
     });
 }
 

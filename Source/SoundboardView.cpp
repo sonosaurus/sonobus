@@ -18,6 +18,8 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
 
     updateSoundboardSelector();
     updateButtons();
+
+    mLastSampleBrowseDirectory = std::make_unique<String>(File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
 }
 
 void SoundboardView::createBasePanels()
@@ -303,7 +305,7 @@ void SoundboardView::clickedAddSoundSample()
         /* TODO: On save sound */
     };
 
-    auto content = std::make_unique<SampleEditView>(callback);
+    auto content = std::make_unique<SampleEditView>(callback, nullptr, mLastSampleBrowseDirectory.get());
     content->setSize(SampleEditView::DEFAULT_VIEW_WIDTH, SampleEditView::DEFAULT_VIEW_HEIGHT);
 
     CallOutBox::launchAsynchronously(
