@@ -115,7 +115,6 @@ public:
      * Get the list of sound samples that are part of this soundboard.
      */
     std::vector<SoundSample>& getSamples();
-    const std::vector<SoundSample>& getSamples() const;
 
     /**
      * Serialize the soundboard.

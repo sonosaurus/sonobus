@@ -62,7 +62,7 @@ public:
      * @param [in] index The index of the soundboard.
      * @return The Soundboard at position `index`.
      */
-    [[nodiscard]] const Soundboard& getSoundboard(size_t index) const { return soundboards[index]; }
+    [[nodiscard]] Soundboard& getSoundboard(size_t index) { return soundboards[index]; }
 
     /**
      * @return The current amount of soundboards present.
@@ -84,6 +84,11 @@ public:
      * @return Pointer to the added sound sample, nullptr when no sound was added.
      */
     SoundSample* addSoundSample(String name, String absolutePath);
+
+    /**
+     * @param sampleToUpdate The sample to save with already containing the updated state.
+     */
+    void editSoundSample(SoundSample& sampleToUpdate);
 
     /**
      * @return The channel processor for playing and sending audio.

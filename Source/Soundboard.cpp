@@ -60,11 +60,6 @@ void Soundboard::setName(String newName)
     this->name = std::move(newName);
 }
 
-const std::vector<SoundSample>& Soundboard::getSamples() const
-{
-    return this->samples;
-}
-
 std::vector<SoundSample>& Soundboard::getSamples()
 {
     return this->samples;

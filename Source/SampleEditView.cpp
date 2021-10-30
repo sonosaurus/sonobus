@@ -14,6 +14,7 @@ SampleEditView::SampleEditView(
         String* lastOpenedDirectoryString
 ) : editModeEnabled(soundSample != nullptr),
     initialName(soundSample == nullptr ? "" : soundSample->getName()),
+    initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString)
 {
@@ -54,9 +55,6 @@ void SampleEditView::createNameInputs()
 
     mNameInput = std::make_unique<TextEditor>("nameInput");
     mNameInput->setText(initialName);
-    mNameInput->onTextChange = [this]() {
-        /* TODO: Handle event */
-    };
     addAndMakeVisible(mNameInput.get());
 }
 
@@ -70,9 +68,6 @@ void SampleEditView::createFilePathInputs()
 
     mFilePathInput = std::make_unique<TextEditor>("filePathInput");
     mFilePathInput->setText(initialFilePath);
-    mFilePathInput->onTextChange = [this]() {
-        /* TODO: Handle event */
-    };
     addAndMakeVisible(mFilePathInput.get());
 
     mBrowseFilePathButton = std::make_unique<SonoTextButton>(TRANS("Browse"));

@@ -21,7 +21,8 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
     updateSoundboardSelector();
     updateButtons();
 
-    mLastSampleBrowseDirectory = std::make_unique<String>(File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
+    mLastSampleBrowseDirectory = std::make_unique<String>(
+            File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
 }
 
 SoundboardView::~SoundboardView()
@@ -158,15 +159,17 @@ void SoundboardView::updateButtons()
 
     auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
 
-    for (const auto& sample: selectedBoard.getSamples()) {
+    for (auto& sample: selectedBoard.getSamples()) {
         auto textButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
         textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
 
         auto buttonAddress = textButton.get();
-        SafePointer<SoundboardView> safeThis(this);
-        textButton->onPrimaryClick = [safeThis, &sample, buttonAddress]() {
-            safeThis->playSample(sample);
-            safeThis->currentlyPlayingButton = buttonAddress;
+        textButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+            playSample(sample);
+            currentlyPlayingButton = buttonAddress;
+        };
+        textButton->onSecondaryClick = [this, &sample, buttonAddress]() {
+            clickedEditSoundSample(*buttonAddress, sample);
         };
         addAndMakeVisible(textButton.get());
 
@@ -335,6 +338,28 @@ void SoundboardView::clickedAddSoundSample()
     );
 }
 
+void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample)
+{
+    auto callback = [this, &sample](SampleEditView& editView) {
+        auto sampleName = editView.getSampleName();
+        auto filePath = editView.getAbsoluteFilePath();
+
+        sample.setName(sampleName);
+        sample.setFilePath(filePath);
+        processor->editSoundSample(sample);
+        updateButtons();
+    };
+
+    auto content = std::make_unique<SampleEditView>(callback, &sample, mLastSampleBrowseDirectory.get());
+    content->setSize(SampleEditView::DEFAULT_VIEW_WIDTH, SampleEditView::DEFAULT_VIEW_HEIGHT);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            button.getScreenBounds(),
+            nullptr
+    );
+}
+
 void SoundboardView::paint(Graphics& g)
 {
     g.fillAll(Colour(0xff272727));
@@ -358,8 +383,8 @@ void SoundboardView::onPlaybackPositionChanged(SoundboardChannelProcessor& chann
     }
 
     auto position = channelProcessor.getLength() != 0.0
-            ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
-            : 0.0;
+                    ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
+                    : 0.0;
     currentlyPlayingButton->setPlaybackPosition(position);
     currentlyPlayingButton->repaint();
 }

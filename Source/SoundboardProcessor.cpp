@@ -70,6 +70,11 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
     return &sampleList[sampleList.size() - 1];
 }
 
+void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
+{
+    saveToDisk();
+}
+
 void SoundboardProcessor::writeSoundboardsToFile(const File &file) const
 {
     ValueTree tree(SOUNDBOARDS_KEY);

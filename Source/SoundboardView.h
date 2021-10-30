@@ -188,6 +188,14 @@ private:
      */
     void clickedAddSoundSample();
 
+    /**
+     * Call this method whenever the an existing sound sample must be edited.
+     *
+     * @param button The sample button.
+     * @param sample The sample that must be edited.
+     */
+    void clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample);
+
     void onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
