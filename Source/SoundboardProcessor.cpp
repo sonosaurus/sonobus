@@ -44,6 +44,12 @@ void SoundboardProcessor::deleteSoundboard(int index)
         currentlyPlayingButtonIndex = {};
     }
 
+    // If the last soundboard was selected
+    if (selectedSoundboardIndex == soundboards.size()) {
+        auto selected = selectedSoundboardIndex.value();
+        selectedSoundboardIndex = selected > 0 ? std::optional<int>(selected - 1) : std::nullopt;
+    }
+
     saveToDisk();
 }
 
