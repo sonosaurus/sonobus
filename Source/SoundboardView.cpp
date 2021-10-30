@@ -5,8 +5,10 @@
 
 #include "SoundboardView.h"
 #include "SoundboardEditView.h"
+#include "SampleEditView.h"
 
-SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor) : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
+SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
+        : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
 {
     setOpaque(true);
 
@@ -155,9 +157,9 @@ void SoundboardView::updateButtons()
             auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
             if (!isLoadSuccessful) {
                 AlertWindow::showMessageBoxAsync(
-                    AlertWindow::WarningIcon,
-                    TRANS("Cannot play file"),
-                    TRANS("The selected audio file failed to load. The file cannot be played.")
+                        AlertWindow::WarningIcon,
+                        TRANS("Cannot play file"),
+                        TRANS("The selected audio file failed to load. The file cannot be played.")
                 );
                 return;
             }
@@ -170,16 +172,19 @@ void SoundboardView::updateButtons()
         mSoundButtons.emplace_back(std::move(textButton));
     }
 
-    mAddSampleButton = std::make_unique<SonoDrawableButton>("addSample",
-                                                            SonoDrawableButton::ButtonStyle::ImageOnButtonBackground);
+    mAddSampleButton = std::make_unique<SonoDrawableButton>(
+            "addSample",
+            SonoDrawableButton::ButtonStyle::ImageOnButtonBackground
+    );
     std::unique_ptr<Drawable> imageAdd(
-            Drawable::createFromImageData(BinaryData::plus_icon_svg, BinaryData::plus_icon_svgSize));
+            Drawable::createFromImageData(BinaryData::plus_icon_svg, BinaryData::plus_icon_svgSize)
+    );
     mAddSampleButton->setTooltip(TRANS("Add Sample"));
     mAddSampleButton->setImages(imageAdd.get());
     mAddSampleButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     mAddSampleButton->setLookAndFeel(&dashedButtonLookAndFeel);
     mAddSampleButton->onClick = [this]() {
-
+        clickedAddSoundSample();
     };
     addAndMakeVisible(mAddSampleButton.get());
 
@@ -247,7 +252,7 @@ void SoundboardView::clickedRenameSoundboard()
 
     auto& currentSoundboard = processor->getSoundboard(mBoardSelectComboBox->getSelectedItemIndex());
     auto content = std::make_unique<SoundboardEditView>(callback, &currentSoundboard);
-    content->setSize(256, 100);
+    content->setSize(SoundboardEditView::DEFAULT_VIEW_WIDTH, SoundboardEditView::DEFAULT_VIEW_HEIGHT);
 
     CallOutBox::launchAsynchronously(
             std::move(content),
@@ -290,6 +295,22 @@ void SoundboardView::clickedDeleteSoundboard()
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, parent, callback, -1, 128);
+}
+
+void SoundboardView::clickedAddSoundSample()
+{
+    auto callback = [this](SampleEditView& editView) {
+        /* TODO: On save sound */
+    };
+
+    auto content = std::make_unique<SampleEditView>(callback);
+    content->setSize(SampleEditView::DEFAULT_VIEW_WIDTH, SampleEditView::DEFAULT_VIEW_HEIGHT);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            mAddSampleButton->getScreenBounds(),
+            nullptr
+    );
 }
 
 void SoundboardView::paint(Graphics& g)

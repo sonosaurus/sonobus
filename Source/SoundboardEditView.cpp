@@ -44,22 +44,22 @@ SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, co
 
     buttonBox.flexDirection = FlexBox::Direction::row;
     buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    buttonBox.items.add(FlexItem(VIEW_WIDTH / 4 * 2.2, CONTROL_HEIGHT, *mSubmitButton).withMargin(0).withFlex(3));
+    buttonBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 4 * 2.2, CONTROL_HEIGHT, *mSubmitButton).withMargin(0).withFlex(3));
     buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    buttonBox.items.add(FlexItem(VIEW_WIDTH / 4, CONTROL_HEIGHT, *mCancelButton).withMargin(0).withFlex(1));
+    buttonBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 4, CONTROL_HEIGHT, *mCancelButton).withMargin(0).withFlex(1));
     buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 
     contentBox.flexDirection = FlexBox::Direction::column;
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(VIEW_WIDTH, CONTROL_HEIGHT, *mMessageLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mMessageLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(VIEW_WIDTH - 24, CONTROL_HEIGHT, *mInputField).withMargin(4).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 24, CONTROL_HEIGHT, *mInputField).withMargin(4).withFlex(0));
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, CONTROL_HEIGHT, buttonBox).withMargin(4).withFlex(0));
 
     mainBox.items.clear();
     mainBox.flexDirection = FlexBox::Direction::row;
-    mainBox.items.add(FlexItem(VIEW_WIDTH, ELEMENT_MARGIN, contentBox).withMargin(0).withFlex(1));
+    mainBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, ELEMENT_MARGIN, contentBox).withMargin(0).withFlex(1));
 }
 
 String SoundboardEditView::getInputName() const
@@ -76,8 +76,8 @@ void SoundboardEditView::submitDialog()
     }
 
     this->initialName = inputtedName;
-    submitCallback(inputtedName);
 
+    submitCallback(inputtedName);
     dismissDialog();
 }
 

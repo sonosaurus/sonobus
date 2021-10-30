@@ -10,34 +10,34 @@
 #include "SonoTextButton.h"
 
 /**
- * Dialog for creating/renaming a soundboard.
+ * Dialog for creating/editing soundboard samples.
  * Meant for use in a CallOutBox.
  *
  * @author Hannah Schellekens
  */
-class SoundboardEditView : public Component
+class SampleEditView : public Component
 {
 public:
     /**
-     * The recommended width of the SoundboardEditView.
+     * The recommended width of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_WIDTH = 256;
+    constexpr static const float DEFAULT_VIEW_WIDTH = 350;
 
     /**
-     * The recommended height of the SoundboardEditView.
+     * The recommended height of the Sample edit view.
      */
     constexpr static const float DEFAULT_VIEW_HEIGHT = 100;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
-     * @param soundboard The soundboard that must be edited, or null when a new soundboard must be created.
+     * @param soundSample The sample that must be edited, or null when a new sample must be created.
      */
-    explicit SoundboardEditView(std::function<void (String)> callback, const Soundboard* soundboard = nullptr);
+    explicit SampleEditView(std::function<void (SampleEditView&)> callback, const SoundSample* soundSample = nullptr);
 
     /**
-     * @return The soundboard name that was entered.
+     * @return The sample name that was entered.
      */
-    [[nodiscard]] String getInputName() const;
+    [[nodiscard]] String getSampleName() const;
 
     /**
      * Whether the dialog is in edit mode.
@@ -74,7 +74,7 @@ private:
      * Function to call whenever the submit button is clicked.
      * Parameter is the inputted name.
      */
-    std::function<void (String)> submitCallback;
+    std::function<void (SampleEditView&)> submitCallback;
 
     /**
      * Outer layout.
@@ -92,24 +92,39 @@ private:
     FlexBox buttonBox;
 
     /**
-     * Label showing the prompt to the user.
+     * Label for the SoundSample name field.
      */
-    std::unique_ptr<Label> mMessageLabel;
+    std::unique_ptr<Label> mNameLabel;
 
     /**
-     * Text box for entering the soundboard name.
+     * Text input for the SoundSample name field.
      */
-    std::unique_ptr<TextEditor> mInputField;
+    std::unique_ptr<TextEditor> mNameInput;
 
     /**
-     * The button that submits the info in the dialog.
+     * Button that saves the sound sample/submits the dialog.
      */
     std::unique_ptr<SonoTextButton> mSubmitButton;
 
     /**
-     * The button that cancels the dialog and closes without modifying state.
+     * Button that deletes the sound sample.
      */
-    std::unique_ptr<SonoTextButton> mCancelButton;
+    std::unique_ptr<SonoTextButton> mDeleteButton;
+
+    /**
+     * Initialises all layout elements.
+     */
+    void initialiseLayouts();
+
+    /**
+     * Creates the input controls for the sample name.
+     */
+    void createNameInputs();
+
+    /**
+     * Creates the button bar elements.
+     */
+    void createButtonBar();
 
     /**
      * Submit the input.
@@ -121,5 +136,5 @@ private:
      */
     void dismissDialog();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardEditView)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SampleEditView)
 };

@@ -19,7 +19,7 @@
 class SoundboardView : public Component, public SonoChoiceButton::Listener
 {
 public:
-    SoundboardView(SoundboardChannelProcessor* channelProcessor);
+    explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
 
     void paint(Graphics&) override;
     void resized() override;
@@ -162,6 +162,11 @@ private:
      * Call this method whenever the "Delete Soundboard" option is clicked.
      */
     void clickedDeleteSoundboard();
+
+    /**
+     * Call this method whenever the a new sound sample must be created.
+     */
+    void clickedAddSoundSample();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };
