@@ -8,7 +8,7 @@
 #include <utility>
 #include <iostream>
 
-SampleEditView::SampleEditView(std::function<void (SampleEditView&)> callback, const SoundSample* soundSample)
+SampleEditView::SampleEditView(std::function<void(SampleEditView&)> callback, const SoundSample* soundSample)
         : editModeEnabled(soundSample != nullptr),
           initialName(soundSample == nullptr ? "" : soundSample->getName()),
           submitCallback(std::move(callback))
@@ -16,6 +16,7 @@ SampleEditView::SampleEditView(std::function<void (SampleEditView&)> callback, c
     setOpaque(true);
 
     createNameInputs();
+    createFilePathInputs();
     createButtonBar();
     initialiseLayouts();
 }
@@ -25,9 +26,14 @@ void SampleEditView::initialiseLayouts()
     contentBox.flexDirection = FlexBox::Direction::column;
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mNameLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 32, CONTROL_HEIGHT, *mNameInput).withMargin(4).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 36, CONTROL_HEIGHT, *mNameInput).withMargin(4).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mFilePathLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, filePathBox).withMargin(0).withFlex(0));
+
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 3).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
 
     mainBox.items.clear();
     mainBox.flexDirection = FlexBox::Direction::row;
@@ -50,15 +56,37 @@ void SampleEditView::createNameInputs()
     addAndMakeVisible(mNameInput.get());
 }
 
+void SampleEditView::createFilePathInputs()
+{
+    mFilePathLabel = std::make_unique<Label>("filePathLabel", TRANS("Absolute file path"));
+    mFilePathLabel->setJustificationType(Justification::left);
+    mFilePathLabel->setFont(Font(14, Font::bold));
+    mFilePathLabel->setColour(Label::textColourId, Colour(0xeeffffff));
+    addAndMakeVisible(mFilePathLabel.get());
+
+    mFilePathInput = std::make_unique<TextEditor>("filePathInput");
+    mFilePathInput->setText(initialFilePath);
+    mFilePathInput->onTextChange = [this]() {
+        /* TODO: Handle event */
+    };
+    addAndMakeVisible(mFilePathInput.get());
+
+    mBrowseFilePathButton = std::make_unique<SonoTextButton>(TRANS("Browse"));
+    mBrowseFilePathButton->onClick = [this]() {
+        browseFilePath();
+    };
+    addAndMakeVisible(mBrowseFilePathButton.get());
+
+    filePathBox.flexDirection = FlexBox::Direction::row;
+    filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    filePathBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 84, CONTROL_HEIGHT, *mFilePathInput).withMargin(0).withFlex(0));
+    filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    filePathBox.items.add(FlexItem(72, CONTROL_HEIGHT, *mBrowseFilePathButton).withMargin(0).withFlex(0));
+    filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+}
+
 void SampleEditView::createButtonBar()
 {
-    buttonBox.flexDirection = FlexBox::Direction::row;
-    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    buttonBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 4 * 2.2, CONTROL_HEIGHT, *mSubmitButton).withMargin(0).withFlex(3));
-    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    buttonBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 4, CONTROL_HEIGHT, *mDeleteButton).withMargin(0).withFlex(1));
-    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-
     mSubmitButton = std::make_unique<SonoTextButton>(isEditMode() ? TRANS("Update Sample") : TRANS("Save Sample"));
     mSubmitButton->onClick = [this]() {
         submitDialog();
@@ -71,11 +99,51 @@ void SampleEditView::createButtonBar()
         dismissDialog();
     };
     addAndMakeVisible(mDeleteButton.get());
+
+    buttonBox.flexDirection = FlexBox::Direction::row;
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    buttonBox.items.add(
+            FlexItem(DEFAULT_VIEW_WIDTH / 4 * 2.2, CONTROL_HEIGHT, *mSubmitButton).withMargin(0).withFlex(3));
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    buttonBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 4, CONTROL_HEIGHT, *mDeleteButton).withMargin(0).withFlex(1));
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 String SampleEditView::getSampleName() const
 {
-    return mNameInput->getText();
+    return mNameInput->getText().trim();
+}
+
+String SampleEditView::getAbsoluteFilePath() const
+{
+    return mFilePathInput->getText().trim();
+}
+
+void SampleEditView::browseFilePath()
+{
+    mFileChooser = std::make_unique<FileChooser>(
+            TRANS("Select an audio file..."),
+            File::getSpecialLocation(File::userMusicDirectory),
+            SoundSample::SUPPORTED_EXTENSIONS
+    );
+    auto folderFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
+
+    mFileChooser->launchAsync(folderFlags, [this](const FileChooser& chooser) {
+        File chosenFile = chooser.getResult();
+        mFilePathInput->setText(chosenFile.getFullPathName(), true);
+        inferSampleName();
+    });
+}
+
+void SampleEditView::inferSampleName()
+{
+    auto absolutePath = getAbsoluteFilePath();
+    if (!mNameInput->isEmpty() || absolutePath.isEmpty()) {
+        return;
+    }
+
+    auto probablyFile = File(getAbsoluteFilePath());
+    mNameInput->setText(probablyFile.getFileNameWithoutExtension());
 }
 
 void SampleEditView::submitDialog()

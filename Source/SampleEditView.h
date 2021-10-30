@@ -21,12 +21,12 @@ public:
     /**
      * The recommended width of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_WIDTH = 350;
+    constexpr static const float DEFAULT_VIEW_WIDTH = 380;
 
     /**
      * The recommended height of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 100;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 160;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
@@ -38,6 +38,11 @@ public:
      * @return The sample name that was entered.
      */
     [[nodiscard]] String getSampleName() const;
+
+    /**
+     * @return The absolute file path to the sound file of the sound sample.
+     */
+    [[nodiscard]] String getAbsoluteFilePath() const;
 
     /**
      * Whether the dialog is in edit mode.
@@ -71,6 +76,11 @@ private:
     String initialName = "";
 
     /**
+     * The file path that is shown upon opening the dialog.
+     */
+    String initialFilePath = "";
+
+    /**
      * Function to call whenever the submit button is clicked.
      * Parameter is the inputted name.
      */
@@ -92,6 +102,11 @@ private:
     FlexBox buttonBox;
 
     /**
+     * Box for the file path input and browse button.
+     */
+    FlexBox filePathBox;
+
+    /**
      * Label for the SoundSample name field.
      */
     std::unique_ptr<Label> mNameLabel;
@@ -100,6 +115,26 @@ private:
      * Text input for the SoundSample name field.
      */
     std::unique_ptr<TextEditor> mNameInput;
+
+    /**
+     * Label for the file path input field.
+     */
+    std::unique_ptr<Label> mFilePathLabel;
+
+    /**
+     * Text input for the SoundSample name field.
+     */
+    std::unique_ptr<TextEditor> mFilePathInput;
+
+    /**
+     * Button that prompts the user for a file to be put in the file path input.
+     */
+    std::unique_ptr<SonoTextButton> mBrowseFilePathButton;
+
+    /**
+     * Dialog box to choose the sound sample.
+     */
+    std::unique_ptr<FileChooser> mFileChooser;
 
     /**
      * Button that saves the sound sample/submits the dialog.
@@ -122,9 +157,24 @@ private:
     void createNameInputs();
 
     /**
+     * Creates the input controls for the file path.
+     */
+    void createFilePathInputs();
+
+    /**
      * Creates the button bar elements.
      */
     void createButtonBar();
+
+    /**
+     * Lets the user browse for a sound file to select.
+     */
+    void browseFilePath();
+
+    /**
+     * Fills in the sample name field based on the given file name.
+     */
+    void inferSampleName();
 
     /**
      * Submit the input.

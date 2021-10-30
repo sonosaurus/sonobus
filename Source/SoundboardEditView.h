@@ -26,7 +26,7 @@ public:
     /**
      * The recommended height of the SoundboardEditView.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 100;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 106;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
