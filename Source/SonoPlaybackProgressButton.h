@@ -42,5 +42,8 @@ public:
     void paintButton(Graphics& graphics, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
 private:
+    constexpr static const int PROGRESS_COLOUR = 0x22FFFFFF;
+
     double playbackPosition = 0.0;
+
 };

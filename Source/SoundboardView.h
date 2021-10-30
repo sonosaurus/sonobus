@@ -105,9 +105,14 @@ private:
     std::vector<std::unique_ptr<SonoPlaybackProgressButton>> mSoundButtons;
 
     /**
-     * Pointer to the button that is currently playing audio.
+     * Index of the button that is currently playing audio.
      */
-    SonoPlaybackProgressButton* currentlyPlayingButton;
+    int currentlyPlayingButtonIndex = -1;
+
+    /**
+     * Index of the soundboard that is currently playing audio.
+     */
+    int currentlyPlayingSoundboardIndex = -1;
 
     /**
      * Button that adds a new sample to the current soundboard.

@@ -36,7 +36,7 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics, bool shouldDraw
     auto cornerSize = 6.0f;
     auto bounds = getLocalBounds().toFloat().reduced(0.5f, 0.5f);
     bounds = bounds.withWidth(playbackPosition * bounds.getWidth());
-    auto colour = Colour(0x88FFFFFF);
+    auto colour = Colour(PROGRESS_COLOUR);
 
     graphics.setColour(colour);
     graphics.fillRoundedRectangle(bounds, cornerSize);
