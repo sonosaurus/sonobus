@@ -95,7 +95,13 @@ void SampleEditView::createButtonBar()
     mDeleteButton = std::make_unique<SonoTextButton>(isEditMode() ? TRANS("Delete") : TRANS("Cancel"));
     mDeleteButton->setColour(SonoTextButton::buttonColourId, Colour(0xcc911707));
     mDeleteButton->onClick = [this]() {
-        dismissDialog();
+        if (isEditMode()) {
+            deleteSample = true;
+            submitDialog();
+        }
+        else {
+            dismissDialog();
+        }
     };
     addAndMakeVisible(mDeleteButton.get());
 

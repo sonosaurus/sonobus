@@ -91,6 +91,13 @@ public:
     void editSoundSample(SoundSample& sampleToUpdate);
 
     /**
+     * Deletes the given Sound Sample from the soundboard.
+     *
+     * @param sampleToDelete Reference to the sample to delete.
+     */
+    void deleteSoundSample(SoundSample& sampleToDelete);
+
+    /**
      * @return The channel processor for playing and sending audio.
      */
     [[nodiscard]] SoundboardChannelProcessor* getChannelProcessor() const { return channelProcessor; }

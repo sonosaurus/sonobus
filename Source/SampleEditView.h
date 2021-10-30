@@ -55,16 +55,19 @@ public:
      *
      * @return true if the dialog is in edit mode.
      */
-    [[nodiscard]] bool isEditMode() const
-    { return editModeEnabled; }
+    [[nodiscard]] bool isEditMode() const { return editModeEnabled; }
 
     /**
      * Whether the dialog is in create mode.
      *
      * @return true if the dialog is in create mode.
      */
-    [[nodiscard]] bool isCreateMode() const
-    { return !editModeEnabled; }
+    [[nodiscard]] bool isCreateMode() const { return !editModeEnabled; }
+
+    /**
+     * @return true if the sample must be deleted.
+     */
+    [[nodiscard]] bool isDeleteSample() const { return deleteSample; }
 
     void paint(Graphics&) override;
 
@@ -78,6 +81,11 @@ private:
      * true if the dialog is in rename mode, or false when the dialog is in create mode.
      */
     bool editModeEnabled;
+
+    /**
+     * Whether the sample must be deleted.
+     */
+    bool deleteSample = false;
 
     /**
      * The name that is shown upon opening the dialog.
