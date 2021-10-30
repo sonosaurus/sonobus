@@ -38,6 +38,12 @@ void SoundboardProcessor::deleteSoundboard(int index)
 {
     soundboards.erase(soundboards.begin() + index);
 
+    if (currentlyPlayingSoundboardIndex == index) {
+        channelProcessor->pause();
+        currentlyPlayingSoundboardIndex = {};
+        currentlyPlayingButtonIndex = {};
+    }
+
     saveToDisk();
 }
 
@@ -51,6 +57,12 @@ void SoundboardProcessor::selectSoundboard(int index)
     }
 
     saveToDisk();
+}
+
+void SoundboardProcessor::setCurrentlyPlaying(int soundboardIndex, int sampleButtonIndex)
+{
+    currentlyPlayingSoundboardIndex = soundboardIndex;
+    currentlyPlayingButtonIndex = sampleButtonIndex;
 }
 
 SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath)
@@ -86,6 +98,18 @@ void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
         auto& sample = sampleList[i];
         if (&sample == &sampleToDelete) {
             sampleList.erase(sampleList.begin() + i, sampleList.begin() + i + 1);
+
+            if (currentlyPlayingSoundboardIndex == selectedSoundboardIndex) {
+                // If it is playing, stop playback.
+                if (currentlyPlayingButtonIndex == i) {
+                    channelProcessor->pause();
+                    currentlyPlayingSoundboardIndex = {};
+                    currentlyPlayingButtonIndex = {};
+                }
+                else if (currentlyPlayingButtonIndex > i) {
+                    currentlyPlayingButtonIndex = currentlyPlayingButtonIndex.value() - 1;
+                }
+            }
             break;
         }
     }

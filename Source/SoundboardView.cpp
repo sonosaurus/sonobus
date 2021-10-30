@@ -158,7 +158,7 @@ void SoundboardView::updateButtons()
 
     auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
 
-    for(int i = 0; i < selectedBoard.getSamples().size(); ++i) {
+    for (int i = 0; i < selectedBoard.getSamples().size(); ++i) {
         auto& sample = selectedBoard.getSamples()[i];
 
         auto textButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
@@ -168,13 +168,18 @@ void SoundboardView::updateButtons()
         textButton->onPrimaryClick = [this, &sample, i, selectedBoardIndex]() {
             playSample(sample);
 
-           if (currentlyPlayingButtonIndex != -1 && currentlyPlayingSoundboardIndex == selectedBoardIndex) {
-               auto& currentButton = mSoundButtons[currentlyPlayingButtonIndex];
-               currentButton->setPlaybackPosition(0.0);
-               currentButton->repaint();
-           }
-           currentlyPlayingButtonIndex = i;
-           currentlyPlayingSoundboardIndex = selectedBoardIndex;
+            if (processor->getCurrentlyPlayingSoundboardIndex().has_value() && processor->getCurrentlyPlayingButtonIndex().has_value()) {
+                auto playingSoundboardIndex = processor->getCurrentlyPlayingSoundboardIndex().value();
+                auto playingButtonIndex = processor->getCurrentlyPlayingButtonIndex().value();
+
+                if (playingSoundboardIndex == selectedBoardIndex) {
+                   auto& currentButton = mSoundButtons[playingButtonIndex];
+                   currentButton->setPlaybackPosition(0.0);
+                   currentButton->repaint();
+                }
+            }
+
+            processor->setCurrentlyPlaying(selectedBoardIndex, i);
         };
 
         textButton->onSecondaryClick = [this, &sample, buttonAddress]() {
@@ -394,11 +399,11 @@ void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int in
 
 void SoundboardView::onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor)
 {
-    if (currentlyPlayingButtonIndex < 0 || currentlyPlayingSoundboardIndex != mBoardSelectComboBox->getSelectedItemIndex()) {
+    if (!processor->getCurrentlyPlayingButtonIndex().has_value() || processor->getCurrentlyPlayingSoundboardIndex() != mBoardSelectComboBox->getSelectedItemIndex()) {
         return;
     }
 
-    auto& currentlyPlayingButton = mSoundButtons[currentlyPlayingButtonIndex];
+    auto& currentlyPlayingButton = mSoundButtons[processor->getCurrentlyPlayingButtonIndex().value()];
 
     auto position = channelProcessor.getLength() != 0.0
         ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
