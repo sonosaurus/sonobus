@@ -19,7 +19,7 @@
 class SoundboardView : public Component, public SonoChoiceButton::Listener
 {
 public:
-    SoundboardView();
+    SoundboardView(SoundboardChannelProcessor* channelProcessor);
 
     void paint(Graphics&) override;
     void resized() override;

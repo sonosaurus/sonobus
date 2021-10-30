@@ -96,7 +96,7 @@ Soundboard Soundboard::deserialize(ValueTree tree)
     auto& samples = soundboard.getSamples();
     for( int i = 0; i < samplesTree.getNumChildren(); ++i )
     {
-        samples.emplace_back(SoundSample::deserialize(tree.getChild(i)));
+        samples.emplace_back(SoundSample::deserialize(samplesTree.getChild(i)));
     }
 
     return soundboard;

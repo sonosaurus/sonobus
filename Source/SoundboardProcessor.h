@@ -8,6 +8,7 @@
 #include <vector>
 #include <optional>
 #include "Soundboard.h"
+#include "SoundboardChannelProcessor.h"
 
 /**
  * Controller for SoundboardView.
@@ -17,7 +18,7 @@
 class SoundboardProcessor
 {
 public:
-    SoundboardProcessor();
+    SoundboardProcessor(SoundboardChannelProcessor* channelProcessor);
 
     /**
      * Adds a new soundboard.
@@ -73,6 +74,11 @@ public:
      */
     [[nodiscard]] const std::optional<int> getSelectedSoundboardIndex() const { return selectedSoundboardIndex; }
 
+    /**
+     * @return The channel processor for playing and sending audio.
+     */
+    [[nodiscard]] SoundboardChannelProcessor* getChannelProcessor() const { return channelProcessor; }
+
 private:
     /**
      * File where the soundboards data is stored, relative to the user home directory.
@@ -95,6 +101,11 @@ private:
      * @return The soundboard file.
      */
     static File getSoundboardsFile();
+
+    /**
+     * Channel processor for playing and sending audio.
+     */
+     SoundboardChannelProcessor* channelProcessor;
 
     /**
      * List of all available/known soundboards.

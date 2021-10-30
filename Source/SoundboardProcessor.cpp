@@ -6,7 +6,7 @@
 #include "SoundboardProcessor.h"
 #include <utility>
 
-SoundboardProcessor::SoundboardProcessor()
+SoundboardProcessor::SoundboardProcessor(SoundboardChannelProcessor* channelProcessor) : channelProcessor(channelProcessor)
 {
     loadFromDisk();
 }

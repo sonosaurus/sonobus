@@ -810,7 +810,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 
     // Soundboard
-    mSoundboardView = std::make_unique<SoundboardView>();
+    mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor());
     mSoundboardView->setVisible(false);
     mSoundboardView->addComponentListener(this);
 

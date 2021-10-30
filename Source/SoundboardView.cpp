@@ -6,7 +6,7 @@
 #include "SoundboardView.h"
 #include "SoundboardEditView.h"
 
-SoundboardView::SoundboardView() : processor(std::make_unique<SoundboardProcessor>())
+SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor) : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
 {
     setOpaque(true);
 
@@ -149,6 +149,21 @@ void SoundboardView::updateButtons()
     for (const auto& sample: selectedBoard.getSamples()) {
         auto textButton = std::make_unique<TextButton>(sample.getName(), sample.getName());
         textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+
+        auto channelProcessor = processor->getChannelProcessor();
+        textButton->onClick = [&sample, channelProcessor]() {
+            auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
+            if (!isLoadSuccessful) {
+                AlertWindow::showMessageBoxAsync(
+                    AlertWindow::WarningIcon,
+                    TRANS("Cannot play file"),
+                    TRANS("The selected audio file failed to load. The file cannot be played.")
+                );
+                return;
+            }
+
+            channelProcessor->play();
+        };
         addAndMakeVisible(textButton.get());
 
         buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *textButton).withMargin(0).withFlex(0));
