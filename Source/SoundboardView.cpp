@@ -14,10 +14,8 @@ SoundboardView::SoundboardView() : processor(std::make_unique<SoundboardProcesso
     createSoundboardSelectionPanel();
     createBasePanels();
 
-    updateButtons();
     updateSoundboardSelector();
-
-    mBoardSelectComboBox->setSelectedItemIndex(0);
+    updateButtons();
 }
 
 void SoundboardView::createBasePanels()
@@ -97,7 +95,7 @@ void SoundboardView::createSoundboardSelectionPanel()
     mBoardSelectComboBox = std::make_unique<SonoChoiceButton>();
     mBoardSelectComboBox->setTitle(TRANS("Select Soundboard"));
     mBoardSelectComboBox->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
-    //mBoardSelectComboBox->addChoiceListener(this);
+    mBoardSelectComboBox->addChoiceListener(this);
     addAndMakeVisible(mBoardSelectComboBox.get());
 
     soundboardSelectionBox.items.clear();
@@ -108,7 +106,7 @@ void SoundboardView::createSoundboardSelectionPanel()
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
 }
 
-void SoundboardView::updateSoundboardSelector(Soundboard* selected)
+void SoundboardView::updateSoundboardSelector()
 {
     // Index shenanigans will go wrong when there are no soundboards, so return early:
     // doesn't matter anyway as the soundboard selector only need to be cleared.
@@ -122,9 +120,6 @@ void SoundboardView::updateSoundboardSelector(Soundboard* selected)
         return;
     }
 
-    // The index of the item that was selected before the repopulation.
-    auto previouslySelectedIndex = mBoardSelectComboBox->getSelectedItemIndex();
-
     // Repopulate the selector.
     mBoardSelectComboBox->clearItems();
     auto soundboardCount = processor->getNumberOfSoundboards();
@@ -132,14 +127,10 @@ void SoundboardView::updateSoundboardSelector(Soundboard* selected)
         mBoardSelectComboBox->addItem(processor->getSoundboard(i).getName(), i);
     }
 
-    // Select new item.
-    if (selected == nullptr) {
-        int minimum = previouslySelectedIndex < 0 ? 0 : previouslySelectedIndex;
-        int minimumAndMaximum = minimum >= soundboardCount ? soundboardCount - 1 : minimum;
-        mBoardSelectComboBox->setSelectedItemIndex(minimumAndMaximum);
-    } else {
-        int newIndex = processor->getIndexOfSoundboard(*selected);
-        mBoardSelectComboBox->setSelectedItemIndex(newIndex);
+    // Select the currently selected item.
+    auto selectedIndex = processor->getSelectedSoundboardIndex();
+    if (selectedIndex.has_value()) {
+        mBoardSelectComboBox->setSelectedItemIndex(selectedIndex.value());
     }
 }
 
@@ -178,6 +169,9 @@ void SoundboardView::updateButtons()
     addAndMakeVisible(mAddSampleButton.get());
 
     buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mAddSampleButton).withMargin(0).withFlex(0));
+
+    // Trigger repaint
+    resized();
 }
 
 void SoundboardView::showMenuButtonContextMenu()
@@ -213,8 +207,9 @@ void SoundboardView::showMenuButtonContextMenu()
 void SoundboardView::clickedAddSoundboard()
 {
     auto callback = [this](const String& name) {
-        Soundboard& createdSoundboard = processor->addSoundboard(name);
-        updateSoundboardSelector(&createdSoundboard);
+        Soundboard& createdSoundboard = processor->addSoundboard(name, true);
+        updateSoundboardSelector();
+        updateButtons();
     };
 
     auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
@@ -275,6 +270,7 @@ void SoundboardView::clickedDeleteSoundboard()
             int selectedIndex = safeThis->mBoardSelectComboBox->getSelectedItemIndex();
             safeThis->processor->deleteSoundboard(selectedIndex);
             safeThis->updateSoundboardSelector();
+            safeThis->updateButtons();
         }
     };
 
@@ -289,4 +285,10 @@ void SoundboardView::paint(Graphics& g)
 void SoundboardView::resized()
 {
     mainBox.performLayout(getLocalBounds().reduced(2));
+}
+
+void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident)
+{
+    processor->selectSoundboard(index);
+    updateButtons();
 }

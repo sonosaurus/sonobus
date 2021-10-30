@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include "Soundboard.h"
 #include <vector>
+#include <optional>
+#include "Soundboard.h"
 
 /**
  * Controller for SoundboardView.
@@ -22,9 +23,10 @@ public:
      * Adds a new soundboard.
      *
      * @param name The name of the soundboard to create.
+     * @param select Whether to select the soundboard after creation (false by default).
      * @return Reference to the created soundboard.
      */
-    Soundboard& addSoundboard(const String& name);
+    Soundboard& addSoundboard(const String& name, bool select = false);
 
     /**
      * Renames a soundboard.
@@ -42,6 +44,16 @@ public:
     void deleteSoundboard(int index);
 
     /**
+     * Selects the soundboard at the given index.
+     *
+     * When the index > number of soundboards, the last soundboard is selected.
+     * When the index <= 0, the first soundboard is selected.
+     *
+     * @param index The index of the soundboard to select.
+     */
+    void selectSoundboard(int index);
+
+    /**
      * Gets the soundboard at the given index.
      *
      * If the index is out of bounds, undefined behavior may occur.
@@ -57,12 +69,9 @@ public:
     [[nodiscard]] size_t getNumberOfSoundboards() const { return soundboards.size(); }
 
     /**
-     * Get the index of the given soundboard object in the list of soundboards.
-     *
-     * @param soundboard Check where this soundboard is in the list of soundboards.
-     * @return The index of the soundboard, or -1 when it is not present in the list.
+     * @return The index of the currently selected soundboard.
      */
-    [[nodiscard]] int getIndexOfSoundboard(const Soundboard &soundboard) const;
+    [[nodiscard]] const std::optional<int> getSelectedSoundboardIndex() const { return selectedSoundboardIndex; }
 
 private:
     /**
@@ -76,6 +85,11 @@ private:
     constexpr static const char SOUNDBOARDS_KEY[] = "soundboards";
 
     /**
+     * Key of the root node property in the serialized tree data structure that holds the index of the currently selected soundboard.
+     */
+    constexpr static const char SELECTED_KEY[] = "selected";
+
+    /**
      * Gets the file where the soundboard data is stored on disk.
      *
      * @return The soundboard file.
@@ -86,6 +100,11 @@ private:
      * List of all available/known soundboards.
      */
     std::vector<Soundboard> soundboards;
+
+    /**
+     * Index of the currently selected soundboard.
+     */
+    std::optional<int> selectedSoundboardIndex;
 
     /**
      * Writes the soundboard data to the given file.

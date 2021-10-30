@@ -16,13 +16,15 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardView : public Component
+class SoundboardView : public Component, public SonoChoiceButton::Listener
 {
 public:
     SoundboardView();
 
     void paint(Graphics&) override;
     void resized() override;
+
+    void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
 
 private:
     constexpr static const float MENU_BUTTON_WIDTH = 36;
@@ -132,11 +134,8 @@ private:
     /**
      * Updates the soundboard selector to contain exactly all soundboards that are
      * currently loaded in the soundboard state.
-     *
-     * @param selected The soundboard that must be selected after update, `null' when the current
-     * selection can stay.
      */
-    void updateSoundboardSelector(Soundboard* selected = nullptr);
+    void updateSoundboardSelector();
 
     /**
      * Adds buttons for all available sounds for the selected soundboard.

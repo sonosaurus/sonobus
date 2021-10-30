@@ -11,10 +11,14 @@ SoundboardProcessor::SoundboardProcessor()
     loadFromDisk();
 }
 
-Soundboard &SoundboardProcessor::addSoundboard(const String &name)
+Soundboard &SoundboardProcessor::addSoundboard(const String &name, const bool select)
 {
     auto newSoundboard = Soundboard(name);
     soundboards.push_back(std::move(newSoundboard));
+
+    if (select) {
+        selectedSoundboardIndex = getNumberOfSoundboards() - 1;
+    }
 
     saveToDisk();
 
@@ -36,21 +40,23 @@ void SoundboardProcessor::deleteSoundboard(int index)
     saveToDisk();
 }
 
-int SoundboardProcessor::getIndexOfSoundboard(const Soundboard &soundboard) const
+void SoundboardProcessor::selectSoundboard(int index)
 {
-    auto numberOfSoundboards = getNumberOfSoundboards();
-    for (int i = 0; i < numberOfSoundboards; ++i) {
-        auto soundboardInList = &getSoundboard(i);
-        if (&soundboard == soundboardInList) {
-            return i;
-        }
+    if (getNumberOfSoundboards() == 0) {
+        selectedSoundboardIndex = {};
     }
-    return -1;
+    else {
+        selectedSoundboardIndex = jmax(0, jmin(index, static_cast<int>(getNumberOfSoundboards())));
+    }
+
+    saveToDisk();
 }
 
 void SoundboardProcessor::writeSoundboardsToFile(const File &file) const
 {
     ValueTree tree(SOUNDBOARDS_KEY);
+
+    tree.setProperty(SELECTED_KEY, selectedSoundboardIndex.value_or(-1), nullptr);
 
     int i = 0;
     for (const auto &soundboard: soundboards) {
@@ -71,6 +77,9 @@ void SoundboardProcessor::readSoundboardsFromFile(const File &file)
 
     XmlDocument doc(file);
     auto tree = ValueTree::fromXml(*doc.getDocumentElement());
+
+    int selected = tree.getProperty(SELECTED_KEY);
+    selectedSoundboardIndex = selected >= 0 ? std::optional<size_t>(selected) : std::nullopt;
 
     soundboards.clear();
 
