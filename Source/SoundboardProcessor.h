@@ -5,8 +5,12 @@
 
 #pragma once
 
+#include "JuceHeader.h"
+
 #include <vector>
 #include <optional>
+#include <numeric>
+#include <algorithm>
 #include "Soundboard.h"
 #include "SoundboardChannelProcessor.h"
 
@@ -53,6 +57,11 @@ public:
      * @param index The index of the soundboard to select.
      */
     void selectSoundboard(int index);
+
+    /**
+     * Updates the order of the soundboards.
+     */
+    void reorderSoundboards();
 
     /**
      * Sets the given sample button index as currently playing.
@@ -195,4 +204,28 @@ private:
      * Loads the current soundboard data from disk.
      */
     void loadFromDisk();
+
+    /**
+     * Returns a vector containing the original indices of the elements in a sorted vector.
+     * Sorts by default order.
+     * Does not actually sort the original vector.
+     *
+     * For example, take a sequence [4, 2, 1, 3]. This gets sorted to [1, 2, 3, 4] and will return the following
+     * sequence [2, 1, 3, 0].
+     *
+     * @param vectorToSort The vector that must be sorted.
+     * @return A vector containing the original indices of the elements in the sorted vector.
+     */
+    static std::vector<size_t> sortIndexPreview(const std::vector<Soundboard>& vectorToSort)
+    {
+        // Original index locations.
+        std::vector<size_t> originalIndices(vectorToSort.size());
+        std::iota(originalIndices.begin(), originalIndices.end(), 0);
+
+        std::sort(originalIndices.begin(), originalIndices.end(), [&vectorToSort](size_t a, size_t b) {
+            return vectorToSort[a].getName() < vectorToSort[b].getName();
+        });
+
+        return originalIndices;
+    }
 };

@@ -4,6 +4,7 @@
 
 
 #include "SoundboardProcessor.h"
+#include "SonoUtility.h"
 #include <utility>
 
 SoundboardProcessor::SoundboardProcessor(SoundboardChannelProcessor* channelProcessor) : channelProcessor(
@@ -21,9 +22,10 @@ Soundboard& SoundboardProcessor::addSoundboard(const String& name, const bool se
         selectedSoundboardIndex = getNumberOfSoundboards() - 1;
     }
 
+    reorderSoundboards();
     saveToDisk();
 
-    return soundboards[getNumberOfSoundboards() - 1];
+    return soundboards[selectedSoundboardIndex.value_or(0)];
 }
 
 void SoundboardProcessor::renameSoundboard(int index, String newName)
@@ -31,6 +33,7 @@ void SoundboardProcessor::renameSoundboard(int index, String newName)
     auto& toRename = soundboards[index];
     toRename.setName(std::move(newName));
 
+    reorderSoundboards();
     saveToDisk();
 }
 
@@ -50,6 +53,7 @@ void SoundboardProcessor::deleteSoundboard(int index)
         selectedSoundboardIndex = selected > 0 ? std::optional<int>(selected - 1) : std::nullopt;
     }
 
+    reorderSoundboards();
     saveToDisk();
 }
 
@@ -63,6 +67,41 @@ void SoundboardProcessor::selectSoundboard(int index)
     }
 
     saveToDisk();
+}
+
+void SoundboardProcessor::reorderSoundboards()
+{
+    // Figure out what the new (sorted) indices will be.
+    auto originalSelectedIndex = selectedSoundboardIndex.value_or(-1);
+    auto originalPlayingIndex = currentlyPlayingSoundboardIndex.value_or(-1);
+    auto originalIndices = sortIndexPreview(soundboards);
+
+    // Determine new indices of the selected soundboard.
+    if (originalSelectedIndex < 0) {
+        selectedSoundboardIndex = {0 };
+    }
+    else {
+        auto iterator = std::find(originalIndices.begin(), originalIndices.end(), originalSelectedIndex);
+        selectedSoundboardIndex = { std::distance(originalIndices.begin(), iterator) };
+    }
+
+    if (originalPlayingIndex < 0) {
+        currentlyPlayingSoundboardIndex = {0 };
+    }
+    else if (originalPlayingIndex >= soundboards.size()) {
+        // It can happen that the playing index is out of bounds.
+        // Specifically this occurs whenever a soundboard before the playing index has been deleted.
+        currentlyPlayingSoundboardIndex = { soundboards.size() - 1 };
+    }
+    else {
+        auto iterator = std::find(originalIndices.begin(), originalIndices.end(), originalPlayingIndex);
+        currentlyPlayingSoundboardIndex = { std::distance(originalIndices.begin(), iterator) };
+    }
+
+    // Above was just a sort preview and logic on that. End with actually sorting the list of soundboards.
+    std::sort(soundboards.begin(), soundboards.end(), [](const Soundboard& a, const Soundboard& b) {
+        return a.getName() < b.getName();
+    });
 }
 
 void SoundboardProcessor::setCurrentlyPlaying(int soundboardIndex, int sampleButtonIndex)
@@ -172,6 +211,7 @@ void SoundboardProcessor::saveToDisk() const
 void SoundboardProcessor::loadFromDisk()
 {
     readSoundboardsFromFile(getSoundboardsFile());
+    reorderSoundboards();
 }
 
 
