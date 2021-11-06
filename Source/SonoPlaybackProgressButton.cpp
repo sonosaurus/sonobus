@@ -5,32 +5,32 @@
 #include "SonoPlaybackProgressButton.h"
 
 SonoPlaybackProgressButton::SonoPlaybackProgressButton() : TextButton()
-{
-
-}
+{}
 
 SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName) : TextButton(buttonName)
-{
+{}
 
-}
-
-SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName, const String& toolTip) : TextButton(buttonName, toolTip)
-{
-
-}
+SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName, const String& toolTip)
+        : TextButton(buttonName, toolTip)
+{}
 
 void SonoPlaybackProgressButton::setPlaybackPosition(double value)
 {
     playbackPosition = value;
 }
 
-void SonoPlaybackProgressButton::paintButton(Graphics& graphics, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
+                                             bool shouldDrawButtonAsHighlighted,
+                                             bool shouldDrawButtonAsDown)
 {
     auto& lf = getLookAndFeel();
 
-    lf.drawButtonBackground(graphics, *this,
-        findColour(getToggleState() ? buttonOnColourId : buttonColourId),
-        shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+    lf.drawButtonBackground(
+            graphics,
+            *this,
+            Colour(DEFAULT_BUTTON_COLOUR | DEFAULT_BUTTON_COLOUR_ALPHA),
+            shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown
+    );
 
     // Probably not the best place for this code
     auto cornerSize = 6.0f;

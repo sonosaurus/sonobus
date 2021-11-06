@@ -9,6 +9,16 @@
 class SonoPlaybackProgressButton : public TextButton
 {
 public:
+    /**
+     * The default button colour RGB value with alpha 0.
+     */
+    constexpr static const int DEFAULT_BUTTON_COLOUR = 0x252525;
+
+    /**
+     * Alpha value of the button background color with RGB value of 0.
+     */
+    constexpr static const int DEFAULT_BUTTON_COLOUR_ALPHA = 0x77000000;
+
     SonoPlaybackProgressButton();
     explicit SonoPlaybackProgressButton(const String& buttonName);
     SonoPlaybackProgressButton(const String& buttonName, const String& toolTip);

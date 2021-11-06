@@ -6,8 +6,8 @@
 #include "Soundboard.h"
 #include <utility>
 
-SoundSample::SoundSample(String newName, String newFilePath, bool newLoop)
-        : name(std::move(newName)), filePath(std::move(newFilePath)), loop(newLoop)
+SoundSample::SoundSample(String newName, String newFilePath, bool newLoop, int buttonColour)
+        : name(std::move(newName)), filePath(std::move(newFilePath)), loop(newLoop), buttonColour(buttonColour)
 {}
 
 String SoundSample::getName() const
@@ -40,12 +40,23 @@ void SoundSample::setLoop(bool newLoop)
     loop = newLoop;
 }
 
+int SoundSample::getButtonColour() const
+{
+    return buttonColour;
+}
+
+void SoundSample::setButtonColour(int newRgb)
+{
+    buttonColour = newRgb;
+}
+
 ValueTree SoundSample::serialize() const
 {
     ValueTree tree(SAMPLE_KEY);
     tree.setProperty(NAME_KEY, name, nullptr);
     tree.setProperty(FILE_PATH_KEY, filePath, nullptr);
     tree.setProperty(LOOP_KEY, loop, nullptr);
+    tree.setProperty(BUTTON_COLOUR_KEY, buttonColour, nullptr);
 
     return tree;
 }
@@ -55,7 +66,8 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
     SoundSample soundSample(
         tree.getProperty(NAME_KEY),
         tree.getProperty(FILE_PATH_KEY),
-        tree.getProperty(LOOP_KEY, false)
+        tree.getProperty(LOOP_KEY, false),
+        tree.getProperty(BUTTON_COLOUR_KEY, SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR)
     );
 
     return soundSample;

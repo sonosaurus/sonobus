@@ -7,6 +7,7 @@
 
 #include "vector"
 #include "JuceHeader.h"
+#include "SonoPlaybackProgressButton.h"
 
 /**
  * A sound file that can be played on a soundboard.
@@ -33,10 +34,17 @@ public:
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.
      * @param loop Whether the sample should loop on playback.
+     * @param buttonColour The colour of the sample button in RGB value with an alpha of 0.
      */
-    SoundSample(String name, String filePath, bool loop = false);
+    SoundSample(
+            String name,
+            String filePath,
+            bool loop = false,
+            int buttonColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR
+    );
 
     String getName() const;
+
     void setName(String newName);
 
     /**
@@ -50,7 +58,18 @@ public:
     void setFilePath(String filePath);
 
     bool isLoop() const;
+
     void setLoop(bool newLoop);
+
+    /**
+     * @return 0xRRGGBB without alpha value.
+     */
+    [[nodiscard]] int getButtonColour() const;
+
+    /**
+     * @param newRgb 0xRRGGBB without alpha value.
+     */
+    void setButtonColour(int newRgb);
 
     /**
      * Serialize the sound sample.
@@ -89,6 +108,11 @@ private:
     constexpr static const char LOOP_KEY[] = "loop";
 
     /**
+     * Key for the button colour property of the root node in the serialization tree data structure.
+     */
+    constexpr static const char BUTTON_COLOUR_KEY[] = "buttonColour";
+
+    /**
      * The name representing the sound sample.
      */
     String name;
@@ -102,6 +126,11 @@ private:
      * Whether the sample should loop (indefinitely).
      */
     bool loop;
+
+    /**
+     * The argb colour the sample button must have with 0 alpha value.
+     */
+    int buttonColour = TextButton::ColourIds::buttonColourId & 0x111111;
 };
 
 /**
@@ -120,6 +149,7 @@ public:
     explicit Soundboard(String name);
 
     String getName() const;
+
     void setName(String);
 
     /**
