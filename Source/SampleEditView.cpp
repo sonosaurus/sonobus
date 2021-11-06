@@ -22,6 +22,7 @@ SampleEditView::SampleEditView(
 
     createNameInputs();
     createFilePathInputs();
+    createColourInput();
     createButtonBar();
     initialiseLayouts();
 }
@@ -29,15 +30,19 @@ SampleEditView::SampleEditView(
 void SampleEditView::initialiseLayouts()
 {
     contentBox.flexDirection = FlexBox::Direction::column;
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mNameLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 36, CONTROL_HEIGHT, *mNameInput).withMargin(4).withFlex(0));
 
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mFilePathLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, filePathBox).withMargin(0).withFlex(0));
 
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 3).withMargin(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mColourInputLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 32 * 2, colourButtonBox).withMargin(0).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 6).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
 
     mainBox.items.clear();
@@ -82,6 +87,70 @@ void SampleEditView::createFilePathInputs()
     filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     filePathBox.items.add(FlexItem(72, CONTROL_HEIGHT, *mBrowseFilePathButton).withMargin(0).withFlex(0));
     filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+}
+
+void SampleEditView::createColourInput()
+{
+    mColourInputLabel = std::make_unique<Label>("colourInputLabel", TRANS("Button colour"));
+    mColourInputLabel->setJustificationType(Justification::left);
+    mColourInputLabel->setFont(Font(14, Font::bold));
+    mColourInputLabel->setColour(Label::textColourId, Colour(0xeeffffff));
+    addAndMakeVisible(mColourInputLabel.get());
+
+    // Add default 11 colour buttons.
+    colourButtonRowTopBox.flexDirection = FlexBox::Direction::row;
+    colourButtonRowTopBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
+    for (int i = 0; i < 6; ++i) {
+        auto colourButton = createColourButton(i);
+        colourButtonRowTopBox.items.add(FlexItem(32, 32, *colourButton).withMargin(0).withFlex(1));
+        colourButtonRowTopBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+        mColourButtons.emplace_back(std::move(colourButton));
+    }
+
+    colourButtonRowBottomBox.flexDirection = FlexBox::Direction::row;
+    colourButtonRowBottomBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
+    for (int i = 6; i < 11; ++i) {
+        auto colourButton = createColourButton(i);
+        colourButtonRowBottomBox.items.add(FlexItem(32, 32, *colourButton).withMargin(0).withFlex(1));
+        colourButtonRowBottomBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+        mColourButtons.emplace_back(std::move(colourButton));
+    }
+
+    // Add colour picker button.
+    auto customColourButton = std::make_unique<SonoDrawableButton>("colourPicker", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    addAndMakeVisible(customColourButton.get());
+
+    std::unique_ptr<Drawable> eyedropperImage(Drawable::createFromImageData(BinaryData::eyedropper_svg, BinaryData::eyedropper_svgSize));
+    customColourButton->setImages(eyedropperImage.get());
+    customColourButton->setForegroundImageRatio(0.55f);
+
+    colourButtonRowBottomBox.items.add(FlexItem(32, 32, *customColourButton).withMargin(0).withFlex(1));
+    colourButtonRowBottomBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    mColourButtons.emplace_back(std::move(customColourButton));
+
+    colourButtonBox.flexDirection = FlexBox::Direction::column;
+    colourButtonBox.items.add(FlexItem(32 * 6, 32, colourButtonRowTopBox).withMargin(0).withFlex(0));
+    colourButtonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    colourButtonBox.items.add(FlexItem(32 * 6, 32, colourButtonRowBottomBox).withMargin(0).withFlex(0));
+}
+
+std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index)
+{
+    auto colourButton = std::make_unique<SonoDrawableButton>("colour", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    colourButton->setColour(
+            SonoTextButton::buttonColourId,
+            Colour(BUTTON_COLOURS[index] | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+    );
+
+    // TODO: actually select the correct colour. 2 is placeholder.
+    if (index == 2) {
+        std::unique_ptr<Drawable> checkImage(Drawable::createFromImageData(BinaryData::checkmark_svg, BinaryData::checkmark_svgSize));
+        colourButton->setImages(checkImage.get());
+        colourButton->setForegroundImageRatio(0.55f);
+    }
+
+    addAndMakeVisible(colourButton.get());
+    return colourButton;
 }
 
 void SampleEditView::createButtonBar()

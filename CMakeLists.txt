@@ -454,6 +454,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/beat_click.wav
         images/chat.svg
         images/chat_dots.svg
+        images/checkmark.svg
         images/chevron_forward.svg
         images/copy_icon.svg
         images/dice_icon_128.png
@@ -464,6 +465,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/dots_menu.png
         images/expand_arrow_active.svg
         images/expand_arrow_inactive.svg
+        images/eyedropper.svg
         images/folder_icon.svg
         images/hear-others.svg
         images/incoming_allowed.svg

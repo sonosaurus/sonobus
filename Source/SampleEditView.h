@@ -8,6 +8,7 @@
 #include <JuceHeader.h>
 #include "Soundboard.h"
 #include "SonoTextButton.h"
+#include "SonoDrawableButton.h"
 
 /**
  * Dialog for creating/editing soundboard samples.
@@ -26,7 +27,7 @@ public:
     /**
      * The recommended height of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 160;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 274;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
@@ -76,6 +77,29 @@ public:
 private:
     constexpr static const float ELEMENT_MARGIN = 4;
     constexpr static const float CONTROL_HEIGHT = 24;
+
+    /**
+     * Constant for indicating that a custom colour will be used.
+     */
+    constexpr static const int CUSTOM_COLOUR = -1;
+
+    /**
+     * All the button colours that can be selected (in order).
+     */
+    const std::vector<int> BUTTON_COLOURS = {
+            SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR,
+            SonoPlaybackProgressButton::RED,
+            SonoPlaybackProgressButton::ORANGE,
+            SonoPlaybackProgressButton::YELLOW,
+            SonoPlaybackProgressButton::YELLOW_GREEN,
+            SonoPlaybackProgressButton::GREEN,
+            SonoPlaybackProgressButton::CYAN,
+            SonoPlaybackProgressButton::BLUE,
+            SonoPlaybackProgressButton::PURPLE,
+            SonoPlaybackProgressButton::PINK,
+            SonoPlaybackProgressButton::WHITE,
+            CUSTOM_COLOUR
+    };
 
     /**
      * true if the dialog is in rename mode, or false when the dialog is in create mode.
@@ -130,6 +154,21 @@ private:
     FlexBox filePathBox;
 
     /**
+     * Box for the colour select buttons.
+     */
+    FlexBox colourButtonBox;
+
+    /**
+     * Box for the top colour button row.
+     */
+    FlexBox colourButtonRowTopBox;
+
+    /**
+     * Box for the bottom colour button row.
+     */
+    FlexBox colourButtonRowBottomBox;
+
+    /**
      * Label for the SoundSample name field.
      */
     std::unique_ptr<Label> mNameLabel;
@@ -160,6 +199,16 @@ private:
     std::unique_ptr<FileChooser> mFileChooser;
 
     /**
+     * Label for the sample button colour input.
+     */
+    std::unique_ptr<Label> mColourInputLabel;
+
+    /**
+     * Contains all the button objects for the colour buttons.
+     */
+    std::vector<std::unique_ptr<SonoDrawableButton>> mColourButtons;
+
+    /**
      * Button that saves the sound sample/submits the dialog.
      */
     std::unique_ptr<SonoTextButton> mSubmitButton;
@@ -183,6 +232,19 @@ private:
      * Creates the input controls for the file path.
      */
     void createFilePathInputs();
+
+    /**
+     * Adds the input controls for the sample button colour.
+     */
+    void createColourInput();
+
+    /**
+     * Creates a new colour pick button.
+     *
+     * @param index The ith button (index in BUTTON_COLOURS).
+     * @return Reference to the created button.
+     */
+    std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index);
 
     /**
      * Creates the button bar elements.
