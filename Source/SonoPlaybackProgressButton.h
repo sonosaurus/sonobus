@@ -26,6 +26,11 @@ public:
     void setPlaybackPosition(double value);
 
     /**
+     * @param newRgb The new button background colour with an alpha of 0.
+     */
+    void setButtonColour(int newRgb);
+
+    /**
      * Function that gets called whenever the button is clicked with the primary button.
      * onClick also gets called before this callback.
      */
@@ -56,4 +61,8 @@ private:
 
     double playbackPosition = 0.0;
 
+    /**
+     * The RGB value of the button background color with an alpha of 0.
+     */
+    int buttonColour = DEFAULT_BUTTON_COLOUR;
 };

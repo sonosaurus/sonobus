@@ -19,6 +19,11 @@ void SonoPlaybackProgressButton::setPlaybackPosition(double value)
     playbackPosition = value;
 }
 
+void SonoPlaybackProgressButton::setButtonColour(int newRgb)
+{
+    buttonColour = newRgb;
+}
+
 void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
                                              bool shouldDrawButtonAsHighlighted,
                                              bool shouldDrawButtonAsDown)
@@ -28,7 +33,7 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
     lf.drawButtonBackground(
             graphics,
             *this,
-            Colour(DEFAULT_BUTTON_COLOUR | DEFAULT_BUTTON_COLOUR_ALPHA),
+            Colour(buttonColour | DEFAULT_BUTTON_COLOUR_ALPHA),
             shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown
     );
 

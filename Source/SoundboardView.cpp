@@ -161,11 +161,11 @@ void SoundboardView::updateButtons()
     for (int i = 0; i < selectedBoard.getSamples().size(); ++i) {
         auto& sample = selectedBoard.getSamples()[i];
 
-        auto textButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
-        textButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+        auto playbackButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
+        playbackButton->setButtonColour(sample.getButtonColour());
 
-        auto buttonAddress = textButton.get();
-        textButton->onPrimaryClick = [this, &sample, i, selectedBoardIndex]() {
+        auto buttonAddress = playbackButton.get();
+        playbackButton->onPrimaryClick = [this, &sample, i, selectedBoardIndex]() {
             playSample(sample);
 
             if (processor->getCurrentlyPlayingSoundboardIndex().has_value() && processor->getCurrentlyPlayingButtonIndex().has_value()) {
@@ -182,14 +182,14 @@ void SoundboardView::updateButtons()
             processor->setCurrentlyPlaying(selectedBoardIndex, i);
         };
 
-        textButton->onSecondaryClick = [this, &sample, buttonAddress]() {
+        playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
             clickedEditSoundSample(*buttonAddress, sample);
         };
-        addAndMakeVisible(textButton.get());
+        addAndMakeVisible(playbackButton.get());
 
-        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *textButton).withMargin(0).withFlex(0));
+        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *playbackButton).withMargin(0).withFlex(0));
 
-        mSoundButtons.emplace_back(std::move(textButton));
+        mSoundButtons.emplace_back(std::move(playbackButton));
     }
 
     mAddSampleButton = std::make_unique<SonoDrawableButton>(

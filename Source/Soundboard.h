@@ -130,7 +130,7 @@ private:
     /**
      * The argb colour the sample button must have with 0 alpha value.
      */
-    int buttonColour = TextButton::ColourIds::buttonColourId & 0x111111;
+    int buttonColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR;
 };
 
 /**
