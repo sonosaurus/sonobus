@@ -406,35 +406,25 @@ private:
 };
 
 //==============================================================================
-class ParameterDisplayComponent   : public Component,
-                                    private AudioProcessorListener,
-                                    private AsyncUpdater
+class ParameterDisplayComponent   : public Component
 {
 public:
-    ParameterDisplayComponent (AudioProcessorEditor& editorIn, AudioProcessorParameter& param)
-        : editor (editorIn), parameter (param)
+    ParameterDisplayComponent (AudioProcessor& processor, AudioProcessorParameter& param)
+        : parameter (param)
     {
-        editor.processor.addListener (this);
-
         parameterName.setText (parameter.getName (128), dontSendNotification);
         parameterName.setJustificationType (Justification::centredRight);
-        parameterName.setInterceptsMouseClicks (false, false);
         addAndMakeVisible (parameterName);
 
         parameterLabel.setText (parameter.getLabel(), dontSendNotification);
-        parameterLabel.setInterceptsMouseClicks (false, false);
         addAndMakeVisible (parameterLabel);
 
-        addAndMakeVisible (*(parameterComp = createParameterComp (editor.processor)));
+        addAndMakeVisible (*(parameterComp = createParameterComp (processor)));
 
         setSize (400, 40);
     }
 
-    ~ParameterDisplayComponent() override
-    {
-        cancelPendingUpdate();
-        editor.processor.removeListener (this);
-    }
+    void paint (Graphics&) override {}
 
     void resized() override
     {
@@ -445,17 +435,7 @@ public:
         parameterComp->setBounds (area);
     }
 
-    void mouseDown (const MouseEvent& e) override
-    {
-        if (e.mods.isRightButtonDown())
-            if (auto* context = editor.getHostContext())
-                if (auto menu = context->getContextMenuForParameterIndex (&parameter))
-                    menu->getEquivalentPopupMenu().showMenuAsync (PopupMenu::Options().withTargetComponent (this)
-                                                                                      .withMousePosition());
-    }
-
 private:
-    AudioProcessorEditor& editor;
     AudioProcessorParameter& parameter;
     Label parameterName, parameterLabel;
     std::unique_ptr<Component> parameterComp;
@@ -484,124 +464,105 @@ private:
         return std::make_unique<SliderParameterComponent> (processor, parameter);
     }
 
-    void audioProcessorParameterChanged (AudioProcessor*, int, float) override {}
-
-    void audioProcessorChanged (AudioProcessor*, const ChangeDetails& details) override
-    {
-        if (! details.parameterInfoChanged)
-            return;
-
-        if (MessageManager::getInstance()->isThisTheMessageThread())
-            handleAsyncUpdate();
-        else
-            triggerAsyncUpdate();
-    }
-
-    void handleAsyncUpdate() override
-    {
-        parameterName .setText (parameter.getName (128), dontSendNotification);
-        parameterLabel.setText (parameter.getLabel(),    dontSendNotification);
-    }
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParameterDisplayComponent)
 };
 
 //==============================================================================
-struct ParamControlItem : public TreeViewItem
+class ParametersPanel   : public Component
 {
-    ParamControlItem (AudioProcessorEditor& editorIn, AudioProcessorParameter& paramIn)
-        : editor (editorIn), param (paramIn) {}
-
-    bool mightContainSubItems() override { return false; }
-
-    std::unique_ptr<Component> createItemComponent() override
+public:
+    ParametersPanel (AudioProcessor& processor, const Array<AudioProcessorParameter*>& parameters)
     {
-        return std::make_unique<ParameterDisplayComponent> (editor, param);
-    }
+        for (auto* param : parameters)
+            if (param->isAutomatable())
+                addAndMakeVisible (paramComponents.add (new ParameterDisplayComponent (processor, *param)));
 
-    int getItemHeight() const override { return 40; }
+        int maxWidth = 400;
+        int height = 0;
 
-    AudioProcessorEditor& editor;
-    AudioProcessorParameter& param;
-};
-
-struct ParameterGroupItem : public TreeViewItem
-{
-    ParameterGroupItem (AudioProcessorEditor& editor, const AudioProcessorParameterGroup& group)
-        : name (group.getName())
-    {
-        for (auto* node : group)
+        for (auto& comp : paramComponents)
         {
-            if (auto* param = node->getParameter())
-                if (param->isAutomatable())
-                    addSubItem (new ParamControlItem (editor, *param));
-
-            if (auto* inner = node->getGroup())
-            {
-                auto groupItem = std::make_unique<ParameterGroupItem> (editor, *inner);
-
-                if (groupItem->getNumSubItems() != 0)
-                    addSubItem (groupItem.release());
-            }
+            maxWidth = jmax (maxWidth, comp->getWidth());
+            height += comp->getHeight();
         }
+
+        setSize (maxWidth, jmax (height, 125));
     }
 
-    bool mightContainSubItems() override { return getNumSubItems() > 0; }
-
-    std::unique_ptr<Component> createItemComponent() override
+    ~ParametersPanel() override
     {
-        return std::make_unique<Label> (name, name);
+        paramComponents.clear();
     }
 
-    String name;
+    void paint (Graphics& g) override
+    {
+        g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds();
+
+        for (auto* comp : paramComponents)
+            comp->setBounds (area.removeFromTop (comp->getHeight()));
+    }
+
+private:
+    OwnedArray<ParameterDisplayComponent> paramComponents;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParametersPanel)
 };
 
 //==============================================================================
 struct GenericAudioProcessorEditor::Pimpl
 {
-    Pimpl (AudioProcessorEditor& editor)
-        : legacyParameters (editor.processor, false),
-          groupItem (editor, legacyParameters.getGroup())
+    Pimpl (GenericAudioProcessorEditor& parent)  : owner (parent)
     {
-        const auto numIndents = getNumIndents (groupItem);
-        const auto width = 400 + view.getIndentSize() * numIndents;
+        JUCE_BEGIN_IGNORE_WARNINGS_MSVC (6011)
+        auto* p = parent.getAudioProcessor();
+        jassert (p != nullptr);
 
-        view.setSize (width, 400);
-        view.setDefaultOpenness (true);
-        view.setRootItemVisible (false);
-        view.setRootItem (&groupItem);
+        legacyParameters.update (*p, false);
+
+        owner.setOpaque (true);
+
+        view.setViewedComponent (new ParametersPanel (*p, legacyParameters.params));
+        owner.addAndMakeVisible (view);
+
+        view.setScrollBarsShown (true, false);
+        JUCE_END_IGNORE_WARNINGS_MSVC
     }
 
-    static int getNumIndents (const TreeViewItem& item)
+    ~Pimpl()
     {
-        int maxInner = 0;
-
-        for (auto i = 0; i < item.getNumSubItems(); ++i)
-            maxInner = jmax (maxInner, 1 + getNumIndents (*item.getSubItem (i)));
-
-        return maxInner;
+        view.setViewedComponent (nullptr, false);
     }
 
+    void resize (Rectangle<int> size)
+    {
+        view.setBounds (size);
+        auto content = view.getViewedComponent();
+        content->setSize (view.getMaximumVisibleWidth(), content->getHeight());
+    }
+
+    //==============================================================================
+    GenericAudioProcessorEditor& owner;
     LegacyAudioParametersWrapper legacyParameters;
-    ParameterGroupItem groupItem;
-    TreeView view;
+    Viewport view;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pimpl)
 };
+
 
 //==============================================================================
 GenericAudioProcessorEditor::GenericAudioProcessorEditor (AudioProcessor& p)
-    : AudioProcessorEditor (p), pimpl (std::make_unique<Pimpl> (*this))
+    : AudioProcessorEditor (p), pimpl (new Pimpl (*this))
 {
-    auto* viewport = pimpl->view.getViewport();
-
-    setOpaque (true);
-    addAndMakeVisible (pimpl->view);
-
-    setResizable (true, false);
-    setSize (viewport->getViewedComponent()->getWidth() + viewport->getVerticalScrollBar().getWidth(),
-             jlimit (125, 400, viewport->getViewedComponent()->getHeight()));
+    setSize (pimpl->view.getViewedComponent()->getWidth() + pimpl->view.getVerticalScrollBar().getWidth(),
+             jmin (pimpl->view.getViewedComponent()->getHeight(), 400));
 }
 
-GenericAudioProcessorEditor::~GenericAudioProcessorEditor() = default;
+GenericAudioProcessorEditor::~GenericAudioProcessorEditor() {}
 
 void GenericAudioProcessorEditor::paint (Graphics& g)
 {
@@ -610,7 +571,7 @@ void GenericAudioProcessorEditor::paint (Graphics& g)
 
 void GenericAudioProcessorEditor::resized()
 {
-    pimpl->view.setBounds (getLocalBounds());
+    pimpl->resize (getLocalBounds());
 }
 
 } // namespace juce

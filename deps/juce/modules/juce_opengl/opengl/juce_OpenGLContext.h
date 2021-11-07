@@ -130,12 +130,12 @@ public:
     /** Returns true if shaders can be used in this context. */
     bool areShadersAvailable() const;
 
+    /** Returns true if non-power-of-two textures are supported in this context. */
+    bool isTextureNpotSupported() const;
+
     /** HACK option when enabled prevents issues on some mobile opengl drivers */
     void setMobileBufferBugMitigation(bool flag);
     bool getMobileBufferBugMitigation() const;
-
-    /** Returns true if non-power-of-two textures are supported in this context. */
-    bool isTextureNpotSupported() const;
 
     /** OpenGL versions, used by setOpenGLVersionRequired(). */
     enum OpenGLVersion

@@ -183,6 +183,7 @@ void FileChooser::launchAsync (int flags, std::function<void (const FileChooser&
     pimpl->launch();
 }
 
+
 std::shared_ptr<FileChooser::Pimpl> FileChooser::createPimpl (int flags, FilePreviewComponent* previewComp)
 {
     results.clear();

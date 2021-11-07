@@ -23,7 +23,7 @@
 namespace juce
 {
 
-#if JUCE_MAC || JUCE_WINDOWS || DOXYGEN
+#if JUCE_MAC || JUCE_WINDOWS || defined (DOXYGEN)
 
 //==============================================================================
 /**

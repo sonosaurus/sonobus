@@ -121,14 +121,13 @@ public:
         return listener.handledEmbeddedUIMessage (msg, parm2, parm3);
     }
 
-    Steinberg::uint32 PLUGIN_API addRef() override   { return ++refCount; }
-    Steinberg::uint32 PLUGIN_API release() override  { return --refCount; }
+    Steinberg::uint32 PLUGIN_API addRef() override   { return (Steinberg::uint32) ++refCount; }
+    Steinberg::uint32 PLUGIN_API release() override  { return (Steinberg::uint32) --refCount; }
 
     Steinberg::tresult PLUGIN_API queryInterface (const Steinberg::TUID tuid, void** obj) override
     {
         if (std::memcmp (tuid, iid, sizeof (Steinberg::TUID)) == 0)
         {
-            ++refCount;
             *obj = this;
             return Steinberg::kResultOk;
         }
@@ -139,7 +138,7 @@ public:
 
 private:
     EmbeddedViewListener& listener;
-    std::atomic<Steinberg::uint32> refCount { 1 };
+    std::atomic<int> refCount { 1 };
 };
 
 JUCE_END_IGNORE_WARNINGS_GCC_LIKE
@@ -238,8 +237,11 @@ public:
 
     int32_t queryIEditController (const Steinberg::TUID tuid, void** obj) override
     {
-        if (embeddedUi.queryInterface (tuid, obj) == Steinberg::kResultOk)
+        if (std::memcmp (tuid, embeddedUi.iid, sizeof (Steinberg::TUID)) == 0)
+        {
+            *obj = &embeddedUi;
             return Steinberg::kResultOk;
+        }
 
         *obj = nullptr;
         return Steinberg::kNoInterface;

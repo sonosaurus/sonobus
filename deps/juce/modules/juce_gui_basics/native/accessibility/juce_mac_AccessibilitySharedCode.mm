@@ -27,23 +27,21 @@ namespace juce
 {
 
 //==============================================================================
-struct AccessibleObjCClassDeleter
-{
-    template <typename ElementType>
-    void operator() (ElementType* element) const
-    {
-        juceFreeAccessibilityPlatformSpecificData (element);
-
-        object_setInstanceVariable (element, "handler", nullptr);
-        [element release];
-    }
-};
-
 template <typename Base>
 class AccessibleObjCClass  : public ObjCClass<Base>
 {
+private:
+    struct Deleter
+    {
+        void operator() (Base* element) const
+        {
+            object_setInstanceVariable (element, "handler", nullptr);
+            [element release];
+        }
+    };
+
 public:
-    using Holder = std::unique_ptr<Base, AccessibleObjCClassDeleter>;
+    using Holder = std::unique_ptr<Base, Deleter>;
 
 protected:
     AccessibleObjCClass()  : ObjCClass<Base> ("JUCEAccessibilityElement_")
@@ -78,17 +76,6 @@ protected:
             && ! handler.getTextInterface()->isReadOnly();
     }
 
-    static id getAccessibilityValueFromInterfaces (const AccessibilityHandler& handler)
-    {
-        if (auto* textInterface = handler.getTextInterface())
-            return juceStringToNS (textInterface->getText ({ 0, textInterface->getTotalNumCharacters() }));
-
-        if (auto* valueInterface = handler.getValueInterface())
-            return juceStringToNS (valueInterface->getCurrentValueAsString());
-
-        return nil;
-    }
-
     //==============================================================================
     static BOOL getIsAccessibilityElement (id self, SEL)
     {
@@ -97,6 +84,30 @@ protected:
                   && handler->getRole() != AccessibilityRole::window;
 
         return NO;
+    }
+
+    static id getAccessibilityValue (id self, SEL)
+    {
+        if (auto* handler = getHandler (self))
+        {
+            if (auto* textInterface = handler->getTextInterface())
+                return juceStringToNS (textInterface->getText ({ 0, textInterface->getTotalNumCharacters() }));
+
+            if (handler->getCurrentState().isCheckable())
+            {
+                return handler->getCurrentState().isChecked()
+                          #if JUCE_IOS
+                           ? @"1" : @"0";
+                          #else
+                           ? @(1) : @(0);
+                          #endif
+            }
+
+            if (auto* valueInterface = handler->getValueInterface())
+                return juceStringToNS (valueInterface->getCurrentValueAsString());
+        }
+
+        return nil;
     }
 
     static void setAccessibilityValue (id self, SEL, NSString* value)

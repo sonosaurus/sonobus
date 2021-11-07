@@ -377,11 +377,8 @@ private:
         if (auto* codeBlocksConfig = dynamic_cast<const CodeBlocksBuildConfiguration*> (&config))
             flags.add (codeBlocksConfig->getArchitectureTypeString());
 
-        auto recommendedFlags = config.getRecommendedCompilerWarningFlags();
-
-        for (auto& recommendedFlagsType : { recommendedFlags.common, recommendedFlags.cpp })
-            for (auto& recommended : recommendedFlagsType)
-                flags.add (recommended);
+        for (auto& recommended : config.getRecommendedCompilerWarningFlags())
+            flags.add (recommended);
 
         flags.add ("-O" + config.getGCCOptimisationFlag());
 
@@ -392,9 +389,11 @@ private:
             auto cppStandard = config.project.getCppStandardString();
 
             if (cppStandard == "latest")
-                cppStandard = project.getLatestNumberedCppStandardString();
+                cppStandard = "17";
 
-            flags.add ("-std=" + String (shouldUseGNUExtensions() ? "gnu++" : "c++") + cppStandard);
+            cppStandard = "-std=" + String (shouldUseGNUExtensions() ? "gnu++" : "c++") + cppStandard;
+
+            flags.add (cppStandard);
         }
 
         flags.add ("-mstackrealign");

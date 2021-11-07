@@ -1060,13 +1060,13 @@ public:
     void updatePopupDisplay (double valueToShow, double valueToShow2, double valueToShow3)
     {
         if (popupDisplay != nullptr)
-            popupDisplay->updatePosition (owner.getTextFromValue (valueToShow) 
+            popupDisplay->updatePosition (owner.getTextFromValue (valueToShow)
                                           + String("\n") + owner.getTextFromValue (valueToShow2)
                                           + String("\n") + owner.getTextFromValue (valueToShow3)
                                           );
     }
 
-    
+
     bool canDoubleClickToValue() const
     {
         return doubleClickToValue
@@ -1789,7 +1789,7 @@ private:
             auto interval = slider.getInterval();
 
             return interval != 0.0 ? interval
-                                   : slider.getRange().getLength() * 0.05;
+                                   : slider.getRange().getLength() * 0.1;
         }
 
         Slider& slider;

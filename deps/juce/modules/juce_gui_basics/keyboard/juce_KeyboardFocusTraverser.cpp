@@ -103,7 +103,6 @@ struct KeyboardFocusTraverserTests  : public UnitTest
     void runTest() override
     {
         ScopedJuceInitialiser_GUI libraryInitialiser;
-        const MessageManagerLock mml;
 
         beginTest ("No child wants keyboard focus");
         {

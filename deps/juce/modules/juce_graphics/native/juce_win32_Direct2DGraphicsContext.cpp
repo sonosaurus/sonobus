@@ -370,8 +370,7 @@ public:
     {
         if (currentFontFace == nullptr)
         {
-            auto typefacePtr = font.getTypefacePtr();
-            auto* typeface = dynamic_cast<WindowsDirectWriteTypeface*> (typefacePtr.get());
+            auto* typeface = dynamic_cast<WindowsDirectWriteTypeface*> (font.getTypeface());
             currentFontFace = typeface->getIDWriteFontFace();
             fontHeightToEmSizeFactor = typeface->getUnitsToHeightScaleFactor();
         }

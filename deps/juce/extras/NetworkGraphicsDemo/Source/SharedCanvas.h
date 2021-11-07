@@ -399,7 +399,7 @@ public:
     {
         Path p;
         Font& font = getState().font;
-        font.getTypefacePtr()->getOutlineForGlyph (glyphNumber, p);
+        font.getTypeface()->getOutlineForGlyph (glyphNumber, p);
         fillPath (p, AffineTransform::scale (font.getHeight() * font.getHorizontalScale(), font.getHeight()).followedBy (transform));
     }
 

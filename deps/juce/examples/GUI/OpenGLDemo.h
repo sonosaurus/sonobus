@@ -676,6 +676,10 @@ struct OpenGLUtils
                 g.setColour (Colours::black);
                 g.setFont (40);
 
+                const MessageManagerLock mml (ThreadPoolJob::getCurrentThreadPoolJob());
+                if (! mml.lockWasGained())
+                    return false;
+
                 g.drawFittedText (String (Time::getCurrentTime().getMilliseconds()), image.getBounds(), Justification::centred, 1);
             }
 
@@ -812,8 +816,6 @@ public:
     {
         using namespace ::juce::gl;
 
-        const ScopedLock lock (mutex);
-
         jassert (OpenGLHelpers::isContextActive());
 
         auto desktopScale = (float) openGLContext.getRenderingScale();
@@ -843,9 +845,7 @@ public:
         glActiveTexture (GL_TEXTURE0);
         glEnable (GL_TEXTURE_2D);
 
-        glViewport (0, 0,
-                    roundToInt (desktopScale * (float) bounds.getWidth()),
-                    roundToInt (desktopScale * (float) bounds.getHeight()));
+        glViewport (0, 0, roundToInt (desktopScale * (float) getWidth()), roundToInt (desktopScale * (float) getHeight()));
 
         texture.bind();
 
@@ -875,25 +875,23 @@ public:
         glBindBuffer (GL_ARRAY_BUFFER, 0);
         glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        if (! controlsOverlay->isMouseButtonDownThreadsafe())
+        if (! controlsOverlay->isMouseButtonDown())
             rotation += (float) rotationSpeed;
     }
 
     Matrix3D<float> getProjectionMatrix() const
     {
-        const ScopedLock lock (mutex);
-
         auto w = 1.0f / (scale + 0.1f);
-        auto h = w * bounds.toFloat().getAspectRatio (false);
+        auto h = w * getLocalBounds().toFloat().getAspectRatio (false);
 
         return Matrix3D<float>::fromFrustum (-w, w, -h, h, 4.0f, 30.0f);
     }
 
     Matrix3D<float> getViewMatrix() const
     {
-        const ScopedLock lock (mutex);
+        auto viewMatrix = draggableOrientation.getRotationMatrix()
+                             * Vector3D<float> (0.0f, 1.0f, -10.0f);
 
-        auto viewMatrix = draggableOrientation.getRotationMatrix() * Vector3D<float> (0.0f, 1.0f, -10.0f);
         auto rotationMatrix = Matrix3D<float>::rotation ({ rotation, rotation, -0.3f });
 
         return rotationMatrix * viewMatrix;
@@ -914,19 +912,14 @@ public:
 
     void resized() override
     {
-        const ScopedLock lock (mutex);
-
-        bounds = getLocalBounds();
-        controlsOverlay->setBounds (bounds);
-        draggableOrientation.setViewport (bounds);
+        controlsOverlay->setBounds (getLocalBounds());
+        draggableOrientation.setViewport (getLocalBounds());
     }
 
-    Rectangle<int> bounds;
     Draggable3DOrientation draggableOrientation;
     bool doBackgroundDrawing = false;
     float scale = 0.5f, rotationSpeed = 0.0f;
     BouncingNumber bouncingNumber;
-    CriticalSection mutex;
 
 private:
     void handleAsyncUpdate() override
@@ -938,8 +931,8 @@ private:
     {
         // Create an OpenGLGraphicsContext that will draw into this GL window..
         std::unique_ptr<LowLevelGraphicsContext> glRenderer (createOpenGLGraphicsContext (openGLContext,
-                                                                                          roundToInt (desktopScale * (float) bounds.getWidth()),
-                                                                                          roundToInt (desktopScale * (float) bounds.getHeight())));
+                                                                                          roundToInt (desktopScale * (float) getWidth()),
+                                                                                          roundToInt (desktopScale * (float) getHeight())));
 
         if (glRenderer.get() != nullptr)
         {
@@ -952,11 +945,11 @@ private:
 
                 // This stuff just creates a spinning star shape and fills it..
                 Path p;
-                p.addStar ({ (float) bounds.getWidth()  * s.x.getValue(),
-                             (float) bounds.getHeight() * s.y.getValue() },
+                p.addStar ({ (float) getWidth()  * s.x.getValue(),
+                             (float) getHeight() * s.y.getValue() },
                            7,
-                           (float) bounds.getHeight() * size * 0.5f,
-                           (float) bounds.getHeight() * size,
+                           (float) getHeight() * size * 0.5f,
+                           (float) getHeight() * size,
                            s.angle.getValue());
 
                 auto hue = s.hue.getValue();
@@ -964,7 +957,7 @@ private:
                 g.setGradientFill (ColourGradient (Colours::green.withRotatedHue (hue).withAlpha (0.8f),
                                                    0, 0,
                                                    Colours::red.withRotatedHue (hue).withAlpha (0.5f),
-                                                   0, (float) bounds.getHeight(), false));
+                                                   0, (float) getHeight(), false));
                 g.fillPath (p);
             }
         }
@@ -1078,25 +1071,14 @@ private:
             tabbedComp.setBounds (shaderArea);
         }
 
-        bool isMouseButtonDownThreadsafe() const { return buttonDown; }
-
         void mouseDown (const MouseEvent& e) override
         {
-            const ScopedLock lock (demo.mutex);
             demo.draggableOrientation.mouseDown (e.getPosition());
-
-            buttonDown = true;
         }
 
         void mouseDrag (const MouseEvent& e) override
         {
-            const ScopedLock lock (demo.mutex);
             demo.draggableOrientation.mouseDrag (e.getPosition());
-        }
-
-        void mouseUp (const MouseEvent&) override
-        {
-            buttonDown = false;
         }
 
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& d) override
@@ -1167,8 +1149,6 @@ private:
     private:
         void sliderValueChanged (Slider*) override
         {
-            const ScopedLock lock (demo.mutex);
-
             demo.scale         = (float) sizeSlider .getValue();
             demo.rotationSpeed = (float) speedSlider.getValue();
         }
@@ -1227,8 +1207,6 @@ private:
         OwnedArray<OpenGLUtils::DemoTexture> textures;
 
         std::unique_ptr<FileChooser> textureFileChooser;
-
-        std::atomic<bool> buttonDown { false };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DemoControlsOverlay)
     };

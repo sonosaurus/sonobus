@@ -222,8 +222,9 @@ public:
     ~AudioProcessorValueTreeState() override;
 
     //==============================================================================
-   #ifndef DOXYGEN
-    /** Previous calls to
+    /** This function is deprecated and will be removed in a future version of JUCE!
+
+        Previous calls to
 
         @code
         createAndAddParameter (paramID1, paramName1, ...);
@@ -255,21 +256,18 @@ public:
         Calling this will create and add a special type of AudioProcessorParameter to the
         AudioProcessor to which this state is attached.
     */
-    [[deprecated ("This function is deprecated and will be removed in a future version of JUCE! "
-                 "See the method docs for a code example of the replacement methods.")]]
-    RangedAudioParameter* createAndAddParameter (const String& parameterID,
-                                                 const String& parameterName,
-                                                 const String& labelText,
-                                                 NormalisableRange<float> valueRange,
-                                                 float defaultValue,
-                                                 std::function<String (float)> valueToTextFunction,
-                                                 std::function<float (const String&)> textToValueFunction,
-                                                 bool isMetaParameter = false,
-                                                 bool isAutomatableParameter = true,
-                                                 bool isDiscrete = false,
-                                                 AudioProcessorParameter::Category parameterCategory = AudioProcessorParameter::genericParameter,
-                                                 bool isBoolean = false);
-   #endif
+    JUCE_DEPRECATED (RangedAudioParameter* createAndAddParameter (const String& parameterID,
+                                                                  const String& parameterName,
+                                                                  const String& labelText,
+                                                                  NormalisableRange<float> valueRange,
+                                                                  float defaultValue,
+                                                                  std::function<String (float)> valueToTextFunction,
+                                                                  std::function<float (const String&)> textToValueFunction,
+                                                                  bool isMetaParameter = false,
+                                                                  bool isAutomatableParameter = true,
+                                                                  bool isDiscrete = false,
+                                                                  AudioProcessorParameter::Category parameterCategory = AudioProcessorParameter::genericParameter,
+                                                                  bool isBoolean = false));
 
     /** This function adds a parameter to the attached AudioProcessor and that parameter will
         be managed by this AudioProcessorValueTreeState object.
@@ -501,18 +499,18 @@ public:
 
 private:
     //==============================================================================
-    /** Code that looks like this:
+    /** This method was introduced to allow you to use AudioProcessorValueTreeState parameters in
+        an AudioProcessorParameterGroup, but there is now a much nicer way to achieve this.
 
+        Code that looks like this
         @code
         auto paramA = apvts.createParameter ("a", "Parameter A", {}, { -100, 100 }, ...);
         auto paramB = apvts.createParameter ("b", "Parameter B", {}, { 0, 5 }, ...);
         addParameterGroup (std::make_unique<AudioProcessorParameterGroup> ("g1", "Group 1", " | ", std::move (paramA), std::move (paramB)));
         apvts.state = ValueTree (Identifier ("PARAMETERS"));
         @endcode
-
         can instead create the APVTS like this, avoiding the two-step initialization process and leveraging one of JUCE's
-        pre-built parameter types (or your own custom type derived from RangedAudioParameter):
-
+        pre-built parameter types (or your own custom type derived from RangedAudioParameter)
         @code
         using Parameter = AudioProcessorValueTreeState::Parameter;
         YourAudioProcessor()
@@ -522,12 +520,9 @@ private:
                            std::make_unique<Parameter> ("b", "Parameter B", "", NormalisableRange<float> (0, 5), ...)) })
         @endcode
     */
-    [[deprecated ("This method was introduced to allow you to use AudioProcessorValueTreeState parameters in "
-                 "an AudioProcessorParameterGroup, but there is now a much nicer way to achieve this. See the "
-                 "method docs for a code example.")]]
-    std::unique_ptr<RangedAudioParameter> createParameter (const String&, const String&, const String&, NormalisableRange<float>,
-                                                           float, std::function<String (float)>, std::function<float (const String&)>,
-                                                           bool, bool, bool, AudioProcessorParameter::Category, bool);
+    JUCE_DEPRECATED (std::unique_ptr<RangedAudioParameter> createParameter (const String&, const String&, const String&, NormalisableRange<float>,
+                                                                            float, std::function<String (float)>, std::function<float (const String&)>,
+                                                                            bool, bool, bool, AudioProcessorParameter::Category, bool));
 
     //==============================================================================
    #if JUCE_UNIT_TESTS

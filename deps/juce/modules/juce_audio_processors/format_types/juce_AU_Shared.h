@@ -549,6 +549,6 @@ struct AudioUnitHelpers
     }
 };
 
-#endif
+#endif // ! DOXYGEN
 
 } // namespace juce

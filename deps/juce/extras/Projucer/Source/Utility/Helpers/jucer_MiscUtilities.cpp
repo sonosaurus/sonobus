@@ -99,11 +99,6 @@ String escapeSpaces (const String& s)
     return s.replace (" ", "\\ ");
 }
 
-String escapeQuotesAndSpaces (const String& s)
-{
-    return escapeSpaces (s).replace ("'", "\\'").replace ("\"", "\\\"");
-}
-
 String addQuotesIfContainsSpaces (const String& text)
 {
     return (text.containsChar (' ') && ! text.isQuotedString()) ? text.quoted() : text;

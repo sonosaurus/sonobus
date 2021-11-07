@@ -90,13 +90,14 @@ public:
                 addAndMakeVisible (customComponent.get());
                 customComponent->setBounds (getLocalBounds());
 
-                setFocusContainerType (FocusContainerType::focusContainer);
-            }
-            else
-            {
-                setFocusContainerType (FocusContainerType::none);
+                if (customComponent->getAccessibilityHandler() != nullptr)
+                    invalidateAccessibilityHandler();
             }
         }
+
+        if (selectionHasChanged)
+            if (auto* handler = getAccessibilityHandler())
+                isSelected ? handler->grabFocus() : handler->giveAwayFocus();
     }
 
     void performSelection (const MouseEvent& e, bool isMouseUp)
@@ -279,6 +280,9 @@ public:
 
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
     {
+        if (customComponent != nullptr && customComponent->getAccessibilityHandler() != nullptr)
+            return nullptr;
+
         return std::make_unique<RowAccessibilityHandler> (*this);
     }
 
@@ -307,23 +311,15 @@ public:
         setViewedComponent (content.release());
     }
 
-    RowComponent* getComponentForRow (int row) const noexcept
+    RowComponent* getComponentForRow (const int row) const noexcept
     {
-        if (isPositiveAndBelow (row, rows.size()))
-            return rows[row];
-
-        return nullptr;
+        return rows [row % jmax (1, rows.size())];
     }
 
-    RowComponent* getComponentForRowWrapped (int row) const noexcept
-    {
-        return rows[row % jmax (1, rows.size())];
-    }
-
-    RowComponent* getComponentForRowIfOnscreen (int row) const noexcept
+    RowComponent* getComponentForRowIfOnscreen (const int row) const noexcept
     {
         return (row >= firstIndex && row < firstIndex + rows.size())
-                 ? getComponentForRowWrapped (row) : nullptr;
+                 ? getComponentForRow (row) : nullptr;
     }
 
     int getRowNumberOfComponent (Component* const rowComponent) const noexcept
@@ -397,7 +393,7 @@ public:
             {
                 const int row = i + startIndex;
 
-                if (auto* rowComp = getComponentForRowWrapped (row))
+                if (auto* rowComp = getComponentForRow (row))
                 {
                     rowComp->setBounds (0, row * rowH, w, rowH);
                     rowComp->update (row, owner.isRowSelected (row));

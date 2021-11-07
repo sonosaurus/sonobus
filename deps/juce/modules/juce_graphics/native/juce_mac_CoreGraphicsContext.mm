@@ -610,9 +610,7 @@ void CoreGraphicsContext::setFont (const Font& newFont)
         state->fontRef = nullptr;
         state->font = newFont;
 
-        auto typeface = state->font.getTypefacePtr();
-
-        if (auto osxTypeface = dynamic_cast<OSXTypeface*> (typeface.get()))
+        if (auto osxTypeface = dynamic_cast<OSXTypeface*> (state->font.getTypeface()))
         {
             state->fontRef = osxTypeface->fontRef;
             CGContextSetFont (context.get(), state->fontRef);
@@ -669,7 +667,7 @@ void CoreGraphicsContext::drawGlyph (int glyphNumber, const AffineTransform& tra
     {
         Path p;
         auto& f = state->font;
-        f.getTypefacePtr()->getOutlineForGlyph (glyphNumber, p);
+        f.getTypeface()->getOutlineForGlyph (glyphNumber, p);
 
         fillPath (p, AffineTransform::scale (f.getHeight() * f.getHorizontalScale(), f.getHeight())
                                      .followedBy (transform));

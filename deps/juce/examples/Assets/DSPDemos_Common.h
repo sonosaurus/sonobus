@@ -308,11 +308,7 @@ struct DSPDemo  : public AudioSource,
 
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
     {
-        if (bufferToFill.buffer == nullptr)
-        {
-            jassertfalse;
-            return;
-        }
+        jassert (bufferToFill.buffer != nullptr);
 
         inputSource->getNextAudioBlock (bufferToFill);
 
@@ -418,7 +414,7 @@ public:
        #endif
         {
             if (newReader == nullptr)
-                newReader = formatManager.createReaderFor (fileToPlay.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)));
+                newReader = formatManager.createReaderFor (fileToPlay.createInputStream (false));
         }
 
         reader.reset (newReader);
