@@ -59,6 +59,16 @@ private:
     FlexBox titleBox;
 
     /**
+     * Scrollable container for the soundboard buttons.
+     */
+    Viewport buttonViewport;
+
+    /**
+     * Container to hold the soundboard buttons.
+     */
+    Component buttonContainer;
+
+    /**
      * Layout containing all the buttons that play soundboard
      * sounds.
      */
