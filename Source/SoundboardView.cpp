@@ -35,6 +35,9 @@ void SoundboardView::createBasePanels()
     buttonBox.items.clear();
     buttonBox.flexDirection = FlexBox::Direction::column;
 
+    buttonViewport.setViewedComponent(&buttonContainer, false);
+    addAndMakeVisible(buttonViewport);
+
     soundboardContainerBox.items.clear();
     soundboardContainerBox.flexDirection = FlexBox::Direction::column;
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, titleBox).withMargin(0).withFlex(0));
@@ -42,12 +45,12 @@ void SoundboardView::createBasePanels()
     soundboardContainerBox.items.add(
             FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    // TODO: 7 is placeholder height
     soundboardContainerBox.items.add(
-            FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT * 7, buttonBox).withMargin(0).withFlex(0));
+            FlexItem(buttonViewport).withMargin(0).withFlex(1));
 
     mainBox.items.clear();
-    mainBox.flexDirection = FlexBox::Direction::row;
+    mainBox.flexDirection = FlexBox::Direction::column;
+    mainBox.alignItems = FlexBox::AlignItems::stretch;
     mainBox.items.add(FlexItem(TITLE_LABEL_WIDTH, ELEMENT_MARGIN, soundboardContainerBox).withMargin(0).withFlex(1));
 }
 
@@ -150,6 +153,7 @@ void SoundboardView::updateButtons()
 {
     buttonBox.items.clear();
     mSoundButtons.clear();
+    buttonContainer.removeAllChildren();
 
     auto selectedBoardIndex = mBoardSelectComboBox->getSelectedItemIndex();
     if (selectedBoardIndex >= processor->getNumberOfSoundboards()) {
@@ -185,7 +189,7 @@ void SoundboardView::updateButtons()
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
             clickedEditSoundSample(*buttonAddress, sample);
         };
-        addAndMakeVisible(playbackButton.get());
+        buttonContainer.addAndMakeVisible(playbackButton.get());
 
         buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *playbackButton).withMargin(0).withFlex(0));
 
@@ -206,7 +210,7 @@ void SoundboardView::updateButtons()
     mAddSampleButton->onClick = [this]() {
         clickedAddSoundSample();
     };
-    addAndMakeVisible(mAddSampleButton.get());
+    buttonContainer.addAndMakeVisible(mAddSampleButton.get());
 
     buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mAddSampleButton).withMargin(0).withFlex(0));
 
@@ -388,7 +392,14 @@ void SoundboardView::paint(Graphics& g)
 
 void SoundboardView::resized()
 {
+    // Compute the inner container size manually, as all automatic layout computation seem to be rendered useless
+    // as a consequence of using viewport.
+    int buttonsHeight = std::accumulate(buttonBox.items.begin(), buttonBox.items.end(), 0,
+        [](int sum, const FlexItem& item) { return sum + item.currentBounds.getHeight(); });
+    buttonContainer.setSize(buttonViewport.getMaximumVisibleWidth(), buttonsHeight);
+
     mainBox.performLayout(getLocalBounds().reduced(2));
+    buttonBox.performLayout(buttonContainer.getLocalBounds());
 }
 
 void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident)
