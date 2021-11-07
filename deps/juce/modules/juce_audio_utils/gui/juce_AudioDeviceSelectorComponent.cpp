@@ -712,17 +712,13 @@ private:
             sampleRateDropDown->onChange = nullptr;
         }
 
-        const auto getFrequencyString = [] (int rate) { return String (rate) + " Hz"; };
-
         for (auto rate : currentDevice->getAvailableSampleRates())
         {
-            const auto intRate = roundToInt (rate);
-            sampleRateDropDown->addItem (getFrequencyString (intRate), intRate);
+            auto intRate = roundToInt (rate);
+            sampleRateDropDown->addItem (String (intRate) + " Hz", intRate);
         }
 
-        const auto intRate = roundToInt (currentDevice->getCurrentSampleRate());
-        sampleRateDropDown->setText (getFrequencyString (intRate), dontSendNotification);
-
+        sampleRateDropDown->setSelectedId (roundToInt (currentDevice->getCurrentSampleRate()), dontSendNotification);
         sampleRateDropDown->onChange = [this] { updateConfig (false, false, true, false); };
     }
 

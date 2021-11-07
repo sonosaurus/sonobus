@@ -1029,11 +1029,10 @@ public:
             {
                 auto value = inValue / getMaximumParameterValue (param);
 
-                if (value != param->getValue())
-                {
-                    inParameterChangedCallback = true;
-                    param->setValueNotifyingHost (value);
-                }
+                param->setValue (value);
+
+                inParameterChangedCallback = true;
+                param->sendValueChangedMessageToListeners (value);
 
                 return noErr;
             }
@@ -2059,7 +2058,7 @@ private:
         }
         else
         {
-            for (auto* param : juceParameters)
+            for (auto* param : juceParameters.params)
             {
                 const AudioUnitParameterID auParamID = generateAUParameterID (param);
 
@@ -2076,14 +2075,14 @@ private:
        #if JUCE_DEBUG
         // Some hosts can't handle the huge numbers of discrete parameter values created when
         // using the default number of steps.
-        for (auto* param : juceParameters)
+        for (auto* param : juceParameters.params)
             if (param->isDiscrete())
                 jassert (param->getNumSteps() != AudioProcessor::getDefaultNumParameterSteps());
        #endif
 
         parameterValueStringArrays.ensureStorageAllocated (numParams);
 
-        for (auto* param : juceParameters)
+        for (auto* param : juceParameters.params)
         {
             OwnedArray<const __CFString>* stringValues = nullptr;
 

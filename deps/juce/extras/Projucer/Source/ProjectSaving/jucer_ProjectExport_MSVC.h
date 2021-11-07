@@ -25,14 +25,6 @@
 
 #pragma once
 
-inline String msBuildEscape (String str)
-{
-    // see https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2019
-    for (const auto& special : { "%", "$", "@", "'", ";", "?", "\""})
-        str = str.replace (special, "%" + String::toHexString (*special));
-
-    return str;
-}
 
 //==============================================================================
 class MSVCProjectExporterBase   : public ProjectExporter
@@ -42,7 +34,6 @@ public:
         : ProjectExporter (p, t),
           IPPLibraryValue       (settings, Ids::IPPLibrary,                   getUndoManager()),
           IPP1ALibraryValue     (settings, Ids::IPP1ALibrary,                 getUndoManager()),
-          MKL1ALibraryValue     (settings, Ids::MKL1ALibrary,                 getUndoManager()),
           platformToolsetValue  (settings, Ids::toolset,                      getUndoManager()),
           targetPlatformVersion (settings, Ids::windowsTargetPlatformVersion, getUndoManager()),
           manifestFileValue     (settings, Ids::msvcManifestFile,             getUndoManager())
@@ -60,7 +51,6 @@ public:
     //==============================================================================
     String getIPPLibrary() const                      { return IPPLibraryValue.get(); }
     String getIPP1ALibrary() const                    { return IPP1ALibraryValue.get(); }
-    String getMKL1ALibrary() const                    { return MKL1ALibraryValue.get(); }
     String getPlatformToolset() const                 { return platformToolsetValue.get(); }
     String getWindowsTargetPlatformVersion() const    { return targetPlatformVersion.get(); }
 
@@ -448,15 +438,14 @@ public:
 
                 addWindowsTargetPlatformToConfig (*e);
 
-                struct IntelLibraryInfo
+                struct IPPLibraryInfo
                 {
                     String libraryKind;
                     String configString;
                 };
 
-                for (const auto& info : { IntelLibraryInfo { owner.getIPPLibrary(),   "UseIntelIPP" },
-                                          IntelLibraryInfo { owner.getIPP1ALibrary(), "UseIntelIPP1A" },
-                                          IntelLibraryInfo { owner.getMKL1ALibrary(), "UseInteloneMKL" } })
+                for (const auto& info : { IPPLibraryInfo { owner.getIPPLibrary(),   "UseIntelIPP" },
+                                          IPPLibraryInfo { owner.getIPP1ALibrary(), "UseIntelIPP1A" }})
                 {
                     if (info.libraryKind.isNotEmpty())
                         e->createNewChildElement (info.configString)->addTextElement (info.libraryKind);
@@ -513,7 +502,7 @@ public:
                     {
                         auto* targetName = props->createNewChildElement ("TargetName");
                         setConditionAttribute (*targetName, config);
-                        targetName->addTextElement (msBuildEscape (config.getOutputFilename ("", false, type == UnityPlugIn)));
+                        targetName->addTextElement (config.getOutputFilename ("", false, type == UnityPlugIn));
                     }
 
                     {
@@ -606,9 +595,9 @@ public:
                                                                                                     : "NDEBUG;%(PreprocessorDefinitions)");
                 }
 
-                auto externalLibraries = getExternalLibraries (config, getOwner().getExternalLibrariesStringArray());
-                auto additionalDependencies = type != SharedCodeTarget && ! externalLibraries.isEmpty()
-                                                        ? externalLibraries.joinIntoString (";") + ";%(AdditionalDependencies)"
+                auto externalLibraries = getExternalLibraries (config, getOwner().getExternalLibrariesString());
+                auto additionalDependencies = type != SharedCodeTarget && externalLibraries.isNotEmpty()
+                                                        ? getOwner().replacePreprocessorTokens (config, externalLibraries).trim() + ";%(AdditionalDependencies)"
                                                         : String();
 
                 auto librarySearchPaths = config.getLibrarySearchPaths();
@@ -1332,25 +1321,22 @@ public:
             return librarySearchPaths;
         }
 
-        StringArray getExternalLibraries (const MSVCBuildConfiguration& config, const StringArray& otherLibs) const
+        String getExternalLibraries (const MSVCBuildConfiguration& config, const String& otherLibs) const
         {
-            const auto sharedCodeLib = [&]() -> StringArray
-            {
-                if (type != SharedCodeTarget)
-                    if (auto* shared = getOwner().getSharedCodeTarget())
-                        return { shared->getBinaryNameWithSuffix (config, false) };
+            StringArray libraries;
 
-                return {};
-            }();
+            if (otherLibs.isNotEmpty())
+                libraries.add (otherLibs);
 
-            auto result = otherLibs;
-            result.addArray (getOwner().getModuleLibs());
-            result.addArray (sharedCodeLib);
+            auto moduleLibs = getOwner().getModuleLibs();
+            if (! moduleLibs.isEmpty())
+                libraries.addArray (moduleLibs);
 
-            for (auto& i : result)
-                i = msBuildEscape (getOwner().replacePreprocessorTokens (config, i).trim());
+            if (type != SharedCodeTarget)
+                if (auto* shared = getOwner().getSharedCodeTarget())
+                    libraries.add (shared->getBinaryNameWithSuffix (config, false));
 
-            return result;
+            return libraries.joinIntoString (";");
         }
 
         String getDelayLoadedDLLs() const
@@ -1507,11 +1493,6 @@ public:
                                                 { var(), "true",                   "Static_Library",     "Dynamic_Library" }),
                    "Enable this to use Intel's Integrated Performance Primitives library, supplied as part of the oneAPI toolkit.");
 
-        props.add (new ChoicePropertyComponent (MKL1ALibraryValue, "Use MKL Library (oneAPI)",
-                                                { "No",  "Parallel", "Sequential", "Cluster" },
-                                                { var(), "Parallel", "Sequential", "Cluster" }),
-                   "Enable this to use Intel's MKL library, supplied as part of the oneAPI toolkit.");
-
         {
             auto isWindows10SDK = getVisualStudioVersion() > 14;
 
@@ -1595,12 +1576,7 @@ protected:
     mutable File rcFile, iconFile, packagesConfigFile;
     OwnedArray<MSVCTargetBase> targets;
 
-    ValueWithDefault IPPLibraryValue,
-                     IPP1ALibraryValue,
-                     MKL1ALibraryValue,
-                     platformToolsetValue,
-                     targetPlatformVersion,
-                     manifestFileValue;
+    ValueWithDefault IPPLibraryValue, IPP1ALibraryValue, platformToolsetValue, targetPlatformVersion, manifestFileValue;
 
     File getProjectFile (const String& extension, const String& target) const
     {
@@ -1680,13 +1656,6 @@ protected:
 
     void writeSolutionFile (OutputStream& out, const String& versionString, String commentString) const
     {
-        const unsigned char bomBytes[] { CharPointer_UTF8::byteOrderMark1,
-                                         CharPointer_UTF8::byteOrderMark2,
-                                         CharPointer_UTF8::byteOrderMark3 };
-
-        for (const auto& byte : bomBytes)
-            out.writeByte ((char) byte);
-
         if (commentString.isNotEmpty())
             commentString += newLine;
 
@@ -1750,7 +1719,7 @@ protected:
     }
 
     static String getWebView2PackageName()     { return "Microsoft.Web.WebView2"; }
-    static String getWebView2PackageVersion()  { return "1.0.902.49"; }
+    static String getWebView2PackageVersion()  { return "0.9.488"; }
 
     void createPackagesConfigFile() const
     {

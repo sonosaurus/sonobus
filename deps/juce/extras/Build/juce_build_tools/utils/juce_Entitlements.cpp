@@ -110,9 +110,6 @@ namespace build_tools
                     entitlements.set (option, "<true/>");
         }
 
-        if (isNetworkingMulticastEnabled)
-            entitlements.set ("com.apple.developer.networking.multicast", "<true/>");
-
         return entitlements;
     }
 }

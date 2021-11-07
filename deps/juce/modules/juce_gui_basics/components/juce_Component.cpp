@@ -2687,17 +2687,13 @@ void Component::internalKeyboardFocusGain (FocusChangeType cause,
 {
     focusGained (cause);
 
-    if (safePointer == nullptr)
-        return;
-
-    if (hasKeyboardFocus (false))
+    if (safePointer != nullptr)
+    {
         if (auto* handler = getAccessibilityHandler())
             handler->grabFocus();
 
-    if (safePointer == nullptr)
-        return;
-
-    internalChildKeyboardFocusChange (cause, safePointer);
+        internalChildKeyboardFocusChange (cause, safePointer);
+    }
 }
 
 void Component::internalKeyboardFocusLoss (FocusChangeType cause)

@@ -52,7 +52,9 @@ MemoryInputStream::MemoryInputStream (MemoryBlock&& source)
     dataSize = internalCopy.getSize();
 }
 
-MemoryInputStream::~MemoryInputStream() = default;
+MemoryInputStream::~MemoryInputStream()
+{
+}
 
 int64 MemoryInputStream::getTotalLength()
 {

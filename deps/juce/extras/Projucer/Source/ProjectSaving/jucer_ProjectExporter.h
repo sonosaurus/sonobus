@@ -144,8 +144,7 @@ public:
     String getExtraCompilerFlagsString() const            { return extraCompilerFlagsValue.get().toString().replaceCharacters ("\r\n", "  "); }
     String getExtraLinkerFlagsString() const              { return extraLinkerFlagsValue.get().toString().replaceCharacters ("\r\n", "  "); }
 
-    StringArray getExternalLibrariesStringArray() const   { return getSearchPathsFromString (externalLibrariesValue.get().toString()); }
-    String getExternalLibrariesString() const             { return getExternalLibrariesStringArray().joinIntoString (";"); }
+    String getExternalLibrariesString() const             { return getSearchPathsFromString (externalLibrariesValue.get().toString()).joinIntoString (";"); }
 
     bool shouldUseGNUExtensions() const                   { return gnuExtensionsValue.get(); }
 
@@ -269,32 +268,7 @@ public:
         void createPropertyEditors (PropertyListBuilder&);
         void addRecommendedLinuxCompilerWarningsProperty (PropertyListBuilder&);
         void addRecommendedLLVMCompilerWarningsProperty (PropertyListBuilder&);
-
-        struct CompilerNames
-        {
-            static constexpr const char* gcc = "GCC";
-            static constexpr const char* llvm = "LLVM";
-        };
-
-        struct CompilerWarningFlags
-        {
-            static CompilerWarningFlags getRecommendedForGCCAndLLVM()
-            {
-                CompilerWarningFlags result;
-                result.common = { "-Wall", "-Wstrict-aliasing", "-Wuninitialized", "-Wunused-parameter",
-                                  "-Wswitch-enum", "-Wsign-conversion", "-Wsign-compare",
-                                  "-Wunreachable-code", "-Wcast-align", "-Wno-ignored-qualifiers" };
-                result.cpp = { "-Woverloaded-virtual", "-Wreorder", "-Wzero-as-null-pointer-constant" };
-
-                return result;
-            }
-
-            StringArray common;
-            StringArray cpp;
-        };
-
-        CompilerWarningFlags getRecommendedCompilerWarningFlags() const;
-
+        StringArray getRecommendedCompilerWarningFlags() const;
         void addGCCOptimisationProperty (PropertyListBuilder&);
         void removeFromExporter();
 
@@ -309,7 +283,7 @@ public:
                          usePrecompiledHeaderFileValue, precompiledHeaderFileValue;
 
     private:
-        std::map<String, CompilerWarningFlags> recommendedCompilerWarningFlags;
+        std::map<String, StringArray> recommendedCompilerWarningFlags;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BuildConfiguration)
     };

@@ -28,6 +28,7 @@ namespace juce
 
 #if JUCE_USE_CAMERA || DOXYGEN
 
+
 //==============================================================================
 /**
     Controls any video capture devices that might be available.

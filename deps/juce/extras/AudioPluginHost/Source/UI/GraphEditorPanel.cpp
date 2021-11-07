@@ -339,14 +339,12 @@ struct GraphEditorPanel::PluginComponent   : public Component,
         const AudioProcessorGraph::Node::Ptr f (graph.graph.getNodeForId (pluginID));
         jassert (f != nullptr);
 
-        auto& processor = *f->getProcessor();
-
-        numIns = processor.getTotalNumInputChannels();
-        if (processor.acceptsMidi())
+        numIns = f->getProcessor()->getTotalNumInputChannels();
+        if (f->getProcessor()->acceptsMidi())
             ++numIns;
 
-        numOuts = processor.getTotalNumOutputChannels();
-        if (processor.producesMidi())
+        numOuts = f->getProcessor()->getTotalNumOutputChannels();
+        if (f->getProcessor()->producesMidi())
             ++numOuts;
 
         int w = 100;
@@ -354,13 +352,14 @@ struct GraphEditorPanel::PluginComponent   : public Component,
 
         w = jmax (w, (jmax (numIns, numOuts) + 1) * 20);
 
-        const int textWidth = font.getStringWidth (processor.getName());
+        const int textWidth = font.getStringWidth (f->getProcessor()->getName());
         w = jmax (w, 16 + jmin (textWidth, 300));
         if (textWidth > 300)
             h = 100;
 
         setSize (w, h);
-        setName (processor.getName() + formatSuffix);
+
+        setName (f->getProcessor()->getName());
 
         {
             auto p = graph.getNodePosition (pluginID);
@@ -374,16 +373,16 @@ struct GraphEditorPanel::PluginComponent   : public Component,
 
             pins.clear();
 
-            for (int i = 0; i < processor.getTotalNumInputChannels(); ++i)
+            for (int i = 0; i < f->getProcessor()->getTotalNumInputChannels(); ++i)
                 addAndMakeVisible (pins.add (new PinComponent (panel, { pluginID, i }, true)));
 
-            if (processor.acceptsMidi())
+            if (f->getProcessor()->acceptsMidi())
                 addAndMakeVisible (pins.add (new PinComponent (panel, { pluginID, AudioProcessorGraph::midiChannelIndex }, true)));
 
-            for (int i = 0; i < processor.getTotalNumOutputChannels(); ++i)
+            for (int i = 0; i < f->getProcessor()->getTotalNumOutputChannels(); ++i)
                 addAndMakeVisible (pins.add (new PinComponent (panel, { pluginID, i }, false)));
 
-            if (processor.producesMidi())
+            if (f->getProcessor()->producesMidi())
                 addAndMakeVisible (pins.add (new PinComponent (panel, { pluginID, AudioProcessorGraph::midiChannelIndex }, false)));
 
             resized();
@@ -406,9 +405,7 @@ struct GraphEditorPanel::PluginComponent   : public Component,
         menu->addItem (3, "Toggle Bypass");
 
         menu->addSeparator();
-        if (getProcessor()->hasEditor())
-            menu->addItem (10, "Show plugin GUI");
-
+        menu->addItem (10, "Show plugin GUI");
         menu->addItem (11, "Show all programs");
         menu->addItem (12, "Show all parameters");
         menu->addItem (13, "Show debug log");
@@ -495,7 +492,6 @@ struct GraphEditorPanel::PluginComponent   : public Component,
     int numIns = 0, numOuts = 0;
     DropShadowEffect shadow;
     std::unique_ptr<PopupMenu> menu;
-    const String formatSuffix = getFormatSuffix (getProcessor());
 };
 
 

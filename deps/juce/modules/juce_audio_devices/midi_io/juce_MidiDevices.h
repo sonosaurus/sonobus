@@ -157,14 +157,12 @@ public:
     void setName (const String& newName) noexcept    { deviceInfo.name = newName; }
 
     //==============================================================================
-   #ifndef DOXYGEN
-    [[deprecated ("Use getAvailableDevices instead.")]]
+    /** Deprecated. */
     static StringArray getDevices();
-    [[deprecated ("Use getDefaultDevice instead.")]]
+    /** Deprecated. */
     static int getDefaultDeviceIndex();
-    [[deprecated ("Use openDevice that takes a device identifier instead.")]]
+    /** Deprecated. */
     static std::unique_ptr<MidiInput> openDevice (int, MidiInputCallback*);
-   #endif
 
     /** @internal */
     class Pimpl;
@@ -349,14 +347,12 @@ public:
     bool isBackgroundThreadRunning() const noexcept  { return isThreadRunning(); }
 
     //==============================================================================
-   #ifndef DOXYGEN
-    [[deprecated ("Use getAvailableDevices instead.")]]
+    /** Deprecated. */
     static StringArray getDevices();
-    [[deprecated ("Use getDefaultDevice instead.")]]
+    /** Deprecated. */
     static int getDefaultDeviceIndex();
-    [[deprecated ("Use openDevice that takes a device identifier instead.")]]
+    /** Deprecated. */
     static std::unique_ptr<MidiOutput> openDevice (int);
-   #endif
 
     /** @internal */
     class Pimpl;

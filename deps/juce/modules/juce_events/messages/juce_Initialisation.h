@@ -84,7 +84,7 @@ public:
 
     See the JUCEApplication and JUCEApplicationBase class documentation for more details.
 */
-#if DOXYGEN
+#ifdef DOXYGEN
  #define START_JUCE_APPLICATION(AppClass)
 #else
  #if JUCE_WINDOWS && ! defined (_CONSOLE)
@@ -157,10 +157,8 @@ public:
  #else
 
   #define START_JUCE_APPLICATION(AppClass) \
-     JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes") \
      JUCE_CREATE_APPLICATION_DEFINE(AppClass) \
-     JUCE_MAIN_FUNCTION_DEFINITION \
-     JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+     JUCE_MAIN_FUNCTION_DEFINITION
 
   #if JUCE_IOS
     /**

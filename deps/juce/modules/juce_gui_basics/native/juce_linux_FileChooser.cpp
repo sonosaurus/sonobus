@@ -39,23 +39,16 @@ static bool exeIsAvailable (String executable)
     return false;
 }
 
-static bool isSet (int flags, int toCheck)
-{
-    return (flags & toCheck) != 0;
-}
-
 class FileChooser::Native    : public FileChooser::Pimpl,
                                private Timer
 {
 public:
     Native (FileChooser& fileChooser, int flags)
         : owner (fileChooser),
-          // kdialog/zenity only support opening either files or directories.
-          // Files should take precedence, if requested.
-          isDirectory         (isSet (flags, FileBrowserComponent::canSelectDirectories) && ! isSet (flags, FileBrowserComponent::canSelectFiles)),
-          isSave              (isSet (flags, FileBrowserComponent::saveMode)),
-          selectMultipleFiles (isSet (flags, FileBrowserComponent::canSelectMultipleItems)),
-          warnAboutOverwrite  (isSet (flags, FileBrowserComponent::warnAboutOverwriting))
+          isDirectory         ((flags & FileBrowserComponent::canSelectDirectories)   != 0),
+          isSave              ((flags & FileBrowserComponent::saveMode)               != 0),
+          selectMultipleFiles ((flags & FileBrowserComponent::canSelectMultipleItems) != 0),
+          warnAboutOverwrite  ((flags & FileBrowserComponent::warnAboutOverwriting)   != 0)
     {
         const File previousWorkingDirectory (File::getCurrentWorkingDirectory());
 

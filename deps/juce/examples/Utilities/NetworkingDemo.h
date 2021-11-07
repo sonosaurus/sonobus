@@ -103,10 +103,9 @@ public:
         StringPairArray responseHeaders;
         int statusCode = 0;
 
-        if (auto stream = url.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)
-                                                                                 .withConnectionTimeoutMs(10000)
-                                                                                 .withResponseHeaders (&responseHeaders)
-                                                                                 .withStatusCode (&statusCode)))
+        if (auto stream = std::unique_ptr<InputStream> (url.createInputStream (false, nullptr, nullptr, {},
+                                                                               10000, // timeout in millisecs
+                                                                               &responseHeaders, &statusCode)))
         {
             return (statusCode != 0 ? "Status code: " + String (statusCode) + newLine : String())
                     + "Response headers: " + newLine

@@ -23,17 +23,6 @@
   ==============================================================================
 */
 
-static void juceFreeAccessibilityPlatformSpecificData (UIAccessibilityElement* element)
-{
-    if (auto* container = juce::getIvar<UIAccessibilityElement*> (element, "container"))
-    {
-        object_setInstanceVariable (element, "container", nullptr);
-        object_setInstanceVariable (container, "handler", nullptr);
-
-        [container release];
-    }
-}
-
 namespace juce
 {
 
@@ -176,22 +165,19 @@ private:
     class AccessibilityElement  : public AccessibleObjCClass<UIAccessibilityElement>
     {
     public:
-        enum class Type  { defaultElement, textElement };
-
         static Holder create (AccessibilityHandler& handler)
         {
-            static AccessibilityElement cls     { Type::defaultElement };
-            static AccessibilityElement textCls { Type::textElement };
-
-            id instance = (hasEditableText (handler) ? textCls : cls).createInstance();
-
-            Holder element ([instance initWithAccessibilityContainer: (id) handler.getComponent().getWindowHandle()]);
+            static AccessibilityElement cls;
+            Holder element ([cls.createInstance() initWithAccessibilityContainer: (id) handler.getComponent().getWindowHandle()]);
             object_setInstanceVariable (element.get(), "handler", &handler);
             return element;
         }
 
-        AccessibilityElement (Type elementType)
+    private:
+        AccessibilityElement()
         {
+            addMethod (@selector (dealloc), dealloc, "v@:");
+
             addMethod (@selector (isAccessibilityElement),     getIsAccessibilityElement,     "c@:");
             addMethod (@selector (accessibilityContainer),     getAccessibilityContainer,     "@@:");
             addMethod (@selector (accessibilityFrame),         getAccessibilityFrame,         @encode (CGRect), "@:");
@@ -211,28 +197,24 @@ private:
             addMethod (@selector (accessibilityDecrement), accessibilityPerformDecrement, "c@:");
             addMethod (@selector (accessibilityPerformEscape),  accessibilityEscape,  "c@:");
 
+            addMethod (@selector (accessibilityLineNumberForPoint:),   getAccessibilityLineNumberForPoint,   "i@:", @encode (CGPoint));
+            addMethod (@selector (accessibilityContentForLineNumber:), getAccessibilityContentForLineNumber, "@@:i");
+            addMethod (@selector (accessibilityFrameForLineNumber:),   getAccessibilityFrameForLineNumber,   @encode (CGRect), "@:i");
+            addMethod (@selector (accessibilityPageContent),           getAccessibilityPageContent,          "@@:");
+
             addMethod (@selector (accessibilityDataTableCellElementForRow:column:), getAccessibilityDataTableCellElementForRowColumn, "@@:ii");
             addMethod (@selector (accessibilityRowCount),                           getAccessibilityRowCount,                         "i@:");
             addMethod (@selector (accessibilityColumnCount),                        getAccessibilityColumnCount,                      "i@:");
             addMethod (@selector (accessibilityRowRange),                           getAccessibilityRowIndexRange,                    @encode (NSRange), "@:");
             addMethod (@selector (accessibilityColumnRange),                        getAccessibilityColumnIndexRange,                 @encode (NSRange), "@:");
 
-            if (elementType == Type::textElement)
-            {
-                addMethod (@selector (accessibilityLineNumberForPoint:),   getAccessibilityLineNumberForPoint,   "i@:", @encode (CGPoint));
-                addMethod (@selector (accessibilityContentForLineNumber:), getAccessibilityContentForLineNumber, "@@:i");
-                addMethod (@selector (accessibilityFrameForLineNumber:),   getAccessibilityFrameForLineNumber,   @encode (CGRect), "@:i");
-                addMethod (@selector (accessibilityPageContent),           getAccessibilityPageContent,          "@@:");
-
-                addProtocol (@protocol (UIAccessibilityReadingContent));
-            }
+            addProtocol (@protocol (UIAccessibilityReadingContent));
 
             addIvar<UIAccessibilityElement*> ("container");
 
             registerClass();
         }
 
-    private:
         //==============================================================================
         static UIAccessibilityElement* getContainer (id self)
         {
@@ -240,6 +222,17 @@ private:
         }
 
         //==============================================================================
+        static void dealloc (id self, SEL)
+        {
+            if (UIAccessibilityElement* container = getContainer (self))
+            {
+                [container release];
+                object_setInstanceVariable (self, "container", nullptr);
+            }
+
+            sendSuperclassMessage<void> (self, @selector (dealloc));
+        }
+
         static id getAccessibilityContainer (id self, SEL)
         {
             if (auto* handler = getHandler (self))
@@ -253,16 +246,14 @@ private:
                         return container;
 
                     static AccessibilityContainer cls;
-
                     id windowHandle = (id) handler->getComponent().getWindowHandle();
                     UIAccessibilityElement* container = [cls.createInstance() initWithAccessibilityContainer: windowHandle];
-
+                    object_setInstanceVariable (container, "handler", handler);
                     [container retain];
 
-                    object_setInstanceVariable (container, "handler", handler);
                     object_setInstanceVariable (self, "container", container);
 
-                    return container;
+                    return (id) getContainer (self);
                 }
 
                 if (auto* parent = handler->getParent())
@@ -342,19 +333,6 @@ private:
             return traits | sendSuperclassMessage<UIAccessibilityTraits> (self, @selector (accessibilityTraits));
         }
 
-        static NSString* getAccessibilityValue (id self, SEL)
-        {
-            if (auto* handler = getHandler (self))
-            {
-                if (handler->getCurrentState().isCheckable())
-                    return handler->getCurrentState().isChecked() ? @"1" : @"0";
-
-                return (NSString*) getAccessibilityValueFromInterfaces (*handler);
-            }
-
-            return nil;
-        }
-
         static void onFocusGain (id self, SEL)
         {
             if (auto* handler = getHandler (self))
@@ -412,15 +390,6 @@ private:
             return NO;
         }
 
-        static id getAccessibilityDataTableCellElementForRowColumn (id self, SEL, NSUInteger row, NSUInteger column)
-        {
-            if (auto* tableInterface = getTableInterface (self))
-                if (auto* cellHandler = tableInterface->getCellHandler ((int) row, (int) column))
-                    return (id) cellHandler->getNativeImplementation();
-
-            return nil;
-        }
-
         static NSInteger getAccessibilityLineNumberForPoint (id self, SEL, CGPoint point)
         {
             if (auto* handler = getHandler (self))
@@ -473,6 +442,15 @@ private:
         {
             if (auto* textInterface = getTextInterface (self))
                 return juceStringToNS (textInterface->getText ({ 0, textInterface->getTotalNumCharacters() }));
+
+            return nil;
+        }
+
+        static id getAccessibilityDataTableCellElementForRowColumn (id self, SEL, NSUInteger row, NSUInteger column)
+        {
+            if (auto* tableInterface = getTableInterface (self))
+                if (auto* cellHandler = tableInterface->getCellHandler ((int) row, (int) column))
+                    return (id) cellHandler->getNativeImplementation();
 
             return nil;
         }

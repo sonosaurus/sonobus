@@ -414,7 +414,9 @@ public:
                                                 #endif
 
     //==============================================================================
-   #if JUCE_MODAL_LOOPS_PERMITTED && ! defined (DOXYGEN)
+   #if JUCE_MODAL_LOOPS_PERMITTED
+    // This has been deprecated, use the NativeMessageBox methods instead for more options.
+
     /** Shows an operating-system native dialog box.
 
         @param title        the title to use at the top
@@ -423,10 +425,9 @@ public:
                             it'll show a box with just an ok button
         @returns true if the ok button was pressed, false if they pressed cancel.
     */
-    [[deprecated ("Use the NativeMessageBox methods instead for more options")]]
-    static bool JUCE_CALLTYPE showNativeDialogBox (const String& title,
-                                                   const String& bodyText,
-                                                   bool isOkCancel);
+    JUCE_DEPRECATED (static bool JUCE_CALLTYPE showNativeDialogBox (const String& title,
+                                                                    const String& bodyText,
+                                                                    bool isOkCancel));
    #endif
 
 
@@ -498,7 +499,7 @@ protected:
     /** @internal */
     int getDesktopWindowStyleFlags() const override;
     /** @internal */
-    float getDesktopScaleFactor() const override { return desktopScale * Desktop::getInstance().getGlobalScaleFactor(); }
+    float getDesktopScaleFactor() const override { return desktopScale; }
 
 private:
     //==============================================================================

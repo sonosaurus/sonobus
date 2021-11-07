@@ -136,7 +136,7 @@ private:
 
 } // namespace juce
 
-#ifndef DOXYGEN
+#if ! DOXYGEN
 namespace std
 {
     template <> struct hash<juce::Uuid>

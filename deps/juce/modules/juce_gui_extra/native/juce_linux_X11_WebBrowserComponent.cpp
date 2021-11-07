@@ -917,6 +917,13 @@ WebBrowserComponent::WebBrowserComponent (const bool unloadWhenHidden)
     browser->init();
 }
 
+WebBrowserComponent::WebBrowserComponent (bool unloadWhenHidden,
+                                          const File&,
+                                          const File&)
+    : WebBrowserComponent (unloadWhenHidden)
+{
+}
+
 WebBrowserComponent::~WebBrowserComponent()
 {
 }

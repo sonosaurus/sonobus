@@ -456,7 +456,7 @@ private:
        #endif
         {
             if (reader == nullptr)
-                reader = formatManager.createReaderFor (audioURL.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)));
+                reader = formatManager.createReaderFor (audioURL.createInputStream (false));
         }
 
         if (reader != nullptr)

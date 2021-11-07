@@ -167,10 +167,8 @@ public:
     /** Creates a Bela device type if it's available on this platform, or returns null. */
     static AudioIODeviceType* createAudioIODeviceType_Bela();
 
-   #ifndef DOXYGEN
-    [[deprecated ("You should call the method which takes a WASAPIDeviceMode instead.")]]
-    static AudioIODeviceType* createAudioIODeviceType_WASAPI (bool exclusiveMode);
-   #endif
+    /** This method has been deprecated. You should call the method which takes a WASAPIDeviceMode instead. */
+    JUCE_DEPRECATED (static AudioIODeviceType* createAudioIODeviceType_WASAPI (bool exclusiveMode));
 
 protected:
     explicit AudioIODeviceType (const String& typeName);

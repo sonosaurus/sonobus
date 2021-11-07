@@ -44,24 +44,19 @@ OpenGLPixelFormat::OpenGLPixelFormat (const int bitsPerRGBComponent,
 {
 }
 
-static auto tie (const OpenGLPixelFormat& fmt)
-{
-    return std::tie (fmt.redBits,
-                     fmt.greenBits,
-                     fmt.blueBits,
-                     fmt.alphaBits,
-                     fmt.depthBufferBits,
-                     fmt.stencilBufferBits,
-                     fmt.accumulationBufferRedBits,
-                     fmt.accumulationBufferGreenBits,
-                     fmt.accumulationBufferBlueBits,
-                     fmt.accumulationBufferAlphaBits,
-                     fmt.multisamplingLevel);
-}
-
 bool OpenGLPixelFormat::operator== (const OpenGLPixelFormat& other) const noexcept
 {
-    return tie (*this) == tie (other);
+    return redBits == other.redBits
+            && greenBits == other.greenBits
+            && blueBits  == other.blueBits
+            && alphaBits == other.alphaBits
+            && depthBufferBits == other.depthBufferBits
+            && stencilBufferBits == other.stencilBufferBits
+            && accumulationBufferRedBits   == other.accumulationBufferRedBits
+            && accumulationBufferGreenBits == other.accumulationBufferGreenBits
+            && accumulationBufferBlueBits  == other.accumulationBufferBlueBits
+            && accumulationBufferAlphaBits == other.accumulationBufferAlphaBits
+            && multisamplingLevel == other.multisamplingLevel;
 }
 
 bool OpenGLPixelFormat::operator!= (const OpenGLPixelFormat& other) const noexcept

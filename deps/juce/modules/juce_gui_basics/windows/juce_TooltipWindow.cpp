@@ -191,14 +191,6 @@ void TooltipWindow::timerCallback()
         if (tipChanged || mouseWasClicked || mouseMovedQuickly)
             lastCompChangeTime = now;
 
-        auto showTip = [this, &mouseSource, &mousePos, &newTip]
-        {
-            bool mouseHasMovedSinceClick = mouseSource.getLastMouseDownPosition() != lastMousePos;
-
-            if (mouseHasMovedSinceClick)
-                displayTip (mousePos.roundToInt(), newTip);
-        };
-
         if (isVisible() || now < lastHideTime + 500)
         {
             // if a tip is currently visible (or has just disappeared), update to a new one
@@ -213,17 +205,18 @@ void TooltipWindow::timerCallback()
             }
             else if (tipChanged)
             {
-                showTip();
+                displayTip (mousePos.roundToInt(), newTip);
             }
         }
         else
         {
-            // if there isn't currently a tip, but one is needed, only let it appear after a timeout
+            // if there isn't currently a tip, but one is needed, only let it
+            // appear after a timeout..
             if (newTip.isNotEmpty()
-                && newTip != tipShowing
-                && now > lastCompChangeTime + (uint32) millisecondsBeforeTipAppears)
+                 && newTip != tipShowing
+                 && now > lastCompChangeTime + (uint32) millisecondsBeforeTipAppears)
             {
-                showTip();
+                displayTip (mousePos.roundToInt(), newTip);
             }
         }
     }

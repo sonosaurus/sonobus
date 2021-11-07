@@ -70,14 +70,12 @@ public:
 
         [view setPostsFrameChangedNotifications: YES];
 
-       #if USE_COREGRAPHICS_RENDERING && JUCE_COREGRAPHICS_DRAW_ASYNC
+       #if defined (MAC_OS_X_VERSION_10_8) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8) \
+        && USE_COREGRAPHICS_RENDERING && JUCE_COREGRAPHICS_DRAW_ASYNC
         if (! getComponentAsyncLayerBackedViewDisabled (component))
         {
-            if (@available (macOS 10.8, *))
-            {
-                [view setWantsLayer: YES];
-                [[view layer] setDrawsAsynchronously: YES];
-            }
+            [view setWantsLayer: YES];
+            [[view layer] setDrawsAsynchronously: YES];
         }
        #endif
 
@@ -98,8 +96,14 @@ public:
                                                            defer: YES];
             setOwner (window, this);
 
+          #if JUCE_OBJC_HAS_AVAILABLE_FEATURE || (defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10)
+           #if JUCE_OBJC_HAS_AVAILABLE_FEATURE
             if (@available (macOS 10.10, *))
+           #endif
+            {
                 [window setAccessibilityElement: YES];
+            }
+          #endif
 
             [window orderOut: nil];
             [window setDelegate: (id<NSWindowDelegate>) window];
@@ -109,8 +113,9 @@ public:
             if (! [window isOpaque])
                 [window setBackgroundColor: [NSColor clearColor]];
 
-           if (@available (macOS 10.9, *))
-                [view setAppearance: [NSAppearance appearanceNamed: NSAppearanceNameAqua]];
+           #if defined (MAC_OS_X_VERSION_10_9) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9)
+            [view setAppearance: [NSAppearance appearanceNamed: NSAppearanceNameAqua]];
+           #endif
 
             [window setHasShadow: ((windowStyleFlags & windowHasDropShadow) != 0)];
 
@@ -131,10 +136,11 @@ public:
             if ((windowStyleFlags & (windowHasMaximiseButton | windowHasTitleBar)) == (windowHasMaximiseButton | windowHasTitleBar))
                 [window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
 
-            [window setRestorable: NO];
+            if ([window respondsToSelector: @selector (setRestorable:)])
+                [window setRestorable: NO];
 
-           #if defined (MAC_OS_X_VERSION_10_12) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12)
-            if (@available (macOS 10.12, *))
+           #if defined (MAC_OS_X_VERSION_10_13) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_13)
+            if ([window respondsToSelector: @selector (setTabbingMode:)])
                 [window setTabbingMode: NSWindowTabbingModeDisallowed];
            #endif
 
@@ -852,13 +858,12 @@ public:
         if (r.size.width < 1.0f || r.size.height < 1.0f)
             return;
 
-        auto cg = []
-        {
-            if (@available (macOS 10.10, *))
-                return (CGContextRef) [[NSGraphicsContext currentContext] CGContext];
-
-            return (CGContextRef) [[NSGraphicsContext currentContext] graphicsPort];
-        }();
+        auto cg = (CGContextRef) [[NSGraphicsContext currentContext]
+       #if (defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10)
+                                  CGContext];
+       #else
+                                  graphicsPort];
+       #endif
 
         if (! component.isOpaque())
             CGContextClearRect (cg, CGContextGetClipBoundingBox (cg));
@@ -1044,14 +1049,12 @@ public:
     {
         if (isBlockedByModalComponent())
             if (auto* modal = Component::getCurrentlyModalComponent())
-                if (auto* otherPeer = modal->getPeer())
-                    if ((otherPeer->getStyleFlags() & ComponentPeer::windowIsTemporary) != 0)
-                        modal->inputAttemptWhenModal();
+                modal->inputAttemptWhenModal();
     }
 
     bool canBecomeKeyWindow()
     {
-        return component.isVisible() && (getStyleFlags() & ComponentPeer::windowIgnoresKeyPresses) == 0;
+        return component.isVisible() && (getStyleFlags() & juce::ComponentPeer::windowIgnoresKeyPresses) == 0;
     }
 
     bool canBecomeMainWindow()
@@ -1865,7 +1868,7 @@ private:
         // Without setting contentsFormat macOS Big Sur will always set the invalid area
         // to be the entire frame.
        #if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_12
-        if (@available (macOS 10.12, *))
+        if (NSFoundationVersionNumber > (double) NSFoundationVersionNumber10_11_Max)
         {
             CALayer* layer = ((NSView*) self).layer;
             layer.contentsFormat = kCAContentsFormatRGBA8Uint;

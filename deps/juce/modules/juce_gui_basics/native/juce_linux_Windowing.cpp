@@ -31,8 +31,7 @@ static int numAlwaysOnTopPeers = 0;
 bool juce_areThereAnyAlwaysOnTopWindows()  { return numAlwaysOnTopPeers > 0; }
 
 //==============================================================================
-class LinuxComponentPeer  : public ComponentPeer,
-                            private XWindowSystemUtilities::XSettings::Listener
+class LinuxComponentPeer  : public ComponentPeer
 {
 public:
     LinuxComponentPeer (Component& comp, int windowStyleFlags, ::Window parentToAddTo)
@@ -42,9 +41,7 @@ public:
         // it's dangerous to create a window on a thread other than the message thread.
         JUCE_ASSERT_MESSAGE_MANAGER_IS_LOCKED
 
-        const auto* instance = XWindowSystem::getInstance();
-
-        if (! instance->isX11Available())
+        if (! XWindowSystem::getInstance()->isX11Available())
             return;
 
         if (isAlwaysOnTop)
@@ -52,13 +49,10 @@ public:
 
         repainter = std::make_unique<LinuxRepaintManager> (*this);
 
-        windowH = instance->createWindow (parentToAddTo, this);
+        windowH = XWindowSystem::getInstance()->createWindow (parentToAddTo, this);
         parentWindow = parentToAddTo;
 
         setTitle (component.getName());
-
-        if (auto* xSettings = instance->getXSettings())
-            xSettings->addListener (this);
 
         getNativeRealtimeModifiers = []() -> ModifierKeys { return XWindowSystem::getInstance()->getNativeRealtimeModifiers(); };
     }
@@ -68,13 +62,8 @@ public:
         // it's dangerous to delete a window on a thread other than the message thread.
         JUCE_ASSERT_MESSAGE_MANAGER_IS_LOCKED
 
-        auto* instance = XWindowSystem::getInstance();
-
         repainter = nullptr;
-        instance->destroyWindow (windowH);
-
-        if (auto* xSettings = instance->getXSettings())
-            xSettings->removeListener (this);
+        XWindowSystem::getInstance()->destroyWindow (windowH);
 
         if (isAlwaysOnTop)
             --numAlwaysOnTopPeers;
@@ -459,16 +448,6 @@ private:
     };
 
     //==============================================================================
-    void settingChanged (const XWindowSystemUtilities::XSetting& settingThatHasChanged) override
-    {
-        static StringArray possibleSettings { XWindowSystem::getWindowScalingFactorSettingName(),
-                                              "Gdk/UnscaledDPI",
-                                              "Xft/DPI" };
-
-        if (possibleSettings.contains (settingThatHasChanged.name))
-            forceDisplayUpdate();
-    }
-
     void updateScaleFactorFromNewBounds (const Rectangle<int>& newBounds, bool isPhysical)
     {
         Point<int> translation = (parentWindow != 0 ? getScreenPosition (isPhysical) : Point<int>());
@@ -536,55 +515,6 @@ void Displays::findDisplays (float masterScale)
 bool Desktop::canUseSemiTransparentWindows() noexcept
 {
     return XWindowSystem::getInstance()->canUseSemiTransparentWindows();
-}
-
-class Desktop::NativeDarkModeChangeDetectorImpl  : private XWindowSystemUtilities::XSettings::Listener
-{
-public:
-    NativeDarkModeChangeDetectorImpl()
-    {
-        const auto* windowSystem = XWindowSystem::getInstance();
-
-        if (auto* xSettings = windowSystem->getXSettings())
-            xSettings->addListener (this);
-
-        darkModeEnabled = windowSystem->isDarkModeActive();
-    }
-
-    ~NativeDarkModeChangeDetectorImpl() override
-    {
-        if (auto* windowSystem = XWindowSystem::getInstanceWithoutCreating())
-            if (auto* xSettings = windowSystem->getXSettings())
-                xSettings->removeListener (this);
-    }
-
-    bool isDarkModeEnabled() const noexcept  { return darkModeEnabled; }
-
-private:
-    void settingChanged (const XWindowSystemUtilities::XSetting& settingThatHasChanged) override
-    {
-        if (settingThatHasChanged.name == XWindowSystem::getThemeNameSettingName())
-        {
-            const auto wasDarkModeEnabled = std::exchange (darkModeEnabled, XWindowSystem::getInstance()->isDarkModeActive());
-
-            if (darkModeEnabled != wasDarkModeEnabled)
-                Desktop::getInstance().darkModeChanged();
-        }
-    }
-
-    bool darkModeEnabled = false;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NativeDarkModeChangeDetectorImpl)
-};
-
-std::unique_ptr<Desktop::NativeDarkModeChangeDetectorImpl> Desktop::createNativeDarkModeChangeDetectorImpl()
-{
-    return std::make_unique<NativeDarkModeChangeDetectorImpl>();
-}
-
-bool Desktop::isDarkModeActive() const
-{
-    return nativeDarkModeChangeDetectorImpl->isDarkModeEnabled();
 }
 
 static bool screenSaverAllowed = true;
