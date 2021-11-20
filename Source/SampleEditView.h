@@ -70,6 +70,11 @@ public:
      */
     [[nodiscard]] bool isDeleteSample() const { return deleteSample; }
 
+    /**
+     * @return The selected button colour without alpha value.
+     */
+    [[nodiscard]] int getButtonColour() const { return selectedColour; }
+
     void paint(Graphics&) override;
 
     void resized() override;
@@ -110,6 +115,11 @@ private:
      * Whether the sample must be deleted.
      */
     bool deleteSample = false;
+
+    /**
+     * The selected button colour without alpha value.
+     */
+    int selectedColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR;
 
     /**
      * The name that is shown upon opening the dialog.
@@ -247,6 +257,12 @@ private:
     std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index);
 
     /**
+     * Updates the colour buttons to show a checkmark if its colour is slected and hide the checkmark if that colour
+     * has not been selected.
+     */
+    void updateColourButtonCheckmark();
+
+    /**
      * Creates the button bar elements.
      */
     void createButtonBar();
@@ -270,6 +286,25 @@ private:
      * Closes the dialog.
      */
     void dismissDialog();
+
+    /**
+     * Get the index of the colour in BUTTON_COLOURS, when not a standard colour, returns the last index in
+     * BUTTON_COLOURS.
+     *
+     * @param colourWithoutAlpha The colour to look up without alpha value, i.e. only RGB bits, rest 0.
+     * @return The index of the given colour in BUTTON_COLOURS, or #BUTTON_COLOURS - 1 when it is not a default
+     * colour (CUSTOM_COLOUR).
+     */
+    unsigned int indexOfColour(int colourWithoutAlpha)
+    {
+        auto colourCount = BUTTON_COLOURS.size();
+        for (int i = 0; i < colourCount; ++i) {
+            if (BUTTON_COLOURS[i] == colourWithoutAlpha) {
+                return i;
+            }
+        }
+        return colourCount - 1;
+    }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SampleEditView)
 };

@@ -16,7 +16,8 @@ SampleEditView::SampleEditView(
     initialName(soundSample == nullptr ? "" : soundSample->getName()),
     initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
     submitCallback(std::move(callback)),
-    lastOpenedDirectory(lastOpenedDirectoryString)
+    lastOpenedDirectory(lastOpenedDirectoryString),
+    selectedColour(soundSample == nullptr ? SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour())
 {
     setOpaque(true);
 
@@ -132,6 +133,8 @@ void SampleEditView::createColourInput()
     colourButtonBox.items.add(FlexItem(32 * 6, 32, colourButtonRowTopBox).withMargin(0).withFlex(0));
     colourButtonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     colourButtonBox.items.add(FlexItem(32 * 6, 32, colourButtonRowBottomBox).withMargin(0).withFlex(0));
+
+    updateColourButtonCheckmark();
 }
 
 std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index)
@@ -141,16 +144,34 @@ std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int
             SonoTextButton::buttonColourId,
             Colour(BUTTON_COLOURS[index] | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
     );
-
-    // TODO: actually select the correct colour. 2 is placeholder.
-    if (index == 2) {
-        std::unique_ptr<Drawable> checkImage(Drawable::createFromImageData(BinaryData::checkmark_svg, BinaryData::checkmark_svgSize));
-        colourButton->setImages(checkImage.get());
-        colourButton->setForegroundImageRatio(0.55f);
-    }
+    colourButton->onClick = [this, index]() {
+        selectedColour = BUTTON_COLOURS[index];
+        updateColourButtonCheckmark();
+    };
 
     addAndMakeVisible(colourButton.get());
     return colourButton;
+}
+
+void SampleEditView::updateColourButtonCheckmark()
+{
+    std::unique_ptr<Drawable> checkImage(Drawable::createFromImageData(BinaryData::checkmark_svg, BinaryData::checkmark_svgSize));
+    auto selectedIndex = indexOfColour(selectedColour);
+    auto buttonCount = mColourButtons.size() - 1; /* last one is custom colour */
+
+    for (int i = 0; i < buttonCount; ++i) {
+        auto& colourButton = mColourButtons[i];
+
+        // Show checkmark.
+        if (i == selectedIndex) {
+            colourButton->setForegroundImageRatio(0.55f);
+            colourButton->setImages(checkImage.get());
+        }
+        // Hide checkmark.
+        else {
+            colourButton->setImages(nullptr);
+        }
+    }
 }
 
 void SampleEditView::createButtonBar()

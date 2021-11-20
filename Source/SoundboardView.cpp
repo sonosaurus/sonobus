@@ -367,9 +367,11 @@ void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& bu
         else {
             auto sampleName = editView.getSampleName();
             auto filePath = editView.getAbsoluteFilePath();
+            auto buttonColour = editView.getButtonColour();
 
             sample.setName(sampleName);
             sample.setFilePath(filePath);
+            sample.setButtonColour(buttonColour);
             processor->editSoundSample(sample);
         }
         updateButtons();
