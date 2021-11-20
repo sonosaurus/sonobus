@@ -119,6 +119,17 @@ void SampleEditView::createColourInput()
 
     // Add colour picker button.
     auto customColourButton = std::make_unique<SonoDrawableButton>("colourPicker", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    mColourPicker = std::make_unique<SoundSampleButtonColourPicker>(&selectedColour, customColourButton.get());
+    mColourPicker->resetCheckmarkCallback = [this]() {
+        updateColourButtonCheckmark();
+    };
+    customColourButton->onClick = [this]() {
+        mColourPicker->show(getScreenBounds());
+    };
+    customColourButton->setColour(
+            SonoTextButton::buttonColourId,
+            Colour(selectedColour | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+    );
     addAndMakeVisible(customColourButton.get());
 
     std::unique_ptr<Drawable> eyedropperImage(Drawable::createFromImageData(BinaryData::eyedropper_svg, BinaryData::eyedropper_svgSize));
@@ -147,6 +158,13 @@ std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int
     colourButton->onClick = [this, index]() {
         selectedColour = BUTTON_COLOURS[index];
         updateColourButtonCheckmark();
+
+        // Also update the eyedropper to reflect the current colour.
+        auto& pickerButton = mColourButtons[mColourButtons.size() - 1];
+        pickerButton->setColour(
+                SonoTextButton::buttonColourId,
+                Colour(selectedColour | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+        );
     };
 
     addAndMakeVisible(colourButton.get());

@@ -9,6 +9,7 @@
 #include "Soundboard.h"
 #include "SonoTextButton.h"
 #include "SonoDrawableButton.h"
+#include "SoundSampleButtonColourPicker.h"
 
 /**
  * Dialog for creating/editing soundboard samples.
@@ -227,6 +228,11 @@ private:
      * Button that deletes the sound sample.
      */
     std::unique_ptr<SonoTextButton> mDeleteButton;
+
+    /**
+     * Control for selecting a custom button colour.
+     */
+    std::unique_ptr<SoundSampleButtonColourPicker> mColourPicker;
 
     /**
      * Initialises all layout elements.
