@@ -61,6 +61,12 @@ void SampleEditView::createNameInputs()
 
     mNameInput = std::make_unique<TextEditor>("nameInput");
     mNameInput->setText(initialName);
+    mNameInput->onReturnKey = [this]() {
+        submitDialog();
+    };
+    mNameInput->onEscapeKey = [this]() {
+        dismissDialog();
+    };
     addAndMakeVisible(mNameInput.get());
 }
 
