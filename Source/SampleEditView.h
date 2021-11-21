@@ -76,6 +76,11 @@ public:
      */
     [[nodiscard]] int getButtonColour() const { return selectedColour; }
 
+    /**
+     * @return true if the loop button is in the 'toggle on' state.
+     */
+    [[nodiscard]] bool isLoop() const { return mLoopButton->getToggleState(); }
+
     void paint(Graphics&) override;
 
     void resized() override;
@@ -133,6 +138,11 @@ private:
     String initialFilePath = "";
 
     /**
+     * Loop playback option that is chosen upon opening the dialog.
+     */
+    bool initialLoop;
+
+    /**
      * The directory that was last opened by the file chooser.
      * nullptr when this should not be stored.
      */
@@ -180,6 +190,11 @@ private:
     FlexBox colourButtonRowBottomBox;
 
     /**
+     * Box for the playback option inputs.
+     */
+    FlexBox playbackOptionsRowBox;
+
+    /**
      * Label for the SoundSample name field.
      */
     std::unique_ptr<Label> mNameLabel;
@@ -215,6 +230,11 @@ private:
     std::unique_ptr<Label> mColourInputLabel;
 
     /**
+     * Label for playback options.
+     */
+    std::unique_ptr<Label> mPlaybackOptionsLabel;
+
+    /**
      * Contains all the button objects for the colour buttons.
      */
     std::vector<std::unique_ptr<SonoDrawableButton>> mColourButtons;
@@ -235,6 +255,11 @@ private:
     std::unique_ptr<SoundSampleButtonColourPicker> mColourPicker;
 
     /**
+     * Control to toggle the loop playback option.
+     */
+    std::unique_ptr<SonoDrawableButton> mLoopButton;
+
+    /**
      * Initialises all layout elements.
      */
     void initialiseLayouts();
@@ -253,6 +278,16 @@ private:
      * Adds the input controls for the sample button colour.
      */
     void createColourInput();
+
+    /**
+     * Adds the input controls for playback option configuration.
+     */
+    void createPlaybackOptionInputs();
+
+    /**
+     * Creates the loop playback option toggle.
+     */
+    void createLoopButton();
 
     /**
      * Creates a new colour pick button.

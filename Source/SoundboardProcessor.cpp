@@ -110,7 +110,7 @@ void SoundboardProcessor::setCurrentlyPlaying(int soundboardIndex, int sampleBut
     currentlyPlayingButtonIndex = sampleButtonIndex;
 }
 
-SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath)
+SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath, bool loop)
 {
     // Per definition: do nothing when no soundboard is selected.
     if (!selectedSoundboardIndex.has_value()) {
@@ -120,7 +120,7 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
     auto& soundboard = soundboards[selectedSoundboardIndex.value()];
     auto& sampleList = soundboard.getSamples();
 
-    SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath));
+    SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath), loop);
     sampleList.emplace_back(std::move(sampleToAdd));
 
     saveToDisk();
