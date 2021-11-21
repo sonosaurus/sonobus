@@ -102,6 +102,11 @@ public:
     [[nodiscard]] std::optional<int> getCurrentlyPlayingButtonIndex() const { return currentlyPlayingButtonIndex; }
 
     /**
+     * @return Reference to the soundboard that is currently selected, or nullptr when no soundboard is selected.
+     */
+    [[nodiscard]] Soundboard* getCurrentlyPlayingSoundboard();
+
+    /**
      * Adds the given sample to the currently selected soundboard.
      * Does nothing when no soundboard is selected.
      *

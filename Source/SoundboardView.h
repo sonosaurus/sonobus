@@ -29,6 +29,11 @@ public:
 
     void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
 
+    /**
+     * @param keyCode Pressed key code.
+     */
+    void processKeystroke(int keyCode);
+
 private:
     constexpr static const float MENU_BUTTON_WIDTH = 36;
     constexpr static const float TITLE_LABEL_WIDTH = 90;
@@ -162,11 +167,25 @@ private:
     void updateButtons();
 
     /**
+     * Updates the UI to reflect the currently playing sample.
+     *
+     * @param selectedBoardIndex The index of the soundboard that is selected.
+     * @param sampleIndex The index of the sample that is being played.
+     */
+    void updatePlayingSampleUI(int selectedBoardIndex, int sampleIndex);
+
+    /**
      * Plays the sound of the given sample.
      *
      * @param sample The sample to play.
      */
     void playSample(const SoundSample& sample);
+
+    /**
+     * Plays the sample at the given sampleIndex, does nothing when sampleIndex out of bounds.
+     * @return true if a sound was played, false if no sound was played.
+     */
+    bool playSampleAtIndex(int sampleIndex);
 
     /**
      * Shows the context menu for the SoundBoard View main menu button.

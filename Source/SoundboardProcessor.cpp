@@ -110,6 +110,20 @@ void SoundboardProcessor::setCurrentlyPlaying(int soundboardIndex, int sampleBut
     currentlyPlayingButtonIndex = sampleButtonIndex;
 }
 
+Soundboard* SoundboardProcessor::getCurrentlyPlayingSoundboard()
+{
+    if (getNumberOfSoundboards() <= 0) {
+        return nullptr;
+    }
+
+    auto soundboardIndex = getCurrentlyPlayingSoundboardIndex();
+    if (!soundboardIndex.has_value()) {
+        return nullptr;
+    }
+
+    return &getSoundboard(soundboardIndex.value());
+}
+
 SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath, bool loop)
 {
     // Per definition: do nothing when no soundboard is selected.

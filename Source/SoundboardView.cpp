@@ -162,28 +162,16 @@ void SoundboardView::updateButtons()
 
     auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
 
-    for (int i = 0; i < selectedBoard.getSamples().size(); ++i) {
-        auto& sample = selectedBoard.getSamples()[i];
+    for (int sampleIndex = 0; sampleIndex < selectedBoard.getSamples().size(); ++sampleIndex) {
+        auto& sample = selectedBoard.getSamples()[sampleIndex];
 
         auto playbackButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
         playbackButton->setButtonColour(sample.getButtonColour());
 
         auto buttonAddress = playbackButton.get();
-        playbackButton->onPrimaryClick = [this, &sample, i, selectedBoardIndex]() {
+        playbackButton->onPrimaryClick = [this, &sample, sampleIndex, selectedBoardIndex]() {
             playSample(sample);
-
-            if (processor->getCurrentlyPlayingSoundboardIndex().has_value() && processor->getCurrentlyPlayingButtonIndex().has_value()) {
-                auto playingSoundboardIndex = processor->getCurrentlyPlayingSoundboardIndex().value();
-                auto playingButtonIndex = processor->getCurrentlyPlayingButtonIndex().value();
-
-                if (playingSoundboardIndex == selectedBoardIndex) {
-                   auto& currentButton = mSoundButtons[playingButtonIndex];
-                   currentButton->setPlaybackPosition(0.0);
-                   currentButton->repaint();
-                }
-            }
-
-            processor->setCurrentlyPlaying(selectedBoardIndex, i);
+            updatePlayingSampleUI(selectedBoardIndex, sampleIndex);
         };
 
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
@@ -218,6 +206,22 @@ void SoundboardView::updateButtons()
     resized();
 }
 
+void SoundboardView::updatePlayingSampleUI(int selectedBoardIndex, int sampleIndex)
+{
+    if (processor->getCurrentlyPlayingSoundboardIndex().has_value() && processor->getCurrentlyPlayingButtonIndex().has_value()) {
+        auto playingSoundboardIndex = processor->getCurrentlyPlayingSoundboardIndex().value();
+        auto playingButtonIndex = processor->getCurrentlyPlayingButtonIndex().value();
+
+        if (playingSoundboardIndex == selectedBoardIndex) {
+            auto& currentButton = mSoundButtons[playingButtonIndex];
+            currentButton->setPlaybackPosition(0.0);
+            currentButton->repaint();
+        }
+    }
+
+    processor->setCurrentlyPlaying(selectedBoardIndex, sampleIndex);
+}
+
 void SoundboardView::playSample(const SoundSample& sample)
 {
     auto channelProcessor = processor->getChannelProcessor();
@@ -233,6 +237,29 @@ void SoundboardView::playSample(const SoundSample& sample)
 
     channelProcessor->setLooping(sample.isLoop());
     channelProcessor->play();
+}
+
+bool SoundboardView::playSampleAtIndex(int sampleIndex)
+{
+    if (sampleIndex < 0) {
+        return false;
+    }
+
+    auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
+        return false;
+    }
+
+    auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
+    auto& samples = soundboard.getSamples();
+    if (sampleIndex >= samples.size()) {
+        return false;
+    }
+
+    auto& soundSampleAtIndex = samples[sampleIndex];
+    playSample(soundSampleAtIndex);
+    updatePlayingSampleUI(selectedSoundboardIndex, sampleIndex);
+    return true;
 }
 
 void SoundboardView::showMenuButtonContextMenu()
@@ -408,6 +435,23 @@ void SoundboardView::resized()
 
     mainBox.performLayout(getLocalBounds().reduced(2));
     buttonBox.performLayout(buttonContainer.getLocalBounds());
+}
+
+void SoundboardView::processKeystroke(const int keyCode)
+{
+    // 0 is already assigned to jump to start.
+
+    if (keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
+        if (playSampleAtIndex(keyCode - 49)) {
+            return;
+        }
+    }
+
+    if (keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
+        if (playSampleAtIndex(keyCode - KeyPress::numberPad1)) {
+            return;
+        }
+    }
 }
 
 void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident)

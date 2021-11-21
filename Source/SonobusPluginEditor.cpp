@@ -3014,6 +3014,9 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
         }
     }
 
+    // Soundboard hotkeys.
+    mSoundboardView->processKeystroke(key.getKeyCode());
+
     return false;
 }
 
@@ -3030,7 +3033,7 @@ bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
         mPushToTalkKeyDown = false;
         return true;
     }
-    
+
 #if 0
     if (!mAltReleaseIsPending && ModifierKeys::currentModifiers.isAltDown()) {
         DBG("Alt down");
