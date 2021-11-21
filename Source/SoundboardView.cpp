@@ -343,9 +343,12 @@ void SoundboardView::clickedAddSoundSample()
     auto callback = [this](SampleEditView& editView) {
         auto sampleName = editView.getSampleName();
         auto filePath = editView.getAbsoluteFilePath();
+        auto buttonColour = editView.getButtonColour();
         auto loop = editView.isLoop();
 
-        processor->addSoundSample(sampleName, filePath, loop);
+        SoundSample* createdSample = processor->addSoundSample(sampleName, filePath, loop);
+        createdSample->setButtonColour(buttonColour);
+
         updateButtons();
     };
 
