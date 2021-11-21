@@ -145,6 +145,11 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
 void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
 {
     saveToDisk();
+
+    // Immediately update transport source with new playback settings when this sample is currently playing
+    if (isCurrentlyPlaying(sampleToUpdate)) {
+        channelProcessor->setLooping(sampleToUpdate.isLoop());
+    }
 }
 
 void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
@@ -228,4 +233,15 @@ void SoundboardProcessor::loadFromDisk()
     reorderSoundboards();
 }
 
+bool SoundboardProcessor::isCurrentlyPlaying(SoundSample& sample)
+{
+    if (!currentlyPlayingSoundboardIndex.has_value() || !currentlyPlayingButtonIndex.has_value() || !channelProcessor->isPlaying()) {
+        return false;
+    }
+
+    auto soundboardIndex = currentlyPlayingSoundboardIndex.value();
+    auto buttonIndex = currentlyPlayingButtonIndex.value();
+
+    return &soundboards[soundboardIndex].getSamples()[buttonIndex] == &sample;
+}
 

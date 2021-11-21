@@ -28,7 +28,7 @@ public:
     /**
      * The recommended height of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 274;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 354;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.

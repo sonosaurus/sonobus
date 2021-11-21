@@ -102,6 +102,14 @@ public:
     [[nodiscard]] std::optional<int> getCurrentlyPlayingButtonIndex() const { return currentlyPlayingButtonIndex; }
 
     /**
+     * Checks whether the given sample is currently playing.
+     *
+     * @param sample The sample to check.
+     * @return Whether the sample is currently playing.
+     */
+    bool isCurrentlyPlaying(SoundSample& sample);
+
+    /**
      * @return Reference to the soundboard that is currently selected, or nullptr when no soundboard is selected.
      */
     [[nodiscard]] Soundboard* getCurrentlyPlayingSoundboard();

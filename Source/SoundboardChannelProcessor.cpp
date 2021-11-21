@@ -196,7 +196,6 @@ void SoundboardChannelProcessor::unloadFile()
     pause();
     transportSource.setSource(nullptr);
     currentFileSource.reset();
-    currentTransportURL = URL();
 }
 
 bool SoundboardChannelProcessor::loadFile(const URL& audioFileUrl)
@@ -224,7 +223,6 @@ bool SoundboardChannelProcessor::loadFile(const URL& audioFileUrl)
         return false;
     }
 
-    currentTransportURL = URL(audioFileUrl);
     currentFileSource.reset(new AudioFormatReaderSource(reader, true));
 
     transportSource.setSource(currentFileSource.get(), READ_AHEAD_BUFFER_SIZE, &diskThread, reader->sampleRate, reader->numChannels);

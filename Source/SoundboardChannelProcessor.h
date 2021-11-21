@@ -45,7 +45,6 @@ private:
     std::unique_ptr<AudioFormatReaderSource> currentFileSource;
     AudioFormatManager formatManager;
     TimeSliceThread diskThread { "soundboard audio file reader" };
-    URL currentTransportURL;
 
     float lastGain = 0.0f;
 

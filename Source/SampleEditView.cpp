@@ -45,7 +45,11 @@ void SampleEditView::initialiseLayouts()
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mColourInputLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 32 * 2, colourButtonBox).withMargin(0).withFlex(0));
 
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 6).withMargin(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mPlaybackOptionsLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 32, playbackOptionsRowBox).withMargin(0).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 6).withMargin(0).withFlex(1));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
 
     mainBox.items.clear();
@@ -169,20 +173,22 @@ void SampleEditView::createPlaybackOptionInputs()
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
 
     createLoopButton();
-    playbackOptionsRowBox.items.add(FlexItem(*mLoopButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mLoopButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 void SampleEditView::createLoopButton()
 {
-    mLoopButton = std::make_unique<SonoDrawableButton>("loop", DrawableButton::ButtonStyle::ImageFitted);
+    mLoopButton = std::make_unique<SonoDrawableButton>("loop", DrawableButton::ButtonStyle::ImageAboveTextLabel);
     auto loopImg = Drawable::createFromImageData(BinaryData::loop_icon_svg, BinaryData::loop_icon_svgSize);
-    auto loopOffImg = Drawable::createFromImageData(BinaryData::loop_off_icon_svg, BinaryData::loop_off_icon_svgSize);
+    auto loopOffImg = Drawable::createFromImageData(BinaryData::loop_off_icon_png, BinaryData::loop_off_icon_pngSize);
     mLoopButton->setImages(loopOffImg.get(), nullptr, nullptr, nullptr, loopImg.get());
     mLoopButton->setClickingTogglesState(true);
     mLoopButton->setToggleState(initialLoop, dontSendNotification);
     mLoopButton->setTooltip(TRANS("Loop On/Off"));
     mLoopButton->setTitle(TRANS("Loop"));
+    mLoopButton->setButtonText(TRANS("Loop"));
+    mLoopButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
 
     addAndMakeVisible(mLoopButton.get());
 }
