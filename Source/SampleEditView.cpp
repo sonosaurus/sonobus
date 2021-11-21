@@ -15,6 +15,7 @@ SampleEditView::SampleEditView(
 ) : editModeEnabled(soundSample != nullptr),
     initialName(soundSample == nullptr ? "" : soundSample->getName()),
     initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
+    initialLoop(soundSample != nullptr && soundSample->isLoop()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString),
     selectedColour(soundSample == nullptr ? SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour())
@@ -24,6 +25,7 @@ SampleEditView::SampleEditView(
     createNameInputs();
     createFilePathInputs();
     createColourInput();
+    createPlaybackOptionInputs();
     createButtonBar();
     initialiseLayouts();
 }
@@ -152,6 +154,37 @@ void SampleEditView::createColourInput()
     colourButtonBox.items.add(FlexItem(32 * 6, 32, colourButtonRowBottomBox).withMargin(0).withFlex(0));
 
     updateColourButtonCheckmark();
+}
+
+void SampleEditView::createPlaybackOptionInputs()
+{
+    mPlaybackOptionsLabel = std::make_unique<Label>("playbackOptionsLabel", TRANS("Playback options"));
+    mPlaybackOptionsLabel->setJustificationType(Justification::left);
+    mPlaybackOptionsLabel->setFont(Font(14, Font::bold));
+    mPlaybackOptionsLabel->setColour(Label::textColourId, Colour(0xeeffffff));
+    addAndMakeVisible(mPlaybackOptionsLabel.get());
+
+    // Add row flexbox container for playback options
+    playbackOptionsRowBox.flexDirection = FlexBox::Direction::row;
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
+
+    createLoopButton();
+    playbackOptionsRowBox.items.add(FlexItem(*mLoopButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+}
+
+void SampleEditView::createLoopButton()
+{
+    mLoopButton = std::make_unique<SonoDrawableButton>("loop", DrawableButton::ButtonStyle::ImageFitted);
+    auto loopImg = Drawable::createFromImageData(BinaryData::loop_icon_svg, BinaryData::loop_icon_svgSize);
+    auto loopOffImg = Drawable::createFromImageData(BinaryData::loop_off_icon_svg, BinaryData::loop_off_icon_svgSize);
+    mLoopButton->setImages(loopOffImg.get(), nullptr, nullptr, nullptr, loopImg.get());
+    mLoopButton->setClickingTogglesState(true);
+    mLoopButton->setToggleState(initialLoop, dontSendNotification);
+    mLoopButton->setTooltip(TRANS("Loop On/Off"));
+    mLoopButton->setTitle(TRANS("Loop"));
+
+    addAndMakeVisible(mLoopButton.get());
 }
 
 std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index)

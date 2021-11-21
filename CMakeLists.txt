@@ -479,6 +479,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/link_up.svg
         images/list_icon1.png
         images/loop_icon.svg
+        images/loop_off_icon.svg
         images/met.svg
         images/mic.svg
         images/mic_disabled.svg

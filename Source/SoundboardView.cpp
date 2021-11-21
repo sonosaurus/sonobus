@@ -343,8 +343,9 @@ void SoundboardView::clickedAddSoundSample()
     auto callback = [this](SampleEditView& editView) {
         auto sampleName = editView.getSampleName();
         auto filePath = editView.getAbsoluteFilePath();
+        auto loop = editView.isLoop();
 
-        processor->addSoundSample(sampleName, filePath);
+        processor->addSoundSample(sampleName, filePath, loop);
         updateButtons();
     };
 
@@ -368,10 +369,12 @@ void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& bu
             auto sampleName = editView.getSampleName();
             auto filePath = editView.getAbsoluteFilePath();
             auto buttonColour = editView.getButtonColour();
+            auto loop = editView.isLoop();
 
             sample.setName(sampleName);
             sample.setFilePath(filePath);
             sample.setButtonColour(buttonColour);
+            sample.setLoop(loop);
             processor->editSoundSample(sample);
         }
         updateButtons();
