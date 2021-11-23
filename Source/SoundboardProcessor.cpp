@@ -78,7 +78,7 @@ void SoundboardProcessor::reorderSoundboards()
 
     // Determine new indices of the selected soundboard.
     if (originalSelectedIndex < 0) {
-        selectedSoundboardIndex = {0 };
+        selectedSoundboardIndex = { 0 };
     }
     else {
         auto iterator = std::find(originalIndices.begin(), originalIndices.end(), originalSelectedIndex);
@@ -86,7 +86,7 @@ void SoundboardProcessor::reorderSoundboards()
     }
 
     if (originalPlayingIndex < 0) {
-        currentlyPlayingSoundboardIndex = {0 };
+        currentlyPlayingSoundboardIndex = { 0 };
     }
     else if (originalPlayingIndex >= soundboards.size()) {
         // It can happen that the playing index is out of bounds.

@@ -35,12 +35,14 @@ public:
      * @param filePath The absolute file path of the underlying sound file.
      * @param loop Whether the sample should loop on playback.
      * @param buttonColour The colour of the sample button in RGB value with an alpha of 0.
+     * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
      */
     SoundSample(
             String name,
             String filePath,
             bool loop = false,
-            int buttonColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR
+            int buttonColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR,
+            int hotkeyCode = -1
     );
 
     String getName() const;
@@ -70,6 +72,16 @@ public:
      * @param newRgb 0xRRGGBB without alpha value.
      */
     void setButtonColour(int newRgb);
+
+    /**
+     * @return The KeyCode of the hotkey, -1 for no hotkey.
+     */
+    [[nodiscard]] int getHotkeyCode() const;
+
+    /**
+     * @param keyCode The Key code for the hotkey, -1 for no hotkey.
+     */
+    void setHotkeyCode(int keyCode);
 
     /**
      * Serialize the sound sample.
@@ -113,6 +125,11 @@ private:
     constexpr static const char BUTTON_COLOUR_KEY[] = "buttonColour";
 
     /**
+     * Key for the hotkey property of the root node in the serialization tree data structure.
+     */
+    constexpr static const char HOTKEY_KEY[] = "hotkey";
+
+    /**
      * The name representing the sound sample.
      */
     String name;
@@ -131,6 +148,11 @@ private:
      * The argb colour the sample button must have with 0 alpha value.
      */
     int buttonColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR;
+
+    /**
+     * Keycode for the hotkey, -1 for no hotkey.
+     */
+    int hotkeyCode = -1;
 };
 
 /**

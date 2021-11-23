@@ -6,8 +6,12 @@
 #include "Soundboard.h"
 #include <utility>
 
-SoundSample::SoundSample(String newName, String newFilePath, bool newLoop, int buttonColour)
-        : name(std::move(newName)), filePath(std::move(newFilePath)), loop(newLoop), buttonColour(buttonColour)
+SoundSample::SoundSample(String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode)
+        : name(std::move(newName)),
+        filePath(std::move(newFilePath)),
+        loop(newLoop),
+        buttonColour(buttonColour),
+        hotkeyCode(hotkeyCode)
 {}
 
 String SoundSample::getName() const
@@ -50,6 +54,16 @@ void SoundSample::setButtonColour(int newRgb)
     buttonColour = newRgb;
 }
 
+int SoundSample::getHotkeyCode() const
+{
+    return hotkeyCode;
+}
+
+void SoundSample::setHotkeyCode(int newKeyCode)
+{
+    hotkeyCode = newKeyCode;
+}
+
 ValueTree SoundSample::serialize() const
 {
     ValueTree tree(SAMPLE_KEY);
@@ -57,6 +71,7 @@ ValueTree SoundSample::serialize() const
     tree.setProperty(FILE_PATH_KEY, filePath, nullptr);
     tree.setProperty(LOOP_KEY, loop, nullptr);
     tree.setProperty(BUTTON_COLOUR_KEY, buttonColour, nullptr);
+    tree.setProperty(HOTKEY_KEY, hotkeyCode, nullptr);
 
     return tree;
 }
@@ -67,7 +82,8 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
         tree.getProperty(NAME_KEY),
         tree.getProperty(FILE_PATH_KEY),
         tree.getProperty(LOOP_KEY, false),
-        tree.getProperty(BUTTON_COLOUR_KEY, SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR)
+        tree.getProperty(BUTTON_COLOUR_KEY, SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR),
+        tree.getProperty(HOTKEY_KEY, -1)
     );
 
     return soundSample;

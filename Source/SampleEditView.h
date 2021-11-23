@@ -23,12 +23,12 @@ public:
     /**
      * The recommended width of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_WIDTH = 380;
+    constexpr static const float DEFAULT_VIEW_WIDTH = 384;
 
     /**
      * The recommended height of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 354;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 424;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
@@ -143,6 +143,11 @@ private:
     bool initialLoop;
 
     /**
+     * The key code of the hotkey for the sample, -1 for no hotkey.
+     */
+    int hotkeyCode = -1;
+
+    /**
      * The directory that was last opened by the file chooser.
      * nullptr when this should not be stored.
      */
@@ -230,11 +235,6 @@ private:
     std::unique_ptr<Label> mColourInputLabel;
 
     /**
-     * Label for playback options.
-     */
-    std::unique_ptr<Label> mPlaybackOptionsLabel;
-
-    /**
      * Contains all the button objects for the colour buttons.
      */
     std::vector<std::unique_ptr<SonoDrawableButton>> mColourButtons;
@@ -255,9 +255,24 @@ private:
     std::unique_ptr<SoundSampleButtonColourPicker> mColourPicker;
 
     /**
+     * Label for playback options.
+     */
+    std::unique_ptr<Label> mPlaybackOptionsLabel;
+
+    /**
      * Control to toggle the loop playback option.
      */
     std::unique_ptr<SonoDrawableButton> mLoopButton;
+
+    /**
+     * Label for hotkey configuration
+     */
+    std::unique_ptr<Label> mHotkeyLabel;
+
+    /**
+     * Text input for the hotkey input field.
+     */
+    std::unique_ptr<TextEditor> mHotkeyInput;
 
     /**
      * Initialises all layout elements.
@@ -288,6 +303,11 @@ private:
      * Creates the loop playback option toggle.
      */
     void createLoopButton();
+
+    /**
+     * Adds the input controls for the hotkey configuration.
+     */
+    void createHotkeyInput();
 
     /**
      * Creates a new colour pick button.

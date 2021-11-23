@@ -18,7 +18,8 @@ SampleEditView::SampleEditView(
     initialLoop(soundSample != nullptr && soundSample->isLoop()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString),
-    selectedColour(soundSample == nullptr ? SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour())
+    selectedColour(soundSample == nullptr ? SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
+    hotkeyCode(soundSample == nullptr ? -1 : soundSample->getHotkeyCode())
 {
     setOpaque(true);
 
@@ -26,6 +27,7 @@ SampleEditView::SampleEditView(
     createFilePathInputs();
     createColourInput();
     createPlaybackOptionInputs();
+    createHotkeyInput();
     createButtonBar();
     initialiseLayouts();
 }
@@ -39,17 +41,24 @@ void SampleEditView::initialiseLayouts()
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mFilePathLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, filePathBox).withMargin(0).withFlex(0));
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mColourInputLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 32 * 2, colourButtonBox).withMargin(0).withFlex(0));
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mPlaybackOptionsLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 32, playbackOptionsRowBox).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 56, playbackOptionsRowBox).withMargin(0).withFlex(0));
 
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 6).withMargin(0).withFlex(1));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mHotkeyLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 36, CONTROL_HEIGHT, *mHotkeyInput).withMargin(4).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, 0).withMargin(0).withFlex(1));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
 
     mainBox.items.clear();
@@ -191,6 +200,19 @@ void SampleEditView::createLoopButton()
     mLoopButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
 
     addAndMakeVisible(mLoopButton.get());
+}
+
+void SampleEditView::createHotkeyInput()
+{
+    mHotkeyLabel = std::make_unique<Label>("hotkeyLabel", TRANS("Hotkey"));
+    mHotkeyLabel->setJustificationType(Justification::left);
+    mHotkeyLabel->setFont(Font(14, Font::bold));
+    mHotkeyLabel->setColour(Label::textColourId, Colour(0xeeffffff));
+    addAndMakeVisible(mHotkeyLabel.get());
+
+    mHotkeyInput = std::make_unique<TextEditor>("hotkeyInput");
+    mHotkeyInput->setText(hotkeyCode == -1 ? TRANS("None") : std::to_string(hotkeyCode));
+    addAndMakeVisible(mHotkeyInput.get());
 }
 
 std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index)
