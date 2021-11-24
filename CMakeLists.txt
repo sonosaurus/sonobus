@@ -294,6 +294,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonoUtility.h
         Source/Soundboard.cpp
         Source/Soundboard.h
+        Source/SoundboardButtonColors.h
         Source/SoundboardChannelProcessor.cpp
         Source/SoundboardChannelProcessor.h
         Source/SoundboardEditView.cpp

@@ -3,22 +3,164 @@
 
 #include "SoundboardChannelProcessor.h"
 
+SamplePlaybackManager::SamplePlaybackManager(const SoundSample* sample_, SoundboardChannelProcessor* channelProcessor_)
+    : sample(sample_), channelProcessor(channelProcessor_), loaded(false)
+{
+    formatManager.registerBasicFormats();
+    transportSource.addChangeListener(this);
+}
+
+SamplePlaybackManager::~SamplePlaybackManager()
+{
+    stopTimer();
+    transportSource.removeChangeListener(this);
+}
+
+bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
+{
+    if (loaded) return true;
+    if (!fileReadThread.isThreadRunning()) return false;
+
+    AudioFormatReader* reader = nullptr;
+    auto audioFileUrl = URL(File(sample->getFilePath()));
+
+#if !JUCE_IOS
+    if (audioFileUrl.isLocalFile()) {
+        reader = formatManager.createReaderFor(audioFileUrl.getLocalFile());
+    }
+    else
+#endif
+    {
+        reader = formatManager.createReaderFor(audioFileUrl.createInputStream(false));
+    }
+
+    if (reader == nullptr) {
+        return false;
+    }
+
+    currentFileSource = std::make_unique<AudioFormatReaderSource>(reader, true);
+    transportSource.setSource(currentFileSource.get(), READ_AHEAD_BUFFER_SIZE, &fileReadThread, reader->sampleRate, 2);
+
+    reloadPlaybackSettingsFromSample();
+
+    loaded = true;
+    return true;
+}
+
+void SamplePlaybackManager::reloadPlaybackSettingsFromSample()
+{
+    transportSource.setLooping(sample->isLoop());
+}
+
+void SamplePlaybackManager::unload()
+{
+    stopTimer();
+    transportSource.stop();
+}
+
+void SamplePlaybackManager::play()
+{
+    transportSource.start();
+    startTimerHz(TIMER_HZ);
+}
+
+void SamplePlaybackManager::pause()
+{
+    stopTimer();
+    transportSource.stop();
+}
+
+void SamplePlaybackManager::seek(double position)
+{
+    transportSource.setPosition(position);
+    notifyPlaybackPositionListeners();
+}
+
+bool SamplePlaybackManager::isPlaying() const
+{
+    return transportSource.isPlaying();
+}
+
+double SamplePlaybackManager::getCurrentPosition() const
+{
+    return transportSource.getCurrentPosition();
+}
+
+double SamplePlaybackManager::getLength() const
+{
+    return transportSource.getLengthInSeconds();
+}
+
+void SamplePlaybackManager::notifyPlaybackPositionListeners() const
+{
+    for (auto& listener : listeners) {
+        listener->onPlaybackPositionChanged(*this);
+    }
+}
+
+void SamplePlaybackManager::timerCallback()
+{
+    notifyPlaybackPositionListeners();
+}
+
+void SamplePlaybackManager::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (!transportSource.isPlaying() && transportSource.getCurrentPosition() >= transportSource.getLengthInSeconds()) {
+        // We are at the end, return to start
+        transportSource.setPosition(0.0);
+        notifyPlaybackPositionListeners();
+    }
+
+    if (!transportSource.isPlaying()) {
+        // Notify the channel processor that this instance can be removed from the mixer
+        // THIS MIGHT CAUSE THAT THIS OBJECT IS REMOVED!
+        // Therefore, make sure this is the last statement executed within this class
+        channelProcessor->notifyStopped(this);
+    }
+
+}
+
 SoundboardChannelProcessor::SoundboardChannelProcessor()
 {
     channelGroup.params.name = TRANS("Soundboard");
     channelGroup.params.numChannels = 2;
     recordChannelGroup.params.name = TRANS("Soundboard");
     recordChannelGroup.params.numChannels = 2;
-
-    transportSource.addChangeListener(this);
-    formatManager.registerBasicFormats();
 }
 
 SoundboardChannelProcessor::~SoundboardChannelProcessor()
 {
-    stopTimer();
-    transportSource.setSource(nullptr);
-    transportSource.removeChangeListener(this);
+    mixer.removeAllInputs();
+}
+
+std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor::loadSample(const SoundSample& sample)
+{
+    {
+        // If sample is already playing, unload the current one
+        // This is in its own scope to trigger the existing manager destructor, before continuing the loading.
+        // TODO: check for playback styles here (to be implemented)
+        auto existingManager = activeSamples.find(&sample);
+        if (existingManager != activeSamples.end()) {
+            existingManager->second->unload();
+        }
+    }
+
+    auto manager = std::make_shared<SamplePlaybackManager>(&sample, this);
+
+    if (!diskThread.isThreadRunning()) {
+        diskThread.startThread(3);
+    }
+
+    auto loaded = manager->loadFileFromSample(diskThread);
+    if (!loaded) {
+        return {};
+    }
+
+    activeSamples[&sample] = manager;
+
+    mixer.addInputSource(manager->getAudioSource(), false);
+
+    return manager;
 }
 
 SonoAudio::DelayParams& SoundboardChannelProcessor::getMonitorDelayParams()
@@ -35,7 +177,7 @@ void SoundboardChannelProcessor::setMonitorDelayParams(SonoAudio::DelayParams& p
     recordChannelGroup.commitMonitorDelayParams();
 }
 
-void SoundboardChannelProcessor::getDestStartAndCount(int& start, int& count)
+void SoundboardChannelProcessor::getDestStartAndCount(int& start, int& count) const
 {
     start = channelGroup.params.monDestStartIndex;
     count = channelGroup.params.monDestChannels;
@@ -81,7 +223,8 @@ int SoundboardChannelProcessor::getNumberOfChannels() const
 
 int SoundboardChannelProcessor::getFileSourceNumberOfChannels() const
 {
-    return currentFileSource != nullptr ? currentFileSource->getAudioFormatReader()->numChannels : 2;
+    // Always process in stereo, to prevent mixing issues when multiple sources use a different number of channels
+    return 2;
 }
 
 SonoAudio::ChannelGroupParams SoundboardChannelProcessor::getChannelGroupParams() const
@@ -91,7 +234,7 @@ SonoAudio::ChannelGroupParams SoundboardChannelProcessor::getChannelGroupParams(
 
 void SoundboardChannelProcessor::prepareToPlay(const int sampleRate, const int meterRmsWindow, const int currentSamplesPerBlock)
 {
-    transportSource.prepareToPlay(currentSamplesPerBlock, sampleRate);
+    mixer.prepareToPlay(currentSamplesPerBlock, sampleRate);
 
     const int numChannels = getFileSourceNumberOfChannels();
 
@@ -123,23 +266,14 @@ void SoundboardChannelProcessor::processMonitor(AudioBuffer<float>& otherBuffer,
     (recordChannel ? recordChannelGroup : channelGroup).processMonitor(buffer, 0, otherBuffer, dstch, dstcnt, numSamples, fgain);
 }
 
-void SoundboardChannelProcessor::changeListenerCallback(ChangeBroadcaster* source)
-{
-    if (!transportSource.isPlaying() && transportSource.getCurrentPosition() >= transportSource.getLengthInSeconds()) {
-        // We are at the end, return to start
-        transportSource.setPosition(0.0);
-        notifyPlaybackPositionListeners();
-    }
-}
-
 bool SoundboardChannelProcessor::processAudioBlock(int numSamples)
 {
-    if (transportSource.getTotalLength() <= 0) {
+    AudioSourceChannelInfo info(&buffer, 0, numSamples);
+    mixer.getNextAudioBlock(info);
+
+    if (buffer.hasBeenCleared()) {
         return false;
     }
-
-    AudioSourceChannelInfo info(&buffer, 0, numSamples);
-    transportSource.getNextAudioBlock(info);
 
     meterSource.measureBlock(buffer);
 
@@ -188,94 +322,11 @@ void SoundboardChannelProcessor::sendAudioBlock(AudioBuffer<float>& sendWorkBuff
 
 void SoundboardChannelProcessor::releaseResources()
 {
-    transportSource.releaseResources();
+    mixer.releaseResources();
 }
 
-void SoundboardChannelProcessor::unloadFile()
+void SoundboardChannelProcessor::notifyStopped(SamplePlaybackManager* samplePlaybackManager)
 {
-    pause();
-    transportSource.setSource(nullptr);
-    currentFileSource.reset();
-}
-
-bool SoundboardChannelProcessor::loadFile(const URL& audioFileUrl)
-{
-    if (!diskThread.isThreadRunning()) {
-        diskThread.startThread(3);
-    }
-
-    // Unload the previous file
-    unloadFile();
-
-    AudioFormatReader* reader = nullptr;
-
-#if !JUCE_IOS
-    if (audioFileUrl.isLocalFile()) {
-        reader = formatManager.createReaderFor(audioFileUrl.getLocalFile());
-    }
-    else
-#endif
-    {
-        reader = formatManager.createReaderFor(audioFileUrl.createInputStream(false));
-    }
-
-    if (reader == nullptr) {
-        return false;
-    }
-
-    currentFileSource.reset(new AudioFormatReaderSource(reader, true));
-
-    transportSource.setSource(currentFileSource.get(), READ_AHEAD_BUFFER_SIZE, &diskThread, reader->sampleRate, reader->numChannels);
-
-    return true;
-}
-
-void SoundboardChannelProcessor::play()
-{
-    transportSource.start();
-    startTimerHz(TIMER_HZ);
-}
-
-void SoundboardChannelProcessor::pause()
-{
-    stopTimer();
-    transportSource.stop();
-}
-
-void SoundboardChannelProcessor::seek(double position)
-{
-    transportSource.setPosition(position);
-    notifyPlaybackPositionListeners();
-}
-
-void SoundboardChannelProcessor::setLooping(bool looping)
-{
-    transportSource.setLooping(looping);
-}
-
-bool SoundboardChannelProcessor::isPlaying()
-{
-    return transportSource.isPlaying();
-}
-
-double SoundboardChannelProcessor::getCurrentPosition()
-{
-    return transportSource.getCurrentPosition();
-}
-
-double SoundboardChannelProcessor::getLength()
-{
-    return transportSource.getLengthInSeconds();
-}
-
-void SoundboardChannelProcessor::timerCallback()
-{
-    notifyPlaybackPositionListeners();
-}
-
-void SoundboardChannelProcessor::notifyPlaybackPositionListeners()
-{
-    for (auto& listener : listeners) {
-        listener->onPlaybackPositionChanged(*this);
-    }
+    mixer.removeInputSource(samplePlaybackManager->getAudioSource());
+    activeSamples.erase(samplePlaybackManager->getSample());
 }

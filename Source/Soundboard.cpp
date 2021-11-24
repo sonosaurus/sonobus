@@ -67,7 +67,7 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
         tree.getProperty(NAME_KEY),
         tree.getProperty(FILE_PATH_KEY),
         tree.getProperty(LOOP_KEY, false),
-        tree.getProperty(BUTTON_COLOUR_KEY, SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR)
+        tree.getProperty(BUTTON_COLOUR_KEY, SoundboardButtonColors::DEFAULT_BUTTON_COLOUR)
     );
 
     return soundSample;

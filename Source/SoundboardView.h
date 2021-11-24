@@ -17,11 +17,10 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardView : public Component, public SonoChoiceButton::Listener, private PlaybackPositionListener
+class SoundboardView : public Component, public SonoChoiceButton::Listener
 {
 public:
     explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
-    ~SoundboardView();
 
     void paint(Graphics&) override;
 
@@ -167,19 +166,12 @@ private:
     void updateButtons();
 
     /**
-     * Updates the UI to reflect the currently playing sample.
-     *
-     * @param selectedBoardIndex The index of the soundboard that is selected.
-     * @param sampleIndex The index of the sample that is being played.
-     */
-    void updatePlayingSampleUI(int selectedBoardIndex, int sampleIndex);
-
-    /**
      * Plays the sound of the given sample.
      *
      * @param sample The sample to play.
+     * @param button The button the play request originated from.
      */
-    void playSample(const SoundSample& sample);
+    void playSample(const SoundSample& sample, SonoPlaybackProgressButton* button = nullptr);
 
     /**
      * Plays the sample at the given sampleIndex, does nothing when sampleIndex out of bounds.
@@ -219,8 +211,6 @@ private:
      * @param sample The sample that must be edited.
      */
     void clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample);
-
-    void onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };

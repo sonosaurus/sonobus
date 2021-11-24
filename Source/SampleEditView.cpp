@@ -18,7 +18,7 @@ SampleEditView::SampleEditView(
     initialLoop(soundSample != nullptr && soundSample->isLoop()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString),
-    selectedColour(soundSample == nullptr ? SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour())
+    selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour())
 {
     setOpaque(true);
 
@@ -140,7 +140,7 @@ void SampleEditView::createColourInput()
     };
     customColourButton->setColour(
             SonoTextButton::buttonColourId,
-            Colour(selectedColour | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+            Colour(selectedColour | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
     );
     addAndMakeVisible(customColourButton.get());
 
@@ -198,7 +198,7 @@ std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int
     auto colourButton = std::make_unique<SonoDrawableButton>("colour", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     colourButton->setColour(
             SonoTextButton::buttonColourId,
-            Colour(BUTTON_COLOURS[index] | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+            Colour(BUTTON_COLOURS[index] | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
     );
     colourButton->onClick = [this, index]() {
         selectedColour = BUTTON_COLOURS[index];
@@ -208,7 +208,7 @@ std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int
         auto& pickerButton = mColourButtons[mColourButtons.size() - 1];
         pickerButton->setColour(
                 SonoTextButton::buttonColourId,
-                Colour(selectedColour | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+                Colour(selectedColour | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
         );
     };
 
