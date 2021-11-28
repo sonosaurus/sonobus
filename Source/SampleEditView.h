@@ -295,7 +295,7 @@ private:
      * @param index The ith button (index in BUTTON_COLOURS).
      * @return Reference to the created button.
      */
-    std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index);
+    std::unique_ptr<SonoDrawableButton> createColourButton(const int index);
 
     /**
      * Updates the colour buttons to show a checkmark if its colour is slected and hide the checkmark if that colour

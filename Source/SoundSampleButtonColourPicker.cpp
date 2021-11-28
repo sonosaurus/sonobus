@@ -3,8 +3,6 @@
 
 
 
-#pragma once
-
 #include <JuceHeader.h>
 #include "SoundSampleButtonColourPicker.h"
 #include "SonoPlaybackProgressButton.h"
