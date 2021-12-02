@@ -159,30 +159,20 @@ namespace CoreTextTypeLayout
     //==============================================================================
     static CTTextAlignment getTextAlignment (const AttributedString& text)
     {
-        const auto flags = text.getJustification().getOnlyHorizontalFlags();
-
-        if (@available (macOS 10.8, *))
+        switch (text.getJustification().getOnlyHorizontalFlags())
         {
-            switch (flags)
-            {
-                case Justification::right:                  return kCTTextAlignmentRight;
-                case Justification::horizontallyCentred:    return kCTTextAlignmentCenter;
-                case Justification::horizontallyJustified:  return kCTTextAlignmentJustified;
-                default:                                    return kCTTextAlignmentLeft;
-            }
-        }
-
-        JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wdeprecated-declarations")
-
-        switch (flags)
-        {
+           #if defined (MAC_OS_X_VERSION_10_8) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_8
+            case Justification::right:                  return kCTTextAlignmentRight;
+            case Justification::horizontallyCentred:    return kCTTextAlignmentCenter;
+            case Justification::horizontallyJustified:  return kCTTextAlignmentJustified;
+            default:                                    return kCTTextAlignmentLeft;
+           #else
             case Justification::right:                  return kCTRightTextAlignment;
             case Justification::horizontallyCentred:    return kCTCenterTextAlignment;
             case Justification::horizontallyJustified:  return kCTJustifiedTextAlignment;
             default:                                    return kCTLeftTextAlignment;
+           #endif
         }
-
-        JUCE_END_IGNORE_WARNINGS_GCC_LIKE
     }
 
     static CTLineBreakMode getLineBreakMode (const AttributedString& text)
@@ -582,8 +572,10 @@ public:
 
         if (fontRef != nullptr)
         {
-            if (@available (macOS 10.11, *))
+           #if JUCE_MAC && defined (MAC_OS_X_VERSION_10_8) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
+            if (SystemStats::getOperatingSystemType() >= SystemStats::OperatingSystemType::MacOSX_10_11)
                 canBeUsedForLayout = CTFontManagerRegisterGraphicsFont (fontRef, nullptr);
+           #endif
 
             ctFontRef.reset (CTFontCreateWithGraphicsFont (fontRef, referenceFontSize, nullptr, nullptr));
 
@@ -626,9 +618,10 @@ public:
     {
         if (fontRef != nullptr)
         {
-            if (@available (macOS 10.8, *))
-                if (dataCopy.getSize() != 0)
-                    CTFontManagerUnregisterGraphicsFont (fontRef, nullptr);
+           #if JUCE_MAC && defined (MAC_OS_X_VERSION_10_8) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
+            if (dataCopy.getSize() != 0)
+                CTFontManagerUnregisterGraphicsFont (fontRef, nullptr);
+           #endif
 
             CGFontRelease (fontRef);
         }
@@ -755,9 +748,7 @@ private:
 
 CTFontRef getCTFontFromTypeface (const Font& f)
 {
-    const auto typeface = f.getTypefacePtr();
-
-    if (auto* tf = dynamic_cast<OSXTypeface*> (typeface.get()))
+    if (auto* tf = dynamic_cast<OSXTypeface*> (f.getTypeface()))
         return tf->ctFontRef.get();
 
     return {};
@@ -857,7 +848,7 @@ Typeface::Ptr Font::getDefaultTypefaceForFont (const Font& font)
     static DefaultFontNames defaultNames;
 
     auto newFont = font;
-    auto faceName = font.getTypefaceName();
+    auto& faceName = font.getTypefaceName();
 
     if (faceName == getDefaultSansSerifFontName())       newFont.setTypefaceName (defaultNames.defaultSans);
     else if (faceName == getDefaultSerifFontName())      newFont.setTypefaceName (defaultNames.defaultSerif);
@@ -875,9 +866,7 @@ static bool canAllTypefacesBeUsedInLayout (const AttributedString& text)
 
     for (int i = 0; i < numCharacterAttributes; ++i)
     {
-        auto typeface = text.getAttribute (i).font.getTypefacePtr();
-
-        if (auto tf = dynamic_cast<OSXTypeface*> (typeface.get()))
+        if (auto tf = dynamic_cast<OSXTypeface*> (text.getAttribute (i).font.getTypeface()))
             if (tf->canBeUsedForLayout)
                 continue;
 

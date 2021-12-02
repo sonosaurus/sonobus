@@ -49,10 +49,8 @@ public:
     void paint (Graphics&) override;
     void resized() override;
 
-   #ifndef DOXYGEN
-    [[deprecated ("This constructor has been changed to take a reference instead of a pointer.")]]
-    GenericAudioProcessorEditor (AudioProcessor* p)  : GenericAudioProcessorEditor (*p) {}
-   #endif
+    // This constructor has been changed to take a reference instead of a pointer
+    JUCE_DEPRECATED_WITH_BODY (GenericAudioProcessorEditor (AudioProcessor* p), : GenericAudioProcessorEditor (*p) {})
 
 private:
     //==============================================================================

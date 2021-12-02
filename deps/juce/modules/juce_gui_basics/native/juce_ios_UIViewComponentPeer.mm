@@ -137,8 +137,6 @@ using namespace juce;
 
 - (BOOL) textView: (UITextView*) textView shouldChangeTextInRange: (NSRange) range replacementText: (NSString*) text;
 
-- (void) traitCollectionDidChange: (UITraitCollection*) previousTraitCollection;
-
 - (BOOL) isAccessibilityElement;
 - (CGRect) accessibilityFrame;
 - (NSArray*) accessibilityElements;
@@ -272,11 +270,6 @@ public:
         return getMouseTime ([e timestamp]);
     }
 
-    static NSString* getDarkModeNotificationName()
-    {
-        return @"ViewDarkModeChanged";
-    }
-
     static MultiTouchMapper<UITouch*> currentTouches;
 
 private:
@@ -303,26 +296,27 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (UIViewComponentPeer)
 };
 
-static UIViewComponentPeer* getViewPeer (JuceUIViewController* c)
-{
-    if (JuceUIView* juceView = (JuceUIView*) [c view])
-        return juceView->owner;
-
-    //jassertfalse;
-    return nullptr;
-}
-
 static void sendScreenBoundsUpdate (JuceUIViewController* c)
 {
-    if (auto* peer = getViewPeer (c))
-        peer->updateScreenBounds();
+    JuceUIView* juceView = (JuceUIView*) [c view];
+
+    if (juceView != nil && juceView->owner != nullptr)
+        juceView->owner->updateScreenBounds();
 }
 
 static bool isKioskModeView (JuceUIViewController* c)
 {
-    if (auto* peer = getViewPeer (c))
-        return Desktop::getInstance().getKioskModeComponent() == &(peer->getComponent());
+    JuceUIView* juceView = (JuceUIView*) [c view];
 
+    if (juceView == nil || juceView->owner == nullptr)
+    {
+        // jassertfalse;
+        return false;
+    }
+
+    if (juceView != nil && juceView->owner != nullptr) {
+        return Desktop::getInstance().getKioskModeComponent() == &(juceView->owner->getComponent());
+    }
     return false;
 }
 
@@ -551,22 +545,6 @@ MultiTouchMapper<UITouch*> UIViewComponentPeer::currentTouches;
     ignoreUnused (textView);
     return owner->textViewReplaceCharacters (Range<int> ((int) range.location, (int) (range.location + range.length)),
                                              nsStringToJuce (text));
-}
-
-- (void) traitCollectionDidChange: (UITraitCollection*) previousTraitCollection
-{
-    [super traitCollectionDidChange: previousTraitCollection];
-
-   #if defined (__IPHONE_12_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_12_0
-    if (@available (iOS 12.0, *))
-    {
-        const auto wasDarkModeActive = ([previousTraitCollection userInterfaceStyle] == UIUserInterfaceStyleDark);
-
-        if (wasDarkModeActive != Desktop::getInstance().isDarkModeActive())
-            [[NSNotificationCenter defaultCenter] postNotificationName: UIViewComponentPeer::getDarkModeNotificationName()
-                                                                object: nil];
-    }
-   #endif
 }
 
 - (BOOL) isAccessibilityElement

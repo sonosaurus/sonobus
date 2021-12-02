@@ -162,15 +162,15 @@ class JucePlugInProcess  : public CEffectProcessMIDI,
 {
 public:
     //==============================================================================
-    [[deprecated ("RTAS builds will be removed from JUCE in the next release.")]]
-    JucePlugInProcess()
+    // RTAS builds will be removed from JUCE in the next release
+    JUCE_DEPRECATED_WITH_BODY (JucePlugInProcess(),
     {
         juceFilter.reset (createPluginFilterOfType (AudioProcessor::wrapperType_RTAS));
 
         AddChunk (juceChunkType, "Juce Audio Plugin Data");
 
         ++numInstances;
-    }
+    })
 
     ~JucePlugInProcess()
     {

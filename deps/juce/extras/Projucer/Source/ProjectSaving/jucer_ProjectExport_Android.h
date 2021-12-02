@@ -545,11 +545,8 @@ private:
                 mo << "if( JUCE_BUILD_CONFIGURATION MATCHES \"" << cfg.getProductFlavourCMakeIdentifier() << "\" )" << newLine;
                 mo << "    target_compile_options( ${BINARY_NAME} PRIVATE";
 
-                auto recommendedFlags = cfg.getRecommendedCompilerWarningFlags();
-
-                for (auto& recommendedFlagsType : { recommendedFlags.common, recommendedFlags.cpp })
-                    for (auto& flag : recommendedFlagsType)
-                        mo << " " << flag;
+                for (auto& flag : cfg.getRecommendedCompilerWarningFlags())
+                    mo << " " << flag;
 
                 mo << ")" << newLine;
                 mo << "endif()" << newLine << newLine;
@@ -589,7 +586,7 @@ private:
         MemoryOutputStream mo;
         mo.setNewLineString (getNewLineString());
 
-        mo << "rootProject.name = " << "\'" << escapeQuotes (projectName) << "\'" << newLine;
+        mo << "rootProject.name = " << "\'" << projectName << "\'" << newLine;
         mo << (isLibrary() ? "include ':lib'" : "include ':app'");
 
         auto extraContent = androidGradleSettingsContent.get().toString();
@@ -1281,11 +1278,6 @@ private:
         return "android-" + androidMinimumSDK.get().toString();
     }
 
-    static String escapeQuotes (const String& str)
-    {
-        return str.replace ("'", "\\'").replace ("\"", "\\\"");
-    }
-
     //==============================================================================
     void writeStringsXML (const File& folder) const
     {
@@ -1294,7 +1286,7 @@ private:
             auto& cfg = dynamic_cast<const AndroidBuildConfiguration&> (*config);
 
             String customStringsXmlContent ("<resources>\n");
-            customStringsXmlContent << "<string name=\"app_name\">" << escapeQuotes (projectName) << "</string>\n";
+            customStringsXmlContent << "<string name=\"app_name\">" << projectName << "</string>\n";
             customStringsXmlContent << cfg.getCustomStringsXml();
             customStringsXmlContent << "\n</resources>";
 
@@ -1435,7 +1427,7 @@ private:
             auto projectStandard = project.getCppStandardString();
 
             if (projectStandard == "latest")
-                return project.getLatestNumberedCppStandardString();
+                return String ("17");
 
             return projectStandard;
         }();
@@ -1584,13 +1576,20 @@ private:
 
         for (int i = 0; i < defs.size(); ++i)
         {
-            auto escaped = "[[-D" + defs.getAllKeys()[i];
+            auto escaped = "\"-D" + defs.getAllKeys()[i];
             auto value = defs.getAllValues()[i];
 
             if (value.isNotEmpty())
-                escaped += ("=" + value);
+            {
+                value = value.replace ("\"", "\\\"");
 
-            escapedDefs.add (escaped + "]]");
+                if (value.containsChar (L' ') && ! value.startsWith ("\\\"") && ! value.endsWith ("\\\""))
+                    value = "\\\"" + value + "\\\"";
+
+                escaped += ("=" + value);
+            }
+
+            escapedDefs.add (escaped + "\"");
         }
 
         return escapedDefs;
@@ -1601,7 +1600,7 @@ private:
         StringArray escaped;
 
         for (auto& flag : flags)
-            escaped.add ("[[" + flag + "]]");
+            escaped.add ("\"" + flag + "\"");
 
         return escaped;
     }

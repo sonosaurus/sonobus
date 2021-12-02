@@ -20,7 +20,7 @@
 
 #include "zitaRev.h"
 
-#include "SoundboardProcessor.h"
+#include "SoundboardChannelProcessor.h"
 
 typedef MVerb<float> MVerbFloat;
 
@@ -738,7 +738,7 @@ public:
     // soundboard
     void setLastSoundboardWidth(int width) { mLastSoundboardWidth = width; }
     int getLastSoundboardWidth() const { return mLastSoundboardWidth; }
-    SoundboardProcessor* getSoundboardProcessor() { return soundboardProcessor.get(); }
+    SoundboardChannelProcessor* getSoundboardProcessor() { return soundboardChannelProcessor.get(); }
 
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
@@ -1133,7 +1133,7 @@ private:
     URL mCurrTransportURL;
 
     // soundboard
-    std::unique_ptr<SoundboardProcessor> soundboardProcessor;
+    std::unique_ptr<SoundboardChannelProcessor> soundboardChannelProcessor;
 
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;

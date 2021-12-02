@@ -23,8 +23,6 @@
   ==============================================================================
 */
 
-static void juceFreeAccessibilityPlatformSpecificData (NSAccessibilityElement<NSAccessibility>*)  {}
-
 namespace juce
 {
 
@@ -32,6 +30,14 @@ namespace juce
  using NSAccessibilityRole = NSString*;
  using NSAccessibilityNotificationName = NSString*;
 #endif
+
+#if (! defined MAC_OS_X_VERSION_10_9) || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_9
+ const NSAccessibilityNotificationName NSAccessibilityLayoutChangedNotificationJuce = @"AXLayoutChanged";
+#else
+ const NSAccessibilityNotificationName NSAccessibilityLayoutChangedNotificationJuce = NSAccessibilityLayoutChangedNotification;
+#endif
+
+#if JUCE_OBJC_HAS_AVAILABLE_FEATURE || (defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10)
 
 #define JUCE_NATIVE_ACCESSIBILITY_INCLUDED 1
 
@@ -57,7 +63,9 @@ private:
     public:
         static Holder create (AccessibilityHandler& handler)
         {
+           #if JUCE_OBJC_HAS_AVAILABLE_FEATURE
             if (@available (macOS 10.10, *))
+           #endif
             {
                 static AccessibilityElement cls;
                 Holder element ([cls.createInstance() init]);
@@ -268,19 +276,6 @@ private:
                     [accessibleChildren addObject: (id) childHandler->getNativeImplementation()];
 
                 return accessibleChildren;
-            }
-
-            return nil;
-        }
-
-        static id getAccessibilityValue (id self, SEL)
-        {
-            if (auto* handler = getHandler (self))
-            {
-                if (handler->getCurrentState().isCheckable())
-                    return handler->getCurrentState().isChecked() ? @(1) : @(0);
-
-                return getAccessibilityValueFromInterfaces (*handler);
             }
 
             return nil;
@@ -881,15 +876,6 @@ static void sendHandlerNotification (const AccessibilityHandler& handler,
     }
 }
 
-static NSAccessibilityNotificationName layoutChangedNotification()
-{
-    if (@available (macOS 10.9, *))
-        return NSAccessibilityLayoutChangedNotification;
-
-    static NSString* layoutChangedString = @"AXLayoutChanged";
-    return layoutChangedString;
-}
-
 void notifyAccessibilityEventInternal (const AccessibilityHandler& handler, InternalAccessibilityEvent eventType)
 {
     auto notification = [eventType]
@@ -898,7 +884,7 @@ void notifyAccessibilityEventInternal (const AccessibilityHandler& handler, Inte
         {
             case InternalAccessibilityEvent::elementCreated:         return NSAccessibilityCreatedNotification;
             case InternalAccessibilityEvent::elementDestroyed:       return NSAccessibilityUIElementDestroyedNotification;
-            case InternalAccessibilityEvent::elementMovedOrResized:  return layoutChangedNotification();
+            case InternalAccessibilityEvent::elementMovedOrResized:  return NSAccessibilityLayoutChangedNotificationJuce;
             case InternalAccessibilityEvent::focusChanged:           return NSAccessibilityFocusedUIElementChangedNotification;
             case InternalAccessibilityEvent::windowOpened:           return NSAccessibilityWindowCreatedNotification;
             case InternalAccessibilityEvent::windowClosed:           break;
@@ -922,7 +908,7 @@ void AccessibilityHandler::notifyAccessibilityEvent (AccessibilityEvent eventTyp
             case AccessibilityEvent::textChanged:
             case AccessibilityEvent::valueChanged:          return NSAccessibilityValueChangedNotification;
             case AccessibilityEvent::titleChanged:          return NSAccessibilityTitleChangedNotification;
-            case AccessibilityEvent::structureChanged:      return layoutChangedNotification();
+            case AccessibilityEvent::structureChanged:      return NSAccessibilityLayoutChangedNotificationJuce;
         }
 
         return NSAccessibilityNotificationName{};
@@ -936,7 +922,9 @@ void AccessibilityHandler::postAnnouncement (const String& announcementString, A
     if (! areAnyAccessibilityClientsActive())
         return;
 
+    #if JUCE_OBJC_HAS_AVAILABLE_FEATURE
      if (@available (macOS 10.10, *))
+    #endif
      {
         auto nsPriority = [priority]
         {
@@ -959,5 +947,7 @@ void AccessibilityHandler::postAnnouncement (const String& announcementString, A
 }
 
 JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+
+#endif
 
 } // namespace juce

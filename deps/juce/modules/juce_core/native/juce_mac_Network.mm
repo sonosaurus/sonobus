@@ -412,8 +412,10 @@ struct BackgroundDownloadTask  : public URL::DownloadTask
 {
     BackgroundDownloadTask (const URL& urlToUse,
                             const File& targetLocationToUse,
-                            const URL::DownloadTaskOptions& options)
-         : listener (options.listener),
+                            String extraHeadersToUse,
+                            URL::DownloadTask::Listener* listenerToUse,
+                            bool shouldUsePostRequest)
+         : listener (listenerToUse),
            uniqueIdentifier (String (urlToUse.toString (true).hashCode64()) + String (Random().nextInt64()))
     {
         targetLocation = targetLocationToUse;
@@ -427,11 +429,11 @@ struct BackgroundDownloadTask  : public URL::DownloadTask
         auto nsUrl = [NSURL URLWithString: juceStringToNS (urlToUse.toString (true))];
         NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL: nsUrl];
 
-        if (options.usePost)
+        if (shouldUsePostRequest)
             [request setHTTPMethod: @"POST"];
 
         StringArray headerLines;
-        headerLines.addLines (options.extraHeaders);
+        headerLines.addLines (extraHeadersToUse);
         headerLines.removeEmptyStrings (true);
 
         for (int i = 0; i < headerLines.size(); ++i)
@@ -443,14 +445,10 @@ struct BackgroundDownloadTask  : public URL::DownloadTask
                 [request addValue: juceStringToNS (value) forHTTPHeaderField: juceStringToNS (key)];
         }
 
-        auto* configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier: juceStringToNS (uniqueIdentifier)];
-
-        if (options.sharedContainer.isNotEmpty())
-            [configuration setSharedContainerIdentifier: juceStringToNS (options.sharedContainer)];
-
-        session = [NSURLSession sessionWithConfiguration: configuration
-                                                delegate: delegate
-                                           delegateQueue: nullptr];
+        session =
+            [NSURLSession sessionWithConfiguration: [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier: juceStringToNS (uniqueIdentifier)]
+                                          delegate: delegate
+                                     delegateQueue: nullptr];
 
         if (session != nullptr)
             downloadTask = [session downloadTaskWithRequest:request];
@@ -520,7 +518,7 @@ struct BackgroundDownloadTask  : public URL::DownloadTask
 
     void didFinishDownloadingToURL (NSURL* location)
     {
-        auto* fileManager = [NSFileManager defaultManager];
+        NSFileManager* fileManager = [[NSFileManager alloc] init];
         error = ([fileManager moveItemAtURL: location
                                       toURL: createNSURLFromFile (targetLocation)
                                       error: nil] == NO);
@@ -650,9 +648,9 @@ struct BackgroundDownloadTask  : public URL::DownloadTask
 
 HashMap<String, BackgroundDownloadTask*, DefaultHashFunctions, CriticalSection> BackgroundDownloadTask::activeSessions;
 
-std::unique_ptr<URL::DownloadTask> URL::downloadToFile (const File& targetLocation, const DownloadTaskOptions& options)
+std::unique_ptr<URL::DownloadTask> URL::downloadToFile (const File& targetLocation, String extraHeaders, DownloadTask::Listener* listener, bool usePostRequest)
 {
-    auto downloadTask = std::make_unique<BackgroundDownloadTask> (*this, targetLocation, options);
+    std::unique_ptr<BackgroundDownloadTask> downloadTask (new BackgroundDownloadTask (*this, targetLocation, extraHeaders, listener, usePostRequest));
 
     if (downloadTask->initOK() && downloadTask->connect())
         return downloadTask;
@@ -665,9 +663,9 @@ void URL::DownloadTask::juce_iosURLSessionNotify (const String& identifier)
     BackgroundDownloadTask::invokeNotify (identifier);
 }
 #else
-std::unique_ptr<URL::DownloadTask> URL::downloadToFile (const File& targetLocation, const DownloadTaskOptions& options)
+std::unique_ptr<URL::DownloadTask> URL::downloadToFile (const File& targetLocation, String extraHeaders, DownloadTask::Listener* listener, bool usePost)
 {
-    return URL::DownloadTask::createFallbackDownloader (*this, targetLocation, options);
+    return URL::DownloadTask::createFallbackDownloader (*this, targetLocation, extraHeaders, listener, usePost);
 }
 #endif
 
@@ -931,9 +929,9 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (URLConnectionState)
 };
 
-std::unique_ptr<URL::DownloadTask> URL::downloadToFile (const File& targetLocation, const DownloadTaskOptions& options)
+std::unique_ptr<URL::DownloadTask> URL::downloadToFile (const File& targetLocation, String extraHeaders, DownloadTask::Listener* listener, bool shouldUsePost)
 {
-    return URL::DownloadTask::createFallbackDownloader (*this, targetLocation, options);
+    return URL::DownloadTask::createFallbackDownloader (*this, targetLocation, extraHeaders, listener, shouldUsePost);
 }
 
 JUCE_END_IGNORE_WARNINGS_GCC_LIKE

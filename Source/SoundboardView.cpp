@@ -4,34 +4,30 @@
 
 
 #include "SoundboardView.h"
+#include "SoundboardEditView.h"
+#include "SampleEditView.h"
 
-SoundboardView::SoundboardView()
+SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
+        : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
 {
+    processor->getChannelProcessor()->attach(*this);
+
     setOpaque(true);
 
     createSoundboardTitle();
     createSoundboardSelectionPanel();
     createBasePanels();
 
+    updateSoundboardSelector();
     updateButtons();
+
+    mLastSampleBrowseDirectory = std::make_unique<String>(
+            File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
 }
 
-void SoundboardView::updateButtons()
+SoundboardView::~SoundboardView()
 {
-    buttonBox.items.clear();
-    mSoundButtons.clear();
-
-    // 7 is placeholder value, see also SdbVw::createBasePanels: TITLE_HEIGHT * 7.
-    // In the future: determine buttons based on the selected soundboard.
-    for (int i = 1; i <= 7; ++i) {
-        auto sound = (i == 5) ? "Mambo" : "Sound";
-        auto testTextButton = std::make_unique<TextButton>(std::string(sound) + " Number " + std::to_string(i), std::string(sound) + " " + std::to_string(i));
-        testTextButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-        addAndMakeVisible(testTextButton.get());
-
-        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *testTextButton).withMargin(0).withFlex(0));
-        mSoundButtons.push_back(std::move(testTextButton));
-    }
+    processor->getChannelProcessor()->detach(*this);
 }
 
 void SoundboardView::createBasePanels()
@@ -39,16 +35,22 @@ void SoundboardView::createBasePanels()
     buttonBox.items.clear();
     buttonBox.flexDirection = FlexBox::Direction::column;
 
+    buttonViewport.setViewedComponent(&buttonContainer, false);
+    addAndMakeVisible(buttonViewport);
+
     soundboardContainerBox.items.clear();
     soundboardContainerBox.flexDirection = FlexBox::Direction::column;
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, titleBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
+    soundboardContainerBox.items.add(
+            FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT * 7, buttonBox).withMargin(0).withFlex(0));
+    soundboardContainerBox.items.add(
+            FlexItem(buttonViewport).withMargin(0).withFlex(1));
 
     mainBox.items.clear();
-    mainBox.flexDirection = FlexBox::Direction::row;
+    mainBox.flexDirection = FlexBox::Direction::column;
+    mainBox.alignItems = FlexBox::AlignItems::stretch;
     mainBox.items.add(FlexItem(TITLE_LABEL_WIDTH, ELEMENT_MARGIN, soundboardContainerBox).withMargin(0).withFlex(1));
 }
 
@@ -79,7 +81,8 @@ void SoundboardView::createSoundboardTitleLabel()
 void SoundboardView::createSoundboardTitleCloseButton()
 {
     mCloseButton = std::make_unique<SonoDrawableButton>("x", DrawableButton::ButtonStyle::ImageFitted);
-    std::unique_ptr<Drawable> imageCross(Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
+    std::unique_ptr<Drawable> imageCross(
+            Drawable::createFromImageData(BinaryData::x_icon_svg, BinaryData::x_icon_svgSize));
     mCloseButton->setImages(imageCross.get());
     mCloseButton->setTitle(TRANS("Close Soundboard"));
     mCloseButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
@@ -96,31 +99,325 @@ void SoundboardView::createSoundboardMenu()
     mMenuButton->setTitle(TRANS("Soundboard Menu"));
     mMenuButton->setImages(imageMenu.get());
     mMenuButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
-    //mMenuButton->onClick = [this]() {
-    //    showMenu();
-    //};
+    mMenuButton->onClick = [this]() {
+        showMenuButtonContextMenu();
+    };
     addAndMakeVisible(mMenuButton.get());
 }
 
 void SoundboardView::createSoundboardSelectionPanel()
 {
     mBoardSelectComboBox = std::make_unique<SonoChoiceButton>();
-    mBoardSelectComboBox->setTitle(TRANS("Soundboard #1"));
+    mBoardSelectComboBox->setTitle(TRANS("Select Soundboard"));
     mBoardSelectComboBox->setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.6, 0.6, 0.6, 0.4));
-    //mBoardSelectComboBox->addChoiceListener(this);
-
-    for (int i = 1; i <= 4 /* Number of soundboards */; ++i) {
-        mBoardSelectComboBox->addItem(TRANS("Soundboard #") + std::to_string(i), i - 1 /* identifier */);
-    }
-    mBoardSelectComboBox->setSelectedId(0);
-
+    mBoardSelectComboBox->addChoiceListener(this);
     addAndMakeVisible(mBoardSelectComboBox.get());
 
     soundboardSelectionBox.items.clear();
     soundboardSelectionBox.flexDirection = FlexBox::Direction::row;
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
-    soundboardSelectionBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mBoardSelectComboBox).withMargin(0).withFlex(1));
+    soundboardSelectionBox.items.add(
+            FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mBoardSelectComboBox).withMargin(0).withFlex(1));
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
+}
+
+void SoundboardView::updateSoundboardSelector()
+{
+    // Index shenanigans will go wrong when there are no soundboards, so return early:
+    // doesn't matter anyway as the soundboard selector only need to be cleared.
+    if (processor->getNumberOfSoundboards() == 0) {
+        // Apparently, when you clear items the last item name is still visible, but no items are present.
+        // Enjoy this amazing hack.
+        mBoardSelectComboBox->clearItems();
+        mBoardSelectComboBox->addItem("", 0);
+        mBoardSelectComboBox->setSelectedItemIndex(0);
+        mBoardSelectComboBox->clearItems();
+        return;
+    }
+
+    // Repopulate the selector.
+    mBoardSelectComboBox->clearItems();
+    auto soundboardCount = processor->getNumberOfSoundboards();
+    for (int i = 0; i < soundboardCount; ++i) {
+        mBoardSelectComboBox->addItem(processor->getSoundboard(i).getName(), i);
+    }
+
+    // Select the currently selected item.
+    auto selectedIndex = processor->getSelectedSoundboardIndex();
+    if (selectedIndex.has_value()) {
+        mBoardSelectComboBox->setSelectedItemIndex(selectedIndex.value());
+    }
+}
+
+void SoundboardView::updateButtons()
+{
+    buttonBox.items.clear();
+    mSoundButtons.clear();
+    buttonContainer.removeAllChildren();
+
+    auto selectedBoardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedBoardIndex >= processor->getNumberOfSoundboards()) {
+        return;
+    }
+
+    auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
+
+    for (int sampleIndex = 0; sampleIndex < selectedBoard.getSamples().size(); ++sampleIndex) {
+        auto& sample = selectedBoard.getSamples()[sampleIndex];
+
+        auto playbackButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
+        playbackButton->setButtonColour(sample.getButtonColour());
+
+        auto buttonAddress = playbackButton.get();
+        playbackButton->onPrimaryClick = [this, &sample, sampleIndex, selectedBoardIndex]() {
+            playSample(sample);
+            updatePlayingSampleUI(selectedBoardIndex, sampleIndex);
+        };
+
+        playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
+            clickedEditSoundSample(*buttonAddress, sample);
+        };
+        buttonContainer.addAndMakeVisible(playbackButton.get());
+
+        buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *playbackButton).withMargin(0).withFlex(0));
+
+        mSoundButtons.emplace_back(std::move(playbackButton));
+    }
+
+    mAddSampleButton = std::make_unique<SonoDrawableButton>(
+            "addSample",
+            SonoDrawableButton::ButtonStyle::ImageOnButtonBackground
+    );
+    std::unique_ptr<Drawable> imageAdd(
+            Drawable::createFromImageData(BinaryData::plus_icon_svg, BinaryData::plus_icon_svgSize)
+    );
+    mAddSampleButton->setTooltip(TRANS("Add Sample"));
+    mAddSampleButton->setImages(imageAdd.get());
+    mAddSampleButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mAddSampleButton->setLookAndFeel(&dashedButtonLookAndFeel);
+    mAddSampleButton->onClick = [this]() {
+        clickedAddSoundSample();
+    };
+    buttonContainer.addAndMakeVisible(mAddSampleButton.get());
+
+    buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mAddSampleButton).withMargin(0).withFlex(0));
+
+    // Trigger repaint
+    resized();
+}
+
+void SoundboardView::updatePlayingSampleUI(int selectedBoardIndex, int sampleIndex)
+{
+    if (processor->getCurrentlyPlayingSoundboardIndex().has_value() && processor->getCurrentlyPlayingButtonIndex().has_value()) {
+        auto playingSoundboardIndex = processor->getCurrentlyPlayingSoundboardIndex().value();
+        auto playingButtonIndex = processor->getCurrentlyPlayingButtonIndex().value();
+
+        if (playingSoundboardIndex == selectedBoardIndex) {
+            auto& currentButton = mSoundButtons[playingButtonIndex];
+            currentButton->setPlaybackPosition(0.0);
+            currentButton->repaint();
+        }
+    }
+
+    processor->setCurrentlyPlaying(selectedBoardIndex, sampleIndex);
+}
+
+void SoundboardView::playSample(const SoundSample& sample)
+{
+    auto channelProcessor = processor->getChannelProcessor();
+    auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
+    if (!isLoadSuccessful) {
+        AlertWindow::showMessageBoxAsync(
+                AlertWindow::WarningIcon,
+                TRANS("Cannot play file"),
+                TRANS("The selected audio file failed to load. The file cannot be played.")
+        );
+        return;
+    }
+
+    channelProcessor->setLooping(sample.isLoop());
+    channelProcessor->play();
+}
+
+bool SoundboardView::playSampleAtIndex(int sampleIndex)
+{
+    if (sampleIndex < 0) {
+        return false;
+    }
+
+    auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
+        return false;
+    }
+
+    auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
+    auto& samples = soundboard.getSamples();
+    if (sampleIndex >= samples.size()) {
+        return false;
+    }
+
+    auto& soundSampleAtIndex = samples[sampleIndex];
+    playSample(soundSampleAtIndex);
+    updatePlayingSampleUI(selectedSoundboardIndex, sampleIndex);
+    return true;
+}
+
+void SoundboardView::showMenuButtonContextMenu()
+{
+    Array<GenericItemChooserItem> items;
+    items.add(GenericItemChooserItem(TRANS("New soundboard"), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("Rename soundboard"), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("Delete soundboard"), {}, nullptr, false));
+
+    Component* parent = mMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!parent) {
+        parent = mMenuButton->findParentComponentOfClass<Component>();
+    }
+    Rectangle<int> bounds = parent->getLocalArea(nullptr, mMenuButton->getScreenBounds());
+
+    SafePointer <SoundboardView> safeThis(this);
+    auto callback = [safeThis](GenericItemChooser* chooser, int index) mutable {
+        switch (index) {
+            case 0:
+                safeThis->clickedAddSoundboard();
+                break;
+            case 1:
+                safeThis->clickedRenameSoundboard();
+                break;
+            case 2:
+                safeThis->clickedDeleteSoundboard();
+        }
+    };
+
+    GenericItemChooser::launchPopupChooser(items, bounds, parent, callback, -1, parent->getHeight() - 30);
+}
+
+void SoundboardView::clickedAddSoundboard()
+{
+    auto callback = [this](const String& name) {
+        Soundboard& createdSoundboard = processor->addSoundboard(name, true);
+        updateSoundboardSelector();
+        updateButtons();
+    };
+
+    auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
+    content->setSize(256, 100);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            mTitleLabel->getScreenBounds(),
+            nullptr
+    );
+}
+
+void SoundboardView::clickedRenameSoundboard()
+{
+    auto callback = [this](const String& name) {
+        int selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+        processor->renameSoundboard(selectedSoundboardIndex, name);
+        updateSoundboardSelector();
+    };
+
+    auto& currentSoundboard = processor->getSoundboard(mBoardSelectComboBox->getSelectedItemIndex());
+    auto content = std::make_unique<SoundboardEditView>(callback, &currentSoundboard);
+    content->setSize(SoundboardEditView::DEFAULT_VIEW_WIDTH, SoundboardEditView::DEFAULT_VIEW_HEIGHT);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            mBoardSelectComboBox->getScreenBounds(),
+            nullptr
+    );
+}
+
+void SoundboardView::clickedDeleteSoundboard()
+{
+    // Cannot delete if there are no soundboards.
+    if (processor->getNumberOfSoundboards() == 0) {
+        return;
+    }
+
+    Array<GenericItemChooserItem> items;
+
+    auto titleItem = GenericItemChooserItem(TRANS("Delete soundboard?"), {}, nullptr, false);
+    titleItem.disabled = true;
+    items.add(titleItem);
+
+    items.add(GenericItemChooserItem(TRANS("No, keep soundboard"), {}, nullptr, true));
+    items.add(GenericItemChooserItem(TRANS("Yes, delete soundboard"), {}, nullptr, false));
+
+    Component* parent = mBoardSelectComboBox->findParentComponentOfClass<AudioProcessorEditor>();
+    if (!parent) {
+        parent = mBoardSelectComboBox->findParentComponentOfClass<Component>();
+    }
+    Rectangle<int> bounds = parent->getLocalArea(nullptr, mBoardSelectComboBox->getScreenBounds());
+
+    SafePointer <SoundboardView> safeThis(this);
+    auto callback = [safeThis](GenericItemChooser* chooser, int index) mutable {
+        // Delete soundboard.
+        if (index == 2) {
+            int selectedIndex = safeThis->mBoardSelectComboBox->getSelectedItemIndex();
+            safeThis->processor->deleteSoundboard(selectedIndex);
+            safeThis->updateSoundboardSelector();
+            safeThis->updateButtons();
+        }
+    };
+
+    GenericItemChooser::launchPopupChooser(items, bounds, parent, callback, -1, 128);
+}
+
+void SoundboardView::clickedAddSoundSample()
+{
+    auto callback = [this](SampleEditView& editView) {
+        auto sampleName = editView.getSampleName();
+        auto filePath = editView.getAbsoluteFilePath();
+        auto buttonColour = editView.getButtonColour();
+        auto loop = editView.isLoop();
+
+        SoundSample* createdSample = processor->addSoundSample(sampleName, filePath, loop);
+        createdSample->setButtonColour(buttonColour);
+
+        updateButtons();
+    };
+
+    auto content = std::make_unique<SampleEditView>(callback, nullptr, mLastSampleBrowseDirectory.get());
+    content->setSize(SampleEditView::DEFAULT_VIEW_WIDTH, SampleEditView::DEFAULT_VIEW_HEIGHT);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            mAddSampleButton->getScreenBounds(),
+            nullptr
+    );
+}
+
+void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample)
+{
+    auto callback = [this, &sample](SampleEditView& editView) {
+        if (editView.isDeleteSample()) {
+            processor->deleteSoundSample(sample);
+        }
+        else {
+            auto sampleName = editView.getSampleName();
+            auto filePath = editView.getAbsoluteFilePath();
+            auto buttonColour = editView.getButtonColour();
+            auto loop = editView.isLoop();
+
+            sample.setName(sampleName);
+            sample.setFilePath(filePath);
+            sample.setButtonColour(buttonColour);
+            sample.setLoop(loop);
+            processor->editSoundSample(sample);
+        }
+        updateButtons();
+    };
+
+    auto content = std::make_unique<SampleEditView>(callback, &sample, mLastSampleBrowseDirectory.get());
+    content->setSize(SampleEditView::DEFAULT_VIEW_WIDTH, SampleEditView::DEFAULT_VIEW_HEIGHT);
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            button.getScreenBounds(),
+            nullptr
+    );
 }
 
 void SoundboardView::paint(Graphics& g)
@@ -130,5 +427,50 @@ void SoundboardView::paint(Graphics& g)
 
 void SoundboardView::resized()
 {
+    // Compute the inner container size manually, as all automatic layout computation seem to be rendered useless
+    // as a consequence of using viewport.
+    int buttonsHeight = std::accumulate(buttonBox.items.begin(), buttonBox.items.end(), 0,
+        [](int sum, const FlexItem& item) { return sum + item.currentBounds.getHeight(); });
+    buttonContainer.setSize(buttonViewport.getMaximumVisibleWidth(), buttonsHeight);
+
     mainBox.performLayout(getLocalBounds().reduced(2));
+    buttonBox.performLayout(buttonContainer.getLocalBounds());
+}
+
+void SoundboardView::processKeystroke(const int keyCode)
+{
+    // 0 is already assigned to jump to start.
+
+    if (keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
+        if (playSampleAtIndex(keyCode - 49)) {
+            return;
+        }
+    }
+
+    if (keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
+        if (playSampleAtIndex(keyCode - KeyPress::numberPad1)) {
+            return;
+        }
+    }
+}
+
+void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident)
+{
+    processor->selectSoundboard(index);
+    updateButtons();
+}
+
+void SoundboardView::onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor)
+{
+    if (!processor->getCurrentlyPlayingButtonIndex().has_value() || processor->getCurrentlyPlayingSoundboardIndex() != mBoardSelectComboBox->getSelectedItemIndex()) {
+        return;
+    }
+
+    auto& currentlyPlayingButton = mSoundButtons[processor->getCurrentlyPlayingButtonIndex().value()];
+
+    auto position = channelProcessor.getLength() != 0.0
+        ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
+        : 0.0;
+    currentlyPlayingButton->setPlaybackPosition(position);
+    currentlyPlayingButton->repaint();
 }

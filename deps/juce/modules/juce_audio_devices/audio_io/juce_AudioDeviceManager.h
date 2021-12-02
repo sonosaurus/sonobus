@@ -93,11 +93,13 @@ public:
             The name has to be one of the ones listed by the AudioDeviceManager's currently
             selected device type.
             This may be the same as the input device.
+            An empty string indicates the default device.
         */
         String outputDeviceName;
 
         /** The name of the audio device used for input.
             This may be the same as the output device.
+            An empty string indicates the default device.
         */
         String inputDeviceName;
 
@@ -172,10 +174,7 @@ public:
         @param preferredSetupOptions        if this is non-null, the structure will be used as the
                                             set of preferred settings when opening the device. If you
                                             use this parameter, the preferredDefaultDeviceName
-                                            field will be ignored. If you set the outputDeviceName
-                                            or inputDeviceName data members of the AudioDeviceSetup
-                                            to empty strings, then a default device will be used.
-
+                                            field will be ignored
 
         @returns an error message if anything went wrong, or an empty string if it worked ok.
     */
@@ -220,11 +219,7 @@ public:
         settings, then tweak the appropriate fields in the AudioDeviceSetup structure,
         and pass it back into this method to apply the new settings.
 
-        @param newSetup             the settings that you'd like to use.
-                                    If you don't need an input or output device, set the
-                                    inputDeviceName or outputDeviceName data members respectively
-                                    to empty strings. Note that this behaviour differs from
-                                    the behaviour of initialise().
+        @param newSetup             the settings that you'd like to use
         @param treatAsChosenDevice  if this is true and if the device opens correctly, these new
                                     settings will be taken as having been explicitly chosen by the
                                     user, and the next time createStateXml() is called, these settings
@@ -471,20 +466,18 @@ public:
     int getXRunCount() const noexcept;
 
     //==============================================================================
-   #ifndef DOXYGEN
-    [[deprecated ("Use setMidiInputDeviceEnabled instead.")]]
+    /** Deprecated. */
     void setMidiInputEnabled (const String&, bool);
-    [[deprecated ("Use isMidiInputDeviceEnabled instead.")]]
+    /** Deprecated. */
     bool isMidiInputEnabled (const String&) const;
-    [[deprecated ("Use addMidiInputDeviceCallback instead.")]]
+    /** Deprecated. */
     void addMidiInputCallback (const String&, MidiInputCallback*);
-    [[deprecated ("Use removeMidiInputDeviceCallback instead.")]]
+    /** Deprecated. */
     void removeMidiInputCallback (const String&, MidiInputCallback*);
-    [[deprecated ("Use setDefaultMidiOutputDevice instead.")]]
+    /** Deprecated. */
     void setDefaultMidiOutput (const String&);
-    [[deprecated ("Use getDefaultMidiOutputIdentifier instead.")]]
+    /** Deprecated. */
     const String& getDefaultMidiOutputName() const noexcept  { return defaultMidiOutputDeviceInfo.name; }
-   #endif
 
 private:
     //==============================================================================
@@ -553,7 +546,6 @@ private:
 
     AudioIODeviceType* findType (const String& inputName, const String& outputName);
     AudioIODeviceType* findType (const String& typeName);
-    void pickCurrentDeviceTypeWithDevices();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioDeviceManager)
 };

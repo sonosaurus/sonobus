@@ -371,9 +371,3 @@ namespace juce
     }
    #endif
 }
-
-//==============================================================================
-#if ! JUCE_WINDOWS
- juce::ScopedDPIAwarenessDisabler::ScopedDPIAwarenessDisabler()  { ignoreUnused (previousContext); }
- juce::ScopedDPIAwarenessDisabler::~ScopedDPIAwarenessDisabler() {}
-#endif

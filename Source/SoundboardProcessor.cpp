@@ -1,265 +1,247 @@
-//
-// Created by Sten on 24-10-2021.
-//
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
+// Copyright (C) 2020 Jesse Chappell
+
+
 
 #include "SoundboardProcessor.h"
+#include "SonoUtility.h"
+#include <utility>
 
-SoundboardProcessor::SoundboardProcessor()
+SoundboardProcessor::SoundboardProcessor(SoundboardChannelProcessor* channelProcessor) : channelProcessor(
+        channelProcessor)
 {
-    channelGroup.params.name = TRANS("Soundboard");
-    channelGroup.params.numChannels = 2;
-    recordChannelGroup.params.name = TRANS("Soundboard");
-    recordChannelGroup.params.numChannels = 2;
-
-    transportSource.addChangeListener(this);
-    formatManager.registerBasicFormats();
+    loadFromDisk();
 }
 
-SoundboardProcessor::~SoundboardProcessor()
+Soundboard& SoundboardProcessor::addSoundboard(const String& name, const bool select)
 {
-    transportSource.setSource(nullptr);
-    transportSource.removeChangeListener(this);
-}
+    auto newSoundboard = Soundboard(name);
+    soundboards.push_back(std::move(newSoundboard));
 
-SonoAudio::DelayParams& SoundboardProcessor::getMonitorDelayParams()
-{
-    return channelGroup.params.monitorDelayParams;
-}
-
-void SoundboardProcessor::setMonitorDelayParams(SonoAudio::DelayParams& params)
-{
-    channelGroup.params.monitorDelayParams = params;
-    channelGroup.commitMonitorDelayParams();
-
-    recordChannelGroup.params.monitorDelayParams = params;
-    recordChannelGroup.commitMonitorDelayParams();
-}
-
-void SoundboardProcessor::getDestStartAndCount(int& start, int& count)
-{
-    start = channelGroup.params.monDestStartIndex;
-    count = channelGroup.params.monDestChannels;
-}
-
-void SoundboardProcessor::setDestStartAndCount(int start, int count)
-{
-    channelGroup.params.monDestStartIndex = start;
-    channelGroup.params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
-    channelGroup.commitMonitorDelayParams();
-
-    recordChannelGroup.params.monDestStartIndex = start;
-    recordChannelGroup.params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
-    recordChannelGroup.commitMonitorDelayParams();
-}
-
-float SoundboardProcessor::getGain() const
-{
-    return channelGroup.params.gain;
-}
-
-void SoundboardProcessor::setGain(float gain)
-{
-    channelGroup.params.gain = gain;
-    recordChannelGroup.params.gain = gain;
-}
-
-float SoundboardProcessor::getMonitorGain() const
-{
-    return channelGroup.params.monitor;
-}
-
-void SoundboardProcessor::setMonitorGain(float gain)
-{
-    channelGroup.params.monitor = gain;
-    recordChannelGroup.params.monitor = gain;
-}
-
-int SoundboardProcessor::getNumberOfChannels() const
-{
-    return channelGroup.params.numChannels;
-}
-
-int SoundboardProcessor::getFileSourceNumberOfChannels() const
-{
-    return currentFileSource != nullptr ? currentFileSource->getAudioFormatReader()->numChannels : 2;
-}
-
-SonoAudio::ChannelGroupParams SoundboardProcessor::getChannelGroupParams() const
-{
-    return channelGroup.params;
-}
-
-void SoundboardProcessor::prepareToPlay(const int sampleRate, const int meterRmsWindow, const int currentSamplesPerBlock)
-{
-    transportSource.prepareToPlay(currentSamplesPerBlock, sampleRate);
-
-    const int numChannels = getFileSourceNumberOfChannels();
-
-    meterSource.resize(numChannels, meterRmsWindow);
-    channelGroup.init(sampleRate);
-    recordChannelGroup.init(sampleRate);
-}
-
-void SoundboardProcessor::ensureBuffers(const int numSamples, const int maxChannels, const int meterRmsWindow)
-{
-    const int numChannels = getFileSourceNumberOfChannels();
-    const int realMaxChannels = jmax(maxChannels, numChannels);
-
-    if (meterSource.getNumChannels() < numChannels) {
-        meterSource.resize(numChannels, meterRmsWindow);
+    if (select) {
+        selectedSoundboardIndex = getNumberOfSoundboards() - 1;
     }
 
-    if (buffer.getNumSamples() < numSamples || buffer.getNumChannels() != realMaxChannels) {
-        buffer.setSize(realMaxChannels, numSamples, false, false, true);
+    reorderSoundboards();
+    saveToDisk();
+
+    return soundboards[selectedSoundboardIndex.value_or(0)];
+}
+
+void SoundboardProcessor::renameSoundboard(int index, String newName)
+{
+    auto& toRename = soundboards[index];
+    toRename.setName(std::move(newName));
+
+    reorderSoundboards();
+    saveToDisk();
+}
+
+void SoundboardProcessor::deleteSoundboard(int index)
+{
+    soundboards.erase(soundboards.begin() + index);
+
+    if (currentlyPlayingSoundboardIndex == index) {
+        channelProcessor->pause();
+        currentlyPlayingSoundboardIndex = {};
+        currentlyPlayingButtonIndex = {};
+    }
+
+    // If the last soundboard was selected
+    if (selectedSoundboardIndex == soundboards.size()) {
+        auto selected = selectedSoundboardIndex.value();
+        selectedSoundboardIndex = selected > 0 ? std::optional<int>(selected - 1) : std::nullopt;
+    }
+
+    reorderSoundboards();
+    saveToDisk();
+}
+
+void SoundboardProcessor::selectSoundboard(int index)
+{
+    if (getNumberOfSoundboards() == 0) {
+        selectedSoundboardIndex = {};
+    }
+    else {
+        selectedSoundboardIndex = jmax(0, jmin(index, static_cast<int>(getNumberOfSoundboards())));
+    }
+
+    saveToDisk();
+}
+
+void SoundboardProcessor::reorderSoundboards()
+{
+    // Figure out what the new (sorted) indices will be.
+    auto originalSelectedIndex = selectedSoundboardIndex.value_or(-1);
+    auto originalPlayingIndex = currentlyPlayingSoundboardIndex.value_or(-1);
+    auto originalIndices = sortIndexPreview(soundboards);
+
+    // Determine new indices of the selected soundboard.
+    if (originalSelectedIndex < 0) {
+        selectedSoundboardIndex = { 0 };
+    }
+    else {
+        auto iterator = std::find(originalIndices.begin(), originalIndices.end(), originalSelectedIndex);
+        selectedSoundboardIndex = { std::distance(originalIndices.begin(), iterator) };
+    }
+
+    if (originalPlayingIndex < 0) {
+        currentlyPlayingSoundboardIndex = { 0 };
+    }
+    else if (originalPlayingIndex >= soundboards.size()) {
+        // It can happen that the playing index is out of bounds.
+        // Specifically this occurs whenever a soundboard before the playing index has been deleted.
+        currentlyPlayingSoundboardIndex = { soundboards.size() - 1 };
+    }
+    else {
+        auto iterator = std::find(originalIndices.begin(), originalIndices.end(), originalPlayingIndex);
+        currentlyPlayingSoundboardIndex = { std::distance(originalIndices.begin(), iterator) };
+    }
+
+    // Above was just a sort preview and logic on that. End with actually sorting the list of soundboards.
+    std::sort(soundboards.begin(), soundboards.end(), [](const Soundboard& a, const Soundboard& b) {
+        return a.getName() < b.getName();
+    });
+}
+
+void SoundboardProcessor::setCurrentlyPlaying(int soundboardIndex, int sampleButtonIndex)
+{
+    currentlyPlayingSoundboardIndex = soundboardIndex;
+    currentlyPlayingButtonIndex = sampleButtonIndex;
+}
+
+Soundboard* SoundboardProcessor::getCurrentlyPlayingSoundboard()
+{
+    if (getNumberOfSoundboards() <= 0) {
+        return nullptr;
+    }
+
+    auto soundboardIndex = getCurrentlyPlayingSoundboardIndex();
+    if (!soundboardIndex.has_value()) {
+        return nullptr;
+    }
+
+    return &getSoundboard(soundboardIndex.value());
+}
+
+SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath, bool loop)
+{
+    // Per definition: do nothing when no soundboard is selected.
+    if (!selectedSoundboardIndex.has_value()) {
+        return nullptr;
+    }
+
+    auto& soundboard = soundboards[selectedSoundboardIndex.value()];
+    auto& sampleList = soundboard.getSamples();
+
+    SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath), loop);
+    sampleList.emplace_back(std::move(sampleToAdd));
+
+    saveToDisk();
+
+    return &sampleList[sampleList.size() - 1];
+}
+
+void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
+{
+    saveToDisk();
+
+    // Immediately update transport source with new playback settings when this sample is currently playing
+    if (isCurrentlyPlaying(sampleToUpdate)) {
+        channelProcessor->setLooping(sampleToUpdate.isLoop());
     }
 }
 
-void SoundboardProcessor::processMonitor(AudioBuffer<float>& otherBuffer, int numSamples, int totalOutputChannels, float wet, bool recordChannel)
+void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
 {
-    int dstch = (recordChannel ? recordChannelGroup : channelGroup).params.monDestStartIndex;
-    int dstcnt = jmin(totalOutputChannels, (recordChannel ? recordChannelGroup : channelGroup).params.monDestChannels);
-    auto fgain = (recordChannel ? recordChannelGroup : channelGroup).params.gain * wet;
+    auto& soundboard = soundboards[getSelectedSoundboardIndex().value()];
+    auto& sampleList = soundboard.getSamples();
 
-    (recordChannel ? recordChannelGroup : channelGroup).processMonitor(buffer, 0, otherBuffer, dstch, dstcnt, numSamples, fgain);
+    auto sampleCount = sampleList.size();
+    for (int i = 0; i < sampleCount; ++i) {
+        auto& sample = sampleList[i];
+        if (&sample == &sampleToDelete) {
+            sampleList.erase(sampleList.begin() + i, sampleList.begin() + i + 1);
+
+            if (currentlyPlayingSoundboardIndex == selectedSoundboardIndex) {
+                // If it is playing, stop playback.
+                if (currentlyPlayingButtonIndex == i) {
+                    channelProcessor->pause();
+                    currentlyPlayingSoundboardIndex = {};
+                    currentlyPlayingButtonIndex = {};
+                }
+                else if (currentlyPlayingButtonIndex > i) {
+                    currentlyPlayingButtonIndex = currentlyPlayingButtonIndex.value() - 1;
+                }
+            }
+            break;
+        }
+    }
+
+    saveToDisk();
 }
 
-void SoundboardProcessor::changeListenerCallback(ChangeBroadcaster* source)
+void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
 {
-    if (!transportSource.isPlaying() && transportSource.getCurrentPosition() >= transportSource.getLengthInSeconds()) {
-        // We are at the end, return to start
-        transportSource.setPosition(0.0);
+    ValueTree tree(SOUNDBOARDS_KEY);
+
+    tree.setProperty(SELECTED_KEY, selectedSoundboardIndex.value_or(-1), nullptr);
+
+    int i = 0;
+    for (const auto& soundboard: soundboards) {
+        tree.addChild(soundboard.serialize(), i++, nullptr);
+    }
+
+    // Make sure  the parent directory exists
+    file.getParentDirectory().createDirectory();
+
+    tree.createXml()->writeTo(file);
+}
+
+void SoundboardProcessor::readSoundboardsFromFile(const File& file)
+{
+    if (!file.existsAsFile()) {
+        return;
+    }
+
+    XmlDocument doc(file);
+    auto tree = ValueTree::fromXml(*doc.getDocumentElement());
+
+    int selected = tree.getProperty(SELECTED_KEY);
+    selectedSoundboardIndex = selected >= 0 ? std::optional<size_t>(selected) : std::nullopt;
+
+    soundboards.clear();
+
+    for (const auto& child: tree) {
+        soundboards.emplace_back(Soundboard::deserialize(child));
     }
 }
 
-bool SoundboardProcessor::processAudioBlock(AudioBuffer<float>& fileBuffer, int numSamples)
+File SoundboardProcessor::getSoundboardsFile()
 {
-    if (transportSource.getTotalLength() <= 0) {
+    return File::getSpecialLocation(File::userHomeDirectory).getChildFile(SOUNDBOARDS_FILE_NAME);
+}
+
+void SoundboardProcessor::saveToDisk() const
+{
+    writeSoundboardsToFile(getSoundboardsFile());
+}
+
+void SoundboardProcessor::loadFromDisk()
+{
+    readSoundboardsFromFile(getSoundboardsFile());
+    reorderSoundboards();
+}
+
+bool SoundboardProcessor::isCurrentlyPlaying(SoundSample& sample)
+{
+    if (!currentlyPlayingSoundboardIndex.has_value() || !currentlyPlayingButtonIndex.has_value() || !channelProcessor->isPlaying()) {
         return false;
     }
 
-    AudioSourceChannelInfo info(&fileBuffer, 0, numSamples);
-    transportSource.getNextAudioBlock(info);
+    auto soundboardIndex = currentlyPlayingSoundboardIndex.value();
+    auto buttonIndex = currentlyPlayingButtonIndex.value();
 
-    meterSource.measureBlock(fileBuffer);
-
-    int sourceChannels = getFileSourceNumberOfChannels();
-    channelGroup.params.numChannels = sourceChannels;
-    channelGroup.commitMonitorDelayParams();
-    recordChannelGroup.params.numChannels = sourceChannels;
-    recordChannelGroup.commitMonitorDelayParams();
-
-    return true;
+    return &soundboards[soundboardIndex].getSamples()[buttonIndex] == &sample;
 }
 
-void SoundboardProcessor::sendAudioBlock(AudioBuffer<float>& fileBuffer, AudioBuffer<float>& sendWorkBuffer, int numSamples, int sendPanChannels, int startChannel)
-{
-    int sourceChannels = getFileSourceNumberOfChannels();
-    float gain = channelGroup.params.gain;
-
-    if (sendPanChannels == 1) {
-        // add to main buffer for going out, mix as appropriate depending on how many channels being sent
-        if (sourceChannels > 0) {
-            gain *= (1.0f/std::max(1.0f, (float)(sourceChannels)));
-        }
-
-        for (int channel = 0; channel < sourceChannels; ++channel) {
-            sendWorkBuffer.addFromWithRamp(0, 0, fileBuffer.getReadPointer(channel), numSamples, gain, lastGain);
-        }
-    }
-    else if (sendPanChannels > 2) {
-        // straight-tru
-        int destinationChannel = startChannel;
-        for( int channel = 0; channel < sourceChannels && destinationChannel < sendWorkBuffer.getNumChannels(); ++channel) {
-            sendWorkBuffer.addFromWithRamp(destinationChannel, 0, fileBuffer.getReadPointer(channel), numSamples, gain, lastGain);
-            ++destinationChannel;
-        }
-    }
-    else if (sendPanChannels == 2) {
-        // change dest ch target
-        int dstch = channelGroup.params.panDestStartIndex;  // todo change dest ch target
-        int dstcnt = jmin(sendPanChannels, channelGroup.params.panDestChannels);
-
-        channelGroup.processPan(fileBuffer, 0, sendWorkBuffer, dstch, dstcnt, numSamples, gain);
-    }
-
-    lastGain = gain;
-}
-
-void SoundboardProcessor::releaseResources()
-{
-    transportSource.releaseResources();
-}
-
-void SoundboardProcessor::unloadFile()
-{
-    pause();
-    transportSource.setSource(nullptr);
-    currentFileSource.reset();
-    currentTransportURL = URL();
-}
-
-bool SoundboardProcessor::loadFile(const URL& audioFileUrl)
-{
-    if (!diskThread.isThreadRunning()) {
-        diskThread.startThread(3);
-    }
-
-    // Unload the previous file
-    unloadFile();
-
-    AudioFormatReader* reader = nullptr;
-
-#if !JUCE_IOS
-    if (audioFileUrl.isLocalFile()) {
-        reader = formatManager.createReaderFor(audioFileUrl.getLocalFile());
-    }
-    else
-#endif
-    {
-        reader = formatManager.createReaderFor(audioFileUrl.createInputStream(false));
-    }
-
-    if (reader == nullptr) {
-        return false;
-    }
-
-    currentTransportURL = URL(audioFileUrl);
-    currentFileSource.reset(new AudioFormatReaderSource(reader, true));
-
-    // TODO: I'm not sure if this is really necessary. It would really complicate separation of concerns though...
-//    transportSource.prepareToPlay(currentSamplesPerBlock, currentSampleRate);
-
-    transportSource.setSource(currentFileSource.get(), READ_AHEAD_BUFFER_SIZE, &diskThread, reader->sampleRate, reader->numChannels);
-
-    return true;
-}
-
-void SoundboardProcessor::play()
-{
-    transportSource.start();
-}
-
-void SoundboardProcessor::pause()
-{
-    transportSource.stop();
-}
-
-void SoundboardProcessor::seek(double position)
-{
-    transportSource.setPosition(position);
-}
-
-bool SoundboardProcessor::isPlaying()
-{
-    return transportSource.isPlaying();
-}
-
-double SoundboardProcessor::getCurrentPosition()
-{
-    return transportSource.getCurrentPosition();
-}
-
-double SoundboardProcessor::getLength()
-{
-    return transportSource.getLengthInSeconds();
-}

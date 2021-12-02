@@ -4502,7 +4502,7 @@ void ChannelGroupsView::showDestSelectionMenu(Component * source, int index)
             safeThis->processor.setFilePlaybackDestStartAndCount(dclitem->startIndex, dclitem->count);
         }
         else if (issoundboard) {
-            safeThis->processor.getSoundboardProcessor()->getDestStartAndCount(dclitem->startIndex, dclitem->count);
+            safeThis->processor.getSoundboardProcessor()->setDestStartAndCount(dclitem->startIndex, dclitem->count);
         }
         else if (safeThis->mPeerMode) {
             safeThis->processor.setRemotePeerChannelGroupDestStartAndCount(safeThis->mPeerIndex, changroup, dclitem->startIndex, dclitem->count);

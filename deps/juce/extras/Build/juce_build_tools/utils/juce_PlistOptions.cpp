@@ -28,28 +28,22 @@ namespace juce
 namespace build_tools
 {
     //==============================================================================
-    static XmlElement* getKeyWithName (XmlElement& xml, const String& key)
-    {
-        for (auto* element : xml.getChildWithTagNameIterator ("key"))
-            if (element->getAllSubText().trim().equalsIgnoreCase (key))
-                return element;
-
-        return nullptr;
-    }
-
     static bool keyFoundAndNotSequentialDuplicate (XmlElement& xml, const String& key)
     {
-        if (auto* element = getKeyWithName (xml, key))
+        for (auto* element : xml.getChildWithTagNameIterator ("key"))
         {
-            if (element->getNextElement() != nullptr && element->getNextElement()->hasTagName ("key"))
+            if (element->getAllSubText().trim().equalsIgnoreCase (key))
             {
-                // found broken plist format (sequential duplicate), fix by removing
-                xml.removeChildElement (element, true);
-                return false;
-            }
+                if (element->getNextElement() != nullptr && element->getNextElement()->hasTagName ("key"))
+                {
+                    // found broken plist format (sequential duplicate), fix by removing
+                    xml.removeChildElement (element, true);
+                    return false;
+                }
 
-            // key found (not sequential duplicate)
-            return true;
+                // key found (not sequential duplicate)
+                return true;
+            }
         }
 
         // key not found
@@ -93,9 +87,6 @@ namespace build_tools
 
     static void addArrayToPlist (XmlElement& dict, String arrayKey, const StringArray& arrayElements)
     {
-        if (getKeyWithName (dict, arrayKey) != nullptr)
-            return;
-
         dict.createNewChildElement ("key")->addTextElement (arrayKey);
         auto* plistStringArray = dict.createNewChildElement ("array");
 

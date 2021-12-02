@@ -205,6 +205,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     elseif (WIN32)
         list (APPEND HEADER_INCLUDES deps/windows ../asiosdk/common)
         list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsWindows.cpp)
+        include_directories(asiosdk/common)
 
 	message (STATUS "Win generator platform is: ${CMAKE_VS_PLATFORM_NAME}" )
         if ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
@@ -276,21 +277,33 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/RunCumulantor.cpp
         Source/RunCumulantor.h
         Source/RunningCumulant.h
+        Source/SampleEditView.cpp
+        Source/SampleEditView.h
         Source/SonoChoiceButton.cpp
         Source/SonoChoiceButton.h
         Source/SonoDrawableButton.cpp
         Source/SonoDrawableButton.h
         Source/SonoLookAndFeel.cpp
         Source/SonoLookAndFeel.h
+        Source/SonoPlaybackProgressButton.cpp
+        Source/SonoPlaybackProgressButton.h
         Source/SonoStandaloneFilterApp.cpp
         Source/SonoStandaloneFilterWindow.h
         Source/SonoTextButton.cpp
         Source/SonoTextButton.h
         Source/SonoUtility.h
-        Source/SoundboardView.cpp
-        Source/SoundboardView.h
+        Source/Soundboard.cpp
+        Source/Soundboard.h
+        Source/SoundboardChannelProcessor.cpp
+        Source/SoundboardChannelProcessor.h
+        Source/SoundboardEditView.cpp
+        Source/SoundboardEditView.h
         Source/SoundboardProcessor.cpp
         Source/SoundboardProcessor.h
+        Source/SoundboardView.cpp
+        Source/SoundboardView.h
+        Source/SoundSampleButtonColourPicker.cpp
+        Source/SoundSampleButtonColourPicker.h
         Source/SonobusPluginEditor.cpp
         Source/SonobusPluginEditor.h
         Source/SonobusPluginProcessor.cpp
@@ -443,6 +456,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/beat_click.wav
         images/chat.svg
         images/chat_dots.svg
+        images/checkmark.svg
         images/chevron_forward.svg
         images/copy_icon.svg
         images/dice_icon_128.png
@@ -453,6 +467,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/dots_menu.png
         images/expand_arrow_active.svg
         images/expand_arrow_inactive.svg
+        images/eyedropper.svg
         images/folder_icon.svg
         images/hear-others.svg
         images/incoming_allowed.svg
@@ -464,6 +479,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/link_up.svg
         images/list_icon1.png
         images/loop_icon.svg
+        images/loop_off_icon.png
         images/met.svg
         images/mic.svg
         images/mic_disabled.svg
@@ -481,6 +497,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/person.png
         images/person.svg
         images/play_icon.svg
+        images/plus_icon.svg
         images/power.svg
         images/power_sel.svg
         images/record.svg
@@ -500,7 +517,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/triangle_disclosure.svg
         images/triangle_disclosure_right.svg
         images/urei_main.wav
-        images/x_icon.svg        
+        images/x_icon.svg
     )
 
     set_target_properties(${target_name}_SBData PROPERTIES FOLDER "Targets")

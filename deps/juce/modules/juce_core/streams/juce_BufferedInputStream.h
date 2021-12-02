@@ -79,8 +79,8 @@ public:
 private:
     //==============================================================================
     OptionalScopedPointer<InputStream> source;
-    Range<int64> bufferedRange;
-    int64 position, bufferLength, lastReadPos = 0, bufferOverlap = 128;
+    int bufferSize;
+    int64 position, lastReadPos = 0, bufferStart, bufferOverlap = 128;
     HeapBlock<char> buffer;
     bool ensureBuffered();
 

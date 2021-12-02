@@ -342,12 +342,11 @@ class WebView2  : public InternalWebViewType,
                   public ComponentMovementWatcher
 {
 public:
-    WebView2 (WebBrowserComponent& o, const WebView2Preferences& prefs)
+    WebView2 (WebBrowserComponent& o, const File& dllLocation, const File& userDataFolder)
          : ComponentMovementWatcher (&o),
-           owner (o),
-           preferences (prefs)
+           owner (o)
     {
-        if (! createWebViewEnvironment())
+        if (! createWebViewEnvironment (dllLocation, userDataFolder))
             throw std::runtime_error ("Failed to create the CoreWebView2Environemnt");
 
         owner.addAndMakeVisible (this);
@@ -605,38 +604,13 @@ private:
         }
     }
 
-    void setWebViewPreferences()
-    {
-        ComSmartPtr<ICoreWebView2Controller2> controller2;
-        webViewController->QueryInterface (controller2.resetAndGetPointerAddress());
-
-        if (controller2 != nullptr)
-        {
-            const auto bgColour = preferences.getBackgroundColour();
-
-            controller2->put_DefaultBackgroundColor ({ (BYTE) bgColour.getAlpha(),
-                                                       (BYTE) bgColour.getRed(),
-                                                       (BYTE) bgColour.getGreen(),
-                                                       (BYTE) bgColour.getBlue() });
-        }
-
-        ComSmartPtr<ICoreWebView2Settings> settings;
-        webView->get_Settings (settings.resetAndGetPointerAddress());
-
-        if (settings == nullptr)
-        {
-            settings->put_IsStatusBarEnabled (! preferences.getIsStatusBarDisabled());
-            settings->put_IsBuiltInErrorPageEnabled (! preferences.getIsBuiltInErrorPageDisabled());
-        }
-    }
-
-    bool createWebViewEnvironment()
+    bool createWebViewEnvironment (const File& dllLocation, const File& userDataFolder)
     {
         using CreateWebViewEnvironmentWithOptionsFunc = HRESULT (*) (PCWSTR, PCWSTR,
                                                                      ICoreWebView2EnvironmentOptions*,
                                                                      ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler*);
 
-        auto dllPath = preferences.getDLLLocation().getFullPathName();
+        auto dllPath = dllLocation.getFullPathName();
 
         if (dllPath.isEmpty())
             dllPath = "WebView2Loader.dll";
@@ -656,10 +630,9 @@ private:
         }
 
         auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-        const auto userDataFolder = preferences.getUserDataFolder().getFullPathName();
 
         auto hr = createWebViewEnvironmentWithOptions (nullptr,
-                                                       userDataFolder.isNotEmpty() ? userDataFolder.toWideCharPointer() : nullptr,
+                                                       userDataFolder != File() ? userDataFolder.getFullPathName().toWideCharPointer() : nullptr,
                                                        options.Get(),
             Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
                 [weakThis = WeakReference<WebView2> { this }] (HRESULT, ICoreWebView2Environment* env) -> HRESULT
@@ -694,15 +667,11 @@ private:
                                 weakThis->webViewController = controller;
                                 controller->get_CoreWebView2 (weakThis->webView.resetAndGetPointerAddress());
 
-                                if (weakThis->webView != nullptr)
-                                {
-                                    weakThis->addEventHandlers();
-                                    weakThis->setWebViewPreferences();
-                                    weakThis->componentMovedOrResized (true, true);
+                                weakThis->addEventHandlers();
+                                weakThis->componentMovedOrResized (true, true);
 
-                                    if (weakThis->urlRequest.url.isNotEmpty())
-                                        weakThis->webView->Navigate (weakThis->urlRequest.url.toWideCharPointer());
-                                }
+                                if (weakThis->webView != nullptr && weakThis->urlRequest.url.isNotEmpty())
+                                    weakThis->webView->Navigate (weakThis->urlRequest.url.toWideCharPointer());
                             }
                         }
 
@@ -746,7 +715,6 @@ private:
 
     //==============================================================================
     WebBrowserComponent& owner;
-    WebView2Preferences preferences;
 
     HMODULE webView2LoaderHandle = nullptr;
 
@@ -766,7 +734,6 @@ private:
         StringArray headers;
         MemoryBlock postData;
     };
-
     URLRequest urlRequest;
 
     bool isCreating = false;
@@ -782,22 +749,20 @@ private:
 class WebBrowserComponent::Pimpl
 {
 public:
-    Pimpl (WebBrowserComponent& owner,
-           const WebView2Preferences& preferences,
-           bool useWebView2)
+    Pimpl (WebBrowserComponent& owner, const File& dllLocation, const File& userDataFolder, bool useWebView2)
     {
         if (useWebView2)
         {
            #if JUCE_USE_WIN_WEBVIEW2
             try
             {
-                internal.reset (new WebView2 (owner, preferences));
+                internal.reset (new WebView2 (owner, dllLocation, userDataFolder));
             }
-            catch (const std::runtime_error&) {}
+            catch (std::runtime_error&) {}
            #endif
         }
 
-        ignoreUnused (preferences);
+        ignoreUnused (dllLocation, userDataFolder);
 
         if (internal == nullptr)
             internal.reset (new Win32WebView (owner));
@@ -814,27 +779,23 @@ private:
 
 //==============================================================================
 WebBrowserComponent::WebBrowserComponent (bool unloadWhenHidden)
-    : browser (new Pimpl (*this, {}, false)),
+    : browser (new Pimpl (*this, {}, {}, false)),
       unloadPageWhenHidden (unloadWhenHidden)
 {
     setOpaque (true);
 }
 
-WebBrowserComponent::WebBrowserComponent (ConstructWithoutPimpl args)
-    : unloadPageWhenHidden (args.unloadWhenHidden)
+WebBrowserComponent::WebBrowserComponent (bool unloadWhenHidden,
+                                          const File& dllLocation,
+                                          const File& userDataFolder)
+    : browser (new Pimpl (*this, dllLocation, userDataFolder, true)),
+      unloadPageWhenHidden (unloadWhenHidden)
 {
     setOpaque (true);
 }
 
 WebBrowserComponent::~WebBrowserComponent()
 {
-}
-
-WindowsWebView2WebBrowserComponent::WindowsWebView2WebBrowserComponent (bool unloadWhenHidden,
-                                                                        const WebView2Preferences& preferences)
-    : WebBrowserComponent (ConstructWithoutPimpl { unloadWhenHidden })
-{
-    browser = std::make_unique<Pimpl> (*this, preferences, true);
 }
 
 //==============================================================================

@@ -83,10 +83,8 @@ public:
 
     Matrix3D<float> getProjectionMatrix() const
     {
-        const ScopedLock lock (mutex);
-
         auto w = 1.0f / (0.5f + 0.1f);
-        auto h = w * bounds.toFloat().getAspectRatio (false);
+        auto h = w * getLocalBounds().toFloat().getAspectRatio (false);
 
         return Matrix3D<float>::fromFrustum (-w, w, -h, h, 4.0f, 30.0f);
     }
@@ -111,12 +109,7 @@ public:
         glEnable (GL_BLEND);
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        {
-            const ScopedLock lock (mutex);
-            glViewport (0, 0,
-                        roundToInt (desktopScale * (float) bounds.getWidth()),
-                        roundToInt (desktopScale * (float) bounds.getHeight()));
-        }
+        glViewport (0, 0, roundToInt (desktopScale * (float) getWidth()), roundToInt (desktopScale * (float) getHeight()));
 
         shader->use();
 
@@ -131,6 +124,7 @@ public:
         // Reset the element buffers so child Components draw correctly
         glBindBuffer (GL_ARRAY_BUFFER, 0);
         glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+
     }
 
     void paint (Graphics& g) override
@@ -150,9 +144,6 @@ public:
         // This is called when this component is resized.
         // If you add any child components, this is where you should
         // update their positions.
-
-        const ScopedLock lock (mutex);
-        bounds = getLocalBounds();
     }
 
     void createShaders()
@@ -429,9 +420,6 @@ private:
     std::unique_ptr<Uniforms> uniforms;
 
     String newVertexShader, newFragmentShader;
-
-    Rectangle<int> bounds;
-    CriticalSection mutex;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OpenGLAppDemo)
 };

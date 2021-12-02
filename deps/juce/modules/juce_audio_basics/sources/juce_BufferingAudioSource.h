@@ -96,7 +96,7 @@ public:
 
     /** Implements the PositionableAudioSource method. */
     void setLoopRange (int64 loopStart, int64 loopLength) override;
-    
+
     /** Implements the PositionableAudioSource method. */
     void getLoopRange (int64 & loopStart, int64 & loopLength) const override { return source->getLoopRange(loopStart, loopLength); }
 
@@ -124,11 +124,11 @@ private:
     std::atomic<int64> nextPlayPos { 0 };
     double sampleRate = 0;
     bool wasSourceLooping = false, isPrepared = false;
-    bool loopRangeChanged = false;
     const bool prefillBuffer;
+    bool loopRangeChanged = false;
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BufferingAudioSource)
+JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BufferingAudioSource)
 };
 
 } // namespace juce

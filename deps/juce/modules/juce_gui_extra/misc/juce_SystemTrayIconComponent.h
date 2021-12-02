@@ -28,6 +28,7 @@ namespace juce
 
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD || JUCE_MAC || DOXYGEN
 
+
 //==============================================================================
 /**
     This component sits in the taskbar tray as a small icon.
@@ -105,11 +106,13 @@ private:
     JUCE_PUBLIC_IN_DLL_BUILD (class Pimpl)
     std::unique_ptr<Pimpl> pimpl;
 
-    [[deprecated ("The new setIconImage function signature requires different images for macOS and the other platforms.")]]
-    void setIconImage (const Image& newImage);
+    // The new setIconImage function signature requires different images for macOS
+    // and the other platforms
+    JUCE_DEPRECATED (void setIconImage (const Image& newImage));
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SystemTrayIconComponent)
 };
+
 
 #endif
 

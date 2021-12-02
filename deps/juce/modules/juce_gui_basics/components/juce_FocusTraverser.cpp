@@ -172,7 +172,6 @@ struct FocusTraverserTests  : public UnitTest
     void runTest() override
     {
         ScopedJuceInitialiser_GUI libraryInitialiser;
-        const MessageManagerLock mml;
 
         beginTest ("Basic traversal");
         {

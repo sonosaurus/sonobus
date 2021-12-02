@@ -222,7 +222,7 @@ struct Viewport::DragToScrollListener   : private MouseListener,
                                                                 (int) offsetY.getPosition()));
     }
 
-    void mouseDown (const MouseEvent& e) override
+    void mouseDown (const MouseEvent&) override
     {
         if (! isGlobalMouseListener)
         {
@@ -235,15 +235,12 @@ struct Viewport::DragToScrollListener   : private MouseListener,
             Desktop::getInstance().addGlobalMouseListener (this);
 
             isGlobalMouseListener = true;
-
-            scrollSource = e.source;
         }
     }
 
     void mouseDrag (const MouseEvent& e) override
     {
-        if (e.source == scrollSource
-            && ! doesMouseEventComponentBlockViewportDrag (e.eventComponent))
+        if (Desktop::getInstance().getNumDraggingMouseSources() == 1 && ! doesMouseEventComponentBlockViewportDrag (e.eventComponent))
         {
             auto totalOffset = e.getOffsetFromDragStart().toFloat();
 
@@ -268,7 +265,7 @@ struct Viewport::DragToScrollListener   : private MouseListener,
 
     void mouseUp (const MouseEvent& e) override
     {
-        if (isGlobalMouseListener && e.source == scrollSource)
+        if (isGlobalMouseListener && Desktop::getInstance().getNumDraggingMouseSources() == 0)
             endDragAndClearGlobalMouseListener();
     }
 
@@ -296,7 +293,6 @@ struct Viewport::DragToScrollListener   : private MouseListener,
     Viewport& viewport;
     ViewportDragPosition offsetX, offsetY;
     Point<int> originalViewPos;
-    MouseInputSource scrollSource = Desktop::getInstance().getMainMouseSource();
     bool isDragging = false;
     bool isGlobalMouseListener = false;
 

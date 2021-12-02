@@ -322,9 +322,7 @@ void ComponentPeer::handleMovedOrResized()
         component.sendVisibilityChangeMessage();
     }
 
-    const auto windowInSpecialState = isFullScreen() || isKioskMode() || nowMinimised;
-
-    if (! windowInSpecialState)
+    if (! isFullScreen())
         lastNonFullscreenBounds = component.getBounds();
 }
 

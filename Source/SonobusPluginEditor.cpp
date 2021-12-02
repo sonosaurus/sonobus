@@ -810,7 +810,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 
     // Soundboard
-    mSoundboardView = std::make_unique<SoundboardView>();
+    mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor());
     mSoundboardView->setVisible(false);
     mSoundboardView->addComponentListener(this);
 
@@ -3014,6 +3014,9 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
         }
     }
 
+    // Soundboard hotkeys.
+    mSoundboardView->processKeystroke(key.getKeyCode());
+
     return false;
 }
 
@@ -3030,7 +3033,7 @@ bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
         mPushToTalkKeyDown = false;
         return true;
     }
-    
+
 #if 0
     if (!mAltReleaseIsPending && ModifierKeys::currentModifiers.isAltDown()) {
         DBG("Alt down");
@@ -4929,6 +4932,13 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.setActive(true);
             info.addDefaultKeypress ('y', ModifierKeys::commandModifier);
             break;
+        case SonobusCommands::SoundboardToggle:
+            info.setInfo (TRANS("Show/Hide Soundboard"),
+                          TRANS("Show or hide soundboard panel"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            info.addDefaultKeypress ('g', ModifierKeys::commandModifier);
+            break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
@@ -5019,6 +5029,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::LoadSetupFile);
     cmds.add(SonobusCommands::SaveSetupFile);
     cmds.add(SonobusCommands::ChatToggle);
+    cmds.add(SonobusCommands::SoundboardToggle);
     cmds.add(SonobusCommands::SkipBack);
     cmds.add(SonobusCommands::ShowFileMenu);
     cmds.add(SonobusCommands::ShowTransportMenu);
@@ -5119,6 +5130,10 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::ChatToggle:
             showChatPanel(!mChatView->isVisible());
+            resized();
+            break;
+        case SonobusCommands::SoundboardToggle:
+            showSoundboardPanel(!mSoundboardView->isVisible());
             resized();
             break;
         case SonobusCommands::SaveSetupFile:
@@ -5254,6 +5269,7 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             break;
         case MenuViewIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ChatToggle);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::SoundboardToggle);
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleFullInfoView);
             break;
 

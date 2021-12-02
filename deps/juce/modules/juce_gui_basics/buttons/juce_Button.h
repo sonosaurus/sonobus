@@ -394,11 +394,8 @@ public:
                                          bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
     };
 
-    //==============================================================================
-   #ifndef DOXYGEN
-    [[deprecated ("This method's parameters have changed.")]]
-    void setToggleState (bool, bool);
-   #endif
+    // This method's parameters have changed - see the new version.
+    JUCE_DEPRECATED (void setToggleState (bool, bool));
 
 protected:
     //==============================================================================

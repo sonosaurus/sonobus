@@ -1595,3 +1595,64 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
 
 
 #endif
+
+void SonoDashedBorderButtonLookAndFeel::drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour,
+                                                             bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    auto cornerSize = 6.0f;
+    auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
+
+    auto baseColour = backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
+        .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f);
+
+    if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
+        baseColour = baseColour.contrasting (shouldDrawButtonAsDown ? 0.2f : 0.05f);
+
+    g.setColour (baseColour);
+
+    auto flatOnLeft   = button.isConnectedOnLeft();
+    auto flatOnRight  = button.isConnectedOnRight();
+    auto flatOnTop    = button.isConnectedOnTop();
+    auto flatOnBottom = button.isConnectedOnBottom();
+
+    // Compute stroke
+    float strokeThickness = 1.5;
+    PathStrokeType stroke(strokeThickness, PathStrokeType::JointStyle::curved);
+    float dash[2] = {10.0f, 10.0f};
+
+    Path strokePath;
+    if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
+    {
+        Path path;
+        path.addRoundedRectangle (bounds.getX(), bounds.getY(),
+            bounds.getWidth(), bounds.getHeight(),
+            cornerSize, cornerSize,
+            ! (flatOnLeft  || flatOnTop),
+            ! (flatOnRight || flatOnTop),
+            ! (flatOnLeft  || flatOnBottom),
+            ! (flatOnRight || flatOnBottom));
+
+        g.fillPath (path);
+
+        auto reducedBounds = bounds.reduced(strokeThickness);
+        strokePath.addRoundedRectangle (reducedBounds.getX(), reducedBounds.getY(),
+            reducedBounds.getWidth(), reducedBounds.getHeight(),
+            cornerSize, cornerSize,
+            ! (flatOnLeft  || flatOnTop),
+            ! (flatOnRight || flatOnTop),
+            ! (flatOnLeft  || flatOnBottom),
+            ! (flatOnRight || flatOnBottom));
+    }
+    else
+    {
+        g.fillRoundedRectangle (bounds, cornerSize);
+
+        strokePath.addRoundedRectangle(bounds.reduced(strokeThickness), cornerSize);
+    }
+
+    // Draw border
+    stroke.createDashedStroke(strokePath, strokePath, dash, 2);
+
+    g.setColour(button.findColour(ComboBox::outlineColourId));
+    g.strokePath(strokePath, stroke);
+}

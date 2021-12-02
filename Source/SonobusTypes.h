@@ -26,6 +26,7 @@ public:
         LoadSetupFile,
         SaveSetupFile,
         ChatToggle,
+        SoundboardToggle,
         SkipBack,
         ShowFileMenu,
         ShowTransportMenu,
