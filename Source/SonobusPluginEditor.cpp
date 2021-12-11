@@ -3015,7 +3015,7 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
     }
 
     // Soundboard hotkeys.
-    mSoundboardView->processKeystroke(key.getKeyCode());
+    mSoundboardView->processKeystroke(key);
 
     return false;
 }
