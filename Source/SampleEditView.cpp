@@ -16,6 +16,7 @@ SampleEditView::SampleEditView(
     initialName(soundSample == nullptr ? "" : soundSample->getName()),
     initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
     initialLoop(soundSample != nullptr && soundSample->isLoop()),
+    initialPlaybackBehaviour(soundSample == nullptr ? SoundSample::PlaybackBehaviour::SIMULTANEOUS : soundSample->getPlaybackBehaviour()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString),
     selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
@@ -184,6 +185,10 @@ void SampleEditView::createPlaybackOptionInputs()
     createLoopButton();
     playbackOptionsRowBox.items.add(FlexItem(56, 56, *mLoopButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
+    createPlaybackBehaviourButton();
+    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 void SampleEditView::createLoopButton()
@@ -200,6 +205,21 @@ void SampleEditView::createLoopButton()
     mLoopButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
 
     addAndMakeVisible(mLoopButton.get());
+}
+
+void SampleEditView::createPlaybackBehaviourButton()
+{
+    auto simImg = Drawable::createFromImageData(BinaryData::play_simultaneous_svg, BinaryData::play_simultaneous_svgSize);
+    auto b2bImg = Drawable::createFromImageData(BinaryData::play_back_to_back_svg, BinaryData::play_back_to_back_svgSize);
+    auto imgs = std::vector<std::unique_ptr<Drawable>>();
+    imgs.push_back(std::move(simImg));
+    imgs.push_back(std::move(b2bImg));
+    auto labels = std::vector<String>{TRANS("Simultaneous"), TRANS("Back to Back")};
+    mPlaybackBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("playbackBehaviour", std::move(imgs), std::move(labels));
+    mPlaybackBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
+    mPlaybackBehaviourButton->setState(initialPlaybackBehaviour);
+
+    addAndMakeVisible(mPlaybackBehaviourButton.get());
 }
 
 void SampleEditView::createHotkeyInput()

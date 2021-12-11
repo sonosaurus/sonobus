@@ -93,7 +93,7 @@ void SoundboardProcessor::reorderSoundboards()
     });
 }
 
-SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath, bool loop)
+SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath, bool loop, SoundSample::PlaybackBehaviour playbackBehaviour)
 {
     // Per definition: do nothing when no soundboard is selected.
     if (!selectedSoundboardIndex.has_value()) {
@@ -103,7 +103,7 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
     auto& soundboard = soundboards[selectedSoundboardIndex.value()];
     auto& sampleList = soundboard.getSamples();
 
-    SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath), loop);
+    SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath), loop, playbackBehaviour);
     sampleList.emplace_back(std::move(sampleToAdd));
 
     saveToDisk();

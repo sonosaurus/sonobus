@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "JuceHeader.h"
+#include <JuceHeader.h>
 #include "SoundboardChannelProcessor.h"
 #include "SoundboardButtonColors.h"
 

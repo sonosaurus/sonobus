@@ -9,6 +9,7 @@
 #include "Soundboard.h"
 #include "SonoTextButton.h"
 #include "SonoDrawableButton.h"
+#include "SonoMultiStateDrawableButton.h"
 #include "SoundSampleButtonColourPicker.h"
 
 /**
@@ -81,6 +82,11 @@ public:
      */
     [[nodiscard]] bool isLoop() const { return mLoopButton->getToggleState(); }
 
+    /**
+     * @return The selected playback behaviour.
+     */
+    [[nodiscard]] SoundSample::PlaybackBehaviour getPlaybackBehaviour() const { return static_cast<SoundSample::PlaybackBehaviour>(mPlaybackBehaviourButton->getState()); }
+
     void paint(Graphics&) override;
 
     void resized() override;
@@ -141,6 +147,11 @@ private:
      * Loop playback option that is chosen upon opening the dialog.
      */
     bool initialLoop;
+
+    /**
+     * Playback behaviour option that is chosen upon opening the dialog.
+     */
+    SoundSample::PlaybackBehaviour initialPlaybackBehaviour = SoundSample::PlaybackBehaviour::SIMULTANEOUS;
 
     /**
      * The key code of the hotkey for the sample, -1 for no hotkey.
@@ -265,6 +276,11 @@ private:
     std::unique_ptr<SonoDrawableButton> mLoopButton;
 
     /**
+     * Control to toggle playback behaviour option.
+     */
+    std::unique_ptr<SonoMultiStateDrawableButton> mPlaybackBehaviourButton;
+
+    /**
      * Label for hotkey configuration
      */
     std::unique_ptr<Label> mHotkeyLabel;
@@ -303,6 +319,11 @@ private:
      * Creates the loop playback option toggle.
      */
     void createLoopButton();
+
+    /**
+     * Creates the playback behaviour option toggle.
+     */
+    void createPlaybackBehaviourButton();
 
     /**
      * Adds the input controls for the hotkey configuration.

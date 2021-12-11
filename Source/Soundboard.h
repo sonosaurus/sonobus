@@ -30,19 +30,33 @@ public:
     constexpr static const char SUPPORTED_EXTENSIONS[] = "*.wav;*.flac;*.aif;*.ogg;*.mp3";
 #endif
 
+    enum PlaybackBehaviour {
+        /**
+         * Plays sample simultaneously over other samples that are already playing.
+         */
+        SIMULTANEOUS = 0,
+
+        /**
+         * Stops playback of all other samples before playing this sample.
+         */
+        BACK_TO_BACK = 1
+    };
+
     /**
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.
      * @param loop Whether the sample should loop on playback.
      * @param buttonColour The colour of the sample button in RGB value with an alpha of 0.
      * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
+     * @param playbackBehaviour The playback behaviour.
      */
     SoundSample(
             String name,
             String filePath,
             bool loop = false,
             int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
-            int hotkeyCode = -1
+            int hotkeyCode = -1,
+            PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS
     );
 
     String getName() const;
@@ -82,6 +96,10 @@ public:
      * @param keyCode The Key code for the hotkey, -1 for no hotkey.
      */
     void setHotkeyCode(int keyCode);
+
+    [[nodiscard]] PlaybackBehaviour getPlaybackBehaviour() const;
+
+    void setPlaybackBehaviour(PlaybackBehaviour newBehaviour);
 
     /**
      * Serialize the sound sample.
@@ -130,6 +148,11 @@ private:
     constexpr static const char HOTKEY_KEY[] = "hotkey";
 
     /**
+     * Key for the playback behaviour property of the root node in the serialization tree data structure.
+     */
+    constexpr static const char PLAYBACK_BEHAVIOUR_KEY[] = "playbackBehaviour";
+
+    /**
      * The name representing the sound sample.
      */
     String name;
@@ -153,6 +176,11 @@ private:
      * Keycode for the hotkey, -1 for no hotkey.
      */
     int hotkeyCode = -1;
+
+    /**
+     * See SoundSample::PlaybackBehaviour.
+     */
+    PlaybackBehaviour playbackBehaviour;
 };
 
 /**

@@ -112,6 +112,10 @@ void SamplePlaybackManager::changeListenerCallback(ChangeBroadcaster* source)
     }
 
     if (!transportSource.isPlaying()) {
+        // TODO: this will have to change when pause does not mean stop and unload..
+        transportSource.setPosition(0.0);
+        notifyPlaybackPositionListeners();
+
         // Notify the channel processor that this instance can be removed from the mixer
         // THIS MIGHT CAUSE THAT THIS OBJECT IS REMOVED!
         // Therefore, make sure this is the last statement executed within this class
@@ -157,9 +161,20 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
         return {};
     }
 
-    activeSamples[&sample] = manager;
+    // Check playback behaviour
+    switch (sample.getPlaybackBehaviour()) {
+        case SoundSample::SIMULTANEOUS:
+            break;
+        case SoundSample::BACK_TO_BACK:
+            for (const auto &item : activeSamples) {
+                item.second->unload();
+            }
+            break;
+    }
 
+    activeSamples[&sample] = manager;
     mixer.addInputSource(manager->getAudioSource(), false);
+
 
     return manager;
 }
