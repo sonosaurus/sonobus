@@ -289,7 +289,10 @@ void SampleEditView::browseFilePath()
     mFileChooser = std::make_unique<FileChooser>(
             TRANS("Select an audio file..."),
             defaultDirectory,
-            SoundSample::SUPPORTED_EXTENSIONS
+            SoundSample::SUPPORTED_EXTENSIONS,
+            true,
+            false,
+            this->getParentComponent()
     );
     auto folderFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
 
