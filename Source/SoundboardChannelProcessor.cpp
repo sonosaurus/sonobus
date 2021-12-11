@@ -136,12 +136,13 @@ SoundboardChannelProcessor::~SoundboardChannelProcessor()
 std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor::loadSample(const SoundSample& sample)
 {
     {
-        // If sample is already playing, unload the current one
-        // This is in its own scope to trigger the existing manager destructor, before continuing the loading.
+        // If sample is already playing, just seek the current one to the beginning to restart
         // TODO: check for playback styles here (to be implemented)
         auto existingManager = activeSamples.find(&sample);
         if (existingManager != activeSamples.end()) {
-            existingManager->second->unload();
+            auto manager = existingManager->second;
+            manager->seek(0.0);
+            return manager;
         }
     }
 

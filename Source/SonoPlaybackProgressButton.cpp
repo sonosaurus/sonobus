@@ -72,5 +72,6 @@ void SonoPlaybackProgressButton::onPlaybackPositionChanged(const SamplePlaybackM
 void SonoPlaybackProgressButton::attachToPlaybackManager(std::shared_ptr<SamplePlaybackManager> playbackManager_)
 {
     playbackManager = std::move(playbackManager_);
+    playbackManager->detach(*this);
     playbackManager->attach(*this);
 }
