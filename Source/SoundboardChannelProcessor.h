@@ -6,10 +6,13 @@
 #pragma once
 
 #include <list>
+#include <optional>
 #include "JuceHeader.h"
 #include "ChannelGroup.h"
+#include "Soundboard.h"
 
 class SoundboardChannelProcessor;
+class SamplePlaybackManager;
 
 class PlaybackPositionListener
 {
@@ -22,54 +25,39 @@ public:
      * Note: during file playback, this is called repeatedly with a fixed time interval.
      * It may be that the playback position has not actually changed value in this time.
      *
-     * @param channelProcessor The channel processor that is playing the audio.
+     * @param playbackManager The playback manager that is playing the audio.
      */
-    virtual void onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor) {};
+    virtual void onPlaybackPositionChanged(const SamplePlaybackManager& playbackManager) {};
 };
 
-/**
- * Provides a player for a single audio file.
- */
-class SoundboardChannelProcessor : public ChangeListener, private Timer
+class SamplePlaybackManager : private Timer, private ChangeListener
 {
-private:
-    constexpr static const int READ_AHEAD_BUFFER_SIZE = 65536;
-    constexpr static const int TIMER_HZ = 20;
-
-    AudioSampleBuffer buffer;
-    foleys::LevelMeterSource meterSource;
-    SonoAudio::ChannelGroup channelGroup;
-    SonoAudio::ChannelGroup recordChannelGroup;
-
-    AudioTransportSource transportSource;
-    std::unique_ptr<AudioFormatReaderSource> currentFileSource;
-    AudioFormatManager formatManager;
-    TimeSliceThread diskThread { "soundboard audio file reader" };
-
-    float lastGain = 0.0f;
-
-    std::list<PlaybackPositionListener*> listeners;
-
-    /**
-     * Unloads the currently loaded file (if any).
-     */
-    void unloadFile();
-
-    void timerCallback() override;
-
-    void notifyPlaybackPositionListeners();
-
 public:
-    SoundboardChannelProcessor();
-    ~SoundboardChannelProcessor();
+    SamplePlaybackManager(const SoundSample* sample_, SoundboardChannelProcessor* channelProcessor_);
+    ~SamplePlaybackManager() override;
 
     /**
-     * Loads an audio file.
+     * Loads the file for playback.
      *
-     * @param audioFileUrl URL to the file.
-     * @return True whether loading succeeded, false otherwise.
+     * When the file is already loaded, this does nothing.
+     *
+     * @param fileReadThread thread to use for reading the file. The thread must be running.
+     *
+     * @return True when succeeded, or false when the file could not be loaded.
      */
-    bool loadFile(const URL& audioFileUrl);
+    bool loadFileFromSample(TimeSliceThread& fileReadThread);
+
+    /**
+     * Applies playback settings from the sample to the player.
+     *
+     * Must be called when the playback options of the sample changed, in order to apply them to the current playback.
+     */
+    void reloadPlaybackSettingsFromSample();
+
+    /**
+     * Stop and unload current playback. Removes this playback manager from the channel processor.
+     */
+    void unload();
 
     /**
      * Starts or resumes the playing of the loaded file.
@@ -93,41 +81,87 @@ public:
     void seek(double position);
 
     /**
-     * Sets whether the player should loop the current file.
-     *
-     * When loading a new file, the looping setting is remembered.
-     *
-     * @param looping Whether the player should loop the file.
-     */
-    void setLooping(bool looping);
-
-    /**
      * Returns whether a loaded file is currently playing.
      *
      * @return True when a file is currently playing, false otherwise.
      */
-    bool isPlaying();
+    bool isPlaying() const;
 
     /**
      * Retrieves the current position of the loaded file playback.
      *
      * @return The current playback position in seconds, or `0.0` when no file is currently loaded.
      */
-    double getCurrentPosition();
+    double getCurrentPosition() const;
 
     /**
      * Retrieves the length of the loaded file playback.
      *
      * @return The length in seconds of the current file playback, or `0.0` when no file is currently loaded.
      */
-    double getLength();
+    double getLength() const;
+
+    const SoundSample* getSample() const { return sample; };
+
+    AudioSource* getAudioSource() { return &transportSource; };
+
+    void attach(PlaybackPositionListener& listener) { listeners.emplace_back(&listener); }
+    void detach(PlaybackPositionListener& listener) { listeners.remove(&listener); }
+
+private:
+    constexpr static const int READ_AHEAD_BUFFER_SIZE = 65536;
+    constexpr static const int TIMER_HZ = 20;
+
+    const SoundSample* sample;
+    SoundboardChannelProcessor* channelProcessor;
+    bool loaded;
+
+    // The order in which these two members are defined is important!
+    // The current file source should be cleaned up AFTER transport source performs its destructing operations,
+    // as the transport source attempts to clean up some things in the current file source.
+    // As Juce refuses to take responsibility of cleaning up the file source itself,
+    // we must manage this explicitly ourselves and therefore make sure the order of the following lines does not change.
+    std::unique_ptr<AudioFormatReaderSource> currentFileSource;
+    AudioTransportSource transportSource;
+
+    AudioFormatManager formatManager;
+
+    std::list<PlaybackPositionListener*> listeners;
+
+    void notifyPlaybackPositionListeners() const;
+
+    void timerCallback() override;
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+};
+
+/**
+ * Provides a player for a audio files on a soundboard.
+ *
+ * The channel processor is able to mix sound from multiple audio files.
+ */
+class SoundboardChannelProcessor
+{
+public:
+    SoundboardChannelProcessor();
+    ~SoundboardChannelProcessor();
+
+    /**
+     * Loads the playback of the given sample.
+     *
+     * Loads the audio file such that it can be played. The sample playback options are also configured.
+     *
+     * @param sample The sample to load.
+     * @return The playback manager for this sample, or none when loading failed.
+     */
+    std::optional<std::shared_ptr<SamplePlaybackManager>> loadSample(const SoundSample& sample);
 
     foleys::LevelMeterSource& getMeterSource() { return meterSource; }
 
     SonoAudio::DelayParams& getMonitorDelayParams();
     void setMonitorDelayParams(SonoAudio::DelayParams& params);
 
-    void getDestStartAndCount(int& start, int& count);
+    void getDestStartAndCount(int& start, int& count) const;
     void setDestStartAndCount(int start, int count);
 
     float getGain() const;
@@ -145,11 +179,9 @@ public:
      */
     SonoAudio::ChannelGroupParams getChannelGroupParams() const;
 
-    void prepareToPlay(int sampleRate, int meterRmsWindow, const int currentSamplesPerBlock);
+    void prepareToPlay(int sampleRate, int meterRmsWindow, int currentSamplesPerBlock);
     void ensureBuffers(int numSamples, int maxChannels, int meterRmsWindow);
     void processMonitor(AudioBuffer<float>& otherBuffer, int numSamples, int totalOutputChannels, float wet = 1.0, bool recordChannel = false);
-
-    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     /**
      * Process an incoming audio block.
@@ -161,7 +193,20 @@ public:
 
     void releaseResources();
 
-    void attach(PlaybackPositionListener& listener) { listeners.emplace_back(&listener); }
+    void notifyStopped(SamplePlaybackManager* samplePlaybackManager);
 
-    void detach(PlaybackPositionListener& listener) { listeners.remove(&listener); }
+    std::unordered_map<const SoundSample*, std::shared_ptr<SamplePlaybackManager>>& getActiveSamples() { return activeSamples; }
+
+private:
+    MixerAudioSource mixer;
+    std::unordered_map<const SoundSample*, std::shared_ptr<SamplePlaybackManager>> activeSamples;
+
+    AudioSampleBuffer buffer;
+    foleys::LevelMeterSource meterSource;
+    SonoAudio::ChannelGroup channelGroup;
+    SonoAudio::ChannelGroup recordChannelGroup;
+
+    TimeSliceThread diskThread { "soundboard audio file reader" };
+
+    float lastGain = 0.0f;
 };

@@ -98,17 +98,17 @@ private:
      * All the button colours that can be selected (in order).
      */
     const std::vector<int> BUTTON_COLOURS = {
-            SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR,
-            SonoPlaybackProgressButton::RED,
-            SonoPlaybackProgressButton::ORANGE,
-            SonoPlaybackProgressButton::YELLOW,
-            SonoPlaybackProgressButton::YELLOW_GREEN,
-            SonoPlaybackProgressButton::GREEN,
-            SonoPlaybackProgressButton::CYAN,
-            SonoPlaybackProgressButton::BLUE,
-            SonoPlaybackProgressButton::PURPLE,
-            SonoPlaybackProgressButton::PINK,
-            SonoPlaybackProgressButton::WHITE,
+            SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
+            SoundboardButtonColors::RED,
+            SoundboardButtonColors::ORANGE,
+            SoundboardButtonColors::YELLOW,
+            SoundboardButtonColors::YELLOW_GREEN,
+            SoundboardButtonColors::GREEN,
+            SoundboardButtonColors::CYAN,
+            SoundboardButtonColors::BLUE,
+            SoundboardButtonColors::PURPLE,
+            SoundboardButtonColors::PINK,
+            SoundboardButtonColors::WHITE,
             CUSTOM_COLOUR
     };
 
@@ -125,7 +125,7 @@ private:
     /**
      * The selected button colour without alpha value.
      */
-    int selectedColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR;
+    int selectedColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     /**
      * The name that is shown upon opening the dialog.
@@ -315,7 +315,7 @@ private:
      * @param index The ith button (index in BUTTON_COLOURS).
      * @return Reference to the created button.
      */
-    std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index);
+    std::unique_ptr<SonoDrawableButton> createColourButton(const int index);
 
     /**
      * Updates the colour buttons to show a checkmark if its colour is slected and hide the checkmark if that colour

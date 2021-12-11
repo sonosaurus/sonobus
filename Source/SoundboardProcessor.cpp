@@ -39,13 +39,16 @@ void SoundboardProcessor::renameSoundboard(int index, String newName)
 
 void SoundboardProcessor::deleteSoundboard(int index)
 {
-    soundboards.erase(soundboards.begin() + index);
-
-    if (currentlyPlayingSoundboardIndex == index) {
-        channelProcessor->pause();
-        currentlyPlayingSoundboardIndex = {};
-        currentlyPlayingButtonIndex = {};
+    // When a sample from this soundboard was playing, stop playback
+    auto& activeSamples = channelProcessor->getActiveSamples();
+    for (const auto& sample : soundboards[index].getSamples()) {
+        auto playbackManager = activeSamples.find(&sample);
+        if (playbackManager != activeSamples.end()) {
+            playbackManager->second->unload();
+        }
     }
+
+    soundboards.erase(soundboards.begin() + index);
 
     // If the last soundboard was selected
     if (selectedSoundboardIndex == soundboards.size()) {
@@ -73,7 +76,6 @@ void SoundboardProcessor::reorderSoundboards()
 {
     // Figure out what the new (sorted) indices will be.
     auto originalSelectedIndex = selectedSoundboardIndex.value_or(-1);
-    auto originalPlayingIndex = currentlyPlayingSoundboardIndex.value_or(-1);
     auto originalIndices = sortIndexPreview(soundboards);
 
     // Determine new indices of the selected soundboard.
@@ -85,43 +87,10 @@ void SoundboardProcessor::reorderSoundboards()
         selectedSoundboardIndex = { std::distance(originalIndices.begin(), iterator) };
     }
 
-    if (originalPlayingIndex < 0) {
-        currentlyPlayingSoundboardIndex = { 0 };
-    }
-    else if (originalPlayingIndex >= soundboards.size()) {
-        // It can happen that the playing index is out of bounds.
-        // Specifically this occurs whenever a soundboard before the playing index has been deleted.
-        currentlyPlayingSoundboardIndex = { soundboards.size() - 1 };
-    }
-    else {
-        auto iterator = std::find(originalIndices.begin(), originalIndices.end(), originalPlayingIndex);
-        currentlyPlayingSoundboardIndex = { std::distance(originalIndices.begin(), iterator) };
-    }
-
     // Above was just a sort preview and logic on that. End with actually sorting the list of soundboards.
     std::sort(soundboards.begin(), soundboards.end(), [](const Soundboard& a, const Soundboard& b) {
         return a.getName() < b.getName();
     });
-}
-
-void SoundboardProcessor::setCurrentlyPlaying(int soundboardIndex, int sampleButtonIndex)
-{
-    currentlyPlayingSoundboardIndex = soundboardIndex;
-    currentlyPlayingButtonIndex = sampleButtonIndex;
-}
-
-Soundboard* SoundboardProcessor::getCurrentlyPlayingSoundboard()
-{
-    if (getNumberOfSoundboards() <= 0) {
-        return nullptr;
-    }
-
-    auto soundboardIndex = getCurrentlyPlayingSoundboardIndex();
-    if (!soundboardIndex.has_value()) {
-        return nullptr;
-    }
-
-    return &getSoundboard(soundboardIndex.value());
 }
 
 SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath, bool loop)
@@ -147,8 +116,10 @@ void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
     saveToDisk();
 
     // Immediately update transport source with new playback settings when this sample is currently playing
-    if (isCurrentlyPlaying(sampleToUpdate)) {
-        channelProcessor->setLooping(sampleToUpdate.isLoop());
+    auto& activeSamples = channelProcessor->getActiveSamples();
+    auto playbackManager = activeSamples.find(&sampleToUpdate);
+    if (playbackManager != activeSamples.end()) {
+        playbackManager->second->reloadPlaybackSettingsFromSample();
     }
 }
 
@@ -161,19 +132,15 @@ void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
     for (int i = 0; i < sampleCount; ++i) {
         auto& sample = sampleList[i];
         if (&sample == &sampleToDelete) {
+            // If it is currently playing, unload
+            auto& activeSamples = channelProcessor->getActiveSamples();
+            auto playbackManager = activeSamples.find(&sample);
+            if (playbackManager != activeSamples.end()) {
+                playbackManager->second->unload();
+            }
+
             sampleList.erase(sampleList.begin() + i, sampleList.begin() + i + 1);
 
-            if (currentlyPlayingSoundboardIndex == selectedSoundboardIndex) {
-                // If it is playing, stop playback.
-                if (currentlyPlayingButtonIndex == i) {
-                    channelProcessor->pause();
-                    currentlyPlayingSoundboardIndex = {};
-                    currentlyPlayingButtonIndex = {};
-                }
-                else if (currentlyPlayingButtonIndex > i) {
-                    currentlyPlayingButtonIndex = currentlyPlayingButtonIndex.value() - 1;
-                }
-            }
             break;
         }
     }
@@ -232,16 +199,3 @@ void SoundboardProcessor::loadFromDisk()
     readSoundboardsFromFile(getSoundboardsFile());
     reorderSoundboards();
 }
-
-bool SoundboardProcessor::isCurrentlyPlaying(SoundSample& sample)
-{
-    if (!currentlyPlayingSoundboardIndex.has_value() || !currentlyPlayingButtonIndex.has_value() || !channelProcessor->isPlaying()) {
-        return false;
-    }
-
-    auto soundboardIndex = currentlyPlayingSoundboardIndex.value();
-    auto buttonIndex = currentlyPlayingButtonIndex.value();
-
-    return &soundboards[soundboardIndex].getSamples()[buttonIndex] == &sample;
-}
-

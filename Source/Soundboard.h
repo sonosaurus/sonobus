@@ -7,7 +7,7 @@
 
 #include "vector"
 #include "JuceHeader.h"
-#include "SonoPlaybackProgressButton.h"
+#include "SoundboardButtonColors.h"
 
 /**
  * A sound file that can be played on a soundboard.
@@ -41,7 +41,7 @@ public:
             String name,
             String filePath,
             bool loop = false,
-            int buttonColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR,
+            int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             int hotkeyCode = -1
     );
 
@@ -147,7 +147,7 @@ private:
     /**
      * The argb colour the sample button must have with 0 alpha value.
      */
-    int buttonColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR;
+    int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     /**
      * Keycode for the hotkey, -1 for no hotkey.

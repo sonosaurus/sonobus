@@ -10,8 +10,6 @@
 SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
         : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
 {
-    processor->getChannelProcessor()->attach(*this);
-
     setOpaque(true);
 
     createSoundboardTitle();
@@ -23,11 +21,6 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
 
     mLastSampleBrowseDirectory = std::make_unique<String>(
             File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
-}
-
-SoundboardView::~SoundboardView()
-{
-    processor->getChannelProcessor()->detach(*this);
 }
 
 void SoundboardView::createBasePanels()
@@ -169,9 +162,8 @@ void SoundboardView::updateButtons()
         playbackButton->setButtonColour(sample.getButtonColour());
 
         auto buttonAddress = playbackButton.get();
-        playbackButton->onPrimaryClick = [this, &sample, sampleIndex, selectedBoardIndex]() {
-            playSample(sample);
-            updatePlayingSampleUI(selectedBoardIndex, sampleIndex);
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+            playSample(sample, buttonAddress);
         };
 
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
@@ -206,27 +198,11 @@ void SoundboardView::updateButtons()
     resized();
 }
 
-void SoundboardView::updatePlayingSampleUI(int selectedBoardIndex, int sampleIndex)
-{
-    if (processor->getCurrentlyPlayingSoundboardIndex().has_value() && processor->getCurrentlyPlayingButtonIndex().has_value()) {
-        auto playingSoundboardIndex = processor->getCurrentlyPlayingSoundboardIndex().value();
-        auto playingButtonIndex = processor->getCurrentlyPlayingButtonIndex().value();
-
-        if (playingSoundboardIndex == selectedBoardIndex) {
-            auto& currentButton = mSoundButtons[playingButtonIndex];
-            currentButton->setPlaybackPosition(0.0);
-            currentButton->repaint();
-        }
-    }
-
-    processor->setCurrentlyPlaying(selectedBoardIndex, sampleIndex);
-}
-
-void SoundboardView::playSample(const SoundSample& sample)
+void SoundboardView::playSample(const SoundSample& sample, SonoPlaybackProgressButton* button)
 {
     auto channelProcessor = processor->getChannelProcessor();
-    auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
-    if (!isLoadSuccessful) {
+    auto playbackManagerMaybe = channelProcessor->loadSample(sample);
+    if (!playbackManagerMaybe.has_value()) {
         AlertWindow::showMessageBoxAsync(
                 AlertWindow::WarningIcon,
                 TRANS("Cannot play file"),
@@ -235,8 +211,13 @@ void SoundboardView::playSample(const SoundSample& sample)
         return;
     }
 
-    channelProcessor->setLooping(sample.isLoop());
-    channelProcessor->play();
+    auto playbackManager = playbackManagerMaybe.value();
+
+    if (button != nullptr) {
+        button->attachToPlaybackManager(playbackManager);
+    }
+
+    playbackManager->play();
 }
 
 bool SoundboardView::playSampleAtIndex(int sampleIndex)
@@ -258,7 +239,6 @@ bool SoundboardView::playSampleAtIndex(int sampleIndex)
 
     auto& soundSampleAtIndex = samples[sampleIndex];
     playSample(soundSampleAtIndex);
-    updatePlayingSampleUI(selectedSoundboardIndex, sampleIndex);
     return true;
 }
 
@@ -458,19 +438,4 @@ void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int in
 {
     processor->selectSoundboard(index);
     updateButtons();
-}
-
-void SoundboardView::onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor)
-{
-    if (!processor->getCurrentlyPlayingButtonIndex().has_value() || processor->getCurrentlyPlayingSoundboardIndex() != mBoardSelectComboBox->getSelectedItemIndex()) {
-        return;
-    }
-
-    auto& currentlyPlayingButton = mSoundButtons[processor->getCurrentlyPlayingButtonIndex().value()];
-
-    auto position = channelProcessor.getLength() != 0.0
-        ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
-        : 0.0;
-    currentlyPlayingButton->setPlaybackPosition(position);
-    currentlyPlayingButton->repaint();
 }
