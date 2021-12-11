@@ -56,7 +56,7 @@ void SampleEditView::initialiseLayouts()
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mHotkeyLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 36, CONTROL_HEIGHT, *mHotkeyInput).withMargin(4).withFlex(0));
+    contentBox.items.add(FlexItem(150, CONTROL_HEIGHT, hotkeyButtonRowBox).withMargin(4).withFlex(0));
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, 0).withMargin(0).withFlex(1));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
@@ -210,9 +210,32 @@ void SampleEditView::createHotkeyInput()
     mHotkeyLabel->setColour(Label::textColourId, Colour(0xeeffffff));
     addAndMakeVisible(mHotkeyLabel.get());
 
-    mHotkeyInput = std::make_unique<TextEditor>("hotkeyInput");
-    mHotkeyInput->setText(hotkeyCode == -1 ? TRANS("None") : std::to_string(hotkeyCode));
-    addAndMakeVisible(mHotkeyInput.get());
+    auto keyPress = juce::KeyPress(hotkeyCode);
+    auto buttonText = hotkeyCode == -1 ? TRANS("Click to change...") : keyPress.getTextDescriptionWithIcons();
+    mHotkeyButton = std::make_unique<SonoTextButton>(buttonText);
+    mHotkeyButton->setClickingTogglesState(true);
+    mHotkeyButton->setToggleState(false, dontSendNotification);
+    mHotkeyButton->onClick = [this]() {
+        if (mHotkeyButton->getToggleState()) {
+            mHotkeyButton->setButtonText(TRANS("Press a key..."));
+        }
+    };
+    addAndMakeVisible(mHotkeyButton.get());
+
+    mRemoveHotkeyButton = std::make_unique<SonoTextButton>(TRANS("Remove hotkey"));
+    mRemoveHotkeyButton->onClick = [this]() {
+        mHotkeyButton->setButtonText(TRANS("Click to change..."));
+        mHotkeyButton->setToggleState(false, dontSendNotification);
+        hotkeyCode = -1;
+    };
+    addAndMakeVisible(mRemoveHotkeyButton.get());
+
+    hotkeyButtonRowBox.flexDirection = FlexBox::Direction::row;
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    hotkeyButtonRowBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 2 - 12, CONTROL_HEIGHT, *mHotkeyButton).withMargin(0).withFlex(0));
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    hotkeyButtonRowBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 2 - 8, CONTROL_HEIGHT, *mRemoveHotkeyButton).withMargin(0).withFlex(0));
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index)
@@ -361,6 +384,20 @@ void SampleEditView::dismissDialog()
     if (callOutBox) {
         callOutBox->dismiss();
     }
+}
+
+bool SampleEditView::keyPressed(const KeyPress& keyPress)
+{
+    // Set new hotkey only when the hotkey button is ready to receive a new hotkey.
+    if (!mHotkeyButton->getToggleState()) {
+        return false;
+    }
+
+    auto keyPressWithoutModifier = juce::KeyPress(keyPress.getKeyCode());
+    mHotkeyButton->setButtonText(keyPressWithoutModifier.getTextDescriptionWithIcons());
+    mHotkeyButton->setToggleState(false, dontSendNotification);
+    hotkeyCode = keyPress.getKeyCode();
+    return true;
 }
 
 void SampleEditView::paint(Graphics& g)

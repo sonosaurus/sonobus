@@ -352,9 +352,11 @@ void SoundboardView::clickedAddSoundSample()
         auto filePath = editView.getAbsoluteFilePath();
         auto buttonColour = editView.getButtonColour();
         auto loop = editView.isLoop();
+        auto hotkeyCode = editView.getHotkeyCode();
 
         SoundSample* createdSample = processor->addSoundSample(sampleName, filePath, loop);
         createdSample->setButtonColour(buttonColour);
+        createdSample->setHotkeyCode(hotkeyCode);
 
         updateButtons();
     };
@@ -380,11 +382,13 @@ void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& bu
             auto filePath = editView.getAbsoluteFilePath();
             auto buttonColour = editView.getButtonColour();
             auto loop = editView.isLoop();
+            auto hotkeyCode = editView.getHotkeyCode();
 
             sample.setName(sampleName);
             sample.setFilePath(filePath);
             sample.setButtonColour(buttonColour);
             sample.setLoop(loop);
+            sample.setHotkeyCode(hotkeyCode);
             processor->editSoundSample(sample);
         }
         updateButtons();
@@ -417,9 +421,11 @@ void SoundboardView::resized()
     buttonBox.performLayout(buttonContainer.getLocalBounds());
 }
 
-void SoundboardView::processKeystroke(const int keyCode)
+void SoundboardView::processKeystroke(const KeyPress& keyPress)
 {
+    // Process default keybinds (1-9).
     // 0 is already assigned to jump to start.
+    auto keyCode = keyPress.getKeyCode();
 
     if (keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
         if (playSampleAtIndex(keyCode - 49)) {
@@ -430,6 +436,23 @@ void SoundboardView::processKeystroke(const int keyCode)
     if (keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
         if (playSampleAtIndex(keyCode - KeyPress::numberPad1)) {
             return;
+        }
+    }
+
+    // Look for custom keybinds.
+    auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
+        return;
+    }
+
+    auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
+    auto& samples = soundboard.getSamples();
+
+    auto sampleCount = samples.size();
+    for (int i = 0; i < sampleCount; ++i) {
+        auto& sample = samples[i];
+        if (sample.getHotkeyCode() == keyPress.getKeyCode()) {
+            playSampleAtIndex(i);
         }
     }
 }

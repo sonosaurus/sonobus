@@ -28,7 +28,7 @@ public:
     /**
      * The recommended height of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 424;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 432;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
@@ -80,6 +80,13 @@ public:
      * @return true if the loop button is in the 'toggle on' state.
      */
     [[nodiscard]] bool isLoop() const { return mLoopButton->getToggleState(); }
+
+    /**
+     * @return The key code for the hotkey.
+     */
+    [[nodiscard]] int getHotkeyCode() const { return hotkeyCode; };
+
+    bool keyPressed(const KeyPress& key) override;
 
     void paint(Graphics&) override;
 
@@ -200,6 +207,11 @@ private:
     FlexBox playbackOptionsRowBox;
 
     /**
+     * Box for the hotkey settings button row.
+     */
+    FlexBox hotkeyButtonRowBox;
+
+    /**
      * Label for the SoundSample name field.
      */
     std::unique_ptr<Label> mNameLabel;
@@ -270,9 +282,16 @@ private:
     std::unique_ptr<Label> mHotkeyLabel;
 
     /**
-     * Text input for the hotkey input field.
+     * Button for selecting a new keybind for the sound sample.
+     *
+     * When the button is toggled, then a new hotkey can be selected.
      */
-    std::unique_ptr<TextEditor> mHotkeyInput;
+    std::unique_ptr<SonoTextButton> mHotkeyButton;
+
+    /**
+     * Button used to remove the current keybinds.
+     */
+    std::unique_ptr<SonoTextButton> mRemoveHotkeyButton;
 
     /**
      * Initialises all layout elements.

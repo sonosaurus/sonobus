@@ -29,9 +29,9 @@ public:
     void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
 
     /**
-     * @param keyCode Pressed key code.
+     * @param keyPress Pressed key code.
      */
-    void processKeystroke(int keyCode);
+    void processKeystroke(const KeyPress& keyPress);
 
 private:
     constexpr static const float MENU_BUTTON_WIDTH = 36;
