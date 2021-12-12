@@ -357,7 +357,9 @@ void SoundboardView::clickedAddSoundSample()
         auto playbackBehaviour = editView.getPlaybackBehaviour();
         auto hotkeyCode = editView.getHotkeyCode();
 
-        SoundSample* createdSample = processor->addSoundSample(sampleName, filePath, loop, playbackBehaviour);
+        SoundSample* createdSample = processor->addSoundSample(sampleName, filePath);
+        createdSample->setLoop(loop);
+        createdSample->setPlaybackBehaviour(playbackBehaviour);
         createdSample->setButtonColour(buttonColour);
         createdSample->setHotkeyCode(hotkeyCode);
 
@@ -476,7 +478,8 @@ bool SoundboardView::isInterestedInFileDrag(const StringArray& files)
 
     // Check whether the file matches one of the supported extensions
     std::string wildcardExt;
-    while (std::getline(std::stringstream(SoundSample::SUPPORTED_EXTENSIONS), wildcardExt, ';')) {
+    std::stringstream is = std::stringstream(SoundSample::SUPPORTED_EXTENSIONS);
+    while (std::getline(is, wildcardExt, ';')) {
         if (filePath.matchesWildcard(wildcardExt, true)) {
             return true;
         }
@@ -485,23 +488,46 @@ bool SoundboardView::isInterestedInFileDrag(const StringArray& files)
     return false;
 }
 
-void SoundboardView::fileDragEnter(const StringArray& files, int x, int y)
+void SoundboardView::fileDraggedAt(int x, int y)
 {
-    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::cyan);
+    mAddSampleButton->setEnabled(false);
+    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::white.withAlpha(0.8f));
+
     mAddSampleButton->repaint();
 }
 
-void SoundboardView::fileDragMove(const StringArray& files, int x, int y)
+void SoundboardView::fileDragStopped()
 {
-}
-
-void SoundboardView::fileDragExit(const StringArray& files)
-{
+    mAddSampleButton->setEnabled(true);
     mAddSampleButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     mAddSampleButton->repaint();
 }
 
+void SoundboardView::fileDragEnter(const StringArray& files, int x, int y)
+{
+    fileDraggedAt(x, y);
+}
+
+void SoundboardView::fileDragMove(const StringArray& files, int x, int y)
+{
+    fileDraggedAt(x, y);
+}
+
+void SoundboardView::fileDragExit(const StringArray& files)
+{
+    fileDragStopped();
+}
+
 void SoundboardView::filesDropped(const StringArray& files, int x, int y)
 {
-    AlertWindow::showMessageBoxAsync(MessageBoxIconType::InfoIcon, "Dropje", "TIJD VOOR ONS NOTIFICATIEBLOKJEEEE!!!");
+    fileDragStopped();
+
+    auto filePath = files[0];
+    auto sampleName = File(filePath).getFileNameWithoutExtension();
+
+    SoundSample* createdSample = processor->addSoundSample(sampleName, filePath);
+    updateButtons();
+
+    // Open the edit view by default
+    clickedEditSoundSample(*mSoundButtons[mSoundButtons.size() - 1].get(), *createdSample);
 }

@@ -89,12 +89,10 @@ public:
      *
      * @param name The name of the new sample.
      * @param absolutePath The absolute path to the file of the new sample.
-     * @param loop Whether the sample should loop.
-     * @param playbackBehaviour The playback behaviour.
      *
      * @return Pointer to the added sound sample, nullptr when no sound was added.
      */
-    SoundSample* addSoundSample(String name, String absolutePath, bool loop, SoundSample::PlaybackBehaviour playbackBehaviour);
+    SoundSample* addSoundSample(String name, String absolutePath);
 
     /**
      * @param sampleToUpdate The sample to save with already containing the updated state.

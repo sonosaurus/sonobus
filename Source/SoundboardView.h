@@ -222,5 +222,9 @@ private:
      */
     void clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample);
 
+    void fileDraggedAt(int x, int y);
+
+    void fileDragStopped();
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };
