@@ -3,6 +3,8 @@
 
 
 
+#include <sstream>
+
 #include "SoundboardView.h"
 #include "SoundboardEditView.h"
 #include "SampleEditView.h"
@@ -185,7 +187,7 @@ void SoundboardView::updateButtons()
     );
     mAddSampleButton->setTooltip(TRANS("Add Sample"));
     mAddSampleButton->setImages(imageAdd.get());
-    mAddSampleButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     mAddSampleButton->setLookAndFeel(&dashedButtonLookAndFeel);
     mAddSampleButton->onClick = [this]() {
         clickedAddSoundSample();
@@ -464,4 +466,42 @@ void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int in
 {
     processor->selectSoundboard(index);
     updateButtons();
+}
+
+bool SoundboardView::isInterestedInFileDrag(const StringArray& files)
+{
+    if (files.size() > 1 || files.isEmpty()) return false;
+
+    auto filePath = files[0];
+
+    // Check whether the file matches one of the supported extensions
+    std::string wildcardExt;
+    while (std::getline(std::stringstream(SoundSample::SUPPORTED_EXTENSIONS), wildcardExt, ';')) {
+        if (filePath.matchesWildcard(wildcardExt, true)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void SoundboardView::fileDragEnter(const StringArray& files, int x, int y)
+{
+    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::cyan);
+    mAddSampleButton->repaint();
+}
+
+void SoundboardView::fileDragMove(const StringArray& files, int x, int y)
+{
+}
+
+void SoundboardView::fileDragExit(const StringArray& files)
+{
+    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    mAddSampleButton->repaint();
+}
+
+void SoundboardView::filesDropped(const StringArray& files, int x, int y)
+{
+    AlertWindow::showMessageBoxAsync(MessageBoxIconType::InfoIcon, "Dropje", "TIJD VOOR ONS NOTIFICATIEBLOKJEEEE!!!");
 }

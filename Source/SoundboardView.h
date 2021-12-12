@@ -17,7 +17,7 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardView : public Component, public SonoChoiceButton::Listener
+class SoundboardView : public Component, public SonoChoiceButton::Listener, public FileDragAndDropTarget
 {
 public:
     explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
@@ -32,6 +32,16 @@ public:
      * @param keyPress Pressed key code.
      */
     void processKeystroke(const KeyPress& keyPress);
+
+    bool isInterestedInFileDrag(const StringArray& files) override;
+
+    void fileDragEnter(const StringArray& files, int x, int y) override;
+
+    void fileDragMove(const StringArray& files, int x, int y) override;
+
+    void fileDragExit(const StringArray& files) override;
+
+    void filesDropped(const StringArray& files, int x, int y) override;
 
 private:
     constexpr static const float MENU_BUTTON_WIDTH = 36;
