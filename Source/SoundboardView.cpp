@@ -472,20 +472,25 @@ void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int in
 
 bool SoundboardView::isInterestedInFileDrag(const StringArray& files)
 {
-    if (files.size() > 1 || files.isEmpty()) return false;
+    if (files.isEmpty()) return false;
 
-    auto filePath = files[0];
+    // Check whether the files match one of the supported extensions
+    for (const auto& filePath : files) {
+        auto hasSupportedExt = false;
 
-    // Check whether the file matches one of the supported extensions
-    std::string wildcardExt;
-    std::stringstream is = std::stringstream(SoundSample::SUPPORTED_EXTENSIONS);
-    while (std::getline(is, wildcardExt, ';')) {
-        if (filePath.matchesWildcard(wildcardExt, true)) {
-            return true;
+        std::string wildcardExt;
+        std::stringstream is = std::stringstream(SoundSample::SUPPORTED_EXTENSIONS);
+        while (std::getline(is, wildcardExt, ';')) {
+            if (filePath.matchesWildcard(wildcardExt, true)) {
+                hasSupportedExt = true;
+                break;
+            }
         }
+
+        if (!hasSupportedExt) return false;
     }
 
-    return false;
+    return true;
 }
 
 void SoundboardView::fileDraggedAt(int x, int y)
@@ -522,12 +527,16 @@ void SoundboardView::filesDropped(const StringArray& files, int x, int y)
 {
     fileDragStopped();
 
-    auto filePath = files[0];
-    auto sampleName = File(filePath).getFileNameWithoutExtension();
+    SoundSample* createdSample;
+    for (const auto& filePath : files) {
+        auto sampleName = File(filePath).getFileNameWithoutExtension();
+        createdSample = processor->addSoundSample(sampleName, filePath);
+    }
 
-    SoundSample* createdSample = processor->addSoundSample(sampleName, filePath);
     updateButtons();
 
-    // Open the edit view by default
-    clickedEditSoundSample(*mSoundButtons[mSoundButtons.size() - 1].get(), *createdSample);
+    // Open the edit view by default if only 1 file was dragged
+    if (files.size() == 1) {
+        clickedEditSoundSample(*mSoundButtons[mSoundButtons.size() - 1].get(), *createdSample);
+    }
 }
