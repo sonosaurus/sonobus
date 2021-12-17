@@ -430,6 +430,12 @@ void SoundboardView::resized()
 
 void SoundboardView::processKeystroke(const KeyPress& keyPress)
 {
+    // Only process keystrokes when the soundboard view is opened.
+    // This is to prevent sounds from 'magically' playing.
+    if (!this->isVisible()) {
+        return;
+    }
+
     // Process default keybinds (1-9).
     // 0 is already assigned to jump to start.
     auto keyCode = keyPress.getKeyCode();
