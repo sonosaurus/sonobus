@@ -64,14 +64,6 @@ public:
     void reorderSoundboards();
 
     /**
-     * Sets the given sample button index as currently playing.
-     *
-     * @param soundboardIndex Index of the soundboard.
-     * @param sampleButtonIndex Index of the sample button.
-     */
-    void setCurrentlyPlaying(int soundboardIndex, int sampleButtonIndex);
-
-    /**
      * Gets the soundboard at the given index.
      *
      * If the index is out of bounds, undefined behavior may occur.
@@ -92,39 +84,15 @@ public:
     [[nodiscard]] std::optional<int> getSelectedSoundboardIndex() const { return selectedSoundboardIndex; }
 
     /**
-     * @return The index of the currently playing soundboard.
-     */
-    [[nodiscard]] std::optional<int> getCurrentlyPlayingSoundboardIndex() const { return currentlyPlayingSoundboardIndex; }
-
-    /**
-     * @return The index of the currently playing sample button.
-     */
-    [[nodiscard]] std::optional<int> getCurrentlyPlayingButtonIndex() const { return currentlyPlayingButtonIndex; }
-
-    /**
-     * Checks whether the given sample is currently playing.
-     *
-     * @param sample The sample to check.
-     * @return Whether the sample is currently playing.
-     */
-    bool isCurrentlyPlaying(SoundSample& sample);
-
-    /**
-     * @return Reference to the soundboard that is currently selected, or nullptr when no soundboard is selected.
-     */
-    [[nodiscard]] Soundboard* getCurrentlyPlayingSoundboard();
-
-    /**
      * Adds the given sample to the currently selected soundboard.
      * Does nothing when no soundboard is selected.
      *
      * @param name The name of the new sample.
      * @param absolutePath The absolute path to the file of the new sample.
-     * @param loop Whether the sample should loop.
      *
      * @return Pointer to the added sound sample, nullptr when no sound was added.
      */
-    SoundSample* addSoundSample(String name, String absolutePath, bool loop);
+    SoundSample* addSoundSample(String name, String absolutePath);
 
     /**
      * @param sampleToUpdate The sample to save with already containing the updated state.
@@ -180,16 +148,6 @@ private:
      * Index of the currently selected soundboard.
      */
     std::optional<int> selectedSoundboardIndex;
-
-    /**
-     * Index of the soundboard that is currently playing audio.
-     */
-    std::optional<int> currentlyPlayingSoundboardIndex;
-
-    /**
-     * Index of the button that is currently playing audio.
-     */
-    std::optional<int> currentlyPlayingButtonIndex;
 
     /**
      * Writes the soundboard data to the given file.

@@ -9,6 +9,7 @@
 #include "Soundboard.h"
 #include "SonoTextButton.h"
 #include "SonoDrawableButton.h"
+#include "SonoMultiStateDrawableButton.h"
 #include "SoundSampleButtonColourPicker.h"
 
 /**
@@ -28,7 +29,7 @@ public:
     /**
      * The recommended height of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 424;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 432;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
@@ -81,6 +82,18 @@ public:
      */
     [[nodiscard]] bool isLoop() const { return mLoopButton->getToggleState(); }
 
+    /**
+     * @return The selected playback behaviour.
+     */
+    [[nodiscard]] SoundSample::PlaybackBehaviour getPlaybackBehaviour() const { return static_cast<SoundSample::PlaybackBehaviour>(mPlaybackBehaviourButton->getState()); }
+
+    /**
+     * @return The key code for the hotkey.
+     */
+    [[nodiscard]] int getHotkeyCode() const { return hotkeyCode; };
+
+    bool keyPressed(const KeyPress& key) override;
+
     void paint(Graphics&) override;
 
     void resized() override;
@@ -98,17 +111,17 @@ private:
      * All the button colours that can be selected (in order).
      */
     const std::vector<int> BUTTON_COLOURS = {
-            SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR,
-            SonoPlaybackProgressButton::RED,
-            SonoPlaybackProgressButton::ORANGE,
-            SonoPlaybackProgressButton::YELLOW,
-            SonoPlaybackProgressButton::YELLOW_GREEN,
-            SonoPlaybackProgressButton::GREEN,
-            SonoPlaybackProgressButton::CYAN,
-            SonoPlaybackProgressButton::BLUE,
-            SonoPlaybackProgressButton::PURPLE,
-            SonoPlaybackProgressButton::PINK,
-            SonoPlaybackProgressButton::WHITE,
+            SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
+            SoundboardButtonColors::RED,
+            SoundboardButtonColors::ORANGE,
+            SoundboardButtonColors::YELLOW,
+            SoundboardButtonColors::YELLOW_GREEN,
+            SoundboardButtonColors::GREEN,
+            SoundboardButtonColors::CYAN,
+            SoundboardButtonColors::BLUE,
+            SoundboardButtonColors::PURPLE,
+            SoundboardButtonColors::PINK,
+            SoundboardButtonColors::WHITE,
             CUSTOM_COLOUR
     };
 
@@ -125,7 +138,7 @@ private:
     /**
      * The selected button colour without alpha value.
      */
-    int selectedColour = SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR;
+    int selectedColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     /**
      * The name that is shown upon opening the dialog.
@@ -141,6 +154,11 @@ private:
      * Loop playback option that is chosen upon opening the dialog.
      */
     bool initialLoop;
+
+    /**
+     * Playback behaviour option that is chosen upon opening the dialog.
+     */
+    SoundSample::PlaybackBehaviour initialPlaybackBehaviour = SoundSample::PlaybackBehaviour::SIMULTANEOUS;
 
     /**
      * The key code of the hotkey for the sample, -1 for no hotkey.
@@ -198,6 +216,11 @@ private:
      * Box for the playback option inputs.
      */
     FlexBox playbackOptionsRowBox;
+
+    /**
+     * Box for the hotkey settings button row.
+     */
+    FlexBox hotkeyButtonRowBox;
 
     /**
      * Label for the SoundSample name field.
@@ -265,14 +288,26 @@ private:
     std::unique_ptr<SonoDrawableButton> mLoopButton;
 
     /**
+     * Control to toggle playback behaviour option.
+     */
+    std::unique_ptr<SonoMultiStateDrawableButton> mPlaybackBehaviourButton;
+
+    /**
      * Label for hotkey configuration
      */
     std::unique_ptr<Label> mHotkeyLabel;
 
     /**
-     * Text input for the hotkey input field.
+     * Button for selecting a new keybind for the sound sample.
+     *
+     * When the button is toggled, then a new hotkey can be selected.
      */
-    std::unique_ptr<TextEditor> mHotkeyInput;
+    std::unique_ptr<SonoTextButton> mHotkeyButton;
+
+    /**
+     * Button used to remove the current keybinds.
+     */
+    std::unique_ptr<SonoTextButton> mRemoveHotkeyButton;
 
     /**
      * Initialises all layout elements.
@@ -305,6 +340,11 @@ private:
     void createLoopButton();
 
     /**
+     * Creates the playback behaviour option toggle.
+     */
+    void createPlaybackBehaviourButton();
+
+    /**
      * Adds the input controls for the hotkey configuration.
      */
     void createHotkeyInput();
@@ -315,7 +355,7 @@ private:
      * @param index The ith button (index in BUTTON_COLOURS).
      * @return Reference to the created button.
      */
-    std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index);
+    std::unique_ptr<SonoDrawableButton> createColourButton(const int index);
 
     /**
      * Updates the colour buttons to show a checkmark if its colour is slected and hide the checkmark if that colour

@@ -17,11 +17,10 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardView : public Component, public SonoChoiceButton::Listener, private PlaybackPositionListener
+class SoundboardView : public Component, public SonoChoiceButton::Listener, public FileDragAndDropTarget
 {
 public:
     explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
-    ~SoundboardView();
 
     void paint(Graphics&) override;
 
@@ -30,9 +29,19 @@ public:
     void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
 
     /**
-     * @param keyCode Pressed key code.
+     * @param keyPress Pressed key code.
      */
-    void processKeystroke(int keyCode);
+    void processKeystroke(const KeyPress& keyPress);
+
+    bool isInterestedInFileDrag(const StringArray& files) override;
+
+    void fileDragEnter(const StringArray& files, int x, int y) override;
+
+    void fileDragMove(const StringArray& files, int x, int y) override;
+
+    void fileDragExit(const StringArray& files) override;
+
+    void filesDropped(const StringArray& files, int x, int y) override;
 
 private:
     constexpr static const float MENU_BUTTON_WIDTH = 36;
@@ -167,19 +176,12 @@ private:
     void updateButtons();
 
     /**
-     * Updates the UI to reflect the currently playing sample.
-     *
-     * @param selectedBoardIndex The index of the soundboard that is selected.
-     * @param sampleIndex The index of the sample that is being played.
-     */
-    void updatePlayingSampleUI(int selectedBoardIndex, int sampleIndex);
-
-    /**
      * Plays the sound of the given sample.
      *
      * @param sample The sample to play.
+     * @param button The button the play request originated from.
      */
-    void playSample(const SoundSample& sample);
+    void playSample(const SoundSample& sample, SonoPlaybackProgressButton* button = nullptr);
 
     /**
      * Plays the sample at the given sampleIndex, does nothing when sampleIndex out of bounds.
@@ -220,7 +222,9 @@ private:
      */
     void clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample);
 
-    void onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor) override;
+    void fileDraggedAt(int x, int y);
+
+    void fileDragStopped();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };

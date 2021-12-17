@@ -6,12 +6,13 @@
 #include "Soundboard.h"
 #include <utility>
 
-SoundSample::SoundSample(String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode)
+SoundSample::SoundSample(String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode, PlaybackBehaviour playbackBehaviour)
         : name(std::move(newName)),
         filePath(std::move(newFilePath)),
         loop(newLoop),
         buttonColour(buttonColour),
-        hotkeyCode(hotkeyCode)
+        hotkeyCode(hotkeyCode),
+        playbackBehaviour(playbackBehaviour)
 {}
 
 String SoundSample::getName() const
@@ -64,6 +65,16 @@ void SoundSample::setHotkeyCode(int newKeyCode)
     hotkeyCode = newKeyCode;
 }
 
+SoundSample::PlaybackBehaviour SoundSample::getPlaybackBehaviour() const
+{
+    return playbackBehaviour;
+}
+
+void SoundSample::setPlaybackBehaviour(PlaybackBehaviour newBehaviour)
+{
+    playbackBehaviour = newBehaviour;
+}
+
 ValueTree SoundSample::serialize() const
 {
     ValueTree tree(SAMPLE_KEY);
@@ -72,18 +83,22 @@ ValueTree SoundSample::serialize() const
     tree.setProperty(LOOP_KEY, loop, nullptr);
     tree.setProperty(BUTTON_COLOUR_KEY, buttonColour, nullptr);
     tree.setProperty(HOTKEY_KEY, hotkeyCode, nullptr);
+    tree.setProperty(PLAYBACK_BEHAVIOUR_KEY, playbackBehaviour, nullptr);
 
     return tree;
 }
 
 SoundSample SoundSample::deserialize(const ValueTree tree)
 {
+    int playbackBehaviour = tree.getProperty(PLAYBACK_BEHAVIOUR_KEY, PlaybackBehaviour::SIMULTANEOUS);
+
     SoundSample soundSample(
         tree.getProperty(NAME_KEY),
         tree.getProperty(FILE_PATH_KEY),
         tree.getProperty(LOOP_KEY, false),
-        tree.getProperty(BUTTON_COLOUR_KEY, SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR),
-        tree.getProperty(HOTKEY_KEY, -1)
+        tree.getProperty(BUTTON_COLOUR_KEY, SoundboardButtonColors::DEFAULT_BUTTON_COLOUR),
+        tree.getProperty(HOTKEY_KEY, -1),
+        static_cast<PlaybackBehaviour>(playbackBehaviour)
     );
 
     return soundSample;

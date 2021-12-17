@@ -1918,7 +1918,7 @@ bool XWindowSystem::isFocused (::Window windowH) const
     if (focusedWindow == PointerRoot)
         return false;
 
-    return isParentWindowOf (windowH, focusedWindow);
+    return isParentWindowOf (windowH, focusedWindow) || isTransientParentWindowOf(windowH, focusedWindow);
 }
 
 ::Window XWindowSystem::getFocusWindow (::Window windowH) const
@@ -2653,6 +2653,25 @@ bool XWindowSystem::isParentWindowOf (::Window windowH, ::Window possibleChild) 
         return false;
 
     return isParentWindowOf (windowH, parent);
+}
+
+bool XWindowSystem::isTransientParentWindowOf (::Window windowH, ::Window possibleChild) const
+{
+    if (windowH == 0 || possibleChild == 0)
+        return false;
+
+    if (possibleChild == windowH)
+        return true;
+
+    Window parent;
+
+    XWindowSystemUtilities::ScopedXLock xLock;
+    const auto result = X11Symbols::getInstance()->xGetTransientForHint(display, possibleChild, &parent);
+
+    if (result == 0)
+        return false;
+
+    return isParentWindowOf(windowH, parent);
 }
 
 bool XWindowSystem::isFrontWindow (::Window windowH) const

@@ -3,8 +3,6 @@
 
 
 
-#pragma once
-
 #include <JuceHeader.h>
 #include "SoundSampleButtonColourPicker.h"
 #include "SonoPlaybackProgressButton.h"
@@ -13,12 +11,12 @@
 void SoundSampleButtonColourPicker::show(const Rectangle<int>& bounds)
 {
     auto defaultColour = selectedColour == nullptr
-            ? SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR
+            ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR
             : *selectedColour & 0xFFFFFF;
 
     auto colourSelector = std::make_unique<ColourSelector>();
     colourSelector->setName(TRANS("Custom Button Colour"));
-    colourSelector->setCurrentColour(Colour(defaultColour | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA));
+    colourSelector->setCurrentColour(Colour(defaultColour | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA));
     colourSelector->addChangeListener(this);
     colourSelector->setColour(ColourSelector::backgroundColourId, Colours::transparentBlack);
     colourSelector->setSize(300, 400);
@@ -44,6 +42,6 @@ void SoundSampleButtonColourPicker::updatePickerButton(unsigned int newColour)
     auto colourWithoutAlpha = newColour & 0xFFFFFF;
     pickerButton->setColour(
             SonoTextButton::buttonColourId,
-            Colour(colourWithoutAlpha | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+            Colour(colourWithoutAlpha | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
     );
 }

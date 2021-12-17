@@ -168,6 +168,7 @@ public:
     //==============================================================================
     void handleWindowMessage (LinuxComponentPeer*, XEvent&) const;
     bool isParentWindowOf (::Window, ::Window possibleChild) const;
+    bool isTransientParentWindowOf (::Window, ::Window possibleChild) const;
 
     //==============================================================================
     JUCE_DECLARE_SINGLETON (XWindowSystem, false)

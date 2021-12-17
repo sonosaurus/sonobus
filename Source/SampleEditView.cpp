@@ -16,9 +16,10 @@ SampleEditView::SampleEditView(
     initialName(soundSample == nullptr ? "" : soundSample->getName()),
     initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
     initialLoop(soundSample != nullptr && soundSample->isLoop()),
+    initialPlaybackBehaviour(soundSample == nullptr ? SoundSample::PlaybackBehaviour::SIMULTANEOUS : soundSample->getPlaybackBehaviour()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString),
-    selectedColour(soundSample == nullptr ? SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
+    selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
     hotkeyCode(soundSample == nullptr ? -1 : soundSample->getHotkeyCode())
 {
     setOpaque(true);
@@ -56,7 +57,7 @@ void SampleEditView::initialiseLayouts()
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mHotkeyLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 36, CONTROL_HEIGHT, *mHotkeyInput).withMargin(4).withFlex(0));
+    contentBox.items.add(FlexItem(150, CONTROL_HEIGHT, hotkeyButtonRowBox).withMargin(4).withFlex(0));
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, 0).withMargin(0).withFlex(1));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
@@ -149,7 +150,7 @@ void SampleEditView::createColourInput()
     };
     customColourButton->setColour(
             SonoTextButton::buttonColourId,
-            Colour(selectedColour | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+            Colour(selectedColour | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
     );
     addAndMakeVisible(customColourButton.get());
 
@@ -184,6 +185,10 @@ void SampleEditView::createPlaybackOptionInputs()
     createLoopButton();
     playbackOptionsRowBox.items.add(FlexItem(56, 56, *mLoopButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
+    createPlaybackBehaviourButton();
+    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 void SampleEditView::createLoopButton()
@@ -202,6 +207,21 @@ void SampleEditView::createLoopButton()
     addAndMakeVisible(mLoopButton.get());
 }
 
+void SampleEditView::createPlaybackBehaviourButton()
+{
+    auto simImg = Drawable::createFromImageData(BinaryData::play_simultaneous_svg, BinaryData::play_simultaneous_svgSize);
+    auto b2bImg = Drawable::createFromImageData(BinaryData::play_back_to_back_svg, BinaryData::play_back_to_back_svgSize);
+    auto imgs = std::vector<std::unique_ptr<Drawable>>();
+    imgs.push_back(std::move(simImg));
+    imgs.push_back(std::move(b2bImg));
+    auto labels = std::vector<String>{TRANS("Simultaneous"), TRANS("Back to Back")};
+    mPlaybackBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("playbackBehaviour", std::move(imgs), std::move(labels));
+    mPlaybackBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
+    mPlaybackBehaviourButton->setState(initialPlaybackBehaviour);
+
+    addAndMakeVisible(mPlaybackBehaviourButton.get());
+}
+
 void SampleEditView::createHotkeyInput()
 {
     mHotkeyLabel = std::make_unique<Label>("hotkeyLabel", TRANS("Hotkey"));
@@ -210,9 +230,32 @@ void SampleEditView::createHotkeyInput()
     mHotkeyLabel->setColour(Label::textColourId, Colour(0xeeffffff));
     addAndMakeVisible(mHotkeyLabel.get());
 
-    mHotkeyInput = std::make_unique<TextEditor>("hotkeyInput");
-    mHotkeyInput->setText(hotkeyCode == -1 ? TRANS("None") : std::to_string(hotkeyCode));
-    addAndMakeVisible(mHotkeyInput.get());
+    auto keyPress = juce::KeyPress(hotkeyCode);
+    auto buttonText = hotkeyCode == -1 ? TRANS("Click to change...") : keyPress.getTextDescriptionWithIcons();
+    mHotkeyButton = std::make_unique<SonoTextButton>(buttonText);
+    mHotkeyButton->setClickingTogglesState(true);
+    mHotkeyButton->setToggleState(false, dontSendNotification);
+    mHotkeyButton->onClick = [this]() {
+        if (mHotkeyButton->getToggleState()) {
+            mHotkeyButton->setButtonText(TRANS("Press a key..."));
+        }
+    };
+    addAndMakeVisible(mHotkeyButton.get());
+
+    mRemoveHotkeyButton = std::make_unique<SonoTextButton>(TRANS("Remove hotkey"));
+    mRemoveHotkeyButton->onClick = [this]() {
+        mHotkeyButton->setButtonText(TRANS("Click to change..."));
+        mHotkeyButton->setToggleState(false, dontSendNotification);
+        hotkeyCode = -1;
+    };
+    addAndMakeVisible(mRemoveHotkeyButton.get());
+
+    hotkeyButtonRowBox.flexDirection = FlexBox::Direction::row;
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    hotkeyButtonRowBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 2 - 12, CONTROL_HEIGHT, *mHotkeyButton).withMargin(0).withFlex(0));
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    hotkeyButtonRowBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 2 - 8, CONTROL_HEIGHT, *mRemoveHotkeyButton).withMargin(0).withFlex(0));
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index)
@@ -220,7 +263,7 @@ std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int
     auto colourButton = std::make_unique<SonoDrawableButton>("colour", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     colourButton->setColour(
             SonoTextButton::buttonColourId,
-            Colour(BUTTON_COLOURS[index] | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+            Colour(BUTTON_COLOURS[index] | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
     );
     colourButton->onClick = [this, index]() {
         selectedColour = BUTTON_COLOURS[index];
@@ -230,7 +273,7 @@ std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int
         auto& pickerButton = mColourButtons[mColourButtons.size() - 1];
         pickerButton->setColour(
                 SonoTextButton::buttonColourId,
-                Colour(selectedColour | SonoPlaybackProgressButton::DEFAULT_BUTTON_COLOUR_ALPHA)
+                Colour(selectedColour | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
         );
     };
 
@@ -311,7 +354,10 @@ void SampleEditView::browseFilePath()
     mFileChooser = std::make_unique<FileChooser>(
             TRANS("Select an audio file..."),
             defaultDirectory,
-            SoundSample::SUPPORTED_EXTENSIONS
+            SoundSample::SUPPORTED_EXTENSIONS,
+            true,
+            false,
+            this->getParentComponent()
     );
     auto folderFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
 
@@ -358,6 +404,20 @@ void SampleEditView::dismissDialog()
     if (callOutBox) {
         callOutBox->dismiss();
     }
+}
+
+bool SampleEditView::keyPressed(const KeyPress& keyPress)
+{
+    // Set new hotkey only when the hotkey button is ready to receive a new hotkey.
+    if (!mHotkeyButton->getToggleState()) {
+        return false;
+    }
+
+    auto keyPressWithoutModifier = juce::KeyPress(keyPress.getKeyCode());
+    mHotkeyButton->setButtonText(keyPressWithoutModifier.getTextDescriptionWithIcons());
+    mHotkeyButton->setToggleState(false, dontSendNotification);
+    hotkeyCode = keyPress.getKeyCode();
+    return true;
 }
 
 void SampleEditView::paint(Graphics& g)

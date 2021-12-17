@@ -4,6 +4,8 @@
 
 #include "SonoPlaybackProgressButton.h"
 
+#include <utility>
+
 SonoPlaybackProgressButton::SonoPlaybackProgressButton() : TextButton()
 {}
 
@@ -13,6 +15,13 @@ SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName)
 SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName, const String& toolTip)
         : TextButton(buttonName, toolTip)
 {}
+
+SonoPlaybackProgressButton::~SonoPlaybackProgressButton() noexcept
+{
+    if (playbackManager != nullptr) {
+        playbackManager->detach(*this);
+    }
+}
 
 void SonoPlaybackProgressButton::setPlaybackPosition(double value)
 {
@@ -33,7 +42,7 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
     lf.drawButtonBackground(
             graphics,
             *this,
-            Colour(buttonColour | DEFAULT_BUTTON_COLOUR_ALPHA),
+            Colour(buttonColour | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA),
             shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown
     );
 
@@ -48,4 +57,21 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
 
 
     lf.drawButtonText(graphics, *this, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+}
+
+void SonoPlaybackProgressButton::onPlaybackPositionChanged(const SamplePlaybackManager& manager)
+{
+    auto position = manager.getLength() != 0.0
+        ? manager.getCurrentPosition() / manager.getLength()
+        : 0.0;
+
+    setPlaybackPosition(position);
+    repaint();
+}
+
+void SonoPlaybackProgressButton::attachToPlaybackManager(std::shared_ptr<SamplePlaybackManager> playbackManager_)
+{
+    playbackManager = std::move(playbackManager_);
+    playbackManager->detach(*this);
+    playbackManager->attach(*this);
 }

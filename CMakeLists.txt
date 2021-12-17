@@ -285,6 +285,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonoDrawableButton.h
         Source/SonoLookAndFeel.cpp
         Source/SonoLookAndFeel.h
+        Source/SonoMultiStateDrawableButton.cpp
+        Source/SonoMultiStateDrawableButton.h
         Source/SonoPlaybackProgressButton.cpp
         Source/SonoPlaybackProgressButton.h
         Source/SonoStandaloneFilterApp.cpp
@@ -294,6 +296,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonoUtility.h
         Source/Soundboard.cpp
         Source/Soundboard.h
+        Source/SoundboardButtonColors.h
         Source/SoundboardChannelProcessor.cpp
         Source/SoundboardChannelProcessor.h
         Source/SoundboardEditView.cpp
@@ -496,7 +499,9 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/people.svg
         images/person.png
         images/person.svg
+        images/play_back_to_back.svg
         images/play_icon.svg
+        images/play_simultaneous.svg
         images/plus_icon.svg
         images/power.svg
         images/power_sel.svg

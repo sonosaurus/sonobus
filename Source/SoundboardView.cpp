@@ -3,6 +3,8 @@
 
 
 
+#include <sstream>
+
 #include "SoundboardView.h"
 #include "SoundboardEditView.h"
 #include "SampleEditView.h"
@@ -10,8 +12,6 @@
 SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
         : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
 {
-    processor->getChannelProcessor()->attach(*this);
-
     setOpaque(true);
 
     createSoundboardTitle();
@@ -23,11 +23,6 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
 
     mLastSampleBrowseDirectory = std::make_unique<String>(
             File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
-}
-
-SoundboardView::~SoundboardView()
-{
-    processor->getChannelProcessor()->detach(*this);
 }
 
 void SoundboardView::createBasePanels()
@@ -169,9 +164,8 @@ void SoundboardView::updateButtons()
         playbackButton->setButtonColour(sample.getButtonColour());
 
         auto buttonAddress = playbackButton.get();
-        playbackButton->onPrimaryClick = [this, &sample, sampleIndex, selectedBoardIndex]() {
-            playSample(sample);
-            updatePlayingSampleUI(selectedBoardIndex, sampleIndex);
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+            playSample(sample, buttonAddress);
         };
 
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
@@ -193,7 +187,7 @@ void SoundboardView::updateButtons()
     );
     mAddSampleButton->setTooltip(TRANS("Add Sample"));
     mAddSampleButton->setImages(imageAdd.get());
-    mAddSampleButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
     mAddSampleButton->setLookAndFeel(&dashedButtonLookAndFeel);
     mAddSampleButton->onClick = [this]() {
         clickedAddSoundSample();
@@ -206,27 +200,11 @@ void SoundboardView::updateButtons()
     resized();
 }
 
-void SoundboardView::updatePlayingSampleUI(int selectedBoardIndex, int sampleIndex)
-{
-    if (processor->getCurrentlyPlayingSoundboardIndex().has_value() && processor->getCurrentlyPlayingButtonIndex().has_value()) {
-        auto playingSoundboardIndex = processor->getCurrentlyPlayingSoundboardIndex().value();
-        auto playingButtonIndex = processor->getCurrentlyPlayingButtonIndex().value();
-
-        if (playingSoundboardIndex == selectedBoardIndex) {
-            auto& currentButton = mSoundButtons[playingButtonIndex];
-            currentButton->setPlaybackPosition(0.0);
-            currentButton->repaint();
-        }
-    }
-
-    processor->setCurrentlyPlaying(selectedBoardIndex, sampleIndex);
-}
-
-void SoundboardView::playSample(const SoundSample& sample)
+void SoundboardView::playSample(const SoundSample& sample, SonoPlaybackProgressButton* button)
 {
     auto channelProcessor = processor->getChannelProcessor();
-    auto isLoadSuccessful = channelProcessor->loadFile(URL(File(sample.getFilePath())));
-    if (!isLoadSuccessful) {
+    auto playbackManagerMaybe = channelProcessor->loadSample(sample);
+    if (!playbackManagerMaybe.has_value()) {
         AlertWindow::showMessageBoxAsync(
                 AlertWindow::WarningIcon,
                 TRANS("Cannot play file"),
@@ -235,8 +213,13 @@ void SoundboardView::playSample(const SoundSample& sample)
         return;
     }
 
-    channelProcessor->setLooping(sample.isLoop());
-    channelProcessor->play();
+    auto playbackManager = playbackManagerMaybe.value();
+
+    if (button != nullptr) {
+        button->attachToPlaybackManager(playbackManager);
+    }
+
+    playbackManager->play();
 }
 
 bool SoundboardView::playSampleAtIndex(int sampleIndex)
@@ -258,7 +241,6 @@ bool SoundboardView::playSampleAtIndex(int sampleIndex)
 
     auto& soundSampleAtIndex = samples[sampleIndex];
     playSample(soundSampleAtIndex);
-    updatePlayingSampleUI(selectedSoundboardIndex, sampleIndex);
     return true;
 }
 
@@ -372,9 +354,14 @@ void SoundboardView::clickedAddSoundSample()
         auto filePath = editView.getAbsoluteFilePath();
         auto buttonColour = editView.getButtonColour();
         auto loop = editView.isLoop();
+        auto playbackBehaviour = editView.getPlaybackBehaviour();
+        auto hotkeyCode = editView.getHotkeyCode();
 
-        SoundSample* createdSample = processor->addSoundSample(sampleName, filePath, loop);
+        SoundSample* createdSample = processor->addSoundSample(sampleName, filePath);
+        createdSample->setLoop(loop);
+        createdSample->setPlaybackBehaviour(playbackBehaviour);
         createdSample->setButtonColour(buttonColour);
+        createdSample->setHotkeyCode(hotkeyCode);
 
         updateButtons();
     };
@@ -400,11 +387,15 @@ void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& bu
             auto filePath = editView.getAbsoluteFilePath();
             auto buttonColour = editView.getButtonColour();
             auto loop = editView.isLoop();
+            auto playbackBehaviour = editView.getPlaybackBehaviour();
+            auto hotkeyCode = editView.getHotkeyCode();
 
             sample.setName(sampleName);
             sample.setFilePath(filePath);
             sample.setButtonColour(buttonColour);
             sample.setLoop(loop);
+            sample.setPlaybackBehaviour(playbackBehaviour);
+            sample.setHotkeyCode(hotkeyCode);
             processor->editSoundSample(sample);
         }
         updateButtons();
@@ -437,9 +428,11 @@ void SoundboardView::resized()
     buttonBox.performLayout(buttonContainer.getLocalBounds());
 }
 
-void SoundboardView::processKeystroke(const int keyCode)
+void SoundboardView::processKeystroke(const KeyPress& keyPress)
 {
+    // Process default keybinds (1-9).
     // 0 is already assigned to jump to start.
+    auto keyCode = keyPress.getKeyCode();
 
     if (keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
         if (playSampleAtIndex(keyCode - 49)) {
@@ -452,6 +445,23 @@ void SoundboardView::processKeystroke(const int keyCode)
             return;
         }
     }
+
+    // Look for custom keybinds.
+    auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
+        return;
+    }
+
+    auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
+    auto& samples = soundboard.getSamples();
+
+    auto sampleCount = samples.size();
+    for (int i = 0; i < sampleCount; ++i) {
+        auto& sample = samples[i];
+        if (sample.getHotkeyCode() == keyPress.getKeyCode()) {
+            playSampleAtIndex(i);
+        }
+    }
 }
 
 void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident)
@@ -460,17 +470,73 @@ void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int in
     updateButtons();
 }
 
-void SoundboardView::onPlaybackPositionChanged(SoundboardChannelProcessor& channelProcessor)
+bool SoundboardView::isInterestedInFileDrag(const StringArray& files)
 {
-    if (!processor->getCurrentlyPlayingButtonIndex().has_value() || processor->getCurrentlyPlayingSoundboardIndex() != mBoardSelectComboBox->getSelectedItemIndex()) {
-        return;
+    if (files.isEmpty()) return false;
+
+    // Check whether the files match one of the supported extensions
+    for (const auto& filePath : files) {
+        auto hasSupportedExt = false;
+
+        std::string wildcardExt;
+        std::stringstream is = std::stringstream(SoundSample::SUPPORTED_EXTENSIONS);
+        while (std::getline(is, wildcardExt, ';')) {
+            if (filePath.matchesWildcard(wildcardExt, true)) {
+                hasSupportedExt = true;
+                break;
+            }
+        }
+
+        if (!hasSupportedExt) return false;
     }
 
-    auto& currentlyPlayingButton = mSoundButtons[processor->getCurrentlyPlayingButtonIndex().value()];
+    return true;
+}
 
-    auto position = channelProcessor.getLength() != 0.0
-        ? channelProcessor.getCurrentPosition() / channelProcessor.getLength()
-        : 0.0;
-    currentlyPlayingButton->setPlaybackPosition(position);
-    currentlyPlayingButton->repaint();
+void SoundboardView::fileDraggedAt(int x, int y)
+{
+    mAddSampleButton->setEnabled(false);
+    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::white.withAlpha(0.8f));
+
+    mAddSampleButton->repaint();
+}
+
+void SoundboardView::fileDragStopped()
+{
+    mAddSampleButton->setEnabled(true);
+    mAddSampleButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    mAddSampleButton->repaint();
+}
+
+void SoundboardView::fileDragEnter(const StringArray& files, int x, int y)
+{
+    fileDraggedAt(x, y);
+}
+
+void SoundboardView::fileDragMove(const StringArray& files, int x, int y)
+{
+    fileDraggedAt(x, y);
+}
+
+void SoundboardView::fileDragExit(const StringArray& files)
+{
+    fileDragStopped();
+}
+
+void SoundboardView::filesDropped(const StringArray& files, int x, int y)
+{
+    fileDragStopped();
+
+    SoundSample* createdSample;
+    for (const auto& filePath : files) {
+        auto sampleName = File(filePath).getFileNameWithoutExtension();
+        createdSample = processor->addSoundSample(sampleName, filePath);
+    }
+
+    updateButtons();
+
+    // Open the edit view by default if only 1 file was dragged
+    if (files.size() == 1) {
+        clickedEditSoundSample(*mSoundButtons[mSoundButtons.size() - 1].get(), *createdSample);
+    }
 }
