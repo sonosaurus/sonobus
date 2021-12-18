@@ -289,6 +289,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     setupLocalisation(processor.getLanguageOverrideCode());
 
     sonoLookAndFeel.setLanguageCode(mActiveLanguageCode);
+    sonoSliderLNF.setLanguageCode(mActiveLanguageCode);
+    smallLNF.setLanguageCode(mActiveLanguageCode);
+    teensyLNF.setLanguageCode(mActiveLanguageCode);
+    panSliderLNF.setLanguageCode(mActiveLanguageCode);
 
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));

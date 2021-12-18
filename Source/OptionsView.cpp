@@ -48,6 +48,8 @@ void OptionsView::initializeLanguages()
     //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
     languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
 
+    languages.add(TRANS("Korean")); languagesNative.add("Korean"); codes.add("ko"); // TODO fix and use above when we have a font that can display this all the time
+
     //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh_hans");
     //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh_hant");
 
