@@ -703,6 +703,9 @@ public:
     bool getSelfRecordingPreFX() const { return mRecordInputPreFX; }
     void setSelfRecordingPreFX(bool flag) { mRecordInputPreFX = flag; }
 
+    bool getRecordFinishOpens() const { return mRecordFinishOpens; }
+    void setRecordFinishOpens(bool flag) { mRecordFinishOpens = flag; }
+
 
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
     void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
@@ -1094,6 +1097,7 @@ private:
     RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
     int mDefaultRecordingBitsPerSample = 16;
     bool mRecordInputPreFX = true;
+    bool mRecordFinishOpens = true;
     String mDefaultRecordDir;
     String mLastError;
     int mSelfRecordChannels = 2;

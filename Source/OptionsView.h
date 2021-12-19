@@ -157,6 +157,7 @@ protected:
     std::unique_ptr<Label> mRecFormatStaticLabel;
     std::unique_ptr<Label> mRecLocationStaticLabel;
     std::unique_ptr<TextButton> mRecLocationButton;
+    std::unique_ptr<ToggleButton> mOptionsRecFinishOpenButton;
 
 
     FlexBox mainBox;
@@ -187,6 +188,7 @@ protected:
     FlexBox optionsMetRecordBox;
     FlexBox optionsRecordDirBox;
     FlexBox optionsRecordSelfPostFxBox;
+    FlexBox optionsRecordFinishBox;
 
 
     std::unique_ptr<TabbedComponent> mSettingsTab;

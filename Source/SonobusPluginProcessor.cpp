@@ -89,6 +89,7 @@ static String defRecordOptionsKey("DefaultRecordingOptions");
 static String defRecordFormatKey("DefaultRecordingFormat");
 static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
+static String recordFinishOpenKey("RecordFinishOpen");
 static String defRecordDirKey("DefaultRecordDir");
 static String sliderSnapKey("SliderSnapToMouse");
 static String peerDisplayModeKey("PeerDisplayMode");
@@ -8001,6 +8002,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
+    extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
     extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
@@ -8107,6 +8109,8 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
             bool prefx = extraTree.getProperty(recordSelfPreFxKey, mRecordInputPreFX);
             setSelfRecordingPreFX(prefx);
+
+            setRecordFinishOpens(extraTree.getProperty(recordFinishOpenKey, mRecordFinishOpens));
 
 
 #if !(JUCE_IOS || JUCE_ANDROID)

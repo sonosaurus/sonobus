@@ -2029,10 +2029,12 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             //});
 
 
-            // load up recording
-            loadAudioFromURL(URL(lastRecordedFile));
-            updateLayout();
-            resized();
+            if (processor.getRecordFinishOpens()) {
+                // load up recording
+                loadAudioFromURL(URL(lastRecordedFile));
+                updateLayout();
+                resized();
+            }
             
         } else {
 

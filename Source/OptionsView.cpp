@@ -161,6 +161,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsMetRecordedButton->addListener(this);
     mMetRecordedAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMetIsRecorded, *mOptionsMetRecordedButton);
 
+    mOptionsRecFinishOpenButton = std::make_unique<ToggleButton>(TRANS("Open finished recording for playback"));
+    mOptionsRecFinishOpenButton->addListener(this);
+
 
     mOptionsRecFilesStaticLabel = std::make_unique<Label>("", TRANS("Record feature creates the following files:"));
     configLabel(mOptionsRecFilesStaticLabel.get(), false);
@@ -345,6 +348,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
 
     mRecOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecFinishOpenButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecFilesStaticLabel.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfButton.get());
@@ -589,6 +593,8 @@ void OptionsView::updateState(bool ignorecheck)
 
     mOptionsRecSelfPostFxButton->setToggleState(!processor.getSelfRecordingPreFX(), dontSendNotification);
 
+    mOptionsRecFinishOpenButton->setToggleState(processor.getRecordFinishOpens(), dontSendNotification);
+
     mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
     mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
 
@@ -811,6 +817,11 @@ void OptionsView::updateLayout()
     optionsRecordSelfPostFxBox.items.add(FlexItem(10, 12));
     optionsRecordSelfPostFxBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfPostFxButton).withMargin(0).withFlex(1));
 
+    optionsRecordFinishBox.items.clear();
+    optionsRecordFinishBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordFinishBox.items.add(FlexItem(10, 12));
+    optionsRecordFinishBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecFinishOpenButton).withMargin(0).withFlex(1));
+
 
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
@@ -828,6 +839,7 @@ void OptionsView::updateLayout()
     recOptionsBox.items.add(FlexItem(4, 4));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSelfPostFxBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordFinishBox).withMargin(2).withFlex(0));
     minRecOptionsHeight = 0;
     for (auto & item : recOptionsBox.items) {
         minRecOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
@@ -1000,6 +1012,9 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mOptionsRecSelfPostFxButton.get()) {
         processor.setSelfRecordingPreFX(!mOptionsRecSelfPostFxButton->getToggleState());
+    }
+    else if (buttonThatWasClicked == mOptionsRecFinishOpenButton.get()) {
+        processor.setRecordFinishOpens(mOptionsRecFinishOpenButton->getToggleState());
     }
     else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
         if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {
