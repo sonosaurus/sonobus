@@ -380,7 +380,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
              */
 
             if (auto* bus = processor.getBus (true, 0)) {
-                auto maxsup = bus->getMaxSupportedChannels();
+                auto maxsup = bus->getMaxSupportedChannels(128);
                 updateMinAndMax (maxsup, minNumInputs, maxNumInputs);
                 updateMinAndMax (bus->getDefaultLayout().size(), minNumInputs, maxNumInputs);
                 if (bus->isNumberOfChannelsSupported(1)) {
@@ -392,7 +392,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
             }
 
             if (auto* bus = processor.getBus (false, 0)) {
-                auto maxsup = bus->getMaxSupportedChannels();
+                auto maxsup = bus->getMaxSupportedChannels(128);
                 updateMinAndMax (maxsup, minNumOutputs, maxNumOutputs);
                 updateMinAndMax (bus->getDefaultLayout().size(), minNumOutputs, maxNumOutputs);
                 if (bus->isNumberOfChannelsSupported(1)) {
