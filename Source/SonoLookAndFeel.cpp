@@ -132,7 +132,7 @@ void SonoLookAndFeel::setLanguageCode(const String & lang)
         fontScale = 1.0f;
     }
     else if (lang.startsWith("ko")) {
-        fontScale = 1.2f;
+        fontScale = 1.15f;
     }
 }
 
