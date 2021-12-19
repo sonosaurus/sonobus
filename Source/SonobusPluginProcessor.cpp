@@ -1494,7 +1494,7 @@ bool SonobusAudioProcessor::getRemotePeerEffectsActive(int index, int changroup)
     const ScopedReadLock sl (mCoreLock);
     auto remote = mRemotePeers.getUnchecked(index);
     if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
-        return remote->chanGroups[changroup].params.compressorParams.enabled || remote->chanGroups[changroup].params.expanderParams.enabled || remote->chanGroups[changroup].params.eqParams.enabled;
+        return remote->chanGroups[changroup].params.compressorParams.enabled || remote->chanGroups[changroup].params.expanderParams.enabled || remote->chanGroups[changroup].params.eqParams.enabled || remote->chanGroups[changroup].params.invertPolarity;
     }
     return false;
 
@@ -1964,6 +1964,22 @@ float SonobusAudioProcessor::getInputReverbSend(int changroup, bool input)
     }
     return 0.0f;
 }
+
+void SonobusAudioProcessor::setInputPolarityInvert(int changroup, bool invert)
+{
+    if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
+        mInputChannelGroups[changroup].params.invertPolarity = invert;
+    }
+}
+
+bool SonobusAudioProcessor::getInputPolarityInvert(int changroup)
+{
+    if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
+        return mInputChannelGroups[changroup].params.invertPolarity;
+    }
+    return false;
+}
+
 
 
 void SonobusAudioProcessor::commitCompressorParams(RemotePeer * peer, int changroup)
@@ -4391,7 +4407,24 @@ float SonobusAudioProcessor::getRemotePeerChannelReverbSend(int index, int chang
     return revsend;
 }
 
+void SonobusAudioProcessor::setRemotePeerPolarityInvert(int index, int changroup, bool invert)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        remote->chanGroups[changroup].params.invertPolarity = invert;
+    }
+}
 
+bool SonobusAudioProcessor::getRemotePeerPolarityInvert(int index, int changroup)
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size() && changroup < MAX_CHANGROUPS) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->chanGroups[changroup].params.invertPolarity;
+    }
+    return false;
+}
 
 void SonobusAudioProcessor::setRemotePeerChannelMuted(int index, int changroup, bool muted)
 {

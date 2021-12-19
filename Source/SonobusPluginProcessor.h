@@ -343,6 +343,9 @@ public:
     void setRemotePeerChannelReverbSend(int index, int changroup, float rgain);
     float getRemotePeerChannelReverbSend(int index, int changroup);
 
+    void setRemotePeerPolarityInvert(int index, int changroup, bool invert);
+    bool getRemotePeerPolarityInvert(int index, int changroup);
+
 
     void setRemotePeerUserName(int index, const String & name);
     String getRemotePeerUserName(int index) const;
@@ -521,12 +524,14 @@ public:
     void setInputReverbSend(int changroup, float rgain, bool input=false);
     float getInputReverbSend(int changroup, bool input=false);
 
+    void setInputPolarityInvert(int changroup, bool invert);
+    bool getInputPolarityInvert(int changroup);
 
     void setInputEqParams(int changroup, SonoAudio::ParametricEqParams & params);
     bool getInputEqParams(int changroup, SonoAudio::ParametricEqParams & retparams);
     
     
-    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled; }
+    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity; }
 
     bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled; }
 

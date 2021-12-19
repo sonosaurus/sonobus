@@ -269,6 +269,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/ParametricEqView.h
         Source/PeersContainerView.cpp
         Source/PeersContainerView.h
+        Source/PolarityInvertView.h
         Source/RandomSentenceGenerator.cpp
         Source/RandomSentenceGenerator.h
         Source/ReverbSendView.h
