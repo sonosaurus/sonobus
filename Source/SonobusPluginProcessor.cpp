@@ -92,6 +92,7 @@ static String recordSelfPreFxKey("RecordSelfPreFx");
 static String recordFinishOpenKey("RecordFinishOpen");
 static String defRecordDirKey("DefaultRecordDir");
 static String sliderSnapKey("SliderSnapToMouse");
+static String disableShortcutsKey("DisableKeyShortcuts");
 static String peerDisplayModeKey("PeerDisplayMode");
 static String lastChatWidthKey("lastChatWidth");
 static String lastChatShownKey("lastChatShown");
@@ -8060,6 +8061,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
+    extraTree.setProperty(disableShortcutsKey, mDisableKeyboardShortcuts, nullptr);
     extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
     extraTree.setProperty(lastChatWidthKey, var((int)mLastChatWidth), nullptr);
     extraTree.setProperty(lastChatShownKey, mLastChatShown, nullptr);
@@ -8172,6 +8174,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
 #endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
+            setDisableKeyboardShortcuts(extraTree.getProperty(disableShortcutsKey, mDisableKeyboardShortcuts));
             setPeerDisplayMode((PeerDisplayMode)(int)extraTree.getProperty(peerDisplayModeKey, (int)mPeerDisplayMode));
             setLastChatWidth((int)extraTree.getProperty(lastChatWidthKey, (int)mLastChatWidth));
             setLastChatShown(extraTree.getProperty(lastChatShownKey, mLastChatShown));

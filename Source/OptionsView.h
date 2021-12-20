@@ -74,6 +74,7 @@ public:
     std::function<Value*()> getShouldCheckForNewVersionValue; // = []() { return 0; };
     std::function<Value*()> getAllowBluetoothInputValue; // = []() { return 0; };
     std::function<void()> updateSliderSnap; // = []() { return 0; };
+    std::function<void()> updateKeybindings; // = []() { return 0; };
     std::function<bool(const String &)> setupLocalisation; // = []() { return 0; };
     std::function<void()> saveSettingsIfNeeded; // = []() { return 0; };
 
@@ -134,6 +135,7 @@ protected:
     std::unique_ptr<ToggleButton> mOptionsAutoReconnectButton;
     std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
     std::unique_ptr<ToggleButton> mOptionsAllowBluetoothInput;
+    std::unique_ptr<ToggleButton> mOptionsDisableShortcutButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
     std::unique_ptr<Label> mOptionsDefaultLevelSliderLabel;
@@ -174,6 +176,7 @@ protected:
     FlexBox optionsInputLimitBox;
     FlexBox optionsAutoReconnectBox;
     FlexBox optionsSnapToMouseBox;
+    FlexBox optionsDisableShortcutsBox;
     FlexBox optionsDefaultLevelBox;
     FlexBox optionsLanguageBox;
     FlexBox optionsAllowBluetoothBox;

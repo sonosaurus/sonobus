@@ -563,6 +563,9 @@ public:
     bool getSlidersSnapToMousePosition() const { return mSliderSnapToMouse; }
     void setSlidersSnapToMousePosition(bool flag) {  mSliderSnapToMouse = flag; }
 
+    bool getDisableKeyboardShortcuts() const { return mDisableKeyboardShortcuts; }
+    void setDisableKeyboardShortcuts(bool flag) {  mDisableKeyboardShortcuts = flag; }
+
 
 
 
@@ -1139,6 +1142,7 @@ private:
    
     // misc
     bool mSliderSnapToMouse = true;
+    bool mDisableKeyboardShortcuts = false;
 
     String mLangOverrideCode;
 

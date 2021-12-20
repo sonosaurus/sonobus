@@ -232,6 +232,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Clicked Position"));
     mOptionsSliderSnapToMouseButton->addListener(this);
 
+    mOptionsDisableShortcutButton = std::make_unique<ToggleButton>(TRANS("Disable keyboard shortcuts"));
+    mOptionsDisableShortcutButton->addListener(this);
+
 #if JUCE_IOS
     if (JUCEApplicationBase::isStandaloneApp()) {
         mOptionsAllowBluetoothInput = std::make_unique<ToggleButton>(TRANS("Allow Bluetooth Input"));
@@ -344,6 +347,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
         }
     }
     mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDisableShortcutButton.get());
 
 
 
@@ -583,6 +587,7 @@ void OptionsView::updateState(bool ignorecheck)
     }
 
     mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
+    mOptionsDisableShortcutButton->setToggleState(processor.getDisableKeyboardShortcuts(), dontSendNotification);
 
     uint32 recmask = processor.getDefaultRecordingOptions();
 
@@ -727,6 +732,12 @@ void OptionsView::updateLayout()
     optionsSnapToMouseBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsSnapToMouseBox.items.add(FlexItem(180, minpassheight, *mOptionsSliderSnapToMouseButton).withMargin(0).withFlex(1));
 
+    optionsDisableShortcutsBox.items.clear();
+    optionsDisableShortcutsBox.flexDirection = FlexBox::Direction::row;
+    optionsDisableShortcutsBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsDisableShortcutsBox.items.add(FlexItem(180, minpassheight, *mOptionsDisableShortcutButton).withMargin(0).withFlex(1));
+
+
     optionsAllowBluetoothBox.items.clear();
     optionsAllowBluetoothBox.flexDirection = FlexBox::Direction::row;
     if (mOptionsAllowBluetoothInput) {
@@ -763,6 +774,7 @@ void OptionsView::updateLayout()
         }
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsDisableShortcutsBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
 
     minOptionsHeight = 0;
@@ -1063,6 +1075,13 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         
         if (updateSliderSnap) {
             updateSliderSnap();
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsDisableShortcutButton.get()) {
+        bool newval = mOptionsDisableShortcutButton->getToggleState();
+        processor.setDisableKeyboardShortcuts(newval);
+        if (updateKeybindings) {
+            updateKeybindings();
         }
     }
 }
