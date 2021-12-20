@@ -578,6 +578,9 @@ public:
     int getRemotePeerSendPacketsize(int index) const;
     void setRemotePeerSendPacketsize(int index, int psize);
 
+    int getRemotePeerOrderPriority(int index) const;
+    void setRemotePeerOrderPriority(int index, int priority);
+
     // select by index or by peer, or don't specify for all
     void updateRemotePeerUserFormat(int index=-1, RemotePeer * onlypeer=nullptr);
 
@@ -769,6 +772,7 @@ private:
         SonoAudio::ChannelGroupParams channelGroupMultiParams[MAX_CHANGROUPS];
         int numMultiChanGroups = 0;
         bool modifiedChanGroups = false;
+        int orderPriority = -1;
     };
 
     // key is peer name

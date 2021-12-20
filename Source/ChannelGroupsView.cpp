@@ -4068,6 +4068,13 @@ void ChannelGroupsView::showInputReverbView(bool flag, Component * fromView)
     }
 }
 
+bool ChannelGroupsView::isDraggable(Component * comp) const
+{
+    if (comp == this || comp == mMainChannelView.get() || comp == mMainChannelView->nameLabel.get() || comp == mMainChannelView->linkButton.get()) {
+        return true;
+    }
+    return false;
+}
 
 
 void ChannelGroupsView::mouseDown (const MouseEvent& event)

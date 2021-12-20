@@ -358,7 +358,8 @@ public:
     void showDestSelectionMenu(Component * source, int index);
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
-    
+
+    bool isDraggable(Component * comp) const;
 
     void clearClipIndicators();
 

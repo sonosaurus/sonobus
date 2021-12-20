@@ -28,8 +28,8 @@ public:
     {
         timeSlider.setTitle(TRANS("Delay Time"));
         timeSlider.setName("time");
-        timeSlider.setRange(0.0f, 500.0f, 0.1);
-        timeSlider.setSkewFactor(0.4);
+        timeSlider.setRange(0.0f, 5000.0f, 0.1);
+        timeSlider.setSkewFactor(0.25);
         timeSlider.setTextValueSuffix(" ms");
         //timeSlider.setDoubleClickReturnValue(true, -60.0);
         configBarSlider(timeSlider);

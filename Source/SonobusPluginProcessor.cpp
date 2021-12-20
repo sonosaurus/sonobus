@@ -134,6 +134,7 @@ static String peerPan2Key("span2");
 static String peerNetbufKey("netbuf");
 static String peerNetbufAutoKey("netbufauto");
 static String peerSendFormatKey("sendformat");
+static String peerOrderPriorityKey("orderpriority");
 
 
 
@@ -325,6 +326,7 @@ struct SonobusAudioProcessor::RemotePeer {
     foleys::LevelMeterSource sendMeterSource;
     foleys::LevelMeterSource recvMeterSource;
     bool viewExpanded = false;
+    int orderPriority = -1;
 
     // channel groups
     SonoAudio::ChannelGroup chanGroups[MAX_CHANGROUPS];
@@ -1368,6 +1370,24 @@ int SonobusAudioProcessor::getRequestRemotePeerSendAudioCodecFormat(int index) c
     return remote->reqRemoteSendFormatIndex;    
 }
 
+int SonobusAudioProcessor::getRemotePeerOrderPriority(int index) const
+{
+    if (index >= mRemotePeers.size()) return -1;
+    const ScopedReadLock sl (mCoreLock);
+    auto remote = mRemotePeers.getUnchecked(index);
+    return remote->orderPriority;
+}
+
+void SonobusAudioProcessor::setRemotePeerOrderPriority(int index, int priority)
+{
+    if (index >= mRemotePeers.size()) return;
+
+    const ScopedReadLock sl (mCoreLock);
+
+    auto remote = mRemotePeers.getUnchecked(index);
+    remote->orderPriority = priority;
+}
+
 
 int SonobusAudioProcessor::getRemotePeerSendPacketsize(int index) const
 {
@@ -1375,7 +1395,6 @@ int SonobusAudioProcessor::getRemotePeerSendPacketsize(int index) const
     const ScopedReadLock sl (mCoreLock);        
     auto remote = mRemotePeers.getUnchecked(index);
     return remote->packetsize;
-    
 }
 
 void SonobusAudioProcessor::setRemotePeerSendPacketsize(int index, int psize)
@@ -5772,6 +5791,7 @@ void SonobusAudioProcessor::commitCacheForPeer(RemotePeer * retpeer)
     newcache.mainGain = retpeer->gain;
     newcache.numMultiChanGroups = retpeer->lastMultiNumChanGroups;
     newcache.modifiedChanGroups = retpeer->modifiedMultiChanGroups;
+    newcache.orderPriority = retpeer->orderPriority;
 
     for (int i=0; i < retpeer->numChanGroups && i < MAX_CHANGROUPS; ++i) {
         newcache.channelGroupParams[i] = retpeer->chanGroups[i].params;
@@ -5830,6 +5850,8 @@ bool SonobusAudioProcessor::findAndLoadCacheForPeer(RemotePeer * retpeer)
         retpeer->gain = cache.mainGain;
         retpeer->lastMultiNumChanGroups = cache.numMultiChanGroups;
         retpeer->modifiedChanGroups = retpeer->modifiedMultiChanGroups = cache.modifiedChanGroups;
+        retpeer->orderPriority  = cache.orderPriority;
+
 
         for (int i=0; i < retpeer->numChanGroups  && i < MAX_CHANGROUPS; ++i) {
             retpeer->chanGroups[i].params = cache.channelGroupParams[i];
@@ -8225,6 +8247,7 @@ ValueTree SonobusAudioProcessor::PeerStateCache::getValueTree() const
     item.setProperty(peerSendFormatKey, sendFormat, nullptr);
     item.setProperty(numChanGroupsKey, numChanGroups, nullptr);
     item.setProperty(peerLevelKey, mainGain, nullptr);
+    item.setProperty(peerOrderPriorityKey, orderPriority, nullptr);
 
     ValueTree channelGroupsTree(channelGroupsStateKey);
 
@@ -8257,6 +8280,7 @@ void SonobusAudioProcessor::PeerStateCache::setFromValueTree(const ValueTree & i
     numChanGroups = std::max(0, std::min((int) (MAX_CHANGROUPS-1), (int)item.getProperty(numChanGroupsKey, numChanGroups)));
 
     mainGain = item.getProperty(peerLevelKey, mainGain);
+    orderPriority = item.getProperty(peerOrderPriorityKey, orderPriority);
 
     // backwards compat
     channelGroupParams[0].pan[0] = item.getProperty(peerMonoPanKey, channelGroupParams[0].pan[0]);

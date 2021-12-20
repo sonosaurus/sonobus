@@ -42,7 +42,7 @@ static String numChanGroupsKey("numChanGroups");
 static String layoutGroupsKey("Layout");
 
 
-#define MAX_DELAY_SAMPLES 192000
+#define MAX_DELAY_SAMPLES 240000 // 5 seconds at 48k
 
 using namespace SonoAudio;
 
@@ -194,7 +194,7 @@ void ChannelGroup::setMonitoringDelayTimeMs(double delayms)
     params.monitorDelayParams.delayTimeMs = delayms;
     auto newsamps = 1e-3 * delayms * sampleRate;
     if ( fabs(_monitorDelayTimeSamples - newsamps) > 1) {
-        _monitorDelayTimeSamples = newsamps;
+        _monitorDelayTimeSamples = jmin(newsamps, (double)MAX_DELAY_SAMPLES);
         _monitorDelayTimeChanged = true;
     }
 }
