@@ -476,6 +476,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/incoming_allowed.svg
         images/incoming_allowed_active.svg
         images/incoming_disallowed.svg
+        images/keyboard.svg
+        images/keyboard_disabled.svg
         images/lgc_bar.wav
         images/link.svg
         images/link_all.svg
