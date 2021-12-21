@@ -130,6 +130,10 @@ void SoundboardView::createControlPanel()
     mHotkeyStateButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mHotkeyStateButton->setTitle(TRANS("Toggle hotkeys"));
     mHotkeyStateButton->setTooltip(TRANS("Toggles whether sound samples can be played using hotkeys."));
+    mHotkeyStateButton->setToggleState(processor->isHotkeysSelected(), NotificationType::dontSendNotification);
+    mHotkeyStateButton->onClick = [this]() {
+        processor->setHotkeysSelected(mHotkeyStateButton->getToggleState());
+    };
     addAndMakeVisible(mHotkeyStateButton.get());
 
     controlsBox.items.clear();
