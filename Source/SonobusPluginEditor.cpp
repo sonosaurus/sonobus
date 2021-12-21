@@ -2965,7 +2965,7 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
 
     mAltReleaseShouldAct = false; // reset alt check
 
-    if (key.isKeyCurrentlyDown('T')) {
+    if (key.isKeyCurrentlyDown('T') && !processor.getDisableKeyboardShortcuts()) {
         if (!mPushToTalkKeyDown) {
             DBG("T press");
             // mute others, send self
