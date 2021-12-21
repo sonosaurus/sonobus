@@ -178,9 +178,7 @@ void SoundboardView::updateButtons()
 
     auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
 
-    for (int sampleIndex = 0; sampleIndex < selectedBoard.getSamples().size(); ++sampleIndex) {
-        auto& sample = selectedBoard.getSamples()[sampleIndex];
-
+    for (auto& sample : selectedBoard.getSamples()) {
         auto playbackButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
         playbackButton->setButtonColour(sample.getButtonColour());
 
@@ -192,6 +190,12 @@ void SoundboardView::updateButtons()
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
             clickedEditSoundSample(*buttonAddress, sample);
         };
+
+        auto playbackManager = getSoundboardProcessor()->getChannelProcessor()->findPlaybackManager(sample);
+        if (playbackManager.has_value()) {
+            playbackButton->attachToPlaybackManager(playbackManager.value());
+        }
+
         buttonContainer.addAndMakeVisible(playbackButton.get());
 
         buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *playbackButton).withMargin(0).withFlex(0));
@@ -451,6 +455,12 @@ void SoundboardView::resized()
 
 void SoundboardView::processKeystroke(const KeyPress& keyPress)
 {
+    // Only process keystrokes when the soundboard view is opened.
+    // This is to prevent sounds from 'magically' playing.
+    if (!this->isVisible()) {
+        return;
+    }
+
     // When hotkeys are disabled, the hotkeystate button is toggled on.
     if (mHotkeyStateButton->getToggleState()) {
         return;

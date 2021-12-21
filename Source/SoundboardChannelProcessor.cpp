@@ -139,15 +139,12 @@ SoundboardChannelProcessor::~SoundboardChannelProcessor()
 
 std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor::loadSample(const SoundSample& sample)
 {
-    {
-        // If sample is already playing, just seek the current one to the beginning to restart
-        // TODO: check for playback styles here (to be implemented)
-        auto existingManager = activeSamples.find(&sample);
-        if (existingManager != activeSamples.end()) {
-            auto manager = existingManager->second;
-            manager->seek(0.0);
-            return manager;
-        }
+    // Reset playback position to beginning when sample is already playing.
+    auto existingManager = findPlaybackManager(sample);
+    if (existingManager.has_value()) {
+        auto manager = existingManager.value();
+        manager->seek(0.0);
+        return manager;
     }
 
     auto manager = std::make_shared<SamplePlaybackManager>(&sample, this);
@@ -177,6 +174,16 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
 
 
     return manager;
+}
+
+std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor::findPlaybackManager(const SoundSample& sample)
+{
+    auto existingManager = activeSamples.find(&sample);
+    if (existingManager != activeSamples.end()) {
+        return existingManager->second;
+    }
+
+    return {};
 }
 
 SonoAudio::DelayParams& SoundboardChannelProcessor::getMonitorDelayParams()
