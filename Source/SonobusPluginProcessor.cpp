@@ -3864,7 +3864,7 @@ int32_t SonobusAudioProcessor::handleServerEvents(const aoo_event ** events, int
             {
                 aoonet_server_event *e = (aoonet_server_event *)events[i];
                 
-                DBG("Server error: " << e->errormsg);
+                DBG("Server error: " << String::fromUTF8(e->errormsg));
                 
                 break;
             }
@@ -3883,17 +3883,18 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
         case AOONET_CLIENT_CONNECT_EVENT:
         {
             aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
+
             if (e->result > 0){
                 DBG("Connected to server!");
                 mIsConnectedToServer = true;
                 mSessionConnectionStamp = Time::getMillisecondCounterHiRes();
             } else {
-                DBG("Couldn't connect to server - " << e->errormsg);
+                DBG("Couldn't connect to server - " << String::fromUTF8(e->errormsg));
                 mIsConnectedToServer = false;
                 mSessionConnectionStamp = 0.0;
             }
-            
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, this, e->result > 0, e->errormsg);
+
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, this, e->result > 0, String::fromUTF8(e->errormsg));
             
             break;
         }
@@ -3901,7 +3902,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
         {
             aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
             if (e->result == 0){
-                DBG("Disconnected from server - " << e->errormsg);
+                DBG("Disconnected from server - " << String::fromUTF8(e->errormsg));
             }
 
             // don't remove all peers?
@@ -3910,7 +3911,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             mIsConnectedToServer = false;
             mSessionConnectionStamp = 0.0;
 
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientDisconnected, this, e->result > 0, e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientDisconnected, this, e->result > 0, String::fromUTF8(e->errormsg));
 
             break;
         }
@@ -3926,9 +3927,9 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
 
 
             } else {
-                DBG("Couldn't join group " << e->name << " - " << e->errormsg);
+                DBG("Couldn't join group " << e->name << " - " << String::fromUTF8(e->errormsg));
             }
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, this, e->result > 0, CharPointer_UTF8 (e->name), e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, this, e->result > 0, CharPointer_UTF8 (e->name), String::fromUTF8(e->errormsg));
             break;
         }
         case AOONET_CLIENT_GROUP_LEAVE_EVENT:
@@ -3948,10 +3949,10 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 
 
             } else {
-                DBG("Couldn't leave group " << e->name << " - " << e->errormsg);
+                DBG("Couldn't leave group " << e->name << " - " << String::fromUTF8(e->errormsg));
             }
 
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, this, e->result > 0, CharPointer_UTF8 (e->name), e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, this, e->result > 0, CharPointer_UTF8 (e->name), String::fromUTF8(e->errormsg));
 
             break;
         }
@@ -3968,7 +3969,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 ginfo.timestamp = Time::getCurrentTime().toMilliseconds();
             }
 
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPublicGroupModified, this, CharPointer_UTF8 (e->name), e->result,  e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPublicGroupModified, this, CharPointer_UTF8 (e->name), e->result,  String::fromUTF8(e->errormsg));
             break;
         }
         case AOONET_CLIENT_GROUP_PUBLIC_DEL_EVENT:
@@ -3981,7 +3982,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 mPublicGroupInfos.erase(group);
             }
 
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPublicGroupDeleted, this, CharPointer_UTF8 (e->name), e->errormsg);
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPublicGroupDeleted, this, CharPointer_UTF8 (e->name), String::fromUTF8(e->errormsg));
             break;
         }
 
@@ -4063,8 +4064,8 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
         case AOONET_CLIENT_ERROR_EVENT:
         {
             aoonet_client_event *e = (aoonet_client_event *)events[i];
-            DBG("client error: " << e->errormsg);
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientError, this, e->errormsg);
+            DBG("client error: " << String::fromUTF8(e->errormsg));
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientError, this, String::fromUTF8(e->errormsg));
             break;
         }
         default:
