@@ -152,7 +152,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         if (slang == "ja") {
             DBG("Using japanese");
             Font jfont(font);
-#if JUCE_MAC
+#if (JUCE_MAC || JUCE_IOS)
             jfont.setTypefaceName("Hiragino Sans W3");
 #elif JUCE_ANDROID
             //jfont.setTypefaceName("Droid Sans Fallback");            
@@ -165,7 +165,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         else if (slang == "ko") {
             DBG("Using korean");
             Font jfont(font);
-#if JUCE_MAC
+#if (JUCE_MAC || JUCE_IOS)
             jfont.setTypefaceName("Apple SD Gothic Neo");
 #elif JUCE_ANDROID
             //jfont.setTypefaceName("Droid Sans Fallback");
@@ -179,8 +179,8 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         else if (slang == "zh") {
             DBG("Using chinese");
             Font jfont(font);
-#if JUCE_MAC
-            jfont.setTypefaceName("Arial Unicode MS");
+#if (JUCE_MAC || JUCE_IOS)
+            jfont.setTypefaceName("PingFang SC");
 #elif JUCE_WINDOWS
             jfont.setTypefaceName("Arial Unicode MS");
 #elif JUCE_ANDROID

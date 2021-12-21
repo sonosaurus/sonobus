@@ -3,8 +3,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
-    <key>CFBundleVersion</key>
-    <string>71</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>UIStatusBarHidden</key>
@@ -45,7 +43,9 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.4.7</string>
+    <string>1.4.8</string>
+    <key>CFBundleVersion</key>
+    <string>72</string>
     <key>NSHumanReadableCopyright</key>
     <string>2021 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
@@ -76,7 +76,7 @@
             <key>subtype</key>
             <string>NBus</string>
             <key>version</key>
-            <integer>66567</integer>
+            <integer>66568</integer>
             <key>sandboxSafe</key>
             <true/>
             <key>tags</key>
