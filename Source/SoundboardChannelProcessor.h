@@ -156,6 +156,11 @@ public:
      */
     std::optional<std::shared_ptr<SamplePlaybackManager>> loadSample(const SoundSample& sample);
 
+    /**
+     * Finds the playback manager for the given sample, or none when the sample is not playing.
+     */
+    std::optional<std::shared_ptr<SamplePlaybackManager>> findPlaybackManager(const SoundSample& sample);
+
     foleys::LevelMeterSource& getMeterSource() { return meterSource; }
 
     SonoAudio::DelayParams& getMonitorDelayParams();
