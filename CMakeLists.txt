@@ -521,6 +521,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/soundboard.svg
         images/speaker.svg
         images/speaker_disabled.svg
+        images/speaker_disabled_grey.svg
         images/triangle_disclosure.svg
         images/triangle_disclosure_right.svg
         images/urei_main.wav

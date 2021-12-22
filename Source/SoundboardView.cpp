@@ -136,9 +136,23 @@ void SoundboardView::createControlPanel()
     };
     addAndMakeVisible(mHotkeyStateButton.get());
 
+    mStopAllPlayback = std::make_unique<SonoDrawableButton>("StopAllPlayback", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> speakerImage(Drawable::createFromImageData(BinaryData::speaker_disabled_grey_svg, BinaryData::speaker_disabled_grey_svgSize));
+    mStopAllPlayback->setImages(speakerImage.get());
+    mStopAllPlayback->setForegroundImageRatio(0.75f);
+    mStopAllPlayback->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mStopAllPlayback->setTitle(TRANS("Stop all playback"));
+    mStopAllPlayback->setTooltip(TRANS("Stops all playing samples."));
+    mStopAllPlayback->onClick = [this]() {
+        // TODO: Actually stop all playback.
+    };
+    addAndMakeVisible(mStopAllPlayback.get());
+
     controlsBox.items.clear();
     controlsBox.flexDirection = FlexBox::Direction::row;
-    controlsBox.items.add(FlexItem(40, 36, *mHotkeyStateButton).withMargin(4).withFlex(0));
+    controlsBox.justifyContent = FlexBox::JustifyContent::center;
+    controlsBox.items.add(FlexItem(38, 34, *mStopAllPlayback).withMargin(4).withFlex(0));
+    controlsBox.items.add(FlexItem(38, 34, *mHotkeyStateButton).withMargin(4).withFlex(0));
 }
 
 void SoundboardView::updateSoundboardSelector()

@@ -154,6 +154,11 @@ private:
     std::unique_ptr<SonoDrawableButton> mHotkeyStateButton;
 
     /**
+     * Button for stopping all playing sample playbacks.
+     */
+    std::unique_ptr<SonoDrawableButton> mStopAllPlayback;
+
+    /**
      * Creates the outer UI panels.
      */
     void createBasePanels();
