@@ -148,6 +148,11 @@ void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
     saveToDisk();
 }
 
+void SoundboardProcessor::stopAllPlayback()
+{
+    channelProcessor->unloadAll();
+}
+
 void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
 {
     ValueTree tree(SOUNDBOARDS_KEY);

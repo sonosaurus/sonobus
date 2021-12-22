@@ -90,6 +90,11 @@ public:
     [[nodiscard]] SoundSample::ButtonBehaviour getButtonBehaviour() const { return static_cast<SoundSample::ButtonBehaviour>(mButtonBehaviourButton->getState()); }
 
     /**
+     * @return The selected gain.
+     */
+    [[nodiscard]] float getGain() const;
+
+    /**
      * @return The key code for the hotkey.
      */
     [[nodiscard]] int getHotkeyCode() const { return hotkeyCode; };
@@ -163,6 +168,11 @@ private:
     SoundSample::PlaybackBehaviour initialPlaybackBehaviour = SoundSample::PlaybackBehaviour::SIMULTANEOUS;
 
     SoundSample::ButtonBehaviour initialButtonBehaviour = SoundSample::ButtonBehaviour::TOGGLE;
+
+    /**
+     * Gain option that is chosen upon opening the dialog.
+     */
+    float initialGain = 1.0;
 
     /**
      * The key code of the hotkey for the sample, -1 for no hotkey.

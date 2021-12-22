@@ -56,6 +56,7 @@ public:
      * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
      * @param playbackBehaviour The playback behaviour.
      * @param buttonBehaviour The button behaviour.
+     * @param gain The playback gain for the sound sample.
      */
     SoundSample(
             String name,
@@ -64,7 +65,8 @@ public:
             int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             int hotkeyCode = -1,
             PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS,
-            ButtonBehaviour buttonBehaviour = ButtonBehaviour::TOGGLE
+            ButtonBehaviour buttonBehaviour = ButtonBehaviour::TOGGLE,
+            float gain = 1.0
     );
 
     String getName() const;
@@ -112,6 +114,10 @@ public:
     [[nodiscard]] ButtonBehaviour getButtonBehaviour() const;
 
     void setButtonBehaviour(ButtonBehaviour newBehaviour);
+
+    [[nodiscard]] float getGain() const { return gain; }
+
+    void setGain(float newGain) { this->gain = newGain; }
 
     /**
      * Serialize the sound sample.
@@ -167,6 +173,11 @@ private:
     constexpr static const char BUTTON_BEHAVIOUR_KEY[] = "buttonBehaviour";
 
     /**
+     * Key for the gain property of the root node in the serialization tree data structure.
+     */
+    constexpr static const char GAIN_KEY[] = "gain";
+
+    /**
      * The name representing the sound sample.
      */
     String name;
@@ -197,6 +208,11 @@ private:
     PlaybackBehaviour playbackBehaviour;
 
     ButtonBehaviour buttonBehaviour;
+
+    /**
+     * Playback gain.
+     */
+    float gain = 1.0;
 };
 
 /**

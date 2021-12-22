@@ -50,6 +50,7 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
 void SamplePlaybackManager::reloadPlaybackSettingsFromSample()
 {
     transportSource.setLooping(sample->isLoop());
+    transportSource.setGain(sample->getGain());
 }
 
 void SamplePlaybackManager::unload()
@@ -74,6 +75,11 @@ void SamplePlaybackManager::seek(double position)
 {
     transportSource.setPosition(position);
     notifyPlaybackPositionListeners();
+}
+
+void SamplePlaybackManager::setGain(float gain)
+{
+    transportSource.setGain(gain);
 }
 
 bool SamplePlaybackManager::isPlaying() const
@@ -144,6 +150,7 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
     if (existingManager.has_value()) {
         auto manager = existingManager.value();
         manager->seek(0.0);
+        manager->setGain(sample.getGain());
         return manager;
     }
 
@@ -163,15 +170,14 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
         case SoundSample::SIMULTANEOUS:
             break;
         case SoundSample::BACK_TO_BACK:
-            for (const auto &item : activeSamples) {
-                item.second->unload();
-            }
+            unloadAll();
             break;
     }
 
+    manager->setGain(sample.getGain());
+
     activeSamples[&sample] = manager;
     mixer.addInputSource(manager->getAudioSource(), false);
-
 
     return manager;
 }
@@ -346,6 +352,13 @@ void SoundboardChannelProcessor::sendAudioBlock(AudioBuffer<float>& sendWorkBuff
 void SoundboardChannelProcessor::releaseResources()
 {
     mixer.releaseResources();
+}
+
+void SoundboardChannelProcessor::unloadAll()
+{
+    for (const auto &item : activeSamples) {
+        item.second->unload();
+    }
 }
 
 void SoundboardChannelProcessor::notifyStopped(SamplePlaybackManager* samplePlaybackManager)

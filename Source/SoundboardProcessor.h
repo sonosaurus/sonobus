@@ -107,6 +107,11 @@ public:
     void deleteSoundSample(SoundSample& sampleToDelete);
 
     /**
+     * Stops all playing sound samples from playing.
+     */
+    void stopAllPlayback();
+
+    /**
      * @return The channel processor for playing and sending audio.
      */
     [[nodiscard]] SoundboardChannelProcessor* getChannelProcessor() const { return channelProcessor; }

@@ -6,14 +6,17 @@
 #include "Soundboard.h"
 #include <utility>
 
-SoundSample::SoundSample(String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode, PlaybackBehaviour playbackBehaviour, ButtonBehaviour buttonBehaviour)
-        : name(std::move(newName)),
+SoundSample::SoundSample(
+        String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode,
+        PlaybackBehaviour playbackBehaviour,  ButtonBehaviour buttonBehaviour, float newGain
+) : name(std::move(newName)),
         filePath(std::move(newFilePath)),
         loop(newLoop),
         buttonColour(buttonColour),
         hotkeyCode(hotkeyCode),
         playbackBehaviour(playbackBehaviour),
-        buttonBehaviour(buttonBehaviour)
+        buttonBehaviour(buttonBehaviour),
+        gain(newGain)
 {}
 
 String SoundSample::getName() const
@@ -96,6 +99,7 @@ ValueTree SoundSample::serialize() const
     tree.setProperty(HOTKEY_KEY, hotkeyCode, nullptr);
     tree.setProperty(PLAYBACK_BEHAVIOUR_KEY, playbackBehaviour, nullptr);
     tree.setProperty(BUTTON_BEHAVIOUR_KEY, buttonBehaviour, nullptr);
+    tree.setProperty(GAIN_KEY, gain, nullptr);
 
     return tree;
 }
@@ -112,7 +116,8 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
         tree.getProperty(BUTTON_COLOUR_KEY, SoundboardButtonColors::DEFAULT_BUTTON_COLOUR),
         tree.getProperty(HOTKEY_KEY, -1),
         static_cast<PlaybackBehaviour>(playbackBehaviour),
-        static_cast<ButtonBehaviour>(buttonBehaviour)
+        static_cast<ButtonBehaviour>(buttonBehaviour),
+        tree.getProperty(GAIN_KEY, 1.0)
     );
 
     return soundSample;

@@ -80,6 +80,8 @@ public:
      */
     void seek(double position);
 
+    void setGain(float gain);
+
     /**
      * Returns whether a loaded file is currently playing.
      *
@@ -198,6 +200,10 @@ public:
 
     void releaseResources();
 
+    /**
+     * Stops all playing samples from playing.
+     */
+    void unloadAll();
     void notifyStopped(SamplePlaybackManager* samplePlaybackManager);
 
     std::unordered_map<const SoundSample*, std::shared_ptr<SamplePlaybackManager>>& getActiveSamples() { return activeSamples; }
