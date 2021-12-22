@@ -80,6 +80,8 @@ public:
      */
     void seek(double position);
 
+    void setGain(float gain);
+
     /**
      * Returns whether a loaded file is currently playing.
      *
