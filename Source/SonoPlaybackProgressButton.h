@@ -54,6 +54,8 @@ public:
 
     void attachToPlaybackManager(std::shared_ptr<SamplePlaybackManager> playbackManager);
 
+    void setMouseListener(std::unique_ptr<MouseListener> listener);
+
 private:
     constexpr static const int PROGRESS_COLOUR = 0x22FFFFFF;
 
@@ -65,4 +67,6 @@ private:
     int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     std::shared_ptr<SamplePlaybackManager> playbackManager;
+
+    std::unique_ptr<MouseListener> mouseListener;
 };

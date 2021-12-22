@@ -8,13 +8,14 @@
 
 SoundSample::SoundSample(
         String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode,
-        PlaybackBehaviour playbackBehaviour, float newGain
+        PlaybackBehaviour playbackBehaviour,  ButtonBehaviour buttonBehaviour, float newGain
 ) : name(std::move(newName)),
         filePath(std::move(newFilePath)),
         loop(newLoop),
         buttonColour(buttonColour),
         hotkeyCode(hotkeyCode),
         playbackBehaviour(playbackBehaviour),
+        buttonBehaviour(buttonBehaviour),
         gain(newGain)
 {}
 
@@ -78,6 +79,16 @@ void SoundSample::setPlaybackBehaviour(PlaybackBehaviour newBehaviour)
     playbackBehaviour = newBehaviour;
 }
 
+SoundSample::ButtonBehaviour SoundSample::getButtonBehaviour() const
+{
+    return buttonBehaviour;
+}
+
+void SoundSample::setButtonBehaviour(ButtonBehaviour newBehaviour)
+{
+    buttonBehaviour = newBehaviour;
+}
+
 ValueTree SoundSample::serialize() const
 {
     ValueTree tree(SAMPLE_KEY);
@@ -87,6 +98,7 @@ ValueTree SoundSample::serialize() const
     tree.setProperty(BUTTON_COLOUR_KEY, buttonColour, nullptr);
     tree.setProperty(HOTKEY_KEY, hotkeyCode, nullptr);
     tree.setProperty(PLAYBACK_BEHAVIOUR_KEY, playbackBehaviour, nullptr);
+    tree.setProperty(BUTTON_BEHAVIOUR_KEY, buttonBehaviour, nullptr);
     tree.setProperty(GAIN_KEY, gain, nullptr);
 
     return tree;
@@ -95,6 +107,7 @@ ValueTree SoundSample::serialize() const
 SoundSample SoundSample::deserialize(const ValueTree tree)
 {
     int playbackBehaviour = tree.getProperty(PLAYBACK_BEHAVIOUR_KEY, PlaybackBehaviour::SIMULTANEOUS);
+    int buttonBehaviour = tree.getProperty(BUTTON_BEHAVIOUR_KEY, ButtonBehaviour::TOGGLE);
 
     SoundSample soundSample(
         tree.getProperty(NAME_KEY),
@@ -103,6 +116,7 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
         tree.getProperty(BUTTON_COLOUR_KEY, SoundboardButtonColors::DEFAULT_BUTTON_COLOUR),
         tree.getProperty(HOTKEY_KEY, -1),
         static_cast<PlaybackBehaviour>(playbackBehaviour),
+        static_cast<ButtonBehaviour>(buttonBehaviour),
         tree.getProperty(GAIN_KEY, 1.0)
     );
 

@@ -42,6 +42,12 @@ public:
         BACK_TO_BACK = 1
     };
 
+    enum ButtonBehaviour {
+        TOGGLE = 0,
+        HOLD = 1,
+        ONE_SHOT = 2
+    };
+
     /**
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.
@@ -49,6 +55,7 @@ public:
      * @param buttonColour The colour of the sample button in RGB value with an alpha of 0.
      * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
      * @param playbackBehaviour The playback behaviour.
+     * @param buttonBehaviour The button behaviour.
      * @param gain The playback gain for the sound sample.
      */
     SoundSample(
@@ -58,6 +65,7 @@ public:
             int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             int hotkeyCode = -1,
             PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS,
+            ButtonBehaviour buttonBehaviour = ButtonBehaviour::TOGGLE,
             float gain = 1.0
     );
 
@@ -102,6 +110,10 @@ public:
     [[nodiscard]] PlaybackBehaviour getPlaybackBehaviour() const;
 
     void setPlaybackBehaviour(PlaybackBehaviour newBehaviour);
+
+    [[nodiscard]] ButtonBehaviour getButtonBehaviour() const;
+
+    void setButtonBehaviour(ButtonBehaviour newBehaviour);
 
     [[nodiscard]] float getGain() const { return gain; }
 
@@ -158,6 +170,8 @@ private:
      */
     constexpr static const char PLAYBACK_BEHAVIOUR_KEY[] = "playbackBehaviour";
 
+    constexpr static const char BUTTON_BEHAVIOUR_KEY[] = "buttonBehaviour";
+
     /**
      * Key for the gain property of the root node in the serialization tree data structure.
      */
@@ -192,6 +206,8 @@ private:
      * See SoundSample::PlaybackBehaviour.
      */
     PlaybackBehaviour playbackBehaviour;
+
+    ButtonBehaviour buttonBehaviour;
 
     /**
      * Playback gain.
