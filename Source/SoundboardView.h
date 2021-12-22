@@ -43,6 +43,16 @@ public:
 
     void filesDropped(const StringArray& files, int x, int y) override;
 
+    /**
+     * Plays the sound of the given sample.
+     *
+     * @param sample The sample to play.
+     * @param button The button the play request originated from.
+     */
+    void playSample(const SoundSample& sample, SonoPlaybackProgressButton* button = nullptr);
+
+    void stopSample(const SoundSample& sample);
+
 private:
     constexpr static const float MENU_BUTTON_WIDTH = 36;
     constexpr static const float TITLE_LABEL_WIDTH = 90;
@@ -176,14 +186,6 @@ private:
     void updateButtons();
 
     /**
-     * Plays the sound of the given sample.
-     *
-     * @param sample The sample to play.
-     * @param button The button the play request originated from.
-     */
-    void playSample(const SoundSample& sample, SonoPlaybackProgressButton* button = nullptr);
-
-    /**
      * Plays the sample at the given sampleIndex, does nothing when sampleIndex out of bounds.
      * @return true if a sound was played, false if no sound was played.
      */
@@ -227,4 +229,23 @@ private:
     void fileDragStopped();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
+};
+
+class HoldSampleButtonMouseListener : public MouseListener
+{
+public:
+
+    HoldSampleButtonMouseListener(SonoPlaybackProgressButton* button, SoundSample* sample, SoundboardView* view);
+
+    void mouseDown(const MouseEvent &event) override;
+
+    void mouseUp(const MouseEvent &event) override;
+
+private:
+
+    SonoPlaybackProgressButton* button;
+
+    SoundSample* sample;
+
+    SoundboardView* view;
 };

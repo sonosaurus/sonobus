@@ -75,3 +75,8 @@ void SonoPlaybackProgressButton::attachToPlaybackManager(std::shared_ptr<SampleP
     playbackManager->detach(*this);
     playbackManager->attach(*this);
 }
+
+void SonoPlaybackProgressButton::setMouseListener(std::unique_ptr<MouseListener> listener) {
+    mouseListener = std::move(listener);
+    addMouseListener(mouseListener.get(), false);
+}

@@ -162,9 +162,25 @@ void SoundboardView::updateButtons()
         playbackButton->setButtonColour(sample.getButtonColour());
 
         auto buttonAddress = playbackButton.get();
-        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
-            playSample(sample, buttonAddress);
-        };
+        if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD) {
+            playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {};
+            playbackButton->setMouseListener(std::make_unique<HoldSampleButtonMouseListener>(buttonAddress, &sample, this));
+        }
+        else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::ONE_SHOT) {
+            playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+                playSample(sample, buttonAddress);
+            };
+        }
+        else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE) {
+            playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+                if (processor->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
+                    stopSample(sample);
+                }
+                else {
+                    playSample(sample, buttonAddress);
+                }
+            };
+        }
 
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
             clickedEditSoundSample(*buttonAddress, sample);
@@ -224,6 +240,14 @@ void SoundboardView::playSample(const SoundSample& sample, SonoPlaybackProgressB
     }
 
     playbackManager->play();
+}
+
+void SoundboardView::stopSample(const SoundSample& sample)
+{
+    auto playbackManagerMaybe = processor->getChannelProcessor()->findPlaybackManager(sample);
+    if (!playbackManagerMaybe.has_value()) return;
+
+    playbackManagerMaybe.value()->pause();
 }
 
 bool SoundboardView::playSampleAtIndex(int sampleIndex)
@@ -550,3 +574,22 @@ void SoundboardView::filesDropped(const StringArray& files, int x, int y)
         clickedEditSoundSample(*mSoundButtons[mSoundButtons.size() - 1].get(), *createdSample);
     }
 }
+
+HoldSampleButtonMouseListener::HoldSampleButtonMouseListener(SonoPlaybackProgressButton* button, SoundSample* sample, SoundboardView* view) :
+        button(button),
+        sample(sample),
+        view(view)
+{
+
+}
+
+void HoldSampleButtonMouseListener::mouseDown(const MouseEvent& event)
+{
+    view->playSample(*sample, button);
+}
+
+void HoldSampleButtonMouseListener::mouseUp(const MouseEvent& event)
+{
+    view->stopSample(*sample);
+}
+

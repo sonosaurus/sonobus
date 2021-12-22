@@ -42,6 +42,12 @@ public:
         BACK_TO_BACK = 1
     };
 
+    enum ButtonBehaviour {
+        TOGGLE = 0,
+        HOLD = 1,
+        ONE_SHOT = 2
+    };
+
     /**
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.
@@ -49,6 +55,7 @@ public:
      * @param buttonColour The colour of the sample button in RGB value with an alpha of 0.
      * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
      * @param playbackBehaviour The playback behaviour.
+     * @param buttonBehaviour The button behaviour.
      */
     SoundSample(
             String name,
@@ -56,7 +63,8 @@ public:
             bool loop = false,
             int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             int hotkeyCode = -1,
-            PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS
+            PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS,
+            ButtonBehaviour buttonBehaviour = ButtonBehaviour::TOGGLE
     );
 
     String getName() const;
@@ -100,6 +108,10 @@ public:
     [[nodiscard]] PlaybackBehaviour getPlaybackBehaviour() const;
 
     void setPlaybackBehaviour(PlaybackBehaviour newBehaviour);
+
+    [[nodiscard]] ButtonBehaviour getButtonBehaviour() const;
+
+    void setButtonBehaviour(ButtonBehaviour newBehaviour);
 
     /**
      * Serialize the sound sample.
@@ -152,6 +164,8 @@ private:
      */
     constexpr static const char PLAYBACK_BEHAVIOUR_KEY[] = "playbackBehaviour";
 
+    constexpr static const char BUTTON_BEHAVIOUR_KEY[] = "buttonBehaviour";
+
     /**
      * The name representing the sound sample.
      */
@@ -181,6 +195,8 @@ private:
      * See SoundSample::PlaybackBehaviour.
      */
     PlaybackBehaviour playbackBehaviour;
+
+    ButtonBehaviour buttonBehaviour;
 };
 
 /**
