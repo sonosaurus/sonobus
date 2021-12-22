@@ -17,6 +17,7 @@ SampleEditView::SampleEditView(
     initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
     initialLoop(soundSample != nullptr && soundSample->isLoop()),
     initialPlaybackBehaviour(soundSample == nullptr ? SoundSample::PlaybackBehaviour::SIMULTANEOUS : soundSample->getPlaybackBehaviour()),
+    initialButtonBehaviour(soundSample == nullptr ? SoundSample::ButtonBehaviour::TOGGLE : soundSample->getButtonBehaviour()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString),
     selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
@@ -188,6 +189,10 @@ void SampleEditView::createPlaybackOptionInputs()
     playbackOptionsRowBox.flexDirection = FlexBox::Direction::row;
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
 
+    createButtonBehaviourButton();
+    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mButtonBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
     createLoopButton();
     playbackOptionsRowBox.items.add(FlexItem(56, 56, *mLoopButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
@@ -254,6 +259,23 @@ void SampleEditView::createPlaybackBehaviourButton()
     mPlaybackBehaviourButton->setState(initialPlaybackBehaviour);
 
     addAndMakeVisible(mPlaybackBehaviourButton.get());
+}
+
+void SampleEditView::createButtonBehaviourButton()
+{
+    auto toggleImg = Drawable::createFromImageData(BinaryData::toggle_svg, BinaryData::toggle_svgSize);
+    auto holdImg = Drawable::createFromImageData(BinaryData::hold_svg, BinaryData::hold_svgSize);
+    auto oneshotImg = Drawable::createFromImageData(BinaryData::oneshot_svg, BinaryData::oneshot_svgSize);
+    auto imgs = std::vector<std::unique_ptr<Drawable>>();
+    imgs.push_back(std::move(toggleImg));
+    imgs.push_back(std::move(holdImg));
+    imgs.push_back(std::move(oneshotImg));
+    auto labels = std::vector<String>{TRANS("Toggle"), TRANS("Hold"), TRANS("1-shot")};
+    mButtonBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("buttonBehaviour", std::move(imgs), std::move(labels));
+    mButtonBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
+    mButtonBehaviourButton->setState(initialButtonBehaviour);
+
+    addAndMakeVisible(mButtonBehaviourButton.get());
 }
 
 void SampleEditView::createHotkeyInput()

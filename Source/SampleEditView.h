@@ -87,6 +87,8 @@ public:
      */
     [[nodiscard]] SoundSample::PlaybackBehaviour getPlaybackBehaviour() const { return static_cast<SoundSample::PlaybackBehaviour>(mPlaybackBehaviourButton->getState()); }
 
+    [[nodiscard]] SoundSample::ButtonBehaviour getButtonBehaviour() const { return static_cast<SoundSample::ButtonBehaviour>(mButtonBehaviourButton->getState()); }
+
     /**
      * @return The key code for the hotkey.
      */
@@ -159,6 +161,8 @@ private:
      * Playback behaviour option that is chosen upon opening the dialog.
      */
     SoundSample::PlaybackBehaviour initialPlaybackBehaviour = SoundSample::PlaybackBehaviour::SIMULTANEOUS;
+
+    SoundSample::ButtonBehaviour initialButtonBehaviour = SoundSample::ButtonBehaviour::TOGGLE;
 
     /**
      * The key code of the hotkey for the sample, -1 for no hotkey.
@@ -297,6 +301,8 @@ private:
      */
     std::unique_ptr<SonoMultiStateDrawableButton> mPlaybackBehaviourButton;
 
+    std::unique_ptr<SonoMultiStateDrawableButton> mButtonBehaviourButton;
+
     /**
      * Label for hotkey configuration
      */
@@ -363,6 +369,8 @@ private:
      * Creates the playback behaviour option toggle.
      */
     void createPlaybackBehaviourButton();
+
+    void createButtonBehaviourButton();
 
     /**
      * Adds the input controls for the hotkey configuration.

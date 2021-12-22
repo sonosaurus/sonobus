@@ -473,6 +473,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/eyedropper.svg
         images/folder_icon.svg
         images/hear-others.svg
+        images/hold.svg
         images/incoming_allowed.svg
         images/incoming_allowed_active.svg
         images/incoming_disallowed.svg
@@ -492,6 +493,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/move_updown.svg
         images/mute-others.svg
         images/network.svg
+        images/oneshot.svg
         images/outgoing_allowed.svg
         images/outgoing_allowed_active.svg
         images/outgoing_disallowed.svg
@@ -521,6 +523,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/soundboard.svg
         images/speaker.svg
         images/speaker_disabled.svg
+        images/toggle.svg
         images/triangle_disclosure.svg
         images/triangle_disclosure_right.svg
         images/urei_main.wav
