@@ -29,7 +29,7 @@ public:
     /**
      * The recommended height of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_HEIGHT = 432;
+    constexpr static const float DEFAULT_VIEW_HEIGHT = 500;
 
     /**
      * @param callback Function with the actual selected name that gets called when the submit button is pressed.
@@ -218,6 +218,11 @@ private:
     FlexBox playbackOptionsRowBox;
 
     /**
+     * Box for the volume controls.
+     */
+    FlexBox volumeRowBox;
+
+    /**
      * Box for the hotkey settings button row.
      */
     FlexBox hotkeyButtonRowBox;
@@ -263,16 +268,6 @@ private:
     std::vector<std::unique_ptr<SonoDrawableButton>> mColourButtons;
 
     /**
-     * Button that saves the sound sample/submits the dialog.
-     */
-    std::unique_ptr<SonoTextButton> mSubmitButton;
-
-    /**
-     * Button that deletes the sound sample.
-     */
-    std::unique_ptr<SonoTextButton> mDeleteButton;
-
-    /**
      * Control for selecting a custom button colour.
      */
     std::unique_ptr<SoundSampleButtonColourPicker> mColourPicker;
@@ -286,6 +281,16 @@ private:
      * Control to toggle the loop playback option.
      */
     std::unique_ptr<SonoDrawableButton> mLoopButton;
+
+    /**
+     * Label for the volume options.
+     */
+    std::unique_ptr<Label> mVolumeLabel;
+
+    /**
+     * Controls the volume of the slider.
+     */
+    std::unique_ptr<Slider> mVolumeSlider;
 
     /**
      * Control to toggle playback behaviour option.
@@ -308,6 +313,16 @@ private:
      * Button used to remove the current keybinds.
      */
     std::unique_ptr<SonoTextButton> mRemoveHotkeyButton;
+
+    /**
+     * Button that saves the sound sample/submits the dialog.
+     */
+    std::unique_ptr<SonoTextButton> mSubmitButton;
+
+    /**
+     * Button that deletes the sound sample.
+     */
+    std::unique_ptr<SonoTextButton> mDeleteButton;
 
     /**
      * Initialises all layout elements.
@@ -333,6 +348,11 @@ private:
      * Adds the input controls for playback option configuration.
      */
     void createPlaybackOptionInputs();
+
+    /**
+     * Adds the input controls for the volume settings.
+     */
+    void createVolumeInputs();
 
     /**
      * Creates the loop playback option toggle.
