@@ -200,7 +200,7 @@ void SampleEditView::createPlaybackOptionInputs()
 
 void SampleEditView::createVolumeInputs()
 {
-    mVolumeLabel = std::make_unique<Label>("volumeLabel", TRANS("Volume"));
+    mVolumeLabel = std::make_unique<Label>("gainLabel", TRANS("Gain"));
     mVolumeLabel->setJustificationType(Justification::left);
     mVolumeLabel->setFont(Font(14, Font::bold));
     mVolumeLabel->setColour(Label::textColourId, Colour(0xeeffffff));
@@ -210,7 +210,7 @@ void SampleEditView::createVolumeInputs()
     mVolumeSlider->setRange(0.0, 2.0, 0.0);
     mVolumeSlider->setSkewFactor(0.5);
     mVolumeSlider->setName("volumeSlider");
-    mVolumeSlider->setTitle(TRANS("Playback volume level"));
+    mVolumeSlider->setTitle(TRANS("Playback gain level"));
     mVolumeSlider->setSliderSnapsToMousePosition(false);
     mVolumeSlider->setTextBoxIsEditable(true);
     mVolumeSlider->setScrollWheelEnabled(true);

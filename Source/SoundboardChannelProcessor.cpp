@@ -170,9 +170,7 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
         case SoundSample::SIMULTANEOUS:
             break;
         case SoundSample::BACK_TO_BACK:
-            for (const auto &item : activeSamples) {
-                item.second->unload();
-            }
+            unloadAll();
             break;
     }
 
@@ -354,6 +352,13 @@ void SoundboardChannelProcessor::sendAudioBlock(AudioBuffer<float>& sendWorkBuff
 void SoundboardChannelProcessor::releaseResources()
 {
     mixer.releaseResources();
+}
+
+void SoundboardChannelProcessor::unloadAll()
+{
+    for (const auto &item : activeSamples) {
+        item.second->unload();
+    }
 }
 
 void SoundboardChannelProcessor::notifyStopped(SamplePlaybackManager* samplePlaybackManager)

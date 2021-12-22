@@ -144,7 +144,7 @@ void SoundboardView::createControlPanel()
     mStopAllPlayback->setTitle(TRANS("Stop all playback"));
     mStopAllPlayback->setTooltip(TRANS("Stops all playing samples."));
     mStopAllPlayback->onClick = [this]() {
-        // TODO: Actually stop all playback.
+        processor->stopAllPlayback();
     };
     addAndMakeVisible(mStopAllPlayback.get());
 
