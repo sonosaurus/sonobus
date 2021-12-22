@@ -28,6 +28,7 @@ SampleEditView::SampleEditView(
     createFilePathInputs();
     createColourInput();
     createPlaybackOptionInputs();
+    createVolumeInputs();
     createHotkeyInput();
     createButtonBar();
     initialiseLayouts();
@@ -53,9 +54,14 @@ void SampleEditView::initialiseLayouts()
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mPlaybackOptionsLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 56, playbackOptionsRowBox).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 36, playbackOptionsRowBox).withMargin(0).withFlex(0));
 
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 6).withMargin(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mVolumeLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 48, volumeRowBox).withMargin(0).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 1).withMargin(0));
     contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mHotkeyLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(150, CONTROL_HEIGHT, hotkeyButtonRowBox).withMargin(4).withFlex(0));
 
@@ -189,6 +195,34 @@ void SampleEditView::createPlaybackOptionInputs()
     createPlaybackBehaviourButton();
     playbackOptionsRowBox.items.add(FlexItem(56, 56, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+}
+
+void SampleEditView::createVolumeInputs()
+{
+    mVolumeLabel = std::make_unique<Label>("volumeLabel", TRANS("Volume"));
+    mVolumeLabel->setJustificationType(Justification::left);
+    mVolumeLabel->setFont(Font(14, Font::bold));
+    mVolumeLabel->setColour(Label::textColourId, Colour(0xeeffffff));
+    addAndMakeVisible(mVolumeLabel.get());
+
+    mVolumeSlider = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
+    mVolumeSlider->setRange(0.0, 2.0, 0.0);
+    mVolumeSlider->setSkewFactor(0.5);
+    mVolumeSlider->setName("volumeSlider");
+    mVolumeSlider->setTitle(TRANS("Playback volume level"));
+    mVolumeSlider->setSliderSnapsToMousePosition(false);
+    mVolumeSlider->setTextBoxIsEditable(true);
+    mVolumeSlider->setScrollWheelEnabled(true);
+    mVolumeSlider->setMouseDragSensitivity(256);
+    mVolumeSlider->setTextBoxStyle(Slider::TextBoxRight, false, 60, 14);
+    mVolumeSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
+    mVolumeSlider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
+    mVolumeSlider->setValue(1.0);
+    addAndMakeVisible(mVolumeSlider.get());
+
+    volumeRowBox.flexDirection = FlexBox::Direction::row;
+    volumeRowBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
+    volumeRowBox.items.add(FlexItem(128, 36, *mVolumeSlider).withMargin(0).withFlex(0, 0));
 }
 
 void SampleEditView::createLoopButton()

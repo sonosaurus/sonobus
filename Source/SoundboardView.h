@@ -104,6 +104,11 @@ private:
     FlexBox soundboardSelectionBox;
 
     /**
+     * Layout for the control bar at the bottom.
+     */
+    FlexBox controlsBox;
+
+    /**
      * Look and feel for dashed buttons.
      */
     SonoDashedBorderButtonLookAndFeel dashedButtonLookAndFeel;
@@ -144,6 +149,11 @@ private:
     std::unique_ptr<SonoDrawableButton> mAddSampleButton;
 
     /**
+     * Button for enabling/disabling hotkeys.
+     */
+    std::unique_ptr<SonoDrawableButton> mHotkeyStateButton;
+
+    /**
      * Creates the outer UI panels.
      */
     void createBasePanels();
@@ -172,6 +182,11 @@ private:
      * Creates the control panel for selecting and managing different soundboards.
      */
     void createSoundboardSelectionPanel();
+
+    /**
+     * Creates the bottom control button bar.
+     */
+    void createControlPanel();
 
     /**
      * Updates the soundboard selector to contain exactly all soundboards that are

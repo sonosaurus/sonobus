@@ -16,6 +16,7 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
 
     createSoundboardTitle();
     createSoundboardSelectionPanel();
+    createControlPanel();
     createBasePanels();
 
     updateSoundboardSelector();
@@ -41,7 +42,8 @@ void SoundboardView::createBasePanels()
             FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     soundboardContainerBox.items.add(
-            FlexItem(buttonViewport).withMargin(0).withFlex(1));
+            FlexItem(buttonViewport).withMargin(2).withFlex(1));
+    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, 48, controlsBox).withMargin(2).withFlex(0));
 
     mainBox.items.clear();
     mainBox.flexDirection = FlexBox::Direction::column;
@@ -114,6 +116,29 @@ void SoundboardView::createSoundboardSelectionPanel()
     soundboardSelectionBox.items.add(
             FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mBoardSelectComboBox).withMargin(0).withFlex(1));
     soundboardSelectionBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(0));
+}
+
+void SoundboardView::createControlPanel()
+{
+    mHotkeyStateButton = std::make_unique<SonoDrawableButton>("Hotkey switch", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> keyboardImage(Drawable::createFromImageData(BinaryData::keyboard_svg, BinaryData::keyboard_svgSize));
+    std::unique_ptr<Drawable> keyboardDisabledImage(Drawable::createFromImageData(BinaryData::keyboard_disabled_svg, BinaryData::keyboard_disabled_svgSize));
+    mHotkeyStateButton->setImages(keyboardImage.get(), nullptr, nullptr, nullptr, keyboardDisabledImage.get());
+    mHotkeyStateButton->setForegroundImageRatio(0.75f);
+    mHotkeyStateButton->setClickingTogglesState(true);
+    mHotkeyStateButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mHotkeyStateButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mHotkeyStateButton->setTitle(TRANS("Toggle hotkeys"));
+    mHotkeyStateButton->setTooltip(TRANS("Toggles whether sound samples can be played using hotkeys."));
+    mHotkeyStateButton->setToggleState(processor->isHotkeysSelected(), NotificationType::dontSendNotification);
+    mHotkeyStateButton->onClick = [this]() {
+        processor->setHotkeysSelected(mHotkeyStateButton->getToggleState());
+    };
+    addAndMakeVisible(mHotkeyStateButton.get());
+
+    controlsBox.items.clear();
+    controlsBox.flexDirection = FlexBox::Direction::row;
+    controlsBox.items.add(FlexItem(40, 36, *mHotkeyStateButton).withMargin(4).withFlex(0));
 }
 
 void SoundboardView::updateSoundboardSelector()
@@ -461,6 +486,11 @@ void SoundboardView::processKeystroke(const KeyPress& keyPress)
     // Only process keystrokes when the soundboard view is opened.
     // This is to prevent sounds from 'magically' playing.
     if (!this->isVisible()) {
+        return;
+    }
+
+    // When hotkeys are disabled, the hotkeystate button is toggled on.
+    if (mHotkeyStateButton->getToggleState()) {
         return;
     }
 

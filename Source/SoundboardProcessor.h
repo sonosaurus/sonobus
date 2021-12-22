@@ -111,6 +111,20 @@ public:
      */
     [[nodiscard]] SoundboardChannelProcessor* getChannelProcessor() const { return channelProcessor; }
 
+    /**
+     * @return Whether the hotkeys are muted (true) or not (false).
+     */
+    [[nodiscard]] bool isHotkeysSelected() const { return hotkeysMuted; }
+
+    /**
+     * Set Whether the hotkeys are muted (true) or not (false).
+     */
+    void setHotkeysSelected(bool selected)
+    {
+        hotkeysMuted = selected;
+        saveToDisk();
+    }
+
 private:
     /**
      * File where the soundboards data is stored, relative to the user home directory.
@@ -126,6 +140,11 @@ private:
      * Key of the root node property in the serialized tree data structure that holds the index of the currently selected soundboard.
      */
     constexpr static const char SELECTED_KEY[] = "selected";
+
+    /*
+     * Key of the root node property in the serialized tree data structure that stores whether hotkeys must be muted.
+     */
+    constexpr static const char HOTKEYS_MUTED_KEY[] = "hotkeysMuted";
 
     /**
      * Gets the file where the soundboard data is stored on disk.
@@ -148,6 +167,14 @@ private:
      * Index of the currently selected soundboard.
      */
     std::optional<int> selectedSoundboardIndex;
+
+    /**
+     * Whether the hotkeys are muted or not.
+     *
+     * When hotkeys are muted (true), samples cannot be played by using hotkeys.
+     * When hotkeys are not muted (false), samples can be played using hotkeys.
+     */
+    bool hotkeysMuted = false;
 
     /**
      * Writes the soundboard data to the given file.

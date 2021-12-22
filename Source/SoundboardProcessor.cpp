@@ -153,6 +153,7 @@ void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
     ValueTree tree(SOUNDBOARDS_KEY);
 
     tree.setProperty(SELECTED_KEY, selectedSoundboardIndex.value_or(-1), nullptr);
+    tree.setProperty(HOTKEYS_MUTED_KEY, hotkeysMuted, nullptr);
 
     int i = 0;
     for (const auto& soundboard: soundboards) {
@@ -176,6 +177,7 @@ void SoundboardProcessor::readSoundboardsFromFile(const File& file)
 
     int selected = tree.getProperty(SELECTED_KEY);
     selectedSoundboardIndex = selected >= 0 ? std::optional<size_t>(selected) : std::nullopt;
+    hotkeysMuted = tree.getProperty(HOTKEYS_MUTED_KEY, false);
 
     soundboards.clear();
 
