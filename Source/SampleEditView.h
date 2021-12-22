@@ -88,6 +88,11 @@ public:
     [[nodiscard]] SoundSample::PlaybackBehaviour getPlaybackBehaviour() const { return static_cast<SoundSample::PlaybackBehaviour>(mPlaybackBehaviourButton->getState()); }
 
     /**
+     * @return The selected gain.
+     */
+    [[nodiscard]] float getGain() const;
+
+    /**
      * @return The key code for the hotkey.
      */
     [[nodiscard]] int getHotkeyCode() const { return hotkeyCode; };
@@ -159,6 +164,11 @@ private:
      * Playback behaviour option that is chosen upon opening the dialog.
      */
     SoundSample::PlaybackBehaviour initialPlaybackBehaviour = SoundSample::PlaybackBehaviour::SIMULTANEOUS;
+
+    /**
+     * Gain option that is chosen upon opening the dialog.
+     */
+    float initialGain = 1.0;
 
     /**
      * The key code of the hotkey for the sample, -1 for no hotkey.
