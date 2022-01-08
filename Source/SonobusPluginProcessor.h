@@ -262,8 +262,6 @@ public:
     static String paramInputReverbPreDelay;
 
     struct EndpointState;
-    struct RemoteSink;
-    struct RemoteSource;
     struct RemotePeer;
 
     int32_t handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId);
