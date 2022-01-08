@@ -3166,114 +3166,109 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
             aoo_sink_event *e = (aoo_sink_event *)events[i];
 
             // accepts invites
-            if (true){
-                EndpointState * es = (EndpointState *)e->endpoint;
-                // handle dummy source specially
-                
-                int32_t dummyid;
-                
-                if (mAooDummySource->get_id(dummyid) && dummyid == sourceId) {
-                    // dummy source is special, and creates a remote peer
+            EndpointState * es = (EndpointState *)e->endpoint;
+            // handle dummy source specially
 
-                    RemotePeer * peer = findRemotePeerByRemoteSinkId(es, e->id);
-                    if (peer) {
-                        // we already have a peer for this, interesting
-                        DBG("Already had remote peer for " <<   es->ipaddr << ":" << es->port << "  ourId: " << peer->ourId);
-                    } else if (!mIsConnectedToServer) {
-                        peer = doAddRemotePeerIfNecessary(es);
-                    }
-                    else {
-                        // connected to server, don't just respond to anyone
-                        peer = findRemotePeer(es, -1);
-                        if (!peer) {
-                            DBG("Not reacting to invite from a peer not known in the group");
-                            break;
-                        }
+            int32_t dummyid;
 
-                        DBG("Got invite from peer in the group");
+            if (mAooDummySource->get_id(dummyid) && dummyid == sourceId) {
+                // dummy source is special, and creates a remote peer
+
+                RemotePeer * peer = findRemotePeerByRemoteSinkId(es, e->id);
+                if (peer) {
+                    // we already have a peer for this, interesting
+                    DBG("Already had remote peer for " <<   es->ipaddr << ":" << es->port << "  ourId: " << peer->ourId);
+                } else if (!mIsConnectedToServer) {
+                    peer = doAddRemotePeerIfNecessary(es);
+                }
+                else {
+                    // connected to server, don't just respond to anyone
+                    peer = findRemotePeer(es, -1);
+                    if (!peer) {
+                        DBG("Not reacting to invite from a peer not known in the group");
+                        break;
                     }
 
-                    const ScopedReadLock sl (mCoreLock);        
+                    DBG("Got invite from peer in the group");
+                }
+
+                const ScopedReadLock sl (mCoreLock);
+
+                peer->remoteSinkId = e->id;
+
+                // add their sink
+                peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
+                peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
+
+                if (peer->sendAllow) {
+                    peer->oursource->start();
+                    peer->sendActive = true;
+                } else {
+                    peer->oursource->stop();
+                    peer->sendActive = false;
+                }
+
+                DBG("Was invited by remote peer " <<  es->ipaddr << ":" << es->port << " sourceId: " << peer->remoteSinkId << "  ourId: " <<  peer->ourId);
+
+                // now try to invite them back at their port , with the same ID, they
+                // should have a source waiting for us with the same id
+
+                DBG("Inviting them back to our sink");
+                peer->remoteSourceId = peer->remoteSinkId;
+                peer->oursink->invite_source(es, peer->remoteSourceId, endpoint_send);
+
+                // now remove dummy handshake one
+                mAooDummySource->remove_sink(es, dummyid);
+
+            }
+            else {
+                // invited
+                DBG("Invite received to our source: " << sourceId << " from " << es->ipaddr << ":" << es->port << "  " << e->id);
+
+                RemotePeer * peer = findRemotePeer(es, sourceId);
+                if (peer) {
 
                     peer->remoteSinkId = e->id;
 
-                    // add their sink
                     peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
                     peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
 
                     if (peer->sendAllow) {
                         peer->oursource->start();
+
                         peer->sendActive = true;
+                        DBG("Starting to send, we allow it");
                     } else {
-                        peer->oursource->stop();
                         peer->sendActive = false;
+                        peer->oursource->stop();
                     }
-                    
-                    DBG("Was invited by remote peer " <<  es->ipaddr << ":" << es->port << " sourceId: " << peer->remoteSinkId << "  ourId: " <<  peer->ourId);
 
-                    // now try to invite them back at their port , with the same ID, they 
-                    // should have a source waiting for us with the same id
+                    peer->connected = true;
 
-                    DBG("Inviting them back to our sink");
-                    peer->remoteSourceId = peer->remoteSinkId;
-                    peer->oursink->invite_source(es, peer->remoteSourceId, endpoint_send);
+                    updateRemotePeerUserFormat(-1, peer);
+                    sendRemotePeerInfoUpdate(-1, peer);
 
-                    // now remove dummy handshake one
-                    mAooDummySource->remove_sink(es, dummyid);
-                    
+                    DBG("Finishing peer connection for " << es->ipaddr << ":" << es->port  << "  " << peer->remoteSinkId);
+
                 }
                 else {
-                    // invited 
-                    DBG("Invite received to our source: " << sourceId << " from " << es->ipaddr << ":" << es->port << "  " << e->id);
-
-                    RemotePeer * peer = findRemotePeer(es, sourceId);
-                    if (peer) {
-                        
-                        peer->remoteSinkId = e->id;
-
-                        peer->oursource->add_sink(es, peer->remoteSinkId, endpoint_send);
-                        peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
-                        
-                        if (peer->sendAllow) {
-                            peer->oursource->start();
-                            
-                            peer->sendActive = true;
-                            DBG("Starting to send, we allow it");
-                        } else {
-                            peer->sendActive = false;
-                            peer->oursource->stop();
-                        }
-                        
-                        peer->connected = true;
-
-                        updateRemotePeerUserFormat(-1, peer);
-                        sendRemotePeerInfoUpdate(-1, peer);
-
-                        DBG("Finishing peer connection for " << es->ipaddr << ":" << es->port  << "  " << peer->remoteSinkId);
-                        
+                    // find by echo id
+                    if (auto * echopeer = findRemotePeerByEchoId(es, sourceId)) {
+                        echopeer->echosource->add_sink(es, e->id, endpoint_send);
+                        echopeer->echosource->start();
+                        DBG("Invite to echo source adding sink " << e->id);
+                    }
+                    else if (auto * latpeer = findRemotePeerByLatencyId(es, sourceId)) {
+                        echopeer->latencysource->add_sink(es, e->id, endpoint_send);
+                        echopeer->latencysource->start();
+                        DBG("Invite to our latency source adding sink " << e->id);
                     }
                     else {
-                        // find by echo id
-                        if (auto * echopeer = findRemotePeerByEchoId(es, sourceId)) {
-                            echopeer->echosource->add_sink(es, e->id, endpoint_send);                            
-                            echopeer->echosource->start();
-                            DBG("Invite to echo source adding sink " << e->id);
-                        }
-                        else if (auto * latpeer = findRemotePeerByLatencyId(es, sourceId)) {
-                            echopeer->latencysource->add_sink(es, e->id, endpoint_send);                                                        
-                            echopeer->latencysource->start();
-                            DBG("Invite to our latency source adding sink " << e->id);
-                        }
-                        else {
-                            // not one of our sources 
-                            DBG("No source " << sourceId << " invited, how is this possible?");
-                        }
-
+                        // not one of our sources
+                        DBG("No source " << sourceId << " invited, how is this possible?");
                     }
+
                 }
-                
-            } else {
-                DBG("Invite received");
             }
 
             break;
