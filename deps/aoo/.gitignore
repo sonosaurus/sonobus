@@ -13,3 +13,4 @@ lib/src/lib/oscpack/tests**
 lib/src/lib/oscpack/ip**
 build**
 install**
+doxygen**

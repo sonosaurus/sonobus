@@ -4,9 +4,9 @@
 
 #include "aoo_common.hpp"
 
-#include <thread>
+#include "aoo/aoo_server.hpp"
 
-using namespace aoo;
+#include <thread>
 
 #define AOO_SERVER_POLL_INTERVAL 2
 
@@ -19,7 +19,7 @@ struct t_aoo_server
 
     t_object x_obj;
 
-    aoo::net::server::pointer x_server;
+    AooServer::Ptr x_server;
     int32_t x_numusers = 0;
     std::thread x_thread;
     t_clock *x_clock = nullptr;
@@ -27,18 +27,18 @@ struct t_aoo_server
     t_outlet *x_msgout = nullptr;
 };
 
-static void aoo_server_handle_event(t_aoo_server *x, const aoo_event *event, int32_t)
+static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int32_t)
 {
     switch (event->type){
-    case AOO_NET_USER_JOIN_EVENT:
+    case kAooNetEventUserJoin:
     {
-        auto e = (const aoo_net_user_event *)event;
+        auto e = (const AooNetEventUserJoin *)event;
 
         aoo::ip_address addr((const sockaddr *)e->address, e->addrlen);
 
         t_atom msg[4];
-        SETSYMBOL(msg, gensym(e->user_name));
-        SETFLOAT(msg + 1, e->user_id);
+        SETSYMBOL(msg, gensym(e->userName));
+        SETFLOAT(msg + 1, e->userId);
         address_to_atoms(addr, 2, msg + 2);
 
         outlet_anything(x->x_msgout, gensym("user_join"), 4, msg);
@@ -49,15 +49,15 @@ static void aoo_server_handle_event(t_aoo_server *x, const aoo_event *event, int
 
         break;
     }
-    case AOO_NET_USER_LEAVE_EVENT:
+    case kAooNetEventUserLeave:
     {
-        auto e = (const aoo_net_user_event *)event;
+        auto e = (const AooNetEventUserLeave *)event;
 
         aoo::ip_address addr((const sockaddr *)e->address, e->addrlen);
 
         t_atom msg[4];
-        SETSYMBOL(msg, gensym(e->user_name));
-        SETFLOAT(msg + 1, e->user_id);
+        SETSYMBOL(msg, gensym(e->userName));
+        SETFLOAT(msg + 1, e->userId);
         address_to_atoms(addr, 2, msg + 2);
 
         outlet_anything(x->x_msgout, gensym("user_leave"), 4, msg);
@@ -68,34 +68,34 @@ static void aoo_server_handle_event(t_aoo_server *x, const aoo_event *event, int
 
         break;
     }
-    case AOO_NET_GROUP_JOIN_EVENT:
+    case kAooNetEventUserGroupJoin:
     {
-        auto e = (const aoo_net_group_event *)event;
+        auto e = (const AooNetEventUserGroupJoin *)event;
 
         t_atom msg[3];
-        SETSYMBOL(msg, gensym(e->group_name));
-        SETSYMBOL(msg + 1, gensym(e->user_name));
-        SETFLOAT(msg + 2, e->user_id);
+        SETSYMBOL(msg, gensym(e->groupName));
+        SETSYMBOL(msg + 1, gensym(e->userName));
+        SETFLOAT(msg + 2, e->userId);
         outlet_anything(x->x_msgout, gensym("group_join"), 3, msg);
 
         break;
     }
-    case AOO_NET_GROUP_LEAVE_EVENT:
+    case kAooNetEventUserGroupLeave:
     {
-        auto e = (const aoo_net_group_event *)event;
+        auto e = (const AooNetEventUserGroupLeave *)event;
 
         t_atom msg[3];
-        SETSYMBOL(msg, gensym(e->group_name));
-        SETSYMBOL(msg + 1, gensym(e->user_name));
-        SETFLOAT(msg + 2, e->user_id);
+        SETSYMBOL(msg, gensym(e->groupName));
+        SETSYMBOL(msg + 1, gensym(e->userName));
+        SETFLOAT(msg + 2, e->userId);
         outlet_anything(x->x_msgout, gensym("group_leave"), 3, msg);
 
         break;
     }
-    case AOO_NET_ERROR_EVENT:
+    case kAooNetEventError:
     {
-        auto e = (const aoo_net_error_event *)event;
-        pd_error(x, "%s: %s", classname(x), e->error_message);
+        auto e = (const AooNetEventError *)event;
+        pd_error(x, "%s: %s", classname(x), e->errorMessage);
         break;
     }
     default:
@@ -106,7 +106,7 @@ static void aoo_server_handle_event(t_aoo_server *x, const aoo_event *event, int
 
 static void aoo_server_tick(t_aoo_server *x)
 {
-    x->x_server->poll_events();
+    x->x_server->pollEvents();
     clock_delay(x->x_clock, AOO_SERVER_POLL_INTERVAL);
 }
 
@@ -126,14 +126,14 @@ t_aoo_server::t_aoo_server(int argc, t_atom *argv)
     int port = argc ? atom_getfloat(argv) : 0;
 
     if (port > 0){
-        aoo_error err;
-        x_server.reset(aoo::net::server::create(port, 0, &err));
+        AooError err;
+        x_server = AooServer::create(port, 0, &err);
         if (x_server){
             verbose(0, "aoo server listening on port %d", port);
             // first set event handler!
             // set event handler
-            x_server->set_eventhandler((aoo_eventhandler)aoo_server_handle_event,
-                                       this, AOO_EVENT_POLL);
+            x_server->setEventHandler((AooEventHandler)aoo_server_handle_event,
+                                       this, kAooEventModePoll);
             // start thread
             x_thread = std::thread([this](){
                 x_server->run();
@@ -142,7 +142,7 @@ t_aoo_server::t_aoo_server(int argc, t_atom *argv)
             clock_delay(x_clock, AOO_SERVER_POLL_INTERVAL);
         } else {
             char buf[MAXPDSTRING];
-            socket_strerror(socket_errno(), buf, sizeof(buf));
+            aoo::socket_strerror(aoo::socket_errno(), buf, sizeof(buf));
             pd_error(this, "%s: %s (%d)", classname(this), buf, err);
         }
     }

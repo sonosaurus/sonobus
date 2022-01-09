@@ -1,35 +1,58 @@
-/* Copyright (c) 2010-Now Christof Ressi, Winfried Ritsch and others. 
+/* Copyright (c) 2021 Christof Ressi
  * For information on usage and redistribution, and for a DISCLAIMER OF ALL
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
+/** \file
+ * \brief PCM codec settings
+ */
+
 #pragma once
 
-#include "aoo/aoo.h"
+#include "aoo/aoo_defines.h"
 
-#ifdef __cplusplus
-extern "C"
+#include <string.h>
+
+AOO_PACK_BEGIN
+
+/*--------------------------------------------------*/
+
+#define kAooCodecPcm "pcm"
+
+typedef AooInt32 AooPcmBitDepth;
+
+/** \brief PCM bit depth values */
+enum AooPcmBitDepthValues
 {
-#endif
-
-/*/////////////////// PCM codec ////////////////////////*/
-
-#define AOO_CODEC_PCM "pcm"
-
-enum aoo_pcm_bitdepth
-{
-    AOO_PCM_INT16,
-    AOO_PCM_INT24,
-    AOO_PCM_FLOAT32,
-    AOO_PCM_FLOAT64,
-    AOO_PCM_BITDEPTH_SIZE
+    kAooPcmInt16 = 0,
+    kAooPcmInt24,
+    kAooPcmFloat32,
+    kAooPcmFloat64,
+    kAooPcmBitDepthSize
 };
 
-typedef struct aoo_format_pcm
+/** \brief PCM codec format */
+typedef struct AooFormatPcm
 {
-    aoo_format header;
-    int32_t bitdepth; // aoo_pcm_bitdepth
-} aoo_format_pcm;
+    AooFormat header;
+    AooPcmBitDepth bitDepth;
+} AooFormatPcm;
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+/*------------------------------------------------*/
+
+/** \brief initialize AooFormatPcm structure */
+AOO_INLINE void AooFormatPcm_init(
+        AooFormatPcm *fmt,
+        AooInt32 numChannels, AooInt32 sampleRate,
+        AooInt32 blockSize, AooPcmBitDepth bitDepth)
+{
+    strcpy(fmt->header.codec, kAooCodecPcm);
+    fmt->header.size = sizeof(AooFormatPcm);
+    fmt->header.numChannels = numChannels;
+    fmt->header.sampleRate = sampleRate;
+    fmt->header.blockSize = blockSize;
+    fmt->bitDepth = bitDepth;
+}
+
+/*-----------------------------------------------*/
+
+AOO_PACK_END

@@ -1,10 +1,11 @@
 #pragma once
 
-#include "aoo/aoo_types.h"
+#include "aoo/aoo_defines.h"
 
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <ostream>
 
 #ifdef _WIN32
 typedef int socklen_t;
@@ -19,7 +20,7 @@ struct sockaddr;
 
 namespace aoo {
 
-/*///////////// IP address ////////*/
+//-------------- ip_address --------------//
 
 class ip_address {
 public:
@@ -60,15 +61,21 @@ public:
     const struct sockaddr *address() const {
         return (const struct sockaddr *)&address_;
     }
+
     struct sockaddr *address_ptr() {
         return (struct sockaddr *)&address_;
     }
+
     socklen_t length() const {
         return length_;
     }
+
     socklen_t *length_ptr() {
         return &length_;
     }
+
+    friend std::ostream& operator<<(std::ostream& os, const ip_address& addr);
+
     static const socklen_t max_length = 32;
 private:
     static const char *get_name(const struct sockaddr *addr);
@@ -83,8 +90,7 @@ private:
     socklen_t length_;
 };
 
-
-/*///////////// socket //////////////////*/
+//-------------------- socket --------------------//
 
 int socket_init();
 
@@ -102,10 +108,10 @@ int socket_port(int socket);
 
 ip_address::ip_type socket_family(int socket);
 
-int socket_sendto(int socket, const char *buf, int size,
+int socket_sendto(int socket, const void *buf, int size,
                   const ip_address& address);
 
-int socket_receive(int socket, char *buf, int size,
+int socket_receive(int socket, void *buf, int size,
                    ip_address* addr, int32_t timeout);
 
 int socket_setsendbufsize(int socket, int bufsize);
@@ -123,22 +129,5 @@ int socket_strerror(int err, char *buf, int size);
 std::string socket_strerror(int err);
 
 void socket_error_print(const char *label = nullptr);
-
-/*//////////////////// helpers /////////////////////*/
-
-struct sendfn {
-    sendfn(aoo_sendfn fn = nullptr, void *user = nullptr)
-        : fn_(fn), user_(user) {}
-    void operator () (const char *data, int32_t nbytes,
-                      const ip_address& addr, uint32_t flags) const
-    {
-        fn_(user_, data, nbytes, addr.address(), addr.length(), flags);
-    }
-    aoo_sendfn fn() const { return fn_; }
-    void * user() const { return user_; }
-private:
-    aoo_sendfn fn_;
-    void *user_;
-};
 
 } // aoo

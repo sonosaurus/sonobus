@@ -1,13 +1,34 @@
 #pragma once
 
 #include "aoo/aoo.h"
+#include "aoo/aoo_codec.h"
+#include "aoo/aoo_events.h"
+
+#include "common/net_utils.hpp"
+#include "common/lockfree.hpp"
+#include "common/sync.hpp"
 
 #include <stdint.h>
+#include <cstring>
 #include <utility>
 #include <memory>
 #include <atomic>
+#include <vector>
+#include <string>
+#include <type_traits>
 
 namespace aoo {
+
+template<typename T>
+using parameter = sync::relaxed_atomic<T>;
+
+//---------------- codec ---------------------------//
+
+const struct AooCodecInterface * find_codec(const char * name);
+
+//--------------- helper functions ----------------//
+
+AooId get_random_id();
 
 uint32_t make_version();
 
@@ -23,12 +44,113 @@ void free_sockaddr(void *sa, int32_t len);
 
 namespace net {
 
-aoo_error parse_pattern(const char *msg, int32_t n, aoo_type& type, int32_t& offset);
+AooError parse_pattern(const AooByte *msg, int32_t n,
+                       AooMsgType& type, int32_t& offset);
 
 } // net
 
-/*///////////////////// allocator ////////////////////*/
+//---------------- endpoint ------------------------//
 
+struct endpoint {
+    endpoint() = default;
+    endpoint(const ip_address& _address, int32_t _id, uint32_t _flags)
+        : address(_address), id(_id), flags(_flags) {}
+
+    // data
+    ip_address address;
+    AooId id = 0;
+    uint32_t flags = 0;
+};
+
+inline std::ostream& operator<<(std::ostream& os, const endpoint& ep){
+    os << ep.address << "|" << ep.id;
+    return os;
+}
+
+struct sendfn {
+    sendfn(AooSendFunc fn = nullptr, void *user = nullptr)
+        : fn_(fn), user_(user) {}
+
+    void operator() (const AooByte *data, AooInt32 size,
+                      const ip_address& addr, AooFlag flags = 0) const {
+        fn_(user_, data, size, addr.address(), addr.length(), flags);
+    }
+
+    void operator() (const AooByte *data, AooInt32 size,
+                     const endpoint& ep) const {
+        fn_(user_, data, size,
+            ep.address.address(), ep.address.length(), ep.flags);
+    }
+
+    AooSendFunc fn() const { return fn_; }
+
+    void * user() const { return user_; }
+private:
+    AooSendFunc fn_;
+    void *user_;
+};
+
+//---------------- endpoint event ------------------//
+
+struct endpoint_event_base
+{
+    endpoint_event_base() = default;
+    endpoint_event_base(AooEventType _type)
+        : type(_type) {}
+    union {
+        AooEventType type;
+        AooEvent event;
+        AooEventEndpoint ep;
+        AooEventEndpoint source;
+        AooEventEndpoint sink;
+        AooEventInvite invite;
+        AooEventUninvite uninvite;
+        AooEventPing ping;
+        AooEventPingReply ping_reply;
+        AooEventXRun xrun;
+    };
+};
+
+struct endpoint_event : endpoint_event_base {
+    endpoint_event() = default;
+
+    endpoint_event(AooEventType _type) : endpoint_event_base(_type) {}
+
+    endpoint_event(AooEventType _type, const endpoint& _ep)
+        : endpoint_event(_type, _ep.address, _ep.id) {}
+
+    endpoint_event(AooEventType _type, const ip_address& addr, AooId id)
+        : endpoint_event_base(_type) {
+        memcpy(&addr_, addr.address(), addr.length());
+        // only for endpoint events
+        if (type != kAooEventXRun){
+            ep.endpoint.address = &addr_;
+            ep.endpoint.addrlen = addr.length();
+            ep.endpoint.id = id;
+        }
+    }
+
+    endpoint_event(const endpoint_event& other)
+        : endpoint_event_base(other) {
+        // only for sink events:
+        if (type != kAooEventXRun){
+            ep.endpoint.address = &addr_;
+        }
+    }
+
+    endpoint_event& operator=(const endpoint_event& other) {
+        endpoint_event_base::operator=(other);
+        // only for sink events:
+        if (type != kAooEventXRun){
+            ep.endpoint.address = &addr_;
+        }
+        return *this;
+    }
+private:
+    char addr_[ip_address::max_length];
+};
+
+//---------------- allocator -----------------------//
 
 #if AOO_CUSTOM_ALLOCATOR || AOO_DEBUG_MEMORY
 
@@ -37,16 +159,17 @@ void * allocate(size_t size);
 template<class T, class... U>
 T * construct(U&&... args){
     auto ptr = allocate(sizeof(T));
-    new (ptr) T(std::forward<U>(args)...);
-    return (T *)ptr;
+    return new (ptr) T(std::forward<U>(args)...);
 }
 
 void deallocate(void *ptr, size_t size);
 
 template<typename T>
 void destroy(T *x){
-    x->~T();
-    deallocate(x, sizeof(T));
+    if (x) {
+        x->~T();
+        deallocate(x, sizeof(T));
+    }
 }
 
 template<class T>
@@ -113,59 +236,117 @@ using allocator = std::allocator<T>;
 
 #endif
 
-/*////////////// memory //////////////*/
+//------------- common data structures ------------//
 
-struct memory_block {
-    struct {
-        memory_block *next;
-        size_t size;
-    } header;
-    char mem[1];
+template<typename T>
+using vector = std::vector<T, aoo::allocator<T>>;
 
-    static memory_block * allocate(size_t size);
+using string = std::basic_string<char, std::char_traits<char>, aoo::allocator<char>>;
 
-    static void free(memory_block *mem);
+template<typename T>
+using spsc_queue = lockfree::spsc_queue<T, aoo::allocator<T>>;
 
-    static memory_block * from_bytes(void *bytes){
-        return (memory_block *)((char *)bytes - sizeof(memory_block::header));
-    }
+template<typename T>
+using unbounded_mpsc_queue = lockfree::unbounded_mpsc_queue<T, aoo::allocator<T>>;
 
-    size_t full_size() const {
-        return header.size + sizeof(header);
-    }
+template<typename T>
+using concurrent_list = lockfree::concurrent_list<T, aoo::allocator<T>>;
 
-    size_t size() const {
-        return header.size;
-    }
-
-    void * data() {
-        return mem;
-    }
-};
+//------------------ memory --------------------//
 
 class memory_list {
 public:
     memory_list() = default;
     ~memory_list();
     memory_list(memory_list&& other)
-        : memlist_(other.memlist_.exchange(nullptr)){}
+        : list_(other.list_.exchange(nullptr)){}
     memory_list& operator=(memory_list&& other){
-        memlist_.store(other.memlist_.exchange(nullptr));
+        list_.store(other.list_.exchange(nullptr));
         return *this;
     }
-    memory_block* alloc(size_t size);
-    void free(memory_block* b);
+    void* allocate(size_t size);
+
+    template<typename T, typename... Args>
+    T* construct(Args&&... args){
+        auto mem = allocate(sizeof(T));
+        return new (mem) T (std::forward<Args>(args)...);
+    }
+
+    void deallocate(void* b);
+
+    template<typename T>
+    void destroy(T *obj){
+        obj->~T();
+        deallocate(obj);
+    }
 private:
-    std::atomic<memory_block *> memlist_{nullptr};
+    struct block {
+        struct {
+            block *next;
+            size_t size;
+        } header;
+        char data[1];
+
+        static block * alloc(size_t size);
+
+        static void free(block *mem);
+
+        static block * from_bytes(void *bytes){
+            return (block *)((char *)bytes - sizeof(block::header));
+        }
+    };
+    std::atomic<block *> list_{nullptr};
 };
 
-/*///////////////// misc ///////////////////*/
+//------------------- misc -------------------------//
 
 struct format_deleter {
     void operator() (void *x) const {
-        auto f = static_cast<aoo_format *>(x);
+        auto f = static_cast<AooFormat *>(x);
         aoo::deallocate(x, f->size);
     }
 };
+
+struct encoder_deleter {
+    void operator() (void *x) const {
+        auto c = (AooCodec *)x;
+        c->interface->encoderFree(c);
+    }
+};
+
+struct decoder_deleter {
+    void operator() (void *x) const {
+        auto c = (AooCodec *)x;
+        c->interface->decoderFree(c);
+    }
+};
+
+inline AooSize flat_metadata_maxsize(int32_t size) {
+    return sizeof(AooDataView) + size + kAooDataTypeMaxLen + 1;
+}
+
+inline AooSize flat_metadata_size(const AooDataView& data){
+    return sizeof(data) + data.size + strlen(data.type) + 1;
+}
+
+struct flat_metadata_deleter {
+    void operator() (void *x) const {
+        auto md = static_cast<AooDataView *>(x);
+        auto mdsize = flat_metadata_size(*md);
+        aoo::deallocate(x, mdsize);
+    }
+};
+
+inline void flat_metadata_copy(const AooDataView& src, AooDataView& dst) {
+    auto data = (AooByte *)(&dst) + sizeof(AooDataView);
+    memcpy(data, src.data, src.size);
+
+    auto type = (AooChar *)(data + src.size);
+    memcpy(type, src.type, strlen(src.type) + 1);
+
+    dst.type = type;
+    dst.data = data;
+    dst.size = src.size;
+}
 
 } // aoo

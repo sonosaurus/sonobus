@@ -12,12 +12,12 @@ using scoped_shared_lock = aoo::sync::scoped_shared_lock<aoo::sync::shared_mutex
 
 aoo::sync::shared_mutex gServerMutex;
 
-using ServerMap = std::unordered_map<int, std::unique_ptr<AooServer>>;
+using ServerMap = std::unordered_map<int, std::unique_ptr<sc::AooServer>>;
 std::unordered_map<World*, ServerMap> gServerMap;
 
 // called from NRT thread
 void createServer(World* world, int port) {
-    auto server = std::make_unique<AooServer>(world, port);
+    auto server = std::make_unique<sc::AooServer>(world, port);
     scoped_lock lock(gServerMutex);
     auto& serverMap = gServerMap[world];
     serverMap[port] = std::move(server);
@@ -33,7 +33,7 @@ void freeServer(World* world, int port) {
     }
 }
 
-AooServer* findServer(World* world, int port) {
+sc::AooServer* findServer(World* world, int port) {
     scoped_shared_lock lock(gServerMutex);
     auto it = gServerMap.find(world);
     if (it != gServerMap.end()) {
@@ -48,13 +48,14 @@ AooServer* findServer(World* world, int port) {
 
 } // namespace
 
+namespace sc {
+
 // called in NRT thread
 AooServer::AooServer(World *world, int port)
     : world_(world), port_(port)
 {
-    aoo_error err;
-    auto server = aoo::net::server::create(port, 0, &err);
-    server_.reset(server);
+    AooError err;
+    server_ = ::AooServer::create(port, 0, &err);
     if (server_) {
         LOG_VERBOSE("new AooServer on port " << port);
         // start thread
@@ -74,44 +75,44 @@ AooServer::~AooServer(){
     }
 }
 
-void AooServer::handleEvent(const aoo_event *event){
+void AooServer::handleEvent(const AooEvent *event){
     char buf[1024];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
     msg << osc::BeginMessage("/aoo/server/event") << port_;
 
     switch (event->type) {
-    case AOO_NET_USER_JOIN_EVENT:
+    case kAooNetEventUserJoin:
     {
-        auto e = (const aoo_net_user_event*)event;
+        auto e = (const AooNetEventUserJoin *)event;
         aoo::ip_address addr((const sockaddr*)e->address, e->addrlen);
-        msg << "/user/join" << e->user_name << e->user_id
+        msg << "/user/join" << e->userName << e->userId
             << addr.address() << addr.port();
         break;
     }
-    case AOO_NET_USER_LEAVE_EVENT:
+    case kAooNetEventUserLeave:
     {
-        auto e = (const aoo_net_user_event*)event;
+        auto e = (const AooNetEventUserLeave *)event;
         aoo::ip_address addr((const sockaddr*)e->address, e->addrlen);
-        msg << "/user/leave" << e->user_name << e->user_id
+        msg << "/user/leave" << e->userName << e->userId
             << addr.address() << addr.port();
         break;
     }
-    case AOO_NET_GROUP_JOIN_EVENT:
+    case kAooNetEventUserGroupJoin:
     {
-        auto e = (const aoo_net_group_event*)event;
-        msg << "/group/join" << e->group_name << e->user_name << e->user_id;
+        auto e = (const AooNetEventUserGroupJoin *)event;
+        msg << "/group/join" << e->groupName << e->userName << e->userId;
         break;
     }
-    case AOO_NET_GROUP_LEAVE_EVENT:
+    case kAooNetEventUserGroupLeave:
     {
-        auto e = (const aoo_net_group_event*)event;
-        msg << "/group/leave" << e->group_name << e->user_name << e->user_id;
+        auto e = (const AooNetEventUserGroupLeave *)event;
+        msg << "/group/leave" << e->groupName << e->userName << e->userId;
         break;
     }
-    case AOO_NET_ERROR_EVENT:
+    case kAooNetEventError:
     {
-        auto e = (const aoo_net_error_event*)event;
-        msg << "/error" << e->error_code << e->error_message;
+        auto e = (const AooNetEventError*)event;
+        msg << "/error" << e->errorCode << e->errorMessage;
         break;
     }
     default:
@@ -122,6 +123,8 @@ void AooServer::handleEvent(const aoo_event *event){
     msg << osc::EndMessage;
     ::sendMsgNRT(world_, msg);
 }
+
+} // sc
 
 namespace {
 
@@ -136,12 +139,12 @@ void aoo_server_new(World* world, void* user,
 {
     auto port = args->geti();
 
-    auto cmdData = CmdData::create<AooServerCmd>(world);
+    auto cmdData = CmdData::create<sc::AooServerCmd>(world);
     if (cmdData) {
         cmdData->port = port;
 
         auto fn = [](World* world, void* data) {
-            auto port = static_cast<AooServerCmd*>(data)->port;
+            auto port = static_cast<sc::AooServerCmd*>(data)->port;
 
             char buf[1024];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
@@ -176,12 +179,12 @@ void aoo_server_free(World* world, void* user,
 {
     auto port = args->geti();
 
-    auto cmdData = CmdData::create<AooServerCmd>(world);
+    auto cmdData = CmdData::create<sc::AooServerCmd>(world);
     if (cmdData) {
         cmdData->port = port;
 
         auto fn = [](World * world, void* data) {
-            auto port = static_cast<AooServerCmd*>(data)->port;
+            auto port = static_cast<sc::AooServerCmd*>(data)->port;
 
             freeServer(world, port);
 

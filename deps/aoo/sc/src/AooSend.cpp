@@ -1,10 +1,14 @@
 #include "AooSend.hpp"
 
+#if USE_CODEC_OPUS
+# include "aoo/codec/aoo_opus.h"
+#endif
+
 static InterfaceTable *ft;
 
 /*////////////////// AooSend ////////////////*/
 
-void AooSend::init(int32_t port, aoo_id id) {
+void AooSend::init(int32_t port, AooId id) {
     auto data = CmdData::create<OpenCmd>(world());
     if (data){
         data->port = port;
@@ -20,26 +24,26 @@ void AooSend::init(int32_t port, aoo_id id) {
                 auto cmd = (OpenCmd *)data;
                 auto node = INode::get(world, cmd->port);
                 if (node){
-                    aoo::source::pointer source(aoo::source::create(cmd->id, 0));
+                    AooSource *source = AooSource_new(cmd->id, 0, nullptr);
                     if (source){
                         NodeLock lock(*node);
-                        if (node->client()->add_source(source.get(), cmd->id) == AOO_OK){
+                        if (node->client()->addSource(source, cmd->id) == kAooOk){
                             source->setup(cmd->sampleRate, cmd->blockSize,
                                           cmd->numChannels);
 
-                            source->set_eventhandler(
-                                [](void *user, const aoo_event *event, int32_t){
+                            source->setEventHandler(
+                                [](void *user, const AooEvent *event, int32_t){
                                     static_cast<AooSend *>(user)->handleEvent(event);
-                                }, cmd->owner.get(), AOO_EVENT_POLL);
+                                }, cmd->owner.get(), kAooEventModePoll);
 
-                            source->set_buffersize(DEFBUFSIZE);
+                            source->setBufferSize(DEFBUFSIZE);
 
-                            aoo_format_storage f;
+                            AooFormatStorage f;
                             makeDefaultFormat(f, cmd->sampleRate, cmd->blockSize, cmd->numChannels);
-                            source->set_format(f.header);
+                            source->setFormat(f.header);
 
                             cmd->node = std::move(node);
-                            cmd->obj = std::move(source);
+                            cmd->obj = source;
 
                             return true; // success!
                         } else {
@@ -53,7 +57,7 @@ void AooSend::init(int32_t port, aoo_id id) {
             [](World *world, void *data){
                 auto cmd = (OpenCmd *)data;
                 auto& owner = static_cast<AooSend&>(*cmd->owner);
-                owner.source_ = std::move(cmd->obj);
+                owner.source_.reset(cmd->obj);
                 owner.setNode(std::move(cmd->node));
                 LOG_DEBUG("AooSend initialized");
                 return false; // done
@@ -74,7 +78,7 @@ void AooSend::onDetach() {
                 if (node){
                     // release node
                     NodeLock lock(*node);
-                    node->client()->remove_source(owner.source());
+                    node->client()->removeSource(owner.source());
                     lock.unlock(); // !
 
                     owner.setNode(nullptr);
@@ -87,51 +91,46 @@ void AooSend::onDetach() {
     }
 }
 
-void AooSend::handleEvent(const aoo_event *event){
+void AooSend::handleEvent(const AooEvent *event){
     char buf[256];
     osc::OutboundPacketStream msg(buf, 256);
 
     switch (event->type){
-    case AOO_PING_EVENT:
+    case kAooEventPingReply:
     {
-        auto e = (const aoo_ping_event *)event;
-        aoo::ip_address addr((const sockaddr *)e->ep.address, e->ep.addrlen);
-        double diff1 = aoo_osctime_duration(e->tt1, e->tt2);
-        double diff2 = aoo_osctime_duration(e->tt2, e->tt3);
-        double rtt = aoo_osctime_duration(e->tt1, e->tt3);
+        auto e = (const AooEventPingReply *)event;
+        aoo::ip_address addr((const sockaddr *)e->endpoint.address, e->endpoint.addrlen);
+        double diff1 = aoo_ntpTimeDuration(e->t1, e->t2);
+        double diff2 = aoo_ntpTimeDuration(e->t2, e->t3);
+        double rtt = aoo_ntpTimeDuration(e->t1, e->t3);
 
-        beginEvent(msg, "/ping", addr, e->ep.id);
-        msg << diff1 << diff2 << rtt << e->lost_blocks;
+        beginEvent(msg, "/ping", addr, e->endpoint.id);
+        msg << diff1 << diff2 << rtt << e->packetLoss;
         sendMsgRT(msg);
         break;
     }
-    case AOO_INVITE_EVENT:
+    case kAooEventInvite:
     {
-        auto e = (const aoo_invite_event *)event;
-        aoo::ip_address addr((const sockaddr *)e->ep.address, e->ep.addrlen);
+        auto e = (const AooEventInvite *)event;
+        aoo::ip_address addr((const sockaddr *)e->endpoint.address, e->endpoint.addrlen);
 
         if (accept_){
-            aoo_net_peer_info info;
-            if (node()->client()->get_peer_info(e->ep.address, e->ep.addrlen, &info) == AOO_OK){
-                addSinkEvent(addr, e->ep.id, info.flags);
-            } else {
-                addSinkEvent(addr, e->ep.id, 0);
-            }
+            // TODO
         } else {
-            beginEvent(msg, "/invite", addr, e->ep.id);
+            beginEvent(msg, "/invite", addr, e->endpoint.id);
             sendMsgRT(msg);
         }
         break;
     }
-    case AOO_UNINVITE_EVENT:
+    case kAooEventUninvite:
     {
-        auto e = (const aoo_sink_event *)event;
-        aoo::ip_address addr((const sockaddr *)e->ep.address, e->ep.addrlen);
+        auto e = (const AooEventUninvite *)event;
+        aoo::ip_address addr((const sockaddr *)e->endpoint.address, e->endpoint.addrlen);
 
         if (accept_){
-            removeSinkEvent(addr, e->ep.id);
+            // TODO
         } else {
-            beginEvent(msg, "/uninvite", addr, e->ep.id);
+            beginEvent(msg, "/uninvite", addr, e->endpoint.id);
             sendMsgRT(msg);
         }
         break;
@@ -141,36 +140,13 @@ void AooSend::handleEvent(const aoo_event *event){
     }
 }
 
-void AooSend::addSinkEvent(const aoo::ip_address& addr, aoo_id id,
-                           int32_t channelOnset) {
-    auto cmd = CmdData::create<OptionCmd>(world());
-    if (cmd){
-        cmd->address = addr;
-        cmd->id = id;
-        cmd->i = channelOnset;
-
-        doCmd(cmd, [](World * world, void *cmdData){
-            auto data = (OptionCmd *)cmdData;
-            auto& owner = static_cast<AooSend &>(*data->owner);
-
-            if (owner.addSink(data->address, data->id, data->i)){
-                char buf[256];
-                osc::OutboundPacketStream msg(buf, sizeof(buf));
-                owner.beginEvent(msg, "/add", data->address, data->id);
-                owner.sendMsgNRT(msg);
-            }
-
-            return false; // done
-        });
-    }
-}
-
-bool AooSend::addSink(const aoo::ip_address& addr, aoo_id id,
-                      int32_t channelOnset){
-    aoo_endpoint ep { addr.address(), (int32_t)addr.length(), id };
-    if (source()->add_sink(ep) == AOO_OK){
+bool AooSend::addSink(const aoo::ip_address& addr, AooId id,
+                      bool active, int32_t channelOnset){
+    AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
+    AooFlag flags = active ? kAooSinkActive : 0;
+    if (source()->addSink(ep, flags) == kAooOk){
         if (channelOnset > 0){
-            source()->set_sink_channel_onset(ep, channelOnset);
+            source()->setSinkChannelOnset(ep, channelOnset);
         }
         return true;
     } else {
@@ -178,42 +154,20 @@ bool AooSend::addSink(const aoo::ip_address& addr, aoo_id id,
     }
 }
 
-void AooSend::removeSinkEvent(const aoo::ip_address& addr, aoo_id id){
-    auto cmd = CmdData::create<OptionCmd>(world());
-    if (cmd){
-        cmd->address = addr;
-        cmd->id = id;
-
-        doCmd(cmd, [](World * world, void *cmdData){
-            auto data = (OptionCmd *)cmdData;
-            auto& owner = static_cast<AooSend &>(*data->owner);
-
-            if (owner.removeSink(data->address, data->id)){
-                char buf[256];
-                osc::OutboundPacketStream msg(buf, sizeof(buf));
-                owner.beginEvent(msg, "/remove", data->address, data->id);
-                owner.sendMsgNRT(msg);
-            }
-
-            return false; // done
-        });
-    }
-}
-
-bool AooSend::removeSink(const aoo::ip_address& addr, aoo_id id){
-    aoo_endpoint ep { addr.address(), (int32_t)addr.length(), id };
-    return source()->remove_sink(ep) == AOO_OK;
+bool AooSend::removeSink(const aoo::ip_address& addr, AooId id){
+    AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
+    return source()->removeSink(ep) == kAooOk;
 }
 
 void AooSend::removeAll(){
-    source()->remove_all();
+    source()->removeAll();
 }
 
 /*////////////////// AooSendUnit ////////////////*/
 
 AooSendUnit::AooSendUnit(){
     int32_t port = in0(0);
-    aoo_id id = in0(1);
+    AooId id = in0(1);
     auto delegate = rt::make_shared<AooSend>(mWorld, *this);
     delegate->init(port, id);
     delegate_ = std::move(delegate);
@@ -228,21 +182,21 @@ void AooSendUnit::next(int numSamples){
         bool playing = in0(2);
         if (playing != playing_) {
             if (playing){
-                source->start();
+                source->startStream(nullptr);
             } else {
-                source->stop();
+                source->stopStream();
             }
             playing_ = playing;
         }
 
-        auto vec = (const float **)mInBuf + channelOnset_;
+        auto vec = mInBuf + channelOnset_;
         uint64_t t = getOSCTime(mWorld);
 
-        if (source->process(vec, numSamples, t) == AOO_OK){
+        if (source->process(vec, numSamples, t) == kAooOk){
             delegate().node()->notify();
         }
 
-        source->poll_events();
+        source->pollEvents();
     }
 }
 
@@ -267,13 +221,13 @@ void aoo_send_add(AooSendUnit *unit, sc_msg_iter* args){
             owner.beginReply(msg, "/aoo/add", replyID);
 
             aoo::ip_address addr;
-            uint32_t flags;
-            aoo_id id;
-            if (owner.node()->getSinkArg(&args, addr, flags, id)){
+            AooId id;
+            if (owner.node()->getSinkArg(&args, addr, id)){
+                auto active = args.geti();
                 auto channelOnset = args.geti();
 
                 // only send IP address on success
-                if (owner.addSink(addr, id, channelOnset)){
+                if (owner.addSink(addr, id, active, channelOnset)){
                     msg << addr.name() << addr.port() << id;
                 }
             }
@@ -302,9 +256,8 @@ void aoo_send_remove(AooSendUnit *unit, sc_msg_iter* args){
 
             if (args.remain() > 0){
                 aoo::ip_address addr;
-                uint32_t flags;
-                aoo_id id;
-                if (owner.node()->getSinkArg(&args, addr, flags, id)){
+                AooId id;
+                if (owner.node()->getSinkArg(&args, addr, id)){
                     if (owner.removeSink(addr, id)){
                         // only send IP address on success
                         msg << addr.name() << addr.port() << id;
@@ -340,20 +293,228 @@ void aoo_send_format(AooSendUnit *unit, sc_msg_iter* args){
             osc::OutboundPacketStream msg(buf, sizeof(buf));
             owner.beginReply(msg, "/aoo/format", replyID);
 
-            aoo_format_storage f;
+            AooFormatStorage f;
             int nchannels = static_cast<AooSendUnit&>(owner.unit()).numChannels();
             if (parseFormat(owner.unit(), nchannels, &args, f)){
-                if (f.header.nchannels > nchannels){
-                    LOG_ERROR("AooSend: 'channel' argument (" << f.header.nchannels
+                if (f.header.numChannels > nchannels){
+                    LOG_ERROR("AooSend: 'channel' argument (" << f.header.numChannels
                               << ") out of range");
-                    f.header.nchannels = nchannels;
+                    f.header.numChannels = nchannels;
                 }
-                if (owner.source()->set_format(f.header) == AOO_OK){
+                auto err = owner.source()->setFormat(f.header);
+                if (err == kAooOk){
                     // only send format on success
                     serializeFormat(msg, f.header);
+                } else {
+                    LOG_ERROR("AooSend: couldn't set format: " << aoo_strerror(err));
                 }
             }
 
+            owner.sendMsgNRT(msg);
+
+            return false; // done
+        });
+}
+
+#if USE_CODEC_OPUS
+
+bool get_opus_bitrate(AooSource *src, osc::OutboundPacketStream& msg) {
+    // NOTE: because of a bug in opus_multistream_encoder (as of opus v1.3.2)
+    // OPUS_GET_BITRATE always returns OPUS_AUTO
+    opus_int32 value;
+    auto err = AooSource_getOpusBitrate(src, 0, &value);
+    if (err != kAooOk){
+        LOG_ERROR("could not get bitrate: " << aoo_strerror(err));
+        return false;
+    }
+    switch (value){
+    case OPUS_AUTO:
+        msg << "auto";
+        break;
+    case OPUS_BITRATE_MAX:
+        msg << "max";
+        break;
+    default:
+        msg << (float)(value * 0.001); // bit -> kBit
+        break;
+    }
+    return true;
+}
+
+void set_opus_bitrate(AooSource *src, sc_msg_iter &args) {
+    // "auto", "max" or number
+    opus_int32 value;
+    if (args.nextTag() == 's'){
+        const char *s = args.gets();
+        if (!strcmp(s, "auto")){
+            value = OPUS_AUTO;
+        } else if (!strcmp(s, "max")){
+            value = OPUS_BITRATE_MAX;
+        } else {
+            LOG_ERROR("bad bitrate argument '" << s << "'");
+            return;
+        }
+    } else {
+        opus_int32 bitrate = args.getf() * 1000.0; // kBit -> bit
+        if (bitrate > 0){
+            value = bitrate;
+        } else {
+            LOG_ERROR("bitrate argument " << bitrate << " out of range");
+            return;
+        }
+    }
+    auto err = AooSource_setOpusBitrate(src, 0, value);
+    if (err != kAooOk){
+        LOG_ERROR("could not set bitrate: " << aoo_strerror(err));
+    }
+}
+
+bool get_opus_complexity(AooSource *src, osc::OutboundPacketStream& msg){
+    opus_int32 value;
+    auto err = AooSource_getOpusComplexity(src, 0, &value);
+    if (err != kAooOk){
+        LOG_ERROR("could not get complexity: " << aoo_strerror(err));
+        return false;
+    }
+    msg << value;
+    return true;
+}
+
+void set_opus_complexity(AooSource *src, sc_msg_iter &args){
+    // 0-10
+    opus_int32 value = args.geti();
+    if (value < 0 || value > 10){
+        LOG_ERROR("complexity value " << value << " out of range");
+        return;
+    }
+    auto err = AooSource_setOpusComplexity(src, 0, value);
+    if (err != kAooOk){
+        LOG_ERROR("could not set complexity: " << aoo_strerror(err));
+    }
+}
+
+bool get_opus_signal(AooSource *src, osc::OutboundPacketStream& msg){
+    opus_int32 value;
+    auto err = AooSource_getOpusSignalType(src, 0, &value);
+    if (err != kAooOk){
+        LOG_ERROR("could not get signal type: " << aoo_strerror(err));
+        return false;
+    }
+    switch (value){
+    case OPUS_SIGNAL_MUSIC:
+        msg << "music";
+        break;
+    case OPUS_SIGNAL_VOICE:
+        msg << "voice";
+        break;
+    default:
+        msg << "auto";
+        break;
+    }
+    return true;
+}
+
+void set_opus_signal(AooSource *src, sc_msg_iter &args){
+    // "auto", "music", "voice"
+    opus_int32 value;
+    const char *s = args.gets();
+    if (!strcmp(s, "auto")){
+        value = OPUS_AUTO;
+    } else if (!strcmp(s, "music")){
+        value = OPUS_SIGNAL_MUSIC;
+    } else if (!strcmp(s, "voice")){
+        value = OPUS_SIGNAL_VOICE;
+    } else {
+        LOG_ERROR("unsupported signal type '" << s << "'");
+        return;
+    }
+    auto err = AooSource_setOpusSignalType(src, 0, value);
+    if (err != kAooOk){
+        LOG_ERROR("could not set signal type: " << aoo_strerror(err));
+    }
+}
+
+#endif
+
+void aoo_send_codec_set(AooSendUnit *unit, sc_msg_iter* args){
+    auto cmd = UnitCmd::create(unit->mWorld, args);
+    unit->delegate().doCmd(cmd,
+        [](World *world, void *cmdData){
+            auto data = (UnitCmd *)cmdData;
+            auto& owner = static_cast<AooSend&>(*data->owner);
+
+            sc_msg_iter args(data->size, data->data);
+            skipUnitCmd(&args);
+
+            auto codec = args.gets();
+            auto param = args.gets();
+
+        #if USE_CODEC_OPUS
+            if (!strcmp(codec, "opus")){
+                opus_int32 value;
+                if (!strcmp(param ,"bitrate")){
+                    set_opus_bitrate(owner.source(), args);
+                    return false; // done
+                } else if (!strcmp(param, "complexity")){
+                    set_opus_complexity(owner.source(), args);
+                    return false; // done
+                } else if (!strcmp(param, "signal")){
+                    set_opus_signal(owner.source(), args);
+                    return false; // done
+                }
+            }
+        #endif
+
+            LOG_ERROR("unknown parameter '" << param
+                      << "' for codec '" << codec << "'");
+
+            return false; // done
+        });
+}
+
+void aoo_send_codec_get(AooSendUnit *unit, sc_msg_iter* args){
+    auto cmd = UnitCmd::create(unit->mWorld, args);
+    unit->delegate().doCmd(cmd,
+        [](World *world, void *cmdData){
+            auto data = (UnitCmd *)cmdData;
+            auto& owner = static_cast<AooSend&>(*data->owner);
+
+            sc_msg_iter args(data->size, data->data);
+            skipUnitCmd(&args);
+
+            auto replyID = args.geti();
+            auto codec = args.gets();
+            auto param = args.gets();
+
+            char buf[256];
+            osc::OutboundPacketStream msg(buf, sizeof(buf));
+            owner.beginReply(msg, "/aoo/codec/get", replyID);
+            msg << codec << param;
+
+        #if USE_CODEC_OPUS
+            if (!strcmp(codec, "opus")){
+                if (!strcmp(param, "bitrate")){
+                    if (get_opus_bitrate(owner.source(), msg)){
+                        goto codec_sendit;
+                    } else {
+                        return false;
+                    }
+                } else if (!strcmp(param, "complexity")){
+                    if (get_opus_complexity(owner.source(), msg)){
+                        goto codec_sendit;
+                    } else {
+                        return false;
+                    }
+                } else if (!strcmp(param, "signal")){
+                    if (get_opus_signal(owner.source(), msg)){
+                        goto codec_sendit;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        #endif
+codec_sendit:
             owner.sendMsgNRT(msg);
 
             return false; // done
@@ -371,12 +532,11 @@ void aoo_send_channel(AooSendUnit *unit, sc_msg_iter* args){
             skipUnitCmd(&args);
 
             aoo::ip_address addr;
-            uint32_t flags;
-            aoo_id id;
-            if (owner.node()->getSinkArg(&args, addr, flags, id)){
+            AooId id;
+            if (owner.node()->getSinkArg(&args, addr, id)){
                 auto channelOnset = args.geti();
-                aoo_endpoint ep { addr.address(), (int32_t)addr.length(), id };
-                owner.source()->set_sink_channel_onset(ep, channelOnset);
+                AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
+                owner.source()->setSinkChannelOnset(ep, channelOnset);
             }
 
             return false; // done
@@ -384,35 +544,32 @@ void aoo_send_channel(AooSendUnit *unit, sc_msg_iter* args){
 }
 
 void aoo_send_packetsize(AooSendUnit *unit, sc_msg_iter* args){
-    unit->delegate().source()->set_packetsize(args->geti());
+    unit->delegate().source()->setPacketSize(args->geti());
 }
 
 void aoo_send_ping(AooSendUnit *unit, sc_msg_iter* args){
-    int32_t ms = args->getf() * 1000.f;
-    unit->delegate().source()->set_ping_interval(ms);
+    unit->delegate().source()->setPingInterval(args->getf());
 }
 
 void aoo_send_resend(AooSendUnit *unit, sc_msg_iter* args){
-    int32_t ms = args->getf() * 1000.f;
-
     auto cmd = CmdData::create<OptionCmd>(unit->mWorld);
-    cmd->i = ms;
+    cmd->f = args->getf();
     unit->delegate().doCmd(cmd,
         [](World *world, void *cmdData){
             auto data = (OptionCmd *)cmdData;
             auto& owner = static_cast<AooSend&>(*data->owner);
-            owner.source()->set_resend_buffersize(data->i);
+            owner.source()->setResendBufferSize(data->f);
 
             return false; // done
         });
 }
 
 void aoo_send_redundancy(AooSendUnit *unit, sc_msg_iter* args){
-    unit->delegate().source()->set_redundancy(args->geti());
+    unit->delegate().source()->setRedundancy(args->geti());
 }
 
 void aoo_send_dll_bw(AooSendUnit *unit, sc_msg_iter* args){
-    unit->delegate().source()->set_dll_bandwidth(args->getf());
+    unit->delegate().source()->setDllBandwidth(args->getf());
 }
 
 using AooSendUnitCmdFunc = void (*)(AooSendUnit*, sc_msg_iter*);
@@ -444,6 +601,8 @@ void AooSendLoad(InterfaceTable *inTable){
     AooUnitCmd(remove);
     AooUnitCmd(accept);
     AooUnitCmd(format);
+    AooUnitCmd(codec_set);
+    AooUnitCmd(codec_get);
     AooUnitCmd(channel);
     AooUnitCmd(packetsize);
     AooUnitCmd(ping);

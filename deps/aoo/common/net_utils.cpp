@@ -4,7 +4,7 @@
 
 #include "net_utils.hpp"
 
-#include "aoo/aoo_types.h"
+#include "aoo/aoo_defines.h"
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -29,7 +29,7 @@
 
 namespace aoo {
 
-/*///////////////////////// ip_address /////////////////////////////*/
+//------------------------ ip_address ------------------------//
 
 ip_address::ip_address(){
     static_assert(sizeof(address_) == max_length,
@@ -241,6 +241,15 @@ bool ip_address::operator==(const ip_address& other) const {
     return false;
 }
 
+std::ostream& operator<<(std::ostream& os, const ip_address& addr) {
+    if (addr.address()->sa_family == AF_INET6){
+        os << "[" << addr.name() << "]:" << addr.port();
+    } else {
+        os << addr.name() << ":" << addr.port();
+    }
+    return os;
+}
+
 const char * ip_address::get_name(const sockaddr *addr){
 #if AOO_NET_USE_IPv6
     thread_local char buf[INET6_ADDRSTRLEN];
@@ -327,7 +336,7 @@ bool ip_address::is_ipv4_mapped() const {
     return false;
 }
 
-/*///////////////////////// socket /////////////////////////////////*/
+//------------------------ socket ----------------------------//
 
 int socket_init()
 {
@@ -363,12 +372,29 @@ int socket_errno()
 int socket_strerror(int err, char *buf, int size)
 {
 #ifdef _WIN32
-    buf[0] = 0;
-    return FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0,
-                          err, MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT), buf,
-                          size, NULL);
+    wchar_t wbuf[1024];
+    auto wlen = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0,
+                               err, MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT), wbuf,
+                               sizeof(wbuf), NULL);
+    if (wlen <= 0){
+        return -1;
+    }
+    // convert to unicode
+    auto len = WideCharToMultiByte(CP_UTF8, 0, wbuf, wlen, buf, size, NULL, NULL);
+    if (len == 0){
+        return -1;
+    }
+    // remove trailing newlines
+    auto ptr = buf + (len - 1);
+    while (*ptr == '\n' || *ptr == '\r'){
+        *ptr-- = '\0';
+        len--;
+    }
+    // add error number
+    len += snprintf(buf + len, size - len, " [%d]", err);
+    return len;
 #else
-    return snprintf(buf, size, "%s", strerror(err));
+    return snprintf(buf, size, "%s [%d]", strerror(err), err);
 #endif
 }
 
@@ -530,12 +556,12 @@ int socket_close(int socket)
 #endif
 }
 
-int socket_sendto(int socket, const char *buf, int size, const ip_address& addr)
+int socket_sendto(int socket, const void *buf, int size, const ip_address& addr)
 {
-    return sendto(socket, buf, size, 0, addr.address(), addr.length());
+    return sendto(socket, (const char *)buf, size, 0, addr.address(), addr.length());
 }
 
-int socket_receive(int socket, char *buf, int size,
+int socket_receive(int socket, void *buf, int size,
                    ip_address* addr, int32_t timeout)
 {
     if (timeout >= 0){
@@ -558,10 +584,10 @@ int socket_receive(int socket, char *buf, int size,
         }
     }
     if (addr){
-        return recvfrom(socket, buf, size, 0,
+        return recvfrom(socket, (char *)buf, size, 0,
                         addr->address_ptr(), addr->length_ptr());
     } else {
-        return recv(socket, buf, size, 0);
+        return recv(socket, (char *)buf, size, 0);
     }
 }
 

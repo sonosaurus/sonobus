@@ -1,8 +1,10 @@
 #include "Aoo.hpp"
 
-#define DEFBUFSIZE 50
+#include "aoo/aoo_sink.hpp"
 
-using OpenCmd = _OpenCmd<aoo::sink>;
+#define DEFBUFSIZE 0.050
+
+using OpenCmd = _OpenCmd<AooSink>;
 
 /*////////////////// AooReceive ////////////////*/
 
@@ -10,15 +12,15 @@ class AooReceive final : public AooDelegate {
 public:
     using AooDelegate::AooDelegate;
 
-    void init(int32_t port, aoo_id id, int32_t bufsize);
+    void init(int32_t port, AooId id, AooSeconds bufsize);
 
     void onDetach() override;
 
-    void handleEvent(const aoo_event *event);
+    void handleEvent(const AooEvent *event);
 
-    aoo::sink* sink() { return sink_.get(); }
+    AooSink* sink() { return sink_.get(); }
 private:
-    aoo::sink::pointer sink_;
+    AooSink::Ptr sink_;
 };
 
 /*////////////////// AooReceiveUnit ////////////////*/

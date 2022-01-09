@@ -1,11 +1,13 @@
 #include "Aoo.hpp"
-#include "aoo/aoo_net.hpp"
+
 #include "common/time.hpp"
 
 #include "oscpack/osc/OscReceivedElements.h"
 
 #include <string>
 #include <thread>
+
+namespace sc {
 
 class AooClient {
 public:
@@ -24,7 +26,7 @@ public:
     void forwardMessage(const char *data, int32_t size,
                         aoo::time_tag time);
 
-    void handleEvent(const aoo_event* e);
+    void handleEvent(const AooEvent* e);
 private:
     World* world_;
     std::shared_ptr<INode> node_;
@@ -62,3 +64,5 @@ struct GroupRequest {
     AooClient* obj;
     std::string group;
 };
+
+} // namespace sc

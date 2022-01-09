@@ -1,9 +1,11 @@
 #include "Aoo.hpp"
 
-// for hardware buffer sizes up to 1024 @ 44.1 kHz
-#define DEFBUFSIZE 25
+#include "aoo/aoo_source.hpp"
 
-using OpenCmd = _OpenCmd<aoo::source>;
+// for hardware buffer sizes up to 1024 @ 44.1 kHz
+#define DEFBUFSIZE 0.025
+
+using OpenCmd = _OpenCmd<AooSource>;
 
 /*////////////////// AooSend ////////////////*/
 
@@ -13,26 +15,24 @@ class AooSend final : public AooDelegate {
 public:
     using AooDelegate::AooDelegate;
 
-    void init(int32_t port, aoo_id id);
+    void init(int32_t port, AooId id);
 
     void onDetach() override;
 
-    void handleEvent(const aoo_event *event);
+    void handleEvent(const AooEvent *event);
 
-    aoo::source * source() { return source_.get(); }
+    AooSource * source() { return source_.get(); }
 
-    void addSinkEvent(const aoo::ip_address& addr, aoo_id id, int32_t channelOnset);
-    bool addSink(const aoo::ip_address& addr, aoo_id id, int32_t channelOnset);
-
-    void removeSinkEvent(const aoo::ip_address& addr, aoo_id id);
-    bool removeSink(const aoo::ip_address& addr, aoo_id id);
+    bool addSink(const aoo::ip_address& addr, AooId id,
+                 bool active, int32_t channelOnset);
+    bool removeSink(const aoo::ip_address& addr, AooId id);
     void removeAll();
 
     void setAccept(bool b){
         accept_ = b;
     }
 private:
-    aoo::source::pointer source_;
+    AooSource::Ptr source_;
     bool accept_ = true;
 };
 

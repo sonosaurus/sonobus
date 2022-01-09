@@ -2,9 +2,12 @@
 
 #include "aoo/aoo.h"
 
+#include "imp.hpp"
+
 #include "common/sync.hpp"
 #include "common/time.hpp"
 
+#include <memory>
 #include <atomic>
 #include <array>
 
@@ -22,17 +25,13 @@ public:
     timer& operator=(timer&& other);
 
     void setup(int32_t sr, int32_t blocksize, bool check);
-    void reset();
-    double get_elapsed() const {
-        return elapsed_.load(std::memory_order_relaxed);
-    }
-    time_tag get_absolute() const{
-        return last_.load(std::memory_order_relaxed);
-    }
+    void reset() { last_.store(0); }
+    double get_elapsed() const { return elapsed_.load(); }
+    time_tag get_absolute() const { return last_.load(); }
     state update(time_tag t, double& error);
 private:
-    std::atomic<uint64_t> last_;
-    std::atomic<double> elapsed_{0};
+    sync::relaxed_atomic<uint64_t> last_{0};
+    sync::relaxed_atomic<double> elapsed_{0};
 
     // moving average filter to detect timing issues
     struct moving_average_check {

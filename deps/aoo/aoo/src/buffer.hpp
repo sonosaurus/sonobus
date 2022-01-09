@@ -17,31 +17,31 @@ struct data_packet {
     int32_t nframes;
     int32_t frame;
     int32_t size;
-    const char *data;
+    const AooByte *data;
     double samplerate;
 };
 
-/*///////////////////// history_buffer /////////////////////////*/
+//---------------------- history_buffer ---------------------------//
 
 class sent_block {
 public:
     // methods
     void set(int32_t seq, double sr,
-             const char *data, int32_t nbytes,
+             const AooByte *data, int32_t nbytes,
              int32_t nframes, int32_t framesize);
 
-    const char* data() const { return buffer_.data(); }
+    const AooByte* data() const { return buffer_.data(); }
     int32_t size() const { return buffer_.size(); }
 
     int32_t num_frames() const { return numframes_; }
     int32_t frame_size(int32_t which) const;
-    int32_t get_frame(int32_t which, char * data, int32_t n);
+    int32_t get_frame(int32_t which, AooByte * data, int32_t n);
 
     // data
     int32_t sequence = -1;
     double samplerate = 0;
 protected:
-    std::vector<char, aoo::allocator<char>> buffer_;
+    aoo::vector<AooByte> buffer_;
     int32_t numframes_ = 0;
     int32_t framesize_ = 0;
 };
@@ -62,13 +62,19 @@ public:
     sent_block * find(int32_t seq);
     sent_block * push();
 private:
-    using block_buffer = std::vector<sent_block, aoo::allocator<sent_block>>;
-    block_buffer buffer_;
+    aoo::vector<sent_block> buffer_;
     int32_t head_ = 0;
     int32_t size_ = 0;
 };
 
-/*///////////////// jitter_buffer ///////////////////////*/
+//---------------------------- jitter_buffer ------------------------------//
+
+// LATER use a (sorted) linked list of data frames (coming from the network thread)
+// which are eventually written sequentially into a contiguous client-size buffer.
+// This has the advantage that we don't need to preallocate memory and we can easily
+// handle arbitrary number of data frames. We can still use the bitset as an optimization,
+// but only up to a certain number of frames (e.g. 32); above that we do a linear search
+// over the linked list.
 
 class received_block {
 public:
@@ -78,13 +84,13 @@ public:
     void init(int32_t seq, double sr, int32_t chn,
               int32_t nbytes, int32_t nframes);
 
-    const char* data() const { return buffer_.data(); }
+    const AooByte* data() const { return buffer_.data(); }
     int32_t size() const { return buffer_.size(); }
 
     int32_t num_frames() const { return numframes_; }
     bool has_frame(int32_t which) const;
     int32_t count_frames() const;
-    void add_frame(int32_t which, const char *data, int32_t n);
+    void add_frame(int32_t which, const AooByte *data, int32_t n);
 
     int32_t resend_count() const;
     bool dropped() const;
@@ -96,7 +102,7 @@ public:
     int32_t channel = 0;
     double samplerate = 0;
 protected:
-    std::vector<char, aoo::allocator<char>> buffer_;
+    aoo::vector<AooByte> buffer_;
     int32_t numframes_ = 0;
     int32_t framesize_ = 0;
     std::bitset<256> frames_ = 0;
@@ -150,6 +156,7 @@ public:
     using const_iterator = base_iterator<const received_block, const jitter_buffer>;
 
     void clear();
+
     void resize(int32_t n, int32_t maxblocksize);
 
     bool empty() const {
@@ -188,7 +195,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const jitter_buffer& b);
 private:
-    std::vector<received_block, aoo::allocator<received_block>> data_;
+    aoo::vector<received_block> data_;
     int32_t size_ = 0;
     int32_t head_ = 0;
     int32_t tail_ = 0;

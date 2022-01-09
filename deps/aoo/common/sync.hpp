@@ -8,28 +8,136 @@
 #include <atomic>
 
 #ifndef _WIN32
-#include <pthread.h>
+  #include <pthread.h>
+  // HACK to check if pthread_rwlock_t is available
+  #ifdef PTHREAD_RWLOCK_INITIALIZER
+    #define HAVE_PTHREAD_RWLOCK
+  #endif
+#endif
+
 #ifdef __APPLE__
-  // macOS doesn't support unnamed pthread semaphores,
-  // so we use Mach semaphores instead
-  #include <mach/mach.h>
-#else
-  // unnamed pthread semaphore
+// macOS doesn't support unnamed pthread semaphores,
+// so we use Mach semaphores instead
+#include <mach/mach.h>
+#endif
+
+#if defined(__linux__) || defined(__FreeBSD__) || \
+    defined(__NetBSD__) || defined(__OpenBSD__)
+  #define HAVE_POSIX_SEMAPHORE
   #include <semaphore.h>
 #endif
+
+#if defined(_WIN32) || defined(__APPLE__) || defined(HAVE_POSIX_SEMAPHORE)
+  #define HAVE_SEMAPHORE
 #endif
 
 // for shared_lock
+#include <mutex>
 #include <shared_mutex>
 
 namespace aoo {
 namespace sync {
 
-/*////////////////// thread priority /////////////////////*/
+//-------------- thread priority ------------------//
 
 void lower_thread_priority();
 
-/*////////////////// simple spin lock ////////////////////*/
+//----------------- relaxed atomics ---------------//
+
+namespace detail {
+#if !defined(AOO_HAVE_ATOMIC_DOUBLE) || !defined(AOO_HAVE_ATOMIC_INT64)
+// emulate atomics using a global spinlock
+void global_spinlock_lock();
+void global_spinlock_unlock();
+
+template<typename T>
+class relaxed_atomic_emulated {
+private:
+    struct scoped_lock {
+        scoped_lock() { global_spinlock_lock(); }
+        ~scoped_lock() { global_spinlock_unlock(); }
+    };
+public:
+    relaxed_atomic_emulated(T value = T{}) : value_(value) {}
+
+    T load() const {
+        scoped_lock lock;
+        return value_;
+    }
+
+    void store(T value) {
+        scoped_lock lock;
+        value_ = value;
+    }
+
+    T exchange(T value) {
+        scoped_lock lock;
+        return std::exchange(value_, value);
+    }
+private:
+    T value_;
+};
+#endif
+
+// native atomics
+template<typename T>
+class relaxed_atomic_native {
+public:
+    relaxed_atomic_native(T value = T{}) : value_(value) {}
+
+    T load() const {
+        return value_.load(std::memory_order_relaxed);
+    }
+
+    void store(T value) {
+        value_.store(value, std::memory_order_relaxed);
+    }
+
+    T exchange(T value) {
+        return value_.exchange(value, std::memory_order_relaxed);
+    }
+private:
+#if __cplusplus >= 201703L
+    static_assert(std::atomic<T>::is_always_lock_free,
+                  "std::atomic<T> is not lockfree!");
+#endif
+    std::atomic<T> value_;
+};
+
+} // detail
+
+template<typename T, typename enable = void>
+class relaxed_atomic
+        : public detail::relaxed_atomic_native<T>
+{
+    using detail::relaxed_atomic_native<T>::relaxed_atomic_native;
+};
+
+// specialization for doubles (if needed)
+#ifndef AOO_HAVE_ATOMIC_DOUBLE
+// #warning "emulating atomic doubles in software"
+template<>
+class relaxed_atomic<double>
+        : public detail::relaxed_atomic_emulated<double>
+{
+    using relaxed_atomic_emulated::relaxed_atomic_emulated;
+};
+#endif
+
+// specialization for 64-bit integers (if needed)
+#ifndef AOO_HAVE_ATOMIC_INT64
+// #warning "emulating atomic 64-bit integers in software"
+template<typename T>
+class relaxed_atomic<T, typename std::enable_if<
+        std::is_integral<T>::value && (sizeof(T) == 8)>::type>
+        : public detail::relaxed_atomic_emulated<T>
+{
+    using detail::relaxed_atomic_emulated<T>::relaxed_atomic_emulated;
+};
+#endif
+
+
+//----------------- spinlock ----------------------//
 
 class spinlock {
 public:
@@ -43,7 +151,7 @@ protected:
     std::atomic<uint32_t> locked_{false};
 };
 
-/*/////////////////// shared spin lock /////////////////////////*/
+//------------- shared spin lock -----------------//
 
 class shared_spinlock {
 public:
@@ -64,7 +172,7 @@ protected:
     std::atomic<uint32_t> state_{0};
 };
 
-// paddeded spin locks
+//--------------- padded spin locks --------------------//
 
 template<typename T, size_t N>
 class alignas(N) padded_class : public T {
@@ -78,6 +186,7 @@ using padded_spinlock = padded_class<spinlock, CACHELINE_SIZE>;
 
 using padded_shared_spinlock =  padded_class<shared_spinlock, CACHELINE_SIZE>;
 
+//------------------------------ mutex ------------------------------------//
 
 // The std::mutex implementation on Windows is bad on both MSVC and MinGW:
 // the MSVC version apparantely has some additional overhead;
@@ -105,7 +214,9 @@ private:
 #endif
 };
 
-/*//////////////////////// shared_mutex //////////////////////////*/
+//------------------------ shared_mutex -------------------------//
+
+#if defined(_WIN32) || defined(HAVE_PTHREAD_RWLOCK)
 
 class shared_mutex {
 public:
@@ -129,6 +240,12 @@ private:
 #endif
 };
 
+#else
+// fallback
+using shared_mutex = std::shared_mutex;
+
+#endif // _WIN32 || HAVE_PTHREAD_RWLOCK
+
 typedef std::try_to_lock_t try_to_lock_t;
 typedef std::defer_lock_t defer_lock_t;
 typedef std::adopt_lock_t adopt_lock_t;
@@ -148,8 +265,8 @@ class scoped_lock {
 public:
     scoped_lock(T& lock)
         : lock_(lock){ lock_.lock(); }
-    scoped_lock(const T& lock) = delete;
-    scoped_lock& operator=(const T& lock) = delete;
+    scoped_lock(const scoped_lock& lock) = delete;
+    scoped_lock& operator=(const scoped_lock& lock) = delete;
     ~scoped_lock() { lock_.unlock(); }
 private:
     T& lock_;
@@ -160,14 +277,16 @@ class scoped_shared_lock {
 public:
     scoped_shared_lock(T& lock)
         : lock_(lock){ lock_.lock_shared(); }
-    scoped_shared_lock(const T& lock) = delete;
-    scoped_shared_lock& operator=(const T& lock) = delete;
+    scoped_shared_lock(const scoped_shared_lock& lock) = delete;
+    scoped_shared_lock& operator=(const scoped_shared_lock& lock) = delete;
     ~scoped_shared_lock() { lock_.unlock_shared(); }
 private:
     T& lock_;
 };
 
-/*////////////////////// semaphore ////////////////////*/
+//----------------------- semaphore --------------------------//
+
+#ifdef HAVE_SEMAPHORE
 
 namespace detail {
 
@@ -184,62 +303,57 @@ class native_semaphore {
     void *sem_;
 #elif defined(__APPLE__)
     semaphore_t sem_;
-#else // pthreads
+#else // posix
     sem_t sem_;
 #endif
 };
 
 } // detail
 
+#endif // HAVE_SEMAPHORE
+
 // thanks to https://preshing.com/20150316/semaphores-are-surprisingly-versatile/
 
 class semaphore {
  public:
-    void post(){
-        auto old = count_.fetch_add(1, std::memory_order_release);
-        if (old < 0){
-            sem_.post();
-        }
-    }
-    void wait(){
-        auto old = count_.fetch_sub(1, std::memory_order_acquire);
-        if (old <= 0){
-            sem_.wait();
-        }
-    }
+    semaphore();
+    ~semaphore();
+    semaphore(const semaphore&) = delete;
+    semaphore& operator=(const semaphore&) = delete;
+    void post();
+    void wait();
  private:
+#ifdef HAVE_SEMAPHORE
     detail::native_semaphore sem_;
     std::atomic<int32_t> count_{0};
+#else
+    // fallback using mutex + condition variable
+    pthread_mutex_t mutex_;
+    pthread_cond_t condition_;
+    int32_t count_{0};
+#endif
 };
 
-/*////////////////// event ///////////////////////*/
+//------------------------- event ------------------------------//
 
 class event {
  public:
-    void set(){
-        int oldcount = count_.load(std::memory_order_relaxed);
-        for (;;) {
-            // don't increment past 1
-            // NOTE: we have to use the CAS loop even if we don't
-            // increment 'oldcount', because a another thread
-            // might decrement the counter concurrently!
-            auto newcount = oldcount >= 0 ? 1 : oldcount + 1;
-            if (count_.compare_exchange_weak(oldcount, newcount, std::memory_order_release,
-                                             std::memory_order_relaxed))
-                break;
-        }
-        if (oldcount < 0)
-            sem_.post(); // release one waiting thread
-    }
-    void wait(){
-        auto old = count_.fetch_sub(1, std::memory_order_acquire);
-        if (old <= 0){
-            sem_.wait();
-        }
-    }
+    event();
+    ~event();
+    event(const event&) = delete;
+    event& operator=(const event&) = delete;
+    void set();
+    void wait();
  private:
+#ifdef HAVE_SEMAPHORE
     detail::native_semaphore sem_;
     std::atomic<int32_t> count_{0};
+#else
+    // fallback using mutex + condition variable
+    pthread_mutex_t mutex_;
+    pthread_cond_t condition_;
+    bool state_{false};
+#endif // HAVE_SEMAPHORE
 };
 
 } // sync

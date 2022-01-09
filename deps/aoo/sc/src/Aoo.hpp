@@ -4,8 +4,8 @@
 
 #include "rt_shared_ptr.hpp"
 
-#include "aoo/aoo.hpp"
-#include "aoo/aoo_net.hpp"
+#include "aoo/aoo.h"
+#include "aoo/aoo_client.hpp"
 
 #include "common/net_utils.hpp"
 #include "common/sync.hpp"
@@ -32,7 +32,9 @@ inline void sendMsgNRT(World *world, const osc::OutboundPacketStream& msg){
 
 /*//////////////////////// AooNode ////////////////////////*/
 
+namespace sc {
 class AooClient;
+}
 
 class INode {
 public:
@@ -46,11 +48,11 @@ public:
 
     virtual int port() const = 0;
 
-    virtual aoo::net::client * client() = 0;
+    virtual AooClient * client() = 0;
 
-    virtual bool registerClient(AooClient *c) = 0;
+    virtual bool registerClient(sc::AooClient *c) = 0;
 
-    virtual void unregisterClient(AooClient *c) = 0;
+    virtual void unregisterClient(sc::AooClient *c) = 0;
 
     virtual void notify() = 0;
 
@@ -59,10 +61,10 @@ public:
     virtual void unlock() = 0;
 
     virtual bool getSinkArg(sc_msg_iter *args, aoo::ip_address& addr,
-                            uint32_t &flags, aoo_id &id) const = 0;
+                            AooId &id) const = 0;
 
     virtual bool getSourceArg(sc_msg_iter *args, aoo::ip_address& addr,
-                              aoo_id &id) const = 0;
+                              AooId &id) const = 0;
 
     virtual bool getPeerArg(sc_msg_iter *args, aoo::ip_address& addr) const = 0;
 };
@@ -108,19 +110,20 @@ private:
 template<typename T>
 struct _OpenCmd : CmdData {
     int32_t port;
-    aoo_id id;
+    AooId id;
     INode::ptr node;
-    typename T::pointer obj;
-    int32_t sampleRate;
+    T *obj;
+    AooSampleRate sampleRate;
     int32_t blockSize;
     int32_t numChannels;
-    int32_t bufferSize;
+    AooSeconds bufferSize;
 };
 
 struct OptionCmd : CmdData {
     aoo::ip_address address;
     int32_t port;
-    aoo_id id;
+    AooId id;
+    AooFlag flags;
     union {
         float f;
         int i;
@@ -191,7 +194,7 @@ public:
     void beginReply(osc::OutboundPacketStream& msg, const char *cmd, int replyID);
     void beginEvent(osc::OutboundPacketStream &msg, const char *event);
     void beginEvent(osc::OutboundPacketStream& msg, const char *event,
-                    const aoo::ip_address& addr, aoo_id id);
+                    const aoo::ip_address& addr, AooId id);
     void sendMsgRT(osc::OutboundPacketStream& msg);
     void sendMsgNRT(osc::OutboundPacketStream& msg);
 protected:
@@ -230,10 +233,10 @@ protected:
 
 uint64_t getOSCTime(World *world);
 
-void makeDefaultFormat(aoo_format_storage& f, int sampleRate,
+void makeDefaultFormat(AooFormatStorage& f, int sampleRate,
                        int blockSize, int numChannels);
 
-void serializeFormat(osc::OutboundPacketStream& msg, const aoo_format& f);
+bool serializeFormat(osc::OutboundPacketStream& msg, const AooFormat& f);
 
 bool parseFormat(const AooUnit& unit, int defNumChannels, sc_msg_iter *args,
-                 aoo_format_storage &f);
+                 AooFormatStorage &f);

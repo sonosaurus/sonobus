@@ -12,7 +12,7 @@
 namespace aoo {
 namespace lockfree {
 
-/*////////////////////// spsc_queue /////////////////////////*/
+//-------------------- spsc_queue -----------------------//
 
 // a lock-free single-producer/single-consumer queue which
 // supports reading/writing data in fixed-sized blocks.
@@ -56,6 +56,10 @@ class spsc_queue {
 
     void resize(int32_t capacity){
         resize(1, capacity);
+    }
+
+    void shrink_to_fit(){
+        data_.shrink_to_fit();
     }
 
     int32_t blocksize() const { return blocksize_; }
@@ -151,7 +155,7 @@ class spsc_queue {
     }
 };
 
-/*///////////////////////// unbounded_mpsc_queue ///////////////*/
+//--------------------- unbounded_mpsc_queue -------------------------//
 
 // based on https://www.drdobbs.com/parallel/writing-lock-free-code-a-corrected-queue/210604448
 
@@ -372,16 +376,17 @@ class unbounded_mpsc_queue :
     }
 };
 
-/*///////////////////////// simple_list ////////////////////////*/
+//------------------------ concurrent_list ---------------------------------//
 
-// A lock-free singly-linked list which supports adding/removing items and iteration.
-// You can remove nodes while other threads push nodes or iterate over the list.
-// However, erase(), pop_front(), clear() are not thread-safe in regard to each other.
-// Each thread trying to access the list must call lock()/unlock(), so that try_remove()
-// knows when it is safe to actually free the memory.
+// A lock-free singly-linked list.
+// Adding/removing items and iterating over the list is generally thread-safe,
+// but with the following restrictions:
+// * nodes must only be removed from a single thread
+// * each thread trying to access the list must call lock()/unlock(),
+//   so that try_remove() knows when it is safe to actually free the memory.
 
 template<typename T, typename Alloc = std::allocator<T>>
-class simple_list :
+class concurrent_list :
     detail::node_allocator_base<detail::atomic_node_base<T>, Alloc>
 {
     typedef detail::node_allocator_base<detail::atomic_node_base<T>, Alloc> base;
@@ -389,7 +394,7 @@ class simple_list :
 public:
     template<typename U>
     class base_iterator {
-        friend class simple_list;
+        friend class concurrent_list;
         U *node_;
     public:
         typedef std::ptrdiff_t difference_type;
@@ -425,12 +430,12 @@ public:
     using iterator = base_iterator<node>;
     using const_iterator = base_iterator<const node>;
 
-    simple_list(const Alloc& alloc = Alloc{})
+    concurrent_list(const Alloc& alloc = Alloc{})
         : base(alloc) {}
 
-    simple_list(const simple_list&) = delete;
+    concurrent_list(const concurrent_list&) = delete;
 
-    simple_list(simple_list&& other)
+    concurrent_list(concurrent_list&& other)
         : base(std::move(other))
     {
         head_ = other.head_.exchange(nullptr);
@@ -438,12 +443,12 @@ public:
         refcount_ = other.refcount_.exchange(0);
     }
 
-    ~simple_list(){
+    ~concurrent_list(){
         destroy_list(head_.load());
         destroy_list(free_.load());
     }
 
-    simple_list& operator=(simple_list&& other){
+    concurrent_list& operator=(concurrent_list&& other){
         base::operator=(std::move(other));
         head_ = other.head_.exchange(nullptr);
         free_ = other.free_.exchange(nullptr);
@@ -452,7 +457,7 @@ public:
     }
 
     template<typename... U>
-    void emplace_front(U&&... args){
+    iterator emplace_front(U&&... args){
         auto n = base::allocate();
         new (n) node(std::forward<U>(args)...);
         auto next = head_.load(std::memory_order_relaxed);
@@ -461,14 +466,11 @@ public:
             // check if the head has changed and update it atomically.
             // (if the CAS fails, 'next' is updated to the current head)
         } while (!head_.compare_exchange_weak(next, n, std::memory_order_acq_rel)) ;
+        return iterator(n);
     }
 
-    void push_front(const T& v){
-        emplace_front(v);
-    }
-
-    void push_front(T&& v){
-        emplace_front(std::move(v));
+    iterator push_front(T&& v){
+        return emplace_front(std::forward<T>(v));
     }
 
     // NOTE: don't call concurrently!
@@ -484,6 +486,7 @@ public:
         dispose_node(head);
     }
 
+    // NOTE: don't call concurrently!
     iterator erase(iterator it){
         for (;;){
             auto n = head_.load(std::memory_order_acquire);
@@ -548,10 +551,9 @@ public:
         return head_.load(std::memory_order_relaxed) == nullptr;
     }
 
-    // not safe for concurrent iteration!
     void clear(){
         // atomically unlink the whole list
-        auto head = head_.exchange(nullptr); // relaxed?
+        auto head = head_.exchange(nullptr);
         if (head){
             // and move it to the free list
             append_list(head, free_);

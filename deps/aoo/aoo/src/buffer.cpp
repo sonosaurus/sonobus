@@ -7,10 +7,10 @@
 
 namespace aoo {
 
-/*////////////////////////// sent_block /////////////////////////////*/
+//-------------------------- sent_block -----------------------------//
 
 void sent_block::set(int32_t seq, double sr,
-                     const char *data, int32_t nbytes,
+                     const AooByte *data, int32_t nbytes,
                      int32_t nframes, int32_t framesize)
 {
     sequence = seq;
@@ -20,7 +20,7 @@ void sent_block::set(int32_t seq, double sr,
     buffer_.assign(data, data + nbytes);
 }
 
-int32_t sent_block::get_frame(int32_t which, char *data, int32_t n){
+int32_t sent_block::get_frame(int32_t which, AooByte *data, int32_t n){
     assert(framesize_ > 0 && numframes_ > 0);
     if (which >= 0 && which < numframes_){
         auto onset = which * framesize_;
@@ -53,7 +53,7 @@ int32_t sent_block::frame_size(int32_t which) const {
     }
 }
 
-/*////////////////////////// history_buffer ///////////////////////////*/
+//-------------------- history_buffer ----------------------//
 
 void history_buffer::clear(){
     head_ = 0;
@@ -62,6 +62,9 @@ void history_buffer::clear(){
 
 void history_buffer::resize(int32_t n){
     buffer_.resize(n);
+#if 1
+    buffer_.shrink_to_fit();
+#endif
     clear();
 }
 
@@ -135,7 +138,7 @@ sent_block * history_buffer::push()
     return &buffer_[old];
 }
 
-/*////////////////////// received_block //////////////////////*/
+//---------------------- received_block ------------------------//
 
 void received_block::reserve(int32_t size){
     buffer_.reserve(size);
@@ -198,17 +201,18 @@ int32_t received_block::resend_count() const {
     return numtries_;
 }
 
-void received_block::add_frame(int32_t which, const char *data, int32_t n){
+void received_block::add_frame(int32_t which,
+                               const AooByte *data, int32_t n){
     assert(!buffer_.empty());
     assert(which < numframes_);
     if (which == numframes_ - 1){
     #if AOO_DEBUG_JITTER_BUFFER
-        DO_LOG_DEBUG("jitter buffer: copy last frame with " << n << " bytes");
+        LOG_ALL("jitter buffer: copy last frame with " << n << " bytes");
     #endif
         std::copy(data, data + n, buffer_.end() - n);
     } else {
     #if AOO_DEBUG_JITTER_BUFFER
-        DO_LOG_DEBUG("jitter buffer: copy frame " << which << " with " << n << " bytes");
+        LOG_ALL("jitter buffer: copy frame " << which << " with " << n << " bytes");
     #endif
         std::copy(data, data + n, buffer_.data() + (which * n));
         framesize_ = n; // LATER allow varying framesizes
@@ -227,13 +231,12 @@ bool received_block::update(double time, double interval){
     timestamp_ = time;
     numtries_++;
 #if AOO_DEBUG_JITTER_BUFFER
-    DO_LOG_DEBUG(
-           "jitter buffer: request block " << sequence);
+    LOG_ALL("jitter buffer: request block " << sequence);
 #endif
     return true;
 }
 
-/*////////////////////////// jitter_buffer /////////////////////////////*/
+//----------------------- jitter_buffer ----------------------//
 
 void jitter_buffer::clear(){
     head_ = tail_ = size_ = 0;
@@ -242,6 +245,9 @@ void jitter_buffer::clear(){
 
 void jitter_buffer::resize(int32_t n, int32_t maxblocksize){
     data_.resize(n);
+#if 1
+    data_.shrink_to_fit();
+#endif
     for (auto& b : data_){
         b.reserve(maxblocksize);
     }

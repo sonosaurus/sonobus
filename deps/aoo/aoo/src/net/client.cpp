@@ -4,6 +4,9 @@
 
 #include "client.hpp"
 
+#include "aoo/aoo_source.hpp"
+#include "aoo/aoo_sink.hpp"
+
 #include <cstring>
 #include <functional>
 #include <algorithm>
@@ -23,41 +26,41 @@
 #include <errno.h>
 #endif
 
-#define AOO_NET_MSG_SERVER_PING \
-    AOO_MSG_DOMAIN AOO_NET_MSG_SERVER AOO_NET_MSG_PING
+#define kAooNetMsgServerPing \
+    kAooMsgDomain kAooNetMsgServer kAooNetMsgPing
 
-#define AOO_NET_MSG_PEER_PING \
-    AOO_MSG_DOMAIN AOO_NET_MSG_PEER AOO_NET_MSG_PING
+#define kAooNetMsgPeerPing \
+    kAooMsgDomain kAooNetMsgPeer kAooNetMsgPing
 
-#define AOO_NET_MSG_PEER_REPLY \
-    AOO_MSG_DOMAIN AOO_NET_MSG_PEER AOO_NET_MSG_REPLY
+#define kAooNetMsgPeerReply \
+    kAooMsgDomain kAooNetMsgPeer kAooNetMsgReply
 
-#define AOO_NET_MSG_PEER_MESSAGE \
-    AOO_MSG_DOMAIN AOO_NET_MSG_PEER AOO_NET_MSG_MESSAGE
+#define kAooNetMsgPeerMessage \
+    kAooMsgDomain kAooNetMsgPeer kAooNetMsgMessage
 
-#define AOO_NET_MSG_SERVER_LOGIN \
-    AOO_MSG_DOMAIN AOO_NET_MSG_SERVER AOO_NET_MSG_LOGIN
+#define kAooNetMsgServerLogin \
+    kAooMsgDomain kAooNetMsgServer kAooNetMsgLogin
 
-#define AOO_NET_MSG_SERVER_REQUEST \
-    AOO_MSG_DOMAIN AOO_NET_MSG_SERVER AOO_NET_MSG_REQUEST
+#define kAooNetMsgServerRequest \
+    kAooMsgDomain kAooNetMsgServer kAooNetMsgRequest
 
-#define AOO_NET_MSG_SERVER_GROUP_JOIN \
-    AOO_MSG_DOMAIN AOO_NET_MSG_SERVER AOO_NET_MSG_GROUP AOO_NET_MSG_JOIN
+#define kAooNetMsgPeerJoin \
+    kAooNetMsgPeer kAooNetMsgJoin
 
-#define AOO_NET_MSG_SERVER_GROUP_LEAVE \
-    AOO_MSG_DOMAIN AOO_NET_MSG_SERVER AOO_NET_MSG_GROUP AOO_NET_MSG_LEAVE
+#define kAooNetMsgPeerLeave \
+    kAooNetMsgPeer kAooNetMsgLeave
 
-#define AOO_NET_MSG_GROUP_JOIN \
-    AOO_NET_MSG_GROUP AOO_NET_MSG_JOIN
+#define kAooNetMsgGroupJoin \
+    kAooNetMsgGroup kAooNetMsgJoin
 
-#define AOO_NET_MSG_GROUP_LEAVE \
-    AOO_NET_MSG_GROUP AOO_NET_MSG_LEAVE
+#define kAooNetMsgGroupLeave \
+    kAooNetMsgGroup kAooNetMsgLeave
 
-#define AOO_NET_MSG_PEER_JOIN \
-    AOO_NET_MSG_PEER AOO_NET_MSG_JOIN
+#define kAooNetMsgServerGroupJoin \
+    kAooMsgDomain kAooNetMsgServer kAooNetMsgGroupJoin
 
-#define AOO_NET_MSG_PEER_LEAVE \
-    AOO_NET_MSG_PEER AOO_NET_MSG_LEAVE
+#define kAooNetMsgServerGroupLeave \
+    kAooMsgDomain kAooNetMsgServer kAooNetMsgGroupLeave
 
 // debugging
 
@@ -66,7 +69,6 @@
 #define DEBUG_RELAY 0
 
 namespace aoo {
-
 namespace net {
 
 std::string encrypt(const std::string& input){
@@ -78,7 +80,7 @@ std::string encrypt(const std::string& input){
 
     char output[33];
     for (int i = 0; i < 16; ++i){
-        sprintf(&output[i * 2], "%02X", result[i]);
+        snprintf(&output[i * 2], 3, "%02X", result[i]);
     }
 
     return output;
@@ -91,70 +93,69 @@ void copy_string(const std::string& src, char *dst, int32_t size){
     dst[n] = '\0';
 }
 
-/*//////////////////// OSC ////////////////////////////*/
-
 // optimized version of aoo_parse_pattern() for client/server
-aoo_error parse_pattern(const char *msg, int32_t n, aoo_type& type, int32_t& offset)
+AooError parse_pattern(const AooByte *msg, int32_t n, AooMsgType& type, int32_t& offset)
 {
     int32_t count = 0;
-    if (n >= AOO_BIN_MSG_HEADER_SIZE &&
-        !memcmp(msg, AOO_BIN_MSG_DOMAIN, AOO_BIN_MSG_DOMAIN_SIZE))
+    if (n >= kAooBinMsgHeaderSize &&
+        !memcmp(msg, kAooBinMsgDomain, kAooBinMsgDomainSize))
     {
         // domain (int32), type (int16), cmd (int16), id (int32) ...
         type = aoo::from_bytes<int16_t>(msg + 4);
         offset = 12;
 
-        return AOO_OK;
-    } else if (n >= AOO_MSG_DOMAIN_LEN
-            && !memcmp(msg, AOO_MSG_DOMAIN, AOO_MSG_DOMAIN_LEN))
+        return kAooOk;
+    } else if (n >= kAooMsgDomainLen
+            && !memcmp(msg, kAooMsgDomain, kAooMsgDomainLen))
     {
-        count += AOO_MSG_DOMAIN_LEN;
-        if (n >= (count + AOO_NET_MSG_SERVER_LEN)
-            && !memcmp(msg + count, AOO_NET_MSG_SERVER, AOO_NET_MSG_SERVER_LEN))
+        count += kAooMsgDomainLen;
+        if (n >= (count + kAooNetMsgServerLen)
+            && !memcmp(msg + count, kAooNetMsgServer, kAooNetMsgServerLen))
         {
-            type = AOO_TYPE_SERVER;
-            count += AOO_NET_MSG_SERVER_LEN;
+            type = kAooTypeServer;
+            count += kAooNetMsgServerLen;
         }
-        else if (n >= (count + AOO_NET_MSG_CLIENT_LEN)
-            && !memcmp(msg + count, AOO_NET_MSG_CLIENT, AOO_NET_MSG_CLIENT_LEN))
+        else if (n >= (count + kAooNetMsgClientLen)
+            && !memcmp(msg + count, kAooNetMsgClient, kAooNetMsgClientLen))
         {
-            type = AOO_TYPE_CLIENT;
-            count += AOO_NET_MSG_CLIENT_LEN;
+            type = kAooTypeClient;
+            count += kAooNetMsgClientLen;
         }
-        else if (n >= (count + AOO_NET_MSG_PEER_LEN)
-            && !memcmp(msg + count, AOO_NET_MSG_PEER, AOO_NET_MSG_PEER_LEN))
+        else if (n >= (count + kAooNetMsgPeerLen)
+            && !memcmp(msg + count, kAooNetMsgPeer, kAooNetMsgPeerLen))
         {
-            type = AOO_TYPE_PEER;
-            count += AOO_NET_MSG_PEER_LEN;
+            type = kAooTypePeer;
+            count += kAooNetMsgPeerLen;
         }
-        else if (n >= (count + AOO_NET_MSG_RELAY_LEN)
-            && !memcmp(msg + count, AOO_NET_MSG_RELAY, AOO_NET_MSG_RELAY_LEN))
+        else if (n >= (count + kAooNetMsgRelayLen)
+            && !memcmp(msg + count, kAooNetMsgRelay, kAooNetMsgRelayLen))
         {
-            type = AOO_TYPE_RELAY;
-            count += AOO_NET_MSG_RELAY_LEN;
+            type = kAooTypeRelay;
+            count += kAooNetMsgRelayLen;
         } else {
-            return AOO_ERROR_UNSPECIFIED;
+            return kAooErrorUnknown;
         }
 
         offset = count;
 
-        return AOO_OK;
+        return kAooOk;
     } else {
-        return AOO_ERROR_UNSPECIFIED; // not an AoO message
+        return kAooErrorUnknown; // not an AOO message
     }
 }
 
 } // net
 } // aoo
 
-/*//////////////////// AoO client /////////////////////*/
+//--------------------- AooClient -----------------------------//
 
-aoo_net_client * aoo_net_client_new(const void *address, int32_t addrlen,
-                                    uint32_t flags) {
-    return aoo::construct<aoo::net::client_imp>(address, addrlen, flags);
+AOO_API AooClient * AOO_CALL AooClient_new(
+        const void *address, AooAddrSize addrlen, AooFlag flags, AooError *err) {
+    return aoo::construct<aoo::net::Client>(address, addrlen, flags, err);
 }
 
-aoo::net::client_imp::client_imp(const void *address, int32_t addrlen, uint32_t flags)
+aoo::net::Client::Client(const void *address, AooAddrSize addrlen,
+                                 AooFlag flags, AooError *err)
 {
     ip_address addr((const sockaddr *)address, addrlen);
     udp_client_ = std::make_unique<udp_client>(*this, addr.port(), flags);
@@ -174,23 +175,23 @@ aoo::net::client_imp::client_imp(const void *address, int32_t addrlen, uint32_t 
     // events_.reserve(256);
 }
 
-void aoo_net_client_free(aoo_net_client *client){
+AOO_API void AOO_CALL AooClient_free(AooClient *client){
     // cast to correct type because base class
     // has no virtual destructor!
-    aoo::destroy(static_cast<aoo::net::client_imp *>(client));
+    aoo::destroy(static_cast<aoo::net::Client *>(client));
 }
 
-aoo::net::client_imp::~client_imp() {
+aoo::net::Client::~Client() {
     if (socket_ >= 0){
         socket_close(socket_);
     }
 }
 
-aoo_error aoo_net_client_run(aoo_net_client *client){
+AOO_API AooError AOO_CALL AooClient_run(AooClient *client){
     return client->run();
 }
 
-aoo_error aoo::net::client_imp::run(){
+AooError AOO_CALL aoo::net::Client::run(){
     start_time_ = time_tag::now();
 
     while (!quit_.load()){
@@ -207,10 +208,10 @@ aoo_error aoo::net::client_imp::run(){
                 if (socket_ >= 0){
                     char buf[64];
                     osc::OutboundPacketStream msg(buf, sizeof(buf));
-                    msg << osc::BeginMessage(AOO_NET_MSG_SERVER_PING)
+                    msg << osc::BeginMessage(kAooNetMsgServerPing)
                         << osc::EndMessage;
 
-                    send_server_message(msg.Data(), msg.Size());
+                    send_server_message((const AooByte *)msg.Data(), msg.Size());
                 } else {
                     LOG_ERROR("aoo_client: bug send_ping()");
                 }
@@ -245,14 +246,14 @@ aoo_error aoo::net::client_imp::run(){
             LOG_DEBUG("aoo::client: try_free() would block");
         }
     }
-    return AOO_OK;
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_quit(aoo_net_client *client){
+AOO_API AooError AOO_CALL AooClient_quit(AooClient *client){
     return client->quit();
 }
 
-aoo_error aoo::net::client_imp::quit(){
+AooError AOO_CALL aoo::net::Client::quit(){
     quit_.store(true);
     if (!signal()){
         // force wakeup by closing the socket.
@@ -260,102 +261,113 @@ aoo_error aoo::net::client_imp::quit(){
         // the MSDN docs explicitly forbid it!
         socket_close(eventsocket_);
     }
-    return AOO_OK;
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_add_source(aoo_net_client *client,
-                                    aoo_source *src, aoo_id id)
+AOO_API AooError AOO_CALL AooClient_addSource(
+        AooClient *client, AooSource *src, AooId id)
 {
-    return client->add_source(src, id);
+    return client->addSource(src, id);
 }
 
-aoo_error aoo::net::client_imp::add_source(source *src, aoo_id id)
+AooError AOO_CALL aoo::net::Client::addSource(
+        AooSource *src, AooId id)
 {
 #if 1
     for (auto& s : sources_){
         if (s.source == src){
             LOG_ERROR("aoo_client: source already added");
-            return AOO_ERROR_UNSPECIFIED;
+            return kAooErrorUnknown;
         } else if (s.id == id){
             LOG_WARNING("aoo_client: source with id " << id
                         << " already added!");
-            return AOO_ERROR_UNSPECIFIED;
+            return kAooErrorUnknown;
         }
     }
 #endif
     sources_.push_back({ src, id });
-    return AOO_OK;
+    src->control(kAooCtlSetClient,
+                 reinterpret_cast<intptr_t>(this), nullptr, 0);
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_remove_source(aoo_net_client *client,
-                                       aoo_source *src)
+AOO_API AooError AOO_CALL AooClient_removeSource(
+        AooClient *client, AooSource *src)
 {
-    return client->remove_source(src);
+    return client->removeSource(src);
 }
 
-aoo_error aoo::net::client_imp::remove_source(source *src)
+AooError AOO_CALL aoo::net::Client::removeSource(
+        AooSource *src)
 {
     for (auto it = sources_.begin(); it != sources_.end(); ++it){
         if (it->source == src){
             sources_.erase(it);
-            return AOO_OK;
+            src->control(kAooCtlSetClient, 0, nullptr, 0);
+            return kAooOk;
         }
     }
     LOG_ERROR("aoo_client: source not found");
-    return AOO_ERROR_UNSPECIFIED;
+    return kAooErrorUnknown;
 }
 
-aoo_error aoo_net_client_add_sink(aoo_net_client *client,
-                                  aoo_sink *sink, aoo_id id)
+AOO_API AooError AOO_CALL AooClient_addSink(
+        AooClient *client, AooSink *sink, AooId id)
 {
-    return client->add_sink(sink, id);
+    return client->addSink(sink, id);
 }
 
-aoo_error aoo::net::client_imp::add_sink(sink *sink, aoo_id id)
+AooError AOO_CALL aoo::net::Client::addSink(
+        AooSink *sink, AooId id)
 {
 #if 1
     for (auto& s : sinks_){
         if (s.sink == sink){
             LOG_ERROR("aoo_client: sink already added");
-            return AOO_OK;
+            return kAooOk;
         } else if (s.id == id){
             LOG_WARNING("aoo_client: sink with id " << id
                         << " already added!");
-            return AOO_ERROR_UNSPECIFIED;
+            return kAooErrorUnknown;
         }
     }
 #endif
     sinks_.push_back({ sink, id });
-    return AOO_OK;
+    sink->control(kAooCtlSetClient,
+                  reinterpret_cast<intptr_t>(this), nullptr, 0);
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_remove_sink(aoo_net_client *client,
-                                     aoo_sink *sink)
+AOO_API AooError AOO_CALL AooClient_removeSink(
+        AooClient *client, AooSink *sink)
 {
-    return client->remove_sink(sink);
+    return client->removeSink(sink);
 }
 
-aoo_error aoo::net::client_imp::remove_sink(sink *sink)
+AooError AOO_CALL aoo::net::Client::removeSink(
+        AooSink *sink)
 {
     for (auto it = sinks_.begin(); it != sinks_.end(); ++it){
         if (it->sink == sink){
             sinks_.erase(it);
-            return AOO_OK;
+            sink->control(kAooCtlSetClient, 0, nullptr, 0);
+            return kAooOk;
         }
     }
     LOG_ERROR("aoo_client: sink not found");
-    return AOO_ERROR_UNSPECIFIED;
+    return kAooErrorUnknown;
 }
 
-aoo_error aoo_net_client_get_peer_address(aoo_net_client *client,
-                                          const char *group, const char *user,
-                                          void *address, int32_t *addrlen, uint32_t *flags)
+AOO_API AooError AOO_CALL AooClient_getPeerByName(
+        AooClient *client, const AooChar *group,
+        const AooChar *user, void *address, AooAddrSize *addrlen)
 {
-    return client->get_peer_address(group, user, address, addrlen, flags);
+    return client->getPeerByName(group, user, address, addrlen);
 }
 
-aoo_error aoo::net::client_imp::get_peer_address(const char *group, const char *user,
-                                                 void *address, int32_t *addrlen, uint32_t *flags)
+AooError AOO_CALL aoo::net::Client::getPeerByName(
+        const char *group, const char *user,
+        void *address, AooAddrSize *addrlen)
 {
     peer_lock lock(peers_);
     for (auto& p : peers_){
@@ -363,95 +375,71 @@ aoo_error aoo::net::client_imp::get_peer_address(const char *group, const char *
         if (p.match(group, user) && p.connected()){
             if (address){
                 auto& addr = p.address();
-                if (*addrlen < addr.length()){
-                    return AOO_ERROR_UNSPECIFIED;
+                if (*addrlen < (AooAddrSize)addr.length()){
+                    return kAooErrorUnknown;
                 }
                 memcpy(address, addr.address(), addr.length());
                 *addrlen = addr.length();
             }
-            if (flags){
-                *flags = p.flags();
-            }
-            return AOO_OK;
+            return kAooOk;
         }
     }
-    return AOO_ERROR_UNSPECIFIED;
+    return kAooErrorUnknown;
 }
 
-aoo_error aoo_net_client_get_peer_info(aoo_net_client *client,
-                                       const void *address, int32_t addrlen,
-                                       aoo_net_peer_info *info)
+AOO_API AooError AOO_CALL AooClient_sendRequest(
+        AooClient *client, AooNetRequestType request, void *data,
+        AooNetCallback callback, void *user) {
+    return client->sendRequest(request, data, callback, user);
+}
+
+AooError AOO_CALL aoo::net::Client::sendRequest(
+        AooNetRequestType request, void *data,
+        AooNetCallback callback, void *user)
 {
-    return client->get_peer_info(address, addrlen, info);
-}
-
-aoo_error aoo::net::client_imp::get_peer_info(const void *address, int32_t addrlen,
-                                              aoo_net_peer_info *info)
-{
-    peer_lock lock(peers_);
-    for (auto& p : peers_){
-        ip_address addr((const sockaddr *)address, addrlen);
-        if (p.match(addr)){
-            aoo::net::copy_string(p.group(), info->group_name, sizeof(info->group_name));
-            aoo::net::copy_string(p.user(), info->user_name, sizeof(info->user_name));
-            info->user_id = p.id();
-            info->flags = p.flags();
-
-            return AOO_OK;
-        }
-    }
-    return AOO_ERROR_UNSPECIFIED;
-}
-
-aoo_error aoo_net_client_request(aoo_net_client *client,
-                                 aoo_net_request_type request, void *data,
-                                 aoo_net_callback callback, void *user) {
-    return client->send_request(request, data, callback, user);
-}
-
-aoo_error aoo::net::client_imp::send_request(aoo_net_request_type request, void *data,
-                                             aoo_net_callback callback, void *user){
     switch (request){
-    case AOO_NET_CONNECT_REQUEST:
+    case kAooNetRequestConnect:
     {
-        auto d = (aoo_net_connect_request *)data;
-        do_connect(d->host, d->port, d->user_name, d->user_pwd, callback, user);
+        auto d = (AooNetRequestConnect *)data;
+        do_connect(d->hostName, d->port, d->userName, d->userPwd, callback, user);
         break;
     }
-    case AOO_NET_DISCONNECT_REQUEST:
+    case kAooNetRequestDisconnect:
         do_disconnect(callback, user);
         break;
-    case AOO_NET_GROUP_JOIN_REQUEST:
+    case kAooNetRequestJoinGroup:
     {
-        auto d = (aoo_net_group_request *)data;
-        do_join_group(d->group_name, d->group_pwd, callback, user);
+        auto d = (AooNetRequestJoinGroup *)data;
+        do_join_group(d->groupName, d->groupPwd, callback, user);
         break;
     }
-    case AOO_NET_GROUP_LEAVE_REQUEST:
+    case kAooNetRequestLeaveGroup:
     {
-        auto d = (aoo_net_group_request *)data;
-        do_leave_group(d->group_name, callback, user);
+        auto d = (AooNetRequestLeaveGroup *)data;
+        do_leave_group(d->groupName, callback, user);
         break;
     }
     default:
         LOG_ERROR("aoo client: unknown request " << request);
-        return AOO_ERROR_UNSPECIFIED;
+        return kAooErrorUnknown;
     }
-    return AOO_OK;
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_send_message(aoo_net_client *client, const char *data, int32_t size,
-                                      const void *addr, int32_t len, int32_t flags)
+AOO_API AooError AOO_CALL AooClient_sendPeerMessage(
+        AooClient *client, const AooByte *data, AooInt32 size,
+        const void *addr, AooAddrSize len, AooFlag flags)
 {
-    return client->send_message(data, size, addr, len, flags);
+    return client->sendPeerMessage(data, size, addr, len, flags);
 }
 
-aoo_error aoo::net::client_imp::send_message(const char *data, int32_t size,
-                                             const void *addr, int32_t len, int32_t flags)
+AooError AOO_CALL aoo::net::Client::sendPeerMessage(
+        const AooByte *data, AooInt32 size,
+        const void *addr, AooAddrSize len, AooFlag flags)
 {
     // for now, we simply achieve 'reliable' messages by relaying over TCP
     // LATER implement ack mechanism over UDP.
-    bool reliable = flags & AOO_NET_MESSAGE_RELIABLE;
+    bool reliable = flags & kAooNetMessageReliable;
 
     std::unique_ptr<imessage> msg;
     if (addr){
@@ -476,79 +464,85 @@ aoo_error aoo::net::client_imp::send_message(const char *data, int32_t size,
         // add to UDP message queue
         udp_messages_.push(std::move(msg));
     }
-    return AOO_OK;
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_handle_message(aoo_net_client *client, const char *data,
-                                        int32_t n, const void *addr, int32_t len)
+AOO_API AooError AOO_CALL AooClient_handleMessage(
+        AooClient *client, const AooByte *data,
+        AooInt32 size, const void *addr, AooAddrSize len)
 {
-    return client->handle_message(data, n, addr, len);
+    return client->handleMessage(data, size, addr, len);
 }
 
-aoo_error aoo::net::client_imp::handle_message(const char *data, int32_t n,
-                                               const void *addr, int32_t len){
-    int32_t type;
-    aoo_id id;
-    int32_t onset;
-    auto err = aoo_parse_pattern(data, n, &type, &id, &onset);
-    if (err != AOO_OK){
-        LOG_VERBOSE("aoo_client: not an AOO NET message!");
-        return AOO_ERROR_UNSPECIFIED;
+AooError AOO_CALL aoo::net::Client::handleMessage(
+        const AooByte *data, AooInt32 size,
+        const void *addr, AooAddrSize len)
+{
+    AooMsgType type;
+    AooId id;
+    AooInt32 onset;
+    auto err = aoo_parsePattern(data, size, &type, &id, &onset);
+    if (err != kAooOk){
+        LOG_WARNING("aoo_client: not an AOO NET message!");
+        return kAooErrorUnknown;
     }
 
-    if (type == AOO_TYPE_SOURCE){
+    if (type == kAooTypeSource){
         // forward to matching source
         for (auto& s : sources_){
             if (s.id == id){
-                return s.source->handle_message(data, n, addr, len);
+                return s.source->handleMessage(data, size, addr, len);
             }
         }
         LOG_WARNING("aoo_client: handle_message(): source not found");
-    } else if (type == AOO_TYPE_SINK){
+    } else if (type == kAooTypeSink){
         // forward to matching sink
         for (auto& s : sinks_){
             if (s.id == id){
-                return s.sink->handle_message(data, n, addr, len);
+                return s.sink->handleMessage(data, size, addr, len);
             }
         }
         LOG_WARNING("aoo_client: handle_message(): sink not found");
     } else if (udp_client_){
         // forward to UDP client
         ip_address address((const sockaddr *)addr, len);
-        return udp_client_->handle_message(data, n, address, type, onset);
+        return udp_client_->handle_message(data, size, address, type, onset);
     }
 
-    return AOO_ERROR_UNSPECIFIED;
+    return kAooErrorUnknown;
 }
 
-aoo_error aoo_net_client_send(aoo_net_client *client, aoo_sendfn fn, void *user){
+AOO_API AooError AOO_CALL AooClient_send(
+        AooClient *client, AooSendFunc fn, void *user){
     return client->send(fn, user);
 }
 
-aoo_error aoo::net::client_imp::send(aoo_sendfn fn, void *user){
+AooError AOO_CALL aoo::net::Client::send(
+        AooSendFunc fn, void *user)
+{
     struct proxy_data {
-        client_imp *self;
-        aoo_sendfn fn;
+        Client *self;
+        AooSendFunc fn;
         void *user;
     };
 
-    auto proxy = [](void *x, const char *data, int32_t n,
-            const void *address, int32_t addrlen, uint32_t flags){
-        auto y = static_cast<proxy_data *>(x);
+    auto proxy = [](void *x, const AooByte *data, AooInt32 size,
+            const void *address, AooAddrSize addrlen, AooFlag flags) -> AooInt32 {
+        auto p = static_cast<proxy_data *>(x);
 
-        bool relay = flags & AOO_ENDPOINT_RELAY;
+        bool relay = flags & kAooEndpointRelay;
         if (relay){
             // relay via server
             ip_address addr((const sockaddr *)address, addrlen);
 
-            sendfn reply(y->fn, y->user);
+            sendfn reply(p->fn, p->user);
 
-            y->self->udp().send_peer_message(data, n, addr, reply, true);
+            p->self->udp().send_peer_message(data, size, addr, reply, true);
 
-            return (int32_t)0;
+            return kAooOk;
         } else {
             // just forward
-            return y->fn(y->user, data, n, address, addrlen, flags);
+            return p->fn(p->user, data, size, address, addrlen, flags);
         }
     };
 
@@ -582,63 +576,88 @@ aoo_error aoo::net::client_imp::send(aoo_sendfn fn, void *user){
             p.send(reply, now);
         }
     }
-    return AOO_OK;
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_set_eventhandler(aoo_net_client *sink, aoo_eventhandler fn,
-                                          void *user, int32_t mode)
+AOO_API AooError AOO_CALL AooClient_setEventHandler(
+        AooClient *sink, AooEventHandler fn, void *user, AooEventMode mode)
 {
-    return sink->set_eventhandler(fn, user, mode);
+    return sink->setEventHandler(fn, user, mode);
 }
 
-aoo_error aoo::net::client_imp::set_eventhandler(aoo_eventhandler fn, void *user,
-                                                 int32_t mode)
+AooError AOO_CALL aoo::net::Client::setEventHandler(
+        AooEventHandler fn, void *user, AooEventMode mode)
 {
     eventhandler_ = fn;
     eventcontext_ = user;
-    eventmode_ = (aoo_event_mode)mode;
-    return AOO_OK;
+    eventmode_ = (AooEventMode)mode;
+    return kAooOk;
 }
 
-aoo_bool aoo_net_client_events_available(aoo_net_server *client){
-    return client->events_available();
+AOO_API AooBool AOO_CALL AooClient_eventsAvailable(AooClient *client){
+    return client->eventsAvailable();
 }
 
-aoo_bool aoo::net::client_imp::events_available(){
+AooBool AOO_CALL aoo::net::Client::eventsAvailable(){
     return !events_.empty();
 }
 
-aoo_error aoo_net_client_poll_events(aoo_net_client *client){
-    return client->poll_events();
+AOO_API AooError AOO_CALL AooClient_pollEvents(AooClient *client){
+    return client->pollEvents();
 }
 
-aoo_error aoo::net::client_imp::poll_events(){
+AooError AOO_CALL aoo::net::Client::pollEvents(){
     // always thread-safe
     std::unique_ptr<ievent> e;
     while (events_.try_pop(e)){
-        eventhandler_(eventcontext_, &e->event_, AOO_THREAD_UNKNOWN);
+        eventhandler_(eventcontext_, &e->event_, kAooThreadLevelUnknown);
     }
-    return AOO_OK;
+    return kAooOk;
 }
 
-aoo_error aoo_net_client_ctl(aoo_net_client *client, int32_t ctl,
-                             intptr_t index, void *p, size_t size)
+AOO_API AooError AOO_CALL AooClient_control(
+        AooClient *client, AooCtl ctl, AooIntPtr index, void *ptr, AooSize size)
 {
-    return client->control(ctl, index, p, size);
+    return client->control(ctl, index, ptr, size);
 }
 
-aoo_error aoo::net::client_imp::control(int32_t ctl, intptr_t index,
-                                        void *ptr, size_t size)
+template<typename T>
+T& as(void *p){
+    return *reinterpret_cast<T *>(p);
+}
+
+#define CHECKARG(type) assert(size == sizeof(type))
+
+AooError AOO_CALL aoo::net::Client::control(
+        AooCtl ctl, AooIntPtr index, void *ptr, AooSize size)
 {
-    LOG_WARNING("aoo_client: unsupported control " << ctl);
-    return AOO_ERROR_UNSPECIFIED;
+    switch(ctl){
+    case kAooCtlNeedRelay:
+    {
+        CHECKARG(AooBool);
+        auto ep = reinterpret_cast<const AooEndpoint *>(index);
+        ip_address addr((sockaddr *)ep->address, ep->addrlen);
+        peer_lock lock(peers_);
+        for (auto& peer : peers_){
+            if (peer.match(addr)){
+                as<AooBool>(ptr) = peer.relay() ? kAooTrue : kAooFalse;
+                return kAooOk;
+            }
+        }
+        return kAooErrorUnknown;
+    }
+    default:
+        LOG_WARNING("aoo_client: unsupported control " << ctl);
+        return kAooErrorNotImplemented;
+    }
+    return kAooOk;
 }
 
 namespace aoo {
 namespace net {
 
-bool client_imp::handle_peer_message(const osc::ReceivedMessage& msg, int onset,
-                                     const ip_address& addr)
+bool Client::handle_peer_message(const osc::ReceivedMessage& msg, int onset,
+                                 const ip_address& addr)
 {
     bool success = false;
     // NOTE: we have to loop over *all* peers because there can
@@ -658,16 +677,16 @@ bool client_imp::handle_peer_message(const osc::ReceivedMessage& msg, int onset,
 }
 
 template<typename T>
-void client_imp::perform_send_message(const char *data, int32_t size, int32_t flags,
-                                      const sendfn& fn, T&& filter)
+void Client::perform_send_message(const AooByte *data, int32_t size, int32_t flags,
+                                  const sendfn& fn, T&& filter)
 {
-    bool reliable = flags & AOO_NET_MESSAGE_RELIABLE;
+    bool reliable = flags & kAooNetMessageReliable;
     // embed inside an OSC message:
     // /aoo/peer/msg' (b)<message>
     try {
-        char buf[AOO_MAXPACKETSIZE];
+        char buf[AOO_MAX_PACKET_SIZE];
         osc::OutboundPacketStream msg(buf, sizeof(buf));
-        msg << osc::BeginMessage(AOO_NET_MSG_PEER_MESSAGE)
+        msg << osc::BeginMessage(kAooNetMsgPeerMessage)
             << osc::Blob(data, size) << osc::EndMessage;
 
         peer_lock lock(peers_);
@@ -675,13 +694,13 @@ void client_imp::perform_send_message(const char *data, int32_t size, int32_t fl
             if (filter(peer)){
                 auto& addr = peer.address();
                 LOG_DEBUG("aoo_client: send message " << data
-                          << " to " << addr.name() << ":" << addr.port());
+                          << " to " << addr);
                 // Note: reliable messages are dispatched in the TCP network thread,
                 // unreliable messages are dispatched in the UDP network thread.
                 if (reliable){
-                    send_peer_message(msg.Data(), msg.Size(), addr);
+                    send_peer_message((const AooByte *)msg.Data(), msg.Size(), addr);
                 } else if (udp_client_){
-                    udp_client_->send_peer_message(msg.Data(), msg.Size(),
+                    udp_client_->send_peer_message((const AooByte *)msg.Data(), msg.Size(),
                                                    addr, fn, peer.relay());
                 }
             }
@@ -691,9 +710,9 @@ void client_imp::perform_send_message(const char *data, int32_t size, int32_t fl
     }
 }
 
-void client_imp::do_connect(const char *host, int port,
-                            const char *name, const char *pwd,
-                            aoo_net_callback cb, void *user)
+void Client::do_connect(const char *host, int port,
+                        const char *name, const char *pwd,
+                        AooNetCallback cb, void *user)
 {
     auto cmd = std::make_unique<connect_cmd>(cb, user, host, port,
                                              name, encrypt(pwd));
@@ -701,21 +720,21 @@ void client_imp::do_connect(const char *host, int port,
     push_command(std::move(cmd));
 }
 
-void client_imp::perform_connect(const std::string& host, int port,
-                                 const std::string& name, const std::string& pwd,
-                                 aoo_net_callback cb, void *user)
+void Client::perform_connect(const std::string& host, int port,
+                             const std::string& name, const std::string& pwd,
+                             AooNetCallback cb, void *user)
 {
     auto state = state_.load();
     if (state != client_state::disconnected){
-        aoo_net_error_reply reply;
-        reply.error_code = 0;
+        AooNetReplyError reply;
+        reply.errorCode = 0;
         if (state == client_state::connected){
-            reply.error_message = "already connected";
+            reply.errorMessage = "already connected";
         } else {
-            reply.error_message = "already connecting";
+            reply.errorMessage = "already connecting";
         }
 
-        if (cb) cb(user, AOO_ERROR_UNSPECIFIED, &reply);
+        if (cb) cb(user, kAooErrorUnknown, &reply);
 
         return;
     }
@@ -729,11 +748,11 @@ void client_imp::perform_connect(const std::string& host, int port,
 
         close();
 
-        aoo_net_error_reply reply;
-        reply.error_code = err;
-        reply.error_message = errmsg.c_str();
+        AooNetReplyError reply;
+        reply.errorCode = err;
+        reply.errorMessage = errmsg.c_str();
 
-        if (cb) cb(user, AOO_ERROR_UNSPECIFIED, &reply);
+        if (cb) cb(user, kAooErrorUnknown, &reply);
 
         return;
     }
@@ -746,7 +765,7 @@ void client_imp::perform_connect(const std::string& host, int port,
     state_.store(client_state::handshake);
 }
 
-int client_imp::try_connect(const std::string &host, int port){
+int Client::try_connect(const std::string &host, int port){
     socket_ = socket_tcp(0);
     if (socket_ < 0){
         int err = socket_errno();
@@ -764,17 +783,18 @@ int client_imp::try_connect(const std::string &host, int port){
 
     LOG_DEBUG("aoo_client: server address list:");
     for (auto& addr : result){
-        LOG_DEBUG("\t" << addr.name() << " " << addr.port());
+        LOG_DEBUG("\t" << addr);
     }
 
     // for actual TCP connection, just pick the first result
     auto& remote = result.front();
-    LOG_VERBOSE("try to connect to " << remote.name() << "/" << port);
+    LOG_VERBOSE("try to connect to " << remote);
 
     // try to connect (LATER make timeout configurable)
     if (socket_connect(socket_, remote, 5) < 0){
         int err = socket_errno();
-        LOG_ERROR("aoo_client: couldn't connect (" << err << ")");
+        LOG_ERROR("aoo_client: couldn't connect to " << remote << ": "
+                  << socket_strerror(err));
         return err;
     }
 
@@ -782,51 +802,50 @@ int client_imp::try_connect(const std::string &host, int port){
     ip_address temp;
     if (socket_address(socket_, temp) < 0){
         int err = socket_errno();
-        LOG_ERROR("aoo_client: couldn't get socket name (" << err << ")");
+        LOG_ERROR("aoo_client: couldn't get socket name: "
+                  << socket_strerror(err));
         return err;
     }
     ip_address local(temp.name(), udp_client_->port(), type_);
 
-    LOG_VERBOSE("aoo_client: successfully connected to "
-                << remote.name() << " on port " << remote.port());
-    LOG_VERBOSE("aoo_client: local address: " << local.name());
+    LOG_VERBOSE("aoo_client: successfully connected to " << remote);
+    LOG_VERBOSE("aoo_client: local address: " << local);
 
     udp_client_->start_handshake(local, std::move(result));
 
     return 0;
 }
 
-void client_imp::do_disconnect(aoo_net_callback cb, void *user){
+void Client::do_disconnect(AooNetCallback cb, void *user){
     auto cmd = std::make_unique<disconnect_cmd>(cb, user);
 
     push_command(std::move(cmd));
 }
 
-void client_imp::perform_disconnect(aoo_net_callback cb, void *user){
+void Client::perform_disconnect(AooNetCallback cb, void *user){
     auto state = state_.load();
     if (state != client_state::connected){
-        aoo_net_error_reply reply;
-        reply.error_message = (state == client_state::disconnected)
+        AooNetReplyError reply;
+        reply.errorMessage = (state == client_state::disconnected)
                 ? "not connected" : "still connecting";
-        reply.error_code = 0;
+        reply.errorCode = 0;
 
-        if (cb) cb(user, AOO_ERROR_UNSPECIFIED, &reply);
+        if (cb) cb(user, kAooErrorUnknown, &reply);
 
         return;
     }
 
     close(true);
 
-    if (cb) cb(user, AOO_OK, nullptr); // always succeeds
+    if (cb) cb(user, kAooOk, nullptr); // always succeeds
 }
 
-void client_imp::perform_login(const ip_address_list& addrlist){
+void Client::perform_login(const ip_address_list& addrlist){
     state_.store(client_state::login);
 
-    char buf[AOO_MAXPACKETSIZE];
-
+    char buf[AOO_MAX_PACKET_SIZE];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
-    msg << osc::BeginMessage(AOO_NET_MSG_SERVER_LOGIN)
+    msg << osc::BeginMessage(kAooNetMsgServerLogin)
         << (int32_t)make_version()
         << username_.c_str() << password_.c_str();
     for (auto& addr : addrlist){
@@ -834,55 +853,45 @@ void client_imp::perform_login(const ip_address_list& addrlist){
         msg << addr.name_unmapped() << addr.port();
     }
     msg << osc::EndMessage;
-    send_server_message(msg.Data(), msg.Size());
 
-    // send legacy one second, just in case we are talking to a legacy server
-    osc::OutboundPacketStream msg2(buf, sizeof(buf));
-    msg2 << osc::BeginMessage(AOO_NET_MSG_SERVER_LOGIN)
-         << username_.c_str() << password_.c_str();
-    for (auto& addr : addrlist){
-        // unmap IPv4 addresses for IPv4 only servers
-        msg2 << addr.name_unmapped() << addr.port();
-    }
-    msg2 << osc::EndMessage;
-    send_server_message(msg2.Data(), msg2.Size());
+    send_server_message((const AooByte *)msg.Data(), msg.Size());
 }
 
-void client_imp::perform_timeout(){
-    aoo_net_error_reply reply;
-    reply.error_code = 0;
-    reply.error_message = "UDP handshake time out";
+void Client::perform_timeout(){
+    AooNetReplyError reply;
+    reply.errorCode = 0;
+    reply.errorMessage = "UDP handshake time out";
 
-    callback_(userdata_, AOO_ERROR_UNSPECIFIED, &reply);
+    callback_(userdata_, kAooErrorUnknown, &reply);
 
     if (state_.load() == client_state::handshake){
         close();
     }
 }
 
-void client_imp::do_join_group(const char *group, const char *pwd,
-                               aoo_net_callback cb, void *user){
+void Client::do_join_group(const char *group, const char *pwd,
+                           AooNetCallback cb, void *user){
     auto cmd = std::make_unique<group_join_cmd>(cb, user, group, encrypt(pwd));
 
     push_command(std::move(cmd));
 }
 
-void client_imp::perform_join_group(const std::string &group, const std::string &pwd,
-                                    aoo_net_callback cb, void *user)
+void Client::perform_join_group(const std::string &group, const std::string &pwd,
+                                AooNetCallback cb, void *user)
 {
 
     auto request = [group, cb, user](
             const char *pattern,
             const osc::ReceivedMessage& msg)
     {
-        if (!strcmp(pattern, AOO_NET_MSG_GROUP_JOIN)){
+        if (!strcmp(pattern, kAooNetMsgGroupJoin)){
             auto it = msg.ArgumentsBegin();
             std::string g = (it++)->AsString();
             if (g == group){
                 int32_t status = (it++)->AsInt32();
                 if (status > 0){
                     LOG_VERBOSE("aoo_client: successfully joined group " << group);
-                    if (cb) cb(user, AOO_OK, nullptr);
+                    if (cb) cb(user, kAooOk, nullptr);
                 } else {
                     std::string errmsg;
                     if (msg.ArgumentCount() > 2){
@@ -893,11 +902,11 @@ void client_imp::perform_join_group(const std::string &group, const std::string 
                         errmsg = "unknown error";
                     }
                     // reply
-                    aoo_net_error_reply reply;
-                    reply.error_code = 0;
-                    reply.error_message = errmsg.c_str();
+                    AooNetReplyError reply;
+                    reply.errorCode = 0;
+                    reply.errorMessage = errmsg.c_str();
 
-                    if (cb) cb(user, AOO_ERROR_UNSPECIFIED, &reply);
+                    if (cb) cb(user, kAooErrorUnknown, &reply);
                 }
 
                 return true;
@@ -907,29 +916,29 @@ void client_imp::perform_join_group(const std::string &group, const std::string 
     };
     pending_requests_.push_back(request);
 
-    char buf[AOO_MAXPACKETSIZE];
+    char buf[AOO_MAX_PACKET_SIZE];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
-    msg << osc::BeginMessage(AOO_NET_MSG_SERVER_GROUP_JOIN)
+    msg << osc::BeginMessage(kAooNetMsgServerGroupJoin)
         << group.c_str() << pwd.c_str() << osc::EndMessage;
 
-    send_server_message(msg.Data(), msg.Size());
+    send_server_message((const AooByte *)msg.Data(), msg.Size());
 }
 
-void client_imp::do_leave_group(const char *group,
-                                aoo_net_callback cb, void *user){
+void Client::do_leave_group(const char *group,
+                                AooNetCallback cb, void *user){
     auto cmd = std::make_unique<group_leave_cmd>(cb, user, group);
 
     push_command(std::move(cmd));
 }
 
-void client_imp::perform_leave_group(const std::string &group,
-                                     aoo_net_callback cb, void *user)
+void Client::perform_leave_group(const std::string &group,
+                                 AooNetCallback cb, void *user)
 {
     auto request = [this, group, cb, user](
             const char *pattern,
             const osc::ReceivedMessage& msg)
     {
-        if (!strcmp(pattern, AOO_NET_MSG_GROUP_LEAVE)){
+        if (!strcmp(pattern, kAooNetMsgGroupLeave)){
             auto it = msg.ArgumentsBegin();
             std::string g = (it++)->AsString();
             if (g == group){
@@ -948,7 +957,7 @@ void client_imp::perform_leave_group(const std::string &group,
                     }
                     lock.unlock();
 
-                    if (cb) cb(user, AOO_OK, nullptr);
+                    if (cb) cb(user, kAooOk, nullptr);
                 } else {
                     std::string errmsg;
                     if (msg.ArgumentCount() > 2){
@@ -959,11 +968,11 @@ void client_imp::perform_leave_group(const std::string &group,
                         errmsg = "unknown error";
                     }
                     // reply
-                    aoo_net_error_reply reply;
-                    reply.error_code = 0;
-                    reply.error_message = errmsg.c_str();
+                    AooNetReplyError reply;
+                    reply.errorCode = 0;
+                    reply.errorMessage = errmsg.c_str();
 
-                    if (cb) cb(user, AOO_ERROR_UNSPECIFIED, &reply);
+                    if (cb) cb(user, kAooErrorUnknown, &reply);
                 }
 
                 return true;
@@ -973,36 +982,36 @@ void client_imp::perform_leave_group(const std::string &group,
     };
     pending_requests_.push_back(request);
 
-    char buf[AOO_MAXPACKETSIZE];
+    char buf[AOO_MAX_PACKET_SIZE];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
-    msg << osc::BeginMessage(AOO_NET_MSG_SERVER_GROUP_LEAVE)
+    msg << osc::BeginMessage(kAooNetMsgServerGroupLeave)
         << group.c_str() << osc::EndMessage;
 
-    send_server_message(msg.Data(), msg.Size());
+    send_server_message((const AooByte *)msg.Data(), msg.Size());
 }
 
-void client_imp::send_event(std::unique_ptr<ievent> e)
+void Client::send_event(std::unique_ptr<ievent> e)
 {
     switch (eventmode_){
-    case AOO_EVENT_POLL:
+    case kAooEventModePoll:
         events_.push(std::move(e));
         break;
-    case AOO_EVENT_CALLBACK:
+    case kAooEventModeCallback:
         // client only has network threads
-        eventhandler_(eventcontext_, &e->event_, AOO_THREAD_NETWORK);
+        eventhandler_(eventcontext_, &e->event_, kAooThreadLevelAudio);
         break;
     default:
         break;
     }
 }
 
-void client_imp::push_command(std::unique_ptr<icommand>&& cmd){
+void Client::push_command(std::unique_ptr<icommand>&& cmd){
     commands_.push(std::move(cmd));
 
     signal();
 }
 
-bool client_imp::wait_for_event(float timeout){
+bool Client::wait_for_event(float timeout){
     // LOG_DEBUG("aoo_client: wait " << timeout << " seconds");
 
     struct pollfd fds[2];
@@ -1047,14 +1056,14 @@ bool client_imp::wait_for_event(float timeout){
     return true;
 }
 
-void client_imp::receive_data(){
-    char buffer[AOO_MAXPACKETSIZE];
+void Client::receive_data(){
+    char buffer[AOO_MAX_PACKET_SIZE];
     auto result = recv(socket_, buffer, sizeof(buffer), 0);
     if (result > 0){
         recvbuffer_.write_bytes((uint8_t *)buffer, result);
 
         // handle packets
-        uint8_t buf[AOO_MAXPACKETSIZE];
+        uint8_t buf[AOO_MAX_PACKET_SIZE];
         while (true){
             auto size = recvbuffer_.read_packet(buf, sizeof(buf));
             if (size > 0){
@@ -1064,7 +1073,8 @@ void client_imp::receive_data(){
                         osc::ReceivedBundle bundle(packet);
                         handle_server_bundle(bundle);
                     } else {
-                        handle_server_message(packet.Contents(), packet.Size());
+                        handle_server_message((const AooByte *)packet.Contents(),
+                                              packet.Size());
                     }
                 } catch (const osc::Exception& e){
                     LOG_ERROR("aoo_client: exception in receive_data: " << e.what());
@@ -1084,7 +1094,7 @@ void client_imp::receive_data(){
     }
 }
 
-void client_imp::send_server_message(const char *data, int32_t size){
+void Client::send_server_message(const AooByte *data, int32_t size){
     if (sendbuffer_.write_packet((const uint8_t *)data, size)){
         while (sendbuffer_.read_available()){
             uint8_t buf[1024];
@@ -1113,44 +1123,44 @@ void client_imp::send_server_message(const char *data, int32_t size){
     }
 }
 
-void client_imp::send_peer_message(const char *data, int32_t size,
-                                   const ip_address& addr) {
+void Client::send_peer_message(const AooByte *data, int32_t size,
+                               const ip_address& addr) {
     // /aoo/relay <ip> <port> <msg>
-    char buf[AOO_MAXPACKETSIZE];
+    char buf[AOO_MAX_PACKET_SIZE];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
     // send unmapped IP address in case peer is IPv4 only!
-    msg << osc::BeginMessage(AOO_MSG_DOMAIN AOO_NET_MSG_RELAY)
+    msg << osc::BeginMessage(kAooMsgDomain kAooNetMsgRelay)
         << addr.name_unmapped() << addr.port() << osc::Blob(data, size)
         << osc::EndMessage;
 
-    send_server_message(msg.Data(), msg.Size());
+    send_server_message((const AooByte *)msg.Data(), msg.Size());
 }
 
-void client_imp::handle_server_message(const char *data, int32_t n){
-    osc::ReceivedPacket packet(data, n);
+void Client::handle_server_message(const AooByte *data, int32_t n){
+    osc::ReceivedPacket packet((const char *)data, n);
     osc::ReceivedMessage msg(packet);
 
-    aoo_type type;
+    AooMsgType type;
     int32_t onset;
     auto err = parse_pattern(data, n, type, onset);
-    if (err != AOO_OK){
-        LOG_VERBOSE("aoo_client: not an AOO NET message!");
+    if (err != kAooOk){
+        LOG_WARNING("aoo_client: not an AOO NET message!");
         return;
     }
 
     try {
-        if (type == AOO_TYPE_CLIENT){
+        if (type == kAooTypeClient){
             // now compare subpattern
             auto pattern = msg.AddressPattern() + onset;
             LOG_DEBUG("aoo_client: got message " << pattern << " from server");
 
-            if (!strcmp(pattern, AOO_NET_MSG_PING)){
+            if (!strcmp(pattern, kAooNetMsgPing)){
                 LOG_DEBUG("aoo_client: got TCP ping from server");
-            } else if (!strcmp(pattern, AOO_NET_MSG_PEER_JOIN)){
+            } else if (!strcmp(pattern, kAooNetMsgPeerJoin)){
                 handle_peer_add(msg);
-            } else if (!strcmp(pattern, AOO_NET_MSG_PEER_LEAVE)){
+            } else if (!strcmp(pattern, kAooNetMsgPeerLeave)){
                 handle_peer_remove(msg);
-            } else if (!strcmp(pattern, AOO_NET_MSG_LOGIN)){
+            } else if (!strcmp(pattern, kAooNetMsgLogin)){
                 handle_login(msg);
             } else {
                 // handle reply
@@ -1164,7 +1174,7 @@ void client_imp::handle_server_message(const char *data, int32_t n){
                 }
                 LOG_ERROR("aoo_client: couldn't handle reply " << pattern);
             }
-        } else if (type == AOO_TYPE_RELAY){
+        } else if (type == kAooTypeRelay){
             handle_relay_message(msg);
         } else {
             LOG_WARNING("aoo_client: got unsupported message " << msg.AddressPattern());
@@ -1176,46 +1186,41 @@ void client_imp::handle_server_message(const char *data, int32_t n){
     }
 }
 
-void client_imp::handle_server_bundle(const osc::ReceivedBundle &bundle){
+void Client::handle_server_bundle(const osc::ReceivedBundle &bundle){
     auto it = bundle.ElementsBegin();
     while (it != bundle.ElementsEnd()){
         if (it->IsBundle()){
             osc::ReceivedBundle b(*it);
             handle_server_bundle(b);
         } else {
-            handle_server_message(it->Contents(), it->Size());
+            handle_server_message((const AooByte *)it->Contents(), it->Size());
         }
         ++it;
     }
 }
 
-void client_imp::handle_login(const osc::ReceivedMessage& msg){
+void Client::handle_login(const osc::ReceivedMessage& msg){
     // make sure that state hasn't changed
     if (state_.load() == client_state::login){
         auto it = msg.ArgumentsBegin();
         int32_t status = (it++)->AsInt32();
 
         if (status > 0){
-            int32_t id = -1;
-            uint32_t flags = 0;
-            if (msg.ArgumentCount() > 2){
-                id = (it++)->AsInt32();
-                flags = (it != msg.ArgumentsEnd()) ? (uint32_t)(it++)->AsInt32() : 0;
-            } else {
-                // legacy client login only send status + errmsg
-                flags |= AOO_NET_SERVER_LEGACY;
-            }
+            int32_t id = (it++)->AsInt32();
+            // for backwards compatibility (LATER remove check)
+            uint32_t flags = (it != msg.ArgumentsEnd()) ?
+                (uint32_t)(it++)->AsInt32() : 0;
             // connected!
             state_.store(client_state::connected);
             LOG_VERBOSE("aoo_client: successfully logged in (user ID: "
                         << id << " )");
             // notify
-            aoo_net_connect_reply reply;
-            reply.user_id = id;
-            reply.server_flags = flags;
+            AooNetReplyConnect reply;
+            reply.userId = id;
+            reply.serverFlags = flags;
             server_flags_ = flags;
 
-            callback_(userdata_, AOO_OK, &reply);
+            callback_(userdata_, kAooOk, &reply);
         } else {
             std::string errmsg;
             if (msg.ArgumentCount() > 1){
@@ -1232,17 +1237,17 @@ void client_imp::handle_login(const osc::ReceivedMessage& msg){
             close();
 
             // notify
-            aoo_net_error_reply reply;
-            reply.error_code = 0;
-            reply.error_message = errmsg.c_str();
+            AooNetReplyError reply;
+            reply.errorCode = 0;
+            reply.errorMessage = errmsg.c_str();
 
-            cb(ud, AOO_ERROR_UNSPECIFIED, &reply);
+            cb(ud, kAooErrorUnknown, &reply);
         }
     }
 }
 
-static void unwrap_message(const osc::ReceivedMessage& msg,
-    ip_address& addr, ip_address::ip_type type, const char * & retdata, std::size_t & retsize)
+static osc::ReceivedPacket unwrap_message(const osc::ReceivedMessage& msg,
+    ip_address& addr, ip_address::ip_type type)
 {
     auto it = msg.ArgumentsBegin();
 
@@ -1255,58 +1260,41 @@ static void unwrap_message(const osc::ReceivedMessage& msg,
     osc::osc_bundle_element_size_t blobSize;
     (it++)->AsBlob(blobData, blobSize);
 
-    retdata = (const char *)blobData;
-    retsize = blobSize;
-    //    return osc::ReceivedPacket((const char *)blobData, blobSize);
+    return osc::ReceivedPacket((const char *)blobData, blobSize);
 }
 
-void client_imp::handle_relay_message(const osc::ReceivedMessage &msg){
+void Client::handle_relay_message(const osc::ReceivedMessage &msg){
     ip_address addr;
-    const char * retmsg = 0;
-    std::size_t retsize = 0;
-    unwrap_message(msg, addr, type(), retmsg, retsize);
-
-    osc::ReceivedPacket packet (retmsg, retsize);
+    auto packet = unwrap_message(msg, addr, type());
     osc::ReceivedMessage relayMsg(packet);
 
     // for now, we only handle peer OSC messages
-    if (!strcmp(relayMsg.AddressPattern(), AOO_NET_MSG_PEER_MESSAGE)){
+    if (!strcmp(relayMsg.AddressPattern(), kAooNetMsgPeerMessage)){
         // get embedded OSC message
         const void *data;
         osc::osc_bundle_element_size_t size;
         relayMsg.ArgumentsBegin()->AsBlob(data, size);
 
         LOG_DEBUG("aoo_client: got relayed peer message " << (const char *)data
-                  << " from " << addr.name() << ":" << addr.port());
+                  << " from " << addr);
 
-        auto e = std::make_unique<client_imp::message_event>(
+        auto e = std::make_unique<Client::message_event>(
                     (const char *)data, size, addr);
 
         send_event(std::move(e));
     } else {
-        LOG_WARNING("aoo_client: got unexpected relay message " << relayMsg.AddressPattern());
+        LOG_WARNING("aoo_client: got unexpected relay message "
+                    << relayMsg.AddressPattern());
     }
 }
 
-void client_imp::handle_peer_add(const osc::ReceivedMessage& msg){
+void Client::handle_peer_add(const osc::ReceivedMessage& msg){
     auto count = msg.ArgumentCount();
     auto it = msg.ArgumentsBegin();
     std::string group = (it++)->AsString();
     std::string user = (it++)->AsString();
-    int32_t id = 0;
-    count -= 2;
-    int32_t flags = 0;
-    bool legacy = false;
-
-    // LEGACY: older sonobus did not have this id field
-    if (msg.TypeTags()[2] == 'i') {
-        id = (it++)->AsInt32();
-        count -= 1;
-    }
-    else {
-        legacy = true;
-        server_flags_ |= AOO_NET_SERVER_LEGACY;
-    }
+    int32_t id = (it++)->AsInt32();
+    count -= 3;
 
     ip_address_list addrlist;
     while (count >= 2){
@@ -1322,44 +1310,43 @@ void client_imp::handle_peer_add(const osc::ReceivedMessage& msg){
     peer_lock lock(peers_);
     // check if peer already exists (shouldn't happen)
     for (auto& p: peers_){
-        if (p.match(group, id) || (legacy && p.match(group, user))){
+        if (p.match(group, id)){
             LOG_ERROR("aoo_client: peer " << p << " already added");
             return;
         }
     }
-    peers_.emplace_front(*this, id, group, user, std::move(addrlist), flags);
+    peers_.emplace_front(*this, id, group, user, std::move(addrlist));
 
     auto e = std::make_unique<peer_event>(
-                AOO_NET_PEER_HANDSHAKE_EVENT,
+                kAooNetEventPeerHandshake,
                 group.c_str(), user.c_str(), id);
     send_event(std::move(e));
 
     LOG_VERBOSE("aoo_client: new peer " << peers_.front());
 }
 
-void client_imp::handle_peer_remove(const osc::ReceivedMessage& msg){
+void Client::handle_peer_remove(const osc::ReceivedMessage& msg){
     auto it = msg.ArgumentsBegin();
     std::string group = (it++)->AsString();
     std::string user = (it++)->AsString();
-    int32_t id =  msg.ArgumentCount() > 2 ? (it++)->AsInt32() : -1;
+    int32_t id = (it++)->AsInt32();
 
     peer_lock lock(peers_);
     auto result = std::find_if(peers_.begin(), peers_.end(),
-        [&](auto& p){ return (id >= 0) ? p.match(group, id) : p.match(group,user); });
+        [&](auto& p){ return p.match(group, id); });
     if (result == peers_.end()){
-        LOG_ERROR("aoo_client: couldn't remove " << group << "|" << user << "|" << id);
+        LOG_ERROR("aoo_client: couldn't remove " << group << "|" << user);
         return;
     }
 
     // only send event if we're connected, which means
-    // that an AOO_NET_PEER_JOIN_EVENT has been sent.
+    // that an kAooNetEventPeerJoin event has been sent.
     if (result->connected()){
         ip_address addr = result->address();
-        uint32_t flags = result->flags();
 
         auto e = std::make_unique<peer_event>(
-            AOO_NET_PEER_LEAVE_EVENT, addr,
-            group.c_str(), user.c_str(), id, flags);
+            kAooNetEventPeerLeave, addr,
+            group.c_str(), user.c_str(), id);
         send_event(std::move(e));
     }
 
@@ -1368,12 +1355,12 @@ void client_imp::handle_peer_remove(const osc::ReceivedMessage& msg){
     LOG_VERBOSE("aoo_client: peer " << group << "|" << user << " left");
 }
 
-bool client_imp::signal(){
+bool Client::signal(){
     // LOG_DEBUG("aoo_client signal");
     return socket_signal(eventsocket_);
 }
 
-void client_imp::close(bool manual){
+void Client::close(bool manual){
     if (socket_ >= 0){
         socket_close(socket_);
         socket_ = -1;
@@ -1400,13 +1387,13 @@ void client_imp::close(bool manual){
     pending_requests_.clear();
 
     if (!manual && state_.load() == client_state::connected){
-        auto e = std::make_unique<event>(AOO_NET_DISCONNECT_EVENT);
+        auto e = std::make_unique<event>(kAooNetEventDisconnect);
         send_event(std::move(e));
     }
     state_.store(client_state::disconnected);
 }
 
-void client_imp::on_socket_error(int err){
+void Client::on_socket_error(int err){
     char msg[256];
     if (err != 0) {
         socket_strerror(err, msg, sizeof(msg));
@@ -1420,8 +1407,8 @@ void client_imp::on_socket_error(int err){
     close();
 }
 
-void client_imp::on_exception(const char *what, const osc::Exception &err,
-                              const char *pattern){
+void Client::on_exception(const char *what, const osc::Exception &err,
+                          const char *pattern){
     char msg[256];
     if (pattern){
         snprintf(msg, sizeof(msg), "exception in %s (%s): %s",
@@ -1438,22 +1425,22 @@ void client_imp::on_exception(const char *what, const osc::Exception &err,
     close();
 }
 
-/*///////////////////// events ////////////////////////*/
+//-------------------------- events ---------------------------//
 
-client_imp::error_event::error_event(int32_t code, const char *msg)
+Client::error_event::error_event(int32_t code, const char *msg)
 {
-    error_event_.type = AOO_NET_ERROR_EVENT;
-    error_event_.error_code = code;
-    error_event_.error_message = aoo::copy_string(msg);
+    error_event_.type = kAooNetEventError;
+    error_event_.errorCode = code;
+    error_event_.errorMessage = aoo::copy_string(msg);
 }
 
-client_imp::error_event::~error_event()
+Client::error_event::~error_event()
 {
-    free_string((char *)error_event_.error_message);
+    free_string((char *)error_event_.errorMessage);
 }
 
-client_imp::ping_event::ping_event(int32_t type, const ip_address& addr,
-                                   uint64_t tt1, uint64_t tt2, uint64_t tt3)
+Client::ping_event::ping_event(int32_t type, const ip_address& addr,
+                               uint64_t tt1, uint64_t tt2, uint64_t tt3)
 {
     ping_event_.type = type;
     ping_event_.address = copy_sockaddr(addr.address(), addr.length());
@@ -1463,63 +1450,61 @@ client_imp::ping_event::ping_event(int32_t type, const ip_address& addr,
     ping_event_.tt3 = tt3;
 }
 
-client_imp::ping_event::~ping_event()
+Client::ping_event::~ping_event()
 {
     free_sockaddr((void *)ping_event_.address, ping_event_.addrlen);
 }
 
-client_imp::peer_event::peer_event(int32_t type, const ip_address& addr,
-                                   const char *group, const char *user,
-                                   int32_t id, uint32_t flags)
+Client::peer_event::peer_event(int32_t type, const ip_address& addr,
+                               const char *group, const char *user,
+                               int32_t id)
 {
     peer_event_.type = type;
     peer_event_.address = copy_sockaddr(addr.address(), addr.length());
     peer_event_.addrlen = addr.length();
-    peer_event_.group_name = aoo::copy_string(group);
-    peer_event_.user_name = aoo::copy_string(user);
-    peer_event_.user_id = id;
-    peer_event_.flags = flags;
+    peer_event_.groupName = aoo::copy_string(group);
+    peer_event_.userName = aoo::copy_string(user);
+    peer_event_.userId = id;
 }
 
-client_imp::peer_event::peer_event(int32_t type, const char *group,
-                                   const char *user, int32_t id)
+Client::peer_event::peer_event(int32_t type, const char *group,
+                               const char *user, int32_t id)
 {
     peer_event_.type = type;
     peer_event_.address = nullptr;
     peer_event_.addrlen = 0;
-    peer_event_.group_name = aoo::copy_string(group);
-    peer_event_.user_name = aoo::copy_string(user);
-    peer_event_.user_id = id;
-    peer_event_.flags = 0;
+    peer_event_.groupName = aoo::copy_string(group);
+    peer_event_.userName = aoo::copy_string(user);
+    peer_event_.userId = id;
 }
 
 
-client_imp::peer_event::~peer_event()
+Client::peer_event::~peer_event()
 {
-    free_string((char *)peer_event_.user_name);
-    free_string((char *)peer_event_.group_name);
+    free_string((char *)peer_event_.userName);
+    free_string((char *)peer_event_.groupName);
     free_sockaddr((void *)peer_event_.address, peer_event_.addrlen);
 }
 
-client_imp::message_event::message_event(const char *data, int32_t size,
-                                         const ip_address& addr)
+Client::message_event::message_event(const char *data, int32_t size,
+                                     const ip_address& addr)
 {
-    message_event_.type = AOO_NET_PEER_MESSAGE_EVENT;
+    message_event_.type = kAooNetEventPeerMessage;
     message_event_.address = copy_sockaddr(addr.address(), addr.length());
     message_event_.addrlen = addr.length();
-    auto msg = (char *)aoo::allocate(size);
+    auto msg = (AooByte *)aoo::allocate(size);
     memcpy(msg, data, size);
     message_event_.data = msg;
     message_event_.size = size;
 }
 
-client_imp::message_event::~message_event()
+Client::message_event::~message_event()
 {
     aoo::deallocate((char *)message_event_.data, message_event_.size);
     free_sockaddr((void *)message_event_.address, message_event_.addrlen);
 }
 
-/*///////////////////// udp_client ////////////////////*/
+//---------------------- udp_client ------------------------//
 
 void udp_client::update(const sendfn& reply, time_tag now){
     auto elapsed_time = client_->elapsed_time_since(now);
@@ -1536,7 +1521,7 @@ void udp_client::update(const sendfn& reply, time_tag now){
             first_ping_time_.store(elapsed_time);
         } else if ((elapsed_time - start) > client_->request_timeout()){
             // handshake has timed out!
-            auto cmd = std::make_unique<client_imp::timeout_cmd>();
+            auto cmd = std::make_unique<Client::timeout_cmd>();
 
             client_->push_command(std::move(cmd));
 
@@ -1546,11 +1531,11 @@ void udp_client::update(const sendfn& reply, time_tag now){
         if (delta >= client_->request_interval()){
             char buf[64];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
-            msg << osc::BeginMessage(AOO_NET_MSG_SERVER_REQUEST) << osc::EndMessage;
+            msg << osc::BeginMessage(kAooNetMsgServerRequest) << osc::EndMessage;
 
             scoped_shared_lock lock(mutex_);
             for (auto& addr : server_addrlist_){
-                reply(msg.Data(), msg.Size(), addr, 0);
+                reply((const AooByte *)msg.Data(), msg.Size(), addr);
             }
             last_ping_time_ = elapsed_time;
         }
@@ -1559,26 +1544,26 @@ void udp_client::update(const sendfn& reply, time_tag now){
         if (delta >= client_->ping_interval()){
             char buf[64];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
-            msg << osc::BeginMessage(AOO_NET_MSG_SERVER_PING)
+            msg << osc::BeginMessage(kAooNetMsgServerPing)
                 << osc::EndMessage;
 
-            send_server_message(msg.Data(), msg.Size(), reply);
+            send_server_message((const AooByte *)msg.Data(), msg.Size(), reply);
             last_ping_time_ = elapsed_time;
         }
     }
 }
 
-aoo_error udp_client::handle_message(const char *data, int32_t n,
-                                     const ip_address &addr,
-                                     aoo_type type, int32_t onset){
+AooError udp_client::handle_message(const AooByte *data, int32_t n,
+                                    const ip_address &addr,
+                                    AooMsgType type, int32_t onset){
     try {
-        osc::ReceivedPacket packet(data, n);
+        osc::ReceivedPacket packet((const char *)data, n);
         osc::ReceivedMessage msg(packet);
 
         LOG_DEBUG("aoo_client: handle UDP message " << msg.AddressPattern()
-            << " from " << addr.name() << ":" << addr.port());
+            << " from " << addr);
 
-        if (type == AOO_TYPE_PEER){
+        if (type == kAooTypePeer){
             // peer message
             //
             // NOTE: during the handshake process it is expected that
@@ -1587,61 +1572,57 @@ aoo_error udp_client::handle_message(const char *data, int32_t n,
             // b) pings sent to alternative endpoint addresses
             if (!client_->handle_peer_message(msg, onset, addr)){
                 LOG_VERBOSE("aoo_client: ignoring UDP message "
-                            << msg.AddressPattern() << " from endpoint "
-                            << addr.name() << ":" << addr.port());
+                            << msg.AddressPattern() << " from endpoint " << addr);
             }
-        } else if (type == AOO_TYPE_CLIENT){
+        } else if (type == kAooTypeClient){
             // server message
             if (is_server_address(addr)){
                 handle_server_message(msg, onset);
             } else {
-                LOG_WARNING("aoo_client: got message from unknown server " << addr.name());
+                LOG_WARNING("aoo_client: got message from unknown server " << addr);
             }
-        } else if (type == AOO_TYPE_RELAY){
+        } else if (type == kAooTypeRelay){
             handle_relay_message(msg);
         } else {
             LOG_WARNING("aoo_client: got unexpected message " << msg.AddressPattern());
-            return AOO_ERROR_UNSPECIFIED;
+            return kAooErrorUnknown;
         }
 
-        return AOO_OK;
+        return kAooOk;
     } catch (const osc::Exception& e){
         LOG_ERROR("aoo_client: exception in handle_message: " << e.what());
     #if 0
         on_exception("UDP message", e);
     #endif
-        return AOO_ERROR_UNSPECIFIED;
+        return kAooErrorUnknown;
     }
 }
 
 void udp_client::handle_relay_message(const osc::ReceivedMessage &msg){
     ip_address addr;
-    const char * retmsg = 0;
-    std::size_t retsize = 0;
-    unwrap_message(msg, addr, client_->type(), retmsg, retsize);
-
+    auto packet = unwrap_message(msg, addr, client_->type());
 #if DEBUG_RELAY
     LOG_DEBUG("aoo_client: got relayed message " << packet.Contents());
 #endif
 
-    client_->handle_message(retmsg, retsize,
-                            addr.address(), addr.length());
+    client_->handleMessage((const AooByte *)packet.Contents(), packet.Size(),
+                           addr.address(), addr.length());
 }
 
-void udp_client::send_peer_message(const char *data, int32_t size,
+void udp_client::send_peer_message(const AooByte *data, int32_t size,
                                    const ip_address& addr,
                                    const sendfn& fn, bool relay)
 {
     if (relay){
-        char buf[AOO_MAXPACKETSIZE];
+        char buf[AOO_MAX_PACKET_SIZE];
         osc::OutboundPacketStream msg(buf, sizeof(buf));
         // send unmapped address in case the peer is IPv4 only!
-        msg << osc::BeginMessage(AOO_MSG_DOMAIN AOO_NET_MSG_RELAY)
+        msg << osc::BeginMessage(kAooMsgDomain kAooNetMsgRelay)
             << addr.name_unmapped() << addr.port() << osc::Blob(data, size)
             << osc::EndMessage;
-        send_server_message(msg.Data(), msg.Size(), fn);
+        send_server_message((const AooByte *)msg.Data(), msg.Size(), fn);
     } else {
-        fn(data, size, addr, 0);
+        fn(data, size, addr);
     }
 }
 
@@ -1655,13 +1636,13 @@ void udp_client::start_handshake(const ip_address& local,
     server_addrlist_ = std::move(remote);
 }
 
-void udp_client::send_server_message(const char *data, int32_t size, const sendfn& fn)
+void udp_client::send_server_message(const AooByte *data, int32_t size, const sendfn& fn)
 {
     scoped_shared_lock lock(mutex_);
     if (!server_addrlist_.empty()){
         auto& remote = server_addrlist_.front();
         if (remote.valid()){
-            fn(data, size, remote, 0);
+            fn(data, size, remote);
         }
     }
 }
@@ -1669,9 +1650,9 @@ void udp_client::send_server_message(const char *data, int32_t size, const sendf
 void udp_client::handle_server_message(const osc::ReceivedMessage& msg, int onset){
     auto pattern = msg.AddressPattern() + onset;
     try {
-        if (!strcmp(pattern, AOO_NET_MSG_PING)){
+        if (!strcmp(pattern, kAooNetMsgPing)){
             LOG_DEBUG("aoo_client: got UDP ping from server");
-        } else if (!strcmp(pattern, AOO_NET_MSG_REPLY)){
+        } else if (!strcmp(pattern, kAooNetMsgReply)){
             if (client_->current_state() == client_state::handshake){
                 // retrieve public IP + port
                 auto it = msg.ArgumentsBegin();
@@ -1683,14 +1664,13 @@ void udp_client::handle_server_message(const osc::ReceivedMessage& msg, int onse
                 scoped_lock lock(mutex_);
                 for (auto& a : public_addrlist_){
                     if (a == addr){
-                        LOG_DEBUG("aoo_client: public address " << addr.name()
+                        LOG_DEBUG("aoo_client: public address " << addr
                                   << " already received");
                         return; // already received
                     }
                 }
                 public_addrlist_.push_back(addr);
-                LOG_VERBOSE("aoo_client: got public address "
-                            << addr.name() << " " << addr.port());
+                LOG_VERBOSE("aoo_client: got public address " << addr);
 
                 // check if we got all public addresses
                 // LATER improve this
@@ -1704,7 +1684,7 @@ void udp_client::handle_server_message(const osc::ReceivedMessage& msg, int onse
                     addrlist.insert(addrlist.end(),
                         public_addrlist_.begin(), public_addrlist_.end());
 
-                    auto cmd = std::make_unique<client_imp::login_cmd>(std::move(addrlist));
+                    auto cmd = std::make_unique<Client::login_cmd>(std::move(addrlist));
 
                     client_->push_command(std::move(cmd));
                 }
@@ -1733,11 +1713,11 @@ bool udp_client::is_server_address(const ip_address& addr){
     return false;
 }
 
-/*///////////////////// peer //////////////////////////*/
+//------------------------- peer ------------------------------//
 
-peer::peer(client_imp& client, int32_t id, const std::string& group,
-           const std::string& user, ip_address_list&& addrlist, int32_t flags)
-    : client_(&client), id_(id), flags_(flags), group_(group), user_(user),
+peer::peer(Client& client, int32_t id, const std::string& group,
+           const std::string& user, ip_address_list&& addrlist)
+    : client_(&client), id_(id), group_(group), user_(user),
       addresses_(std::move(addrlist))
 {
     start_time_ = time_tag::now();
@@ -1772,7 +1752,7 @@ bool peer::match(const std::string& group, int32_t id)
 
 std::ostream& operator << (std::ostream& os, const peer& p)
 {
-    os << p.group_ << "|" << p.user_ << "|" << p.id_;
+    os << p.group_ << "|" << p.user_;
     return os;
 }
 
@@ -1785,9 +1765,9 @@ void peer::send(const sendfn& reply, time_tag now){
         if (delta >= client_->ping_interval()){
             char buf[64];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
-            msg << osc::BeginMessage(AOO_NET_MSG_PEER_PING) << osc::EndMessage;
+            msg << osc::BeginMessage(kAooNetMsgPeerPing) << osc::EndMessage;
 
-            client_->udp().send_peer_message(msg.Data(), msg.Size(),
+            client_->udp().send_peer_message((const AooByte *)msg.Data(), msg.Size(),
                                              real_address_, reply, relay());
 
             last_pingtime_ = elapsed_time;
@@ -1796,23 +1776,22 @@ void peer::send(const sendfn& reply, time_tag now){
         if (got_ping_.exchange(false)){
             char buf[64];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
-            msg << osc::BeginMessage(AOO_NET_MSG_PEER_REPLY) << osc::EndMessage;
+            msg << osc::BeginMessage(kAooNetMsgPeerReply) << osc::EndMessage;
 
-            client_->udp().send_peer_message(msg.Data(), msg.Size(),
+            client_->udp().send_peer_message((const AooByte *)msg.Data(), msg.Size(),
                                              real_address_, reply, relay());
         }
     } else if (!timeout_) {
         // try to establish UDP connection with peer
         if (elapsed_time > client_->request_timeout()){
             // time out
-            bool can_relay = client_->have_server_flag(AOO_NET_SERVER_RELAY);
+            bool can_relay = client_->have_server_flag(kAooNetServerRelay);
             if (can_relay && !relay()){
                 LOG_VERBOSE("aoo_client: try to relay " << *this);
                 // try to relay traffic over server
                 start_time_ = now; // reset timer
                 last_pingtime_ = 0;
-                flags_ |= AOO_ENDPOINT_RELAY;
-                flags_ &= ~(AOO_ENDPOINT_LEGACY);
+                relay_ = true;
                 return;
             }
 
@@ -1825,11 +1804,11 @@ void peer::send(const sendfn& reply, time_tag now){
             std::stringstream ss;
             ss << "couldn't establish connection with peer " << *this;
 
-            auto e1 = std::make_unique<client_imp::error_event>(0, ss.str().c_str());
+            auto e1 = std::make_unique<Client::error_event>(0, ss.str().c_str());
             client_->send_event(std::move(e1));
 
-            auto e2 = std::make_unique<client_imp::peer_event>(
-                        AOO_NET_PEER_TIMEOUT_EVENT,
+            auto e2 = std::make_unique<Client::peer_event>(
+                        kAooNetEventPeerTimeout,
                         group().c_str(), user().c_str(), id());
             client_->send_event(std::move(e2));
 
@@ -1841,32 +1820,18 @@ void peer::send(const sendfn& reply, time_tag now){
         // until we get a reply from one of them (see handle_message())
         if (delta >= client_->request_interval()){
             char buf[64];
-            char buf2[68];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
-            osc::OutboundPacketStream msg2(buf2, sizeof(buf2));
-
             // Include user ID, so peers can identify us even
             // if we're behind a symmetric NAT.
             // NOTE: This trick doesn't work if both parties are
             // behind a symmetrict NAT; in that case, UDP hole punching
             // simply doesn't work.
-
-
-
-            msg << osc::BeginMessage(AOO_NET_MSG_PEER_PING)
+            msg << osc::BeginMessage(kAooNetMsgPeerPing)
                 << (int32_t)id_ << osc::EndMessage;
 
-            // legacy sonobus used 64 bit token field, so for backwards compat, send this too
-            msg2 << osc::BeginMessage(AOO_NET_MSG_PEER_PING)
-            << (int64_t)id_ << osc::EndMessage;
-
             for (auto& addr : addresses_){
-                LOG_DEBUG("aoo_client: send handshake peer ping to: " << *this << " = " <<  addr.name() << ":" << addr.port());
-                client_->udp().send_peer_message(msg.Data(), msg.Size(),
-                                                 addr, reply, relay());
-
-                client_->udp().send_peer_message(msg2.Data(), msg2.Size(),
-                                                 addr, reply, relay());
+                client_->udp().send_peer_message((const AooByte *)msg.Data(),
+                                                 msg.Size(), addr, reply, relay());
             }
 
             // LOG_DEBUG("send ping to " << *this);
@@ -1898,8 +1863,8 @@ bool peer::handle_first_message(const osc::ReceivedMessage &msg, int onset,
     // To be sure, check user ID, but only if provided
     // (for backwards compatibility with older AOO clients)
     auto pattern = msg.AddressPattern() + onset;
-    if (!strcmp(pattern, AOO_NET_MSG_PING)){
-        if (msg.ArgumentCount() > 0 && msg.TypeTags()[0] == 'i'){
+    if (!strcmp(pattern, kAooNetMsgPing)){
+        if (msg.ArgumentCount() > 0){
             try {
                 auto it = msg.ArgumentsBegin();
                 int32_t id = it->AsInt32();
@@ -1914,11 +1879,6 @@ bool peer::handle_first_message(const osc::ReceivedMessage &msg, int onset,
                 LOG_ERROR("aoo_client: got bad " << pattern
                           << " message from peer: " << e.what());
             }
-        }
-        else if (msg.ArgumentCount() > 0 && msg.TypeTags()[0] == 'h'){
-            // LEGACY: old sonobus pings use a 64bit "token" here
-            LOG_VERBOSE("aoo_client: legacy ping detected from peer " << *this);
-            flags_ |= AOO_ENDPOINT_LEGACY;
         } else {
             // ignore silently!
         }
@@ -1932,49 +1892,39 @@ bool peer::handle_first_message(const osc::ReceivedMessage &msg, int onset,
 void peer::handle_message(const osc::ReceivedMessage &msg, int onset,
                           const ip_address& addr)
 {
-    auto pattern = msg.AddressPattern() + onset;
-
     if (!connected()){
         if (!handle_first_message(msg, onset, addr)){
             return;
         }
 
-        if (!strcmp(pattern, AOO_NET_MSG_PING)){
-            if (msg.ArgumentCount() > 0 && msg.TypeTags()[0] == 'h'){
-                // LEGACY: old sonobus pings use a 64bit "token" here
-                LOG_VERBOSE("aoo_client: legacy ping detected from peer " << *this);
-                flags_ |= AOO_ENDPOINT_LEGACY;
-            }
-        }
-
         // push event
-        auto e = std::make_unique<client_imp::peer_event>(
-                    AOO_NET_PEER_JOIN_EVENT, addr,
-                    group().c_str(), user().c_str(), id(), flags());
+        auto e = std::make_unique<Client::peer_event>(
+                    kAooNetEventPeerJoin, addr,
+                    group().c_str(), user().c_str(), id());
 
         client_->send_event(std::move(e));
 
         LOG_VERBOSE("aoo_client: successfully established connection with "
-                  << *this << " [" << addr.name() << "]:" << addr.port()
-                    << (relay() ? " (relayed)" : ""));
+                  << *this << " " << addr << (relay() ? " (relayed)" : ""));
     }
 
+    auto pattern = msg.AddressPattern() + onset;
     try {
-        if (!strcmp(pattern, AOO_NET_MSG_PING)){
+        if (!strcmp(pattern, kAooNetMsgPing)){
             LOG_DEBUG("aoo_client: got ping from " << *this);
             got_ping_.store(true);
-        } else if (!strcmp(pattern, AOO_NET_MSG_REPLY)){
+        } else if (!strcmp(pattern, kAooNetMsgReply)){
             LOG_DEBUG("aoo_client: got reply from " << *this);
-        } else if (!strcmp(pattern, AOO_NET_MSG_MESSAGE)){
+        } else if (!strcmp(pattern, kAooNetMsgMessage)){
             // get embedded OSC message
             const void *data;
             osc::osc_bundle_element_size_t size;
             msg.ArgumentsBegin()->AsBlob(data, size);
 
             LOG_DEBUG("aoo_client: got message " << (const char *)data
-                      << " from " << addr.name() << ":" << addr.port());
+                      << " from " << addr);
 
-            auto e = std::make_unique<client_imp::message_event>(
+            auto e = std::make_unique<Client::message_event>(
                         (const char *)data, size, addr);
 
             client_->send_event(std::move(e));

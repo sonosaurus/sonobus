@@ -27,6 +27,9 @@ void dynamic_resampler::setup(int32_t nfrom, int32_t nto,
               << ", nto: " << nto << ", srto: " << srto << ", capacity: " << blocksize);
 #endif
     buffer_.resize(blocksize * nchannels);
+#if 1
+    buffer_.shrink_to_fit();
+#endif
     update(srfrom, srto);
 }
 
@@ -49,7 +52,7 @@ void dynamic_resampler::update(double srfrom, double srto){
 #endif
 }
 
-bool dynamic_resampler::write(const aoo_sample *data, int32_t n){
+bool dynamic_resampler::write(const AooSample *data, int32_t n){
     if ((buffer_.size() - balance_) < n){
         return false;
     }
@@ -71,7 +74,7 @@ bool dynamic_resampler::write(const aoo_sample *data, int32_t n){
     return true;
 }
 
-bool dynamic_resampler::read(aoo_sample *data, int32_t n){
+bool dynamic_resampler::read(AooSample *data, int32_t n){
     auto size = (int32_t)buffer_.size();
     auto limit = size / nchannels_;
     int32_t intpos = (int32_t)rdpos_;

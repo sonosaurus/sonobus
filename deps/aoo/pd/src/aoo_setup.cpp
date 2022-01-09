@@ -22,8 +22,6 @@
 
 #define DEJITTER_DEBUG 0
 
-namespace aoo {
-
 t_class *dejitter_class;
 
 struct t_dejitter
@@ -68,7 +66,7 @@ void t_dejitter::update()
 {
     auto now = clock_getlogicaltime();
     if (now != d_last_clocktime){
-        aoo::time_tag osctime = aoo::get_osctime(); // global function!
+        aoo::time_tag osctime = aoo_getCurrentNtpTime();
         if (d_last_osctime.value()){
             auto oldtime = d_osctime_adjusted;
             auto elapsed = aoo::time_tag::duration(d_last_osctime, osctime);
@@ -126,28 +124,23 @@ uint64_t get_osctime_dejitter(t_dejitter *x){
     }
 }
 
-} // aoo
-
 static void aoo_dejitter_setup(){
-    aoo::dejitter_class = class_new(gensym("aoo dejitter"), 0, 0,
-                                    sizeof(aoo::t_dejitter), CLASS_PD, A_NULL);
+    dejitter_class = class_new(gensym("aoo dejitter"), 0, 0,
+                               sizeof(t_dejitter), CLASS_PD, A_NULL);
 
-    auto dejitter = new aoo::t_dejitter(); // leak
+    auto dejitter = new t_dejitter(); // leak
     pd_bind((t_pd *)dejitter, gensym("__dejitter"));
 }
 
 void aoo_send_tilde_setup(void);
 void aoo_receive_tilde_setup(void);
-void aoo_pack_tilde_setup(void);
-void aoo_unpack_tilde_setup(void);
-void aoo_route_setup(void);
 void aoo_node_setup(void);
 void aoo_server_setup(void);
 void aoo_client_setup(void);
 
 extern "C" EXPORT void aoo_setup(void)
 {
-    post("AOO (audio over OSC) %s", aoo_version_string());
+    post("AOO (audio over OSC) %s", aoo_getVersionString());
     post("  (c) 2020 Christof Ressi, Winfried Ritsch, et al.");
 
     aoo_initialize();
@@ -166,9 +159,6 @@ extern "C" EXPORT void aoo_setup(void)
 
     aoo_send_tilde_setup();
     aoo_receive_tilde_setup();
-    aoo_pack_tilde_setup();
-    aoo_unpack_tilde_setup();
-    aoo_route_setup();
     aoo_server_setup();
     aoo_client_setup();
 }

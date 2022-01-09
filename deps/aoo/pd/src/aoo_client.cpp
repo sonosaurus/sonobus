@@ -13,8 +13,6 @@
 #include <vector>
 #include <map>
 
-using namespace aoo;
-
 #define AOO_CLIENT_POLL_INTERVAL 2
 
 t_class *aoo_client_class;
@@ -32,14 +30,14 @@ enum t_target
 struct t_osc_message
 {
     t_osc_message(const char *data, int32_t size,
-                  const ip_address& address)
+                  const aoo::ip_address& address)
         : data_(data, size), address_(address) {}
     const char *data() const { return data_.data(); }
     int32_t size() const { return data_.size(); }
-    const ip_address& address() const { return address_; }
+    const aoo::ip_address& address() const { return address_; }
 private:
     std::string data_;
-    ip_address address_;
+    aoo::ip_address address_;
 };
 
 struct t_peer
@@ -47,7 +45,7 @@ struct t_peer
     t_symbol *group;
     t_symbol *user;
     aoo::ip_address address;
-    aoo_id id;
+    AooId id;
 };
 
 struct t_aoo_client
@@ -60,7 +58,7 @@ struct t_aoo_client
     t_node *x_node = nullptr;
 
     // for OSC messages
-    ip_address x_peeraddr;
+    aoo::ip_address x_peeraddr;
     t_symbol *x_group = nullptr;
     t_dejitter *x_dejitter = nullptr;
     t_float x_offset = -1; // immediately
@@ -72,13 +70,13 @@ struct t_aoo_client
     std::multimap<float, t_osc_message> x_queue;
 
     void handle_peer_message(const char *data, int32_t size,
-                             const ip_address& address, aoo::time_tag t);
+                             const aoo::ip_address& address, aoo::time_tag t);
 
     void handle_peer_bundle(const osc::ReceivedBundle& bundle,
-                            const ip_address& address, aoo::time_tag t);
+                            const aoo::ip_address& address, aoo::time_tag t);
 
     void perform_message(const char *data, int32_t size,
-                         const ip_address& address, double delay) const;
+                         const aoo::ip_address& address, double delay) const;
 
     void perform_message(const t_osc_message& msg) const {
         perform_message(msg.data(), msg.size(), msg.address(), 0);
@@ -87,7 +85,7 @@ struct t_aoo_client
     void send_message(int argc, t_atom *argv,
                       const void *target, int32_t len);
 
-    const t_peer * find_peer(const ip_address& addr) const;
+    const t_peer * find_peer(const aoo::ip_address& addr) const;
 
     // replies
     using t_reply = std::function<void()>;
@@ -114,7 +112,7 @@ struct t_group_request {
     t_symbol *pwd;
 };
 
-const t_peer * t_aoo_client::find_peer(const ip_address& addr) const {
+const t_peer * t_aoo_client::find_peer(const aoo::ip_address& addr) const {
     for (auto& peer : x_peers){
         if (peer.address == addr){
             return &peer;
@@ -123,8 +121,8 @@ const t_peer * t_aoo_client::find_peer(const ip_address& addr) const {
     return nullptr;
 }
 
-int aoo_client_resolve_address(const t_aoo_client *x, const ip_address& addr,
-                                aoo_id id, int argc, t_atom *argv){
+int aoo_client_resolve_address(const t_aoo_client *x, const aoo::ip_address& addr,
+                                AooId id, int argc, t_atom *argv){
     if (argc < 3){
         return 0;
     }
@@ -165,7 +163,7 @@ void t_aoo_client::send_message(int argc, t_atom *argv,
         return;
     }
 
-    char *buf;
+    AooByte *buf;
     int32_t count;
 
     // schedule OSC message as bundle (not needed for OSC bundles!)
@@ -180,7 +178,7 @@ void t_aoo_client::send_message(int argc, t_atom *argv,
 
         const int headersize = 20; //#bundle string (8), timetag (8), message size (4)
         count = argc + headersize;
-        buf = (char *)alloca(count);
+        buf = (AooByte *)alloca(count);
         // make bundle header
         memcpy(buf, "#bundle\0", 8); // string length is exactly 8 bytes
         aoo::to_bytes((uint64_t)time, buf + 8);
@@ -191,15 +189,15 @@ void t_aoo_client::send_message(int argc, t_atom *argv,
         }
     } else {
         // send as is
-        buf = (char *)alloca(argc);
+        buf = (AooByte *)alloca(argc);
         for (int i = 0; i < argc; ++i){
             buf[i] = argv[i].a_type == A_FLOAT ? argv[i].a_w.w_float : 0;
         }
         count = argc;
     }
 
-    int32_t flags = x_reliable ? AOO_NET_MESSAGE_RELIABLE : 0;
-    x_node->client()->send_message(buf, count, target, len, flags);
+    int32_t flags = x_reliable ? kAooNetMessageReliable : 0;
+    x_node->client()->sendPeerMessage(buf, count, target, len, flags);
 
     x_node->notify();
 }
@@ -228,7 +226,7 @@ static void aoo_client_send_group(t_aoo_client *x, t_symbol *s, int argc, t_atom
 static void aoo_client_send_peer(t_aoo_client *x, t_symbol *s, int argc, t_atom *argv)
 {
     if (x->x_node){
-        ip_address address;
+        aoo::ip_address address;
         if (x->x_node->get_peer_arg((t_pd *)x, argc, argv, address)){
             x->send_message(argc - 2, argv + 2, address.address(), address.length());
         }
@@ -302,7 +300,7 @@ static void aoo_client_target(t_aoo_client *x, t_symbol *s, int argc, t_atom *ar
 
 // handle incoming OSC message/bundle from peer
 void t_aoo_client::perform_message(const char *data, int32_t size,
-                                   const ip_address& address, double delay) const
+                                   const aoo::ip_address& address, double delay) const
 {
     // 1) peer + time tag
     t_atom info[3];
@@ -351,10 +349,10 @@ static void aoo_client_queue_tick(t_aoo_client *x)
 
 
 void t_aoo_client::handle_peer_message(const char *data, int32_t size,
-                                       const ip_address& address, aoo::time_tag t)
+                                       const aoo::ip_address& address, aoo::time_tag t)
 {
     if (!t.is_immediate()){
-        auto now = aoo::get_osctime();
+        auto now = get_osctime();
         auto delay = aoo::time_tag::duration(now, t) * 1000.0;
         if (x_schedule){
             if (delay > 0){
@@ -381,7 +379,7 @@ void t_aoo_client::handle_peer_message(const char *data, int32_t size,
 }
 
 void t_aoo_client::handle_peer_bundle(const osc::ReceivedBundle& bundle,
-                                      const ip_address& address, aoo::time_tag t)
+                                      const aoo::ip_address& address, aoo::time_tag t)
 {
     auto it = bundle.ElementsBegin();
     while (it != bundle.ElementsEnd()){
@@ -395,17 +393,17 @@ void t_aoo_client::handle_peer_bundle(const osc::ReceivedBundle& bundle,
     }
 }
 
-void aoo_client_handle_event(t_aoo_client *x, const aoo_event *event, int32_t level)
+void aoo_client_handle_event(t_aoo_client *x, const AooEvent *event, int32_t level)
 {
     switch (event->type){
-    case AOO_NET_PEER_MESSAGE_EVENT:
+    case kAooNetEventPeerMessage:
     {
-        auto e = (const aoo_net_message_event *)event;
+        auto e = (const AooNetEventPeerMessage *)event;
 
-        ip_address address((const sockaddr *)e->address, e->addrlen);
+        aoo::ip_address address((const sockaddr *)e->address, e->addrlen);
 
         try {
-            osc::ReceivedPacket packet(e->data, e->size);
+            osc::ReceivedPacket packet((const char *)e->data, e->size);
             if (packet.IsBundle()){
                 osc::ReceivedBundle bundle(packet);
                 x->handle_peer_bundle(bundle, address, bundle.TimeTag());
@@ -418,7 +416,7 @@ void aoo_client_handle_event(t_aoo_client *x, const aoo_event *event, int32_t le
         }
         break;
     }
-    case AOO_NET_DISCONNECT_EVENT:
+    case kAooNetEventDisconnect:
     {
         post("%s: disconnected from server", classname(x));
 
@@ -428,14 +426,14 @@ void aoo_client_handle_event(t_aoo_client *x, const aoo_event *event, int32_t le
         outlet_float(x->x_stateout, 0); // disconnected
         break;
     }
-    case AOO_NET_PEER_JOIN_EVENT:
+    case kAooNetEventPeerJoin:
     {
-        auto e = (const aoo_net_peer_event *)event;
+        auto e = (const AooNetEventPeer *)event;
 
-        ip_address addr((const sockaddr *)e->address, e->addrlen);
-        auto group = gensym(e->group_name);
-        auto user = gensym(e->user_name);
-        auto id = e->user_id;
+        aoo::ip_address addr((const sockaddr *)e->address, e->addrlen);
+        auto group = gensym(e->groupName);
+        auto user = gensym(e->userName);
+        auto id = e->userId;
 
         for (auto& peer : x->x_peers){
             if (peer.group == group && peer.id == id){
@@ -455,14 +453,14 @@ void aoo_client_handle_event(t_aoo_client *x, const aoo_event *event, int32_t le
         outlet_anything(x->x_msgout, gensym("peer_join"), 5, msg);
         break;
     }
-    case AOO_NET_PEER_LEAVE_EVENT:
+    case kAooNetEventPeerLeave:
     {
-        auto e = (const aoo_net_peer_event *)event;
+        auto e = (const AooNetEventPeer *)event;
 
-        ip_address addr((const sockaddr *)e->address, e->addrlen);
-        auto group = gensym(e->group_name);
-        auto user = gensym(e->user_name);
-        auto id = e->user_id;
+        aoo::ip_address addr((const sockaddr *)e->address, e->addrlen);
+        auto group = gensym(e->groupName);
+        auto user = gensym(e->userName);
+        auto id = e->userId;
 
         for (auto it = x->x_peers.begin(); it != x->x_peers.end(); ++it){
             if (it->group == group && it->id == id){
@@ -483,10 +481,10 @@ void aoo_client_handle_event(t_aoo_client *x, const aoo_event *event, int32_t le
             group->s_name, user->s_name);
         break;
     }
-    case AOO_NET_ERROR_EVENT:
+    case kAooNetEventError:
     {
-        auto e = (const aoo_net_error_event *)event;
-        pd_error(x, "%s: %s", classname(x), e->error_message);
+        auto e = (const AooNetEventError *)event;
+        pd_error(x, "%s: %s", classname(x), e->errorMessage);
         break;
     }
     default:
@@ -497,7 +495,7 @@ void aoo_client_handle_event(t_aoo_client *x, const aoo_event *event, int32_t le
 
 static void aoo_client_tick(t_aoo_client *x)
 {
-    x->x_node->client()->poll_events();
+    x->x_node->client()->pollEvents();
 
     x->x_node->notify();
 
@@ -538,15 +536,15 @@ static void aoo_client_connect(t_aoo_client *x, t_symbol *s, int argc, t_atom *a
         t_symbol *groupPwd = argc > 5 ? atom_getsymbol(argv + 5) : nullptr;
 
         // LATER also send user ID
-        auto cb = [](void *x, aoo_error result, const void *data){
+        auto cb = [](void *x, AooError result, const void *data){
             auto request = (t_group_request *)x;
             auto obj = request->obj;
             auto group = request->group;
             auto pwd = request->pwd;
 
-            if (result == AOO_OK){
-                auto reply = (const aoo_net_connect_reply *)data;
-                auto user_id = reply->user_id;
+            if (result == kAooOk){
+                auto reply = (const AooNetReplyConnect *)data;
+                auto user_id = reply->userId;
                 obj->push_reply([obj, user_id, group, pwd](){
                     // remove all peers (to be sure)
                     obj->x_peers.clear();
@@ -563,8 +561,8 @@ static void aoo_client_connect(t_aoo_client *x, t_symbol *s, int argc, t_atom *a
                     }
                 });
             } else {
-                auto reply = (const aoo_net_error_reply *)data;
-                t_error_reply error { reply->error_code, reply->error_message };
+                auto reply = (const AooNetReplyError *)data;
+                t_error_reply error { reply->errorCode, reply->errorMessage };
 
                 obj->push_reply([obj, error=std::move(error)](){
                     pd_error(obj, "%s: couldn't connect to server: %s",
@@ -587,9 +585,9 @@ static void aoo_client_connect(t_aoo_client *x, t_symbol *s, int argc, t_atom *a
 static void aoo_client_disconnect(t_aoo_client *x)
 {
     if (x->x_node){
-        auto cb = [](void *y, aoo_error result, const void *data){
+        auto cb = [](void *y, AooError result, const void *data){
             auto x = (t_aoo_client *)y;
-            if (result == AOO_OK){
+            if (result == kAooOk){
                 x->push_reply([x](){
                     // we have to remove the peers manually!
                     x->x_peers.clear();
@@ -598,8 +596,8 @@ static void aoo_client_disconnect(t_aoo_client *x)
                     outlet_float(x->x_stateout, 0); // disconnected
                 });
             } else {
-                auto reply = (const aoo_net_error_reply *)data;
-                t_error_reply error { reply->error_code, reply->error_message };
+                auto reply = (const AooNetReplyError *)data;
+                t_error_reply error { reply->errorCode, reply->errorMessage };
 
                 x->push_reply([x, error=std::move(error)](){
                     pd_error(x, "%s: couldn't disconnect from server: %s",
@@ -614,12 +612,12 @@ static void aoo_client_disconnect(t_aoo_client *x)
 static void aoo_client_group_join(t_aoo_client *x, t_symbol *group, t_symbol *pwd)
 {
     if (x->x_node){
-        auto cb = [](void *x, aoo_error result, const void *data){
+        auto cb = [](void *x, AooError result, const void *data){
             auto request = (t_group_request *)x;
             auto obj = request->obj;
             auto group = request->group;
 
-            if (result == AOO_OK){
+            if (result == kAooOk){
                 obj->push_reply([obj, group](){
                     t_atom msg[2];
                     SETSYMBOL(msg, group);
@@ -627,8 +625,8 @@ static void aoo_client_group_join(t_aoo_client *x, t_symbol *group, t_symbol *pw
                     outlet_anything(obj->x_msgout, gensym("group_join"), 2, msg);
                 });
             } else {
-                auto reply = (const aoo_net_error_reply *)data;
-                t_error_reply error { reply->error_code, reply->error_message };
+                auto reply = (const AooNetReplyError *)data;
+                t_error_reply error { reply->errorCode, reply->errorMessage };
 
                 obj->push_reply([obj, group, error=std::move(error)](){
                     pd_error(obj, "%s: couldn't join group %s - %s",
@@ -643,7 +641,7 @@ static void aoo_client_group_join(t_aoo_client *x, t_symbol *group, t_symbol *pw
 
             delete request;
         };
-        x->x_node->client()->join_group(group->s_name, pwd->s_name,
+        x->x_node->client()->joinGroup(group->s_name, pwd->s_name,
             cb, new t_group_request { x, group, nullptr });
     }
 }
@@ -651,12 +649,12 @@ static void aoo_client_group_join(t_aoo_client *x, t_symbol *group, t_symbol *pw
 static void aoo_client_group_leave(t_aoo_client *x, t_symbol *group)
 {
     if (x->x_node){
-        auto cb = [](void *x, aoo_error result, const void *data){
+        auto cb = [](void *x, AooError result, const void *data){
             auto request = (t_group_request *)x;
             auto obj = request->obj;
             auto group = request->group;
 
-            if (result == AOO_OK){
+            if (result == kAooOk){
                 obj->push_reply([obj, group](){
                     // we have to remove the peers manually!
                     for (auto it = obj->x_peers.begin(); it != obj->x_peers.end(); ) {
@@ -674,8 +672,8 @@ static void aoo_client_group_leave(t_aoo_client *x, t_symbol *group)
                     outlet_anything(obj->x_msgout, gensym("group_leave"), 2, msg);
                 });
             } else {
-                auto reply = (const aoo_net_error_reply *)data;
-                t_error_reply error { reply->error_code, reply->error_message };
+                auto reply = (const AooNetReplyError *)data;
+                t_error_reply error { reply->errorCode, reply->errorMessage };
 
                 obj->push_reply([obj, group, error=std::move(error)](){
                     pd_error(obj, "%s: couldn't leave group %s - %s",
@@ -690,8 +688,8 @@ static void aoo_client_group_leave(t_aoo_client *x, t_symbol *group)
 
             delete request;
         };
-        x->x_node->client()->leave_group(group->s_name, cb,
-                                 new t_group_request { x, group, nullptr });
+        x->x_node->client()->leaveGroup(group->s_name, cb,
+                                        new t_group_request { x, group, nullptr });
     }
 }
 

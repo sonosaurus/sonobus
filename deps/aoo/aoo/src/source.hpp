@@ -4,7 +4,10 @@
 
 #pragma once
 
-#include "aoo/aoo.hpp"
+#include "aoo/aoo_source.hpp"
+#if USE_AOO_NET
+# include "aoo/aoo_client.hpp"
+#endif
 
 #include "common/lockfree.hpp"
 #include "common/net_utils.hpp"
@@ -12,7 +15,6 @@
 #include "common/time.hpp"
 #include "common/utils.hpp"
 
-#include "codec.hpp"
 #include "buffer.hpp"
 #include "imp.hpp"
 #include "resampler.hpp"
@@ -26,203 +28,268 @@
 
 namespace aoo {
 
-class source;
-
-struct endpoint {
-    endpoint() = default;
-    endpoint(const ip_address& _address, int32_t _id, uint32_t _flags)
-        : address(_address), id(_id), flags(_flags) {}
-
-    // data
-    ip_address address;
-    aoo_id id = 0;
-    uint32_t flags = 0;
-};
+struct Source;
 
 struct data_request {
     int32_t sequence;
     int32_t frame;
 };
 
-struct sink_desc : endpoint {
-    sink_desc(const ip_address& _addr, int32_t _id, uint32_t _flags)
-        : endpoint(_addr, _id, _flags), channel(0) {}
-    sink_desc(const sink_desc& other)
-        : endpoint(other.address, other.id, other.flags),
-          channel(other.channel.load()), needformat_(other.needformat_.load()) {}
-    sink_desc& operator=(const sink_desc& other){
-        address = other.address;
-        id = other.id;
-        flags = other.flags;
-        channel = other.channel.load();
-        needformat_ = other.needformat_.load();
-        return *this;
-    }
-
-    // data
-    std::atomic<int16_t> channel;
-    lockfree::unbounded_mpsc_queue<data_request, aoo::allocator<data_request>> data_requests;
-
-    void request_format(){
-        needformat_.store(true, std::memory_order_release);
-    }
-
-    bool need_format() {
-        return needformat_.exchange(false, std::memory_order_acquire);
-    }
-
-    void reset(){
-        data_requests.clear();
-    }
-private:
-    std::atomic<bool> needformat_{true}; // !
+enum class request_type {
+    none,
+    stop
 };
 
-class source_imp final : public source {
- public:
-    struct event {
-        event() = default;
+struct sink_request {
+    sink_request() = default;
 
-        event(aoo_event_type type) : type_(type){}
+    sink_request(request_type _type)
+        : type(_type) {}
 
-        event(aoo_event_type type, const ip_address& addr, aoo_id id){
-            memcpy(&addr_, addr.address(), addr.length());
-            sink.type = type;
-            sink.ep.address = &addr_;
-            sink.ep.addrlen = addr.length();
-            sink.ep.id = id;
-        }
+    sink_request(request_type _type, const endpoint& _ep)
+        : type(_type), ep(_ep) {}
 
-        event(const event& other){
-            memcpy(this, &other, sizeof(event)); // ugh
-            if (type_ != AOO_XRUN_EVENT){
-                sink.ep.address = &addr_;
-            }
-        }
-
-        event& operator=(const event& other){
-            memcpy(this, &other, sizeof(event)); // ugh
-            if (type_ != AOO_XRUN_EVENT){
-                sink.ep.address = &addr_;
-            }
-            return *this;
-        }
-
-        union
-        {
-            aoo_event_type type_;
-            aoo_event event_;
-            aoo_sink_event sink;
-            aoo_ping_event ping;
-            aoo_xrun_event xrun;
-            aoo_format_event format;
-        };
-    private:
-        char addr_[ip_address::max_length];
+    request_type type;
+    endpoint ep;
+    union {
+        struct {
+            int32_t stream;
+        } stop;
     };
+};
 
-    source_imp(aoo_id id, uint32_t flags);
+// NOTE: the stream ID can change anytime, it only
+// has to be synchronized with any format change.
 
-    ~source_imp();
+struct sink_desc {
+    sink_desc(const ip_address& addr, int32_t id, uint32_t flags,
+              AooId stream_id)
+        : ep(addr, id, flags), stream_id_(stream_id) {}
+    sink_desc(const sink_desc& other) = delete;
+    sink_desc& operator=(const sink_desc& other) = delete;
 
-    aoo_id id() const { return id_.load(std::memory_order_relaxed); }
+    const endpoint ep;
 
-    aoo_error setup(int32_t samplerate, int32_t blocksize, int32_t nchannels) override;
+    AooId stream_id() const {
+        return stream_id_.load(std::memory_order_acquire);
+    }
 
-    aoo_error handle_message(const char *data, int32_t n,
-                             const void *address, int32_t addrlen) override;
+    void set_channel(int32_t chn){
+        channel_.store(chn, std::memory_order_relaxed);
+    }
 
-    aoo_error send(aoo_sendfn fn, void *user) override;
+    int32_t channel() const {
+        return channel_.load(std::memory_order_relaxed);
+    }
 
-    aoo_error process(const aoo_sample **data, int32_t n, uint64_t t) override;
+    // called while locked
+    void start();
 
-    aoo_error set_eventhandler(aoo_eventhandler fn, void *user, int32_t mode) override;
+    void stop(Source& s);
 
-    aoo_bool events_available() override;
+    void activate(Source& s, bool b);
 
-    aoo_error poll_events() override;
+    bool is_active() const {
+        return stream_id_.load(std::memory_order_acquire) != kAooIdInvalid;
+    }
 
-    aoo_error control(int32_t ctl, intptr_t index, void *ptr, size_t size) override;
+    bool need_invite(AooId token);
+
+    void accept_invitation(Source& s, AooId token);
+
+    bool need_uninvite(AooId stream_id);
+
+    void accept_uninvitation(Source& s, AooId token);
+
+    void notify_start() {
+        needstart_.exchange(true, std::memory_order_release);
+    }
+
+    bool need_start() {
+        return needstart_.exchange(false, std::memory_order_acquire);
+    }
+
+    void add_data_request(int32_t sequence, int32_t frame){
+        data_requests_.push(sequence, frame);
+    }
+
+    bool get_data_request(data_request& r){
+        return data_requests_.try_pop(r);
+    }
+private:
+    std::atomic<int32_t> channel_{0};
+    std::atomic<int32_t> stream_id_ {kAooIdInvalid};
+    int32_t invite_token_{kAooIdInvalid};
+    int32_t uninvite_token_{kAooIdInvalid};
+    std::atomic<bool> needstart_{false};
+    aoo::unbounded_mpsc_queue<data_request> data_requests_;
+};
+
+struct cached_sink_desc {
+    cached_sink_desc(const sink_desc& s)
+        : ep(s.ep), stream_id(s.stream_id()), channel(s.channel()) {}
+
+    endpoint ep;
+    AooId stream_id;
+    int32_t channel;
+};
+
+class Source final : public AooSource {
+ public:
+    Source(AooId id, AooFlag flags, AooError *err);
+
+    ~Source();
+
+    //--------------------- interface methods --------------------------//
+
+    AooError AOO_CALL setup(AooSampleRate sampleRate,
+                            AooInt32 blockSize, AooInt32 numChannels) override;
+
+    AooError AOO_CALL handleMessage(const AooByte *data, AooInt32 n,
+                                    const void *address, AooAddrSize addrlen) override;
+
+    AooError AOO_CALL send(AooSendFunc fn, void *user) override;
+
+    AooError AOO_CALL process(AooSample **data, AooInt32 n,
+                              AooNtpTime t) override;
+
+    AooError AOO_CALL setEventHandler(AooEventHandler fn, void *user,
+                                      AooEventMode mode) override;
+
+    AooBool AOO_CALL eventsAvailable() override;
+
+    AooError AOO_CALL pollEvents() override;
+
+    AooError AOO_CALL startStream(const AooDataView *metadata) override;
+
+    AooError AOO_CALL stopStream() override;
+
+    AooError AOO_CALL addSink(const AooEndpoint& sink, AooFlag flags) override;
+
+    AooError AOO_CALL removeSink(const AooEndpoint& sink) override;
+
+    AooError AOO_CALL removeAll() override;
+
+    AooError AOO_CALL acceptInvitation(const AooEndpoint& sink, AooId token) override;
+
+    AooError AOO_CALL acceptUninvitation(const AooEndpoint& sink, AooId token) override;
+
+    AooError AOO_CALL control(AooCtl ctl, AooIntPtr index,
+                              void *ptr, AooSize size) override;
+
+    AooError AOO_CALL codecControl(AooCtl ctl, AooIntPtr index,
+                                   void *ptr, AooSize size) override;
+
+    //----------------------- semi-public methods -------------------//
+
+    AooId id() const { return id_.load(); }
+
+    bool is_running() const {
+        return state_.load(std::memory_order_acquire) == stream_state::run;
+    }
+
+    void notify_start();
+
+    void push_request(const sink_request& r);
  private:
     using shared_lock = sync::shared_lock<sync::shared_mutex>;
     using unique_lock = sync::unique_lock<sync::shared_mutex>;
     using scoped_lock = sync::scoped_lock<sync::shared_mutex>;
     using scoped_shared_lock = sync::scoped_shared_lock<sync::shared_mutex>;
+    using scoped_spinlock = sync::scoped_lock<sync::spinlock>;
 
     // settings
-    std::atomic<aoo_id> id_;
-    int32_t salt_ = 0;
+    parameter<AooId> id_;
     int32_t nchannels_ = 0;
     int32_t blocksize_ = 0;
     int32_t samplerate_ = 0;
+#if USE_AOO_NET
+    AooClient *client_ = nullptr;
+#endif
     // audio encoder
-    std::unique_ptr<encoder> encoder_;
+    std::unique_ptr<AooFormat, format_deleter> format_;
+    std::unique_ptr<AooCodec, encoder_deleter> encoder_;
+    AooId format_id_ {kAooIdInvalid};
     // state
     int32_t sequence_ = 0;
     std::atomic<float> xrun_{0};
     std::atomic<float> lastpingtime_{0};
-    std::atomic<bool> needformat_{false};
+    std::atomic<bool> needstart_{false};
     enum class stream_state {
         stop,
         start,
-        play
+        run,
+        idle
     };
-    std::atomic<stream_state> state_{stream_state::stop};
+    std::atomic<stream_state> state_{stream_state::idle};
+    // metadata
+    AooDataView *metadata_{nullptr};
+    std::atomic<int32_t> metadata_size_{ AOO_STREAM_METADATA_SIZE };
+    bool metadata_accepted_{false};
+    sync::spinlock metadata_lock_;
     // timing
-    std::atomic<double> realsr_{0};
+    parameter<AooSampleRate> realsr_{0};
     time_dll dll_;
     timer timer_;
     // buffers and queues
-    std::vector<char, aoo::allocator<char>> sendbuffer_;
+    aoo::vector<AooByte> sendbuffer_;
     dynamic_resampler resampler_;
     struct block_data {
         double sr;
-        aoo_sample data[1];
+        AooSample data[1];
     };
-    lockfree::spsc_queue<char, aoo::allocator<char>> audioqueue_;
+    aoo::spsc_queue<char> audioqueue_;
     history_buffer history_;
     // events
-    lockfree::unbounded_mpsc_queue<event, aoo::allocator<event>> eventqueue_;
-    aoo_eventhandler eventhandler_ = nullptr;
+    aoo::unbounded_mpsc_queue<endpoint_event> eventqueue_;
+    AooEventHandler eventhandler_ = nullptr;
     void *eventcontext_ = nullptr;
-    aoo_event_mode eventmode_ = AOO_EVENT_NONE;
+    AooEventMode eventmode_ = kAooEventModeNone;
+    // requests
+    aoo::unbounded_mpsc_queue<sink_request> requests_;
     // sinks
-    using sink_list = lockfree::simple_list<sink_desc, aoo::allocator<sink_desc>>;
+    using sink_list = aoo::concurrent_list<sink_desc>;
     using sink_lock = std::unique_lock<sink_list>;
     sink_list sinks_;
+    sync::mutex sink_mutex_;
+    aoo::vector<cached_sink_desc> cached_sinks_; // only for the send thread
     // memory
     memory_list memory_;
     // thread synchronization
     sync::shared_mutex update_mutex_;
     // options
-    std::atomic<int32_t> buffersize_{ AOO_SOURCE_BUFFERSIZE };
-    std::atomic<int32_t> packetsize_{ AOO_PACKETSIZE };
-    std::atomic<int32_t> resend_buffersize_{ AOO_RESEND_BUFFERSIZE };
-    std::atomic<int32_t> redundancy_{ AOO_SEND_REDUNDANCY };
-    std::atomic<float> dll_bandwidth_{ AOO_DLL_BANDWIDTH };
-    std::atomic<float> ping_interval_{ AOO_PING_INTERVAL * 0.001 };
-    std::atomic<bool> dynamic_resampling_{ AOO_DYNAMIC_RESAMPLING };
-    std::atomic<bool> timer_check_{ AOO_TIMER_CHECK };
-    std::atomic<bool> binary_{ AOO_BINARY_DATA_MSG };
+    parameter<float> buffersize_{ AOO_SOURCE_BUFFER_SIZE };
+    parameter<float> resend_buffersize_{ AOO_RESEND_BUFFER_SIZE };
+    parameter<int32_t> packetsize_{ AOO_PACKET_SIZE };
+    parameter<int32_t> redundancy_{ AOO_SEND_REDUNDANCY };
+    parameter<float> ping_interval_{ AOO_PING_INTERVAL };
+    parameter<float> dll_bandwidth_{ AOO_DLL_BANDWIDTH };
+    parameter<bool> dynamic_resampling_{ AOO_DYNAMIC_RESAMPLING };
+    parameter<bool> timer_check_{ AOO_XRUN_DETECTION };
+    parameter<bool> binary_{ AOO_BINARY_DATA_MSG };
 
     // helper methods
-    aoo_error add_sink(const aoo_endpoint& ep, uint32_t flags);
+    sink_desc * do_add_sink(const ip_address& addr, AooId id, AooId stream_id);
 
-    aoo_error remove_sink(const aoo_endpoint& ep);
+    bool do_remove_sink(const ip_address& addr, AooId id);
 
-    aoo_error set_format(aoo_format& f);
+    AooError set_format(AooFormat& fmt);
 
-    sink_desc * find_sink(const ip_address& addr, aoo_id id);
+    AooError get_format(AooFormat& fmt);
+
+    sink_desc * find_sink(const ip_address& addr, AooId id);
 
     sink_desc *get_sink_arg(intptr_t index);
 
-    static int32_t make_salt();
+    void send_event(const endpoint_event& e, AooThreadLevel level);
 
-    void send_event(const event& e, aoo_thread_level level);
+    void free_event(const endpoint_event& e);
 
     bool need_resampling() const;
 
-    void start_new_stream();
+    void make_new_stream();
+
+    void allocate_metadata(int32_t size);
 
     void add_xrun(float n);
 
@@ -232,33 +299,23 @@ class source_imp final : public source {
 
     void update_historybuffer();
 
-    void send_format(const sendfn& fn);
+    void dispatch_requests(const sendfn& fn);
+
+    void send_start(const sendfn& fn);
 
     void send_data(const sendfn& fn);
 
     void resend_data(const sendfn& fn);
 
-    void send_packet(const sendfn& fn, int32_t salt,
-                     data_packet& d, bool binary);
-
-    void send_packet_osc(const sendfn& fn, const endpoint& ep,
-                         int32_t salt, const data_packet& d) const;
-
-    void send_packet_bin(const sendfn& fn, const endpoint& ep,
-                         int32_t salt, const data_packet& d) const;
-
-    void write_bin_data(const endpoint* ep, int32_t salt,
-                        const data_packet& d, char *buf, size_t& size) const;
-
     void send_ping(const sendfn& fn);
 
-    void handle_format_request(const osc::ReceivedMessage& msg,
-                               const ip_address& addr);
+    void handle_start_request(const osc::ReceivedMessage& msg,
+                              const ip_address& addr);
 
     void handle_data_request(const osc::ReceivedMessage& msg,
                              const ip_address& addr);
 
-    void handle_data_request(const char * msg, int32_t n,
+    void handle_data_request(const AooByte * msg, int32_t n,
                              const ip_address& addr);
 
     void handle_ping(const osc::ReceivedMessage& msg,

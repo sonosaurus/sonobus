@@ -3,14 +3,14 @@
 namespace aoo {
 
 timer::timer(timer&& other){
-    last_ = other.last_.load();
-    elapsed_ = other.elapsed_.load();
+    last_.store(other.last_.load());
+    elapsed_.store(other.elapsed_.load());
     mavg_check_ = std::move(other.mavg_check_);
 }
 
 timer& timer::operator=(timer&& other){
-    last_ = other.last_.load();
-    elapsed_ = other.elapsed_.load();
+    last_.store(other.last_.load());
+    elapsed_.store(other.elapsed_.load());
     mavg_check_ = std::move(other.mavg_check_);
     return *this;
 }
@@ -26,22 +26,17 @@ void timer::setup(int32_t sr, int32_t blocksize, bool check){
     reset();
 }
 
-void timer::reset(){
-    last_.store(0, std::memory_order_relaxed);
-}
-
 timer::state timer::update(time_tag t, double& error){
-    time_tag last = last_.exchange(t, std::memory_order_relaxed);
+    time_tag last = last_.exchange(t);
     if (!last.is_empty()){
         auto delta = time_tag::duration(last, t);
     #if AOO_DEBUG_TIMER
         LOG_DEBUG("time delta: " << delta * 1000.0 << " ms");
     #endif
-
         // 'elapsed' is only ever modified in this function
         // (which is not reentrant!)
-        auto elapsed = elapsed_.load(std::memory_order_relaxed) + delta;
-        elapsed_.store(elapsed, std::memory_order_relaxed);
+        auto elapsed = elapsed_.load() + delta;
+        elapsed_.store(elapsed);
 
         if (mavg_check_){
             return mavg_check_->check(delta, error);
@@ -50,7 +45,7 @@ timer::state timer::update(time_tag t, double& error){
         }
     } else {
         // reset
-        elapsed_.store(0, std::memory_order_relaxed);
+        elapsed_.store(0);
         if (mavg_check_){
             mavg_check_->reset();
         }
@@ -100,9 +95,9 @@ timer::state timer::moving_average_check::check(double delta, double& error){
         return state::error;
     } else {
     #if AOO_DEBUG_TIMER
-        DO_LOG_DEBUG("average delta: " << (average * 1000.0)
-                  << " ms, error: " << (last_error * 1000.0)
-                  << ", average error: " << (average_error * 1000.0));
+        LOG_ALL("average delta: " << (average * 1000.0)
+                << " ms, error: " << (last_error * 1000.0)
+                << ", average error: " << (average_error * 1000.0));
     #endif
         return state::ok;
     }

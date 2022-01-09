@@ -5,14 +5,13 @@
 #include "sync.hpp"
 
 #ifdef _WIN32
-#include <windows.h>
-#else
-#include <pthread.h>
+  #include <windows.h>
 #endif
 
 // for spinlock
 // Intel
-#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
+#if defined(__i386__) || defined(_M_IX86) || \
+    defined(__x86_64__) || defined(_M_X64)
   #define HAVE_PAUSE
   #include <immintrin.h>
 // ARM
@@ -52,7 +51,7 @@ void pause_cpu(){
 #endif
 }
 
-/*/////////////////////// thread priority ///////////////////*/
+//-------------------------- thread priority -----------------------------//
 
 void lower_thread_priority()
 {
@@ -68,7 +67,18 @@ void lower_thread_priority()
 #endif
 }
 
-/*/////////////////////// spinlock //////////////////////////*/
+//---------------------------- atomics -------------------------------------//
+
+namespace detail {
+static padded_spinlock g_atomic_spinlock;
+
+void global_spinlock_lock() { g_atomic_spinlock.lock(); }
+
+void global_spinlock_unlock() { g_atomic_spinlock.unlock(); }
+
+}
+
+//---------------------------- spinlock ------------------------------------//
 
 void spinlock::lock(){
     // only try to modify the shared state if the lock seems to be available.
@@ -90,7 +100,7 @@ void spinlock::unlock(){
     locked_.store(false, std::memory_order_release);
 }
 
-/*//////////////////// shared spinlock ///////////////////////*/
+//-------------------------- shared spinlock ---------------------------//
 
 // exclusive
 void shared_spinlock::lock(){
@@ -151,9 +161,10 @@ void shared_spinlock::unlock_shared(){
     state_.fetch_sub(1, std::memory_order_release);
 }
 
-/*////////////////////// mutex /////////////////////////////*/
+//---------------------- mutex -------------------------//
 
 #ifdef _WIN32
+
 mutex::mutex() {
     InitializeSRWLock((PSRWLOCK)& mutex_);
 }
@@ -168,7 +179,9 @@ bool mutex::try_lock() {
 void mutex::unlock() {
     ReleaseSRWLockExclusive((PSRWLOCK)&mutex_);
 }
+
 #else
+
 mutex::mutex() {
     pthread_mutex_init(&mutex_, nullptr);
 }
@@ -184,11 +197,13 @@ bool mutex::try_lock() {
 void mutex::unlock() {
     pthread_mutex_unlock(&mutex_);
 }
+
 #endif
 
-/*////////////////////// shared_mutex //////////////////////*/
+//-------------------- shared_mutex -------------------------//
 
-#ifdef _WIN32
+#if defined(_WIN32)
+
 shared_mutex::shared_mutex() {
     InitializeSRWLock((PSRWLOCK)& rwlock_);
 }
@@ -213,7 +228,9 @@ bool shared_mutex::try_lock_shared() {
 void shared_mutex::unlock_shared() {
     ReleaseSRWLockShared((PSRWLOCK)&rwlock_);
 }
-#else
+
+#elif defined(HAVE_PTHREAD_RWLOCK)
+
 shared_mutex::shared_mutex() {
     pthread_rwlock_init(&rwlock_, nullptr);
 }
@@ -240,9 +257,12 @@ bool shared_mutex::try_lock_shared() {
 void shared_mutex::unlock_shared() {
     pthread_rwlock_unlock(&rwlock_);
 }
-#endif
 
-/*//////////////////// semaphore ///////////////////*/
+#endif // _WIN32 || HAVE_PTHREAD_RWLOCK
+
+//-------------------- native_semaphore -----------------------//
+
+#ifdef HAVE_SEMAPHORE
 
 namespace detail {
 
@@ -251,7 +271,7 @@ native_semaphore::native_semaphore(){
     sem_ = CreateSemaphoreA(0, 0, LONG_MAX, 0);
 #elif defined(__APPLE__)
     semaphore_create(mach_task_self(), &sem_, SYNC_POLICY_FIFO, 0);
-#else // pthreads
+#else // posix
     sem_init(&sem_, 0, 0);
 #endif
 }
@@ -261,7 +281,7 @@ native_semaphore::~native_semaphore(){
     CloseHandle(sem_);
 #elif defined(__APPLE__)
     semaphore_destroy(mach_task_self(), sem_);
-#else // pthreads
+#else // posix
     sem_destroy(&sem_);
 #endif
 }
@@ -271,7 +291,7 @@ void native_semaphore::post(){
     ReleaseSemaphore(sem_, 1, 0);
 #elif defined(__APPLE__)
     semaphore_signal(sem_);
-#else
+#else // posix
     sem_post(&sem_);
 #endif
 }
@@ -281,12 +301,126 @@ void native_semaphore::wait(){
     WaitForSingleObject(sem_, INFINITE);
 #elif defined(__APPLE__)
     semaphore_wait(sem_);
-#else
+#else // posix
     while (sem_wait(&sem_) == -1 && errno == EINTR) continue;
 #endif
 }
 
 } // detail
+
+#endif // HAVE_SEMAPHORE
+
+//---------------------- semaphore ---------------------//
+
+#ifdef HAVE_SEMAPHORE
+
+semaphore::semaphore() {}
+
+semaphore::~semaphore() {}
+
+void semaphore::post(){
+    auto old = count_.fetch_add(1, std::memory_order_release);
+    if (old < 0){
+        sem_.post();
+    }
+}
+void semaphore::wait(){
+    auto old = count_.fetch_sub(1, std::memory_order_acquire);
+    if (old <= 0){
+        sem_.wait();
+    }
+}
+
+#else
+
+semaphore::semaphore() {
+    pthread_mutex_init(&mutex_, nullptr);
+    pthread_cond_init(&condition_, nullptr);
+}
+
+semaphore::~semaphore() {
+    pthread_mutex_destroy(&mutex_);
+    pthread_cond_destroy(&condition_);
+}
+
+void semaphore::post() {
+    pthread_mutex_lock(&mutex_);
+    count_++;
+    pthread_mutex_unlock(&mutex_);
+    pthread_cond_signal(&condition_);
+}
+void semaphore::wait() {
+    pthread_mutex_lock(&mutex_);
+    // wait till count is larger than zero
+    while (count_ <= 0) {
+        pthread_cond_wait(&condition_, &mutex_);
+    }
+    count_--; // release
+    pthread_mutex_unlock(&mutex_);
+}
+
+#endif // HAVE_SEMAPHORE
+
+//---------------------- event -------------------------//
+
+#ifdef HAVE_SEMAPHORE
+
+event::event() {}
+
+event::~event() {}
+
+void event::set(){
+    int oldcount = count_.load(std::memory_order_relaxed);
+    for (;;) {
+        // don't increment past 1
+        // NOTE: we have to use the CAS loop even if we don't
+        // increment 'oldcount', because a another thread
+        // might decrement the counter concurrently!
+        auto newcount = oldcount >= 0 ? 1 : oldcount + 1;
+        if (count_.compare_exchange_weak(oldcount, newcount, std::memory_order_release,
+                                         std::memory_order_relaxed))
+            break;
+    }
+    if (oldcount < 0)
+        sem_.post(); // release one waiting thread
+}
+
+void event::wait(){
+    auto old = count_.fetch_sub(1, std::memory_order_acquire);
+    if (old <= 0){
+        sem_.wait();
+    }
+}
+
+#else
+
+event::event() {
+    pthread_mutex_init(&mutex_, nullptr);
+    pthread_cond_init(&condition_, nullptr);
+}
+
+event::~event() {
+    pthread_mutex_destroy(&mutex_);
+    pthread_cond_destroy(&condition_);
+}
+
+void event::set() {
+    pthread_mutex_lock(&mutex_);
+    state_ = true;
+    pthread_mutex_unlock(&mutex_);
+    pthread_cond_signal(&condition_);
+}
+void event::wait() {
+    pthread_mutex_lock(&mutex_);
+    // wait till event is set
+    while (state_ != true) {
+        pthread_cond_wait(&condition_, &mutex_);
+    }
+    state_ = false; // unset
+    pthread_mutex_unlock(&mutex_);
+}
+
+#endif // HAVE_SEMAPHORE
 
 } // sync
 } // aoo

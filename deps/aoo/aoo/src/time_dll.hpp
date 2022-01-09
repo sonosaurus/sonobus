@@ -5,7 +5,11 @@
 #pragma once
 
 #include <limits>
-#include <stdio.h>
+
+#define TIME_DLL_VERBOSE 0
+#if TIME_DLL_VERBOSE
+# include <stdio.h>
+#endif
 
 // Delay-Locked-Loop as described by Fons Adriaensen in
 // "Using a DLL to filter time"
@@ -40,7 +44,7 @@ public:
         if (std::numeric_limits<double>::has_denorm != std::denorm_absent){
             if (e2_ <= std::numeric_limits<double>::min()){
                 e2_ = 0;
-            #if 0
+            #if TIME_DLL_VERBOSE
                 fprintf(stderr, "flushed denormals\n!");
                 fflush(stderr);
             #endif

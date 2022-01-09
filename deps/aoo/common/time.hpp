@@ -11,7 +11,7 @@
 
 namespace aoo {
 
-/*////////////////////////// time tag //////////////////////////*/
+//---------------- OSC time tag -------------------//
 
 struct time_tag {
     static time_tag now();
@@ -82,7 +82,7 @@ struct time_tag {
     }
 
     friend bool operator==(time_tag lhs, time_tag rhs){
-        return lhs.value_ = rhs.value_;
+        return lhs.value_ == rhs.value_;
     }
     friend bool operator<(time_tag lhs, time_tag rhs){
         return lhs.value_ < rhs.value_;
@@ -95,7 +95,7 @@ private:
     uint64_t value_;
 };
 
-/*//////////////////// NTP server /////////////////*/
+//----------------- NTP server -----------------------//
 
 bool check_ntp_server(std::string& msg);
 

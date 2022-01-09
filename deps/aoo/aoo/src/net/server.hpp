@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include "aoo/aoo_net.hpp"
+#include "aoo/aoo_server.hpp"
 
 #include "common/sync.hpp"
 #include "common/utils.hpp"
 #include "common/lockfree.hpp"
 #include "common/net_utils.hpp"
 
-#include "commands.hpp"
 #include "../imp.hpp"
 #include "SLIP.hpp"
 
@@ -41,22 +40,22 @@
 namespace aoo {
 namespace net {
 
-class server_imp;
+class Server;
 
-using ip_address_list = std::vector<ip_address, aoo::allocator<ip_address>>;
+using ip_address_list = aoo::vector<ip_address>;
 
 struct user;
 using user_ptr = std::shared_ptr<user>;
-using user_list = std::vector<user_ptr, aoo::allocator<user_ptr>>;
+using user_list = aoo::vector<user_ptr>;
 
 struct group;
 using group_ptr = std::shared_ptr<group>;
-using group_list = std::vector<group_ptr, aoo::allocator<group_ptr>>;
+using group_list = aoo::vector<group_ptr>;
 
 
 class client_endpoint {
 public:
-    client_endpoint(server_imp& s, int socket, const ip_address& addr);
+    client_endpoint(Server& s, int socket, const ip_address& addr);
 
     ~client_endpoint();
 
@@ -81,7 +80,7 @@ public:
 
     bool receive_data();
 private:
-    server_imp *server_;
+    Server *server_;
     int socket_;
     ip_address_list public_addresses_;
     std::shared_ptr<user> user_;
@@ -90,7 +89,7 @@ private:
     SLIP<aoo::allocator<uint8_t>> sendbuffer_;
     SLIP<aoo::allocator<uint8_t>> recvbuffer_;
 
-    bool handle_message(const char *data, int32_t n);
+    bool handle_message(const AooByte *data, int32_t n);
 
     bool handle_bundle(const osc::ReceivedBundle& bundle);
 
@@ -112,7 +111,7 @@ struct user {
 
     bool active() const { return endpoint_ != nullptr; }
 
-    void on_close(server_imp& s);
+    void on_close(Server& s);
 
     bool add_group(std::shared_ptr<group> grp);
 
@@ -135,7 +134,6 @@ struct user {
     const std::string password;
     const int32_t id;
     const uint32_t version;
-    bool legacy = false;
 private:
     group_list groups_;
     client_endpoint *endpoint_ = nullptr;
@@ -161,7 +159,7 @@ private:
     user_list users_;
 };
 
-class server_imp;
+class Server;
 
 class udp_server {
 public:
@@ -175,10 +173,10 @@ private:
     std::thread workerthread_;
 
     struct udp_packet {
-        std::vector<char> data;
+        aoo::vector<AooByte> data;
         ip_address address;
     };
-    using packet_queue = lockfree::unbounded_mpsc_queue<udp_packet, aoo::allocator<udp_packet>>;
+    using packet_queue = aoo::unbounded_mpsc_queue<udp_packet>;
     packet_queue recvbuffer_;
 #if DEBUG_THREADS
     std::atomic<int32_t> recvbufferfill_{0};
@@ -190,16 +188,16 @@ private:
 
     void handle_packets();
 
-    void handle_packet(const char *data, int32_t n, const ip_address& addr);
+    void handle_packet(const AooByte *data, int32_t n, const ip_address& addr);
 
     void handle_message(const osc::ReceivedMessage& msg, int onset, const ip_address& addr);
 
     void handle_relay_message(const osc::ReceivedMessage& msg, const ip_address& src);
 
-    void send_message(const char *data, int32_t n, const ip_address& addr);
+    void send_message(const AooByte *data, int32_t n, const ip_address& addr);
 };
 
-class server_imp final : public server {
+class Server final : public AooServer {
 public:
     enum class error {
         none,
@@ -214,30 +212,32 @@ public:
         virtual ~ievent(){}
 
         union {
-            aoo_event event_;
-            aoo_net_error_event error_event_;
-            aoo_net_user_event user_event_;
-            aoo_net_group_event group_event_;
+            AooEvent event_;
+            AooNetEventError error_event_;
+            AooNetEventUser user_event_;
+            AooNetEventUserGroup user_group_event_;
         };
     };
 
-    server_imp(int tcpsocket, int udpsocket);
+    Server(int tcpsocket, int udpsocket);
 
-    ~server_imp();
+    ~Server();
 
     ip_address::ip_type type() const { return type_; }
 
-    aoo_error run() override;
+    AooError AOO_CALL run() override;
 
-    aoo_error quit() override;
+    AooError AOO_CALL quit() override;
 
-    aoo_error set_eventhandler(aoo_eventhandler fn, void *user, int32_t mode) override;
+    AooError AOO_CALL setEventHandler(AooEventHandler fn, void *user,
+                                      AooEventMode mode) override;
 
-    aoo_bool events_available() override;
+    AooBool AOO_CALL eventsAvailable() override;
 
-    aoo_error poll_events() override;
+    AooError AOO_CALL pollEvents() override;
 
-    aoo_error control(int32_t ctl, intptr_t index, void *ptr, size_t size) override;
+    AooError AOO_CALL control(AooCtl ctl, intptr_t index,
+                              void *ptr, size_t size) override;
 
     std::shared_ptr<user> get_user(const std::string& name,
                                    const std::string& pwd,
@@ -266,21 +266,22 @@ private:
     int tcpsocket_;
     int eventsocket_;
     ip_address::ip_type type_;
-    std::vector<pollfd> pollarray_;
+    aoo::vector<pollfd> pollarray_;
     udp_server udpserver_;
     // clients
-    std::list<client_endpoint> clients_;
+    using client_list = std::list<client_endpoint, aoo::allocator<client_endpoint>>;
+    client_list clients_;
     // users/groups
     int32_t next_user_id_ = 0;
     user_list users_;
     group_list groups_;
     // events
     using ievent_ptr = std::unique_ptr<ievent>;
-    using event_queue = lockfree::unbounded_mpsc_queue<ievent_ptr, aoo::allocator<ievent_ptr>>;
+    using event_queue = aoo::unbounded_mpsc_queue<ievent_ptr>;
     event_queue events_;
-    aoo_eventhandler eventhandler_ = nullptr;
+    AooEventHandler eventhandler_ = nullptr;
     void *eventcontext_ = nullptr;
-    aoo_event_mode eventmode_ = AOO_EVENT_NONE;
+    AooEventMode eventmode_ = kAooEventModeNone;
 
     void send_event(std::unique_ptr<ievent> e);
 
@@ -290,14 +291,14 @@ private:
     std::atomic<bool> quit_{false};
 
     // options
-    std::atomic<bool> allow_relay_{AOO_NET_RELAY_ENABLE};
-    std::atomic<bool> notify_on_shutdown_{AOO_NET_NOTIFY_ON_SHUTDOWN};
+    parameter<bool> allow_relay_{AOO_NET_RELAY_ENABLE};
+    parameter<bool> notify_on_shutdown_{AOO_NET_NOTIFY_ON_SHUTDOWN};
 
     bool receive();
 
     void update();
 
-    /*/////////////////// events //////////////////////*/
+    //-------------------------- events ---------------------------//
 
     struct error_event : ievent
     {
@@ -312,11 +313,11 @@ private:
         ~user_event();
     };
 
-    struct group_event : ievent
+    struct user_group_event : ievent
     {
-        group_event(int32_t type, const char *group,
-                    const char *user, int32_t id);
-        ~group_event();
+        user_group_event(int32_t type, const char *group,
+                         const char *user, int32_t id);
+        ~user_group_event();
     };
 };
 

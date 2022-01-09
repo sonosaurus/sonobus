@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "aoo/aoo_types.h"
+#include "aoo/aoo_defines.h"
 
 #include <stdint.h>
 #include <cstring>
-#include <sstream>
+#include <ostream>
 
 /*------------------ alloca -----------------------*/
 #ifdef _WIN32
@@ -22,38 +22,34 @@
 # include <stdlib.h> // BSDs for example
 #endif
 
-#ifndef AOO_LOGLEVEL
- #define AOO_LOGLEVEL AOO_LOGLEVEL_WARNING
+/*------------------- logging ----------------------*/
+
+#define DO_LOG(level, msg) do { aoo::Log(level) << msg; } while (false)
+
+#define LOG_ALL(msg) DO_LOG(kAooLogLevelNone, msg)
+
+#if AOO_LOG_LEVEL >= kAooLogLevelError
+# define LOG_ERROR(msg) DO_LOG(kAooLogLevelError, msg)
+#else
+# define LOG_ERROR(msg)
 #endif
 
-#define DO_LOG(level, msg)(aoo::Log(level) << msg)
-#define DO_LOG_ERROR(msg) DO_LOG(AOO_LOGLEVEL_ERROR, msg)
-#define DO_LOG_WARNING(msg) DO_LOG(AOO_LOGLEVEL_WARNING, msg)
-#define DO_LOG_VERBOSE(msg) DO_LOG(AOO_LOGLEVEL_VERBOSE, msg)
-#define DO_LOG_DEBUG(msg) DO_LOG(AOO_LOGLEVEL_DEBUG, msg)
-
-#if AOO_LOGLEVEL >= AOO_LOGLEVEL_ERROR
- #define LOG_ERROR(x) DO_LOG_ERROR(x)
+#if AOO_LOG_LEVEL >= kAooLogLevelWarning
+# define LOG_WARNING(msg) DO_LOG(kAooLogLevelWarning, msg)
 #else
- #define LOG_ERROR(x)
+# define LOG_WARNING(msg)
 #endif
 
-#if AOO_LOGLEVEL >= AOO_LOGLEVEL_WARNING
- #define LOG_WARNING(x) DO_LOG_WARNING(x)
+#if AOO_LOG_LEVEL >= kAooLogLevelVerbose
+# define LOG_VERBOSE(msg) DO_LOG(kAooLogLevelVerbose, msg)
 #else
- #define LOG_WARNING(x)
+# define LOG_VERBOSE(msg)
 #endif
 
-#if AOO_LOGLEVEL >= AOO_LOGLEVEL_VERBOSE
- #define LOG_VERBOSE(x) DO_LOG_VERBOSE(x)
+#if AOO_LOG_LEVEL >= kAooLogLevelDebug
+# define LOG_DEBUG(msg) DO_LOG(kAooLogLevelDebug, msg)
 #else
- #define LOG_VERBOSE(x)
-#endif
-
-#if AOO_LOGLEVEL >= AOO_LOGLEVEL_DEBUG
- #define LOG_DEBUG(x) DO_LOG_DEBUG(x)
-#else
- #define LOG_DEBUG(x)
+# define LOG_DEBUG(msg)
 #endif
 
 /*------------------ endianess -------------------*/
@@ -70,34 +66,44 @@
 #endif
 
 #ifdef __MINGW32__
-#include <sys/param.h>
+# include <sys/param.h>
 #endif
 
 #ifdef _MSC_VER
-/* _MSVC lacks BYTE_ORDER and LITTLE_ENDIAN */
- #define LITTLE_ENDIAN 0x0001
+/* _MSVC lacks byte order macros */
+ #ifndef LITTLE_ENDIAN
+  #define LITTLE_ENDIAN 1234
+ #endif
+ #ifndef BIG_ENDIAN
+  #define BIG_ENDIAN 4321
+ #endif
  #define BYTE_ORDER LITTLE_ENDIAN
 #endif
 
-#if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN)
+#if !defined(BYTE_ORDER)
  #error No byte order defined
 #endif
 
 namespace aoo {
 
-class Log {
+class Log final : std::streambuf, public std::ostream {
 public:
-    Log(int level = AOO_LOGLEVEL_DEBUG)
-        : level_(level){}
+    static const int32_t buffer_size = 256;
+
+    Log(AooLogLevel level = kAooLogLevelNone)
+        : std::ostream(this), level_(level) {}
     ~Log();
-    template<typename T>
-    Log& operator<<(T&& t) {
-        stream_ << std::forward<T>(t);
-        return *this;
-    }
 private:
-    std::ostringstream stream_;
-    int level_;
+    using int_type = std::streambuf::int_type;
+    using char_type = std::streambuf::char_type;
+
+    int_type overflow(int_type c) override;
+
+    std::streamsize xsputn(const char_type *s, std::streamsize n) override;
+
+    AooLogLevel level_;
+    int32_t pos_ = 0;
+    char buffer_[buffer_size];
 };
 
 template<typename T>
@@ -105,11 +111,12 @@ constexpr bool is_pow2(T i){
     return (i & (i - 1)) == 0;
 }
 
-template<typename T>
-T from_bytes(const char *b){
+template<typename T, typename B>
+T from_bytes(const B *b){
+    static_assert(sizeof(B) == 1, "from_bytes() expects byte argument");
     union {
         T t;
-        char b[sizeof(T)];
+        AooByte b[sizeof(T)];
     } c;
 #if BYTE_ORDER == BIG_ENDIAN
     memcpy(c.b, b, sizeof(T));
@@ -121,18 +128,19 @@ T from_bytes(const char *b){
     return c.t;
 }
 
-template<typename T>
-T read_bytes(const char *& b){
+template<typename T, typename B>
+T read_bytes(const B *& b){
     auto pos = b;
     b += sizeof(T);
-    return aoo::from_bytes<T>(pos);
+    return aoo::from_bytes<T, B>(pos);
 }
 
-template<typename T>
-void to_bytes(T v, char *b){
+template<typename T, typename B>
+void to_bytes(T v, B *b){
+    static_assert(sizeof(B) == 1, "to_bytes() expects byte argument");
     union {
         T t;
-        char b[sizeof(T)];
+        AooByte b[sizeof(T)];
     } c;
     c.t = v;
 #if BYTE_ORDER == BIG_ENDIAN
@@ -144,10 +152,17 @@ void to_bytes(T v, char *b){
 #endif
 }
 
-template<typename T>
-void write_bytes(T v, char *& b){
-    aoo::to_bytes<T>(v, b);
+template<typename T, typename B>
+void write_bytes(T v, B *& b){
+    aoo::to_bytes<T, B>(v, b);
     b += sizeof(T);
+}
+
+template<typename T>
+T clamp(T in, T low, T high){
+    if (in > high) return high;
+    else if (in < low) return low;
+    else return in;
 }
 
 } // aoo
