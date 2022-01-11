@@ -905,7 +905,7 @@ private:
     float mLastInMonMonoPan = 0.0f;
     float mLastInMonPan1 = -1.0f;
     float mLastInMonPan2 = 1.0f;
-    bool mLastMetEnabled = false;
+
     bool mLastMainReverbEnabled = false;
     bool mReverbParamsChanged = false;
     bool mLastHasMainFx = false;

@@ -11,6 +11,7 @@ namespace SonoAudio
     
     class Metronome	{
     public:
+        bool mLastMetEnabled = false;
         
         Metronome(double samplerate=44100.0);
         virtual ~Metronome();
@@ -29,7 +30,7 @@ namespace SonoAudio
         
         void setBeatsPerBar(int num);
         int getBeatsPerBar() const { return mBeatsPerBar; }
-        
+
         
         void resetRelativeStart();
         void setRemainRatios(double barRemain, double beatRemain);
@@ -85,7 +86,8 @@ namespace SonoAudio
         };
         
         SampleState mBeatState;
-        SampleState mBarState;        
+        SampleState mBarState;
+
 
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)

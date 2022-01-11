@@ -7227,7 +7227,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     double mettempo = mMetTempo.get();
     bool metrecorded = mMetIsRecorded.get();
 
-    if (metenabled != mLastMetEnabled) {
+    if (metenabled != mMetronome->mLastMetEnabled) {
         if (metenabled) {
             mMetronome->setGain(metgain, true);
             if (!syncmethost || !hostPlaying) {
@@ -7238,7 +7238,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             mMetronome->setGain(0.0f);
         }
     }
-    if (mLastMetEnabled || metenabled) {
+    if (mMetronome->mLastMetEnabled || metenabled) {
         metBuffer.clear(0, numSamples);
         mMetronome->setGain(metgain);
         mMetronome->setTempo(mettempo);
@@ -7275,7 +7275,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             //}
         }
     }
-    mLastMetEnabled = metenabled;
+    mMetronome->mLastMetEnabled = metenabled;
 
 
     // process and mix in input reverb into sendworkbuffer (if sending mono or stereo)
