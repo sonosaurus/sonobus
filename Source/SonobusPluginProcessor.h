@@ -878,7 +878,6 @@ private:
     Atomic<bool>   mMetEnabled  { false };
     Atomic<bool>   mSendMet  { false };
     Atomic<int>   mSendChannels  { 1 }; // 0 is match inputs, 1 is 1, etc
-    Atomic<float>   mMetGain    { 0.5f };
     Atomic<double>   mMetTempo    { 100.0f };
     Atomic<bool>   mSendPlaybackAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };

@@ -30,8 +30,9 @@ void Metronome::setGain(float val, bool force)
 }
 
 void Metronome::turn(bool on) {
-    if(!on)
-        setGain(0.0f);
+    if(on){
+        setGain(getGain(), true);
+    }
 }
 
 // the timestamp passed in should be relative to time zero for the current tempo
@@ -154,12 +155,12 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     }
     
     // apply gain
-    if (abs(mPendingGain - mGain) > 0.0001f) {
-        tempBuffer.applyGainRamp(0, nframes, mGain, mPendingGain);
+    if (abs(mPendingGain - mGain.get()) > 0.0001f) {
+        tempBuffer.applyGainRamp(0, nframes, mGain.get(), mPendingGain);
         mGain = mPendingGain;
     }
-    else if (mGain != 1.0f){
-        tempBuffer.applyGain(0, nframes, mGain);
+    else if (mGain.get() != 1.0f){
+        tempBuffer.applyGain(0, nframes, mGain.get());
     }
     
     // add to audio data going out

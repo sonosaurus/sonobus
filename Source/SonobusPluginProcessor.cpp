@@ -40,6 +40,7 @@ typedef int socklen_t;
 #define MAX_DELAY_SAMPLES 192000
 #define SENDBUFSIZE_SCALAR 2.0f
 #define PEER_PING_INTERVAL_MS 2000.0
+#define DEFAULT_METRONOME_GAIN 0.5f
 
 String SonobusAudioProcessor::paramInGain     ("ingain");
 String SonobusAudioProcessor::paramDry     ("dry");
@@ -607,7 +608,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     std::make_unique<AudioParameterBool>(paramMetEnabled, TRANS ("Metronome Enabled"), mMetEnabled.get()),
     std::make_unique<AudioParameterBool>(paramSendMetAudio, TRANS ("Send Metronome Audio"), mSendMet.get()),
-    std::make_unique<AudioParameterFloat>(paramMetGain,     TRANS ("Metronome Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.5), mMetGain.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(paramMetGain,     TRANS ("Metronome Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.5), DEFAULT_METRONOME_GAIN, "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
@@ -647,7 +648,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(paramDefaultPeerLevel,     TRANS ("Default User Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), mDefUserLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-    std::make_unique<AudioParameterBool>(paramSyncMetToHost, TRANS ("Sync to Host"), JUCEApplicationBase::isStandaloneApp() ? false : true),
+    std::make_unique<AudioParameterBool>(paramSyncMetToHost, TRANS ("Sync to Host"), !JUCEApplicationBase::isStandaloneApp()),
     std::make_unique<AudioParameterFloat>(paramInputReverbLevel,     TRANS ("Input Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mInputReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
@@ -742,7 +743,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mMetronome->loadBarSoundFromBinaryData(BinaryData::bar_click_wav, BinaryData::bar_click_wavSize);
     mMetronome->loadBeatSoundFromBinaryData(BinaryData::beat_click_wav, BinaryData::beat_click_wavSize);
     mMetronome->setTempo(100.0);
-    
+    mMetronome->setGain(DEFAULT_METRONOME_GAIN);
+
     mMainReverb = std::make_unique<Reverb>();
     mMainReverbParams.dryLevel = 0.0f;
     mMainReverbParams.wetLevel = mMainReverbLevel.get() * 0.5f;
@@ -1555,7 +1557,7 @@ void SonobusAudioProcessor::setMetronomeGain(float gain)
 
 float SonobusAudioProcessor::getMetronomeGain() const
 {
-    return mMetGain.get();
+    return mMetronome->getGain();
 }
 
 void SonobusAudioProcessor::setMetronomeMonitor(float mgain)
@@ -6147,7 +6149,7 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
         //mInputChannelGroups[0].gain = newValue;
     }
     else if (parameterID == paramMetGain) {
-        mMetGain = newValue;
+        mMetronome->setGain(newValue, false);
         //mMetChannelGroup.params.gain = newValue;
     }
     else if (parameterID == paramMetTempo) {
@@ -7224,13 +7226,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     // process metronome
     bool metenabled = mMetEnabled.get();
-    float metgain = mMetGain.get();
     double mettempo = mMetTempo.get();
     bool metrecorded = mMetIsRecorded.get();
 
     if (metenabled != mMetronome->mLastMetEnabled) {
         if (metenabled) {
-            mMetronome->setGain(metgain, true);
             if (!syncmethost || !hostPlaying) {
                 mMetronome->resetRelativeStart();
             }
@@ -7238,7 +7238,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
     if (mMetronome->mLastMetEnabled || metenabled) {
         metBuffer.clear(0, numSamples);
-        mMetronome->setGain(metgain);
         mMetronome->setTempo(mettempo);
         double beattime = 0.0;
         if (syncmethost && hostPlaying) {

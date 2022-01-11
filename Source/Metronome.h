@@ -59,7 +59,7 @@ namespace SonoAudio
 
         double mTempo;
         int  mBeatsPerBar;
-        float mGain;
+        Atomic<float>   mGain;
         volatile float mPendingGain;
 
         double mCurrentBarRemainRatio;
