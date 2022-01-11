@@ -41,6 +41,7 @@ typedef int socklen_t;
 #define SENDBUFSIZE_SCALAR 2.0f
 #define PEER_PING_INTERVAL_MS 2000.0
 #define DEFAULT_METRONOME_GAIN 0.5f
+#define DEFAULT_METRONOME_TEMPO 100.0f
 
 String SonobusAudioProcessor::paramInGain     ("ingain");
 String SonobusAudioProcessor::paramDry     ("dry");
@@ -612,7 +613,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramMetTempo,     TRANS ("Metronome Tempo"),    NormalisableRange<float>(10.0, 400.0, 1, 0.5), mMetTempo.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(paramMetTempo,     TRANS ("Metronome Tempo"),    NormalisableRange<float>(10.0, 400.0, 1, 0.5), DEFAULT_METRONOME_TEMPO, "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v) + " bpm"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
 
@@ -6153,7 +6154,7 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
         //mMetChannelGroup.params.gain = newValue;
     }
     else if (parameterID == paramMetTempo) {
-        mMetTempo = newValue;
+        mMetronome->setTempo(newValue);
     }
     else if (parameterID == paramMetEnabled) {
         mMetEnabled = newValue > 0;
@@ -6959,7 +6960,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     AudioPlayHead::CurrentPositionInfo posInfo;
     posInfo.resetToDefault();
-    posInfo.bpm = mMetTempo.get();
+    posInfo.bpm = mMetronome->getTempo();
 
     bool syncmethost = mSyncMetToHost.get();
 
@@ -6967,13 +6968,13 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     bool posValid = playhead && playhead->getCurrentPosition(posInfo);
     bool hostPlaying = posValid && posInfo.isPlaying;
     if (posInfo.bpm <= 0.0) {
-        posInfo.bpm = mMetTempo.get();
+        posInfo.bpm = mMetronome->getTempo();
     }
 
     if (syncmethost) {
-        if (posValid && fabs(posInfo.bpm - mMetTempo.get()) > 0.001) {
-            mMetTempo = posInfo.bpm;
-            mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetTempo.get()));
+        if (posValid && fabs(posInfo.bpm - mMetronome->getTempo()) > 0.001) {
+            mMetronome->setTempo(posInfo.bpm);
+            mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetronome->getTempo()));
         }
     }
     
@@ -7226,7 +7227,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     
     // process metronome
     bool metenabled = mMetEnabled.get();
-    double mettempo = mMetTempo.get();
     bool metrecorded = mMetIsRecorded.get();
 
     if (metenabled != mMetronome->mLastMetEnabled) {
@@ -7238,7 +7238,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     }
     if (mMetronome->mLastMetEnabled || metenabled) {
         metBuffer.clear(0, numSamples);
-        mMetronome->setTempo(mettempo);
         double beattime = 0.0;
         if (syncmethost && hostPlaying) {
             beattime = posInfo.ppqPosition;

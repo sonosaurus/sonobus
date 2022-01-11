@@ -4,12 +4,11 @@
 
 #include "Metronome.h"
 #include <cmath>
-//#include "utility.h"
 
 using namespace SonoAudio;
 
 Metronome::Metronome(double samplerate)
-: sampleRate(samplerate), mTempo(0), mBeatsPerBar(1), mGain(1.0f), mPendingGain(1.0f),
+: sampleRate(samplerate), mTempo(100), mBeatsPerBar(1), mGain(1.0f), mPendingGain(1.0f),
  mCurrentBarRemainRatio(0), mCurrentBeatRemainRatio(0), mCurrBeatPos(0)
 {
     tempBuffer.setSize(1, 4096);
@@ -18,8 +17,6 @@ Metronome::Metronome(double samplerate)
 Metronome::~Metronome()
 {
 }
-
-//void processData (int nframes, const signed short int *indata);
 
 void Metronome::setGain(float val, bool force)
 {
@@ -40,7 +37,7 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
 {
     const ScopedTryLock slock (mSampleLock);
 
-    if (!slock.isLocked() || beatSoundBuffer.getNumSamples() == 0 || mTempo == 0.0) {
+    if (!slock.isLocked() || beatSoundBuffer.getNumSamples() == 0 || mTempo.get() == 0.0) {
 	    //cerr << "samples locked, not rendering" << endl;
 	    return;
     }
@@ -60,9 +57,9 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     double beatFrac = modf(beatTime, &beatInt);
     double barFrac = modf(beatTime / mBeatsPerBar, &barInt);
         
-    long framesInBeat = (long) (sampleRate * 60 / mTempo);
+    long framesInBeat = (long) (sampleRate * 60 / mTempo.get());
     long framesInBar = mBeatsPerBar * framesInBeat;
-    double framesInBeatF = (sampleRate * 60 / mTempo);
+    double framesInBeatF = (sampleRate * 60 / mTempo.get());
 
     
     long framesUntilBeat; 

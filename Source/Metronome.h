@@ -26,7 +26,7 @@ namespace SonoAudio
         void processMix (int nframes, float * inOutDataL, float * inOutDataR, const double beatTime, bool relativeTime=false);
         
         void setTempo(double bpm);
-        double getTempo() const { return mTempo; }
+        double getTempo() const { return mTempo.get(); }
         
         void setBeatsPerBar(int num);
         int getBeatsPerBar() const { return mBeatsPerBar; }
@@ -57,7 +57,7 @@ namespace SonoAudio
         int  blockSize;
         double sampleRate;
 
-        double mTempo;
+        Atomic<double>   mTempo;
         int  mBeatsPerBar;
         Atomic<float>   mGain;
         volatile float mPendingGain;
