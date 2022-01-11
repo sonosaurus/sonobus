@@ -31,6 +31,7 @@ namespace SonoAudio
         void setBeatsPerBar(int num);
         int getBeatsPerBar() const { return mBeatsPerBar; }
 
+        void turn(bool on);
         
         void resetRelativeStart();
         void setRemainRatios(double barRemain, double beatRemain);

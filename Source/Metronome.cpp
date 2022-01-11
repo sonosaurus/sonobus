@@ -29,7 +29,10 @@ void Metronome::setGain(float val, bool force)
     }
 }
 
-
+void Metronome::turn(bool on) {
+    if(!on)
+        setGain(0.0f);
+}
 
 // the timestamp passed in should be relative to time zero for the current tempo
 void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR, const double beatTime, bool relativeTime)

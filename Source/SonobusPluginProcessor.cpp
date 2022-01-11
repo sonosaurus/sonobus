@@ -6155,6 +6155,7 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramMetEnabled) {
         mMetEnabled = newValue > 0;
+        mMetronome->turn(newValue > 0);
     }
     else if (parameterID == paramDynamicResampling) {
         mDynamicResampling = newValue > 0;
@@ -7233,9 +7234,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             if (!syncmethost || !hostPlaying) {
                 mMetronome->resetRelativeStart();
             }
-        } else {
-            metgain = 0.0f;
-            mMetronome->setGain(0.0f);
         }
     }
     if (mMetronome->mLastMetEnabled || metenabled) {
