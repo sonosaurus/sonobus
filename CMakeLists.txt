@@ -36,9 +36,9 @@ endif()
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(SonoBus VERSION 1.4.7)
+project(SonoBus VERSION 1.4.8)
 
-set(BUILDVERSION 70)
+set(BUILDVERSION 71)
 
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
@@ -69,11 +69,28 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 # Bug in Xcode? https://gitlab.kitware.com/cmake/cmake/-/issues/21383
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "Targets")
 
-# Create a /Modules directory in the IDE with the JUCE Module code
-option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Show all module sources in IDE projects" ON)
+
+
+# include AOO (which includes opus)
+set(AOO_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "" FORCE)
+set(AOO_BUILD_PD_EXTERNAL OFF CACHE INTERNAL "" FORCE)
+set(AOO_BUILD_SC_EXTENSION OFF CACHE INTERNAL "" FORCE)
+set(AOO_CODEC_OPUS ON CACHE INTERNAL "" FORCE)
+set(AOO_SYSTEM_OPUS ON CACHE INTERNAL "" FORCE)
+
+if (APPLE)
+    add_definitions(-DAOO_OPUS_MULTISTREAM_H="../../../../mac/include/opus/opus_multistream.h")
+elseif (WIN32)
+    add_definitions(-DAOO_OPUS_MULTISTREAM_H="../../../../windows/include/opus/opus_multistream.h")
+endif()
+
+add_subdirectory(deps/aoo EXCLUDE_FROM_ALL )
 
 
 # include JUCE
+# Create a /Modules directory in the IDE with the JUCE Module code
+option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Show all module sources in IDE projects" ON)
+
 
 add_subdirectory(deps/juce EXCLUDE_FROM_ALL )
 
@@ -188,7 +205,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     set (LIB_PATHS  "")
 
     set (PLAT_COMPILE_DEFS
-        $<$<CONFIG:Debug>:AOO_LOGLEVEL=AOO_LOGLEVEL_VERBOSE>
+        $<$<CONFIG:Debug>:LOGLEVEL=2>
         USE_CODEC_OPUS=1
         AOO_TIMEFILTER_CHECK=0
         AOO_STATIC)
@@ -270,6 +287,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/ParametricEqView.h
         Source/PeersContainerView.cpp
         Source/PeersContainerView.h
+        #Source/PolarityInvertView.h
         Source/RandomSentenceGenerator.cpp
         Source/RandomSentenceGenerator.h
         Source/ReverbSendView.h
@@ -303,67 +321,59 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/mtdm.h
         Source/zitaRev.h
     )
-    set(AOOSourceFiles
-        deps/aoo/aoo/src/source.cpp
-        deps/aoo/aoo/src/codec.hpp
-        deps/aoo/aoo/src/net
-        deps/aoo/aoo/src/net/SLIP.hpp
-        deps/aoo/aoo/src/net/client.cpp
-        deps/aoo/aoo/src/net/server.hpp
-        deps/aoo/aoo/src/net/commands.hpp
-        deps/aoo/aoo/src/net/client.hpp
-        deps/aoo/aoo/src/net/server.cpp
-        deps/aoo/aoo/src/sink.cpp
-        deps/aoo/aoo/src/resampler.hpp
-        deps/aoo/aoo/src/codec
-        deps/aoo/aoo/src/codec/opus.cpp
-        deps/aoo/aoo/src/codec/pcm.cpp
-        deps/aoo/aoo/src/timer.cpp
-        deps/aoo/aoo/src/imp.hpp
-        deps/aoo/aoo/src/buffer.cpp
-        deps/aoo/aoo/src/aoo.cpp
-        deps/aoo/aoo/src/timer.hpp
-        deps/aoo/aoo/src/time_dll.hpp
-        deps/aoo/aoo/src/buffer.hpp
-        deps/aoo/aoo/src/source.hpp
-        deps/aoo/aoo/src/sink.hpp
-        deps/aoo/aoo/src/resampler.cpp
-        deps/aoo/common/lockfree.hpp
-        deps/aoo/common/net_utils.hpp
-        deps/aoo/common/time.hpp
-        deps/aoo/common/sync.cpp
-        deps/aoo/common/sync.hpp
-        deps/aoo/common/ntp.cpp
-        deps/aoo/common/utils.hpp
-        deps/aoo/common/net_utils.cpp
-        deps/aoo/common/time.cpp
-        deps/aoo/include/aoo/aoo_types.h
-        deps/aoo/include/aoo/aoo_net.h
-        deps/aoo/include/aoo/codec
-        deps/aoo/include/aoo/codec/aoo_opus.h
-        deps/aoo/include/aoo/codec/aoo_pcm.h
-        deps/aoo/include/aoo/aoo_net.hpp
-        deps/aoo/include/aoo/aoo.hpp
-        deps/aoo/include/aoo/aoo.h
-        deps/aoo/deps/md5/md5.h
+    
+#[[
+    set(AOOSourceFiles        
+        deps/aoo/lib/src/SLIP.hpp
+        deps/aoo/lib/src/client.cpp
+        deps/aoo/lib/src/client.hpp
+        deps/aoo/lib/src/codec_opus.cpp
+        deps/aoo/lib/src/codec_pcm.cpp
+        deps/aoo/lib/src/common.cpp
+        deps/aoo/lib/src/common.hpp
+        deps/aoo/lib/src/lockfree.hpp
+        deps/aoo/lib/src/net_utils.cpp
+        deps/aoo/lib/src/net_utils.hpp
+        deps/aoo/lib/src/server.cpp
+        deps/aoo/lib/src/server.hpp
+        deps/aoo/lib/src/sink.cpp
+        deps/aoo/lib/src/sink.hpp
+        deps/aoo/lib/src/source.cpp
+        deps/aoo/lib/src/source.hpp
+        deps/aoo/lib/src/sync.cpp
+        deps/aoo/lib/src/sync.hpp
+        deps/aoo/lib/src/time.cpp
+        deps/aoo/lib/src/time.hpp
+        deps/aoo/lib/src/time_dll.hpp
+        deps/aoo/lib/aoo/aoo.h
+        deps/aoo/lib/aoo/aoo.hpp
+        deps/aoo/lib/aoo/aoo_net.h
+        deps/aoo/lib/aoo/aoo_net.hpp
+        deps/aoo/lib/aoo/aoo_opus.h
+        deps/aoo/lib/aoo/aoo_pcm.h
+        deps/aoo/lib/aoo/aoo_types.h
+        deps/aoo/lib/aoo/aoo_utils.hpp
+        
         deps/aoo/deps/md5/md5.c
+        deps/aoo/deps/md5/md5.h
         deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.cpp
-        deps/aoo/deps/oscpack/osc/OscPacketListener.h
-        deps/aoo/deps/oscpack/osc/OscTypes.cpp
-        deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.h
-        deps/aoo/deps/oscpack/osc/MessageMappingOscPacketListener.h
-        deps/aoo/deps/oscpack/osc/OscHostEndianness.h
-        deps/aoo/deps/oscpack/osc/OscException.h
-        deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.h
-        deps/aoo/deps/oscpack/osc/OscReceivedElements.cpp
         deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp
+        deps/aoo/deps/oscpack/osc/OscReceivedElements.cpp
+        deps/aoo/deps/oscpack/osc/OscTypes.cpp
+        deps/aoo/deps/oscpack/osc/MessageMappingOscPacketListener.h
+        deps/aoo/deps/oscpack/osc/OscException.h
+        deps/aoo/deps/oscpack/osc/OscHostEndianness.h
+        deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.h
+        deps/aoo/deps/oscpack/osc/OscPacketListener.h
+        deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.h
         deps/aoo/deps/oscpack/osc/OscReceivedElements.h
         deps/aoo/deps/oscpack/osc/OscTypes.h
     )
-
+]]
+    
     target_sources("${target_name}" PRIVATE 
            ${SourceFiles} 
-           ${AOOSourceFiles}
+          # ${AOOSourceFiles}
        )
 
     # No, we don't want our source buried in extra nested folders
@@ -371,7 +381,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 
     # The source tree should uhhh, still look like the source tree, yo
     source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Source PREFIX "" FILES ${SourceFiles})
-    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/deps/aoo PREFIX "aoo" FILES ${AOOSourceFiles})
+    
+    #source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/deps/aoo PREFIX "aoo" FILES ${AOOSourceFiles})
 
     # Move the INTERFACE auto-created JUCE library stuff into its own folder
     source_group("JUCE Library Code" REGULAR_EXPRESSION "juce_")
@@ -431,7 +442,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         JUCE_ALSA=1
         JUCE_USE_ANDROID_OBOE=1
         JUCE_USE_OBOE_STABILIZED_CALLBACK=1
-	FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK=0
+        JUCE_LOAD_CURL_SYMBOLS_LAZILY=1
+        FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK=0
         SONOBUS_BUILD_VERSION="${VERSION}"
         ${PLAT_COMPILE_DEFS} )
 
@@ -446,6 +458,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         localization/localized_nl.txt
         localization/localized_pt-br.txt
         localization/localized_pt-pt.txt
+        #localization/localized_ko.txt
         images/bar_click.wav
         images/beat_click.wav
         images/chat.svg
@@ -555,14 +568,14 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             ff_meters
             
             ${target_name}_SBData
-
+            AOO_STATIC
             opus
         PUBLIC
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags
         #   juce::juce_recommended_warning_flags
         )
-            
+                        
 endfunction()
 
 # most of the targets

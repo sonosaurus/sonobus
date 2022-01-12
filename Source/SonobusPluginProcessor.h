@@ -7,8 +7,12 @@
 
 #include "JuceHeader.h"
 
-#include "aoo/aoo.hpp"
-#include "aoo/aoo_net.hpp"
+#include "aoo/aoo_net.h"
+#include "aoo/aoo_client.hpp"
+#include "aoo/aoo_server.hpp"
+#include "aoo/aoo_sink.hpp"
+#include "aoo/aoo_source.hpp"
+
 #include "common/net_utils.hpp"
 
 #include <map>
@@ -267,17 +271,11 @@ public:
     struct RemoteSource;
     struct RemotePeer;
 
-    int32_t handleAooServerEvent(const aoo_event *event, int32_t level);
-    int32_t handleAooClientEvent(const aoo_event *event, int32_t level);
-    int32_t handleAooSinkEvent(const aoo_event *event, int32_t level, int32_t sinkId);
-    int32_t handleAooSourceEvent(const aoo_event *event, int32_t level, int32_t sourceId);
+    int32_t handleAooServerEvent(const AooEvent *event, int32_t level);
+    int32_t handleAooClientEvent(const AooEvent *event, int32_t level);
+    int32_t handleAooSinkEvent(const AooEvent *event, int32_t level, int32_t sinkId);
+    int32_t handleAooSourceEvent(const AooEvent *event, int32_t level, int32_t sourceId);
 
-#if 0
-    int32_t handleSourceEvents(const aoo_event ** events, int32_t n, int32_t sourceId);
-    int32_t handleSinkEvents(const aoo_event ** events, int32_t n, int32_t sinkId);
-    int32_t handleServerEvents(const aoo_event ** events, int32_t n);
-    int32_t handleClientEvents(const aoo_event ** events, int32_t n);
-#endif
 
     // server stuff
     void startAooServer();
@@ -313,6 +311,8 @@ public:
     bool setCurrentUsername(const String & name);
     String getCurrentUsername() const { return mCurrentUsername; }
 
+    AooId getCurrentUserId() const { return mCurrentUserId; }
+
     // peer stuff
 
     EndpointState * findEndpoint(const aoo::ip_address & ipaddr);
@@ -327,7 +327,7 @@ public:
 
     int getSendChannels() const { return mSendChannels.get(); }
 
-    int connectRemotePeer(const String & host, int port, const String & username = "", const String & groupname = "",  bool reciprocate=true);
+    int connectRemotePeer(const String & host, int port, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "",  bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
     bool disconnectRemotePeer(int index);
     bool removeRemotePeer(int index);
@@ -751,8 +751,8 @@ public:
     void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
     String getLanguageOverrideCode() const { return mLangOverrideCode; }
 
-    static int32_t udpsend(void *user, const char *msg, int32_t size,
-                           const void *addr, int32_t addrlen, uint32_t flags);
+    static int32_t udpsend(void *user, const AooByte *msg, AooInt32 size,
+                           const void *addr, AooAddrSize addrlen, AooFlag flags);
 
 private:
     //==============================================================================
@@ -790,9 +790,9 @@ private:
     void doSendData();
     void handleEvents();
 
-    bool handleOtherMessage(EndpointState * endpoint, const char *msg, int32_t n);
+    bool handleOtherMessage(EndpointState * endpoint, const AooByte *msg, int32_t n);
 
-    int32_t sendPeerMessage(RemotePeer * peer, const char *msg, int32_t n);
+    int32_t sendPeerMessage(RemotePeer * peer, const AooByte *msg, int32_t n);
 
     void handleRemotePeerInfoUpdate(RemotePeer * peer, const juce::var & infodata);
     void sendRemotePeerInfoUpdate(int peerindex = -1, RemotePeer * topeer = nullptr);
@@ -804,10 +804,10 @@ private:
 
     void updateSafetyMuting(RemotePeer * peer);
 
-    void setupSourceFormat(RemotePeer * peer, aoo::source * source, bool latencymode=false);
-    bool formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, aoo_format_storage & retformat);
+    void setupSourceFormat(RemotePeer * peer, AooSource * source, bool latencymode=false);
+    bool formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, AooFormatStorage & retformat);
 
-    void setupSourceUserFormat(RemotePeer * peer, aoo::source * source);
+    void setupSourceUserFormat(RemotePeer * peer, AooSource * source);
 
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);
@@ -815,7 +815,7 @@ private:
     RemotePeer *  findRemotePeerByLatencyId(EndpointState * endpoint, int32_t latId);
     RemotePeer *  findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId);
     RemotePeer *  findRemotePeerByRemoteSinkId(EndpointState * endpoint, int32_t sinkId);
-    RemotePeer *  doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId=AOO_ID_NONE, const String & username={}, const String & groupname={});
+    RemotePeer *  doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId=kAooIdInvalid, AooId userid=kAooIdInvalid, const String & username={}, const String & groupname={});
     bool doRemoveRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId);
     
     bool removeAllRemotePeersWithEndpoint(EndpointState * endpoint);
@@ -843,7 +843,7 @@ private:
     void restoreLayoutFormatForPeer(RemotePeer * remote, bool resetmulti=false);
 
 
-    int connectRemotePeerRaw(const void * sockaddr, int addrlen, const String & username = "", const String & groupname = "", bool reciprocate=true);
+    int connectRemotePeerRaw(const void * sockaddr, int addrlen, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "", bool reciprocate=true);
 
     int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
 
@@ -990,10 +990,10 @@ private:
     foleys::LevelMeterSource metMeterSource;
 
     // AOO stuff
-    aoo::source::pointer mAooDummySource;
+    AooSource::Ptr mAooDummySource;
 
-    aoo::net::server::pointer mAooServer;
-    aoo::net::client::pointer mAooClient;
+    AooServer::Ptr mAooServer;
+    AooClient::Ptr mAooClient;
 
     std::unique_ptr<EndpointState> mServerEndpoint;
     
@@ -1003,6 +1003,7 @@ private:
     double mSessionConnectionStamp = 0.0;
     bool mWatchPublicGroups = false;
     String mCurrentUsername;
+    AooId mCurrentUserId = kAooIdInvalid;
 
     double mPrevSampleRate = 0.0;
     Atomic<bool> mPendingUnmute {false}; // jlc

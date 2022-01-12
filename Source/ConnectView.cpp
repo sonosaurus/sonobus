@@ -972,7 +972,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         if (host.isNotEmpty() && port != 0) {
-            if (processor.connectRemotePeer(host, port, "", "", processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->getValue() == 0)) {
+            if (processor.connectRemotePeer(host, port, kAooIdInvalid, "", "", processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->getValue() == 0)) {
                 setVisible(false);
                 if (auto * callout = dynamic_cast<CallOutBox*>(directConnectCalloutBox.get())) {
                     callout->dismiss();
