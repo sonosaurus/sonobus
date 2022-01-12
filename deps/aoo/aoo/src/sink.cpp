@@ -153,9 +153,9 @@ AooError AOO_CALL aoo::Sink::control(
     // get buffer fill ratio
     case kAooCtlGetBufferFillRatio:
     {
-        CHECKARG(float);
+        CHECKARG(double);
         GETSOURCEARG
-        as<float>(ptr) = src->get_buffer_fill_ratio();
+        as<double>(ptr) = src->get_buffer_fill_ratio();
         break;
     }
     // timer check
@@ -180,15 +180,15 @@ AooError AOO_CALL aoo::Sink::control(
     // time DLL filter bandwidth
     case kAooCtlSetDllBandwidth:
     {
-        CHECKARG(float);
+        CHECKARG(double);
         auto bw = std::max<double>(0, std::min<double>(1, as<float>(ptr)));
         dll_bandwidth_.store(bw);
         timer_.reset(); // will update time DLL and reset timer
         break;
     }
     case kAooCtlGetDllBandwidth:
-        CHECKARG(float);
-        as<float>(ptr) = dll_bandwidth_.load();
+        CHECKARG(double);
+        as<double>(ptr) = dll_bandwidth_.load();
         break;
     // real samplerate
     case kAooCtlGetRealSampleRate:
@@ -1102,7 +1102,7 @@ void source_desc::uninvite(const Sink& s){
     LOG_WARNING("couldn't uninvite source - not running");
 }
 
-float source_desc::get_buffer_fill_ratio(){
+double source_desc::get_buffer_fill_ratio(){
     scoped_shared_lock lock(mutex_);
     if (decoder_){
         // consider samples in resampler!
@@ -1113,7 +1113,7 @@ float source_desc::get_buffer_fill_ratio(){
         LOG_DEBUG("fill ratio: " << ratio << ", audioqueue: " << audioqueue_.read_available()
                   << ", resampler: " << (double)resampler_.size() / (double)nsamples);
         // FIXME sometimes the result is bigger than 1.0
-        return std::min<float>(1.0, ratio);
+        return std::min<double>(1.0, ratio);
     } else {
         return 0.0;
     }
@@ -1131,7 +1131,7 @@ AooError source_desc::handle_start(const Sink& s, int32_t stream, uint32_t flags
     if (state == source_state::invite) {
         // ignore /start messages that don't match the desired stream id
         if (stream != invite_token_.load()){
-            LOG_DEBUG("handle_start: doesn't match invite token");
+            LOG_DEBUG("handle_start: passed streamid " << stream << " doesn't match invite token " << invite_token_.load());
             return kAooOk;
         }
     }
@@ -1292,7 +1292,7 @@ AooError source_desc::handle_data(const Sink& s, net_packet& d, bool binary)
     if (state == source_state::invite) {
         // ignore data messages that don't match the desired stream id.
         if (d.stream_id != invite_token_.load()){
-            LOG_DEBUG("handle_data: doesn't match invite token");
+            LOG_DEBUG("handle_data: passed streamid " << d.stream_id << " doesn't match invite token " << invite_token_.load());
             return kAooOk;
         }
     } else if (state == source_state::uninvite) {

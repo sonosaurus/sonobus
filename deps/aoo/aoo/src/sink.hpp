@@ -178,7 +178,7 @@ public:
 
     void uninvite(const Sink& s);
 
-    float get_buffer_fill_ratio();
+    double get_buffer_fill_ratio();
 
     void add_xrun(int32_t nsamples){
         xrunsamples_ += nsamples;
