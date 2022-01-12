@@ -134,6 +134,7 @@ struct endpoint_event : endpoint_event_base {
         : endpoint_event_base(other) {
         // only for sink events:
         if (type != kAooEventXRun){
+            memcpy(&addr_, &other.addr_, sizeof(addr_));
             ep.endpoint.address = &addr_;
         }
     }
@@ -142,6 +143,7 @@ struct endpoint_event : endpoint_event_base {
         endpoint_event_base::operator=(other);
         // only for sink events:
         if (type != kAooEventXRun){
+            memcpy(&addr_, &other.addr_, sizeof(addr_));
             ep.endpoint.address = &addr_;
         }
         return *this;
