@@ -90,6 +90,8 @@
               file="../localization/localized_pt-br.txt"/>
         <FILE id="ZWGksP" name="localized_pt-pt.txt" compile="0" resource="1"
               file="../localization/localized_pt-pt.txt"/>
+        <FILE id="TLk3c2" name="localized_ru.txt" compile="0" resource="1"
+              file="../localization/localized_ru.txt"/>
       </GROUP>
       <FILE id="xiA07t" name="bar_click.wav" compile="0" resource="1" file="../images/bar_click.wav"/>
       <FILE id="fRSnh7" name="beat_click.wav" compile="0" resource="1" file="../images/beat_click.wav"/>

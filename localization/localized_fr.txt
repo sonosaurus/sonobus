@@ -544,3 +544,4 @@ countries: fr
 "Receive Options" = "Options de réception"
 "Send Options" = "Options d\'envoi"
 "Preferred Receive Quality" = "Qualité de réception préférée"
+"Russia" = "russe"

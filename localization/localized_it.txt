@@ -555,3 +555,4 @@ countries: it
 "Receive Options" = "Opzioni di ricezione"
 "Send Options" = "Opzioni di invio"
 "Preferred Receive Quality" = "Qualità di ricezione preferita"
+"Russian" = "russa"

@@ -532,3 +532,4 @@ countries: ko
 "Receive Options" = "수신 옵션"
 "Send Options" = "송출 옵션"
 "Preferred Receive Quality" = "선호 수신 품질"
+"Russian" = "러시아어"

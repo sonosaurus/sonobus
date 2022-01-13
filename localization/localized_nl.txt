@@ -530,3 +530,4 @@ countries: nl
 "Receive Options" = "Ontvang opties"
 "Send Options" = "Verzendopties"
 "Preferred Receive Quality" = "Gewenste ontvangstkwaliteit"
+"Russian" = "Russische"

@@ -529,3 +529,4 @@ countries: ja
 "Receive Options" = "受信オプション"
 "Send Options" = "送信オプション"
 "Preferred Receive Quality" = "優先受信品質"
+"Russian" = "ロシア語"

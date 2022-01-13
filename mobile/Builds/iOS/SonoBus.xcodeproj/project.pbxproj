@@ -223,6 +223,7 @@
 		55E0328629E7D67CAA82F4D0 /* EffectParams.h */ /* EffectParams.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = EffectParams.h; path = ../../../Source/EffectParams.h; sourceTree = SOURCE_ROOT; };
 		56FB9C1816783BE6D8FED299 /* localized_nl.txt */ /* localized_nl.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = localized_nl.txt; path = ../../../localization/localized_nl.txt; sourceTree = SOURCE_ROOT; };
 		57A012DCCBB25C4A68F7A55B /* include_juce_audio_processors.mm */ /* include_juce_audio_processors.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_processors.mm; path = ../../JuceLibraryCode/include_juce_audio_processors.mm; sourceTree = SOURCE_ROOT; };
+		59738449C5A732517565CE89 /* localized_ru.txt */ /* localized_ru.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = localized_ru.txt; path = ../../../localization/localized_ru.txt; sourceTree = SOURCE_ROOT; };
 		5A0DA232740E2178468D6013 /* LaunchScreen.storyboard */ /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ../../../images/LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
 		5B2C7AE6B6D711AC95214BF9 /* Shared Code */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSonoBus.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC3101B3C0129A9667DC565 /* UIKit.framework */ /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -518,6 +519,7 @@
 				56FB9C1816783BE6D8FED299,
 				E521E05A63590B0C8231956E,
 				523DD7FF6C011B869EBB7B04,
+				59738449C5A732517565CE89,
 			);
 			name = localization;
 			sourceTree = "<group>";

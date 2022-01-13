@@ -117,6 +117,7 @@ add_library( ${BINARY_NAME}
     "../../../../localization/localized_nl.txt"
     "../../../../localization/localized_pt-br.txt"
     "../../../../localization/localized_pt-pt.txt"
+    "../../../../localization/localized_ru.txt"
     "../../../../images/bar_click.wav"
     "../../../../images/beat_click.wav"
     "../../../../images/chat.svg"
@@ -2057,6 +2058,7 @@ set_source_files_properties("../../../../localization/localized_ko.txt" PROPERTI
 set_source_files_properties("../../../../localization/localized_nl.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../localization/localized_pt-br.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../localization/localized_pt-pt.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../localization/localized_ru.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/bar_click.wav" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/beat_click.wav" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/chat.svg" PROPERTIES HEADER_FILE_ONLY TRUE)

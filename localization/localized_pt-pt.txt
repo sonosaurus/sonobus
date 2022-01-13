@@ -543,3 +543,4 @@ countries: pt
 "Receive Options" = "Opções de recebimento"
 "Send Options" = "Opções de envio"
 "Preferred Receive Quality" = "Qualidade de recebimento preferencial"
+"Russian" = "russa"
