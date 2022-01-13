@@ -70,6 +70,9 @@ struct ChannelGroupParams
     //faustLimiter mInputLimiter;
     CompressorParams limiterParams;
 
+    // polarity invert
+    bool invertPolarity = false;
+
     // reverb send
     float inReverbSend = 0.0f;
     float monReverbSend = 0.0f;

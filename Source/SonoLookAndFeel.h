@@ -12,7 +12,7 @@ class SonoLookAndFeel   : public LookAndFeel_V4, public foleys::LevelMeter::Look
 public:
     SonoLookAndFeel();
 
-    void setLanguageCode(const String & lang) { languageCode = lang; }
+    void setLanguageCode(const String & lang);
 
     //void fillWithBackgroundTexture (Graphics&);
     //static void fillWithBackgroundTexture (Component&, Graphics&);

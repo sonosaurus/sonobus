@@ -16,6 +16,7 @@
 #include "ParametricEqView.h"
 #include "MonitorDelayView.h"
 #include "ReverbSendView.h"
+#include "PolarityInvertView.h"
 #include "ReverbView.h"
 
 class ChannelGroupEffectsView :
@@ -24,6 +25,7 @@ public CompressorView::Listener,
 public ExpanderView::Listener,
 public ParametricEqView::Listener,
 public ReverbSendView::Listener,
+public PolarityInvertView::Listener,
 public EffectsBaseView::HeaderListener
 {
 public:
@@ -61,6 +63,8 @@ public:
 
     void reverbSendLevelChanged(ReverbSendView *comp, float revlevel) override;
 
+    void polarityInvertChanged(PolarityInvertView *comp, bool polinv) override;
+
     void effectsHeaderClicked(EffectsBaseView *comp) override;
 
 
@@ -86,6 +90,7 @@ protected:
 
     std::unique_ptr<ReverbSendView> reverbSendView;
 
+    std::unique_ptr<PolarityInvertView> polarityInvertView;
 
     FlexBox effectsBox;
 
@@ -353,7 +358,8 @@ public:
     void showDestSelectionMenu(Component * source, int index);
 
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
-    
+
+    bool isDraggable(Component * comp) const;
 
     void clearClipIndicators();
 

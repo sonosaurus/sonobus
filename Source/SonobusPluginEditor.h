@@ -116,6 +116,9 @@ public:
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
 
+    void updateUseKeybindings();
+
+
     // file drop
 
     bool isInterestedInFileDrag (const StringArray& /*files*/) override;
