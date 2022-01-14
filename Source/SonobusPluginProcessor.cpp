@@ -7242,7 +7242,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if (syncmethost && hostPlaying) {
             beattime = posInfo.ppqPosition;
         }
-        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(mainBusOutputChannels > 1 ? 1 : 0), beattime, !syncmethost || !hostPlaying);
+        mMetronome->processMix(numSamples, &metBuffer, beattime, !syncmethost || !hostPlaying);
 
         //
 

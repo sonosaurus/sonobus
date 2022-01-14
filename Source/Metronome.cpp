@@ -11,7 +11,6 @@ Metronome::Metronome(double samplerate)
 : sampleRate(samplerate), mTempo(100), mBeatsPerBar(1), mGain(1.0f), mPendingGain(1.0f),
  mCurrentBarRemainRatio(0), mCurrentBeatRemainRatio(0), mCurrBeatPos(0)
 {
-    tempBuffer.setSize(1, 4096);
 }
 
 Metronome::~Metronome()
@@ -33,7 +32,7 @@ void Metronome::turn(bool on) {
 }
 
 // the timestamp passed in should be relative to time zero for the current tempo
-void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR, const double beatTime, bool relativeTime)
+void Metronome::processMix (int nframes, AudioSampleBuffer* sampleBuffer , const double beatTime, bool relativeTime)
 {
     const ScopedTryLock slock (mSampleLock);
 
@@ -42,12 +41,7 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
 	    return;
     }
     
-    // just in case, shouldn't ever happen
-    if (tempBuffer.getNumSamples() < nframes) {
-        tempBuffer.setSize(1, nframes);
-    }
-    
-    tempBuffer.clear(0, nframes);
+    sampleBuffer->clear(0, nframes);
     
     //long iTimestamp = (long) lrint(timestamp);
     int frames = nframes;
@@ -85,7 +79,7 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
         framesUntilBar = framesUntilBeat;
     }
     
-    float * metbuf = tempBuffer.getWritePointer(0);
+    float * metbuf = sampleBuffer->getWritePointer(0);
     
     while (frames > 0)
     {
@@ -153,17 +147,11 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     
     // apply gain
     if (abs(mPendingGain - mGain.get()) > 0.0001f) {
-        tempBuffer.applyGainRamp(0, nframes, mGain.get(), mPendingGain);
+        sampleBuffer->applyGainRamp(0, nframes, mGain.get(), mPendingGain);
         mGain = mPendingGain;
     }
     else if (mGain.get() != 1.0f){
-        tempBuffer.applyGain(0, nframes, mGain.get());
-    }
-    
-    // add to audio data going out
-    FloatVectorOperations::add(inOutDataL, tempBuffer.getReadPointer(0), nframes);
-    if (inOutDataR != inOutDataL) {
-        FloatVectorOperations::add(inOutDataR, tempBuffer.getReadPointer(0), nframes);
+        sampleBuffer->applyGain(0, nframes, mGain.get());
     }
 
     mCurrentBarRemainRatio = framesUntilBar / (double)framesInBar;

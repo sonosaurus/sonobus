@@ -23,7 +23,7 @@ namespace SonoAudio
         
         // the timestamp passed in should be relative to time zero for the current tempo
         // now beat-time instead!
-        void processMix (int nframes, float * inOutDataL, float * inOutDataR, const double beatTime, bool relativeTime=false);
+        void processMix (int nframes, AudioSampleBuffer* sampleBuffer, const double beatTime, bool relativeTime=false);
         
         void setTempo(double bpm);
         double getTempo() const { return mTempo.get(); }
@@ -69,8 +69,6 @@ namespace SonoAudio
         
         AudioSampleBuffer beatSoundBuffer;
         AudioSampleBuffer barSoundBuffer;
-
-        AudioSampleBuffer tempBuffer;
 
         //SampleSet  m_sampleSet;
         //NonBlockingLock  mSampleLock;
