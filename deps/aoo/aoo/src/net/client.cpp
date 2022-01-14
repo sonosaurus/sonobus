@@ -1246,8 +1246,8 @@ void Client::handle_login(const osc::ReceivedMessage& msg){
     }
 }
 
-static osc::ReceivedPacket unwrap_message(const osc::ReceivedMessage& msg,
-    ip_address& addr, ip_address::ip_type type)
+static void unwrap_message(const osc::ReceivedMessage& msg,
+    ip_address& addr, ip_address::ip_type type, const AooByte * & retdata, std::size_t & retsize)
 {
     auto it = msg.ArgumentsBegin();
 
@@ -1260,12 +1260,17 @@ static osc::ReceivedPacket unwrap_message(const osc::ReceivedMessage& msg,
     osc::osc_bundle_element_size_t blobSize;
     (it++)->AsBlob(blobData, blobSize);
 
-    return osc::ReceivedPacket((const char *)blobData, blobSize);
+    retdata = (const AooByte *)blobData;
+    retsize = blobSize;
 }
 
 void Client::handle_relay_message(const osc::ReceivedMessage &msg){
     ip_address addr;
-    auto packet = unwrap_message(msg, addr, type());
+    const AooByte * retmsg = 0;
+    std::size_t retsize = 0;
+    unwrap_message(msg, addr, type(), retmsg, retsize);
+
+    osc::ReceivedPacket packet ((const char *)retmsg, retsize);
     osc::ReceivedMessage relayMsg(packet);
 
     // for now, we only handle peer OSC messages
@@ -1600,12 +1605,14 @@ AooError udp_client::handle_message(const AooByte *data, int32_t n,
 
 void udp_client::handle_relay_message(const osc::ReceivedMessage &msg){
     ip_address addr;
-    auto packet = unwrap_message(msg, addr, client_->type());
+    const AooByte * retmsg = 0;
+    std::size_t retsize = 0;
+    unwrap_message(msg, addr, client_->type(), retmsg, retsize);
 #if DEBUG_RELAY
-    LOG_DEBUG("aoo_client: got relayed message " << packet.Contents());
+    LOG_DEBUG("aoo_client: got relayed message of size: " << retsize);
 #endif
 
-    client_->handleMessage((const AooByte *)packet.Contents(), packet.Size(),
+    client_->handleMessage(retmsg, retsize,
                            addr.address(), addr.length());
 }
 
