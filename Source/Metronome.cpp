@@ -32,7 +32,7 @@ void Metronome::turn(bool on) {
 }
 
 // the timestamp passed in should be relative to time zero for the current tempo
-void Metronome::processMix (int nframes, AudioSampleBuffer* sampleBuffer , const double beatTime, bool relativeTime)
+void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTime, bool relativeTime)
 {
     const ScopedTryLock slock (mSampleLock);
 
@@ -41,11 +41,10 @@ void Metronome::processMix (int nframes, AudioSampleBuffer* sampleBuffer , const
 	    return;
     }
     
-    sampleBuffer->clear(0, nframes);
-    
-    //long iTimestamp = (long) lrint(timestamp);
-    int frames = nframes;
-    
+    sampleBuffer->clear();
+
+    auto insideFrames = sampleBuffer->getNumSamples();
+
     double beatInt;
     double barInt;
     double beatFrac = modf(beatTime, &beatInt);
@@ -80,8 +79,10 @@ void Metronome::processMix (int nframes, AudioSampleBuffer* sampleBuffer , const
     }
     
     float * metbuf = sampleBuffer->getWritePointer(0);
-    
-    while (frames > 0)
+
+    int remainingFramesToGenerate = insideFrames;
+
+    while (remainingFramesToGenerate > 0)
     {
         if (framesUntilBar == 0 )
         {
@@ -108,7 +109,7 @@ void Metronome::processMix (int nframes, AudioSampleBuffer* sampleBuffer , const
         }
         
         // run enough samples to get to start of next beat/bar or what's left
-        long n = std::max((long)1, std::min ((long)frames, std::min(framesUntilBar, framesUntilBeat)));
+        long n = std::max((long)1, std::min ((long)remainingFramesToGenerate, std::min(framesUntilBar, framesUntilBeat)));
         
         if (mBarState.sampleRemain > 0)
         {
@@ -139,7 +140,7 @@ void Metronome::processMix (int nframes, AudioSampleBuffer* sampleBuffer , const
                 
         framesUntilBar -= n;
         framesUntilBeat -= n;
-        frames -= n;
+        remainingFramesToGenerate -= n;
         //pInOutL += n;
         //pInOutR += n;
         metbuf += n;
@@ -147,18 +148,18 @@ void Metronome::processMix (int nframes, AudioSampleBuffer* sampleBuffer , const
     
     // apply gain
     if (abs(mPendingGain - mGain.get()) > 0.0001f) {
-        sampleBuffer->applyGainRamp(0, nframes, mGain.get(), mPendingGain);
+        sampleBuffer->applyGainRamp(0, insideFrames, mGain.get(), mPendingGain);
         mGain = mPendingGain;
     }
     else if (mGain.get() != 1.0f){
-        sampleBuffer->applyGain(0, nframes, mGain.get());
+        sampleBuffer->applyGain(0, insideFrames, mGain.get());
     }
 
     mCurrentBarRemainRatio = framesUntilBar / (double)framesInBar;
     mCurrentBeatRemainRatio = framesUntilBeat / (double)framesInBeat;        
     
     if (relativeTime) {
-        mCurrBeatPos += nframes / framesInBeatF;
+        mCurrBeatPos += insideFrames / framesInBeatF;
     }
 }
 
