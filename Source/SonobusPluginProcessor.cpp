@@ -7229,14 +7229,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     bool metenabled = mMetEnabled.get();
     bool metrecorded = mMetIsRecorded.get();
 
-    if (metenabled != mMetronome->mLastMetEnabled) {
-        if (metenabled) {
-            if (!syncmethost || !hostPlaying) {
-                mMetronome->resetRelativeStart();
-            }
-        }
-    }
-    if (mMetronome->mLastMetEnabled || metenabled) {
+    if (metenabled) {
         metBuffer.clear(0, numSamples);
         double beattime = 0.0;
         if (syncmethost && hostPlaying) {
@@ -7271,7 +7264,6 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             //}
         }
     }
-    mMetronome->mLastMetEnabled = metenabled;
 
 
     // process and mix in input reverb into sendworkbuffer (if sending mono or stereo)

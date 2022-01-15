@@ -28,6 +28,8 @@ void Metronome::setGain(float val, bool force)
 void Metronome::turn(bool on) {
     if(on){
         setGain(getGain(), true);
+        mCurrentBeatRemainRatio = 0.0;
+        mCurrBeatPos = 0.0;
     }
 }
 
@@ -60,7 +62,6 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
     else {
 
         framesUntilBeat = (long) lrint((1.0 - beatFrac) * framesInBeat);
-        
         mCurrBeatPos = beatTime;
     }
     
@@ -118,13 +119,6 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
         mCurrBeatPos += insideFrames / framesInBeatF;
     }
 }
-
-void Metronome::resetRelativeStart()
-{
-    mCurrentBeatRemainRatio = 0.0;
-    mCurrBeatPos = 0.0;
-}
-
 
 void Metronome::loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes)
 {

@@ -10,8 +10,6 @@ namespace SonoAudio
 {
     class Metronome	{
     public:
-        bool mLastMetEnabled = false;
-
         Metronome(double samplerate=44100.0);
         virtual ~Metronome();
         
@@ -20,8 +18,6 @@ namespace SonoAudio
         void processMix(AudioSampleBuffer *sampleBuffer, const double beatTime, bool relativeTime = false);
 
         void turn(bool on);
-
-        void resetRelativeStart();
 
         void setSampleRate(double rate) { sampleRate = rate; }
         double getSampleRate() const { return sampleRate; }
