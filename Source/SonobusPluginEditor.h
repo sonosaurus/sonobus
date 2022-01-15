@@ -300,6 +300,7 @@ private:
     std::unique_ptr<SonoDrawableButton> mMetEnableButton;
     std::unique_ptr<SonoDrawableButton> mMetSendButton;
     std::unique_ptr<TextButton> mMetSyncButton;
+    std::unique_ptr<TextButton> mMetSyncFileButton;
     std::unique_ptr<Label> mMetTempoSliderLabel;
     std::unique_ptr<Slider> mMetTempoSlider;
     std::unique_ptr<Label> mMetLevelSliderLabel;
@@ -599,6 +600,7 @@ private:
     FlexBox metVolBox;
     FlexBox metTempoBox;
     FlexBox metSendBox;
+    FlexBox metSendSyncBox;
 
     FlexBox effectsBox;
     FlexBox reverbBox;
@@ -649,6 +651,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainRecvMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetTempoAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSyncAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSyncFileAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetEnableAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;

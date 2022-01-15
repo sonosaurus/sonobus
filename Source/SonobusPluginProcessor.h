@@ -256,6 +256,7 @@ public:
     static String paramAutoReconnectLast;
     static String paramDefaultPeerLevel;
     static String paramSyncMetToHost;
+    static String paramSyncMetToFilePlayback;
     static String paramInputReverbLevel;
     static String paramInputReverbSize;
     static String paramInputReverbDamping;
@@ -910,6 +911,7 @@ private:
     Atomic<bool>   mAutoReconnectLast  { false };
     Atomic<float>   mDefUserLevel    { 1.0f };
     Atomic<bool>   mSyncMetToHost  { false };
+    Atomic<bool>   mSyncMetStartToPlayback  { false };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };
@@ -1136,6 +1138,7 @@ private:
     AudioFormatManager mFormatManager;
     TimeSliceThread mDiskThread  { "audio file reader" };
     URL mCurrTransportURL;
+    bool mTransportWasPlaying = false;
 
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;

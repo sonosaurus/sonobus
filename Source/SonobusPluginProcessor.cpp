@@ -73,6 +73,7 @@ String SonobusAudioProcessor::paramDynamicResampling  ("dynamicresampling");
 String SonobusAudioProcessor::paramAutoReconnectLast  ("reconnectlast");
 String SonobusAudioProcessor::paramDefaultPeerLevel  ("defPeerLevel");
 String SonobusAudioProcessor::paramSyncMetToHost  ("syncMetHost");
+String SonobusAudioProcessor::paramSyncMetToFilePlayback  ("syncMetFile");
 String SonobusAudioProcessor::paramInputReverbLevel  ("inreverblevel");
 String SonobusAudioProcessor::paramInputReverbSize  ("inreverbsize");
 String SonobusAudioProcessor::paramInputReverbDamping  ("inreverbdamp");
@@ -664,6 +665,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(paramInputReverbPreDelay,     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
+    std::make_unique<AudioParameterBool>(paramSyncMetToFilePlayback, TRANS ("Sync Met to File Playback"), false),
 
 })
 {
@@ -698,6 +700,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramMainMonitorSolo, this);
     mState.addParameterListener (paramDefaultPeerLevel, this);
     mState.addParameterListener (paramSyncMetToHost, this);
+    mState.addParameterListener (paramSyncMetToFilePlayback, this);
     mState.addParameterListener (paramInputReverbSize, this);
     mState.addParameterListener (paramInputReverbLevel, this);
     mState.addParameterListener (paramInputReverbDamping, this);
@@ -6232,6 +6235,9 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramSyncMetToHost) {
         mSyncMetToHost = newValue > 0;
     }
+    else if (parameterID == paramSyncMetToFilePlayback) {
+        mSyncMetStartToPlayback = newValue > 0;
+    }
     else if (parameterID == paramSendChannels) {
         mSendChannels = (int) newValue;
         
@@ -7022,6 +7028,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     posInfo.bpm = mMetTempo.get();
 
     bool syncmethost = mSyncMetToHost.get();
+    bool syncmetplayback = mSyncMetStartToPlayback.get();
 
     AudioPlayHead * playhead = getPlayHead();
     bool posValid = playhead && playhead->getCurrentPosition(posInfo);
@@ -7222,6 +7229,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     // file playback goes to everyone
 
     bool hasfiledata = false;
+    double transportPos = mTransportSource.getCurrentPosition();
+
     if (mTransportSource.getTotalLength() > 0)
     {
         AudioSourceChannelInfo info (&fileBuffer, 0, numSamples);
@@ -7283,17 +7292,28 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         }
 
     }
+
+
     
     // process metronome
     bool metenabled = mMetEnabled.get();
     float metgain = mMetGain.get();
     double mettempo = mMetTempo.get();
     bool metrecorded = mMetIsRecorded.get();
+    bool dometfilesyncstart = syncmetplayback && mTransportWasPlaying != mTransportSource.isPlaying();
+    bool syncmet = (syncmethost && hostPlaying) || (syncmetplayback && mTransportSource.isPlaying());
+
+    if (dometfilesyncstart) {
+        metenabled = mTransportSource.isPlaying();
+        mMetEnabled = metenabled;
+        // notify host
+        mState.getParameter(paramMetEnabled)->setValueNotifyingHost(metenabled ? 1.0f : 0.0f);
+    }
 
     if (metenabled != mLastMetEnabled) {
         if (metenabled) {
             mMetronome->setGain(metgain, true);
-            if (!syncmethost || !hostPlaying) {
+            if (!syncmet) {
                 mMetronome->resetRelativeStart();
             }
         } else {
@@ -7309,7 +7329,10 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if (syncmethost && hostPlaying) {
             beattime = posInfo.ppqPosition;
         }
-        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(mainBusOutputChannels > 1 ? 1 : 0), beattime, !syncmethost || !hostPlaying);
+        else if (syncmetplayback && mTransportSource.isPlaying()) {
+            beattime = (mettempo / 60.0) * transportPos;
+        }
+        mMetronome->processMix(numSamples, metBuffer.getWritePointer(0), metBuffer.getWritePointer(mainBusOutputChannels > 1 ? 1 : 0), beattime, !syncmet);
 
         //
 
@@ -7981,6 +8004,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     mLastInMonMonoPan = inmonMonoPan;
     mAnythingSoloed =  anysoloed;
 
+    mTransportWasPlaying = mTransportSource.isPlaying();
 }
 
 //==============================================================================
