@@ -600,6 +600,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetSyncButton->setColour(TextButton::textColourOnId, Colours::darkblue);
     mMetSyncButton->setTooltip(TRANS("Synchronize metronome tempo with plugin host"));
 
+    mMetSyncFileButton = std::make_unique<TextButton>("metsync");
+    mMetSyncFileButton->setButtonText(TRANS("Sync with File"));
+    mMetSyncFileButton->setLookAndFeel(&smallLNF);
+    mMetSyncFileButton->setClickingTogglesState(true);
+    //mMetSyncButton->addListener(this);
+    mMetSyncFileButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 1.0, 0.6, 0.7f));
+    mMetSyncFileButton->setColour(TextButton::textColourOnId, Colours::darkblue);
+    mMetSyncFileButton->setTooltip(TRANS("Synchronize metronome start with file playback"));
+
     
     mDrySlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mDrySlider->setName("dry");
@@ -667,6 +676,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetTempoAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetTempo, *mMetTempoSlider);
     mMetSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSendMetAudio, *mMetSendButton);
     mMetSyncAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSyncMetToHost, *mMetSyncButton);
+    mMetSyncFileAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSyncMetToFilePlayback, *mMetSyncFileButton);
 
     
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainSendMute, this);
@@ -1117,6 +1127,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetContainer->addAndMakeVisible(mMetLevelSliderLabel.get());
     mMetContainer->addAndMakeVisible(mMetTempoSliderLabel.get());
     mMetContainer->addAndMakeVisible(mMetSendButton.get());
+    mMetContainer->addAndMakeVisible(mMetSyncFileButton.get());
 
     if (!JUCEApplicationBase::isStandaloneApp()) {
         mMetContainer->addAndMakeVisible(mMetSyncButton.get());
@@ -2632,10 +2643,10 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         Component* dw = this; 
         
 #if JUCE_IOS || JUCE_ANDROID
-        const int defWidth = 230; 
+        const int defWidth = 250;
         const int defHeight = 96;
 #else
-        const int defWidth = 210; 
+        const int defWidth = 230; 
         const int defHeight = 86;
 #endif
         
@@ -4230,11 +4241,18 @@ void SonobusAudioProcessorEditor::updateLayout()
     metTempoBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mMetTempoSliderLabel).withMargin(0).withFlex(0));
     metTempoBox.items.add(FlexItem(minKnobWidth, minitemheight, *mMetTempoSlider).withMargin(0).withFlex(1));
 
+    metSendSyncBox.items.clear();
+    metSendSyncBox.flexDirection = FlexBox::Direction::row;
+    if (!JUCEApplicationBase::isStandaloneApp()) {
+        metSendSyncBox.items.add(FlexItem(40, minitemheight, *mMetSyncButton).withMargin(0).withFlex(1));
+        metSendSyncBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
+    }
+    metSendSyncBox.items.add(FlexItem(40, minitemheight, *mMetSyncFileButton).withMargin(0).withFlex(1));
+
+
     metSendBox.items.clear();
     metSendBox.flexDirection = FlexBox::Direction::column;
-    if (!JUCEApplicationBase::isStandaloneApp()) {
-        metSendBox.items.add(FlexItem(60, minitemheight, *mMetSyncButton).withMargin(0).withFlex(0));
-    }
+    metSendBox.items.add(FlexItem(80, minitemheight, metSendSyncBox).withMargin(0).withFlex(0));
     metSendBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
     metSendBox.items.add(FlexItem(60, minitemheight, *mMetSendButton).withMargin(0).withFlex(0));
 
@@ -4243,7 +4261,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     metBox.items.add(FlexItem(minKnobWidth, minitemheight, metTempoBox).withMargin(0).withFlex(1));
     metBox.items.add(FlexItem(minKnobWidth, minitemheight, metVolBox).withMargin(0).withFlex(1));
     metBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
-    metBox.items.add(FlexItem(60, minitemheight, metSendBox).withMargin(2).withFlex(1));
+    metBox.items.add(FlexItem(80, minitemheight, metSendBox).withMargin(2).withFlex(1));
 
     
     // effects

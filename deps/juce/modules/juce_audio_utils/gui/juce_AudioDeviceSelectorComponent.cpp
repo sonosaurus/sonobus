@@ -295,7 +295,15 @@ public:
             {
                 inputChanList->setRowHeight (listRowHeight);
                 inputChanList->setBounds (r.removeFromTop (inputChanList->getBestHeight (maxListBoxHeight)));
-                inputChanLabel->setBounds (0, inputChanList->getBounds().getY(), r.getX(), inputChanList->getHeight());
+                auto leftarea = Rectangle<int>(0, inputChanList->getBounds().getY(), r.getX(), inputChanList->getHeight());
+                if (leftarea.getHeight() > 50) {
+                    inputChanSelectAllButton->setBounds (leftarea.removeFromBottom (32).reduced (3, 2));
+                    inputChanSelectAllButton->setVisible (true);
+                } else {
+                    inputChanSelectAllButton->setVisible (false);
+                }
+                inputChanLabel->setBounds (leftarea);
+
                 r.removeFromTop (space);
             }
 
@@ -303,7 +311,15 @@ public:
             {
                 outputChanList->setRowHeight (listRowHeight);
                 outputChanList->setBounds (r.removeFromTop (outputChanList->getBestHeight (maxListBoxHeight)));
-                outputChanLabel->setBounds (0, outputChanList->getBounds().getY(), r.getX(), outputChanList->getHeight());
+                auto leftarea = Rectangle<int>(0, outputChanList->getBounds().getY(), r.getX(), outputChanList->getHeight());
+                if (leftarea.getHeight() > 50) {
+                    outputChanSelectAllButton->setBounds (leftarea.removeFromBottom (32).reduced (3, 2));
+                    outputChanSelectAllButton->setVisible (true);
+                }
+                else {
+                    outputChanSelectAllButton->setVisible (false);
+                }
+                outputChanLabel->setBounds (leftarea);
                 r.removeFromTop (space);
             }
 
@@ -487,6 +503,13 @@ public:
                     outputChanLabel.reset (new Label ({}, TRANS("Active Output Channels:")));
                     outputChanLabel->setJustificationType (Justification::centredRight);
                     outputChanLabel->attachToComponent (outputChanList.get(), true);
+
+                    outputChanSelectAllButton = std::make_unique<TextButton>();
+                    outputChanSelectAllButton->setButtonText(TRANS("Select All"));
+                    addAndMakeVisible (outputChanSelectAllButton.get());
+                    outputChanSelectAllButton->onClick = [this] () {
+                        clickedSelectAll(false);
+                    };
                 }
 
                 outputChanList->refresh();
@@ -495,6 +518,7 @@ public:
             {
                 outputChanLabel.reset();
                 outputChanList.reset();
+                outputChanSelectAllButton.reset();
             }
 
             if (setup.maxNumInputChannels > 0
@@ -509,6 +533,14 @@ public:
                     inputChanLabel.reset (new Label ({}, TRANS("Active Input Channels:")));
                     inputChanLabel->setJustificationType (Justification::centredRight);
                     inputChanLabel->attachToComponent (inputChanList.get(), true);
+
+                    inputChanSelectAllButton = std::make_unique<TextButton>();
+                    inputChanSelectAllButton->setButtonText(TRANS("Select All"));
+                    addAndMakeVisible (inputChanSelectAllButton.get());
+                    inputChanSelectAllButton->onClick = [this] () {
+                        clickedSelectAll(true);
+                    };
+
                 }
 
                 inputChanList->refresh();
@@ -517,6 +549,7 @@ public:
             {
                 inputChanLabel.reset();
                 inputChanList.reset();
+                inputChanSelectAllButton.reset();
             }
 
             updateSampleRateComboBox (currentDevice);
@@ -535,6 +568,8 @@ public:
             outputChanList.reset();
             sampleRateDropDown.reset();
             bufferSizeDropDown.reset();
+            inputChanSelectAllButton.reset();
+            outputChanSelectAllButton.reset();
 
             if (outputDeviceDropDown != nullptr)
                 outputDeviceDropDown->setSelectedId (-1, dontSendNotification);
@@ -551,6 +586,35 @@ public:
     void changeListenerCallback (ChangeBroadcaster*) override
     {
         updateAllControls();
+    }
+
+    void clickedSelectAll (bool input)
+    {
+        auto config = setup.manager->getAudioDeviceSetup();
+
+        auto& original = (input ? config.inputChannels
+                          : config.outputChannels);
+
+        int maxchans = input ? setup.maxNumInputChannels : setup.maxNumOutputChannels;
+        int minchans = input ? setup.minNumInputChannels : setup.minNumOutputChannels;
+
+        if (inputChanList && outputChanList) {
+            maxchans = (input ? inputChanList->getNumRows() : outputChanList->getNumRows()) * (setup.useStereoPairs ? 2 : 1);
+        }
+
+        if (original.countNumberOfSetBits() >= maxchans) {
+            // deselect all but the first minchans
+            original.setRange(0, minchans, true);
+            original.setRange(minchans, maxchans-minchans, false);
+        } else {
+            // select all
+            original.setRange(0, maxchans, true);
+        }
+
+        if (input) config.useDefaultInputChannels = false;
+        else config.useDefaultOutputChannels = false;
+
+        setup.manager->setAudioDeviceSetup (config, true);
     }
 
     void resetDevice()
@@ -1019,6 +1083,7 @@ public:
 
 private:
     std::unique_ptr<ChannelSelectorListBox> inputChanList, outputChanList;
+    std::unique_ptr<TextButton> inputChanSelectAllButton, outputChanSelectAllButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioDeviceSettingsPanel)
 };
