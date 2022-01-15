@@ -11,32 +11,28 @@ namespace SonoAudio
     class Metronome	{
     public:
         bool mLastMetEnabled = false;
-        
+
         Metronome(double samplerate=44100.0);
         virtual ~Metronome();
-        
-        //void processData (int nframes, const signed short int *indata);
-        
-        void setSampleRate(double rate) { sampleRate = rate; }
-        double getSampleRate() const { return sampleRate; }
         
         // the timestamp passed in should be relative to time zero for the current tempo
         // now beat-time instead!
         void processMix(AudioSampleBuffer *sampleBuffer, const double beatTime, bool relativeTime = false);
-        
+
+        void turn(bool on);
+
+        void resetRelativeStart();
+
+        void setSampleRate(double rate) { sampleRate = rate; }
+        double getSampleRate() const { return sampleRate; }
+
         void setTempo(double bpm);
         double getTempo() const { return mTempo.get(); }
 
-        void turn(bool on);
-        
-        void resetRelativeStart();
-
         void setGain(float val, bool force=false);
-
         float getGain() const { return mPendingGain; }
         
         void loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes);
-
 
     protected:
         struct SampleState
