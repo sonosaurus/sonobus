@@ -8,7 +8,6 @@
 
 namespace SonoAudio
 {
-    
     class Metronome	{
     public:
         bool mLastMetEnabled = false;
@@ -27,53 +26,19 @@ namespace SonoAudio
         
         void setTempo(double bpm);
         double getTempo() const { return mTempo.get(); }
-        
-        void setBeatsPerBar(int num);
-        int getBeatsPerBar() const { return mBeatsPerBar; }
 
         void turn(bool on);
         
         void resetRelativeStart();
-        void setRemainRatios(double barRemain, double beatRemain);
-        
-        double getCurrBeatPos() const { return mCurrBeatPos; }
-        
+
         void setGain(float val, bool force=false);
+
         float getGain() const { return mPendingGain; }
         
-        // loads the sampleset containing the samples to use for the click.
-        // they must have labels corresponding to the interval they will sound
-        //  "beat" and "bar" (optional)
-        //bool loadSampleSet(const SampleSetInfo & sinfo);
-        
-        //const SampleSetInfo & getCurrentSamplesetInfo() const { return m_sampleSet.getInfo(); }
-        
         void loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes);
-        void loadBarSoundFromBinaryData(const void* data, size_t sizeBytes);
 
-        
+
     protected:
-        
-        int  blockSize;
-        double sampleRate;
-
-        Atomic<double>   mTempo;
-        int  mBeatsPerBar;
-        Atomic<float>   mGain;
-        volatile float mPendingGain;
-
-        double mCurrentBarRemainRatio;
-        double mCurrentBeatRemainRatio;
-        
-        double mCurrBeatPos;
-        
-        AudioSampleBuffer beatSoundBuffer;
-        AudioSampleBuffer barSoundBuffer;
-
-        //SampleSet  m_sampleSet;
-        //NonBlockingLock  mSampleLock;
-        CriticalSection mSampleLock;
-        
         struct SampleState
         {
             SampleState() : sampleData(0), samplePos(0), sampleRemain(0), sampleLength(0) {}
@@ -83,15 +48,18 @@ namespace SonoAudio
             long sampleRemain;
             long sampleLength;
         };
-        
+
+        int  blockSize;
+        double sampleRate;
+        Atomic<double>   mTempo;
+        Atomic<float>   mGain;
+        volatile float mPendingGain;
+        double mCurrentBeatRemainRatio;
+        double mCurrBeatPos;
+        AudioSampleBuffer beatSoundBuffer;
+        CriticalSection mSampleLock;
         SampleState mBeatState;
-        SampleState mBarState;
 
-
-        
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)
-
     };
-    
-
 }

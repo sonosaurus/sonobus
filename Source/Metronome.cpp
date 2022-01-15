@@ -8,8 +8,8 @@
 using namespace SonoAudio;
 
 Metronome::Metronome(double samplerate)
-: sampleRate(samplerate), mTempo(100), mBeatsPerBar(1), mGain(1.0f), mPendingGain(1.0f),
- mCurrentBarRemainRatio(0), mCurrentBeatRemainRatio(0), mCurrBeatPos(0)
+: sampleRate(samplerate), mTempo(100), mGain(1.0f), mPendingGain(1.0f),
+  mCurrentBeatRemainRatio(0), mCurrBeatPos(0)
 {
 }
 
@@ -37,7 +37,6 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
     const ScopedTryLock slock (mSampleLock);
 
     if (!slock.isLocked() || beatSoundBuffer.getNumSamples() == 0 || mTempo.get() == 0.0) {
-	    //cerr << "samples locked, not rendering" << endl;
 	    return;
     }
     
@@ -46,36 +45,23 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
     auto insideFrames = sampleBuffer->getNumSamples();
 
     double beatInt;
-    double barInt;
     double beatFrac = modf(beatTime, &beatInt);
-    double barFrac = modf(beatTime / mBeatsPerBar, &barInt);
-        
+
     long framesInBeat = (long) (sampleRate * 60 / mTempo.get());
-    long framesInBar = mBeatsPerBar * framesInBeat;
     double framesInBeatF = (sampleRate * 60 / mTempo.get());
 
     
     long framesUntilBeat; 
-    long framesUntilBar;
-    
+
     if (relativeTime) {
 
-        framesUntilBar = (long) lrint(mCurrentBarRemainRatio * framesInBar);
         framesUntilBeat = (long) lrint(mCurrentBeatRemainRatio * framesInBeat);
     }
     else {
-        //framesUntilBeat = (framesInBeat - (iTimestamp % framesInBeat)) % framesInBeat;
-        //framesUntilBar =  (framesInBar - (iTimestamp % framesInBar)) % framesInBar;
 
-        framesUntilBar =  (long) lrint((1.0 - barFrac) * framesInBar);;
         framesUntilBeat = (long) lrint((1.0 - beatFrac) * framesInBeat);
         
         mCurrBeatPos = beatTime;
-    }
-    
-    if (framesUntilBeat != framesUntilBar && abs(framesUntilBeat - framesUntilBar) < framesInBeat / 2) {
-        // force the framesuntilbar to be equal to framesuntilbeat if they are close but not equal
-        framesUntilBar = framesUntilBeat;
     }
     
     float * metbuf = sampleBuffer->getWritePointer(0);
@@ -84,20 +70,6 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
 
     while (remainingFramesToGenerate > 0)
     {
-        if (framesUntilBar == 0 )
-        {
-            framesUntilBar = framesInBar;
-            
-            if (mBeatsPerBar > 1) {
-                // start playback of bar sample
-                framesUntilBeat = framesInBeat; // also reset beat so it doesn't play with the bar
-
-                mBarState.sampleRemain = mBarState.sampleLength;
-                mBarState.samplePos = 0;
-                //printf("Starting bar playout for tempo %g  TS: %ld\n", mTempo, iTimestamp);
-            }
-        }
-        
         if (framesUntilBeat == 0)
         {
             framesUntilBeat = framesInBeat;
@@ -108,26 +80,14 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
             //printf("Starting beat playout  for tempo %g   TS: %ld \n", mTempo, iTimestamp);            
         }
         
-        // run enough samples to get to start of next beat/bar or what's left
-        long n = std::max((long)1, std::min ((long)remainingFramesToGenerate, std::min(framesUntilBar, framesUntilBeat)));
+        // run enough samples to get to start of next beat or what's left
+        long n = std::max((long)1, std::min ((long)remainingFramesToGenerate, framesUntilBeat));
         
-        if (mBarState.sampleRemain > 0)
-        {
-            // playing bar sound
-            long barn = std::min (n, mBarState.sampleRemain);
-            for (long i = 0; i < barn; ++i)
-            {
-                metbuf[i] += mBarState.sampleData[mBarState.samplePos + i];
-            }
-            
-            mBarState.sampleRemain -= barn;
-            mBarState.samplePos += barn;
-        }
-        
-        if (mBeatState.sampleRemain > 0) 
+        if (mBeatState.sampleRemain > 0)
         {
             // playing beat sound
             long beatn = std::min (n, mBeatState.sampleRemain);
+
             for (long i = 0; i < beatn; ++i)
             {
                 metbuf[i] +=  mBeatState.sampleData[mBeatState.samplePos + i];
@@ -138,11 +98,8 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
         }
         
                 
-        framesUntilBar -= n;
         framesUntilBeat -= n;
         remainingFramesToGenerate -= n;
-        //pInOutL += n;
-        //pInOutR += n;
         metbuf += n;
     }
     
@@ -155,8 +112,7 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
         sampleBuffer->applyGain(0, insideFrames, mGain.get());
     }
 
-    mCurrentBarRemainRatio = framesUntilBar / (double)framesInBar;
-    mCurrentBeatRemainRatio = framesUntilBeat / (double)framesInBeat;        
+    mCurrentBeatRemainRatio = framesUntilBeat / (double)framesInBeat;
     
     if (relativeTime) {
         mCurrBeatPos += insideFrames / framesInBeatF;
@@ -165,28 +121,8 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
 
 void Metronome::resetRelativeStart()
 {
-    mCurrentBarRemainRatio = 0.0;
     mCurrentBeatRemainRatio = 0.0;
     mCurrBeatPos = 0.0;
-}
-
-void Metronome::setRemainRatios(double barRemain, double beatRemain)
-{
-    mCurrentBarRemainRatio = barRemain;
-    mCurrentBeatRemainRatio = beatRemain;
-
-    mCurrBeatPos = (1.0 - barRemain) * mBeatsPerBar;
-}
-
-
-void Metronome::setTempo(double bpm)
-{
-    mTempo = bpm;
-}
-
-void Metronome::setBeatsPerBar(int num)
-{
-    mBeatsPerBar = num;
 }
 
 
@@ -208,21 +144,7 @@ void Metronome::loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes)
     }
 }
 
-void Metronome::loadBarSoundFromBinaryData(const void* data, size_t sizeBytes)
+void Metronome::setTempo(double bpm)
 {
-    const ScopedLock slock (mSampleLock);
-
-    WavAudioFormat wavFormat;
-    std::unique_ptr<AudioFormatReader> reader (wavFormat.createReaderFor (new MemoryInputStream (data, sizeBytes, false), true));
-    if (reader.get() != nullptr)
-    {
-        barSoundBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
-        reader->read(&barSoundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        DBG("Read bar sound of " << barSoundBuffer.getNumSamples() << " samples");
-        
-        mBarState.sampleData = barSoundBuffer.getWritePointer(0);
-        mBarState.sampleLength = barSoundBuffer.getNumSamples();
-        mBarState.samplePos = 0;
-        mBarState.sampleRemain = 0;
-    }
+    mTempo = bpm;
 }
