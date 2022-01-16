@@ -11,6 +11,7 @@ Metronome::Metronome(double samplerate)
 : sampleRate(samplerate), mTempo(100), mGain(1.0f), mPendingGain(1.0f),
   mCurrentBeatRemainRatio(0), mCurrBeatPos(0)
 {
+    loadBeatSoundFromBinaryData(BinaryData::beat_click_wav, BinaryData::beat_click_wavSize);
 }
 
 Metronome::~Metronome()
@@ -46,21 +47,17 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
 
     auto insideFrames = sampleBuffer->getNumSamples();
 
-    double beatInt;
-    double beatFrac = modf(beatTime, &beatInt);
-
     long framesInBeat = (long) (sampleRate * 60 / mTempo.get());
     double framesInBeatF = (sampleRate * 60 / mTempo.get());
 
-    
     long framesUntilBeat; 
 
     if (relativeTime) {
-
         framesUntilBeat = (long) lrint(mCurrentBeatRemainRatio * framesInBeat);
     }
     else {
-
+        double beatInt;
+        double beatFrac = modf(beatTime, &beatInt);
         framesUntilBeat = (long) lrint((1.0 - beatFrac) * framesInBeat);
         mCurrBeatPos = beatTime;
     }
@@ -122,8 +119,6 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
 
 void Metronome::loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes)
 {
-    const ScopedLock slock (mSampleLock);
-
     WavAudioFormat wavFormat;
     std::unique_ptr<AudioFormatReader> reader (wavFormat.createReaderFor (new MemoryInputStream (data, sizeBytes, false), true));
     if (reader.get() != nullptr)
