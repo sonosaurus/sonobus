@@ -39,7 +39,7 @@ void Metronome::processMix(AudioSampleBuffer *sampleBuffer, const double beatTim
 {
     const ScopedTryLock slock (mSampleLock);
 
-    if (!slock.isLocked() || beatSoundBuffer.getNumSamples() == 0 || mTempo.get() == 0.0) {
+    if (!slock.isLocked()) {
 	    return;
     }
     
