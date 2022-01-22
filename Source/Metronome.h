@@ -82,6 +82,21 @@ namespace SonoAudio
             long samplePos;
             long sampleRemain;
             long sampleLength;
+
+            void play(float *metbuf, long n) {
+                if (sampleRemain > 0)
+                {
+                    // playing bar sound
+                    long barn = std::min(n, sampleRemain);
+                    for (long i = 0; i < barn; ++i)
+                    {
+                        metbuf[i] += sampleData[samplePos + i];
+                    }
+
+                    sampleRemain -= barn;
+                    samplePos += barn;
+                }
+            }
         };
         
         SampleState mBeatState;
@@ -90,7 +105,7 @@ namespace SonoAudio
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)
 
-        void play(float *metbuf, long n);
+        void play(float *metbuf, long n, Metronome::SampleState &sampleState);
     };
     
 

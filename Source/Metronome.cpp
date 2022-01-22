@@ -112,22 +112,9 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
         // run enough samples to get to start of next beat/bar or what's left
         long n = std::max((long)1, std::min ((long)remainingSampleToPlay, std::min(framesUntilBar, framesUntilBeat)));
 
-        play(metbuf, n);
+        mBarState.play(metbuf, n);
+        mBeatState.play(metbuf, n);
 
-        if (mBeatState.sampleRemain > 0) 
-        {
-            // playing beat sound
-            long beatn = std::min (n, mBeatState.sampleRemain);
-            for (long i = 0; i < beatn; ++i)
-            {
-                metbuf[i] +=  mBeatState.sampleData[mBeatState.samplePos + i];
-            }
-            
-            mBeatState.sampleRemain -= beatn;
-            mBeatState.samplePos += beatn;
-        }
-        
-                
         framesUntilBar -= n;
         framesUntilBeat -= n;
         remainingSampleToPlay -= n;
@@ -156,21 +143,6 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
     
     if (relativeTime) {
         mCurrBeatPos += windowSizeInSamples / framesInBeatF;
-    }
-}
-
-void Metronome::play(float *metbuf, long n) {
-    if (mBarState.sampleRemain > 0)
-    {
-        // playing bar sound
-        long barn = std::min (n, mBarState.sampleRemain);
-        for (long i = 0; i < barn; ++i)
-        {
-            metbuf[i] += mBarState.sampleData[mBarState.samplePos + i];
-        }
-
-        mBarState.sampleRemain -= barn;
-        mBarState.samplePos += barn;
     }
 }
 
