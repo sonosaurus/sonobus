@@ -90,6 +90,7 @@ namespace SonoAudio
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)
 
+        void play(float *metbuf, long n);
     };
     
 
