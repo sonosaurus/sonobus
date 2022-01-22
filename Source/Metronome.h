@@ -60,7 +60,6 @@ namespace SonoAudio
         float mGain;
         volatile float mPendingGain;
 
-        double mCurrentBarRemainRatio;
         double mCurrentBeatRemainRatio;
         
         double mCurrBeatPos;
@@ -73,6 +72,8 @@ namespace SonoAudio
         //SampleSet  m_sampleSet;
         //NonBlockingLock  mSampleLock;
         CriticalSection mSampleLock;
+
+        int  currentBeatInBar;
         
         struct SampleState
         {
@@ -106,6 +107,10 @@ namespace SonoAudio
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)
 
         void play(float *metbuf, long n, Metronome::SampleState &sampleState);
+
+        bool isBarBeatEnabled() const;
+
+        bool isFirstBarBeat() const;
     };
     
 
