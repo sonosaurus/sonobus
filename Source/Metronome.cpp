@@ -32,7 +32,7 @@ void Metronome::setGain(float val, bool force)
 
 
 // the timestamp passed in should be relative to time zero for the current tempo
-void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR, const double beatTime, bool relativeTime)
+void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float * inOutDataR, const double beatTime, bool relativeTime)
 {
     const ScopedTryLock slock (mSampleLock);
 
@@ -42,13 +42,13 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     }
     
     // just in case, shouldn't ever happen
-    if (tempBuffer.getNumSamples() < nframes) {
-        tempBuffer.setSize(1, nframes);
+    if (tempBuffer.getNumSamples() < windowSizeInSamples) {
+        tempBuffer.setSize(1, windowSizeInSamples);
     }
     
-    tempBuffer.clear(0, nframes);
+    tempBuffer.clear(0, windowSizeInSamples);
     
-    int frames = nframes;
+    int remainingSampleToPlay = windowSizeInSamples;
     
     double beatInt;
     double barInt;
@@ -83,7 +83,7 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     
     float * metbuf = tempBuffer.getWritePointer(0);
     
-    while (frames > 0)
+    while (remainingSampleToPlay > 0)
     {
         if (framesUntilBar == 0 )
         {
@@ -110,7 +110,7 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
         }
         
         // run enough samples to get to start of next beat/bar or what's left
-        long n = std::max((long)1, std::min ((long)frames, std::min(framesUntilBar, framesUntilBeat)));
+        long n = std::max((long)1, std::min ((long)remainingSampleToPlay, std::min(framesUntilBar, framesUntilBeat)));
         
         if (mBarState.sampleRemain > 0)
         {
@@ -141,7 +141,7 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
                 
         framesUntilBar -= n;
         framesUntilBeat -= n;
-        frames -= n;
+        remainingSampleToPlay -= n;
         //pInOutL += n;
         //pInOutR += n;
         metbuf += n;
@@ -149,24 +149,24 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     
     // apply gain
     if (abs(mPendingGain - mGain) > 0.0001f) {
-        tempBuffer.applyGainRamp(0, nframes, mGain, mPendingGain);
+        tempBuffer.applyGainRamp(0, windowSizeInSamples, mGain, mPendingGain);
         mGain = mPendingGain;
     }
     else if (mGain != 1.0f){
-        tempBuffer.applyGain(0, nframes, mGain);
+        tempBuffer.applyGain(0, windowSizeInSamples, mGain);
     }
     
     // add to audio data going out
-    FloatVectorOperations::add(inOutDataL, tempBuffer.getReadPointer(0), nframes);
+    FloatVectorOperations::add(inOutDataL, tempBuffer.getReadPointer(0), windowSizeInSamples);
     if (inOutDataR != inOutDataL) {
-        FloatVectorOperations::add(inOutDataR, tempBuffer.getReadPointer(0), nframes);
+        FloatVectorOperations::add(inOutDataR, tempBuffer.getReadPointer(0), windowSizeInSamples);
     }
 
     mCurrentBarRemainRatio = framesUntilBar / (double)framesInBar;
     mCurrentBeatRemainRatio = framesUntilBeat / (double)framesInBeat;        
     
     if (relativeTime) {
-        mCurrBeatPos += nframes / framesInBeatF;
+        mCurrBeatPos += windowSizeInSamples / framesInBeatF;
     }
 }
 
