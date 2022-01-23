@@ -74,34 +74,48 @@ namespace SonoAudio
         CriticalSection mSampleLock;
 
         int  currentBeatInBar;
-        
+
+        struct SoundTrack {
+            SoundTrack() : sampleData(0), sampleLength(0) {}
+            ~SoundTrack() { }
+            float * sampleData; // not owned by us
+            long sampleLength;
+        };
+
         struct SampleState
         {
-            SampleState() : sampleData(0), samplePos(0), sampleRemain(0), sampleLength(0) {}
+            SampleState() : samplePos(0), sampleRemain(0) {}
             ~SampleState() { }
-            float * sampleData; // not owned by us
             long samplePos;
             long sampleRemain;
-            long sampleLength;
+            SoundTrack soundTrackToPlay;
 
             void play(float *metbuf, long n) {
                 if (sampleRemain > 0)
                 {
-                    // playing bar sound
-                    long barn = std::min(n, sampleRemain);
-                    for (long i = 0; i < barn; ++i)
+                    long sampleToPlay = std::min(n, sampleRemain);
+                    for (long i = 0; i < sampleToPlay; ++i)
                     {
-                        metbuf[i] += sampleData[samplePos + i];
+                        metbuf[i] += soundTrackToPlay.sampleData[samplePos + i];
                     }
 
-                    sampleRemain -= barn;
-                    samplePos += barn;
+                    sampleRemain -= sampleToPlay;
+                    samplePos += sampleToPlay;
                 }
             }
+
+            void start(SoundTrack soundTrack){
+                soundTrackToPlay = soundTrack;
+                sampleRemain=soundTrackToPlay.sampleLength;
+                samplePos = 0;
+            }
         };
-        
+
+
         SampleState mBeatState;
-        SampleState mBarState;        
+
+        SoundTrack beatSoundTrack;
+        SoundTrack barSoundTrack;
 
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)

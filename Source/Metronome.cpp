@@ -9,7 +9,7 @@
 using namespace SonoAudio;
 
 Metronome::Metronome(double samplerate)
-: sampleRate(samplerate), mTempo(0), mBeatsPerBar(0), mGain(1.0f), mPendingGain(1.0f),
+: sampleRate(samplerate), mTempo(0), mBeatsPerBar(3), mGain(1.0f), mPendingGain(1.0f),
   mCurrentBeatRemainRatio(0), mCurrBeatPos(0), currentBeatInBar(0)
 {
     tempBuffer.setSize(1, 4096);
@@ -77,12 +77,10 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
 
             if(isBarBeatEnabled() && isFirstBarBeat()){
                 //needs to reproduce bar
-                mBarState.sampleRemain = mBarState.sampleLength;
-                mBarState.samplePos = 0;
+                mBeatState.start(barSoundTrack);
             } else{
                 //needs to reproduce beat
-                mBeatState.sampleRemain = mBeatState.sampleLength;
-                mBeatState.samplePos = 0;
+                mBeatState.start(beatSoundTrack);
             }
 
             if(isBarBeatEnabled()){
@@ -97,7 +95,6 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
         // run enough samples to get to start of next beat/bar or what's left
         long sampleToPlayInThisIteration = std::max((long)1, std::min ((long)remainingSampleToPlay, framesUntilBeat));
 
-        mBarState.play(metbuf, sampleToPlayInThisIteration);
         mBeatState.play(metbuf, sampleToPlayInThisIteration);
 
         framesUntilBeat -= sampleToPlayInThisIteration;
@@ -168,10 +165,10 @@ void Metronome::loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes)
         beatSoundBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
         reader->read(&beatSoundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
         DBG("Read beat sound of " << beatSoundBuffer.getNumSamples() << " samples");
-        mBeatState.sampleData = beatSoundBuffer.getWritePointer(0);
-        mBeatState.sampleLength = beatSoundBuffer.getNumSamples();
-        mBeatState.samplePos = 0;
-        mBeatState.sampleRemain = 0;
+
+        beatSoundTrack.sampleData = beatSoundBuffer.getWritePointer(0);
+        beatSoundTrack.sampleLength = beatSoundBuffer.getNumSamples();
+
     }
 }
 
@@ -187,9 +184,8 @@ void Metronome::loadBarSoundFromBinaryData(const void* data, size_t sizeBytes)
         reader->read(&barSoundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
         DBG("Read bar sound of " << barSoundBuffer.getNumSamples() << " samples");
         
-        mBarState.sampleData = barSoundBuffer.getWritePointer(0);
-        mBarState.sampleLength = barSoundBuffer.getNumSamples();
-        mBarState.samplePos = 0;
-        mBarState.sampleRemain = 0;
+        barSoundTrack.sampleData = barSoundBuffer.getWritePointer(0);
+        barSoundTrack.sampleLength = barSoundBuffer.getNumSamples();
+
     }
 }
