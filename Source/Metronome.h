@@ -84,13 +84,13 @@ namespace SonoAudio
 
         struct SampleState
         {
-            SampleState() : samplePos(0), sampleRemain(0) {}
+            SampleState() : samplePos(0) {}
             ~SampleState() { }
             long samplePos;
-            long sampleRemain;
             SoundTrack soundTrackToPlay;
 
             void play(float *metbuf, long n) {
+                long sampleRemain = soundTrackToPlay.sampleLength - samplePos;
                 if (sampleRemain > 0)
                 {
                     long sampleToPlay = std::min(n, sampleRemain);
@@ -99,14 +99,12 @@ namespace SonoAudio
                         metbuf[i] += soundTrackToPlay.sampleData[samplePos + i];
                     }
 
-                    sampleRemain -= sampleToPlay;
                     samplePos += sampleToPlay;
                 }
             }
 
             void start(SoundTrack soundTrack){
                 soundTrackToPlay = soundTrack;
-                sampleRemain=soundTrackToPlay.sampleLength;
                 samplePos = 0;
             }
         };
