@@ -110,15 +110,13 @@ namespace SonoAudio
         };
 
 
-        SampleState mBeatState;
+        SampleState mSampleState;
 
         SoundTrack beatSoundTrack;
         SoundTrack barSoundTrack;
 
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)
-
-        void play(float *metbuf, long n, Metronome::SampleState &sampleState);
 
         bool isBarBeatEnabled() const;
 

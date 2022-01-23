@@ -77,10 +77,10 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
 
             if(isBarBeatEnabled() && isFirstBarBeat()){
                 //needs to reproduce bar
-                mBeatState.start(barSoundTrack);
-            } else{
+                mSampleState.start(barSoundTrack);
+            } else {
                 //needs to reproduce beat
-                mBeatState.start(beatSoundTrack);
+                mSampleState.start(beatSoundTrack);
             }
 
             if(isBarBeatEnabled()){
@@ -95,7 +95,7 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
         // run enough samples to get to start of next beat/bar or what's left
         long sampleToPlayInThisIteration = std::max((long)1, std::min ((long)remainingSampleToPlay, framesUntilBeat));
 
-        mBeatState.play(metbuf, sampleToPlayInThisIteration);
+        mSampleState.play(metbuf, sampleToPlayInThisIteration);
 
         framesUntilBeat -= sampleToPlayInThisIteration;
         remainingSampleToPlay -= sampleToPlayInThisIteration;
