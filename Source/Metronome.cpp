@@ -8,10 +8,13 @@
 
 using namespace SonoAudio;
 
-Metronome::Metronome(double samplerate)
-: sampleRate(samplerate), mTempo(0), mBeatsPerBar(3), mGain(1.0f), mPendingGain(1.0f),
+Metronome::Metronome(const void* beatSoundData, size_t beatSoundDataSizeBytes,
+                     const void* barSoundData, size_t barSoundDataSizeBytes)
+: sampleRate(44100.0), mTempo(0), mBeatsPerBar(3), mGain(1.0f), mPendingGain(1.0f),
   mCurrentBeatRemainRatio(0), mCurrBeatPos(0), currentBeatInBar(0)
 {
+    loadBeatSoundFromBinaryData(beatSoundData, beatSoundDataSizeBytes);
+    loadBarSoundFromBinaryData(barSoundData, barSoundDataSizeBytes);
     tempBuffer.setSize(1, 4096);
 }
 

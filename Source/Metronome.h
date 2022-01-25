@@ -12,7 +12,8 @@ namespace SonoAudio
     class Metronome	{
     public:
         
-        Metronome(double samplerate=44100.0);
+        Metronome(const void* beatSoundData, size_t beatSoundDataSizeBytes,
+                   const void* barSoundData, size_t barSoundDataSizeBytes);
         virtual ~Metronome();
         
         //void processData (int nframes, const signed short int *indata);
@@ -49,7 +50,7 @@ namespace SonoAudio
         void loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes);
         void loadBarSoundFromBinaryData(const void* data, size_t sizeBytes);
 
-        
+
     protected:
         
         int  blockSize;
@@ -122,6 +123,4 @@ namespace SonoAudio
 
         bool isFirstBarBeat() const;
     };
-    
-
 }

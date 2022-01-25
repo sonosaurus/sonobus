@@ -744,10 +744,10 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     mTempoParameter = mState.getParameter(paramMetTempo);
     
-    mMetronome = std::make_unique<SonoAudio::Metronome>();
+    mMetronome = std::make_unique<SonoAudio::Metronome>(
+            BinaryData::beat_click_wav, BinaryData::beat_click_wavSize,
+            BinaryData::bar_click_wav, BinaryData::bar_click_wavSize);
     
-    mMetronome->loadBarSoundFromBinaryData(BinaryData::bar_click_wav, BinaryData::bar_click_wavSize);
-    mMetronome->loadBeatSoundFromBinaryData(BinaryData::beat_click_wav, BinaryData::beat_click_wavSize);
     mMetronome->setTempo(100.0);
     
     mMainReverb = std::make_unique<Reverb>();
