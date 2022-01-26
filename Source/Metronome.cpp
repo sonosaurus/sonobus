@@ -80,10 +80,10 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
 
             if(isBarBeatEnabled() && isFirstBarBeat()){
                 //needs to reproduce bar
-                mSampleState.start(barSoundTrack);
+                mSampleState.start(&barSoundTrack);
             } else {
                 //needs to reproduce beat
-                mSampleState.start(beatSoundTrack);
+                mSampleState.start(&beatSoundTrack);
             }
 
             if(isBarBeatEnabled()){
