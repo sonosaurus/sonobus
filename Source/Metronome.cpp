@@ -13,8 +13,8 @@ Metronome::Metronome(const void* beatSoundData, size_t beatSoundDataSizeBytes,
 : sampleRate(44100.0), mTempo(0), mBeatsPerBar(3), mGain(1.0f), mPendingGain(1.0f),
   mCurrentBeatRemainRatio(0), mCurrBeatPos(0), currentBeatInBar(0)
 {
-    loadBeatSoundFromBinaryData(beatSoundData, beatSoundDataSizeBytes);
-    loadBarSoundFromBinaryData(barSoundData, barSoundDataSizeBytes);
+    loadSoundFromBinaryData(beatSoundData, beatSoundDataSizeBytes, &beatSoundBuffer, &beatSoundTrack);
+    loadSoundFromBinaryData(barSoundData, barSoundDataSizeBytes, &barSoundBuffer, &barSoundTrack);
     tempBuffer.setSize(1, 4096);
 }
 
@@ -157,7 +157,7 @@ void Metronome::setBeatsPerBar(int num)
 }
 
 
-void Metronome::loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes)
+void Metronome::loadSoundFromBinaryData(const void *data, size_t sizeBytes, AudioSampleBuffer *soundBuffer, SoundTrack *track)
 {
     const ScopedLock slock (mSampleLock);
 
@@ -165,30 +165,12 @@ void Metronome::loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes)
     std::unique_ptr<AudioFormatReader> reader (wavFormat.createReaderFor (new MemoryInputStream (data, sizeBytes, false), true));
     if (reader.get() != nullptr)
     {
-        beatSoundBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
-        reader->read(&beatSoundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        DBG("Read beat sound of " << beatSoundBuffer.getNumSamples() << " samples");
+        soundBuffer->setSize((int)reader->numChannels, (int)reader->lengthInSamples);
+        reader->read(soundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
+        DBG("Read beat sound of " << soundBuffer->getNumSamples() << " samples");
 
-        beatSoundTrack.sampleData = beatSoundBuffer.getWritePointer(0);
-        beatSoundTrack.sampleLength = beatSoundBuffer.getNumSamples();
-
-    }
-}
-
-void Metronome::loadBarSoundFromBinaryData(const void* data, size_t sizeBytes)
-{
-    const ScopedLock slock (mSampleLock);
-
-    WavAudioFormat wavFormat;
-    std::unique_ptr<AudioFormatReader> reader (wavFormat.createReaderFor (new MemoryInputStream (data, sizeBytes, false), true));
-    if (reader.get() != nullptr)
-    {
-        barSoundBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
-        reader->read(&barSoundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        DBG("Read bar sound of " << barSoundBuffer.getNumSamples() << " samples");
-        
-        barSoundTrack.sampleData = barSoundBuffer.getWritePointer(0);
-        barSoundTrack.sampleLength = barSoundBuffer.getNumSamples();
+        track->sampleData = soundBuffer->getWritePointer(0);
+        track->sampleLength = soundBuffer->getNumSamples();
 
     }
 }

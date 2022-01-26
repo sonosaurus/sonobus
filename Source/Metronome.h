@@ -8,10 +8,11 @@
 
 namespace SonoAudio
 {
-    
+
     class Metronome	{
+
     public:
-        
+
         Metronome(const void* beatSoundData, size_t beatSoundDataSizeBytes,
                    const void* barSoundData, size_t barSoundDataSizeBytes);
         virtual ~Metronome();
@@ -47,12 +48,8 @@ namespace SonoAudio
         
         //const SampleSetInfo & getCurrentSamplesetInfo() const { return m_sampleSet.getInfo(); }
         
-        void loadBeatSoundFromBinaryData(const void* data, size_t sizeBytes);
-        void loadBarSoundFromBinaryData(const void* data, size_t sizeBytes);
-
 
     protected:
-        
         int  blockSize;
         double sampleRate;
 
@@ -122,5 +119,7 @@ namespace SonoAudio
         bool isBarBeatEnabled() const;
 
         bool isFirstBarBeat() const;
+
+        void loadSoundFromBinaryData(const void *data, unsigned long sizeBytes, AudioSampleBuffer *soundBuffer, SoundTrack *track);
     };
 }
