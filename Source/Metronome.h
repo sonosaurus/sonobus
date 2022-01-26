@@ -62,9 +62,6 @@ namespace SonoAudio
         
         double mCurrBeatPos;
         
-        AudioSampleBuffer beatSoundBuffer;
-        AudioSampleBuffer barSoundBuffer;
-
         AudioSampleBuffer tempBuffer;
 
         //SampleSet  m_sampleSet;
@@ -74,10 +71,13 @@ namespace SonoAudio
         int  currentBeatInBar;
 
         struct SoundTrack {
-            SoundTrack() : sampleData(0), sampleLength(0) {}
-            ~SoundTrack() { }
-            float * sampleData; // not owned by us
-            long sampleLength;
+            AudioSampleBuffer soundBuffer;
+            int getLength() {
+                return soundBuffer.getNumSamples();
+            }
+            const float * getData(){
+                return soundBuffer.getReadPointer(0);
+            }
         };
 
         struct SampleState
@@ -88,13 +88,14 @@ namespace SonoAudio
             SoundTrack soundTrackToPlay;
 
             void play(float *metbuf, long n) {
-                long sampleRemain = soundTrackToPlay.sampleLength - samplePos;
+                long sampleRemain = soundTrackToPlay.getLength() - samplePos;
                 if (sampleRemain > 0)
                 {
+                    const float *data = soundTrackToPlay.getData();
                     long sampleToPlay = std::min(n, sampleRemain);
                     for (long i = 0; i < sampleToPlay; ++i)
                     {
-                        metbuf[i] += soundTrackToPlay.sampleData[samplePos + i];
+                        metbuf[i] += data[samplePos + i];
                     }
 
                     samplePos += sampleToPlay;
@@ -120,6 +121,6 @@ namespace SonoAudio
 
         bool isFirstBarBeat() const;
 
-        void loadSoundFromBinaryData(const void *data, unsigned long sizeBytes, AudioSampleBuffer *soundBuffer, SoundTrack *track);
+        void loadSoundFromBinaryData(const void *data, unsigned long sizeBytes, SoundTrack *track);
     };
 }

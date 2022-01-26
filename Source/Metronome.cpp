@@ -13,8 +13,8 @@ Metronome::Metronome(const void* beatSoundData, size_t beatSoundDataSizeBytes,
 : sampleRate(44100.0), mTempo(0), mBeatsPerBar(3), mGain(1.0f), mPendingGain(1.0f),
   mCurrentBeatRemainRatio(0), mCurrBeatPos(0), currentBeatInBar(0)
 {
-    loadSoundFromBinaryData(beatSoundData, beatSoundDataSizeBytes, &beatSoundBuffer, &beatSoundTrack);
-    loadSoundFromBinaryData(barSoundData, barSoundDataSizeBytes, &barSoundBuffer, &barSoundTrack);
+    loadSoundFromBinaryData(beatSoundData, beatSoundDataSizeBytes, &beatSoundTrack);
+    loadSoundFromBinaryData(barSoundData, barSoundDataSizeBytes, &barSoundTrack);
     tempBuffer.setSize(1, 4096);
 }
 
@@ -37,7 +37,7 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
 {
     const ScopedTryLock slock (mSampleLock);
 
-    if (!slock.isLocked() || beatSoundBuffer.getNumSamples() == 0 || mTempo == 0.0) {
+    if (!slock.isLocked() || mTempo == 0.0) {
 	    //cerr << "samples locked, not rendering" << endl;
 	    return;
     }
@@ -157,7 +157,7 @@ void Metronome::setBeatsPerBar(int num)
 }
 
 
-void Metronome::loadSoundFromBinaryData(const void *data, size_t sizeBytes, AudioSampleBuffer *soundBuffer, SoundTrack *track)
+void Metronome::loadSoundFromBinaryData(const void *data, unsigned long sizeBytes, SoundTrack *track)
 {
     const ScopedLock slock (mSampleLock);
 
@@ -165,12 +165,8 @@ void Metronome::loadSoundFromBinaryData(const void *data, size_t sizeBytes, Audi
     std::unique_ptr<AudioFormatReader> reader (wavFormat.createReaderFor (new MemoryInputStream (data, sizeBytes, false), true));
     if (reader.get() != nullptr)
     {
-        soundBuffer->setSize((int)reader->numChannels, (int)reader->lengthInSamples);
-        reader->read(soundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
-        DBG("Read beat sound of " << soundBuffer->getNumSamples() << " samples");
-
-        track->sampleData = soundBuffer->getWritePointer(0);
-        track->sampleLength = soundBuffer->getNumSamples();
-
+        track->soundBuffer.setSize((int)reader->numChannels, (int)reader->lengthInSamples);
+        reader->read(&track->soundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
+        DBG("Read beat sound of " << track->soundBuffer.getNumSamples() << " samples");
     }
 }
