@@ -15,7 +15,7 @@ Metronome::Metronome(const void* beatSoundData, size_t beatSoundDataSizeBytes,
     loadSoundFromBinaryData(beatSoundData, beatSoundDataSizeBytes, &beatSoundTrack);
     loadSoundFromBinaryData(barSoundData, barSoundDataSizeBytes, &barSoundTrack);
     tempBuffer.setSize(1, 4096);
-    bar = new Bar(4);
+    bar = new Bar(1);
 }
 
 Metronome::~Metronome() {}
