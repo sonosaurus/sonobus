@@ -30,14 +30,11 @@ namespace SonoAudio
         double getTempo() const { return mTempo; }
         
         void setBeatsPerBar(int num);
-        int getBeatsPerBar() const { return mBeatsPerBar; }
-        
-        
+        int getBeatsPerBar() const { return bar->getBeatsPerBar(); }
+
         void resetRelativeStart(double startBeatPos = 0.0);
         void setRemainRatios(double barRemain, double beatRemain);
-        
-        double getCurrBeatPos() const { return mCurrBeatPos; }
-        
+
         void setGain(float val, bool force=false);
         float getGain() const { return mPendingGain; }
         
@@ -50,36 +47,17 @@ namespace SonoAudio
         
 
     protected:
-        int  blockSize;
-        double sampleRate;
-
-        double mTempo;
-        int  mBeatsPerBar;
-        float mGain;
-        volatile float mPendingGain;
-
-        double mCurrentBeatRemainRatio;
-        
-        double mCurrBeatPos;
-        
-        AudioSampleBuffer tempBuffer;
-
-        //SampleSet  m_sampleSet;
-        //NonBlockingLock  mSampleLock;
-        CriticalSection mSampleLock;
-
-        int  currentBeatInBar;
-
         struct SoundTrack {
             AudioSampleBuffer soundBuffer;
+
             int getLength() {
                 return soundBuffer.getNumSamples();
             }
+
             const float * getData(){
                 return soundBuffer.getReadPointer(0);
             }
         };
-
         struct SampleState
         {
             SampleState() : samplePos(0) {}
@@ -107,20 +85,61 @@ namespace SonoAudio
                 samplePos = 0;
             }
         };
+        class Bar{
+        private:
+            int currentBeat;
+            int beatsPerBar;
+        public:
+            Bar(int beatsPerBar) : currentBeat(0), beatsPerBar(beatsPerBar) {};
 
+            void tick() {
+                if (beatsPerBar - 1 == currentBeat)
+                    currentBeat = 0;
+                else {
+                    currentBeat++;
+                }
+            }
 
+            void reset() {
+                currentBeat = 0;
+            }
+
+            bool isBarBeatEnabled() {
+                return beatsPerBar>1;
+            }
+
+            bool isFirstBeat() {
+                return currentBeat==1;
+            }
+
+            void setBeatsPerBar(int b) {
+                beatsPerBar = b;
+                currentBeat = 0;
+            }
+
+            int getBeatsPerBar() {
+                return beatsPerBar;
+            }
+        };
+
+        int  blockSize;
+        double sampleRate;
+        double mTempo;
+        float mGain;
+        volatile float mPendingGain;
+        double mCurrentBeatRemainRatio;
+        double mCurrBeatPos;
+        AudioSampleBuffer tempBuffer;
+        CriticalSection mSampleLock;
+        Bar *bar;
         SampleState mSampleState;
-
         SoundTrack beatSoundTrack;
         SoundTrack barSoundTrack;
 
-        
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)
-
-        bool isBarBeatEnabled() const;
-
-        bool isFirstBarBeat() const;
-
         void loadSoundFromBinaryData(const void *data, unsigned long sizeBytes, SoundTrack *track);
+
+        SoundTrack* chooseSoundTrackUsing(Bar *bar);
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Metronome)
     };
 }

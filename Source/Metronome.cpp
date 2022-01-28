@@ -4,25 +4,21 @@
 
 #include "Metronome.h"
 #include <cmath>
-//#include "utility.h"
 
 using namespace SonoAudio;
 
 Metronome::Metronome(const void* beatSoundData, size_t beatSoundDataSizeBytes,
                      const void* barSoundData, size_t barSoundDataSizeBytes)
-: sampleRate(44100.0), mTempo(0), mBeatsPerBar(3), mGain(1.0f), mPendingGain(1.0f),
-  mCurrentBeatRemainRatio(0), mCurrBeatPos(0), currentBeatInBar(0)
+: sampleRate(44100.0), mTempo(0), mGain(1.0f), mPendingGain(1.0f),
+  mCurrentBeatRemainRatio(0), mCurrBeatPos(0)
 {
     loadSoundFromBinaryData(beatSoundData, beatSoundDataSizeBytes, &beatSoundTrack);
     loadSoundFromBinaryData(barSoundData, barSoundDataSizeBytes, &barSoundTrack);
     tempBuffer.setSize(1, 4096);
+    bar = new Bar(4);
 }
 
-Metronome::~Metronome()
-{
-}
-
-//void processData (int nframes, const signed short int *indata);
+Metronome::~Metronome() {}
 
 void Metronome::setGain(float val, bool force)
 {
@@ -65,8 +61,6 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
     }
     else {
         framesUntilBeat = (long) lrint(fmod(1.0 - beatFrac, 1.0) * framesInBeat);
-
-        //DBG("Beattime: " << beatTime << " framesuntilbeat: " << framesUntilBeat << "  beatfrac: " << beatFrac);
         mCurrBeatPos = beatTime;
     }
     
@@ -78,21 +72,9 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
         {
             framesUntilBeat = framesInBeat;
 
-            if(isBarBeatEnabled() && isFirstBarBeat()){
-                //needs to reproduce bar
-                mSampleState.start(&barSoundTrack);
-            } else {
-                //needs to reproduce beat
-                mSampleState.start(&beatSoundTrack);
-            }
-
-            if(isBarBeatEnabled()){
-                if(mBeatsPerBar==currentBeatInBar)
-                    currentBeatInBar=0;
-                else{
-                    currentBeatInBar++;
-                }
-            }
+            bar->tick();
+            auto soundTrack = chooseSoundTrackUsing(bar);
+            mSampleState.start(soundTrack);
         }
         
         // run enough samples to get to start of next beat/bar or what's left
@@ -127,24 +109,18 @@ void Metronome::processMix (int windowSizeInSamples, float * inOutDataL, float *
     }
 }
 
-bool Metronome::isFirstBarBeat() const { return currentBeatInBar == 0; }
-
-bool Metronome::isBarBeatEnabled() const { return mBeatsPerBar > 1; }
-
 void Metronome::resetRelativeStart(double startBeatPos)
 {
     mCurrBeatPos = startBeatPos;
     mCurrentBeatRemainRatio = fmod(1.0 - fmod(mCurrBeatPos, 1.0), 1.0);
-    currentBeatInBar=0;
+    bar->reset();
 }
 
 void Metronome::setRemainRatios(double barRemain, double beatRemain)
 {
     mCurrentBeatRemainRatio = beatRemain;
-
-    mCurrBeatPos = (1.0 - barRemain) * mBeatsPerBar;
+    mCurrBeatPos = (1.0 - barRemain) * bar->getBeatsPerBar();
 }
-
 
 void Metronome::setTempo(double bpm)
 {
@@ -153,7 +129,7 @@ void Metronome::setTempo(double bpm)
 
 void Metronome::setBeatsPerBar(int num)
 {
-    mBeatsPerBar = num;
+    bar->setBeatsPerBar(num);
 }
 
 
@@ -169,4 +145,11 @@ void Metronome::loadSoundFromBinaryData(const void *data, unsigned long sizeByte
         reader->read(&track->soundBuffer, 0, (int)reader->lengthInSamples, 0, true, true);
         DBG("Read beat sound of " << track->soundBuffer.getNumSamples() << " samples");
     }
+}
+
+Metronome::SoundTrack *Metronome::chooseSoundTrackUsing(Bar *bar) {
+    if (bar->isBarBeatEnabled() && bar->isFirstBeat()) {
+        return &barSoundTrack;
+    }
+    return &beatSoundTrack;
 }
