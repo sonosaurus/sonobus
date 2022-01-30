@@ -5006,7 +5006,9 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Show or hide soundboard panel"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('g', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('g', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
