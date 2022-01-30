@@ -294,7 +294,7 @@ private:
     /**
      * Control to toggle the loop playback option.
      */
-    std::unique_ptr<SonoDrawableButton> mLoopButton;
+    std::unique_ptr<SonoMultiStateDrawableButton> mLoopButton;
 
     /**
      * Label for the volume options.
