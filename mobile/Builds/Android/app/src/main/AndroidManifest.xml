@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="70"
-          android:versionName="1.4.7">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="74"
+          android:versionName="1.4.9">
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:anyDensity="true"
                     android:xlargeScreens="true"/>
   <application android:label="@string/app_name" android:name="com.rmsl.juce.JuceApp" android:icon="@mipmap/ic_launcher"
-               android:roundIcon="@mipmap/ic_launcher_round" android:hardwareAccelerated="false" android:theme="@android:style/Theme.NoTitleBar">
+               android:roundIcon="@mipmap/ic_launcher_round" android:hardwareAccelerated="false" android:allowAudioPlaybackCapture="true"
+               android:theme="@android:style/Theme.NoTitleBar">
     <service android:name="SonoBusService" android:enabled="true" android:exported="false"/>
     <activity android:label="@string/app_name" android:configChanges="keyboardHidden|orientation|screenSize" android:screenOrientation="unspecified"
               android:launchMode="singleTask" android:hardwareAccelerated="false" android:name="com.sonosaurus.sonobus.SonoBusActivity">

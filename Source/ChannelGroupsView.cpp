@@ -46,16 +46,23 @@ ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bo
     reverbSendView->addListener(this);
     reverbSendView->addHeaderListener(this);
 
+    polarityInvertView =  std::make_unique<PolarityInvertView>(processor, false, true);
+    polarityInvertView->addListener(this);
+    polarityInvertView->addHeaderListener(this);
+
+
     effectsConcertina->addPanel(-1, expanderView.get(), false);
     effectsConcertina->addPanel(-1, compressorView.get(), false);
     effectsConcertina->addPanel(-1, eqView.get(), false);
     effectsConcertina->addPanel(-1, reverbSendView.get(), false);
+    effectsConcertina->addPanel(-1, polarityInvertView.get(), false);
 
     effectsConcertina->setCustomPanelHeader(compressorView.get(), compressorView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(expanderView.get(), expanderView->getHeaderComponent(), false);
     effectsConcertina->setCustomPanelHeader(eqView.get(), eqView->getHeaderComponent(), false);
 
     effectsConcertina->setCustomPanelHeader(reverbSendView.get(), reverbSendView->getHeaderComponent(), false);
+    effectsConcertina->setCustomPanelHeader(polarityInvertView.get(), polarityInvertView->getHeaderComponent(), false);
 
     addAndMakeVisible (effectsConcertina.get());
 
@@ -72,11 +79,12 @@ juce::Rectangle<int> ChannelGroupEffectsView::getMinimumContentBounds() const {
     auto mineqbounds = eqView->getMinimumContentBounds();
     auto headbounds = compressorView->getMinimumHeaderBounds();
     auto minrevbounds = reverbSendView->getMinimumContentBounds();
+    auto minprvbounds = polarityInvertView->getMinimumContentBounds();
 
-    int defWidth = jmax(minbounds.getWidth(), minexpbounds.getWidth(), mineqbounds.getWidth(), minrevbounds.getWidth()) + 12;
+    int defWidth = jmax(minbounds.getWidth(), minexpbounds.getWidth(), mineqbounds.getWidth(), jmax(minrevbounds.getWidth(),  minprvbounds.getWidth())) + 12;
     int defHeight = 0;
 
-    defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight(), minrevbounds.getHeight()) + 4*headbounds.getHeight() + 8;
+    defHeight = jmax(minbounds.getHeight(), minexpbounds.getHeight(), mineqbounds.getHeight(), jmax(minrevbounds.getHeight(), minprvbounds.getHeight())) + 5*headbounds.getHeight() + 8;
 
     return Rectangle<int>(0,0,defWidth,defHeight);
 }
@@ -116,11 +124,20 @@ void ChannelGroupEffectsView::updateStateForRemotePeer()
 
     reverbSendView->updateParams(processor.getRemotePeerChannelReverbSend(peerIndex, groupIndex));
 
+    if (!polarityInvertView->isVisible()) {
+        polarityInvertView->setVisible(true);
+        polarityInvertView->getHeaderComponent()->setVisible(true);
+    }
+
+    polarityInvertView->updateParams(processor.getRemotePeerPolarityInvert(peerIndex, groupIndex));
+
+
     if (firstShow) {
         if (eqparams.enabled && !(compParams.enabled || expParams.enabled)) {
             effectsConcertina->expandPanelFully(eqView.get(), false);
         }
         else {
+            effectsConcertina->setPanelSize(polarityInvertView.get(), 0, false);
             effectsConcertina->setPanelSize(reverbSendView.get(), 0, false);
             effectsConcertina->setPanelSize(eqView.get(), 0, false);
             effectsConcertina->expandPanelFully(expanderView.get(), false);
@@ -151,6 +168,7 @@ void ChannelGroupEffectsView::updateStateForInput()
     }
 
     reverbSendView->updateParams(processor.getInputReverbSend(groupIndex, true));
+    polarityInvertView->updateParams(processor.getInputPolarityInvert(groupIndex));
 
     if (firstShow) {
         if (eqparams.enabled && !(compParams.enabled || expParams.enabled)) {
@@ -182,8 +200,10 @@ void ChannelGroupEffectsView::updateLayout()
     auto mineqheadbounds = eqView->getMinimumHeaderBounds();
     auto minrevbounds = reverbSendView->getMinimumContentBounds();
     auto minrevheadbounds = reverbSendView->getMinimumHeaderBounds();
+    auto minprvheadbounds = polarityInvertView->getMinimumHeaderBounds();
+    auto minprvbounds = polarityInvertView->getMinimumContentBounds();
 
-    int gcount = 4 ;
+    int gcount = 5 ;
 
     effectsBox.items.clear();
     effectsBox.flexDirection = FlexBox::Direction::column;
@@ -195,12 +215,14 @@ void ChannelGroupEffectsView::updateLayout()
     effectsConcertina->setPanelHeaderSize(eqView.get(), mineqheadbounds.getHeight());
 
     effectsConcertina->setPanelHeaderSize(reverbSendView.get(), minrevheadbounds.getHeight());
+    effectsConcertina->setPanelHeaderSize(polarityInvertView.get(), minprvheadbounds.getHeight());
 
     effectsConcertina->setMaximumPanelSize(compressorView.get(), mincompbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(expanderView.get(), minexpbounds.getHeight()+5);
     effectsConcertina->setMaximumPanelSize(eqView.get(), mineqbounds.getHeight());
 
     effectsConcertina->setMaximumPanelSize(reverbSendView.get(), minrevbounds.getHeight());
+    effectsConcertina->setMaximumPanelSize(polarityInvertView.get(), minprvbounds.getHeight());
 
 }
 
@@ -292,6 +314,19 @@ void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float
         processor.setInputReverbSend(groupIndex, revlevel, true);
     }
 }
+
+void ChannelGroupEffectsView::polarityInvertChanged(PolarityInvertView *comp, bool polinv)
+{
+    if (peerMode) {
+        processor.setRemotePeerPolarityInvert(peerIndex, groupIndex, polinv);
+    }
+    else {
+        // input mode
+        processor.setInputPolarityInvert(groupIndex, polinv);
+    }
+    listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
+}
+
 
 void ChannelGroupEffectsView::effectsHeaderClicked(EffectsBaseView *comp)
 {
@@ -4160,6 +4195,13 @@ void ChannelGroupsView::showInputReverbView(bool flag, Component * fromView)
     }
 }
 
+bool ChannelGroupsView::isDraggable(Component * comp) const
+{
+    if (comp == this || comp == mMainChannelView.get() || comp == mMainChannelView->nameLabel.get() || comp == mMainChannelView->linkButton.get()) {
+        return true;
+    }
+    return false;
+}
 
 
 void ChannelGroupsView::mouseDown (const MouseEvent& event)

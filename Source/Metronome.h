@@ -31,7 +31,7 @@ namespace SonoAudio
         int getBeatsPerBar() const { return mBeatsPerBar; }
         
         
-        void resetRelativeStart();
+        void resetRelativeStart(double startBeatPos = 0.0);
         void setRemainRatios(double barRemain, double beatRemain);
         
         double getCurrBeatPos() const { return mCurrBeatPos; }

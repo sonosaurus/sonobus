@@ -48,7 +48,6 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     
     tempBuffer.clear(0, nframes);
     
-    //long iTimestamp = (long) lrint(timestamp);
     int frames = nframes;
     
     double beatInt;
@@ -70,12 +69,10 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
         framesUntilBeat = (long) lrint(mCurrentBeatRemainRatio * framesInBeat);
     }
     else {
-        //framesUntilBeat = (framesInBeat - (iTimestamp % framesInBeat)) % framesInBeat;
-        //framesUntilBar =  (framesInBar - (iTimestamp % framesInBar)) % framesInBar;
+        framesUntilBar =  (long) lrint(fmod(1.0 - barFrac, 1.0) * framesInBar);;
+        framesUntilBeat = (long) lrint(fmod(1.0 - beatFrac, 1.0) * framesInBeat);
 
-        framesUntilBar =  (long) lrint((1.0 - barFrac) * framesInBar);;
-        framesUntilBeat = (long) lrint((1.0 - beatFrac) * framesInBeat);
-        
+        //DBG("Beattime: " << beatTime << " framesuntilbeat: " << framesUntilBeat << "  beatfrac: " << beatFrac);
         mCurrBeatPos = beatTime;
     }
     
@@ -173,11 +170,12 @@ void Metronome::processMix (int nframes, float * inOutDataL, float * inOutDataR,
     }
 }
 
-void Metronome::resetRelativeStart()
+void Metronome::resetRelativeStart(double startBeatPos)
 {
+    mCurrBeatPos = startBeatPos;
     mCurrentBarRemainRatio = 0.0;
-    mCurrentBeatRemainRatio = 0.0;
-    mCurrBeatPos = 0.0;
+    mCurrentBeatRemainRatio = fmod(1.0 - fmod(mCurrBeatPos, 1.0), 1.0);
+    mCurrentBarRemainRatio = fmod(1.0 - fmod(mCurrBeatPos / mBeatsPerBar, 1.0), 1.0);
 }
 
 void Metronome::setRemainRatios(double barRemain, double beatRemain)

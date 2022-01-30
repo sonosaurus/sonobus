@@ -15,6 +15,8 @@
 
 #include "ChannelGroupsView.h"
 
+#include <map>
+
 class JitterBufferMeter;
 
 class PeerViewInfo : public Component{
@@ -89,6 +91,7 @@ public:
     std::unique_ptr<DrawableRectangle> sendStatsBg;
     std::unique_ptr<DrawableRectangle> recvStatsBg;
     std::unique_ptr<DrawableRectangle> pingBg;
+
 
     std::unique_ptr<foleys::LevelMeter> recvMeter;
     std::unique_ptr<foleys::LevelMeter> sendMeter;
@@ -195,6 +198,10 @@ public:
     
     void mouseUp (const MouseEvent& event)  override;
 
+    void mouseDown (const MouseEvent& event)  override;
+    void mouseDrag (const MouseEvent& event)  override;
+
+
     void timerCallback(int timerId) override;
     
     
@@ -253,13 +260,21 @@ protected:
     void showSendOptions(int index, bool flag, Component * fromView=nullptr);
     void showRecvOptions(int index, bool flag, Component * fromView=nullptr);
 
+    void updatePeerOrdering();
+    int getPeerFromIndex(int index);
+    juce::Rectangle<int> getBoundsForPeer(int chgroup);
+    int getPeerForPoint(Point<int> pos, bool inbetween);
 
     ListenerList<Listener> listeners;
 
     OwnedArray<PeerViewInfo> mPeerViews;
     SonobusAudioProcessor& processor;
 
+    // key is username, value is priority (lower is first)
+    std::map<String, int> mPeerPriorityOrdering;
     
+    std::vector<int> mPeerUpdateOrdering;
+
     std::unique_ptr<BubbleMessageComponent> popTip;
 
     struct PendingUserInfo {
@@ -275,6 +290,8 @@ protected:
 
     std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
 
+    std::unique_ptr<DrawableImage> mDragDrawable;
+    std::unique_ptr<DrawableRectangle> mInsertLine;
 
     
     WeakReference<Component> pannerCalloutBox;
@@ -301,6 +318,16 @@ protected:
     Colour dimTextColor;
     Colour outlineColor;
     Colour bgColor;
+
+    // dragging state
+    bool mDraggingActive = false;
+    int mDraggingSourcePeer = -1;
+    int mDraggingGroupPos = -1;
+    bool mIgnoreNameClick = false;
+    Array< juce::Rectangle<int> > mPeerViewBounds;
+    Image  mDragImage;
+    bool mAutoscrolling = false;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PeersContainerView)
 

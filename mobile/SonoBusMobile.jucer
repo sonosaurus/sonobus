@@ -3,8 +3,8 @@
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
               companyCopyright="2021 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAUv3,buildStandalone,enableIAA" pluginManufacturerCode="Sono"
-              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.4.7-71&quot;"
-              pluginDesc="SonoBus - Network Audio" version="1.4.7" cppLanguageStandard="17"
+              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.4.9-74&quot;"
+              pluginDesc="SonoBus - Network Audio" version="1.4.9" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'"
               pluginAUIsSandboxSafe="1">
   <MAINGROUP id="i87g34" name="SonoBus">
@@ -82,12 +82,16 @@
               file="../localization/localized_it.txt"/>
         <FILE id="SuQnrx" name="localized_ja.txt" compile="0" resource="1"
               file="../localization/localized_ja.txt"/>
+        <FILE id="i2P1uE" name="localized_ko.txt" compile="0" resource="1"
+              file="../localization/localized_ko.txt"/>
         <FILE id="ntxTyT" name="localized_nl.txt" compile="0" resource="1"
               file="../localization/localized_nl.txt"/>
         <FILE id="qud69I" name="localized_pt-br.txt" compile="0" resource="1"
               file="../localization/localized_pt-br.txt"/>
         <FILE id="ZWGksP" name="localized_pt-pt.txt" compile="0" resource="1"
               file="../localization/localized_pt-pt.txt"/>
+        <FILE id="TLk3c2" name="localized_ru.txt" compile="0" resource="1"
+              file="../localization/localized_ru.txt"/>
       </GROUP>
       <FILE id="xiA07t" name="bar_click.wav" compile="0" resource="1" file="../images/bar_click.wav"/>
       <FILE id="fRSnh7" name="beat_click.wav" compile="0" resource="1" file="../images/beat_click.wav"/>
@@ -311,16 +315,18 @@
             file="../Source/WaveformTransportComponent.h"/>
       <FILE id="GylxQB" name="zitaRev.h" compile="0" resource="0" file="../Source/zitaRev.h"/>
     </GROUP>
+    <FILE id="UhZBtH" name="PolarityInvertView.h" compile="0" resource="0"
+          file="../Source/PolarityInvertView.h"/>
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
-                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;CFBundleVersion&lt;/key&gt;&#10;&lt;string&gt;71&lt;/string&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&lt;key&gt;UIViewControllerBasedStatusBarAppearance&lt;/key&gt;&#10;&lt;false/&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;key&gt;NSLocalNetworkUsageDescription&lt;/key&gt;&#10;&#9;&lt;string&gt;SonoBus uses networking to communicate with other local services&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
+                  iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&lt;key&gt;UIViewControllerBasedStatusBarAppearance&lt;/key&gt;&#10;&lt;false/&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;key&gt;NSLocalNetworkUsageDescription&lt;/key&gt;&#10;&#9;&lt;string&gt;SonoBus uses networking to communicate with other local services&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
                   extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
                   externalLibraries="opus" smallIcon="tb00W2" bigIcon="rlxTrd"
                   UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="../images/LaunchScreen.storyboard"
                   iosScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
                   iPadScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
-                  UIRequiresFullScreen="0">
+                  UIRequiresFullScreen="0" buildNumber="74">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/ios/include&#10;"
                        libraryPath="../../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"
@@ -353,11 +359,11 @@
                    androidDependencies="implementation 'androidx.appcompat:appcompat:1.0.2'"
                    androidCustomAppBuildGradleContent="ndkVersion &quot;22.0.7026061&quot;"
                    androidMinimumSDK="24" androidTargetSDK="29" microphonePermissionNeeded="1"
-                   androidEnableContentSharing="1" androidManifestCustomXmlElements="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#10;&#10;&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;  package=&quot;com.sonosaurus.sonobus&quot;&gt;&#10;&#10; &lt;uses-permission android:name=&quot;android.permission.FOREGROUND_SERVICE&quot;/&gt;&#10;  &lt;supports-screens android:smallScreens=&quot;true&quot; android:normalScreens=&quot;true&quot; android:largeScreens=&quot;true&quot; android:anyDensity=&quot;true&quot;&#10;                    android:xlargeScreens=&quot;true&quot;/&gt;&#10;  &#10;  &lt;application android:label=&quot;@string/app_name&quot; android:name=&quot;com.rmsl.juce.JuceApp&quot; android:icon=&quot;@mipmap/ic_launcher&quot; android:roundIcon=&quot;@mipmap/ic_launcher_round&quot; android:hardwareAccelerated=&quot;false&quot;&gt;&#10;&#10;      &lt;service   android:name=&quot;SonoBusService&quot;   android:enabled=&quot;true&quot;   android:exported=&quot;false&quot;  /&gt;&#10;&#10;    &lt;activity  android:label=&quot;@string/app_name&quot; android:configChanges=&quot;keyboardHidden|orientation|screenSize&quot;&#10;              android:screenOrientation=&quot;unspecified&quot; android:launchMode=&quot;singleTask&quot;  android:hardwareAccelerated=&quot;false&quot;&gt;&#10;     &#10;    &lt;/activity&gt;&#10;    &#10;  &lt;/application&gt;&#10;&lt;/manifest&gt;&#10;"
+                   androidEnableContentSharing="1" androidManifestCustomXmlElements="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#10;&#10;&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;  package=&quot;com.sonosaurus.sonobus&quot;&gt;&#10;&#10; &lt;uses-permission android:name=&quot;android.permission.FOREGROUND_SERVICE&quot;/&gt;&#10;  &lt;supports-screens android:smallScreens=&quot;true&quot; android:normalScreens=&quot;true&quot; android:largeScreens=&quot;true&quot; android:anyDensity=&quot;true&quot;&#10;                    android:xlargeScreens=&quot;true&quot;/&gt;&#10;  &#10;  &lt;application android:label=&quot;@string/app_name&quot; android:name=&quot;com.rmsl.juce.JuceApp&quot; android:icon=&quot;@mipmap/ic_launcher&quot; android:roundIcon=&quot;@mipmap/ic_launcher_round&quot; android:hardwareAccelerated=&quot;false&quot;  android:allowAudioPlaybackCapture=&quot;true&quot;&gt;&#10;&#10;      &lt;service   android:name=&quot;SonoBusService&quot;   android:enabled=&quot;true&quot;   android:exported=&quot;false&quot;  /&gt;&#10;&#10;    &lt;activity  android:label=&quot;@string/app_name&quot; android:configChanges=&quot;keyboardHidden|orientation|screenSize&quot;&#10;              android:screenOrientation=&quot;unspecified&quot; android:launchMode=&quot;singleTask&quot;  android:hardwareAccelerated=&quot;false&quot;&gt;&#10;     &#10;    &lt;/activity&gt;&#10;    &#10;  &lt;/application&gt;&#10;&lt;/manifest&gt;&#10;"
                    androidKeyStore="${user.home}/.android/sonoupload.keystore" androidKeyStorePass="${sonoupload_keystore_password}"
                    androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
                    androidTheme="@android:style/Theme.NoTitleBar" androidActivitySubClassName="com.sonosaurus.sonobus.SonoBusActivity"
-                   androidVersionCode="70">
+                   androidVersionCode="74">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/android&#10;"
                        libraryPath="../../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>

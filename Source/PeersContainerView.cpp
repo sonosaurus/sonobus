@@ -3,6 +3,7 @@
 
 #include "PeersContainerView.h"
 #include "JitterBufferMeter.h"
+#include <set>
 
 using namespace SonoAudio;
 
@@ -205,6 +206,20 @@ PeersContainerView::PeersContainerView(SonobusAudioProcessor& proc)
 
     //setFocusContainerType(FocusContainerType::focusContainer);
 
+    mDragDrawable = std::make_unique<DrawableImage>();
+    mDragDrawable->setAlpha(0.4f);
+    mDragDrawable->setAlwaysOnTop(true);
+    addChildComponent(mDragDrawable.get());
+
+    mInsertLine = std::make_unique<DrawableRectangle>();
+    //mInsertLine->setCornerSize(Point<float>(6,6));
+    //mInsertLine->setFill (Colour::fromFloatRGBA(0.07, 0.07, 0.07, 1.0));
+    mInsertLine->setFill (Colours::transparentBlack);
+    mInsertLine->setStrokeFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.75));
+    mInsertLine->setStrokeThickness(2);
+    addChildComponent(mInsertLine.get());
+
+
     rebuildPeerViews();
 }
 
@@ -292,10 +307,14 @@ void PeersContainerView::resized()
     }
 
     peersBox.performLayout(bounds);
-    
+
+    mPeerViewBounds.clearQuick();
+
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         pvf->resized();
+
+        mPeerViewBounds.add(pvf->getBounds());
     }
     
     Component* dw = nullptr; // this->findParentComponentOfClass<DocumentWindow>();    
@@ -431,10 +450,10 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->bufferTimeSlider     = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxBelow);
     pvf->bufferTimeSlider->setName("buffer");
     pvf->bufferTimeSlider->setTitle(TRANS("Jitter Buffer"));
-    pvf->bufferTimeSlider->setRange(0, 1000, 1);
+    pvf->bufferTimeSlider->setRange(0, 5000, 1);
     pvf->bufferTimeSlider->setTextValueSuffix(" ms");
     //pvf->bufferTimeSlider->getProperties().set ("noFill", true);
-    pvf->bufferTimeSlider->setSkewFactor(0.4);
+    pvf->bufferTimeSlider->setSkewFactor(0.25);
     pvf->bufferTimeSlider->setDoubleClickReturnValue(true, 20.0);
     pvf->bufferTimeSlider->setTextBoxIsEditable(true);
     pvf->bufferTimeSlider->setSliderSnapsToMousePosition(false);
@@ -670,6 +689,8 @@ void PeersContainerView::channelLayoutChanged(ChannelGroupsView *comp)
 
 void PeersContainerView::nameLabelClicked(ChannelGroupsView *comp)
 {
+    if (mIgnoreNameClick) return;
+
     // toggle full mode
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
@@ -728,7 +749,7 @@ void PeersContainerView::rebuildPeerViews()
     showRecvOptions(0, false);
     
     while (mPeerViews.size() < numpeers) {
-        mPeerViews.add(createPeerViewInfo());        
+        mPeerViews.add(createPeerViewInfo());
     }
     while (mPeerViews.size() > numpeers) {
         mPeerViews.removeLast();
@@ -742,6 +763,12 @@ void PeersContainerView::rebuildPeerViews()
         // remove from pending if necessary
         mPendingUsers.erase(username);
 
+        int prio = processor.getRemotePeerOrderPriority(i);
+        if (prio >= 0) {
+            mPeerPriorityOrdering[username] = prio;
+        }
+
+
         pvf->channelGroups->getAudioDeviceManager = getAudioDeviceManager;
 
         pvf->addAndMakeVisible(pvf->channelGroups.get());
@@ -749,6 +776,7 @@ void PeersContainerView::rebuildPeerViews()
         pvf->channelGroups->setNarrowMode(isNarrow);
         pvf->channelGroups->rebuildChannelViews();
 
+        pvf->channelGroups->addMouseListener(this, true);
         
         pvf->addAndMakeVisible(pvf->sendStatsBg.get());
         pvf->addAndMakeVisible(pvf->recvStatsBg.get());
@@ -849,10 +877,43 @@ void PeersContainerView::rebuildPeerViews()
     } else {
         stopTimer(FillRatioUpdateTimerId);
     }
-    
+
+    updatePeerOrdering();
+
     updatePeerViews();
     updateLayout();
     resized();
+}
+
+void PeersContainerView::updatePeerOrdering()
+{
+    mPeerUpdateOrdering.clear();
+
+    std::set<int> addedindexes;
+    std::map<int,int> priorityIndexes; // key is priority, value is peer index
+
+    for (int i=0; i < processor.getNumberRemotePeers(); ++i) {
+        String username = processor.getRemotePeerUserName(i);
+
+        auto found = mPeerPriorityOrdering.find(username);
+        if (found != mPeerPriorityOrdering.end()) {
+            priorityIndexes[found->second] = i;
+        }
+    }
+
+    // add the priority ordered ones first to the update order
+    for (auto iter : priorityIndexes) {
+        mPeerUpdateOrdering.push_back(iter.second);
+        addedindexes.insert(iter.second);
+    }
+
+    // add the rest
+    for (int i=0; i < processor.getNumberRemotePeers(); ++i) {
+        if (addedindexes.find(i) == addedindexes.end()) {
+            mPeerUpdateOrdering.push_back(i);
+        }
+    }
+
 }
 
 void PeersContainerView::updateLayout()
@@ -888,7 +949,7 @@ void PeersContainerView::updateLayout()
 
 
     // Main connected peer views
-    
+
     for (int i=0; i < mPeerViews.size(); ++i) {
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
 
@@ -1233,6 +1294,212 @@ void PeersContainerView::updateLayout()
     
 }
 
+
+int PeersContainerView::getPeerFromIndex(int index)
+{
+    if (index >= 0 && index < mPeerUpdateOrdering.size()) {
+
+        return mPeerUpdateOrdering[index];
+    }
+
+    return 0;
+}
+
+int PeersContainerView::getPeerForPoint(Point<int> pos, bool inbetween)
+{
+    int i=0;
+    for (; i < mPeerViewBounds.size(); ++i) {
+        auto bounds = mPeerViewBounds.getUnchecked(i);
+
+        if (inbetween) {
+            // round it from midpoints
+            auto tophalf = bounds.withTrimmedBottom(bounds.getHeight()/2);
+            auto bottomhalf = bounds.withTrimmedTop(bounds.getHeight()/2);
+            if (tophalf.contains(pos) || pos.getY() < bounds.getY()) {
+                return i;
+            }
+            else if (bottomhalf.contains(pos)) {
+                return i+1;
+            }
+        }
+        else {
+            if (bounds.contains(pos)) {
+                return i;
+            }
+            if (pos.getY() < bounds.getY()) {
+                // return one less
+                return i-1;
+            }
+        }
+    }
+
+    return i;
+}
+
+juce::Rectangle<int> PeersContainerView::getBoundsForPeer(int chgroup)
+{
+    if (chgroup >= 0 && chgroup < mPeerViewBounds.size()) {
+        return mPeerViewBounds.getUnchecked(chgroup);
+    }
+    // otherwise return a line after the last of them
+    if (!mPeerViewBounds.isEmpty()) {
+        auto lastone = mPeerViewBounds.getLast();
+        return Rectangle<int>(lastone.getX(), lastone.getBottom(), lastone.getWidth(), 0);
+    }
+    return {};
+}
+
+
+
+void PeersContainerView::mouseDown (const MouseEvent& event)
+{
+    mIgnoreNameClick = false;
+
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        auto * pvf = mPeerViews.getUnchecked(i);
+
+        if ( pvf->channelGroups->isDraggable(event.eventComponent)) {
+            DBG("Mouse down on peer " << i);
+            //int peerindex = mPeerUpdateOrdering[i];
+            mDraggingSourcePeer = i; // peerindex;
+            break;
+        }
+    }
+}
+
+void PeersContainerView::mouseDrag (const MouseEvent& event)
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        auto * pvf = mPeerViews.getUnchecked(i);
+
+        if ( (pvf->channelGroups->isDraggable(event.eventComponent)
+              )) {
+            auto adjpos =  getLocalPoint(event.eventComponent, event.getPosition());
+            //int peerindex = mPeerUpdateOrdering[i];
+
+            DBG("Dragging peer view: " << adjpos.toString());
+            if (abs(event.getDistanceFromDragStartY()) > 4 && !mDraggingActive) {
+                // start drag behavior
+                mDraggingSourcePeer = i; // peerindex;
+                mDraggingActive = true;
+                mIgnoreNameClick = true;
+                mDraggingGroupPos = getPeerForPoint(adjpos, true);
+                auto groupbounds = getBoundsForPeer(mDraggingSourcePeer);
+                mDragImage = createComponentSnapshot(groupbounds);
+                mDragDrawable->setImage(mDragImage);
+                mDragDrawable->setVisible(true);
+                mDragDrawable->setBounds(groupbounds.getX(), adjpos.getY() - groupbounds.getHeight()/2, groupbounds.getWidth(), groupbounds.getHeight());
+            }
+            else if (mDraggingActive) {
+                // adjust drag indicator
+                int pindex = getPeerForPoint(adjpos, true);
+                DBG("In peer: " << pindex);
+
+                mDragDrawable->setBounds(mDragDrawable->getX(), adjpos.getY() - mDragDrawable->getHeight()/2, mDragDrawable->getWidth(), mDragDrawable->getHeight());
+
+                if (auto viewport = findParentComponentOfClass<Viewport>()) {
+                    auto vppos = viewport->getLocalPoint(this, adjpos);
+                    if (viewport->autoScroll(vppos.getX(), vppos.getY(), 8, 8)) {
+                        if (!mAutoscrolling) {
+                            event.eventComponent->beginDragAutoRepeat(40);
+                            mAutoscrolling = true;
+                        }
+                    } else if (mAutoscrolling){
+                        event.eventComponent->beginDragAutoRepeat(0);
+                        mAutoscrolling = false;
+                    }
+                }
+
+                if (pindex != mDraggingGroupPos) {
+                    // insert point changed, update it
+                    mDraggingGroupPos = pindex;
+
+                    auto groupbounds = getBoundsForPeer(mDraggingGroupPos);
+                    groupbounds.setHeight(0);
+                    groupbounds.setWidth(getWidth() - 16);
+                    groupbounds.setX(7);
+                    mInsertLine->setRectangle (groupbounds.toFloat());
+
+                    int delta = mDraggingGroupPos - mDraggingSourcePeer;
+                    bool canmove = delta > 1 || delta < 0;
+                    mInsertLine->setVisible(canmove);
+                }
+            }
+            break;
+        }
+    }
+}
+
+void PeersContainerView::mouseUp (const MouseEvent& event)
+{
+    for (int i=0; i < mPeerViews.size(); ++i) {
+        auto * pvf = mPeerViews.getUnchecked(i);
+
+        if (event.eventComponent == pvf->recvMeter.get()) {
+            pvf->recvMeter->clearClipIndicator(-1);
+            pvf->channelGroups->clearClipIndicators();
+            break;
+        }
+        else if (pvf->channelGroups->isDraggable(event.eventComponent)) {
+            if (mDraggingActive) {
+                DBG("Mouse up after drag: " << event.getPosition().toString() << " srcpeer: " << mDraggingSourcePeer << " destpos: " << mDraggingGroupPos);
+                // commit it
+                int delta = mDraggingGroupPos - mDraggingSourcePeer;
+                bool canmove = delta > 1 || delta < 0;
+
+
+                int srcpeer = mPeerUpdateOrdering[mDraggingSourcePeer];
+
+                // need to set priority ordering on all them
+                int offs = 0;
+
+                for (int j=0; j < mPeerViews.size(); ++j) {
+                    if (j == mDraggingSourcePeer) continue;
+
+                    int peerind = mPeerUpdateOrdering[j];
+                    if (j == mDraggingGroupPos) {
+                        offs = 1;
+                    }
+
+                    String pname = processor.getRemotePeerUserName(peerind);
+                    if (pname.isNotEmpty()) {
+                        mPeerPriorityOrdering[pname] = j + offs;
+                        processor.setRemotePeerOrderPriority(peerind, j+offs);
+                        DBG("Setting drag prior for " << pname << " to: " << j + offs);
+                    }
+                }
+
+                String pname = processor.getRemotePeerUserName(srcpeer);
+                if (pname.isNotEmpty()) {
+                    mPeerPriorityOrdering[pname] = mDraggingGroupPos;
+                    processor.setRemotePeerOrderPriority(srcpeer, mDraggingGroupPos);
+                    DBG("Setting drag src for " << pname << " to: " << mDraggingGroupPos);
+                }
+
+
+                updatePeerOrdering();
+                updatePeerViews();
+
+                //if (canmove && processor.moveInputChannelGroupTo(mDraggingSourceGroup, mDraggingGroupPos)) {
+                //    // moved it
+                //    processor.updateRemotePeerUserFormat();
+                //    rebuildChannelViews();
+                //}
+
+                mInsertLine->setVisible(false);
+                mDragDrawable->setVisible(false);
+                mDraggingActive = false;
+                mAutoscrolling = false;
+            }
+
+            break;
+        }
+    }
+}
+
+
+
+
 Rectangle<int> PeersContainerView::getMinimumContentBounds() const
 {
     return Rectangle<int>(0,0,peersMinWidth, peersMinHeight);
@@ -1252,10 +1519,18 @@ void PeersContainerView::updatePeerViews(int specific)
     bool needsUpdateLayout = false;
 
 
-    for (int i=0; i < mPeerViews.size(); ++i) {
+    //    for (int i=0; i < mPeerViews.size(); ++i) {
+    for (int di=0; di < mPeerUpdateOrdering.size(); ++di) {
+        int i = mPeerUpdateOrdering[di];
+
         if (specific >= 0 && specific != i) continue;
-        
-        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        if (di >= mPeerViews.size()) {
+            DBG("Shouldnt happen update ordering greater than peerview size!");
+            break;
+        }
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(di);
+
+        pvf->channelGroups->setPeerMode(true, i);
 
         bool connected = processor.getRemotePeerConnected(i);
         auto fullmode = pvf->fullMode;
@@ -1489,11 +1764,13 @@ void PeersContainerView::updatePeerViews(int specific)
     lastUpdateTimestampMs = nowstampms;
 }
 
-void PeersContainerView::startLatencyTest(int i)
+void PeersContainerView::startLatencyTest(int di)
 {
-    if (i >= mPeerViews.size()) return;
+    if (di >= mPeerViews.size()) return;
     
-    PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+    PeerViewInfo * pvf = mPeerViews.getUnchecked(di);
+
+    int i = mPeerUpdateOrdering[di];
 
     pvf->stopLatencyTestTimestampMs = Time::getMillisecondCounter(); // make it stop after the first one  //+ 1500;
     pvf->wasRecvActiveAtLatencyTest = processor.getRemotePeerRecvActive(i);
@@ -1504,10 +1781,12 @@ void PeersContainerView::startLatencyTest(int i)
     processor.startRemotePeerLatencyTest(i);             
 }
 
-void PeersContainerView::stopLatencyTest(int i)
+void PeersContainerView::stopLatencyTest(int di)
 {
-    if (i >= mPeerViews.size()) return;
-    PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+    if (di >= mPeerViews.size()) return;
+    PeerViewInfo * pvf = mPeerViews.getUnchecked(di);
+
+    int i = mPeerUpdateOrdering[di];
 
     processor.stopRemotePeerLatencyTest(i);
     
@@ -1542,8 +1821,9 @@ String PeersContainerView::generateLatencyMessage(const SonobusAudioProcessor::L
 void PeersContainerView::timerCallback(int timerId)
 {
     if (timerId == FillRatioUpdateTimerId) {
-        for (int i=0; i < mPeerViews.size(); ++i) {
-            PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+        for (int di=0; di < mPeerViews.size(); ++di) {
+            PeerViewInfo * pvf = mPeerViews.getUnchecked(di);
+            int i = mPeerUpdateOrdering[di];
 
             float ratio, stdev;
             if (processor.getRemotePeerReceiveBufferFillRatio(i, ratio, stdev) > 0) {
@@ -1556,8 +1836,9 @@ void PeersContainerView::timerCallback(int timerId)
 
 void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index, int ident)
 {
-    for (int i=0; i < mPeerViews.size(); ++i) {
-        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+    for (int di=0; di < mPeerViews.size(); ++di) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(di);
+        int i = mPeerUpdateOrdering[di];
         if (pvf->formatChoiceButton.get() == comp) {
             // set them all if this option is selected
             if (processor.getChangingDefaultAudioCodecSetsExisting()) {
@@ -1593,8 +1874,11 @@ void PeersContainerView::choiceButtonSelected(SonoChoiceButton *comp, int index,
 
 void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
 {
-    for (int i=0; i < mPeerViews.size(); ++i) {
-        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+    for (int di=0; di < mPeerViews.size(); ++di) {
+        PeerViewInfo * pvf = mPeerViews.getUnchecked(di);
+
+        int i = mPeerUpdateOrdering[di];
+
         bool connected = processor.getRemotePeerConnected(i);
         bool isGroupPeer = processor.getRemotePeerUserName(i).isNotEmpty();
         
@@ -1635,7 +1919,9 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         else if (pvf->recvSoloButton.get() == buttonThatWasClicked) {
             if (ModifierKeys::currentModifiers.isAltDown()) {
                 // exclusive solo this one
-                for (int j=0; j < mPeerViews.size(); ++j) {
+                for (int dj=0; dj < mPeerViews.size(); ++dj) {
+                    int j = mPeerUpdateOrdering[dj];
+
                     if (buttonThatWasClicked->getToggleState()) {
                         processor.setRemotePeerSoloed(j, i == j);                         
                     }
@@ -1662,10 +1948,10 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             if (latinfo.legacy) {
                 pvf->latActiveButton->setToggleState(!pvf->latActiveButton->getToggleState(), dontSendNotification);
                 if (pvf->latActiveButton->getToggleState()) {
-                    startLatencyTest(i);
+                    startLatencyTest(di);
                     //showPopTip(TRANS("Measuring actual round-trip latency"), 4000, pvf->latActiveButton.get(), 140);
                 } else {
-                    stopLatencyTest(i);
+                    stopLatencyTest(di);
                 }
             }
             else {
@@ -1684,18 +1970,18 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         else if (pvf->recvOptionsButton.get() == buttonThatWasClicked) {
 
             if (!recvOptionsCalloutBox) {
-                showRecvOptions(i, true, pvf->recvOptionsButton.get());
+                showRecvOptions(di, true, pvf->recvOptionsButton.get());
             } else {
-                showRecvOptions(i, false);
+                showRecvOptions(di, false);
             }
 
             return;
         }
         else if (pvf->sendOptionsButton.get() == buttonThatWasClicked) {
             if (!sendOptionsCalloutBox) {
-                showSendOptions(i, true, pvf->sendOptionsButton.get());
+                showSendOptions(di, true, pvf->sendOptionsButton.get());
             } else {
-                showSendOptions(i, false);
+                showSendOptions(di, false);
             }
             return;
         }
@@ -1713,7 +1999,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         }
         else if (pvf->optionsRemoveButton.get() == buttonThatWasClicked) {
             processor.removeRemotePeer(i);
-            showSendOptions(i, false);
+            showSendOptions(di, false);
             return;
         }
         else if (pvf->bufferMinButton.get() == buttonThatWasClicked || pvf->bufferMinFrontButton.get() == buttonThatWasClicked) {
@@ -1721,7 +2007,9 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             if (ModifierKeys::currentModifiers.isAltDown()) {
                 // do it for everyone (who's on auto, maybe?)
                 bool initCompleted = false;
-                for (int j=0; j < mPeerViews.size(); ++j) {
+                for (int dj=0; dj < mPeerViews.size(); ++dj) {
+                    int j = mPeerUpdateOrdering[dj];
+
                     if (processor.getRemotePeerAutoresizeBufferMode(j, initCompleted) != SonobusAudioProcessor::AutoNetBufferModeOff) {
                         float buftime = 0.0;
                         processor.setRemotePeerBufferTime(j, buftime);
@@ -1760,7 +2048,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
 
 
 
-void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromView)
+void PeersContainerView::showRecvOptions(int dindex, bool flag, Component * fromView)
 {
     
     if (flag && recvOptionsCalloutBox == nullptr) {
@@ -1789,7 +2077,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
-        auto * pvf = mPeerViews.getUnchecked(index);
+        auto * pvf = mPeerViews.getUnchecked(dindex);
         
         pvf->recvOptionsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
         
@@ -1818,7 +2106,7 @@ void PeersContainerView::showRecvOptions(int index, bool flag, Component * fromV
     }
 }
 
-void PeersContainerView::showSendOptions(int index, bool flag, Component * fromView)
+void PeersContainerView::showSendOptions(int dindex, bool flag, Component * fromView)
 {
     
     if (flag && sendOptionsCalloutBox == nullptr) {
@@ -1847,8 +2135,8 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
         
         
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
-        
-        auto * pvf = mPeerViews.getUnchecked(index);
+
+        auto * pvf = mPeerViews.getUnchecked(dindex);
         
         pvf->sendOptionsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
         
@@ -1879,44 +2167,11 @@ void PeersContainerView::showSendOptions(int index, bool flag, Component * fromV
 
 
 
-void PeersContainerView::mouseUp (const MouseEvent& event) 
-{
-    for (int i=0; i < mPeerViews.size(); ++i) {
-        PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
-
-        if (event.eventComponent == pvf->recvMeter.get()) {
-            pvf->recvMeter->clearClipIndicator(-1);
-            pvf->channelGroups->clearClipIndicators();
-            break;
-        }
-        else if (event.eventComponent == pvf->latActiveButton.get()) {
-#if 0
-            uint32 nowtimems = Time::getMillisecondCounter();
-            SonobusAudioProcessor::LatencyInfo latinfo;
-            processor.getRemotePeerLatencyInfo(i, latinfo);
-
-            // only stop if it has actually gotten a real latency
-            if (latinfo.legacy) {
-                if (nowtimems >= pvf->stopLatencyTestTimestampMs && latinfo.isreal) {
-                    stopLatencyTest(i);
-                    pvf->latActiveButton->setToggleState(false, dontSendNotification);
-
-                    String messagestr = generateLatencyMessage(latinfo);
-
-                    showPopTip(messagestr, 5000, pvf->latActiveButton.get(), 300);
-
-                }
-            }
-#endif
-            break;
-        }
-
-    }
-}
-
 void PeersContainerView::clearClipIndicators()
 {
-    for (int i=0; i < mPeerViews.size(); ++i) {
+    for (int di=0;  di < mPeerViews.size(); ++di) {
+        int i = mPeerUpdateOrdering[di];
+
         PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
         pvf->recvMeter->clearClipIndicator(-1);
         pvf->recvMeter->clearMaxLevelDisplay(-1);
@@ -1926,11 +2181,14 @@ void PeersContainerView::clearClipIndicators()
 }
 
 
-void PeersContainerView::showPopupMenu(Component * source, int index)
+void PeersContainerView::showPopupMenu(Component * source, int dindex)
 {
-    if (index >= mPeerViews.size()) return;
-    
-    PeerViewInfo * pvf = mPeerViews.getUnchecked(index);
+    if (dindex >= mPeerViews.size()) return;
+
+    int index = mPeerUpdateOrdering[dindex];
+
+
+    PeerViewInfo * pvf = mPeerViews.getUnchecked(dindex);
     bool isGroupPeer = processor.getRemotePeerUserName(index).isNotEmpty();
 
     Array<GenericItemChooserItem> items;
@@ -1966,10 +2224,13 @@ void PeersContainerView::showPopupMenu(Component * source, int index)
 void PeersContainerView::genericItemChooserSelected(GenericItemChooser *comp, int index)
 {
     // popup menu
-    int vindex = comp->getTag() - 1;
-    if (vindex >= mPeerViews.size()) return;        
+    int dvindex = comp->getTag() - 1;
+    if (dvindex >= mPeerViews.size()) return;
     //PeerViewInfo * pvf = mPeerViews.getUnchecked(vindex);
-    
+
+    int vindex = mPeerUpdateOrdering[dvindex];
+
+
     bool isGroupPeer = processor.getRemotePeerUserName(vindex).isNotEmpty();
     
     if (index == 0) {
@@ -2012,8 +2273,10 @@ void PeersContainerView::genericItemChooserSelected(GenericItemChooser *comp, in
 
 void PeersContainerView::sliderValueChanged (Slider* slider)
 {
-   for (int i=0; i < mPeerViews.size(); ++i) {
-       PeerViewInfo * pvf = mPeerViews.getUnchecked(i);
+   for (int di=0; di < mPeerViews.size(); ++di) {
+       PeerViewInfo * pvf = mPeerViews.getUnchecked(di);
+       int i = mPeerUpdateOrdering[di];
+
        if (pvf->bufferTimeSlider.get() == slider) {
            float buftime = pvf->bufferTimeSlider->getValue();
            processor.setRemotePeerBufferTime(i, buftime);

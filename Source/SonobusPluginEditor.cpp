@@ -290,6 +290,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     setupLocalisation(processor.getLanguageOverrideCode());
 
     sonoLookAndFeel.setLanguageCode(mActiveLanguageCode);
+    sonoSliderLNF.setLanguageCode(mActiveLanguageCode);
+    smallLNF.setLanguageCode(mActiveLanguageCode);
+    teensyLNF.setLanguageCode(mActiveLanguageCode);
+    panSliderLNF.setLanguageCode(mActiveLanguageCode);
 
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
@@ -597,6 +601,15 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetSyncButton->setColour(TextButton::textColourOnId, Colours::darkblue);
     mMetSyncButton->setTooltip(TRANS("Synchronize metronome tempo with plugin host"));
 
+    mMetSyncFileButton = std::make_unique<TextButton>("metsync");
+    mMetSyncFileButton->setButtonText(TRANS("Sync with File"));
+    mMetSyncFileButton->setLookAndFeel(&smallLNF);
+    mMetSyncFileButton->setClickingTogglesState(true);
+    //mMetSyncButton->addListener(this);
+    mMetSyncFileButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 1.0, 0.6, 0.7f));
+    mMetSyncFileButton->setColour(TextButton::textColourOnId, Colours::darkblue);
+    mMetSyncFileButton->setTooltip(TRANS("Synchronize metronome start with file playback"));
+
     
     mDrySlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mDrySlider->setName("dry");
@@ -664,6 +677,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetTempoAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMetTempo, *mMetTempoSlider);
     mMetSendAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSendMetAudio, *mMetSendButton);
     mMetSyncAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSyncMetToHost, *mMetSyncButton);
+    mMetSyncFileAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramSyncMetToFilePlayback, *mMetSyncFileButton);
 
     
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainSendMute, this);
@@ -1142,6 +1156,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMetContainer->addAndMakeVisible(mMetLevelSliderLabel.get());
     mMetContainer->addAndMakeVisible(mMetTempoSliderLabel.get());
     mMetContainer->addAndMakeVisible(mMetSendButton.get());
+    mMetContainer->addAndMakeVisible(mMetSyncFileButton.get());
 
     if (!JUCEApplicationBase::isStandaloneApp()) {
         mMetContainer->addAndMakeVisible(mMetSyncButton.get());
@@ -1293,20 +1308,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.addClientListener(this);
     processor.getTransportSource().addChangeListener (this);
 
-
-    // this will use the command manager to initialise the KeyPressMappingSet with
-    // the default keypresses that were specified when the targets added their commands
-    // to the manager.
-    commandManager.getKeyMappings()->resetToDefaultMappings();
-    
-    // having set up the default key-mappings, you might now want to load the last set
-    // of mappings that the user configured.
-    //myCommandManager->getKeyMappings()->restoreFromXml (lastSavedKeyMappingsXML);
-    
-    // Now tell our top-level window to send any keypresses that arrive to the
-    // KeyPressMappingSet, which will use them to invoke the appropriate commands.
-    addKeyListener (commandManager.getKeyMappings());
-    
+    // handles registering commands
+    updateUseKeybindings();
         
     commandManager.commandStatusChanged();
     
@@ -1406,6 +1409,37 @@ bool SonobusAudioProcessorEditor::requestedQuit()
     return true;
 }
 
+void SonobusAudioProcessorEditor::updateUseKeybindings()
+{
+    commandManager.clearCommands();
+    commandManager.registerAllCommandsForTarget (this);
+
+    if (JUCEApplicationBase::isStandaloneApp()) {
+
+        commandManager.registerAllCommandsForTarget (JUCEApplication::getInstance());
+    }
+
+    // this will use the command manager to initialise the KeyPressMappingSet with
+    // the default keypresses that were specified when the targets added their commands
+    // to the manager.
+    commandManager.getKeyMappings()->resetToDefaultMappings();
+
+    // having set up the default key-mappings, you might now want to load the last set
+    // of mappings that the user configured.
+    //myCommandManager->getKeyMappings()->restoreFromXml (lastSavedKeyMappingsXML);
+
+
+    // is this even necessary? the registration thing above handles most of it with the menu commands
+    if (processor.getDisableKeyboardShortcuts()) {
+        removeKeyListener(commandManager.getKeyMappings());
+    }
+    else {
+        // Now tell our top-level window to send any keypresses that arrive to the
+        // KeyPressMappingSet, which will use them to invoke the appropriate commands.
+        addKeyListener (commandManager.getKeyMappings());
+    }
+
+}
 
 void SonobusAudioProcessorEditor::connectionsChanged(ConnectView *comp)
 {
@@ -2059,10 +2093,12 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             //});
 
 
-            // load up recording
-            loadAudioFromURL(URL(lastRecordedFile));
-            updateLayout();
-            resized();
+            if (processor.getRecordFinishOpens()) {
+                // load up recording
+                loadAudioFromURL(URL(lastRecordedFile));
+                updateLayout();
+                resized();
+            }
             
         } else {
 
@@ -2641,10 +2677,10 @@ void SonobusAudioProcessorEditor::showMetConfig(bool flag)
         Component* dw = this; 
         
 #if JUCE_IOS || JUCE_ANDROID
-        const int defWidth = 230; 
+        const int defWidth = 250;
         const int defHeight = 96;
 #else
-        const int defWidth = 210; 
+        const int defWidth = 230; 
         const int defHeight = 86;
 #endif
         
@@ -2996,7 +3032,7 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
 
     mAltReleaseShouldAct = false; // reset alt check
 
-    if (key.isKeyCurrentlyDown('T')) {
+    if (key.isKeyCurrentlyDown('T') && !processor.getDisableKeyboardShortcuts()) {
         if (!mPushToTalkKeyDown) {
             DBG("T press");
             // mute others, send self
@@ -3091,6 +3127,7 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
             mOptionsView->updateSliderSnap = [this]() {  updateSliderSnap();  };
             mOptionsView->setupLocalisation = [this](const String & lang) {  return setupLocalisation(lang);  };
             mOptionsView->saveSettingsIfNeeded = [this]() {  if (saveSettingsIfNeeded) saveSettingsIfNeeded();  };
+            mOptionsView->updateKeybindings = [this]() {  updateUseKeybindings();  };
 
             mOptionsView->addComponentListener(this);
             firsttime = true;
@@ -4318,11 +4355,18 @@ void SonobusAudioProcessorEditor::updateLayout()
     metTempoBox.items.add(FlexItem(minKnobWidth, knoblabelheight, *mMetTempoSliderLabel).withMargin(0).withFlex(0));
     metTempoBox.items.add(FlexItem(minKnobWidth, minitemheight, *mMetTempoSlider).withMargin(0).withFlex(1));
 
+    metSendSyncBox.items.clear();
+    metSendSyncBox.flexDirection = FlexBox::Direction::row;
+    if (!JUCEApplicationBase::isStandaloneApp()) {
+        metSendSyncBox.items.add(FlexItem(40, minitemheight, *mMetSyncButton).withMargin(0).withFlex(1));
+        metSendSyncBox.items.add(FlexItem(2, 5).withMargin(0).withFlex(0));
+    }
+    metSendSyncBox.items.add(FlexItem(40, minitemheight, *mMetSyncFileButton).withMargin(0).withFlex(1));
+
+
     metSendBox.items.clear();
     metSendBox.flexDirection = FlexBox::Direction::column;
-    if (!JUCEApplicationBase::isStandaloneApp()) {
-        metSendBox.items.add(FlexItem(60, minitemheight, *mMetSyncButton).withMargin(0).withFlex(0));
-    }
+    metSendBox.items.add(FlexItem(80, minitemheight, metSendSyncBox).withMargin(0).withFlex(0));
     metSendBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
     metSendBox.items.add(FlexItem(60, minitemheight, *mMetSendButton).withMargin(0).withFlex(0));
 
@@ -4331,7 +4375,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     metBox.items.add(FlexItem(minKnobWidth, minitemheight, metTempoBox).withMargin(0).withFlex(1));
     metBox.items.add(FlexItem(minKnobWidth, minitemheight, metVolBox).withMargin(0).withFlex(1));
     metBox.items.add(FlexItem(3, 6).withMargin(0).withFlex(0));
-    metBox.items.add(FlexItem(60, minitemheight, metSendBox).withMargin(2).withFlex(1));
+    metBox.items.add(FlexItem(80, minitemheight, metSendBox).withMargin(2).withFlex(1));
 
     
     // effects
@@ -4838,65 +4882,82 @@ enum
 
 
 void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) {
+    bool useKeybindings = !processor.getDisableKeyboardShortcuts();
     switch (cmdID) {
         case SonobusCommands::MuteAllInput:
             info.setInfo (TRANS("Mute All Input"),
                           TRANS("Toggle Mute all input"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('m', ModifierKeys::noModifiers);
-            info.addDefaultKeypress('m', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('m', ModifierKeys::noModifiers);
+                info.addDefaultKeypress('m', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::MuteAllPeers:
             info.setInfo (TRANS("Mute All Users"),
                           TRANS("Toggle Mute all users"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('u', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('u', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::TogglePlayPause:
             info.setInfo (TRANS("Play/Pause"),
                           TRANS("Toggle file playback"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress (' ', ModifierKeys::noModifiers);
-            info.addDefaultKeypress ('p', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress (' ', ModifierKeys::noModifiers);
+                info.addDefaultKeypress ('p', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::ToggleLoop:
             info.setInfo (TRANS("Loop"),
                           TRANS("Toggle file looping"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('l', ModifierKeys::altModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('l', ModifierKeys::altModifier);
+            }
             break;
         case SonobusCommands::SkipBack:
             info.setInfo (TRANS("Return To Start"),
                           TRANS("Return to start of file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('0', ModifierKeys::noModifiers);
-            info.addDefaultKeypress ('0', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('0', ModifierKeys::noModifiers);
+                info.addDefaultKeypress ('0', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::TrimSelectionToNewFile:
             info.setInfo (TRANS("Trim to New"),
                           TRANS("Trim file from selection to new file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('t', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('t', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::CloseFile:
             info.setInfo (TRANS("Close Audio File"),
                           TRANS("Close audio file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('w', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('w', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::OpenFile:
             info.setInfo (TRANS("Open Audio File..."),
                           TRANS("Open Audio file"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('o', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('o', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::ShareFile:
             info.setInfo (TRANS("Share Audio File"),
@@ -4909,28 +4970,36 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Reveal audio file"),
                           TRANS("Popup"), 0);
             info.setActive(mCurrentAudioFile.getFileName().isNotEmpty());
-            info.addDefaultKeypress ('e', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('e', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::LoadSetupFile:
             info.setInfo (TRANS("Load Setup..."),
                           TRANS("Load Setup file"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('l', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('l', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::SaveSetupFile:
             info.setInfo (TRANS("Save Setup..."),
                           TRANS("Save Setup file"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('s', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('s', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::ChatToggle:
             info.setInfo (TRANS("Show/Hide Chat"),
                           TRANS("Show or hide chat area"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('y', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('y', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::SoundboardToggle:
             info.setInfo (TRANS("Show/Hide Soundboard"),
@@ -4944,28 +5013,36 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Connect"),
                           TRANS("Popup"), 0);
             info.setActive(!currConnected || currGroup.isEmpty());
-            info.addDefaultKeypress ('n', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('n', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::Disconnect:
             info.setInfo (TRANS("Disconnect"),
                           TRANS("Disconnect"),
                           TRANS("Popup"), 0);
             info.setActive(currConnected && currGroup.isNotEmpty());
-            info.addDefaultKeypress ('d', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('d', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::ShowOptions:
             info.setInfo (TRANS("Show Options"),
                           TRANS("Show Options"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress (',', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress (',', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::RecordToggle:
             info.setInfo (TRANS("Record"),
                           TRANS("Toggle Record"),
                           TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress ('r', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('r', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::CheckForNewVersion:
             info.setInfo (TRANS("Check For New Version"),
@@ -4978,35 +5055,45 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 TRANS("Toggle Full Info View"),
                 TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress('i', ModifierKeys::commandModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress('i', ModifierKeys::commandModifier);
+            }
             break;
         case SonobusCommands::ShowFileMenu:
             info.setInfo(TRANS("Show File Menu"),
                 TRANS("Show File Menu"),
                 TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress('f', ModifierKeys::altModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress('f', ModifierKeys::altModifier);
+            }
             break;
         case SonobusCommands::ShowConnectMenu:
             info.setInfo(TRANS("Show Connect Menu"),
                 TRANS("Show Connect Menu"),
                 TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress('c', ModifierKeys::altModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress('c', ModifierKeys::altModifier);
+            }
             break;
         case SonobusCommands::ShowViewMenu:
             info.setInfo(TRANS("Show View Menu"),
                 TRANS("Show View Menu"),
                 TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress('v', ModifierKeys::altModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress('v', ModifierKeys::altModifier);
+            }
             break;
         case SonobusCommands::ShowTransportMenu:
             info.setInfo(TRANS("Show Transport Menu"),
                 TRANS("Show Transport Menu"),
                 TRANS("Popup"), 0);
             info.setActive(true);
-            info.addDefaultKeypress('t', ModifierKeys::altModifier);
+            if (useKeybindings) {
+                info.addDefaultKeypress('t', ModifierKeys::altModifier);
+            }
             break;
     }
 }

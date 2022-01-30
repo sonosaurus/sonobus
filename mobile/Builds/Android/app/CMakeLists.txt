@@ -12,7 +12,7 @@ add_subdirectory (${OBOE_DIR} ./oboe)
 add_library("cpufeatures" STATIC "${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c")
 set_source_files_properties("${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c" PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-gnu-statement-expression")
 
-add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.7-71"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.7]] [[-DJUCE_APP_VERSION_HEX=0x10407]])
+add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.9]] [[-DJUCE_APP_VERSION_HEX=0x10409]])
 
 include_directories( AFTER
     "../../../JuceLibraryCode"
@@ -28,7 +28,7 @@ if(JUCE_BUILD_CONFIGURATION MATCHES "DEBUG")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.7-71"]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.7]] [[-DJUCE_APP_VERSION_HEX=0x10407]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.9]] [[-DJUCE_APP_VERSION_HEX=0x10409]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -45,7 +45,7 @@ elseif(JUCE_BUILD_CONFIGURATION MATCHES "RELEASE")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.7-71"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.7]] [[-DJUCE_APP_VERSION_HEX=0x10407]] [[-DNDEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.9]] [[-DJUCE_APP_VERSION_HEX=0x10409]] [[-DNDEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -113,9 +113,11 @@ add_library( ${BINARY_NAME}
     "../../../../localization/localized_fr.txt"
     "../../../../localization/localized_it.txt"
     "../../../../localization/localized_ja.txt"
+    "../../../../localization/localized_ko.txt"
     "../../../../localization/localized_nl.txt"
     "../../../../localization/localized_pt-br.txt"
     "../../../../localization/localized_pt-pt.txt"
+    "../../../../localization/localized_ru.txt"
     "../../../../images/bar_click.wav"
     "../../../../images/beat_click.wav"
     "../../../../images/chat.svg"
@@ -253,6 +255,7 @@ add_library( ${BINARY_NAME}
     "../../../../Source/VersionInfo.h"
     "../../../../Source/WaveformTransportComponent.h"
     "../../../../Source/zitaRev.h"
+    "../../../../Source/PolarityInvertView.h"
     "../../../../deps/ff_meters/LevelMeter/LevelMeter.cpp"
     "../../../../deps/ff_meters/LevelMeter/LevelMeter.h"
     "../../../../deps/ff_meters/LevelMeter/LevelMeterSource.h"
@@ -2051,9 +2054,11 @@ set_source_files_properties("../../../../localization/localized_es.txt" PROPERTI
 set_source_files_properties("../../../../localization/localized_fr.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../localization/localized_it.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../localization/localized_ja.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../localization/localized_ko.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../localization/localized_nl.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../localization/localized_pt-br.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../localization/localized_pt-pt.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../localization/localized_ru.txt" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/bar_click.wav" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/beat_click.wav" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/chat.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -2163,6 +2168,7 @@ set_source_files_properties("../../../../Source/SonoUtility.h" PROPERTIES HEADER
 set_source_files_properties("../../../../Source/VersionInfo.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/WaveformTransportComponent.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/zitaRev.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/PolarityInvertView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../deps/ff_meters/LevelMeter/LevelMeter.cpp" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../deps/ff_meters/LevelMeter/LevelMeter.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../deps/ff_meters/LevelMeter/LevelMeterSource.h" PROPERTIES HEADER_FILE_ONLY TRUE)
