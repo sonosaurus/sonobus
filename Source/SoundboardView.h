@@ -49,7 +49,7 @@ public:
      * @param sample The sample to play.
      * @param button The button the play request originated from.
      */
-    void playSample(const SoundSample& sample, SonoPlaybackProgressButton* button = nullptr);
+    void playSample(SoundSample& sample, SonoPlaybackProgressButton* button = nullptr);
 
     void stopSample(const SoundSample& sample);
 

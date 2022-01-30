@@ -33,7 +33,7 @@ public:
 class SamplePlaybackManager : private Timer, private ChangeListener
 {
 public:
-    SamplePlaybackManager(const SoundSample* sample_, SoundboardChannelProcessor* channelProcessor_);
+    SamplePlaybackManager(SoundSample* sample_, SoundboardChannelProcessor* channelProcessor_);
     ~SamplePlaybackManager() override;
 
     /**
@@ -114,7 +114,7 @@ private:
     constexpr static const int READ_AHEAD_BUFFER_SIZE = 65536;
     constexpr static const int TIMER_HZ = 20;
 
-    const SoundSample* sample;
+    SoundSample* sample;
     SoundboardChannelProcessor* channelProcessor;
     bool loaded;
 
@@ -156,7 +156,7 @@ public:
      * @param sample The sample to load.
      * @return The playback manager for this sample, or none when loading failed.
      */
-    std::optional<std::shared_ptr<SamplePlaybackManager>> loadSample(const SoundSample& sample);
+    std::optional<std::shared_ptr<SamplePlaybackManager>> loadSample(SoundSample& sample);
 
     /**
      * Finds the playback manager for the given sample, or none when the sample is not playing.

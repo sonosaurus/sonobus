@@ -48,6 +48,11 @@ public:
         ONE_SHOT = 2
     };
 
+    enum ReplayBehaviour {
+        REPLAY_FROM_START = 0,
+        CONTINUE_FROM_LAST_POSITION = 1
+    };
+
     /**
      * @param name The name representing the sound sample.
      * @param filePath The absolute file path of the underlying sound file.
@@ -56,6 +61,7 @@ public:
      * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
      * @param playbackBehaviour The playback behaviour.
      * @param buttonBehaviour The button behaviour.
+     * @param replayBehaviour The replay behaviour.
      * @param gain The playback gain for the sound sample.
      */
     SoundSample(
@@ -66,6 +72,7 @@ public:
             int hotkeyCode = -1,
             PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS,
             ButtonBehaviour buttonBehaviour = ButtonBehaviour::TOGGLE,
+            ReplayBehaviour replayBehaviour = ReplayBehaviour::REPLAY_FROM_START,
             float gain = 1.0
     );
 
@@ -114,6 +121,14 @@ public:
     [[nodiscard]] ButtonBehaviour getButtonBehaviour() const;
 
     void setButtonBehaviour(ButtonBehaviour newBehaviour);
+
+    [[nodiscard]] ReplayBehaviour getReplayBehaviour() const;
+
+    void setReplayBehaviour(ReplayBehaviour newBehaviour);
+
+    [[nodiscard]] double getLastPlaybackPosition() const;
+
+    void setLastPlaybackPosition(double position);
 
     [[nodiscard]] float getGain() const { return gain; }
 
@@ -172,6 +187,8 @@ private:
 
     constexpr static const char BUTTON_BEHAVIOUR_KEY[] = "buttonBehaviour";
 
+    constexpr static const char REPLAY_BEHAVIOUR_KEY[] = "replayBehaviour";
+
     /**
      * Key for the gain property of the root node in the serialization tree data structure.
      */
@@ -208,6 +225,13 @@ private:
     PlaybackBehaviour playbackBehaviour;
 
     ButtonBehaviour buttonBehaviour;
+
+    ReplayBehaviour replayBehaviour;
+
+    /**
+     * Playback position where the sample last stopped playing.
+     */
+    double lastPlaybackPosition;
 
     /**
      * Playback gain.
