@@ -18,6 +18,7 @@ SampleEditView::SampleEditView(
     initialLoop(soundSample != nullptr && soundSample->isLoop()),
     initialPlaybackBehaviour(soundSample == nullptr ? SoundSample::PlaybackBehaviour::SIMULTANEOUS : soundSample->getPlaybackBehaviour()),
     initialButtonBehaviour(soundSample == nullptr ? SoundSample::ButtonBehaviour::TOGGLE : soundSample->getButtonBehaviour()),
+    initialReplayBehaviour(soundSample == nullptr ? SoundSample::ReplayBehaviour::REPLAY_FROM_START : soundSample->getReplayBehaviour()),
     initialGain(soundSample == nullptr ? 1.0 : soundSample->getGain()),
     submitCallback(std::move(callback)),
     lastOpenedDirectory(lastOpenedDirectoryString),

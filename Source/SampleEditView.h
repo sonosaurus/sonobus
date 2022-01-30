@@ -89,6 +89,8 @@ public:
 
     [[nodiscard]] SoundSample::ButtonBehaviour getButtonBehaviour() const { return static_cast<SoundSample::ButtonBehaviour>(mButtonBehaviourButton->getState()); }
 
+    [[nodiscard]] SoundSample::ReplayBehaviour getReplayBehaviour() const { return static_cast<SoundSample::ReplayBehaviour>(mReplayBehaviourButton->getState()); }
+
     /**
      * @return The selected gain.
      */
@@ -168,6 +170,8 @@ private:
     SoundSample::PlaybackBehaviour initialPlaybackBehaviour = SoundSample::PlaybackBehaviour::SIMULTANEOUS;
 
     SoundSample::ButtonBehaviour initialButtonBehaviour = SoundSample::ButtonBehaviour::TOGGLE;
+
+    SoundSample::ReplayBehaviour initialReplayBehaviour = SoundSample::ReplayBehaviour::REPLAY_FROM_START;
 
     /**
      * Gain option that is chosen upon opening the dialog.

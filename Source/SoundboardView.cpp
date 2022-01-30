@@ -423,6 +423,7 @@ void SoundboardView::clickedAddSoundSample()
         auto loop = editView.isLoop();
         auto playbackBehaviour = editView.getPlaybackBehaviour();
         auto buttonBehaviour = editView.getButtonBehaviour();
+        auto replayBehaviour = editView.getReplayBehaviour();
         auto gain = editView.getGain();
         auto hotkeyCode = editView.getHotkeyCode();
 
@@ -431,6 +432,7 @@ void SoundboardView::clickedAddSoundSample()
         createdSample->setLoop(loop);
         createdSample->setPlaybackBehaviour(playbackBehaviour);
         createdSample->setButtonBehaviour(buttonBehaviour);
+        createdSample->setReplayBehaviour(replayBehaviour);
         createdSample->setGain(gain);
         createdSample->setHotkeyCode(hotkeyCode);
 
@@ -460,6 +462,7 @@ void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& bu
             auto loop = editView.isLoop();
             auto playbackBehaviour = editView.getPlaybackBehaviour();
             auto buttonBehaviour = editView.getButtonBehaviour();
+            auto replayBehaviour = editView.getReplayBehaviour();
             auto gain = editView.getGain();
             auto hotkeyCode = editView.getHotkeyCode();
 
@@ -469,6 +472,7 @@ void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& bu
             sample.setLoop(loop);
             sample.setPlaybackBehaviour(playbackBehaviour);
             sample.setButtonBehaviour(buttonBehaviour);
+            sample.setReplayBehaviour(replayBehaviour);
             sample.setGain(gain);
             sample.setHotkeyCode(hotkeyCode);
             processor->editSoundSample(sample);
