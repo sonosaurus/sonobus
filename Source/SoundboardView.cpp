@@ -259,7 +259,7 @@ void SoundboardView::updateButtons()
     resized();
 }
 
-void SoundboardView::playSample(const SoundSample& sample, SonoPlaybackProgressButton* button)
+void SoundboardView::playSample(SoundSample& sample, SonoPlaybackProgressButton* button)
 {
     auto channelProcessor = processor->getChannelProcessor();
     auto playbackManagerMaybe = channelProcessor->loadSample(sample);

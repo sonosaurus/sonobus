@@ -3,7 +3,7 @@
 
 #include "SoundboardChannelProcessor.h"
 
-SamplePlaybackManager::SamplePlaybackManager(const SoundSample* sample_, SoundboardChannelProcessor* channelProcessor_)
+SamplePlaybackManager::SamplePlaybackManager(SoundSample* sample_, SoundboardChannelProcessor* channelProcessor_)
     : sample(sample_), channelProcessor(channelProcessor_), loaded(false)
 {
     formatManager.registerBasicFormats();
@@ -57,6 +57,7 @@ void SamplePlaybackManager::unload()
 {
     stopTimer();
     transportSource.stop();
+    sample->setLastPlaybackPosition(transportSource.getCurrentPosition());
 }
 
 void SamplePlaybackManager::play()
@@ -67,8 +68,7 @@ void SamplePlaybackManager::play()
 
 void SamplePlaybackManager::pause()
 {
-    stopTimer();
-    transportSource.stop();
+    unload();
 }
 
 void SamplePlaybackManager::seek(double position)
@@ -143,7 +143,7 @@ SoundboardChannelProcessor::~SoundboardChannelProcessor()
     mixer.removeAllInputs();
 }
 
-std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor::loadSample(const SoundSample& sample)
+std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor::loadSample(SoundSample& sample)
 {
     // Reset playback position to beginning when sample is already playing.
     auto existingManager = findPlaybackManager(sample);
@@ -175,6 +175,15 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
     }
 
     manager->setGain(sample.getGain());
+
+    // Check replay behaviour
+    switch (sample.getReplayBehaviour()) {
+        case SoundSample::ReplayBehaviour::REPLAY_FROM_START:
+            break;
+        case SoundSample::ReplayBehaviour::CONTINUE_FROM_LAST_POSITION:
+            manager->seek(sample.getLastPlaybackPosition());
+            break;
+    }
 
     activeSamples[&sample] = manager;
     mixer.addInputSource(manager->getAudioSource(), false);

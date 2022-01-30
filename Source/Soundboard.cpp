@@ -8,7 +8,8 @@
 
 SoundSample::SoundSample(
         String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode,
-        PlaybackBehaviour playbackBehaviour,  ButtonBehaviour buttonBehaviour, float newGain
+        PlaybackBehaviour playbackBehaviour,  ButtonBehaviour buttonBehaviour, ReplayBehaviour replayBehaviour,
+        float newGain
 ) : name(std::move(newName)),
         filePath(std::move(newFilePath)),
         loop(newLoop),
@@ -16,7 +17,9 @@ SoundSample::SoundSample(
         hotkeyCode(hotkeyCode),
         playbackBehaviour(playbackBehaviour),
         buttonBehaviour(buttonBehaviour),
-        gain(newGain)
+        replayBehaviour(replayBehaviour),
+        gain(newGain),
+        lastPlaybackPosition(0.0)
 {}
 
 String SoundSample::getName() const
@@ -89,6 +92,26 @@ void SoundSample::setButtonBehaviour(ButtonBehaviour newBehaviour)
     buttonBehaviour = newBehaviour;
 }
 
+SoundSample::ReplayBehaviour SoundSample::getReplayBehaviour() const
+{
+    return replayBehaviour;
+}
+
+void SoundSample::setReplayBehaviour(ReplayBehaviour newBehaviour)
+{
+    replayBehaviour = newBehaviour;
+}
+
+double SoundSample::getLastPlaybackPosition() const
+{
+    return lastPlaybackPosition;
+}
+
+void SoundSample::setLastPlaybackPosition(double position)
+{
+    lastPlaybackPosition = position;
+}
+
 ValueTree SoundSample::serialize() const
 {
     ValueTree tree(SAMPLE_KEY);
@@ -99,6 +122,7 @@ ValueTree SoundSample::serialize() const
     tree.setProperty(HOTKEY_KEY, hotkeyCode, nullptr);
     tree.setProperty(PLAYBACK_BEHAVIOUR_KEY, playbackBehaviour, nullptr);
     tree.setProperty(BUTTON_BEHAVIOUR_KEY, buttonBehaviour, nullptr);
+    tree.setProperty(REPLAY_BEHAVIOUR_KEY, replayBehaviour, nullptr);
     tree.setProperty(GAIN_KEY, gain, nullptr);
 
     return tree;
@@ -108,6 +132,7 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
 {
     int playbackBehaviour = tree.getProperty(PLAYBACK_BEHAVIOUR_KEY, PlaybackBehaviour::SIMULTANEOUS);
     int buttonBehaviour = tree.getProperty(BUTTON_BEHAVIOUR_KEY, ButtonBehaviour::TOGGLE);
+    int replayBehaviour = tree.getProperty(REPLAY_BEHAVIOUR_KEY, ReplayBehaviour::REPLAY_FROM_START);
 
     SoundSample soundSample(
         tree.getProperty(NAME_KEY),
@@ -117,6 +142,7 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
         tree.getProperty(HOTKEY_KEY, -1),
         static_cast<PlaybackBehaviour>(playbackBehaviour),
         static_cast<ButtonBehaviour>(buttonBehaviour),
+        static_cast<ReplayBehaviour>(replayBehaviour),
         tree.getProperty(GAIN_KEY, 1.0)
     );
 
