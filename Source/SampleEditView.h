@@ -388,7 +388,7 @@ private:
 
     void createButtonBehaviourButton();
 
-    void createReplayBehvaiourButton();
+    void createReplayBehaviourButton();
 
     /**
      * Adds the input controls for the hotkey configuration.

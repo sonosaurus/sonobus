@@ -203,7 +203,7 @@ void SampleEditView::createPlaybackOptionInputs()
     playbackOptionsRowBox.items.add(FlexItem(56, 56, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 
-    createReplayBehvaiourButton();
+    createReplayBehaviourButton();
     playbackOptionsRowBox.items.add(FlexItem(56, 56, *mReplayBehaviourButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
@@ -253,7 +253,7 @@ void SampleEditView::createLoopButton()
 }
 
 
-void SampleEditView::createReplayBehvaiourButton()
+void SampleEditView::createReplayBehaviourButton()
 {
     auto replayImage = Drawable::createFromImageData(BinaryData::replay_icon_svg, BinaryData::replay_icon_svgSize);
     auto continueImage = Drawable::createFromImageData(BinaryData::continue_svg, BinaryData::continue_svgSize);
