@@ -118,9 +118,10 @@ void SamplePlaybackManager::changeListenerCallback(ChangeBroadcaster* source)
     }
 
     if (!transportSource.isPlaying()) {
-        // TODO: this will have to change when pause does not mean stop and unload..
-        transportSource.setPosition(0.0);
-        notifyPlaybackPositionListeners();
+        if (sample->getReplayBehaviour() == SoundSample::ReplayBehaviour::REPLAY_FROM_START) {
+            transportSource.setPosition(0.0);
+            notifyPlaybackPositionListeners();
+        }
 
         // Notify the channel processor that this instance can be removed from the mixer
         // THIS MIGHT CAUSE THAT THIS OBJECT IS REMOVED!

@@ -307,7 +307,8 @@ bool SoundboardView::playSampleAtIndex(int sampleIndex)
     }
 
     auto& soundSampleAtIndex = samples[sampleIndex];
-    playSample(soundSampleAtIndex);
+    auto& buttonAtIndex = mSoundButtons[sampleIndex];
+    playSample(soundSampleAtIndex, buttonAtIndex.get());
     return true;
 }
 
