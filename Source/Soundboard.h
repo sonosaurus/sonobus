@@ -229,7 +229,7 @@ private:
     ReplayBehaviour replayBehaviour;
 
     /**
-     * Playback position where the
+     * Playback position where the sample last stopped playing.
      */
     double lastPlaybackPosition;
 
