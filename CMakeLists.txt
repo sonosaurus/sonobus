@@ -461,6 +461,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/chat_dots.svg
         images/checkmark.svg
         images/chevron_forward.svg
+        images/continue.svg
         images/copy_icon.svg
         images/dice_icon_128.png
         images/dispfull.svg
@@ -516,6 +517,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/reset_buffer_icon.svg
         images/send_group.svg
         images/send_group_small.svg
+        images/replay_icon.svg
         images/settings_icon.svg
         images/skipback_icon.svg
         images/sonobus_logo_96.png

@@ -201,6 +201,10 @@ void SampleEditView::createPlaybackOptionInputs()
     createPlaybackBehaviourButton();
     playbackOptionsRowBox.items.add(FlexItem(56, 56, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
+    createReplayBehvaiourButton();
+    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mReplayBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 void SampleEditView::createVolumeInputs()
@@ -245,6 +249,22 @@ void SampleEditView::createLoopButton()
     mLoopButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
 
     addAndMakeVisible(mLoopButton.get());
+}
+
+
+void SampleEditView::createReplayBehvaiourButton()
+{
+    auto replayImage = Drawable::createFromImageData(BinaryData::replay_icon_svg, BinaryData::replay_icon_svgSize);
+    auto continueImage = Drawable::createFromImageData(BinaryData::continue_svg, BinaryData::continue_svgSize);
+    auto buttonImages = std::vector<std::unique_ptr<Drawable>>();
+    buttonImages.push_back(std::move(replayImage));
+    buttonImages.push_back(std::move(continueImage));
+    auto labels = std::vector<String>{TRANS("Replay"), TRANS("Continue")};
+    mReplayBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("replayBehaviour", std::move(buttonImages), std::move(labels));
+    mReplayBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
+    mReplayBehaviourButton->setState(0 /* TODO: link up with enum */);
+
+    addAndMakeVisible(mReplayBehaviourButton.get());
 }
 
 void SampleEditView::createPlaybackBehaviourButton()

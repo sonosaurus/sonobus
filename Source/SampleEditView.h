@@ -313,6 +313,8 @@ private:
 
     std::unique_ptr<SonoMultiStateDrawableButton> mButtonBehaviourButton;
 
+    std::unique_ptr<SonoMultiStateDrawableButton> mReplayBehaviourButton;
+
     /**
      * Label for hotkey configuration
      */
@@ -381,6 +383,8 @@ private:
     void createPlaybackBehaviourButton();
 
     void createButtonBehaviourButton();
+
+    void createReplayBehvaiourButton();
 
     /**
      * Adds the input controls for the hotkey configuration.
