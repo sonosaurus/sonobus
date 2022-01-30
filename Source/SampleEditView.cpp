@@ -263,7 +263,7 @@ void SampleEditView::createReplayBehaviourButton()
     auto labels = std::vector<String>{TRANS("Replay"), TRANS("Continue")};
     mReplayBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("replayBehaviour", std::move(buttonImages), std::move(labels));
     mReplayBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
-    mReplayBehaviourButton->setState(0 /* TODO: link up with enum */);
+    mReplayBehaviourButton->setState(initialReplayBehaviour);
 
     addAndMakeVisible(mReplayBehaviourButton.get());
 }
