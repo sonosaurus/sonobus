@@ -238,16 +238,16 @@ void SampleEditView::createVolumeInputs()
 
 void SampleEditView::createLoopButton()
 {
-    mLoopButton = std::make_unique<SonoDrawableButton>("loop", DrawableButton::ButtonStyle::ImageAboveTextLabel);
     auto loopImg = Drawable::createFromImageData(BinaryData::loop_icon_svg, BinaryData::loop_icon_svgSize);
     auto loopOffImg = Drawable::createFromImageData(BinaryData::loop_off_icon_png, BinaryData::loop_off_icon_pngSize);
-    mLoopButton->setImages(loopOffImg.get(), nullptr, nullptr, nullptr, loopImg.get());
-    mLoopButton->setClickingTogglesState(true);
-    mLoopButton->setToggleState(initialLoop, dontSendNotification);
-    mLoopButton->setTooltip(TRANS("Loop On/Off"));
-    mLoopButton->setTitle(TRANS("Loop"));
-    mLoopButton->setButtonText(TRANS("Loop"));
+    auto loopImages = std::vector<std::unique_ptr<Drawable>>();
+    loopImages.push_back(std::move(loopOffImg));
+    loopImages.push_back(std::move(loopImg));
+    auto labels = std::vector<String>{TRANS("Loop Off"), TRANS("Loop On")};
+
+    mLoopButton = std::make_unique<SonoMultiStateDrawableButton>("loop", std::move(loopImages), std::move(labels));
     mLoopButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
+    mLoopButton->setState(initialLoop);
 
     addAndMakeVisible(mLoopButton.get());
 }
