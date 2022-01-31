@@ -128,7 +128,7 @@ public:
     {
         if (auto* vp = owner.getViewport())
             return vp->isScrollOnDragEnabled() && (vp->canScrollVertically() || vp->canScrollHorizontally());
-
+        
         return false;
     }
 
@@ -136,7 +136,7 @@ public:
     {
         selectRowOnMouseUp = false;
         isDraggingToScroll = false;
-
+        
         if (isEnabled())
         {
             if (owner.getRowSelectedOnMouseDown() && ! (owner.isRowSelected(index) || isInDragToScrollViewport())) {
@@ -148,9 +148,9 @@ public:
             else
                 selectRowOnMouseUp = true;
         }
-
+        
     }
-
+    
     void mouseDrag (const MouseEvent& e) override
     {
         if (! isDraggingToScroll)
@@ -158,7 +158,7 @@ public:
                 isDraggingToScroll = vp->isCurrentlyScrollingOnDrag();
 
     }
-
+    
     void mouseUp (const MouseEvent& e) override
     {
         if (isEnabled() && selectRowOnMouseUp && ! (/*isDragging || */ isDraggingToScroll)) {
@@ -167,7 +167,7 @@ public:
             //performSelection (e, true);
         }
     }
-
+    
     void mouseDoubleClick (const MouseEvent&) override
     {
         owner.sendDoubleClickMessage (file);
@@ -237,10 +237,9 @@ private:
     Image icon;
     int index = 0;
     bool highlighted = false, isDirectory = false;
-    bool selectRowOnMouseUp;
-    bool isDraggingToScroll;
-
-
+    bool selectRowOnMouseUp = false;
+    bool isDraggingToScroll = false;
+    
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override
     {
         return createIgnoredAccessibilityHandler (*this);

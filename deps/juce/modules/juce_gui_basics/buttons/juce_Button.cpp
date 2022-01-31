@@ -451,7 +451,7 @@ bool Button::isInDragToScrollViewport() const noexcept
 {
     if (auto* vp = findParentComponentOfClass<Viewport>())
         return vp->isScrollOnDragEnabled() && (vp->canScrollVertically() || vp->canScrollHorizontally());
-
+    
     return false;
 }
 
@@ -498,7 +498,7 @@ void Button::mouseDrag (const MouseEvent& e)
 
     if (autoRepeatDelay >= 0 && buttonState != oldState && isDown())
         callbackHelper->startTimer (autoRepeatSpeed);
-
+        
     if (isInDraggableViewport && ! isDraggingToScroll)
         if (auto* vp = findParentComponentOfClass<Viewport>())
             isDraggingToScroll = vp->isCurrentlyScrollingOnDrag();
