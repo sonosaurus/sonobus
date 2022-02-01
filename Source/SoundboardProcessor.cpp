@@ -126,7 +126,7 @@ void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
 void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
 {
     if (!selectedSoundboardIndex.has_value()) {
-        return nullptr;
+        return;
     }
 
     auto& soundboard = soundboards[*selectedSoundboardIndex];
