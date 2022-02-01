@@ -179,7 +179,7 @@ void SoundboardView::updateSoundboardSelector()
     // Select the currently selected item.
     auto selectedIndex = processor->getSelectedSoundboardIndex();
     if (selectedIndex.has_value()) {
-        mBoardSelectComboBox->setSelectedItemIndex(selectedIndex.value());
+        mBoardSelectComboBox->setSelectedItemIndex(*selectedIndex);
     }
 }
 
@@ -227,12 +227,13 @@ void SoundboardView::updateButtons()
 
         auto playbackManager = getSoundboardProcessor()->getChannelProcessor()->findPlaybackManager(sample);
         if (playbackManager.has_value()) {
-            playbackButton->attachToPlaybackManager(playbackManager.value());
+            playbackButton->attachToPlaybackManager(*playbackManager);
         }
 
         buttonContainer.addAndMakeVisible(playbackButton.get());
 
         buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *playbackButton).withMargin(0).withFlex(0));
+        buttonBox.items.add(FlexItem(BUTTON_SPACING_MARGIN, BUTTON_SPACING_MARGIN).withMargin(0));
 
         mSoundButtons.emplace_back(std::move(playbackButton));
     }
@@ -253,6 +254,7 @@ void SoundboardView::updateButtons()
     };
     buttonContainer.addAndMakeVisible(mAddSampleButton.get());
 
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     buttonBox.items.add(FlexItem(MENU_BUTTON_WIDTH, TITLE_HEIGHT, *mAddSampleButton).withMargin(0).withFlex(0));
 
     // Trigger repaint
@@ -272,7 +274,7 @@ void SoundboardView::playSample(SoundSample& sample, SonoPlaybackProgressButton*
         return;
     }
 
-    auto playbackManager = playbackManagerMaybe.value();
+    auto playbackManager = *playbackManagerMaybe;
 
     if (button != nullptr) {
         button->attachToPlaybackManager(playbackManager);
@@ -286,7 +288,7 @@ void SoundboardView::stopSample(const SoundSample& sample)
     auto playbackManagerMaybe = processor->getChannelProcessor()->findPlaybackManager(sample);
     if (!playbackManagerMaybe.has_value()) return;
 
-    playbackManagerMaybe.value()->pause();
+    (*playbackManagerMaybe)->pause();
 }
 
 bool SoundboardView::playSampleAtIndex(int sampleIndex)
@@ -501,11 +503,11 @@ void SoundboardView::resized()
     // Compute the inner container size manually, as all automatic layout computation seem to be rendered useless
     // as a consequence of using viewport.
     int buttonsHeight = std::accumulate(buttonBox.items.begin(), buttonBox.items.end(), 0,
-        [](int sum, const FlexItem& item) { return sum + item.currentBounds.getHeight(); });
-    buttonContainer.setSize(buttonViewport.getMaximumVisibleWidth(), buttonsHeight);
+        [](int sum, const FlexItem& item) { return sum + item.minHeight + item.margin.top + item.margin.bottom; });
+    buttonContainer.setSize(buttonViewport.getMaximumVisibleWidth()-4, buttonsHeight);
 
     mainBox.performLayout(getLocalBounds().reduced(2));
-    buttonBox.performLayout(buttonContainer.getLocalBounds());
+    buttonBox.performLayout(buttonContainer.getLocalBounds().reduced(2,0));
 }
 
 void SoundboardView::processKeystroke(const KeyPress& keyPress)

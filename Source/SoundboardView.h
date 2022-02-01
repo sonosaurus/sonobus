@@ -59,6 +59,7 @@ private:
     constexpr static const float TITLE_HEIGHT = 32;
     constexpr static const float TITLE_FONT_HEIGHT = 18;
     constexpr static const float ELEMENT_MARGIN = 4;
+    constexpr static const float BUTTON_SPACING_MARGIN = 0;
 
     /**
      * Controller for soundboard view.

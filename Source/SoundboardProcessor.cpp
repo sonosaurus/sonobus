@@ -52,7 +52,7 @@ void SoundboardProcessor::deleteSoundboard(int index)
 
     // If the last soundboard was selected
     if (selectedSoundboardIndex == soundboards.size()) {
-        auto selected = selectedSoundboardIndex.value();
+        auto selected = *selectedSoundboardIndex;
         selectedSoundboardIndex = selected > 0 ? std::optional<int>(selected - 1) : std::nullopt;
     }
 
@@ -100,7 +100,7 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
         return nullptr;
     }
 
-    auto& soundboard = soundboards[selectedSoundboardIndex.value()];
+    auto& soundboard = soundboards[*selectedSoundboardIndex];
     auto& sampleList = soundboard.getSamples();
 
     SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath));
@@ -125,7 +125,11 @@ void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
 
 void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
 {
-    auto& soundboard = soundboards[getSelectedSoundboardIndex().value()];
+    if (!selectedSoundboardIndex.has_value()) {
+        return nullptr;
+    }
+
+    auto& soundboard = soundboards[*selectedSoundboardIndex];
     auto& sampleList = soundboard.getSamples();
 
     auto sampleCount = sampleList.size();

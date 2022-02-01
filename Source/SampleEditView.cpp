@@ -375,7 +375,8 @@ void SampleEditView::updateColourButtonCheckmark()
         }
         // Hide checkmark.
         else {
-            colourButton->setImages(nullptr);
+            std::unique_ptr<Drawable> emptyImage = std::make_unique<DrawableRectangle>();
+            colourButton->setImages(emptyImage.get());
         }
     }
 }

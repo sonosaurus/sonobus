@@ -80,7 +80,7 @@ public:
     /**
      * @return true if the loop button is in the 'toggle on' state.
      */
-    [[nodiscard]] bool isLoop() const { return mLoopButton->getToggleState(); }
+    [[nodiscard]] bool isLoop() const { return mLoopButton->getState() == 1; }
 
     /**
      * @return The selected playback behaviour.

@@ -114,6 +114,7 @@ void SamplePlaybackManager::changeListenerCallback(ChangeBroadcaster* source)
     if (!transportSource.isPlaying() && transportSource.getCurrentPosition() >= transportSource.getLengthInSeconds()) {
         // We are at the end, return to start
         transportSource.setPosition(0.0);
+        sample->setLastPlaybackPosition(0.0);
         notifyPlaybackPositionListeners();
     }
 
@@ -149,7 +150,7 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
     // Reset playback position to beginning when sample is already playing.
     auto existingManager = findPlaybackManager(sample);
     if (existingManager.has_value()) {
-        auto manager = existingManager.value();
+        auto manager = *existingManager;
         manager->seek(0.0);
         manager->setGain(sample.getGain());
         return manager;
