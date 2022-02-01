@@ -753,6 +753,8 @@ public:
     // soundboard
     void setLastSoundboardWidth(int width) { mLastSoundboardWidth = width; }
     int getLastSoundboardWidth() const { return mLastSoundboardWidth; }
+    void setLastSoundboardShown(bool shown) { mLastSoundboardShown = shown; }
+    bool getLastSoundboardShown() const { return mLastSoundboardShown; }
     SoundboardChannelProcessor* getSoundboardProcessor() { return soundboardChannelProcessor.get(); }
 
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
@@ -984,6 +986,7 @@ private:
     Array<SBChatEvent, CriticalSection> mAllChatEvents;
 
     int mLastSoundboardWidth = 250;
+    bool mLastSoundboardShown = false;
 
     int mPluginWindowWidth = 800;
     int mPluginWindowHeight = 600;

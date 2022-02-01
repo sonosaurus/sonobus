@@ -24,9 +24,9 @@ public:
     {}
 
     /**
-     * Callback that updates the default colour button checkmarks after the colour has been updated.
+     * Callback that is called when color is changed.
      */
-    std::function<void()> resetCheckmarkCallback;
+    std::function<void()> colourChangedCallback;
 
     /**
      * Shows the colour picker.
@@ -68,6 +68,7 @@ private:
 
         updateSelectedColour(colour);
         updatePickerButton(colour);
-        resetCheckmarkCallback();
+        if (colourChangedCallback)
+            colourChangedCallback();
     }
 };

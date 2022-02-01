@@ -511,6 +511,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/play_back_to_back.svg
         images/play_icon.svg
         images/play_simultaneous.svg
+        images/play_background.svg
         images/plus_icon.svg
         images/power.svg
         images/power_sel.svg

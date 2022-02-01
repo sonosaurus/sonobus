@@ -37,9 +37,15 @@ public:
         SIMULTANEOUS = 0,
 
         /**
-         * Stops playback of all other samples before playing this sample.
+         * Stops playback of all other samples before playing this sample (except BACKGROUND ones)
          */
-        BACK_TO_BACK = 1
+        BACK_TO_BACK = 1,
+
+        /**
+         * Plays sample simultaneously over other samples that are already playing, and does not get stopped
+         * by BACK_TO_BACK playback samples.
+         */
+        BACKGROUND = 2
     };
 
     enum ButtonBehaviour {

@@ -60,6 +60,8 @@ public:
      */
     [[nodiscard]] bool isEditMode() const { return editModeEnabled; }
 
+    void setEditMode(bool flag);
+
     /**
      * Whether the dialog is in create mode.
      *
@@ -106,6 +108,12 @@ public:
     void paint(Graphics&) override;
 
     void resized() override;
+
+    /**
+     * Function to call whenever the submit button is clicked.
+     * Parameter is the inputted name.
+     */
+    std::function<void(SampleEditView&)> submitCallback;
 
 private:
     constexpr static const float ELEMENT_MARGIN = 4;
@@ -189,11 +197,6 @@ private:
      */
     String* lastOpenedDirectory = nullptr;
 
-    /**
-     * Function to call whenever the submit button is clicked.
-     * Parameter is the inputted name.
-     */
-    std::function<void(SampleEditView&)> submitCallback;
 
     /**
      * Outer layout.
@@ -427,7 +430,7 @@ private:
     /**
      * Submit the input.
      */
-    void submitDialog();
+    void submitDialog(bool dismiss=true);
 
     /**
      * Closes the dialog.

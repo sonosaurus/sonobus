@@ -132,9 +132,8 @@ void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
     auto& soundboard = soundboards[*selectedSoundboardIndex];
     auto& sampleList = soundboard.getSamples();
 
-    auto sampleCount = sampleList.size();
-    for (int i = 0; i < sampleCount; ++i) {
-        auto& sample = sampleList[i];
+    for (auto iter = sampleList.begin(); iter != sampleList.end(); ++iter) {
+        auto& sample = *iter;
         if (&sample == &sampleToDelete) {
             // If it is currently playing, unload
             auto& activeSamples = channelProcessor->getActiveSamples();
@@ -143,7 +142,7 @@ void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
                 playbackManager->second->unload();
             }
 
-            sampleList.erase(sampleList.begin() + i, sampleList.begin() + i + 1);
+            sampleList.erase(iter);
 
             break;
         }

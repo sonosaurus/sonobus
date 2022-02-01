@@ -76,6 +76,14 @@ void SampleEditView::initialiseLayouts()
     mainBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, ELEMENT_MARGIN, contentBox).withMargin(0).withFlex(1));
 }
 
+void SampleEditView::setEditMode(bool flag)
+{
+    editModeEnabled = flag;
+    if (mDeleteButton) {
+        mDeleteButton->setButtonText( isEditMode() ? TRANS("Delete") : TRANS("Cancel"));
+    }
+}
+
 void SampleEditView::createNameInputs()
 {
     mNameLabel = std::make_unique<Label>("nameLabel", TRANS("Name"));
@@ -87,7 +95,7 @@ void SampleEditView::createNameInputs()
     mNameInput = std::make_unique<TextEditor>("nameInput");
     mNameInput->setText(initialName);
     mNameInput->onReturnKey = [this]() {
-        submitDialog();
+        submitDialog(false);
     };
     mNameInput->onEscapeKey = [this]() {
         dismissDialog();
@@ -151,8 +159,9 @@ void SampleEditView::createColourInput()
     // Add colour picker button.
     auto customColourButton = std::make_unique<SonoDrawableButton>("colourPicker", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     mColourPicker = std::make_unique<SoundSampleButtonColourPicker>(&selectedColour, customColourButton.get());
-    mColourPicker->resetCheckmarkCallback = [this]() {
+    mColourPicker->colourChangedCallback = [this]() {
         updateColourButtonCheckmark();
+        submitDialog(false); // no dismiss
     };
     customColourButton->onClick = [this]() {
         mColourPicker->show(getScreenBounds());
@@ -272,10 +281,12 @@ void SampleEditView::createPlaybackBehaviourButton()
 {
     auto simImg = Drawable::createFromImageData(BinaryData::play_simultaneous_svg, BinaryData::play_simultaneous_svgSize);
     auto b2bImg = Drawable::createFromImageData(BinaryData::play_back_to_back_svg, BinaryData::play_back_to_back_svgSize);
+    auto bgImg = Drawable::createFromImageData(BinaryData::play_background_svg, BinaryData::play_background_svgSize);
     auto imgs = std::vector<std::unique_ptr<Drawable>>();
     imgs.push_back(std::move(simImg));
     imgs.push_back(std::move(b2bImg));
-    auto labels = std::vector<String>{TRANS("Simultaneous"), TRANS("Back to Back")};
+    imgs.push_back(std::move(bgImg));
+    auto labels = std::vector<String>{TRANS("Simultaneous"), TRANS("Back to Back"), TRANS("Background")};
     mPlaybackBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("playbackBehaviour", std::move(imgs), std::move(labels));
     mPlaybackBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
     mPlaybackBehaviourButton->setState(initialPlaybackBehaviour);
@@ -353,6 +364,8 @@ std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int
                 SonoTextButton::buttonColourId,
                 Colour(selectedColour | SoundboardButtonColors::DEFAULT_BUTTON_COLOUR_ALPHA)
         );
+        // and call submit callback (no dismiss)
+        submitDialog(false);
     };
 
     addAndMakeVisible(colourButton.get());
@@ -383,18 +396,14 @@ void SampleEditView::updateColourButtonCheckmark()
 
 void SampleEditView::createButtonBar()
 {
-    mSubmitButton = std::make_unique<SonoTextButton>(isEditMode() ? TRANS("Update Sample") : TRANS("Save Sample"));
-    mSubmitButton->onClick = [this]() {
-        submitDialog();
-    };
-    addAndMakeVisible(mSubmitButton.get());
-
     mDeleteButton = std::make_unique<SonoTextButton>(isEditMode() ? TRANS("Delete") : TRANS("Cancel"));
     mDeleteButton->setColour(SonoTextButton::buttonColourId, Colour(0xcc911707));
     mDeleteButton->onClick = [this]() {
         if (isEditMode()) {
             deleteSample = true;
             submitDialog();
+            // and make sure no more callbacks happen
+            submitCallback = nullptr;
         }
         else {
             dismissDialog();
@@ -403,11 +412,9 @@ void SampleEditView::createButtonBar()
     addAndMakeVisible(mDeleteButton.get());
 
     buttonBox.flexDirection = FlexBox::Direction::row;
+    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(1));
     buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    buttonBox.items.add(
-            FlexItem(DEFAULT_VIEW_WIDTH / 4 * 2.2, CONTROL_HEIGHT, *mSubmitButton).withMargin(0).withFlex(3));
-    buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    buttonBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 4, CONTROL_HEIGHT, *mDeleteButton).withMargin(0).withFlex(1));
+    buttonBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 4, CONTROL_HEIGHT, *mDeleteButton).withMargin(0).withFlex(1).withMaxWidth(140));
     buttonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
@@ -468,7 +475,7 @@ void SampleEditView::inferSampleName()
     mNameInput->setText(probablyFile.getFileNameWithoutExtension());
 }
 
-void SampleEditView::submitDialog()
+void SampleEditView::submitDialog(bool dismiss)
 {
     auto inputtedName = mNameLabel->getText().trim();
     if (inputtedName.isEmpty()) {
@@ -478,8 +485,12 @@ void SampleEditView::submitDialog()
 
     this->initialName = inputtedName;
 
-    submitCallback(*this);
-    dismissDialog();
+    if (submitCallback)
+        submitCallback(*this);
+
+    if (dismiss) {
+        dismissDialog();
+    }
 }
 
 void SampleEditView::dismissDialog()

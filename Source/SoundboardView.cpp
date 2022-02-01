@@ -207,12 +207,19 @@ void SoundboardView::updateButtons()
         }
         else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::ONE_SHOT) {
             playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
-                playSample(sample, buttonAddress);
+                if (sample.getFilePath().isEmpty()) {
+                    clickedEditSoundSample(*buttonAddress, sample);
+                }
+                else
+                    playSample(sample, buttonAddress);
             };
         }
         else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE) {
             playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
-                if (processor->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
+                if (sample.getFilePath().isEmpty()) {
+                    clickedEditSoundSample(*buttonAddress, sample);
+                }
+                else if (processor->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
                     stopSample(sample);
                 }
                 else {
@@ -419,40 +426,12 @@ void SoundboardView::clickedDeleteSoundboard()
 
 void SoundboardView::clickedAddSoundSample()
 {
-    auto callback = [this](SampleEditView& editView) {
-        auto sampleName = editView.getSampleName();
-        auto filePath = editView.getAbsoluteFilePath();
-        auto buttonColour = editView.getButtonColour();
-        auto loop = editView.isLoop();
-        auto playbackBehaviour = editView.getPlaybackBehaviour();
-        auto buttonBehaviour = editView.getButtonBehaviour();
-        auto replayBehaviour = editView.getReplayBehaviour();
-        auto gain = editView.getGain();
-        auto hotkeyCode = editView.getHotkeyCode();
+    SoundSample* createdSample = processor->addSoundSample("", "");
 
-        SoundSample* createdSample = processor->addSoundSample(sampleName, filePath);
-        createdSample->setButtonColour(buttonColour);
-        createdSample->setLoop(loop);
-        createdSample->setPlaybackBehaviour(playbackBehaviour);
-        createdSample->setButtonBehaviour(buttonBehaviour);
-        createdSample->setReplayBehaviour(replayBehaviour);
-        createdSample->setGain(gain);
-        createdSample->setHotkeyCode(hotkeyCode);
-
-        updateButtons();
-    };
-
-    auto content = std::make_unique<SampleEditView>(callback, nullptr, mLastSampleBrowseDirectory.get());
-    content->setSize(SampleEditView::DEFAULT_VIEW_WIDTH, SampleEditView::DEFAULT_VIEW_HEIGHT);
-
-    CallOutBox::launchAsynchronously(
-            std::move(content),
-            mAddSampleButton->getScreenBounds(),
-            nullptr
-    );
+    clickedEditSoundSample(*mAddSampleButton, *createdSample);
 }
 
-void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample)
+void SoundboardView::clickedEditSoundSample(const Component& button, SoundSample& sample)
 {
     auto callback = [this, &sample](SampleEditView& editView) {
         if (editView.isDeleteSample()) {
@@ -484,18 +463,40 @@ void SoundboardView::clickedEditSoundSample(const SonoPlaybackProgressButton& bu
     };
 
     auto content = std::make_unique<SampleEditView>(callback, &sample, mLastSampleBrowseDirectory.get());
-    content->setSize(SampleEditView::DEFAULT_VIEW_WIDTH, SampleEditView::DEFAULT_VIEW_HEIGHT);
 
-    CallOutBox::launchAsynchronously(
-            std::move(content),
-            button.getScreenBounds(),
-            nullptr
-    );
+    Component* dw = findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw)
+        dw = findParentComponentOfClass<Component>();
+    if (!dw)
+        dw = this;
+    Rectangle<int> bounds =  dw->getLocalArea(nullptr, button.getScreenBounds());
+
+    content->setSize(jmin((int)SampleEditView::DEFAULT_VIEW_WIDTH, dw->getWidth() - 10), jmin((int)SampleEditView::DEFAULT_VIEW_HEIGHT, dw->getHeight() - 24));
+
+    mSampleEditCalloutBox = & CallOutBox::launchAsynchronously(std::move(content),
+                                                            bounds, dw, false);
+    mSampleEditCalloutBox->addComponentListener(this);
 }
 
 void SoundboardView::paint(Graphics& g)
 {
     g.fillAll(Colour(0xff272727));
+}
+
+void SoundboardView::componentVisibilityChanged (Component& component)
+{
+    if (&component == mSampleEditCalloutBox.get()) {
+        if (!component.isVisible()) {
+            DBG("sample edit dismissal, commit it");
+            if (auto * box = dynamic_cast<CallOutBox*>(mSampleEditCalloutBox.get())) {
+                if (auto * sev = dynamic_cast<SampleEditView*>(box->getChildComponent(0))) {
+                    if (sev->submitCallback) {
+                        sev->submitCallback(*sev);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void SoundboardView::resized()

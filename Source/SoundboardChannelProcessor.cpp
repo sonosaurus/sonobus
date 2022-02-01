@@ -170,9 +170,10 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
     // Check playback behaviour
     switch (sample.getPlaybackBehaviour()) {
         case SoundSample::SIMULTANEOUS:
+        case SoundSample::BACKGROUND:
             break;
         case SoundSample::BACK_TO_BACK:
-            unloadAll();
+            unloadAllNonBackground();
             break;
     }
 
@@ -369,6 +370,15 @@ void SoundboardChannelProcessor::unloadAll()
 {
     for (const auto &item : activeSamples) {
         item.second->unload();
+    }
+}
+
+void SoundboardChannelProcessor::unloadAllNonBackground()
+{
+    for (const auto &item : activeSamples) {
+        if (item.second->getSample()->getPlaybackBehaviour() != SoundSample::BACKGROUND) {
+            item.second->unload();
+        }
     }
 }
 

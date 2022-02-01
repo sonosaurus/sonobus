@@ -204,6 +204,12 @@ public:
      * Stops all playing samples from playing.
      */
     void unloadAll();
+
+    /**
+     * Stops all playing samples from playing that aren't background mode
+     */
+    void unloadAllNonBackground();
+
     void notifyStopped(SamplePlaybackManager* samplePlaybackManager);
 
     std::unordered_map<const SoundSample*, std::shared_ptr<SamplePlaybackManager>>& getActiveSamples() { return activeSamples; }

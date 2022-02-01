@@ -1837,6 +1837,10 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             showChatPanel(processor.getLastChatShown(), false);
             resized();
         }
+        else if (processor.getLastSoundboardShown() != mSoundboardView->isVisible()) {
+            showSoundboardPanel(processor.getLastSoundboardShown(), false);
+            resized();
+        }
 
         mChatButton->setToggleState(mChatView->haveNewSinceLastView(), dontSendNotification);
 
@@ -2983,6 +2987,7 @@ void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& compone
         }
 
         mSoundboardWasVisible = mSoundboardView->isVisible();
+        processor.setLastSoundboardShown(mSoundboardWasVisible);
         mAboutToShowSoundboard = false;
     }
     else if (&component == mConnectView.get()) {
@@ -3921,6 +3926,7 @@ void SonobusAudioProcessorEditor::showSoundboardPanel(bool show, bool allowresiz
 #endif
 
     mSoundboardView->setVisible(show);
+    mSoundboardView->resized();
 }
 
 

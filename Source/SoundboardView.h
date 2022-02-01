@@ -17,7 +17,10 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardView : public Component, public SonoChoiceButton::Listener, public FileDragAndDropTarget
+class SoundboardView : public Component,
+    public ComponentListener,
+    public SonoChoiceButton::Listener,
+    public FileDragAndDropTarget
 {
 public:
     explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
@@ -27,6 +30,8 @@ public:
     void resized() override;
 
     void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
+
+    void componentVisibilityChanged (Component& component) override;
 
     /**
      * @param keyPress Pressed key code.
@@ -59,7 +64,7 @@ private:
     constexpr static const float TITLE_HEIGHT = 32;
     constexpr static const float TITLE_FONT_HEIGHT = 18;
     constexpr static const float ELEMENT_MARGIN = 4;
-    constexpr static const float BUTTON_SPACING_MARGIN = 0;
+    constexpr static const float BUTTON_SPACING_MARGIN = 2;
 
     /**
      * Controller for soundboard view.
@@ -159,6 +164,8 @@ private:
      */
     std::unique_ptr<SonoDrawableButton> mStopAllPlayback;
 
+    WeakReference<Component> mSampleEditCalloutBox;
+
     /**
      * Creates the outer UI panels.
      */
@@ -243,7 +250,7 @@ private:
      * @param button The sample button.
      * @param sample The sample that must be edited.
      */
-    void clickedEditSoundSample(const SonoPlaybackProgressButton& button, SoundSample& sample);
+    void clickedEditSoundSample(const Component& button, SoundSample& sample);
 
     void fileDraggedAt(int x, int y);
 
