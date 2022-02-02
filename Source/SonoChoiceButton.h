@@ -30,6 +30,7 @@ public:
     class Listener {
     public:
         virtual ~Listener() {}
+        virtual void choiceButtonEmptyClick(SonoChoiceButton *comp) {}
         virtual void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) {}
     };
 
