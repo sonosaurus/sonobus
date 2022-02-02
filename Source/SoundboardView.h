@@ -23,13 +23,14 @@ class SoundboardView : public Component,
     public FileDragAndDropTarget
 {
 public:
-    explicit SoundboardView(SoundboardChannelProcessor* channelProcessor);
+    explicit SoundboardView(SoundboardChannelProcessor* channelProcessor, File supportDir);
 
     void paint(Graphics&) override;
 
     void resized() override;
 
     void choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident) override;
+    void choiceButtonEmptyClick(SonoChoiceButton* choiceButton) override;
 
     void componentVisibilityChanged (Component& component) override;
 

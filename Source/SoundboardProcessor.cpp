@@ -7,9 +7,11 @@
 #include "SonoUtility.h"
 #include <utility>
 
-SoundboardProcessor::SoundboardProcessor(SoundboardChannelProcessor* channelProcessor) : channelProcessor(
+SoundboardProcessor::SoundboardProcessor(SoundboardChannelProcessor* channelProcessor, File supportDir) : channelProcessor(
         channelProcessor)
 {
+    soundboardsFile = supportDir.getChildFile("soundboards.xml");
+
     loadFromDisk();
 }
 
@@ -194,18 +196,13 @@ void SoundboardProcessor::readSoundboardsFromFile(const File& file)
     }
 }
 
-File SoundboardProcessor::getSoundboardsFile()
-{
-    return File::getSpecialLocation(File::userHomeDirectory).getChildFile(SOUNDBOARDS_FILE_NAME);
-}
-
 void SoundboardProcessor::saveToDisk() const
 {
-    writeSoundboardsToFile(getSoundboardsFile());
+    writeSoundboardsToFile(soundboardsFile);
 }
 
 void SoundboardProcessor::loadFromDisk()
 {
-    readSoundboardsFromFile(getSoundboardsFile());
+    readSoundboardsFromFile(soundboardsFile);
     reorderSoundboards();
 }

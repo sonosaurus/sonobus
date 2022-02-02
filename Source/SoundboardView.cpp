@@ -9,8 +9,8 @@
 #include "SoundboardEditView.h"
 #include "SampleEditView.h"
 
-SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor)
-        : processor(std::make_unique<SoundboardProcessor>(channelProcessor))
+SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor, File supportDir)
+        : processor(std::make_unique<SoundboardProcessor>(channelProcessor, supportDir))
 {
     setOpaque(true);
 
@@ -160,11 +160,6 @@ void SoundboardView::updateSoundboardSelector()
     // Index shenanigans will go wrong when there are no soundboards, so return early:
     // doesn't matter anyway as the soundboard selector only need to be cleared.
     if (processor->getNumberOfSoundboards() == 0) {
-        // Apparently, when you clear items the last item name is still visible, but no items are present.
-        // Enjoy this amazing hack.
-        mBoardSelectComboBox->clearItems();
-        mBoardSelectComboBox->addItem("", 0);
-        mBoardSelectComboBox->setSelectedItemIndex(0);
         mBoardSelectComboBox->clearItems();
         return;
     }
@@ -562,6 +557,11 @@ void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int in
 {
     processor->selectSoundboard(index);
     updateButtons();
+}
+
+void SoundboardView::choiceButtonEmptyClick(SonoChoiceButton* choiceButton)
+{
+    clickedAddSoundboard();
 }
 
 bool SoundboardView::isInterestedInFileDrag(const StringArray& files)

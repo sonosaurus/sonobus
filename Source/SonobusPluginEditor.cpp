@@ -823,8 +823,21 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatEdgeResizer = std::make_unique<ResizableEdgeComponent>(mChatView.get(), mChatSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
 
 
+    // use this to match our main app support dir
+    PropertiesFile::Options options;
+    options.applicationName     = "dummy";
+    options.filenameSuffix      = ".xml";
+    options.osxLibrarySubFolder = "Application Support/SonoBus";
+   #if JUCE_LINUX
+    options.folderName          = "~/.config/sonobus";
+   #else
+    options.folderName          = "";
+   #endif
+
+    File supportDir = options.getDefaultFile().getParentDirectory();
+
     // Soundboard
-    mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor());
+    mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor(), supportDir);
     mSoundboardView->setVisible(false);
     mSoundboardView->addComponentListener(this);
 

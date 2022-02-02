@@ -22,7 +22,7 @@
 class SoundboardProcessor
 {
 public:
-    SoundboardProcessor(SoundboardChannelProcessor* channelProcessor);
+    SoundboardProcessor(SoundboardChannelProcessor* channelProcessor, File supportDir);
 
     /**
      * Adds a new soundboard.
@@ -131,10 +131,6 @@ public:
     }
 
 private:
-    /**
-     * File where the soundboards data is stored, relative to the user home directory.
-     */
-    constexpr static const char SOUNDBOARDS_FILE_NAME[] = ".sonobus/soundboards.xml";
 
     /**
      * Key of the root node in the serialized tree data structure that holds the soundboard data.
@@ -151,12 +147,7 @@ private:
      */
     constexpr static const char HOTKEYS_MUTED_KEY[] = "hotkeysMuted";
 
-    /**
-     * Gets the file where the soundboard data is stored on disk.
-     *
-     * @return The soundboard file.
-     */
-    static File getSoundboardsFile();
+    File soundboardsFile;
 
     /**
      * Channel processor for playing and sending audio.
