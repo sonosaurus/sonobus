@@ -21,7 +21,14 @@ void SoundSampleButtonColourPicker::show(const Rectangle<int>& bounds)
     colourSelector->setColour(ColourSelector::backgroundColourId, Colours::transparentBlack);
     colourSelector->setSize(300, 400);
 
-    CallOutBox::launchAsynchronously (std::move (colourSelector), bounds, nullptr);
+    Component* dw = nullptr;
+    if (pickerButton) {
+        dw = pickerButton->findParentComponentOfClass<AudioProcessorEditor>();
+        if (!dw) dw = pickerButton->findParentComponentOfClass<Component>();
+    }
+    Rectangle<int> abounds =  dw ? dw->getLocalArea(nullptr, bounds) : bounds;
+
+    CallOutBox::launchAsynchronously (std::move (colourSelector), abounds, dw);
 }
 
 void SoundSampleButtonColourPicker::updateSelectedColour(unsigned int newColour)

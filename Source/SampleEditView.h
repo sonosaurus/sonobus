@@ -24,7 +24,7 @@ public:
     /**
      * The recommended width of the Sample edit view.
      */
-    constexpr static const float DEFAULT_VIEW_WIDTH = 384;
+    constexpr static const float DEFAULT_VIEW_WIDTH = 350;
 
     /**
      * The recommended height of the Sample edit view.
@@ -115,6 +115,9 @@ public:
      */
     std::function<void(SampleEditView&)> submitCallback;
 
+    int getMinimumContentWidth() const { return minContentWidth; }
+    int getMinimumContentHeight() const { return minContentHeight; }
+
 private:
     constexpr static const float ELEMENT_MARGIN = 4;
     constexpr static const float CONTROL_HEIGHT = 24;
@@ -170,7 +173,7 @@ private:
     /**
      * Loop playback option that is chosen upon opening the dialog.
      */
-    bool initialLoop;
+    bool initialLoop = false;
 
     /**
      * Playback behaviour option that is chosen upon opening the dialog.
@@ -197,162 +200,44 @@ private:
      */
     String* lastOpenedDirectory = nullptr;
 
+    int minContentWidth = 320;
+    int minContentHeight = 300;
 
-    /**
-     * Outer layout.
-     */
-    FlexBox mainBox;
-
-    /**
-     * Wrapper for soundboard UI contents.
-     */
-    FlexBox contentBox;
-
-    /**
-     * Box for the dialog buttons.
-     */
     FlexBox buttonBox;
-
-    /**
-     * Box for the file path input and browse button.
-     */
-    FlexBox filePathBox;
-
-    /**
-     * Box for the colour select buttons.
-     */
     FlexBox colourButtonBox;
-
-    /**
-     * Box for the top colour button row.
-     */
     FlexBox colourButtonRowTopBox;
-
-    /**
-     * Box for the bottom colour button row.
-     */
     FlexBox colourButtonRowBottomBox;
 
-    /**
-     * Box for the playback option inputs.
-     */
-    FlexBox playbackOptionsRowBox;
 
-    /**
-     * Box for the volume controls.
-     */
-    FlexBox volumeRowBox;
-
-    /**
-     * Box for the hotkey settings button row.
-     */
-    FlexBox hotkeyButtonRowBox;
-
-    /**
-     * Label for the SoundSample name field.
-     */
     std::unique_ptr<Label> mNameLabel;
-
-    /**
-     * Text input for the SoundSample name field.
-     */
     std::unique_ptr<TextEditor> mNameInput;
 
-    /**
-     * Label for the file path input field.
-     */
     std::unique_ptr<Label> mFilePathLabel;
-
-    /**
-     * Text input for the SoundSample name field.
-     */
     std::unique_ptr<TextEditor> mFilePathInput;
-
-    /**
-     * Button that prompts the user for a file to be put in the file path input.
-     */
     std::unique_ptr<SonoTextButton> mBrowseFilePathButton;
-
-    /**
-     * Dialog box to choose the sound sample.
-     */
     std::unique_ptr<FileChooser> mFileChooser;
 
-    /**
-     * Label for the sample button colour input.
-     */
     std::unique_ptr<Label> mColourInputLabel;
-
-    /**
-     * Contains all the button objects for the colour buttons.
-     */
     std::vector<std::unique_ptr<SonoDrawableButton>> mColourButtons;
-
-    /**
-     * Control for selecting a custom button colour.
-     */
     std::unique_ptr<SoundSampleButtonColourPicker> mColourPicker;
 
-    /**
-     * Label for playback options.
-     */
     std::unique_ptr<Label> mPlaybackOptionsLabel;
 
-    /**
-     * Control to toggle the loop playback option.
-     */
     std::unique_ptr<SonoMultiStateDrawableButton> mLoopButton;
 
-    /**
-     * Label for the volume options.
-     */
     std::unique_ptr<Label> mVolumeLabel;
-
-    /**
-     * Controls the volume of the slider.
-     */
     std::unique_ptr<Slider> mVolumeSlider;
 
-    /**
-     * Control to toggle playback behaviour option.
-     */
     std::unique_ptr<SonoMultiStateDrawableButton> mPlaybackBehaviourButton;
-
     std::unique_ptr<SonoMultiStateDrawableButton> mButtonBehaviourButton;
-
     std::unique_ptr<SonoMultiStateDrawableButton> mReplayBehaviourButton;
 
-    /**
-     * Label for hotkey configuration
-     */
     std::unique_ptr<Label> mHotkeyLabel;
-
-    /**
-     * Button for selecting a new keybind for the sound sample.
-     *
-     * When the button is toggled, then a new hotkey can be selected.
-     */
     std::unique_ptr<SonoTextButton> mHotkeyButton;
-
-    /**
-     * Button used to remove the current keybinds.
-     */
     std::unique_ptr<SonoTextButton> mRemoveHotkeyButton;
-
-    /**
-     * Button that saves the sound sample/submits the dialog.
-     */
     std::unique_ptr<SonoTextButton> mSubmitButton;
-
-    /**
-     * Button that deletes the sound sample.
-     */
     std::unique_ptr<SonoTextButton> mDeleteButton;
 
-    /**
-     * Initialises all layout elements.
-     */
-    void initialiseLayouts();
 
     /**
      * Creates the input controls for the sample name.

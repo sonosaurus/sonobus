@@ -178,6 +178,52 @@ void SoundboardView::updateSoundboardSelector()
     }
 }
 
+void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, SoundSample & sample)
+{
+    playbackButton->setButtonColour(sample.getButtonColour());
+
+    playbackButton->setButtonText(sample.getName());
+    playbackButton->setTooltip(sample.getName());
+
+    auto buttonAddress = playbackButton;
+    if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD) {
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+            if (sample.getFilePath().isEmpty()) {
+                clickedEditSoundSample(*buttonAddress, sample);
+            }
+        };
+    }
+    else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::ONE_SHOT) {
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+            if (sample.getFilePath().isEmpty()) {
+                clickedEditSoundSample(*buttonAddress, sample);
+            }
+            else
+                playSample(sample, buttonAddress);
+        };
+    }
+    else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE) {
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+            if (sample.getFilePath().isEmpty()) {
+                clickedEditSoundSample(*buttonAddress, sample);
+            }
+            else if (processor->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
+                stopSample(sample);
+            }
+            else {
+                playSample(sample, buttonAddress);
+            }
+        };
+    }
+
+    auto playbackManager = getSoundboardProcessor()->getChannelProcessor()->findPlaybackManager(sample);
+    if (playbackManager.has_value()) {
+        playbackButton->attachToPlaybackManager(*playbackManager);
+    }
+
+    playbackButton->repaint();
+}
+
 void SoundboardView::updateButtons()
 {
     buttonBox.items.clear();
@@ -193,44 +239,15 @@ void SoundboardView::updateButtons()
 
     for (auto& sample : selectedBoard.getSamples()) {
         auto playbackButton = std::make_unique<SonoPlaybackProgressButton>(sample.getName(), sample.getName());
-        playbackButton->setButtonColour(sample.getButtonColour());
-
         auto buttonAddress = playbackButton.get();
-        if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD) {
-            playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {};
-            playbackButton->setMouseListener(std::make_unique<HoldSampleButtonMouseListener>(buttonAddress, &sample, this));
-        }
-        else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::ONE_SHOT) {
-            playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
-                if (sample.getFilePath().isEmpty()) {
-                    clickedEditSoundSample(*buttonAddress, sample);
-                }
-                else
-                    playSample(sample, buttonAddress);
-            };
-        }
-        else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE) {
-            playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
-                if (sample.getFilePath().isEmpty()) {
-                    clickedEditSoundSample(*buttonAddress, sample);
-                }
-                else if (processor->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
-                    stopSample(sample);
-                }
-                else {
-                    playSample(sample, buttonAddress);
-                }
-            };
-        }
+
+        playbackButton->setMouseListener(std::make_unique<HoldSampleButtonMouseListener>(buttonAddress, &sample, this));
 
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
             clickedEditSoundSample(*buttonAddress, sample);
         };
 
-        auto playbackManager = getSoundboardProcessor()->getChannelProcessor()->findPlaybackManager(sample);
-        if (playbackManager.has_value()) {
-            playbackButton->attachToPlaybackManager(*playbackManager);
-        }
+        updateButton(playbackButton.get(), sample);
 
         buttonContainer.addAndMakeVisible(playbackButton.get());
 
@@ -293,7 +310,7 @@ void SoundboardView::stopSample(const SoundSample& sample)
     (*playbackManagerMaybe)->pause();
 }
 
-bool SoundboardView::playSampleAtIndex(int sampleIndex)
+bool SoundboardView::triggerSampleAtIndex(int sampleIndex)
 {
     if (sampleIndex < 0) {
         return false;
@@ -310,17 +327,25 @@ bool SoundboardView::playSampleAtIndex(int sampleIndex)
         return false;
     }
 
-    auto& soundSampleAtIndex = samples[sampleIndex];
+    auto& sample = samples[sampleIndex];
     auto& buttonAtIndex = mSoundButtons[sampleIndex];
-    playSample(soundSampleAtIndex, buttonAtIndex.get());
+
+    if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE
+        && getSoundboardProcessor()->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
+        stopSample(sample);
+    }
+    else {
+        playSample(sample, buttonAtIndex.get());
+    }
     return true;
 }
 
 void SoundboardView::showMenuButtonContextMenu()
 {
     Array<GenericItemChooserItem> items;
-    items.add(GenericItemChooserItem(TRANS("New soundboard"), {}, nullptr, false));
-    items.add(GenericItemChooserItem(TRANS("Rename soundboard"), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("New soundboard..."), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("Rename soundboard..."), {}, nullptr, false));
+    items.add(GenericItemChooserItem(TRANS("Duplicate soundboard..."), {}, nullptr, false));
     items.add(GenericItemChooserItem(TRANS("Delete soundboard"), {}, nullptr, false));
 
     Component* parent = mMenuButton->findParentComponentOfClass<AudioProcessorEditor>();
@@ -339,7 +364,11 @@ void SoundboardView::showMenuButtonContextMenu()
                 safeThis->clickedRenameSoundboard();
                 break;
             case 2:
+                safeThis->clickedDuplicateSoundboard();
+                break;
+            case 3:
                 safeThis->clickedDeleteSoundboard();
+                break;
         }
     };
 
@@ -357,10 +386,15 @@ void SoundboardView::clickedAddSoundboard()
     auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
     content->setSize(256, 100);
 
+    Component* dw = findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = findParentComponentOfClass<Component>();
+    if (!dw) dw = this;
+    Rectangle<int> abounds =  dw ? dw->getLocalArea(nullptr, mTitleLabel->getScreenBounds()) : mTitleLabel->getScreenBounds();
+
     CallOutBox::launchAsynchronously(
             std::move(content),
-            mTitleLabel->getScreenBounds(),
-            nullptr
+            abounds,
+            dw
     );
 }
 
@@ -376,12 +410,46 @@ void SoundboardView::clickedRenameSoundboard()
     auto content = std::make_unique<SoundboardEditView>(callback, &currentSoundboard);
     content->setSize(SoundboardEditView::DEFAULT_VIEW_WIDTH, SoundboardEditView::DEFAULT_VIEW_HEIGHT);
 
+    Component* dw = findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = findParentComponentOfClass<Component>();
+    if (!dw) dw = this;
+    Rectangle<int> abounds =  dw ? dw->getLocalArea(nullptr, mBoardSelectComboBox->getScreenBounds()) : mBoardSelectComboBox->getScreenBounds();
+
     CallOutBox::launchAsynchronously(
             std::move(content),
-            mBoardSelectComboBox->getScreenBounds(),
-            nullptr
+            abounds,
+            dw
     );
 }
+
+void SoundboardView::clickedDuplicateSoundboard()
+{
+    auto& currentSoundboard = processor->getSoundboard(mBoardSelectComboBox->getSelectedItemIndex());
+
+    auto callback = [this, &currentSoundboard](const String& name) {
+        Soundboard& createdSoundboard = processor->addSoundboard(name, true);
+        createdSoundboard = currentSoundboard;
+        createdSoundboard.setName(name);
+        updateSoundboardSelector();
+        updateButtons();
+    };
+
+    auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
+    content->setInputName(currentSoundboard.getName());
+    content->setSize(256, 100);
+
+    Component* dw = findParentComponentOfClass<AudioProcessorEditor>();
+    if (!dw) dw = findParentComponentOfClass<Component>();
+    if (!dw) dw = this;
+    Rectangle<int> abounds =  dw ? dw->getLocalArea(nullptr, mTitleLabel->getScreenBounds()) : mTitleLabel->getScreenBounds();
+
+    CallOutBox::launchAsynchronously(
+            std::move(content),
+            abounds,
+            dw
+    );
+}
+
 
 void SoundboardView::clickedDeleteSoundboard()
 {
@@ -423,14 +491,19 @@ void SoundboardView::clickedAddSoundSample()
 {
     SoundSample* createdSample = processor->addSoundSample("", "");
 
-    clickedEditSoundSample(*mAddSampleButton, *createdSample);
+    updateButtons();
+    auto * button = mSoundButtons.back().get();
+    if (button) {
+        clickedEditSoundSample(*button, *createdSample);
+    }
 }
 
-void SoundboardView::clickedEditSoundSample(const Component& button, SoundSample& sample)
+void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& sample)
 {
-    auto callback = [this, &sample](SampleEditView& editView) {
+    auto callback = [this, &sample, &button](SampleEditView& editView) {
         if (editView.isDeleteSample()) {
             processor->deleteSoundSample(sample);
+            updateButtons();
         }
         else {
             auto sampleName = editView.getSampleName();
@@ -453,22 +526,36 @@ void SoundboardView::clickedEditSoundSample(const Component& button, SoundSample
             sample.setGain(gain);
             sample.setHotkeyCode(hotkeyCode);
             processor->editSoundSample(sample);
+
+            if (auto * pbutton = dynamic_cast<SonoPlaybackProgressButton*>(&button)) {
+                updateButton(pbutton, sample);
+            } else {
+                updateButtons();
+            }
         }
-        updateButtons();
     };
 
+    auto wrap = std::make_unique<Viewport>();
     auto content = std::make_unique<SampleEditView>(callback, &sample, mLastSampleBrowseDirectory.get());
 
     Component* dw = findParentComponentOfClass<AudioProcessorEditor>();
-    if (!dw)
-        dw = findParentComponentOfClass<Component>();
-    if (!dw)
-        dw = this;
+    if (!dw) dw = findParentComponentOfClass<Component>();
+    if (!dw) dw = this;
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, button.getScreenBounds());
 
-    content->setSize(jmin((int)SampleEditView::DEFAULT_VIEW_WIDTH, dw->getWidth() - 10), jmin((int)SampleEditView::DEFAULT_VIEW_HEIGHT, dw->getHeight() - 24));
+    content->setSize((int)SampleEditView::DEFAULT_VIEW_WIDTH, (int)SampleEditView::DEFAULT_VIEW_HEIGHT); // first time to calculate
 
-    mSampleEditCalloutBox = & CallOutBox::launchAsynchronously(std::move(content),
+    wrap->setSize(jmin((int)SampleEditView::DEFAULT_VIEW_WIDTH, dw->getWidth() - 10), jmin((int)content->getMinimumContentHeight(), dw->getHeight() - 24));
+
+
+
+    wrap->setViewedComponent(content.get(), true); // viewport now owns sampleeditview
+
+    content->setSize(wrap->getWidth() - (wrap->isVerticalScrollBarShown() ? wrap->getScrollBarThickness() : 0), (int)content->getMinimumContentHeight());
+
+    content.release();
+
+    mSampleEditCalloutBox = & CallOutBox::launchAsynchronously(std::move(wrap),
                                                             bounds, dw, false);
     mSampleEditCalloutBox->addComponentListener(this);
 }
@@ -484,9 +571,11 @@ void SoundboardView::componentVisibilityChanged (Component& component)
         if (!component.isVisible()) {
             DBG("sample edit dismissal, commit it");
             if (auto * box = dynamic_cast<CallOutBox*>(mSampleEditCalloutBox.get())) {
-                if (auto * sev = dynamic_cast<SampleEditView*>(box->getChildComponent(0))) {
-                    if (sev->submitCallback) {
-                        sev->submitCallback(*sev);
+                if (auto * wrap = dynamic_cast<Viewport*>(box->getChildComponent(0))) {
+                    if (auto * sev = dynamic_cast<SampleEditView*>(wrap->getViewedComponent())) {
+                        if (sev->submitCallback) {
+                            sev->submitCallback(*sev);
+                        }
                     }
                 }
             }
@@ -506,17 +595,17 @@ void SoundboardView::resized()
     buttonBox.performLayout(buttonContainer.getLocalBounds().reduced(2,0));
 }
 
-void SoundboardView::processKeystroke(const KeyPress& keyPress)
+bool SoundboardView::processKeystroke(const KeyPress& keyPress)
 {
     // Only process keystrokes when the soundboard view is opened.
     // This is to prevent sounds from 'magically' playing.
     if (!this->isVisible()) {
-        return;
+        return false;
     }
 
     // When hotkeys are disabled, the hotkeystate button is toggled on.
     if (mHotkeyStateButton->getToggleState()) {
-        return;
+        return false;
     }
 
     // Process default keybinds (1-9).
@@ -524,33 +613,36 @@ void SoundboardView::processKeystroke(const KeyPress& keyPress)
     auto keyCode = keyPress.getKeyCode();
 
     if (keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
-        if (playSampleAtIndex(keyCode - 49)) {
-            return;
+        if (triggerSampleAtIndex(keyCode - 49)) {
+            return true;
         }
     }
 
     if (keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
-        if (playSampleAtIndex(keyCode - KeyPress::numberPad1)) {
-            return;
+        if (triggerSampleAtIndex(keyCode - KeyPress::numberPad1)) {
+            return true;
         }
     }
 
     // Look for custom keybinds.
     auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
     if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
-        return;
+        return false;
     }
 
     auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
     auto& samples = soundboard.getSamples();
 
     auto sampleCount = samples.size();
+    bool gotone = false;
     for (int i = 0; i < sampleCount; ++i) {
         auto& sample = samples[i];
         if (sample.getHotkeyCode() == keyPress.getKeyCode()) {
-            playSampleAtIndex(i);
+            triggerSampleAtIndex(i);
+            gotone = true;
         }
     }
+    return gotone;
 }
 
 void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident)
@@ -645,11 +737,54 @@ HoldSampleButtonMouseListener::HoldSampleButtonMouseListener(SonoPlaybackProgres
 
 void HoldSampleButtonMouseListener::mouseDown(const MouseEvent& event)
 {
-    view->playSample(*sample, button);
+    dragging = false;
+
+    if (sample->getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD && event.mods.isLeftButtonDown() && !button->isClickEdit()) {
+        view->playSample(*sample, button);
+    }
 }
+
+void HoldSampleButtonMouseListener::mouseDrag(const MouseEvent &event)
+{
+    if (!dragging && abs(event.getDistanceFromDragStartX()) > 5)
+    {
+        downPoint = event.getPosition();
+        if (auto * manager = button->getPlaybackManager()) {
+            downTransportPos = manager->getCurrentPosition();
+        }
+        dragging = true;
+        button->setIgnoreNextClick();
+    }
+    else if (dragging) {
+        if (auto * manager = button->getPlaybackManager()) {
+
+            double posdelta = manager->getLength() * (event.getPosition().getX() - downPoint.getX()) / (double)button->getWidth();
+            double pos = jlimit(0.0, manager->getLength(), downTransportPos + posdelta);
+
+            sample->setLastPlaybackPosition(pos);
+            button->setPlaybackPosition(pos / manager->getLength());
+            button->repaint();
+        }
+    }
+
+}
+
 
 void HoldSampleButtonMouseListener::mouseUp(const MouseEvent& event)
 {
-    view->stopSample(*sample);
+    if (sample->getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD) {
+        view->stopSample(*sample);
+    }
+
+    if (dragging) {
+        if (auto * manager = button->getPlaybackManager()) {
+
+            double posdelta = manager->getLength() * (event.getPosition().getX() - downPoint.getX()) / (double)button->getWidth();
+            double pos = jlimit(0.0, manager->getLength(), downTransportPos + posdelta);
+
+            sample->setLastPlaybackPosition(pos);
+            manager->seek(pos);
+        }
+    }
 }
 

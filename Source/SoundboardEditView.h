@@ -39,6 +39,8 @@ public:
      */
     [[nodiscard]] String getInputName() const;
 
+    void setInputName(const String & name);
+
     /**
      * Whether the dialog is in edit mode.
      *

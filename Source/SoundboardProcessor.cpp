@@ -95,14 +95,18 @@ void SoundboardProcessor::reorderSoundboards()
     });
 }
 
-SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath)
+SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePath, std::optional<int> index)
 {
-    // Per definition: do nothing when no soundboard is selected.
-    if (!selectedSoundboardIndex.has_value()) {
+    // Per definition: do nothing when no soundboard is selected or specified.
+    if (!index.has_value() && !selectedSoundboardIndex.has_value()) {
         return nullptr;
     }
 
-    auto& soundboard = soundboards[*selectedSoundboardIndex];
+    auto sindex = index.has_value() ? *index : *selectedSoundboardIndex;
+    if (sindex < 0 || sindex >= soundboards.size())
+        return nullptr;
+
+    auto& soundboard = soundboards[sindex];
     auto& sampleList = soundboard.getSamples();
 
     SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath));
@@ -125,13 +129,17 @@ void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
     }
 }
 
-void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
+bool SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete, std::optional<int> index)
 {
-    if (!selectedSoundboardIndex.has_value()) {
-        return;
+    if (!index.has_value() && !selectedSoundboardIndex.has_value()) {
+        return false;
     }
 
-    auto& soundboard = soundboards[*selectedSoundboardIndex];
+    auto sindex = index.has_value() ? *index : *selectedSoundboardIndex;
+    if (sindex < 0 || sindex >= soundboards.size())
+        return false;
+
+    auto& soundboard = soundboards[sindex];
     auto& sampleList = soundboard.getSamples();
 
     for (auto iter = sampleList.begin(); iter != sampleList.end(); ++iter) {
@@ -151,6 +159,7 @@ void SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete)
     }
 
     saveToDisk();
+    return true;
 }
 
 void SoundboardProcessor::stopAllPlayback()

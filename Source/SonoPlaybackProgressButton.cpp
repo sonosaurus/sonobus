@@ -7,20 +7,31 @@
 #include <utility>
 
 SonoPlaybackProgressButton::SonoPlaybackProgressButton() : TextButton()
-{}
+{
+    initStuff();
+}
 
 SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName) : TextButton(buttonName)
-{}
+{
+    initStuff();
+}
 
 SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName, const String& toolTip)
         : TextButton(buttonName, toolTip)
-{}
+{
+    initStuff();
+}
 
-SonoPlaybackProgressButton::~SonoPlaybackProgressButton() noexcept
+SonoPlaybackProgressButton::~SonoPlaybackProgressButton()
 {
     if (playbackManager != nullptr) {
         playbackManager->detach(*this);
     }
+}
+
+void SonoPlaybackProgressButton::initStuff()
+{
+    editImage = Drawable::createFromImageData(BinaryData::dots_svg, BinaryData::dots_svgSize);
 }
 
 void SonoPlaybackProgressButton::setPlaybackPosition(double value)
@@ -32,6 +43,15 @@ void SonoPlaybackProgressButton::setButtonColour(int newRgb)
 {
     buttonColour = newRgb;
 }
+
+void SonoPlaybackProgressButton::setShowEditArea(bool show)
+{
+    if (showEditArea != show) {
+        showEditArea = show;
+        repaint();
+    }
+}
+
 
 void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
                                              bool shouldDrawButtonAsHighlighted,
@@ -57,6 +77,12 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
 
 
     lf.drawButtonText(graphics, *this, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+
+    if (showEditArea) {
+        auto imgbounds = getLocalBounds().toFloat().reduced(2).withLeft(getLocalBounds().getRight() - getLocalBounds().getHeight());
+        editBounds = imgbounds.toNearestIntEdges();
+        editImage->drawWithin(graphics, imgbounds, RectanglePlacement(RectanglePlacement::centred), 0.6f);
+    }
 }
 
 void SonoPlaybackProgressButton::onPlaybackPositionChanged(const SamplePlaybackManager& manager)
@@ -65,8 +91,10 @@ void SonoPlaybackProgressButton::onPlaybackPositionChanged(const SamplePlaybackM
         ? manager.getCurrentPosition() / manager.getLength()
         : 0.0;
 
-    setPlaybackPosition(position);
-    repaint();
+    if (!ignoreNextClick) {
+        setPlaybackPosition(position);
+        repaint();
+    }
 }
 
 void SonoPlaybackProgressButton::attachToPlaybackManager(std::shared_ptr<SamplePlaybackManager> playbackManager_)

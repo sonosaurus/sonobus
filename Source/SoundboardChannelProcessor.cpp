@@ -31,7 +31,7 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
     else
 #endif
     {
-        reader = formatManager.createReaderFor(audioFileUrl.createInputStream(false));
+        reader = formatManager.createReaderFor(audioFileUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
     }
 
     if (reader == nullptr) {

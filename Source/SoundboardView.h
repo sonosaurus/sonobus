@@ -37,7 +37,7 @@ public:
     /**
      * @param keyPress Pressed key code.
      */
-    void processKeystroke(const KeyPress& keyPress);
+    bool processKeystroke(const KeyPress& keyPress);
 
     bool isInterestedInFileDrag(const StringArray& files) override;
 
@@ -213,12 +213,13 @@ private:
      * Removes buttons of sounds that are not available anymore.
      */
     void updateButtons();
+    void updateButton(SonoPlaybackProgressButton * button, SoundSample & sample);
 
     /**
      * Plays the sample at the given sampleIndex, does nothing when sampleIndex out of bounds.
      * @return true if a sound was played, false if no sound was played.
      */
-    bool playSampleAtIndex(int sampleIndex);
+    bool triggerSampleAtIndex(int sampleIndex);
 
     /**
      * Shows the context menu for the SoundBoard View main menu button.
@@ -241,6 +242,12 @@ private:
     void clickedDeleteSoundboard();
 
     /**
+     * Call this method whenever the "Duplicate Soundboard" option is clicked.
+     */
+    void clickedDuplicateSoundboard();
+
+
+    /**
      * Call this method whenever the a new sound sample must be created.
      */
     void clickedAddSoundSample();
@@ -251,7 +258,7 @@ private:
      * @param button The sample button.
      * @param sample The sample that must be edited.
      */
-    void clickedEditSoundSample(const Component& button, SoundSample& sample);
+    void clickedEditSoundSample(Component & button, SoundSample& sample);
 
     void fileDraggedAt(int x, int y);
 
@@ -267,7 +274,7 @@ public:
     HoldSampleButtonMouseListener(SonoPlaybackProgressButton* button, SoundSample* sample, SoundboardView* view);
 
     void mouseDown(const MouseEvent &event) override;
-
+    void mouseDrag(const MouseEvent &event) override;
     void mouseUp(const MouseEvent &event) override;
 
 private:
@@ -277,4 +284,8 @@ private:
     SoundSample* sample;
 
     SoundboardView* view;
+
+    bool dragging = false;
+    Point<int> downPoint;
+    double downTransportPos = 0.0;
 };

@@ -3049,6 +3049,7 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
     DBG("Got key: " << key.getTextCharacter() << "  isdown: " << (key.isCurrentlyDown() ? 1 : 0) << " keycode: " << key.getKeyCode() << " pcode: " << (int)'p');
 
     mAltReleaseShouldAct = false; // reset alt check
+    bool gotone = false;
 
     if (key.isKeyCurrentlyDown('T') && !processor.getDisableKeyboardShortcuts()) {
         if (!mPushToTalkKeyDown) {
@@ -3059,19 +3060,20 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
             mPushToTalkKeyDown = true;
         }
-        return true;
+        gotone = true;
     }
     else if (key.isKeyCode(KeyPress::escapeKey)) {
         DBG("ESCAPE pressed");
         if (mConnectView->isVisible()) {
             mConnectView->escapePressed();
+            gotone = true;
         }
     }
 
     // Soundboard hotkeys.
-    mSoundboardView->processKeystroke(key);
+    gotone = gotone || mSoundboardView->processKeystroke(key);
 
-    return false;
+    return gotone;
 }
 
 bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)

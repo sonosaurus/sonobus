@@ -89,10 +89,11 @@ public:
      *
      * @param name The name of the new sample.
      * @param absolutePath The absolute path to the file of the new sample.
+     * @param index Optional index of soundboard, if not specified the selected soundboard is used
      *
      * @return Pointer to the added sound sample, nullptr when no sound was added.
      */
-    SoundSample* addSoundSample(String name, String absolutePath);
+    SoundSample* addSoundSample(String name, String absolutePath, std::optional<int> index = std::nullopt );
 
     /**
      * @param sampleToUpdate The sample to save with already containing the updated state.
@@ -103,8 +104,9 @@ public:
      * Deletes the given Sound Sample from the soundboard.
      *
      * @param sampleToDelete Reference to the sample to delete.
+     * @param index Optional index of soundboard, if not specified the selected soundboard is used
      */
-    void deleteSoundSample(SoundSample& sampleToDelete);
+    bool deleteSoundSample(SoundSample& sampleToDelete, std::optional<int> index = std::nullopt );
 
     /**
      * Stops all playing sound samples from playing.

@@ -22,6 +22,7 @@ SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, co
 
     mInputField = std::make_unique<TextEditor>("nameInput");
     mInputField->setText(initialName);
+    mInputField->setTitle(TRANS("Name"));
     mInputField->onReturnKey = [this]() {
         submitDialog();
     };
@@ -61,6 +62,13 @@ SoundboardEditView::SoundboardEditView(std::function<void (String)> callback, co
     mainBox.flexDirection = FlexBox::Direction::row;
     mainBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, ELEMENT_MARGIN, contentBox).withMargin(0).withFlex(1));
 }
+
+void SoundboardEditView::setInputName(const String & name)
+{
+    initialName = name;
+    mInputField->setText(name, dontSendNotification);
+}
+
 
 String SoundboardEditView::getInputName() const
 {

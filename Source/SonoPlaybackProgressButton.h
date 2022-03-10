@@ -24,6 +24,9 @@ public:
      */
     void setButtonColour(int newRgb);
 
+    void setShowEditArea(bool show);
+    bool getShowEditArea() const { return showEditArea; }
+
     /**
      * Function that gets called whenever the button is clicked with the primary button.
      * onClick also gets called before this callback.
@@ -40,12 +43,30 @@ public:
     {
         TextButton::internalClickCallback(mods);
 
-        if (mods.isLeftButtonDown()) {
-            onPrimaryClick();
+        if (!ignoreNextClick) {
+            if (mods.isLeftButtonDown()) {
+                if (clickIsEdit) {
+                    if (onSecondaryClick) onSecondaryClick();
+                } else {
+                    if (onPrimaryClick) onPrimaryClick();
+                }
+            }
+            else if (mods.isRightButtonDown()) {
+                if (onSecondaryClick) onSecondaryClick();
+            }
         }
-        else if (mods.isRightButtonDown()) {
-            onSecondaryClick();
+
+        ignoreNextClick = false;
+    }
+
+    void mouseDown (const MouseEvent& e) override
+    {
+        clickIsEdit = false;
+
+        if (showEditArea && editBounds.contains(e.getPosition())) {
+            clickIsEdit = true;
         }
+        TextButton::mouseDown(e);
     }
 
     void paintButton(Graphics& graphics, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
@@ -56,10 +77,24 @@ public:
 
     void setMouseListener(std::unique_ptr<MouseListener> listener);
 
+
+    SamplePlaybackManager * getPlaybackManager() const { return playbackManager.get(); }
+
+    void setIgnoreNextClick() { ignoreNextClick = true; }
+
+    bool isClickEdit() const { return clickIsEdit; }
+
 private:
+
+    void initStuff();
+
     constexpr static const int PROGRESS_COLOUR = 0x22FFFFFF;
 
     double playbackPosition = 0.0;
+    bool ignoreNextClick = false;
+    bool clickIsEdit = false;
+
+    bool showEditArea = true;
 
     /**
      * The RGB value of the button background color with an alpha of 0.
@@ -69,4 +104,7 @@ private:
     std::shared_ptr<SamplePlaybackManager> playbackManager;
 
     std::unique_ptr<MouseListener> mouseListener;
+
+    std::unique_ptr<Drawable> editImage;
+    Rectangle<int> editBounds;
 };

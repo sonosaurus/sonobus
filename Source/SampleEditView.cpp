@@ -34,46 +34,6 @@ SampleEditView::SampleEditView(
     createVolumeInputs();
     createHotkeyInput();
     createButtonBar();
-    initialiseLayouts();
-}
-
-void SampleEditView::initialiseLayouts()
-{
-    contentBox.flexDirection = FlexBox::Direction::column;
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mNameLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 36, CONTROL_HEIGHT, *mNameInput).withMargin(4).withFlex(0));
-
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mFilePathLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, filePathBox).withMargin(0).withFlex(0));
-
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mColourInputLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 32 * 2, colourButtonBox).withMargin(0).withFlex(0));
-
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mPlaybackOptionsLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 36, playbackOptionsRowBox).withMargin(0).withFlex(0));
-
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 6).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mVolumeLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, 48, volumeRowBox).withMargin(0).withFlex(0));
-
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 1).withMargin(0));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, CONTROL_HEIGHT, *mHotkeyLabel).withMargin(0).withFlex(0));
-    contentBox.items.add(FlexItem(150, CONTROL_HEIGHT, hotkeyButtonRowBox).withMargin(4).withFlex(0));
-
-    contentBox.items.add(FlexItem(ELEMENT_MARGIN, 0).withMargin(0).withFlex(1));
-    contentBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 4, CONTROL_HEIGHT, buttonBox).withMargin(0).withFlex(0));
-
-    mainBox.items.clear();
-    mainBox.flexDirection = FlexBox::Direction::row;
-    mainBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH, ELEMENT_MARGIN, contentBox).withMargin(0).withFlex(1));
 }
 
 void SampleEditView::setEditMode(bool flag)
@@ -105,7 +65,7 @@ void SampleEditView::createNameInputs()
 
 void SampleEditView::createFilePathInputs()
 {
-    mFilePathLabel = std::make_unique<Label>("filePathLabel", TRANS("Absolute file path"));
+    mFilePathLabel = std::make_unique<Label>("filePathLabel", TRANS("File"));
     mFilePathLabel->setJustificationType(Justification::left);
     mFilePathLabel->setFont(Font(14, Font::bold));
     mFilePathLabel->setColour(Label::textColourId, Colour(0xeeffffff));
@@ -121,12 +81,7 @@ void SampleEditView::createFilePathInputs()
     };
     addAndMakeVisible(mBrowseFilePathButton.get());
 
-    filePathBox.flexDirection = FlexBox::Direction::row;
-    filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    filePathBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH - 84, CONTROL_HEIGHT, *mFilePathInput).withMargin(0).withFlex(0));
-    filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    filePathBox.items.add(FlexItem(72, CONTROL_HEIGHT, *mBrowseFilePathButton).withMargin(0).withFlex(0));
-    filePathBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
 }
 
 void SampleEditView::createColourInput()
@@ -196,25 +151,13 @@ void SampleEditView::createPlaybackOptionInputs()
     mPlaybackOptionsLabel->setColour(Label::textColourId, Colour(0xeeffffff));
     addAndMakeVisible(mPlaybackOptionsLabel.get());
 
-    // Add row flexbox container for playback options
-    playbackOptionsRowBox.flexDirection = FlexBox::Direction::row;
-    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
-
     createButtonBehaviourButton();
-    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mButtonBehaviourButton).withMargin(0).withFlex(0, 0));
-    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 
     createLoopButton();
-    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mLoopButton).withMargin(0).withFlex(0, 0));
-    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 
     createPlaybackBehaviourButton();
-    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
-    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 
     createReplayBehaviourButton();
-    playbackOptionsRowBox.items.add(FlexItem(56, 56, *mReplayBehaviourButton).withMargin(0).withFlex(0, 0));
-    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 void SampleEditView::createVolumeInputs()
@@ -225,24 +168,28 @@ void SampleEditView::createVolumeInputs()
     mVolumeLabel->setColour(Label::textColourId, Colour(0xeeffffff));
     addAndMakeVisible(mVolumeLabel.get());
 
-    mVolumeSlider = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
+    mVolumeSlider = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxRight);
     mVolumeSlider->setRange(0.0, 2.0, 0.0);
     mVolumeSlider->setSkewFactor(0.5);
     mVolumeSlider->setName("volumeSlider");
     mVolumeSlider->setTitle(TRANS("Playback gain level"));
     mVolumeSlider->setSliderSnapsToMousePosition(false);
+    mVolumeSlider->setDoubleClickReturnValue(true, 1.0);
     mVolumeSlider->setTextBoxIsEditable(true);
-    mVolumeSlider->setScrollWheelEnabled(true);
+    mVolumeSlider->setScrollWheelEnabled(false);
     mVolumeSlider->setMouseDragSensitivity(256);
-    mVolumeSlider->setTextBoxStyle(Slider::TextBoxRight, false, 60, 14);
+    mVolumeSlider->setTextBoxStyle(Slider::TextBoxRight, false, 60, 32);
     mVolumeSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
     mVolumeSlider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
     mVolumeSlider->setValue(initialGain);
+    mVolumeSlider->setChangeNotificationOnlyOnRelease(true);
+    mVolumeSlider->onValueChange = [this]() {
+        submitDialog(false);
+    };
+
     addAndMakeVisible(mVolumeSlider.get());
 
-    volumeRowBox.flexDirection = FlexBox::Direction::row;
-    volumeRowBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
-    volumeRowBox.items.add(FlexItem(128, 36, *mVolumeSlider).withMargin(0).withFlex(0, 0));
+
 }
 
 void SampleEditView::createLoopButton()
@@ -257,6 +204,9 @@ void SampleEditView::createLoopButton()
     mLoopButton = std::make_unique<SonoMultiStateDrawableButton>("loop", std::move(loopImages), std::move(labels));
     mLoopButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
     mLoopButton->setState(initialLoop);
+    mLoopButton->onStateChange = [this]() {
+        submitDialog(false);
+    };
 
     addAndMakeVisible(mLoopButton.get());
 }
@@ -273,6 +223,9 @@ void SampleEditView::createReplayBehaviourButton()
     mReplayBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("replayBehaviour", std::move(buttonImages), std::move(labels));
     mReplayBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
     mReplayBehaviourButton->setState(initialReplayBehaviour);
+    mReplayBehaviourButton->onStateChange = [this]() {
+        submitDialog(false);
+    };
 
     addAndMakeVisible(mReplayBehaviourButton.get());
 }
@@ -290,6 +243,9 @@ void SampleEditView::createPlaybackBehaviourButton()
     mPlaybackBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("playbackBehaviour", std::move(imgs), std::move(labels));
     mPlaybackBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
     mPlaybackBehaviourButton->setState(initialPlaybackBehaviour);
+    mPlaybackBehaviourButton->onStateChange = [this]() {
+        submitDialog(false);
+    };
 
     addAndMakeVisible(mPlaybackBehaviourButton.get());
 }
@@ -307,6 +263,9 @@ void SampleEditView::createButtonBehaviourButton()
     mButtonBehaviourButton = std::make_unique<SonoMultiStateDrawableButton>("buttonBehaviour", std::move(imgs), std::move(labels));
     mButtonBehaviourButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
     mButtonBehaviourButton->setState(initialButtonBehaviour);
+    mButtonBehaviourButton->onStateChange = [this]() {
+        submitDialog(false);
+    };
 
     addAndMakeVisible(mButtonBehaviourButton.get());
 }
@@ -336,15 +295,10 @@ void SampleEditView::createHotkeyInput()
         mHotkeyButton->setButtonText(TRANS("Click to change..."));
         mHotkeyButton->setToggleState(false, dontSendNotification);
         hotkeyCode = -1;
+        submitDialog(false);
     };
     addAndMakeVisible(mRemoveHotkeyButton.get());
 
-    hotkeyButtonRowBox.flexDirection = FlexBox::Direction::row;
-    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    hotkeyButtonRowBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 2 - 12, CONTROL_HEIGHT, *mHotkeyButton).withMargin(0).withFlex(0));
-    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    hotkeyButtonRowBox.items.add(FlexItem(DEFAULT_VIEW_WIDTH / 2 - 8, CONTROL_HEIGHT, *mRemoveHotkeyButton).withMargin(0).withFlex(0));
-    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 }
 
 std::unique_ptr<SonoDrawableButton> SampleEditView::createColourButton(const int index)
@@ -512,15 +466,109 @@ bool SampleEditView::keyPressed(const KeyPress& keyPress)
     mHotkeyButton->setButtonText(keyPressWithoutModifier.getTextDescriptionWithIcons());
     mHotkeyButton->setToggleState(false, dontSendNotification);
     hotkeyCode = keyPress.getKeyCode();
+    submitDialog(false);
     return true;
 }
 
 void SampleEditView::paint(Graphics& g)
 {
-    g.fillAll(Colour(0xff131313));
+    g.fillAll(Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0));
 }
 
 void SampleEditView::resized()
 {
-    mainBox.performLayout(getLocalBounds().reduced(2));
+    const int minlabwidth = 60;
+    const int mintextwidth = 100;
+    const int mintextbuttwidth = 72;
+    const int rowheight = 32;
+    const int labrowheight = 24;
+    const int volheight = 38;
+    const int playbackboxw = 50;
+    const int playbackboxh = 50;
+
+    FlexBox contentBox;
+    contentBox.flexDirection = FlexBox::Direction::column;
+
+
+    FlexBox namebox;
+    namebox.flexDirection = FlexBox::Direction::row;
+    namebox.items.add(FlexItem(minlabwidth, rowheight, *mNameLabel).withMargin(0).withFlex(0));
+    namebox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    namebox.items.add(FlexItem(mintextwidth, rowheight, *mNameInput).withMargin(0).withFlex(1));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(mintextwidth, rowheight, namebox).withMargin(0));
+
+    FlexBox filebox;
+    filebox.flexDirection = FlexBox::Direction::row;
+    filebox.items.add(FlexItem(minlabwidth, rowheight, *mFilePathLabel).withMargin(0).withFlex(0));
+    filebox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    filebox.items.add(FlexItem(mintextwidth, rowheight, *mFilePathInput).withMargin(0).withFlex(1));
+    filebox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    filebox.items.add(FlexItem(mintextbuttwidth, rowheight, *mBrowseFilePathButton).withMargin(0).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(mintextwidth, rowheight, filebox).withMargin(0));
+
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(mintextwidth, labrowheight, *mColourInputLabel).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    contentBox.items.add(FlexItem(32*6, 32 * 2, colourButtonBox).withMargin(0).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(mintextwidth, labrowheight, *mPlaybackOptionsLabel).withMargin(0).withFlex(0));
+
+
+    // Add row flexbox container for playback options
+    FlexBox playbackOptionsRowBox;
+    playbackOptionsRowBox.flexDirection = FlexBox::Direction::row;
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
+    playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mButtonBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mLoopButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mReplayBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    contentBox.items.add(FlexItem(playbackboxw * 4, playbackboxh, playbackOptionsRowBox).withMargin(0).withFlex(0));
+
+    FlexBox volbox;
+    volbox.flexDirection = FlexBox::Direction::row;
+    volbox.items.add(FlexItem(minlabwidth, rowheight, *mVolumeLabel).withMargin(0).withFlex(0));
+    volbox.items.add(FlexItem(mintextwidth, volheight, *mVolumeSlider).withMargin(0).withFlex(1).withMaxWidth(400));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
+    contentBox.items.add(FlexItem(mintextwidth, volheight, volbox).withMargin(0));
+
+
+    FlexBox hotkeyButtonRowBox;
+    hotkeyButtonRowBox.flexDirection = FlexBox::Direction::row;
+    hotkeyButtonRowBox.items.add(FlexItem(minlabwidth, labrowheight, *mHotkeyLabel).withMargin(0).withFlex(0));
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    hotkeyButtonRowBox.items.add(FlexItem(mintextwidth, rowheight, *mHotkeyButton).withMargin(0).withFlex(1));
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+    hotkeyButtonRowBox.items.add(FlexItem(mintextwidth, rowheight, *mRemoveHotkeyButton).withMargin(0).withFlex(1));
+    hotkeyButtonRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 1).withMargin(0));
+    contentBox.items.add(FlexItem(2*mintextwidth, rowheight, hotkeyButtonRowBox).withMargin(0).withFlex(0));
+
+    contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0).withFlex(1));
+    contentBox.items.add(FlexItem(mintextwidth, rowheight, buttonBox).withMargin(0).withFlex(0));
+
+
+    int minh = 0;
+    for (auto & item : contentBox.items) {
+        minh += item.minHeight + item.margin.top + item.margin.bottom;
+    }
+    minContentHeight = minh + 4;
+    minContentWidth = jmax(32*6, playbackboxw*4) + 10;
+
+    contentBox.performLayout(getLocalBounds().reduced(2));
+
 }
+
