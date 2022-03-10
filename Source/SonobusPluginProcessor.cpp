@@ -735,8 +735,10 @@ mState (*this, &mUndoManager, "SonoBusAoO",
         // default dry to 1.0 if plugin
         mDry = 1.0;
         mSendChannels = 0; // match inputs default for plugin
+        mSyncMetToHost = true;
     } else {
         mDry = 0.0;
+        mSyncMetToHost = false;
     }
 
     mState.getParameter(paramDry)->setValue(mDry.get());
