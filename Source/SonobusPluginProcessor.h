@@ -704,6 +704,9 @@ public:
     void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
     String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
 
+    void setLastBrowseDirectory(String recdir)  { mLastBrowseDir = recdir; }
+    String getLastBrowseDirectory() const { return mLastBrowseDir; }
+
     uint32 getDefaultRecordingOptions() const { return mDefaultRecordingOptions; }
     void setDefaultRecordingOptions(uint32 opts) { mDefaultRecordingOptions = opts; }
 
@@ -1117,6 +1120,7 @@ private:
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;
+    String mLastBrowseDir;
 
     std::atomic<bool> writingPossible = { false };
     std::atomic<bool> userWritingPossible = { false };

@@ -92,6 +92,7 @@ static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
 static String recordFinishOpenKey("RecordFinishOpen");
 static String defRecordDirKey("DefaultRecordDir");
+static String lastBrowseDirKey("LastBrowseDir");
 static String sliderSnapKey("SliderSnapToMouse");
 static String disableShortcutsKey("DisableKeyShortcuts");
 static String peerDisplayModeKey("PeerDisplayMode");
@@ -714,14 +715,17 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
 #if (JUCE_IOS)
     mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
+    mLastBrowseDir = mDefaultRecordDir;
 #elif (JUCE_ANDROID)
     auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
     parentDir = parentDir.getChildFile("Recordings");
     mDefaultRecordDir = parentDir.getFullPathName();
+    mLastBrowseDir = mDefaultRecordDir;
 #else
     auto parentDir = File::getSpecialLocation (File::userMusicDirectory);
     parentDir = parentDir.getChildFile("SonoBus");
     mDefaultRecordDir = parentDir.getFullPathName();
+    mLastBrowseDir = mDefaultRecordDir;
 #endif
 
 
@@ -8087,6 +8091,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
+    extraTree.setProperty(lastBrowseDirKey, mLastBrowseDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
     extraTree.setProperty(disableShortcutsKey, mDisableKeyboardShortcuts, nullptr);
     extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
@@ -8199,6 +8204,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
 #if !(JUCE_IOS || JUCE_ANDROID)
             setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
+            setLastBrowseDirectory(extraTree.getProperty(lastBrowseDirKey, mLastBrowseDir));
 #endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
             setDisableKeyboardShortcuts(extraTree.getProperty(disableShortcutsKey, mDisableKeyboardShortcuts));
