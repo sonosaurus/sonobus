@@ -81,6 +81,10 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
     if (showEditArea) {
         auto imgbounds = getLocalBounds().toFloat().reduced(2).withLeft(getLocalBounds().getRight() - getLocalBounds().getHeight());
         editBounds = imgbounds.toNearestIntEdges();
+        if (overEditArea) {
+            graphics.setColour(colour);
+            graphics.fillRoundedRectangle(imgbounds, 6.0f);
+        }
         editImage->drawWithin(graphics, imgbounds, RectanglePlacement(RectanglePlacement::centred), 0.6f);
     }
 }

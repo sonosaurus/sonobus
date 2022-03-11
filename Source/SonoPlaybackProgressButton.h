@@ -69,6 +69,28 @@ public:
         TextButton::mouseDown(e);
     }
 
+    void mouseMove (const MouseEvent& e) override
+    {
+        if (showEditArea) {
+            bool inarea = editBounds.contains(e.getPosition());
+            if (inarea != overEditArea) {
+                overEditArea = inarea;
+                repaint();
+            }
+        }
+        TextButton::mouseMove(e);
+    }
+
+    void mouseExit (const MouseEvent& e) override
+    {
+        if (overEditArea) {
+            overEditArea = false;
+            repaint();
+        }
+
+        TextButton::mouseExit(e);
+    }
+
     void paintButton(Graphics& graphics, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
     void onPlaybackPositionChanged(const SamplePlaybackManager& samplePlaybackManager) override;
@@ -93,6 +115,7 @@ private:
     double playbackPosition = 0.0;
     bool ignoreNextClick = false;
     bool clickIsEdit = false;
+    bool overEditArea = false;
 
     bool showEditArea = true;
 
