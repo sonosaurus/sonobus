@@ -424,11 +424,13 @@ void SoundboardView::clickedRenameSoundboard()
 
 void SoundboardView::clickedDuplicateSoundboard()
 {
-    auto& currentSoundboard = processor->getSoundboard(mBoardSelectComboBox->getSelectedItemIndex());
+    auto currindex = mBoardSelectComboBox->getSelectedItemIndex();
+    auto& currentSoundboard = processor->getSoundboard(currindex);
 
-    auto callback = [this, &currentSoundboard](const String& name) {
-        Soundboard& createdSoundboard = processor->addSoundboard(name, true);
-        createdSoundboard = currentSoundboard;
+    auto callback = [this, currindex](const String& name) {
+        auto currSoundboard = processor->getSoundboard(currindex);
+        auto & createdSoundboard = processor->addSoundboard(name, true);
+        createdSoundboard = currSoundboard;
         createdSoundboard.setName(name);
         updateSoundboardSelector();
         updateButtons();
