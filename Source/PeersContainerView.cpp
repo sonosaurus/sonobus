@@ -527,8 +527,15 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->formatChoiceButton->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
-        pvf->formatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i);
+        SonobusAudioProcessor::AudioCodecFormatInfo finfo;
+        processor.getAudioCodeFormatInfo(i, finfo);
+        auto name = finfo.name;
+        if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
+            name += String(" (*)");
+        }
+        pvf->formatChoiceButton->addItem(name, i);
     }
+    pvf->formatChoiceButton->addItem("(*) " + TRANS("not recommended"), -2, true, true);
 
     pvf->staticFormatChoiceLabel = std::make_unique<Label>("sendfmtst", TRANS("Send Quality"));
     pvf->staticFormatChoiceLabel->setAccessible(false);
