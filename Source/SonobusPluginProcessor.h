@@ -532,9 +532,10 @@ public:
     bool getInputEqParams(int changroup, SonoAudio::ParametricEqParams & retparams);
     
     
-    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity; }
+    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity || (mInputChannelGroups[changroup].params.inReverbSend > 0.0f); }
 
-    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled; }
+    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled
+        || (mInputChannelGroups[changroup].params.monReverbSend > 0.0f); }
 
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 

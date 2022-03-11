@@ -1519,7 +1519,7 @@ bool SonobusAudioProcessor::getRemotePeerEffectsActive(int index, int changroup)
     const ScopedReadLock sl (mCoreLock);
     auto remote = mRemotePeers.getUnchecked(index);
     if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
-        return remote->chanGroups[changroup].params.compressorParams.enabled || remote->chanGroups[changroup].params.expanderParams.enabled || remote->chanGroups[changroup].params.eqParams.enabled || remote->chanGroups[changroup].params.invertPolarity;
+        return remote->chanGroups[changroup].params.compressorParams.enabled || remote->chanGroups[changroup].params.expanderParams.enabled || remote->chanGroups[changroup].params.eqParams.enabled || remote->chanGroups[changroup].params.invertPolarity || (remote->chanGroups[changroup].params.monReverbSend > 0.0f);
     }
     return false;
 

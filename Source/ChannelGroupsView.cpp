@@ -307,11 +307,25 @@ void ChannelGroupEffectsView::parametricEqParamsChanged(ParametricEqView *comp, 
 void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float revlevel)
 {
     if (peerMode) {
+        bool wason = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+
         processor.setRemotePeerChannelReverbSend(peerIndex, groupIndex, revlevel);
+
+        bool ison = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
+        }
     }
     else {
+        bool wason = processor.getInputEffectsActive(groupIndex);
+
         // input mode
         processor.setInputReverbSend(groupIndex, revlevel, true);
+
+        bool ison = processor.getInputEffectsActive(groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
+        }
     }
 }
 
