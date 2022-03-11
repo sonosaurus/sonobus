@@ -1544,21 +1544,6 @@ void PeersContainerView::updatePeerViews(int specific)
 
         pvf->addrLabel->setText(addrname, dontSendNotification);
 
-#if 0
-        String username = processor.getRemotePeerUserName(i);
-
-        //DBG("Got username: '" << username << "'");
-        
-        if (username.isNotEmpty()) {
-            pvf->nameLabel->setText(username, dontSendNotification);
-            pvf->addrLabel->setText(addrname, dontSendNotification);
-            //pvf->addrLabel->setVisible(true);
-        } else {
-            //pvf->addrLabel->setVisible(false);
-            pvf->nameLabel->setText(addrname, dontSendNotification);
-        }
-#endif
-
         String sendtext;
         bool sendactive = processor.getRemotePeerSendActive(i);
         bool sendallow = processor.getRemotePeerSendAllow(i);
