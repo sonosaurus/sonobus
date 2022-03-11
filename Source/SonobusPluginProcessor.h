@@ -951,7 +951,7 @@ private:
 
     // acceptable limit for drop rate in dropinstance/second
     // above which it will adjust the jitter buffer in Auto modes
-    float mAutoresizeDropRateThresh = 0.2f;
+    float mAutoresizeDropRateThresh = 0.5f;
 
     bool hasInitializedInMonPanners = false;
     

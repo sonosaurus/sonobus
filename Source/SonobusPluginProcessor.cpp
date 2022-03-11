@@ -104,7 +104,7 @@ static String linkMonitoringDelayTimesKey("linkMonDelayTimes");
 static String langOverrideCodeKey("langOverrideCode");
 static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
-static String autoresizeDropRateThreshKey("autoDropRateThresh");
+static String autoresizeDropRateThreshKey("autoDropRateThreshNew");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
