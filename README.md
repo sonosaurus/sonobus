@@ -113,6 +113,12 @@ router to the machine you are running it on.
 Thanks for everyone involved in testing, especially to Christof Ressi for
 the AOO library.
 
+### Software development credits:
+
+- For designing and implementing the Soundboard feature:
+    - Sten Wessel
+    - Hannah Schellekens
+
 ### Documentation credits:
  - Michael Eskin
  - Tony Becker
