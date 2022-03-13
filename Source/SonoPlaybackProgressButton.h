@@ -31,13 +31,13 @@ public:
      * Function that gets called whenever the button is clicked with the primary button.
      * onClick also gets called before this callback.
      */
-    std::function<void()> onPrimaryClick;
+    std::function<void(const ModifierKeys& mods)> onPrimaryClick;
 
     /**
      * Function that gets called whenever the button is clicked with the secondary button.
      * onClick also gets called before this callback.
      */
-    std::function<void()> onSecondaryClick;
+    std::function<void(const ModifierKeys& mods)> onSecondaryClick;
 
     void internalClickCallback(const ModifierKeys& mods) override
     {
@@ -46,13 +46,13 @@ public:
         if (!ignoreNextClick) {
             if (mods.isLeftButtonDown()) {
                 if (clickIsEdit) {
-                    if (onSecondaryClick) onSecondaryClick();
+                    if (onSecondaryClick) onSecondaryClick(mods);
                 } else {
-                    if (onPrimaryClick) onPrimaryClick();
+                    if (onPrimaryClick) onPrimaryClick(mods);
                 }
             }
             else if (mods.isRightButtonDown()) {
-                if (onSecondaryClick) onSecondaryClick();
+                if (onSecondaryClick) onSecondaryClick(mods);
             }
         }
 

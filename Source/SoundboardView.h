@@ -59,6 +59,13 @@ public:
 
     void stopSample(const SoundSample& sample);
 
+
+    /**
+     * Callback used when a sample is command/control clicked to indicate that it should
+     * be opened for playback in the main UI (for example)
+     */
+    std::function<void(const SoundSample& sample)> onOpenSample;
+
 private:
     constexpr static const float MENU_BUTTON_WIDTH = 36;
     constexpr static const float TITLE_LABEL_WIDTH = 90;

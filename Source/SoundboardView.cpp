@@ -187,25 +187,37 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
 
     auto buttonAddress = playbackButton;
     if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD) {
-        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
             if (sample.getFilePath().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
+            }
+            else if (mods.isCommandDown()) {
+                if (onOpenSample) onOpenSample(sample);
             }
         };
     }
     else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::ONE_SHOT) {
-        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
             if (sample.getFilePath().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
+            }
+            else if (mods.isCommandDown()) {
+                if (onOpenSample) onOpenSample(sample);
             }
             else
                 playSample(sample, buttonAddress);
         };
     }
     else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE) {
-        playbackButton->onPrimaryClick = [this, &sample, buttonAddress]() {
+        playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
             if (sample.getFilePath().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
+            }
+            else if (mods.isCommandDown()) {
+                if (processor->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
+                    stopSample(sample);
+                }
+                if (onOpenSample) onOpenSample(sample);
             }
             else if (processor->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
                 stopSample(sample);
@@ -243,7 +255,7 @@ void SoundboardView::updateButtons()
 
         playbackButton->setMouseListener(std::make_unique<HoldSampleButtonMouseListener>(buttonAddress, &sample, this));
 
-        playbackButton->onSecondaryClick = [this, &sample, buttonAddress]() {
+        playbackButton->onSecondaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
             clickedEditSoundSample(*buttonAddress, sample);
         };
 

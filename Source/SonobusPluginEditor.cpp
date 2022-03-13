@@ -840,6 +840,14 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor(), supportDir);
     mSoundboardView->setVisible(false);
     mSoundboardView->addComponentListener(this);
+    mSoundboardView->onOpenSample = [this](const SoundSample& sample) {
+        if (!sample.getFilePath().isEmpty()) {
+            URL audiourl = URL (File (sample.getFilePath()));
+            loadAudioFromURL(audiourl);
+            updateLayout();
+            resized();
+        }
+    };
 
     mSoundboardButton = std::make_unique<SonoDrawableButton>("soundboard", DrawableButton::ButtonStyle::ImageOnButtonBackground);
     std::unique_ptr<Drawable> soundboardimg(Drawable::createFromImageData(BinaryData::soundboard_svg, BinaryData::soundboard_svgSize));
