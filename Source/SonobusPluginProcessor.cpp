@@ -93,6 +93,7 @@ static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
 static String recordFinishOpenKey("RecordFinishOpen");
 static String defRecordDirKey("DefaultRecordDir");
+static String lastBrowseDirKey("LastBrowseDir");
 static String sliderSnapKey("SliderSnapToMouse");
 static String disableShortcutsKey("DisableKeyShortcuts");
 static String peerDisplayModeKey("PeerDisplayMode");
@@ -106,7 +107,7 @@ static String linkMonitoringDelayTimesKey("linkMonDelayTimes");
 static String langOverrideCodeKey("langOverrideCode");
 static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
-static String autoresizeDropRateThreshKey("autoDropRateThresh");
+static String autoresizeDropRateThreshKey("autoDropRateThreshNew");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -720,14 +721,17 @@ SonobusAudioProcessor::SonobusAudioProcessor()
 
 #if (JUCE_IOS)
     mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
+    mLastBrowseDir = mDefaultRecordDir;
 #elif (JUCE_ANDROID)
     auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
     parentDir = parentDir.getChildFile("Recordings");
     mDefaultRecordDir = parentDir.getFullPathName();
+    mLastBrowseDir = mDefaultRecordDir;
 #else
     auto parentDir = File::getSpecialLocation (File::userMusicDirectory);
     parentDir = parentDir.getChildFile("SonoBus");
     mDefaultRecordDir = parentDir.getFullPathName();
+    mLastBrowseDir = mDefaultRecordDir;
 #endif
 
 
@@ -741,8 +745,10 @@ SonobusAudioProcessor::SonobusAudioProcessor()
         // default dry to 1.0 if plugin
         mDry = 1.0;
         mSendChannels = 0; // match inputs default for plugin
+        mSyncMetToHost = true;
     } else {
         mDry = 0.0;
+        mSyncMetToHost = false;
     }
 
     mState.getParameter(paramDry)->setValue(mDry.get());
@@ -1523,7 +1529,7 @@ bool SonobusAudioProcessor::getRemotePeerEffectsActive(int index, int changroup)
     const ScopedReadLock sl (mCoreLock);
     auto remote = mRemotePeers.getUnchecked(index);
     if (changroup >= 0 && changroup < MAX_CHANGROUPS) {
-        return remote->chanGroups[changroup].params.compressorParams.enabled || remote->chanGroups[changroup].params.expanderParams.enabled || remote->chanGroups[changroup].params.eqParams.enabled || remote->chanGroups[changroup].params.invertPolarity;
+        return remote->chanGroups[changroup].params.compressorParams.enabled || remote->chanGroups[changroup].params.expanderParams.enabled || remote->chanGroups[changroup].params.eqParams.enabled || remote->chanGroups[changroup].params.invertPolarity || (remote->chanGroups[changroup].params.monReverbSend > 0.0f);
     }
     return false;
 
@@ -8136,6 +8142,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
     extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
+    extraTree.setProperty(lastBrowseDirKey, mLastBrowseDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
     extraTree.setProperty(disableShortcutsKey, mDisableKeyboardShortcuts, nullptr);
     extraTree.setProperty(peerDisplayModeKey, var((int)mPeerDisplayMode), nullptr);
@@ -8250,6 +8257,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
 #if !(JUCE_IOS || JUCE_ANDROID)
             setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
+            setLastBrowseDirectory(extraTree.getProperty(lastBrowseDirKey, mLastBrowseDir));
 #endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
             setDisableKeyboardShortcuts(extraTree.getProperty(disableShortcutsKey, mDisableKeyboardShortcuts));

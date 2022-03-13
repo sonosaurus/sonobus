@@ -307,11 +307,25 @@ void ChannelGroupEffectsView::parametricEqParamsChanged(ParametricEqView *comp, 
 void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float revlevel)
 {
     if (peerMode) {
+        bool wason = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+
         processor.setRemotePeerChannelReverbSend(peerIndex, groupIndex, revlevel);
+
+        bool ison = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
+        }
     }
     else {
+        bool wason = processor.getInputEffectsActive(groupIndex);
+
         // input mode
         processor.setInputReverbSend(groupIndex, revlevel, true);
+
+        bool ison = processor.getInputEffectsActive(groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
+        }
     }
 }
 
@@ -562,10 +576,26 @@ void ChannelGroupMonitorEffectsView::resized()  {
 void ChannelGroupMonitorEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float revlevel)
 {
     if (peerMode) {
+
+        bool wason = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+
         processor.setRemotePeerChannelReverbSend(peerIndex, groupIndex, revlevel);
+
+        bool ison = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
+        }
+
     }
     else {
+        bool wason = processor.getInputMonitorEffectsActive(groupIndex);
+
         processor.setInputReverbSend(groupIndex, revlevel, false);
+
+        bool ison = processor.getInputMonitorEffectsActive(groupIndex);
+        if (wason != ison) {
+            listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
+        }
     }
 }
 
@@ -2919,6 +2949,11 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
     String username = processor.getRemotePeerUserName(mPeerIndex);
 
     mMainChannelView->nameLabel->setText(username, dontSendNotification);
+    if (username.length() > 32) {
+        mMainChannelView->nameLabel->setTooltip(username);
+    } else {
+        mMainChannelView->nameLabel->setTooltip("");
+    }
 
     String chantext;
     chantext << totalchans << TRANS("ch");

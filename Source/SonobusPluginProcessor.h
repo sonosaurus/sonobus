@@ -535,9 +535,10 @@ public:
     bool getInputEqParams(int changroup, SonoAudio::ParametricEqParams & retparams);
     
     
-    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity; }
+    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity || (mInputChannelGroups[changroup].params.inReverbSend > 0.0f); }
 
-    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled; }
+    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled
+        || (mInputChannelGroups[changroup].params.monReverbSend > 0.0f); }
 
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
@@ -705,6 +706,9 @@ public:
 
     void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
     String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
+
+    void setLastBrowseDirectory(String recdir)  { mLastBrowseDir = recdir; }
+    String getLastBrowseDirectory() const { return mLastBrowseDir; }
 
     uint32 getDefaultRecordingOptions() const { return mDefaultRecordingOptions; }
     void setDefaultRecordingOptions(uint32 opts) { mDefaultRecordingOptions = opts; }
@@ -958,7 +962,7 @@ private:
 
     // acceptable limit for drop rate in dropinstance/second
     // above which it will adjust the jitter buffer in Auto modes
-    float mAutoresizeDropRateThresh = 0.2f;
+    float mAutoresizeDropRateThresh = 0.5f;
 
     bool hasInitializedInMonPanners = false;
     
@@ -1130,6 +1134,7 @@ private:
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;
+    String mLastBrowseDir;
 
     std::atomic<bool> writingPossible = { false };
     std::atomic<bool> userWritingPossible = { false };

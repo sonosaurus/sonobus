@@ -28,15 +28,15 @@ void SonoChoiceButton::clearItems()
     textLabel->setText("", dontSendNotification);
 }
 
-void SonoChoiceButton::addItem(const String & name, int ident)
+void SonoChoiceButton::addItem(const String & name, int ident, bool separator, bool disabled)
 {
-    items.add(GenericItemChooserItem(name));
+    items.add(GenericItemChooserItem(name, Image(), nullptr, separator, disabled));
     idList.add(ident);
 }
 
-void SonoChoiceButton::addItem(const String & name, int ident, const Image & newItemImage)
+void SonoChoiceButton::addItem(const String & name, int ident, const Image & newItemImage, bool separator, bool disabled)
 {
-    items.add(GenericItemChooserItem(name, newItemImage));
+    items.add(GenericItemChooserItem(name, newItemImage, nullptr, separator, disabled));
     idList.add(ident);
 }
 

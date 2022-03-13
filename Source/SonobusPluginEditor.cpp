@@ -2121,6 +2121,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             if (processor.getRecordFinishOpens()) {
                 // load up recording
                 loadAudioFromURL(URL(lastRecordedFile));
+                mCurrOpenDir = lastRecordedFile.getParentDirectory();
                 updateLayout();
                 resized();
             }
@@ -2288,7 +2289,7 @@ void SonobusAudioProcessorEditor::openFileBrowser()
     {
 #if !(JUCE_IOS || JUCE_ANDROID)
         if (mCurrOpenDir.getFullPathName().isEmpty()) {
-            mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
+            mCurrOpenDir = File(processor.getLastBrowseDirectory());
             DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
             
         }
@@ -2317,6 +2318,7 @@ void SonobusAudioProcessorEditor::openFileBrowser()
                 
                 if (url.isLocalFile()) {
                     safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
+                    safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
                 }
 
                 safeThis->loadAudioFromURL(url);

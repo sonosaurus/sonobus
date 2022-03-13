@@ -189,7 +189,6 @@ String GenericItemChooser::getNameForRow (int rowNumber)
 
 void GenericItemChooser::listBoxItemClicked (int rowNumber, const MouseEvent& e)
 {
-    listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
 
     DBG("listbox clicked");
 
@@ -197,6 +196,8 @@ void GenericItemChooser::listBoxItemClicked (int rowNumber, const MouseEvent& e)
         // not selectable
         return;
     }
+
+    listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
 
     if (onSelected) {
         onSelected(this, rowNumber);
