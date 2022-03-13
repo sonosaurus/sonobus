@@ -470,7 +470,7 @@ private:
     bool mChatShowDidResize = false;
     bool mChatWasVisible = false;
     bool mChatOverlay  = false;
-    bool mIgnoreResize = false;
+    volatile bool mIgnoreResize = false;
 
    std::unique_ptr<SoundboardView> mSoundboardView;
    std::unique_ptr<SonoDrawableButton> mSoundboardButton;

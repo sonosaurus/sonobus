@@ -4019,14 +4019,14 @@ void SonobusAudioProcessorEditor::resized()
 
     mChatOverlay = mainBounds.getWidth() - chatwidth < 340;
 
+    mIgnoreResize = true; // important!
+ 
     mChatView->setBounds(getLocalBounds().removeFromRight(chatwidth));
 
     if (mChatView->isVisible() || mAboutToShowChat) {
         if (!isNarrow || !mChatOverlay) {
             // take it off
-            mIgnoreResize = true;
             mChatView->setBounds(mainBounds.removeFromRight(chatwidth));
-            mIgnoreResize = false;
         }
     }
 
@@ -4034,10 +4034,13 @@ void SonobusAudioProcessorEditor::resized()
     mSoundboardView->setBounds(getLocalBounds().removeFromRight(soundboardwidth));
 
     if (mSoundboardView->isVisible() || mAboutToShowSoundboard) {
-        mIgnoreResize = true;
-        mSoundboardView->setBounds(mainBounds.removeFromRight(soundboardwidth));
-        mIgnoreResize = false;
+        if (!isNarrow) {
+            mSoundboardView->setBounds(mainBounds.removeFromRight(soundboardwidth));
+        }
     }
+
+    mIgnoreResize = false;
+
 
     mTopLevelContainer->setBounds(getLocalBounds());
 
