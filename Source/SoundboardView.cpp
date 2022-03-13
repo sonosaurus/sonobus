@@ -144,7 +144,7 @@ void SoundboardView::createControlPanel()
     mStopAllPlayback->setTitle(TRANS("Stop all playback"));
     mStopAllPlayback->setTooltip(TRANS("Stops all playing samples."));
     mStopAllPlayback->onClick = [this]() {
-        processor->stopAllPlayback();
+        stopAllSamples();
     };
     addAndMakeVisible(mStopAllPlayback.get());
 
@@ -313,6 +313,12 @@ void SoundboardView::playSample(SoundSample& sample, SonoPlaybackProgressButton*
 
     playbackManager->play();
 }
+
+void SoundboardView::stopAllSamples()
+{
+    processor->stopAllPlayback();
+}
+
 
 void SoundboardView::stopSample(const SoundSample& sample)
 {
@@ -626,13 +632,13 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
     // 0 is already assigned to jump to start.
     auto keyCode = keyPress.getKeyCode();
 
-    if (keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
+    if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
         if (triggerSampleAtIndex(keyCode - 49)) {
             return true;
         }
     }
 
-    if (keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
+    if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
         if (triggerSampleAtIndex(keyCode - KeyPress::numberPad1)) {
             return true;
         }
@@ -651,7 +657,7 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
     bool gotone = false;
     for (int i = 0; i < sampleCount; ++i) {
         auto& sample = samples[i];
-        if (sample.getHotkeyCode() == keyPress.getKeyCode()) {
+        if (!keyPress.getModifiers().isAnyModifierKeyDown() && sample.getHotkeyCode() == keyPress.getKeyCode()) {
             triggerSampleAtIndex(i);
             gotone = true;
         }

@@ -802,7 +802,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatButton->setImages(chatimg.get(), nullptr, nullptr, nullptr, chatdotsimg.get());
     mChatButton->onClick = [this]() {
         bool newshown = !mChatView->isVisible();
-        if (newshown && mSoundboardView->isVisible()) {
+        // hide soundboard if shown, if the window is already small
+        if (newshown && mSoundboardView->isVisible() && getWidth() < 800) {
             this->showSoundboardPanel(false, false);
         }
         this->showChatPanel(newshown);
@@ -853,12 +854,13 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     std::unique_ptr<Drawable> soundboardimg(Drawable::createFromImageData(BinaryData::soundboard_svg, BinaryData::soundboard_svgSize));
     mSoundboardButton->setImages(soundboardimg.get());
     mSoundboardButton->onClick = [this]() {
-       bool newshown = !mSoundboardView->isVisible();
-       if (newshown && mChatView->isVisible()) {
-           this->showChatPanel(false, false);
-       }
-       this->showSoundboardPanel(newshown);
-       resized();
+        bool newshown = !mSoundboardView->isVisible();
+        // hide chat if shown, if the window is already small
+        if (newshown && mChatView->isVisible() && getWidth() < 800) {
+            this->showChatPanel(false, false);
+        }
+        this->showSoundboardPanel(newshown);
+        resized();
     };
     mSoundboardButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mSoundboardButton->setTooltip(TRANS("Show/Hide Soundboard"));
@@ -5041,6 +5043,15 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress ('g', ModifierKeys::commandModifier);
             }
             break;
+        case SonobusCommands::StopAllSoundboardPlayback:
+            info.setInfo (TRANS("Stop All Soundboard Playback"),
+                          TRANS("Stop All Soundboard Playback"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('k', ModifierKeys::commandModifier);
+            }
+            break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
@@ -5156,6 +5167,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::ShowViewMenu);
     cmds.add(SonobusCommands::ShowConnectMenu);
     cmds.add(SonobusCommands::ToggleFullInfoView);
+    cmds.add(SonobusCommands::StopAllSoundboardPlayback);
 
 }
 
@@ -5175,6 +5187,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             DBG("got play pause!");
             if (mPlayButton->isVisible()) {
                 mPlayButton->setToggleState(!mPlayButton->getToggleState(), sendNotification);
+            }
+            break;
+        case SonobusCommands::StopAllSoundboardPlayback:
+            if (mSoundboardView) {
+                mSoundboardView->stopAllSamples();
             }
             break;
         case SonobusCommands::ToggleFullInfoView:
@@ -5386,6 +5403,8 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleLoop);
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::RecordToggle);
+            retval.addSeparator();
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::StopAllSoundboardPlayback);
             break;
         case MenuViewIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ChatToggle);

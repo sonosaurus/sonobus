@@ -32,7 +32,8 @@ public:
         ShowTransportMenu,
         ShowViewMenu,
         ShowConnectMenu,
-        ToggleFullInfoView
+        ToggleFullInfoView,
+        StopAllSoundboardPlayback
     };
     
 };

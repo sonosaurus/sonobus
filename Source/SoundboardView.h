@@ -59,6 +59,7 @@ public:
 
     void stopSample(const SoundSample& sample);
 
+    void stopAllSamples();
 
     /**
      * Callback used when a sample is command/control clicked to indicate that it should
