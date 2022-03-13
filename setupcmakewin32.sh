@@ -13,7 +13,9 @@ if [ -n "${VST2_SDK_PATH}" ] ; then
 fi
 
 
-cmake -G "Visual Studio 16 2019" -A "x64" $DEPS -B build
+#cmake -G "Visual Studio 15 2017" $DEPS -B build32
+cmake -G "Visual Studio 16 2019" $DEPS -B build32
+
 
 
 
