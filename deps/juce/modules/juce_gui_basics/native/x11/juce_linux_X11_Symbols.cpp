@@ -132,6 +132,7 @@ bool X11Symbols::loadAllSymbols()
                        makeSymbolBinding (xGetModifierMapping,         "XGetModifierMapping"),
                        makeSymbolBinding (xGetPointerMapping,          "XGetPointerMapping"),
                        makeSymbolBinding (xGetSelectionOwner,          "XGetSelectionOwner"),
+                       makeSymbolBinding (xGetTransientForHint,        "XGetTransientForHint"),
                        makeSymbolBinding (xGetVisualInfo,              "XGetVisualInfo"),
                        makeSymbolBinding (xGetWMHints,                 "XGetWMHints"),
                        makeSymbolBinding (xGetWindowAttributes,        "XGetWindowAttributes"),

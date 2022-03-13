@@ -25,6 +25,7 @@ void SonoChoiceButton::clearItems()
 {
     items.clear();
     idList.clear();
+    textLabel->setText("", dontSendNotification);
 }
 
 void SonoChoiceButton::addItem(const String & name, int ident, bool separator, bool disabled)
@@ -158,7 +159,12 @@ void SonoChoiceButton::paint(Graphics & g)
 
 void SonoChoiceButton::buttonClicked (Button* buttonThatWasClicked)
 {
-    showPopup();
+    if (items.isEmpty()) {
+        listeners.call (&SonoChoiceButton::Listener::choiceButtonEmptyClick, this);
+    }
+    else {
+        showPopup();
+    }
 }
 
 void SonoChoiceButton::showPopup()

@@ -160,7 +160,14 @@ private:
         if (owner.title.isNotEmpty())
             args.add ("--title=" + owner.title);
 
-        if (uint64 topWindowID = getTopWindowID())
+        auto* handle = owner.parent == nullptr ? nullptr : owner.parent->getWindowHandle();
+        if (handle != nullptr)
+        {
+            auto windowID = (uint64) (pointer_sized_uint) handle;
+            args.add ("--attach");
+            args.add (String (windowID));
+        }
+        else if (uint64 topWindowID = getTopWindowID())
         {
             args.add ("--attach");
             args.add (String (topWindowID));

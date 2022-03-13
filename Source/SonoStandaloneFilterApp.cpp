@@ -84,7 +84,7 @@ public:
 
         options.applicationName     = getApplicationName();
         options.filenameSuffix      = ".settings";
-        options.osxLibrarySubFolder = "Application Support/" + getApplicationName();
+        options.osxLibrarySubFolder = "Application Support/SonoBus";
        #if JUCE_LINUX
         options.folderName          = "~/.config/sonobus";
        #else

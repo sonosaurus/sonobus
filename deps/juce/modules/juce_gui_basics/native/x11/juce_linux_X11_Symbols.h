@@ -257,6 +257,10 @@ public:
                                          (::Display*, Atom),
                                          ::Window)
 
+    JUCE_GENERATE_FUNCTION_WITH_DEFAULT (XGetTransientForHint, xGetTransientForHint,
+                                         (::Display*, ::Window, ::Window*),
+                                         Status)
+
     JUCE_GENERATE_FUNCTION_WITH_DEFAULT (XGetVisualInfo, xGetVisualInfo,
                                          (::Display*, long, XVisualInfo*, int*),
                                          XVisualInfo*)

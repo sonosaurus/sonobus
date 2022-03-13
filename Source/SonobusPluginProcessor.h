@@ -20,6 +20,8 @@
 
 #include "zitaRev.h"
 
+#include "SoundboardChannelProcessor.h"
+
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -242,6 +244,7 @@ public:
     static String paramMetTempo;
     static String paramSendMetAudio;
     static String paramSendFileAudio;
+    static String paramSendSoundboardAudio;
     static String paramHearLatencyTest;
     static String paramMetIsRecorded;
     static String paramMainReverbEnabled;
@@ -751,6 +754,13 @@ public:
     int getChatFontSizeOffset() const { return mChatFontSizeOffset; }
     Array<SBChatEvent, CriticalSection> & getAllChatEvents() { return mAllChatEvents; }
 
+    // soundboard
+    void setLastSoundboardWidth(int width) { mLastSoundboardWidth = width; }
+    int getLastSoundboardWidth() const { return mLastSoundboardWidth; }
+    void setLastSoundboardShown(bool shown) { mLastSoundboardShown = shown; }
+    bool getLastSoundboardShown() const { return mLastSoundboardShown; }
+    SoundboardChannelProcessor* getSoundboardProcessor() { return soundboardChannelProcessor.get(); }
+
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
 
@@ -903,6 +913,7 @@ private:
     Atomic<float>   mMetGain    { 0.5f };
     Atomic<double>   mMetTempo    { 100.0f };
     Atomic<bool>   mSendPlaybackAudio  { false };
+    Atomic<bool>   mSendSoundboardAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };
     Atomic<bool>   mMetIsRecorded  { true };
     Atomic<bool>   mMainReverbEnabled  { false };
@@ -977,6 +988,9 @@ private:
     int mChatFontSizeOffset = 0;
     // chat message storage, thread-safe
     Array<SBChatEvent, CriticalSection> mAllChatEvents;
+
+    int mLastSoundboardWidth = 250;
+    bool mLastSoundboardShown = false;
 
     int mPluginWindowWidth = 800;
     int mPluginWindowHeight = 600;
@@ -1144,6 +1158,9 @@ private:
     TimeSliceThread mDiskThread  { "audio file reader" };
     URL mCurrTransportURL;
     bool mTransportWasPlaying = false;
+
+    // soundboard
+    std::unique_ptr<SoundboardChannelProcessor> soundboardChannelProcessor;
 
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;

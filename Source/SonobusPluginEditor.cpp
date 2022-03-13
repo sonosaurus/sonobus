@@ -16,6 +16,7 @@
 #include "ChannelGroupsView.h"
 #include "MonitorDelayView.h"
 #include "ChatView.h"
+#include "SoundboardView.h"
 #include "AutoUpdater.h"
 #include "LatencyMatchView.h"
 
@@ -684,6 +685,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSendSoundboardAudio, this);
     //processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
@@ -800,6 +802,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatButton->setImages(chatimg.get(), nullptr, nullptr, nullptr, chatdotsimg.get());
     mChatButton->onClick = [this]() {
         bool newshown = !mChatView->isVisible();
+        // hide soundboard if shown, if the window is already small
+        if (newshown && mSoundboardView->isVisible() && getWidth() < 800) {
+            this->showSoundboardPanel(false, false);
+        }
         this->showChatPanel(newshown);
         resized();
     };
@@ -816,6 +822,52 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatSizeConstrainer = std::make_unique<ComponentBoundsConstrainer>();
     mChatSizeConstrainer->setSizeLimits(180, 100, 1200, 10000);
     mChatEdgeResizer = std::make_unique<ResizableEdgeComponent>(mChatView.get(), mChatSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
+
+
+    // use this to match our main app support dir
+    PropertiesFile::Options options;
+    options.applicationName     = "dummy";
+    options.filenameSuffix      = ".xml";
+    options.osxLibrarySubFolder = "Application Support/SonoBus";
+   #if JUCE_LINUX
+    options.folderName          = "~/.config/sonobus";
+   #else
+    options.folderName          = "";
+   #endif
+
+    File supportDir = options.getDefaultFile().getParentDirectory();
+
+    // Soundboard
+    mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor(), supportDir);
+    mSoundboardView->setVisible(false);
+    mSoundboardView->addComponentListener(this);
+    mSoundboardView->onOpenSample = [this](const SoundSample& sample) {
+        if (!sample.getFilePath().isEmpty()) {
+            URL audiourl = URL (File (sample.getFilePath()));
+            loadAudioFromURL(audiourl);
+            updateLayout();
+            resized();
+        }
+    };
+
+    mSoundboardButton = std::make_unique<SonoDrawableButton>("soundboard", DrawableButton::ButtonStyle::ImageOnButtonBackground);
+    std::unique_ptr<Drawable> soundboardimg(Drawable::createFromImageData(BinaryData::soundboard_svg, BinaryData::soundboard_svgSize));
+    mSoundboardButton->setImages(soundboardimg.get());
+    mSoundboardButton->onClick = [this]() {
+        bool newshown = !mSoundboardView->isVisible();
+        // hide chat if shown, if the window is already small
+        if (newshown && mChatView->isVisible() && getWidth() < 800) {
+            this->showChatPanel(false, false);
+        }
+        this->showSoundboardPanel(newshown);
+        resized();
+    };
+    mSoundboardButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mSoundboardButton->setTooltip(TRANS("Show/Hide Soundboard"));
+
+    mSoundboardSizeConstrainer = std::make_unique<ComponentBoundsConstrainer>();
+    mSoundboardSizeConstrainer->setSizeLimits(180, 100, 1200, 10000);
+    mSoundboardEdgeResizer = std::make_unique<ResizableEdgeComponent>(mSoundboardView.get(), mSoundboardSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
 
 
     mConnectView = std::make_unique<ConnectView>(processor, currConnectionInfo);
@@ -1149,6 +1201,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
 
     mTopLevelContainer->addAndMakeVisible(mChatButton.get());
+    mTopLevelContainer->addAndMakeVisible(mSoundboardButton.get());
 
     
 
@@ -1185,6 +1238,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     mTopLevelContainer->addChildComponent(mChatView.get());
     mChatView->addAndMakeVisible(mChatEdgeResizer.get());
+
+    mTopLevelContainer->addChildComponent(mSoundboardView.get());
+    mSoundboardView->addAndMakeVisible(mSoundboardEdgeResizer.get());
 
 
     addAndMakeVisible(mTopLevelContainer.get());
@@ -1330,6 +1386,7 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainRecvMute, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendMetAudio, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendFileAudio, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSendSoundboardAudio, this);
     //processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramHearLatencyTest, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetIsRecorded, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbModel, this);
@@ -1801,6 +1858,10 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
 
         if (processor.getLastChatShown() != mChatView->isVisible()) {
             showChatPanel(processor.getLastChatShown(), false);
+            resized();
+        }
+        else if (processor.getLastSoundboardShown() != mSoundboardView->isVisible()) {
+            showSoundboardPanel(processor.getLastSoundboardShown(), false);
             resized();
         }
 
@@ -2939,6 +3000,21 @@ void SonobusAudioProcessorEditor::componentVisibilityChanged (Component& compone
 
         mAboutToShowChat = false;
     }
+    else if (&component == mSoundboardView.get()) {
+        if (!mSoundboardView->isVisible() && mSoundboardWasVisible) {
+            if (mSoundboardShowDidResize) {
+                // reduce size
+                int newwidth = getWidth() - mSoundboardView->getWidth();
+                setSize(newwidth, getHeight());
+            } else {
+                resized();
+            }
+        }
+
+        mSoundboardWasVisible = mSoundboardView->isVisible();
+        processor.setLastSoundboardShown(mSoundboardWasVisible);
+        mAboutToShowSoundboard = false;
+    }
     else if (&component == mConnectView.get()) {
         mTopLevelContainer->setEnabled(!mConnectView->isVisible());
         if (!mConnectView->isVisible()) {
@@ -2954,7 +3030,15 @@ void SonobusAudioProcessorEditor::componentMovedOrResized (Component& component,
     if (&component == mChatView.get()) {
         if (mChatView->isVisible()) {
             processor.setLastChatWidth(mChatView->getWidth());
-            if (!mIgnoreChatViewResize) {
+            if (!mIgnoreResize) {
+                resized();
+            }
+        }
+    }
+    else if (&component == mSoundboardView.get()) {
+        if (mSoundboardView->isVisible()) {
+            processor.setLastSoundboardWidth(mSoundboardView->getWidth());
+            if (!mIgnoreResize) {
                 resized();
             }
         }
@@ -2977,6 +3061,7 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
     DBG("Got key: " << key.getTextCharacter() << "  isdown: " << (key.isCurrentlyDown() ? 1 : 0) << " keycode: " << key.getKeyCode() << " pcode: " << (int)'p');
 
     mAltReleaseShouldAct = false; // reset alt check
+    bool gotone = false;
 
     if (key.isKeyCurrentlyDown('T') && !processor.getDisableKeyboardShortcuts()) {
         if (!mPushToTalkKeyDown) {
@@ -2987,16 +3072,20 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
             mPushToTalkKeyDown = true;
         }
-        return true;
+        gotone = true;
     }
     else if (key.isKeyCode(KeyPress::escapeKey)) {
         DBG("ESCAPE pressed");
         if (mConnectView->isVisible()) {
             mConnectView->escapePressed();
+            gotone = true;
         }
     }
 
-    return false;
+    // Soundboard hotkeys.
+    gotone = gotone || mSoundboardView->processKeystroke(key);
+
+    return gotone;
 }
 
 bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
@@ -3012,7 +3101,7 @@ bool SonobusAudioProcessorEditor::keyStateChanged (bool isKeyDown)
         mPushToTalkKeyDown = false;
         return true;
     }
-    
+
 #if 0
     if (!mAltReleaseIsPending && ModifierKeys::currentModifiers.isAltDown()) {
         DBG("Alt down");
@@ -3377,6 +3466,13 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramSendSoundboardAudio) {
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -3828,6 +3924,38 @@ void SonobusAudioProcessorEditor::showChatPanel(bool show, bool allowresize)
 #endif
 }
 
+void SonobusAudioProcessorEditor::showSoundboardPanel(bool show, bool allowresize)
+{
+#if !(JUCE_IOS || JUCE_ANDROID)
+    // attempt resize
+    if (allowresize && show && !isNarrow) {
+        auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
+        int maxwidth = display ? display->userArea.getWidth() : 1600;
+        int newwidth = jmin(maxwidth, getWidth() + mSoundboardView->getWidth());
+        mAboutToShowSoundboard = true;
+        if (abs(newwidth - getWidth()) > 10 ) {
+            if (abs(newwidth - getWidth()) < mSoundboardView->getWidth()) {
+                mSoundboardShowDidResize = false;
+            } else {
+               mSoundboardShowDidResize = true;
+            }
+            setSize(newwidth, getHeight());
+        }
+        else {
+           mSoundboardShowDidResize = false;
+        }
+    }
+    else if (show) {
+       mSoundboardShowDidResize = false;
+    }
+#else
+   mSoundboardShowDidResize = false;
+#endif
+
+    mSoundboardView->setVisible(show);
+    mSoundboardView->resized();
+}
+
 
 void SonobusAudioProcessorEditor::parentHierarchyChanged()
 {    
@@ -3858,6 +3986,10 @@ void SonobusAudioProcessorEditor::resized()
 
     if (mChatView->isVisible()) {
         narrowthresh += mChatView->getWidth();
+    }
+
+    if (mSoundboardView->isVisible()) {
+       narrowthresh += mSoundboardView->getWidth();
     }
 
     bool nownarrow = getWidth() < narrowthresh;
@@ -3892,10 +4024,19 @@ void SonobusAudioProcessorEditor::resized()
     if (mChatView->isVisible() || mAboutToShowChat) {
         if (!isNarrow || !mChatOverlay) {
             // take it off
-            mIgnoreChatViewResize = true;
+            mIgnoreResize = true;
             mChatView->setBounds(mainBounds.removeFromRight(chatwidth));
-            mIgnoreChatViewResize = false;
+            mIgnoreResize = false;
         }
+    }
+
+    int soundboardwidth = processor.getLastSoundboardWidth();
+    mSoundboardView->setBounds(getLocalBounds().removeFromRight(soundboardwidth));
+
+    if (mSoundboardView->isVisible() || mAboutToShowSoundboard) {
+        mIgnoreResize = true;
+        mSoundboardView->setBounds(mainBounds.removeFromRight(soundboardwidth));
+        mIgnoreResize = false;
     }
 
     mTopLevelContainer->setBounds(getLocalBounds());
@@ -3904,6 +4045,8 @@ void SonobusAudioProcessorEditor::resized()
 
 
     mChatEdgeResizer->setBounds(mChatView->getLocalBounds().withWidth(5));
+
+    mSoundboardEdgeResizer->setBounds(mSoundboardView->getLocalBounds().withWidth(5));
 
 
     int inchantargwidth = mMainViewport->getWidth() - 10;
@@ -4092,6 +4235,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     //inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(3, 4));
     inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
+    inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mSoundboardButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
 
     inputRightBox.items.clear();
@@ -4889,6 +5034,24 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress ('y', ModifierKeys::commandModifier);
             }
             break;
+        case SonobusCommands::SoundboardToggle:
+            info.setInfo (TRANS("Show/Hide Soundboard"),
+                          TRANS("Show or hide soundboard panel"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('g', ModifierKeys::commandModifier);
+            }
+            break;
+        case SonobusCommands::StopAllSoundboardPlayback:
+            info.setInfo (TRANS("Stop All Soundboard Playback"),
+                          TRANS("Stop All Soundboard Playback"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('k', ModifierKeys::commandModifier);
+            }
+            break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
@@ -4997,12 +5160,14 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::LoadSetupFile);
     cmds.add(SonobusCommands::SaveSetupFile);
     cmds.add(SonobusCommands::ChatToggle);
+    cmds.add(SonobusCommands::SoundboardToggle);
     cmds.add(SonobusCommands::SkipBack);
     cmds.add(SonobusCommands::ShowFileMenu);
     cmds.add(SonobusCommands::ShowTransportMenu);
     cmds.add(SonobusCommands::ShowViewMenu);
     cmds.add(SonobusCommands::ShowConnectMenu);
     cmds.add(SonobusCommands::ToggleFullInfoView);
+    cmds.add(SonobusCommands::StopAllSoundboardPlayback);
 
 }
 
@@ -5022,6 +5187,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             DBG("got play pause!");
             if (mPlayButton->isVisible()) {
                 mPlayButton->setToggleState(!mPlayButton->getToggleState(), sendNotification);
+            }
+            break;
+        case SonobusCommands::StopAllSoundboardPlayback:
+            if (mSoundboardView) {
+                mSoundboardView->stopAllSamples();
             }
             break;
         case SonobusCommands::ToggleFullInfoView:
@@ -5097,6 +5267,10 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::ChatToggle:
             showChatPanel(!mChatView->isVisible());
+            resized();
+            break;
+        case SonobusCommands::SoundboardToggle:
+            showSoundboardPanel(!mSoundboardView->isVisible());
             resized();
             break;
         case SonobusCommands::SaveSetupFile:
@@ -5229,9 +5403,12 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleLoop);
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::RecordToggle);
+            retval.addSeparator();
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::StopAllSoundboardPlayback);
             break;
         case MenuViewIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ChatToggle);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::SoundboardToggle);
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleFullInfoView);
             break;
 

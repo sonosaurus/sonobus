@@ -162,4 +162,10 @@ protected:
     
 };
 
+class SonoDashedBorderButtonLookAndFeel : public SonoLookAndFeel
+{
+public:
+    void drawButtonBackground(Graphics&, Button&, const Colour& backgroundColour,
+                              bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+};
 
