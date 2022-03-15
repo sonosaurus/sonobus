@@ -97,7 +97,7 @@ void SonoChoiceButton::genericItemChooserSelected(GenericItemChooser *comp, int 
     setWantsKeyboardFocus(true);
 
     Timer::callAfterDelay(200, [this](){
-        grabKeyboardFocus();
+        if (isShowing()) grabKeyboardFocus();
     });
 }
 
