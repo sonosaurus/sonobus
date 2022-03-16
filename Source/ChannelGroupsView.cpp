@@ -616,6 +616,7 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
     }
     else {
         bool wason = false;
+        bool ison = params.enabled;
 
         auto deltimems = params.delayTimeMs;
         DelayParams eparam;
@@ -667,7 +668,6 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
             }
         }
 
-        bool ison = processor.getInputMonitorEffectsActive(groupIndex);
         if (wason != ison) {
             listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
         }
@@ -944,6 +944,15 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
             showInputReverbView(false);
         }
     };
+
+    mMonDelayButton = std::make_unique<TextButton>(TRANS("Monitor Delay"));
+    mMonDelayButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
+    mMonDelayButton->setTooltip(TRANS("Toggle monitor delay enabled on all input groups"));
+    addChildComponent(mMonDelayButton.get());
+    mMonDelayButton->onClick = [this]() {
+        toggleAllMonitorDelay();
+    };
+
 
     mInsertLine = std::make_unique<DrawableRectangle>();
     //mInsertLine->setCornerSize(Point<float>(6,6));
@@ -2320,6 +2329,8 @@ void ChannelGroupsView::updateLayoutForInput(bool notify)
     addrowBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(1));
     addrowBox.items.add(FlexItem(minButtonWidth, addrowheight, *mInReverbButton).withMargin(0).withFlex(0));
     addrowBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(1));
+    addrowBox.items.add(FlexItem(minButtonWidth, addrowheight, *mMonDelayButton).withMargin(0).withFlex(0));
+    addrowBox.items.add(FlexItem(6, 2).withMargin(0).withFlex(1));
     addrowBox.items.add(FlexItem(mutebuttwidth, addrowheight, *mClearButton).withMargin(0).withFlex(0));
     addrowBox.items.add(FlexItem(4, 2).withMargin(0));
 
@@ -2663,12 +2674,14 @@ void ChannelGroupsView::updateChannelViews(int specific)
         mAddButton->setVisible(false);
         mClearButton->setVisible(false);
         mInReverbButton->setVisible(false);
+        mMonDelayButton->setVisible(false);
     } else {
         updateInputModeChannelViews(specific);
 
         mAddButton->setVisible(true);
         mClearButton->setVisible(true);
         mInReverbButton->setVisible(true);
+        mMonDelayButton->setVisible(true);
     }
 }
 
@@ -2910,6 +2923,8 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
         pvf->repaint();
     }
+
+    updateMonDelayButton();
 
     if (needsUpdateLayout) {
         updateLayout();
@@ -3255,6 +3270,83 @@ void ChannelGroupsView::updatePeerModeChannelViews(int specific)
 void ChannelGroupsView::timerCallback(int timerId)
 {
 
+}
+
+void ChannelGroupsView::updateMonDelayButton()
+{
+
+    DelayParams metparams;
+    processor.getMetronomeMonitorDelayParams(metparams);
+
+    DelayParams fileparams;
+    processor.getFilePlaybackMonitorDelayParams(fileparams);
+
+    DelayParams sbparams = processor.getSoundboardProcessor()->getMonitorDelayParams();
+
+    DelayParams eparam;
+
+    // if any are on, turn them off... otherwise turn them all on
+    bool anyenabled = metparams.enabled || fileparams.enabled || sbparams.enabled;
+
+    if (!anyenabled) {
+        int numgroups = processor.getInputGroupCount();
+        for (int i=0; i < numgroups; ++i) {
+            processor.getInputMonitorDelayParams(i, eparam);
+            if (eparam.enabled) {
+                anyenabled = true;
+                break;
+            }
+        }
+    }
+
+    mMonDelayButton->setToggleState(anyenabled, dontSendNotification);
+}
+
+void ChannelGroupsView::toggleAllMonitorDelay()
+{
+    int numgroups = processor.getInputGroupCount();
+
+    DelayParams metparams;
+    processor.getMetronomeMonitorDelayParams(metparams);
+
+    DelayParams fileparams;
+    processor.getFilePlaybackMonitorDelayParams(fileparams);
+
+    DelayParams sbparams = processor.getSoundboardProcessor()->getMonitorDelayParams();
+
+    DelayParams eparam;
+
+    // if any are on, turn them off... otherwise turn them all on
+    bool doDisable = metparams.enabled || fileparams.enabled || sbparams.enabled;
+
+    if (!doDisable) {
+        for (int i=0; i < numgroups; ++i) {
+            processor.getInputMonitorDelayParams(i, eparam);
+            if (eparam.enabled) {
+                doDisable = true;
+                break;
+            }
+        }
+    }
+
+    // set them all
+    metparams.enabled = !doDisable;
+    processor.setMetronomeMonitorDelayParams(metparams);
+
+    fileparams.enabled = !doDisable;
+    processor.setFilePlaybackMonitorDelayParams(fileparams);
+
+    sbparams.enabled = !doDisable;
+    processor.getSoundboardProcessor()->setMonitorDelayParams(sbparams);
+
+
+    for (int i=0; i < numgroups; ++i) {
+        processor.getInputMonitorDelayParams(i, eparam);
+        eparam.enabled = !doDisable;
+        processor.setInputMonitorDelayParams(i, eparam);
+    }
+
+    updateChannelViews();
 }
 
 

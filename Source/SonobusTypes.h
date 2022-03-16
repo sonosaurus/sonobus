@@ -33,7 +33,8 @@ public:
         ShowViewMenu,
         ShowConnectMenu,
         ToggleFullInfoView,
-        StopAllSoundboardPlayback
+        StopAllSoundboardPlayback,
+        ToggleAllMonitorDelay
     };
     
 };

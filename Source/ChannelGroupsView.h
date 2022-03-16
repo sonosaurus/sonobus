@@ -363,6 +363,8 @@ public:
 
     void clearClipIndicators();
 
+    void toggleAllMonitorDelay();
+
     void setEstimatedWidth(int estwidth) { mEstimatedWidth = estwidth; }
     int getEstimatedWidth() const { return mEstimatedWidth;}
 
@@ -381,6 +383,7 @@ protected:
     void updateLayoutForRemotePeer(bool notify=true);
     void updateLayoutForInput(bool notify=true);
 
+    void updateMonDelayButton();
 
     void configLevelSlider(Slider * slider, bool monmode=false);    
     void configLabel(Label *label, int ltype);
@@ -436,6 +439,7 @@ protected:
     std::unique_ptr<TextButton> mAddButton;
     std::unique_ptr<TextButton> mClearButton;
     std::unique_ptr<TextButton> mInReverbButton;
+    std::unique_ptr<TextButton> mMonDelayButton;
 
     std::unique_ptr<DrawableRectangle> mInsertLine;
     std::unique_ptr<DrawableImage> mDragDrawable;

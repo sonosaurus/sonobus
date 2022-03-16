@@ -209,7 +209,7 @@ SonoAudio::DelayParams& SoundboardChannelProcessor::getMonitorDelayParams()
     return channelGroup.params.monitorDelayParams;
 }
 
-void SoundboardChannelProcessor::setMonitorDelayParams(SonoAudio::DelayParams& params)
+void SoundboardChannelProcessor::setMonitorDelayParams(const SonoAudio::DelayParams& params)
 {
     channelGroup.params.monitorDelayParams = params;
     channelGroup.commitMonitorDelayParams();
@@ -312,7 +312,7 @@ bool SoundboardChannelProcessor::processAudioBlock(int numSamples)
     AudioSourceChannelInfo info(&buffer, 0, numSamples);
     mixer.getNextAudioBlock(info);
 
-    if (buffer.hasBeenCleared()) {
+    if (buffer.hasBeenCleared() && !channelGroup.params.monitorDelayParams.enabled ) {
         return false;
     }
 

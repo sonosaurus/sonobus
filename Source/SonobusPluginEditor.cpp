@@ -4237,9 +4237,9 @@ void SonobusAudioProcessorEditor::updateLayout()
     inputButtonBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.2));
     //inputButtonBox.items.add(FlexItem(mutew, minitemheight, *mMonDelayButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(3, 4));
-    inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
-    inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
     inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mSoundboardButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
+    inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
+    inputButtonBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     inputButtonBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
 
     inputRightBox.items.clear();
@@ -5055,6 +5055,15 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress ('k', ModifierKeys::commandModifier);
             }
             break;
+        case SonobusCommands::ToggleAllMonitorDelay:
+            info.setInfo (TRANS("Enable/Disable Monitor Delay"),
+                          TRANS("Enable/Disable Monitor Delay"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('b', ModifierKeys::commandModifier);
+            }
+            break;
         case SonobusCommands::Connect:
             info.setInfo (TRANS("Connect"),
                           TRANS("Connect"),
@@ -5171,6 +5180,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::ShowConnectMenu);
     cmds.add(SonobusCommands::ToggleFullInfoView);
     cmds.add(SonobusCommands::StopAllSoundboardPlayback);
+    cmds.add(SonobusCommands::ToggleAllMonitorDelay);
 
 }
 
@@ -5195,6 +5205,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::StopAllSoundboardPlayback:
             if (mSoundboardView) {
                 mSoundboardView->stopAllSamples();
+            }
+            break;
+        case SonobusCommands::ToggleAllMonitorDelay:
+            if (getInputChannelGroupsView()) {
+                getInputChannelGroupsView()->toggleAllMonitorDelay();
             }
             break;
         case SonobusCommands::ToggleFullInfoView:
@@ -5399,6 +5414,8 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::MuteAllInput);
             retval.addCommandItem (&parent.commandManager, SonobusCommands::MuteAllPeers);
+            retval.addSeparator();
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleAllMonitorDelay);
             break;
         case MenuTransportIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::TogglePlayPause);

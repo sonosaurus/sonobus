@@ -166,7 +166,7 @@ public:
     foleys::LevelMeterSource& getMeterSource() { return meterSource; }
 
     SonoAudio::DelayParams& getMonitorDelayParams();
-    void setMonitorDelayParams(SonoAudio::DelayParams& params);
+    void setMonitorDelayParams(const SonoAudio::DelayParams& params);
 
     void getDestStartAndCount(int& start, int& count) const;
     void setDestStartAndCount(int start, int count);
