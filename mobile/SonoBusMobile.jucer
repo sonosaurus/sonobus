@@ -97,8 +97,10 @@
       <FILE id="fRSnh7" name="beat_click.wav" compile="0" resource="1" file="../images/beat_click.wav"/>
       <FILE id="PI0BgL" name="chat.svg" compile="0" resource="1" file="../images/chat.svg"/>
       <FILE id="bsvxaw" name="chat_dots.svg" compile="0" resource="1" file="../images/chat_dots.svg"/>
+      <FILE id="w1dtrx" name="checkmark.svg" compile="0" resource="1" file="../images/checkmark.svg"/>
       <FILE id="oRqqx7" name="chevron_forward.svg" compile="0" resource="1"
             file="../images/chevron_forward.svg"/>
+      <FILE id="eTKiAB" name="continue.svg" compile="0" resource="1" file="../images/continue.svg"/>
       <FILE id="uAKgXJ" name="copy_icon.svg" compile="0" resource="1" file="../images/copy_icon.svg"/>
       <FILE id="kz3BRe" name="DejaVuSans.ttf" compile="0" resource="1" file="../Source/DejaVuSans.ttf"/>
       <FILE id="Fm4Fga" name="dice_icon_128.png" compile="0" resource="1"
@@ -111,14 +113,19 @@
             file="../images/expand_arrow_active.svg"/>
       <FILE id="LgWFFR" name="expand_arrow_inactive.svg" compile="0" resource="1"
             file="../images/expand_arrow_inactive.svg"/>
+      <FILE id="TMcX5m" name="eyedropper.svg" compile="0" resource="1" file="../images/eyedropper.svg"/>
       <FILE id="POLysK" name="folder_icon.svg" compile="0" resource="1" file="../images/folder_icon.svg"/>
       <FILE id="wCjBZE" name="hear-others.svg" compile="0" resource="1" file="../images/hear-others.svg"/>
+      <FILE id="OXbmS9" name="hold.svg" compile="0" resource="1" file="../images/hold.svg"/>
       <FILE id="qMD4fK" name="incoming_allowed.svg" compile="0" resource="1"
             file="../images/incoming_allowed.svg"/>
       <FILE id="ofLXkF" name="incoming_allowed_active.svg" compile="0" resource="1"
             file="../images/incoming_allowed_active.svg"/>
       <FILE id="fl99tM" name="incoming_disallowed.svg" compile="0" resource="1"
             file="../images/incoming_disallowed.svg"/>
+      <FILE id="Wl1PWP" name="keyboard.svg" compile="0" resource="1" file="../images/keyboard.svg"/>
+      <FILE id="X9WfOj" name="keyboard_disabled.svg" compile="0" resource="1"
+            file="../images/keyboard_disabled.svg"/>
       <FILE id="A49mBq" name="launchicon@2x.png" compile="0" resource="0"
             file="../images/launchicon@2x.png" xcodeResource="1"/>
       <FILE id="VADUKt" name="LaunchScreen.storyboard" compile="0" resource="0"
@@ -128,6 +135,10 @@
       <FILE id="EnJ4zv" name="link_all.svg" compile="0" resource="1" file="../images/link_all.svg"/>
       <FILE id="gD0zdb" name="link_up.svg" compile="0" resource="1" file="../images/link_up.svg"/>
       <FILE id="qJixJa" name="loop_icon.svg" compile="0" resource="1" file="../images/loop_icon.svg"/>
+      <FILE id="Ugr9bA" name="loop_off_icon.png" compile="0" resource="1"
+            file="../images/loop_off_icon.png"/>
+      <FILE id="FyV3zd" name="loop_off_icon.svg" compile="0" resource="1"
+            file="../images/loop_off_icon.svg"/>
       <FILE id="GIpd7j" name="met.svg" compile="0" resource="1" file="../images/met.svg"/>
       <FILE id="pUqtix" name="mic.svg" compile="0" resource="1" file="../images/mic.svg"/>
       <FILE id="ZeI5Mg" name="mic_disabled.svg" compile="0" resource="1"
@@ -137,6 +148,7 @@
       <FILE id="fpuUKr" name="move_updown.svg" compile="0" resource="1" file="../images/move_updown.svg"/>
       <FILE id="KDamww" name="mute-others.svg" compile="0" resource="1" file="../images/mute-others.svg"/>
       <FILE id="k7E229" name="network.svg" compile="0" resource="1" file="../images/network.svg"/>
+      <FILE id="bV0LlS" name="oneshot.svg" compile="0" resource="1" file="../images/oneshot.svg"/>
       <FILE id="oqDUZR" name="outgoing_allowed.svg" compile="0" resource="1"
             file="../images/outgoing_allowed.svg"/>
       <FILE id="JVcaCU" name="outgoing_allowed_active.svg" compile="0" resource="1"
@@ -149,7 +161,14 @@
       <FILE id="cQzT1x" name="people.svg" compile="0" resource="1" file="../images/people.svg"/>
       <FILE id="j1Mze0" name="person.png" compile="0" resource="1" file="../images/person.png"/>
       <FILE id="r0BTkg" name="person.svg" compile="0" resource="1" file="../images/person.svg"/>
+      <FILE id="euQGkN" name="play_back_to_back.svg" compile="0" resource="1"
+            file="../images/play_back_to_back.svg"/>
+      <FILE id="ghU3xg" name="play_background.svg" compile="0" resource="1"
+            file="../images/play_background.svg"/>
       <FILE id="GAUhzL" name="play_icon.svg" compile="0" resource="1" file="../images/play_icon.svg"/>
+      <FILE id="rqcEeL" name="play_simultaneous.svg" compile="0" resource="1"
+            file="../images/play_simultaneous.svg"/>
+      <FILE id="OrwzLr" name="plus_icon.svg" compile="0" resource="1" file="../images/plus_icon.svg"/>
       <FILE id="ZyIQwe" name="power.svg" compile="0" resource="1" file="../images/power.svg"/>
       <FILE id="cWw1Bb" name="power_sel.svg" compile="0" resource="1" file="../images/power_sel.svg"/>
       <FILE id="HnNcyd" name="record.svg" compile="0" resource="1" file="../images/record.svg"/>
@@ -158,6 +177,7 @@
       <FILE id="QUforj" name="record_active_alt.svg" compile="0" resource="1"
             file="../images/record_active_alt.svg"/>
       <FILE id="N6DLmO" name="rectape.svg" compile="0" resource="1" file="../images/rectape.svg"/>
+      <FILE id="YDzjVZ" name="replay_icon.svg" compile="0" resource="1" file="../images/replay_icon.svg"/>
       <FILE id="VFKIt9" name="reset_buffer_icon.svg" compile="0" resource="1"
             file="../images/reset_buffer_icon.svg"/>
       <FILE id="bq1pq6" name="send_group.svg" compile="0" resource="1" file="../images/send_group.svg"/>
@@ -177,9 +197,13 @@
             file="../images/sonobus_logo_96.png"/>
       <FILE id="nu70Xg" name="sonobus_title_small.png" compile="0" resource="1"
             file="../images/sonobus_title_small.png"/>
+      <FILE id="LiYeqI" name="soundboard.svg" compile="0" resource="1" file="../images/soundboard.svg"/>
       <FILE id="VrdLC9" name="speaker.svg" compile="0" resource="1" file="../images/speaker.svg"/>
       <FILE id="QlpOmj" name="speaker_disabled.svg" compile="0" resource="1"
             file="../images/speaker_disabled.svg"/>
+      <FILE id="Nq7mUF" name="speaker_disabled_grey.svg" compile="0" resource="1"
+            file="../images/speaker_disabled_grey.svg"/>
+      <FILE id="eEd5Me" name="toggle.svg" compile="0" resource="1" file="../images/toggle.svg"/>
       <FILE id="ugPUxN" name="triangle_disclosure.svg" compile="0" resource="1"
             file="../images/triangle_disclosure.svg"/>
       <FILE id="hZVho3" name="triangle_disclosure_right.svg" compile="0"
@@ -266,6 +290,8 @@
             file="../Source/PeersContainerView.cpp"/>
       <FILE id="kOjhnM" name="PeersContainerView.h" compile="0" resource="0"
             file="../Source/PeersContainerView.h"/>
+      <FILE id="UhZBtH" name="PolarityInvertView.h" compile="0" resource="0"
+            file="../Source/PolarityInvertView.h"/>
       <FILE id="hfA5YX" name="RandomSentenceGenerator.cpp" compile="1" resource="0"
             file="../Source/RandomSentenceGenerator.cpp"/>
       <FILE id="e5pe8M" name="RandomSentenceGenerator.h" compile="0" resource="0"
@@ -279,6 +305,10 @@
             file="../Source/RunningCumulant.c"/>
       <FILE id="u8Lj3E" name="RunningCumulant.h" compile="0" resource="0"
             file="../Source/RunningCumulant.h"/>
+      <FILE id="AI3tvF" name="SampleEditView.cpp" compile="1" resource="0"
+            file="../Source/SampleEditView.cpp"/>
+      <FILE id="tTFnQF" name="SampleEditView.h" compile="0" resource="0"
+            file="../Source/SampleEditView.h"/>
       <FILE id="Q95ttR" name="SonobusPluginEditor.cpp" compile="1" resource="0"
             file="../Source/SonobusPluginEditor.cpp"/>
       <FILE id="AILfu9" name="SonobusPluginEditor.h" compile="0" resource="0"
@@ -300,6 +330,14 @@
             file="../Source/SonoLookAndFeel.cpp"/>
       <FILE id="c8GbyR" name="SonoLookAndFeel.h" compile="0" resource="0"
             file="../Source/SonoLookAndFeel.h"/>
+      <FILE id="EUb6UW" name="SonoMultiStateDrawableButton.cpp" compile="1"
+            resource="0" file="../Source/SonoMultiStateDrawableButton.cpp"/>
+      <FILE id="hNgGRO" name="SonoMultiStateDrawableButton.h" compile="0"
+            resource="0" file="../Source/SonoMultiStateDrawableButton.h"/>
+      <FILE id="DTmnto" name="SonoPlaybackProgressButton.cpp" compile="1"
+            resource="0" file="../Source/SonoPlaybackProgressButton.cpp"/>
+      <FILE id="a2BDxg" name="SonoPlaybackProgressButton.h" compile="0" resource="0"
+            file="../Source/SonoPlaybackProgressButton.h"/>
       <FILE id="ezIXi1" name="SonoStandaloneFilterApp.cpp" compile="1" resource="0"
             file="../Source/SonoStandaloneFilterApp.cpp"/>
       <FILE id="XXRZJQ" name="SonoStandaloneFilterWindow.h" compile="0" resource="0"
@@ -309,14 +347,36 @@
       <FILE id="AO7Mz9" name="SonoTextButton.h" compile="0" resource="0"
             file="../Source/SonoTextButton.h"/>
       <FILE id="yA0fU7" name="SonoUtility.h" compile="0" resource="0" file="../Source/SonoUtility.h"/>
+      <FILE id="O8O715" name="Soundboard.cpp" compile="1" resource="0" file="../Source/Soundboard.cpp"/>
+      <FILE id="O0ayeg" name="Soundboard.h" compile="0" resource="0" file="../Source/Soundboard.h"/>
+      <FILE id="Rrm3K3" name="SoundboardButtonColors.h" compile="0" resource="0"
+            file="../Source/SoundboardButtonColors.h"/>
+      <FILE id="TRgfYa" name="SoundboardChannelProcessor.cpp" compile="1"
+            resource="0" file="../Source/SoundboardChannelProcessor.cpp"/>
+      <FILE id="f0YVyO" name="SoundboardChannelProcessor.h" compile="0" resource="0"
+            file="../Source/SoundboardChannelProcessor.h"/>
+      <FILE id="rWT66K" name="SoundboardEditView.cpp" compile="1" resource="0"
+            file="../Source/SoundboardEditView.cpp"/>
+      <FILE id="uBsuZi" name="SoundboardEditView.h" compile="0" resource="0"
+            file="../Source/SoundboardEditView.h"/>
+      <FILE id="Hkgjwq" name="SoundboardProcessor.cpp" compile="1" resource="0"
+            file="../Source/SoundboardProcessor.cpp"/>
+      <FILE id="biRkAW" name="SoundboardProcessor.h" compile="0" resource="0"
+            file="../Source/SoundboardProcessor.h"/>
+      <FILE id="Kyf5Ic" name="SoundboardView.cpp" compile="1" resource="0"
+            file="../Source/SoundboardView.cpp"/>
+      <FILE id="NfSFPS" name="SoundboardView.h" compile="0" resource="0"
+            file="../Source/SoundboardView.h"/>
+      <FILE id="u6fy5Z" name="SoundSampleButtonColourPicker.cpp" compile="1"
+            resource="0" file="../Source/SoundSampleButtonColourPicker.cpp"/>
+      <FILE id="ET42V3" name="SoundSampleButtonColourPicker.h" compile="0"
+            resource="0" file="../Source/SoundSampleButtonColourPicker.h"/>
       <FILE id="bmDRNP" name="VersionInfo.cpp" compile="1" resource="0" file="../Source/VersionInfo.cpp"/>
       <FILE id="xTwj0w" name="VersionInfo.h" compile="0" resource="0" file="../Source/VersionInfo.h"/>
       <FILE id="ENU7rn" name="WaveformTransportComponent.h" compile="0" resource="0"
             file="../Source/WaveformTransportComponent.h"/>
       <FILE id="GylxQB" name="zitaRev.h" compile="0" resource="0" file="../Source/zitaRev.h"/>
     </GROUP>
-    <FILE id="UhZBtH" name="PolarityInvertView.h" compile="0" resource="0"
-          file="../Source/PolarityInvertView.h"/>
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
