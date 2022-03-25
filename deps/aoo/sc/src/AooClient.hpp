@@ -14,55 +14,59 @@ public:
     AooClient(World *world, int32_t port);
     ~AooClient();
 
-    void connect(const char* host, int port,
-                 const char* user, const char* pwd);
+    void connect(int token, const char* host, int port, const char* pwd);
 
-    void disconnect();
+    void disconnect(int token);
 
-    void joinGroup(const char* name, const char* pwd);
+    void joinGroup(int token, const char* groupName, const char *groupPwd,
+                   const char* userName, const char *userPwd);
 
-    void leaveGroup(const char* name);
+    void leaveGroup(int token, AooId group);
 
-    void forwardMessage(const char *data, int32_t size,
-                        aoo::time_tag time);
+    void forwardMessage(const char *data, int32_t size, aoo::time_tag time);
 
     void handleEvent(const AooEvent* e);
 private:
     World* world_;
     std::shared_ptr<INode> node_;
 
-    void sendReply(const char *cmd, bool success,
-                   const char *errmsg = nullptr);
+    void sendError(const char *cmd, AooId token, AooError result,
+                   const AooNetResponse *response = nullptr);
 
-    void sendGroupReply(const char* cmd, const char *group,
-                        bool success, const char* errmsg = nullptr);
+    void handlePeerMessage(AooId group, AooId user, AooNtpTime time,
+                           const AooDataView& data);
 
-    void handlePeerMessage(const char *data, int32_t size,
-                           const aoo::ip_address& address, aoo::time_tag t);
-
-    void handlePeerBundle(const osc::ReceivedBundle& bundle,
-                          const aoo::ip_address& address);
+    template<typename T>
+    T * createCommand(int port, int token);
 };
 
 struct AooClientCmd {
     int port;
+    int token;
 };
 
 struct ConnectCmd : AooClientCmd {
-    char serverName[256];
+    char serverHost[256];
     int32_t serverPort;
-    char userName[64];
+    char password[64];
+    // TODO metadata
+};
+
+struct GroupJoinCmd : AooClientCmd {
+    char groupName[256];
+    char userName[256];
+    char groupPwd[64];
     char userPwd[64];
+    // TODO metadata
 };
 
-struct GroupCmd : AooClientCmd {
-    char name[64];
-    char pwd[64];
+struct GroupLeaveCmd : AooClientCmd {
+    AooId group;
 };
 
-struct GroupRequest {
-    AooClient* obj;
-    std::string group;
+struct RequestData {
+    AooClient *client;
+    AooId token;
 };
 
 } // namespace sc

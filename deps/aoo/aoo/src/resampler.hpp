@@ -16,7 +16,9 @@ public:
     void reset();
     void update(double srfrom, double srto);
 
-    bool write(const AooSample* data, int32_t n);
+    bool write(const AooSample* data, int32_t n); // interleaved
+    bool write(const AooSample** data,
+               int32_t nchannels, int32_t nsamples); // non-interleaved
     bool read(AooSample* data, int32_t n);
 
     int32_t size() const { return balance_; }

@@ -444,7 +444,11 @@ PluginLoad(Aoo) {
     ft = inTable; // store pointer to InterfaceTable
     rt::interfaceTable = inTable; // for "rt_shared_ptr.h"
 
-    aoo_initializeEx(SCLog, nullptr),
+    AooSettings settings;
+    AooSettings_init(&settings);
+    settings.logFunc = SCLog;
+
+    aoo_initialize(&settings);
 
     Print("AOO (audio over OSC) %s\n", aoo_getVersionString());
     Print("  (c) 2020 Christof Ressi, Winfried Ritsch, et al.\n");
@@ -470,7 +474,7 @@ PluginLoad(Aoo) {
         gClientSocketType = aoo::socket_family(gClientSocket);
     }
     else {
-        LOG_ERROR("AOO: couldn't open client socket - "
+        LOG_ERROR("AOO: couldn't open client socket: "
             << aoo::socket_strerror(aoo::socket_errno()));
     }
 }

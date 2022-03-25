@@ -15,6 +15,7 @@
 #include "common/time.hpp"
 #include "common/utils.hpp"
 
+#include "binmsg.hpp"
 #include "buffer.hpp"
 #include "imp.hpp"
 #include "resampler.hpp"
@@ -60,11 +61,15 @@ struct sink_request {
 
 // NOTE: the stream ID can change anytime, it only
 // has to be synchronized with any format change.
-
 struct sink_desc {
-    sink_desc(const ip_address& addr, int32_t id, uint32_t flags,
-              AooId stream_id)
-        : ep(addr, id, flags), stream_id_(stream_id) {}
+#if USE_AOO_NET
+    sink_desc(const ip_address& addr, int32_t id,
+              AooId stream_id, const ip_address& relay)
+        : ep(addr, id, relay), stream_id_(stream_id) {}
+#else
+    sink_desc(const ip_address& addr, int32_t id, AooId stream_id)
+        : ep(addr, id), stream_id_(stream_id) {}
+#endif // USE_AOO_NEt
     sink_desc(const sink_desc& other) = delete;
     sink_desc& operator=(const sink_desc& other) = delete;
 
@@ -125,8 +130,8 @@ private:
     aoo::unbounded_mpsc_queue<data_request> data_requests_;
 };
 
-struct cached_sink_desc {
-    cached_sink_desc(const sink_desc& s)
+struct cached_sink {
+    cached_sink(const sink_desc& s)
         : ep(s.ep), stream_id(s.stream_id()), channel(s.channel()) {}
 
     endpoint ep;
@@ -248,11 +253,11 @@ class Source final : public AooSource {
     // requests
     aoo::unbounded_mpsc_queue<sink_request> requests_;
     // sinks
-    using sink_list = aoo::concurrent_list<sink_desc>;
+    using sink_list = aoo::rcu_list<sink_desc>;
     using sink_lock = std::unique_lock<sink_list>;
     sink_list sinks_;
     sync::mutex sink_mutex_;
-    aoo::vector<cached_sink_desc> cached_sinks_; // only for the send thread
+    aoo::vector<cached_sink> cached_sinks_; // only for the send thread
     // memory
     memory_list memory_;
     // thread synchronization
@@ -316,7 +321,7 @@ class Source final : public AooSource {
                              const ip_address& addr);
 
     void handle_data_request(const AooByte * msg, int32_t n,
-                             const ip_address& addr);
+                             AooId id, const ip_address& addr);
 
     void handle_ping(const osc::ReceivedMessage& msg,
                      const ip_address& addr);

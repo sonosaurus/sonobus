@@ -211,7 +211,7 @@ static void aoo_receive_fill_ratio(t_aoo_receive *x, t_symbol *s, int argc, t_at
         x->x_sink->getBufferFillRatio(ep, ratio);
 
         t_atom msg[4];
-        if (x->x_node->resolve_endpoint(source->s_address, source->s_id, 3, msg)){
+        if (x->x_node->serialize_endpoint(source->s_address, source->s_id, 3, msg)){
             SETFLOAT(msg + 3, ratio);
             outlet_anything(x->x_msgout, gensym("fill_ratio"), 4, msg);
         }
@@ -235,14 +235,15 @@ static void aoo_receive_resend_interval(t_aoo_receive *x, t_floatarg f)
 
 static void aoo_receive_listsources(t_aoo_receive *x)
 {
-    for (auto& src : x->x_sources)
-    {
-        t_atom msg[3];
-        if (address_to_atoms(src.s_address, 3, msg) > 0){
-            SETFLOAT(msg + 2, src.s_id);
-            outlet_anything(x->x_msgout, gensym("source"), 3, msg);
-        } else {
-            pd_error(x, "%s: couldn't get endpoint address for source", classname(x));
+    if (x->x_node) {
+        for (auto& src : x->x_sources)
+        {
+            t_atom msg[3];
+            if (x->x_node->serialize_endpoint(src.s_address, src.s_id, 3, msg)) {
+                outlet_anything(x->x_msgout, gensym("source"), 3, msg);
+            } else {
+                bug("aoo_receive_listsources: serialize_endpoint");
+            }
         }
     }
 }
@@ -299,8 +300,8 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
         auto& ep = ((const AooEventEndpoint *)event)->endpoint;
         aoo::ip_address addr((const sockaddr *)ep.address, ep.addrlen);
         t_atom msg[32];
-        if (!x->x_node->resolve_endpoint(addr, ep.id, 3, msg)) {
-            bug("aoo_receive_handle_event: resolve_endpoint");
+        if (!x->x_node->serialize_endpoint(addr, ep.id, 3, msg)) {
+            bug("aoo_receive_handle_event: serialize_endpoint");
             return;
         }
         // event data

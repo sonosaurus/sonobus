@@ -7,6 +7,7 @@
 #include "common/lockfree.hpp"
 #include "common/sync.hpp"
 #include "common/utils.hpp"
+#include "common/udp_server.hpp"
 
 #include <iostream>
 #include <vector>
@@ -20,7 +21,7 @@
 #define NETWORK_THREAD_POLL 0
 
 #if NETWORK_THREAD_POLL
-#define POLL_INTERVAL 1000 // microseconds
+#define POLL_INTERVAL 0.001 // seconds
 #endif
 
 #define DEBUG_THREADS 0
@@ -33,11 +34,7 @@ extern t_class *aoo_client_class;
 
 struct t_aoo_client;
 
-int aoo_client_resolve_address(const t_aoo_client *x, const aoo::ip_address& addr,
-                               AooId id, int argc, t_atom *argv);
-
-void aoo_client_handle_event(t_aoo_client *x,
-                             const AooEvent *event, int32_t level);
+void aoo_client_handle_event(t_aoo_client *x, const AooEvent *event, int32_t level);
 
 /*////////////////////// aoo node //////////////////*/
 
@@ -68,10 +65,8 @@ class t_node_imp final : public t_node
     aoo::sync::mutex x_clientmutex;
     std::thread x_clientthread;
     int32_t x_refcount = 0;
-    // socket
-    int x_socket = -1;
-    int x_port = 0;
-    aoo::ip_address::ip_type x_type;
+    // UDP server
+    aoo::udp_server x_server;
     // threading
 #if NETWORK_THREAD_POLL
     std::thread x_iothread;
@@ -84,7 +79,7 @@ class t_node_imp final : public t_node
     std::atomic<bool> x_quit{false};
 public:
     // public methods
-    t_node_imp(t_symbol *s, int socket, const aoo::ip_address& addr);
+    t_node_imp(t_symbol *s, int port);
 
     ~t_node_imp();
 
@@ -92,9 +87,9 @@ public:
 
     AooClient * client() override { return x_client.get(); }
 
-    aoo::ip_address::ip_type type() const override { return x_type; }
+    aoo::ip_address::ip_type type() const override { return x_server.type(); }
 
-    int port() const override { return x_port; }
+    int port() const override { return x_server.port(); }
 
     void notify() override {
     #if NETWORK_THREAD_POLL
@@ -123,24 +118,34 @@ public:
     }
 
     bool get_peer_arg(t_pd *x, int argc, const t_atom *argv,
-                      aoo::ip_address& addr) const override {
-        return get_endpoint_arg(x, argc, argv, addr, nullptr, "peer");
+                      AooId& group, AooId& user) const override {
+        if (x_client) {
+            aoo::ip_address addr;
+            if (get_endpoint_arg(x, argc, argv, addr, nullptr, "peer")) {
+                if (x_client->getPeerByAddress(addr.address(), addr.length(),
+                                               &group, &user, 0, 0, 0, 0) == kAooOk) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    int resolve_endpoint(const aoo::ip_address &addr, AooId id,
-                         int argc, t_atom *argv) const override;
+    int serialize_endpoint(const aoo::ip_address &addr, AooId id,
+                           int argc, t_atom *argv) const override;
 private:
     friend class t_node;
 
     static AooInt32 send(void *user, const AooByte *msg, AooInt32 size,
                          const void *addr, AooAddrSize len, AooFlag flags);
 
+    void handle_packet(int e, const aoo::ip_address& addr,
+                       const AooByte *data, AooSize size);
+
 #if NETWORK_THREAD_POLL
     void perform_io();
 #else
     void send_packets();
-
-    void receive_packets();
 #endif
 
     bool add_object(t_pd *obj, void *x, AooId id);
@@ -165,8 +170,8 @@ bool t_node_imp::get_endpoint_arg(t_pd *x, int argc, const t_atom *argv,
         t_symbol *user = atom_getsymbol(argv + 1);
         // we can't use length_ptr() because socklen_t != int32_t on many platforms
         AooAddrSize len = aoo::ip_address::max_length;
-        if (x_client->getPeerByName(group->s_name, user->s_name,
-                                    addr.address_ptr(), &len) == kAooOk) {
+        if (x_client && x_client->getPeerByName(
+                    group->s_name, user->s_name, addr.address_ptr(), &len) == kAooOk) {
             *addr.length_ptr() = len;
         } else {
             pd_error(x, "%s: couldn't find peer %s|%s",
@@ -177,7 +182,7 @@ bool t_node_imp::get_endpoint_arg(t_pd *x, int argc, const t_atom *argv,
         // otherwise try host|port
         t_symbol *host = atom_getsymbol(argv);
         int port = atom_getfloat(argv + 1);
-        auto result = aoo::ip_address::resolve(host->s_name, port, x_type);
+        auto result = aoo::ip_address::resolve(host->s_name, port, type());
         if (!result.empty()){
             addr = result.front(); // just pick the first one
         } else {
@@ -207,14 +212,30 @@ bool t_node_imp::get_endpoint_arg(t_pd *x, int argc, const t_atom *argv,
     return true;
 }
 
-int t_node_imp::resolve_endpoint(const aoo::ip_address &addr, AooId id,
-                                  int argc, t_atom *argv) const {
-    if (x_clientobj){
-        return aoo_client_resolve_address((t_aoo_client *)x_clientobj,
-                                          addr, id, argc, argv);
-    } else {
-        return endpoint_to_atoms(addr, id, argc, argv);
+int t_node_imp::serialize_endpoint(const aoo::ip_address &addr, AooId id,
+                                   int argc, t_atom *argv) const {
+    if (argc < 3 || !addr.valid()) {
+        LOG_DEBUG("serialize_endpoint: invalid address");
+        return 0;
     }
+    char group[MAXPDSTRING];
+    AooSize grouplen = sizeof(group);
+    char user[MAXPDSTRING];
+    AooSize userlen = sizeof(user);
+    if (x_client && x_client->getPeerByAddress(
+            addr.address(), addr.length(), 0, 0,
+                group, &grouplen, user, &userlen) == kAooOk) {
+        // group name, user name, id
+        SETSYMBOL(argv, gensym(group));
+        SETSYMBOL(argv + 1, gensym(user));
+        SETFLOAT(argv + 2, id);
+    } else {
+        // ip string, port number, id
+        SETSYMBOL(argv, gensym(addr.name()));
+        SETFLOAT(argv + 1, addr.port());
+        SETFLOAT(argv + 2, id);
+    }
+    return 3;
 }
 
 bool t_node_imp::add_object(t_pd *obj, void *x, AooId id)
@@ -227,7 +248,7 @@ bool t_node_imp::add_object(t_pd *obj, void *x, AooId id)
             // start thread lazily
             if (!x_clientthread.joinable()){
                 x_clientthread = std::thread([this](){
-                   x_client->run();
+                   x_client->run(kAooFalse);
                 });
             }
             // set event handler
@@ -235,18 +256,18 @@ bool t_node_imp::add_object(t_pd *obj, void *x, AooId id)
                                        obj, kAooEventModePoll);
         } else {
             pd_error(obj, "%s on port %d already exists!",
-                     classname(obj), x_port);
+                     classname(obj), port());
             return false;
         }
     } else  if (pd_class(obj) == aoo_send_class){
         if (x_client->addSource((AooSource *)x, id) != kAooOk){
             pd_error(obj, "%s with ID %d on port %d already exists!",
-                     classname(obj), id, x_port);
+                     classname(obj), id, port());
         }
     } else if (pd_class(obj) == aoo_receive_class){
         if (x_client->addSink((AooSink *)x, id) != kAooOk){
             pd_error(obj, "%s with ID %d on port %d already exists!",
-                     classname(obj), id, x_port);
+                     classname(obj), id, port());
         }
     } else {
         bug("t_node_imp: bad client");
@@ -257,70 +278,29 @@ bool t_node_imp::add_object(t_pd *obj, void *x, AooId id)
 }
 
 #if NETWORK_THREAD_POLL
-void t_node_imp::perform_io(){
-    while (!x_quit.load(std::memory_order_relaxed)){
-        aoo::ip_address addr;
-        AooByte buf[AOO_MAX_PACKET_SIZE];
-        int nbytes = aoo::socket_receive(x_socket, buf, AOO_MAX_PACKET_SIZE,
-                                         &addr, POLL_INTERVAL);
-        if (nbytes > 0){
-            scoped_lock lock(x_clientmutex);
-        #if DEBUG_THREADS
-            std::cout << "perform_io: handle_message" << std::endl;
-        #endif
-            x_client->handleMessage(buf, nbytes, addr.address(), addr.length());
-        } else if (nbytes < 0) {
-            // ignore errors when quitting
-            if (!x_quit){
-                aoo::socket_error_print("recv");
-            }
-            return;
-        } else {
-            // timeout
-        }
+void t_node_imp::perform_io() {
+    while (!x_quit.load(std::memory_order_relaxed)) {
+        x_server.run(POLL_INTERVAL);
 
-        if (x_update.exchange(false, std::memory_order_acquire)){
+        if (x_update.exchange(false, std::memory_order_acquire)) {
             scoped_lock lock(x_clientmutex);
         #if DEBUG_THREADS
-            std::cout << "perform_io: send" << std::endl;
+            std::cout << "send messages" << std::endl;
         #endif
             x_client->send(send, this);
         }
     }
 }
 #else
-void t_node_imp::send_packets(){
-    while (!x_quit.load(std::memory_order_relaxed)){
+void t_node_imp::send_packets() {
+    while (!x_quit.load(std::memory_order_relaxed)) {
         x_event.wait();
 
         scoped_lock lock(x_clientmutex);
     #if DEBUG_THREADS
-        std::cout << "send_packets" << std::endl;
+        std::cout << "send messages" << std::endl;
     #endif
         x_client->send(send, this);
-    }
-}
-
-void t_node_imp::receive_packets(){
-    while (!x_quit.load(std::memory_order_relaxed)){
-        aoo::ip_address addr;
-        AooByte buf[AOO_MAX_PACKET_SIZE];
-        int nbytes = aoo::socket_receive(x_socket, buf, AOO_MAX_PACKET_SIZE, &addr, -1);
-        if (nbytes > 0){
-            scoped_lock lock(x_clientmutex);
-        #if DEBUG_THREADS
-            std::cout << "receive_packets" << std::endl;
-        #endif
-            x_client->handleMessage(buf, nbytes, addr.address(), addr.length());
-        } else if (nbytes < 0) {
-            // ignore errors when quitting
-            if (!x_quit){
-                aoo::socket_error_print("recv");
-            }
-            break;
-        } else {
-            // ignore empty packets (used for quit signalling)
-        }
     }
 }
 #endif
@@ -330,7 +310,24 @@ AooInt32 t_node_imp::send(void *user, const AooByte *msg, AooInt32 size,
 {
     auto x = (t_node_imp *)user;
     aoo::ip_address dest((sockaddr *)addr, len);
-    return aoo::socket_sendto(x->x_socket, msg, size, dest);
+    return x->x_server.send(dest, msg, size);
+}
+
+void t_node_imp::handle_packet(int e, const aoo::ip_address& addr,
+                               const AooByte *data, AooSize size) {
+    if (e == 0) {
+        scoped_lock lock(x_clientmutex);
+    #if DEBUG_THREADS
+        std::cout << "handle message" << std::endl;
+    #endif
+        x_client->handleMessage(data, size, addr.address(), addr.length());
+    } else {
+        sys_lock();
+        pd_error(nullptr, "aoo_node: recv() failed: %s\n",
+                 aoo::socket_strerror(e).c_str());
+        // TODO handle error
+        sys_unlock();
+    }
 }
 
 t_node * t_node::get(t_pd *obj, int port, void *x, AooId id)
@@ -345,32 +342,13 @@ t_node * t_node::get(t_pd *obj, int port, void *x, AooId id)
     if (y){
         node = y->x_node;
     } else {
-        // first create socket and bind to given port
-        int sock = aoo::socket_udp(port);
-        if (sock < 0){
-            pd_error(obj, "%s: couldn't bind to port %d", classname(obj), port);
+        try {
+            // finally create aoo node instance
+            node = new t_node_imp(s, port);
+        } catch (const std::exception& e) {
+            pd_error(obj, "%s: %s", classname(obj), e.what());
             return nullptr;
         }
-
-        aoo::ip_address addr;
-        if (aoo::socket_address(sock, addr) != 0){
-            pd_error(obj, "%s: couldn't get socket address", classname(obj));
-            aoo::socket_close(sock);
-            return nullptr;
-        }
-
-        // increase socket buffers
-        const int sendbufsize = 1 << 16; // 65 KB
-    #if NETWORK_THREAD_POLL
-        const int recvbufsize = 1 << 20; // 1 MB
-    #else
-        const int recvbufsize = 1 << 16; // 65 KB
-    #endif
-        aoo::socket_setsendbufsize(sock, sendbufsize);
-        aoo::socket_setrecvbufsize(sock, recvbufsize);
-
-        // finally create aoo node instance
-        node = new t_node_imp(s, sock, addr);
     }
 
     if (!node->add_object(obj, x, id)){
@@ -381,39 +359,58 @@ t_node * t_node::get(t_pd *obj, int port, void *x, AooId id)
     return node;
 }
 
-t_node_imp::t_node_imp(t_symbol *s, int socket, const aoo::ip_address& addr)
-    : x_proxy(this), x_bindsym(s),
-      x_socket(socket), x_port(addr.port()), x_type(addr.type())
+t_node_imp::t_node_imp(t_symbol *s, int port)
+    : x_proxy(this), x_bindsym(s)
 {
-    LOG_DEBUG("create AooClient on port " << addr.port());
-    x_client = AooClient::create(addr.address(), addr.length(), 0, nullptr);
+    // increase socket buffers
+    const int sendbufsize = 1 << 16; // 65 KB
+#if NETWORK_THREAD_POLL
+    const int recvbufsize = 1 << 20; // 1 MB
+#else
+    const int recvbufsize = 1 << 16; // 65 KB
+#endif
+    // udp_server::start() throws on error!
+    x_server.start(port, [this](auto&&... args) { handle_packet(args...); },
+                   false, recvbufsize, sendbufsize);
+
+    LOG_DEBUG("create AooClient on port " << port);
+    x_client = AooClient::create(x_server.socket(), 0, nullptr);
 
     pd_bind(&x_proxy.x_pd, x_bindsym);
 
 #if NETWORK_THREAD_POLL
     // start network I/O thread
     LOG_DEBUG("start network thread");
-    x_iothread = std::thread([this](){
+    x_iothread = std::thread([this, pd=pd_this]() {
+    #ifdef PDINSTANCE
+        pd_setinstance(pd);
+    #endif
         aoo::sync::lower_thread_priority();
         perform_io();
     });
 #else
     // start send thread
     LOG_DEBUG("start network send thread");
-    x_sendthread = std::thread([this](){
+    x_sendthread = std::thread([this, pd=pd_this]() {
+    #ifdef PDINSTANCE
+        pd_setinstance(pd);
+    #endif
         aoo::sync::lower_thread_priority();
         send_packets();
     });
 
     // start receive thread
     LOG_DEBUG("start network receive thread");
-    x_recvthread = std::thread([this](){
+    x_recvthread = std::thread([this, pd=pd_this]() {
+    #ifdef PDINSTANCE
+        pd_setinstance(pd);
+    #endif
         aoo::sync::lower_thread_priority();
-        receive_packets();
+        x_server.run();
     });
 #endif
 
-    verbose(0, "new aoo node on port %d", x_port);
+    verbose(0, "new aoo node on port %d", port);
 }
 
 void t_node_imp::release(t_pd *obj, void *x)
@@ -445,29 +442,31 @@ t_node_imp::~t_node_imp()
 {
     pd_unbind(&x_proxy.x_pd, x_bindsym);
 
-    // ask threads to quit
-    x_quit = true;
-
+    auto port = x_server.port();
 #if NETWORK_THREAD_POLL
     LOG_DEBUG("join network thread");
-    aoo::socket_signal(x_socket); // wake perform_io()
+    // notify I/O thread
+    x_quit = true;
     x_iothread.join();
+    x_server.stop();
 #else
     LOG_DEBUG("join network threads");
-    x_event.set(); // wake send_packets()
-    aoo::socket_signal(x_socket); // wake receive_packets()
+    // notify send thread
+    x_quit = true;
+    x_event.set();
+    // stop UDP server
+    x_server.stop();
+    // join both threads
     x_sendthread.join();
     x_recvthread.join();
 #endif
-
-    aoo::socket_close(x_socket);
 
     if (x_clientthread.joinable()){
         x_client->quit();
         x_clientthread.join();
     }
 
-    verbose(0, "released aoo node on port %d", x_port);
+    verbose(0, "released aoo node on port %d", port);
 }
 
 void aoo_node_setup(void)

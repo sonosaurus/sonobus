@@ -23,6 +23,11 @@ variables:
     -DCMAKE_INSTALL_PREFIX="$prefix/aoo" -DAOO_STATIC_LIBS=${STATIC_LIBS} -DAOO_SYSTEM_OPUS=OFF
     ${PD_EXTENSION:+-DPD_EXTENSION=${PD_EXTENSION}} -DPD_DIR="${PD_PATH}" -DPD_INSTALLDIR="$prefix/pd"
     -DSC_SUPERNOVA=${SUPERNOVA} -DSC_INCLUDEDIR="${SC_PATH}" -DSC_INSTALLDIR="$prefix/sc"
+    -DCMAKE_DEPENDS_USE_COMPILER=OFF
+   # NOTE: by default, CMake 3.21+ uses the compiler to obtain dependencies for makefiles ('compiler_depends.make').
+   # For some reason, on the 'Hopper' runner that file would contain bogus file paths which will cause the following
+   # invocation of 'cmake --build ./build --target install/strip' to fail with 'multiple target patterns'.
+   # As a workaround, we force the legacy behavior with -DCMAKE_DEPENDS_USE_COMPILER=OFF.
 
 ### build snippets
 .script:make: &script_make

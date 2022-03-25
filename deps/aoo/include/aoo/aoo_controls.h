@@ -63,7 +63,17 @@ enum AooControls
     kAooCtlSetBinaryDataMsg,
     kAooCtlGetBinaryDataMsg,
     kAooCtlSetStreamMetadataSize,
-    kAooCtlGetStreamMetadataSize
+    kAooCtlGetStreamMetadataSize,
+#if USE_AOO_NET
+    kAooCtlSetPassword = 1000,
+    kAooCtlSetTcpHost,
+    kAooCtlSetRelayHost,
+    kAooCtlSetServerRelay,
+    kAooCtlGetServerRelay,
+    kAooCtlSetGroupAutoCreate,
+    kAooCtlGetGroupAutoCreate,
+#endif
+    kAooCtlSentinel
 };
 
 /*------------------------------------------------------*/
@@ -93,5 +103,6 @@ enum AooControls
 enum AooPrivateControls
 {
     kAooCtlSetClient = -1000,
-    kAooCtlNeedRelay
+    kAooCtlNeedRelay,
+    kAooCtlGetRelayAddress
 };

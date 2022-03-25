@@ -38,6 +38,8 @@ option(AOO_DEBUG_AUDIO_BUFFER "debug audio buffer" OFF)
 
 option(AOO_DEBUG_JITTER_BUFFER "debug jitter buffer" OFF)
 
+option(AOO_DEBUG_RELAY "debug relay" OFF)
+
 set(OPTIONS
     -DAOO_CUSTOM_ALLOCATOR=$<BOOL:${AOO_CUSTOM_ALLOCATOR}>
     -DAOO_PACKET_SIZE=${AOO_PACKET_SIZE}
@@ -86,8 +88,7 @@ if (AOO_CODEC_OPUS)
 endif()
 
 if (AOO_NET)
-    list(APPEND HEADERS "src/net/server.hpp" "src/net/client.hpp"
-        "src/net/SLIP.hpp")
+    list(APPEND HEADERS "src/net/server.hpp" "src/net/client.hpp")
     list(APPEND SOURCES "src/net/client.cpp" "src/net/server.cpp")
     if (NOT AOO_SYSTEM_MD5)
         list(APPEND HEADERS "${DEPS}/md5/md5.h")

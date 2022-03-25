@@ -1,11 +1,11 @@
 #pragma once
 
-#include "aoo/aoo_defines.h"
-
 #include <stdint.h>
 #include <string>
 #include <vector>
 #include <ostream>
+
+#include "aoo/aoo_defines.h"
 
 #ifdef _WIN32
 typedef int socklen_t;
@@ -30,27 +30,36 @@ public:
         IPv6
     };
 
-    static std::vector<ip_address> resolve(const std::string& host, int port,
-                                           ip_type type);
+    static std::vector<ip_address> resolve(const std::string& host, int port, ip_type type);
 
     ip_address();
+    ip_address(socklen_t size);
     ip_address(const struct sockaddr *sa, socklen_t len);
-    ip_address(uint32_t ipv4, int port);
-    ip_address(int port, ip_type type = ip_type::Unspec); // "any" address
-    ip_address(const std::string& ip, int port, ip_type type = ip_type::Unspec);
+    ip_address(const AooSockAddr& addr);
+    ip_address(int port, ip_type type); // "any" address
+    ip_address(const std::string& ip, int port, ip_type type);
+    ip_address(const AooByte *bytes, AooSize size, int port, ip_type type);
 
     ip_address(const ip_address& other);
     ip_address& operator=(const ip_address& other);
 
     void clear();
 
+    void resize(socklen_t size);
+
     bool operator==(const ip_address& other) const;
+
+    bool operator !=(const ip_address& other) const {
+        return !(*this == other);
+    }
 
     const char* name() const;
 
     const char* name_unmapped() const;
 
     int port() const;
+
+    const AooByte* address_bytes() const;
 
     bool valid() const;
 
@@ -88,6 +97,8 @@ private:
         char __ss_pad2[16];
     } address_;
     socklen_t length_;
+
+    void check();
 };
 
 //-------------------- socket --------------------//
@@ -100,9 +111,11 @@ int socket_tcp(int port);
 
 int socket_close(int socket);
 
-int socket_connect(int socket, const ip_address& addr, float timeout);
+int socket_connect(int socket, const ip_address& addr, double timeout);
 
 int socket_address(int socket, ip_address& addr);
+
+int socket_peer(int socket, ip_address& addr);
 
 int socket_port(int socket);
 
@@ -112,17 +125,19 @@ int socket_sendto(int socket, const void *buf, int size,
                   const ip_address& address);
 
 int socket_receive(int socket, void *buf, int size,
-                   ip_address* addr, int32_t timeout);
+                   ip_address* addr, double timeout);
 
-int socket_setsendbufsize(int socket, int bufsize);
+int socket_set_sendbufsize(int socket, int bufsize);
 
-int socket_setrecvbufsize(int socket, int bufsize);
+int socket_set_recvbufsize(int socket, int bufsize);
 
 int socket_set_nonblocking(int socket, bool nonblocking);
 
 bool socket_signal(int socket);
 
 int socket_errno();
+
+int socket_error(int socket);
 
 int socket_strerror(int err, char *buf, int size);
 

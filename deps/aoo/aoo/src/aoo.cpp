@@ -2,9 +2,11 @@
 #if USE_AOO_NET
 # include "aoo/aoo_net.h"
 # include "common/net_utils.hpp"
+# include "md5/md5.h"
 #endif
 #include "aoo/aoo_codec.h"
 
+#include "binmsg.hpp"
 #include "imp.hpp"
 
 #include "common/sync.hpp"
@@ -34,41 +36,26 @@
 
 namespace aoo {
 
+//--------------------- interface table -------------------//
+
+void * AOO_CALL def_allocator(void *ptr, AooSize oldsize, AooSize newsize);
+
+#ifndef _MSC_VER
+void __attribute__((format(printf, 2, 3 )))
+#else
+void
+#endif
+    def_logfunc(AooLogLevel, const char *, ...);
+
+// populate interface table with default implementations
+static AooCodecHostInterface g_interface = {
+    sizeof(AooCodecHostInterface),
+    aoo_registerCodec,
+    def_allocator,
+    def_logfunc
+};
+
 //--------------------- helper functions -----------------//
-
-char * copy_string(const char * s){
-    if (s){
-        auto len = strlen(s);
-        auto result = aoo::allocate(len + 1);
-        memcpy(result, s, len + 1);
-        return (char *)result;
-    } else {
-        return nullptr;
-    }
-}
-
-void free_string(char *s){
-    if (s){
-        auto len = strlen(s);
-        aoo::deallocate(s, len + 1);
-    }
-}
-
-void * copy_sockaddr(const void *sa, int32_t len){
-    if (sa){
-        auto result = aoo::allocate(len);
-        memcpy(result, sa, len);
-        return result;
-    } else {
-        return nullptr;
-    }
-}
-
-void free_sockaddr(void *sa, int32_t len){
-    if (sa){
-        aoo::deallocate(sa, len);
-    }
-}
 
 int32_t get_random_id(){
 #if defined(ESP_PLATFORM)
@@ -95,21 +82,185 @@ int32_t get_random_id(){
 #endif
 }
 
-} // aoo
+#if USE_AOO_NET
+namespace net {
+
+std::string encrypt(const std::string& input) {
+    // pass empty password unchanged
+    if (input.empty()) {
+        return "";
+    }
+
+    uint8_t result[16];
+    MD5_CTX ctx;
+    MD5_Init(&ctx);
+    MD5_Update(&ctx, (uint8_t *)input.data(), input.size());
+    MD5_Final(result, &ctx);
+
+    char output[33];
+    for (int i = 0; i < 16; ++i){
+        snprintf(&output[i * 2], 3, "%02X", result[i]);
+    }
+
+    return output;
+}
+
+// optimized version of aoo_parse_pattern() for client/server
+AooError parse_pattern(const AooByte *msg, int32_t n, AooMsgType& type, int32_t& offset)
+{
+    int32_t count = 0;
+    if (aoo::binmsg_check(msg, n))
+    {
+        type = aoo::binmsg_type(msg, n);
+        offset = aoo::binmsg_headersize(msg, n);
+        return kAooOk;
+    } else if (n >= kAooMsgDomainLen
+            && !memcmp(msg, kAooMsgDomain, kAooMsgDomainLen))
+    {
+        count += kAooMsgDomainLen;
+        if (n >= (count + kAooNetMsgServerLen)
+            && !memcmp(msg + count, kAooNetMsgServer, kAooNetMsgServerLen))
+        {
+            type = kAooTypeServer;
+            count += kAooNetMsgServerLen;
+        }
+        else if (n >= (count + kAooNetMsgClientLen)
+            && !memcmp(msg + count, kAooNetMsgClient, kAooNetMsgClientLen))
+        {
+            type = kAooTypeClient;
+            count += kAooNetMsgClientLen;
+        }
+        else if (n >= (count + kAooNetMsgPeerLen)
+            && !memcmp(msg + count, kAooNetMsgPeer, kAooNetMsgPeerLen))
+        {
+            type = kAooTypePeer;
+            count += kAooNetMsgPeerLen;
+        }
+        else if (n >= (count + kAooNetMsgRelayLen)
+            && !memcmp(msg + count, kAooNetMsgRelay, kAooNetMsgRelayLen))
+        {
+            type = kAooTypeRelay;
+            count += kAooNetMsgRelayLen;
+        } else {
+            return kAooErrorUnknown;
+        }
+
+        offset = count;
+
+        return kAooOk;
+    } else {
+        return kAooErrorUnknown; // not an AOO message
+    }
+}
+
+AooSize write_relay_message(AooByte *buffer, AooSize bufsize,
+                            const AooByte *msg, AooSize msgsize,
+                            const ip_address& addr) {
+    if (aoo::binmsg_check(msg, msgsize)) {
+    #if AOO_DEBUG_RELAY && 0
+        LOG_DEBUG("write binary relay message");
+    #endif
+        auto onset = aoo::binmsg_write_relay(buffer, bufsize, addr);
+        auto total = msgsize + onset;
+        // NB: we do not write the message size itself because it is implicit
+        if (bufsize >= total) {
+            memcpy(buffer + onset, msg, msgsize);
+            return total;
+        } else {
+            return 0;
+        }
+    } else {
+    #if AOO_DEBUG_RELAY && 0
+        LOG_DEBUG("write OSC relay message " << msg);
+    #endif
+        osc::OutboundPacketStream msg2((char *)buffer, bufsize);
+        msg2 << osc::BeginMessage(kAooMsgDomain kAooNetMsgRelay)
+             << addr << osc::Blob(msg, msgsize)
+             << osc::EndMessage;
+        return msg2.Size();
+    }
+}
+
+} // net
+#endif // USE_AOO_NET
+
+//------------------------------ OSC utilities ---------------------------------//
+
+#if USE_AOO_NET
+// see comment in "imp.hpp"
+namespace net {
+osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const AooDataView *md) {
+    if (md) {
+        msg << md->type << osc::Blob(md->data, md->size);
+    } else {
+        msg << "" << osc::Blob(msg.Data(), 0); // HACK: do not use nullptr because of memcpy()
+    }
+    return msg;
+}
+} // net
+#endif // USE_AOO_NET
+
+osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const aoo::metadata& md) {
+    if (md.size() > 0) {
+        msg << md.type() << osc::Blob(md.data(), md.size());
+    } else {
+        msg << "" << osc::Blob(msg.Data(), 0); // HACK: do not use nullptr because of memcpy()
+    }
+    return msg;
+}
+
+AooDataView osc_read_metadata(osc::ReceivedMessageArgumentIterator& it) {
+    auto type = (it++)->AsString();
+    const void *blobdata;
+    osc::osc_bundle_element_size_t blobsize;
+    (it++)->AsBlob(blobdata, blobsize);
+    if (blobsize) {
+        return AooDataView { type, (const AooByte *)blobdata, (AooSize)blobsize };
+    } else {
+        return AooDataView { type, nullptr, 0 };
+    }
+}
+
+osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const ip_address& addr) {
+    // send *unmapped* addresses in case the client is IPv4 only
+    if (addr.valid()) {
+        msg << addr.name_unmapped() << (int32_t)addr.port();
+    } else {
+        msg << "" << (int32_t)0;
+    }
+    return msg;
+}
+
+ip_address osc_read_address(osc::ReceivedMessageArgumentIterator& it, ip_address::ip_type type) {
+    auto host = (it++)->AsString();
+    auto port = (it++)->AsInt32();
+    return ip_address(host, port, type);
+}
+
+#if USE_AOO_NET
+namespace net {
+
+osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const ip_host& addr) {
+    msg << addr.name.c_str() << addr.port;
+    return msg;
+}
+
+ip_host osc_read_host(osc::ReceivedMessageArgumentIterator& it) {
+    auto host = (it++)->AsString();
+    auto port = (it++)->AsInt32();
+    return net::ip_host { host, port };
+}
+
+} // net
+#endif // USE_AOO_NET
 
 //------------------- allocator ------------------//
-
-#if AOO_CUSTOM_ALLOCATOR || AOO_DEBUG_MEMORY
-
-namespace aoo {
 
 #if AOO_DEBUG_MEMORY
 std::atomic<ptrdiff_t> total_memory{0};
 #endif
 
-static AooAllocFunc g_allocator =
-        [](void *ptr, AooSize oldsize, AooSize newsize) -> void*
-{
+void * AOO_CALL def_allocator(void *ptr, AooSize oldsize, AooSize newsize) {
     if (newsize > 0) {
         // allocate new memory
         // NOTE: we never reallocate
@@ -131,10 +282,12 @@ static AooAllocFunc g_allocator =
         assert(ptr == nullptr);
     }
     return nullptr;
-};
+}
 
-void * allocate(size_t size){
-    auto result = g_allocator(nullptr, 0, size);
+#if AOO_CUSTOM_ALLOCATOR || AOO_DEBUG_MEMORY
+
+void * allocate(size_t size) {
+    auto result = g_interface.allocFunc(nullptr, 0, size);
     if (!result && size > 0) {
         throw std::bad_alloc{};
     }
@@ -142,16 +295,14 @@ void * allocate(size_t size){
 }
 
 void deallocate(void *ptr, size_t size){
-    g_allocator(ptr, size, 0);
+    g_interface.allocFunc(ptr, size, 0);
 }
-
-} // aoo
 
 #endif
 
+
 //----------------------- logging --------------------------//
 
-namespace aoo {
 
 #if CERR_LOG_FUNCTION
 
@@ -159,11 +310,12 @@ namespace aoo {
 static sync::mutex g_log_mutex;
 #endif
 
-static void
 #ifndef _MSC_VER
-    __attribute__((format(printf, 2, 3 )))
+void __attribute__((format(printf, 2, 3 )))
+#else
+void
 #endif
-        cerr_logfunction(AooLogLevel level, const char *fmt, ...)
+    def_logfunc(AooLogLevel level, const char *fmt, ...)
 {
     const char *label = nullptr;
 
@@ -213,11 +365,14 @@ static void
     fflush(stderr);
 }
 
-static AooLogFunc g_logfunction = cerr_logfunction;
-
 #else // CERR_LOG_FUNCTION
 
-static AooLogFunc g_logfunction = nullptr;
+#ifndef _MSC_VER
+void __attribute__((format(printf, 2, 3 )))
+#else
+void
+#endif
+    def_logfunc(AooLogLevel, const char *, ...) {}
 
 #endif // CERR_LOG_FUNCTION
 
@@ -245,9 +400,9 @@ std::streamsize Log::xsputn(const char_type *s, std::streamsize n) {
 }
 
 Log::~Log() {
-    if (g_logfunction) {
+    if (aoo::g_interface.logFunc) {
         buffer_[pos_] = '\0';
-        g_logfunction(level_, buffer_);
+        aoo::g_interface.logFunc(level_, buffer_);
     }
 }
 
@@ -277,16 +432,19 @@ AooError AOO_CALL aoo_parsePattern(
         AooMsgType *type, AooId *id, AooInt32 *offset)
 {
     int32_t count = 0;
-    if (size >= kAooBinMsgHeaderSize &&
-        !memcmp(msg, kAooBinMsgDomain, kAooBinMsgDomainSize))
+    if (aoo::binmsg_check(msg, size))
     {
-        // domain (int32), type (int16), cmd (int16), id (int32) ...
-        *type = aoo::from_bytes<int16_t>(msg + 4);
-        // cmd = aoo::from_bytes<int16_t>(msg + 6);
-        *id = aoo::from_bytes<int32_t>(msg + 8);
-        *offset = 12;
-
-        return kAooOk;
+        *type = aoo::binmsg_type(msg, size);
+        *id = aoo::binmsg_to(msg, size);
+        auto n = aoo::binmsg_headersize(msg, size);
+        if (n > 0) {
+            if (offset) {
+                *offset = n;
+            }
+            return kAooOk;
+        } else {
+            return kAooErrorBadArgument;
+        }
     } else if (size >= kAooMsgDomainLen
         && !memcmp(msg, kAooMsgDomain, kAooMsgDomainLen))
     {
@@ -516,6 +674,11 @@ const AooCodecInterface * find_codec(const char * name){
 
 } // aoo
 
+const AooCodecHostInterface * aoo_getCodecHostInterface(void)
+{
+    return &aoo::g_interface;
+}
+
 AooError AOO_CALL aoo_registerCodec(const char *name, const AooCodecInterface *codec){
     if (aoo::find_codec(name)) {
         LOG_WARNING("codec " << name << " already registered!");
@@ -528,49 +691,44 @@ AooError AOO_CALL aoo_registerCodec(const char *name, const AooCodecInterface *c
 
 //--------------------------- (de)initialize -----------------------------------//
 
-void aoo_pcmLoad(AooCodecRegisterFunc fn, AooLogFunc log, AooAllocFunc alloc);
+void aoo_pcmLoad(const AooCodecHostInterface *);
 void aoo_pcmUnload();
 #if USE_CODEC_OPUS
-void aoo_opusLoad(AooCodecRegisterFunc fn, AooLogFunc log, AooAllocFunc alloc);
+void aoo_opusLoad(const AooCodecHostInterface *);
 void aoo_opusUnload();
 #endif
 
-#if AOO_CUSTOM_ALLOCATOR || AOO_DEBUG_MEMORY
-#define ALLOCATOR aoo::g_allocator
-#else
-#define ALLOCATOR nullptr
-#endif
+#define HAVE_SETTING(settings, field) \
+    (settings && (settings->size >= (offsetof(AooSettings, field) + sizeof(settings->field))))
 
-void AOO_CALL aoo_initialize(){
+AooError AOO_CALL aoo_initialize(const AooSettings *settings) {
     static bool initialized = false;
-    if (!initialized){
+    if (!initialized) {
     #if USE_AOO_NET
         aoo::socket_init();
     #endif
+        // optional settings
+        if (HAVE_SETTING(settings, logFunc) && settings->logFunc) {
+            aoo::g_interface.logFunc = settings->logFunc;
+        }
+        if (HAVE_SETTING(settings, allocFunc) && settings->allocFunc) {
+    #if AOO_CUSTOM_ALLOCATOR
+            aoo::g_interface.allocFunc = settings->allocFunc;
+    #else
+            LOG_WARNING("aoo_initializeEx: custom allocator not supported");
+    #endif
+        }
 
         // register codecs
-        aoo_pcmLoad(aoo_registerCodec, aoo::g_logfunction, ALLOCATOR);
+        aoo_pcmLoad(&aoo::g_interface);
 
     #if USE_CODEC_OPUS
-        aoo_opusLoad(aoo_registerCodec, aoo::g_logfunction, ALLOCATOR);
+        aoo_opusLoad(&aoo::g_interface);
     #endif
 
         initialized = true;
     }
-}
-
-void AOO_CALL aoo_initializeEx(AooLogFunc log, AooAllocFunc alloc) {
-    if (log) {
-        aoo::g_logfunction = log;
-    }
-    if (alloc) {
-#if AOO_CUSTOM_ALLOCATOR
-        aoo::g_allocator = *alloc;
-#else
-        LOG_WARNING("aoo_initializeEx: custom allocator not supported");
-#endif
-    }
-    aoo_initialize();
+    return kAooOk;
 }
 
 void AOO_CALL aoo_terminate() {

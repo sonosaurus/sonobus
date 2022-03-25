@@ -10,11 +10,14 @@
 
 #include "aoo_source.h"
 
-#include <memory>
+#if AOO_HAVE_CXX11
+# include <memory>
+#endif
 
 /** \brief AOO source interface */
 struct AooSource {
 public:
+#if AOO_HAVE_CXX11
     /** \brief custom deleter for AooSource */
     class Deleter {
     public:
@@ -33,6 +36,7 @@ public:
     static Ptr create(AooId id, AooFlag flags, AooError *err) {
         return Ptr(AooSource_new(id, flags, err));
     }
+#endif
 
     /*------------------- methods -----------------------*/
 
@@ -248,7 +252,7 @@ public:
     }
 
     /** \brief Check if xrun detection is enabled */
-    AooError getXRunDetection(AooBool b) {
+    AooError getXRunDetection(AooBool& b) {
         return control(kAooCtlGetXRunDetection, 0, AOO_ARG(b));
     }
 
@@ -268,7 +272,7 @@ public:
     }
 
     /** \brief Check if dynamic resampling is enabled. */
-    AooError getDynamicResampling(AooBool b) {
+    AooError getDynamicResampling(AooBool& b) {
         return control(kAooCtlGetDynamicResampling, 0, AOO_ARG(b));
     }
 

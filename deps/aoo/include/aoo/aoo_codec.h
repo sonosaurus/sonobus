@@ -19,7 +19,7 @@ AOO_PACK_BEGIN
 /** \brief base class for all codec classes */
 typedef struct AooCodec
 {
-    struct AooCodecInterface *interface;
+    struct AooCodecInterface *cls;
 } AooCodec;
 
 /** \brief codec constructor
@@ -128,6 +128,7 @@ typedef AooError (AOO_CALL *AooCodecDeserializeFunc)(
 /** \brief interface to be implemented by AOO codec classes */
 typedef struct AooCodecInterface
 {
+    AooSize size;
     /* encoder methods */
     AooCodecNewFunc encoderNew;
     AooCodecFreeFunc encoderFree;
@@ -141,7 +142,6 @@ typedef struct AooCodecInterface
     /* free functions */
     AooCodecSerializeFunc serialize;
     AooCodecDeserializeFunc deserialize;
-    void *future;
 } AooCodecInterface;
 
 /*----------------- helper functions ----------------------*/
@@ -152,7 +152,7 @@ AOO_INLINE AooError AooEncoder_encode(AooCodec *enc,
                            const AooSample *input, AooInt32 numSamples,
                            AooByte *output, AooInt32 *numBytes)
 {
-    return enc->interface->encoderEncode(enc, input, numSamples, output, numBytes);
+    return enc->cls->encoderEncode(enc, input, numSamples, output, numBytes);
 }
 
 /** \brief control encoder instance
@@ -160,12 +160,12 @@ AOO_INLINE AooError AooEncoder_encode(AooCodec *enc,
 AOO_INLINE AooError AooEncoder_control(AooCodec *enc,
                            AooCodecCtl ctl, void *data, AooSize size)
 {
-    return enc->interface->encoderControl(enc, ctl, data, size);
+    return enc->cls->encoderControl(enc, ctl, data, size);
 }
 
 /** \brief reset encoder state */
 AOO_INLINE AooError AooEncoder_reset(AooCodec *enc) {
-    return enc->interface->encoderControl(enc, kAooCodecCtlReset, NULL, 0);
+    return enc->cls->encoderControl(enc, kAooCodecCtlReset, NULL, 0);
 }
 
 /** \brief decode bytes to audio samples
@@ -174,7 +174,7 @@ AOO_INLINE AooError AooDecoder_decode(AooCodec *dec,
                            const AooByte *input, AooInt32 numBytes,
                            AooSample *output, AooInt32 *numSamples)
 {
-    return dec->interface->decoderDecode(dec, input, numBytes, output, numSamples);
+    return dec->cls->decoderDecode(dec, input, numBytes, output, numSamples);
 }
 
 /** \brief control decoder instance
@@ -182,27 +182,38 @@ AOO_INLINE AooError AooDecoder_decode(AooCodec *dec,
 AOO_INLINE AooError AooDecoder_control(AooCodec *dec,
                            AooCodecCtl ctl, void *data, AooSize size)
 {
-    return dec->interface->decoderControl(dec, ctl, data, size);
+    return dec->cls->decoderControl(dec, ctl, data, size);
 }
 
 /** \brief reset decoder state */
 AOO_INLINE AooError AooDecoder_reset(AooCodec *dec)
 {
-    return dec->interface->encoderControl(dec, kAooCodecCtlReset, NULL, 0);
+    return dec->cls->encoderControl(dec, kAooCodecCtlReset, NULL, 0);
 }
 
 /*----------------- register codecs -----------------------*/
-
-/** \brief register an external codec plugin */
-AOO_API AooError AOO_CALL aoo_registerCodec(
-        const AooChar *name, const AooCodecInterface *codec);
 
 /** \brief The type of #aoo_registerCodec, which gets passed to the
  * entry function of the codec plugin to register itself. */
 typedef AooError (AOO_CALL *AooCodecRegisterFunc)(
         const AooChar *name,                // codec name
-        const AooCodecInterface *interface  // codec interface
+        const AooCodecInterface *cls  // codec interface
 );
+
+typedef struct AooCodecHostInterface
+{
+    AooSize size;
+    AooCodecRegisterFunc registerCodec;
+    AooAllocFunc allocFunc;
+    AooLogFunc logFunc;
+} AooCodecHostInterface;
+
+/** \brief global codec host interface instance */
+AOO_API const AooCodecHostInterface * aoo_getCodecHostInterface(void);
+
+/** \brief register an external codec plugin */
+AOO_API AooError AOO_CALL aoo_registerCodec(
+        const AooChar *name, const AooCodecInterface *codec);
 
 /** \brief type of entry function for codec plugin module
  *
@@ -215,11 +226,10 @@ typedef AooError (AOO_CALL *AooCodecRegisterFunc)(
  *
  * In your host application, you would then scan directories for shared libraries,
  * check if they export a function named `aoo_load`, and if yes, call it with a
- * pointer to #aoo_registerCodec and (optionally) a log function and custom allocator.
+ * pointer to the host interface table.
  */
 typedef AooError (AOO_CALL *AooCodecLoadFunc)
-        (const AooCodecRegisterFunc *registerFunc,
-         AooLogFunc logFunc, AooAllocFunc allocFunc);
+        (const AooCodecHostInterface *);
 
 /** \brief type of exit function for codec plugin module
  *

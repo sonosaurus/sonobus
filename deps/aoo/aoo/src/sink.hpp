@@ -15,6 +15,7 @@
 #include "common/time.hpp"
 #include "common/utils.hpp"
 
+#include "binmsg.hpp"
 #include "buffer.hpp"
 #include "imp.hpp"
 #include "resampler.hpp"
@@ -134,8 +135,12 @@ class Sink;
 
 class source_desc {
 public:
+#if USE_AOO_NET
     source_desc(const ip_address& addr, AooId id,
-                uint32_t flags, double time);
+                const ip_address& relay, double time);
+#else
+    source_desc(const ip_address& addr, AooId id, double time);
+#endif
 
     source_desc(const source_desc& other) = delete;
     source_desc& operator=(const source_desc& other) = delete;
@@ -178,7 +183,7 @@ public:
 
     void uninvite(const Sink& s);
 
-    double get_buffer_fill_ratio();
+    float get_buffer_fill_ratio();
 
     void add_xrun(int32_t nsamples){
         xrunsamples_ += nsamples;
@@ -368,7 +373,7 @@ private:
     AooClient *client_ = nullptr;
 #endif
     // the sources
-    using source_list = aoo::concurrent_list<source_desc>;
+    using source_list = aoo::rcu_list<source_desc>;
     using source_lock = std::unique_lock<source_list>;
     source_list sources_;
     sync::mutex source_mutex_;
@@ -419,7 +424,7 @@ private:
                                  const ip_address& addr);
 
     AooError handle_data_message(const AooByte *msg, int32_t n,
-                                 const ip_address& addr);
+                                 AooId id, const ip_address& addr);
 
     AooError handle_data_packet(net_packet& d, bool binary,
                                 const ip_address& addr, AooId id);

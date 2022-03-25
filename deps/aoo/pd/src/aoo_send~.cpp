@@ -101,10 +101,10 @@ static void aoo_send_doaddsink(t_aoo_send *x, const aoo::ip_address& addr,
 
     // output message
     t_atom msg[3];
-    if (x->x_node->resolve_endpoint(addr, id, 3, msg)){
+    if (x->x_node->serialize_endpoint(addr, id, 3, msg)){
         outlet_anything(x->x_msgout, gensym("add"), 3, msg);
     } else {
-        bug("t_node::resolve_endpoint");
+        bug("aoo_send_doaddsink: serialize_endpoint");
     }
 }
 
@@ -126,10 +126,10 @@ static void aoo_send_doremoveall(t_aoo_send *x)
     // output messages
     for (int i = 0; i < numsinks; ++i){
         t_atom msg[3];
-        if (x->x_node->resolve_endpoint(sinks[i].s_address, sinks[i].s_id, 3, msg)){
+        if (x->x_node->serialize_endpoint(sinks[i].s_address, sinks[i].s_id, 3, msg)){
             outlet_anything(x->x_msgout, gensym("remove"), 3, msg);
         } else {
-            bug("t_node::resolve_endpoint");
+            bug("aoo_send_doremoveall: serialize_endpoint");
         }
     }
 }
@@ -143,10 +143,10 @@ static void aoo_send_doremovesink(t_aoo_send *x, const aoo::ip_address& addr, Ao
 
             // output message
             t_atom msg[3];
-            if (x->x_node->resolve_endpoint(addr, id, 3, msg)){
+            if (x->x_node->serialize_endpoint(addr, id, 3, msg)){
                 outlet_anything(x->x_msgout, gensym("remove"), 3, msg);
             } else {
-                bug("t_node::resolve_endpoint");
+                bug("aoo_send_doremovesink: serialize_endpoint");
             }
             return;
         }
@@ -404,8 +404,8 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         auto& ep = ((const AooEventEndpoint *)event)->endpoint;
         aoo::ip_address addr((const sockaddr *)ep.address, ep.addrlen);
         t_atom msg[12];
-        if (!x->x_node->resolve_endpoint(addr, ep.id, 3, msg)) {
-            bug("aoo_send_handle_event: resolve_endpoint");
+        if (!x->x_node->serialize_endpoint(addr, ep.id, 3, msg)) {
+            bug("aoo_send_handle_event: serialize_endpoint");
             return;
         }
         // event data
@@ -613,6 +613,11 @@ static void aoo_send_dll_bandwidth(t_aoo_send *x, t_floatarg f)
     x->x_source->setDllBandwidth(f);
 }
 
+static void aoo_send_binary(t_aoo_send *x, t_floatarg f)
+{
+    x->x_source->setBinaryDataMsg(f);
+}
+
 static void aoo_send_add(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
     if (!aoo_send_check(x, argc, argv, 3, "add")) return;
@@ -776,10 +781,10 @@ static void aoo_send_listsinks(t_aoo_send *x)
 {
     for (auto& sink : x->x_sinks){
         t_atom msg[3];
-        if (x->x_node->resolve_endpoint(sink.s_address, sink.s_id, 3, msg)){
+        if (x->x_node->serialize_endpoint(sink.s_address, sink.s_id, 3, msg)){
             outlet_anything(x->x_msgout, gensym("sink"), 3, msg);
         } else {
-            bug("t_node::resolve_endpoint");
+            bug("t_node::serialize_endpoint");
         }
     }
 }
@@ -1008,6 +1013,8 @@ void aoo_send_tilde_setup(void)
                     gensym("dynamic_resampling"), A_FLOAT, A_NULL);
     class_addmethod(aoo_send_class, (t_method)aoo_send_dll_bandwidth,
                     gensym("dll_bandwidth"), A_FLOAT, A_NULL);
+    class_addmethod(aoo_send_class, (t_method)aoo_send_binary,
+                    gensym("binary"), A_FLOAT, A_NULL);
     class_addmethod(aoo_send_class, (t_method)aoo_send_listsinks,
                     gensym("list_sinks"), A_NULL);
 }

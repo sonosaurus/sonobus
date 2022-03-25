@@ -223,6 +223,7 @@ void AooReceive::handleEvent(const AooEvent *event){
         break;
     }
     default:
+        LOG_DEBUG("AooReceive: got unknown event " << event->type);
         break;
     }
 }

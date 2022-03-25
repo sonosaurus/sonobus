@@ -122,6 +122,9 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
     # atomic 64-bit integer support
     test_atomic(ATOMIC_INT64 "atomic_int64.cpp")
     # message(STATUS "atomic 64-bit integers supported: ${AOO_HAVE_ATOMIC_INT64}")
+
+    # warnings/errors
+    add_compile_options("-Werror=return-type")
 endif()
 
 # global optimization flags

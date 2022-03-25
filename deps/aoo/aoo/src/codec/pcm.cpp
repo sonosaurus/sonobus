@@ -370,7 +370,8 @@ AooError AOO_CALL deserialize(
     return kAooOk;
 }
 
-AooCodecInterface g_interface = {
+static AooCodecInterface g_interface = {
+    sizeof(AooCodecInterface),
     // encoder
     PcmCodec_new,
     PcmCodec_free,
@@ -383,20 +384,18 @@ AooCodecInterface g_interface = {
     PcmCodec_decode,
     // helper
     serialize,
-    deserialize,
-    nullptr
+    deserialize
 };
 
 PcmCodec::PcmCodec(const AooFormatPcm& f) {
-    interface = &g_interface;
+    cls = &g_interface;
     sampleSize_ = bytes_per_sample(f.bitDepth);
 }
 
 } // namespace
 
-void aoo_pcmLoad(AooCodecRegisterFunc fn,
-                 AooLogFunc log, AooAllocFunc alloc){
-    fn(kAooCodecPcm, &g_interface);
+void aoo_pcmLoad(const AooCodecHostInterface *ift) {
+    ift->registerCodec(kAooCodecPcm, &g_interface);
     // the PCM codec is always statically linked, so we can simply use the
     // internal log function and allocator
 }

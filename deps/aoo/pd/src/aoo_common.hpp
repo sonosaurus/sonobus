@@ -52,10 +52,10 @@ public:
                               aoo::ip_address& addr, AooId &id) const = 0;
 
     virtual bool get_peer_arg(t_pd *x, int argc, const t_atom *argv,
-                              aoo::ip_address& addr) const = 0;
+                              AooId& group, AooId& user) const = 0;
 
-    virtual int resolve_endpoint(const aoo::ip_address& addr, AooId id,
-                                 int argc, t_atom *argv) const = 0;
+    virtual int serialize_endpoint(const aoo::ip_address& addr, AooId id,
+                                   int argc, t_atom *argv) const = 0;
 };
 
 /*///////////////////////////// helper functions ///////////////////////////////*/

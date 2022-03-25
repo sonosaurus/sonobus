@@ -111,11 +111,8 @@ void shared_spinlock::lock(){
             // check if state is UNLOCKED and set LOCKED bit on success.
             uint32_t expected = UNLOCKED;
             if (state_.compare_exchange_weak(expected, LOCKED,
-                                             std::memory_order_acquire,
-                                             std::memory_order_relaxed))
-            {
-                return;
-            }
+                std::memory_order_acquire, std::memory_order_relaxed)) return;
+            // CAS failed -> retry immediately
         } else {
             pause_cpu();
         }
@@ -126,33 +123,40 @@ bool shared_spinlock::try_lock(){
     // check if state is UNLOCKED and set LOCKED bit on success.
     uint32_t expected = UNLOCKED;
     return state_.compare_exchange_strong(expected, LOCKED,
-                                          std::memory_order_acquire,
-                                          std::memory_order_relaxed);
+        std::memory_order_acquire, std::memory_order_relaxed);
 }
 
 void shared_spinlock::unlock(){
-    // clear LOCKED bit
+    // clear LOCKED bit, see try_lock_shared()
     state_.fetch_and(~LOCKED, std::memory_order_release);
 }
 
 // shared
-void shared_spinlock::lock_shared(){
-    while (!try_lock_shared()){
-        pause_cpu();
-    }
-}
-
 bool shared_spinlock::try_lock_shared(){
     // optimistically increment the reader count and then
-    // check whether the LOCKED bit is *not* set,
-    // otherwise we simply decrement the reader count again.
-    // this is optimized for the likely case that there's no writer.
+    // check whether the LOCKED bit is *not* set, otherwise
+    // we simply decrement the reader count again. this is
+    // optimized for the likely case that there's no writer.
     auto state = state_.fetch_add(1, std::memory_order_acquire);
     if (!(state & LOCKED)){
         return true;
     } else {
-        state_.fetch_sub(1, std::memory_order_release);
+        state_.fetch_sub(1, std::memory_order_acq_rel); // memory order?
         return false;
+    }
+}
+
+void shared_spinlock::lock_shared(){
+    // only try to modify the shared state if the lock seems to be
+    // available. this should prevent unnecessary cache invalidation.
+    for (;;)
+    {
+        auto state = state_.load(std::memory_order_relaxed);
+        if (!(state & LOCKED) && try_lock_shared()) {
+            return;
+        } else {
+            pause_cpu();
+        }
     }
 }
 

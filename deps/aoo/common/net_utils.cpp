@@ -21,6 +21,7 @@
 #include <errno.h>
 #endif
 
+#include <cassert>
 #include <stdio.h>
 #include <cstring>
 #include <algorithm>
@@ -41,29 +42,102 @@ ip_address::ip_address(){
     clear();
 }
 
-ip_address::ip_address(const struct sockaddr *sa, socklen_t len){
-    memcpy(&address_, sa, len);
-    length_ = len;
+ip_address::ip_address(socklen_t size) {
+    clear();
+    length_ = size;
 }
 
-ip_address::ip_address(uint32_t ipv4, int port){
-    struct sockaddr_in sa;
-    memset(&sa, 0, sizeof(sa));
-    sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = htonl(ipv4);
-    sa.sin_port = htons(port);
-    memcpy(&address_, &sa, sizeof(sa));
-    length_ = sizeof(sa);
+ip_address::ip_address(const struct sockaddr *sa, socklen_t len){
+    if (sa && len > 0) {
+        memcpy(&address_, sa, len);
+        length_ = len;
+    } else {
+        clear();
+    }
+    check();
+}
+
+ip_address::ip_address(const AooSockAddr &addr)
+    : ip_address((const struct sockaddr *)addr.data, addr.size) {}
+
+ip_address::ip_address(const AooByte *bytes, AooSize size,
+                       int port, ip_type type) {
+    switch (type) {
+#if AOO_NET_USE_IPv6
+    case IPv6:
+    {
+        assert(size == 16);
+
+        sockaddr_in6 sa;
+        memset(&sa, 0, sizeof(sa));
+        sa.sin6_family = AF_INET6;
+        sa.sin6_port = htons(port);
+        memcpy(&sa.sin6_addr, bytes, size);
+
+        memcpy(&address_, &sa, sizeof(sa));
+        length_ = sizeof(sa);
+        break;
+    }
+#endif
+    case IPv4:
+    {
+        assert(size == 4);
+
+        sockaddr_in sa;
+        memset(&sa, 0, sizeof(sa));
+        sa.sin_family = AF_INET;
+        sa.sin_port = htons(port);
+        memcpy(&sa.sin_addr, bytes, size);
+
+        memcpy(&address_, &sa, sizeof(sa));
+        length_ = sizeof(sa);
+        break;
+    }
+    default:
+        clear();
+        break;
+    }
+    check();
 }
 
 void ip_address::clear(){
     memset(&address_, 0, sizeof(address_));
-    length_ = sizeof(address_); // e.g. for recvfrom()
+    address_ptr()->sa_family = AF_UNSPEC;
+    length_ = 0;
+}
+
+void ip_address::check() {
+    auto f = address()->sa_family;
+#if AOO_NET_USE_IPv6
+    bool ok = (f == AF_INET6 || f == AF_INET || f == AF_UNSPEC);
+#else
+    book ok = (f == AF_INET || f == AF_UNSPEC);
+#endif
+    if (!ok) {
+        fprintf(stderr, "bad address family: %d\n", f);
+        fflush(stderr);
+        volatile char foo[64];
+        memcpy((void *)foo, (void *)1, 64);
+        // so we can put a break point
+        assert(false);
+    }
+}
+
+void ip_address::resize(socklen_t size) {
+    length_ = size;
 }
 
 std::vector<ip_address> ip_address::resolve(const std::string &host,
                                             int port, ip_type type){
     std::vector<ip_address> result;
+
+    if (host.empty()) {
+    #if DEBUG_ADDRINFO
+        fprintf(stderr, "don't resolve empty host\n");
+        fflush(stderr);
+    #endif
+        return result;
+    }
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -94,7 +168,7 @@ std::vector<ip_address> ip_address::resolve(const std::string &host,
     #endif
 #endif
         AI_NUMERICSERV | // we use a port number
-        AI_PASSIVE;     // listen to any addr if hostname is NULL
+        AI_PASSIVE;      // listen to any addr if hostname is NULL
 
     char portstr[10]; // largest port is 65535
     snprintf(portstr, sizeof(portstr), "%d", port);
@@ -131,7 +205,8 @@ std::vector<ip_address> ip_address::resolve(const std::string &host,
     return result;
 }
 
-ip_address::ip_address(int port, ip_type type){
+ip_address::ip_address(int port, ip_type type) {
+    // LATER optimize
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     // AI_PASSIVE: nullptr means "any" address
@@ -162,9 +237,16 @@ ip_address::ip_address(int port, ip_type type){
         // fail
         clear();
     }
+    check();
 }
 
-ip_address::ip_address(const std::string& ip, int port, ip_type type){
+ip_address::ip_address(const std::string& ip, int port, ip_type type) {
+    if (ip.empty() || port <= 0) {
+        clear();
+        return;
+    }
+
+    // LATER optimize
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     // prevent DNS lookup!
@@ -201,16 +283,27 @@ ip_address::ip_address(const std::string& ip, int port, ip_type type){
         // fail
         clear();
     }
+    check();
 }
 
 ip_address::ip_address(const ip_address& other){
-    memcpy(&address_, &other.address_, other.length_);
-    length_ = other.length_;
+    if (other.length_ > 0) {
+        memcpy(&address_, &other.address_, other.length_);
+        length_ = other.length_;
+    } else {
+        clear();
+    }
+    check();
 }
 
 ip_address& ip_address::operator=(const ip_address& other){
-    memcpy(&address_, &other.address_, other.length_);
-    length_ = other.length_;
+    if (other.length_ > 0) {
+        memcpy(&address_, &other.address_, other.length_);
+        length_ = other.length_;
+    } else {
+        clear();
+    }
+    check();
     return *this;
 }
 
@@ -242,10 +335,19 @@ bool ip_address::operator==(const ip_address& other) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const ip_address& addr) {
-    if (addr.address()->sa_family == AF_INET6){
+    switch (addr.address()->sa_family) {
+    case AF_INET6:
         os << "[" << addr.name() << "]:" << addr.port();
-    } else {
+        break;
+    case AF_INET:
         os << addr.name() << ":" << addr.port();
+        break;
+    case AF_UNSPEC:
+        os << "[empty]";
+        break;
+    default:
+        os << "[bad address]";
+        break;
     }
     return os;
 }
@@ -279,7 +381,11 @@ const char * ip_address::get_name(const sockaddr *addr){
 }
 
 const char* ip_address::name() const {
-    return get_name((const sockaddr *)&address_);
+    if (length_ > 0) {
+        return get_name((const sockaddr *)&address_);
+    } else {
+        return "";
+    }
 }
 
 // for backwards compatibility with IPv4 only servers
@@ -307,8 +413,21 @@ int ip_address::port() const {
     }
 }
 
+const AooByte* ip_address::address_bytes() const {
+    switch (address()->sa_family){
+    case AF_INET:
+        return (const AooByte *)&reinterpret_cast<const sockaddr_in *>(address())->sin_addr;
+#if AOO_NET_USE_IPv6
+    case AF_INET6:
+        return (const AooByte *)&reinterpret_cast<const sockaddr_in6 *>(address())->sin6_addr;
+#endif
+    default:
+        return nullptr;
+    }
+}
+
 bool ip_address::valid() const {
-    return port() > 0;
+    return address()->sa_family != AF_UNSPEC;
 }
 
 ip_address::ip_type ip_address::type() const {
@@ -358,15 +477,17 @@ int socket_init()
 int socket_errno()
 {
 #ifdef _WIN32
-    int err = WSAGetLastError();
-    // UDP only?
-    if (err == WSAECONNRESET){
-        return 0; // ignore
-    }
+    return WSAGetLastError();
 #else
-    int err = errno;
+    return errno;
 #endif
-    return err;
+}
+
+int socket_error(int socket) {
+    int error = 0;
+    socklen_t errlen = sizeof(error);
+    getsockopt(socket, SOL_SOCKET, SO_ERROR, (char *)&error, &errlen);
+    return error;
 }
 
 int socket_strerror(int err, char *buf, int size)
@@ -481,7 +602,7 @@ int socket_tcp(int port)
     }
 #else
     int sock = socket(AF_INET, SOCK_STREAM, 0);
-    bindaddr = ip_address(port, ip_address::IPv4);
+    ip_address bindaddr = ip_address(port, ip_address::IPv4);
 #endif
     if (sock >= 0){
         // set SO_REUSEADDR
@@ -527,6 +648,18 @@ int socket_address(int socket, ip_address& addr)
     }
 }
 
+int socket_peer(int socket, ip_address& addr)
+{
+    sockaddr_storage ss;
+    socklen_t len = sizeof(ss);
+    if (getpeername(socket, (sockaddr *)&ss, &len) < 0){
+        return -1;
+    } else {
+        addr = ip_address((sockaddr *)&ss, len);
+        return 0;
+    }
+}
+
 int socket_port(int socket){
     ip_address addr;
     if (socket_address(socket, addr) < 0){
@@ -562,7 +695,7 @@ int socket_sendto(int socket, const void *buf, int size, const ip_address& addr)
 }
 
 int socket_receive(int socket, void *buf, int size,
-                   ip_address* addr, int32_t timeout)
+                   ip_address* addr, double timeout)
 {
     if (timeout >= 0){
         // non-blocking receive via poll()
@@ -571,9 +704,9 @@ int socket_receive(int socket, void *buf, int size,
         p.revents = 0;
         p.events = POLLIN;
     #ifdef _WIN32
-        int result = WSAPoll(&p, 1, timeout / 1000);
+        int result = WSAPoll(&p, 1, timeout * 1000);
     #else
-        int result = poll(&p, 1, timeout / 1000);
+        int result = poll(&p, 1, timeout * 1000);
     #endif
         if (result < 0){
             socket_error_print("poll");
@@ -583,7 +716,8 @@ int socket_receive(int socket, void *buf, int size,
             return 0; // timeout
         }
     }
-    if (addr){
+    if (addr) {
+        addr->resize(ip_address::max_length);
         return recvfrom(socket, (char *)buf, size, 0,
                         addr->address_ptr(), addr->length_ptr());
     } else {
@@ -591,7 +725,7 @@ int socket_receive(int socket, void *buf, int size,
     }
 }
 
-int socket_setsendbufsize(int socket, int bufsize)
+int socket_set_sendbufsize(int socket, int bufsize)
 {
     int val = 0;
     socklen_t len;
@@ -617,7 +751,7 @@ int socket_setsendbufsize(int socket, int bufsize)
     return result;
 }
 
-int socket_setrecvbufsize(int socket, int bufsize)
+int socket_set_recvbufsize(int socket, int bufsize)
 {
     int val = 0;
     socklen_t len;
@@ -684,7 +818,7 @@ int socket_set_nonblocking(int socket, bool nonblocking)
 }
 
 // kudos to https://stackoverflow.com/a/46062474/6063908
-int socket_connect(int socket, const ip_address& addr, float timeout)
+int socket_connect(int socket, const ip_address& addr, double timeout)
 {
     // set nonblocking and connect
     socket_set_nonblocking(socket, true);

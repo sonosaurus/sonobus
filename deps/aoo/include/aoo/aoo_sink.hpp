@@ -10,11 +10,14 @@
 
 #include "aoo_sink.h"
 
-#include <memory>
+#if AOO_HAVE_CXX11
+# include <memory>
+#endif
 
 /** \brief AOO sink interface */
 struct AooSink {
 public:
+#if AOO_HAVE_CXX11
     /** \brief custom deleter for AooSink */
     class Deleter {
     public:
@@ -33,6 +36,7 @@ public:
     static Ptr create(AooId id, AooFlag flags, AooError *err) {
         return Ptr(AooSink_new(id, flags, err));
     }
+#endif
 
     /*-------------------- methods -----------------------------*/
 

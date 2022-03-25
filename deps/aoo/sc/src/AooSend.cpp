@@ -136,6 +136,7 @@ void AooSend::handleEvent(const AooEvent *event){
         break;
     }
     default:
+        LOG_DEBUG("AooSend: got unknown event " << event->type);
         break;
     }
 }

@@ -104,7 +104,7 @@ std::ostream& operator << (std::ostream& os, time_tag t){
     micros = (s - (uint64_t)s) * 1000000.0;
 
     if (days){
-        os << days << "-";
+        os << "[" << days << "]";
     }
 
     char buf[256];

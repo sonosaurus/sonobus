@@ -31,7 +31,7 @@ struct time_tag {
         if (t2 >= t1){
             return (t2 - t1).to_seconds();
         } else {
-            LOG_DEBUG("t2 is smaller than t1!");
+            LOG_DEBUG("time_tag::duration: t2 is smaller than t1!");
             return (t1 - t2).to_seconds() * -1.0;
         }
     }
