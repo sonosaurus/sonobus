@@ -972,7 +972,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         if (host.isNotEmpty() && port != 0) {
-            if (processor.connectRemotePeer(host, port, kAooIdInvalid, "", "", processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->getValue() == 0)) {
+            if (processor.connectRemotePeer(host, port, kAooIdInvalid, "", "", kAooIdInvalid, processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->getValue() == 0)) {
                 setVisible(false);
                 if (auto * callout = dynamic_cast<CallOutBox*>(directConnectCalloutBox.get())) {
                     callout->dismiss();
@@ -1703,7 +1703,9 @@ void ConnectView::PublicGroupsListModel::groupSelected(int rowNumber)
 
         parent->processor.leaveServerGroup(parent->processor.getCurrentJoinedGroup());
 
-        parent->processor.joinServerGroup(parent->currConnectionInfo.groupName, parent->currConnectionInfo.groupPassword, isPublic);
+        parent->processor.joinServerGroup(parent->currConnectionInfo.groupName, parent->currConnectionInfo.groupPassword,
+                                          parent->currConnectionInfo.userName, parent->currConnectionInfo.userPassword,
+                                          isPublic);
 
         parent->processor.setWatchPublicGroups(false);
     }

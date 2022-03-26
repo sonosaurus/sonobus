@@ -24,6 +24,7 @@
 #include "mtdm.h"
 
 #include <algorithm>
+#include <thread>
 
 #include "LatencyMeasurer.h"
 #include "Metronome.h"
@@ -46,7 +47,7 @@ typedef int socklen_t;
 #define SENDBUFSIZE_SCALAR 2.0f
 #define PEER_PING_INTERVAL_MS 2000.0
 
-#define LOCAL_SERVER_PORT 10999
+#define LOCAL_SERVER_PORT 10998
 
 String SonobusAudioProcessor::paramInGain     ("ingain");
 String SonobusAudioProcessor::paramDry     ("dry");
@@ -233,6 +234,8 @@ struct SonobusAudioProcessor::EndpointState {
     String ipaddr;
     int port = 0;
 
+    AooId groupid = kAooIdInvalid;
+    AooId userid = kAooIdInvalid;
 
     struct sockaddr * getRawAddr() {
         return address.address_ptr();
@@ -343,6 +346,8 @@ struct SonobusAudioProcessor::RemotePeer {
     bool connected = false;
     String userName;
     String groupName;
+    AooId userId = kAooIdInvalid;
+    AooId groupId = kAooIdInvalid;
     int64_t dataPacketsReceived = 0;
     int64_t dataPacketsSent = 0;
     int64_t dataPacketsDropped = 0;
@@ -528,9 +533,9 @@ public:
     
     void run() override {
 
-        if (_processor.mAooServer) {
-            _processor.mAooServer->run();
-        }
+        //if (_processor.mAooServer) {
+        //    _processor.mAooServer->run();
+        //}
         
         DBG("Server thread finishing");        
     }
@@ -548,7 +553,7 @@ public:
     void run() override {
 
         if (_processor.mAooClient) {
-            _processor.mAooClient->run();
+            _processor.mAooClient->run(false);
         }
         
         DBG("Client thread finishing");        
@@ -861,7 +866,7 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
     
     // we have both an AOO source and sink
         
-    aoo_initialize();
+    aoo_initialize(nullptr);
     
 
     const ScopedWriteLock sl (mCoreLock);        
@@ -936,8 +941,8 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
         // increase socket buffers
         const int sendbufsize = 1 << 19; // 512 Kb
         const int recvbufsize = 1 << 20; // 1 MB
-        aoo::socket_setsendbufsize(mUdpSocketHandle, sendbufsize);
-        aoo::socket_setrecvbufsize(mUdpSocketHandle, recvbufsize);
+        aoo::socket_set_sendbufsize(mUdpSocketHandle, sendbufsize);
+        aoo::socket_set_recvbufsize(mUdpSocketHandle, recvbufsize);
 
         aoo::ip_address addr;
         if (aoo::socket_address(mUdpSocketHandle, addr) != 0){
@@ -993,18 +998,14 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
     //mServerEndpoint->owner = mUdpSocket.get();
     
     if (mUdpSocketHandle >= 0) {
-        aoo::ip_address udpaddr;
-        if (socket_address(mUdpSocketHandle, udpaddr) != 0){
-            DBG("Could not get udp socket address");
-        } else {
-            mAooClient = AooClient::create(udpaddr.address(), udpaddr.length(), 0, nullptr);
+
+        mAooClient = AooClient::create(mUdpSocketHandle, 0, nullptr);
 
 
-            mAooClient->setEventHandler(
-                                         [](void *user, const AooEvent *event, int32_t level) {
-                static_cast<SonobusAudioProcessor*>(user)->handleAooClientEvent(event, level);
-            }, this, kAooEventModeCallback);
-        }
+        mAooClient->setEventHandler(
+                                     [](void *user, const AooEvent *event, int32_t level) {
+            static_cast<SonobusAudioProcessor*>(user)->handleAooClientEvent(event, level);
+        }, this, kAooEventModeCallback);
     }
 
     
@@ -1053,16 +1054,18 @@ void SonobusAudioProcessor::cleanupAoo()
     mEventThread->stopThread(400);
 
     if (mAooClient) {
-        auto cb = [](void *y, AooError result, const void *data){
-            auto x = (SonobusAudioProcessor *)y;
+        auto cb = [](void* x, const AooNetRequest *request,
+                     AooError result, const AooNetResponse *response) {
+            auto obj = (SonobusAudioProcessor *)x;
             if (result == kAooOk){
                 DBG("Disconnected");
             } else {
-                auto reply = (const AooNetReplyError *)data;
+                auto reply = reinterpret_cast<const AooNetResponseError *>(response);
                 if (reply) {
                     DBG("Error disconnecting: " << reply->errorCode << "  msg: " << reply->errorMessage);
                 }
             }
+
         };
 
         mAooClient->disconnect(cb, this);
@@ -1099,6 +1102,9 @@ void SonobusAudioProcessor::startAooServer()
     {
         const ScopedWriteLock sl (mCoreLock);
         AooError err;
+
+        mAooServerWrapper = std::make_unique<AooServerWrapper>(*this, LOCAL_SERVER_PORT, String(""));
+#if 0
         mAooServer = AooServer::create(LOCAL_SERVER_PORT, 0, &err);
 
         if (mAooServer) {
@@ -1111,16 +1117,24 @@ void SonobusAudioProcessor::startAooServer()
         else {
             DBG("Error creating Aoo Server: " << err);
         }
+#endif
     }
-    
+
+#if 0
     if (mAooServer) {
         mServerThread = std::make_unique<ServerThread>(*this);    
         mServerThread->startThread();
     }
+#endif
 }
     
 void SonobusAudioProcessor::stopAooServer()
 {
+    if (mAooServerWrapper) {
+        mAooServerWrapper.reset();
+    }
+
+#if 0
     if (mAooServer) {
         DBG("waiting on recv thread to die");
         mAooServer->quit();
@@ -1131,6 +1145,7 @@ void SonobusAudioProcessor::stopAooServer()
         const ScopedWriteLock sl (mCoreLock);
         mAooServer.reset();
     }
+#endif
 }
 
 bool SonobusAudioProcessor::setCurrentUsername(const String & name)
@@ -1140,7 +1155,6 @@ bool SonobusAudioProcessor::setCurrentUsername(const String & name)
     mCurrentUsername = name;
     return true;
 }
-
 
 bool SonobusAudioProcessor::connectToServer(const String & host, int port, const String & username, const String & passwd)
 {
@@ -1153,8 +1167,39 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
     //mServerEndpoint->port = port;
     //mServerEndpoint->add.reset();
 
+    int token = 0;
 
+    auto cb = [](void* x, const AooNetRequest *request,
+                 AooError result, const AooNetResponse *response) {
+        auto obj = (SonobusAudioProcessor *)x;
 
+        if (result == kAooOk) {
+            auto resp = reinterpret_cast<const AooNetResponseConnect *>(response);
+            
+            auto client_id = resp->clientId;
+
+            obj->mIsConnectedToServer = true;
+            obj->mSessionConnectionStamp = Time::getMillisecondCounterHiRes();
+            obj->mCurrentClientId = client_id;
+
+            obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, obj, result == kAooOk, "");
+
+        } else {
+            auto reply = reinterpret_cast<const AooNetResponseError *>(response);
+
+            obj->mIsConnectedToServer = false;
+            obj->mSessionConnectionStamp = 0.0;
+            obj->mCurrentClientId = kAooIdInvalid;
+
+            DBG("Error connecting to server: " << reply->errorCode << " msg: " << reply->errorMessage);
+
+            obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, obj, result == kAooOk, reply->errorMessage);
+        }
+    };
+
+    auto retval = mAooClient->connect(host.toRawUTF8(), port, passwd.toRawUTF8(), nullptr, cb, this);
+
+#if 0
     auto cb = [](void *x, AooError result, const void *data){
         auto obj = (SonobusAudioProcessor *)x;
         //auto obj = request->obj;
@@ -1185,6 +1230,7 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
     };
 
     int32_t retval = mAooClient->connect(host.toRawUTF8(), port, username.toRawUTF8(), passwd.toRawUTF8(), cb, this);
+#endif
 
     mCurrentUsername = username;
 
@@ -1206,31 +1252,32 @@ bool SonobusAudioProcessor::disconnectFromServer()
 {
     if (!mAooClient) return false;
 
-    auto cb = [](void *y, AooError result, const void *data){
-        auto x = (SonobusAudioProcessor *)y;
+    auto cb = [](void* x, const AooNetRequest *request,
+                 AooError result, const AooNetResponse *response) {
+        auto obj = (SonobusAudioProcessor *)x;
         if (result == kAooOk){
 
         } else {
-            auto reply = (const AooNetReplyError *)data;
+            auto reply = reinterpret_cast<const AooNetResponseError *>(response);
             DBG("Error disconnecting to server: " << reply->errorCode << " msg: " << reply->errorMessage);
         }
 
         // disconnect from everything else!
-        x->removeAllRemotePeers();
+        obj->removeAllRemotePeers();
 
         {
-            const ScopedLock sl (x->mClientLock);
+            const ScopedLock sl (obj->mClientLock);
 
-            x->mIsConnectedToServer = false;
-            x->mSessionConnectionStamp = 0.0;
+               obj->mIsConnectedToServer = false;
+               obj->mSessionConnectionStamp = 0.0;
 
-            x->mCurrentJoinedGroup.clear();
+               obj->mCurrentJoinedGroup.clear();
         }
 
         {
-            const ScopedLock sl (x->mPublicGroupsLock);
+            const ScopedLock sl (obj->mPublicGroupsLock);
 
-            x->mPublicGroupInfos.clear();
+               obj->mPublicGroupInfos.clear();
         }
     };
 
@@ -1331,38 +1378,44 @@ struct GroupRequest {
     bool   ispublic;
 };
 
-bool SonobusAudioProcessor::joinServerGroup(const String & group, const String & groupsecret, bool isPublic)
+bool SonobusAudioProcessor::joinServerGroup(const String & group, const String & groupsecret, const String & username, const String & userpass, bool isPublic)
 {
     if (!mAooClient) return false;
 
-    auto cb = [](void *x, AooError result, const void *data){
-        auto request = (GroupRequest *)x;
-        auto obj = request->obj;
-        auto group = request->group;
-        auto reply = (const AooNetReplyError *)data;
+    auto cb = [](void* x, const AooNetRequest *request,
+                 AooError result, const AooNetResponse* response) {
+
+        auto grreq = (GroupRequest *)x;
+        auto obj = grreq->obj;
+        auto group = grreq->group;
+        std::string errmsg;
 
         if (result == kAooOk){
             DBG("Joined group - " << group);
-
+            auto r = (const AooNetResponseGroupJoin *)response;
             const ScopedLock sl (obj->mClientLock);
             obj->mCurrentJoinedGroup = group; //CharPointer_UTF8 (e->name);
+            obj->mCurrentJoinedGroupId = r->groupId;
+            // TODO grab more of the group info
+            obj->mCurrentUserId = r->userId;
 
             obj->mSessionConnectionStamp = Time::getMillisecondCounterHiRes();
         } else {
             //t_error_reply error { reply->error_code, reply->error_message };
-
+            auto reply = reinterpret_cast<const AooNetResponseError *>(response);
+            errmsg = reply ? reply->errorMessage : "";
             DBG("Error joining group " << group << " : " << result);
 
         }
 
-        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, obj, result == kAooOk, group, reply ? reply->errorMessage : "");
+        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, obj, result == kAooOk, group, errmsg);
 
-
-        delete request;
+        delete grreq;
     };
 
     // need to add PUBLIC
-    int32_t retval = mAooClient->joinGroup(group.toRawUTF8(), groupsecret.toRawUTF8(),
+    auto retval = mAooClient->joinGroup(group.toRawUTF8(), groupsecret.toRawUTF8(), nullptr,
+                                            username.toRawUTF8(), userpass.toRawUTF8(), nullptr, nullptr,
                                             cb, new GroupRequest { this, group, isPublic });
 
 
@@ -1378,33 +1431,40 @@ bool SonobusAudioProcessor::leaveServerGroup(const String & group)
 {
     if (!mAooClient) return false;
 
-    auto cb = [](void *x, AooError result, const void *data){
-        auto request = (GroupRequest *)x;
-        auto obj = request->obj;
-        auto group = request->group;
-        auto reply = (const AooNetReplyError *)data;
+    auto cb = [](void* x, const AooNetRequest *request,
+                 AooError result, const AooNetResponse* response) {
+        auto grreq = (GroupRequest *)x;
+        auto obj = grreq->obj;
+        auto group = grreq->group;
+        std::string errmsg;
 
         if (result == kAooOk){
             DBG("Group leave - " << group);
 
             const ScopedLock sl (obj->mClientLock);
             obj->mCurrentJoinedGroup.clear();
+            obj->mCurrentJoinedGroupId = kAooIdInvalid;
+            obj->mCurrentUserId = kAooIdInvalid;
 
             // assume they are all part of the group, XXX
             obj->removeAllRemotePeers();
 
         } else {
+            auto reply = reinterpret_cast<const AooNetResponseError *>(response);
+            errmsg = (reply ? reply->errorMessage : "");
             //t_error_reply error { reply->error_code, reply->error_message };
-            DBG("Error leaving group " << group << " : " << (reply ? reply->errorMessage : ""));
+            DBG("Error leaving group " << group << " : " << errmsg);
 
         }
 
-        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, obj, result == kAooOk, group, reply ? reply->errorMessage : "");
+        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, obj, result == kAooOk, group, errmsg);
 
-        delete request;
+        delete grreq;
     };
 
-    int32_t retval = mAooClient->leaveGroup(group.toRawUTF8(), cb, new GroupRequest { this, group, false });
+    // for now we only connect to one group at a time, so just leave the current one
+
+    int32_t retval = mAooClient->leaveGroup(mCurrentJoinedGroupId, cb, new GroupRequest { this, group, false });
 
     if (retval < 0) {
         DBG("Error leaving group " << group << " : " << retval);
@@ -2289,7 +2349,7 @@ SonobusAudioProcessor::EndpointState * SonobusAudioProcessor::findOrAddRawEndpoi
 
 SonobusAudioProcessor::EndpointState * SonobusAudioProcessor::findOrAddEndpoint(const String & host, int port)
 {
-    aoo::ip_address addr(host.toStdString(), port);
+    aoo::ip_address addr(host.toStdString(), port, aoo::ip_address::Unspec);
 
     return findOrAddEndpoint(addr);
 }
@@ -2316,6 +2376,23 @@ SonobusAudioProcessor::EndpointState * SonobusAudioProcessor::findEndpoint(const
 
     for (auto ep : mEndpoints) {
         if (ep->address == ipaddr) {
+            endpoint = ep;
+            break;
+        }
+    }
+
+    return endpoint;
+}
+
+SonobusAudioProcessor::EndpointState * SonobusAudioProcessor::findOrAddEndpoint(AooId groupid, AooId userid)
+{
+    const ScopedLock sl (mEndpointsLock);
+
+    EndpointState * endpoint = nullptr;
+    if (groupid == kAooIdInvalid || userid == kAooIdInvalid) return nullptr;
+
+    for (auto ep : mEndpoints) {
+        if (ep->groupid == groupid && ep->userid == userid) {
             endpoint = ep;
             break;
         }
@@ -2365,9 +2442,9 @@ void SonobusAudioProcessor::doReceiveData()
 
     aoo::ip_address addr;
     int32_t addrlen = aoo::ip_address::max_length;
-    int32_t timeoutusec = 20000; // 20 ms
+    double timeoutsec = 0.02; // 20 ms
     //int nbytes = mUdpSocket->read(buf, AOO_MAXPACKETSIZE, false, addr.address_ptr(), addrlen);
-    int nbytes = socket_receive(mUdpSocketHandle, buf, AOO_MAX_PACKET_SIZE, &addr, timeoutusec);
+    int nbytes = socket_receive(mUdpSocketHandle, buf, AOO_MAX_PACKET_SIZE, &addr, timeoutsec);
 
     if (nbytes == 0) return; // timeout
     else if (nbytes < 0) {
@@ -2711,7 +2788,17 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const A
             }
 
             if (mAooClient) {
-                mAooClient->sendPeerMessage((AooByte*)outmsg.Data(), (AooInt32) outmsg.Size(), endpoint->address.address(), endpoint->address.length(), 0);
+
+                RemotePeer * peer = findRemotePeer(endpoint, -1);
+                if (!peer) {
+                    DBG("Peerinfo: Could not find peer for endpoint: " << endpoint->ipaddr << " port: " << endpoint->port);
+                    return false;
+                }
+
+                // have to use group/user?
+                mAooClient->sendMessage(peer->groupId, peer->userId, {kAooDataTypeOSC, (AooByte*)outmsg.Data(), (AooSize) outmsg.Size() }, 0, 0);
+
+                //mAooClient->sendPeerMessage( {kAooDataTypeOSC, (AooByte*)outmsg.Data(), (AooInt32) outmsg.Size() }, endpoint->address.address(), endpoint->address.length(), 0);
             } else {
                 endpoint_send(endpoint, (AooByte*)outmsg.Data(), (int) outmsg.Size());
             }
@@ -2933,6 +3020,9 @@ bool SonobusAudioProcessor::sendChatEvent(const SBChatEvent & event)
             continue;
 
         DBG("Sending chat message to " << i);
+        // TODO have to use group/user!?
+        //mAooClient->sendMessage(group, user, {kAooDataTypeOSC, (AooByte*)outmsg.Data(), (AooInt32) outmsg.Size() }, 0, 0);
+
         this->sendPeerMessage(peer, (AooByte*) msg.Data(), (int32_t) msg.Size());
 
     }
@@ -3196,7 +3286,9 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
 int32_t SonobusAudioProcessor::sendPeerMessage(RemotePeer * peer, const AooByte *msg, int32_t n)
 {
     if (mAooClient) {
-        mAooClient->sendPeerMessage(msg, n, peer->endpoint->address.address(), peer->endpoint->address.length(), 0);
+        mAooClient->sendMessage(peer->groupId, peer->userId, {kAooDataTypeOSC, msg, (AooSize)n }, 0, 0);
+
+        //mAooClient->sendPeerMessage(msg, n, peer->endpoint->address.address(), peer->endpoint->address.length(), 0);
     } else {
         return endpoint_send(peer->endpoint, msg, n);
     }
@@ -3334,37 +3426,49 @@ static int32_t gHandleClientEvents(void * user, const aoo_event ** events, int32
 int32_t SonobusAudioProcessor::handleAooServerEvent(const AooEvent *event, int32_t level)
 {
     switch (event->type){
-        case kAooNetEventUserJoin:
+        case kAooNetEventClientLogin:
         {
-            auto e = (const AooNetEventUser *)event;
+            auto e = (const AooNetEventClientLogin *)event;
 
-            DBG("Server - User joined: " << e->userName);
+            DBG("Server - Client login: " << e->id);
 
             break;
         }
-        case kAooNetEventUserLeave:
+        case kAooNetEventClientRemove:
         {
-            auto e = (const AooNetEventUser *)event;
+            auto e = (const AooNetEventClientRemove *)event;
 
-            DBG("Server - User left: " << e->userName);
+            DBG("Server - Client removed: " << e->id);
 
 
             break;
         }
-        case kAooNetEventUserGroupJoin:
+        case kAooNetEventGroupJoin:
         {
-            auto e = (const AooNetEventUserGroup *)event;
+            auto e = (const AooNetEventGroupJoin *)event;
 
-            DBG("Server - Group Joined: " << e->groupName << "  by user: " << e->userName);
+            DBG("Server - Group Joined: " << e->groupName << "  by user: " << e->userName << "id:" << e->userId);
 
             break;
         }
-        case kAooNetEventUserGroupLeave:
+        case kAooNetEventGroupLeave:
         {
-            auto e = (const AooNetEventUserGroup *)event;
+            auto e = (const AooNetEventGroupLeave *)event;
 
-            DBG("Server - Group Left: " << e->groupName << "  by user: " << e->userName);
+            DBG("Server - Group Left: " << e->groupName << "  by user: " << e->userName << "id:" << e->userId);
 
+            break;
+        }
+        case kAooNetEventGroupAdd:
+        {
+            auto e = (const AooNetEventGroupAdd *)event;
+            DBG("Server - Group Added: " << e->id << " : " << e->name);
+            break;
+        }
+        case kAooNetEventGroupRemove:
+        {
+            auto e = (const AooNetEventGroupRemove *)event;
+            DBG("Server - Group Remove: " << e->id);
             break;
         }
         case kAooNetEventError:
@@ -3409,11 +3513,16 @@ int32_t SonobusAudioProcessor::handleAooClientEvent(const AooEvent *event, int32
         case kAooNetEventPeerMessage:
         {
             auto e = (const AooNetEventPeerMessage *)event;
+            // lookup by group/user id
 
-            aoo::ip_address address((const sockaddr *)e->address, e->addrlen);
-            EndpointState * es = (EndpointState *) findOrAddEndpoint(address);
+            //aoo::ip_address address((const sockaddr *)e->address, e->addrlen);
 
-            handleOtherMessage(es, e->data, e->size);
+            EndpointState * es = (EndpointState *) findOrAddEndpoint(e->groupId, e->userId);
+            if (es) {
+                handleOtherMessage(es, e->data.data, e->data.size);
+            } else {
+                DBG("Error finding endpoint for " << e->groupId << " : " << e->userId);
+            }
 
             break;
         }
@@ -3521,9 +3630,8 @@ int32_t SonobusAudioProcessor::handleAooClientEvent(const AooEvent *event, int32
         auto e = (const AooNetEventPeer *)event;
 
         DBG("Peer joined group " <<  e->groupName << " - user " << e->userName << " userId: " << e->userId);
-
         if (mAutoconnectGroupPeers) {
-            connectRemotePeerRaw(e->address, e->addrlen, e->userId, CharPointer_UTF8 (e->userName), CharPointer_UTF8 (e->groupName), !mMainRecvMute.get());
+            connectRemotePeerRaw(e->address.data, e->address.size, e->userId, CharPointer_UTF8 (e->userName), CharPointer_UTF8 (e->groupName), e->groupId, !mMainRecvMute.get());
         }
 
         //aoo_node_add_peer(x->x_node, gensym(e->group), gensym(e->user),
@@ -3550,7 +3658,7 @@ int32_t SonobusAudioProcessor::handleAooClientEvent(const AooEvent *event, int32
 
         DBG("Peer leave group " <<  e->groupName << " - user " << e->userName);
 
-        EndpointState * endpoint = findOrAddRawEndpoint(e->address, e->addrlen);
+        EndpointState * endpoint = findOrAddRawEndpoint(e->address.data, e->address.size);
         if (endpoint) {
 
             removeAllRemotePeersWithEndpoint(endpoint);
@@ -4448,7 +4556,7 @@ void SonobusAudioProcessor::handlePingEvent(EndpointState * endpoint, uint64_t t
 
 
 
-int SonobusAudioProcessor::connectRemotePeerRaw(const void * sockaddr, int addrlen, AooId userid, const String & username, const String & groupname, bool reciprocate)
+int SonobusAudioProcessor::connectRemotePeerRaw(const void * sockaddr, int addrlen, AooId userid, const String & username, const String & groupname, AooId groupid, bool reciprocate)
 {
     EndpointState * endpoint = findOrAddRawEndpoint(sockaddr, addrlen);
     
@@ -4457,10 +4565,13 @@ int SonobusAudioProcessor::connectRemotePeerRaw(const void * sockaddr, int addrl
         return 0;
     }
     
-    RemotePeer * remote = doAddRemotePeerIfNecessary(endpoint, userid, userid, username, groupname); // get new one
+    RemotePeer * remote = doAddRemotePeerIfNecessary(endpoint, userid, userid, username, groupname, groupid); // get new one
 
     remote->recvAllow = !mMainRecvMute.get();
-    
+
+    endpoint->groupid = groupid;
+    endpoint->userid = userid;
+
     // special - use our userid as source id to invite
     AooEndpoint aep = { endpoint->address.address_ptr(), (AooAddrSize) endpoint->address.length(), mCurrentUserId };
 
@@ -4491,11 +4602,14 @@ int SonobusAudioProcessor::connectRemotePeerRaw(const void * sockaddr, int addrl
     return ret;    
 }
 
-int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, AooId userid, const String & username, const String & groupname, bool reciprocate)
+int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, AooId userid, const String & username, const String & groupname, AooId groupid, bool reciprocate)
 {
     EndpointState * endpoint = findOrAddEndpoint(host, port);
 
-    RemotePeer * remote = doAddRemotePeerIfNecessary(endpoint, userid, userid, username, groupname); // get new one
+    RemotePeer * remote = doAddRemotePeerIfNecessary(endpoint, userid, userid, username, groupname, groupid); // get new one
+
+    endpoint->groupid = groupid;
+    endpoint->userid = userid;
 
     remote->recvAllow = !mMainRecvMute.get();
 
@@ -4550,6 +4664,9 @@ bool SonobusAudioProcessor::disconnectRemotePeer(const String & host, int port, 
             remote->connected = false;
             remote->recvActive = false;
             remote->sendActive = false;
+
+            endpoint->groupid = kAooIdInvalid;
+            endpoint->userid = kAooIdInvalid;
         }
     }
 
@@ -5982,7 +6099,7 @@ SonobusAudioProcessor::RemotePeer *  SonobusAudioProcessor::findRemotePeerByLate
 
 
 
-SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId, AooId userid, const String & username, const String & groupname)
+SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId, AooId userid, const String & username, const String & groupname, AooId groupid)
 {
     const ScopedReadLock sl (mCoreLock);
 
@@ -6020,8 +6137,10 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
 
 
         retpeer->userName = username;
+        retpeer->userId = userid;
         retpeer->groupName = groupname;
-        
+        retpeer->groupId = groupid;
+
         retpeer->buffertimeMs = mBufferTime.get() * 1000.0f;
         retpeer->formatIndex = mDefaultAudioFormatIndex;
         retpeer->autosizeBufferMode = (AutoNetBufferMode) defaultAutoNetbufMode;
@@ -9317,6 +9436,121 @@ double SonobusAudioProcessor::getMonitoringDelayTimeFromAvgPeerLatency(float sca
     return deltimems;
     //setMonitoringDelayTimeMs(deltimems);
 }
+
+// called in NRT thread
+AooServerWrapper::AooServerWrapper(SonobusAudioProcessor & proc, int port, const String & password)
+    : processor_(proc), port_(port)
+{
+    try {
+        // setup UDP server
+        udpserver_.start(port,
+                         [this](auto&&... args) { handleUdpReceive(args...); });
+    } catch (const std::exception& e){
+        DBG("Error binding UDP: " << e.what());
+        return;
+    }
+
+    try {
+        // setup TCP server
+        tcpserver_.start(port,
+                         [this](auto&&... args) { return handleAccept(args...); },
+                         [this](auto&&... args) { return handleReceive(args...); });
+    } catch (const std::exception& e){
+        DBG("Error binding TCP: " << e.what());
+        udpserver_.stop();
+        return;
+    }
+
+    // success
+    server_ = ::AooServer::create(0, nullptr);
+    if (password.isNotEmpty()) {
+        server_->setPassword(password.toRawUTF8());
+    }
+    LOG_VERBOSE("AooServer: listening on port " << port);
+    // first set event handler!
+    server_->setEventHandler([](void *x, const AooEvent *e, AooThreadLevel level) {
+        static_cast<AooServerWrapper *>(x)->handleEvent(e, level);
+    }, this, kAooEventModeCallback);
+    // then start network threads
+    udpthread_ = std::thread([this](){
+        udpserver_.run(-1);
+    });
+    tcpthread_ = std::thread([this](){
+        tcpserver_.run();
+    });
+}
+
+AooServerWrapper::~AooServerWrapper(){
+    if (server_) {
+        udpserver_.stop();
+        if (udpthread_.joinable()) {
+            udpthread_.join();
+        }
+
+        tcpserver_.stop();
+        if (tcpthread_.joinable()) {
+            tcpthread_.join();
+        }
+    }
+}
+
+void AooServerWrapper::handleEvent(const AooEvent *event, AooThreadLevel level){
+
+    processor_.handleAooServerEvent(event, level);
+}
+
+AooId AooServerWrapper::handleAccept(int e, const aoo::ip_address& addr, AooSocket sock) {
+    if (e == 0) {
+        // reply function
+        auto replyfn = [](void *x, AooId client,
+                const AooByte *data, AooSize size) -> AooInt32 {
+            return static_cast<aoo::tcp_server *>(x)->send(client, data, size);
+        };
+        AooId client;
+        server_->addClient(replyfn, &tcpserver_, sock, &client); // doesn't fail
+        return client;
+    } else {
+        DBG("AooServer: accept() failed: " << aoo::socket_strerror(e));
+        // TODO handle error?
+        return kAooIdInvalid;
+    }
+}
+
+void AooServerWrapper::handleReceive(AooId client, int e, const AooByte *data, AooSize size) {
+    if (e == 0 && size > 0) {
+        if (server_->handleClientMessage(client, data, size) != kAooOk) {
+            server_->removeClient(client);
+            tcpserver_.close(client);
+        }
+    } else {
+        // remove client!
+        server_->removeClient(client);
+        if (e == 0) {
+            DBG("AooServer: client " << client << " disconnected");
+        } else {
+            DBG("AooServer: TCP error in client "
+                      << client << ": " << aoo::socket_strerror(e));
+        }
+    }
+}
+
+void AooServerWrapper::handleUdpReceive(int e, const aoo::ip_address& addr,
+                                 const AooByte *data, AooSize size) {
+    if (e == 0) {
+        // reply function
+        auto replyfn = [](void *x, const AooByte *data, AooInt32 size,
+                const void *address, AooAddrSize addrlen, AooFlag) -> AooInt32 {
+            aoo::ip_address addr((const struct sockaddr *)address, addrlen);
+            return static_cast<aoo::udp_server *>(x)->send(addr, data, size);
+        };
+        server_->handleUdpMessage(data, size, addr.address(), addr.length(),
+                                  replyfn, &udpserver_);
+    } else {
+        DBG("AooServer: UDP error: " << aoo::socket_strerror(e));
+        // TODO handle error?
+    }
+}
+
 
 
 

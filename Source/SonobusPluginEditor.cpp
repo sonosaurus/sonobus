@@ -3472,7 +3472,9 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
                     processor.setWatchPublicGroups(false);
 
-                    processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword, currConnectionInfo.groupIsPublic);
+                    processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword,
+                                              currConnectionInfo.userName, currConnectionInfo.userPassword,
+                                              currConnectionInfo.groupIsPublic);
                 }
                 else {
                     // we've connected but have not specified group, assume we want to see public groups
