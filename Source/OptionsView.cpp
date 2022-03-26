@@ -48,6 +48,9 @@ void OptionsView::initializeLanguages()
     //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
     languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
 
+    languages.add(TRANS("Korean")); languagesNative.add("Korean"); codes.add("ko"); // TODO fix and use above when we have a font that can display this all the time
+    languages.add(TRANS("Russian"));  languagesNative.add(juce::CharPointer_UTF8 ("p\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9")); codes.add("ru");
+
     //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh_hans");
     //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh_hant");
 
@@ -107,8 +110,15 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
-        mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
+        SonobusAudioProcessor::AudioCodecFormatInfo finfo;
+        processor.getAudioCodeFormatInfo(i, finfo);
+        auto name = finfo.name;
+        if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
+            name += String(" (*)");
+        }
+        mOptionsFormatChoiceDefaultChoice->addItem(name, i+1);
     }
+    mOptionsFormatChoiceDefaultChoice->addItem("(*) " + TRANS("not recommended"), -2, true, true);
 
     mOptionsFormatChoiceDefaultChoice->setTooltip(TRANS("The default send quality will be used when you first connect with someone. The values specified with a kbps/ch are Opus compressed audio and use less network bandwidth at the expense of a little latency. It is not recommended to use less than 96 kpbs/ch, as that will increase latency more. The PCM 16bit (and above) use uncompressed audio data and will use the most network bandwidth, but have the least latency and CPU load. If you are connecting with a known small group who all have network service that can support it, using PCM 16 bit is recommended for the lowest latency. Otherwise 96 kbps/ch is a good default."));
 
@@ -158,6 +168,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsMetRecordedButton = std::make_unique<ToggleButton>(TRANS("Metronome output recorded in full mix"));
     mOptionsMetRecordedButton->addListener(this);
     mMetRecordedAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMetIsRecorded, *mOptionsMetRecordedButton);
+
+    mOptionsRecFinishOpenButton = std::make_unique<ToggleButton>(TRANS("Open finished recording for playback"));
+    mOptionsRecFinishOpenButton->addListener(this);
 
 
     mOptionsRecFilesStaticLabel = std::make_unique<Label>("", TRANS("Record feature creates the following files:"));
@@ -227,6 +240,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsSliderSnapToMouseButton = std::make_unique<ToggleButton>(TRANS("Sliders Snap to Clicked Position"));
     mOptionsSliderSnapToMouseButton->addListener(this);
 
+    mOptionsDisableShortcutButton = std::make_unique<ToggleButton>(TRANS("Disable keyboard shortcuts"));
+    mOptionsDisableShortcutButton->addListener(this);
+
 #if JUCE_IOS
     if (JUCEApplicationBase::isStandaloneApp()) {
         mOptionsAllowBluetoothInput = std::make_unique<ToggleButton>(TRANS("Allow Bluetooth Input"));
@@ -279,7 +295,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutoDropThreshSlider->setTextValueSuffix(" " + TRANS("sec"));
     mOptionsAutoDropThreshSlider->setSliderSnapsToMousePosition(false);
     mOptionsAutoDropThreshSlider->setChangeNotificationOnlyOnRelease(true);
-    mOptionsAutoDropThreshSlider->setDoubleClickReturnValue(true, 5.0);
+    mOptionsAutoDropThreshSlider->setDoubleClickReturnValue(true, 2.0);
     mOptionsAutoDropThreshSlider->setTextBoxIsEditable(false);
     mOptionsAutoDropThreshSlider->setScrollWheelEnabled(false);
     mOptionsAutoDropThreshSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
@@ -339,10 +355,12 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
         }
     }
     mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDisableShortcutButton.get());
 
 
 
     mRecOptionsComponent->addAndMakeVisible(mOptionsMetRecordedButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecFinishOpenButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecFilesStaticLabel.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfButton.get());
@@ -378,7 +396,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
              */
 
             if (auto* bus = processor.getBus (true, 0)) {
-                auto maxsup = bus->getMaxSupportedChannels();
+                auto maxsup = bus->getMaxSupportedChannels(128);
                 updateMinAndMax (maxsup, minNumInputs, maxNumInputs);
                 updateMinAndMax (bus->getDefaultLayout().size(), minNumInputs, maxNumInputs);
                 if (bus->isNumberOfChannelsSupported(1)) {
@@ -390,7 +408,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
             }
 
             if (auto* bus = processor.getBus (false, 0)) {
-                auto maxsup = bus->getMaxSupportedChannels();
+                auto maxsup = bus->getMaxSupportedChannels(128);
                 updateMinAndMax (maxsup, minNumOutputs, maxNumOutputs);
                 updateMinAndMax (bus->getDefaultLayout().size(), minNumOutputs, maxNumOutputs);
                 if (bus->isNumberOfChannelsSupported(1)) {
@@ -577,6 +595,7 @@ void OptionsView::updateState(bool ignorecheck)
     }
 
     mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
+    mOptionsDisableShortcutButton->setToggleState(processor.getDisableKeyboardShortcuts(), dontSendNotification);
 
     uint32 recmask = processor.getDefaultRecordingOptions();
 
@@ -586,6 +605,8 @@ void OptionsView::updateState(bool ignorecheck)
     mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
 
     mOptionsRecSelfPostFxButton->setToggleState(!processor.getSelfRecordingPreFX(), dontSendNotification);
+
+    mOptionsRecFinishOpenButton->setToggleState(processor.getRecordFinishOpens(), dontSendNotification);
 
     mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
     mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
@@ -719,6 +740,12 @@ void OptionsView::updateLayout()
     optionsSnapToMouseBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsSnapToMouseBox.items.add(FlexItem(180, minpassheight, *mOptionsSliderSnapToMouseButton).withMargin(0).withFlex(1));
 
+    optionsDisableShortcutsBox.items.clear();
+    optionsDisableShortcutsBox.flexDirection = FlexBox::Direction::row;
+    optionsDisableShortcutsBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsDisableShortcutsBox.items.add(FlexItem(180, minpassheight, *mOptionsDisableShortcutButton).withMargin(0).withFlex(1));
+
+
     optionsAllowBluetoothBox.items.clear();
     optionsAllowBluetoothBox.flexDirection = FlexBox::Direction::row;
     if (mOptionsAllowBluetoothInput) {
@@ -755,6 +782,7 @@ void OptionsView::updateLayout()
         }
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsDisableShortcutsBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
 
     minOptionsHeight = 0;
@@ -809,6 +837,11 @@ void OptionsView::updateLayout()
     optionsRecordSelfPostFxBox.items.add(FlexItem(10, 12));
     optionsRecordSelfPostFxBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfPostFxButton).withMargin(0).withFlex(1));
 
+    optionsRecordFinishBox.items.clear();
+    optionsRecordFinishBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordFinishBox.items.add(FlexItem(10, 12));
+    optionsRecordFinishBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecFinishOpenButton).withMargin(0).withFlex(1));
+
 
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
@@ -826,6 +859,7 @@ void OptionsView::updateLayout()
     recOptionsBox.items.add(FlexItem(4, 4));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSelfPostFxBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordFinishBox).withMargin(2).withFlex(0));
     minRecOptionsHeight = 0;
     for (auto & item : recOptionsBox.items) {
         minRecOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
@@ -999,6 +1033,9 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mOptionsRecSelfPostFxButton.get()) {
         processor.setSelfRecordingPreFX(!mOptionsRecSelfPostFxButton->getToggleState());
     }
+    else if (buttonThatWasClicked == mOptionsRecFinishOpenButton.get()) {
+        processor.setRecordFinishOpens(mOptionsRecFinishOpenButton->getToggleState());
+    }
     else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
         if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {
             // toggled off, change back to use system chosen port
@@ -1046,6 +1083,13 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         
         if (updateSliderSnap) {
             updateSliderSnap();
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsDisableShortcutButton.get()) {
+        bool newval = mOptionsDisableShortcutButton->getToggleState();
+        processor.setDisableKeyboardShortcuts(newval);
+        if (updateKeybindings) {
+            updateKeybindings();
         }
     }
 }

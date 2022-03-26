@@ -542,7 +542,7 @@ private:
                 auto cxxStandard = project.getCppStandardString();
 
                 if (cxxStandard == "latest")
-                    cxxStandard = "17";
+                    cxxStandard = project.getLatestNumberedCppStandardString();
 
                 out << "    CXX_STANDARD " << cxxStandard << newLine;
 
@@ -608,7 +608,7 @@ private:
 
             String cxxFlags;
 
-            for (auto& flag : exporter.getCXXFlags())
+            for (auto& flag : exporter.getCXXFlags (config))
                 if (! flag.startsWith ("-std="))
                     cxxFlags += " " + flag;
 
@@ -671,7 +671,7 @@ private:
                 auto cxxStandard = project.getCppStandardString();
 
                 if (cxxStandard == "latest")
-                    cxxStandard = "17";
+                    cxxStandard = project.getLatestNumberedCppStandardString();
 
                 out << "    CXX_STANDARD " << cxxStandard << newLine;
 
@@ -985,7 +985,7 @@ private:
                             auto resSourcesVar = targetVarName + "_REZ_SOURCES";
                             auto resOutputVar = targetVarName + "_REZ_OUTPUT";
 
-                            auto sdkVersion = config.getOSXSDKVersionString().upToFirstOccurrenceOf (" ", false, false);
+                            auto sdkVersion = config.getMacOSBaseSDKString().upToFirstOccurrenceOf (" ", false, false);
                             auto sysroot = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX" + sdkVersion + ".sdk";
 
                             build_tools::RelativePath rFile ("JuceLibraryCode/include_juce_audio_plugin_client_AU.r", build_tools::RelativePath::projectFolder);
@@ -1076,7 +1076,7 @@ private:
                 auto cxxStandard = project.getCppStandardString();
 
                 if (cxxStandard == "latest")
-                    cxxStandard = "17";
+                    cxxStandard = project.getLatestNumberedCppStandardString();
 
                 out << "    CXX_STANDARD " << cxxStandard << newLine;
 

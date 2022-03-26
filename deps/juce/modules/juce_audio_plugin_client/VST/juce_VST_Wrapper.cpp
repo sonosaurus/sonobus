@@ -153,11 +153,11 @@ namespace
     {
         const int frameThickness = GetSystemMetrics (SM_CYFIXEDFRAME);
 
-        while (w != 0)
+        while (w != nullptr)
         {
             auto parent = getWindowParent (w);
 
-            if (parent == 0)
+            if (parent == nullptr)
                 break;
 
             TCHAR windowType[32] = { 0 };
@@ -703,12 +703,7 @@ public:
     void setParameter (int32 index, float value)
     {
         if (auto* param = juceParameters.getParamForIndex (index))
-        {
-            param->setValue (value);
-
-            inParameterChangedCallback = true;
-            param->sendValueChangedMessageToListeners (value);
-        }
+            setValueAndNotifyIfChanged (*param, value);
     }
 
     static void setParameterCB (Vst2::AEffect* vstInterface, int32 index, float value)
@@ -1176,11 +1171,11 @@ public:
 
                 HWND w = (HWND) getWindowHandle();
 
-                while (w != 0)
+                while (w != nullptr)
                 {
                     HWND parent = getWindowParent (w);
 
-                    if (parent == 0)
+                    if (parent == nullptr)
                         break;
 
                     TCHAR windowType [32] = { 0 };
@@ -1194,7 +1189,7 @@ public:
                     GetWindowRect (parent, &parentPos);
 
                     if (w != (HWND) getWindowHandle())
-                        SetWindowPos (w, 0, 0, 0, newWidth + dw, newHeight + dh,
+                        SetWindowPos (w, nullptr, 0, 0, newWidth + dw, newHeight + dh,
                                       SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 
                     dw = (parentPos.right - parentPos.left) - (windowPos.right - windowPos.left);
@@ -1206,11 +1201,11 @@ public:
                         break;
 
                     if (dw > 100 || dh > 100)
-                        w = 0;
+                        w = nullptr;
                 }
 
-                if (w != 0)
-                    SetWindowPos (w, 0, 0, 0, newWidth + dw, newHeight + dh,
+                if (w != nullptr)
+                    SetWindowPos (w, nullptr, 0, 0, newWidth + dw, newHeight + dh,
                                   SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOOWNERZORDER);
                #endif
             }
@@ -1432,6 +1427,15 @@ private:
    #else
     static void checkWhetherMessageThreadIsCorrect() {}
    #endif
+
+    void setValueAndNotifyIfChanged (AudioProcessorParameter& param, float newValue)
+    {
+        if (param.getValue() == newValue)
+            return;
+
+        inParameterChangedCallback = true;
+        param.setValueNotifyingHost (newValue);
+    }
 
     //==============================================================================
     template <typename FloatType>
@@ -1716,12 +1720,7 @@ private:
         {
             if (! LegacyAudioParameter::isLegacy (param))
             {
-                auto value = param->getValueForText (String::fromUTF8 ((char*) args.ptr));
-                param->setValue (value);
-
-                inParameterChangedCallback = true;
-                param->sendValueChangedMessageToListeners (value);
-
+                setValueAndNotifyIfChanged (*param, param->getValueForText (String::fromUTF8 ((char*) args.ptr)));
                 return 1;
             }
         }
@@ -1997,8 +1996,6 @@ private:
        #if ! JUCE_MAC
         if (editorComp != nullptr)
             editorComp->setContentScaleFactor (scale);
-
-        lastScaleFactorReceived = scale;
        #else
         ignoreUnused (scale);
        #endif
@@ -2072,10 +2069,6 @@ private:
     Vst2::ERect editorRect;
     MidiBuffer midiEvents;
     VSTMidiEventList outgoingEvents;
-
-   #if ! JUCE_MAC
-    float lastScaleFactorReceived = 1.0f;
-   #endif
 
     LegacyAudioParametersWrapper juceParameters;
 

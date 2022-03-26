@@ -117,7 +117,7 @@ namespace juce
 #endif
 
 //==============================================================================
-#if JUCE_MSVC && ! DOXYGEN
+#if JUCE_MSVC && ! defined (DOXYGEN)
  #define JUCE_BLOCK_WITH_FORCED_SEMICOLON(x) \
    __pragma(warning(push)) \
    __pragma(warning(disable:4127)) \
@@ -142,14 +142,14 @@ namespace juce
       that have important side-effects!
       @see Logger::outputDebugString
   */
-  #define DBG(textToWrite)          JUCE_BLOCK_WITH_FORCED_SEMICOLON (juce::String tempDbgBuf; tempDbgBuf << textToWrite; juce::Logger::outputDebugString (tempDbgBuf);)
+  #define DBG(textToWrite)              JUCE_BLOCK_WITH_FORCED_SEMICOLON (juce::String tempDbgBuf; tempDbgBuf << textToWrite; juce::Logger::outputDebugString (tempDbgBuf);)
 
   //==============================================================================
   /** This will always cause an assertion failure.
       It is only compiled in a debug build, (unless JUCE_LOG_ASSERTIONS is enabled for your build).
       @see jassert
   */
-  #define jassertfalse              JUCE_BLOCK_WITH_FORCED_SEMICOLON (JUCE_LOG_CURRENT_ASSERTION; if (juce::juce_isRunningUnderDebugger()) JUCE_BREAK_IN_DEBUGGER; JUCE_ANALYZER_NORETURN)
+  #define jassertfalse                  JUCE_BLOCK_WITH_FORCED_SEMICOLON (JUCE_LOG_CURRENT_ASSERTION; if (juce::juce_isRunningUnderDebugger()) JUCE_BREAK_IN_DEBUGGER; JUCE_ANALYZER_NORETURN)
 
   //==============================================================================
   /** Platform-independent assertion macro.
@@ -159,25 +159,35 @@ namespace juce
       correct behaviour of your program!
       @see jassertfalse
   */
-  #define jassert(expression)       JUCE_BLOCK_WITH_FORCED_SEMICOLON (if (! (expression)) jassertfalse;)
+  #define jassert(expression)           JUCE_BLOCK_WITH_FORCED_SEMICOLON (if (! (expression)) jassertfalse;)
+
+  /** Platform-independent assertion macro which suppresses ignored-variable
+      warnings in all build modes. You should probably use a plain jassert()
+      by default, and only replace it with jassertquiet() once you've
+      convinced yourself that any unused-variable warnings emitted by the
+      compiler are harmless.
+  */
+  #define jassertquiet(expression)      JUCE_BLOCK_WITH_FORCED_SEMICOLON (if (! (expression)) jassertfalse;)
 
 #else
   //==============================================================================
   // If debugging is disabled, these dummy debug and assertion macros are used..
 
   #define DBG(textToWrite)
-  #define jassertfalse              JUCE_BLOCK_WITH_FORCED_SEMICOLON (JUCE_LOG_CURRENT_ASSERTION)
+  #define jassertfalse                  JUCE_BLOCK_WITH_FORCED_SEMICOLON (JUCE_LOG_CURRENT_ASSERTION)
 
   #if JUCE_LOG_ASSERTIONS
-   #define jassert(expression)      JUCE_BLOCK_WITH_FORCED_SEMICOLON (if (! (expression)) jassertfalse;)
+   #define jassert(expression)          JUCE_BLOCK_WITH_FORCED_SEMICOLON (if (! (expression)) jassertfalse;)
+   #define jassertquiet(expression)     JUCE_BLOCK_WITH_FORCED_SEMICOLON (if (! (expression)) jassertfalse;)
   #else
-   #define jassert(expression)      JUCE_BLOCK_WITH_FORCED_SEMICOLON ( ; )
+   #define jassert(expression)          JUCE_BLOCK_WITH_FORCED_SEMICOLON ( ; )
+   #define jassertquiet(expression)     JUCE_BLOCK_WITH_FORCED_SEMICOLON (if (false) (void) (expression);)
   #endif
 
 #endif
 
 //==============================================================================
-#if ! DOXYGEN
+#ifndef DOXYGEN
  #define JUCE_JOIN_MACRO_HELPER(a, b) a ## b
  #define JUCE_STRINGIFY_MACRO_HELPER(a) #a
 #endif
@@ -288,60 +298,18 @@ namespace juce
 #endif
 
 //==============================================================================
-// Cross-compiler deprecation macros..
-#ifdef DOXYGEN
- /** This macro can be used to wrap a function which has been deprecated. */
- #define JUCE_DEPRECATED(functionDef)
- #define JUCE_DEPRECATED_WITH_BODY(functionDef, body)
-#elif JUCE_MSVC && ! JUCE_NO_DEPRECATION_WARNINGS
- #define JUCE_DEPRECATED_ATTRIBUTE                      __declspec(deprecated)
- #define JUCE_DEPRECATED(functionDef)                   JUCE_DEPRECATED_ATTRIBUTE functionDef
- #define JUCE_DEPRECATED_WITH_BODY(functionDef, body)   JUCE_DEPRECATED_ATTRIBUTE functionDef body
-#elif (JUCE_GCC || JUCE_CLANG) && ! JUCE_NO_DEPRECATION_WARNINGS
- #define JUCE_DEPRECATED_ATTRIBUTE                      __attribute__ ((deprecated))
- #define JUCE_DEPRECATED(functionDef)                   functionDef JUCE_DEPRECATED_ATTRIBUTE
- #define JUCE_DEPRECATED_WITH_BODY(functionDef, body)   functionDef JUCE_DEPRECATED_ATTRIBUTE body
-#else
- #define JUCE_DEPRECATED_ATTRIBUTE
- #define JUCE_DEPRECATED(functionDef)                   functionDef
- #define JUCE_DEPRECATED_WITH_BODY(functionDef, body)   functionDef body
-#endif
-
-#if JUCE_ALLOW_STATIC_NULL_VARIABLES
- #if ! (defined (DOXYGEN) || defined (JUCE_GCC) || (JUCE_MSVC && _MSC_VER <= 1900))
-  #define JUCE_DEPRECATED_STATIC(valueDef)       JUCE_DEPRECATED_ATTRIBUTE valueDef
-
-  #if JUCE_MSVC
-   #define JUCE_DECLARE_DEPRECATED_STATIC(valueDef) \
-        __pragma(warning(push)) \
-        __pragma(warning(disable:4996)) \
-         valueDef \
-        __pragma(warning(pop))
-  #else
-   #define JUCE_DECLARE_DEPRECATED_STATIC(valueDef)   valueDef
-  #endif
- #else
-  #define JUCE_DEPRECATED_STATIC(valueDef)           valueDef
-  #define JUCE_DECLARE_DEPRECATED_STATIC(valueDef)   valueDef
- #endif
-#else
- #define JUCE_DEPRECATED_STATIC(valueDef)
- #define JUCE_DECLARE_DEPRECATED_STATIC(valueDef)
-#endif
-
-//==============================================================================
-#if JUCE_ANDROID && ! DOXYGEN
+#if JUCE_ANDROID && ! defined (DOXYGEN)
  #define JUCE_MODAL_LOOPS_PERMITTED 0
 #elif ! defined (JUCE_MODAL_LOOPS_PERMITTED)
  /** Some operating environments don't provide a modal loop mechanism, so this flag can be
      used to disable any functions that try to run a modal loop. */
- #define JUCE_MODAL_LOOPS_PERMITTED 1
+ #define JUCE_MODAL_LOOPS_PERMITTED 0
 #endif
 
 //==============================================================================
 #if JUCE_GCC || JUCE_CLANG
  #define JUCE_PACKED __attribute__((packed))
-#elif ! DOXYGEN
+#elif ! defined (DOXYGEN)
  #define JUCE_PACKED
 #endif
 

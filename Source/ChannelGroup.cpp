@@ -20,6 +20,7 @@ static String panDestChannelsKey("pandestchans");
 static String monDestStartKey("mondeststart");
 static String monDestChannelsKey("mondestchans");
 static String sendMainMixKey("sendmainmix");
+static String invertPolarityKey("invertpolarity");
 
 
 static String stereoPanListKey("StereoPanners");
@@ -41,7 +42,7 @@ static String numChanGroupsKey("numChanGroups");
 static String layoutGroupsKey("Layout");
 
 
-#define MAX_DELAY_SAMPLES 192000
+#define MAX_DELAY_SAMPLES 240000 // 5 seconds at 48k
 
 using namespace SonoAudio;
 
@@ -193,7 +194,7 @@ void ChannelGroup::setMonitoringDelayTimeMs(double delayms)
     params.monitorDelayParams.delayTimeMs = delayms;
     auto newsamps = 1e-3 * delayms * sampleRate;
     if ( fabs(_monitorDelayTimeSamples - newsamps) > 1) {
-        _monitorDelayTimeSamples = newsamps;
+        _monitorDelayTimeSamples = jmin(newsamps, (double)MAX_DELAY_SAMPLES);
         _monitorDelayTimeChanged = true;
     }
 }
@@ -219,6 +220,8 @@ void ChannelGroup::processBlock (AudioBuffer<float>& frombuffer,
 
     float dogain = (params.muted ? 0.0f : params.gain) * gainfactor;
     //dogain = 0.0f;
+
+    dogain *= params.invertPolarity ? -1.0f : 1.0f;
 
     if (&frombuffer == &tobuffer) {
         // inplace, just apply gain, ignore destchans
@@ -640,6 +643,7 @@ ValueTree ChannelGroupParams::getValueTree() const
 
 
     channelGroupTree.setProperty(sendMainMixKey, sendMainMix, nullptr);
+    channelGroupTree.setProperty(invertPolarityKey, invertPolarity, nullptr);
 
     channelGroupTree.setProperty(nameKey, name, nullptr);
 
@@ -681,6 +685,7 @@ void ChannelGroupParams::setFromValueTree(const ValueTree & channelGroupTree)
     monDestChannels = channelGroupTree.getProperty(monDestChannelsKey, monDestChannels);
 
     sendMainMix = channelGroupTree.getProperty(sendMainMixKey, sendMainMix);
+    invertPolarity = channelGroupTree.getProperty(invertPolarityKey, invertPolarity);
 
     name = channelGroupTree.getProperty(nameKey, name);
 

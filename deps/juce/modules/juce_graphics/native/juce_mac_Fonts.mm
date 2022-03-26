@@ -159,20 +159,30 @@ namespace CoreTextTypeLayout
     //==============================================================================
     static CTTextAlignment getTextAlignment (const AttributedString& text)
     {
-        switch (text.getJustification().getOnlyHorizontalFlags())
+        const auto flags = text.getJustification().getOnlyHorizontalFlags();
+
+        if (@available (macOS 10.8, *))
         {
-           #if defined (MAC_OS_X_VERSION_10_8) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_8
-            case Justification::right:                  return kCTTextAlignmentRight;
-            case Justification::horizontallyCentred:    return kCTTextAlignmentCenter;
-            case Justification::horizontallyJustified:  return kCTTextAlignmentJustified;
-            default:                                    return kCTTextAlignmentLeft;
-           #else
+            switch (flags)
+            {
+                case Justification::right:                  return kCTTextAlignmentRight;
+                case Justification::horizontallyCentred:    return kCTTextAlignmentCenter;
+                case Justification::horizontallyJustified:  return kCTTextAlignmentJustified;
+                default:                                    return kCTTextAlignmentLeft;
+            }
+        }
+
+        JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wdeprecated-declarations")
+
+        switch (flags)
+        {
             case Justification::right:                  return kCTRightTextAlignment;
             case Justification::horizontallyCentred:    return kCTCenterTextAlignment;
             case Justification::horizontallyJustified:  return kCTJustifiedTextAlignment;
             default:                                    return kCTLeftTextAlignment;
-           #endif
         }
+
+        JUCE_END_IGNORE_WARNINGS_GCC_LIKE
     }
 
     static CTLineBreakMode getLineBreakMode (const AttributedString& text)
@@ -198,8 +208,16 @@ namespace CoreTextTypeLayout
     }
 
     //==============================================================================
-    static CFUniquePtr<CFAttributedStringRef> createCFAttributedString (const AttributedString& text)
+    struct AttributedStringAndFontMap
     {
+        CFUniquePtr<CFAttributedStringRef> string;
+        std::map<CTFontRef, Font> fontMap;
+    };
+
+    static AttributedStringAndFontMap createCFAttributedString (const AttributedString& text)
+    {
+        std::map<CTFontRef, Font> fontMap;
+
         const detail::ColorSpacePtr rgbColourSpace { CGColorSpaceCreateWithName (kCGColorSpaceSRGB) };
 
         auto attribString = CFAttributedStringCreateMutable (kCFAllocatorDefault, 0);
@@ -222,6 +240,8 @@ namespace CoreTextTypeLayout
             if (auto ctFontRef = getOrCreateFont (attr.font))
             {
                 ctFontRef = getFontWithPointSize (ctFontRef.get(), attr.font.getHeight() * getHeightToPointsFactor (ctFontRef.get()));
+                fontMap.emplace (ctFontRef.get(), attr.font);
+
                 CFAttributedStringSetAttribute (attribString, range, kCTFontAttributeName, ctFontRef.get());
 
                 if (attr.font.isUnderlined())
@@ -274,13 +294,20 @@ namespace CoreTextTypeLayout
         CFUniquePtr<CTParagraphStyleRef> ctParagraphStyleRef (CTParagraphStyleCreate (settings, (size_t) numElementsInArray (settings)));
         CFAttributedStringSetAttribute (attribString, CFRangeMake (0, CFAttributedStringGetLength (attribString)),
                                         kCTParagraphStyleAttributeName, ctParagraphStyleRef.get());
-        return CFUniquePtr<CFAttributedStringRef> (attribString);
+        return { CFUniquePtr<CFAttributedStringRef> (attribString), std::move (fontMap) };
     }
 
-    static CFUniquePtr<CTFramesetterRef> createCTFramesetter (const AttributedString& text)
+    struct FramesetterAndFontMap
     {
-        auto attribString = createCFAttributedString (text);
-        return CFUniquePtr<CTFramesetterRef> (CTFramesetterCreateWithAttributedString (attribString.get()));
+        CFUniquePtr<CTFramesetterRef> framesetter;
+        std::map<CTFontRef, Font> fontMap;
+    };
+
+    static FramesetterAndFontMap createCTFramesetter (const AttributedString& text)
+    {
+        auto attribStringAndMap = createCFAttributedString (text);
+        return { CFUniquePtr<CTFramesetterRef> (CTFramesetterCreateWithAttributedString (attribStringAndMap.string.get())),
+                 std::move (attribStringAndMap.fontMap) };
     }
 
     static CFUniquePtr<CTFrameRef> createCTFrame (CTFramesetterRef framesetter, CGRect bounds)
@@ -294,10 +321,17 @@ namespace CoreTextTypeLayout
         return frame;
     }
 
-    static CFUniquePtr<CTFrameRef> createCTFrame (const AttributedString& text, CGRect bounds)
+    struct FrameAndFontMap
     {
-        auto framesetter = createCTFramesetter (text);
-        return createCTFrame (framesetter.get(), bounds);
+        CFUniquePtr<CTFrameRef> frame;
+        std::map<CTFontRef, Font> fontMap;
+    };
+
+    static FrameAndFontMap createCTFrame (const AttributedString& text, CGRect bounds)
+    {
+        auto framesetterAndMap = createCTFramesetter (text);
+        return { createCTFrame (framesetterAndMap.framesetter.get(), bounds),
+                 std::move (framesetterAndMap.fontMap) };
     }
 
     static Range<float> getLineVerticalRange (CTFrameRef frame, CFArrayRef lines, int lineIndex)
@@ -341,7 +375,7 @@ namespace CoreTextTypeLayout
         if (! areAllFontsDefaultWidth (text))
             return false;
 
-        auto framesetter = createCTFramesetter (text);
+        auto framesetter = createCTFramesetter (text).framesetter;
 
         // Ugly hack to fix a bug in OS X Sierra where the CTFrame needs to be slightly
         // larger than the font height - otherwise the CTFrame will be invalid
@@ -398,8 +432,8 @@ namespace CoreTextTypeLayout
     static void createLayout (TextLayout& glyphLayout, const AttributedString& text)
     {
         auto boundsHeight = glyphLayout.getHeight();
-        auto frame = createCTFrame (text, CGRectMake (0, 0, glyphLayout.getWidth(), boundsHeight));
-        auto lines = CTFrameGetLines (frame.get());
+        auto frameAndMap = createCTFrame (text, CGRectMake (0, 0, glyphLayout.getWidth(), boundsHeight));
+        auto lines = CTFrameGetLines (frameAndMap.frame.get());
         auto numLines = CFArrayGetCount (lines);
 
         glyphLayout.ensureStorageAllocated ((int) numLines);
@@ -414,7 +448,7 @@ namespace CoreTextTypeLayout
             auto lineStringEnd = cfrlineStringRange.location + cfrlineStringRange.length;
             Range<int> lineStringRange ((int) cfrlineStringRange.location, (int) lineStringEnd);
 
-            LineInfo lineInfo (frame.get(), line, i);
+            LineInfo lineInfo (frameAndMap.frame.get(), line, i);
 
             auto glyphLine = std::make_unique<TextLayout::Line> (lineStringRange,
                                                                  Point<float> ((float) lineInfo.origin.x,
@@ -440,37 +474,46 @@ namespace CoreTextTypeLayout
                 CTFontRef ctRunFont;
                 if (CFDictionaryGetValueIfPresent (runAttributes, kCTFontAttributeName, (const void**) &ctRunFont))
                 {
-                    CFUniquePtr<CFStringRef> cfsFontName (CTFontCopyPostScriptName (ctRunFont));
-                    CFUniquePtr<CTFontRef> ctFontRef (CTFontCreateWithName (cfsFontName.get(), referenceFontSize, nullptr));
-
-                    auto fontHeightToPointsFactor = getHeightToPointsFactor (ctFontRef.get());
-
-                    CFUniquePtr<CFStringRef> cfsFontFamily ((CFStringRef) CTFontCopyAttribute (ctRunFont, kCTFontFamilyNameAttribute));
-                    CFUniquePtr<CFStringRef> cfsFontStyle ((CFStringRef) CTFontCopyAttribute (ctRunFont, kCTFontStyleNameAttribute));
-
-                    glyphRun->font = Font (String::fromCFString (cfsFontFamily.get()),
-                                           String::fromCFString (cfsFontStyle.get()),
-                                           (float) (CTFontGetSize (ctRunFont) / fontHeightToPointsFactor));
-
-                    auto isUnderlined = [&]
+                    glyphRun->font = [&]
                     {
-                        CFNumberRef underlineStyle;
+                        auto it = frameAndMap.fontMap.find (ctRunFont);
 
-                        if (CFDictionaryGetValueIfPresent (runAttributes, kCTUnderlineStyleAttributeName, (const void**) &underlineStyle))
+                        if (it != frameAndMap.fontMap.end())
+                            return it->second;
+
+                        CFUniquePtr<CFStringRef> cfsFontName (CTFontCopyPostScriptName (ctRunFont));
+                        CFUniquePtr<CTFontRef> ctFontRef (CTFontCreateWithName (cfsFontName.get(), referenceFontSize, nullptr));
+
+                        auto fontHeightToPointsFactor = getHeightToPointsFactor (ctFontRef.get());
+
+                        CFUniquePtr<CFStringRef> cfsFontFamily ((CFStringRef) CTFontCopyAttribute (ctRunFont, kCTFontFamilyNameAttribute));
+                        CFUniquePtr<CFStringRef> cfsFontStyle ((CFStringRef) CTFontCopyAttribute (ctRunFont, kCTFontStyleNameAttribute));
+
+                        Font result (String::fromCFString (cfsFontFamily.get()),
+                                     String::fromCFString (cfsFontStyle.get()),
+                                     (float) (CTFontGetSize (ctRunFont) / fontHeightToPointsFactor));
+
+                        auto isUnderlined = [&]
                         {
-                            if (CFGetTypeID (underlineStyle) == CFNumberGetTypeID())
+                            CFNumberRef underlineStyle;
+
+                            if (CFDictionaryGetValueIfPresent (runAttributes, kCTUnderlineStyleAttributeName, (const void**) &underlineStyle))
                             {
-                                int value = 0;
-                                CFNumberGetValue (underlineStyle, kCFNumberLongType, (void*) &value);
+                                if (CFGetTypeID (underlineStyle) == CFNumberGetTypeID())
+                                {
+                                    int value = 0;
+                                    CFNumberGetValue (underlineStyle, kCFNumberLongType, (void*) &value);
 
-                                return value != 0;
+                                    return value != 0;
+                                }
                             }
-                        }
 
-                        return false;
+                            return false;
+                        }();
+
+                        result.setUnderline (isUnderlined);
+                        return result;
                     }();
-
-                    glyphRun->font.setUnderline (isUnderlined);
                 }
 
                 CGColorRef cgRunColor;
@@ -539,10 +582,8 @@ public:
 
         if (fontRef != nullptr)
         {
-           #if JUCE_MAC && defined (MAC_OS_X_VERSION_10_8) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
-            if (SystemStats::getOperatingSystemType() >= SystemStats::OperatingSystemType::MacOSX_10_11)
+            if (@available (macOS 10.11, *))
                 canBeUsedForLayout = CTFontManagerRegisterGraphicsFont (fontRef, nullptr);
-           #endif
 
             ctFontRef.reset (CTFontCreateWithGraphicsFont (fontRef, referenceFontSize, nullptr, nullptr));
 
@@ -585,10 +626,9 @@ public:
     {
         if (fontRef != nullptr)
         {
-           #if JUCE_MAC && defined (MAC_OS_X_VERSION_10_8) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
-            if (dataCopy.getSize() != 0)
-                CTFontManagerUnregisterGraphicsFont (fontRef, nullptr);
-           #endif
+            if (@available (macOS 10.8, *))
+                if (dataCopy.getSize() != 0)
+                    CTFontManagerUnregisterGraphicsFont (fontRef, nullptr);
 
             CGFontRelease (fontRef);
         }
@@ -715,7 +755,9 @@ private:
 
 CTFontRef getCTFontFromTypeface (const Font& f)
 {
-    if (auto* tf = dynamic_cast<OSXTypeface*> (f.getTypeface()))
+    const auto typeface = f.getTypefacePtr();
+
+    if (auto* tf = dynamic_cast<OSXTypeface*> (typeface.get()))
         return tf->ctFontRef.get();
 
     return {};
@@ -815,7 +857,7 @@ Typeface::Ptr Font::getDefaultTypefaceForFont (const Font& font)
     static DefaultFontNames defaultNames;
 
     auto newFont = font;
-    auto& faceName = font.getTypefaceName();
+    auto faceName = font.getTypefaceName();
 
     if (faceName == getDefaultSansSerifFontName())       newFont.setTypefaceName (defaultNames.defaultSans);
     else if (faceName == getDefaultSerifFontName())      newFont.setTypefaceName (defaultNames.defaultSerif);
@@ -833,7 +875,9 @@ static bool canAllTypefacesBeUsedInLayout (const AttributedString& text)
 
     for (int i = 0; i < numCharacterAttributes; ++i)
     {
-        if (auto tf = dynamic_cast<OSXTypeface*> (text.getAttribute (i).font.getTypeface()))
+        auto typeface = text.getAttribute (i).font.getTypefacePtr();
+
+        if (auto tf = dynamic_cast<OSXTypeface*> (typeface.get()))
             if (tf->canBeUsedForLayout)
                 continue;
 

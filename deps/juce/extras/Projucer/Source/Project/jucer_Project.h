@@ -31,6 +31,7 @@
 class ProjectExporter;
 class LibraryModule;
 class EnabledModulesList;
+class ProjectSaver;
 
 namespace ProjectMessages
 {
@@ -109,6 +110,8 @@ namespace ProjectMessages
     using MessageAction = std::pair<String, std::function<void()>>;
 }
 
+enum class Async { no, yes };
+
 //==============================================================================
 class Project  : public FileBasedDocument,
                  private ValueTree::Listener,
@@ -125,10 +128,11 @@ public:
     String getDocumentTitle() override;
     Result loadDocument (const File& file) override;
     Result saveDocument (const File& file) override;
+    void saveDocumentAsync (const File& file, std::function<void (Result)> callback) override;
 
-    Result saveProject (ProjectExporter* exporterToSave = nullptr);
+    void saveProject (Async, ProjectExporter* exporterToSave, std::function<void (Result)> onCompletion);
     Result saveResourcesOnly();
-    Result openProjectInIDE (ProjectExporter& exporterToOpen, bool saveFirst);
+    void openProjectInIDE (ProjectExporter& exporterToOpen);
 
     File getLastDocumentOpened() override;
     void setLastDocumentOpened (const File& file) override;
@@ -205,8 +209,14 @@ public:
     bool shouldDisplaySplashScreen() const               { return displaySplashScreenValue.get(); }
     String getSplashScreenColourString() const           { return splashScreenColourValue.get(); }
 
-    static StringArray getCppStandardStrings()           { return { "C++11", "C++14", "C++17", "Use Latest" }; }
-    static Array<var> getCppStandardVars()               { return { "11",    "14",    "17",    "latest" }; }
+    static StringArray getCppStandardStrings()           { return { "C++14", "C++17", "C++20", "Use Latest" }; }
+    static Array<var> getCppStandardVars()               { return { "14",    "17",    "20",    "latest" }; }
+
+    static String getLatestNumberedCppStandardString()
+    {
+        auto cppStandardVars = getCppStandardVars();
+        return cppStandardVars[cppStandardVars.size() - 2];
+    }
 
     String getCppStandardString() const                  { return cppStandardValue.get(); }
 
@@ -433,7 +443,6 @@ public:
     struct ExporterIterator
     {
         ExporterIterator (Project& project);
-        ~ExporterIterator();
 
         bool next();
 
@@ -486,7 +495,7 @@ public:
     String getUniqueTargetFolderSuffixForExporter (const Identifier& exporterIdentifier, const String& baseTargetFolder);
 
     //==============================================================================
-    bool isCurrentlySaving() const noexcept              { return isSaving; }
+    bool isCurrentlySaving() const noexcept              { return saver != nullptr; }
 
     bool isTemporaryProject() const noexcept             { return tempDirectory != File(); }
     File getTemporaryDirectory() const noexcept          { return tempDirectory; }
@@ -572,7 +581,6 @@ private:
 
     //==============================================================================
     friend class Item;
-    bool isSaving = false;
     StringPairArray parsedPreprocessorDefs;
 
     //==============================================================================
@@ -618,6 +626,10 @@ private:
 
     ProjectFileModificationPoller fileModificationPoller { *this };
 
+    std::unique_ptr<FileChooser> chooser;
+    std::unique_ptr<ProjectSaver> saver;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Project)
+    JUCE_DECLARE_WEAK_REFERENCEABLE (Project)
 };

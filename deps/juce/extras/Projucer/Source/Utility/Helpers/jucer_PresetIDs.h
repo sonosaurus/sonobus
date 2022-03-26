@@ -128,10 +128,11 @@ namespace Ids
     DECLARE_ID (unityPluginBinaryLocation);
     DECLARE_ID (enablePluginBinaryCopyStep);
     DECLARE_ID (stripLocalSymbols);
-    DECLARE_ID (osxSDK);
-    DECLARE_ID (osxCompatibility);
+    DECLARE_ID (macOSBaseSDK);
+    DECLARE_ID (macOSDeploymentTarget);
     DECLARE_ID (osxArchitecture);
-    DECLARE_ID (iosCompatibility);
+    DECLARE_ID (iosBaseSDK);
+    DECLARE_ID (iosDeploymentTarget);
     DECLARE_ID (xcodeSubprojects);
     DECLARE_ID (extraFrameworks);
     DECLARE_ID (frameworkSearchPaths);
@@ -150,6 +151,8 @@ namespace Ids
     DECLARE_ID (windowsTargetPlatformVersion);
     DECLARE_ID (debugInformationFormat);
     DECLARE_ID (IPPLibrary);
+    DECLARE_ID (IPP1ALibrary);
+    DECLARE_ID (MKL1ALibrary);
     DECLARE_ID (msvcModuleDefinitionFile);
     DECLARE_ID (bigIcon);
     DECLARE_ID (smallIcon);
@@ -257,6 +260,7 @@ namespace Ids
     DECLARE_ID (iosPushNotifications);
     DECLARE_ID (iosAppGroups);
     DECLARE_ID (iCloudPermissions);
+    DECLARE_ID (networkingMulticast);
     DECLARE_ID (iosDevelopmentTeamID);
     DECLARE_ID (iosAppGroupsId);
     DECLARE_ID (iosBluetoothPermissionNeeded);
@@ -375,6 +379,10 @@ namespace Ids
     DECLARE_ID (guiEditorEnabled);
     DECLARE_ID (jucerFormatVersion);
     DECLARE_ID (buildNumber);
+
+    DECLARE_ID (osxSDK);
+    DECLARE_ID (osxCompatibility);
+    DECLARE_ID (iosCompatibility);
 
     const Identifier ID ("id");
     const Identifier ID_uppercase ("ID");

@@ -9,28 +9,34 @@
 namespace BinaryData
 {
     extern const char*   localized_de_txt;
-    const int            localized_de_txtSize = 35097;
+    const int            localized_de_txtSize = 41259;
 
     extern const char*   localized_es_txt;
-    const int            localized_es_txtSize = 34306;
+    const int            localized_es_txtSize = 40914;
 
     extern const char*   localized_fr_txt;
-    const int            localized_fr_txtSize = 35703;
+    const int            localized_fr_txtSize = 42503;
 
     extern const char*   localized_it_txt;
-    const int            localized_it_txtSize = 34768;
+    const int            localized_it_txtSize = 41335;
 
     extern const char*   localized_ja_txt;
-    const int            localized_ja_txtSize = 38332;
+    const int            localized_ja_txtSize = 45488;
+
+    extern const char*   localized_ko_txt;
+    const int            localized_ko_txtSize = 41451;
 
     extern const char*   localized_nl_txt;
-    const int            localized_nl_txtSize = 32810;
+    const int            localized_nl_txtSize = 38895;
 
     extern const char*   localized_ptbr_txt;
-    const int            localized_ptbr_txtSize = 34091;
+    const int            localized_ptbr_txtSize = 40599;
 
     extern const char*   localized_ptpt_txt;
-    const int            localized_ptpt_txtSize = 33687;
+    const int            localized_ptpt_txtSize = 40104;
+
+    extern const char*   localized_ru_txt;
+    const int            localized_ru_txtSize = 54011;
 
     extern const char*   bar_click_wav;
     const int            bar_click_wavSize = 2846;
@@ -44,8 +50,14 @@ namespace BinaryData
     extern const char*   chat_dots_svg;
     const int            chat_dots_svgSize = 3019;
 
+    extern const char*   checkmark_svg;
+    const int            checkmark_svgSize = 1157;
+
     extern const char*   chevron_forward_svg;
     const int            chevron_forward_svgSize = 2060;
+
+    extern const char*   continue_svg;
+    const int            continue_svgSize = 4909;
 
     extern const char*   copy_icon_svg;
     const int            copy_icon_svgSize = 2218;
@@ -74,11 +86,17 @@ namespace BinaryData
     extern const char*   expand_arrow_inactive_svg;
     const int            expand_arrow_inactive_svgSize = 3098;
 
+    extern const char*   eyedropper_svg;
+    const int            eyedropper_svgSize = 1414;
+
     extern const char*   folder_icon_svg;
     const int            folder_icon_svgSize = 4871;
 
     extern const char*   hearothers_svg;
     const int            hearothers_svgSize = 9200;
+
+    extern const char*   hold_svg;
+    const int            hold_svgSize = 6263;
 
     extern const char*   incoming_allowed_svg;
     const int            incoming_allowed_svgSize = 9780;
@@ -88,6 +106,12 @@ namespace BinaryData
 
     extern const char*   incoming_disallowed_svg;
     const int            incoming_disallowed_svgSize = 9407;
+
+    extern const char*   keyboard_svg;
+    const int            keyboard_svgSize = 5011;
+
+    extern const char*   keyboard_disabled_svg;
+    const int            keyboard_disabled_svgSize = 5151;
 
     extern const char*   lgc_bar_wav;
     const int            lgc_bar_wavSize = 806;
@@ -103,6 +127,12 @@ namespace BinaryData
 
     extern const char*   loop_icon_svg;
     const int            loop_icon_svgSize = 4901;
+
+    extern const char*   loop_off_icon_png;
+    const int            loop_off_icon_pngSize = 3067;
+
+    extern const char*   loop_off_icon_svg;
+    const int            loop_off_icon_svgSize = 3585;
 
     extern const char*   met_svg;
     const int            met_svgSize = 3784;
@@ -124,6 +154,9 @@ namespace BinaryData
 
     extern const char*   network_svg;
     const int            network_svgSize = 8054;
+
+    extern const char*   oneshot_svg;
+    const int            oneshot_svgSize = 5588;
 
     extern const char*   outgoing_allowed_svg;
     const int            outgoing_allowed_svgSize = 10153;
@@ -152,8 +185,20 @@ namespace BinaryData
     extern const char*   person_svg;
     const int            person_svgSize = 3615;
 
+    extern const char*   play_back_to_back_svg;
+    const int            play_back_to_back_svgSize = 4821;
+
+    extern const char*   play_background_svg;
+    const int            play_background_svgSize = 5696;
+
     extern const char*   play_icon_svg;
     const int            play_icon_svgSize = 3768;
+
+    extern const char*   play_simultaneous_svg;
+    const int            play_simultaneous_svgSize = 4840;
+
+    extern const char*   plus_icon_svg;
+    const int            plus_icon_svgSize = 4306;
 
     extern const char*   power_svg;
     const int            power_svgSize = 3120;
@@ -172,6 +217,9 @@ namespace BinaryData
 
     extern const char*   rectape_svg;
     const int            rectape_svgSize = 2514;
+
+    extern const char*   replay_icon_svg;
+    const int            replay_icon_svgSize = 4292;
 
     extern const char*   reset_buffer_icon_svg;
     const int            reset_buffer_icon_svgSize = 3285;
@@ -194,11 +242,20 @@ namespace BinaryData
     extern const char*   sonobus_title_small_png;
     const int            sonobus_title_small_pngSize = 16322;
 
+    extern const char*   soundboard_svg;
+    const int            soundboard_svgSize = 6152;
+
     extern const char*   speaker_svg;
     const int            speaker_svgSize = 3742;
 
     extern const char*   speaker_disabled_svg;
     const int            speaker_disabled_svgSize = 3851;
+
+    extern const char*   speaker_disabled_grey_svg;
+    const int            speaker_disabled_grey_svgSize = 2651;
+
+    extern const char*   toggle_svg;
+    const int            toggle_svgSize = 6218;
 
     extern const char*   triangle_disclosure_svg;
     const int            triangle_disclosure_svgSize = 3068;
@@ -216,7 +273,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 69;
+    const int namedResourceListSize = 88;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

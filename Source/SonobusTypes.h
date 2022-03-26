@@ -26,12 +26,15 @@ public:
         LoadSetupFile,
         SaveSetupFile,
         ChatToggle,
+        SoundboardToggle,
         SkipBack,
         ShowFileMenu,
         ShowTransportMenu,
         ShowViewMenu,
         ShowConnectMenu,
-        ToggleFullInfoView
+        ToggleFullInfoView,
+        StopAllSoundboardPlayback,
+        ToggleAllMonitorDelay
     };
     
 };

@@ -26,6 +26,8 @@
 namespace juce
 {
 
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wlanguage-extension-token")
+
 int AccessibilityNativeHandle::idCounter = 0;
 
 //==============================================================================
@@ -48,40 +50,45 @@ static String getAutomationId (const AccessibilityHandler& handler)
     return result;
 }
 
-static long roleToControlTypeId (AccessibilityRole roleType)
+static auto roleToControlTypeId (AccessibilityRole roleType)
 {
     switch (roleType)
     {
-        case AccessibilityRole::button:       return UIA_ButtonControlTypeId;
-        case AccessibilityRole::toggleButton: return UIA_CheckBoxControlTypeId;
-        case AccessibilityRole::radioButton:  return UIA_RadioButtonControlTypeId;
-        case AccessibilityRole::comboBox:     return UIA_ComboBoxControlTypeId;
-        case AccessibilityRole::image:        return UIA_ImageControlTypeId;
-        case AccessibilityRole::slider:       return UIA_SliderControlTypeId;
-        case AccessibilityRole::staticText:   return UIA_TextControlTypeId;
-        case AccessibilityRole::editableText: return UIA_EditControlTypeId;
-        case AccessibilityRole::menuItem:     return UIA_MenuItemControlTypeId;
-        case AccessibilityRole::menuBar:      return UIA_MenuBarControlTypeId;
-        case AccessibilityRole::popupMenu:    return UIA_WindowControlTypeId;
-        case AccessibilityRole::table:        return UIA_TableControlTypeId;
-        case AccessibilityRole::tableHeader:  return UIA_HeaderControlTypeId;
-        case AccessibilityRole::column:       return UIA_HeaderItemControlTypeId;
-        case AccessibilityRole::row:          return UIA_HeaderItemControlTypeId;
-        case AccessibilityRole::cell:         return UIA_DataItemControlTypeId;
-        case AccessibilityRole::hyperlink:    return UIA_HyperlinkControlTypeId;
-        case AccessibilityRole::list:         return UIA_ListControlTypeId;
-        case AccessibilityRole::listItem:     return UIA_ListItemControlTypeId;
-        case AccessibilityRole::tree:         return UIA_TreeControlTypeId;
-        case AccessibilityRole::treeItem:     return UIA_TreeItemControlTypeId;
-        case AccessibilityRole::progressBar:  return UIA_ProgressBarControlTypeId;
-        case AccessibilityRole::group:        return UIA_GroupControlTypeId;
-        case AccessibilityRole::dialogWindow: return UIA_WindowControlTypeId;
-        case AccessibilityRole::window:       return UIA_WindowControlTypeId;
-        case AccessibilityRole::scrollBar:    return UIA_ScrollBarControlTypeId;
-        case AccessibilityRole::tooltip:      return UIA_ToolTipControlTypeId;
-        case AccessibilityRole::splashScreen: return UIA_WindowControlTypeId;
-        case AccessibilityRole::ignored:      return UIA_CustomControlTypeId;
-        case AccessibilityRole::unspecified:  return UIA_CustomControlTypeId;
+        case AccessibilityRole::popupMenu:
+        case AccessibilityRole::dialogWindow:
+        case AccessibilityRole::splashScreen:
+        case AccessibilityRole::window:        return UIA_WindowControlTypeId;
+
+        case AccessibilityRole::label:
+        case AccessibilityRole::staticText:    return UIA_TextControlTypeId;
+
+        case AccessibilityRole::column:
+        case AccessibilityRole::row:           return UIA_HeaderItemControlTypeId;
+
+        case AccessibilityRole::button:        return UIA_ButtonControlTypeId;
+        case AccessibilityRole::toggleButton:  return UIA_CheckBoxControlTypeId;
+        case AccessibilityRole::radioButton:   return UIA_RadioButtonControlTypeId;
+        case AccessibilityRole::comboBox:      return UIA_ComboBoxControlTypeId;
+        case AccessibilityRole::image:         return UIA_ImageControlTypeId;
+        case AccessibilityRole::slider:        return UIA_SliderControlTypeId;
+        case AccessibilityRole::editableText:  return UIA_EditControlTypeId;
+        case AccessibilityRole::menuItem:      return UIA_MenuItemControlTypeId;
+        case AccessibilityRole::menuBar:       return UIA_MenuBarControlTypeId;
+        case AccessibilityRole::table:         return UIA_TableControlTypeId;
+        case AccessibilityRole::tableHeader:   return UIA_HeaderControlTypeId;
+        case AccessibilityRole::cell:          return UIA_DataItemControlTypeId;
+        case AccessibilityRole::hyperlink:     return UIA_HyperlinkControlTypeId;
+        case AccessibilityRole::list:          return UIA_ListControlTypeId;
+        case AccessibilityRole::listItem:      return UIA_ListItemControlTypeId;
+        case AccessibilityRole::tree:          return UIA_TreeControlTypeId;
+        case AccessibilityRole::treeItem:      return UIA_TreeItemControlTypeId;
+        case AccessibilityRole::progressBar:   return UIA_ProgressBarControlTypeId;
+        case AccessibilityRole::group:         return UIA_GroupControlTypeId;
+        case AccessibilityRole::scrollBar:     return UIA_ScrollBarControlTypeId;
+        case AccessibilityRole::tooltip:       return UIA_ToolTipControlTypeId;
+
+        case AccessibilityRole::ignored:
+        case AccessibilityRole::unspecified:   break;
     };
 
     return UIA_CustomControlTypeId;
@@ -100,7 +107,7 @@ JUCE_COMRESULT AccessibilityNativeHandle::QueryInterface (REFIID refId, void** r
     *result = nullptr;
 
     if (! isElementValid())
-        return UIA_E_ELEMENTNOTAVAILABLE;
+        return (HRESULT) UIA_E_ELEMENTNOTAVAILABLE;
 
     if ((refId == __uuidof (IRawElementProviderFragmentRoot) && ! isFragmentRoot()))
         return E_NOINTERFACE;
@@ -165,12 +172,8 @@ JUCE_COMRESULT AccessibilityNativeHandle::GetPatternProvider (PATTERNID pId, IUn
                 }
                 case UIA_ValuePatternId:
                 {
-                    if (accessibilityHandler.getValueInterface() != nullptr
-                        || isEditableText (accessibilityHandler)
-                        || nameIsAccessibilityValue (role))
-                    {
+                    if (accessibilityHandler.getValueInterface() != nullptr)
                         return new UIAValueProvider (this);
-                    }
 
                     break;
                 }
@@ -240,13 +243,12 @@ JUCE_COMRESULT AccessibilityNativeHandle::GetPatternProvider (PATTERNID pId, IUn
                 }
                 case UIA_ExpandCollapsePatternId:
                 {
-                    if (accessibilityHandler.getActions().contains (AccessibilityActionType::showMenu))
+                    if (accessibilityHandler.getActions().contains (AccessibilityActionType::showMenu)
+                        && accessibilityHandler.getCurrentState().isExpandable())
                         return new UIAExpandCollapseProvider (this);
 
                     break;
                 }
-                default:
-                    break;
             }
 
             return nullptr;
@@ -328,9 +330,6 @@ JUCE_COMRESULT AccessibilityNativeHandle::GetPropertyValue (PROPERTYID propertyI
                     VariantHelpers::setInt ((int) (pointer_sized_int) accessibilityHandler.getComponent().getWindowHandle(), pRetVal);
 
                 break;
-
-            default:
-                break;
         }
 
         return S_OK;
@@ -401,7 +400,7 @@ JUCE_COMRESULT AccessibilityNativeHandle::GetRuntimeId (SAFEARRAY** pRetVal)
 
             for (LONG i = 0; i < 2; ++i)
             {
-                auto hr = SafeArrayPutElement (*pRetVal, &i, &rtid[i]);
+                auto hr = SafeArrayPutElement (*pRetVal, &i, &rtid[(size_t) i]);
 
                 if (FAILED (hr))
                     return E_FAIL;
@@ -439,7 +438,7 @@ JUCE_COMRESULT AccessibilityNativeHandle::GetEmbeddedFragmentRoots (SAFEARRAY** 
 JUCE_COMRESULT AccessibilityNativeHandle::SetFocus()
 {
     if (! isElementValid())
-        return UIA_E_ELEMENTNOTAVAILABLE;
+        return (HRESULT) UIA_E_ELEMENTNOTAVAILABLE;
 
     const WeakReference<Component> safeComponent (&accessibilityHandler.getComponent());
 
@@ -461,8 +460,7 @@ JUCE_COMRESULT AccessibilityNativeHandle::get_FragmentRoot (IRawElementProviderF
                 return &accessibilityHandler;
 
             if (auto* peer = accessibilityHandler.getComponent().getPeer())
-                if (auto* handler = peer->getComponent().getAccessibilityHandler())
-                    return handler;
+                return peer->getComponent().getAccessibilityHandler();
 
             return nullptr;
         }();
@@ -473,7 +471,7 @@ JUCE_COMRESULT AccessibilityNativeHandle::get_FragmentRoot (IRawElementProviderF
             return S_OK;
         }
 
-        return UIA_E_ELEMENTNOTAVAILABLE;
+        return (HRESULT) UIA_E_ELEMENTNOTAVAILABLE;
     });
 }
 
@@ -539,12 +537,7 @@ JUCE_COMRESULT AccessibilityNativeHandle::GetFocus (IRawElementProviderFragment*
 //==============================================================================
 String AccessibilityNativeHandle::getElementName() const
 {
-    const auto role = accessibilityHandler.getRole();
-
-    if (nameIsAccessibilityValue (role))
-        return {};
-
-    if (role == AccessibilityRole::tooltip)
+    if (accessibilityHandler.getRole() == AccessibilityRole::tooltip)
         return accessibilityHandler.getDescription();
 
     auto name = accessibilityHandler.getTitle();
@@ -554,5 +547,7 @@ String AccessibilityNativeHandle::getElementName() const
 
     return name;
 }
+
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
 } // namespace juce

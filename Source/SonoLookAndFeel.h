@@ -12,7 +12,7 @@ class SonoLookAndFeel   : public LookAndFeel_V4, public foleys::LevelMeter::Look
 public:
     SonoLookAndFeel();
 
-    void setLanguageCode(const String & lang) { languageCode = lang; }
+    void setLanguageCode(const String & lang);
 
     //void fillWithBackgroundTexture (Graphics&);
     //static void fillWithBackgroundTexture (Component&, Graphics&);
@@ -162,4 +162,10 @@ protected:
     
 };
 
+class SonoDashedBorderButtonLookAndFeel : public SonoLookAndFeel
+{
+public:
+    void drawButtonBackground(Graphics&, Button&, const Colour& backgroundColour,
+                              bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+};
 

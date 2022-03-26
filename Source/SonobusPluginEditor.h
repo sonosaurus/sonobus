@@ -31,6 +31,7 @@ class SonobusAudioProcessorEditor;
 class ChannelGroupsView;
 class MonitorDelayView;
 class ChatView;
+class SoundboardView;
 class LatencyMatchView;
 
 //==============================================================================
@@ -115,6 +116,9 @@ public:
     void connectWithInfo(const AooServerConnectionInfo & info, bool allowEmptyGroup = false, bool copyInfoOnly=false);
 
     void showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth=100);
+
+    void updateUseKeybindings();
+
 
     // file drop
 
@@ -232,6 +236,7 @@ private:
     void showLoadSettingsPreset();
 
     void showChatPanel(bool show, bool allowresize=true);
+    void showSoundboardPanel(bool show, bool allowresize=true);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -297,6 +302,7 @@ private:
     std::unique_ptr<SonoDrawableButton> mMetEnableButton;
     std::unique_ptr<SonoDrawableButton> mMetSendButton;
     std::unique_ptr<TextButton> mMetSyncButton;
+    std::unique_ptr<TextButton> mMetSyncFileButton;
     std::unique_ptr<Label> mMetTempoSliderLabel;
     std::unique_ptr<Slider> mMetTempoSlider;
     std::unique_ptr<Label> mMetLevelSliderLabel;
@@ -463,8 +469,16 @@ private:
     bool mAboutToShowChat = false;
     bool mChatShowDidResize = false;
     bool mChatWasVisible = false;
-    bool mChatOverlay = false;
-    bool mIgnoreChatViewResize = false;
+    bool mChatOverlay  = false;
+    volatile bool mIgnoreResize = false;
+
+   std::unique_ptr<SoundboardView> mSoundboardView;
+   std::unique_ptr<SonoDrawableButton> mSoundboardButton;
+   std::unique_ptr<ComponentBoundsConstrainer> mSoundboardSizeConstrainer;
+   std::unique_ptr<ResizableEdgeComponent> mSoundboardEdgeResizer;
+   bool mAboutToShowSoundboard = false;
+   bool mSoundboardShowDidResize = false;
+   bool mSoundboardWasVisible = false;
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;
@@ -596,6 +610,7 @@ private:
     FlexBox metVolBox;
     FlexBox metTempoBox;
     FlexBox metSendBox;
+    FlexBox metSendSyncBox;
 
     FlexBox effectsBox;
     FlexBox reverbBox;
@@ -646,6 +661,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainRecvMuteAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetTempoAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSyncAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSyncFileAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetEnableAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;

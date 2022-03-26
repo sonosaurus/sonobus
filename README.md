@@ -106,3 +106,23 @@ one at aoo.sonobus.net, you can build the headless aooserver code at
 The standalone SonoBus application also provides a connection server internally,
 which you can connect to on port 10998, or port forward TCP/UDP 10998 from your internet
 router to the machine you are running it on.
+
+
+# Thanks
+
+Thanks for everyone involved in testing, especially to Christof Ressi for
+the AOO library.
+
+### Software development credits:
+
+- For designing and implementing the Soundboard feature:
+    - Sten Wessel
+    - Hannah Schellekens
+
+### Documentation credits:
+ - Michael Eskin
+ - Tony Becker
+
+### Translation credits:
+ - RelationLife (Taewook Yang)
+ 

@@ -116,7 +116,6 @@ public:
         NSMenu* sub = createMenu (child, name, menuId, topLevelIndex, true);
 
         [parent setSubmenu: sub forItem: item];
-        [sub setAutoenablesItems: false];
         [sub release];
     }
 
@@ -130,7 +129,6 @@ public:
         for (PopupMenu::MenuItemIterator iter (menuToCopy); iter.next();)
             addMenuItem (iter, menu, menuId, topLevelIndex);
 
-        [menu setAutoenablesItems: false];
         [menu update];
 
         removeItemRecursive ([parentItem submenu]);
@@ -338,8 +336,6 @@ public:
     {
         NSMenu* m = [[NSMenu alloc] initWithTitle: juceStringToNS (menuName)];
 
-        [m setAutoenablesItems: false];
-
         if (addDelegate)
             [m setDelegate: (id<NSMenuDelegate>) callback];
 
@@ -368,11 +364,18 @@ private:
             {
                 NSArray* array = nil;
 
-               #if (! defined (MAC_OS_X_VERSION_10_8)) || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_8
-                [menuNib instantiateNibWithOwner: NSApp  topLevelObjects: &array];
-               #else
-                [menuNib instantiateWithOwner: NSApp  topLevelObjects: &array];
-               #endif
+                if (@available (macOS 10.11, *))
+                {
+                    [menuNib instantiateWithOwner: NSApp
+                                  topLevelObjects: &array];
+                }
+                else
+                {
+                    JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wdeprecated-declarations")
+                    [menuNib instantiateNibWithOwner: NSApp
+                                     topLevelObjects: &array];
+                    JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+                }
 
                 for (id object in array)
                 {
@@ -516,7 +519,7 @@ private:
     //==============================================================================
     struct JuceMenuCallbackClass   : public ObjCClass<NSObject>
     {
-        JuceMenuCallbackClass()  : ObjCClass<NSObject> ("JUCEMainMenu_")
+        JuceMenuCallbackClass()  : ObjCClass ("JUCEMainMenu_")
         {
             addIvar<JuceMainMenuHandler*> ("owner");
 
@@ -524,9 +527,14 @@ private:
             addMethod (@selector (menuItemInvoked:),  menuItemInvoked, "v@:@");
             JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
-            addMethod (@selector (menuNeedsUpdate:),  menuNeedsUpdate, "v@:@");
+            addMethod (@selector (menuNeedsUpdate:),  menuNeedsUpdate,  "v@:@");
+            addMethod (@selector (validateMenuItem:), validateMenuItem, "c@:@");
 
             addProtocol (@protocol (NSMenuDelegate));
+
+           #if defined (MAC_OS_X_VERSION_10_14)
+            addProtocol (@protocol (NSMenuItemValidation));
+           #endif
 
             registerClass();
         }
@@ -537,48 +545,33 @@ private:
         }
 
     private:
-        /*  Returns true if and only if the peer handles the event. */
-        static bool tryPassingKeyEventToPeer (NSMenuItem* item)
+        static auto* getPopupMenuItem (NSMenuItem* item)
         {
-            auto* e = [NSApp currentEvent];
+            return getJuceClassFromNSObject<PopupMenu::Item> ([item representedObject]);
+        }
 
-            if ([e type] != NSEventTypeKeyDown && [e type] != NSEventTypeKeyUp)
-                return false;
-
-            const auto triggeredByShortcut = [[e charactersIgnoringModifiers] isEqualToString: [item keyEquivalent]]
-                                             && ([e modifierFlags] & ~(NSUInteger) 0xFFFF) == [item keyEquivalentModifierMask];
-
-            if (! triggeredByShortcut)
-                return false;
-
-            if (auto* focused = juce::Component::getCurrentlyFocusedComponent())
-            {
-                if (auto* peer = dynamic_cast<juce::NSViewComponentPeer*> (focused->getPeer()))
-                {
-                    if ([e type] == NSEventTypeKeyDown)
-                        peer->redirectKeyDown (e);
-                    else
-                        peer->redirectKeyUp (e);
-
-                    return true;
-                }
-            }
-
-            return false;
+        static auto* getOwner (id self)
+        {
+            return getIvar<JuceMainMenuHandler*> (self, "owner");
         }
 
         static void menuItemInvoked (id self, SEL, NSMenuItem* item)
         {
-            if (tryPassingKeyEventToPeer (item))
-                return;
-
-            if (auto* juceItem = getJuceClassFromNSObject<PopupMenu::Item> ([item representedObject]))
-                getIvar<JuceMainMenuHandler*> (self, "owner")->invoke (*juceItem, static_cast<int> ([item tag]));
+            if (auto* juceItem = getPopupMenuItem (item))
+                getOwner (self)->invoke (*juceItem, static_cast<int> ([item tag]));
         }
 
         static void menuNeedsUpdate (id self, SEL, NSMenu* menu)
         {
-            getIvar<JuceMainMenuHandler*> (self, "owner")->updateTopLevelMenu (menu);
+            getOwner (self)->updateTopLevelMenu (menu);
+        }
+
+        static BOOL validateMenuItem (id, SEL, NSMenuItem* item)
+        {
+            if (auto* juceItem = getPopupMenuItem (item))
+                return juceItem->isEnabled;
+
+            return YES;
         }
     };
 };

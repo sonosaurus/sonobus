@@ -700,7 +700,7 @@ public:
         z-order will be left unchanged.
 
         @param child    the new component to add. If the component passed-in is already
-                        the child of another component, it'll first be removed from it current parent.
+                        the child of another component, it'll first be removed from its current parent.
         @param zOrder   The index in the child-list at which this component should be inserted.
                         A value of -1 will insert it in front of the others, 0 is the back.
         @see removeChildComponent, addAndMakeVisible, addChildAndSetID, getChild, ComponentListener::componentChildrenChanged
@@ -718,7 +718,7 @@ public:
         z-order will be left unchanged.
 
         @param child    the new component to add. If the component passed-in is already
-                        the child of another component, it'll first be removed from it current parent.
+                        the child of another component, it'll first be removed from its current parent.
         @param zOrder   The index in the child-list at which this component should be inserted.
                         A value of -1 will insert it in front of the others, 0 is the back.
         @see removeChildComponent, addAndMakeVisible, addChildAndSetID, getChild, ComponentListener::componentChildrenChanged
@@ -731,7 +731,7 @@ public:
         See addChildComponent() for more details.
 
         @param child    the new component to add. If the component passed-in is already
-                        the child of another component, it'll first be removed from it current parent.
+                        the child of another component, it'll first be removed from its current parent.
         @param zOrder   The index in the child-list at which this component should be inserted.
                         A value of -1 will insert it in front of the others, 0 is the back.
     */
@@ -743,7 +743,7 @@ public:
         See addChildComponent() for more details.
 
         @param child    the new component to add. If the component passed-in is already
-                        the child of another component, it'll first be removed from it current parent.
+                        the child of another component, it'll first be removed from its current parent.
         @param zOrder   The index in the child-list at which this component should be inserted.
                         A value of -1 will insert it in front of the others, 0 is the back.
     */
@@ -2020,7 +2020,7 @@ public:
     virtual void handleCommandMessage (int commandId);
 
     //==============================================================================
-   #if JUCE_MODAL_LOOPS_PERMITTED || DOXYGEN
+   #if JUCE_MODAL_LOOPS_PERMITTED
     /** Runs a component modally, waiting until the loop terminates.
 
         This method first makes the component visible, brings it to the front and
@@ -2408,16 +2408,22 @@ public:
     */
     void setHelpText (const String& newHelpText);
 
-    /** Sets whether this component is visible to accessibility clients.
+    /** Sets whether this component and its children are visible to accessibility clients.
 
         If this flag is set to false then the getAccessibilityHandler() method will return nullptr
-        and this component will not be visible to any accessibility clients.
+        and this component and its children will not be visible to any accessibility clients.
 
         By default this is set to true.
 
-        @see getAccessibilityHandler
+        @see isAccessible, getAccessibilityHandler
     */
     void setAccessible (bool shouldBeAccessible);
+
+    /** Returns true if this component and its children are visible to accessibility clients.
+
+        @see setAccessible
+    */
+    bool isAccessible() const noexcept;
 
     /** Returns the accessibility handler for this component, or nullptr if this component is not
         accessible.
@@ -2436,13 +2442,15 @@ public:
 
     //==============================================================================
    #ifndef DOXYGEN
-    // This method has been deprecated in favour of the setFocusContainerType() method
-    // that takes a more descriptive enum.
-    JUCE_DEPRECATED_WITH_BODY (void setFocusContainer (bool shouldBeFocusContainer) noexcept,
+    [[deprecated ("Use the setFocusContainerType that takes a more descriptive enum.")]]
+    void setFocusContainer (bool shouldBeFocusContainer) noexcept
     {
         setFocusContainerType (shouldBeFocusContainer ? FocusContainerType::keyboardFocusContainer
                                                       : FocusContainerType::none);
-    })
+    }
+
+    [[deprecated ("Use the contains that takes a Point<int>.")]]
+    void contains (int, int) = delete;
    #endif
 
 private:
@@ -2518,6 +2526,7 @@ private:
         bool isResizeCallbackPending      : 1;
         bool viewportIgnoreDragFlag       : 1;
         bool accessibilityIgnoredFlag     : 1;
+        bool cachedMouseInsideComponent   : 1;
        #if JUCE_DEBUG
         bool isInsidePaintCall            : 1;
        #endif
@@ -2565,6 +2574,10 @@ private:
     void sendEnablementChangeMessage();
     void sendVisibilityChangeMessage();
 
+    bool containsInternal (Point<float>);
+    bool reallyContainsInternal (Point<float>, bool);
+    Component* getComponentAtInternal (Point<float>);
+
     struct ComponentHelpers;
     friend struct ComponentHelpers;
 
@@ -2573,23 +2586,12 @@ private:
     */
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Component)
 
-    //==============================================================================
-   #if JUCE_CATCH_DEPRECATED_CODE_MISUSE
-    // This is included here just to cause a compile error if your code is still handling
-    // drag-and-drop with this method. If so, just update it to use the new FileDragAndDropTarget
-    // class, which is easy (just make your class inherit from FileDragAndDropTarget, and
-    // implement its methods instead of this Component method).
-    virtual void filesDropped (const StringArray&, int, int) {}
-
-    // This is included here to cause an error if you use or overload it - it has been deprecated in
-    // favour of contains (Point<int>)
-    void contains (int, int) = delete;
-   #endif
-
 protected:
     //==============================================================================
     /** @internal */
     virtual ComponentPeer* createNewPeer (int styleFlags, void* nativeWindowToAttachTo);
+    /** @internal */
+    static std::unique_ptr<AccessibilityHandler> createIgnoredAccessibilityHandler (Component&);
    #endif
 };
 

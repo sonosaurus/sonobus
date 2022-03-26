@@ -338,7 +338,7 @@ public:
     */
     static void JUCE_CALLTYPE setCurrentThreadName (const String& newThreadName);
 
-   #if JUCE_ANDROID || defined (DOXYGEN)
+   #if JUCE_ANDROID || DOXYGEN
     //==============================================================================
     /** Initialises the JUCE subsystem for projects not created by the Projucer
 
@@ -407,6 +407,7 @@ private:
     void killThread();
     void threadEntryPoint();
     static bool setThreadPriority (void*, int);
+    static int getAdjustedPriority (int);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Thread)
 };

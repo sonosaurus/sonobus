@@ -376,8 +376,7 @@ void Label::focusGained (FocusChangeType cause)
 {
     if (editSingleClick
          && isEnabled()
-         && (cause == focusChangedByTabKey
-             || (cause == focusChangedDirectly && ! isCurrentlyModal())))
+         && cause == focusChangedByTabKey)
     {
         showEditor();
     }
@@ -506,8 +505,7 @@ void Label::textEditorEscapeKeyPressed (TextEditor& ed)
 {
     if (editor != nullptr)
     {
-        jassert (&ed == editor.get());
-        ignoreUnused (ed);
+        jassertquiet (&ed == editor.get());
 
         editor->setText (textValue.toString(), false);
         hideEditor (true);
@@ -525,15 +523,44 @@ class LabelAccessibilityHandler  : public AccessibilityHandler
 public:
     explicit LabelAccessibilityHandler (Label& labelToWrap)
         : AccessibilityHandler (labelToWrap,
-                                AccessibilityRole::staticText,
-                                getAccessibilityActions (labelToWrap)),
+                                labelToWrap.isEditable() ? AccessibilityRole::editableText : AccessibilityRole::label,
+                                getAccessibilityActions (labelToWrap),
+                                { std::make_unique<LabelValueInterface> (labelToWrap) }),
           label (labelToWrap)
     {
     }
 
     String getTitle() const override  { return label.getText(); }
+    String getHelp() const override   { return label.getTooltip(); }
+
+    AccessibleState getCurrentState() const override
+    {
+        if (label.isBeingEdited())
+            return {}; // allow focus to pass through to the TextEditor
+
+        return AccessibilityHandler::getCurrentState();
+    }
 
 private:
+    class LabelValueInterface  : public AccessibilityTextValueInterface
+    {
+    public:
+        explicit LabelValueInterface (Label& labelToWrap)
+            : label (labelToWrap)
+        {
+        }
+
+        bool isReadOnly() const override                 { return true; }
+        String getCurrentValueAsString() const override  { return label.getText(); }
+        void setValueAsString (const String&) override   {}
+
+    private:
+        Label& label;
+
+        //==============================================================================
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LabelValueInterface)
+    };
+
     static AccessibilityActions getAccessibilityActions (Label& label)
     {
         if (label.isEditable())

@@ -25,17 +25,18 @@ void SonoChoiceButton::clearItems()
 {
     items.clear();
     idList.clear();
+    textLabel->setText("", dontSendNotification);
 }
 
-void SonoChoiceButton::addItem(const String & name, int ident)
+void SonoChoiceButton::addItem(const String & name, int ident, bool separator, bool disabled)
 {
-    items.add(GenericItemChooserItem(name));
+    items.add(GenericItemChooserItem(name, Image(), nullptr, separator, disabled));
     idList.add(ident);
 }
 
-void SonoChoiceButton::addItem(const String & name, int ident, const Image & newItemImage)
+void SonoChoiceButton::addItem(const String & name, int ident, const Image & newItemImage, bool separator, bool disabled)
 {
-    items.add(GenericItemChooserItem(name, newItemImage));
+    items.add(GenericItemChooserItem(name, newItemImage, nullptr, separator, disabled));
     idList.add(ident);
 }
 
@@ -96,7 +97,7 @@ void SonoChoiceButton::genericItemChooserSelected(GenericItemChooser *comp, int 
     setWantsKeyboardFocus(true);
 
     Timer::callAfterDelay(200, [this](){
-        grabKeyboardFocus();
+        if (isShowing()) grabKeyboardFocus();
     });
 }
 
@@ -158,7 +159,12 @@ void SonoChoiceButton::paint(Graphics & g)
 
 void SonoChoiceButton::buttonClicked (Button* buttonThatWasClicked)
 {
-    showPopup();
+    if (items.isEmpty()) {
+        listeners.call (&SonoChoiceButton::Listener::choiceButtonEmptyClick, this);
+    }
+    else {
+        showPopup();
+    }
 }
 
 void SonoChoiceButton::showPopup()

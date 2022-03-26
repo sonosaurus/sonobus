@@ -17,14 +17,7 @@ SonoLookAndFeel::SonoLookAndFeel()
 
     fontScale = 1.0;
     
-    String lang = SystemStats::getUserLanguage();
-    if (lang == "zh") {
-        fontScale = 1.0f;
-    } else {
-        // with open sans
-        //fontScale = 1.3;
-    }
-        
+
     setColourScheme(getDarkColourScheme());
     
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::windowBackground, Colour::fromFloatRGBA(0.0, 0.0, 0.0, 1.0));
@@ -123,14 +116,29 @@ SonoLookAndFeel::SonoLookAndFeel()
     myFont = Font(16 * fontScale);
     
     setupDefaultMeterColours();
-    
+
+    if (auto * deflnf = dynamic_cast<SonoLookAndFeel*>(&LookAndFeel::getDefaultLookAndFeel())) {
+        setLanguageCode(deflnf->languageCode);
+    }
+
     //DBG("Myfont name " << myFont.getTypefaceName());
 }
 
+void SonoLookAndFeel::setLanguageCode(const String & lang)
+{
+    languageCode = lang;
+
+    if (lang.startsWith("zh")) {
+        fontScale = 1.0f;
+    }
+    else if (lang.startsWith("ko")) {
+        fontScale = 1.15f;
+    }
+}
 
 Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 {
-    DBG("get typeface for font " << font.getTypefaceName());
+    DBG("get typeface for font " << font.getTypefaceName() << " with defaultsansser: " << Font::getDefaultSansSerifFontName());
     if (font.getTypefaceName() == Font::getDefaultSansSerifFontName())
     {
         // if on android and language is japanese/chinese/korean, use DroidSansFallback
@@ -141,26 +149,40 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         
         String slang = lang.initialSectionNotContaining("_").toLowerCase();
         
-        if (slang == "ja" || slang == "ko") {
-            DBG("Using japanese/korean");
+        if (slang == "ja") {
+            DBG("Using japanese");
             Font jfont(font);
-            //jfont.setTypefaceName("DroidSansFallback");
-#if JUCE_MAC
-            //jfont.setTypefaceName("Arial Unicode MS");
+#if (JUCE_MAC || JUCE_IOS)
             jfont.setTypefaceName("Hiragino Sans W3");
 #elif JUCE_ANDROID
             //jfont.setTypefaceName("Droid Sans Fallback");            
             return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+#elif JUCE_WINDOWS
+            jfont.setTypefaceName("Arial Unicode MS");
 #endif
             return Typeface::createSystemTypefaceFor (jfont);            
+        }
+        else if (slang == "ko") {
+            DBG("Using korean");
+            Font jfont(font);
+#if (JUCE_MAC || JUCE_IOS)
+            jfont.setTypefaceName("Apple SD Gothic Neo");
+#elif JUCE_ANDROID
+            //jfont.setTypefaceName("Droid Sans Fallback");
+            return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+#elif JUCE_WINDOWS
+            jfont.setTypefaceName("Malgun Gothic");
+            //jfont.setTypefaceName("Arial Unicode MS");
+#endif
+            return Typeface::createSystemTypefaceFor (jfont);
         }
         else if (slang == "zh") {
             DBG("Using chinese");
             Font jfont(font);
-            //jfont.setTypefaceName("DroidSansFallback");
-#if JUCE_MAC
+#if (JUCE_MAC || JUCE_IOS)
+            jfont.setTypefaceName("PingFang SC");
+#elif JUCE_WINDOWS
             jfont.setTypefaceName("Arial Unicode MS");
-            //jfont.setTypefaceName("Hiragino Sans W3");
 #elif JUCE_ANDROID
             jfont.setTypefaceName("DroidSansFallback");            
             return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
@@ -171,7 +193,6 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
             DBG("Creating custom typeface!!");
             
             return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
-            //return Typeface::createSystemTypefaceFor (BinaryData::OpenSansRegular_ttf, BinaryData::OpenSansRegular_ttfSize);
         }
     }
     return LookAndFeel_V4::getTypefaceForFont(font);
@@ -1291,9 +1312,9 @@ Font SonoBigTextLookAndFeel::getTextButtonFont (TextButton& button, int buttonHe
 {
     // DBG("GetTextButton font with height: " << buttonHeight << " maxsize: " << maxSize);
     float textRatio = 0.8f;
-       if (SonoTextButton* const textbutt = dynamic_cast<SonoTextButton*> (&button)) {
-           textRatio = textbutt->getTextHeightRatio();
-       }
+    if (SonoTextButton* const textbutt = dynamic_cast<SonoTextButton*> (&button)) {
+        textRatio = textbutt->getTextHeightRatio();
+    }
     
     return myFont.withHeight(jmin (maxSize, buttonHeight * textRatio) * fontScale);
 }
@@ -1595,3 +1616,64 @@ void SonoPanSliderLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int 
 
 
 #endif
+
+void SonoDashedBorderButtonLookAndFeel::drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour,
+                                                             bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    auto cornerSize = 6.0f;
+    auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
+
+    auto baseColour = backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
+        .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f);
+
+    if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
+        baseColour = baseColour.contrasting (shouldDrawButtonAsDown ? 0.2f : 0.05f);
+
+    g.setColour (baseColour);
+
+    auto flatOnLeft   = button.isConnectedOnLeft();
+    auto flatOnRight  = button.isConnectedOnRight();
+    auto flatOnTop    = button.isConnectedOnTop();
+    auto flatOnBottom = button.isConnectedOnBottom();
+
+    // Compute stroke
+    float strokeThickness = 1.5;
+    PathStrokeType stroke(strokeThickness, PathStrokeType::JointStyle::curved);
+    float dash[2] = {10.0f, 10.0f};
+
+    Path strokePath;
+    if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
+    {
+        Path path;
+        path.addRoundedRectangle (bounds.getX(), bounds.getY(),
+            bounds.getWidth(), bounds.getHeight(),
+            cornerSize, cornerSize,
+            ! (flatOnLeft  || flatOnTop),
+            ! (flatOnRight || flatOnTop),
+            ! (flatOnLeft  || flatOnBottom),
+            ! (flatOnRight || flatOnBottom));
+
+        g.fillPath (path);
+
+        auto reducedBounds = bounds.reduced(strokeThickness);
+        strokePath.addRoundedRectangle (reducedBounds.getX(), reducedBounds.getY(),
+            reducedBounds.getWidth(), reducedBounds.getHeight(),
+            cornerSize, cornerSize,
+            ! (flatOnLeft  || flatOnTop),
+            ! (flatOnRight || flatOnTop),
+            ! (flatOnLeft  || flatOnBottom),
+            ! (flatOnRight || flatOnBottom));
+    }
+    else
+    {
+        g.fillRoundedRectangle (bounds, cornerSize);
+
+        strokePath.addRoundedRectangle(bounds.reduced(strokeThickness), cornerSize);
+    }
+
+    // Draw border
+    stroke.createDashedStroke(strokePath, strokePath, dash, 2);
+
+    g.setColour(button.findColour(ComboBox::outlineColourId));
+    g.strokePath(strokePath, stroke);
+}

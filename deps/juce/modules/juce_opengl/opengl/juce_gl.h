@@ -148,6 +148,10 @@
 
 // END_GLEW_LICENSE
 
+#include <juce_core/system/juce_CompilerWarnings.h>
+
+JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wlanguage-extension-token")
+
 #include "juce_khrplatform.h"
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
@@ -196,6 +200,8 @@ typedef unsigned short GLhalfNV;
 typedef GLintptr GLvdpauSurfaceNV;
 typedef void ( *GLVULKANPROCNV)(void);
 
+JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+
 namespace juce
 {
 namespace gl
@@ -203,7 +209,7 @@ namespace gl
 
 #ifndef GL_VERSION_1_0
 #define GL_VERSION_1_0 1
-enum
+enum : GLenum
 {
     GL_DEPTH_BUFFER_BIT                                     = 0x00000100,
     GL_STENCIL_BUFFER_BIT                                   = 0x00000400,
@@ -630,317 +636,317 @@ enum
     GL_LIGHT6                                               = 0x4006,
     GL_LIGHT7                                               = 0x4007,
 };
-extern void         (* const& glCullFace) (GLenum mode);
-extern void         (* const& glFrontFace) (GLenum mode);
-extern void         (* const& glHint) (GLenum target, GLenum mode);
-extern void         (* const& glLineWidth) (GLfloat width);
-extern void         (* const& glPointSize) (GLfloat size);
-extern void         (* const& glPolygonMode) (GLenum face, GLenum mode);
-extern void         (* const& glScissor) (GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glTexParameterf) (GLenum target, GLenum pname, GLfloat param);
-extern void         (* const& glTexParameterfv) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glTexParameteri) (GLenum target, GLenum pname, GLint param);
-extern void         (* const& glTexParameteriv) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glTexImage1D) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTexImage2D) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glDrawBuffer) (GLenum buf);
-extern void         (* const& glClear) (GLbitfield mask);
-extern void         (* const& glClearColor) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-extern void         (* const& glClearStencil) (GLint s);
-extern void         (* const& glClearDepth) (GLdouble depth);
-extern void         (* const& glStencilMask) (GLuint mask);
-extern void         (* const& glColorMask) (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
-extern void         (* const& glDepthMask) (GLboolean flag);
-extern void         (* const& glDisable) (GLenum cap);
-extern void         (* const& glEnable) (GLenum cap);
-extern void         (* const& glFinish) ();
-extern void         (* const& glFlush) ();
-extern void         (* const& glBlendFunc) (GLenum sfactor, GLenum dfactor);
-extern void         (* const& glLogicOp) (GLenum opcode);
-extern void         (* const& glStencilFunc) (GLenum func, GLint ref, GLuint mask);
-extern void         (* const& glStencilOp) (GLenum fail, GLenum zfail, GLenum zpass);
-extern void         (* const& glDepthFunc) (GLenum func);
-extern void         (* const& glPixelStoref) (GLenum pname, GLfloat param);
-extern void         (* const& glPixelStorei) (GLenum pname, GLint param);
-extern void         (* const& glReadBuffer) (GLenum src);
-extern void         (* const& glReadPixels) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels);
-extern void         (* const& glGetBooleanv) (GLenum pname, GLboolean *data);
-extern void         (* const& glGetDoublev) (GLenum pname, GLdouble *data);
-extern GLenum       (* const& glGetError) ();
-extern void         (* const& glGetFloatv) (GLenum pname, GLfloat *data);
-extern void         (* const& glGetIntegerv) (GLenum pname, GLint *data);
-extern const GLubyte * (* const& glGetString) (GLenum name);
-extern void         (* const& glGetTexImage) (GLenum target, GLint level, GLenum format, GLenum type, void *pixels);
-extern void         (* const& glGetTexParameterfv) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTexParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetTexLevelParameterfv) (GLenum target, GLint level, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTexLevelParameteriv) (GLenum target, GLint level, GLenum pname, GLint *params);
-extern GLboolean    (* const& glIsEnabled) (GLenum cap);
-extern void         (* const& glDepthRange) (GLdouble n, GLdouble f);
-extern void         (* const& glViewport) (GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glNewList) (GLuint list, GLenum mode);
-extern void         (* const& glEndList) ();
-extern void         (* const& glCallList) (GLuint list);
-extern void         (* const& glCallLists) (GLsizei n, GLenum type, const void *lists);
-extern void         (* const& glDeleteLists) (GLuint list, GLsizei range);
-extern GLuint       (* const& glGenLists) (GLsizei range);
-extern void         (* const& glListBase) (GLuint base);
-extern void         (* const& glBegin) (GLenum mode);
-extern void         (* const& glBitmap) (GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap);
-extern void         (* const& glColor3b) (GLbyte red, GLbyte green, GLbyte blue);
-extern void         (* const& glColor3bv) (const GLbyte *v);
-extern void         (* const& glColor3d) (GLdouble red, GLdouble green, GLdouble blue);
-extern void         (* const& glColor3dv) (const GLdouble *v);
-extern void         (* const& glColor3f) (GLfloat red, GLfloat green, GLfloat blue);
-extern void         (* const& glColor3fv) (const GLfloat *v);
-extern void         (* const& glColor3i) (GLint red, GLint green, GLint blue);
-extern void         (* const& glColor3iv) (const GLint *v);
-extern void         (* const& glColor3s) (GLshort red, GLshort green, GLshort blue);
-extern void         (* const& glColor3sv) (const GLshort *v);
-extern void         (* const& glColor3ub) (GLubyte red, GLubyte green, GLubyte blue);
-extern void         (* const& glColor3ubv) (const GLubyte *v);
-extern void         (* const& glColor3ui) (GLuint red, GLuint green, GLuint blue);
-extern void         (* const& glColor3uiv) (const GLuint *v);
-extern void         (* const& glColor3us) (GLushort red, GLushort green, GLushort blue);
-extern void         (* const& glColor3usv) (const GLushort *v);
-extern void         (* const& glColor4b) (GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha);
-extern void         (* const& glColor4bv) (const GLbyte *v);
-extern void         (* const& glColor4d) (GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha);
-extern void         (* const& glColor4dv) (const GLdouble *v);
-extern void         (* const& glColor4f) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-extern void         (* const& glColor4fv) (const GLfloat *v);
-extern void         (* const& glColor4i) (GLint red, GLint green, GLint blue, GLint alpha);
-extern void         (* const& glColor4iv) (const GLint *v);
-extern void         (* const& glColor4s) (GLshort red, GLshort green, GLshort blue, GLshort alpha);
-extern void         (* const& glColor4sv) (const GLshort *v);
-extern void         (* const& glColor4ub) (GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha);
-extern void         (* const& glColor4ubv) (const GLubyte *v);
-extern void         (* const& glColor4ui) (GLuint red, GLuint green, GLuint blue, GLuint alpha);
-extern void         (* const& glColor4uiv) (const GLuint *v);
-extern void         (* const& glColor4us) (GLushort red, GLushort green, GLushort blue, GLushort alpha);
-extern void         (* const& glColor4usv) (const GLushort *v);
-extern void         (* const& glEdgeFlag) (GLboolean flag);
-extern void         (* const& glEdgeFlagv) (const GLboolean *flag);
-extern void         (* const& glEnd) ();
-extern void         (* const& glIndexd) (GLdouble c);
-extern void         (* const& glIndexdv) (const GLdouble *c);
-extern void         (* const& glIndexf) (GLfloat c);
-extern void         (* const& glIndexfv) (const GLfloat *c);
-extern void         (* const& glIndexi) (GLint c);
-extern void         (* const& glIndexiv) (const GLint *c);
-extern void         (* const& glIndexs) (GLshort c);
-extern void         (* const& glIndexsv) (const GLshort *c);
-extern void         (* const& glNormal3b) (GLbyte nx, GLbyte ny, GLbyte nz);
-extern void         (* const& glNormal3bv) (const GLbyte *v);
-extern void         (* const& glNormal3d) (GLdouble nx, GLdouble ny, GLdouble nz);
-extern void         (* const& glNormal3dv) (const GLdouble *v);
-extern void         (* const& glNormal3f) (GLfloat nx, GLfloat ny, GLfloat nz);
-extern void         (* const& glNormal3fv) (const GLfloat *v);
-extern void         (* const& glNormal3i) (GLint nx, GLint ny, GLint nz);
-extern void         (* const& glNormal3iv) (const GLint *v);
-extern void         (* const& glNormal3s) (GLshort nx, GLshort ny, GLshort nz);
-extern void         (* const& glNormal3sv) (const GLshort *v);
-extern void         (* const& glRasterPos2d) (GLdouble x, GLdouble y);
-extern void         (* const& glRasterPos2dv) (const GLdouble *v);
-extern void         (* const& glRasterPos2f) (GLfloat x, GLfloat y);
-extern void         (* const& glRasterPos2fv) (const GLfloat *v);
-extern void         (* const& glRasterPos2i) (GLint x, GLint y);
-extern void         (* const& glRasterPos2iv) (const GLint *v);
-extern void         (* const& glRasterPos2s) (GLshort x, GLshort y);
-extern void         (* const& glRasterPos2sv) (const GLshort *v);
-extern void         (* const& glRasterPos3d) (GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glRasterPos3dv) (const GLdouble *v);
-extern void         (* const& glRasterPos3f) (GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glRasterPos3fv) (const GLfloat *v);
-extern void         (* const& glRasterPos3i) (GLint x, GLint y, GLint z);
-extern void         (* const& glRasterPos3iv) (const GLint *v);
-extern void         (* const& glRasterPos3s) (GLshort x, GLshort y, GLshort z);
-extern void         (* const& glRasterPos3sv) (const GLshort *v);
-extern void         (* const& glRasterPos4d) (GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glRasterPos4dv) (const GLdouble *v);
-extern void         (* const& glRasterPos4f) (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glRasterPos4fv) (const GLfloat *v);
-extern void         (* const& glRasterPos4i) (GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glRasterPos4iv) (const GLint *v);
-extern void         (* const& glRasterPos4s) (GLshort x, GLshort y, GLshort z, GLshort w);
-extern void         (* const& glRasterPos4sv) (const GLshort *v);
-extern void         (* const& glRectd) (GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2);
-extern void         (* const& glRectdv) (const GLdouble *v1, const GLdouble *v2);
-extern void         (* const& glRectf) (GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
-extern void         (* const& glRectfv) (const GLfloat *v1, const GLfloat *v2);
-extern void         (* const& glRecti) (GLint x1, GLint y1, GLint x2, GLint y2);
-extern void         (* const& glRectiv) (const GLint *v1, const GLint *v2);
-extern void         (* const& glRects) (GLshort x1, GLshort y1, GLshort x2, GLshort y2);
-extern void         (* const& glRectsv) (const GLshort *v1, const GLshort *v2);
-extern void         (* const& glTexCoord1d) (GLdouble s);
-extern void         (* const& glTexCoord1dv) (const GLdouble *v);
-extern void         (* const& glTexCoord1f) (GLfloat s);
-extern void         (* const& glTexCoord1fv) (const GLfloat *v);
-extern void         (* const& glTexCoord1i) (GLint s);
-extern void         (* const& glTexCoord1iv) (const GLint *v);
-extern void         (* const& glTexCoord1s) (GLshort s);
-extern void         (* const& glTexCoord1sv) (const GLshort *v);
-extern void         (* const& glTexCoord2d) (GLdouble s, GLdouble t);
-extern void         (* const& glTexCoord2dv) (const GLdouble *v);
-extern void         (* const& glTexCoord2f) (GLfloat s, GLfloat t);
-extern void         (* const& glTexCoord2fv) (const GLfloat *v);
-extern void         (* const& glTexCoord2i) (GLint s, GLint t);
-extern void         (* const& glTexCoord2iv) (const GLint *v);
-extern void         (* const& glTexCoord2s) (GLshort s, GLshort t);
-extern void         (* const& glTexCoord2sv) (const GLshort *v);
-extern void         (* const& glTexCoord3d) (GLdouble s, GLdouble t, GLdouble r);
-extern void         (* const& glTexCoord3dv) (const GLdouble *v);
-extern void         (* const& glTexCoord3f) (GLfloat s, GLfloat t, GLfloat r);
-extern void         (* const& glTexCoord3fv) (const GLfloat *v);
-extern void         (* const& glTexCoord3i) (GLint s, GLint t, GLint r);
-extern void         (* const& glTexCoord3iv) (const GLint *v);
-extern void         (* const& glTexCoord3s) (GLshort s, GLshort t, GLshort r);
-extern void         (* const& glTexCoord3sv) (const GLshort *v);
-extern void         (* const& glTexCoord4d) (GLdouble s, GLdouble t, GLdouble r, GLdouble q);
-extern void         (* const& glTexCoord4dv) (const GLdouble *v);
-extern void         (* const& glTexCoord4f) (GLfloat s, GLfloat t, GLfloat r, GLfloat q);
-extern void         (* const& glTexCoord4fv) (const GLfloat *v);
-extern void         (* const& glTexCoord4i) (GLint s, GLint t, GLint r, GLint q);
-extern void         (* const& glTexCoord4iv) (const GLint *v);
-extern void         (* const& glTexCoord4s) (GLshort s, GLshort t, GLshort r, GLshort q);
-extern void         (* const& glTexCoord4sv) (const GLshort *v);
-extern void         (* const& glVertex2d) (GLdouble x, GLdouble y);
-extern void         (* const& glVertex2dv) (const GLdouble *v);
-extern void         (* const& glVertex2f) (GLfloat x, GLfloat y);
-extern void         (* const& glVertex2fv) (const GLfloat *v);
-extern void         (* const& glVertex2i) (GLint x, GLint y);
-extern void         (* const& glVertex2iv) (const GLint *v);
-extern void         (* const& glVertex2s) (GLshort x, GLshort y);
-extern void         (* const& glVertex2sv) (const GLshort *v);
-extern void         (* const& glVertex3d) (GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glVertex3dv) (const GLdouble *v);
-extern void         (* const& glVertex3f) (GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glVertex3fv) (const GLfloat *v);
-extern void         (* const& glVertex3i) (GLint x, GLint y, GLint z);
-extern void         (* const& glVertex3iv) (const GLint *v);
-extern void         (* const& glVertex3s) (GLshort x, GLshort y, GLshort z);
-extern void         (* const& glVertex3sv) (const GLshort *v);
-extern void         (* const& glVertex4d) (GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glVertex4dv) (const GLdouble *v);
-extern void         (* const& glVertex4f) (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glVertex4fv) (const GLfloat *v);
-extern void         (* const& glVertex4i) (GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glVertex4iv) (const GLint *v);
-extern void         (* const& glVertex4s) (GLshort x, GLshort y, GLshort z, GLshort w);
-extern void         (* const& glVertex4sv) (const GLshort *v);
-extern void         (* const& glClipPlane) (GLenum plane, const GLdouble *equation);
-extern void         (* const& glColorMaterial) (GLenum face, GLenum mode);
-extern void         (* const& glFogf) (GLenum pname, GLfloat param);
-extern void         (* const& glFogfv) (GLenum pname, const GLfloat *params);
-extern void         (* const& glFogi) (GLenum pname, GLint param);
-extern void         (* const& glFogiv) (GLenum pname, const GLint *params);
-extern void         (* const& glLightf) (GLenum light, GLenum pname, GLfloat param);
-extern void         (* const& glLightfv) (GLenum light, GLenum pname, const GLfloat *params);
-extern void         (* const& glLighti) (GLenum light, GLenum pname, GLint param);
-extern void         (* const& glLightiv) (GLenum light, GLenum pname, const GLint *params);
-extern void         (* const& glLightModelf) (GLenum pname, GLfloat param);
-extern void         (* const& glLightModelfv) (GLenum pname, const GLfloat *params);
-extern void         (* const& glLightModeli) (GLenum pname, GLint param);
-extern void         (* const& glLightModeliv) (GLenum pname, const GLint *params);
-extern void         (* const& glLineStipple) (GLint factor, GLushort pattern);
-extern void         (* const& glMaterialf) (GLenum face, GLenum pname, GLfloat param);
-extern void         (* const& glMaterialfv) (GLenum face, GLenum pname, const GLfloat *params);
-extern void         (* const& glMateriali) (GLenum face, GLenum pname, GLint param);
-extern void         (* const& glMaterialiv) (GLenum face, GLenum pname, const GLint *params);
-extern void         (* const& glPolygonStipple) (const GLubyte *mask);
-extern void         (* const& glShadeModel) (GLenum mode);
-extern void         (* const& glTexEnvf) (GLenum target, GLenum pname, GLfloat param);
-extern void         (* const& glTexEnvfv) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glTexEnvi) (GLenum target, GLenum pname, GLint param);
-extern void         (* const& glTexEnviv) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glTexGend) (GLenum coord, GLenum pname, GLdouble param);
-extern void         (* const& glTexGendv) (GLenum coord, GLenum pname, const GLdouble *params);
-extern void         (* const& glTexGenf) (GLenum coord, GLenum pname, GLfloat param);
-extern void         (* const& glTexGenfv) (GLenum coord, GLenum pname, const GLfloat *params);
-extern void         (* const& glTexGeni) (GLenum coord, GLenum pname, GLint param);
-extern void         (* const& glTexGeniv) (GLenum coord, GLenum pname, const GLint *params);
-extern void         (* const& glFeedbackBuffer) (GLsizei size, GLenum type, GLfloat *buffer);
-extern void         (* const& glSelectBuffer) (GLsizei size, GLuint *buffer);
-extern GLint        (* const& glRenderMode) (GLenum mode);
-extern void         (* const& glInitNames) ();
-extern void         (* const& glLoadName) (GLuint name);
-extern void         (* const& glPassThrough) (GLfloat token);
-extern void         (* const& glPopName) ();
-extern void         (* const& glPushName) (GLuint name);
-extern void         (* const& glClearAccum) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-extern void         (* const& glClearIndex) (GLfloat c);
-extern void         (* const& glIndexMask) (GLuint mask);
-extern void         (* const& glAccum) (GLenum op, GLfloat value);
-extern void         (* const& glPopAttrib) ();
-extern void         (* const& glPushAttrib) (GLbitfield mask);
-extern void         (* const& glMap1d) (GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points);
-extern void         (* const& glMap1f) (GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points);
-extern void         (* const& glMap2d) (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points);
-extern void         (* const& glMap2f) (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points);
-extern void         (* const& glMapGrid1d) (GLint un, GLdouble u1, GLdouble u2);
-extern void         (* const& glMapGrid1f) (GLint un, GLfloat u1, GLfloat u2);
-extern void         (* const& glMapGrid2d) (GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2);
-extern void         (* const& glMapGrid2f) (GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2);
-extern void         (* const& glEvalCoord1d) (GLdouble u);
-extern void         (* const& glEvalCoord1dv) (const GLdouble *u);
-extern void         (* const& glEvalCoord1f) (GLfloat u);
-extern void         (* const& glEvalCoord1fv) (const GLfloat *u);
-extern void         (* const& glEvalCoord2d) (GLdouble u, GLdouble v);
-extern void         (* const& glEvalCoord2dv) (const GLdouble *u);
-extern void         (* const& glEvalCoord2f) (GLfloat u, GLfloat v);
-extern void         (* const& glEvalCoord2fv) (const GLfloat *u);
-extern void         (* const& glEvalMesh1) (GLenum mode, GLint i1, GLint i2);
-extern void         (* const& glEvalPoint1) (GLint i);
-extern void         (* const& glEvalMesh2) (GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2);
-extern void         (* const& glEvalPoint2) (GLint i, GLint j);
-extern void         (* const& glAlphaFunc) (GLenum func, GLfloat ref);
-extern void         (* const& glPixelZoom) (GLfloat xfactor, GLfloat yfactor);
-extern void         (* const& glPixelTransferf) (GLenum pname, GLfloat param);
-extern void         (* const& glPixelTransferi) (GLenum pname, GLint param);
-extern void         (* const& glPixelMapfv) (GLenum map, GLsizei mapsize, const GLfloat *values);
-extern void         (* const& glPixelMapuiv) (GLenum map, GLsizei mapsize, const GLuint *values);
-extern void         (* const& glPixelMapusv) (GLenum map, GLsizei mapsize, const GLushort *values);
-extern void         (* const& glCopyPixels) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum type);
-extern void         (* const& glDrawPixels) (GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glGetClipPlane) (GLenum plane, GLdouble *equation);
-extern void         (* const& glGetLightfv) (GLenum light, GLenum pname, GLfloat *params);
-extern void         (* const& glGetLightiv) (GLenum light, GLenum pname, GLint *params);
-extern void         (* const& glGetMapdv) (GLenum target, GLenum query, GLdouble *v);
-extern void         (* const& glGetMapfv) (GLenum target, GLenum query, GLfloat *v);
-extern void         (* const& glGetMapiv) (GLenum target, GLenum query, GLint *v);
-extern void         (* const& glGetMaterialfv) (GLenum face, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMaterialiv) (GLenum face, GLenum pname, GLint *params);
-extern void         (* const& glGetPixelMapfv) (GLenum map, GLfloat *values);
-extern void         (* const& glGetPixelMapuiv) (GLenum map, GLuint *values);
-extern void         (* const& glGetPixelMapusv) (GLenum map, GLushort *values);
-extern void         (* const& glGetPolygonStipple) (GLubyte *mask);
-extern void         (* const& glGetTexEnvfv) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTexEnviv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetTexGendv) (GLenum coord, GLenum pname, GLdouble *params);
-extern void         (* const& glGetTexGenfv) (GLenum coord, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTexGeniv) (GLenum coord, GLenum pname, GLint *params);
-extern GLboolean    (* const& glIsList) (GLuint list);
-extern void         (* const& glFrustum) (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
-extern void         (* const& glLoadIdentity) ();
-extern void         (* const& glLoadMatrixf) (const GLfloat *m);
-extern void         (* const& glLoadMatrixd) (const GLdouble *m);
-extern void         (* const& glMatrixMode) (GLenum mode);
-extern void         (* const& glMultMatrixf) (const GLfloat *m);
-extern void         (* const& glMultMatrixd) (const GLdouble *m);
-extern void         (* const& glOrtho) (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
-extern void         (* const& glPopMatrix) ();
-extern void         (* const& glPushMatrix) ();
-extern void         (* const& glRotated) (GLdouble angle, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glRotatef) (GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glScaled) (GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glScalef) (GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glTranslated) (GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glTranslatef) (GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glCullFace) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glFrontFace) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glHint) (GLenum target, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glLineWidth) (GLfloat width);
+extern void         (KHRONOS_APIENTRY* const& glPointSize) (GLfloat size);
+extern void         (KHRONOS_APIENTRY* const& glPolygonMode) (GLenum face, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glScissor) (GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterf) (GLenum target, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterfv) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glTexParameteri) (GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glTexParameteriv) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTexImage1D) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexImage2D) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glDrawBuffer) (GLenum buf);
+extern void         (KHRONOS_APIENTRY* const& glClear) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glClearColor) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+extern void         (KHRONOS_APIENTRY* const& glClearStencil) (GLint s);
+extern void         (KHRONOS_APIENTRY* const& glClearDepth) (GLdouble depth);
+extern void         (KHRONOS_APIENTRY* const& glStencilMask) (GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glColorMask) (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
+extern void         (KHRONOS_APIENTRY* const& glDepthMask) (GLboolean flag);
+extern void         (KHRONOS_APIENTRY* const& glDisable) (GLenum cap);
+extern void         (KHRONOS_APIENTRY* const& glEnable) (GLenum cap);
+extern void         (KHRONOS_APIENTRY* const& glFinish) ();
+extern void         (KHRONOS_APIENTRY* const& glFlush) ();
+extern void         (KHRONOS_APIENTRY* const& glBlendFunc) (GLenum sfactor, GLenum dfactor);
+extern void         (KHRONOS_APIENTRY* const& glLogicOp) (GLenum opcode);
+extern void         (KHRONOS_APIENTRY* const& glStencilFunc) (GLenum func, GLint ref, GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glStencilOp) (GLenum fail, GLenum zfail, GLenum zpass);
+extern void         (KHRONOS_APIENTRY* const& glDepthFunc) (GLenum func);
+extern void         (KHRONOS_APIENTRY* const& glPixelStoref) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPixelStorei) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glReadBuffer) (GLenum src);
+extern void         (KHRONOS_APIENTRY* const& glReadPixels) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetBooleanv) (GLenum pname, GLboolean *data);
+extern void         (KHRONOS_APIENTRY* const& glGetDoublev) (GLenum pname, GLdouble *data);
+extern GLenum       (KHRONOS_APIENTRY* const& glGetError) ();
+extern void         (KHRONOS_APIENTRY* const& glGetFloatv) (GLenum pname, GLfloat *data);
+extern void         (KHRONOS_APIENTRY* const& glGetIntegerv) (GLenum pname, GLint *data);
+extern const GLubyte * (KHRONOS_APIENTRY* const& glGetString) (GLenum name);
+extern void         (KHRONOS_APIENTRY* const& glGetTexImage) (GLenum target, GLint level, GLenum format, GLenum type, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameterfv) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexLevelParameterfv) (GLenum target, GLint level, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexLevelParameteriv) (GLenum target, GLint level, GLenum pname, GLint *params);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsEnabled) (GLenum cap);
+extern void         (KHRONOS_APIENTRY* const& glDepthRange) (GLdouble n, GLdouble f);
+extern void         (KHRONOS_APIENTRY* const& glViewport) (GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glNewList) (GLuint list, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glEndList) ();
+extern void         (KHRONOS_APIENTRY* const& glCallList) (GLuint list);
+extern void         (KHRONOS_APIENTRY* const& glCallLists) (GLsizei n, GLenum type, const void *lists);
+extern void         (KHRONOS_APIENTRY* const& glDeleteLists) (GLuint list, GLsizei range);
+extern GLuint       (KHRONOS_APIENTRY* const& glGenLists) (GLsizei range);
+extern void         (KHRONOS_APIENTRY* const& glListBase) (GLuint base);
+extern void         (KHRONOS_APIENTRY* const& glBegin) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glBitmap) (GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap);
+extern void         (KHRONOS_APIENTRY* const& glColor3b) (GLbyte red, GLbyte green, GLbyte blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3bv) (const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3d) (GLdouble red, GLdouble green, GLdouble blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3f) (GLfloat red, GLfloat green, GLfloat blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3i) (GLint red, GLint green, GLint blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3s) (GLshort red, GLshort green, GLshort blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3ub) (GLubyte red, GLubyte green, GLubyte blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3ubv) (const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3ui) (GLuint red, GLuint green, GLuint blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3uiv) (const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3us) (GLushort red, GLushort green, GLushort blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3usv) (const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4b) (GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4bv) (const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4d) (GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4f) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4i) (GLint red, GLint green, GLint blue, GLint alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4s) (GLshort red, GLshort green, GLshort blue, GLshort alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4ub) (GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4ubv) (const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4ui) (GLuint red, GLuint green, GLuint blue, GLuint alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4uiv) (const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4us) (GLushort red, GLushort green, GLushort blue, GLushort alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4usv) (const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glEdgeFlag) (GLboolean flag);
+extern void         (KHRONOS_APIENTRY* const& glEdgeFlagv) (const GLboolean *flag);
+extern void         (KHRONOS_APIENTRY* const& glEnd) ();
+extern void         (KHRONOS_APIENTRY* const& glIndexd) (GLdouble c);
+extern void         (KHRONOS_APIENTRY* const& glIndexdv) (const GLdouble *c);
+extern void         (KHRONOS_APIENTRY* const& glIndexf) (GLfloat c);
+extern void         (KHRONOS_APIENTRY* const& glIndexfv) (const GLfloat *c);
+extern void         (KHRONOS_APIENTRY* const& glIndexi) (GLint c);
+extern void         (KHRONOS_APIENTRY* const& glIndexiv) (const GLint *c);
+extern void         (KHRONOS_APIENTRY* const& glIndexs) (GLshort c);
+extern void         (KHRONOS_APIENTRY* const& glIndexsv) (const GLshort *c);
+extern void         (KHRONOS_APIENTRY* const& glNormal3b) (GLbyte nx, GLbyte ny, GLbyte nz);
+extern void         (KHRONOS_APIENTRY* const& glNormal3bv) (const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glNormal3d) (GLdouble nx, GLdouble ny, GLdouble nz);
+extern void         (KHRONOS_APIENTRY* const& glNormal3dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glNormal3f) (GLfloat nx, GLfloat ny, GLfloat nz);
+extern void         (KHRONOS_APIENTRY* const& glNormal3fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glNormal3i) (GLint nx, GLint ny, GLint nz);
+extern void         (KHRONOS_APIENTRY* const& glNormal3iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glNormal3s) (GLshort nx, GLshort ny, GLshort nz);
+extern void         (KHRONOS_APIENTRY* const& glNormal3sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2d) (GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2f) (GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2i) (GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2s) (GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3d) (GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3f) (GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3i) (GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3s) (GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4d) (GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4f) (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4i) (GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4s) (GLshort x, GLshort y, GLshort z, GLshort w);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glRectd) (GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2);
+extern void         (KHRONOS_APIENTRY* const& glRectdv) (const GLdouble *v1, const GLdouble *v2);
+extern void         (KHRONOS_APIENTRY* const& glRectf) (GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
+extern void         (KHRONOS_APIENTRY* const& glRectfv) (const GLfloat *v1, const GLfloat *v2);
+extern void         (KHRONOS_APIENTRY* const& glRecti) (GLint x1, GLint y1, GLint x2, GLint y2);
+extern void         (KHRONOS_APIENTRY* const& glRectiv) (const GLint *v1, const GLint *v2);
+extern void         (KHRONOS_APIENTRY* const& glRects) (GLshort x1, GLshort y1, GLshort x2, GLshort y2);
+extern void         (KHRONOS_APIENTRY* const& glRectsv) (const GLshort *v1, const GLshort *v2);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1d) (GLdouble s);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1f) (GLfloat s);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1i) (GLint s);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1s) (GLshort s);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2d) (GLdouble s, GLdouble t);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2f) (GLfloat s, GLfloat t);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2i) (GLint s, GLint t);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2s) (GLshort s, GLshort t);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3d) (GLdouble s, GLdouble t, GLdouble r);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3f) (GLfloat s, GLfloat t, GLfloat r);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3i) (GLint s, GLint t, GLint r);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3s) (GLshort s, GLshort t, GLshort r);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4d) (GLdouble s, GLdouble t, GLdouble r, GLdouble q);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4f) (GLfloat s, GLfloat t, GLfloat r, GLfloat q);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4i) (GLint s, GLint t, GLint r, GLint q);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4s) (GLshort s, GLshort t, GLshort r, GLshort q);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex2d) (GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glVertex2dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex2f) (GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glVertex2fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex2i) (GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glVertex2iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex2s) (GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glVertex2sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex3d) (GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glVertex3dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex3f) (GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glVertex3fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex3i) (GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glVertex3iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex3s) (GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glVertex3sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex4d) (GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glVertex4dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex4f) (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glVertex4fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex4i) (GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glVertex4iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex4s) (GLshort x, GLshort y, GLshort z, GLshort w);
+extern void         (KHRONOS_APIENTRY* const& glVertex4sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glClipPlane) (GLenum plane, const GLdouble *equation);
+extern void         (KHRONOS_APIENTRY* const& glColorMaterial) (GLenum face, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glFogf) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glFogfv) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glFogi) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glFogiv) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glLightf) (GLenum light, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glLightfv) (GLenum light, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glLighti) (GLenum light, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glLightiv) (GLenum light, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glLightModelf) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glLightModelfv) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glLightModeli) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glLightModeliv) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glLineStipple) (GLint factor, GLushort pattern);
+extern void         (KHRONOS_APIENTRY* const& glMaterialf) (GLenum face, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glMaterialfv) (GLenum face, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glMateriali) (GLenum face, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glMaterialiv) (GLenum face, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glPolygonStipple) (const GLubyte *mask);
+extern void         (KHRONOS_APIENTRY* const& glShadeModel) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glTexEnvf) (GLenum target, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glTexEnvfv) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glTexEnvi) (GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glTexEnviv) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTexGend) (GLenum coord, GLenum pname, GLdouble param);
+extern void         (KHRONOS_APIENTRY* const& glTexGendv) (GLenum coord, GLenum pname, const GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glTexGenf) (GLenum coord, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glTexGenfv) (GLenum coord, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glTexGeni) (GLenum coord, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glTexGeniv) (GLenum coord, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glFeedbackBuffer) (GLsizei size, GLenum type, GLfloat *buffer);
+extern void         (KHRONOS_APIENTRY* const& glSelectBuffer) (GLsizei size, GLuint *buffer);
+extern GLint        (KHRONOS_APIENTRY* const& glRenderMode) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glInitNames) ();
+extern void         (KHRONOS_APIENTRY* const& glLoadName) (GLuint name);
+extern void         (KHRONOS_APIENTRY* const& glPassThrough) (GLfloat token);
+extern void         (KHRONOS_APIENTRY* const& glPopName) ();
+extern void         (KHRONOS_APIENTRY* const& glPushName) (GLuint name);
+extern void         (KHRONOS_APIENTRY* const& glClearAccum) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+extern void         (KHRONOS_APIENTRY* const& glClearIndex) (GLfloat c);
+extern void         (KHRONOS_APIENTRY* const& glIndexMask) (GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glAccum) (GLenum op, GLfloat value);
+extern void         (KHRONOS_APIENTRY* const& glPopAttrib) ();
+extern void         (KHRONOS_APIENTRY* const& glPushAttrib) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glMap1d) (GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points);
+extern void         (KHRONOS_APIENTRY* const& glMap1f) (GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glMap2d) (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points);
+extern void         (KHRONOS_APIENTRY* const& glMap2f) (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glMapGrid1d) (GLint un, GLdouble u1, GLdouble u2);
+extern void         (KHRONOS_APIENTRY* const& glMapGrid1f) (GLint un, GLfloat u1, GLfloat u2);
+extern void         (KHRONOS_APIENTRY* const& glMapGrid2d) (GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2);
+extern void         (KHRONOS_APIENTRY* const& glMapGrid2f) (GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord1d) (GLdouble u);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord1dv) (const GLdouble *u);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord1f) (GLfloat u);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord1fv) (const GLfloat *u);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord2d) (GLdouble u, GLdouble v);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord2dv) (const GLdouble *u);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord2f) (GLfloat u, GLfloat v);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord2fv) (const GLfloat *u);
+extern void         (KHRONOS_APIENTRY* const& glEvalMesh1) (GLenum mode, GLint i1, GLint i2);
+extern void         (KHRONOS_APIENTRY* const& glEvalPoint1) (GLint i);
+extern void         (KHRONOS_APIENTRY* const& glEvalMesh2) (GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2);
+extern void         (KHRONOS_APIENTRY* const& glEvalPoint2) (GLint i, GLint j);
+extern void         (KHRONOS_APIENTRY* const& glAlphaFunc) (GLenum func, GLfloat ref);
+extern void         (KHRONOS_APIENTRY* const& glPixelZoom) (GLfloat xfactor, GLfloat yfactor);
+extern void         (KHRONOS_APIENTRY* const& glPixelTransferf) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPixelTransferi) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glPixelMapfv) (GLenum map, GLsizei mapsize, const GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glPixelMapuiv) (GLenum map, GLsizei mapsize, const GLuint *values);
+extern void         (KHRONOS_APIENTRY* const& glPixelMapusv) (GLenum map, GLsizei mapsize, const GLushort *values);
+extern void         (KHRONOS_APIENTRY* const& glCopyPixels) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum type);
+extern void         (KHRONOS_APIENTRY* const& glDrawPixels) (GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetClipPlane) (GLenum plane, GLdouble *equation);
+extern void         (KHRONOS_APIENTRY* const& glGetLightfv) (GLenum light, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetLightiv) (GLenum light, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMapdv) (GLenum target, GLenum query, GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glGetMapfv) (GLenum target, GLenum query, GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glGetMapiv) (GLenum target, GLenum query, GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glGetMaterialfv) (GLenum face, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMaterialiv) (GLenum face, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelMapfv) (GLenum map, GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelMapuiv) (GLenum map, GLuint *values);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelMapusv) (GLenum map, GLushort *values);
+extern void         (KHRONOS_APIENTRY* const& glGetPolygonStipple) (GLubyte *mask);
+extern void         (KHRONOS_APIENTRY* const& glGetTexEnvfv) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexEnviv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexGendv) (GLenum coord, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexGenfv) (GLenum coord, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexGeniv) (GLenum coord, GLenum pname, GLint *params);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsList) (GLuint list);
+extern void         (KHRONOS_APIENTRY* const& glFrustum) (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
+extern void         (KHRONOS_APIENTRY* const& glLoadIdentity) ();
+extern void         (KHRONOS_APIENTRY* const& glLoadMatrixf) (const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glLoadMatrixd) (const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMode) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glMultMatrixf) (const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMultMatrixd) (const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glOrtho) (GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
+extern void         (KHRONOS_APIENTRY* const& glPopMatrix) ();
+extern void         (KHRONOS_APIENTRY* const& glPushMatrix) ();
+extern void         (KHRONOS_APIENTRY* const& glRotated) (GLdouble angle, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glRotatef) (GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glScaled) (GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glScalef) (GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glTranslated) (GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glTranslatef) (GLfloat x, GLfloat y, GLfloat z);
 #endif
 
 #ifndef GL_VERSION_1_1
 #define GL_VERSION_1_1 1
-enum
+enum : GLenum
 {
     GL_COLOR_LOGIC_OP                                       = 0x0BF2,
     GL_POLYGON_OFFSET_UNITS                                 = 0x2A00,
@@ -1047,41 +1053,41 @@ enum
     GL_T2F_C4F_N3F_V3F                                      = 0x2A2C,
     GL_T4F_C4F_N3F_V4F                                      = 0x2A2D,
 };
-extern void         (* const& glDrawArrays) (GLenum mode, GLint first, GLsizei count);
-extern void         (* const& glDrawElements) (GLenum mode, GLsizei count, GLenum type, const void *indices);
-extern void         (* const& glGetPointerv) (GLenum pname, void **params);
-extern void         (* const& glPolygonOffset) (GLfloat factor, GLfloat units);
-extern void         (* const& glCopyTexImage1D) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
-extern void         (* const& glCopyTexImage2D) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
-extern void         (* const& glCopyTexSubImage1D) (GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-extern void         (* const& glCopyTexSubImage2D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glTexSubImage1D) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTexSubImage2D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glBindTexture) (GLenum target, GLuint texture);
-extern void         (* const& glDeleteTextures) (GLsizei n, const GLuint *textures);
-extern void         (* const& glGenTextures) (GLsizei n, GLuint *textures);
-extern GLboolean    (* const& glIsTexture) (GLuint texture);
-extern void         (* const& glArrayElement) (GLint i);
-extern void         (* const& glColorPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glDisableClientState) (GLenum array);
-extern void         (* const& glEdgeFlagPointer) (GLsizei stride, const void *pointer);
-extern void         (* const& glEnableClientState) (GLenum array);
-extern void         (* const& glIndexPointer) (GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glInterleavedArrays) (GLenum format, GLsizei stride, const void *pointer);
-extern void         (* const& glNormalPointer) (GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glTexCoordPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glVertexPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern GLboolean    (* const& glAreTexturesResident) (GLsizei n, const GLuint *textures, GLboolean *residences);
-extern void         (* const& glPrioritizeTextures) (GLsizei n, const GLuint *textures, const GLfloat *priorities);
-extern void         (* const& glIndexub) (GLubyte c);
-extern void         (* const& glIndexubv) (const GLubyte *c);
-extern void         (* const& glPopClientAttrib) ();
-extern void         (* const& glPushClientAttrib) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glDrawArrays) (GLenum mode, GLint first, GLsizei count);
+extern void         (KHRONOS_APIENTRY* const& glDrawElements) (GLenum mode, GLsizei count, GLenum type, const void *indices);
+extern void         (KHRONOS_APIENTRY* const& glGetPointerv) (GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glPolygonOffset) (GLfloat factor, GLfloat units);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexImage1D) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexImage2D) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexSubImage1D) (GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexSubImage2D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glTexSubImage1D) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexSubImage2D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glBindTexture) (GLenum target, GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glDeleteTextures) (GLsizei n, const GLuint *textures);
+extern void         (KHRONOS_APIENTRY* const& glGenTextures) (GLsizei n, GLuint *textures);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsTexture) (GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glArrayElement) (GLint i);
+extern void         (KHRONOS_APIENTRY* const& glColorPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glDisableClientState) (GLenum array);
+extern void         (KHRONOS_APIENTRY* const& glEdgeFlagPointer) (GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glEnableClientState) (GLenum array);
+extern void         (KHRONOS_APIENTRY* const& glIndexPointer) (GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glInterleavedArrays) (GLenum format, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glNormalPointer) (GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern GLboolean    (KHRONOS_APIENTRY* const& glAreTexturesResident) (GLsizei n, const GLuint *textures, GLboolean *residences);
+extern void         (KHRONOS_APIENTRY* const& glPrioritizeTextures) (GLsizei n, const GLuint *textures, const GLfloat *priorities);
+extern void         (KHRONOS_APIENTRY* const& glIndexub) (GLubyte c);
+extern void         (KHRONOS_APIENTRY* const& glIndexubv) (const GLubyte *c);
+extern void         (KHRONOS_APIENTRY* const& glPopClientAttrib) ();
+extern void         (KHRONOS_APIENTRY* const& glPushClientAttrib) (GLbitfield mask);
 #endif
 
 #ifndef GL_VERSION_1_2
 #define GL_VERSION_1_2 1
-enum
+enum : GLenum
 {
     GL_UNSIGNED_BYTE_3_3_2                                  = 0x8032,
     GL_UNSIGNED_SHORT_4_4_4_4                               = 0x8033,
@@ -1125,15 +1131,15 @@ enum
     GL_SEPARATE_SPECULAR_COLOR                              = 0x81FA,
     GL_ALIASED_POINT_SIZE_RANGE                             = 0x846D,
 };
-extern void         (* const& glDrawRangeElements) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices);
-extern void         (* const& glTexImage3D) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTexSubImage3D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glCopyTexSubImage3D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glDrawRangeElements) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices);
+extern void         (KHRONOS_APIENTRY* const& glTexImage3D) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexSubImage3D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexSubImage3D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
 #endif
 
 #ifndef GL_VERSION_1_3
 #define GL_VERSION_1_3 1
-enum
+enum : GLenum
 {
     GL_TEXTURE0                                             = 0x84C0,
     GL_TEXTURE1                                             = 0x84C1,
@@ -1232,57 +1238,57 @@ enum
     GL_DOT3_RGB                                             = 0x86AE,
     GL_DOT3_RGBA                                            = 0x86AF,
 };
-extern void         (* const& glActiveTexture) (GLenum texture);
-extern void         (* const& glSampleCoverage) (GLfloat value, GLboolean invert);
-extern void         (* const& glCompressedTexImage3D) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexImage2D) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexImage1D) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexSubImage3D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexSubImage2D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexSubImage1D) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glGetCompressedTexImage) (GLenum target, GLint level, void *img);
-extern void         (* const& glClientActiveTexture) (GLenum texture);
-extern void         (* const& glMultiTexCoord1d) (GLenum target, GLdouble s);
-extern void         (* const& glMultiTexCoord1dv) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord1f) (GLenum target, GLfloat s);
-extern void         (* const& glMultiTexCoord1fv) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord1i) (GLenum target, GLint s);
-extern void         (* const& glMultiTexCoord1iv) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord1s) (GLenum target, GLshort s);
-extern void         (* const& glMultiTexCoord1sv) (GLenum target, const GLshort *v);
-extern void         (* const& glMultiTexCoord2d) (GLenum target, GLdouble s, GLdouble t);
-extern void         (* const& glMultiTexCoord2dv) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord2f) (GLenum target, GLfloat s, GLfloat t);
-extern void         (* const& glMultiTexCoord2fv) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord2i) (GLenum target, GLint s, GLint t);
-extern void         (* const& glMultiTexCoord2iv) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord2s) (GLenum target, GLshort s, GLshort t);
-extern void         (* const& glMultiTexCoord2sv) (GLenum target, const GLshort *v);
-extern void         (* const& glMultiTexCoord3d) (GLenum target, GLdouble s, GLdouble t, GLdouble r);
-extern void         (* const& glMultiTexCoord3dv) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord3f) (GLenum target, GLfloat s, GLfloat t, GLfloat r);
-extern void         (* const& glMultiTexCoord3fv) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord3i) (GLenum target, GLint s, GLint t, GLint r);
-extern void         (* const& glMultiTexCoord3iv) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord3s) (GLenum target, GLshort s, GLshort t, GLshort r);
-extern void         (* const& glMultiTexCoord3sv) (GLenum target, const GLshort *v);
-extern void         (* const& glMultiTexCoord4d) (GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q);
-extern void         (* const& glMultiTexCoord4dv) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord4f) (GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q);
-extern void         (* const& glMultiTexCoord4fv) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord4i) (GLenum target, GLint s, GLint t, GLint r, GLint q);
-extern void         (* const& glMultiTexCoord4iv) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord4s) (GLenum target, GLshort s, GLshort t, GLshort r, GLshort q);
-extern void         (* const& glMultiTexCoord4sv) (GLenum target, const GLshort *v);
-extern void         (* const& glLoadTransposeMatrixf) (const GLfloat *m);
-extern void         (* const& glLoadTransposeMatrixd) (const GLdouble *m);
-extern void         (* const& glMultTransposeMatrixf) (const GLfloat *m);
-extern void         (* const& glMultTransposeMatrixd) (const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glActiveTexture) (GLenum texture);
+extern void         (KHRONOS_APIENTRY* const& glSampleCoverage) (GLfloat value, GLboolean invert);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexImage3D) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexImage2D) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexImage1D) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexSubImage3D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexSubImage2D) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexSubImage1D) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetCompressedTexImage) (GLenum target, GLint level, void *img);
+extern void         (KHRONOS_APIENTRY* const& glClientActiveTexture) (GLenum texture);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1d) (GLenum target, GLdouble s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1dv) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1f) (GLenum target, GLfloat s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1fv) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1i) (GLenum target, GLint s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1iv) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1s) (GLenum target, GLshort s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1sv) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2d) (GLenum target, GLdouble s, GLdouble t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2dv) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2f) (GLenum target, GLfloat s, GLfloat t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2fv) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2i) (GLenum target, GLint s, GLint t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2iv) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2s) (GLenum target, GLshort s, GLshort t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2sv) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3d) (GLenum target, GLdouble s, GLdouble t, GLdouble r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3dv) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3f) (GLenum target, GLfloat s, GLfloat t, GLfloat r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3fv) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3i) (GLenum target, GLint s, GLint t, GLint r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3iv) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3s) (GLenum target, GLshort s, GLshort t, GLshort r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3sv) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4d) (GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4dv) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4f) (GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4fv) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4i) (GLenum target, GLint s, GLint t, GLint r, GLint q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4iv) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4s) (GLenum target, GLshort s, GLshort t, GLshort r, GLshort q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4sv) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glLoadTransposeMatrixf) (const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glLoadTransposeMatrixd) (const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glMultTransposeMatrixf) (const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMultTransposeMatrixd) (const GLdouble *m);
 #endif
 
 #ifndef GL_VERSION_1_4
 #define GL_VERSION_1_4 1
-enum
+enum : GLenum
 {
     GL_BLEND_DST_RGB                                        = 0x80C8,
     GL_BLEND_SRC_RGB                                        = 0x80C9,
@@ -1335,58 +1341,58 @@ enum
     GL_MIN                                                  = 0x8007,
     GL_MAX                                                  = 0x8008,
 };
-extern void         (* const& glBlendFuncSeparate) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
-extern void         (* const& glMultiDrawArrays) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount);
-extern void         (* const& glMultiDrawElements) (GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount);
-extern void         (* const& glPointParameterf) (GLenum pname, GLfloat param);
-extern void         (* const& glPointParameterfv) (GLenum pname, const GLfloat *params);
-extern void         (* const& glPointParameteri) (GLenum pname, GLint param);
-extern void         (* const& glPointParameteriv) (GLenum pname, const GLint *params);
-extern void         (* const& glFogCoordf) (GLfloat coord);
-extern void         (* const& glFogCoordfv) (const GLfloat *coord);
-extern void         (* const& glFogCoordd) (GLdouble coord);
-extern void         (* const& glFogCoorddv) (const GLdouble *coord);
-extern void         (* const& glFogCoordPointer) (GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glSecondaryColor3b) (GLbyte red, GLbyte green, GLbyte blue);
-extern void         (* const& glSecondaryColor3bv) (const GLbyte *v);
-extern void         (* const& glSecondaryColor3d) (GLdouble red, GLdouble green, GLdouble blue);
-extern void         (* const& glSecondaryColor3dv) (const GLdouble *v);
-extern void         (* const& glSecondaryColor3f) (GLfloat red, GLfloat green, GLfloat blue);
-extern void         (* const& glSecondaryColor3fv) (const GLfloat *v);
-extern void         (* const& glSecondaryColor3i) (GLint red, GLint green, GLint blue);
-extern void         (* const& glSecondaryColor3iv) (const GLint *v);
-extern void         (* const& glSecondaryColor3s) (GLshort red, GLshort green, GLshort blue);
-extern void         (* const& glSecondaryColor3sv) (const GLshort *v);
-extern void         (* const& glSecondaryColor3ub) (GLubyte red, GLubyte green, GLubyte blue);
-extern void         (* const& glSecondaryColor3ubv) (const GLubyte *v);
-extern void         (* const& glSecondaryColor3ui) (GLuint red, GLuint green, GLuint blue);
-extern void         (* const& glSecondaryColor3uiv) (const GLuint *v);
-extern void         (* const& glSecondaryColor3us) (GLushort red, GLushort green, GLushort blue);
-extern void         (* const& glSecondaryColor3usv) (const GLushort *v);
-extern void         (* const& glSecondaryColorPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glWindowPos2d) (GLdouble x, GLdouble y);
-extern void         (* const& glWindowPos2dv) (const GLdouble *v);
-extern void         (* const& glWindowPos2f) (GLfloat x, GLfloat y);
-extern void         (* const& glWindowPos2fv) (const GLfloat *v);
-extern void         (* const& glWindowPos2i) (GLint x, GLint y);
-extern void         (* const& glWindowPos2iv) (const GLint *v);
-extern void         (* const& glWindowPos2s) (GLshort x, GLshort y);
-extern void         (* const& glWindowPos2sv) (const GLshort *v);
-extern void         (* const& glWindowPos3d) (GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glWindowPos3dv) (const GLdouble *v);
-extern void         (* const& glWindowPos3f) (GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glWindowPos3fv) (const GLfloat *v);
-extern void         (* const& glWindowPos3i) (GLint x, GLint y, GLint z);
-extern void         (* const& glWindowPos3iv) (const GLint *v);
-extern void         (* const& glWindowPos3s) (GLshort x, GLshort y, GLshort z);
-extern void         (* const& glWindowPos3sv) (const GLshort *v);
-extern void         (* const& glBlendColor) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-extern void         (* const& glBlendEquation) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glBlendFuncSeparate) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArrays) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElements) (GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterf) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterfv) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glPointParameteri) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glPointParameteriv) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordf) (GLfloat coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordfv) (const GLfloat *coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordd) (GLdouble coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoorddv) (const GLdouble *coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordPointer) (GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3b) (GLbyte red, GLbyte green, GLbyte blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3bv) (const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3d) (GLdouble red, GLdouble green, GLdouble blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3f) (GLfloat red, GLfloat green, GLfloat blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3i) (GLint red, GLint green, GLint blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3s) (GLshort red, GLshort green, GLshort blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3ub) (GLubyte red, GLubyte green, GLubyte blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3ubv) (const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3ui) (GLuint red, GLuint green, GLuint blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3uiv) (const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3us) (GLushort red, GLushort green, GLushort blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3usv) (const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColorPointer) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2d) (GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2f) (GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2i) (GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2s) (GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3d) (GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3dv) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3f) (GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3fv) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3i) (GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3iv) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3s) (GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3sv) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glBlendColor) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquation) (GLenum mode);
 #endif
 
 #ifndef GL_VERSION_1_5
 #define GL_VERSION_1_5 1
-enum
+enum : GLenum
 {
     GL_BUFFER_SIZE                                          = 0x8764,
     GL_BUFFER_USAGE                                         = 0x8765,
@@ -1439,30 +1445,30 @@ enum
     GL_SRC0_ALPHA                                           = 0x8588,
     GL_SRC2_ALPHA                                           = 0x858A,
 };
-extern void         (* const& glGenQueries) (GLsizei n, GLuint *ids);
-extern void         (* const& glDeleteQueries) (GLsizei n, const GLuint *ids);
-extern GLboolean    (* const& glIsQuery) (GLuint id);
-extern void         (* const& glBeginQuery) (GLenum target, GLuint id);
-extern void         (* const& glEndQuery) (GLenum target);
-extern void         (* const& glGetQueryiv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetQueryObjectiv) (GLuint id, GLenum pname, GLint *params);
-extern void         (* const& glGetQueryObjectuiv) (GLuint id, GLenum pname, GLuint *params);
-extern void         (* const& glBindBuffer) (GLenum target, GLuint buffer);
-extern void         (* const& glDeleteBuffers) (GLsizei n, const GLuint *buffers);
-extern void         (* const& glGenBuffers) (GLsizei n, GLuint *buffers);
-extern GLboolean    (* const& glIsBuffer) (GLuint buffer);
-extern void         (* const& glBufferData) (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
-extern void         (* const& glBufferSubData) (GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
-extern void         (* const& glGetBufferSubData) (GLenum target, GLintptr offset, GLsizeiptr size, void *data);
-extern void *       (* const& glMapBuffer) (GLenum target, GLenum access);
-extern GLboolean    (* const& glUnmapBuffer) (GLenum target);
-extern void         (* const& glGetBufferParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetBufferPointerv) (GLenum target, GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glGenQueries) (GLsizei n, GLuint *ids);
+extern void         (KHRONOS_APIENTRY* const& glDeleteQueries) (GLsizei n, const GLuint *ids);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsQuery) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glBeginQuery) (GLenum target, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glEndQuery) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryiv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjectiv) (GLuint id, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjectuiv) (GLuint id, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glBindBuffer) (GLenum target, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glDeleteBuffers) (GLsizei n, const GLuint *buffers);
+extern void         (KHRONOS_APIENTRY* const& glGenBuffers) (GLsizei n, GLuint *buffers);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsBuffer) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glBufferData) (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+extern void         (KHRONOS_APIENTRY* const& glBufferSubData) (GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferSubData) (GLenum target, GLintptr offset, GLsizeiptr size, void *data);
+extern void *       (KHRONOS_APIENTRY* const& glMapBuffer) (GLenum target, GLenum access);
+extern GLboolean    (KHRONOS_APIENTRY* const& glUnmapBuffer) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferPointerv) (GLenum target, GLenum pname, void **params);
 #endif
 
 #ifndef GL_VERSION_2_0
 #define GL_VERSION_2_0 1
-enum
+enum : GLenum
 {
     GL_BLEND_EQUATION_RGB                                   = 0x8009,
     GL_VERTEX_ATTRIB_ARRAY_ENABLED                          = 0x8622,
@@ -1549,104 +1555,104 @@ enum
     GL_COORD_REPLACE                                        = 0x8862,
     GL_MAX_TEXTURE_COORDS                                   = 0x8871,
 };
-extern void         (* const& glBlendEquationSeparate) (GLenum modeRGB, GLenum modeAlpha);
-extern void         (* const& glDrawBuffers) (GLsizei n, const GLenum *bufs);
-extern void         (* const& glStencilOpSeparate) (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
-extern void         (* const& glStencilFuncSeparate) (GLenum face, GLenum func, GLint ref, GLuint mask);
-extern void         (* const& glStencilMaskSeparate) (GLenum face, GLuint mask);
-extern void         (* const& glAttachShader) (GLuint program, GLuint shader);
-extern void         (* const& glBindAttribLocation) (GLuint program, GLuint index, const GLchar *name);
-extern void         (* const& glCompileShader) (GLuint shader);
-extern GLuint       (* const& glCreateProgram) ();
-extern GLuint       (* const& glCreateShader) (GLenum type);
-extern void         (* const& glDeleteProgram) (GLuint program);
-extern void         (* const& glDeleteShader) (GLuint shader);
-extern void         (* const& glDetachShader) (GLuint program, GLuint shader);
-extern void         (* const& glDisableVertexAttribArray) (GLuint index);
-extern void         (* const& glEnableVertexAttribArray) (GLuint index);
-extern void         (* const& glGetActiveAttrib) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
-extern void         (* const& glGetActiveUniform) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
-extern void         (* const& glGetAttachedShaders) (GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders);
-extern GLint        (* const& glGetAttribLocation) (GLuint program, const GLchar *name);
-extern void         (* const& glGetProgramiv) (GLuint program, GLenum pname, GLint *params);
-extern void         (* const& glGetProgramInfoLog) (GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-extern void         (* const& glGetShaderiv) (GLuint shader, GLenum pname, GLint *params);
-extern void         (* const& glGetShaderInfoLog) (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-extern void         (* const& glGetShaderSource) (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source);
-extern GLint        (* const& glGetUniformLocation) (GLuint program, const GLchar *name);
-extern void         (* const& glGetUniformfv) (GLuint program, GLint location, GLfloat *params);
-extern void         (* const& glGetUniformiv) (GLuint program, GLint location, GLint *params);
-extern void         (* const& glGetVertexAttribdv) (GLuint index, GLenum pname, GLdouble *params);
-extern void         (* const& glGetVertexAttribfv) (GLuint index, GLenum pname, GLfloat *params);
-extern void         (* const& glGetVertexAttribiv) (GLuint index, GLenum pname, GLint *params);
-extern void         (* const& glGetVertexAttribPointerv) (GLuint index, GLenum pname, void **pointer);
-extern GLboolean    (* const& glIsProgram) (GLuint program);
-extern GLboolean    (* const& glIsShader) (GLuint shader);
-extern void         (* const& glLinkProgram) (GLuint program);
-extern void         (* const& glShaderSource) (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
-extern void         (* const& glUseProgram) (GLuint program);
-extern void         (* const& glUniform1f) (GLint location, GLfloat v0);
-extern void         (* const& glUniform2f) (GLint location, GLfloat v0, GLfloat v1);
-extern void         (* const& glUniform3f) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-extern void         (* const& glUniform4f) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-extern void         (* const& glUniform1i) (GLint location, GLint v0);
-extern void         (* const& glUniform2i) (GLint location, GLint v0, GLint v1);
-extern void         (* const& glUniform3i) (GLint location, GLint v0, GLint v1, GLint v2);
-extern void         (* const& glUniform4i) (GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-extern void         (* const& glUniform1fv) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform2fv) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform3fv) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform4fv) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform1iv) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniform2iv) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniform3iv) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniform4iv) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniformMatrix2fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix3fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix4fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glValidateProgram) (GLuint program);
-extern void         (* const& glVertexAttrib1d) (GLuint index, GLdouble x);
-extern void         (* const& glVertexAttrib1dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib1f) (GLuint index, GLfloat x);
-extern void         (* const& glVertexAttrib1fv) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib1s) (GLuint index, GLshort x);
-extern void         (* const& glVertexAttrib1sv) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib2d) (GLuint index, GLdouble x, GLdouble y);
-extern void         (* const& glVertexAttrib2dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib2f) (GLuint index, GLfloat x, GLfloat y);
-extern void         (* const& glVertexAttrib2fv) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib2s) (GLuint index, GLshort x, GLshort y);
-extern void         (* const& glVertexAttrib2sv) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib3d) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glVertexAttrib3dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib3f) (GLuint index, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glVertexAttrib3fv) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib3s) (GLuint index, GLshort x, GLshort y, GLshort z);
-extern void         (* const& glVertexAttrib3sv) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4Nbv) (GLuint index, const GLbyte *v);
-extern void         (* const& glVertexAttrib4Niv) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttrib4Nsv) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4Nub) (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
-extern void         (* const& glVertexAttrib4Nubv) (GLuint index, const GLubyte *v);
-extern void         (* const& glVertexAttrib4Nuiv) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttrib4Nusv) (GLuint index, const GLushort *v);
-extern void         (* const& glVertexAttrib4bv) (GLuint index, const GLbyte *v);
-extern void         (* const& glVertexAttrib4d) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glVertexAttrib4dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib4f) (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glVertexAttrib4fv) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib4iv) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttrib4s) (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
-extern void         (* const& glVertexAttrib4sv) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4ubv) (GLuint index, const GLubyte *v);
-extern void         (* const& glVertexAttrib4uiv) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttrib4usv) (GLuint index, const GLushort *v);
-extern void         (* const& glVertexAttribPointer) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationSeparate) (GLenum modeRGB, GLenum modeAlpha);
+extern void         (KHRONOS_APIENTRY* const& glDrawBuffers) (GLsizei n, const GLenum *bufs);
+extern void         (KHRONOS_APIENTRY* const& glStencilOpSeparate) (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+extern void         (KHRONOS_APIENTRY* const& glStencilFuncSeparate) (GLenum face, GLenum func, GLint ref, GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glStencilMaskSeparate) (GLenum face, GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glAttachShader) (GLuint program, GLuint shader);
+extern void         (KHRONOS_APIENTRY* const& glBindAttribLocation) (GLuint program, GLuint index, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glCompileShader) (GLuint shader);
+extern GLuint       (KHRONOS_APIENTRY* const& glCreateProgram) ();
+extern GLuint       (KHRONOS_APIENTRY* const& glCreateShader) (GLenum type);
+extern void         (KHRONOS_APIENTRY* const& glDeleteProgram) (GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glDeleteShader) (GLuint shader);
+extern void         (KHRONOS_APIENTRY* const& glDetachShader) (GLuint program, GLuint shader);
+extern void         (KHRONOS_APIENTRY* const& glDisableVertexAttribArray) (GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glEnableVertexAttribArray) (GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveAttrib) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveUniform) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetAttachedShaders) (GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders);
+extern GLint        (KHRONOS_APIENTRY* const& glGetAttribLocation) (GLuint program, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramiv) (GLuint program, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramInfoLog) (GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+extern void         (KHRONOS_APIENTRY* const& glGetShaderiv) (GLuint shader, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetShaderInfoLog) (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+extern void         (KHRONOS_APIENTRY* const& glGetShaderSource) (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source);
+extern GLint        (KHRONOS_APIENTRY* const& glGetUniformLocation) (GLuint program, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformfv) (GLuint program, GLint location, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformiv) (GLuint program, GLint location, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribdv) (GLuint index, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribfv) (GLuint index, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribiv) (GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribPointerv) (GLuint index, GLenum pname, void **pointer);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsProgram) (GLuint program);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsShader) (GLuint shader);
+extern void         (KHRONOS_APIENTRY* const& glLinkProgram) (GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glShaderSource) (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
+extern void         (KHRONOS_APIENTRY* const& glUseProgram) (GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glUniform1f) (GLint location, GLfloat v0);
+extern void         (KHRONOS_APIENTRY* const& glUniform2f) (GLint location, GLfloat v0, GLfloat v1);
+extern void         (KHRONOS_APIENTRY* const& glUniform3f) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+extern void         (KHRONOS_APIENTRY* const& glUniform4f) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+extern void         (KHRONOS_APIENTRY* const& glUniform1i) (GLint location, GLint v0);
+extern void         (KHRONOS_APIENTRY* const& glUniform2i) (GLint location, GLint v0, GLint v1);
+extern void         (KHRONOS_APIENTRY* const& glUniform3i) (GLint location, GLint v0, GLint v1, GLint v2);
+extern void         (KHRONOS_APIENTRY* const& glUniform4i) (GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+extern void         (KHRONOS_APIENTRY* const& glUniform1fv) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2fv) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3fv) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4fv) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform1iv) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2iv) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3iv) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4iv) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix2fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix3fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix4fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glValidateProgram) (GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1d) (GLuint index, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1f) (GLuint index, GLfloat x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1fv) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1s) (GLuint index, GLshort x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1sv) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2d) (GLuint index, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2f) (GLuint index, GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2fv) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2s) (GLuint index, GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2sv) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3d) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3f) (GLuint index, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3fv) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3s) (GLuint index, GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3sv) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4Nbv) (GLuint index, const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4Niv) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4Nsv) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4Nub) (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4Nubv) (GLuint index, const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4Nuiv) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4Nusv) (GLuint index, const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4bv) (GLuint index, const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4d) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4f) (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4fv) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4iv) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4s) (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4sv) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4ubv) (GLuint index, const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4uiv) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4usv) (GLuint index, const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribPointer) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
 #endif
 
 #ifndef GL_VERSION_2_1
 #define GL_VERSION_2_1 1
-enum
+enum : GLenum
 {
     GL_PIXEL_PACK_BUFFER                                    = 0x88EB,
     GL_PIXEL_UNPACK_BUFFER                                  = 0x88EC,
@@ -1672,17 +1678,17 @@ enum
     GL_COMPRESSED_SLUMINANCE                                = 0x8C4A,
     GL_COMPRESSED_SLUMINANCE_ALPHA                          = 0x8C4B,
 };
-extern void         (* const& glUniformMatrix2x3fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix3x2fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix2x4fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix4x2fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix3x4fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix4x3fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix2x3fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix3x2fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix2x4fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix4x2fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix3x4fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix4x3fv) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 #endif
 
 #ifndef GL_VERSION_3_0
 #define GL_VERSION_3_0 1
-enum
+enum : GLenum
 {
     GL_COMPARE_REF_TO_TEXTURE                               = 0x884E,
     GL_CLIP_DISTANCE0                                       = 0x3000,
@@ -1922,95 +1928,95 @@ enum
     GL_CLAMP_FRAGMENT_COLOR                                 = 0x891B,
     GL_ALPHA_INTEGER                                        = 0x8D97,
 };
-extern void         (* const& glColorMaski) (GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a);
-extern void         (* const& glGetBooleani_v) (GLenum target, GLuint index, GLboolean *data);
-extern void         (* const& glGetIntegeri_v) (GLenum target, GLuint index, GLint *data);
-extern void         (* const& glEnablei) (GLenum target, GLuint index);
-extern void         (* const& glDisablei) (GLenum target, GLuint index);
-extern GLboolean    (* const& glIsEnabledi) (GLenum target, GLuint index);
-extern void         (* const& glBeginTransformFeedback) (GLenum primitiveMode);
-extern void         (* const& glEndTransformFeedback) ();
-extern void         (* const& glBindBufferRange) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-extern void         (* const& glBindBufferBase) (GLenum target, GLuint index, GLuint buffer);
-extern void         (* const& glTransformFeedbackVaryings) (GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode);
-extern void         (* const& glGetTransformFeedbackVarying) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
-extern void         (* const& glClampColor) (GLenum target, GLenum clamp);
-extern void         (* const& glBeginConditionalRender) (GLuint id, GLenum mode);
-extern void         (* const& glEndConditionalRender) ();
-extern void         (* const& glVertexAttribIPointer) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glGetVertexAttribIiv) (GLuint index, GLenum pname, GLint *params);
-extern void         (* const& glGetVertexAttribIuiv) (GLuint index, GLenum pname, GLuint *params);
-extern void         (* const& glVertexAttribI1i) (GLuint index, GLint x);
-extern void         (* const& glVertexAttribI2i) (GLuint index, GLint x, GLint y);
-extern void         (* const& glVertexAttribI3i) (GLuint index, GLint x, GLint y, GLint z);
-extern void         (* const& glVertexAttribI4i) (GLuint index, GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glVertexAttribI1ui) (GLuint index, GLuint x);
-extern void         (* const& glVertexAttribI2ui) (GLuint index, GLuint x, GLuint y);
-extern void         (* const& glVertexAttribI3ui) (GLuint index, GLuint x, GLuint y, GLuint z);
-extern void         (* const& glVertexAttribI4ui) (GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
-extern void         (* const& glVertexAttribI1iv) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI2iv) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI3iv) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI4iv) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI1uiv) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI2uiv) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI3uiv) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI4uiv) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI4bv) (GLuint index, const GLbyte *v);
-extern void         (* const& glVertexAttribI4sv) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttribI4ubv) (GLuint index, const GLubyte *v);
-extern void         (* const& glVertexAttribI4usv) (GLuint index, const GLushort *v);
-extern void         (* const& glGetUniformuiv) (GLuint program, GLint location, GLuint *params);
-extern void         (* const& glBindFragDataLocation) (GLuint program, GLuint color, const GLchar *name);
-extern GLint        (* const& glGetFragDataLocation) (GLuint program, const GLchar *name);
-extern void         (* const& glUniform1ui) (GLint location, GLuint v0);
-extern void         (* const& glUniform2ui) (GLint location, GLuint v0, GLuint v1);
-extern void         (* const& glUniform3ui) (GLint location, GLuint v0, GLuint v1, GLuint v2);
-extern void         (* const& glUniform4ui) (GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
-extern void         (* const& glUniform1uiv) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glUniform2uiv) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glUniform3uiv) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glUniform4uiv) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glTexParameterIiv) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glTexParameterIuiv) (GLenum target, GLenum pname, const GLuint *params);
-extern void         (* const& glGetTexParameterIiv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetTexParameterIuiv) (GLenum target, GLenum pname, GLuint *params);
-extern void         (* const& glClearBufferiv) (GLenum buffer, GLint drawbuffer, const GLint *value);
-extern void         (* const& glClearBufferuiv) (GLenum buffer, GLint drawbuffer, const GLuint *value);
-extern void         (* const& glClearBufferfv) (GLenum buffer, GLint drawbuffer, const GLfloat *value);
-extern void         (* const& glClearBufferfi) (GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
-extern const GLubyte * (* const& glGetStringi) (GLenum name, GLuint index);
-extern GLboolean    (* const& glIsRenderbuffer) (GLuint renderbuffer);
-extern void         (* const& glBindRenderbuffer) (GLenum target, GLuint renderbuffer);
-extern void         (* const& glDeleteRenderbuffers) (GLsizei n, const GLuint *renderbuffers);
-extern void         (* const& glGenRenderbuffers) (GLsizei n, GLuint *renderbuffers);
-extern void         (* const& glRenderbufferStorage) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glGetRenderbufferParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern GLboolean    (* const& glIsFramebuffer) (GLuint framebuffer);
-extern void         (* const& glBindFramebuffer) (GLenum target, GLuint framebuffer);
-extern void         (* const& glDeleteFramebuffers) (GLsizei n, const GLuint *framebuffers);
-extern void         (* const& glGenFramebuffers) (GLsizei n, GLuint *framebuffers);
-extern GLenum       (* const& glCheckFramebufferStatus) (GLenum target);
-extern void         (* const& glFramebufferTexture1D) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-extern void         (* const& glFramebufferTexture2D) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-extern void         (* const& glFramebufferTexture3D) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
-extern void         (* const& glFramebufferRenderbuffer) (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-extern void         (* const& glGetFramebufferAttachmentParameteriv) (GLenum target, GLenum attachment, GLenum pname, GLint *params);
-extern void         (* const& glGenerateMipmap) (GLenum target);
-extern void         (* const& glBlitFramebuffer) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-extern void         (* const& glRenderbufferStorageMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glFramebufferTextureLayer) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
-extern void *       (* const& glMapBufferRange) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
-extern void         (* const& glFlushMappedBufferRange) (GLenum target, GLintptr offset, GLsizeiptr length);
-extern void         (* const& glBindVertexArray) (GLuint array);
-extern void         (* const& glDeleteVertexArrays) (GLsizei n, const GLuint *arrays);
-extern void         (* const& glGenVertexArrays) (GLsizei n, GLuint *arrays);
-extern GLboolean    (* const& glIsVertexArray) (GLuint array);
+extern void         (KHRONOS_APIENTRY* const& glColorMaski) (GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a);
+extern void         (KHRONOS_APIENTRY* const& glGetBooleani_v) (GLenum target, GLuint index, GLboolean *data);
+extern void         (KHRONOS_APIENTRY* const& glGetIntegeri_v) (GLenum target, GLuint index, GLint *data);
+extern void         (KHRONOS_APIENTRY* const& glEnablei) (GLenum target, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glDisablei) (GLenum target, GLuint index);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsEnabledi) (GLenum target, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glBeginTransformFeedback) (GLenum primitiveMode);
+extern void         (KHRONOS_APIENTRY* const& glEndTransformFeedback) ();
+extern void         (KHRONOS_APIENTRY* const& glBindBufferRange) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glBindBufferBase) (GLenum target, GLuint index, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTransformFeedbackVaryings) (GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode);
+extern void         (KHRONOS_APIENTRY* const& glGetTransformFeedbackVarying) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glClampColor) (GLenum target, GLenum clamp);
+extern void         (KHRONOS_APIENTRY* const& glBeginConditionalRender) (GLuint id, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glEndConditionalRender) ();
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribIPointer) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribIiv) (GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribIuiv) (GLuint index, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1i) (GLuint index, GLint x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2i) (GLuint index, GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3i) (GLuint index, GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4i) (GLuint index, GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1ui) (GLuint index, GLuint x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2ui) (GLuint index, GLuint x, GLuint y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3ui) (GLuint index, GLuint x, GLuint y, GLuint z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4ui) (GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1iv) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2iv) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3iv) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4iv) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1uiv) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2uiv) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3uiv) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4uiv) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4bv) (GLuint index, const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4sv) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4ubv) (GLuint index, const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4usv) (GLuint index, const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformuiv) (GLuint program, GLint location, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glBindFragDataLocation) (GLuint program, GLuint color, const GLchar *name);
+extern GLint        (KHRONOS_APIENTRY* const& glGetFragDataLocation) (GLuint program, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glUniform1ui) (GLint location, GLuint v0);
+extern void         (KHRONOS_APIENTRY* const& glUniform2ui) (GLint location, GLuint v0, GLuint v1);
+extern void         (KHRONOS_APIENTRY* const& glUniform3ui) (GLint location, GLuint v0, GLuint v1, GLuint v2);
+extern void         (KHRONOS_APIENTRY* const& glUniform4ui) (GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+extern void         (KHRONOS_APIENTRY* const& glUniform1uiv) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2uiv) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3uiv) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4uiv) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterIiv) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterIuiv) (GLenum target, GLenum pname, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameterIiv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameterIuiv) (GLenum target, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glClearBufferiv) (GLenum buffer, GLint drawbuffer, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glClearBufferuiv) (GLenum buffer, GLint drawbuffer, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glClearBufferfv) (GLenum buffer, GLint drawbuffer, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glClearBufferfi) (GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
+extern const GLubyte * (KHRONOS_APIENTRY* const& glGetStringi) (GLenum name, GLuint index);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsRenderbuffer) (GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glBindRenderbuffer) (GLenum target, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glDeleteRenderbuffers) (GLsizei n, const GLuint *renderbuffers);
+extern void         (KHRONOS_APIENTRY* const& glGenRenderbuffers) (GLsizei n, GLuint *renderbuffers);
+extern void         (KHRONOS_APIENTRY* const& glRenderbufferStorage) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetRenderbufferParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsFramebuffer) (GLuint framebuffer);
+extern void         (KHRONOS_APIENTRY* const& glBindFramebuffer) (GLenum target, GLuint framebuffer);
+extern void         (KHRONOS_APIENTRY* const& glDeleteFramebuffers) (GLsizei n, const GLuint *framebuffers);
+extern void         (KHRONOS_APIENTRY* const& glGenFramebuffers) (GLsizei n, GLuint *framebuffers);
+extern GLenum       (KHRONOS_APIENTRY* const& glCheckFramebufferStatus) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTexture1D) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTexture2D) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTexture3D) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferRenderbuffer) (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glGetFramebufferAttachmentParameteriv) (GLenum target, GLenum attachment, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGenerateMipmap) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glBlitFramebuffer) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+extern void         (KHRONOS_APIENTRY* const& glRenderbufferStorageMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureLayer) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
+extern void *       (KHRONOS_APIENTRY* const& glMapBufferRange) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+extern void         (KHRONOS_APIENTRY* const& glFlushMappedBufferRange) (GLenum target, GLintptr offset, GLsizeiptr length);
+extern void         (KHRONOS_APIENTRY* const& glBindVertexArray) (GLuint array);
+extern void         (KHRONOS_APIENTRY* const& glDeleteVertexArrays) (GLsizei n, const GLuint *arrays);
+extern void         (KHRONOS_APIENTRY* const& glGenVertexArrays) (GLsizei n, GLuint *arrays);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsVertexArray) (GLuint array);
 #endif
 
 #ifndef GL_VERSION_3_1
 #define GL_VERSION_3_1 1
-enum
+enum : GLenum
 {
     GL_SAMPLER_2D_RECT                                      = 0x8B63,
     GL_SAMPLER_2D_RECT_SHADOW                               = 0x8B64,
@@ -2074,23 +2080,23 @@ enum
     GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER          = 0x8A46,
     GL_INVALID_INDEX                                        = 0xFFFFFFFF,
 };
-extern void         (* const& glDrawArraysInstanced) (GLenum mode, GLint first, GLsizei count, GLsizei instancecount);
-extern void         (* const& glDrawElementsInstanced) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount);
-extern void         (* const& glTexBuffer) (GLenum target, GLenum internalformat, GLuint buffer);
-extern void         (* const& glPrimitiveRestartIndex) (GLuint index);
-extern void         (* const& glCopyBufferSubData) (GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
-extern void         (* const& glGetUniformIndices) (GLuint program, GLsizei uniformCount, const GLchar *const*uniformNames, GLuint *uniformIndices);
-extern void         (* const& glGetActiveUniformsiv) (GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params);
-extern void         (* const& glGetActiveUniformName) (GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName);
-extern GLuint       (* const& glGetUniformBlockIndex) (GLuint program, const GLchar *uniformBlockName);
-extern void         (* const& glGetActiveUniformBlockiv) (GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params);
-extern void         (* const& glGetActiveUniformBlockName) (GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName);
-extern void         (* const& glUniformBlockBinding) (GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
+extern void         (KHRONOS_APIENTRY* const& glDrawArraysInstanced) (GLenum mode, GLint first, GLsizei count, GLsizei instancecount);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsInstanced) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount);
+extern void         (KHRONOS_APIENTRY* const& glTexBuffer) (GLenum target, GLenum internalformat, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glPrimitiveRestartIndex) (GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glCopyBufferSubData) (GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformIndices) (GLuint program, GLsizei uniformCount, const GLchar *const*uniformNames, GLuint *uniformIndices);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveUniformsiv) (GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveUniformName) (GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetUniformBlockIndex) (GLuint program, const GLchar *uniformBlockName);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveUniformBlockiv) (GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveUniformBlockName) (GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName);
+extern void         (KHRONOS_APIENTRY* const& glUniformBlockBinding) (GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
 #endif
 
 #ifndef GL_VERSION_3_2
 #define GL_VERSION_3_2 1
-enum
+enum : GLenum
 {
     GL_CONTEXT_CORE_PROFILE_BIT                             = 0x00000001,
     GL_CONTEXT_COMPATIBILITY_PROFILE_BIT                    = 0x00000002,
@@ -2133,7 +2139,13 @@ enum
     GL_TIMEOUT_EXPIRED                                      = 0x911B,
     GL_CONDITION_SATISFIED                                  = 0x911C,
     GL_WAIT_FAILED                                          = 0x911D,
+};
+enum : GLuint64
+{
     GL_TIMEOUT_IGNORED                                      = 0xFFFFFFFFFFFFFFFF,
+};
+enum : GLenum
+{
     GL_SYNC_FLUSH_COMMANDS_BIT                              = 0x00000001,
     GL_SAMPLE_POSITION                                      = 0x8E50,
     GL_SAMPLE_MASK                                          = 0x8E51,
@@ -2157,30 +2169,30 @@ enum
     GL_MAX_DEPTH_TEXTURE_SAMPLES                            = 0x910F,
     GL_MAX_INTEGER_SAMPLES                                  = 0x9110,
 };
-extern void         (* const& glDrawElementsBaseVertex) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex);
-extern void         (* const& glDrawRangeElementsBaseVertex) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex);
-extern void         (* const& glDrawElementsInstancedBaseVertex) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex);
-extern void         (* const& glMultiDrawElementsBaseVertex) (GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex);
-extern void         (* const& glProvokingVertex) (GLenum mode);
-extern GLsync       (* const& glFenceSync) (GLenum condition, GLbitfield flags);
-extern GLboolean    (* const& glIsSync) (GLsync sync);
-extern void         (* const& glDeleteSync) (GLsync sync);
-extern GLenum       (* const& glClientWaitSync) (GLsync sync, GLbitfield flags, GLuint64 timeout);
-extern void         (* const& glWaitSync) (GLsync sync, GLbitfield flags, GLuint64 timeout);
-extern void         (* const& glGetInteger64v) (GLenum pname, GLint64 *data);
-extern void         (* const& glGetSynciv) (GLsync sync, GLenum pname, GLsizei count, GLsizei *length, GLint *values);
-extern void         (* const& glGetInteger64i_v) (GLenum target, GLuint index, GLint64 *data);
-extern void         (* const& glGetBufferParameteri64v) (GLenum target, GLenum pname, GLint64 *params);
-extern void         (* const& glFramebufferTexture) (GLenum target, GLenum attachment, GLuint texture, GLint level);
-extern void         (* const& glTexImage2DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-extern void         (* const& glTexImage3DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-extern void         (* const& glGetMultisamplefv) (GLenum pname, GLuint index, GLfloat *val);
-extern void         (* const& glSampleMaski) (GLuint maskNumber, GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsBaseVertex) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex);
+extern void         (KHRONOS_APIENTRY* const& glDrawRangeElementsBaseVertex) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsInstancedBaseVertex) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsBaseVertex) (GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex);
+extern void         (KHRONOS_APIENTRY* const& glProvokingVertex) (GLenum mode);
+extern GLsync       (KHRONOS_APIENTRY* const& glFenceSync) (GLenum condition, GLbitfield flags);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsSync) (GLsync sync);
+extern void         (KHRONOS_APIENTRY* const& glDeleteSync) (GLsync sync);
+extern GLenum       (KHRONOS_APIENTRY* const& glClientWaitSync) (GLsync sync, GLbitfield flags, GLuint64 timeout);
+extern void         (KHRONOS_APIENTRY* const& glWaitSync) (GLsync sync, GLbitfield flags, GLuint64 timeout);
+extern void         (KHRONOS_APIENTRY* const& glGetInteger64v) (GLenum pname, GLint64 *data);
+extern void         (KHRONOS_APIENTRY* const& glGetSynciv) (GLsync sync, GLenum pname, GLsizei count, GLsizei *length, GLint *values);
+extern void         (KHRONOS_APIENTRY* const& glGetInteger64i_v) (GLenum target, GLuint index, GLint64 *data);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferParameteri64v) (GLenum target, GLenum pname, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTexture) (GLenum target, GLenum attachment, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glTexImage2DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glTexImage3DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glGetMultisamplefv) (GLenum pname, GLuint index, GLfloat *val);
+extern void         (KHRONOS_APIENTRY* const& glSampleMaski) (GLuint maskNumber, GLbitfield mask);
 #endif
 
 #ifndef GL_VERSION_3_3
 #define GL_VERSION_3_3 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ATTRIB_ARRAY_DIVISOR                          = 0x88FE,
     GL_SRC1_COLOR                                           = 0x88F9,
@@ -2199,69 +2211,69 @@ enum
     GL_TIMESTAMP                                            = 0x8E28,
     GL_INT_2_10_10_10_REV                                   = 0x8D9F,
 };
-extern void         (* const& glBindFragDataLocationIndexed) (GLuint program, GLuint colorNumber, GLuint index, const GLchar *name);
-extern GLint        (* const& glGetFragDataIndex) (GLuint program, const GLchar *name);
-extern void         (* const& glGenSamplers) (GLsizei count, GLuint *samplers);
-extern void         (* const& glDeleteSamplers) (GLsizei count, const GLuint *samplers);
-extern GLboolean    (* const& glIsSampler) (GLuint sampler);
-extern void         (* const& glBindSampler) (GLuint unit, GLuint sampler);
-extern void         (* const& glSamplerParameteri) (GLuint sampler, GLenum pname, GLint param);
-extern void         (* const& glSamplerParameteriv) (GLuint sampler, GLenum pname, const GLint *param);
-extern void         (* const& glSamplerParameterf) (GLuint sampler, GLenum pname, GLfloat param);
-extern void         (* const& glSamplerParameterfv) (GLuint sampler, GLenum pname, const GLfloat *param);
-extern void         (* const& glSamplerParameterIiv) (GLuint sampler, GLenum pname, const GLint *param);
-extern void         (* const& glSamplerParameterIuiv) (GLuint sampler, GLenum pname, const GLuint *param);
-extern void         (* const& glGetSamplerParameteriv) (GLuint sampler, GLenum pname, GLint *params);
-extern void         (* const& glGetSamplerParameterIiv) (GLuint sampler, GLenum pname, GLint *params);
-extern void         (* const& glGetSamplerParameterfv) (GLuint sampler, GLenum pname, GLfloat *params);
-extern void         (* const& glGetSamplerParameterIuiv) (GLuint sampler, GLenum pname, GLuint *params);
-extern void         (* const& glQueryCounter) (GLuint id, GLenum target);
-extern void         (* const& glGetQueryObjecti64v) (GLuint id, GLenum pname, GLint64 *params);
-extern void         (* const& glGetQueryObjectui64v) (GLuint id, GLenum pname, GLuint64 *params);
-extern void         (* const& glVertexAttribDivisor) (GLuint index, GLuint divisor);
-extern void         (* const& glVertexAttribP1ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
-extern void         (* const& glVertexAttribP1uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
-extern void         (* const& glVertexAttribP2ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
-extern void         (* const& glVertexAttribP2uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
-extern void         (* const& glVertexAttribP3ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
-extern void         (* const& glVertexAttribP3uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
-extern void         (* const& glVertexAttribP4ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
-extern void         (* const& glVertexAttribP4uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
-extern void         (* const& glVertexP2ui) (GLenum type, GLuint value);
-extern void         (* const& glVertexP2uiv) (GLenum type, const GLuint *value);
-extern void         (* const& glVertexP3ui) (GLenum type, GLuint value);
-extern void         (* const& glVertexP3uiv) (GLenum type, const GLuint *value);
-extern void         (* const& glVertexP4ui) (GLenum type, GLuint value);
-extern void         (* const& glVertexP4uiv) (GLenum type, const GLuint *value);
-extern void         (* const& glTexCoordP1ui) (GLenum type, GLuint coords);
-extern void         (* const& glTexCoordP1uiv) (GLenum type, const GLuint *coords);
-extern void         (* const& glTexCoordP2ui) (GLenum type, GLuint coords);
-extern void         (* const& glTexCoordP2uiv) (GLenum type, const GLuint *coords);
-extern void         (* const& glTexCoordP3ui) (GLenum type, GLuint coords);
-extern void         (* const& glTexCoordP3uiv) (GLenum type, const GLuint *coords);
-extern void         (* const& glTexCoordP4ui) (GLenum type, GLuint coords);
-extern void         (* const& glTexCoordP4uiv) (GLenum type, const GLuint *coords);
-extern void         (* const& glMultiTexCoordP1ui) (GLenum texture, GLenum type, GLuint coords);
-extern void         (* const& glMultiTexCoordP1uiv) (GLenum texture, GLenum type, const GLuint *coords);
-extern void         (* const& glMultiTexCoordP2ui) (GLenum texture, GLenum type, GLuint coords);
-extern void         (* const& glMultiTexCoordP2uiv) (GLenum texture, GLenum type, const GLuint *coords);
-extern void         (* const& glMultiTexCoordP3ui) (GLenum texture, GLenum type, GLuint coords);
-extern void         (* const& glMultiTexCoordP3uiv) (GLenum texture, GLenum type, const GLuint *coords);
-extern void         (* const& glMultiTexCoordP4ui) (GLenum texture, GLenum type, GLuint coords);
-extern void         (* const& glMultiTexCoordP4uiv) (GLenum texture, GLenum type, const GLuint *coords);
-extern void         (* const& glNormalP3ui) (GLenum type, GLuint coords);
-extern void         (* const& glNormalP3uiv) (GLenum type, const GLuint *coords);
-extern void         (* const& glColorP3ui) (GLenum type, GLuint color);
-extern void         (* const& glColorP3uiv) (GLenum type, const GLuint *color);
-extern void         (* const& glColorP4ui) (GLenum type, GLuint color);
-extern void         (* const& glColorP4uiv) (GLenum type, const GLuint *color);
-extern void         (* const& glSecondaryColorP3ui) (GLenum type, GLuint color);
-extern void         (* const& glSecondaryColorP3uiv) (GLenum type, const GLuint *color);
+extern void         (KHRONOS_APIENTRY* const& glBindFragDataLocationIndexed) (GLuint program, GLuint colorNumber, GLuint index, const GLchar *name);
+extern GLint        (KHRONOS_APIENTRY* const& glGetFragDataIndex) (GLuint program, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGenSamplers) (GLsizei count, GLuint *samplers);
+extern void         (KHRONOS_APIENTRY* const& glDeleteSamplers) (GLsizei count, const GLuint *samplers);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsSampler) (GLuint sampler);
+extern void         (KHRONOS_APIENTRY* const& glBindSampler) (GLuint unit, GLuint sampler);
+extern void         (KHRONOS_APIENTRY* const& glSamplerParameteri) (GLuint sampler, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glSamplerParameteriv) (GLuint sampler, GLenum pname, const GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glSamplerParameterf) (GLuint sampler, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glSamplerParameterfv) (GLuint sampler, GLenum pname, const GLfloat *param);
+extern void         (KHRONOS_APIENTRY* const& glSamplerParameterIiv) (GLuint sampler, GLenum pname, const GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glSamplerParameterIuiv) (GLuint sampler, GLenum pname, const GLuint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetSamplerParameteriv) (GLuint sampler, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetSamplerParameterIiv) (GLuint sampler, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetSamplerParameterfv) (GLuint sampler, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetSamplerParameterIuiv) (GLuint sampler, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glQueryCounter) (GLuint id, GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjecti64v) (GLuint id, GLenum pname, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjectui64v) (GLuint id, GLenum pname, GLuint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribDivisor) (GLuint index, GLuint divisor);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP1ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP1uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP2ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP2uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP3ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP3uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP4ui) (GLuint index, GLenum type, GLboolean normalized, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribP4uiv) (GLuint index, GLenum type, GLboolean normalized, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glVertexP2ui) (GLenum type, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glVertexP2uiv) (GLenum type, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glVertexP3ui) (GLenum type, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glVertexP3uiv) (GLenum type, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glVertexP4ui) (GLenum type, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glVertexP4uiv) (GLenum type, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP1ui) (GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP1uiv) (GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP2ui) (GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP2uiv) (GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP3ui) (GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP3uiv) (GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP4ui) (GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordP4uiv) (GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP1ui) (GLenum texture, GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP1uiv) (GLenum texture, GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP2ui) (GLenum texture, GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP2uiv) (GLenum texture, GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP3ui) (GLenum texture, GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP3uiv) (GLenum texture, GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP4ui) (GLenum texture, GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordP4uiv) (GLenum texture, GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glNormalP3ui) (GLenum type, GLuint coords);
+extern void         (KHRONOS_APIENTRY* const& glNormalP3uiv) (GLenum type, const GLuint *coords);
+extern void         (KHRONOS_APIENTRY* const& glColorP3ui) (GLenum type, GLuint color);
+extern void         (KHRONOS_APIENTRY* const& glColorP3uiv) (GLenum type, const GLuint *color);
+extern void         (KHRONOS_APIENTRY* const& glColorP4ui) (GLenum type, GLuint color);
+extern void         (KHRONOS_APIENTRY* const& glColorP4uiv) (GLenum type, const GLuint *color);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColorP3ui) (GLenum type, GLuint color);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColorP3uiv) (GLenum type, const GLuint *color);
 #endif
 
 #ifndef GL_VERSION_4_0
 #define GL_VERSION_4_0 1
-enum
+enum : GLenum
 {
     GL_SAMPLE_SHADING                                       = 0x8C36,
     GL_MIN_SAMPLE_SHADING_VALUE                             = 0x8C37,
@@ -2341,57 +2353,57 @@ enum
     GL_TRANSFORM_FEEDBACK_BINDING                           = 0x8E25,
     GL_MAX_TRANSFORM_FEEDBACK_BUFFERS                       = 0x8E70,
 };
-extern void         (* const& glMinSampleShading) (GLfloat value);
-extern void         (* const& glBlendEquationi) (GLuint buf, GLenum mode);
-extern void         (* const& glBlendEquationSeparatei) (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
-extern void         (* const& glBlendFunci) (GLuint buf, GLenum src, GLenum dst);
-extern void         (* const& glBlendFuncSeparatei) (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
-extern void         (* const& glDrawArraysIndirect) (GLenum mode, const void *indirect);
-extern void         (* const& glDrawElementsIndirect) (GLenum mode, GLenum type, const void *indirect);
-extern void         (* const& glUniform1d) (GLint location, GLdouble x);
-extern void         (* const& glUniform2d) (GLint location, GLdouble x, GLdouble y);
-extern void         (* const& glUniform3d) (GLint location, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glUniform4d) (GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glUniform1dv) (GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glUniform2dv) (GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glUniform3dv) (GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glUniform4dv) (GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glUniformMatrix2dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix3dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix4dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix2x3dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix2x4dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix3x2dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix3x4dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix4x2dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glUniformMatrix4x3dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glGetUniformdv) (GLuint program, GLint location, GLdouble *params);
-extern GLint        (* const& glGetSubroutineUniformLocation) (GLuint program, GLenum shadertype, const GLchar *name);
-extern GLuint       (* const& glGetSubroutineIndex) (GLuint program, GLenum shadertype, const GLchar *name);
-extern void         (* const& glGetActiveSubroutineUniformiv) (GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values);
-extern void         (* const& glGetActiveSubroutineUniformName) (GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
-extern void         (* const& glGetActiveSubroutineName) (GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
-extern void         (* const& glUniformSubroutinesuiv) (GLenum shadertype, GLsizei count, const GLuint *indices);
-extern void         (* const& glGetUniformSubroutineuiv) (GLenum shadertype, GLint location, GLuint *params);
-extern void         (* const& glGetProgramStageiv) (GLuint program, GLenum shadertype, GLenum pname, GLint *values);
-extern void         (* const& glPatchParameteri) (GLenum pname, GLint value);
-extern void         (* const& glPatchParameterfv) (GLenum pname, const GLfloat *values);
-extern void         (* const& glBindTransformFeedback) (GLenum target, GLuint id);
-extern void         (* const& glDeleteTransformFeedbacks) (GLsizei n, const GLuint *ids);
-extern void         (* const& glGenTransformFeedbacks) (GLsizei n, GLuint *ids);
-extern GLboolean    (* const& glIsTransformFeedback) (GLuint id);
-extern void         (* const& glPauseTransformFeedback) ();
-extern void         (* const& glResumeTransformFeedback) ();
-extern void         (* const& glDrawTransformFeedback) (GLenum mode, GLuint id);
-extern void         (* const& glDrawTransformFeedbackStream) (GLenum mode, GLuint id, GLuint stream);
-extern void         (* const& glBeginQueryIndexed) (GLenum target, GLuint index, GLuint id);
-extern void         (* const& glEndQueryIndexed) (GLenum target, GLuint index);
-extern void         (* const& glGetQueryIndexediv) (GLenum target, GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMinSampleShading) (GLfloat value);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationi) (GLuint buf, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationSeparatei) (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendFunci) (GLuint buf, GLenum src, GLenum dst);
+extern void         (KHRONOS_APIENTRY* const& glBlendFuncSeparatei) (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+extern void         (KHRONOS_APIENTRY* const& glDrawArraysIndirect) (GLenum mode, const void *indirect);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsIndirect) (GLenum mode, GLenum type, const void *indirect);
+extern void         (KHRONOS_APIENTRY* const& glUniform1d) (GLint location, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glUniform2d) (GLint location, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glUniform3d) (GLint location, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glUniform4d) (GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glUniform1dv) (GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2dv) (GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3dv) (GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4dv) (GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix2dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix3dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix4dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix2x3dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix2x4dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix3x2dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix3x4dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix4x2dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix4x3dv) (GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformdv) (GLuint program, GLint location, GLdouble *params);
+extern GLint        (KHRONOS_APIENTRY* const& glGetSubroutineUniformLocation) (GLuint program, GLenum shadertype, const GLchar *name);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetSubroutineIndex) (GLuint program, GLenum shadertype, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveSubroutineUniformiv) (GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveSubroutineUniformName) (GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveSubroutineName) (GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glUniformSubroutinesuiv) (GLenum shadertype, GLsizei count, const GLuint *indices);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformSubroutineuiv) (GLenum shadertype, GLint location, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramStageiv) (GLuint program, GLenum shadertype, GLenum pname, GLint *values);
+extern void         (KHRONOS_APIENTRY* const& glPatchParameteri) (GLenum pname, GLint value);
+extern void         (KHRONOS_APIENTRY* const& glPatchParameterfv) (GLenum pname, const GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glBindTransformFeedback) (GLenum target, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glDeleteTransformFeedbacks) (GLsizei n, const GLuint *ids);
+extern void         (KHRONOS_APIENTRY* const& glGenTransformFeedbacks) (GLsizei n, GLuint *ids);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsTransformFeedback) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glPauseTransformFeedback) ();
+extern void         (KHRONOS_APIENTRY* const& glResumeTransformFeedback) ();
+extern void         (KHRONOS_APIENTRY* const& glDrawTransformFeedback) (GLenum mode, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glDrawTransformFeedbackStream) (GLenum mode, GLuint id, GLuint stream);
+extern void         (KHRONOS_APIENTRY* const& glBeginQueryIndexed) (GLenum target, GLuint index, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glEndQueryIndexed) (GLenum target, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryIndexediv) (GLenum target, GLuint index, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_VERSION_4_1
 #define GL_VERSION_4_1 1
-enum
+enum : GLenum
 {
     GL_FIXED                                                = 0x140C,
     GL_IMPLEMENTATION_COLOR_READ_TYPE                       = 0x8B9A,
@@ -2429,99 +2441,99 @@ enum
     GL_VIEWPORT_INDEX_PROVOKING_VERTEX                      = 0x825F,
     GL_UNDEFINED_VERTEX                                     = 0x8260,
 };
-extern void         (* const& glReleaseShaderCompiler) ();
-extern void         (* const& glShaderBinary) (GLsizei count, const GLuint *shaders, GLenum binaryFormat, const void *binary, GLsizei length);
-extern void         (* const& glGetShaderPrecisionFormat) (GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision);
-extern void         (* const& glDepthRangef) (GLfloat n, GLfloat f);
-extern void         (* const& glClearDepthf) (GLfloat d);
-extern void         (* const& glGetProgramBinary) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary);
-extern void         (* const& glProgramBinary) (GLuint program, GLenum binaryFormat, const void *binary, GLsizei length);
-extern void         (* const& glProgramParameteri) (GLuint program, GLenum pname, GLint value);
-extern void         (* const& glUseProgramStages) (GLuint pipeline, GLbitfield stages, GLuint program);
-extern void         (* const& glActiveShaderProgram) (GLuint pipeline, GLuint program);
-extern GLuint       (* const& glCreateShaderProgramv) (GLenum type, GLsizei count, const GLchar *const*strings);
-extern void         (* const& glBindProgramPipeline) (GLuint pipeline);
-extern void         (* const& glDeleteProgramPipelines) (GLsizei n, const GLuint *pipelines);
-extern void         (* const& glGenProgramPipelines) (GLsizei n, GLuint *pipelines);
-extern GLboolean    (* const& glIsProgramPipeline) (GLuint pipeline);
-extern void         (* const& glGetProgramPipelineiv) (GLuint pipeline, GLenum pname, GLint *params);
-extern void         (* const& glProgramUniform1i) (GLuint program, GLint location, GLint v0);
-extern void         (* const& glProgramUniform1iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniform1f) (GLuint program, GLint location, GLfloat v0);
-extern void         (* const& glProgramUniform1fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform1d) (GLuint program, GLint location, GLdouble v0);
-extern void         (* const& glProgramUniform1dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniform1ui) (GLuint program, GLint location, GLuint v0);
-extern void         (* const& glProgramUniform1uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glProgramUniform2i) (GLuint program, GLint location, GLint v0, GLint v1);
-extern void         (* const& glProgramUniform2iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniform2f) (GLuint program, GLint location, GLfloat v0, GLfloat v1);
-extern void         (* const& glProgramUniform2fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform2d) (GLuint program, GLint location, GLdouble v0, GLdouble v1);
-extern void         (* const& glProgramUniform2dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniform2ui) (GLuint program, GLint location, GLuint v0, GLuint v1);
-extern void         (* const& glProgramUniform2uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glProgramUniform3i) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
-extern void         (* const& glProgramUniform3iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniform3f) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-extern void         (* const& glProgramUniform3fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform3d) (GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2);
-extern void         (* const& glProgramUniform3dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniform3ui) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
-extern void         (* const& glProgramUniform3uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glProgramUniform4i) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-extern void         (* const& glProgramUniform4iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniform4f) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-extern void         (* const& glProgramUniform4fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform4d) (GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3);
-extern void         (* const& glProgramUniform4dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniform4ui) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
-extern void         (* const& glProgramUniform4uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glProgramUniformMatrix2fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix3fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix4fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix2dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix3dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix4dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix2x3fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix3x2fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix2x4fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix4x2fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix3x4fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix4x3fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix2x3dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix3x2dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix2x4dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix4x2dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix3x4dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix4x3dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glValidateProgramPipeline) (GLuint pipeline);
-extern void         (* const& glGetProgramPipelineInfoLog) (GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-extern void         (* const& glVertexAttribL1d) (GLuint index, GLdouble x);
-extern void         (* const& glVertexAttribL2d) (GLuint index, GLdouble x, GLdouble y);
-extern void         (* const& glVertexAttribL3d) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glVertexAttribL4d) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glVertexAttribL1dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribL2dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribL3dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribL4dv) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribLPointer) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glGetVertexAttribLdv) (GLuint index, GLenum pname, GLdouble *params);
-extern void         (* const& glViewportArrayv) (GLuint first, GLsizei count, const GLfloat *v);
-extern void         (* const& glViewportIndexedf) (GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h);
-extern void         (* const& glViewportIndexedfv) (GLuint index, const GLfloat *v);
-extern void         (* const& glScissorArrayv) (GLuint first, GLsizei count, const GLint *v);
-extern void         (* const& glScissorIndexed) (GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height);
-extern void         (* const& glScissorIndexedv) (GLuint index, const GLint *v);
-extern void         (* const& glDepthRangeArrayv) (GLuint first, GLsizei count, const GLdouble *v);
-extern void         (* const& glDepthRangeIndexed) (GLuint index, GLdouble n, GLdouble f);
-extern void         (* const& glGetFloati_v) (GLenum target, GLuint index, GLfloat *data);
-extern void         (* const& glGetDoublei_v) (GLenum target, GLuint index, GLdouble *data);
+extern void         (KHRONOS_APIENTRY* const& glReleaseShaderCompiler) ();
+extern void         (KHRONOS_APIENTRY* const& glShaderBinary) (GLsizei count, const GLuint *shaders, GLenum binaryFormat, const void *binary, GLsizei length);
+extern void         (KHRONOS_APIENTRY* const& glGetShaderPrecisionFormat) (GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangef) (GLfloat n, GLfloat f);
+extern void         (KHRONOS_APIENTRY* const& glClearDepthf) (GLfloat d);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramBinary) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary);
+extern void         (KHRONOS_APIENTRY* const& glProgramBinary) (GLuint program, GLenum binaryFormat, const void *binary, GLsizei length);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameteri) (GLuint program, GLenum pname, GLint value);
+extern void         (KHRONOS_APIENTRY* const& glUseProgramStages) (GLuint pipeline, GLbitfield stages, GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glActiveShaderProgram) (GLuint pipeline, GLuint program);
+extern GLuint       (KHRONOS_APIENTRY* const& glCreateShaderProgramv) (GLenum type, GLsizei count, const GLchar *const*strings);
+extern void         (KHRONOS_APIENTRY* const& glBindProgramPipeline) (GLuint pipeline);
+extern void         (KHRONOS_APIENTRY* const& glDeleteProgramPipelines) (GLsizei n, const GLuint *pipelines);
+extern void         (KHRONOS_APIENTRY* const& glGenProgramPipelines) (GLsizei n, GLuint *pipelines);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsProgramPipeline) (GLuint pipeline);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramPipelineiv) (GLuint pipeline, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1i) (GLuint program, GLint location, GLint v0);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1f) (GLuint program, GLint location, GLfloat v0);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1d) (GLuint program, GLint location, GLdouble v0);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1ui) (GLuint program, GLint location, GLuint v0);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2i) (GLuint program, GLint location, GLint v0, GLint v1);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2f) (GLuint program, GLint location, GLfloat v0, GLfloat v1);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2d) (GLuint program, GLint location, GLdouble v0, GLdouble v1);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2ui) (GLuint program, GLint location, GLuint v0, GLuint v1);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3i) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3f) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3d) (GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3ui) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4i) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4iv) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4f) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4fv) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4d) (GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4dv) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4ui) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4uiv) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x3fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x2fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x4fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x2fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x4fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x3fv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x3dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x2dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x4dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x2dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x4dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x3dv) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glValidateProgramPipeline) (GLuint pipeline);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramPipelineInfoLog) (GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1d) (GLuint index, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2d) (GLuint index, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3d) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4d) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4dv) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribLPointer) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribLdv) (GLuint index, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glViewportArrayv) (GLuint first, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glViewportIndexedf) (GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h);
+extern void         (KHRONOS_APIENTRY* const& glViewportIndexedfv) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glScissorArrayv) (GLuint first, GLsizei count, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glScissorIndexed) (GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glScissorIndexedv) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangeArrayv) (GLuint first, GLsizei count, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangeIndexed) (GLuint index, GLdouble n, GLdouble f);
+extern void         (KHRONOS_APIENTRY* const& glGetFloati_v) (GLenum target, GLuint index, GLfloat *data);
+extern void         (KHRONOS_APIENTRY* const& glGetDoublei_v) (GLenum target, GLuint index, GLdouble *data);
 #endif
 
 #ifndef GL_VERSION_4_2
 #define GL_VERSION_4_2 1
-enum
+enum : GLenum
 {
     GL_COPY_READ_BUFFER_BINDING                             = 0x8F36,
     GL_COPY_WRITE_BUFFER_BINDING                            = 0x8F37,
@@ -2636,23 +2648,23 @@ enum
     GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT                   = 0x8E8F,
     GL_TEXTURE_IMMUTABLE_FORMAT                             = 0x912F,
 };
-extern void         (* const& glDrawArraysInstancedBaseInstance) (GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
-extern void         (* const& glDrawElementsInstancedBaseInstance) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance);
-extern void         (* const& glDrawElementsInstancedBaseVertexBaseInstance) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
-extern void         (* const& glGetInternalformativ) (GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint *params);
-extern void         (* const& glGetActiveAtomicCounterBufferiv) (GLuint program, GLuint bufferIndex, GLenum pname, GLint *params);
-extern void         (* const& glBindImageTexture) (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
-extern void         (* const& glMemoryBarrier) (GLbitfield barriers);
-extern void         (* const& glTexStorage1D) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
-extern void         (* const& glTexStorage2D) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glTexStorage3D) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-extern void         (* const& glDrawTransformFeedbackInstanced) (GLenum mode, GLuint id, GLsizei instancecount);
-extern void         (* const& glDrawTransformFeedbackStreamInstanced) (GLenum mode, GLuint id, GLuint stream, GLsizei instancecount);
+extern void         (KHRONOS_APIENTRY* const& glDrawArraysInstancedBaseInstance) (GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsInstancedBaseInstance) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsInstancedBaseVertexBaseInstance) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
+extern void         (KHRONOS_APIENTRY* const& glGetInternalformativ) (GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveAtomicCounterBufferiv) (GLuint program, GLuint bufferIndex, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glBindImageTexture) (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+extern void         (KHRONOS_APIENTRY* const& glMemoryBarrier) (GLbitfield barriers);
+extern void         (KHRONOS_APIENTRY* const& glTexStorage1D) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glTexStorage2D) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glTexStorage3D) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+extern void         (KHRONOS_APIENTRY* const& glDrawTransformFeedbackInstanced) (GLenum mode, GLuint id, GLsizei instancecount);
+extern void         (KHRONOS_APIENTRY* const& glDrawTransformFeedbackStreamInstanced) (GLenum mode, GLuint id, GLuint stream, GLsizei instancecount);
 #endif
 
 #ifndef GL_VERSION_4_3
 #define GL_VERSION_4_3 1
-enum
+enum : GLenum
 {
     GL_NUM_SHADING_LANGUAGE_VERSIONS                        = 0x82E9,
     GL_VERTEX_ATTRIB_ARRAY_LONG                             = 0x874E,
@@ -2914,54 +2926,54 @@ enum
     GL_VERTEX_BINDING_BUFFER                                = 0x8F4F,
     GL_DISPLAY_LIST                                         = 0x82E7,
 };
-extern void         (* const& glClearBufferData) (GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data);
-extern void         (* const& glClearBufferSubData) (GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
-extern void         (* const& glDispatchCompute) (GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
-extern void         (* const& glDispatchComputeIndirect) (GLintptr indirect);
-extern void         (* const& glCopyImageSubData) (GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
-extern void         (* const& glFramebufferParameteri) (GLenum target, GLenum pname, GLint param);
-extern void         (* const& glGetFramebufferParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetInternalformati64v) (GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint64 *params);
-extern void         (* const& glInvalidateTexSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
-extern void         (* const& glInvalidateTexImage) (GLuint texture, GLint level);
-extern void         (* const& glInvalidateBufferSubData) (GLuint buffer, GLintptr offset, GLsizeiptr length);
-extern void         (* const& glInvalidateBufferData) (GLuint buffer);
-extern void         (* const& glInvalidateFramebuffer) (GLenum target, GLsizei numAttachments, const GLenum *attachments);
-extern void         (* const& glInvalidateSubFramebuffer) (GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glMultiDrawArraysIndirect) (GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride);
-extern void         (* const& glMultiDrawElementsIndirect) (GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride);
-extern void         (* const& glGetProgramInterfaceiv) (GLuint program, GLenum programInterface, GLenum pname, GLint *params);
-extern GLuint       (* const& glGetProgramResourceIndex) (GLuint program, GLenum programInterface, const GLchar *name);
-extern void         (* const& glGetProgramResourceName) (GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
-extern void         (* const& glGetProgramResourceiv) (GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei count, GLsizei *length, GLint *params);
-extern GLint        (* const& glGetProgramResourceLocation) (GLuint program, GLenum programInterface, const GLchar *name);
-extern GLint        (* const& glGetProgramResourceLocationIndex) (GLuint program, GLenum programInterface, const GLchar *name);
-extern void         (* const& glShaderStorageBlockBinding) (GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding);
-extern void         (* const& glTexBufferRange) (GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
-extern void         (* const& glTexStorage2DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-extern void         (* const& glTexStorage3DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-extern void         (* const& glTextureView) (GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers);
-extern void         (* const& glBindVertexBuffer) (GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
-extern void         (* const& glVertexAttribFormat) (GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
-extern void         (* const& glVertexAttribIFormat) (GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-extern void         (* const& glVertexAttribLFormat) (GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-extern void         (* const& glVertexAttribBinding) (GLuint attribindex, GLuint bindingindex);
-extern void         (* const& glVertexBindingDivisor) (GLuint bindingindex, GLuint divisor);
-extern void         (* const& glDebugMessageControl) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
-extern void         (* const& glDebugMessageInsert) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
-extern void         (* const& glDebugMessageCallback) (GLDEBUGPROC callback, const void *userParam);
-extern GLuint       (* const& glGetDebugMessageLog) (GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
-extern void         (* const& glPushDebugGroup) (GLenum source, GLuint id, GLsizei length, const GLchar *message);
-extern void         (* const& glPopDebugGroup) ();
-extern void         (* const& glObjectLabel) (GLenum identifier, GLuint name, GLsizei length, const GLchar *label);
-extern void         (* const& glGetObjectLabel) (GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label);
-extern void         (* const& glObjectPtrLabel) (const void *ptr, GLsizei length, const GLchar *label);
-extern void         (* const& glGetObjectPtrLabel) (const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glClearBufferData) (GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glClearBufferSubData) (GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glDispatchCompute) (GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
+extern void         (KHRONOS_APIENTRY* const& glDispatchComputeIndirect) (GLintptr indirect);
+extern void         (KHRONOS_APIENTRY* const& glCopyImageSubData) (GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferParameteri) (GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glGetFramebufferParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetInternalformati64v) (GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateTexSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateTexImage) (GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateBufferSubData) (GLuint buffer, GLintptr offset, GLsizeiptr length);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateBufferData) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateFramebuffer) (GLenum target, GLsizei numAttachments, const GLenum *attachments);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateSubFramebuffer) (GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArraysIndirect) (GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsIndirect) (GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramInterfaceiv) (GLuint program, GLenum programInterface, GLenum pname, GLint *params);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetProgramResourceIndex) (GLuint program, GLenum programInterface, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramResourceName) (GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramResourceiv) (GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei count, GLsizei *length, GLint *params);
+extern GLint        (KHRONOS_APIENTRY* const& glGetProgramResourceLocation) (GLuint program, GLenum programInterface, const GLchar *name);
+extern GLint        (KHRONOS_APIENTRY* const& glGetProgramResourceLocationIndex) (GLuint program, GLenum programInterface, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glShaderStorageBlockBinding) (GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding);
+extern void         (KHRONOS_APIENTRY* const& glTexBufferRange) (GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glTexStorage2DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glTexStorage3DMultisample) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureView) (GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers);
+extern void         (KHRONOS_APIENTRY* const& glBindVertexBuffer) (GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribFormat) (GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribIFormat) (GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribLFormat) (GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribBinding) (GLuint attribindex, GLuint bindingindex);
+extern void         (KHRONOS_APIENTRY* const& glVertexBindingDivisor) (GLuint bindingindex, GLuint divisor);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageControl) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageInsert) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageCallback) (GLDEBUGPROC callback, const void *userParam);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetDebugMessageLog) (GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
+extern void         (KHRONOS_APIENTRY* const& glPushDebugGroup) (GLenum source, GLuint id, GLsizei length, const GLchar *message);
+extern void         (KHRONOS_APIENTRY* const& glPopDebugGroup) ();
+extern void         (KHRONOS_APIENTRY* const& glObjectLabel) (GLenum identifier, GLuint name, GLsizei length, const GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectLabel) (GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glObjectPtrLabel) (const void *ptr, GLsizei length, const GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectPtrLabel) (const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label);
 #endif
 
 #ifndef GL_VERSION_4_4
 #define GL_VERSION_4_4 1
-enum
+enum : GLenum
 {
     GL_MAX_VERTEX_ATTRIB_STRIDE                             = 0x82E5,
     GL_PRIMITIVE_RESTART_FOR_PATCHES_SUPPORTED              = 0x8221,
@@ -2983,20 +2995,20 @@ enum
     GL_QUERY_RESULT_NO_WAIT                                 = 0x9194,
     GL_MIRROR_CLAMP_TO_EDGE                                 = 0x8743,
 };
-extern void         (* const& glBufferStorage) (GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
-extern void         (* const& glClearTexImage) (GLuint texture, GLint level, GLenum format, GLenum type, const void *data);
-extern void         (* const& glClearTexSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data);
-extern void         (* const& glBindBuffersBase) (GLenum target, GLuint first, GLsizei count, const GLuint *buffers);
-extern void         (* const& glBindBuffersRange) (GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes);
-extern void         (* const& glBindTextures) (GLuint first, GLsizei count, const GLuint *textures);
-extern void         (* const& glBindSamplers) (GLuint first, GLsizei count, const GLuint *samplers);
-extern void         (* const& glBindImageTextures) (GLuint first, GLsizei count, const GLuint *textures);
-extern void         (* const& glBindVertexBuffers) (GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides);
+extern void         (KHRONOS_APIENTRY* const& glBufferStorage) (GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
+extern void         (KHRONOS_APIENTRY* const& glClearTexImage) (GLuint texture, GLint level, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glClearTexSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glBindBuffersBase) (GLenum target, GLuint first, GLsizei count, const GLuint *buffers);
+extern void         (KHRONOS_APIENTRY* const& glBindBuffersRange) (GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes);
+extern void         (KHRONOS_APIENTRY* const& glBindTextures) (GLuint first, GLsizei count, const GLuint *textures);
+extern void         (KHRONOS_APIENTRY* const& glBindSamplers) (GLuint first, GLsizei count, const GLuint *samplers);
+extern void         (KHRONOS_APIENTRY* const& glBindImageTextures) (GLuint first, GLsizei count, const GLuint *textures);
+extern void         (KHRONOS_APIENTRY* const& glBindVertexBuffers) (GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides);
 #endif
 
 #ifndef GL_VERSION_4_5
 #define GL_VERSION_4_5 1
-enum
+enum : GLenum
 {
     GL_CONTEXT_LOST                                         = 0x0507,
     GL_NEGATIVE_ONE_TO_ONE                                  = 0x935E,
@@ -3033,133 +3045,133 @@ enum
     GL_CONTEXT_RELEASE_BEHAVIOR                             = 0x82FB,
     GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH                       = 0x82FC,
 };
-extern void         (* const& glClipControl) (GLenum origin, GLenum depth);
-extern void         (* const& glCreateTransformFeedbacks) (GLsizei n, GLuint *ids);
-extern void         (* const& glTransformFeedbackBufferBase) (GLuint xfb, GLuint index, GLuint buffer);
-extern void         (* const& glTransformFeedbackBufferRange) (GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-extern void         (* const& glGetTransformFeedbackiv) (GLuint xfb, GLenum pname, GLint *param);
-extern void         (* const& glGetTransformFeedbacki_v) (GLuint xfb, GLenum pname, GLuint index, GLint *param);
-extern void         (* const& glGetTransformFeedbacki64_v) (GLuint xfb, GLenum pname, GLuint index, GLint64 *param);
-extern void         (* const& glCreateBuffers) (GLsizei n, GLuint *buffers);
-extern void         (* const& glNamedBufferStorage) (GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags);
-extern void         (* const& glNamedBufferData) (GLuint buffer, GLsizeiptr size, const void *data, GLenum usage);
-extern void         (* const& glNamedBufferSubData) (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
-extern void         (* const& glCopyNamedBufferSubData) (GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
-extern void         (* const& glClearNamedBufferData) (GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data);
-extern void         (* const& glClearNamedBufferSubData) (GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
-extern void *       (* const& glMapNamedBuffer) (GLuint buffer, GLenum access);
-extern void *       (* const& glMapNamedBufferRange) (GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
-extern GLboolean    (* const& glUnmapNamedBuffer) (GLuint buffer);
-extern void         (* const& glFlushMappedNamedBufferRange) (GLuint buffer, GLintptr offset, GLsizeiptr length);
-extern void         (* const& glGetNamedBufferParameteriv) (GLuint buffer, GLenum pname, GLint *params);
-extern void         (* const& glGetNamedBufferParameteri64v) (GLuint buffer, GLenum pname, GLint64 *params);
-extern void         (* const& glGetNamedBufferPointerv) (GLuint buffer, GLenum pname, void **params);
-extern void         (* const& glGetNamedBufferSubData) (GLuint buffer, GLintptr offset, GLsizeiptr size, void *data);
-extern void         (* const& glCreateFramebuffers) (GLsizei n, GLuint *framebuffers);
-extern void         (* const& glNamedFramebufferRenderbuffer) (GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-extern void         (* const& glNamedFramebufferParameteri) (GLuint framebuffer, GLenum pname, GLint param);
-extern void         (* const& glNamedFramebufferTexture) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
-extern void         (* const& glNamedFramebufferTextureLayer) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
-extern void         (* const& glNamedFramebufferDrawBuffer) (GLuint framebuffer, GLenum buf);
-extern void         (* const& glNamedFramebufferDrawBuffers) (GLuint framebuffer, GLsizei n, const GLenum *bufs);
-extern void         (* const& glNamedFramebufferReadBuffer) (GLuint framebuffer, GLenum src);
-extern void         (* const& glInvalidateNamedFramebufferData) (GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments);
-extern void         (* const& glInvalidateNamedFramebufferSubData) (GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glClearNamedFramebufferiv) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value);
-extern void         (* const& glClearNamedFramebufferuiv) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value);
-extern void         (* const& glClearNamedFramebufferfv) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value);
-extern void         (* const& glClearNamedFramebufferfi) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
-extern void         (* const& glBlitNamedFramebuffer) (GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-extern GLenum       (* const& glCheckNamedFramebufferStatus) (GLuint framebuffer, GLenum target);
-extern void         (* const& glGetNamedFramebufferParameteriv) (GLuint framebuffer, GLenum pname, GLint *param);
-extern void         (* const& glGetNamedFramebufferAttachmentParameteriv) (GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params);
-extern void         (* const& glCreateRenderbuffers) (GLsizei n, GLuint *renderbuffers);
-extern void         (* const& glNamedRenderbufferStorage) (GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glNamedRenderbufferStorageMultisample) (GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glGetNamedRenderbufferParameteriv) (GLuint renderbuffer, GLenum pname, GLint *params);
-extern void         (* const& glCreateTextures) (GLenum target, GLsizei n, GLuint *textures);
-extern void         (* const& glTextureBuffer) (GLuint texture, GLenum internalformat, GLuint buffer);
-extern void         (* const& glTextureBufferRange) (GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
-extern void         (* const& glTextureStorage1D) (GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
-extern void         (* const& glTextureStorage2D) (GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glTextureStorage3D) (GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-extern void         (* const& glTextureStorage2DMultisample) (GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-extern void         (* const& glTextureStorage3DMultisample) (GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-extern void         (* const& glTextureSubImage1D) (GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTextureSubImage2D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTextureSubImage3D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glCompressedTextureSubImage1D) (GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTextureSubImage2D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTextureSubImage3D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glCopyTextureSubImage1D) (GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-extern void         (* const& glCopyTextureSubImage2D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glCopyTextureSubImage3D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glTextureParameterf) (GLuint texture, GLenum pname, GLfloat param);
-extern void         (* const& glTextureParameterfv) (GLuint texture, GLenum pname, const GLfloat *param);
-extern void         (* const& glTextureParameteri) (GLuint texture, GLenum pname, GLint param);
-extern void         (* const& glTextureParameterIiv) (GLuint texture, GLenum pname, const GLint *params);
-extern void         (* const& glTextureParameterIuiv) (GLuint texture, GLenum pname, const GLuint *params);
-extern void         (* const& glTextureParameteriv) (GLuint texture, GLenum pname, const GLint *param);
-extern void         (* const& glGenerateTextureMipmap) (GLuint texture);
-extern void         (* const& glBindTextureUnit) (GLuint unit, GLuint texture);
-extern void         (* const& glGetTextureImage) (GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels);
-extern void         (* const& glGetCompressedTextureImage) (GLuint texture, GLint level, GLsizei bufSize, void *pixels);
-extern void         (* const& glGetTextureLevelParameterfv) (GLuint texture, GLint level, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTextureLevelParameteriv) (GLuint texture, GLint level, GLenum pname, GLint *params);
-extern void         (* const& glGetTextureParameterfv) (GLuint texture, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTextureParameterIiv) (GLuint texture, GLenum pname, GLint *params);
-extern void         (* const& glGetTextureParameterIuiv) (GLuint texture, GLenum pname, GLuint *params);
-extern void         (* const& glGetTextureParameteriv) (GLuint texture, GLenum pname, GLint *params);
-extern void         (* const& glCreateVertexArrays) (GLsizei n, GLuint *arrays);
-extern void         (* const& glDisableVertexArrayAttrib) (GLuint vaobj, GLuint index);
-extern void         (* const& glEnableVertexArrayAttrib) (GLuint vaobj, GLuint index);
-extern void         (* const& glVertexArrayElementBuffer) (GLuint vaobj, GLuint buffer);
-extern void         (* const& glVertexArrayVertexBuffer) (GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
-extern void         (* const& glVertexArrayVertexBuffers) (GLuint vaobj, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides);
-extern void         (* const& glVertexArrayAttribBinding) (GLuint vaobj, GLuint attribindex, GLuint bindingindex);
-extern void         (* const& glVertexArrayAttribFormat) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
-extern void         (* const& glVertexArrayAttribIFormat) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-extern void         (* const& glVertexArrayAttribLFormat) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-extern void         (* const& glVertexArrayBindingDivisor) (GLuint vaobj, GLuint bindingindex, GLuint divisor);
-extern void         (* const& glGetVertexArrayiv) (GLuint vaobj, GLenum pname, GLint *param);
-extern void         (* const& glGetVertexArrayIndexediv) (GLuint vaobj, GLuint index, GLenum pname, GLint *param);
-extern void         (* const& glGetVertexArrayIndexed64iv) (GLuint vaobj, GLuint index, GLenum pname, GLint64 *param);
-extern void         (* const& glCreateSamplers) (GLsizei n, GLuint *samplers);
-extern void         (* const& glCreateProgramPipelines) (GLsizei n, GLuint *pipelines);
-extern void         (* const& glCreateQueries) (GLenum target, GLsizei n, GLuint *ids);
-extern void         (* const& glGetQueryBufferObjecti64v) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-extern void         (* const& glGetQueryBufferObjectiv) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-extern void         (* const& glGetQueryBufferObjectui64v) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-extern void         (* const& glGetQueryBufferObjectuiv) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
-extern void         (* const& glMemoryBarrierByRegion) (GLbitfield barriers);
-extern void         (* const& glGetTextureSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void *pixels);
-extern void         (* const& glGetCompressedTextureSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void *pixels);
-extern GLenum       (* const& glGetGraphicsResetStatus) ();
-extern void         (* const& glGetnCompressedTexImage) (GLenum target, GLint lod, GLsizei bufSize, void *pixels);
-extern void         (* const& glGetnTexImage) (GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels);
-extern void         (* const& glGetnUniformdv) (GLuint program, GLint location, GLsizei bufSize, GLdouble *params);
-extern void         (* const& glGetnUniformfv) (GLuint program, GLint location, GLsizei bufSize, GLfloat *params);
-extern void         (* const& glGetnUniformiv) (GLuint program, GLint location, GLsizei bufSize, GLint *params);
-extern void         (* const& glGetnUniformuiv) (GLuint program, GLint location, GLsizei bufSize, GLuint *params);
-extern void         (* const& glReadnPixels) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data);
-extern void         (* const& glGetnMapdv) (GLenum target, GLenum query, GLsizei bufSize, GLdouble *v);
-extern void         (* const& glGetnMapfv) (GLenum target, GLenum query, GLsizei bufSize, GLfloat *v);
-extern void         (* const& glGetnMapiv) (GLenum target, GLenum query, GLsizei bufSize, GLint *v);
-extern void         (* const& glGetnPixelMapfv) (GLenum map, GLsizei bufSize, GLfloat *values);
-extern void         (* const& glGetnPixelMapuiv) (GLenum map, GLsizei bufSize, GLuint *values);
-extern void         (* const& glGetnPixelMapusv) (GLenum map, GLsizei bufSize, GLushort *values);
-extern void         (* const& glGetnPolygonStipple) (GLsizei bufSize, GLubyte *pattern);
-extern void         (* const& glGetnColorTable) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table);
-extern void         (* const& glGetnConvolutionFilter) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image);
-extern void         (* const& glGetnSeparableFilter) (GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row, GLsizei columnBufSize, void *column, void *span);
-extern void         (* const& glGetnHistogram) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
-extern void         (* const& glGetnMinmax) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
-extern void         (* const& glTextureBarrier) ();
+extern void         (KHRONOS_APIENTRY* const& glClipControl) (GLenum origin, GLenum depth);
+extern void         (KHRONOS_APIENTRY* const& glCreateTransformFeedbacks) (GLsizei n, GLuint *ids);
+extern void         (KHRONOS_APIENTRY* const& glTransformFeedbackBufferBase) (GLuint xfb, GLuint index, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTransformFeedbackBufferRange) (GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glGetTransformFeedbackiv) (GLuint xfb, GLenum pname, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetTransformFeedbacki_v) (GLuint xfb, GLenum pname, GLuint index, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetTransformFeedbacki64_v) (GLuint xfb, GLenum pname, GLuint index, GLint64 *param);
+extern void         (KHRONOS_APIENTRY* const& glCreateBuffers) (GLsizei n, GLuint *buffers);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferStorage) (GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferData) (GLuint buffer, GLsizeiptr size, const void *data, GLenum usage);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferSubData) (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCopyNamedBufferSubData) (GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedBufferData) (GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedBufferSubData) (GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
+extern void *       (KHRONOS_APIENTRY* const& glMapNamedBuffer) (GLuint buffer, GLenum access);
+extern void *       (KHRONOS_APIENTRY* const& glMapNamedBufferRange) (GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+extern GLboolean    (KHRONOS_APIENTRY* const& glUnmapNamedBuffer) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glFlushMappedNamedBufferRange) (GLuint buffer, GLintptr offset, GLsizeiptr length);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferParameteriv) (GLuint buffer, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferParameteri64v) (GLuint buffer, GLenum pname, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferPointerv) (GLuint buffer, GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferSubData) (GLuint buffer, GLintptr offset, GLsizeiptr size, void *data);
+extern void         (KHRONOS_APIENTRY* const& glCreateFramebuffers) (GLsizei n, GLuint *framebuffers);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferRenderbuffer) (GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferParameteri) (GLuint framebuffer, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTexture) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTextureLayer) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferDrawBuffer) (GLuint framebuffer, GLenum buf);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferDrawBuffers) (GLuint framebuffer, GLsizei n, const GLenum *bufs);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferReadBuffer) (GLuint framebuffer, GLenum src);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateNamedFramebufferData) (GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments);
+extern void         (KHRONOS_APIENTRY* const& glInvalidateNamedFramebufferSubData) (GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedFramebufferiv) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedFramebufferuiv) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedFramebufferfv) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedFramebufferfi) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
+extern void         (KHRONOS_APIENTRY* const& glBlitNamedFramebuffer) (GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+extern GLenum       (KHRONOS_APIENTRY* const& glCheckNamedFramebufferStatus) (GLuint framebuffer, GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedFramebufferParameteriv) (GLuint framebuffer, GLenum pname, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedFramebufferAttachmentParameteriv) (GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCreateRenderbuffers) (GLsizei n, GLuint *renderbuffers);
+extern void         (KHRONOS_APIENTRY* const& glNamedRenderbufferStorage) (GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glNamedRenderbufferStorageMultisample) (GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedRenderbufferParameteriv) (GLuint renderbuffer, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCreateTextures) (GLenum target, GLsizei n, GLuint *textures);
+extern void         (KHRONOS_APIENTRY* const& glTextureBuffer) (GLuint texture, GLenum internalformat, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTextureBufferRange) (GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage1D) (GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage2D) (GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage3D) (GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage2DMultisample) (GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage3DMultisample) (GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureSubImage1D) (GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTextureSubImage2D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTextureSubImage3D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureSubImage1D) (GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureSubImage2D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureSubImage3D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureSubImage1D) (GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureSubImage2D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureSubImage3D) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterf) (GLuint texture, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterfv) (GLuint texture, GLenum pname, const GLfloat *param);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameteri) (GLuint texture, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterIiv) (GLuint texture, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterIuiv) (GLuint texture, GLenum pname, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameteriv) (GLuint texture, GLenum pname, const GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGenerateTextureMipmap) (GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glBindTextureUnit) (GLuint unit, GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureImage) (GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetCompressedTextureImage) (GLuint texture, GLint level, GLsizei bufSize, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureLevelParameterfv) (GLuint texture, GLint level, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureLevelParameteriv) (GLuint texture, GLint level, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameterfv) (GLuint texture, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameterIiv) (GLuint texture, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameterIuiv) (GLuint texture, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameteriv) (GLuint texture, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCreateVertexArrays) (GLsizei n, GLuint *arrays);
+extern void         (KHRONOS_APIENTRY* const& glDisableVertexArrayAttrib) (GLuint vaobj, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glEnableVertexArrayAttrib) (GLuint vaobj, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayElementBuffer) (GLuint vaobj, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexBuffer) (GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexBuffers) (GLuint vaobj, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayAttribBinding) (GLuint vaobj, GLuint attribindex, GLuint bindingindex);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayAttribFormat) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayAttribIFormat) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayAttribLFormat) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayBindingDivisor) (GLuint vaobj, GLuint bindingindex, GLuint divisor);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexArrayiv) (GLuint vaobj, GLenum pname, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexArrayIndexediv) (GLuint vaobj, GLuint index, GLenum pname, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexArrayIndexed64iv) (GLuint vaobj, GLuint index, GLenum pname, GLint64 *param);
+extern void         (KHRONOS_APIENTRY* const& glCreateSamplers) (GLsizei n, GLuint *samplers);
+extern void         (KHRONOS_APIENTRY* const& glCreateProgramPipelines) (GLsizei n, GLuint *pipelines);
+extern void         (KHRONOS_APIENTRY* const& glCreateQueries) (GLenum target, GLsizei n, GLuint *ids);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryBufferObjecti64v) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryBufferObjectiv) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryBufferObjectui64v) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryBufferObjectuiv) (GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glMemoryBarrierByRegion) (GLbitfield barriers);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetCompressedTextureSubImage) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void *pixels);
+extern GLenum       (KHRONOS_APIENTRY* const& glGetGraphicsResetStatus) ();
+extern void         (KHRONOS_APIENTRY* const& glGetnCompressedTexImage) (GLenum target, GLint lod, GLsizei bufSize, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetnTexImage) (GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformdv) (GLuint program, GLint location, GLsizei bufSize, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformfv) (GLuint program, GLint location, GLsizei bufSize, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformiv) (GLuint program, GLint location, GLsizei bufSize, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformuiv) (GLuint program, GLint location, GLsizei bufSize, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glReadnPixels) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetnMapdv) (GLenum target, GLenum query, GLsizei bufSize, GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glGetnMapfv) (GLenum target, GLenum query, GLsizei bufSize, GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glGetnMapiv) (GLenum target, GLenum query, GLsizei bufSize, GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glGetnPixelMapfv) (GLenum map, GLsizei bufSize, GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnPixelMapuiv) (GLenum map, GLsizei bufSize, GLuint *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnPixelMapusv) (GLenum map, GLsizei bufSize, GLushort *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnPolygonStipple) (GLsizei bufSize, GLubyte *pattern);
+extern void         (KHRONOS_APIENTRY* const& glGetnColorTable) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table);
+extern void         (KHRONOS_APIENTRY* const& glGetnConvolutionFilter) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image);
+extern void         (KHRONOS_APIENTRY* const& glGetnSeparableFilter) (GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row, GLsizei columnBufSize, void *column, void *span);
+extern void         (KHRONOS_APIENTRY* const& glGetnHistogram) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnMinmax) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
+extern void         (KHRONOS_APIENTRY* const& glTextureBarrier) ();
 #endif
 
 #ifndef GL_VERSION_4_6
 #define GL_VERSION_4_6 1
-enum
+enum : GLenum
 {
     GL_SHADER_BINARY_FORMAT_SPIR_V                          = 0x9551,
     GL_SPIR_V_BINARY                                        = 0x9552,
@@ -3184,15 +3196,15 @@ enum
     GL_TRANSFORM_FEEDBACK_OVERFLOW                          = 0x82EC,
     GL_TRANSFORM_FEEDBACK_STREAM_OVERFLOW                   = 0x82ED,
 };
-extern void         (* const& glSpecializeShader) (GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue);
-extern void         (* const& glMultiDrawArraysIndirectCount) (GLenum mode, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
-extern void         (* const& glMultiDrawElementsIndirectCount) (GLenum mode, GLenum type, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
-extern void         (* const& glPolygonOffsetClamp) (GLfloat factor, GLfloat units, GLfloat clamp);
+extern void         (KHRONOS_APIENTRY* const& glSpecializeShader) (GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArraysIndirectCount) (GLenum mode, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsIndirectCount) (GLenum mode, GLenum type, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glPolygonOffsetClamp) (GLfloat factor, GLfloat units, GLfloat clamp);
 #endif
 
 #ifndef GL_3DFX_multisample
 #define GL_3DFX_multisample 1
-enum
+enum : GLenum
 {
     GL_MULTISAMPLE_3DFX                                     = 0x86B2,
     GL_SAMPLE_BUFFERS_3DFX                                  = 0x86B3,
@@ -3203,12 +3215,12 @@ enum
 
 #ifndef GL_3DFX_tbuffer
 #define GL_3DFX_tbuffer 1
-extern void         (* const& glTbufferMask3DFX) (GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glTbufferMask3DFX) (GLuint mask);
 #endif
 
 #ifndef GL_3DFX_texture_compression_FXT1
 #define GL_3DFX_texture_compression_FXT1 1
-enum
+enum : GLenum
 {
     GL_COMPRESSED_RGB_FXT1_3DFX                             = 0x86B0,
     GL_COMPRESSED_RGBA_FXT1_3DFX                            = 0x86B1,
@@ -3217,7 +3229,7 @@ enum
 
 #ifndef GL_AMD_blend_minmax_factor
 #define GL_AMD_blend_minmax_factor 1
-enum
+enum : GLenum
 {
     GL_FACTOR_MIN_AMD                                       = 0x901C,
     GL_FACTOR_MAX_AMD                                       = 0x901D,
@@ -3230,7 +3242,7 @@ enum
 
 #ifndef GL_AMD_debug_output
 #define GL_AMD_debug_output 1
-enum
+enum : GLenum
 {
     GL_MAX_DEBUG_MESSAGE_LENGTH_AMD                         = 0x9143,
     GL_MAX_DEBUG_LOGGED_MESSAGES_AMD                        = 0x9144,
@@ -3247,15 +3259,15 @@ enum
     GL_DEBUG_CATEGORY_APPLICATION_AMD                       = 0x914F,
     GL_DEBUG_CATEGORY_OTHER_AMD                             = 0x9150,
 };
-extern void         (* const& glDebugMessageEnableAMD) (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
-extern void         (* const& glDebugMessageInsertAMD) (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
-extern void         (* const& glDebugMessageCallbackAMD) (GLDEBUGPROCAMD callback, void *userParam);
-extern GLuint       (* const& glGetDebugMessageLogAMD) (GLuint count, GLsizei bufSize, GLenum *categories, GLuint *severities, GLuint *ids, GLsizei *lengths, GLchar *message);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageEnableAMD) (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageInsertAMD) (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageCallbackAMD) (GLDEBUGPROCAMD callback, void *userParam);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetDebugMessageLogAMD) (GLuint count, GLsizei bufSize, GLenum *categories, GLuint *severities, GLuint *ids, GLsizei *lengths, GLchar *message);
 #endif
 
 #ifndef GL_AMD_depth_clamp_separate
 #define GL_AMD_depth_clamp_separate 1
-enum
+enum : GLenum
 {
     GL_DEPTH_CLAMP_NEAR_AMD                                 = 0x901E,
     GL_DEPTH_CLAMP_FAR_AMD                                  = 0x901F,
@@ -3264,15 +3276,15 @@ enum
 
 #ifndef GL_AMD_draw_buffers_blend
 #define GL_AMD_draw_buffers_blend 1
-extern void         (* const& glBlendFuncIndexedAMD) (GLuint buf, GLenum src, GLenum dst);
-extern void         (* const& glBlendFuncSeparateIndexedAMD) (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
-extern void         (* const& glBlendEquationIndexedAMD) (GLuint buf, GLenum mode);
-extern void         (* const& glBlendEquationSeparateIndexedAMD) (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendFuncIndexedAMD) (GLuint buf, GLenum src, GLenum dst);
+extern void         (KHRONOS_APIENTRY* const& glBlendFuncSeparateIndexedAMD) (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationIndexedAMD) (GLuint buf, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationSeparateIndexedAMD) (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
 #endif
 
 #ifndef GL_AMD_framebuffer_multisample_advanced
 #define GL_AMD_framebuffer_multisample_advanced 1
-enum
+enum : GLenum
 {
     GL_RENDERBUFFER_STORAGE_SAMPLES_AMD                     = 0x91B2,
     GL_MAX_COLOR_FRAMEBUFFER_SAMPLES_AMD                    = 0x91B3,
@@ -3281,23 +3293,23 @@ enum
     GL_NUM_SUPPORTED_MULTISAMPLE_MODES_AMD                  = 0x91B6,
     GL_SUPPORTED_MULTISAMPLE_MODES_AMD                      = 0x91B7,
 };
-extern void         (* const& glRenderbufferStorageMultisampleAdvancedAMD) (GLenum target, GLsizei samples, GLsizei storageSamples, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glNamedRenderbufferStorageMultisampleAdvancedAMD) (GLuint renderbuffer, GLsizei samples, GLsizei storageSamples, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glRenderbufferStorageMultisampleAdvancedAMD) (GLenum target, GLsizei samples, GLsizei storageSamples, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glNamedRenderbufferStorageMultisampleAdvancedAMD) (GLuint renderbuffer, GLsizei samples, GLsizei storageSamples, GLenum internalformat, GLsizei width, GLsizei height);
 #endif
 
 #ifndef GL_AMD_framebuffer_sample_positions
 #define GL_AMD_framebuffer_sample_positions 1
-enum
+enum : GLenum
 {
     GL_SUBSAMPLE_DISTANCE_AMD                               = 0x883F,
     GL_PIXELS_PER_SAMPLE_PATTERN_X_AMD                      = 0x91AE,
     GL_PIXELS_PER_SAMPLE_PATTERN_Y_AMD                      = 0x91AF,
     GL_ALL_PIXELS_AMD                                       = 0xFFFFFFFF,
 };
-extern void         (* const& glFramebufferSamplePositionsfvAMD) (GLenum target, GLuint numsamples, GLuint pixelindex, const GLfloat *values);
-extern void         (* const& glNamedFramebufferSamplePositionsfvAMD) (GLuint framebuffer, GLuint numsamples, GLuint pixelindex, const GLfloat *values);
-extern void         (* const& glGetFramebufferParameterfvAMD) (GLenum target, GLenum pname, GLuint numsamples, GLuint pixelindex, GLsizei size, GLfloat *values);
-extern void         (* const& glGetNamedFramebufferParameterfvAMD) (GLuint framebuffer, GLenum pname, GLuint numsamples, GLuint pixelindex, GLsizei size, GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferSamplePositionsfvAMD) (GLenum target, GLuint numsamples, GLuint pixelindex, const GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferSamplePositionsfvAMD) (GLuint framebuffer, GLuint numsamples, GLuint pixelindex, const GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glGetFramebufferParameterfvAMD) (GLenum target, GLenum pname, GLuint numsamples, GLuint pixelindex, GLsizei size, GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedFramebufferParameterfvAMD) (GLuint framebuffer, GLenum pname, GLuint numsamples, GLuint pixelindex, GLsizei size, GLfloat *values);
 #endif
 
 #ifndef GL_AMD_gcn_shader
@@ -3306,7 +3318,7 @@ extern void         (* const& glGetNamedFramebufferParameterfvAMD) (GLuint frame
 
 #ifndef GL_AMD_gpu_shader_half_float
 #define GL_AMD_gpu_shader_half_float 1
-enum
+enum : GLenum
 {
     GL_FLOAT16_NV                                           = 0x8FF8,
     GL_FLOAT16_VEC2_NV                                      = 0x8FF9,
@@ -3330,7 +3342,7 @@ enum
 
 #ifndef GL_AMD_gpu_shader_int64
 #define GL_AMD_gpu_shader_int64 1
-enum
+enum : GLenum
 {
     GL_INT64_NV                                             = 0x140E,
     GL_UNSIGNED_INT64_NV                                    = 0x140F,
@@ -3357,61 +3369,61 @@ enum
     GL_UNSIGNED_INT64_VEC3_NV                               = 0x8FF6,
     GL_UNSIGNED_INT64_VEC4_NV                               = 0x8FF7,
 };
-extern void         (* const& glUniform1i64NV) (GLint location, GLint64EXT x);
-extern void         (* const& glUniform2i64NV) (GLint location, GLint64EXT x, GLint64EXT y);
-extern void         (* const& glUniform3i64NV) (GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z);
-extern void         (* const& glUniform4i64NV) (GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z, GLint64EXT w);
-extern void         (* const& glUniform1i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glUniform2i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glUniform3i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glUniform4i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glUniform1ui64NV) (GLint location, GLuint64EXT x);
-extern void         (* const& glUniform2ui64NV) (GLint location, GLuint64EXT x, GLuint64EXT y);
-extern void         (* const& glUniform3ui64NV) (GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z);
-extern void         (* const& glUniform4ui64NV) (GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z, GLuint64EXT w);
-extern void         (* const& glUniform1ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glUniform2ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glUniform3ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glUniform4ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glGetUniformi64vNV) (GLuint program, GLint location, GLint64EXT *params);
-extern void         (* const& glGetUniformui64vNV) (GLuint program, GLint location, GLuint64EXT *params);
-extern void         (* const& glProgramUniform1i64NV) (GLuint program, GLint location, GLint64EXT x);
-extern void         (* const& glProgramUniform2i64NV) (GLuint program, GLint location, GLint64EXT x, GLint64EXT y);
-extern void         (* const& glProgramUniform3i64NV) (GLuint program, GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z);
-extern void         (* const& glProgramUniform4i64NV) (GLuint program, GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z, GLint64EXT w);
-extern void         (* const& glProgramUniform1i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glProgramUniform2i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glProgramUniform3i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glProgramUniform4i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
-extern void         (* const& glProgramUniform1ui64NV) (GLuint program, GLint location, GLuint64EXT x);
-extern void         (* const& glProgramUniform2ui64NV) (GLuint program, GLint location, GLuint64EXT x, GLuint64EXT y);
-extern void         (* const& glProgramUniform3ui64NV) (GLuint program, GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z);
-extern void         (* const& glProgramUniform4ui64NV) (GLuint program, GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z, GLuint64EXT w);
-extern void         (* const& glProgramUniform1ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glProgramUniform2ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glProgramUniform3ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glProgramUniform4ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform1i64NV) (GLint location, GLint64EXT x);
+extern void         (KHRONOS_APIENTRY* const& glUniform2i64NV) (GLint location, GLint64EXT x, GLint64EXT y);
+extern void         (KHRONOS_APIENTRY* const& glUniform3i64NV) (GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z);
+extern void         (KHRONOS_APIENTRY* const& glUniform4i64NV) (GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z, GLint64EXT w);
+extern void         (KHRONOS_APIENTRY* const& glUniform1i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4i64vNV) (GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform1ui64NV) (GLint location, GLuint64EXT x);
+extern void         (KHRONOS_APIENTRY* const& glUniform2ui64NV) (GLint location, GLuint64EXT x, GLuint64EXT y);
+extern void         (KHRONOS_APIENTRY* const& glUniform3ui64NV) (GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z);
+extern void         (KHRONOS_APIENTRY* const& glUniform4ui64NV) (GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z, GLuint64EXT w);
+extern void         (KHRONOS_APIENTRY* const& glUniform1ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4ui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformi64vNV) (GLuint program, GLint location, GLint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformui64vNV) (GLuint program, GLint location, GLuint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1i64NV) (GLuint program, GLint location, GLint64EXT x);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2i64NV) (GLuint program, GLint location, GLint64EXT x, GLint64EXT y);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3i64NV) (GLuint program, GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4i64NV) (GLuint program, GLint location, GLint64EXT x, GLint64EXT y, GLint64EXT z, GLint64EXT w);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4i64vNV) (GLuint program, GLint location, GLsizei count, const GLint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1ui64NV) (GLuint program, GLint location, GLuint64EXT x);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2ui64NV) (GLuint program, GLint location, GLuint64EXT x, GLuint64EXT y);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3ui64NV) (GLuint program, GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4ui64NV) (GLuint program, GLint location, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z, GLuint64EXT w);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4ui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
 #endif
 
 #ifndef GL_AMD_interleaved_elements
 #define GL_AMD_interleaved_elements 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ELEMENT_SWIZZLE_AMD                           = 0x91A4,
     GL_VERTEX_ID_SWIZZLE_AMD                                = 0x91A5,
 };
-extern void         (* const& glVertexAttribParameteriAMD) (GLuint index, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribParameteriAMD) (GLuint index, GLenum pname, GLint param);
 #endif
 
 #ifndef GL_AMD_multi_draw_indirect
 #define GL_AMD_multi_draw_indirect 1
-extern void         (* const& glMultiDrawArraysIndirectAMD) (GLenum mode, const void *indirect, GLsizei primcount, GLsizei stride);
-extern void         (* const& glMultiDrawElementsIndirectAMD) (GLenum mode, GLenum type, const void *indirect, GLsizei primcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArraysIndirectAMD) (GLenum mode, const void *indirect, GLsizei primcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsIndirectAMD) (GLenum mode, GLenum type, const void *indirect, GLsizei primcount, GLsizei stride);
 #endif
 
 #ifndef GL_AMD_name_gen_delete
 #define GL_AMD_name_gen_delete 1
-enum
+enum : GLenum
 {
     GL_DATA_BUFFER_AMD                                      = 0x9151,
     GL_PERFORMANCE_MONITOR_AMD                              = 0x9152,
@@ -3419,14 +3431,14 @@ enum
     GL_VERTEX_ARRAY_OBJECT_AMD                              = 0x9154,
     GL_SAMPLER_OBJECT_AMD                                   = 0x9155,
 };
-extern void         (* const& glGenNamesAMD) (GLenum identifier, GLuint num, GLuint *names);
-extern void         (* const& glDeleteNamesAMD) (GLenum identifier, GLuint num, const GLuint *names);
-extern GLboolean    (* const& glIsNameAMD) (GLenum identifier, GLuint name);
+extern void         (KHRONOS_APIENTRY* const& glGenNamesAMD) (GLenum identifier, GLuint num, GLuint *names);
+extern void         (KHRONOS_APIENTRY* const& glDeleteNamesAMD) (GLenum identifier, GLuint num, const GLuint *names);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsNameAMD) (GLenum identifier, GLuint name);
 #endif
 
 #ifndef GL_AMD_occlusion_query_event
 #define GL_AMD_occlusion_query_event 1
-enum
+enum : GLenum
 {
     GL_OCCLUSION_QUERY_EVENT_MASK_AMD                       = 0x874F,
     GL_QUERY_DEPTH_PASS_EVENT_BIT_AMD                       = 0x00000001,
@@ -3435,12 +3447,12 @@ enum
     GL_QUERY_DEPTH_BOUNDS_FAIL_EVENT_BIT_AMD                = 0x00000008,
     GL_QUERY_ALL_EVENT_BITS_AMD                             = 0xFFFFFFFF,
 };
-extern void         (* const& glQueryObjectParameteruiAMD) (GLenum target, GLuint id, GLenum pname, GLuint param);
+extern void         (KHRONOS_APIENTRY* const& glQueryObjectParameteruiAMD) (GLenum target, GLuint id, GLenum pname, GLuint param);
 #endif
 
 #ifndef GL_AMD_performance_monitor
 #define GL_AMD_performance_monitor 1
-enum
+enum : GLenum
 {
     GL_COUNTER_TYPE_AMD                                     = 0x8BC0,
     GL_COUNTER_RANGE_AMD                                    = 0x8BC1,
@@ -3450,22 +3462,22 @@ enum
     GL_PERFMON_RESULT_SIZE_AMD                              = 0x8BC5,
     GL_PERFMON_RESULT_AMD                                   = 0x8BC6,
 };
-extern void         (* const& glGetPerfMonitorGroupsAMD) (GLint *numGroups, GLsizei groupsSize, GLuint *groups);
-extern void         (* const& glGetPerfMonitorCountersAMD) (GLuint group, GLint *numCounters, GLint *maxActiveCounters, GLsizei counterSize, GLuint *counters);
-extern void         (* const& glGetPerfMonitorGroupStringAMD) (GLuint group, GLsizei bufSize, GLsizei *length, GLchar *groupString);
-extern void         (* const& glGetPerfMonitorCounterStringAMD) (GLuint group, GLuint counter, GLsizei bufSize, GLsizei *length, GLchar *counterString);
-extern void         (* const& glGetPerfMonitorCounterInfoAMD) (GLuint group, GLuint counter, GLenum pname, void *data);
-extern void         (* const& glGenPerfMonitorsAMD) (GLsizei n, GLuint *monitors);
-extern void         (* const& glDeletePerfMonitorsAMD) (GLsizei n, GLuint *monitors);
-extern void         (* const& glSelectPerfMonitorCountersAMD) (GLuint monitor, GLboolean enable, GLuint group, GLint numCounters, GLuint *counterList);
-extern void         (* const& glBeginPerfMonitorAMD) (GLuint monitor);
-extern void         (* const& glEndPerfMonitorAMD) (GLuint monitor);
-extern void         (* const& glGetPerfMonitorCounterDataAMD) (GLuint monitor, GLenum pname, GLsizei dataSize, GLuint *data, GLint *bytesWritten);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfMonitorGroupsAMD) (GLint *numGroups, GLsizei groupsSize, GLuint *groups);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfMonitorCountersAMD) (GLuint group, GLint *numCounters, GLint *maxActiveCounters, GLsizei counterSize, GLuint *counters);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfMonitorGroupStringAMD) (GLuint group, GLsizei bufSize, GLsizei *length, GLchar *groupString);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfMonitorCounterStringAMD) (GLuint group, GLuint counter, GLsizei bufSize, GLsizei *length, GLchar *counterString);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfMonitorCounterInfoAMD) (GLuint group, GLuint counter, GLenum pname, void *data);
+extern void         (KHRONOS_APIENTRY* const& glGenPerfMonitorsAMD) (GLsizei n, GLuint *monitors);
+extern void         (KHRONOS_APIENTRY* const& glDeletePerfMonitorsAMD) (GLsizei n, GLuint *monitors);
+extern void         (KHRONOS_APIENTRY* const& glSelectPerfMonitorCountersAMD) (GLuint monitor, GLboolean enable, GLuint group, GLint numCounters, GLuint *counterList);
+extern void         (KHRONOS_APIENTRY* const& glBeginPerfMonitorAMD) (GLuint monitor);
+extern void         (KHRONOS_APIENTRY* const& glEndPerfMonitorAMD) (GLuint monitor);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfMonitorCounterDataAMD) (GLuint monitor, GLenum pname, GLsizei dataSize, GLuint *data, GLint *bytesWritten);
 #endif
 
 #ifndef GL_AMD_pinned_memory
 #define GL_AMD_pinned_memory 1
-enum
+enum : GLenum
 {
     GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD                   = 0x9160,
 };
@@ -3473,7 +3485,7 @@ enum
 
 #ifndef GL_AMD_query_buffer_object
 #define GL_AMD_query_buffer_object 1
-enum
+enum : GLenum
 {
     GL_QUERY_BUFFER_AMD                                     = 0x9192,
     GL_QUERY_BUFFER_BINDING_AMD                             = 0x9193,
@@ -3483,7 +3495,7 @@ enum
 
 #ifndef GL_AMD_sample_positions
 #define GL_AMD_sample_positions 1
-extern void         (* const& glSetMultisamplefvAMD) (GLenum pname, GLuint index, const GLfloat *val);
+extern void         (KHRONOS_APIENTRY* const& glSetMultisamplefvAMD) (GLenum pname, GLuint index, const GLfloat *val);
 #endif
 
 #ifndef GL_AMD_seamless_cubemap_per_texture
@@ -3520,7 +3532,7 @@ extern void         (* const& glSetMultisamplefvAMD) (GLenum pname, GLuint index
 
 #ifndef GL_AMD_sparse_texture
 #define GL_AMD_sparse_texture 1
-enum
+enum : GLenum
 {
     GL_VIRTUAL_PAGE_SIZE_X_AMD                              = 0x9195,
     GL_VIRTUAL_PAGE_SIZE_Y_AMD                              = 0x9196,
@@ -3532,20 +3544,20 @@ enum
     GL_MIN_LOD_WARNING_AMD                                  = 0x919C,
     GL_TEXTURE_STORAGE_SPARSE_BIT_AMD                       = 0x00000001,
 };
-extern void         (* const& glTexStorageSparseAMD) (GLenum target, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLsizei layers, GLbitfield flags);
-extern void         (* const& glTextureStorageSparseAMD) (GLuint texture, GLenum target, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLsizei layers, GLbitfield flags);
+extern void         (KHRONOS_APIENTRY* const& glTexStorageSparseAMD) (GLenum target, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLsizei layers, GLbitfield flags);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorageSparseAMD) (GLuint texture, GLenum target, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLsizei layers, GLbitfield flags);
 #endif
 
 #ifndef GL_AMD_stencil_operation_extended
 #define GL_AMD_stencil_operation_extended 1
-enum
+enum : GLenum
 {
     GL_SET_AMD                                              = 0x874A,
     GL_REPLACE_VALUE_AMD                                    = 0x874B,
     GL_STENCIL_OP_VALUE_AMD                                 = 0x874C,
     GL_STENCIL_BACK_OP_VALUE_AMD                            = 0x874D,
 };
-extern void         (* const& glStencilOpValueAMD) (GLenum face, GLuint value);
+extern void         (KHRONOS_APIENTRY* const& glStencilOpValueAMD) (GLenum face, GLuint value);
 #endif
 
 #ifndef GL_AMD_texture_gather_bias_lod
@@ -3562,7 +3574,7 @@ extern void         (* const& glStencilOpValueAMD) (GLenum face, GLuint value);
 
 #ifndef GL_AMD_transform_feedback4
 #define GL_AMD_transform_feedback4 1
-enum
+enum : GLenum
 {
     GL_STREAM_RASTERIZATION_AMD                             = 0x91A0,
 };
@@ -3574,7 +3586,7 @@ enum
 
 #ifndef GL_AMD_vertex_shader_tessellator
 #define GL_AMD_vertex_shader_tessellator 1
-enum
+enum : GLenum
 {
     GL_SAMPLER_BUFFER_AMD                                   = 0x9001,
     GL_INT_SAMPLER_BUFFER_AMD                               = 0x9002,
@@ -3584,8 +3596,8 @@ enum
     GL_DISCRETE_AMD                                         = 0x9006,
     GL_CONTINUOUS_AMD                                       = 0x9007,
 };
-extern void         (* const& glTessellationFactorAMD) (GLfloat factor);
-extern void         (* const& glTessellationModeAMD) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glTessellationFactorAMD) (GLfloat factor);
+extern void         (KHRONOS_APIENTRY* const& glTessellationModeAMD) (GLenum mode);
 #endif
 
 #ifndef GL_AMD_vertex_shader_viewport_index
@@ -3594,7 +3606,7 @@ extern void         (* const& glTessellationModeAMD) (GLenum mode);
 
 #ifndef GL_APPLE_aux_depth_stencil
 #define GL_APPLE_aux_depth_stencil 1
-enum
+enum : GLenum
 {
     GL_AUX_DEPTH_STENCIL_APPLE                              = 0x8A14,
 };
@@ -3602,7 +3614,7 @@ enum
 
 #ifndef GL_APPLE_client_storage
 #define GL_APPLE_client_storage 1
-enum
+enum : GLenum
 {
     GL_UNPACK_CLIENT_STORAGE_APPLE                          = 0x85B2,
 };
@@ -3610,39 +3622,39 @@ enum
 
 #ifndef GL_APPLE_element_array
 #define GL_APPLE_element_array 1
-enum
+enum : GLenum
 {
     GL_ELEMENT_ARRAY_APPLE                                  = 0x8A0C,
     GL_ELEMENT_ARRAY_TYPE_APPLE                             = 0x8A0D,
     GL_ELEMENT_ARRAY_POINTER_APPLE                          = 0x8A0E,
 };
-extern void         (* const& glElementPointerAPPLE) (GLenum type, const void *pointer);
-extern void         (* const& glDrawElementArrayAPPLE) (GLenum mode, GLint first, GLsizei count);
-extern void         (* const& glDrawRangeElementArrayAPPLE) (GLenum mode, GLuint start, GLuint end, GLint first, GLsizei count);
-extern void         (* const& glMultiDrawElementArrayAPPLE) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount);
-extern void         (* const& glMultiDrawRangeElementArrayAPPLE) (GLenum mode, GLuint start, GLuint end, const GLint *first, const GLsizei *count, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glElementPointerAPPLE) (GLenum type, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementArrayAPPLE) (GLenum mode, GLint first, GLsizei count);
+extern void         (KHRONOS_APIENTRY* const& glDrawRangeElementArrayAPPLE) (GLenum mode, GLuint start, GLuint end, GLint first, GLsizei count);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementArrayAPPLE) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawRangeElementArrayAPPLE) (GLenum mode, GLuint start, GLuint end, const GLint *first, const GLsizei *count, GLsizei primcount);
 #endif
 
 #ifndef GL_APPLE_fence
 #define GL_APPLE_fence 1
-enum
+enum : GLenum
 {
     GL_DRAW_PIXELS_APPLE                                    = 0x8A0A,
     GL_FENCE_APPLE                                          = 0x8A0B,
 };
-extern void         (* const& glGenFencesAPPLE) (GLsizei n, GLuint *fences);
-extern void         (* const& glDeleteFencesAPPLE) (GLsizei n, const GLuint *fences);
-extern void         (* const& glSetFenceAPPLE) (GLuint fence);
-extern GLboolean    (* const& glIsFenceAPPLE) (GLuint fence);
-extern GLboolean    (* const& glTestFenceAPPLE) (GLuint fence);
-extern void         (* const& glFinishFenceAPPLE) (GLuint fence);
-extern GLboolean    (* const& glTestObjectAPPLE) (GLenum object, GLuint name);
-extern void         (* const& glFinishObjectAPPLE) (GLenum object, GLint name);
+extern void         (KHRONOS_APIENTRY* const& glGenFencesAPPLE) (GLsizei n, GLuint *fences);
+extern void         (KHRONOS_APIENTRY* const& glDeleteFencesAPPLE) (GLsizei n, const GLuint *fences);
+extern void         (KHRONOS_APIENTRY* const& glSetFenceAPPLE) (GLuint fence);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsFenceAPPLE) (GLuint fence);
+extern GLboolean    (KHRONOS_APIENTRY* const& glTestFenceAPPLE) (GLuint fence);
+extern void         (KHRONOS_APIENTRY* const& glFinishFenceAPPLE) (GLuint fence);
+extern GLboolean    (KHRONOS_APIENTRY* const& glTestObjectAPPLE) (GLenum object, GLuint name);
+extern void         (KHRONOS_APIENTRY* const& glFinishObjectAPPLE) (GLenum object, GLint name);
 #endif
 
 #ifndef GL_APPLE_float_pixels
 #define GL_APPLE_float_pixels 1
-enum
+enum : GLenum
 {
     GL_HALF_APPLE                                           = 0x140B,
     GL_RGBA_FLOAT32_APPLE                                   = 0x8814,
@@ -3663,18 +3675,18 @@ enum
 
 #ifndef GL_APPLE_flush_buffer_range
 #define GL_APPLE_flush_buffer_range 1
-enum
+enum : GLenum
 {
     GL_BUFFER_SERIALIZED_MODIFY_APPLE                       = 0x8A12,
     GL_BUFFER_FLUSHING_UNMAP_APPLE                          = 0x8A13,
 };
-extern void         (* const& glBufferParameteriAPPLE) (GLenum target, GLenum pname, GLint param);
-extern void         (* const& glFlushMappedBufferRangeAPPLE) (GLenum target, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glBufferParameteriAPPLE) (GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glFlushMappedBufferRangeAPPLE) (GLenum target, GLintptr offset, GLsizeiptr size);
 #endif
 
 #ifndef GL_APPLE_object_purgeable
 #define GL_APPLE_object_purgeable 1
-enum
+enum : GLenum
 {
     GL_BUFFER_OBJECT_APPLE                                  = 0x85B3,
     GL_RELEASED_APPLE                                       = 0x8A19,
@@ -3683,14 +3695,14 @@ enum
     GL_UNDEFINED_APPLE                                      = 0x8A1C,
     GL_PURGEABLE_APPLE                                      = 0x8A1D,
 };
-extern GLenum       (* const& glObjectPurgeableAPPLE) (GLenum objectType, GLuint name, GLenum option);
-extern GLenum       (* const& glObjectUnpurgeableAPPLE) (GLenum objectType, GLuint name, GLenum option);
-extern void         (* const& glGetObjectParameterivAPPLE) (GLenum objectType, GLuint name, GLenum pname, GLint *params);
+extern GLenum       (KHRONOS_APIENTRY* const& glObjectPurgeableAPPLE) (GLenum objectType, GLuint name, GLenum option);
+extern GLenum       (KHRONOS_APIENTRY* const& glObjectUnpurgeableAPPLE) (GLenum objectType, GLuint name, GLenum option);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectParameterivAPPLE) (GLenum objectType, GLuint name, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_APPLE_rgb_422
 #define GL_APPLE_rgb_422 1
-enum
+enum : GLenum
 {
     GL_RGB_422_APPLE                                        = 0x8A1F,
     GL_UNSIGNED_SHORT_8_8_APPLE                             = 0x85BA,
@@ -3701,7 +3713,7 @@ enum
 
 #ifndef GL_APPLE_row_bytes
 #define GL_APPLE_row_bytes 1
-enum
+enum : GLenum
 {
     GL_PACK_ROW_BYTES_APPLE                                 = 0x8A15,
     GL_UNPACK_ROW_BYTES_APPLE                               = 0x8A16,
@@ -3710,7 +3722,7 @@ enum
 
 #ifndef GL_APPLE_specular_vector
 #define GL_APPLE_specular_vector 1
-enum
+enum : GLenum
 {
     GL_LIGHT_MODEL_SPECULAR_VECTOR_APPLE                    = 0x85B0,
 };
@@ -3718,7 +3730,7 @@ enum
 
 #ifndef GL_APPLE_texture_range
 #define GL_APPLE_texture_range 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_RANGE_LENGTH_APPLE                           = 0x85B7,
     GL_TEXTURE_RANGE_POINTER_APPLE                          = 0x85B8,
@@ -3727,13 +3739,13 @@ enum
     GL_STORAGE_CACHED_APPLE                                 = 0x85BE,
     GL_STORAGE_SHARED_APPLE                                 = 0x85BF,
 };
-extern void         (* const& glTextureRangeAPPLE) (GLenum target, GLsizei length, const void *pointer);
-extern void         (* const& glGetTexParameterPointervAPPLE) (GLenum target, GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glTextureRangeAPPLE) (GLenum target, GLsizei length, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameterPointervAPPLE) (GLenum target, GLenum pname, void **params);
 #endif
 
 #ifndef GL_APPLE_transform_hint
 #define GL_APPLE_transform_hint 1
-enum
+enum : GLenum
 {
     GL_TRANSFORM_HINT_APPLE                                 = 0x85B1,
 };
@@ -3741,19 +3753,19 @@ enum
 
 #ifndef GL_APPLE_vertex_array_object
 #define GL_APPLE_vertex_array_object 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ARRAY_BINDING_APPLE                           = 0x85B5,
 };
-extern void         (* const& glBindVertexArrayAPPLE) (GLuint array);
-extern void         (* const& glDeleteVertexArraysAPPLE) (GLsizei n, const GLuint *arrays);
-extern void         (* const& glGenVertexArraysAPPLE) (GLsizei n, GLuint *arrays);
-extern GLboolean    (* const& glIsVertexArrayAPPLE) (GLuint array);
+extern void         (KHRONOS_APIENTRY* const& glBindVertexArrayAPPLE) (GLuint array);
+extern void         (KHRONOS_APIENTRY* const& glDeleteVertexArraysAPPLE) (GLsizei n, const GLuint *arrays);
+extern void         (KHRONOS_APIENTRY* const& glGenVertexArraysAPPLE) (GLsizei n, GLuint *arrays);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsVertexArrayAPPLE) (GLuint array);
 #endif
 
 #ifndef GL_APPLE_vertex_array_range
 #define GL_APPLE_vertex_array_range 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ARRAY_RANGE_APPLE                             = 0x851D,
     GL_VERTEX_ARRAY_RANGE_LENGTH_APPLE                      = 0x851E,
@@ -3761,14 +3773,14 @@ enum
     GL_VERTEX_ARRAY_RANGE_POINTER_APPLE                     = 0x8521,
     GL_STORAGE_CLIENT_APPLE                                 = 0x85B4,
 };
-extern void         (* const& glVertexArrayRangeAPPLE) (GLsizei length, void *pointer);
-extern void         (* const& glFlushVertexArrayRangeAPPLE) (GLsizei length, void *pointer);
-extern void         (* const& glVertexArrayParameteriAPPLE) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayRangeAPPLE) (GLsizei length, void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glFlushVertexArrayRangeAPPLE) (GLsizei length, void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayParameteriAPPLE) (GLenum pname, GLint param);
 #endif
 
 #ifndef GL_APPLE_vertex_program_evaluators
 #define GL_APPLE_vertex_program_evaluators 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ATTRIB_MAP1_APPLE                             = 0x8A00,
     GL_VERTEX_ATTRIB_MAP2_APPLE                             = 0x8A01,
@@ -3781,18 +3793,18 @@ enum
     GL_VERTEX_ATTRIB_MAP2_ORDER_APPLE                       = 0x8A08,
     GL_VERTEX_ATTRIB_MAP2_DOMAIN_APPLE                      = 0x8A09,
 };
-extern void         (* const& glEnableVertexAttribAPPLE) (GLuint index, GLenum pname);
-extern void         (* const& glDisableVertexAttribAPPLE) (GLuint index, GLenum pname);
-extern GLboolean    (* const& glIsVertexAttribEnabledAPPLE) (GLuint index, GLenum pname);
-extern void         (* const& glMapVertexAttrib1dAPPLE) (GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points);
-extern void         (* const& glMapVertexAttrib1fAPPLE) (GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points);
-extern void         (* const& glMapVertexAttrib2dAPPLE) (GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points);
-extern void         (* const& glMapVertexAttrib2fAPPLE) (GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glEnableVertexAttribAPPLE) (GLuint index, GLenum pname);
+extern void         (KHRONOS_APIENTRY* const& glDisableVertexAttribAPPLE) (GLuint index, GLenum pname);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsVertexAttribEnabledAPPLE) (GLuint index, GLenum pname);
+extern void         (KHRONOS_APIENTRY* const& glMapVertexAttrib1dAPPLE) (GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points);
+extern void         (KHRONOS_APIENTRY* const& glMapVertexAttrib1fAPPLE) (GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glMapVertexAttrib2dAPPLE) (GLuint index, GLuint size, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points);
+extern void         (KHRONOS_APIENTRY* const& glMapVertexAttrib2fAPPLE) (GLuint index, GLuint size, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points);
 #endif
 
 #ifndef GL_APPLE_ycbcr_422
 #define GL_APPLE_ycbcr_422 1
-enum
+enum : GLenum
 {
     GL_YCBCR_422_APPLE                                      = 0x85B9,
 };
@@ -3808,13 +3820,13 @@ enum
 
 #ifndef GL_ARB_ES3_2_compatibility
 #define GL_ARB_ES3_2_compatibility 1
-enum
+enum : GLenum
 {
     GL_PRIMITIVE_BOUNDING_BOX_ARB                           = 0x92BE,
     GL_MULTISAMPLE_LINE_WIDTH_RANGE_ARB                     = 0x9381,
     GL_MULTISAMPLE_LINE_WIDTH_GRANULARITY_ARB               = 0x9382,
 };
-extern void         (* const& glPrimitiveBoundingBoxARB) (GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW);
+extern void         (KHRONOS_APIENTRY* const& glPrimitiveBoundingBoxARB) (GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW);
 #endif
 
 #ifndef GL_ARB_ES3_compatibility
@@ -3831,26 +3843,26 @@ extern void         (* const& glPrimitiveBoundingBoxARB) (GLfloat minX, GLfloat 
 
 #ifndef GL_ARB_bindless_texture
 #define GL_ARB_bindless_texture 1
-enum
+enum : GLenum
 {
     GL_UNSIGNED_INT64_ARB                                   = 0x140F,
 };
-extern GLuint64     (* const& glGetTextureHandleARB) (GLuint texture);
-extern GLuint64     (* const& glGetTextureSamplerHandleARB) (GLuint texture, GLuint sampler);
-extern void         (* const& glMakeTextureHandleResidentARB) (GLuint64 handle);
-extern void         (* const& glMakeTextureHandleNonResidentARB) (GLuint64 handle);
-extern GLuint64     (* const& glGetImageHandleARB) (GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum format);
-extern void         (* const& glMakeImageHandleResidentARB) (GLuint64 handle, GLenum access);
-extern void         (* const& glMakeImageHandleNonResidentARB) (GLuint64 handle);
-extern void         (* const& glUniformHandleui64ARB) (GLint location, GLuint64 value);
-extern void         (* const& glUniformHandleui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glProgramUniformHandleui64ARB) (GLuint program, GLint location, GLuint64 value);
-extern void         (* const& glProgramUniformHandleui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *values);
-extern GLboolean    (* const& glIsTextureHandleResidentARB) (GLuint64 handle);
-extern GLboolean    (* const& glIsImageHandleResidentARB) (GLuint64 handle);
-extern void         (* const& glVertexAttribL1ui64ARB) (GLuint index, GLuint64EXT x);
-extern void         (* const& glVertexAttribL1ui64vARB) (GLuint index, const GLuint64EXT *v);
-extern void         (* const& glGetVertexAttribLui64vARB) (GLuint index, GLenum pname, GLuint64EXT *params);
+extern GLuint64     (KHRONOS_APIENTRY* const& glGetTextureHandleARB) (GLuint texture);
+extern GLuint64     (KHRONOS_APIENTRY* const& glGetTextureSamplerHandleARB) (GLuint texture, GLuint sampler);
+extern void         (KHRONOS_APIENTRY* const& glMakeTextureHandleResidentARB) (GLuint64 handle);
+extern void         (KHRONOS_APIENTRY* const& glMakeTextureHandleNonResidentARB) (GLuint64 handle);
+extern GLuint64     (KHRONOS_APIENTRY* const& glGetImageHandleARB) (GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum format);
+extern void         (KHRONOS_APIENTRY* const& glMakeImageHandleResidentARB) (GLuint64 handle, GLenum access);
+extern void         (KHRONOS_APIENTRY* const& glMakeImageHandleNonResidentARB) (GLuint64 handle);
+extern void         (KHRONOS_APIENTRY* const& glUniformHandleui64ARB) (GLint location, GLuint64 value);
+extern void         (KHRONOS_APIENTRY* const& glUniformHandleui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformHandleui64ARB) (GLuint program, GLint location, GLuint64 value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformHandleui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *values);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsTextureHandleResidentARB) (GLuint64 handle);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsImageHandleResidentARB) (GLuint64 handle);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1ui64ARB) (GLuint index, GLuint64EXT x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1ui64vARB) (GLuint index, const GLuint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribLui64vARB) (GLuint index, GLenum pname, GLuint64EXT *params);
 #endif
 
 #ifndef GL_ARB_blend_func_extended
@@ -3863,12 +3875,12 @@ extern void         (* const& glGetVertexAttribLui64vARB) (GLuint index, GLenum 
 
 #ifndef GL_ARB_cl_event
 #define GL_ARB_cl_event 1
-enum
+enum : GLenum
 {
     GL_SYNC_CL_EVENT_ARB                                    = 0x8240,
     GL_SYNC_CL_EVENT_COMPLETE_ARB                           = 0x8241,
 };
-extern GLsync       (* const& glCreateSyncFromCLeventARB) (struct _cl_context *context, struct _cl_event *event, GLbitfield flags);
+extern GLsync       (KHRONOS_APIENTRY* const& glCreateSyncFromCLeventARB) (struct _cl_context *context, struct _cl_event *event, GLbitfield flags);
 #endif
 
 #ifndef GL_ARB_clear_buffer_object
@@ -3885,7 +3897,7 @@ extern GLsync       (* const& glCreateSyncFromCLeventARB) (struct _cl_context *c
 
 #ifndef GL_ARB_color_buffer_float
 #define GL_ARB_color_buffer_float 1
-enum
+enum : GLenum
 {
     GL_RGBA_FLOAT_MODE_ARB                                  = 0x8820,
     GL_CLAMP_VERTEX_COLOR_ARB                               = 0x891A,
@@ -3893,7 +3905,7 @@ enum
     GL_CLAMP_READ_COLOR_ARB                                 = 0x891C,
     GL_FIXED_ONLY_ARB                                       = 0x891D,
 };
-extern void         (* const& glClampColorARB) (GLenum target, GLenum clamp);
+extern void         (KHRONOS_APIENTRY* const& glClampColorARB) (GLenum target, GLenum clamp);
 #endif
 
 #ifndef GL_ARB_compatibility
@@ -3910,14 +3922,14 @@ extern void         (* const& glClampColorARB) (GLenum target, GLenum clamp);
 
 #ifndef GL_ARB_compute_variable_group_size
 #define GL_ARB_compute_variable_group_size 1
-enum
+enum : GLenum
 {
     GL_MAX_COMPUTE_VARIABLE_GROUP_INVOCATIONS_ARB           = 0x9344,
     GL_MAX_COMPUTE_FIXED_GROUP_INVOCATIONS_ARB              = 0x90EB,
     GL_MAX_COMPUTE_VARIABLE_GROUP_SIZE_ARB                  = 0x9345,
     GL_MAX_COMPUTE_FIXED_GROUP_SIZE_ARB                     = 0x91BF,
 };
-extern void         (* const& glDispatchComputeGroupSizeARB) (GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z, GLuint group_size_x, GLuint group_size_y, GLuint group_size_z);
+extern void         (KHRONOS_APIENTRY* const& glDispatchComputeGroupSizeARB) (GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z, GLuint group_size_x, GLuint group_size_y, GLuint group_size_z);
 #endif
 
 #ifndef GL_ARB_conditional_render_inverted
@@ -3942,7 +3954,7 @@ extern void         (* const& glDispatchComputeGroupSizeARB) (GLuint num_groups_
 
 #ifndef GL_ARB_debug_output
 #define GL_ARB_debug_output 1
-enum
+enum : GLenum
 {
     GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB                         = 0x8242,
     GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH_ARB                 = 0x8243,
@@ -3967,10 +3979,10 @@ enum
     GL_DEBUG_SEVERITY_MEDIUM_ARB                            = 0x9147,
     GL_DEBUG_SEVERITY_LOW_ARB                               = 0x9148,
 };
-extern void         (* const& glDebugMessageControlARB) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
-extern void         (* const& glDebugMessageInsertARB) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
-extern void         (* const& glDebugMessageCallbackARB) (GLDEBUGPROCARB callback, const void *userParam);
-extern GLuint       (* const& glGetDebugMessageLogARB) (GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageControlARB) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageInsertARB) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageCallbackARB) (GLDEBUGPROCARB callback, const void *userParam);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetDebugMessageLogARB) (GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
 #endif
 
 #ifndef GL_ARB_depth_buffer_float
@@ -3983,7 +3995,7 @@ extern GLuint       (* const& glGetDebugMessageLogARB) (GLuint count, GLsizei bu
 
 #ifndef GL_ARB_depth_texture
 #define GL_ARB_depth_texture 1
-enum
+enum : GLenum
 {
     GL_DEPTH_COMPONENT16_ARB                                = 0x81A5,
     GL_DEPTH_COMPONENT24_ARB                                = 0x81A6,
@@ -4003,7 +4015,7 @@ enum
 
 #ifndef GL_ARB_draw_buffers
 #define GL_ARB_draw_buffers 1
-enum
+enum : GLenum
 {
     GL_MAX_DRAW_BUFFERS_ARB                                 = 0x8824,
     GL_DRAW_BUFFER0_ARB                                     = 0x8825,
@@ -4023,15 +4035,15 @@ enum
     GL_DRAW_BUFFER14_ARB                                    = 0x8833,
     GL_DRAW_BUFFER15_ARB                                    = 0x8834,
 };
-extern void         (* const& glDrawBuffersARB) (GLsizei n, const GLenum *bufs);
+extern void         (KHRONOS_APIENTRY* const& glDrawBuffersARB) (GLsizei n, const GLenum *bufs);
 #endif
 
 #ifndef GL_ARB_draw_buffers_blend
 #define GL_ARB_draw_buffers_blend 1
-extern void         (* const& glBlendEquationiARB) (GLuint buf, GLenum mode);
-extern void         (* const& glBlendEquationSeparateiARB) (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
-extern void         (* const& glBlendFunciARB) (GLuint buf, GLenum src, GLenum dst);
-extern void         (* const& glBlendFuncSeparateiARB) (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationiARB) (GLuint buf, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationSeparateiARB) (GLuint buf, GLenum modeRGB, GLenum modeAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendFunciARB) (GLuint buf, GLenum src, GLenum dst);
+extern void         (KHRONOS_APIENTRY* const& glBlendFuncSeparateiARB) (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
 #endif
 
 #ifndef GL_ARB_draw_elements_base_vertex
@@ -4044,8 +4056,8 @@ extern void         (* const& glBlendFuncSeparateiARB) (GLuint buf, GLenum srcRG
 
 #ifndef GL_ARB_draw_instanced
 #define GL_ARB_draw_instanced 1
-extern void         (* const& glDrawArraysInstancedARB) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
-extern void         (* const& glDrawElementsInstancedARB) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glDrawArraysInstancedARB) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsInstancedARB) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount);
 #endif
 
 #ifndef GL_ARB_enhanced_layouts
@@ -4070,7 +4082,7 @@ extern void         (* const& glDrawElementsInstancedARB) (GLenum mode, GLsizei 
 
 #ifndef GL_ARB_fragment_program
 #define GL_ARB_fragment_program 1
-enum
+enum : GLenum
 {
     GL_FRAGMENT_PROGRAM_ARB                                 = 0x8804,
     GL_PROGRAM_FORMAT_ASCII_ARB                             = 0x8875,
@@ -4151,25 +4163,25 @@ enum
     GL_MATRIX30_ARB                                         = 0x88DE,
     GL_MATRIX31_ARB                                         = 0x88DF,
 };
-extern void         (* const& glProgramStringARB) (GLenum target, GLenum format, GLsizei len, const void *string);
-extern void         (* const& glBindProgramARB) (GLenum target, GLuint program);
-extern void         (* const& glDeleteProgramsARB) (GLsizei n, const GLuint *programs);
-extern void         (* const& glGenProgramsARB) (GLsizei n, GLuint *programs);
-extern void         (* const& glProgramEnvParameter4dARB) (GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glProgramEnvParameter4dvARB) (GLenum target, GLuint index, const GLdouble *params);
-extern void         (* const& glProgramEnvParameter4fARB) (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glProgramEnvParameter4fvARB) (GLenum target, GLuint index, const GLfloat *params);
-extern void         (* const& glProgramLocalParameter4dARB) (GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glProgramLocalParameter4dvARB) (GLenum target, GLuint index, const GLdouble *params);
-extern void         (* const& glProgramLocalParameter4fARB) (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glProgramLocalParameter4fvARB) (GLenum target, GLuint index, const GLfloat *params);
-extern void         (* const& glGetProgramEnvParameterdvARB) (GLenum target, GLuint index, GLdouble *params);
-extern void         (* const& glGetProgramEnvParameterfvARB) (GLenum target, GLuint index, GLfloat *params);
-extern void         (* const& glGetProgramLocalParameterdvARB) (GLenum target, GLuint index, GLdouble *params);
-extern void         (* const& glGetProgramLocalParameterfvARB) (GLenum target, GLuint index, GLfloat *params);
-extern void         (* const& glGetProgramivARB) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetProgramStringARB) (GLenum target, GLenum pname, void *string);
-extern GLboolean    (* const& glIsProgramARB) (GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glProgramStringARB) (GLenum target, GLenum format, GLsizei len, const void *string);
+extern void         (KHRONOS_APIENTRY* const& glBindProgramARB) (GLenum target, GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glDeleteProgramsARB) (GLsizei n, const GLuint *programs);
+extern void         (KHRONOS_APIENTRY* const& glGenProgramsARB) (GLsizei n, GLuint *programs);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameter4dARB) (GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameter4dvARB) (GLenum target, GLuint index, const GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameter4fARB) (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameter4fvARB) (GLenum target, GLuint index, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameter4dARB) (GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameter4dvARB) (GLenum target, GLuint index, const GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameter4fARB) (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameter4fvARB) (GLenum target, GLuint index, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramEnvParameterdvARB) (GLenum target, GLuint index, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramEnvParameterfvARB) (GLenum target, GLuint index, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramLocalParameterdvARB) (GLenum target, GLuint index, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramLocalParameterfvARB) (GLenum target, GLuint index, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramivARB) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramStringARB) (GLenum target, GLenum pname, void *string);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsProgramARB) (GLuint program);
 #endif
 
 #ifndef GL_ARB_fragment_program_shadow
@@ -4178,7 +4190,7 @@ extern GLboolean    (* const& glIsProgramARB) (GLuint program);
 
 #ifndef GL_ARB_fragment_shader
 #define GL_ARB_fragment_shader 1
-enum
+enum : GLenum
 {
     GL_FRAGMENT_SHADER_ARB                                  = 0x8B30,
     GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB                  = 0x8B49,
@@ -4204,7 +4216,7 @@ enum
 
 #ifndef GL_ARB_geometry_shader4
 #define GL_ARB_geometry_shader4 1
-enum
+enum : GLenum
 {
     GL_LINES_ADJACENCY_ARB                                  = 0x000A,
     GL_LINE_STRIP_ADJACENCY_ARB                             = 0x000B,
@@ -4225,10 +4237,10 @@ enum
     GL_MAX_GEOMETRY_OUTPUT_VERTICES_ARB                     = 0x8DE0,
     GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_ARB             = 0x8DE1,
 };
-extern void         (* const& glProgramParameteriARB) (GLuint program, GLenum pname, GLint value);
-extern void         (* const& glFramebufferTextureARB) (GLenum target, GLenum attachment, GLuint texture, GLint level);
-extern void         (* const& glFramebufferTextureLayerARB) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
-extern void         (* const& glFramebufferTextureFaceARB) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameteriARB) (GLuint program, GLenum pname, GLint value);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureARB) (GLenum target, GLenum attachment, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureLayerARB) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureFaceARB) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
 #endif
 
 #ifndef GL_ARB_get_program_binary
@@ -4241,12 +4253,12 @@ extern void         (* const& glFramebufferTextureFaceARB) (GLenum target, GLenu
 
 #ifndef GL_ARB_gl_spirv
 #define GL_ARB_gl_spirv 1
-enum
+enum : GLenum
 {
     GL_SHADER_BINARY_FORMAT_SPIR_V_ARB                      = 0x9551,
     GL_SPIR_V_BINARY_ARB                                    = 0x9552,
 };
-extern void         (* const& glSpecializeShaderARB) (GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue);
+extern void         (KHRONOS_APIENTRY* const& glSpecializeShaderARB) (GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue);
 #endif
 
 #ifndef GL_ARB_gpu_shader5
@@ -4259,7 +4271,7 @@ extern void         (* const& glSpecializeShaderARB) (GLuint shader, const GLcha
 
 #ifndef GL_ARB_gpu_shader_int64
 #define GL_ARB_gpu_shader_int64 1
-enum
+enum : GLenum
 {
     GL_INT64_ARB                                            = 0x140E,
     GL_INT64_VEC2_ARB                                       = 0x8FE9,
@@ -4269,47 +4281,47 @@ enum
     GL_UNSIGNED_INT64_VEC3_ARB                              = 0x8FF6,
     GL_UNSIGNED_INT64_VEC4_ARB                              = 0x8FF7,
 };
-extern void         (* const& glUniform1i64ARB) (GLint location, GLint64 x);
-extern void         (* const& glUniform2i64ARB) (GLint location, GLint64 x, GLint64 y);
-extern void         (* const& glUniform3i64ARB) (GLint location, GLint64 x, GLint64 y, GLint64 z);
-extern void         (* const& glUniform4i64ARB) (GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w);
-extern void         (* const& glUniform1i64vARB) (GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glUniform2i64vARB) (GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glUniform3i64vARB) (GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glUniform4i64vARB) (GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glUniform1ui64ARB) (GLint location, GLuint64 x);
-extern void         (* const& glUniform2ui64ARB) (GLint location, GLuint64 x, GLuint64 y);
-extern void         (* const& glUniform3ui64ARB) (GLint location, GLuint64 x, GLuint64 y, GLuint64 z);
-extern void         (* const& glUniform4ui64ARB) (GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w);
-extern void         (* const& glUniform1ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glUniform2ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glUniform3ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glUniform4ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glGetUniformi64vARB) (GLuint program, GLint location, GLint64 *params);
-extern void         (* const& glGetUniformui64vARB) (GLuint program, GLint location, GLuint64 *params);
-extern void         (* const& glGetnUniformi64vARB) (GLuint program, GLint location, GLsizei bufSize, GLint64 *params);
-extern void         (* const& glGetnUniformui64vARB) (GLuint program, GLint location, GLsizei bufSize, GLuint64 *params);
-extern void         (* const& glProgramUniform1i64ARB) (GLuint program, GLint location, GLint64 x);
-extern void         (* const& glProgramUniform2i64ARB) (GLuint program, GLint location, GLint64 x, GLint64 y);
-extern void         (* const& glProgramUniform3i64ARB) (GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z);
-extern void         (* const& glProgramUniform4i64ARB) (GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w);
-extern void         (* const& glProgramUniform1i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glProgramUniform2i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glProgramUniform3i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glProgramUniform4i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
-extern void         (* const& glProgramUniform1ui64ARB) (GLuint program, GLint location, GLuint64 x);
-extern void         (* const& glProgramUniform2ui64ARB) (GLuint program, GLint location, GLuint64 x, GLuint64 y);
-extern void         (* const& glProgramUniform3ui64ARB) (GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z);
-extern void         (* const& glProgramUniform4ui64ARB) (GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w);
-extern void         (* const& glProgramUniform1ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glProgramUniform2ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glProgramUniform3ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glProgramUniform4ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform1i64ARB) (GLint location, GLint64 x);
+extern void         (KHRONOS_APIENTRY* const& glUniform2i64ARB) (GLint location, GLint64 x, GLint64 y);
+extern void         (KHRONOS_APIENTRY* const& glUniform3i64ARB) (GLint location, GLint64 x, GLint64 y, GLint64 z);
+extern void         (KHRONOS_APIENTRY* const& glUniform4i64ARB) (GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w);
+extern void         (KHRONOS_APIENTRY* const& glUniform1i64vARB) (GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2i64vARB) (GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3i64vARB) (GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4i64vARB) (GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform1ui64ARB) (GLint location, GLuint64 x);
+extern void         (KHRONOS_APIENTRY* const& glUniform2ui64ARB) (GLint location, GLuint64 x, GLuint64 y);
+extern void         (KHRONOS_APIENTRY* const& glUniform3ui64ARB) (GLint location, GLuint64 x, GLuint64 y, GLuint64 z);
+extern void         (KHRONOS_APIENTRY* const& glUniform4ui64ARB) (GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w);
+extern void         (KHRONOS_APIENTRY* const& glUniform1ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4ui64vARB) (GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformi64vARB) (GLuint program, GLint location, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformui64vARB) (GLuint program, GLint location, GLuint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformi64vARB) (GLuint program, GLint location, GLsizei bufSize, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformui64vARB) (GLuint program, GLint location, GLsizei bufSize, GLuint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1i64ARB) (GLuint program, GLint location, GLint64 x);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2i64ARB) (GLuint program, GLint location, GLint64 x, GLint64 y);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3i64ARB) (GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4i64ARB) (GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4i64vARB) (GLuint program, GLint location, GLsizei count, const GLint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1ui64ARB) (GLuint program, GLint location, GLuint64 x);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2ui64ARB) (GLuint program, GLint location, GLuint64 x, GLuint64 y);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3ui64ARB) (GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4ui64ARB) (GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4ui64vARB) (GLuint program, GLint location, GLsizei count, const GLuint64 *value);
 #endif
 
 #ifndef GL_ARB_half_float_pixel
 #define GL_ARB_half_float_pixel 1
-enum
+enum : GLenum
 {
     GL_HALF_FLOAT_ARB                                       = 0x140B,
 };
@@ -4321,7 +4333,7 @@ enum
 
 #ifndef GL_ARB_imaging
 #define GL_ARB_imaging 1
-enum
+enum : GLenum
 {
     GL_CONVOLUTION_BORDER_MODE                              = 0x8013,
     GL_CONVOLUTION_FILTER_SCALE                             = 0x8014,
@@ -4376,58 +4388,58 @@ enum
     GL_REPLICATE_BORDER                                     = 0x8153,
     GL_CONVOLUTION_BORDER_COLOR                             = 0x8154,
 };
-extern void         (* const& glColorTable) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table);
-extern void         (* const& glColorTableParameterfv) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glColorTableParameteriv) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glCopyColorTable) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
-extern void         (* const& glGetColorTable) (GLenum target, GLenum format, GLenum type, void *table);
-extern void         (* const& glGetColorTableParameterfv) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetColorTableParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glColorSubTable) (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data);
-extern void         (* const& glCopyColorSubTable) (GLenum target, GLsizei start, GLint x, GLint y, GLsizei width);
-extern void         (* const& glConvolutionFilter1D) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image);
-extern void         (* const& glConvolutionFilter2D) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image);
-extern void         (* const& glConvolutionParameterf) (GLenum target, GLenum pname, GLfloat params);
-extern void         (* const& glConvolutionParameterfv) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glConvolutionParameteri) (GLenum target, GLenum pname, GLint params);
-extern void         (* const& glConvolutionParameteriv) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glCopyConvolutionFilter1D) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
-extern void         (* const& glCopyConvolutionFilter2D) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glGetConvolutionFilter) (GLenum target, GLenum format, GLenum type, void *image);
-extern void         (* const& glGetConvolutionParameterfv) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetConvolutionParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetSeparableFilter) (GLenum target, GLenum format, GLenum type, void *row, void *column, void *span);
-extern void         (* const& glSeparableFilter2D) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column);
-extern void         (* const& glGetHistogram) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
-extern void         (* const& glGetHistogramParameterfv) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetHistogramParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetMinmax) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
-extern void         (* const& glGetMinmaxParameterfv) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMinmaxParameteriv) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glHistogram) (GLenum target, GLsizei width, GLenum internalformat, GLboolean sink);
-extern void         (* const& glMinmax) (GLenum target, GLenum internalformat, GLboolean sink);
-extern void         (* const& glResetHistogram) (GLenum target);
-extern void         (* const& glResetMinmax) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glColorTable) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table);
+extern void         (KHRONOS_APIENTRY* const& glColorTableParameterfv) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glColorTableParameteriv) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCopyColorTable) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTable) (GLenum target, GLenum format, GLenum type, void *table);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableParameterfv) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glColorSubTable) (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCopyColorSubTable) (GLenum target, GLsizei start, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionFilter1D) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionFilter2D) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameterf) (GLenum target, GLenum pname, GLfloat params);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameterfv) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameteri) (GLenum target, GLenum pname, GLint params);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameteriv) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCopyConvolutionFilter1D) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glCopyConvolutionFilter2D) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetConvolutionFilter) (GLenum target, GLenum format, GLenum type, void *image);
+extern void         (KHRONOS_APIENTRY* const& glGetConvolutionParameterfv) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetConvolutionParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetSeparableFilter) (GLenum target, GLenum format, GLenum type, void *row, void *column, void *span);
+extern void         (KHRONOS_APIENTRY* const& glSeparableFilter2D) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column);
+extern void         (KHRONOS_APIENTRY* const& glGetHistogram) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
+extern void         (KHRONOS_APIENTRY* const& glGetHistogramParameterfv) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetHistogramParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMinmax) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
+extern void         (KHRONOS_APIENTRY* const& glGetMinmaxParameterfv) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMinmaxParameteriv) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glHistogram) (GLenum target, GLsizei width, GLenum internalformat, GLboolean sink);
+extern void         (KHRONOS_APIENTRY* const& glMinmax) (GLenum target, GLenum internalformat, GLboolean sink);
+extern void         (KHRONOS_APIENTRY* const& glResetHistogram) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glResetMinmax) (GLenum target);
 #endif
 
 #ifndef GL_ARB_indirect_parameters
 #define GL_ARB_indirect_parameters 1
-enum
+enum : GLenum
 {
     GL_PARAMETER_BUFFER_ARB                                 = 0x80EE,
     GL_PARAMETER_BUFFER_BINDING_ARB                         = 0x80EF,
 };
-extern void         (* const& glMultiDrawArraysIndirectCountARB) (GLenum mode, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
-extern void         (* const& glMultiDrawElementsIndirectCountARB) (GLenum mode, GLenum type, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArraysIndirectCountARB) (GLenum mode, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsIndirectCountARB) (GLenum mode, GLenum type, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
 #endif
 
 #ifndef GL_ARB_instanced_arrays
 #define GL_ARB_instanced_arrays 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ATTRIB_ARRAY_DIVISOR_ARB                      = 0x88FE,
 };
-extern void         (* const& glVertexAttribDivisorARB) (GLuint index, GLuint divisor);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribDivisorARB) (GLuint index, GLuint divisor);
 #endif
 
 #ifndef GL_ARB_internalformat_query
@@ -4436,7 +4448,7 @@ extern void         (* const& glVertexAttribDivisorARB) (GLuint index, GLuint di
 
 #ifndef GL_ARB_internalformat_query2
 #define GL_ARB_internalformat_query2 1
-enum
+enum : GLenum
 {
     GL_SRGB_DECODE_ARB                                      = 0x8299,
     GL_VIEW_CLASS_EAC_R11                                   = 0x9383,
@@ -4475,7 +4487,7 @@ enum
 
 #ifndef GL_ARB_matrix_palette
 #define GL_ARB_matrix_palette 1
-enum
+enum : GLenum
 {
     GL_MATRIX_PALETTE_ARB                                   = 0x8840,
     GL_MAX_MATRIX_PALETTE_STACK_DEPTH_ARB                   = 0x8841,
@@ -4488,11 +4500,11 @@ enum
     GL_MATRIX_INDEX_ARRAY_STRIDE_ARB                        = 0x8848,
     GL_MATRIX_INDEX_ARRAY_POINTER_ARB                       = 0x8849,
 };
-extern void         (* const& glCurrentPaletteMatrixARB) (GLint index);
-extern void         (* const& glMatrixIndexubvARB) (GLint size, const GLubyte *indices);
-extern void         (* const& glMatrixIndexusvARB) (GLint size, const GLushort *indices);
-extern void         (* const& glMatrixIndexuivARB) (GLint size, const GLuint *indices);
-extern void         (* const& glMatrixIndexPointerARB) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glCurrentPaletteMatrixARB) (GLint index);
+extern void         (KHRONOS_APIENTRY* const& glMatrixIndexubvARB) (GLint size, const GLubyte *indices);
+extern void         (KHRONOS_APIENTRY* const& glMatrixIndexusvARB) (GLint size, const GLushort *indices);
+extern void         (KHRONOS_APIENTRY* const& glMatrixIndexuivARB) (GLint size, const GLuint *indices);
+extern void         (KHRONOS_APIENTRY* const& glMatrixIndexPointerARB) (GLint size, GLenum type, GLsizei stride, const void *pointer);
 #endif
 
 #ifndef GL_ARB_multi_bind
@@ -4505,7 +4517,7 @@ extern void         (* const& glMatrixIndexPointerARB) (GLint size, GLenum type,
 
 #ifndef GL_ARB_multisample
 #define GL_ARB_multisample 1
-enum
+enum : GLenum
 {
     GL_MULTISAMPLE_ARB                                      = 0x809D,
     GL_SAMPLE_ALPHA_TO_COVERAGE_ARB                         = 0x809E,
@@ -4517,12 +4529,12 @@ enum
     GL_SAMPLE_COVERAGE_INVERT_ARB                           = 0x80AB,
     GL_MULTISAMPLE_BIT_ARB                                  = 0x20000000,
 };
-extern void         (* const& glSampleCoverageARB) (GLfloat value, GLboolean invert);
+extern void         (KHRONOS_APIENTRY* const& glSampleCoverageARB) (GLfloat value, GLboolean invert);
 #endif
 
 #ifndef GL_ARB_multitexture
 #define GL_ARB_multitexture 1
-enum
+enum : GLenum
 {
     GL_TEXTURE0_ARB                                         = 0x84C0,
     GL_TEXTURE1_ARB                                         = 0x84C1,
@@ -4560,45 +4572,45 @@ enum
     GL_CLIENT_ACTIVE_TEXTURE_ARB                            = 0x84E1,
     GL_MAX_TEXTURE_UNITS_ARB                                = 0x84E2,
 };
-extern void         (* const& glActiveTextureARB) (GLenum texture);
-extern void         (* const& glClientActiveTextureARB) (GLenum texture);
-extern void         (* const& glMultiTexCoord1dARB) (GLenum target, GLdouble s);
-extern void         (* const& glMultiTexCoord1dvARB) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord1fARB) (GLenum target, GLfloat s);
-extern void         (* const& glMultiTexCoord1fvARB) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord1iARB) (GLenum target, GLint s);
-extern void         (* const& glMultiTexCoord1ivARB) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord1sARB) (GLenum target, GLshort s);
-extern void         (* const& glMultiTexCoord1svARB) (GLenum target, const GLshort *v);
-extern void         (* const& glMultiTexCoord2dARB) (GLenum target, GLdouble s, GLdouble t);
-extern void         (* const& glMultiTexCoord2dvARB) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
-extern void         (* const& glMultiTexCoord2fvARB) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord2iARB) (GLenum target, GLint s, GLint t);
-extern void         (* const& glMultiTexCoord2ivARB) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord2sARB) (GLenum target, GLshort s, GLshort t);
-extern void         (* const& glMultiTexCoord2svARB) (GLenum target, const GLshort *v);
-extern void         (* const& glMultiTexCoord3dARB) (GLenum target, GLdouble s, GLdouble t, GLdouble r);
-extern void         (* const& glMultiTexCoord3dvARB) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord3fARB) (GLenum target, GLfloat s, GLfloat t, GLfloat r);
-extern void         (* const& glMultiTexCoord3fvARB) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord3iARB) (GLenum target, GLint s, GLint t, GLint r);
-extern void         (* const& glMultiTexCoord3ivARB) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord3sARB) (GLenum target, GLshort s, GLshort t, GLshort r);
-extern void         (* const& glMultiTexCoord3svARB) (GLenum target, const GLshort *v);
-extern void         (* const& glMultiTexCoord4dARB) (GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q);
-extern void         (* const& glMultiTexCoord4dvARB) (GLenum target, const GLdouble *v);
-extern void         (* const& glMultiTexCoord4fARB) (GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q);
-extern void         (* const& glMultiTexCoord4fvARB) (GLenum target, const GLfloat *v);
-extern void         (* const& glMultiTexCoord4iARB) (GLenum target, GLint s, GLint t, GLint r, GLint q);
-extern void         (* const& glMultiTexCoord4ivARB) (GLenum target, const GLint *v);
-extern void         (* const& glMultiTexCoord4sARB) (GLenum target, GLshort s, GLshort t, GLshort r, GLshort q);
-extern void         (* const& glMultiTexCoord4svARB) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glActiveTextureARB) (GLenum texture);
+extern void         (KHRONOS_APIENTRY* const& glClientActiveTextureARB) (GLenum texture);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1dARB) (GLenum target, GLdouble s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1dvARB) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1fARB) (GLenum target, GLfloat s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1fvARB) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1iARB) (GLenum target, GLint s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1ivARB) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1sARB) (GLenum target, GLshort s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1svARB) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2dARB) (GLenum target, GLdouble s, GLdouble t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2dvARB) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2fvARB) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2iARB) (GLenum target, GLint s, GLint t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2ivARB) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2sARB) (GLenum target, GLshort s, GLshort t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2svARB) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3dARB) (GLenum target, GLdouble s, GLdouble t, GLdouble r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3dvARB) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3fARB) (GLenum target, GLfloat s, GLfloat t, GLfloat r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3fvARB) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3iARB) (GLenum target, GLint s, GLint t, GLint r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3ivARB) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3sARB) (GLenum target, GLshort s, GLshort t, GLshort r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3svARB) (GLenum target, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4dARB) (GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4dvARB) (GLenum target, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4fARB) (GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4fvARB) (GLenum target, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4iARB) (GLenum target, GLint s, GLint t, GLint r, GLint q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4ivARB) (GLenum target, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4sARB) (GLenum target, GLshort s, GLshort t, GLshort r, GLshort q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4svARB) (GLenum target, const GLshort *v);
 #endif
 
 #ifndef GL_ARB_occlusion_query
 #define GL_ARB_occlusion_query 1
-enum
+enum : GLenum
 {
     GL_QUERY_COUNTER_BITS_ARB                               = 0x8864,
     GL_CURRENT_QUERY_ARB                                    = 0x8865,
@@ -4606,14 +4618,14 @@ enum
     GL_QUERY_RESULT_AVAILABLE_ARB                           = 0x8867,
     GL_SAMPLES_PASSED_ARB                                   = 0x8914,
 };
-extern void         (* const& glGenQueriesARB) (GLsizei n, GLuint *ids);
-extern void         (* const& glDeleteQueriesARB) (GLsizei n, const GLuint *ids);
-extern GLboolean    (* const& glIsQueryARB) (GLuint id);
-extern void         (* const& glBeginQueryARB) (GLenum target, GLuint id);
-extern void         (* const& glEndQueryARB) (GLenum target);
-extern void         (* const& glGetQueryivARB) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetQueryObjectivARB) (GLuint id, GLenum pname, GLint *params);
-extern void         (* const& glGetQueryObjectuivARB) (GLuint id, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGenQueriesARB) (GLsizei n, GLuint *ids);
+extern void         (KHRONOS_APIENTRY* const& glDeleteQueriesARB) (GLsizei n, const GLuint *ids);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsQueryARB) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glBeginQueryARB) (GLenum target, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glEndQueryARB) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryivARB) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjectivARB) (GLuint id, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjectuivARB) (GLuint id, GLenum pname, GLuint *params);
 #endif
 
 #ifndef GL_ARB_occlusion_query2
@@ -4622,17 +4634,17 @@ extern void         (* const& glGetQueryObjectuivARB) (GLuint id, GLenum pname, 
 
 #ifndef GL_ARB_parallel_shader_compile
 #define GL_ARB_parallel_shader_compile 1
-enum
+enum : GLenum
 {
     GL_MAX_SHADER_COMPILER_THREADS_ARB                      = 0x91B0,
     GL_COMPLETION_STATUS_ARB                                = 0x91B1,
 };
-extern void         (* const& glMaxShaderCompilerThreadsARB) (GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glMaxShaderCompilerThreadsARB) (GLuint count);
 #endif
 
 #ifndef GL_ARB_pipeline_statistics_query
 #define GL_ARB_pipeline_statistics_query 1
-enum
+enum : GLenum
 {
     GL_VERTICES_SUBMITTED_ARB                               = 0x82EE,
     GL_PRIMITIVES_SUBMITTED_ARB                             = 0x82EF,
@@ -4649,7 +4661,7 @@ enum
 
 #ifndef GL_ARB_pixel_buffer_object
 #define GL_ARB_pixel_buffer_object 1
-enum
+enum : GLenum
 {
     GL_PIXEL_PACK_BUFFER_ARB                                = 0x88EB,
     GL_PIXEL_UNPACK_BUFFER_ARB                              = 0x88EC,
@@ -4660,20 +4672,20 @@ enum
 
 #ifndef GL_ARB_point_parameters
 #define GL_ARB_point_parameters 1
-enum
+enum : GLenum
 {
     GL_POINT_SIZE_MIN_ARB                                   = 0x8126,
     GL_POINT_SIZE_MAX_ARB                                   = 0x8127,
     GL_POINT_FADE_THRESHOLD_SIZE_ARB                        = 0x8128,
     GL_POINT_DISTANCE_ATTENUATION_ARB                       = 0x8129,
 };
-extern void         (* const& glPointParameterfARB) (GLenum pname, GLfloat param);
-extern void         (* const& glPointParameterfvARB) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterfARB) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterfvARB) (GLenum pname, const GLfloat *params);
 #endif
 
 #ifndef GL_ARB_point_sprite
 #define GL_ARB_point_sprite 1
-enum
+enum : GLenum
 {
     GL_POINT_SPRITE_ARB                                     = 0x8861,
     GL_COORD_REPLACE_ARB                                    = 0x8862,
@@ -4706,7 +4718,7 @@ enum
 
 #ifndef GL_ARB_robustness
 #define GL_ARB_robustness 1
-enum
+enum : GLenum
 {
     GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB                   = 0x00000004,
     GL_LOSE_CONTEXT_ON_RESET_ARB                            = 0x8252,
@@ -4716,26 +4728,26 @@ enum
     GL_RESET_NOTIFICATION_STRATEGY_ARB                      = 0x8256,
     GL_NO_RESET_NOTIFICATION_ARB                            = 0x8261,
 };
-extern GLenum       (* const& glGetGraphicsResetStatusARB) ();
-extern void         (* const& glGetnTexImageARB) (GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *img);
-extern void         (* const& glReadnPixelsARB) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data);
-extern void         (* const& glGetnCompressedTexImageARB) (GLenum target, GLint lod, GLsizei bufSize, void *img);
-extern void         (* const& glGetnUniformfvARB) (GLuint program, GLint location, GLsizei bufSize, GLfloat *params);
-extern void         (* const& glGetnUniformivARB) (GLuint program, GLint location, GLsizei bufSize, GLint *params);
-extern void         (* const& glGetnUniformuivARB) (GLuint program, GLint location, GLsizei bufSize, GLuint *params);
-extern void         (* const& glGetnUniformdvARB) (GLuint program, GLint location, GLsizei bufSize, GLdouble *params);
-extern void         (* const& glGetnMapdvARB) (GLenum target, GLenum query, GLsizei bufSize, GLdouble *v);
-extern void         (* const& glGetnMapfvARB) (GLenum target, GLenum query, GLsizei bufSize, GLfloat *v);
-extern void         (* const& glGetnMapivARB) (GLenum target, GLenum query, GLsizei bufSize, GLint *v);
-extern void         (* const& glGetnPixelMapfvARB) (GLenum map, GLsizei bufSize, GLfloat *values);
-extern void         (* const& glGetnPixelMapuivARB) (GLenum map, GLsizei bufSize, GLuint *values);
-extern void         (* const& glGetnPixelMapusvARB) (GLenum map, GLsizei bufSize, GLushort *values);
-extern void         (* const& glGetnPolygonStippleARB) (GLsizei bufSize, GLubyte *pattern);
-extern void         (* const& glGetnColorTableARB) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table);
-extern void         (* const& glGetnConvolutionFilterARB) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image);
-extern void         (* const& glGetnSeparableFilterARB) (GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row, GLsizei columnBufSize, void *column, void *span);
-extern void         (* const& glGetnHistogramARB) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
-extern void         (* const& glGetnMinmaxARB) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
+extern GLenum       (KHRONOS_APIENTRY* const& glGetGraphicsResetStatusARB) ();
+extern void         (KHRONOS_APIENTRY* const& glGetnTexImageARB) (GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *img);
+extern void         (KHRONOS_APIENTRY* const& glReadnPixelsARB) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetnCompressedTexImageARB) (GLenum target, GLint lod, GLsizei bufSize, void *img);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformfvARB) (GLuint program, GLint location, GLsizei bufSize, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformivARB) (GLuint program, GLint location, GLsizei bufSize, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformuivARB) (GLuint program, GLint location, GLsizei bufSize, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformdvARB) (GLuint program, GLint location, GLsizei bufSize, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnMapdvARB) (GLenum target, GLenum query, GLsizei bufSize, GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glGetnMapfvARB) (GLenum target, GLenum query, GLsizei bufSize, GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glGetnMapivARB) (GLenum target, GLenum query, GLsizei bufSize, GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glGetnPixelMapfvARB) (GLenum map, GLsizei bufSize, GLfloat *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnPixelMapuivARB) (GLenum map, GLsizei bufSize, GLuint *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnPixelMapusvARB) (GLenum map, GLsizei bufSize, GLushort *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnPolygonStippleARB) (GLsizei bufSize, GLubyte *pattern);
+extern void         (KHRONOS_APIENTRY* const& glGetnColorTableARB) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table);
+extern void         (KHRONOS_APIENTRY* const& glGetnConvolutionFilterARB) (GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image);
+extern void         (KHRONOS_APIENTRY* const& glGetnSeparableFilterARB) (GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row, GLsizei columnBufSize, void *column, void *span);
+extern void         (KHRONOS_APIENTRY* const& glGetnHistogramARB) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
+extern void         (KHRONOS_APIENTRY* const& glGetnMinmaxARB) (GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values);
 #endif
 
 #ifndef GL_ARB_robustness_isolation
@@ -4744,7 +4756,7 @@ extern void         (* const& glGetnMinmaxARB) (GLenum target, GLboolean reset, 
 
 #ifndef GL_ARB_sample_locations
 #define GL_ARB_sample_locations 1
-enum
+enum : GLenum
 {
     GL_SAMPLE_LOCATION_SUBPIXEL_BITS_ARB                    = 0x933D,
     GL_SAMPLE_LOCATION_PIXEL_GRID_WIDTH_ARB                 = 0x933E,
@@ -4755,19 +4767,19 @@ enum
     GL_FRAMEBUFFER_PROGRAMMABLE_SAMPLE_LOCATIONS_ARB        = 0x9342,
     GL_FRAMEBUFFER_SAMPLE_LOCATION_PIXEL_GRID_ARB           = 0x9343,
 };
-extern void         (* const& glFramebufferSampleLocationsfvARB) (GLenum target, GLuint start, GLsizei count, const GLfloat *v);
-extern void         (* const& glNamedFramebufferSampleLocationsfvARB) (GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v);
-extern void         (* const& glEvaluateDepthValuesARB) ();
+extern void         (KHRONOS_APIENTRY* const& glFramebufferSampleLocationsfvARB) (GLenum target, GLuint start, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferSampleLocationsfvARB) (GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glEvaluateDepthValuesARB) ();
 #endif
 
 #ifndef GL_ARB_sample_shading
 #define GL_ARB_sample_shading 1
-enum
+enum : GLenum
 {
     GL_SAMPLE_SHADING_ARB                                   = 0x8C36,
     GL_MIN_SAMPLE_SHADING_VALUE_ARB                         = 0x8C37,
 };
-extern void         (* const& glMinSampleShadingARB) (GLfloat value);
+extern void         (KHRONOS_APIENTRY* const& glMinSampleShadingARB) (GLfloat value);
 #endif
 
 #ifndef GL_ARB_sampler_objects
@@ -4824,7 +4836,7 @@ extern void         (* const& glMinSampleShadingARB) (GLfloat value);
 
 #ifndef GL_ARB_shader_objects
 #define GL_ARB_shader_objects 1
-enum
+enum : GLenum
 {
     GL_PROGRAM_OBJECT_ARB                                   = 0x8B40,
     GL_SHADER_OBJECT_ARB                                    = 0x8B48,
@@ -4861,45 +4873,45 @@ enum
     GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB                 = 0x8B87,
     GL_OBJECT_SHADER_SOURCE_LENGTH_ARB                      = 0x8B88,
 };
-extern void         (* const& glDeleteObjectARB) (GLhandleARB obj);
-extern GLhandleARB  (* const& glGetHandleARB) (GLenum pname);
-extern void         (* const& glDetachObjectARB) (GLhandleARB containerObj, GLhandleARB attachedObj);
-extern GLhandleARB  (* const& glCreateShaderObjectARB) (GLenum shaderType);
-extern void         (* const& glShaderSourceARB) (GLhandleARB shaderObj, GLsizei count, const GLcharARB **string, const GLint *length);
-extern void         (* const& glCompileShaderARB) (GLhandleARB shaderObj);
-extern GLhandleARB  (* const& glCreateProgramObjectARB) ();
-extern void         (* const& glAttachObjectARB) (GLhandleARB containerObj, GLhandleARB obj);
-extern void         (* const& glLinkProgramARB) (GLhandleARB programObj);
-extern void         (* const& glUseProgramObjectARB) (GLhandleARB programObj);
-extern void         (* const& glValidateProgramARB) (GLhandleARB programObj);
-extern void         (* const& glUniform1fARB) (GLint location, GLfloat v0);
-extern void         (* const& glUniform2fARB) (GLint location, GLfloat v0, GLfloat v1);
-extern void         (* const& glUniform3fARB) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-extern void         (* const& glUniform4fARB) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-extern void         (* const& glUniform1iARB) (GLint location, GLint v0);
-extern void         (* const& glUniform2iARB) (GLint location, GLint v0, GLint v1);
-extern void         (* const& glUniform3iARB) (GLint location, GLint v0, GLint v1, GLint v2);
-extern void         (* const& glUniform4iARB) (GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-extern void         (* const& glUniform1fvARB) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform2fvARB) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform3fvARB) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform4fvARB) (GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glUniform1ivARB) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniform2ivARB) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniform3ivARB) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniform4ivARB) (GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glUniformMatrix2fvARB) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix3fvARB) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glUniformMatrix4fvARB) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glGetObjectParameterfvARB) (GLhandleARB obj, GLenum pname, GLfloat *params);
-extern void         (* const& glGetObjectParameterivARB) (GLhandleARB obj, GLenum pname, GLint *params);
-extern void         (* const& glGetInfoLogARB) (GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog);
-extern void         (* const& glGetAttachedObjectsARB) (GLhandleARB containerObj, GLsizei maxCount, GLsizei *count, GLhandleARB *obj);
-extern GLint        (* const& glGetUniformLocationARB) (GLhandleARB programObj, const GLcharARB *name);
-extern void         (* const& glGetActiveUniformARB) (GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei *length, GLint *size, GLenum *type, GLcharARB *name);
-extern void         (* const& glGetUniformfvARB) (GLhandleARB programObj, GLint location, GLfloat *params);
-extern void         (* const& glGetUniformivARB) (GLhandleARB programObj, GLint location, GLint *params);
-extern void         (* const& glGetShaderSourceARB) (GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *source);
+extern void         (KHRONOS_APIENTRY* const& glDeleteObjectARB) (GLhandleARB obj);
+extern GLhandleARB  (KHRONOS_APIENTRY* const& glGetHandleARB) (GLenum pname);
+extern void         (KHRONOS_APIENTRY* const& glDetachObjectARB) (GLhandleARB containerObj, GLhandleARB attachedObj);
+extern GLhandleARB  (KHRONOS_APIENTRY* const& glCreateShaderObjectARB) (GLenum shaderType);
+extern void         (KHRONOS_APIENTRY* const& glShaderSourceARB) (GLhandleARB shaderObj, GLsizei count, const GLcharARB **string, const GLint *length);
+extern void         (KHRONOS_APIENTRY* const& glCompileShaderARB) (GLhandleARB shaderObj);
+extern GLhandleARB  (KHRONOS_APIENTRY* const& glCreateProgramObjectARB) ();
+extern void         (KHRONOS_APIENTRY* const& glAttachObjectARB) (GLhandleARB containerObj, GLhandleARB obj);
+extern void         (KHRONOS_APIENTRY* const& glLinkProgramARB) (GLhandleARB programObj);
+extern void         (KHRONOS_APIENTRY* const& glUseProgramObjectARB) (GLhandleARB programObj);
+extern void         (KHRONOS_APIENTRY* const& glValidateProgramARB) (GLhandleARB programObj);
+extern void         (KHRONOS_APIENTRY* const& glUniform1fARB) (GLint location, GLfloat v0);
+extern void         (KHRONOS_APIENTRY* const& glUniform2fARB) (GLint location, GLfloat v0, GLfloat v1);
+extern void         (KHRONOS_APIENTRY* const& glUniform3fARB) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+extern void         (KHRONOS_APIENTRY* const& glUniform4fARB) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+extern void         (KHRONOS_APIENTRY* const& glUniform1iARB) (GLint location, GLint v0);
+extern void         (KHRONOS_APIENTRY* const& glUniform2iARB) (GLint location, GLint v0, GLint v1);
+extern void         (KHRONOS_APIENTRY* const& glUniform3iARB) (GLint location, GLint v0, GLint v1, GLint v2);
+extern void         (KHRONOS_APIENTRY* const& glUniform4iARB) (GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+extern void         (KHRONOS_APIENTRY* const& glUniform1fvARB) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2fvARB) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3fvARB) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4fvARB) (GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform1ivARB) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2ivARB) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3ivARB) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4ivARB) (GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix2fvARB) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix3fvARB) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glUniformMatrix4fvARB) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectParameterfvARB) (GLhandleARB obj, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectParameterivARB) (GLhandleARB obj, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetInfoLogARB) (GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog);
+extern void         (KHRONOS_APIENTRY* const& glGetAttachedObjectsARB) (GLhandleARB containerObj, GLsizei maxCount, GLsizei *count, GLhandleARB *obj);
+extern GLint        (KHRONOS_APIENTRY* const& glGetUniformLocationARB) (GLhandleARB programObj, const GLcharARB *name);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveUniformARB) (GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei *length, GLint *size, GLenum *type, GLcharARB *name);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformfvARB) (GLhandleARB programObj, GLint location, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformivARB) (GLhandleARB programObj, GLint location, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetShaderSourceARB) (GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *source);
 #endif
 
 #ifndef GL_ARB_shader_precision
@@ -4932,7 +4944,7 @@ extern void         (* const& glGetShaderSourceARB) (GLhandleARB obj, GLsizei ma
 
 #ifndef GL_ARB_shading_language_100
 #define GL_ARB_shading_language_100 1
-enum
+enum : GLenum
 {
     GL_SHADING_LANGUAGE_VERSION_ARB                         = 0x8B8C,
 };
@@ -4944,18 +4956,18 @@ enum
 
 #ifndef GL_ARB_shading_language_include
 #define GL_ARB_shading_language_include 1
-enum
+enum : GLenum
 {
     GL_SHADER_INCLUDE_ARB                                   = 0x8DAE,
     GL_NAMED_STRING_LENGTH_ARB                              = 0x8DE9,
     GL_NAMED_STRING_TYPE_ARB                                = 0x8DEA,
 };
-extern void         (* const& glNamedStringARB) (GLenum type, GLint namelen, const GLchar *name, GLint stringlen, const GLchar *string);
-extern void         (* const& glDeleteNamedStringARB) (GLint namelen, const GLchar *name);
-extern void         (* const& glCompileShaderIncludeARB) (GLuint shader, GLsizei count, const GLchar *const*path, const GLint *length);
-extern GLboolean    (* const& glIsNamedStringARB) (GLint namelen, const GLchar *name);
-extern void         (* const& glGetNamedStringARB) (GLint namelen, const GLchar *name, GLsizei bufSize, GLint *stringlen, GLchar *string);
-extern void         (* const& glGetNamedStringivARB) (GLint namelen, const GLchar *name, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedStringARB) (GLenum type, GLint namelen, const GLchar *name, GLint stringlen, const GLchar *string);
+extern void         (KHRONOS_APIENTRY* const& glDeleteNamedStringARB) (GLint namelen, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glCompileShaderIncludeARB) (GLuint shader, GLsizei count, const GLchar *const*path, const GLint *length);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsNamedStringARB) (GLint namelen, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedStringARB) (GLint namelen, const GLchar *name, GLsizei bufSize, GLint *stringlen, GLchar *string);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedStringivARB) (GLint namelen, const GLchar *name, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_ARB_shading_language_packing
@@ -4964,7 +4976,7 @@ extern void         (* const& glGetNamedStringivARB) (GLint namelen, const GLcha
 
 #ifndef GL_ARB_shadow
 #define GL_ARB_shadow 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_COMPARE_MODE_ARB                             = 0x884C,
     GL_TEXTURE_COMPARE_FUNC_ARB                             = 0x884D,
@@ -4974,7 +4986,7 @@ enum
 
 #ifndef GL_ARB_shadow_ambient
 #define GL_ARB_shadow_ambient 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_COMPARE_FAIL_VALUE_ARB                       = 0x80BF,
 };
@@ -4982,19 +4994,19 @@ enum
 
 #ifndef GL_ARB_sparse_buffer
 #define GL_ARB_sparse_buffer 1
-enum
+enum : GLenum
 {
     GL_SPARSE_STORAGE_BIT_ARB                               = 0x0400,
     GL_SPARSE_BUFFER_PAGE_SIZE_ARB                          = 0x82F8,
 };
-extern void         (* const& glBufferPageCommitmentARB) (GLenum target, GLintptr offset, GLsizeiptr size, GLboolean commit);
-extern void         (* const& glNamedBufferPageCommitmentEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit);
-extern void         (* const& glNamedBufferPageCommitmentARB) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glBufferPageCommitmentARB) (GLenum target, GLintptr offset, GLsizeiptr size, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferPageCommitmentEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferPageCommitmentARB) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit);
 #endif
 
 #ifndef GL_ARB_sparse_texture
 #define GL_ARB_sparse_texture 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_SPARSE_ARB                                   = 0x91A6,
     GL_VIRTUAL_PAGE_SIZE_INDEX_ARB                          = 0x91A7,
@@ -5008,7 +5020,7 @@ enum
     GL_MAX_SPARSE_ARRAY_TEXTURE_LAYERS_ARB                  = 0x919A,
     GL_SPARSE_TEXTURE_FULL_ARRAY_CUBE_MIPMAPS_ARB           = 0x91A9,
 };
-extern void         (* const& glTexPageCommitmentARB) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glTexPageCommitmentARB) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
 #endif
 
 #ifndef GL_ARB_sparse_texture2
@@ -5041,7 +5053,7 @@ extern void         (* const& glTexPageCommitmentARB) (GLenum target, GLint leve
 
 #ifndef GL_ARB_texture_border_clamp
 #define GL_ARB_texture_border_clamp 1
-enum
+enum : GLenum
 {
     GL_CLAMP_TO_BORDER_ARB                                  = 0x812D,
 };
@@ -5049,7 +5061,7 @@ enum
 
 #ifndef GL_ARB_texture_buffer_object
 #define GL_ARB_texture_buffer_object 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_BUFFER_ARB                                   = 0x8C2A,
     GL_MAX_TEXTURE_BUFFER_SIZE_ARB                          = 0x8C2B,
@@ -5057,7 +5069,7 @@ enum
     GL_TEXTURE_BUFFER_DATA_STORE_BINDING_ARB                = 0x8C2D,
     GL_TEXTURE_BUFFER_FORMAT_ARB                            = 0x8C2E,
 };
-extern void         (* const& glTexBufferARB) (GLenum target, GLenum internalformat, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTexBufferARB) (GLenum target, GLenum internalformat, GLuint buffer);
 #endif
 
 #ifndef GL_ARB_texture_buffer_object_rgb32
@@ -5070,7 +5082,7 @@ extern void         (* const& glTexBufferARB) (GLenum target, GLenum internalfor
 
 #ifndef GL_ARB_texture_compression
 #define GL_ARB_texture_compression 1
-enum
+enum : GLenum
 {
     GL_COMPRESSED_ALPHA_ARB                                 = 0x84E9,
     GL_COMPRESSED_LUMINANCE_ARB                             = 0x84EA,
@@ -5084,18 +5096,18 @@ enum
     GL_NUM_COMPRESSED_TEXTURE_FORMATS_ARB                   = 0x86A2,
     GL_COMPRESSED_TEXTURE_FORMATS_ARB                       = 0x86A3,
 };
-extern void         (* const& glCompressedTexImage3DARB) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexImage2DARB) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexImage1DARB) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexSubImage3DARB) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexSubImage2DARB) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glCompressedTexSubImage1DARB) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data);
-extern void         (* const& glGetCompressedTexImageARB) (GLenum target, GLint level, void *img);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexImage3DARB) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexImage2DARB) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexImage1DARB) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexSubImage3DARB) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexSubImage2DARB) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTexSubImage1DARB) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetCompressedTexImageARB) (GLenum target, GLint level, void *img);
 #endif
 
 #ifndef GL_ARB_texture_compression_bptc
 #define GL_ARB_texture_compression_bptc 1
-enum
+enum : GLenum
 {
     GL_COMPRESSED_RGBA_BPTC_UNORM_ARB                       = 0x8E8C,
     GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB                 = 0x8E8D,
@@ -5110,7 +5122,7 @@ enum
 
 #ifndef GL_ARB_texture_cube_map
 #define GL_ARB_texture_cube_map 1
-enum
+enum : GLenum
 {
     GL_NORMAL_MAP_ARB                                       = 0x8511,
     GL_REFLECTION_MAP_ARB                                   = 0x8512,
@@ -5129,7 +5141,7 @@ enum
 
 #ifndef GL_ARB_texture_cube_map_array
 #define GL_ARB_texture_cube_map_array 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_CUBE_MAP_ARRAY_ARB                           = 0x9009,
     GL_TEXTURE_BINDING_CUBE_MAP_ARRAY_ARB                   = 0x900A,
@@ -5147,7 +5159,7 @@ enum
 
 #ifndef GL_ARB_texture_env_combine
 #define GL_ARB_texture_env_combine 1
-enum
+enum : GLenum
 {
     GL_COMBINE_ARB                                          = 0x8570,
     GL_COMBINE_RGB_ARB                                      = 0x8571,
@@ -5180,7 +5192,7 @@ enum
 
 #ifndef GL_ARB_texture_env_dot3
 #define GL_ARB_texture_env_dot3 1
-enum
+enum : GLenum
 {
     GL_DOT3_RGB_ARB                                         = 0x86AE,
     GL_DOT3_RGBA_ARB                                        = 0x86AF,
@@ -5193,7 +5205,7 @@ enum
 
 #ifndef GL_ARB_texture_filter_minmax
 #define GL_ARB_texture_filter_minmax 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_REDUCTION_MODE_ARB                           = 0x9366,
     GL_WEIGHTED_AVERAGE_ARB                                 = 0x9367,
@@ -5202,7 +5214,7 @@ enum
 
 #ifndef GL_ARB_texture_float
 #define GL_ARB_texture_float 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_RED_TYPE_ARB                                 = 0x8C10,
     GL_TEXTURE_GREEN_TYPE_ARB                               = 0x8C11,
@@ -5229,7 +5241,7 @@ enum
 
 #ifndef GL_ARB_texture_gather
 #define GL_ARB_texture_gather 1
-enum
+enum : GLenum
 {
     GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET_ARB                = 0x8E5E,
     GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET_ARB                = 0x8E5F,
@@ -5243,7 +5255,7 @@ enum
 
 #ifndef GL_ARB_texture_mirrored_repeat
 #define GL_ARB_texture_mirrored_repeat 1
-enum
+enum : GLenum
 {
     GL_MIRRORED_REPEAT_ARB                                  = 0x8370,
 };
@@ -5267,7 +5279,7 @@ enum
 
 #ifndef GL_ARB_texture_rectangle
 #define GL_ARB_texture_rectangle 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_RECTANGLE_ARB                                = 0x84F5,
     GL_TEXTURE_BINDING_RECTANGLE_ARB                        = 0x84F6,
@@ -5322,7 +5334,7 @@ enum
 
 #ifndef GL_ARB_transform_feedback_overflow_query
 #define GL_ARB_transform_feedback_overflow_query 1
-enum
+enum : GLenum
 {
     GL_TRANSFORM_FEEDBACK_OVERFLOW_ARB                      = 0x82EC,
     GL_TRANSFORM_FEEDBACK_STREAM_OVERFLOW_ARB               = 0x82ED,
@@ -5331,17 +5343,17 @@ enum
 
 #ifndef GL_ARB_transpose_matrix
 #define GL_ARB_transpose_matrix 1
-enum
+enum : GLenum
 {
     GL_TRANSPOSE_MODELVIEW_MATRIX_ARB                       = 0x84E3,
     GL_TRANSPOSE_PROJECTION_MATRIX_ARB                      = 0x84E4,
     GL_TRANSPOSE_TEXTURE_MATRIX_ARB                         = 0x84E5,
     GL_TRANSPOSE_COLOR_MATRIX_ARB                           = 0x84E6,
 };
-extern void         (* const& glLoadTransposeMatrixfARB) (const GLfloat *m);
-extern void         (* const& glLoadTransposeMatrixdARB) (const GLdouble *m);
-extern void         (* const& glMultTransposeMatrixfARB) (const GLfloat *m);
-extern void         (* const& glMultTransposeMatrixdARB) (const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glLoadTransposeMatrixfARB) (const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glLoadTransposeMatrixdARB) (const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glMultTransposeMatrixfARB) (const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMultTransposeMatrixdARB) (const GLdouble *m);
 #endif
 
 #ifndef GL_ARB_uniform_buffer_object
@@ -5366,7 +5378,7 @@ extern void         (* const& glMultTransposeMatrixdARB) (const GLdouble *m);
 
 #ifndef GL_ARB_vertex_blend
 #define GL_ARB_vertex_blend 1
-enum
+enum : GLenum
 {
     GL_MAX_VERTEX_UNITS_ARB                                 = 0x86A4,
     GL_ACTIVE_VERTEX_UNITS_ARB                              = 0x86A5,
@@ -5411,21 +5423,21 @@ enum
     GL_MODELVIEW30_ARB                                      = 0x873E,
     GL_MODELVIEW31_ARB                                      = 0x873F,
 };
-extern void         (* const& glWeightbvARB) (GLint size, const GLbyte *weights);
-extern void         (* const& glWeightsvARB) (GLint size, const GLshort *weights);
-extern void         (* const& glWeightivARB) (GLint size, const GLint *weights);
-extern void         (* const& glWeightfvARB) (GLint size, const GLfloat *weights);
-extern void         (* const& glWeightdvARB) (GLint size, const GLdouble *weights);
-extern void         (* const& glWeightubvARB) (GLint size, const GLubyte *weights);
-extern void         (* const& glWeightusvARB) (GLint size, const GLushort *weights);
-extern void         (* const& glWeightuivARB) (GLint size, const GLuint *weights);
-extern void         (* const& glWeightPointerARB) (GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glVertexBlendARB) (GLint count);
+extern void         (KHRONOS_APIENTRY* const& glWeightbvARB) (GLint size, const GLbyte *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightsvARB) (GLint size, const GLshort *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightivARB) (GLint size, const GLint *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightfvARB) (GLint size, const GLfloat *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightdvARB) (GLint size, const GLdouble *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightubvARB) (GLint size, const GLubyte *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightusvARB) (GLint size, const GLushort *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightuivARB) (GLint size, const GLuint *weights);
+extern void         (KHRONOS_APIENTRY* const& glWeightPointerARB) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexBlendARB) (GLint count);
 #endif
 
 #ifndef GL_ARB_vertex_buffer_object
 #define GL_ARB_vertex_buffer_object 1
-enum
+enum : GLenum
 {
     GL_BUFFER_SIZE_ARB                                      = 0x8764,
     GL_BUFFER_USAGE_ARB                                     = 0x8765,
@@ -5459,22 +5471,22 @@ enum
     GL_DYNAMIC_READ_ARB                                     = 0x88E9,
     GL_DYNAMIC_COPY_ARB                                     = 0x88EA,
 };
-extern void         (* const& glBindBufferARB) (GLenum target, GLuint buffer);
-extern void         (* const& glDeleteBuffersARB) (GLsizei n, const GLuint *buffers);
-extern void         (* const& glGenBuffersARB) (GLsizei n, GLuint *buffers);
-extern GLboolean    (* const& glIsBufferARB) (GLuint buffer);
-extern void         (* const& glBufferDataARB) (GLenum target, GLsizeiptrARB size, const void *data, GLenum usage);
-extern void         (* const& glBufferSubDataARB) (GLenum target, GLintptrARB offset, GLsizeiptrARB size, const void *data);
-extern void         (* const& glGetBufferSubDataARB) (GLenum target, GLintptrARB offset, GLsizeiptrARB size, void *data);
-extern void *       (* const& glMapBufferARB) (GLenum target, GLenum access);
-extern GLboolean    (* const& glUnmapBufferARB) (GLenum target);
-extern void         (* const& glGetBufferParameterivARB) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetBufferPointervARB) (GLenum target, GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glBindBufferARB) (GLenum target, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glDeleteBuffersARB) (GLsizei n, const GLuint *buffers);
+extern void         (KHRONOS_APIENTRY* const& glGenBuffersARB) (GLsizei n, GLuint *buffers);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsBufferARB) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glBufferDataARB) (GLenum target, GLsizeiptrARB size, const void *data, GLenum usage);
+extern void         (KHRONOS_APIENTRY* const& glBufferSubDataARB) (GLenum target, GLintptrARB offset, GLsizeiptrARB size, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferSubDataARB) (GLenum target, GLintptrARB offset, GLsizeiptrARB size, void *data);
+extern void *       (KHRONOS_APIENTRY* const& glMapBufferARB) (GLenum target, GLenum access);
+extern GLboolean    (KHRONOS_APIENTRY* const& glUnmapBufferARB) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferParameterivARB) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferPointervARB) (GLenum target, GLenum pname, void **params);
 #endif
 
 #ifndef GL_ARB_vertex_program
 #define GL_ARB_vertex_program 1
-enum
+enum : GLenum
 {
     GL_COLOR_SUM_ARB                                        = 0x8458,
     GL_VERTEX_PROGRAM_ARB                                   = 0x8620,
@@ -5493,54 +5505,54 @@ enum
     GL_PROGRAM_NATIVE_ADDRESS_REGISTERS_ARB                 = 0x88B2,
     GL_MAX_PROGRAM_NATIVE_ADDRESS_REGISTERS_ARB             = 0x88B3,
 };
-extern void         (* const& glVertexAttrib1dARB) (GLuint index, GLdouble x);
-extern void         (* const& glVertexAttrib1dvARB) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib1fARB) (GLuint index, GLfloat x);
-extern void         (* const& glVertexAttrib1fvARB) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib1sARB) (GLuint index, GLshort x);
-extern void         (* const& glVertexAttrib1svARB) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib2dARB) (GLuint index, GLdouble x, GLdouble y);
-extern void         (* const& glVertexAttrib2dvARB) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib2fARB) (GLuint index, GLfloat x, GLfloat y);
-extern void         (* const& glVertexAttrib2fvARB) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib2sARB) (GLuint index, GLshort x, GLshort y);
-extern void         (* const& glVertexAttrib2svARB) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib3dARB) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glVertexAttrib3dvARB) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib3fARB) (GLuint index, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glVertexAttrib3fvARB) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib3sARB) (GLuint index, GLshort x, GLshort y, GLshort z);
-extern void         (* const& glVertexAttrib3svARB) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4NbvARB) (GLuint index, const GLbyte *v);
-extern void         (* const& glVertexAttrib4NivARB) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttrib4NsvARB) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4NubARB) (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
-extern void         (* const& glVertexAttrib4NubvARB) (GLuint index, const GLubyte *v);
-extern void         (* const& glVertexAttrib4NuivARB) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttrib4NusvARB) (GLuint index, const GLushort *v);
-extern void         (* const& glVertexAttrib4bvARB) (GLuint index, const GLbyte *v);
-extern void         (* const& glVertexAttrib4dARB) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glVertexAttrib4dvARB) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib4fARB) (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glVertexAttrib4fvARB) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib4ivARB) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttrib4sARB) (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
-extern void         (* const& glVertexAttrib4svARB) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4ubvARB) (GLuint index, const GLubyte *v);
-extern void         (* const& glVertexAttrib4uivARB) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttrib4usvARB) (GLuint index, const GLushort *v);
-extern void         (* const& glVertexAttribPointerARB) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-extern void         (* const& glEnableVertexAttribArrayARB) (GLuint index);
-extern void         (* const& glDisableVertexAttribArrayARB) (GLuint index);
-extern void         (* const& glGetVertexAttribdvARB) (GLuint index, GLenum pname, GLdouble *params);
-extern void         (* const& glGetVertexAttribfvARB) (GLuint index, GLenum pname, GLfloat *params);
-extern void         (* const& glGetVertexAttribivARB) (GLuint index, GLenum pname, GLint *params);
-extern void         (* const& glGetVertexAttribPointervARB) (GLuint index, GLenum pname, void **pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1dARB) (GLuint index, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1dvARB) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1fARB) (GLuint index, GLfloat x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1fvARB) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1sARB) (GLuint index, GLshort x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1svARB) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2dARB) (GLuint index, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2dvARB) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2fARB) (GLuint index, GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2fvARB) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2sARB) (GLuint index, GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2svARB) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3dARB) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3dvARB) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3fARB) (GLuint index, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3fvARB) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3sARB) (GLuint index, GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3svARB) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4NbvARB) (GLuint index, const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4NivARB) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4NsvARB) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4NubARB) (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4NubvARB) (GLuint index, const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4NuivARB) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4NusvARB) (GLuint index, const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4bvARB) (GLuint index, const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4dARB) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4dvARB) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4fARB) (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4fvARB) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4ivARB) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4sARB) (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4svARB) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4ubvARB) (GLuint index, const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4uivARB) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4usvARB) (GLuint index, const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribPointerARB) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glEnableVertexAttribArrayARB) (GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glDisableVertexAttribArrayARB) (GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribdvARB) (GLuint index, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribfvARB) (GLuint index, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribivARB) (GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribPointervARB) (GLuint index, GLenum pname, void **pointer);
 #endif
 
 #ifndef GL_ARB_vertex_shader
 #define GL_ARB_vertex_shader 1
-enum
+enum : GLenum
 {
     GL_VERTEX_SHADER_ARB                                    = 0x8B31,
     GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB                    = 0x8B4A,
@@ -5550,9 +5562,9 @@ enum
     GL_OBJECT_ACTIVE_ATTRIBUTES_ARB                         = 0x8B89,
     GL_OBJECT_ACTIVE_ATTRIBUTE_MAX_LENGTH_ARB               = 0x8B8A,
 };
-extern void         (* const& glBindAttribLocationARB) (GLhandleARB programObj, GLuint index, const GLcharARB *name);
-extern void         (* const& glGetActiveAttribARB) (GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei *length, GLint *size, GLenum *type, GLcharARB *name);
-extern GLint        (* const& glGetAttribLocationARB) (GLhandleARB programObj, const GLcharARB *name);
+extern void         (KHRONOS_APIENTRY* const& glBindAttribLocationARB) (GLhandleARB programObj, GLuint index, const GLcharARB *name);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveAttribARB) (GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei *length, GLint *size, GLenum *type, GLcharARB *name);
+extern GLint        (KHRONOS_APIENTRY* const& glGetAttribLocationARB) (GLhandleARB programObj, const GLcharARB *name);
 #endif
 
 #ifndef GL_ARB_vertex_type_10f_11f_11f_rev
@@ -5565,33 +5577,33 @@ extern GLint        (* const& glGetAttribLocationARB) (GLhandleARB programObj, c
 
 #ifndef GL_ARB_viewport_array
 #define GL_ARB_viewport_array 1
-extern void         (* const& glDepthRangeArraydvNV) (GLuint first, GLsizei count, const GLdouble *v);
-extern void         (* const& glDepthRangeIndexeddNV) (GLuint index, GLdouble n, GLdouble f);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangeArraydvNV) (GLuint first, GLsizei count, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangeIndexeddNV) (GLuint index, GLdouble n, GLdouble f);
 #endif
 
 #ifndef GL_ARB_window_pos
 #define GL_ARB_window_pos 1
-extern void         (* const& glWindowPos2dARB) (GLdouble x, GLdouble y);
-extern void         (* const& glWindowPos2dvARB) (const GLdouble *v);
-extern void         (* const& glWindowPos2fARB) (GLfloat x, GLfloat y);
-extern void         (* const& glWindowPos2fvARB) (const GLfloat *v);
-extern void         (* const& glWindowPos2iARB) (GLint x, GLint y);
-extern void         (* const& glWindowPos2ivARB) (const GLint *v);
-extern void         (* const& glWindowPos2sARB) (GLshort x, GLshort y);
-extern void         (* const& glWindowPos2svARB) (const GLshort *v);
-extern void         (* const& glWindowPos3dARB) (GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glWindowPos3dvARB) (const GLdouble *v);
-extern void         (* const& glWindowPos3fARB) (GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glWindowPos3fvARB) (const GLfloat *v);
-extern void         (* const& glWindowPos3iARB) (GLint x, GLint y, GLint z);
-extern void         (* const& glWindowPos3ivARB) (const GLint *v);
-extern void         (* const& glWindowPos3sARB) (GLshort x, GLshort y, GLshort z);
-extern void         (* const& glWindowPos3svARB) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2dARB) (GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2dvARB) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2fARB) (GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2fvARB) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2iARB) (GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2ivARB) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2sARB) (GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2svARB) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3dARB) (GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3dvARB) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3fARB) (GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3fvARB) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3iARB) (GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3ivARB) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3sARB) (GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3svARB) (const GLshort *v);
 #endif
 
 #ifndef GL_ATI_draw_buffers
 #define GL_ATI_draw_buffers 1
-enum
+enum : GLenum
 {
     GL_MAX_DRAW_BUFFERS_ATI                                 = 0x8824,
     GL_DRAW_BUFFER0_ATI                                     = 0x8825,
@@ -5611,25 +5623,25 @@ enum
     GL_DRAW_BUFFER14_ATI                                    = 0x8833,
     GL_DRAW_BUFFER15_ATI                                    = 0x8834,
 };
-extern void         (* const& glDrawBuffersATI) (GLsizei n, const GLenum *bufs);
+extern void         (KHRONOS_APIENTRY* const& glDrawBuffersATI) (GLsizei n, const GLenum *bufs);
 #endif
 
 #ifndef GL_ATI_element_array
 #define GL_ATI_element_array 1
-enum
+enum : GLenum
 {
     GL_ELEMENT_ARRAY_ATI                                    = 0x8768,
     GL_ELEMENT_ARRAY_TYPE_ATI                               = 0x8769,
     GL_ELEMENT_ARRAY_POINTER_ATI                            = 0x876A,
 };
-extern void         (* const& glElementPointerATI) (GLenum type, const void *pointer);
-extern void         (* const& glDrawElementArrayATI) (GLenum mode, GLsizei count);
-extern void         (* const& glDrawRangeElementArrayATI) (GLenum mode, GLuint start, GLuint end, GLsizei count);
+extern void         (KHRONOS_APIENTRY* const& glElementPointerATI) (GLenum type, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementArrayATI) (GLenum mode, GLsizei count);
+extern void         (KHRONOS_APIENTRY* const& glDrawRangeElementArrayATI) (GLenum mode, GLuint start, GLuint end, GLsizei count);
 #endif
 
 #ifndef GL_ATI_envmap_bumpmap
 #define GL_ATI_envmap_bumpmap 1
-enum
+enum : GLenum
 {
     GL_BUMP_ROT_MATRIX_ATI                                  = 0x8775,
     GL_BUMP_ROT_MATRIX_SIZE_ATI                             = 0x8776,
@@ -5640,15 +5652,15 @@ enum
     GL_BUMP_ENVMAP_ATI                                      = 0x877B,
     GL_BUMP_TARGET_ATI                                      = 0x877C,
 };
-extern void         (* const& glTexBumpParameterivATI) (GLenum pname, const GLint *param);
-extern void         (* const& glTexBumpParameterfvATI) (GLenum pname, const GLfloat *param);
-extern void         (* const& glGetTexBumpParameterivATI) (GLenum pname, GLint *param);
-extern void         (* const& glGetTexBumpParameterfvATI) (GLenum pname, GLfloat *param);
+extern void         (KHRONOS_APIENTRY* const& glTexBumpParameterivATI) (GLenum pname, const GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glTexBumpParameterfvATI) (GLenum pname, const GLfloat *param);
+extern void         (KHRONOS_APIENTRY* const& glGetTexBumpParameterivATI) (GLenum pname, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetTexBumpParameterfvATI) (GLenum pname, GLfloat *param);
 #endif
 
 #ifndef GL_ATI_fragment_shader
 #define GL_ATI_fragment_shader 1
-enum
+enum : GLenum
 {
     GL_FRAGMENT_SHADER_ATI                                  = 0x8920,
     GL_REG_0_ATI                                            = 0x8921,
@@ -5755,31 +5767,31 @@ enum
     GL_NEGATE_BIT_ATI                                       = 0x00000004,
     GL_BIAS_BIT_ATI                                         = 0x00000008,
 };
-extern GLuint       (* const& glGenFragmentShadersATI) (GLuint range);
-extern void         (* const& glBindFragmentShaderATI) (GLuint id);
-extern void         (* const& glDeleteFragmentShaderATI) (GLuint id);
-extern void         (* const& glBeginFragmentShaderATI) ();
-extern void         (* const& glEndFragmentShaderATI) ();
-extern void         (* const& glPassTexCoordATI) (GLuint dst, GLuint coord, GLenum swizzle);
-extern void         (* const& glSampleMapATI) (GLuint dst, GLuint interp, GLenum swizzle);
-extern void         (* const& glColorFragmentOp1ATI) (GLenum op, GLuint dst, GLuint dstMask, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod);
-extern void         (* const& glColorFragmentOp2ATI) (GLenum op, GLuint dst, GLuint dstMask, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod);
-extern void         (* const& glColorFragmentOp3ATI) (GLenum op, GLuint dst, GLuint dstMask, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod, GLuint arg3, GLuint arg3Rep, GLuint arg3Mod);
-extern void         (* const& glAlphaFragmentOp1ATI) (GLenum op, GLuint dst, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod);
-extern void         (* const& glAlphaFragmentOp2ATI) (GLenum op, GLuint dst, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod);
-extern void         (* const& glAlphaFragmentOp3ATI) (GLenum op, GLuint dst, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod, GLuint arg3, GLuint arg3Rep, GLuint arg3Mod);
-extern void         (* const& glSetFragmentShaderConstantATI) (GLuint dst, const GLfloat *value);
+extern GLuint       (KHRONOS_APIENTRY* const& glGenFragmentShadersATI) (GLuint range);
+extern void         (KHRONOS_APIENTRY* const& glBindFragmentShaderATI) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glDeleteFragmentShaderATI) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glBeginFragmentShaderATI) ();
+extern void         (KHRONOS_APIENTRY* const& glEndFragmentShaderATI) ();
+extern void         (KHRONOS_APIENTRY* const& glPassTexCoordATI) (GLuint dst, GLuint coord, GLenum swizzle);
+extern void         (KHRONOS_APIENTRY* const& glSampleMapATI) (GLuint dst, GLuint interp, GLenum swizzle);
+extern void         (KHRONOS_APIENTRY* const& glColorFragmentOp1ATI) (GLenum op, GLuint dst, GLuint dstMask, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod);
+extern void         (KHRONOS_APIENTRY* const& glColorFragmentOp2ATI) (GLenum op, GLuint dst, GLuint dstMask, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod);
+extern void         (KHRONOS_APIENTRY* const& glColorFragmentOp3ATI) (GLenum op, GLuint dst, GLuint dstMask, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod, GLuint arg3, GLuint arg3Rep, GLuint arg3Mod);
+extern void         (KHRONOS_APIENTRY* const& glAlphaFragmentOp1ATI) (GLenum op, GLuint dst, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod);
+extern void         (KHRONOS_APIENTRY* const& glAlphaFragmentOp2ATI) (GLenum op, GLuint dst, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod);
+extern void         (KHRONOS_APIENTRY* const& glAlphaFragmentOp3ATI) (GLenum op, GLuint dst, GLuint dstMod, GLuint arg1, GLuint arg1Rep, GLuint arg1Mod, GLuint arg2, GLuint arg2Rep, GLuint arg2Mod, GLuint arg3, GLuint arg3Rep, GLuint arg3Mod);
+extern void         (KHRONOS_APIENTRY* const& glSetFragmentShaderConstantATI) (GLuint dst, const GLfloat *value);
 #endif
 
 #ifndef GL_ATI_map_object_buffer
 #define GL_ATI_map_object_buffer 1
-extern void *       (* const& glMapObjectBufferATI) (GLuint buffer);
-extern void         (* const& glUnmapObjectBufferATI) (GLuint buffer);
+extern void *       (KHRONOS_APIENTRY* const& glMapObjectBufferATI) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glUnmapObjectBufferATI) (GLuint buffer);
 #endif
 
 #ifndef GL_ATI_meminfo
 #define GL_ATI_meminfo 1
-enum
+enum : GLenum
 {
     GL_VBO_FREE_MEMORY_ATI                                  = 0x87FB,
     GL_TEXTURE_FREE_MEMORY_ATI                              = 0x87FC,
@@ -5789,7 +5801,7 @@ enum
 
 #ifndef GL_ATI_pixel_format_float
 #define GL_ATI_pixel_format_float 1
-enum
+enum : GLenum
 {
     GL_RGBA_FLOAT_MODE_ATI                                  = 0x8820,
     GL_COLOR_CLEAR_UNCLAMPED_VALUE_ATI                      = 0x8835,
@@ -5798,7 +5810,7 @@ enum
 
 #ifndef GL_ATI_pn_triangles
 #define GL_ATI_pn_triangles 1
-enum
+enum : GLenum
 {
     GL_PN_TRIANGLES_ATI                                     = 0x87F0,
     GL_MAX_PN_TRIANGLES_TESSELATION_LEVEL_ATI               = 0x87F1,
@@ -5810,26 +5822,26 @@ enum
     GL_PN_TRIANGLES_NORMAL_MODE_LINEAR_ATI                  = 0x87F7,
     GL_PN_TRIANGLES_NORMAL_MODE_QUADRATIC_ATI               = 0x87F8,
 };
-extern void         (* const& glPNTrianglesiATI) (GLenum pname, GLint param);
-extern void         (* const& glPNTrianglesfATI) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPNTrianglesiATI) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glPNTrianglesfATI) (GLenum pname, GLfloat param);
 #endif
 
 #ifndef GL_ATI_separate_stencil
 #define GL_ATI_separate_stencil 1
-enum
+enum : GLenum
 {
     GL_STENCIL_BACK_FUNC_ATI                                = 0x8800,
     GL_STENCIL_BACK_FAIL_ATI                                = 0x8801,
     GL_STENCIL_BACK_PASS_DEPTH_FAIL_ATI                     = 0x8802,
     GL_STENCIL_BACK_PASS_DEPTH_PASS_ATI                     = 0x8803,
 };
-extern void         (* const& glStencilOpSeparateATI) (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
-extern void         (* const& glStencilFuncSeparateATI) (GLenum frontfunc, GLenum backfunc, GLint ref, GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glStencilOpSeparateATI) (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+extern void         (KHRONOS_APIENTRY* const& glStencilFuncSeparateATI) (GLenum frontfunc, GLenum backfunc, GLint ref, GLuint mask);
 #endif
 
 #ifndef GL_ATI_text_fragment_shader
 #define GL_ATI_text_fragment_shader 1
-enum
+enum : GLenum
 {
     GL_TEXT_FRAGMENT_SHADER_ATI                             = 0x8200,
 };
@@ -5837,7 +5849,7 @@ enum
 
 #ifndef GL_ATI_texture_env_combine3
 #define GL_ATI_texture_env_combine3 1
-enum
+enum : GLenum
 {
     GL_MODULATE_ADD_ATI                                     = 0x8744,
     GL_MODULATE_SIGNED_ADD_ATI                              = 0x8745,
@@ -5847,7 +5859,7 @@ enum
 
 #ifndef GL_ATI_texture_float
 #define GL_ATI_texture_float 1
-enum
+enum : GLenum
 {
     GL_RGBA_FLOAT32_ATI                                     = 0x8814,
     GL_RGB_FLOAT32_ATI                                      = 0x8815,
@@ -5866,7 +5878,7 @@ enum
 
 #ifndef GL_ATI_texture_mirror_once
 #define GL_ATI_texture_mirror_once 1
-enum
+enum : GLenum
 {
     GL_MIRROR_CLAMP_ATI                                     = 0x8742,
     GL_MIRROR_CLAMP_TO_EDGE_ATI                             = 0x8743,
@@ -5875,7 +5887,7 @@ enum
 
 #ifndef GL_ATI_vertex_array_object
 #define GL_ATI_vertex_array_object 1
-enum
+enum : GLenum
 {
     GL_STATIC_ATI                                           = 0x8760,
     GL_DYNAMIC_ATI                                          = 0x8761,
@@ -5886,30 +5898,30 @@ enum
     GL_ARRAY_OBJECT_BUFFER_ATI                              = 0x8766,
     GL_ARRAY_OBJECT_OFFSET_ATI                              = 0x8767,
 };
-extern GLuint       (* const& glNewObjectBufferATI) (GLsizei size, const void *pointer, GLenum usage);
-extern GLboolean    (* const& glIsObjectBufferATI) (GLuint buffer);
-extern void         (* const& glUpdateObjectBufferATI) (GLuint buffer, GLuint offset, GLsizei size, const void *pointer, GLenum preserve);
-extern void         (* const& glGetObjectBufferfvATI) (GLuint buffer, GLenum pname, GLfloat *params);
-extern void         (* const& glGetObjectBufferivATI) (GLuint buffer, GLenum pname, GLint *params);
-extern void         (* const& glFreeObjectBufferATI) (GLuint buffer);
-extern void         (* const& glArrayObjectATI) (GLenum array, GLint size, GLenum type, GLsizei stride, GLuint buffer, GLuint offset);
-extern void         (* const& glGetArrayObjectfvATI) (GLenum array, GLenum pname, GLfloat *params);
-extern void         (* const& glGetArrayObjectivATI) (GLenum array, GLenum pname, GLint *params);
-extern void         (* const& glVariantArrayObjectATI) (GLuint id, GLenum type, GLsizei stride, GLuint buffer, GLuint offset);
-extern void         (* const& glGetVariantArrayObjectfvATI) (GLuint id, GLenum pname, GLfloat *params);
-extern void         (* const& glGetVariantArrayObjectivATI) (GLuint id, GLenum pname, GLint *params);
+extern GLuint       (KHRONOS_APIENTRY* const& glNewObjectBufferATI) (GLsizei size, const void *pointer, GLenum usage);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsObjectBufferATI) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glUpdateObjectBufferATI) (GLuint buffer, GLuint offset, GLsizei size, const void *pointer, GLenum preserve);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectBufferfvATI) (GLuint buffer, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectBufferivATI) (GLuint buffer, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glFreeObjectBufferATI) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glArrayObjectATI) (GLenum array, GLint size, GLenum type, GLsizei stride, GLuint buffer, GLuint offset);
+extern void         (KHRONOS_APIENTRY* const& glGetArrayObjectfvATI) (GLenum array, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetArrayObjectivATI) (GLenum array, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glVariantArrayObjectATI) (GLuint id, GLenum type, GLsizei stride, GLuint buffer, GLuint offset);
+extern void         (KHRONOS_APIENTRY* const& glGetVariantArrayObjectfvATI) (GLuint id, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVariantArrayObjectivATI) (GLuint id, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_ATI_vertex_attrib_array_object
 #define GL_ATI_vertex_attrib_array_object 1
-extern void         (* const& glVertexAttribArrayObjectATI) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLuint buffer, GLuint offset);
-extern void         (* const& glGetVertexAttribArrayObjectfvATI) (GLuint index, GLenum pname, GLfloat *params);
-extern void         (* const& glGetVertexAttribArrayObjectivATI) (GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribArrayObjectATI) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLuint buffer, GLuint offset);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribArrayObjectfvATI) (GLuint index, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribArrayObjectivATI) (GLuint index, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_ATI_vertex_streams
 #define GL_ATI_vertex_streams 1
-enum
+enum : GLenum
 {
     GL_MAX_VERTEX_STREAMS_ATI                               = 0x876B,
     GL_VERTEX_STREAM0_ATI                                   = 0x876C,
@@ -5922,56 +5934,56 @@ enum
     GL_VERTEX_STREAM7_ATI                                   = 0x8773,
     GL_VERTEX_SOURCE_ATI                                    = 0x8774,
 };
-extern void         (* const& glVertexStream1sATI) (GLenum stream, GLshort x);
-extern void         (* const& glVertexStream1svATI) (GLenum stream, const GLshort *coords);
-extern void         (* const& glVertexStream1iATI) (GLenum stream, GLint x);
-extern void         (* const& glVertexStream1ivATI) (GLenum stream, const GLint *coords);
-extern void         (* const& glVertexStream1fATI) (GLenum stream, GLfloat x);
-extern void         (* const& glVertexStream1fvATI) (GLenum stream, const GLfloat *coords);
-extern void         (* const& glVertexStream1dATI) (GLenum stream, GLdouble x);
-extern void         (* const& glVertexStream1dvATI) (GLenum stream, const GLdouble *coords);
-extern void         (* const& glVertexStream2sATI) (GLenum stream, GLshort x, GLshort y);
-extern void         (* const& glVertexStream2svATI) (GLenum stream, const GLshort *coords);
-extern void         (* const& glVertexStream2iATI) (GLenum stream, GLint x, GLint y);
-extern void         (* const& glVertexStream2ivATI) (GLenum stream, const GLint *coords);
-extern void         (* const& glVertexStream2fATI) (GLenum stream, GLfloat x, GLfloat y);
-extern void         (* const& glVertexStream2fvATI) (GLenum stream, const GLfloat *coords);
-extern void         (* const& glVertexStream2dATI) (GLenum stream, GLdouble x, GLdouble y);
-extern void         (* const& glVertexStream2dvATI) (GLenum stream, const GLdouble *coords);
-extern void         (* const& glVertexStream3sATI) (GLenum stream, GLshort x, GLshort y, GLshort z);
-extern void         (* const& glVertexStream3svATI) (GLenum stream, const GLshort *coords);
-extern void         (* const& glVertexStream3iATI) (GLenum stream, GLint x, GLint y, GLint z);
-extern void         (* const& glVertexStream3ivATI) (GLenum stream, const GLint *coords);
-extern void         (* const& glVertexStream3fATI) (GLenum stream, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glVertexStream3fvATI) (GLenum stream, const GLfloat *coords);
-extern void         (* const& glVertexStream3dATI) (GLenum stream, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glVertexStream3dvATI) (GLenum stream, const GLdouble *coords);
-extern void         (* const& glVertexStream4sATI) (GLenum stream, GLshort x, GLshort y, GLshort z, GLshort w);
-extern void         (* const& glVertexStream4svATI) (GLenum stream, const GLshort *coords);
-extern void         (* const& glVertexStream4iATI) (GLenum stream, GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glVertexStream4ivATI) (GLenum stream, const GLint *coords);
-extern void         (* const& glVertexStream4fATI) (GLenum stream, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glVertexStream4fvATI) (GLenum stream, const GLfloat *coords);
-extern void         (* const& glVertexStream4dATI) (GLenum stream, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glVertexStream4dvATI) (GLenum stream, const GLdouble *coords);
-extern void         (* const& glNormalStream3bATI) (GLenum stream, GLbyte nx, GLbyte ny, GLbyte nz);
-extern void         (* const& glNormalStream3bvATI) (GLenum stream, const GLbyte *coords);
-extern void         (* const& glNormalStream3sATI) (GLenum stream, GLshort nx, GLshort ny, GLshort nz);
-extern void         (* const& glNormalStream3svATI) (GLenum stream, const GLshort *coords);
-extern void         (* const& glNormalStream3iATI) (GLenum stream, GLint nx, GLint ny, GLint nz);
-extern void         (* const& glNormalStream3ivATI) (GLenum stream, const GLint *coords);
-extern void         (* const& glNormalStream3fATI) (GLenum stream, GLfloat nx, GLfloat ny, GLfloat nz);
-extern void         (* const& glNormalStream3fvATI) (GLenum stream, const GLfloat *coords);
-extern void         (* const& glNormalStream3dATI) (GLenum stream, GLdouble nx, GLdouble ny, GLdouble nz);
-extern void         (* const& glNormalStream3dvATI) (GLenum stream, const GLdouble *coords);
-extern void         (* const& glClientActiveVertexStreamATI) (GLenum stream);
-extern void         (* const& glVertexBlendEnviATI) (GLenum pname, GLint param);
-extern void         (* const& glVertexBlendEnvfATI) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1sATI) (GLenum stream, GLshort x);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1svATI) (GLenum stream, const GLshort *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1iATI) (GLenum stream, GLint x);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1ivATI) (GLenum stream, const GLint *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1fATI) (GLenum stream, GLfloat x);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1fvATI) (GLenum stream, const GLfloat *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1dATI) (GLenum stream, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream1dvATI) (GLenum stream, const GLdouble *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2sATI) (GLenum stream, GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2svATI) (GLenum stream, const GLshort *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2iATI) (GLenum stream, GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2ivATI) (GLenum stream, const GLint *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2fATI) (GLenum stream, GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2fvATI) (GLenum stream, const GLfloat *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2dATI) (GLenum stream, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream2dvATI) (GLenum stream, const GLdouble *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3sATI) (GLenum stream, GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3svATI) (GLenum stream, const GLshort *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3iATI) (GLenum stream, GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3ivATI) (GLenum stream, const GLint *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3fATI) (GLenum stream, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3fvATI) (GLenum stream, const GLfloat *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3dATI) (GLenum stream, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream3dvATI) (GLenum stream, const GLdouble *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4sATI) (GLenum stream, GLshort x, GLshort y, GLshort z, GLshort w);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4svATI) (GLenum stream, const GLshort *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4iATI) (GLenum stream, GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4ivATI) (GLenum stream, const GLint *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4fATI) (GLenum stream, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4fvATI) (GLenum stream, const GLfloat *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4dATI) (GLenum stream, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glVertexStream4dvATI) (GLenum stream, const GLdouble *coords);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3bATI) (GLenum stream, GLbyte nx, GLbyte ny, GLbyte nz);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3bvATI) (GLenum stream, const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3sATI) (GLenum stream, GLshort nx, GLshort ny, GLshort nz);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3svATI) (GLenum stream, const GLshort *coords);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3iATI) (GLenum stream, GLint nx, GLint ny, GLint nz);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3ivATI) (GLenum stream, const GLint *coords);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3fATI) (GLenum stream, GLfloat nx, GLfloat ny, GLfloat nz);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3fvATI) (GLenum stream, const GLfloat *coords);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3dATI) (GLenum stream, GLdouble nx, GLdouble ny, GLdouble nz);
+extern void         (KHRONOS_APIENTRY* const& glNormalStream3dvATI) (GLenum stream, const GLdouble *coords);
+extern void         (KHRONOS_APIENTRY* const& glClientActiveVertexStreamATI) (GLenum stream);
+extern void         (KHRONOS_APIENTRY* const& glVertexBlendEnviATI) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glVertexBlendEnvfATI) (GLenum pname, GLfloat param);
 #endif
 
 #ifndef GL_EXT_422_pixels
 #define GL_EXT_422_pixels 1
-enum
+enum : GLenum
 {
     GL_422_EXT                                              = 0x80CC,
     GL_422_REV_EXT                                          = 0x80CD,
@@ -5982,8 +5994,8 @@ enum
 
 #ifndef GL_EXT_EGL_image_storage
 #define GL_EXT_EGL_image_storage 1
-extern void         (* const& glEGLImageTargetTexStorageEXT) (GLenum target, GLeglImageOES image, const GLint* attrib_list);
-extern void         (* const& glEGLImageTargetTextureStorageEXT) (GLuint texture, GLeglImageOES image, const GLint* attrib_list);
+extern void         (KHRONOS_APIENTRY* const& glEGLImageTargetTexStorageEXT) (GLenum target, GLeglImageOES image, const GLint* attrib_list);
+extern void         (KHRONOS_APIENTRY* const& glEGLImageTargetTextureStorageEXT) (GLuint texture, GLeglImageOES image, const GLint* attrib_list);
 #endif
 
 #ifndef GL_EXT_EGL_sync
@@ -5992,7 +6004,7 @@ extern void         (* const& glEGLImageTargetTextureStorageEXT) (GLuint texture
 
 #ifndef GL_EXT_abgr
 #define GL_EXT_abgr 1
-enum
+enum : GLenum
 {
     GL_ABGR_EXT                                             = 0x8000,
 };
@@ -6000,7 +6012,7 @@ enum
 
 #ifndef GL_EXT_bgra
 #define GL_EXT_bgra 1
-enum
+enum : GLenum
 {
     GL_BGR_EXT                                              = 0x80E0,
     GL_BGRA_EXT                                             = 0x80E1,
@@ -6009,7 +6021,7 @@ enum
 
 #ifndef GL_EXT_bindable_uniform
 #define GL_EXT_bindable_uniform 1
-enum
+enum : GLenum
 {
     GL_MAX_VERTEX_BINDABLE_UNIFORMS_EXT                     = 0x8DE2,
     GL_MAX_FRAGMENT_BINDABLE_UNIFORMS_EXT                   = 0x8DE3,
@@ -6018,14 +6030,14 @@ enum
     GL_UNIFORM_BUFFER_EXT                                   = 0x8DEE,
     GL_UNIFORM_BUFFER_BINDING_EXT                           = 0x8DEF,
 };
-extern void         (* const& glUniformBufferEXT) (GLuint program, GLint location, GLuint buffer);
-extern GLint        (* const& glGetUniformBufferSizeEXT) (GLuint program, GLint location);
-extern GLintptr     (* const& glGetUniformOffsetEXT) (GLuint program, GLint location);
+extern void         (KHRONOS_APIENTRY* const& glUniformBufferEXT) (GLuint program, GLint location, GLuint buffer);
+extern GLint        (KHRONOS_APIENTRY* const& glGetUniformBufferSizeEXT) (GLuint program, GLint location);
+extern GLintptr     (KHRONOS_APIENTRY* const& glGetUniformOffsetEXT) (GLuint program, GLint location);
 #endif
 
 #ifndef GL_EXT_blend_color
 #define GL_EXT_blend_color 1
-enum
+enum : GLenum
 {
     GL_CONSTANT_COLOR_EXT                                   = 0x8001,
     GL_ONE_MINUS_CONSTANT_COLOR_EXT                         = 0x8002,
@@ -6033,29 +6045,29 @@ enum
     GL_ONE_MINUS_CONSTANT_ALPHA_EXT                         = 0x8004,
     GL_BLEND_COLOR_EXT                                      = 0x8005,
 };
-extern void         (* const& glBlendColorEXT) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendColorEXT) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 #endif
 
 #ifndef GL_EXT_blend_equation_separate
 #define GL_EXT_blend_equation_separate 1
-enum
+enum : GLenum
 {
     GL_BLEND_EQUATION_RGB_EXT                               = 0x8009,
     GL_BLEND_EQUATION_ALPHA_EXT                             = 0x883D,
 };
-extern void         (* const& glBlendEquationSeparateEXT) (GLenum modeRGB, GLenum modeAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationSeparateEXT) (GLenum modeRGB, GLenum modeAlpha);
 #endif
 
 #ifndef GL_EXT_blend_func_separate
 #define GL_EXT_blend_func_separate 1
-enum
+enum : GLenum
 {
     GL_BLEND_DST_RGB_EXT                                    = 0x80C8,
     GL_BLEND_SRC_RGB_EXT                                    = 0x80C9,
     GL_BLEND_DST_ALPHA_EXT                                  = 0x80CA,
     GL_BLEND_SRC_ALPHA_EXT                                  = 0x80CB,
 };
-extern void         (* const& glBlendFuncSeparateEXT) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendFuncSeparateEXT) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
 #endif
 
 #ifndef GL_EXT_blend_logic_op
@@ -6064,19 +6076,19 @@ extern void         (* const& glBlendFuncSeparateEXT) (GLenum sfactorRGB, GLenum
 
 #ifndef GL_EXT_blend_minmax
 #define GL_EXT_blend_minmax 1
-enum
+enum : GLenum
 {
     GL_MIN_EXT                                              = 0x8007,
     GL_MAX_EXT                                              = 0x8008,
     GL_FUNC_ADD_EXT                                         = 0x8006,
     GL_BLEND_EQUATION_EXT                                   = 0x8009,
 };
-extern void         (* const& glBlendEquationEXT) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glBlendEquationEXT) (GLenum mode);
 #endif
 
 #ifndef GL_EXT_blend_subtract
 #define GL_EXT_blend_subtract 1
-enum
+enum : GLenum
 {
     GL_FUNC_SUBTRACT_EXT                                    = 0x800A,
     GL_FUNC_REVERSE_SUBTRACT_EXT                            = 0x800B,
@@ -6085,7 +6097,7 @@ enum
 
 #ifndef GL_EXT_clip_volume_hint
 #define GL_EXT_clip_volume_hint 1
-enum
+enum : GLenum
 {
     GL_CLIP_VOLUME_CLIPPING_HINT_EXT                        = 0x80F0,
 };
@@ -6093,7 +6105,7 @@ enum
 
 #ifndef GL_EXT_cmyka
 #define GL_EXT_cmyka 1
-enum
+enum : GLenum
 {
     GL_CMYK_EXT                                             = 0x800C,
     GL_CMYKA_EXT                                            = 0x800D,
@@ -6104,24 +6116,24 @@ enum
 
 #ifndef GL_EXT_color_subtable
 #define GL_EXT_color_subtable 1
-extern void         (* const& glColorSubTableEXT) (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data);
-extern void         (* const& glCopyColorSubTableEXT) (GLenum target, GLsizei start, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glColorSubTableEXT) (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glCopyColorSubTableEXT) (GLenum target, GLsizei start, GLint x, GLint y, GLsizei width);
 #endif
 
 #ifndef GL_EXT_compiled_vertex_array
 #define GL_EXT_compiled_vertex_array 1
-enum
+enum : GLenum
 {
     GL_ARRAY_ELEMENT_LOCK_FIRST_EXT                         = 0x81A8,
     GL_ARRAY_ELEMENT_LOCK_COUNT_EXT                         = 0x81A9,
 };
-extern void         (* const& glLockArraysEXT) (GLint first, GLsizei count);
-extern void         (* const& glUnlockArraysEXT) ();
+extern void         (KHRONOS_APIENTRY* const& glLockArraysEXT) (GLint first, GLsizei count);
+extern void         (KHRONOS_APIENTRY* const& glUnlockArraysEXT) ();
 #endif
 
 #ifndef GL_EXT_convolution
 #define GL_EXT_convolution 1
-enum
+enum : GLenum
 {
     GL_CONVOLUTION_1D_EXT                                   = 0x8010,
     GL_CONVOLUTION_2D_EXT                                   = 0x8011,
@@ -6144,24 +6156,24 @@ enum
     GL_POST_CONVOLUTION_BLUE_BIAS_EXT                       = 0x8022,
     GL_POST_CONVOLUTION_ALPHA_BIAS_EXT                      = 0x8023,
 };
-extern void         (* const& glConvolutionFilter1DEXT) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image);
-extern void         (* const& glConvolutionFilter2DEXT) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image);
-extern void         (* const& glConvolutionParameterfEXT) (GLenum target, GLenum pname, GLfloat params);
-extern void         (* const& glConvolutionParameterfvEXT) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glConvolutionParameteriEXT) (GLenum target, GLenum pname, GLint params);
-extern void         (* const& glConvolutionParameterivEXT) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glCopyConvolutionFilter1DEXT) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
-extern void         (* const& glCopyConvolutionFilter2DEXT) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glGetConvolutionFilterEXT) (GLenum target, GLenum format, GLenum type, void *image);
-extern void         (* const& glGetConvolutionParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetConvolutionParameterivEXT) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetSeparableFilterEXT) (GLenum target, GLenum format, GLenum type, void *row, void *column, void *span);
-extern void         (* const& glSeparableFilter2DEXT) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionFilter1DEXT) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionFilter2DEXT) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameterfEXT) (GLenum target, GLenum pname, GLfloat params);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameterfvEXT) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameteriEXT) (GLenum target, GLenum pname, GLint params);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameterivEXT) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCopyConvolutionFilter1DEXT) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glCopyConvolutionFilter2DEXT) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetConvolutionFilterEXT) (GLenum target, GLenum format, GLenum type, void *image);
+extern void         (KHRONOS_APIENTRY* const& glGetConvolutionParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetConvolutionParameterivEXT) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetSeparableFilterEXT) (GLenum target, GLenum format, GLenum type, void *row, void *column, void *span);
+extern void         (KHRONOS_APIENTRY* const& glSeparableFilter2DEXT) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column);
 #endif
 
 #ifndef GL_EXT_coordinate_frame
 #define GL_EXT_coordinate_frame 1
-enum
+enum : GLenum
 {
     GL_TANGENT_ARRAY_EXT                                    = 0x8439,
     GL_BINORMAL_ARRAY_EXT                                   = 0x843A,
@@ -6178,54 +6190,54 @@ enum
     GL_MAP1_BINORMAL_EXT                                    = 0x8446,
     GL_MAP2_BINORMAL_EXT                                    = 0x8447,
 };
-extern void         (* const& glTangent3bEXT) (GLbyte tx, GLbyte ty, GLbyte tz);
-extern void         (* const& glTangent3bvEXT) (const GLbyte *v);
-extern void         (* const& glTangent3dEXT) (GLdouble tx, GLdouble ty, GLdouble tz);
-extern void         (* const& glTangent3dvEXT) (const GLdouble *v);
-extern void         (* const& glTangent3fEXT) (GLfloat tx, GLfloat ty, GLfloat tz);
-extern void         (* const& glTangent3fvEXT) (const GLfloat *v);
-extern void         (* const& glTangent3iEXT) (GLint tx, GLint ty, GLint tz);
-extern void         (* const& glTangent3ivEXT) (const GLint *v);
-extern void         (* const& glTangent3sEXT) (GLshort tx, GLshort ty, GLshort tz);
-extern void         (* const& glTangent3svEXT) (const GLshort *v);
-extern void         (* const& glBinormal3bEXT) (GLbyte bx, GLbyte by, GLbyte bz);
-extern void         (* const& glBinormal3bvEXT) (const GLbyte *v);
-extern void         (* const& glBinormal3dEXT) (GLdouble bx, GLdouble by, GLdouble bz);
-extern void         (* const& glBinormal3dvEXT) (const GLdouble *v);
-extern void         (* const& glBinormal3fEXT) (GLfloat bx, GLfloat by, GLfloat bz);
-extern void         (* const& glBinormal3fvEXT) (const GLfloat *v);
-extern void         (* const& glBinormal3iEXT) (GLint bx, GLint by, GLint bz);
-extern void         (* const& glBinormal3ivEXT) (const GLint *v);
-extern void         (* const& glBinormal3sEXT) (GLshort bx, GLshort by, GLshort bz);
-extern void         (* const& glBinormal3svEXT) (const GLshort *v);
-extern void         (* const& glTangentPointerEXT) (GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glBinormalPointerEXT) (GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glTangent3bEXT) (GLbyte tx, GLbyte ty, GLbyte tz);
+extern void         (KHRONOS_APIENTRY* const& glTangent3bvEXT) (const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glTangent3dEXT) (GLdouble tx, GLdouble ty, GLdouble tz);
+extern void         (KHRONOS_APIENTRY* const& glTangent3dvEXT) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glTangent3fEXT) (GLfloat tx, GLfloat ty, GLfloat tz);
+extern void         (KHRONOS_APIENTRY* const& glTangent3fvEXT) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTangent3iEXT) (GLint tx, GLint ty, GLint tz);
+extern void         (KHRONOS_APIENTRY* const& glTangent3ivEXT) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glTangent3sEXT) (GLshort tx, GLshort ty, GLshort tz);
+extern void         (KHRONOS_APIENTRY* const& glTangent3svEXT) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3bEXT) (GLbyte bx, GLbyte by, GLbyte bz);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3bvEXT) (const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3dEXT) (GLdouble bx, GLdouble by, GLdouble bz);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3dvEXT) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3fEXT) (GLfloat bx, GLfloat by, GLfloat bz);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3fvEXT) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3iEXT) (GLint bx, GLint by, GLint bz);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3ivEXT) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3sEXT) (GLshort bx, GLshort by, GLshort bz);
+extern void         (KHRONOS_APIENTRY* const& glBinormal3svEXT) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glTangentPointerEXT) (GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glBinormalPointerEXT) (GLenum type, GLsizei stride, const void *pointer);
 #endif
 
 #ifndef GL_EXT_copy_texture
 #define GL_EXT_copy_texture 1
-extern void         (* const& glCopyTexImage1DEXT) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
-extern void         (* const& glCopyTexImage2DEXT) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
-extern void         (* const& glCopyTexSubImage1DEXT) (GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-extern void         (* const& glCopyTexSubImage2DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glCopyTexSubImage3DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexImage1DEXT) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexImage2DEXT) (GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexSubImage1DEXT) (GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexSubImage2DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glCopyTexSubImage3DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
 #endif
 
 #ifndef GL_EXT_cull_vertex
 #define GL_EXT_cull_vertex 1
-enum
+enum : GLenum
 {
     GL_CULL_VERTEX_EXT                                      = 0x81AA,
     GL_CULL_VERTEX_EYE_POSITION_EXT                         = 0x81AB,
     GL_CULL_VERTEX_OBJECT_POSITION_EXT                      = 0x81AC,
 };
-extern void         (* const& glCullParameterdvEXT) (GLenum pname, GLdouble *params);
-extern void         (* const& glCullParameterfvEXT) (GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glCullParameterdvEXT) (GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glCullParameterfvEXT) (GLenum pname, GLfloat *params);
 #endif
 
 #ifndef GL_EXT_debug_label
 #define GL_EXT_debug_label 1
-enum
+enum : GLenum
 {
     GL_PROGRAM_PIPELINE_OBJECT_EXT                          = 0x8A4F,
     GL_PROGRAM_OBJECT_EXT                                   = 0x8B40,
@@ -6234,322 +6246,322 @@ enum
     GL_QUERY_OBJECT_EXT                                     = 0x9153,
     GL_VERTEX_ARRAY_OBJECT_EXT                              = 0x9154,
 };
-extern void         (* const& glLabelObjectEXT) (GLenum type, GLuint object, GLsizei length, const GLchar *label);
-extern void         (* const& glGetObjectLabelEXT) (GLenum type, GLuint object, GLsizei bufSize, GLsizei *length, GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glLabelObjectEXT) (GLenum type, GLuint object, GLsizei length, const GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectLabelEXT) (GLenum type, GLuint object, GLsizei bufSize, GLsizei *length, GLchar *label);
 #endif
 
 #ifndef GL_EXT_debug_marker
 #define GL_EXT_debug_marker 1
-extern void         (* const& glInsertEventMarkerEXT) (GLsizei length, const GLchar *marker);
-extern void         (* const& glPushGroupMarkerEXT) (GLsizei length, const GLchar *marker);
-extern void         (* const& glPopGroupMarkerEXT) ();
+extern void         (KHRONOS_APIENTRY* const& glInsertEventMarkerEXT) (GLsizei length, const GLchar *marker);
+extern void         (KHRONOS_APIENTRY* const& glPushGroupMarkerEXT) (GLsizei length, const GLchar *marker);
+extern void         (KHRONOS_APIENTRY* const& glPopGroupMarkerEXT) ();
 #endif
 
 #ifndef GL_EXT_depth_bounds_test
 #define GL_EXT_depth_bounds_test 1
-enum
+enum : GLenum
 {
     GL_DEPTH_BOUNDS_TEST_EXT                                = 0x8890,
     GL_DEPTH_BOUNDS_EXT                                     = 0x8891,
 };
-extern void         (* const& glDepthBoundsEXT) (GLclampd zmin, GLclampd zmax);
+extern void         (KHRONOS_APIENTRY* const& glDepthBoundsEXT) (GLclampd zmin, GLclampd zmax);
 #endif
 
 #ifndef GL_EXT_direct_state_access
 #define GL_EXT_direct_state_access 1
-enum
+enum : GLenum
 {
     GL_PROGRAM_MATRIX_EXT                                   = 0x8E2D,
     GL_TRANSPOSE_PROGRAM_MATRIX_EXT                         = 0x8E2E,
     GL_PROGRAM_MATRIX_STACK_DEPTH_EXT                       = 0x8E2F,
 };
-extern void         (* const& glMatrixLoadfEXT) (GLenum mode, const GLfloat *m);
-extern void         (* const& glMatrixLoaddEXT) (GLenum mode, const GLdouble *m);
-extern void         (* const& glMatrixMultfEXT) (GLenum mode, const GLfloat *m);
-extern void         (* const& glMatrixMultdEXT) (GLenum mode, const GLdouble *m);
-extern void         (* const& glMatrixLoadIdentityEXT) (GLenum mode);
-extern void         (* const& glMatrixRotatefEXT) (GLenum mode, GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glMatrixRotatedEXT) (GLenum mode, GLdouble angle, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glMatrixScalefEXT) (GLenum mode, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glMatrixScaledEXT) (GLenum mode, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glMatrixTranslatefEXT) (GLenum mode, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glMatrixTranslatedEXT) (GLenum mode, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glMatrixFrustumEXT) (GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
-extern void         (* const& glMatrixOrthoEXT) (GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
-extern void         (* const& glMatrixPopEXT) (GLenum mode);
-extern void         (* const& glMatrixPushEXT) (GLenum mode);
-extern void         (* const& glClientAttribDefaultEXT) (GLbitfield mask);
-extern void         (* const& glPushClientAttribDefaultEXT) (GLbitfield mask);
-extern void         (* const& glTextureParameterfEXT) (GLuint texture, GLenum target, GLenum pname, GLfloat param);
-extern void         (* const& glTextureParameterfvEXT) (GLuint texture, GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glTextureParameteriEXT) (GLuint texture, GLenum target, GLenum pname, GLint param);
-extern void         (* const& glTextureParameterivEXT) (GLuint texture, GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glTextureImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTextureImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTextureSubImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTextureSubImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glCopyTextureImage1DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
-extern void         (* const& glCopyTextureImage2DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
-extern void         (* const& glCopyTextureSubImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-extern void         (* const& glCopyTextureSubImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glGetTextureImageEXT) (GLuint texture, GLenum target, GLint level, GLenum format, GLenum type, void *pixels);
-extern void         (* const& glGetTextureParameterfvEXT) (GLuint texture, GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTextureParameterivEXT) (GLuint texture, GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetTextureLevelParameterfvEXT) (GLuint texture, GLenum target, GLint level, GLenum pname, GLfloat *params);
-extern void         (* const& glGetTextureLevelParameterivEXT) (GLuint texture, GLenum target, GLint level, GLenum pname, GLint *params);
-extern void         (* const& glTextureImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTextureSubImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glCopyTextureSubImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glBindMultiTextureEXT) (GLenum texunit, GLenum target, GLuint texture);
-extern void         (* const& glMultiTexCoordPointerEXT) (GLenum texunit, GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glMultiTexEnvfEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat param);
-extern void         (* const& glMultiTexEnvfvEXT) (GLenum texunit, GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glMultiTexEnviEXT) (GLenum texunit, GLenum target, GLenum pname, GLint param);
-extern void         (* const& glMultiTexEnvivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glMultiTexGendEXT) (GLenum texunit, GLenum coord, GLenum pname, GLdouble param);
-extern void         (* const& glMultiTexGendvEXT) (GLenum texunit, GLenum coord, GLenum pname, const GLdouble *params);
-extern void         (* const& glMultiTexGenfEXT) (GLenum texunit, GLenum coord, GLenum pname, GLfloat param);
-extern void         (* const& glMultiTexGenfvEXT) (GLenum texunit, GLenum coord, GLenum pname, const GLfloat *params);
-extern void         (* const& glMultiTexGeniEXT) (GLenum texunit, GLenum coord, GLenum pname, GLint param);
-extern void         (* const& glMultiTexGenivEXT) (GLenum texunit, GLenum coord, GLenum pname, const GLint *params);
-extern void         (* const& glGetMultiTexEnvfvEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMultiTexEnvivEXT) (GLenum texunit, GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetMultiTexGendvEXT) (GLenum texunit, GLenum coord, GLenum pname, GLdouble *params);
-extern void         (* const& glGetMultiTexGenfvEXT) (GLenum texunit, GLenum coord, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMultiTexGenivEXT) (GLenum texunit, GLenum coord, GLenum pname, GLint *params);
-extern void         (* const& glMultiTexParameteriEXT) (GLenum texunit, GLenum target, GLenum pname, GLint param);
-extern void         (* const& glMultiTexParameterivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glMultiTexParameterfEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat param);
-extern void         (* const& glMultiTexParameterfvEXT) (GLenum texunit, GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glMultiTexImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glMultiTexImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glMultiTexSubImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glMultiTexSubImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glCopyMultiTexImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
-extern void         (* const& glCopyMultiTexImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
-extern void         (* const& glCopyMultiTexSubImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-extern void         (* const& glCopyMultiTexSubImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glGetMultiTexImageEXT) (GLenum texunit, GLenum target, GLint level, GLenum format, GLenum type, void *pixels);
-extern void         (* const& glGetMultiTexParameterfvEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMultiTexParameterivEXT) (GLenum texunit, GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetMultiTexLevelParameterfvEXT) (GLenum texunit, GLenum target, GLint level, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMultiTexLevelParameterivEXT) (GLenum texunit, GLenum target, GLint level, GLenum pname, GLint *params);
-extern void         (* const& glMultiTexImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glMultiTexSubImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glCopyMultiTexSubImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glEnableClientStateIndexedEXT) (GLenum array, GLuint index);
-extern void         (* const& glDisableClientStateIndexedEXT) (GLenum array, GLuint index);
-extern void         (* const& glGetFloatIndexedvEXT) (GLenum target, GLuint index, GLfloat *data);
-extern void         (* const& glGetDoubleIndexedvEXT) (GLenum target, GLuint index, GLdouble *data);
-extern void         (* const& glGetPointerIndexedvEXT) (GLenum target, GLuint index, void **data);
-extern void         (* const& glEnableIndexedEXT) (GLenum target, GLuint index);
-extern void         (* const& glDisableIndexedEXT) (GLenum target, GLuint index);
-extern GLboolean    (* const& glIsEnabledIndexedEXT) (GLenum target, GLuint index);
-extern void         (* const& glGetIntegerIndexedvEXT) (GLenum target, GLuint index, GLint *data);
-extern void         (* const& glGetBooleanIndexedvEXT) (GLenum target, GLuint index, GLboolean *data);
-extern void         (* const& glCompressedTextureImage3DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedTextureImage2DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedTextureImage1DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedTextureSubImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedTextureSubImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedTextureSubImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits);
-extern void         (* const& glGetCompressedTextureImageEXT) (GLuint texture, GLenum target, GLint lod, void *img);
-extern void         (* const& glCompressedMultiTexImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedMultiTexImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedMultiTexImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedMultiTexSubImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedMultiTexSubImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits);
-extern void         (* const& glCompressedMultiTexSubImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits);
-extern void         (* const& glGetCompressedMultiTexImageEXT) (GLenum texunit, GLenum target, GLint lod, void *img);
-extern void         (* const& glMatrixLoadTransposefEXT) (GLenum mode, const GLfloat *m);
-extern void         (* const& glMatrixLoadTransposedEXT) (GLenum mode, const GLdouble *m);
-extern void         (* const& glMatrixMultTransposefEXT) (GLenum mode, const GLfloat *m);
-extern void         (* const& glMatrixMultTransposedEXT) (GLenum mode, const GLdouble *m);
-extern void         (* const& glNamedBufferDataEXT) (GLuint buffer, GLsizeiptr size, const void *data, GLenum usage);
-extern void         (* const& glNamedBufferSubDataEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
-extern void *       (* const& glMapNamedBufferEXT) (GLuint buffer, GLenum access);
-extern GLboolean    (* const& glUnmapNamedBufferEXT) (GLuint buffer);
-extern void         (* const& glGetNamedBufferParameterivEXT) (GLuint buffer, GLenum pname, GLint *params);
-extern void         (* const& glGetNamedBufferPointervEXT) (GLuint buffer, GLenum pname, void **params);
-extern void         (* const& glGetNamedBufferSubDataEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, void *data);
-extern void         (* const& glProgramUniform1fEXT) (GLuint program, GLint location, GLfloat v0);
-extern void         (* const& glProgramUniform2fEXT) (GLuint program, GLint location, GLfloat v0, GLfloat v1);
-extern void         (* const& glProgramUniform3fEXT) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-extern void         (* const& glProgramUniform4fEXT) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-extern void         (* const& glProgramUniform1iEXT) (GLuint program, GLint location, GLint v0);
-extern void         (* const& glProgramUniform2iEXT) (GLuint program, GLint location, GLint v0, GLint v1);
-extern void         (* const& glProgramUniform3iEXT) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
-extern void         (* const& glProgramUniform4iEXT) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-extern void         (* const& glProgramUniform1fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform2fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform3fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform4fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
-extern void         (* const& glProgramUniform1ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniform2ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniform3ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniform4ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
-extern void         (* const& glProgramUniformMatrix2fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix3fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix4fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix2x3fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix3x2fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix2x4fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix4x2fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix3x4fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glProgramUniformMatrix4x3fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-extern void         (* const& glTextureBufferEXT) (GLuint texture, GLenum target, GLenum internalformat, GLuint buffer);
-extern void         (* const& glMultiTexBufferEXT) (GLenum texunit, GLenum target, GLenum internalformat, GLuint buffer);
-extern void         (* const& glTextureParameterIivEXT) (GLuint texture, GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glTextureParameterIuivEXT) (GLuint texture, GLenum target, GLenum pname, const GLuint *params);
-extern void         (* const& glGetTextureParameterIivEXT) (GLuint texture, GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetTextureParameterIuivEXT) (GLuint texture, GLenum target, GLenum pname, GLuint *params);
-extern void         (* const& glMultiTexParameterIivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glMultiTexParameterIuivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLuint *params);
-extern void         (* const& glGetMultiTexParameterIivEXT) (GLenum texunit, GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetMultiTexParameterIuivEXT) (GLenum texunit, GLenum target, GLenum pname, GLuint *params);
-extern void         (* const& glProgramUniform1uiEXT) (GLuint program, GLint location, GLuint v0);
-extern void         (* const& glProgramUniform2uiEXT) (GLuint program, GLint location, GLuint v0, GLuint v1);
-extern void         (* const& glProgramUniform3uiEXT) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
-extern void         (* const& glProgramUniform4uiEXT) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
-extern void         (* const& glProgramUniform1uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glProgramUniform2uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glProgramUniform3uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glProgramUniform4uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glNamedProgramLocalParameters4fvEXT) (GLuint program, GLenum target, GLuint index, GLsizei count, const GLfloat *params);
-extern void         (* const& glNamedProgramLocalParameterI4iEXT) (GLuint program, GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glNamedProgramLocalParameterI4ivEXT) (GLuint program, GLenum target, GLuint index, const GLint *params);
-extern void         (* const& glNamedProgramLocalParametersI4ivEXT) (GLuint program, GLenum target, GLuint index, GLsizei count, const GLint *params);
-extern void         (* const& glNamedProgramLocalParameterI4uiEXT) (GLuint program, GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
-extern void         (* const& glNamedProgramLocalParameterI4uivEXT) (GLuint program, GLenum target, GLuint index, const GLuint *params);
-extern void         (* const& glNamedProgramLocalParametersI4uivEXT) (GLuint program, GLenum target, GLuint index, GLsizei count, const GLuint *params);
-extern void         (* const& glGetNamedProgramLocalParameterIivEXT) (GLuint program, GLenum target, GLuint index, GLint *params);
-extern void         (* const& glGetNamedProgramLocalParameterIuivEXT) (GLuint program, GLenum target, GLuint index, GLuint *params);
-extern void         (* const& glEnableClientStateiEXT) (GLenum array, GLuint index);
-extern void         (* const& glDisableClientStateiEXT) (GLenum array, GLuint index);
-extern void         (* const& glGetFloati_vEXT) (GLenum pname, GLuint index, GLfloat *params);
-extern void         (* const& glGetDoublei_vEXT) (GLenum pname, GLuint index, GLdouble *params);
-extern void         (* const& glGetPointeri_vEXT) (GLenum pname, GLuint index, void **params);
-extern void         (* const& glNamedProgramStringEXT) (GLuint program, GLenum target, GLenum format, GLsizei len, const void *string);
-extern void         (* const& glNamedProgramLocalParameter4dEXT) (GLuint program, GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glNamedProgramLocalParameter4dvEXT) (GLuint program, GLenum target, GLuint index, const GLdouble *params);
-extern void         (* const& glNamedProgramLocalParameter4fEXT) (GLuint program, GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glNamedProgramLocalParameter4fvEXT) (GLuint program, GLenum target, GLuint index, const GLfloat *params);
-extern void         (* const& glGetNamedProgramLocalParameterdvEXT) (GLuint program, GLenum target, GLuint index, GLdouble *params);
-extern void         (* const& glGetNamedProgramLocalParameterfvEXT) (GLuint program, GLenum target, GLuint index, GLfloat *params);
-extern void         (* const& glGetNamedProgramivEXT) (GLuint program, GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetNamedProgramStringEXT) (GLuint program, GLenum target, GLenum pname, void *string);
-extern void         (* const& glNamedRenderbufferStorageEXT) (GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glGetNamedRenderbufferParameterivEXT) (GLuint renderbuffer, GLenum pname, GLint *params);
-extern void         (* const& glNamedRenderbufferStorageMultisampleEXT) (GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glNamedRenderbufferStorageMultisampleCoverageEXT) (GLuint renderbuffer, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height);
-extern GLenum       (* const& glCheckNamedFramebufferStatusEXT) (GLuint framebuffer, GLenum target);
-extern void         (* const& glNamedFramebufferTexture1DEXT) (GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-extern void         (* const& glNamedFramebufferTexture2DEXT) (GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-extern void         (* const& glNamedFramebufferTexture3DEXT) (GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
-extern void         (* const& glNamedFramebufferRenderbufferEXT) (GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-extern void         (* const& glGetNamedFramebufferAttachmentParameterivEXT) (GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params);
-extern void         (* const& glGenerateTextureMipmapEXT) (GLuint texture, GLenum target);
-extern void         (* const& glGenerateMultiTexMipmapEXT) (GLenum texunit, GLenum target);
-extern void         (* const& glFramebufferDrawBufferEXT) (GLuint framebuffer, GLenum mode);
-extern void         (* const& glFramebufferDrawBuffersEXT) (GLuint framebuffer, GLsizei n, const GLenum *bufs);
-extern void         (* const& glFramebufferReadBufferEXT) (GLuint framebuffer, GLenum mode);
-extern void         (* const& glGetFramebufferParameterivEXT) (GLuint framebuffer, GLenum pname, GLint *params);
-extern void         (* const& glNamedCopyBufferSubDataEXT) (GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
-extern void         (* const& glNamedFramebufferTextureEXT) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
-extern void         (* const& glNamedFramebufferTextureLayerEXT) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
-extern void         (* const& glNamedFramebufferTextureFaceEXT) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLenum face);
-extern void         (* const& glTextureRenderbufferEXT) (GLuint texture, GLenum target, GLuint renderbuffer);
-extern void         (* const& glMultiTexRenderbufferEXT) (GLenum texunit, GLenum target, GLuint renderbuffer);
-extern void         (* const& glVertexArrayVertexOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayColorOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayEdgeFlagOffsetEXT) (GLuint vaobj, GLuint buffer, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayIndexOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayNormalOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayTexCoordOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayMultiTexCoordOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum texunit, GLint size, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayFogCoordOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArraySecondaryColorOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayVertexAttribOffsetEXT) (GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset);
-extern void         (* const& glVertexArrayVertexAttribIOffsetEXT) (GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glEnableVertexArrayEXT) (GLuint vaobj, GLenum array);
-extern void         (* const& glDisableVertexArrayEXT) (GLuint vaobj, GLenum array);
-extern void         (* const& glEnableVertexArrayAttribEXT) (GLuint vaobj, GLuint index);
-extern void         (* const& glDisableVertexArrayAttribEXT) (GLuint vaobj, GLuint index);
-extern void         (* const& glGetVertexArrayIntegervEXT) (GLuint vaobj, GLenum pname, GLint *param);
-extern void         (* const& glGetVertexArrayPointervEXT) (GLuint vaobj, GLenum pname, void **param);
-extern void         (* const& glGetVertexArrayIntegeri_vEXT) (GLuint vaobj, GLuint index, GLenum pname, GLint *param);
-extern void         (* const& glGetVertexArrayPointeri_vEXT) (GLuint vaobj, GLuint index, GLenum pname, void **param);
-extern void *       (* const& glMapNamedBufferRangeEXT) (GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
-extern void         (* const& glFlushMappedNamedBufferRangeEXT) (GLuint buffer, GLintptr offset, GLsizeiptr length);
-extern void         (* const& glNamedBufferStorageEXT) (GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags);
-extern void         (* const& glClearNamedBufferDataEXT) (GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data);
-extern void         (* const& glClearNamedBufferSubDataEXT) (GLuint buffer, GLenum internalformat, GLsizeiptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
-extern void         (* const& glNamedFramebufferParameteriEXT) (GLuint framebuffer, GLenum pname, GLint param);
-extern void         (* const& glGetNamedFramebufferParameterivEXT) (GLuint framebuffer, GLenum pname, GLint *params);
-extern void         (* const& glProgramUniform1dEXT) (GLuint program, GLint location, GLdouble x);
-extern void         (* const& glProgramUniform2dEXT) (GLuint program, GLint location, GLdouble x, GLdouble y);
-extern void         (* const& glProgramUniform3dEXT) (GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glProgramUniform4dEXT) (GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glProgramUniform1dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniform2dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniform3dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniform4dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix2dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix3dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix4dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix2x3dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix2x4dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix3x2dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix3x4dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix4x2dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glProgramUniformMatrix4x3dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
-extern void         (* const& glTextureBufferRangeEXT) (GLuint texture, GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
-extern void         (* const& glTextureStorage1DEXT) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
-extern void         (* const& glTextureStorage2DEXT) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glTextureStorage3DEXT) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-extern void         (* const& glTextureStorage2DMultisampleEXT) (GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-extern void         (* const& glTextureStorage3DMultisampleEXT) (GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-extern void         (* const& glVertexArrayBindVertexBufferEXT) (GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
-extern void         (* const& glVertexArrayVertexAttribFormatEXT) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
-extern void         (* const& glVertexArrayVertexAttribIFormatEXT) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-extern void         (* const& glVertexArrayVertexAttribLFormatEXT) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-extern void         (* const& glVertexArrayVertexAttribBindingEXT) (GLuint vaobj, GLuint attribindex, GLuint bindingindex);
-extern void         (* const& glVertexArrayVertexBindingDivisorEXT) (GLuint vaobj, GLuint bindingindex, GLuint divisor);
-extern void         (* const& glVertexArrayVertexAttribLOffsetEXT) (GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset);
-extern void         (* const& glTexturePageCommitmentEXT) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
-extern void         (* const& glVertexArrayVertexAttribDivisorEXT) (GLuint vaobj, GLuint index, GLuint divisor);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoadfEXT) (GLenum mode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoaddEXT) (GLenum mode, const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMultfEXT) (GLenum mode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMultdEXT) (GLenum mode, const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoadIdentityEXT) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glMatrixRotatefEXT) (GLenum mode, GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glMatrixRotatedEXT) (GLenum mode, GLdouble angle, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glMatrixScalefEXT) (GLenum mode, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glMatrixScaledEXT) (GLenum mode, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glMatrixTranslatefEXT) (GLenum mode, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glMatrixTranslatedEXT) (GLenum mode, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glMatrixFrustumEXT) (GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
+extern void         (KHRONOS_APIENTRY* const& glMatrixOrthoEXT) (GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
+extern void         (KHRONOS_APIENTRY* const& glMatrixPopEXT) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glMatrixPushEXT) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glClientAttribDefaultEXT) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glPushClientAttribDefaultEXT) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterfEXT) (GLuint texture, GLenum target, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterfvEXT) (GLuint texture, GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameteriEXT) (GLuint texture, GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterivEXT) (GLuint texture, GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTextureImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTextureImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTextureSubImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTextureSubImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureImage1DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureImage2DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureSubImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureSubImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureImageEXT) (GLuint texture, GLenum target, GLint level, GLenum format, GLenum type, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameterfvEXT) (GLuint texture, GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameterivEXT) (GLuint texture, GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureLevelParameterfvEXT) (GLuint texture, GLenum target, GLint level, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureLevelParameterivEXT) (GLuint texture, GLenum target, GLint level, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTextureImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTextureSubImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glCopyTextureSubImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glBindMultiTextureEXT) (GLenum texunit, GLenum target, GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoordPointerEXT) (GLenum texunit, GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexEnvfEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexEnvfvEXT) (GLenum texunit, GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexEnviEXT) (GLenum texunit, GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexEnvivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexGendEXT) (GLenum texunit, GLenum coord, GLenum pname, GLdouble param);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexGendvEXT) (GLenum texunit, GLenum coord, GLenum pname, const GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexGenfEXT) (GLenum texunit, GLenum coord, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexGenfvEXT) (GLenum texunit, GLenum coord, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexGeniEXT) (GLenum texunit, GLenum coord, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexGenivEXT) (GLenum texunit, GLenum coord, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexEnvfvEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexEnvivEXT) (GLenum texunit, GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexGendvEXT) (GLenum texunit, GLenum coord, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexGenfvEXT) (GLenum texunit, GLenum coord, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexGenivEXT) (GLenum texunit, GLenum coord, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexParameteriEXT) (GLenum texunit, GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexParameterivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexParameterfEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexParameterfvEXT) (GLenum texunit, GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexSubImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexSubImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glCopyMultiTexImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyMultiTexImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+extern void         (KHRONOS_APIENTRY* const& glCopyMultiTexSubImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glCopyMultiTexSubImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexImageEXT) (GLenum texunit, GLenum target, GLint level, GLenum format, GLenum type, void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexParameterfvEXT) (GLenum texunit, GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexParameterivEXT) (GLenum texunit, GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexLevelParameterfvEXT) (GLenum texunit, GLenum target, GLint level, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexLevelParameterivEXT) (GLenum texunit, GLenum target, GLint level, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexSubImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glCopyMultiTexSubImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glEnableClientStateIndexedEXT) (GLenum array, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glDisableClientStateIndexedEXT) (GLenum array, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glGetFloatIndexedvEXT) (GLenum target, GLuint index, GLfloat *data);
+extern void         (KHRONOS_APIENTRY* const& glGetDoubleIndexedvEXT) (GLenum target, GLuint index, GLdouble *data);
+extern void         (KHRONOS_APIENTRY* const& glGetPointerIndexedvEXT) (GLenum target, GLuint index, void **data);
+extern void         (KHRONOS_APIENTRY* const& glEnableIndexedEXT) (GLenum target, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glDisableIndexedEXT) (GLenum target, GLuint index);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsEnabledIndexedEXT) (GLenum target, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glGetIntegerIndexedvEXT) (GLenum target, GLuint index, GLint *data);
+extern void         (KHRONOS_APIENTRY* const& glGetBooleanIndexedvEXT) (GLenum target, GLuint index, GLboolean *data);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureImage3DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureImage2DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureImage1DEXT) (GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureSubImage3DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureSubImage2DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedTextureSubImage1DEXT) (GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glGetCompressedTextureImageEXT) (GLuint texture, GLenum target, GLint lod, void *img);
+extern void         (KHRONOS_APIENTRY* const& glCompressedMultiTexImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedMultiTexImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedMultiTexImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedMultiTexSubImage3DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedMultiTexSubImage2DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glCompressedMultiTexSubImage1DEXT) (GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits);
+extern void         (KHRONOS_APIENTRY* const& glGetCompressedMultiTexImageEXT) (GLenum texunit, GLenum target, GLint lod, void *img);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoadTransposefEXT) (GLenum mode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoadTransposedEXT) (GLenum mode, const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMultTransposefEXT) (GLenum mode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMultTransposedEXT) (GLenum mode, const GLdouble *m);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferDataEXT) (GLuint buffer, GLsizeiptr size, const void *data, GLenum usage);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferSubDataEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
+extern void *       (KHRONOS_APIENTRY* const& glMapNamedBufferEXT) (GLuint buffer, GLenum access);
+extern GLboolean    (KHRONOS_APIENTRY* const& glUnmapNamedBufferEXT) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferParameterivEXT) (GLuint buffer, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferPointervEXT) (GLuint buffer, GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferSubDataEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, void *data);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1fEXT) (GLuint program, GLint location, GLfloat v0);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2fEXT) (GLuint program, GLint location, GLfloat v0, GLfloat v1);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3fEXT) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4fEXT) (GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1iEXT) (GLuint program, GLint location, GLint v0);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2iEXT) (GLuint program, GLint location, GLint v0, GLint v1);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3iEXT) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4iEXT) (GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4fvEXT) (GLuint program, GLint location, GLsizei count, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4ivEXT) (GLuint program, GLint location, GLsizei count, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x3fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x2fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x4fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x2fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x4fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x3fvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glTextureBufferEXT) (GLuint texture, GLenum target, GLenum internalformat, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexBufferEXT) (GLenum texunit, GLenum target, GLenum internalformat, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterIivEXT) (GLuint texture, GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTextureParameterIuivEXT) (GLuint texture, GLenum target, GLenum pname, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameterIivEXT) (GLuint texture, GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTextureParameterIuivEXT) (GLuint texture, GLenum target, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexParameterIivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexParameterIuivEXT) (GLenum texunit, GLenum target, GLenum pname, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexParameterIivEXT) (GLenum texunit, GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMultiTexParameterIuivEXT) (GLenum texunit, GLenum target, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1uiEXT) (GLuint program, GLint location, GLuint v0);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2uiEXT) (GLuint program, GLint location, GLuint v0, GLuint v1);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3uiEXT) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4uiEXT) (GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4uivEXT) (GLuint program, GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameters4fvEXT) (GLuint program, GLenum target, GLuint index, GLsizei count, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameterI4iEXT) (GLuint program, GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameterI4ivEXT) (GLuint program, GLenum target, GLuint index, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParametersI4ivEXT) (GLuint program, GLenum target, GLuint index, GLsizei count, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameterI4uiEXT) (GLuint program, GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameterI4uivEXT) (GLuint program, GLenum target, GLuint index, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParametersI4uivEXT) (GLuint program, GLenum target, GLuint index, GLsizei count, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedProgramLocalParameterIivEXT) (GLuint program, GLenum target, GLuint index, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedProgramLocalParameterIuivEXT) (GLuint program, GLenum target, GLuint index, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glEnableClientStateiEXT) (GLenum array, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glDisableClientStateiEXT) (GLenum array, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glGetFloati_vEXT) (GLenum pname, GLuint index, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetDoublei_vEXT) (GLenum pname, GLuint index, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetPointeri_vEXT) (GLenum pname, GLuint index, void **params);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramStringEXT) (GLuint program, GLenum target, GLenum format, GLsizei len, const void *string);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameter4dEXT) (GLuint program, GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameter4dvEXT) (GLuint program, GLenum target, GLuint index, const GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameter4fEXT) (GLuint program, GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glNamedProgramLocalParameter4fvEXT) (GLuint program, GLenum target, GLuint index, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedProgramLocalParameterdvEXT) (GLuint program, GLenum target, GLuint index, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedProgramLocalParameterfvEXT) (GLuint program, GLenum target, GLuint index, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedProgramivEXT) (GLuint program, GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedProgramStringEXT) (GLuint program, GLenum target, GLenum pname, void *string);
+extern void         (KHRONOS_APIENTRY* const& glNamedRenderbufferStorageEXT) (GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedRenderbufferParameterivEXT) (GLuint renderbuffer, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedRenderbufferStorageMultisampleEXT) (GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glNamedRenderbufferStorageMultisampleCoverageEXT) (GLuint renderbuffer, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height);
+extern GLenum       (KHRONOS_APIENTRY* const& glCheckNamedFramebufferStatusEXT) (GLuint framebuffer, GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTexture1DEXT) (GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTexture2DEXT) (GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTexture3DEXT) (GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferRenderbufferEXT) (GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedFramebufferAttachmentParameterivEXT) (GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGenerateTextureMipmapEXT) (GLuint texture, GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGenerateMultiTexMipmapEXT) (GLenum texunit, GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferDrawBufferEXT) (GLuint framebuffer, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferDrawBuffersEXT) (GLuint framebuffer, GLsizei n, const GLenum *bufs);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferReadBufferEXT) (GLuint framebuffer, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glGetFramebufferParameterivEXT) (GLuint framebuffer, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glNamedCopyBufferSubDataEXT) (GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTextureEXT) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTextureLayerEXT) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferTextureFaceEXT) (GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLenum face);
+extern void         (KHRONOS_APIENTRY* const& glTextureRenderbufferEXT) (GLuint texture, GLenum target, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexRenderbufferEXT) (GLenum texunit, GLenum target, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayColorOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayEdgeFlagOffsetEXT) (GLuint vaobj, GLuint buffer, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayIndexOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayNormalOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayTexCoordOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayMultiTexCoordOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum texunit, GLint size, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayFogCoordOffsetEXT) (GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArraySecondaryColorOffsetEXT) (GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribOffsetEXT) (GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribIOffsetEXT) (GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glEnableVertexArrayEXT) (GLuint vaobj, GLenum array);
+extern void         (KHRONOS_APIENTRY* const& glDisableVertexArrayEXT) (GLuint vaobj, GLenum array);
+extern void         (KHRONOS_APIENTRY* const& glEnableVertexArrayAttribEXT) (GLuint vaobj, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glDisableVertexArrayAttribEXT) (GLuint vaobj, GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexArrayIntegervEXT) (GLuint vaobj, GLenum pname, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexArrayPointervEXT) (GLuint vaobj, GLenum pname, void **param);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexArrayIntegeri_vEXT) (GLuint vaobj, GLuint index, GLenum pname, GLint *param);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexArrayPointeri_vEXT) (GLuint vaobj, GLuint index, GLenum pname, void **param);
+extern void *       (KHRONOS_APIENTRY* const& glMapNamedBufferRangeEXT) (GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+extern void         (KHRONOS_APIENTRY* const& glFlushMappedNamedBufferRangeEXT) (GLuint buffer, GLintptr offset, GLsizeiptr length);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferStorageEXT) (GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedBufferDataEXT) (GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glClearNamedBufferSubDataEXT) (GLuint buffer, GLenum internalformat, GLsizeiptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferParameteriEXT) (GLuint framebuffer, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedFramebufferParameterivEXT) (GLuint framebuffer, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1dEXT) (GLuint program, GLint location, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2dEXT) (GLuint program, GLint location, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3dEXT) (GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4dEXT) (GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform1dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform2dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform3dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniform4dvEXT) (GLuint program, GLint location, GLsizei count, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x3dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix2x4dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x2dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix3x4dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x2dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformMatrix4x3dvEXT) (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value);
+extern void         (KHRONOS_APIENTRY* const& glTextureBufferRangeEXT) (GLuint texture, GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage1DEXT) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage2DEXT) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage3DEXT) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage2DMultisampleEXT) (GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorage3DMultisampleEXT) (GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayBindVertexBufferEXT) (GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribFormatEXT) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribIFormatEXT) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribLFormatEXT) (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribBindingEXT) (GLuint vaobj, GLuint attribindex, GLuint bindingindex);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexBindingDivisorEXT) (GLuint vaobj, GLuint bindingindex, GLuint divisor);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribLOffsetEXT) (GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glTexturePageCommitmentEXT) (GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayVertexAttribDivisorEXT) (GLuint vaobj, GLuint index, GLuint divisor);
 #endif
 
 #ifndef GL_EXT_draw_buffers2
 #define GL_EXT_draw_buffers2 1
-extern void         (* const& glColorMaskIndexedEXT) (GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a);
+extern void         (KHRONOS_APIENTRY* const& glColorMaskIndexedEXT) (GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a);
 #endif
 
 #ifndef GL_EXT_draw_instanced
 #define GL_EXT_draw_instanced 1
-extern void         (* const& glDrawArraysInstancedEXT) (GLenum mode, GLint start, GLsizei count, GLsizei primcount);
-extern void         (* const& glDrawElementsInstancedEXT) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glDrawArraysInstancedEXT) (GLenum mode, GLint start, GLsizei count, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glDrawElementsInstancedEXT) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount);
 #endif
 
 #ifndef GL_EXT_draw_range_elements
 #define GL_EXT_draw_range_elements 1
-enum
+enum : GLenum
 {
     GL_MAX_ELEMENTS_VERTICES_EXT                            = 0x80E8,
     GL_MAX_ELEMENTS_INDICES_EXT                             = 0x80E9,
 };
-extern void         (* const& glDrawRangeElementsEXT) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices);
+extern void         (KHRONOS_APIENTRY* const& glDrawRangeElementsEXT) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices);
 #endif
 
 #ifndef GL_EXT_external_buffer
 #define GL_EXT_external_buffer 1
-extern void         (* const& glBufferStorageExternalEXT) (GLenum target, GLintptr offset, GLsizeiptr size, GLeglClientBufferEXT clientBuffer, GLbitfield flags);
-extern void         (* const& glNamedBufferStorageExternalEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLeglClientBufferEXT clientBuffer, GLbitfield flags);
+extern void         (KHRONOS_APIENTRY* const& glBufferStorageExternalEXT) (GLenum target, GLintptr offset, GLsizeiptr size, GLeglClientBufferEXT clientBuffer, GLbitfield flags);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferStorageExternalEXT) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLeglClientBufferEXT clientBuffer, GLbitfield flags);
 #endif
 
 #ifndef GL_EXT_fog_coord
 #define GL_EXT_fog_coord 1
-enum
+enum : GLenum
 {
     GL_FOG_COORDINATE_SOURCE_EXT                            = 0x8450,
     GL_FOG_COORDINATE_EXT                                   = 0x8451,
@@ -6560,39 +6572,39 @@ enum
     GL_FOG_COORDINATE_ARRAY_POINTER_EXT                     = 0x8456,
     GL_FOG_COORDINATE_ARRAY_EXT                             = 0x8457,
 };
-extern void         (* const& glFogCoordfEXT) (GLfloat coord);
-extern void         (* const& glFogCoordfvEXT) (const GLfloat *coord);
-extern void         (* const& glFogCoorddEXT) (GLdouble coord);
-extern void         (* const& glFogCoorddvEXT) (const GLdouble *coord);
-extern void         (* const& glFogCoordPointerEXT) (GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordfEXT) (GLfloat coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordfvEXT) (const GLfloat *coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoorddEXT) (GLdouble coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoorddvEXT) (const GLdouble *coord);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordPointerEXT) (GLenum type, GLsizei stride, const void *pointer);
 #endif
 
 #ifndef GL_EXT_framebuffer_blit
 #define GL_EXT_framebuffer_blit 1
-enum
+enum : GLenum
 {
     GL_READ_FRAMEBUFFER_EXT                                 = 0x8CA8,
     GL_DRAW_FRAMEBUFFER_EXT                                 = 0x8CA9,
     GL_DRAW_FRAMEBUFFER_BINDING_EXT                         = 0x8CA6,
     GL_READ_FRAMEBUFFER_BINDING_EXT                         = 0x8CAA,
 };
-extern void         (* const& glBlitFramebufferEXT) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+extern void         (KHRONOS_APIENTRY* const& glBlitFramebufferEXT) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 #endif
 
 #ifndef GL_EXT_framebuffer_multisample
 #define GL_EXT_framebuffer_multisample 1
-enum
+enum : GLenum
 {
     GL_RENDERBUFFER_SAMPLES_EXT                             = 0x8CAB,
     GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT               = 0x8D56,
     GL_MAX_SAMPLES_EXT                                      = 0x8D57,
 };
-extern void         (* const& glRenderbufferStorageMultisampleEXT) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glRenderbufferStorageMultisampleEXT) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 #endif
 
 #ifndef GL_EXT_framebuffer_multisample_blit_scaled
 #define GL_EXT_framebuffer_multisample_blit_scaled 1
-enum
+enum : GLenum
 {
     GL_SCALED_RESOLVE_FASTEST_EXT                           = 0x90BA,
     GL_SCALED_RESOLVE_NICEST_EXT                            = 0x90BB,
@@ -6601,7 +6613,7 @@ enum
 
 #ifndef GL_EXT_framebuffer_object
 #define GL_EXT_framebuffer_object 1
-enum
+enum : GLenum
 {
     GL_INVALID_FRAMEBUFFER_OPERATION_EXT                    = 0x0506,
     GL_MAX_RENDERBUFFER_SIZE_EXT                            = 0x84E8,
@@ -6655,28 +6667,28 @@ enum
     GL_RENDERBUFFER_DEPTH_SIZE_EXT                          = 0x8D54,
     GL_RENDERBUFFER_STENCIL_SIZE_EXT                        = 0x8D55,
 };
-extern GLboolean    (* const& glIsRenderbufferEXT) (GLuint renderbuffer);
-extern void         (* const& glBindRenderbufferEXT) (GLenum target, GLuint renderbuffer);
-extern void         (* const& glDeleteRenderbuffersEXT) (GLsizei n, const GLuint *renderbuffers);
-extern void         (* const& glGenRenderbuffersEXT) (GLsizei n, GLuint *renderbuffers);
-extern void         (* const& glRenderbufferStorageEXT) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
-extern void         (* const& glGetRenderbufferParameterivEXT) (GLenum target, GLenum pname, GLint *params);
-extern GLboolean    (* const& glIsFramebufferEXT) (GLuint framebuffer);
-extern void         (* const& glBindFramebufferEXT) (GLenum target, GLuint framebuffer);
-extern void         (* const& glDeleteFramebuffersEXT) (GLsizei n, const GLuint *framebuffers);
-extern void         (* const& glGenFramebuffersEXT) (GLsizei n, GLuint *framebuffers);
-extern GLenum       (* const& glCheckFramebufferStatusEXT) (GLenum target);
-extern void         (* const& glFramebufferTexture1DEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-extern void         (* const& glFramebufferTexture2DEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-extern void         (* const& glFramebufferTexture3DEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
-extern void         (* const& glFramebufferRenderbufferEXT) (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-extern void         (* const& glGetFramebufferAttachmentParameterivEXT) (GLenum target, GLenum attachment, GLenum pname, GLint *params);
-extern void         (* const& glGenerateMipmapEXT) (GLenum target);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsRenderbufferEXT) (GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glBindRenderbufferEXT) (GLenum target, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glDeleteRenderbuffersEXT) (GLsizei n, const GLuint *renderbuffers);
+extern void         (KHRONOS_APIENTRY* const& glGenRenderbuffersEXT) (GLsizei n, GLuint *renderbuffers);
+extern void         (KHRONOS_APIENTRY* const& glRenderbufferStorageEXT) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glGetRenderbufferParameterivEXT) (GLenum target, GLenum pname, GLint *params);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsFramebufferEXT) (GLuint framebuffer);
+extern void         (KHRONOS_APIENTRY* const& glBindFramebufferEXT) (GLenum target, GLuint framebuffer);
+extern void         (KHRONOS_APIENTRY* const& glDeleteFramebuffersEXT) (GLsizei n, const GLuint *framebuffers);
+extern void         (KHRONOS_APIENTRY* const& glGenFramebuffersEXT) (GLsizei n, GLuint *framebuffers);
+extern GLenum       (KHRONOS_APIENTRY* const& glCheckFramebufferStatusEXT) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTexture1DEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTexture2DEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTexture3DEXT) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferRenderbufferEXT) (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glGetFramebufferAttachmentParameterivEXT) (GLenum target, GLenum attachment, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGenerateMipmapEXT) (GLenum target);
 #endif
 
 #ifndef GL_EXT_framebuffer_sRGB
 #define GL_EXT_framebuffer_sRGB 1
-enum
+enum : GLenum
 {
     GL_FRAMEBUFFER_SRGB_EXT                                 = 0x8DB9,
     GL_FRAMEBUFFER_SRGB_CAPABLE_EXT                         = 0x8DBA,
@@ -6685,7 +6697,7 @@ enum
 
 #ifndef GL_EXT_geometry_shader4
 #define GL_EXT_geometry_shader4 1
-enum
+enum : GLenum
 {
     GL_GEOMETRY_SHADER_EXT                                  = 0x8DD9,
     GL_GEOMETRY_VERTICES_OUT_EXT                            = 0x8DDA,
@@ -6708,18 +6720,18 @@ enum
     GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER_EXT             = 0x8CD4,
     GL_PROGRAM_POINT_SIZE_EXT                               = 0x8642,
 };
-extern void         (* const& glProgramParameteriEXT) (GLuint program, GLenum pname, GLint value);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameteriEXT) (GLuint program, GLenum pname, GLint value);
 #endif
 
 #ifndef GL_EXT_gpu_program_parameters
 #define GL_EXT_gpu_program_parameters 1
-extern void         (* const& glProgramEnvParameters4fvEXT) (GLenum target, GLuint index, GLsizei count, const GLfloat *params);
-extern void         (* const& glProgramLocalParameters4fvEXT) (GLenum target, GLuint index, GLsizei count, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameters4fvEXT) (GLenum target, GLuint index, GLsizei count, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameters4fvEXT) (GLenum target, GLuint index, GLsizei count, const GLfloat *params);
 #endif
 
 #ifndef GL_EXT_gpu_shader4
 #define GL_EXT_gpu_shader4 1
-enum
+enum : GLenum
 {
     GL_SAMPLER_1D_ARRAY_EXT                                 = 0x8DC0,
     GL_SAMPLER_2D_ARRAY_EXT                                 = 0x8DC1,
@@ -6750,45 +6762,45 @@ enum
     GL_MAX_PROGRAM_TEXEL_OFFSET_EXT                         = 0x8905,
     GL_VERTEX_ATTRIB_ARRAY_INTEGER_EXT                      = 0x88FD,
 };
-extern void         (* const& glGetUniformuivEXT) (GLuint program, GLint location, GLuint *params);
-extern void         (* const& glBindFragDataLocationEXT) (GLuint program, GLuint color, const GLchar *name);
-extern GLint        (* const& glGetFragDataLocationEXT) (GLuint program, const GLchar *name);
-extern void         (* const& glUniform1uiEXT) (GLint location, GLuint v0);
-extern void         (* const& glUniform2uiEXT) (GLint location, GLuint v0, GLuint v1);
-extern void         (* const& glUniform3uiEXT) (GLint location, GLuint v0, GLuint v1, GLuint v2);
-extern void         (* const& glUniform4uiEXT) (GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
-extern void         (* const& glUniform1uivEXT) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glUniform2uivEXT) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glUniform3uivEXT) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glUniform4uivEXT) (GLint location, GLsizei count, const GLuint *value);
-extern void         (* const& glVertexAttribI1iEXT) (GLuint index, GLint x);
-extern void         (* const& glVertexAttribI2iEXT) (GLuint index, GLint x, GLint y);
-extern void         (* const& glVertexAttribI3iEXT) (GLuint index, GLint x, GLint y, GLint z);
-extern void         (* const& glVertexAttribI4iEXT) (GLuint index, GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glVertexAttribI1uiEXT) (GLuint index, GLuint x);
-extern void         (* const& glVertexAttribI2uiEXT) (GLuint index, GLuint x, GLuint y);
-extern void         (* const& glVertexAttribI3uiEXT) (GLuint index, GLuint x, GLuint y, GLuint z);
-extern void         (* const& glVertexAttribI4uiEXT) (GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
-extern void         (* const& glVertexAttribI1ivEXT) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI2ivEXT) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI3ivEXT) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI4ivEXT) (GLuint index, const GLint *v);
-extern void         (* const& glVertexAttribI1uivEXT) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI2uivEXT) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI3uivEXT) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI4uivEXT) (GLuint index, const GLuint *v);
-extern void         (* const& glVertexAttribI4bvEXT) (GLuint index, const GLbyte *v);
-extern void         (* const& glVertexAttribI4svEXT) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttribI4ubvEXT) (GLuint index, const GLubyte *v);
-extern void         (* const& glVertexAttribI4usvEXT) (GLuint index, const GLushort *v);
-extern void         (* const& glVertexAttribIPointerEXT) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glGetVertexAttribIivEXT) (GLuint index, GLenum pname, GLint *params);
-extern void         (* const& glGetVertexAttribIuivEXT) (GLuint index, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetUniformuivEXT) (GLuint program, GLint location, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glBindFragDataLocationEXT) (GLuint program, GLuint color, const GLchar *name);
+extern GLint        (KHRONOS_APIENTRY* const& glGetFragDataLocationEXT) (GLuint program, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glUniform1uiEXT) (GLint location, GLuint v0);
+extern void         (KHRONOS_APIENTRY* const& glUniform2uiEXT) (GLint location, GLuint v0, GLuint v1);
+extern void         (KHRONOS_APIENTRY* const& glUniform3uiEXT) (GLint location, GLuint v0, GLuint v1, GLuint v2);
+extern void         (KHRONOS_APIENTRY* const& glUniform4uiEXT) (GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+extern void         (KHRONOS_APIENTRY* const& glUniform1uivEXT) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform2uivEXT) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform3uivEXT) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glUniform4uivEXT) (GLint location, GLsizei count, const GLuint *value);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1iEXT) (GLuint index, GLint x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2iEXT) (GLuint index, GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3iEXT) (GLuint index, GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4iEXT) (GLuint index, GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1uiEXT) (GLuint index, GLuint x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2uiEXT) (GLuint index, GLuint x, GLuint y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3uiEXT) (GLuint index, GLuint x, GLuint y, GLuint z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4uiEXT) (GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1ivEXT) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2ivEXT) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3ivEXT) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4ivEXT) (GLuint index, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI1uivEXT) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI2uivEXT) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI3uivEXT) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4uivEXT) (GLuint index, const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4bvEXT) (GLuint index, const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4svEXT) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4ubvEXT) (GLuint index, const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribI4usvEXT) (GLuint index, const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribIPointerEXT) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribIivEXT) (GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribIuivEXT) (GLuint index, GLenum pname, GLuint *params);
 #endif
 
 #ifndef GL_EXT_histogram
 #define GL_EXT_histogram 1
-enum
+enum : GLenum
 {
     GL_HISTOGRAM_EXT                                        = 0x8024,
     GL_PROXY_HISTOGRAM_EXT                                  = 0x8025,
@@ -6805,21 +6817,21 @@ enum
     GL_MINMAX_SINK_EXT                                      = 0x8030,
     GL_TABLE_TOO_LARGE_EXT                                  = 0x8031,
 };
-extern void         (* const& glGetHistogramEXT) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
-extern void         (* const& glGetHistogramParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetHistogramParameterivEXT) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetMinmaxEXT) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
-extern void         (* const& glGetMinmaxParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMinmaxParameterivEXT) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glHistogramEXT) (GLenum target, GLsizei width, GLenum internalformat, GLboolean sink);
-extern void         (* const& glMinmaxEXT) (GLenum target, GLenum internalformat, GLboolean sink);
-extern void         (* const& glResetHistogramEXT) (GLenum target);
-extern void         (* const& glResetMinmaxEXT) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glGetHistogramEXT) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
+extern void         (KHRONOS_APIENTRY* const& glGetHistogramParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetHistogramParameterivEXT) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMinmaxEXT) (GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
+extern void         (KHRONOS_APIENTRY* const& glGetMinmaxParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMinmaxParameterivEXT) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glHistogramEXT) (GLenum target, GLsizei width, GLenum internalformat, GLboolean sink);
+extern void         (KHRONOS_APIENTRY* const& glMinmaxEXT) (GLenum target, GLenum internalformat, GLboolean sink);
+extern void         (KHRONOS_APIENTRY* const& glResetHistogramEXT) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glResetMinmaxEXT) (GLenum target);
 #endif
 
 #ifndef GL_EXT_index_array_formats
 #define GL_EXT_index_array_formats 1
-enum
+enum : GLenum
 {
     GL_IUI_V2F_EXT                                          = 0x81AD,
     GL_IUI_V3F_EXT                                          = 0x81AE,
@@ -6834,24 +6846,24 @@ enum
 
 #ifndef GL_EXT_index_func
 #define GL_EXT_index_func 1
-enum
+enum : GLenum
 {
     GL_INDEX_TEST_EXT                                       = 0x81B5,
     GL_INDEX_TEST_FUNC_EXT                                  = 0x81B6,
     GL_INDEX_TEST_REF_EXT                                   = 0x81B7,
 };
-extern void         (* const& glIndexFuncEXT) (GLenum func, GLclampf ref);
+extern void         (KHRONOS_APIENTRY* const& glIndexFuncEXT) (GLenum func, GLclampf ref);
 #endif
 
 #ifndef GL_EXT_index_material
 #define GL_EXT_index_material 1
-enum
+enum : GLenum
 {
     GL_INDEX_MATERIAL_EXT                                   = 0x81B8,
     GL_INDEX_MATERIAL_PARAMETER_EXT                         = 0x81B9,
     GL_INDEX_MATERIAL_FACE_EXT                              = 0x81BA,
 };
-extern void         (* const& glIndexMaterialEXT) (GLenum face, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glIndexMaterialEXT) (GLenum face, GLenum mode);
 #endif
 
 #ifndef GL_EXT_index_texture
@@ -6860,7 +6872,7 @@ extern void         (* const& glIndexMaterialEXT) (GLenum face, GLenum mode);
 
 #ifndef GL_EXT_light_texture
 #define GL_EXT_light_texture 1
-enum
+enum : GLenum
 {
     GL_FRAGMENT_MATERIAL_EXT                                = 0x8349,
     GL_FRAGMENT_NORMAL_EXT                                  = 0x834A,
@@ -6872,14 +6884,14 @@ enum
     GL_TEXTURE_MATERIAL_FACE_EXT                            = 0x8351,
     GL_TEXTURE_MATERIAL_PARAMETER_EXT                       = 0x8352,
 };
-extern void         (* const& glApplyTextureEXT) (GLenum mode);
-extern void         (* const& glTextureLightEXT) (GLenum pname);
-extern void         (* const& glTextureMaterialEXT) (GLenum face, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glApplyTextureEXT) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glTextureLightEXT) (GLenum pname);
+extern void         (KHRONOS_APIENTRY* const& glTextureMaterialEXT) (GLenum face, GLenum mode);
 #endif
 
 #ifndef GL_EXT_memory_object
 #define GL_EXT_memory_object 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_TILING_EXT                                   = 0x9580,
     GL_DEDICATED_MEMORY_OBJECT_EXT                          = 0x9581,
@@ -6893,39 +6905,39 @@ enum
     GL_DRIVER_UUID_EXT                                      = 0x9598,
     GL_UUID_SIZE_EXT                                        = 16,
 };
-extern void         (* const& glGetUnsignedBytevEXT) (GLenum pname, GLubyte *data);
-extern void         (* const& glGetUnsignedBytei_vEXT) (GLenum target, GLuint index, GLubyte *data);
-extern void         (* const& glDeleteMemoryObjectsEXT) (GLsizei n, const GLuint *memoryObjects);
-extern GLboolean    (* const& glIsMemoryObjectEXT) (GLuint memoryObject);
-extern void         (* const& glCreateMemoryObjectsEXT) (GLsizei n, GLuint *memoryObjects);
-extern void         (* const& glMemoryObjectParameterivEXT) (GLuint memoryObject, GLenum pname, const GLint *params);
-extern void         (* const& glGetMemoryObjectParameterivEXT) (GLuint memoryObject, GLenum pname, GLint *params);
-extern void         (* const& glTexStorageMem2DEXT) (GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLuint memory, GLuint64 offset);
-extern void         (* const& glTexStorageMem2DMultisampleEXT) (GLenum target, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
-extern void         (* const& glTexStorageMem3DEXT) (GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset);
-extern void         (* const& glTexStorageMem3DMultisampleEXT) (GLenum target, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
-extern void         (* const& glBufferStorageMemEXT) (GLenum target, GLsizeiptr size, GLuint memory, GLuint64 offset);
-extern void         (* const& glTextureStorageMem2DEXT) (GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLuint memory, GLuint64 offset);
-extern void         (* const& glTextureStorageMem2DMultisampleEXT) (GLuint texture, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
-extern void         (* const& glTextureStorageMem3DEXT) (GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset);
-extern void         (* const& glTextureStorageMem3DMultisampleEXT) (GLuint texture, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
-extern void         (* const& glNamedBufferStorageMemEXT) (GLuint buffer, GLsizeiptr size, GLuint memory, GLuint64 offset);
-extern void         (* const& glTexStorageMem1DEXT) (GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLuint memory, GLuint64 offset);
-extern void         (* const& glTextureStorageMem1DEXT) (GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glGetUnsignedBytevEXT) (GLenum pname, GLubyte *data);
+extern void         (KHRONOS_APIENTRY* const& glGetUnsignedBytei_vEXT) (GLenum target, GLuint index, GLubyte *data);
+extern void         (KHRONOS_APIENTRY* const& glDeleteMemoryObjectsEXT) (GLsizei n, const GLuint *memoryObjects);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsMemoryObjectEXT) (GLuint memoryObject);
+extern void         (KHRONOS_APIENTRY* const& glCreateMemoryObjectsEXT) (GLsizei n, GLuint *memoryObjects);
+extern void         (KHRONOS_APIENTRY* const& glMemoryObjectParameterivEXT) (GLuint memoryObject, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMemoryObjectParameterivEXT) (GLuint memoryObject, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTexStorageMem2DEXT) (GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTexStorageMem2DMultisampleEXT) (GLenum target, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTexStorageMem3DEXT) (GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTexStorageMem3DMultisampleEXT) (GLenum target, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glBufferStorageMemEXT) (GLenum target, GLsizeiptr size, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorageMem2DEXT) (GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorageMem2DMultisampleEXT) (GLuint texture, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorageMem3DEXT) (GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorageMem3DMultisampleEXT) (GLuint texture, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferStorageMemEXT) (GLuint buffer, GLsizeiptr size, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTexStorageMem1DEXT) (GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTextureStorageMem1DEXT) (GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLuint memory, GLuint64 offset);
 #endif
 
 #ifndef GL_EXT_memory_object_fd
 #define GL_EXT_memory_object_fd 1
-enum
+enum : GLenum
 {
     GL_HANDLE_TYPE_OPAQUE_FD_EXT                            = 0x9586,
 };
-extern void         (* const& glImportMemoryFdEXT) (GLuint memory, GLuint64 size, GLenum handleType, GLint fd);
+extern void         (KHRONOS_APIENTRY* const& glImportMemoryFdEXT) (GLuint memory, GLuint64 size, GLenum handleType, GLint fd);
 #endif
 
 #ifndef GL_EXT_memory_object_win32
 #define GL_EXT_memory_object_win32 1
-enum
+enum : GLenum
 {
     GL_HANDLE_TYPE_OPAQUE_WIN32_EXT                         = 0x9587,
     GL_HANDLE_TYPE_OPAQUE_WIN32_KMT_EXT                     = 0x9588,
@@ -6937,8 +6949,8 @@ enum
     GL_HANDLE_TYPE_D3D11_IMAGE_EXT                          = 0x958B,
     GL_HANDLE_TYPE_D3D11_IMAGE_KMT_EXT                      = 0x958C,
 };
-extern void         (* const& glImportMemoryWin32HandleEXT) (GLuint memory, GLuint64 size, GLenum handleType, void *handle);
-extern void         (* const& glImportMemoryWin32NameEXT) (GLuint memory, GLuint64 size, GLenum handleType, const void *name);
+extern void         (KHRONOS_APIENTRY* const& glImportMemoryWin32HandleEXT) (GLuint memory, GLuint64 size, GLenum handleType, void *handle);
+extern void         (KHRONOS_APIENTRY* const& glImportMemoryWin32NameEXT) (GLuint memory, GLuint64 size, GLenum handleType, const void *name);
 #endif
 
 #ifndef GL_EXT_misc_attribute
@@ -6947,13 +6959,13 @@ extern void         (* const& glImportMemoryWin32NameEXT) (GLuint memory, GLuint
 
 #ifndef GL_EXT_multi_draw_arrays
 #define GL_EXT_multi_draw_arrays 1
-extern void         (* const& glMultiDrawArraysEXT) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount);
-extern void         (* const& glMultiDrawElementsEXT) (GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArraysEXT) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsEXT) (GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei primcount);
 #endif
 
 #ifndef GL_EXT_multisample
 #define GL_EXT_multisample 1
-enum
+enum : GLenum
 {
     GL_MULTISAMPLE_EXT                                      = 0x809D,
     GL_SAMPLE_ALPHA_TO_MASK_EXT                             = 0x809E,
@@ -6973,8 +6985,8 @@ enum
     GL_SAMPLE_PATTERN_EXT                                   = 0x80AC,
     GL_MULTISAMPLE_BIT_EXT                                  = 0x20000000,
 };
-extern void         (* const& glSampleMaskEXT) (GLclampf value, GLboolean invert);
-extern void         (* const& glSamplePatternEXT) (GLenum pattern);
+extern void         (KHRONOS_APIENTRY* const& glSampleMaskEXT) (GLclampf value, GLboolean invert);
+extern void         (KHRONOS_APIENTRY* const& glSamplePatternEXT) (GLenum pattern);
 #endif
 
 #ifndef GL_EXT_multiview_tessellation_geometry_shader
@@ -6991,7 +7003,7 @@ extern void         (* const& glSamplePatternEXT) (GLenum pattern);
 
 #ifndef GL_EXT_packed_depth_stencil
 #define GL_EXT_packed_depth_stencil 1
-enum
+enum : GLenum
 {
     GL_DEPTH_STENCIL_EXT                                    = 0x84F9,
     GL_UNSIGNED_INT_24_8_EXT                                = 0x84FA,
@@ -7002,7 +7014,7 @@ enum
 
 #ifndef GL_EXT_packed_float
 #define GL_EXT_packed_float 1
-enum
+enum : GLenum
 {
     GL_R11F_G11F_B10F_EXT                                   = 0x8C3A,
     GL_UNSIGNED_INT_10F_11F_11F_REV_EXT                     = 0x8C3B,
@@ -7012,7 +7024,7 @@ enum
 
 #ifndef GL_EXT_packed_pixels
 #define GL_EXT_packed_pixels 1
-enum
+enum : GLenum
 {
     GL_UNSIGNED_BYTE_3_3_2_EXT                              = 0x8032,
     GL_UNSIGNED_SHORT_4_4_4_4_EXT                           = 0x8033,
@@ -7024,7 +7036,7 @@ enum
 
 #ifndef GL_EXT_paletted_texture
 #define GL_EXT_paletted_texture 1
-enum
+enum : GLenum
 {
     GL_COLOR_INDEX1_EXT                                     = 0x80E2,
     GL_COLOR_INDEX2_EXT                                     = 0x80E3,
@@ -7034,15 +7046,15 @@ enum
     GL_COLOR_INDEX16_EXT                                    = 0x80E7,
     GL_TEXTURE_INDEX_SIZE_EXT                               = 0x80ED,
 };
-extern void         (* const& glColorTableEXT) (GLenum target, GLenum internalFormat, GLsizei width, GLenum format, GLenum type, const void *table);
-extern void         (* const& glGetColorTableEXT) (GLenum target, GLenum format, GLenum type, void *data);
-extern void         (* const& glGetColorTableParameterivEXT) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetColorTableParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glColorTableEXT) (GLenum target, GLenum internalFormat, GLsizei width, GLenum format, GLenum type, const void *table);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableEXT) (GLenum target, GLenum format, GLenum type, void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableParameterivEXT) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
 #endif
 
 #ifndef GL_EXT_pixel_buffer_object
 #define GL_EXT_pixel_buffer_object 1
-enum
+enum : GLenum
 {
     GL_PIXEL_PACK_BUFFER_EXT                                = 0x88EB,
     GL_PIXEL_UNPACK_BUFFER_EXT                              = 0x88EC,
@@ -7053,7 +7065,7 @@ enum
 
 #ifndef GL_EXT_pixel_transform
 #define GL_EXT_pixel_transform 1
-enum
+enum : GLenum
 {
     GL_PIXEL_TRANSFORM_2D_EXT                               = 0x8330,
     GL_PIXEL_MAG_FILTER_EXT                                 = 0x8331,
@@ -7065,12 +7077,12 @@ enum
     GL_MAX_PIXEL_TRANSFORM_2D_STACK_DEPTH_EXT               = 0x8337,
     GL_PIXEL_TRANSFORM_2D_MATRIX_EXT                        = 0x8338,
 };
-extern void         (* const& glPixelTransformParameteriEXT) (GLenum target, GLenum pname, GLint param);
-extern void         (* const& glPixelTransformParameterfEXT) (GLenum target, GLenum pname, GLfloat param);
-extern void         (* const& glPixelTransformParameterivEXT) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glPixelTransformParameterfvEXT) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glGetPixelTransformParameterivEXT) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetPixelTransformParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glPixelTransformParameteriEXT) (GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glPixelTransformParameterfEXT) (GLenum target, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPixelTransformParameterivEXT) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glPixelTransformParameterfvEXT) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelTransformParameterivEXT) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelTransformParameterfvEXT) (GLenum target, GLenum pname, GLfloat *params);
 #endif
 
 #ifndef GL_EXT_pixel_transform_color_table
@@ -7079,35 +7091,35 @@ extern void         (* const& glGetPixelTransformParameterfvEXT) (GLenum target,
 
 #ifndef GL_EXT_point_parameters
 #define GL_EXT_point_parameters 1
-enum
+enum : GLenum
 {
     GL_POINT_SIZE_MIN_EXT                                   = 0x8126,
     GL_POINT_SIZE_MAX_EXT                                   = 0x8127,
     GL_POINT_FADE_THRESHOLD_SIZE_EXT                        = 0x8128,
     GL_DISTANCE_ATTENUATION_EXT                             = 0x8129,
 };
-extern void         (* const& glPointParameterfEXT) (GLenum pname, GLfloat param);
-extern void         (* const& glPointParameterfvEXT) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterfEXT) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterfvEXT) (GLenum pname, const GLfloat *params);
 #endif
 
 #ifndef GL_EXT_polygon_offset
 #define GL_EXT_polygon_offset 1
-enum
+enum : GLenum
 {
     GL_POLYGON_OFFSET_EXT                                   = 0x8037,
     GL_POLYGON_OFFSET_FACTOR_EXT                            = 0x8038,
     GL_POLYGON_OFFSET_BIAS_EXT                              = 0x8039,
 };
-extern void         (* const& glPolygonOffsetEXT) (GLfloat factor, GLfloat bias);
+extern void         (KHRONOS_APIENTRY* const& glPolygonOffsetEXT) (GLfloat factor, GLfloat bias);
 #endif
 
 #ifndef GL_EXT_polygon_offset_clamp
 #define GL_EXT_polygon_offset_clamp 1
-enum
+enum : GLenum
 {
     GL_POLYGON_OFFSET_CLAMP_EXT                             = 0x8E1B,
 };
-extern void         (* const& glPolygonOffsetClampEXT) (GLfloat factor, GLfloat units, GLfloat clamp);
+extern void         (KHRONOS_APIENTRY* const& glPolygonOffsetClampEXT) (GLfloat factor, GLfloat units, GLfloat clamp);
 #endif
 
 #ifndef GL_EXT_post_depth_coverage
@@ -7116,19 +7128,19 @@ extern void         (* const& glPolygonOffsetClampEXT) (GLfloat factor, GLfloat 
 
 #ifndef GL_EXT_provoking_vertex
 #define GL_EXT_provoking_vertex 1
-enum
+enum : GLenum
 {
     GL_QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION_EXT         = 0x8E4C,
     GL_FIRST_VERTEX_CONVENTION_EXT                          = 0x8E4D,
     GL_LAST_VERTEX_CONVENTION_EXT                           = 0x8E4E,
     GL_PROVOKING_VERTEX_EXT                                 = 0x8E4F,
 };
-extern void         (* const& glProvokingVertexEXT) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glProvokingVertexEXT) (GLenum mode);
 #endif
 
 #ifndef GL_EXT_raster_multisample
 #define GL_EXT_raster_multisample 1
-enum
+enum : GLenum
 {
     GL_RASTER_MULTISAMPLE_EXT                               = 0x9327,
     GL_RASTER_SAMPLES_EXT                                   = 0x9328,
@@ -7137,12 +7149,12 @@ enum
     GL_MULTISAMPLE_RASTERIZATION_ALLOWED_EXT                = 0x932B,
     GL_EFFECTIVE_RASTER_SAMPLES_EXT                         = 0x932C,
 };
-extern void         (* const& glRasterSamplesEXT) (GLuint samples, GLboolean fixedsamplelocations);
+extern void         (KHRONOS_APIENTRY* const& glRasterSamplesEXT) (GLuint samples, GLboolean fixedsamplelocations);
 #endif
 
 #ifndef GL_EXT_rescale_normal
 #define GL_EXT_rescale_normal 1
-enum
+enum : GLenum
 {
     GL_RESCALE_NORMAL_EXT                                   = 0x803A,
 };
@@ -7150,7 +7162,7 @@ enum
 
 #ifndef GL_EXT_semaphore
 #define GL_EXT_semaphore 1
-enum
+enum : GLenum
 {
     GL_LAYOUT_GENERAL_EXT                                   = 0x958D,
     GL_LAYOUT_COLOR_ATTACHMENT_EXT                          = 0x958E,
@@ -7162,34 +7174,34 @@ enum
     GL_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_EXT        = 0x9530,
     GL_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_EXT        = 0x9531,
 };
-extern void         (* const& glGenSemaphoresEXT) (GLsizei n, GLuint *semaphores);
-extern void         (* const& glDeleteSemaphoresEXT) (GLsizei n, const GLuint *semaphores);
-extern GLboolean    (* const& glIsSemaphoreEXT) (GLuint semaphore);
-extern void         (* const& glSemaphoreParameterui64vEXT) (GLuint semaphore, GLenum pname, const GLuint64 *params);
-extern void         (* const& glGetSemaphoreParameterui64vEXT) (GLuint semaphore, GLenum pname, GLuint64 *params);
-extern void         (* const& glWaitSemaphoreEXT) (GLuint semaphore, GLuint numBufferBarriers, const GLuint *buffers, GLuint numTextureBarriers, const GLuint *textures, const GLenum *srcLayouts);
-extern void         (* const& glSignalSemaphoreEXT) (GLuint semaphore, GLuint numBufferBarriers, const GLuint *buffers, GLuint numTextureBarriers, const GLuint *textures, const GLenum *dstLayouts);
+extern void         (KHRONOS_APIENTRY* const& glGenSemaphoresEXT) (GLsizei n, GLuint *semaphores);
+extern void         (KHRONOS_APIENTRY* const& glDeleteSemaphoresEXT) (GLsizei n, const GLuint *semaphores);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsSemaphoreEXT) (GLuint semaphore);
+extern void         (KHRONOS_APIENTRY* const& glSemaphoreParameterui64vEXT) (GLuint semaphore, GLenum pname, const GLuint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetSemaphoreParameterui64vEXT) (GLuint semaphore, GLenum pname, GLuint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glWaitSemaphoreEXT) (GLuint semaphore, GLuint numBufferBarriers, const GLuint *buffers, GLuint numTextureBarriers, const GLuint *textures, const GLenum *srcLayouts);
+extern void         (KHRONOS_APIENTRY* const& glSignalSemaphoreEXT) (GLuint semaphore, GLuint numBufferBarriers, const GLuint *buffers, GLuint numTextureBarriers, const GLuint *textures, const GLenum *dstLayouts);
 #endif
 
 #ifndef GL_EXT_semaphore_fd
 #define GL_EXT_semaphore_fd 1
-extern void         (* const& glImportSemaphoreFdEXT) (GLuint semaphore, GLenum handleType, GLint fd);
+extern void         (KHRONOS_APIENTRY* const& glImportSemaphoreFdEXT) (GLuint semaphore, GLenum handleType, GLint fd);
 #endif
 
 #ifndef GL_EXT_semaphore_win32
 #define GL_EXT_semaphore_win32 1
-enum
+enum : GLenum
 {
     GL_HANDLE_TYPE_D3D12_FENCE_EXT                          = 0x9594,
     GL_D3D12_FENCE_VALUE_EXT                                = 0x9595,
 };
-extern void         (* const& glImportSemaphoreWin32HandleEXT) (GLuint semaphore, GLenum handleType, void *handle);
-extern void         (* const& glImportSemaphoreWin32NameEXT) (GLuint semaphore, GLenum handleType, const void *name);
+extern void         (KHRONOS_APIENTRY* const& glImportSemaphoreWin32HandleEXT) (GLuint semaphore, GLenum handleType, void *handle);
+extern void         (KHRONOS_APIENTRY* const& glImportSemaphoreWin32NameEXT) (GLuint semaphore, GLenum handleType, const void *name);
 #endif
 
 #ifndef GL_EXT_secondary_color
 #define GL_EXT_secondary_color 1
-enum
+enum : GLenum
 {
     GL_COLOR_SUM_EXT                                        = 0x8458,
     GL_CURRENT_SECONDARY_COLOR_EXT                          = 0x8459,
@@ -7199,28 +7211,28 @@ enum
     GL_SECONDARY_COLOR_ARRAY_POINTER_EXT                    = 0x845D,
     GL_SECONDARY_COLOR_ARRAY_EXT                            = 0x845E,
 };
-extern void         (* const& glSecondaryColor3bEXT) (GLbyte red, GLbyte green, GLbyte blue);
-extern void         (* const& glSecondaryColor3bvEXT) (const GLbyte *v);
-extern void         (* const& glSecondaryColor3dEXT) (GLdouble red, GLdouble green, GLdouble blue);
-extern void         (* const& glSecondaryColor3dvEXT) (const GLdouble *v);
-extern void         (* const& glSecondaryColor3fEXT) (GLfloat red, GLfloat green, GLfloat blue);
-extern void         (* const& glSecondaryColor3fvEXT) (const GLfloat *v);
-extern void         (* const& glSecondaryColor3iEXT) (GLint red, GLint green, GLint blue);
-extern void         (* const& glSecondaryColor3ivEXT) (const GLint *v);
-extern void         (* const& glSecondaryColor3sEXT) (GLshort red, GLshort green, GLshort blue);
-extern void         (* const& glSecondaryColor3svEXT) (const GLshort *v);
-extern void         (* const& glSecondaryColor3ubEXT) (GLubyte red, GLubyte green, GLubyte blue);
-extern void         (* const& glSecondaryColor3ubvEXT) (const GLubyte *v);
-extern void         (* const& glSecondaryColor3uiEXT) (GLuint red, GLuint green, GLuint blue);
-extern void         (* const& glSecondaryColor3uivEXT) (const GLuint *v);
-extern void         (* const& glSecondaryColor3usEXT) (GLushort red, GLushort green, GLushort blue);
-extern void         (* const& glSecondaryColor3usvEXT) (const GLushort *v);
-extern void         (* const& glSecondaryColorPointerEXT) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3bEXT) (GLbyte red, GLbyte green, GLbyte blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3bvEXT) (const GLbyte *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3dEXT) (GLdouble red, GLdouble green, GLdouble blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3dvEXT) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3fEXT) (GLfloat red, GLfloat green, GLfloat blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3fvEXT) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3iEXT) (GLint red, GLint green, GLint blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3ivEXT) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3sEXT) (GLshort red, GLshort green, GLshort blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3svEXT) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3ubEXT) (GLubyte red, GLubyte green, GLubyte blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3ubvEXT) (const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3uiEXT) (GLuint red, GLuint green, GLuint blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3uivEXT) (const GLuint *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3usEXT) (GLushort red, GLushort green, GLushort blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3usvEXT) (const GLushort *v);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColorPointerEXT) (GLint size, GLenum type, GLsizei stride, const void *pointer);
 #endif
 
 #ifndef GL_EXT_separate_shader_objects
 #define GL_EXT_separate_shader_objects 1
-enum
+enum : GLenum
 {
     GL_ACTIVE_PROGRAM_EXT                                   = 0x8B8D,
     GL_VERTEX_SHADER_BIT_EXT                                = 0x00000001,
@@ -7229,24 +7241,24 @@ enum
     GL_PROGRAM_SEPARABLE_EXT                                = 0x8258,
     GL_PROGRAM_PIPELINE_BINDING_EXT                         = 0x825A,
 };
-extern void         (* const& glUseShaderProgramEXT) (GLenum type, GLuint program);
-extern void         (* const& glActiveProgramEXT) (GLuint program);
-extern GLuint       (* const& glCreateShaderProgramEXT) (GLenum type, const GLchar *string);
-extern void         (* const& glActiveShaderProgramEXT) (GLuint pipeline, GLuint program);
-extern void         (* const& glBindProgramPipelineEXT) (GLuint pipeline);
-extern GLuint       (* const& glCreateShaderProgramvEXT) (GLenum type, GLsizei count, const GLchar **strings);
-extern void         (* const& glDeleteProgramPipelinesEXT) (GLsizei n, const GLuint *pipelines);
-extern void         (* const& glGenProgramPipelinesEXT) (GLsizei n, GLuint *pipelines);
-extern void         (* const& glGetProgramPipelineInfoLogEXT) (GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-extern void         (* const& glGetProgramPipelineivEXT) (GLuint pipeline, GLenum pname, GLint *params);
-extern GLboolean    (* const& glIsProgramPipelineEXT) (GLuint pipeline);
-extern void         (* const& glUseProgramStagesEXT) (GLuint pipeline, GLbitfield stages, GLuint program);
-extern void         (* const& glValidateProgramPipelineEXT) (GLuint pipeline);
+extern void         (KHRONOS_APIENTRY* const& glUseShaderProgramEXT) (GLenum type, GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glActiveProgramEXT) (GLuint program);
+extern GLuint       (KHRONOS_APIENTRY* const& glCreateShaderProgramEXT) (GLenum type, const GLchar *string);
+extern void         (KHRONOS_APIENTRY* const& glActiveShaderProgramEXT) (GLuint pipeline, GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glBindProgramPipelineEXT) (GLuint pipeline);
+extern GLuint       (KHRONOS_APIENTRY* const& glCreateShaderProgramvEXT) (GLenum type, GLsizei count, const GLchar **strings);
+extern void         (KHRONOS_APIENTRY* const& glDeleteProgramPipelinesEXT) (GLsizei n, const GLuint *pipelines);
+extern void         (KHRONOS_APIENTRY* const& glGenProgramPipelinesEXT) (GLsizei n, GLuint *pipelines);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramPipelineInfoLogEXT) (GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramPipelineivEXT) (GLuint pipeline, GLenum pname, GLint *params);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsProgramPipelineEXT) (GLuint pipeline);
+extern void         (KHRONOS_APIENTRY* const& glUseProgramStagesEXT) (GLuint pipeline, GLbitfield stages, GLuint program);
+extern void         (KHRONOS_APIENTRY* const& glValidateProgramPipelineEXT) (GLuint pipeline);
 #endif
 
 #ifndef GL_EXT_separate_specular_color
 #define GL_EXT_separate_specular_color 1
-enum
+enum : GLenum
 {
     GL_LIGHT_MODEL_COLOR_CONTROL_EXT                        = 0x81F8,
     GL_SINGLE_COLOR_EXT                                     = 0x81F9,
@@ -7256,7 +7268,7 @@ enum
 
 #ifndef GL_EXT_shader_framebuffer_fetch
 #define GL_EXT_shader_framebuffer_fetch 1
-enum
+enum : GLenum
 {
     GL_FRAGMENT_SHADER_DISCARDS_SAMPLES_EXT                 = 0x8A52,
 };
@@ -7264,7 +7276,7 @@ enum
 
 #ifndef GL_EXT_shader_framebuffer_fetch_non_coherent
 #define GL_EXT_shader_framebuffer_fetch_non_coherent 1
-extern void         (* const& glFramebufferFetchBarrierEXT) ();
+extern void         (KHRONOS_APIENTRY* const& glFramebufferFetchBarrierEXT) ();
 #endif
 
 #ifndef GL_EXT_shader_image_load_formatted
@@ -7273,7 +7285,7 @@ extern void         (* const& glFramebufferFetchBarrierEXT) ();
 
 #ifndef GL_EXT_shader_image_load_store
 #define GL_EXT_shader_image_load_store 1
-enum
+enum : GLenum
 {
     GL_MAX_IMAGE_UNITS_EXT                                  = 0x8F38,
     GL_MAX_COMBINED_IMAGE_UNITS_AND_FRAGMENT_OUTPUTS_EXT    = 0x8F39,
@@ -7331,8 +7343,8 @@ enum
     GL_ATOMIC_COUNTER_BARRIER_BIT_EXT                       = 0x00001000,
     GL_ALL_BARRIER_BITS_EXT                                 = 0xFFFFFFFF,
 };
-extern void         (* const& glBindImageTextureEXT) (GLuint index, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLint format);
-extern void         (* const& glMemoryBarrierEXT) (GLbitfield barriers);
+extern void         (KHRONOS_APIENTRY* const& glBindImageTextureEXT) (GLuint index, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLint format);
+extern void         (KHRONOS_APIENTRY* const& glMemoryBarrierEXT) (GLbitfield barriers);
 #endif
 
 #ifndef GL_EXT_shader_integer_mix
@@ -7345,7 +7357,7 @@ extern void         (* const& glMemoryBarrierEXT) (GLbitfield barriers);
 
 #ifndef GL_EXT_shared_texture_palette
 #define GL_EXT_shared_texture_palette 1
-enum
+enum : GLenum
 {
     GL_SHARED_TEXTURE_PALETTE_EXT                           = 0x81FB,
 };
@@ -7357,27 +7369,27 @@ enum
 
 #ifndef GL_EXT_stencil_clear_tag
 #define GL_EXT_stencil_clear_tag 1
-enum
+enum : GLenum
 {
     GL_STENCIL_TAG_BITS_EXT                                 = 0x88F2,
     GL_STENCIL_CLEAR_TAG_VALUE_EXT                          = 0x88F3,
 };
-extern void         (* const& glStencilClearTagEXT) (GLsizei stencilTagBits, GLuint stencilClearTag);
+extern void         (KHRONOS_APIENTRY* const& glStencilClearTagEXT) (GLsizei stencilTagBits, GLuint stencilClearTag);
 #endif
 
 #ifndef GL_EXT_stencil_two_side
 #define GL_EXT_stencil_two_side 1
-enum
+enum : GLenum
 {
     GL_STENCIL_TEST_TWO_SIDE_EXT                            = 0x8910,
     GL_ACTIVE_STENCIL_FACE_EXT                              = 0x8911,
 };
-extern void         (* const& glActiveStencilFaceEXT) (GLenum face);
+extern void         (KHRONOS_APIENTRY* const& glActiveStencilFaceEXT) (GLenum face);
 #endif
 
 #ifndef GL_EXT_stencil_wrap
 #define GL_EXT_stencil_wrap 1
-enum
+enum : GLenum
 {
     GL_INCR_WRAP_EXT                                        = 0x8507,
     GL_DECR_WRAP_EXT                                        = 0x8508,
@@ -7386,13 +7398,13 @@ enum
 
 #ifndef GL_EXT_subtexture
 #define GL_EXT_subtexture 1
-extern void         (* const& glTexSubImage1DEXT) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTexSubImage2DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexSubImage1DEXT) (GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexSubImage2DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
 #endif
 
 #ifndef GL_EXT_texture
 #define GL_EXT_texture 1
-enum
+enum : GLenum
 {
     GL_ALPHA4_EXT                                           = 0x803B,
     GL_ALPHA8_EXT                                           = 0x803C,
@@ -7442,7 +7454,7 @@ enum
 
 #ifndef GL_EXT_texture3D
 #define GL_EXT_texture3D 1
-enum
+enum : GLenum
 {
     GL_PACK_SKIP_IMAGES_EXT                                 = 0x806B,
     GL_PACK_IMAGE_HEIGHT_EXT                                = 0x806C,
@@ -7454,13 +7466,13 @@ enum
     GL_TEXTURE_WRAP_R_EXT                                   = 0x8072,
     GL_MAX_3D_TEXTURE_SIZE_EXT                              = 0x8073,
 };
-extern void         (* const& glTexImage3DEXT) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTexSubImage3DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexImage3DEXT) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexSubImage3DEXT) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
 #endif
 
 #ifndef GL_EXT_texture_array
 #define GL_EXT_texture_array 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_1D_ARRAY_EXT                                 = 0x8C18,
     GL_PROXY_TEXTURE_1D_ARRAY_EXT                           = 0x8C19,
@@ -7471,12 +7483,12 @@ enum
     GL_MAX_ARRAY_TEXTURE_LAYERS_EXT                         = 0x88FF,
     GL_COMPARE_REF_DEPTH_TO_TEXTURE_EXT                     = 0x884E,
 };
-extern void         (* const& glFramebufferTextureLayerEXT) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureLayerEXT) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
 #endif
 
 #ifndef GL_EXT_texture_buffer_object
 #define GL_EXT_texture_buffer_object 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_BUFFER_EXT                                   = 0x8C2A,
     GL_MAX_TEXTURE_BUFFER_SIZE_EXT                          = 0x8C2B,
@@ -7484,12 +7496,12 @@ enum
     GL_TEXTURE_BUFFER_DATA_STORE_BINDING_EXT                = 0x8C2D,
     GL_TEXTURE_BUFFER_FORMAT_EXT                            = 0x8C2E,
 };
-extern void         (* const& glTexBufferEXT) (GLenum target, GLenum internalformat, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTexBufferEXT) (GLenum target, GLenum internalformat, GLuint buffer);
 #endif
 
 #ifndef GL_EXT_texture_compression_latc
 #define GL_EXT_texture_compression_latc 1
-enum
+enum : GLenum
 {
     GL_COMPRESSED_LUMINANCE_LATC1_EXT                       = 0x8C70,
     GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT                = 0x8C71,
@@ -7500,7 +7512,7 @@ enum
 
 #ifndef GL_EXT_texture_compression_rgtc
 #define GL_EXT_texture_compression_rgtc 1
-enum
+enum : GLenum
 {
     GL_COMPRESSED_RED_RGTC1_EXT                             = 0x8DBB,
     GL_COMPRESSED_SIGNED_RED_RGTC1_EXT                      = 0x8DBC,
@@ -7511,7 +7523,7 @@ enum
 
 #ifndef GL_EXT_texture_compression_s3tc
 #define GL_EXT_texture_compression_s3tc 1
-enum
+enum : GLenum
 {
     GL_COMPRESSED_RGB_S3TC_DXT1_EXT                         = 0x83F0,
     GL_COMPRESSED_RGBA_S3TC_DXT1_EXT                        = 0x83F1,
@@ -7522,7 +7534,7 @@ enum
 
 #ifndef GL_EXT_texture_cube_map
 #define GL_EXT_texture_cube_map 1
-enum
+enum : GLenum
 {
     GL_NORMAL_MAP_EXT                                       = 0x8511,
     GL_REFLECTION_MAP_EXT                                   = 0x8512,
@@ -7545,7 +7557,7 @@ enum
 
 #ifndef GL_EXT_texture_env_combine
 #define GL_EXT_texture_env_combine 1
-enum
+enum : GLenum
 {
     GL_COMBINE_EXT                                          = 0x8570,
     GL_COMBINE_RGB_EXT                                      = 0x8571,
@@ -7573,7 +7585,7 @@ enum
 
 #ifndef GL_EXT_texture_env_dot3
 #define GL_EXT_texture_env_dot3 1
-enum
+enum : GLenum
 {
     GL_DOT3_RGB_EXT                                         = 0x8740,
     GL_DOT3_RGBA_EXT                                        = 0x8741,
@@ -7582,7 +7594,7 @@ enum
 
 #ifndef GL_EXT_texture_filter_anisotropic
 #define GL_EXT_texture_filter_anisotropic 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_MAX_ANISOTROPY_EXT                           = 0x84FE,
     GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT                       = 0x84FF,
@@ -7591,7 +7603,7 @@ enum
 
 #ifndef GL_EXT_texture_filter_minmax
 #define GL_EXT_texture_filter_minmax 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_REDUCTION_MODE_EXT                           = 0x9366,
     GL_WEIGHTED_AVERAGE_EXT                                 = 0x9367,
@@ -7600,7 +7612,7 @@ enum
 
 #ifndef GL_EXT_texture_integer
 #define GL_EXT_texture_integer 1
-enum
+enum : GLenum
 {
     GL_RGBA32UI_EXT                                         = 0x8D70,
     GL_RGB32UI_EXT                                          = 0x8D71,
@@ -7650,17 +7662,17 @@ enum
     GL_LUMINANCE_ALPHA_INTEGER_EXT                          = 0x8D9D,
     GL_RGBA_INTEGER_MODE_EXT                                = 0x8D9E,
 };
-extern void         (* const& glTexParameterIivEXT) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glTexParameterIuivEXT) (GLenum target, GLenum pname, const GLuint *params);
-extern void         (* const& glGetTexParameterIivEXT) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetTexParameterIuivEXT) (GLenum target, GLenum pname, GLuint *params);
-extern void         (* const& glClearColorIiEXT) (GLint red, GLint green, GLint blue, GLint alpha);
-extern void         (* const& glClearColorIuiEXT) (GLuint red, GLuint green, GLuint blue, GLuint alpha);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterIivEXT) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterIuivEXT) (GLenum target, GLenum pname, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameterIivEXT) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameterIuivEXT) (GLenum target, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glClearColorIiEXT) (GLint red, GLint green, GLint blue, GLint alpha);
+extern void         (KHRONOS_APIENTRY* const& glClearColorIuiEXT) (GLuint red, GLuint green, GLuint blue, GLuint alpha);
 #endif
 
 #ifndef GL_EXT_texture_lod_bias
 #define GL_EXT_texture_lod_bias 1
-enum
+enum : GLenum
 {
     GL_MAX_TEXTURE_LOD_BIAS_EXT                             = 0x84FD,
     GL_TEXTURE_FILTER_CONTROL_EXT                           = 0x8500,
@@ -7670,7 +7682,7 @@ enum
 
 #ifndef GL_EXT_texture_mirror_clamp
 #define GL_EXT_texture_mirror_clamp 1
-enum
+enum : GLenum
 {
     GL_MIRROR_CLAMP_EXT                                     = 0x8742,
     GL_MIRROR_CLAMP_TO_EDGE_EXT                             = 0x8743,
@@ -7680,7 +7692,7 @@ enum
 
 #ifndef GL_EXT_texture_object
 #define GL_EXT_texture_object 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_PRIORITY_EXT                                 = 0x8066,
     GL_TEXTURE_RESIDENT_EXT                                 = 0x8067,
@@ -7688,27 +7700,27 @@ enum
     GL_TEXTURE_2D_BINDING_EXT                               = 0x8069,
     GL_TEXTURE_3D_BINDING_EXT                               = 0x806A,
 };
-extern GLboolean    (* const& glAreTexturesResidentEXT) (GLsizei n, const GLuint *textures, GLboolean *residences);
-extern void         (* const& glBindTextureEXT) (GLenum target, GLuint texture);
-extern void         (* const& glDeleteTexturesEXT) (GLsizei n, const GLuint *textures);
-extern void         (* const& glGenTexturesEXT) (GLsizei n, GLuint *textures);
-extern GLboolean    (* const& glIsTextureEXT) (GLuint texture);
-extern void         (* const& glPrioritizeTexturesEXT) (GLsizei n, const GLuint *textures, const GLclampf *priorities);
+extern GLboolean    (KHRONOS_APIENTRY* const& glAreTexturesResidentEXT) (GLsizei n, const GLuint *textures, GLboolean *residences);
+extern void         (KHRONOS_APIENTRY* const& glBindTextureEXT) (GLenum target, GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glDeleteTexturesEXT) (GLsizei n, const GLuint *textures);
+extern void         (KHRONOS_APIENTRY* const& glGenTexturesEXT) (GLsizei n, GLuint *textures);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsTextureEXT) (GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glPrioritizeTexturesEXT) (GLsizei n, const GLuint *textures, const GLclampf *priorities);
 #endif
 
 #ifndef GL_EXT_texture_perturb_normal
 #define GL_EXT_texture_perturb_normal 1
-enum
+enum : GLenum
 {
     GL_PERTURB_EXT                                          = 0x85AE,
     GL_TEXTURE_NORMAL_EXT                                   = 0x85AF,
 };
-extern void         (* const& glTextureNormalEXT) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glTextureNormalEXT) (GLenum mode);
 #endif
 
 #ifndef GL_EXT_texture_sRGB
 #define GL_EXT_texture_sRGB 1
-enum
+enum : GLenum
 {
     GL_SRGB_EXT                                             = 0x8C40,
     GL_SRGB8_EXT                                            = 0x8C41,
@@ -7731,7 +7743,7 @@ enum
 
 #ifndef GL_EXT_texture_sRGB_R8
 #define GL_EXT_texture_sRGB_R8 1
-enum
+enum : GLenum
 {
     GL_SR8_EXT                                              = 0x8FBD,
 };
@@ -7739,7 +7751,7 @@ enum
 
 #ifndef GL_EXT_texture_sRGB_RG8
 #define GL_EXT_texture_sRGB_RG8 1
-enum
+enum : GLenum
 {
     GL_SRG8_EXT                                             = 0x8FBE,
 };
@@ -7747,7 +7759,7 @@ enum
 
 #ifndef GL_EXT_texture_sRGB_decode
 #define GL_EXT_texture_sRGB_decode 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_SRGB_DECODE_EXT                              = 0x8A48,
     GL_DECODE_EXT                                           = 0x8A49,
@@ -7757,7 +7769,7 @@ enum
 
 #ifndef GL_EXT_texture_shared_exponent
 #define GL_EXT_texture_shared_exponent 1
-enum
+enum : GLenum
 {
     GL_RGB9_E5_EXT                                          = 0x8C3D,
     GL_UNSIGNED_INT_5_9_9_9_REV_EXT                         = 0x8C3E,
@@ -7767,7 +7779,7 @@ enum
 
 #ifndef GL_EXT_texture_snorm
 #define GL_EXT_texture_snorm 1
-enum
+enum : GLenum
 {
     GL_ALPHA_SNORM                                          = 0x9010,
     GL_LUMINANCE_SNORM                                      = 0x9011,
@@ -7790,7 +7802,7 @@ enum
 
 #ifndef GL_EXT_texture_swizzle
 #define GL_EXT_texture_swizzle 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_SWIZZLE_R_EXT                                = 0x8E42,
     GL_TEXTURE_SWIZZLE_G_EXT                                = 0x8E43,
@@ -7802,7 +7814,7 @@ enum
 
 #ifndef GL_NV_timeline_semaphore
 #define GL_NV_timeline_semaphore 1
-enum
+enum : GLenum
 {
     GL_TIMELINE_SEMAPHORE_VALUE_NV                          = 0x9595,
     GL_SEMAPHORE_TYPE_NV                                    = 0x95B3,
@@ -7810,24 +7822,24 @@ enum
     GL_SEMAPHORE_TYPE_TIMELINE_NV                           = 0x95B5,
     GL_MAX_TIMELINE_SEMAPHORE_VALUE_DIFFERENCE_NV           = 0x95B6,
 };
-extern void         (* const& glCreateSemaphoresNV) (GLsizei n, GLuint *semaphores);
-extern void         (* const& glSemaphoreParameterivNV) (GLuint semaphore, GLenum pname, const GLint *params);
-extern void         (* const& glGetSemaphoreParameterivNV) (GLuint semaphore, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCreateSemaphoresNV) (GLsizei n, GLuint *semaphores);
+extern void         (KHRONOS_APIENTRY* const& glSemaphoreParameterivNV) (GLuint semaphore, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetSemaphoreParameterivNV) (GLuint semaphore, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_EXT_timer_query
 #define GL_EXT_timer_query 1
-enum
+enum : GLenum
 {
     GL_TIME_ELAPSED_EXT                                     = 0x88BF,
 };
-extern void         (* const& glGetQueryObjecti64vEXT) (GLuint id, GLenum pname, GLint64 *params);
-extern void         (* const& glGetQueryObjectui64vEXT) (GLuint id, GLenum pname, GLuint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjecti64vEXT) (GLuint id, GLenum pname, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glGetQueryObjectui64vEXT) (GLuint id, GLenum pname, GLuint64 *params);
 #endif
 
 #ifndef GL_EXT_transform_feedback
 #define GL_EXT_transform_feedback 1
-enum
+enum : GLenum
 {
     GL_TRANSFORM_FEEDBACK_BUFFER_EXT                        = 0x8C8E,
     GL_TRANSFORM_FEEDBACK_BUFFER_START_EXT                  = 0x8C84,
@@ -7845,18 +7857,18 @@ enum
     GL_TRANSFORM_FEEDBACK_BUFFER_MODE_EXT                   = 0x8C7F,
     GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH_EXT            = 0x8C76,
 };
-extern void         (* const& glBeginTransformFeedbackEXT) (GLenum primitiveMode);
-extern void         (* const& glEndTransformFeedbackEXT) ();
-extern void         (* const& glBindBufferRangeEXT) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-extern void         (* const& glBindBufferOffsetEXT) (GLenum target, GLuint index, GLuint buffer, GLintptr offset);
-extern void         (* const& glBindBufferBaseEXT) (GLenum target, GLuint index, GLuint buffer);
-extern void         (* const& glTransformFeedbackVaryingsEXT) (GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode);
-extern void         (* const& glGetTransformFeedbackVaryingEXT) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glBeginTransformFeedbackEXT) (GLenum primitiveMode);
+extern void         (KHRONOS_APIENTRY* const& glEndTransformFeedbackEXT) ();
+extern void         (KHRONOS_APIENTRY* const& glBindBufferRangeEXT) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glBindBufferOffsetEXT) (GLenum target, GLuint index, GLuint buffer, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glBindBufferBaseEXT) (GLenum target, GLuint index, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTransformFeedbackVaryingsEXT) (GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode);
+extern void         (KHRONOS_APIENTRY* const& glGetTransformFeedbackVaryingEXT) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
 #endif
 
 #ifndef GL_EXT_vertex_array
 #define GL_EXT_vertex_array 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ARRAY_EXT                                     = 0x8074,
     GL_NORMAL_ARRAY_EXT                                     = 0x8075,
@@ -7891,15 +7903,15 @@ enum
     GL_TEXTURE_COORD_ARRAY_POINTER_EXT                      = 0x8092,
     GL_EDGE_FLAG_ARRAY_POINTER_EXT                          = 0x8093,
 };
-extern void         (* const& glArrayElementEXT) (GLint i);
-extern void         (* const& glColorPointerEXT) (GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer);
-extern void         (* const& glDrawArraysEXT) (GLenum mode, GLint first, GLsizei count);
-extern void         (* const& glEdgeFlagPointerEXT) (GLsizei stride, GLsizei count, const GLboolean *pointer);
-extern void         (* const& glGetPointervEXT) (GLenum pname, void **params);
-extern void         (* const& glIndexPointerEXT) (GLenum type, GLsizei stride, GLsizei count, const void *pointer);
-extern void         (* const& glNormalPointerEXT) (GLenum type, GLsizei stride, GLsizei count, const void *pointer);
-extern void         (* const& glTexCoordPointerEXT) (GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer);
-extern void         (* const& glVertexPointerEXT) (GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glArrayElementEXT) (GLint i);
+extern void         (KHRONOS_APIENTRY* const& glColorPointerEXT) (GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glDrawArraysEXT) (GLenum mode, GLint first, GLsizei count);
+extern void         (KHRONOS_APIENTRY* const& glEdgeFlagPointerEXT) (GLsizei stride, GLsizei count, const GLboolean *pointer);
+extern void         (KHRONOS_APIENTRY* const& glGetPointervEXT) (GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glIndexPointerEXT) (GLenum type, GLsizei stride, GLsizei count, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glNormalPointerEXT) (GLenum type, GLsizei stride, GLsizei count, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordPointerEXT) (GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexPointerEXT) (GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer);
 #endif
 
 #ifndef GL_EXT_vertex_array_bgra
@@ -7908,7 +7920,7 @@ extern void         (* const& glVertexPointerEXT) (GLint size, GLenum type, GLsi
 
 #ifndef GL_EXT_vertex_attrib_64bit
 #define GL_EXT_vertex_attrib_64bit 1
-enum
+enum : GLenum
 {
     GL_DOUBLE_VEC2_EXT                                      = 0x8FFC,
     GL_DOUBLE_VEC3_EXT                                      = 0x8FFD,
@@ -7923,21 +7935,21 @@ enum
     GL_DOUBLE_MAT4x2_EXT                                    = 0x8F4D,
     GL_DOUBLE_MAT4x3_EXT                                    = 0x8F4E,
 };
-extern void         (* const& glVertexAttribL1dEXT) (GLuint index, GLdouble x);
-extern void         (* const& glVertexAttribL2dEXT) (GLuint index, GLdouble x, GLdouble y);
-extern void         (* const& glVertexAttribL3dEXT) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glVertexAttribL4dEXT) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glVertexAttribL1dvEXT) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribL2dvEXT) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribL3dvEXT) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribL4dvEXT) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttribLPointerEXT) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glGetVertexAttribLdvEXT) (GLuint index, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1dEXT) (GLuint index, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2dEXT) (GLuint index, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3dEXT) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4dEXT) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1dvEXT) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2dvEXT) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3dvEXT) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4dvEXT) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribLPointerEXT) (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribLdvEXT) (GLuint index, GLenum pname, GLdouble *params);
 #endif
 
 #ifndef GL_EXT_vertex_shader
 #define GL_EXT_vertex_shader 1
-enum
+enum : GLenum
 {
     GL_VERTEX_SHADER_EXT                                    = 0x8780,
     GL_VERTEX_SHADER_BINDING_EXT                            = 0x8781,
@@ -8050,53 +8062,53 @@ enum
     GL_LOCAL_CONSTANT_VALUE_EXT                             = 0x87EC,
     GL_LOCAL_CONSTANT_DATATYPE_EXT                          = 0x87ED,
 };
-extern void         (* const& glBeginVertexShaderEXT) ();
-extern void         (* const& glEndVertexShaderEXT) ();
-extern void         (* const& glBindVertexShaderEXT) (GLuint id);
-extern GLuint       (* const& glGenVertexShadersEXT) (GLuint range);
-extern void         (* const& glDeleteVertexShaderEXT) (GLuint id);
-extern void         (* const& glShaderOp1EXT) (GLenum op, GLuint res, GLuint arg1);
-extern void         (* const& glShaderOp2EXT) (GLenum op, GLuint res, GLuint arg1, GLuint arg2);
-extern void         (* const& glShaderOp3EXT) (GLenum op, GLuint res, GLuint arg1, GLuint arg2, GLuint arg3);
-extern void         (* const& glSwizzleEXT) (GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW);
-extern void         (* const& glWriteMaskEXT) (GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW);
-extern void         (* const& glInsertComponentEXT) (GLuint res, GLuint src, GLuint num);
-extern void         (* const& glExtractComponentEXT) (GLuint res, GLuint src, GLuint num);
-extern GLuint       (* const& glGenSymbolsEXT) (GLenum datatype, GLenum storagetype, GLenum range, GLuint components);
-extern void         (* const& glSetInvariantEXT) (GLuint id, GLenum type, const void *addr);
-extern void         (* const& glSetLocalConstantEXT) (GLuint id, GLenum type, const void *addr);
-extern void         (* const& glVariantbvEXT) (GLuint id, const GLbyte *addr);
-extern void         (* const& glVariantsvEXT) (GLuint id, const GLshort *addr);
-extern void         (* const& glVariantivEXT) (GLuint id, const GLint *addr);
-extern void         (* const& glVariantfvEXT) (GLuint id, const GLfloat *addr);
-extern void         (* const& glVariantdvEXT) (GLuint id, const GLdouble *addr);
-extern void         (* const& glVariantubvEXT) (GLuint id, const GLubyte *addr);
-extern void         (* const& glVariantusvEXT) (GLuint id, const GLushort *addr);
-extern void         (* const& glVariantuivEXT) (GLuint id, const GLuint *addr);
-extern void         (* const& glVariantPointerEXT) (GLuint id, GLenum type, GLuint stride, const void *addr);
-extern void         (* const& glEnableVariantClientStateEXT) (GLuint id);
-extern void         (* const& glDisableVariantClientStateEXT) (GLuint id);
-extern GLuint       (* const& glBindLightParameterEXT) (GLenum light, GLenum value);
-extern GLuint       (* const& glBindMaterialParameterEXT) (GLenum face, GLenum value);
-extern GLuint       (* const& glBindTexGenParameterEXT) (GLenum unit, GLenum coord, GLenum value);
-extern GLuint       (* const& glBindTextureUnitParameterEXT) (GLenum unit, GLenum value);
-extern GLuint       (* const& glBindParameterEXT) (GLenum value);
-extern GLboolean    (* const& glIsVariantEnabledEXT) (GLuint id, GLenum cap);
-extern void         (* const& glGetVariantBooleanvEXT) (GLuint id, GLenum value, GLboolean *data);
-extern void         (* const& glGetVariantIntegervEXT) (GLuint id, GLenum value, GLint *data);
-extern void         (* const& glGetVariantFloatvEXT) (GLuint id, GLenum value, GLfloat *data);
-extern void         (* const& glGetVariantPointervEXT) (GLuint id, GLenum value, void **data);
-extern void         (* const& glGetInvariantBooleanvEXT) (GLuint id, GLenum value, GLboolean *data);
-extern void         (* const& glGetInvariantIntegervEXT) (GLuint id, GLenum value, GLint *data);
-extern void         (* const& glGetInvariantFloatvEXT) (GLuint id, GLenum value, GLfloat *data);
-extern void         (* const& glGetLocalConstantBooleanvEXT) (GLuint id, GLenum value, GLboolean *data);
-extern void         (* const& glGetLocalConstantIntegervEXT) (GLuint id, GLenum value, GLint *data);
-extern void         (* const& glGetLocalConstantFloatvEXT) (GLuint id, GLenum value, GLfloat *data);
+extern void         (KHRONOS_APIENTRY* const& glBeginVertexShaderEXT) ();
+extern void         (KHRONOS_APIENTRY* const& glEndVertexShaderEXT) ();
+extern void         (KHRONOS_APIENTRY* const& glBindVertexShaderEXT) (GLuint id);
+extern GLuint       (KHRONOS_APIENTRY* const& glGenVertexShadersEXT) (GLuint range);
+extern void         (KHRONOS_APIENTRY* const& glDeleteVertexShaderEXT) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glShaderOp1EXT) (GLenum op, GLuint res, GLuint arg1);
+extern void         (KHRONOS_APIENTRY* const& glShaderOp2EXT) (GLenum op, GLuint res, GLuint arg1, GLuint arg2);
+extern void         (KHRONOS_APIENTRY* const& glShaderOp3EXT) (GLenum op, GLuint res, GLuint arg1, GLuint arg2, GLuint arg3);
+extern void         (KHRONOS_APIENTRY* const& glSwizzleEXT) (GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW);
+extern void         (KHRONOS_APIENTRY* const& glWriteMaskEXT) (GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW);
+extern void         (KHRONOS_APIENTRY* const& glInsertComponentEXT) (GLuint res, GLuint src, GLuint num);
+extern void         (KHRONOS_APIENTRY* const& glExtractComponentEXT) (GLuint res, GLuint src, GLuint num);
+extern GLuint       (KHRONOS_APIENTRY* const& glGenSymbolsEXT) (GLenum datatype, GLenum storagetype, GLenum range, GLuint components);
+extern void         (KHRONOS_APIENTRY* const& glSetInvariantEXT) (GLuint id, GLenum type, const void *addr);
+extern void         (KHRONOS_APIENTRY* const& glSetLocalConstantEXT) (GLuint id, GLenum type, const void *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantbvEXT) (GLuint id, const GLbyte *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantsvEXT) (GLuint id, const GLshort *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantivEXT) (GLuint id, const GLint *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantfvEXT) (GLuint id, const GLfloat *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantdvEXT) (GLuint id, const GLdouble *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantubvEXT) (GLuint id, const GLubyte *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantusvEXT) (GLuint id, const GLushort *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantuivEXT) (GLuint id, const GLuint *addr);
+extern void         (KHRONOS_APIENTRY* const& glVariantPointerEXT) (GLuint id, GLenum type, GLuint stride, const void *addr);
+extern void         (KHRONOS_APIENTRY* const& glEnableVariantClientStateEXT) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glDisableVariantClientStateEXT) (GLuint id);
+extern GLuint       (KHRONOS_APIENTRY* const& glBindLightParameterEXT) (GLenum light, GLenum value);
+extern GLuint       (KHRONOS_APIENTRY* const& glBindMaterialParameterEXT) (GLenum face, GLenum value);
+extern GLuint       (KHRONOS_APIENTRY* const& glBindTexGenParameterEXT) (GLenum unit, GLenum coord, GLenum value);
+extern GLuint       (KHRONOS_APIENTRY* const& glBindTextureUnitParameterEXT) (GLenum unit, GLenum value);
+extern GLuint       (KHRONOS_APIENTRY* const& glBindParameterEXT) (GLenum value);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsVariantEnabledEXT) (GLuint id, GLenum cap);
+extern void         (KHRONOS_APIENTRY* const& glGetVariantBooleanvEXT) (GLuint id, GLenum value, GLboolean *data);
+extern void         (KHRONOS_APIENTRY* const& glGetVariantIntegervEXT) (GLuint id, GLenum value, GLint *data);
+extern void         (KHRONOS_APIENTRY* const& glGetVariantFloatvEXT) (GLuint id, GLenum value, GLfloat *data);
+extern void         (KHRONOS_APIENTRY* const& glGetVariantPointervEXT) (GLuint id, GLenum value, void **data);
+extern void         (KHRONOS_APIENTRY* const& glGetInvariantBooleanvEXT) (GLuint id, GLenum value, GLboolean *data);
+extern void         (KHRONOS_APIENTRY* const& glGetInvariantIntegervEXT) (GLuint id, GLenum value, GLint *data);
+extern void         (KHRONOS_APIENTRY* const& glGetInvariantFloatvEXT) (GLuint id, GLenum value, GLfloat *data);
+extern void         (KHRONOS_APIENTRY* const& glGetLocalConstantBooleanvEXT) (GLuint id, GLenum value, GLboolean *data);
+extern void         (KHRONOS_APIENTRY* const& glGetLocalConstantIntegervEXT) (GLuint id, GLenum value, GLint *data);
+extern void         (KHRONOS_APIENTRY* const& glGetLocalConstantFloatvEXT) (GLuint id, GLenum value, GLfloat *data);
 #endif
 
 #ifndef GL_EXT_vertex_weighting
 #define GL_EXT_vertex_weighting 1
-enum
+enum : GLenum
 {
     GL_MODELVIEW0_STACK_DEPTH_EXT                           = 0x0BA3,
     GL_MODELVIEW1_STACK_DEPTH_EXT                           = 0x8502,
@@ -8112,20 +8124,20 @@ enum
     GL_VERTEX_WEIGHT_ARRAY_STRIDE_EXT                       = 0x850F,
     GL_VERTEX_WEIGHT_ARRAY_POINTER_EXT                      = 0x8510,
 };
-extern void         (* const& glVertexWeightfEXT) (GLfloat weight);
-extern void         (* const& glVertexWeightfvEXT) (const GLfloat *weight);
-extern void         (* const& glVertexWeightPointerEXT) (GLint size, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexWeightfEXT) (GLfloat weight);
+extern void         (KHRONOS_APIENTRY* const& glVertexWeightfvEXT) (const GLfloat *weight);
+extern void         (KHRONOS_APIENTRY* const& glVertexWeightPointerEXT) (GLint size, GLenum type, GLsizei stride, const void *pointer);
 #endif
 
 #ifndef GL_EXT_win32_keyed_mutex
 #define GL_EXT_win32_keyed_mutex 1
-extern GLboolean    (* const& glAcquireKeyedMutexWin32EXT) (GLuint memory, GLuint64 key, GLuint timeout);
-extern GLboolean    (* const& glReleaseKeyedMutexWin32EXT) (GLuint memory, GLuint64 key);
+extern GLboolean    (KHRONOS_APIENTRY* const& glAcquireKeyedMutexWin32EXT) (GLuint memory, GLuint64 key, GLuint timeout);
+extern GLboolean    (KHRONOS_APIENTRY* const& glReleaseKeyedMutexWin32EXT) (GLuint memory, GLuint64 key);
 #endif
 
 #ifndef GL_EXT_window_rectangles
 #define GL_EXT_window_rectangles 1
-enum
+enum : GLenum
 {
     GL_INCLUSIVE_EXT                                        = 0x8F10,
     GL_EXCLUSIVE_EXT                                        = 0x8F11,
@@ -8134,31 +8146,31 @@ enum
     GL_MAX_WINDOW_RECTANGLES_EXT                            = 0x8F14,
     GL_NUM_WINDOW_RECTANGLES_EXT                            = 0x8F15,
 };
-extern void         (* const& glWindowRectanglesEXT) (GLenum mode, GLsizei count, const GLint *box);
+extern void         (KHRONOS_APIENTRY* const& glWindowRectanglesEXT) (GLenum mode, GLsizei count, const GLint *box);
 #endif
 
 #ifndef GL_EXT_x11_sync_object
 #define GL_EXT_x11_sync_object 1
-enum
+enum : GLenum
 {
     GL_SYNC_X11_FENCE_EXT                                   = 0x90E1,
 };
-extern GLsync       (* const& glImportSyncEXT) (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
+extern GLsync       (KHRONOS_APIENTRY* const& glImportSyncEXT) (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
 #endif
 
 #ifndef GL_GREMEDY_frame_terminator
 #define GL_GREMEDY_frame_terminator 1
-extern void         (* const& glFrameTerminatorGREMEDY) ();
+extern void         (KHRONOS_APIENTRY* const& glFrameTerminatorGREMEDY) ();
 #endif
 
 #ifndef GL_GREMEDY_string_marker
 #define GL_GREMEDY_string_marker 1
-extern void         (* const& glStringMarkerGREMEDY) (GLsizei len, const void *string);
+extern void         (KHRONOS_APIENTRY* const& glStringMarkerGREMEDY) (GLsizei len, const void *string);
 #endif
 
 #ifndef GL_HP_convolution_border_modes
 #define GL_HP_convolution_border_modes 1
-enum
+enum : GLenum
 {
     GL_IGNORE_BORDER_HP                                     = 0x8150,
     GL_CONSTANT_BORDER_HP                                   = 0x8151,
@@ -8169,7 +8181,7 @@ enum
 
 #ifndef GL_HP_image_transform
 #define GL_HP_image_transform 1
-enum
+enum : GLenum
 {
     GL_IMAGE_SCALE_X_HP                                     = 0x8155,
     GL_IMAGE_SCALE_Y_HP                                     = 0x8156,
@@ -8187,17 +8199,17 @@ enum
     GL_POST_IMAGE_TRANSFORM_COLOR_TABLE_HP                  = 0x8162,
     GL_PROXY_POST_IMAGE_TRANSFORM_COLOR_TABLE_HP            = 0x8163,
 };
-extern void         (* const& glImageTransformParameteriHP) (GLenum target, GLenum pname, GLint param);
-extern void         (* const& glImageTransformParameterfHP) (GLenum target, GLenum pname, GLfloat param);
-extern void         (* const& glImageTransformParameterivHP) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glImageTransformParameterfvHP) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glGetImageTransformParameterivHP) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetImageTransformParameterfvHP) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glImageTransformParameteriHP) (GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glImageTransformParameterfHP) (GLenum target, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glImageTransformParameterivHP) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glImageTransformParameterfvHP) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetImageTransformParameterivHP) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetImageTransformParameterfvHP) (GLenum target, GLenum pname, GLfloat *params);
 #endif
 
 #ifndef GL_HP_occlusion_test
 #define GL_HP_occlusion_test 1
-enum
+enum : GLenum
 {
     GL_OCCLUSION_TEST_HP                                    = 0x8165,
     GL_OCCLUSION_TEST_RESULT_HP                             = 0x8166,
@@ -8206,7 +8218,7 @@ enum
 
 #ifndef GL_HP_texture_lighting
 #define GL_HP_texture_lighting 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_LIGHTING_MODE_HP                             = 0x8167,
     GL_TEXTURE_POST_SPECULAR_HP                             = 0x8168,
@@ -8216,7 +8228,7 @@ enum
 
 #ifndef GL_IBM_cull_vertex
 #define GL_IBM_cull_vertex 1
-enum
+enum : GLenum
 {
     GL_CULL_VERTEX_IBM                                      = 103050,
 };
@@ -8224,13 +8236,13 @@ enum
 
 #ifndef GL_IBM_multimode_draw_arrays
 #define GL_IBM_multimode_draw_arrays 1
-extern void         (* const& glMultiModeDrawArraysIBM) (const GLenum *mode, const GLint *first, const GLsizei *count, GLsizei primcount, GLint modestride);
-extern void         (* const& glMultiModeDrawElementsIBM) (const GLenum *mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei primcount, GLint modestride);
+extern void         (KHRONOS_APIENTRY* const& glMultiModeDrawArraysIBM) (const GLenum *mode, const GLint *first, const GLsizei *count, GLsizei primcount, GLint modestride);
+extern void         (KHRONOS_APIENTRY* const& glMultiModeDrawElementsIBM) (const GLenum *mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei primcount, GLint modestride);
 #endif
 
 #ifndef GL_IBM_rasterpos_clip
 #define GL_IBM_rasterpos_clip 1
-enum
+enum : GLenum
 {
     GL_RASTER_POSITION_UNCLIPPED_IBM                        = 0x19262,
 };
@@ -8238,17 +8250,17 @@ enum
 
 #ifndef GL_IBM_static_data
 #define GL_IBM_static_data 1
-enum
+enum : GLenum
 {
     GL_ALL_STATIC_DATA_IBM                                  = 103060,
     GL_STATIC_VERTEX_ARRAY_IBM                              = 103061,
 };
-extern void         (* const& glFlushStaticDataIBM) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glFlushStaticDataIBM) (GLenum target);
 #endif
 
 #ifndef GL_IBM_texture_mirrored_repeat
 #define GL_IBM_texture_mirrored_repeat 1
-enum
+enum : GLenum
 {
     GL_MIRRORED_REPEAT_IBM                                  = 0x8370,
 };
@@ -8256,7 +8268,7 @@ enum
 
 #ifndef GL_IBM_vertex_array_lists
 #define GL_IBM_vertex_array_lists 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ARRAY_LIST_IBM                                = 103070,
     GL_NORMAL_ARRAY_LIST_IBM                                = 103071,
@@ -8275,24 +8287,24 @@ enum
     GL_FOG_COORDINATE_ARRAY_LIST_STRIDE_IBM                 = 103086,
     GL_SECONDARY_COLOR_ARRAY_LIST_STRIDE_IBM                = 103087,
 };
-extern void         (* const& glColorPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
-extern void         (* const& glSecondaryColorPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
-extern void         (* const& glEdgeFlagPointerListIBM) (GLint stride, const GLboolean **pointer, GLint ptrstride);
-extern void         (* const& glFogCoordPointerListIBM) (GLenum type, GLint stride, const void **pointer, GLint ptrstride);
-extern void         (* const& glIndexPointerListIBM) (GLenum type, GLint stride, const void **pointer, GLint ptrstride);
-extern void         (* const& glNormalPointerListIBM) (GLenum type, GLint stride, const void **pointer, GLint ptrstride);
-extern void         (* const& glTexCoordPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
-extern void         (* const& glVertexPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glColorPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColorPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glEdgeFlagPointerListIBM) (GLint stride, const GLboolean **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordPointerListIBM) (GLenum type, GLint stride, const void **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glIndexPointerListIBM) (GLenum type, GLint stride, const void **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glNormalPointerListIBM) (GLenum type, GLint stride, const void **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
+extern void         (KHRONOS_APIENTRY* const& glVertexPointerListIBM) (GLint size, GLenum type, GLint stride, const void **pointer, GLint ptrstride);
 #endif
 
 #ifndef GL_INGR_blend_func_separate
 #define GL_INGR_blend_func_separate 1
-extern void         (* const& glBlendFuncSeparateINGR) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+extern void         (KHRONOS_APIENTRY* const& glBlendFuncSeparateINGR) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
 #endif
 
 #ifndef GL_INGR_color_clamp
 #define GL_INGR_color_clamp 1
-enum
+enum : GLenum
 {
     GL_RED_MIN_CLAMP_INGR                                   = 0x8560,
     GL_GREEN_MIN_CLAMP_INGR                                 = 0x8561,
@@ -8307,7 +8319,7 @@ enum
 
 #ifndef GL_INGR_interlace_read
 #define GL_INGR_interlace_read 1
-enum
+enum : GLenum
 {
     GL_INTERLACE_READ_INGR                                  = 0x8568,
 };
@@ -8315,7 +8327,7 @@ enum
 
 #ifndef GL_INTEL_conservative_rasterization
 #define GL_INTEL_conservative_rasterization 1
-enum
+enum : GLenum
 {
     GL_CONSERVATIVE_RASTERIZATION_INTEL                     = 0x83FE,
 };
@@ -8327,26 +8339,26 @@ enum
 
 #ifndef GL_INTEL_framebuffer_CMAA
 #define GL_INTEL_framebuffer_CMAA 1
-extern void         (* const& glApplyFramebufferAttachmentCMAAINTEL) ();
+extern void         (KHRONOS_APIENTRY* const& glApplyFramebufferAttachmentCMAAINTEL) ();
 #endif
 
 #ifndef GL_INTEL_map_texture
 #define GL_INTEL_map_texture 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_MEMORY_LAYOUT_INTEL                          = 0x83FF,
     GL_LAYOUT_DEFAULT_INTEL                                 = 0,
     GL_LAYOUT_LINEAR_INTEL                                  = 1,
     GL_LAYOUT_LINEAR_CPU_CACHED_INTEL                       = 2,
 };
-extern void         (* const& glSyncTextureINTEL) (GLuint texture);
-extern void         (* const& glUnmapTexture2DINTEL) (GLuint texture, GLint level);
-extern void *       (* const& glMapTexture2DINTEL) (GLuint texture, GLint level, GLbitfield access, GLint *stride, GLenum *layout);
+extern void         (KHRONOS_APIENTRY* const& glSyncTextureINTEL) (GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glUnmapTexture2DINTEL) (GLuint texture, GLint level);
+extern void *       (KHRONOS_APIENTRY* const& glMapTexture2DINTEL) (GLuint texture, GLint level, GLbitfield access, GLint *stride, GLenum *layout);
 #endif
 
 #ifndef GL_INTEL_blackhole_render
 #define GL_INTEL_blackhole_render 1
-enum
+enum : GLenum
 {
     GL_BLACKHOLE_RENDER_INTEL                               = 0x83FC,
 };
@@ -8354,7 +8366,7 @@ enum
 
 #ifndef GL_INTEL_parallel_arrays
 #define GL_INTEL_parallel_arrays 1
-enum
+enum : GLenum
 {
     GL_PARALLEL_ARRAYS_INTEL                                = 0x83F4,
     GL_VERTEX_ARRAY_PARALLEL_POINTERS_INTEL                 = 0x83F5,
@@ -8362,15 +8374,15 @@ enum
     GL_COLOR_ARRAY_PARALLEL_POINTERS_INTEL                  = 0x83F7,
     GL_TEXTURE_COORD_ARRAY_PARALLEL_POINTERS_INTEL          = 0x83F8,
 };
-extern void         (* const& glVertexPointervINTEL) (GLint size, GLenum type, const void **pointer);
-extern void         (* const& glNormalPointervINTEL) (GLenum type, const void **pointer);
-extern void         (* const& glColorPointervINTEL) (GLint size, GLenum type, const void **pointer);
-extern void         (* const& glTexCoordPointervINTEL) (GLint size, GLenum type, const void **pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexPointervINTEL) (GLint size, GLenum type, const void **pointer);
+extern void         (KHRONOS_APIENTRY* const& glNormalPointervINTEL) (GLenum type, const void **pointer);
+extern void         (KHRONOS_APIENTRY* const& glColorPointervINTEL) (GLint size, GLenum type, const void **pointer);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordPointervINTEL) (GLint size, GLenum type, const void **pointer);
 #endif
 
 #ifndef GL_INTEL_performance_query
 #define GL_INTEL_performance_query 1
-enum
+enum : GLenum
 {
     GL_PERFQUERY_SINGLE_CONTEXT_INTEL                       = 0x00000000,
     GL_PERFQUERY_GLOBAL_CONTEXT_INTEL                       = 0x00000001,
@@ -8393,21 +8405,21 @@ enum
     GL_PERFQUERY_COUNTER_DESC_LENGTH_MAX_INTEL              = 0x94FF,
     GL_PERFQUERY_GPA_EXTENDED_COUNTERS_INTEL                = 0x9500,
 };
-extern void         (* const& glBeginPerfQueryINTEL) (GLuint queryHandle);
-extern void         (* const& glCreatePerfQueryINTEL) (GLuint queryId, GLuint *queryHandle);
-extern void         (* const& glDeletePerfQueryINTEL) (GLuint queryHandle);
-extern void         (* const& glEndPerfQueryINTEL) (GLuint queryHandle);
-extern void         (* const& glGetFirstPerfQueryIdINTEL) (GLuint *queryId);
-extern void         (* const& glGetNextPerfQueryIdINTEL) (GLuint queryId, GLuint *nextQueryId);
-extern void         (* const& glGetPerfCounterInfoINTEL) (GLuint queryId, GLuint counterId, GLuint counterNameLength, GLchar *counterName, GLuint counterDescLength, GLchar *counterDesc, GLuint *counterOffset, GLuint *counterDataSize, GLuint *counterTypeEnum, GLuint *counterDataTypeEnum, GLuint64 *rawCounterMaxValue);
-extern void         (* const& glGetPerfQueryDataINTEL) (GLuint queryHandle, GLuint flags, GLsizei dataSize, void *data, GLuint *bytesWritten);
-extern void         (* const& glGetPerfQueryIdByNameINTEL) (GLchar *queryName, GLuint *queryId);
-extern void         (* const& glGetPerfQueryInfoINTEL) (GLuint queryId, GLuint queryNameLength, GLchar *queryName, GLuint *dataSize, GLuint *noCounters, GLuint *noInstances, GLuint *capsMask);
+extern void         (KHRONOS_APIENTRY* const& glBeginPerfQueryINTEL) (GLuint queryHandle);
+extern void         (KHRONOS_APIENTRY* const& glCreatePerfQueryINTEL) (GLuint queryId, GLuint *queryHandle);
+extern void         (KHRONOS_APIENTRY* const& glDeletePerfQueryINTEL) (GLuint queryHandle);
+extern void         (KHRONOS_APIENTRY* const& glEndPerfQueryINTEL) (GLuint queryHandle);
+extern void         (KHRONOS_APIENTRY* const& glGetFirstPerfQueryIdINTEL) (GLuint *queryId);
+extern void         (KHRONOS_APIENTRY* const& glGetNextPerfQueryIdINTEL) (GLuint queryId, GLuint *nextQueryId);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfCounterInfoINTEL) (GLuint queryId, GLuint counterId, GLuint counterNameLength, GLchar *counterName, GLuint counterDescLength, GLchar *counterDesc, GLuint *counterOffset, GLuint *counterDataSize, GLuint *counterTypeEnum, GLuint *counterDataTypeEnum, GLuint64 *rawCounterMaxValue);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfQueryDataINTEL) (GLuint queryHandle, GLuint flags, GLsizei dataSize, void *data, GLuint *bytesWritten);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfQueryIdByNameINTEL) (GLchar *queryName, GLuint *queryId);
+extern void         (KHRONOS_APIENTRY* const& glGetPerfQueryInfoINTEL) (GLuint queryId, GLuint queryNameLength, GLchar *queryName, GLuint *dataSize, GLuint *noCounters, GLuint *noInstances, GLuint *capsMask);
 #endif
 
 #ifndef GL_KHR_blend_equation_advanced
 #define GL_KHR_blend_equation_advanced 1
-enum
+enum : GLenum
 {
     GL_MULTIPLY_KHR                                         = 0x9294,
     GL_SCREEN_KHR                                           = 0x9295,
@@ -8425,12 +8437,12 @@ enum
     GL_HSL_COLOR_KHR                                        = 0x92AF,
     GL_HSL_LUMINOSITY_KHR                                   = 0x92B0,
 };
-extern void         (* const& glBlendBarrierKHR) ();
+extern void         (KHRONOS_APIENTRY* const& glBlendBarrierKHR) ();
 #endif
 
 #ifndef GL_KHR_blend_equation_advanced_coherent
 #define GL_KHR_blend_equation_advanced_coherent 1
-enum
+enum : GLenum
 {
     GL_BLEND_ADVANCED_COHERENT_KHR                          = 0x9285,
 };
@@ -8438,7 +8450,7 @@ enum
 
 #ifndef GL_KHR_context_flush_control
 #define GL_KHR_context_flush_control 1
-enum
+enum : GLenum
 {
     GL_CONTEXT_RELEASE_BEHAVIOR_KHR                         = 0x82FB,
     GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_KHR                   = 0x82FC,
@@ -8447,7 +8459,7 @@ enum
 
 #ifndef GL_KHR_debug
 #define GL_KHR_debug 1
-enum
+enum : GLenum
 {
     GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR                         = 0x8242,
     GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH_KHR                 = 0x8243,
@@ -8490,22 +8502,22 @@ enum
     GL_STACK_OVERFLOW_KHR                                   = 0x0503,
     GL_STACK_UNDERFLOW_KHR                                  = 0x0504,
 };
-extern void         (* const& glDebugMessageControlKHR) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
-extern void         (* const& glDebugMessageInsertKHR) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
-extern void         (* const& glDebugMessageCallbackKHR) (GLDEBUGPROCKHR callback, const void *userParam);
-extern GLuint       (* const& glGetDebugMessageLogKHR) (GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
-extern void         (* const& glPushDebugGroupKHR) (GLenum source, GLuint id, GLsizei length, const GLchar *message);
-extern void         (* const& glPopDebugGroupKHR) ();
-extern void         (* const& glObjectLabelKHR) (GLenum identifier, GLuint name, GLsizei length, const GLchar *label);
-extern void         (* const& glGetObjectLabelKHR) (GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label);
-extern void         (* const& glObjectPtrLabelKHR) (const void *ptr, GLsizei length, const GLchar *label);
-extern void         (* const& glGetObjectPtrLabelKHR) (const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label);
-extern void         (* const& glGetPointervKHR) (GLenum pname, void **params);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageControlKHR) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageInsertKHR) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
+extern void         (KHRONOS_APIENTRY* const& glDebugMessageCallbackKHR) (GLDEBUGPROCKHR callback, const void *userParam);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetDebugMessageLogKHR) (GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
+extern void         (KHRONOS_APIENTRY* const& glPushDebugGroupKHR) (GLenum source, GLuint id, GLsizei length, const GLchar *message);
+extern void         (KHRONOS_APIENTRY* const& glPopDebugGroupKHR) ();
+extern void         (KHRONOS_APIENTRY* const& glObjectLabelKHR) (GLenum identifier, GLuint name, GLsizei length, const GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectLabelKHR) (GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glObjectPtrLabelKHR) (const void *ptr, GLsizei length, const GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glGetObjectPtrLabelKHR) (const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label);
+extern void         (KHRONOS_APIENTRY* const& glGetPointervKHR) (GLenum pname, void **params);
 #endif
 
 #ifndef GL_KHR_no_error
 #define GL_KHR_no_error 1
-enum
+enum : GLenum
 {
     GL_CONTEXT_FLAG_NO_ERROR_BIT_KHR                        = 0x00000008,
 };
@@ -8517,7 +8529,7 @@ enum
 
 #ifndef GL_KHR_robustness
 #define GL_KHR_robustness 1
-enum
+enum : GLenum
 {
     GL_CONTEXT_ROBUST_ACCESS                                = 0x90F3,
     GL_CONTEXT_ROBUST_ACCESS_KHR                            = 0x90F3,
@@ -8529,16 +8541,16 @@ enum
     GL_NO_RESET_NOTIFICATION_KHR                            = 0x8261,
     GL_CONTEXT_LOST_KHR                                     = 0x0507,
 };
-extern GLenum       (* const& glGetGraphicsResetStatusKHR) ();
-extern void         (* const& glReadnPixelsKHR) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data);
-extern void         (* const& glGetnUniformfvKHR) (GLuint program, GLint location, GLsizei bufSize, GLfloat *params);
-extern void         (* const& glGetnUniformivKHR) (GLuint program, GLint location, GLsizei bufSize, GLint *params);
-extern void         (* const& glGetnUniformuivKHR) (GLuint program, GLint location, GLsizei bufSize, GLuint *params);
+extern GLenum       (KHRONOS_APIENTRY* const& glGetGraphicsResetStatusKHR) ();
+extern void         (KHRONOS_APIENTRY* const& glReadnPixelsKHR) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformfvKHR) (GLuint program, GLint location, GLsizei bufSize, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformivKHR) (GLuint program, GLint location, GLsizei bufSize, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetnUniformuivKHR) (GLuint program, GLint location, GLsizei bufSize, GLuint *params);
 #endif
 
 #ifndef GL_KHR_shader_subgroup
 #define GL_KHR_shader_subgroup 1
-enum
+enum : GLenum
 {
     GL_SUBGROUP_SIZE_KHR                                    = 0x9532,
     GL_SUBGROUP_SUPPORTED_STAGES_KHR                        = 0x9533,
@@ -8557,7 +8569,7 @@ enum
 
 #ifndef GL_KHR_texture_compression_astc_hdr
 #define GL_KHR_texture_compression_astc_hdr 1
-enum
+enum : GLenum
 {
     GL_COMPRESSED_RGBA_ASTC_4x4_KHR                         = 0x93B0,
     GL_COMPRESSED_RGBA_ASTC_5x4_KHR                         = 0x93B1,
@@ -8600,17 +8612,17 @@ enum
 
 #ifndef GL_KHR_parallel_shader_compile
 #define GL_KHR_parallel_shader_compile 1
-enum
+enum : GLenum
 {
     GL_MAX_SHADER_COMPILER_THREADS_KHR                      = 0x91B0,
     GL_COMPLETION_STATUS_KHR                                = 0x91B1,
 };
-extern void         (* const& glMaxShaderCompilerThreadsKHR) (GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glMaxShaderCompilerThreadsKHR) (GLuint count);
 #endif
 
 #ifndef GL_MESAX_texture_stack
 #define GL_MESAX_texture_stack 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_1D_STACK_MESAX                               = 0x8759,
     GL_TEXTURE_2D_STACK_MESAX                               = 0x875A,
@@ -8623,7 +8635,7 @@ enum
 
 #ifndef GL_MESA_framebuffer_flip_x
 #define GL_MESA_framebuffer_flip_x 1
-enum
+enum : GLenum
 {
     GL_FRAMEBUFFER_FLIP_X_MESA                              = 0x8BBC,
 };
@@ -8631,17 +8643,17 @@ enum
 
 #ifndef GL_MESA_framebuffer_flip_y
 #define GL_MESA_framebuffer_flip_y 1
-enum
+enum : GLenum
 {
     GL_FRAMEBUFFER_FLIP_Y_MESA                              = 0x8BBB,
 };
-extern void         (* const& glFramebufferParameteriMESA) (GLenum target, GLenum pname, GLint param);
-extern void         (* const& glGetFramebufferParameterivMESA) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferParameteriMESA) (GLenum target, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glGetFramebufferParameterivMESA) (GLenum target, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_MESA_framebuffer_swap_xy
 #define GL_MESA_framebuffer_swap_xy 1
-enum
+enum : GLenum
 {
     GL_FRAMEBUFFER_SWAP_XY_MESA                             = 0x8BBD,
 };
@@ -8649,7 +8661,7 @@ enum
 
 #ifndef GL_MESA_pack_invert
 #define GL_MESA_pack_invert 1
-enum
+enum : GLenum
 {
     GL_PACK_INVERT_MESA                                     = 0x8758,
 };
@@ -8657,7 +8669,7 @@ enum
 
 #ifndef GL_MESA_program_binary_formats
 #define GL_MESA_program_binary_formats 1
-enum
+enum : GLenum
 {
     GL_PROGRAM_BINARY_FORMAT_MESA                           = 0x875F,
 };
@@ -8665,7 +8677,7 @@ enum
 
 #ifndef GL_MESA_resize_buffers
 #define GL_MESA_resize_buffers 1
-extern void         (* const& glResizeBuffersMESA) ();
+extern void         (KHRONOS_APIENTRY* const& glResizeBuffersMESA) ();
 #endif
 
 #ifndef GL_MESA_shader_integer_functions
@@ -8674,7 +8686,7 @@ extern void         (* const& glResizeBuffersMESA) ();
 
 #ifndef GL_MESA_tile_raster_order
 #define GL_MESA_tile_raster_order 1
-enum
+enum : GLenum
 {
     GL_TILE_RASTER_ORDER_FIXED_MESA                         = 0x8BB8,
     GL_TILE_RASTER_ORDER_INCREASING_X_MESA                  = 0x8BB9,
@@ -8684,35 +8696,35 @@ enum
 
 #ifndef GL_MESA_window_pos
 #define GL_MESA_window_pos 1
-extern void         (* const& glWindowPos2dMESA) (GLdouble x, GLdouble y);
-extern void         (* const& glWindowPos2dvMESA) (const GLdouble *v);
-extern void         (* const& glWindowPos2fMESA) (GLfloat x, GLfloat y);
-extern void         (* const& glWindowPos2fvMESA) (const GLfloat *v);
-extern void         (* const& glWindowPos2iMESA) (GLint x, GLint y);
-extern void         (* const& glWindowPos2ivMESA) (const GLint *v);
-extern void         (* const& glWindowPos2sMESA) (GLshort x, GLshort y);
-extern void         (* const& glWindowPos2svMESA) (const GLshort *v);
-extern void         (* const& glWindowPos3dMESA) (GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glWindowPos3dvMESA) (const GLdouble *v);
-extern void         (* const& glWindowPos3fMESA) (GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glWindowPos3fvMESA) (const GLfloat *v);
-extern void         (* const& glWindowPos3iMESA) (GLint x, GLint y, GLint z);
-extern void         (* const& glWindowPos3ivMESA) (const GLint *v);
-extern void         (* const& glWindowPos3sMESA) (GLshort x, GLshort y, GLshort z);
-extern void         (* const& glWindowPos3svMESA) (const GLshort *v);
-extern void         (* const& glWindowPos4dMESA) (GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glWindowPos4dvMESA) (const GLdouble *v);
-extern void         (* const& glWindowPos4fMESA) (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glWindowPos4fvMESA) (const GLfloat *v);
-extern void         (* const& glWindowPos4iMESA) (GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glWindowPos4ivMESA) (const GLint *v);
-extern void         (* const& glWindowPos4sMESA) (GLshort x, GLshort y, GLshort z, GLshort w);
-extern void         (* const& glWindowPos4svMESA) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2dMESA) (GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2dvMESA) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2fMESA) (GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2fvMESA) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2iMESA) (GLint x, GLint y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2ivMESA) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2sMESA) (GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos2svMESA) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3dMESA) (GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3dvMESA) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3fMESA) (GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3fvMESA) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3iMESA) (GLint x, GLint y, GLint z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3ivMESA) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3sMESA) (GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos3svMESA) (const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4dMESA) (GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4dvMESA) (const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4fMESA) (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4fvMESA) (const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4iMESA) (GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4ivMESA) (const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4sMESA) (GLshort x, GLshort y, GLshort z, GLshort w);
+extern void         (KHRONOS_APIENTRY* const& glWindowPos4svMESA) (const GLshort *v);
 #endif
 
 #ifndef GL_MESA_ycbcr_texture
 #define GL_MESA_ycbcr_texture 1
-enum
+enum : GLenum
 {
     GL_UNSIGNED_SHORT_8_8_MESA                              = 0x85BA,
     GL_UNSIGNED_SHORT_8_8_REV_MESA                          = 0x85BB,
@@ -8726,13 +8738,13 @@ enum
 
 #ifndef GL_NVX_conditional_render
 #define GL_NVX_conditional_render 1
-extern void         (* const& glBeginConditionalRenderNVX) (GLuint id);
-extern void         (* const& glEndConditionalRenderNVX) ();
+extern void         (KHRONOS_APIENTRY* const& glBeginConditionalRenderNVX) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glEndConditionalRenderNVX) ();
 #endif
 
 #ifndef GL_NVX_gpu_memory_info
 #define GL_NVX_gpu_memory_info 1
-enum
+enum : GLenum
 {
     GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX                 = 0x9047,
     GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX           = 0x9048,
@@ -8744,60 +8756,60 @@ enum
 
 #ifndef GL_NVX_linked_gpu_multicast
 #define GL_NVX_linked_gpu_multicast 1
-enum
+enum : GLenum
 {
     GL_LGPU_SEPARATE_STORAGE_BIT_NVX                        = 0x0800,
     GL_MAX_LGPU_GPUS_NVX                                    = 0x92BA,
 };
-extern void         (* const& glLGPUNamedBufferSubDataNVX) (GLbitfield gpuMask, GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
-extern void         (* const& glLGPUCopyImageSubDataNVX) (GLuint sourceGpu, GLbitfield destinationGpuMask, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srxY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth);
-extern void         (* const& glLGPUInterlockNVX) ();
+extern void         (KHRONOS_APIENTRY* const& glLGPUNamedBufferSubDataNVX) (GLbitfield gpuMask, GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glLGPUCopyImageSubDataNVX) (GLuint sourceGpu, GLbitfield destinationGpuMask, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srxY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth);
+extern void         (KHRONOS_APIENTRY* const& glLGPUInterlockNVX) ();
 #endif
 
 #ifndef GL_NV_alpha_to_coverage_dither_control
 #define GL_NV_alpha_to_coverage_dither_control 1
-enum
+enum : GLenum
 {
     GL_ALPHA_TO_COVERAGE_DITHER_DEFAULT_NV                  = 0x934D,
     GL_ALPHA_TO_COVERAGE_DITHER_ENABLE_NV                   = 0x934E,
     GL_ALPHA_TO_COVERAGE_DITHER_DISABLE_NV                  = 0x934F,
     GL_ALPHA_TO_COVERAGE_DITHER_MODE_NV                     = 0x92BF,
 };
-extern void         (* const& glAlphaToCoverageDitherControlNV) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glAlphaToCoverageDitherControlNV) (GLenum mode);
 #endif
 
 #ifndef GL_NV_bindless_multi_draw_indirect
 #define GL_NV_bindless_multi_draw_indirect 1
-extern void         (* const& glMultiDrawArraysIndirectBindlessNV) (GLenum mode, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
-extern void         (* const& glMultiDrawElementsIndirectBindlessNV) (GLenum mode, GLenum type, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArraysIndirectBindlessNV) (GLenum mode, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsIndirectBindlessNV) (GLenum mode, GLenum type, const void *indirect, GLsizei drawCount, GLsizei stride, GLint vertexBufferCount);
 #endif
 
 #ifndef GL_NV_bindless_multi_draw_indirect_count
 #define GL_NV_bindless_multi_draw_indirect_count 1
-extern void         (* const& glMultiDrawArraysIndirectBindlessCountNV) (GLenum mode, const void *indirect, GLsizei drawCount, GLsizei maxDrawCount, GLsizei stride, GLint vertexBufferCount);
-extern void         (* const& glMultiDrawElementsIndirectBindlessCountNV) (GLenum mode, GLenum type, const void *indirect, GLsizei drawCount, GLsizei maxDrawCount, GLsizei stride, GLint vertexBufferCount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawArraysIndirectBindlessCountNV) (GLenum mode, const void *indirect, GLsizei drawCount, GLsizei maxDrawCount, GLsizei stride, GLint vertexBufferCount);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawElementsIndirectBindlessCountNV) (GLenum mode, GLenum type, const void *indirect, GLsizei drawCount, GLsizei maxDrawCount, GLsizei stride, GLint vertexBufferCount);
 #endif
 
 #ifndef GL_NV_bindless_texture
 #define GL_NV_bindless_texture 1
-extern GLuint64     (* const& glGetTextureHandleNV) (GLuint texture);
-extern GLuint64     (* const& glGetTextureSamplerHandleNV) (GLuint texture, GLuint sampler);
-extern void         (* const& glMakeTextureHandleResidentNV) (GLuint64 handle);
-extern void         (* const& glMakeTextureHandleNonResidentNV) (GLuint64 handle);
-extern GLuint64     (* const& glGetImageHandleNV) (GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum format);
-extern void         (* const& glMakeImageHandleResidentNV) (GLuint64 handle, GLenum access);
-extern void         (* const& glMakeImageHandleNonResidentNV) (GLuint64 handle);
-extern void         (* const& glUniformHandleui64NV) (GLint location, GLuint64 value);
-extern void         (* const& glUniformHandleui64vNV) (GLint location, GLsizei count, const GLuint64 *value);
-extern void         (* const& glProgramUniformHandleui64NV) (GLuint program, GLint location, GLuint64 value);
-extern void         (* const& glProgramUniformHandleui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64 *values);
-extern GLboolean    (* const& glIsTextureHandleResidentNV) (GLuint64 handle);
-extern GLboolean    (* const& glIsImageHandleResidentNV) (GLuint64 handle);
+extern GLuint64     (KHRONOS_APIENTRY* const& glGetTextureHandleNV) (GLuint texture);
+extern GLuint64     (KHRONOS_APIENTRY* const& glGetTextureSamplerHandleNV) (GLuint texture, GLuint sampler);
+extern void         (KHRONOS_APIENTRY* const& glMakeTextureHandleResidentNV) (GLuint64 handle);
+extern void         (KHRONOS_APIENTRY* const& glMakeTextureHandleNonResidentNV) (GLuint64 handle);
+extern GLuint64     (KHRONOS_APIENTRY* const& glGetImageHandleNV) (GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum format);
+extern void         (KHRONOS_APIENTRY* const& glMakeImageHandleResidentNV) (GLuint64 handle, GLenum access);
+extern void         (KHRONOS_APIENTRY* const& glMakeImageHandleNonResidentNV) (GLuint64 handle);
+extern void         (KHRONOS_APIENTRY* const& glUniformHandleui64NV) (GLint location, GLuint64 value);
+extern void         (KHRONOS_APIENTRY* const& glUniformHandleui64vNV) (GLint location, GLsizei count, const GLuint64 *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformHandleui64NV) (GLuint program, GLint location, GLuint64 value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformHandleui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64 *values);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsTextureHandleResidentNV) (GLuint64 handle);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsImageHandleResidentNV) (GLuint64 handle);
 #endif
 
 #ifndef GL_NV_blend_equation_advanced
 #define GL_NV_blend_equation_advanced 1
-enum
+enum : GLenum
 {
     GL_BLEND_OVERLAP_NV                                     = 0x9281,
     GL_BLEND_PREMULTIPLIED_SRC_NV                           = 0x9280,
@@ -8849,13 +8861,13 @@ enum
     GL_VIVIDLIGHT_NV                                        = 0x92A6,
     GL_XOR_NV                                               = 0x1506,
 };
-extern void         (* const& glBlendParameteriNV) (GLenum pname, GLint value);
-extern void         (* const& glBlendBarrierNV) ();
+extern void         (KHRONOS_APIENTRY* const& glBlendParameteriNV) (GLenum pname, GLint value);
+extern void         (KHRONOS_APIENTRY* const& glBlendBarrierNV) ();
 #endif
 
 #ifndef GL_NV_blend_equation_advanced_coherent
 #define GL_NV_blend_equation_advanced_coherent 1
-enum
+enum : GLenum
 {
     GL_BLEND_ADVANCED_COHERENT_NV                           = 0x9285,
 };
@@ -8871,18 +8883,18 @@ enum
 
 #ifndef GL_NV_clip_space_w_scaling
 #define GL_NV_clip_space_w_scaling 1
-enum
+enum : GLenum
 {
     GL_VIEWPORT_POSITION_W_SCALE_NV                         = 0x937C,
     GL_VIEWPORT_POSITION_W_SCALE_X_COEFF_NV                 = 0x937D,
     GL_VIEWPORT_POSITION_W_SCALE_Y_COEFF_NV                 = 0x937E,
 };
-extern void         (* const& glViewportPositionWScaleNV) (GLuint index, GLfloat xcoeff, GLfloat ycoeff);
+extern void         (KHRONOS_APIENTRY* const& glViewportPositionWScaleNV) (GLuint index, GLfloat xcoeff, GLfloat ycoeff);
 #endif
 
 #ifndef GL_NV_command_list
 #define GL_NV_command_list 1
-enum
+enum : GLenum
 {
     GL_TERMINATE_SEQUENCE_COMMAND_NV                        = 0x0000,
     GL_NOP_COMMAND_NV                                       = 0x0001,
@@ -8904,28 +8916,28 @@ enum
     GL_SCISSOR_COMMAND_NV                                   = 0x0011,
     GL_FRONT_FACE_COMMAND_NV                                = 0x0012,
 };
-extern void         (* const& glCreateStatesNV) (GLsizei n, GLuint *states);
-extern void         (* const& glDeleteStatesNV) (GLsizei n, const GLuint *states);
-extern GLboolean    (* const& glIsStateNV) (GLuint state);
-extern void         (* const& glStateCaptureNV) (GLuint state, GLenum mode);
-extern GLuint       (* const& glGetCommandHeaderNV) (GLenum tokenID, GLuint size);
-extern GLushort     (* const& glGetStageIndexNV) (GLenum shadertype);
-extern void         (* const& glDrawCommandsNV) (GLenum primitiveMode, GLuint buffer, const GLintptr *indirects, const GLsizei *sizes, GLuint count);
-extern void         (* const& glDrawCommandsAddressNV) (GLenum primitiveMode, const GLuint64 *indirects, const GLsizei *sizes, GLuint count);
-extern void         (* const& glDrawCommandsStatesNV) (GLuint buffer, const GLintptr *indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
-extern void         (* const& glDrawCommandsStatesAddressNV) (const GLuint64 *indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
-extern void         (* const& glCreateCommandListsNV) (GLsizei n, GLuint *lists);
-extern void         (* const& glDeleteCommandListsNV) (GLsizei n, const GLuint *lists);
-extern GLboolean    (* const& glIsCommandListNV) (GLuint list);
-extern void         (* const& glListDrawCommandsStatesClientNV) (GLuint list, GLuint segment, const void **indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
-extern void         (* const& glCommandListSegmentsNV) (GLuint list, GLuint segments);
-extern void         (* const& glCompileCommandListNV) (GLuint list);
-extern void         (* const& glCallCommandListNV) (GLuint list);
+extern void         (KHRONOS_APIENTRY* const& glCreateStatesNV) (GLsizei n, GLuint *states);
+extern void         (KHRONOS_APIENTRY* const& glDeleteStatesNV) (GLsizei n, const GLuint *states);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsStateNV) (GLuint state);
+extern void         (KHRONOS_APIENTRY* const& glStateCaptureNV) (GLuint state, GLenum mode);
+extern GLuint       (KHRONOS_APIENTRY* const& glGetCommandHeaderNV) (GLenum tokenID, GLuint size);
+extern GLushort     (KHRONOS_APIENTRY* const& glGetStageIndexNV) (GLenum shadertype);
+extern void         (KHRONOS_APIENTRY* const& glDrawCommandsNV) (GLenum primitiveMode, GLuint buffer, const GLintptr *indirects, const GLsizei *sizes, GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glDrawCommandsAddressNV) (GLenum primitiveMode, const GLuint64 *indirects, const GLsizei *sizes, GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glDrawCommandsStatesNV) (GLuint buffer, const GLintptr *indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glDrawCommandsStatesAddressNV) (const GLuint64 *indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glCreateCommandListsNV) (GLsizei n, GLuint *lists);
+extern void         (KHRONOS_APIENTRY* const& glDeleteCommandListsNV) (GLsizei n, const GLuint *lists);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsCommandListNV) (GLuint list);
+extern void         (KHRONOS_APIENTRY* const& glListDrawCommandsStatesClientNV) (GLuint list, GLuint segment, const void **indirects, const GLsizei *sizes, const GLuint *states, const GLuint *fbos, GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glCommandListSegmentsNV) (GLuint list, GLuint segments);
+extern void         (KHRONOS_APIENTRY* const& glCompileCommandListNV) (GLuint list);
+extern void         (KHRONOS_APIENTRY* const& glCallCommandListNV) (GLuint list);
 #endif
 
 #ifndef GL_NV_compute_program5
 #define GL_NV_compute_program5 1
-enum
+enum : GLenum
 {
     GL_COMPUTE_PROGRAM_NV                                   = 0x90FB,
     GL_COMPUTE_PROGRAM_PARAMETER_BUFFER_NV                  = 0x90FC,
@@ -8938,43 +8950,43 @@ enum
 
 #ifndef GL_NV_conditional_render
 #define GL_NV_conditional_render 1
-enum
+enum : GLenum
 {
     GL_QUERY_WAIT_NV                                        = 0x8E13,
     GL_QUERY_NO_WAIT_NV                                     = 0x8E14,
     GL_QUERY_BY_REGION_WAIT_NV                              = 0x8E15,
     GL_QUERY_BY_REGION_NO_WAIT_NV                           = 0x8E16,
 };
-extern void         (* const& glBeginConditionalRenderNV) (GLuint id, GLenum mode);
-extern void         (* const& glEndConditionalRenderNV) ();
+extern void         (KHRONOS_APIENTRY* const& glBeginConditionalRenderNV) (GLuint id, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glEndConditionalRenderNV) ();
 #endif
 
 #ifndef GL_NV_conservative_raster
 #define GL_NV_conservative_raster 1
-enum
+enum : GLenum
 {
     GL_CONSERVATIVE_RASTERIZATION_NV                        = 0x9346,
     GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV                    = 0x9347,
     GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV                    = 0x9348,
     GL_MAX_SUBPIXEL_PRECISION_BIAS_BITS_NV                  = 0x9349,
 };
-extern void         (* const& glSubpixelPrecisionBiasNV) (GLuint xbits, GLuint ybits);
+extern void         (KHRONOS_APIENTRY* const& glSubpixelPrecisionBiasNV) (GLuint xbits, GLuint ybits);
 #endif
 
 #ifndef GL_NV_conservative_raster_dilate
 #define GL_NV_conservative_raster_dilate 1
-enum
+enum : GLenum
 {
     GL_CONSERVATIVE_RASTER_DILATE_NV                        = 0x9379,
     GL_CONSERVATIVE_RASTER_DILATE_RANGE_NV                  = 0x937A,
     GL_CONSERVATIVE_RASTER_DILATE_GRANULARITY_NV            = 0x937B,
 };
-extern void         (* const& glConservativeRasterParameterfNV) (GLenum pname, GLfloat value);
+extern void         (KHRONOS_APIENTRY* const& glConservativeRasterParameterfNV) (GLenum pname, GLfloat value);
 #endif
 
 #ifndef GL_NV_conservative_raster_pre_snap
 #define GL_NV_conservative_raster_pre_snap 1
-enum
+enum : GLenum
 {
     GL_CONSERVATIVE_RASTER_MODE_PRE_SNAP_NV                 = 0x9550,
 };
@@ -8982,13 +8994,13 @@ enum
 
 #ifndef GL_NV_conservative_raster_pre_snap_triangles
 #define GL_NV_conservative_raster_pre_snap_triangles 1
-enum
+enum : GLenum
 {
     GL_CONSERVATIVE_RASTER_MODE_NV                          = 0x954D,
     GL_CONSERVATIVE_RASTER_MODE_POST_SNAP_NV                = 0x954E,
     GL_CONSERVATIVE_RASTER_MODE_PRE_SNAP_TRIANGLES_NV       = 0x954F,
 };
-extern void         (* const& glConservativeRasterParameteriNV) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glConservativeRasterParameteriNV) (GLenum pname, GLint param);
 #endif
 
 #ifndef GL_NV_conservative_raster_underestimation
@@ -8997,7 +9009,7 @@ extern void         (* const& glConservativeRasterParameteriNV) (GLenum pname, G
 
 #ifndef GL_NV_copy_depth_to_color
 #define GL_NV_copy_depth_to_color 1
-enum
+enum : GLenum
 {
     GL_DEPTH_STENCIL_TO_RGBA_NV                             = 0x886E,
     GL_DEPTH_STENCIL_TO_BGRA_NV                             = 0x886F,
@@ -9006,12 +9018,12 @@ enum
 
 #ifndef GL_NV_copy_image
 #define GL_NV_copy_image 1
-extern void         (* const& glCopyImageSubDataNV) (GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth);
+extern void         (KHRONOS_APIENTRY* const& glCopyImageSubDataNV) (GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth);
 #endif
 
 #ifndef GL_NV_deep_texture3D
 #define GL_NV_deep_texture3D 1
-enum
+enum : GLenum
 {
     GL_MAX_DEEP_3D_TEXTURE_WIDTH_HEIGHT_NV                  = 0x90D0,
     GL_MAX_DEEP_3D_TEXTURE_DEPTH_NV                         = 0x90D1,
@@ -9020,21 +9032,21 @@ enum
 
 #ifndef GL_NV_depth_buffer_float
 #define GL_NV_depth_buffer_float 1
-enum
+enum : GLenum
 {
     GL_DEPTH_COMPONENT32F_NV                                = 0x8DAB,
     GL_DEPTH32F_STENCIL8_NV                                 = 0x8DAC,
     GL_FLOAT_32_UNSIGNED_INT_24_8_REV_NV                    = 0x8DAD,
     GL_DEPTH_BUFFER_FLOAT_MODE_NV                           = 0x8DAF,
 };
-extern void         (* const& glDepthRangedNV) (GLdouble zNear, GLdouble zFar);
-extern void         (* const& glClearDepthdNV) (GLdouble depth);
-extern void         (* const& glDepthBoundsdNV) (GLdouble zmin, GLdouble zmax);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangedNV) (GLdouble zNear, GLdouble zFar);
+extern void         (KHRONOS_APIENTRY* const& glClearDepthdNV) (GLdouble depth);
+extern void         (KHRONOS_APIENTRY* const& glDepthBoundsdNV) (GLdouble zmin, GLdouble zmax);
 #endif
 
 #ifndef GL_NV_depth_clamp
 #define GL_NV_depth_clamp 1
-enum
+enum : GLenum
 {
     GL_DEPTH_CLAMP_NV                                       = 0x864F,
 };
@@ -9042,21 +9054,21 @@ enum
 
 #ifndef GL_NV_draw_texture
 #define GL_NV_draw_texture 1
-extern void         (* const& glDrawTextureNV) (GLuint texture, GLuint sampler, GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat z, GLfloat s0, GLfloat t0, GLfloat s1, GLfloat t1);
+extern void         (KHRONOS_APIENTRY* const& glDrawTextureNV) (GLuint texture, GLuint sampler, GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat z, GLfloat s0, GLfloat t0, GLfloat s1, GLfloat t1);
 #endif
 
 #ifndef GL_NV_draw_vulkan_image
 #define GL_NV_draw_vulkan_image 1
-extern void         (* const& glDrawVkImageNV) (GLuint64 vkImage, GLuint sampler, GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat z, GLfloat s0, GLfloat t0, GLfloat s1, GLfloat t1);
-extern GLVULKANPROCNV (* const& glGetVkProcAddrNV) (const GLchar *name);
-extern void         (* const& glWaitVkSemaphoreNV) (GLuint64 vkSemaphore);
-extern void         (* const& glSignalVkSemaphoreNV) (GLuint64 vkSemaphore);
-extern void         (* const& glSignalVkFenceNV) (GLuint64 vkFence);
+extern void         (KHRONOS_APIENTRY* const& glDrawVkImageNV) (GLuint64 vkImage, GLuint sampler, GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat z, GLfloat s0, GLfloat t0, GLfloat s1, GLfloat t1);
+extern GLVULKANPROCNV (KHRONOS_APIENTRY* const& glGetVkProcAddrNV) (const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glWaitVkSemaphoreNV) (GLuint64 vkSemaphore);
+extern void         (KHRONOS_APIENTRY* const& glSignalVkSemaphoreNV) (GLuint64 vkSemaphore);
+extern void         (KHRONOS_APIENTRY* const& glSignalVkFenceNV) (GLuint64 vkFence);
 #endif
 
 #ifndef GL_NV_evaluators
 #define GL_NV_evaluators 1
-enum
+enum : GLenum
 {
     GL_EVAL_2D_NV                                           = 0x86C0,
     GL_EVAL_TRIANGULAR_2D_NV                                = 0x86C1,
@@ -9083,20 +9095,20 @@ enum
     GL_MAX_MAP_TESSELLATION_NV                              = 0x86D6,
     GL_MAX_RATIONAL_EVAL_ORDER_NV                           = 0x86D7,
 };
-extern void         (* const& glMapControlPointsNV) (GLenum target, GLuint index, GLenum type, GLsizei ustride, GLsizei vstride, GLint uorder, GLint vorder, GLboolean packed, const void *points);
-extern void         (* const& glMapParameterivNV) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glMapParameterfvNV) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glGetMapControlPointsNV) (GLenum target, GLuint index, GLenum type, GLsizei ustride, GLsizei vstride, GLboolean packed, void *points);
-extern void         (* const& glGetMapParameterivNV) (GLenum target, GLenum pname, GLint *params);
-extern void         (* const& glGetMapParameterfvNV) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetMapAttribParameterivNV) (GLenum target, GLuint index, GLenum pname, GLint *params);
-extern void         (* const& glGetMapAttribParameterfvNV) (GLenum target, GLuint index, GLenum pname, GLfloat *params);
-extern void         (* const& glEvalMapsNV) (GLenum target, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glMapControlPointsNV) (GLenum target, GLuint index, GLenum type, GLsizei ustride, GLsizei vstride, GLint uorder, GLint vorder, GLboolean packed, const void *points);
+extern void         (KHRONOS_APIENTRY* const& glMapParameterivNV) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMapParameterfvNV) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMapControlPointsNV) (GLenum target, GLuint index, GLenum type, GLsizei ustride, GLsizei vstride, GLboolean packed, void *points);
+extern void         (KHRONOS_APIENTRY* const& glGetMapParameterivNV) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMapParameterfvNV) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMapAttribParameterivNV) (GLenum target, GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMapAttribParameterfvNV) (GLenum target, GLuint index, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glEvalMapsNV) (GLenum target, GLenum mode);
 #endif
 
 #ifndef GL_NV_explicit_multisample
 #define GL_NV_explicit_multisample 1
-enum
+enum : GLenum
 {
     GL_SAMPLE_POSITION_NV                                   = 0x8E50,
     GL_SAMPLE_MASK_NV                                       = 0x8E51,
@@ -9109,31 +9121,31 @@ enum
     GL_UNSIGNED_INT_SAMPLER_RENDERBUFFER_NV                 = 0x8E58,
     GL_MAX_SAMPLE_MASK_WORDS_NV                             = 0x8E59,
 };
-extern void         (* const& glGetMultisamplefvNV) (GLenum pname, GLuint index, GLfloat *val);
-extern void         (* const& glSampleMaskIndexedNV) (GLuint index, GLbitfield mask);
-extern void         (* const& glTexRenderbufferNV) (GLenum target, GLuint renderbuffer);
+extern void         (KHRONOS_APIENTRY* const& glGetMultisamplefvNV) (GLenum pname, GLuint index, GLfloat *val);
+extern void         (KHRONOS_APIENTRY* const& glSampleMaskIndexedNV) (GLuint index, GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glTexRenderbufferNV) (GLenum target, GLuint renderbuffer);
 #endif
 
 #ifndef GL_NV_fence
 #define GL_NV_fence 1
-enum
+enum : GLenum
 {
     GL_ALL_COMPLETED_NV                                     = 0x84F2,
     GL_FENCE_STATUS_NV                                      = 0x84F3,
     GL_FENCE_CONDITION_NV                                   = 0x84F4,
 };
-extern void         (* const& glDeleteFencesNV) (GLsizei n, const GLuint *fences);
-extern void         (* const& glGenFencesNV) (GLsizei n, GLuint *fences);
-extern GLboolean    (* const& glIsFenceNV) (GLuint fence);
-extern GLboolean    (* const& glTestFenceNV) (GLuint fence);
-extern void         (* const& glGetFenceivNV) (GLuint fence, GLenum pname, GLint *params);
-extern void         (* const& glFinishFenceNV) (GLuint fence);
-extern void         (* const& glSetFenceNV) (GLuint fence, GLenum condition);
+extern void         (KHRONOS_APIENTRY* const& glDeleteFencesNV) (GLsizei n, const GLuint *fences);
+extern void         (KHRONOS_APIENTRY* const& glGenFencesNV) (GLsizei n, GLuint *fences);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsFenceNV) (GLuint fence);
+extern GLboolean    (KHRONOS_APIENTRY* const& glTestFenceNV) (GLuint fence);
+extern void         (KHRONOS_APIENTRY* const& glGetFenceivNV) (GLuint fence, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glFinishFenceNV) (GLuint fence);
+extern void         (KHRONOS_APIENTRY* const& glSetFenceNV) (GLuint fence, GLenum condition);
 #endif
 
 #ifndef GL_NV_fill_rectangle
 #define GL_NV_fill_rectangle 1
-enum
+enum : GLenum
 {
     GL_FILL_RECTANGLE_NV                                    = 0x933C,
 };
@@ -9141,7 +9153,7 @@ enum
 
 #ifndef GL_NV_float_buffer
 #define GL_NV_float_buffer 1
-enum
+enum : GLenum
 {
     GL_FLOAT_R_NV                                           = 0x8880,
     GL_FLOAT_RG_NV                                          = 0x8881,
@@ -9163,7 +9175,7 @@ enum
 
 #ifndef GL_NV_fog_distance
 #define GL_NV_fog_distance 1
-enum
+enum : GLenum
 {
     GL_FOG_DISTANCE_MODE_NV                                 = 0x855A,
     GL_EYE_RADIAL_NV                                        = 0x855B,
@@ -9173,17 +9185,17 @@ enum
 
 #ifndef GL_NV_fragment_coverage_to_color
 #define GL_NV_fragment_coverage_to_color 1
-enum
+enum : GLenum
 {
     GL_FRAGMENT_COVERAGE_TO_COLOR_NV                        = 0x92DD,
     GL_FRAGMENT_COVERAGE_COLOR_NV                           = 0x92DE,
 };
-extern void         (* const& glFragmentCoverageColorNV) (GLuint color);
+extern void         (KHRONOS_APIENTRY* const& glFragmentCoverageColorNV) (GLuint color);
 #endif
 
 #ifndef GL_NV_fragment_program
 #define GL_NV_fragment_program 1
-enum
+enum : GLenum
 {
     GL_MAX_FRAGMENT_PROGRAM_LOCAL_PARAMETERS_NV             = 0x8868,
     GL_FRAGMENT_PROGRAM_NV                                  = 0x8870,
@@ -9192,17 +9204,17 @@ enum
     GL_FRAGMENT_PROGRAM_BINDING_NV                          = 0x8873,
     GL_PROGRAM_ERROR_STRING_NV                              = 0x8874,
 };
-extern void         (* const& glProgramNamedParameter4fNV) (GLuint id, GLsizei len, const GLubyte *name, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glProgramNamedParameter4fvNV) (GLuint id, GLsizei len, const GLubyte *name, const GLfloat *v);
-extern void         (* const& glProgramNamedParameter4dNV) (GLuint id, GLsizei len, const GLubyte *name, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glProgramNamedParameter4dvNV) (GLuint id, GLsizei len, const GLubyte *name, const GLdouble *v);
-extern void         (* const& glGetProgramNamedParameterfvNV) (GLuint id, GLsizei len, const GLubyte *name, GLfloat *params);
-extern void         (* const& glGetProgramNamedParameterdvNV) (GLuint id, GLsizei len, const GLubyte *name, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramNamedParameter4fNV) (GLuint id, GLsizei len, const GLubyte *name, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glProgramNamedParameter4fvNV) (GLuint id, GLsizei len, const GLubyte *name, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glProgramNamedParameter4dNV) (GLuint id, GLsizei len, const GLubyte *name, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glProgramNamedParameter4dvNV) (GLuint id, GLsizei len, const GLubyte *name, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramNamedParameterfvNV) (GLuint id, GLsizei len, const GLubyte *name, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramNamedParameterdvNV) (GLuint id, GLsizei len, const GLubyte *name, GLdouble *params);
 #endif
 
 #ifndef GL_NV_fragment_program2
 #define GL_NV_fragment_program2 1
-enum
+enum : GLenum
 {
     GL_MAX_PROGRAM_EXEC_INSTRUCTIONS_NV                     = 0x88F4,
     GL_MAX_PROGRAM_CALL_DEPTH_NV                            = 0x88F5,
@@ -9230,7 +9242,7 @@ enum
 
 #ifndef GL_NV_framebuffer_mixed_samples
 #define GL_NV_framebuffer_mixed_samples 1
-enum
+enum : GLenum
 {
     GL_COVERAGE_MODULATION_TABLE_NV                         = 0x9331,
     GL_COLOR_SAMPLES_NV                                     = 0x8E20,
@@ -9241,34 +9253,34 @@ enum
     GL_COVERAGE_MODULATION_NV                               = 0x9332,
     GL_COVERAGE_MODULATION_TABLE_SIZE_NV                    = 0x9333,
 };
-extern void         (* const& glCoverageModulationTableNV) (GLsizei n, const GLfloat *v);
-extern void         (* const& glGetCoverageModulationTableNV) (GLsizei bufSize, GLfloat *v);
-extern void         (* const& glCoverageModulationNV) (GLenum components);
+extern void         (KHRONOS_APIENTRY* const& glCoverageModulationTableNV) (GLsizei n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glGetCoverageModulationTableNV) (GLsizei bufSize, GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glCoverageModulationNV) (GLenum components);
 #endif
 
 #ifndef GL_NV_framebuffer_multisample_coverage
 #define GL_NV_framebuffer_multisample_coverage 1
-enum
+enum : GLenum
 {
     GL_RENDERBUFFER_COVERAGE_SAMPLES_NV                     = 0x8CAB,
     GL_RENDERBUFFER_COLOR_SAMPLES_NV                        = 0x8E10,
     GL_MAX_MULTISAMPLE_COVERAGE_MODES_NV                    = 0x8E11,
     GL_MULTISAMPLE_COVERAGE_MODES_NV                        = 0x8E12,
 };
-extern void         (* const& glRenderbufferStorageMultisampleCoverageNV) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glRenderbufferStorageMultisampleCoverageNV) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height);
 #endif
 
 #ifndef GL_NV_geometry_program4
 #define GL_NV_geometry_program4 1
-enum
+enum : GLenum
 {
     GL_GEOMETRY_PROGRAM_NV                                  = 0x8C26,
     GL_MAX_PROGRAM_OUTPUT_VERTICES_NV                       = 0x8C27,
     GL_MAX_PROGRAM_TOTAL_OUTPUT_COMPONENTS_NV               = 0x8C28,
 };
-extern void         (* const& glProgramVertexLimitNV) (GLenum target, GLint limit);
-extern void         (* const& glFramebufferTextureEXT) (GLenum target, GLenum attachment, GLuint texture, GLint level);
-extern void         (* const& glFramebufferTextureFaceEXT) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
+extern void         (KHRONOS_APIENTRY* const& glProgramVertexLimitNV) (GLenum target, GLint limit);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureEXT) (GLenum target, GLenum attachment, GLuint texture, GLint level);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureFaceEXT) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
 #endif
 
 #ifndef GL_NV_geometry_shader4
@@ -9281,7 +9293,7 @@ extern void         (* const& glFramebufferTextureFaceEXT) (GLenum target, GLenu
 
 #ifndef GL_NV_gpu_program4
 #define GL_NV_gpu_program4 1
-enum
+enum : GLenum
 {
     GL_MIN_PROGRAM_TEXEL_OFFSET_NV                          = 0x8904,
     GL_MAX_PROGRAM_TEXEL_OFFSET_NV                          = 0x8905,
@@ -9292,27 +9304,27 @@ enum
     GL_MAX_PROGRAM_GENERIC_ATTRIBS_NV                       = 0x8DA5,
     GL_MAX_PROGRAM_GENERIC_RESULTS_NV                       = 0x8DA6,
 };
-extern void         (* const& glProgramLocalParameterI4iNV) (GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glProgramLocalParameterI4ivNV) (GLenum target, GLuint index, const GLint *params);
-extern void         (* const& glProgramLocalParametersI4ivNV) (GLenum target, GLuint index, GLsizei count, const GLint *params);
-extern void         (* const& glProgramLocalParameterI4uiNV) (GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
-extern void         (* const& glProgramLocalParameterI4uivNV) (GLenum target, GLuint index, const GLuint *params);
-extern void         (* const& glProgramLocalParametersI4uivNV) (GLenum target, GLuint index, GLsizei count, const GLuint *params);
-extern void         (* const& glProgramEnvParameterI4iNV) (GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w);
-extern void         (* const& glProgramEnvParameterI4ivNV) (GLenum target, GLuint index, const GLint *params);
-extern void         (* const& glProgramEnvParametersI4ivNV) (GLenum target, GLuint index, GLsizei count, const GLint *params);
-extern void         (* const& glProgramEnvParameterI4uiNV) (GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
-extern void         (* const& glProgramEnvParameterI4uivNV) (GLenum target, GLuint index, const GLuint *params);
-extern void         (* const& glProgramEnvParametersI4uivNV) (GLenum target, GLuint index, GLsizei count, const GLuint *params);
-extern void         (* const& glGetProgramLocalParameterIivNV) (GLenum target, GLuint index, GLint *params);
-extern void         (* const& glGetProgramLocalParameterIuivNV) (GLenum target, GLuint index, GLuint *params);
-extern void         (* const& glGetProgramEnvParameterIivNV) (GLenum target, GLuint index, GLint *params);
-extern void         (* const& glGetProgramEnvParameterIuivNV) (GLenum target, GLuint index, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameterI4iNV) (GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameterI4ivNV) (GLenum target, GLuint index, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParametersI4ivNV) (GLenum target, GLuint index, GLsizei count, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameterI4uiNV) (GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParameterI4uivNV) (GLenum target, GLuint index, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramLocalParametersI4uivNV) (GLenum target, GLuint index, GLsizei count, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameterI4iNV) (GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameterI4ivNV) (GLenum target, GLuint index, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParametersI4ivNV) (GLenum target, GLuint index, GLsizei count, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameterI4uiNV) (GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParameterI4uivNV) (GLenum target, GLuint index, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramEnvParametersI4uivNV) (GLenum target, GLuint index, GLsizei count, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramLocalParameterIivNV) (GLenum target, GLuint index, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramLocalParameterIuivNV) (GLenum target, GLuint index, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramEnvParameterIivNV) (GLenum target, GLuint index, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramEnvParameterIuivNV) (GLenum target, GLuint index, GLuint *params);
 #endif
 
 #ifndef GL_NV_gpu_program5
 #define GL_NV_gpu_program5 1
-enum
+enum : GLenum
 {
     GL_MAX_GEOMETRY_PROGRAM_INVOCATIONS_NV                  = 0x8E5A,
     GL_MIN_FRAGMENT_INTERPOLATION_OFFSET_NV                 = 0x8E5B,
@@ -9323,8 +9335,8 @@ enum
     GL_MAX_PROGRAM_SUBROUTINE_PARAMETERS_NV                 = 0x8F44,
     GL_MAX_PROGRAM_SUBROUTINE_NUM_NV                        = 0x8F45,
 };
-extern void         (* const& glProgramSubroutineParametersuivNV) (GLenum target, GLsizei count, const GLuint *params);
-extern void         (* const& glGetProgramSubroutineParameteruivNV) (GLenum target, GLuint index, GLuint *param);
+extern void         (KHRONOS_APIENTRY* const& glProgramSubroutineParametersuivNV) (GLenum target, GLsizei count, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramSubroutineParameteruivNV) (GLenum target, GLuint index, GLuint *param);
 #endif
 
 #ifndef GL_NV_gpu_program5_mem_extended
@@ -9337,73 +9349,73 @@ extern void         (* const& glGetProgramSubroutineParameteruivNV) (GLenum targ
 
 #ifndef GL_NV_half_float
 #define GL_NV_half_float 1
-enum
+enum : GLenum
 {
     GL_HALF_FLOAT_NV                                        = 0x140B,
 };
-extern void         (* const& glVertex2hNV) (GLhalfNV x, GLhalfNV y);
-extern void         (* const& glVertex2hvNV) (const GLhalfNV *v);
-extern void         (* const& glVertex3hNV) (GLhalfNV x, GLhalfNV y, GLhalfNV z);
-extern void         (* const& glVertex3hvNV) (const GLhalfNV *v);
-extern void         (* const& glVertex4hNV) (GLhalfNV x, GLhalfNV y, GLhalfNV z, GLhalfNV w);
-extern void         (* const& glVertex4hvNV) (const GLhalfNV *v);
-extern void         (* const& glNormal3hNV) (GLhalfNV nx, GLhalfNV ny, GLhalfNV nz);
-extern void         (* const& glNormal3hvNV) (const GLhalfNV *v);
-extern void         (* const& glColor3hNV) (GLhalfNV red, GLhalfNV green, GLhalfNV blue);
-extern void         (* const& glColor3hvNV) (const GLhalfNV *v);
-extern void         (* const& glColor4hNV) (GLhalfNV red, GLhalfNV green, GLhalfNV blue, GLhalfNV alpha);
-extern void         (* const& glColor4hvNV) (const GLhalfNV *v);
-extern void         (* const& glTexCoord1hNV) (GLhalfNV s);
-extern void         (* const& glTexCoord1hvNV) (const GLhalfNV *v);
-extern void         (* const& glTexCoord2hNV) (GLhalfNV s, GLhalfNV t);
-extern void         (* const& glTexCoord2hvNV) (const GLhalfNV *v);
-extern void         (* const& glTexCoord3hNV) (GLhalfNV s, GLhalfNV t, GLhalfNV r);
-extern void         (* const& glTexCoord3hvNV) (const GLhalfNV *v);
-extern void         (* const& glTexCoord4hNV) (GLhalfNV s, GLhalfNV t, GLhalfNV r, GLhalfNV q);
-extern void         (* const& glTexCoord4hvNV) (const GLhalfNV *v);
-extern void         (* const& glMultiTexCoord1hNV) (GLenum target, GLhalfNV s);
-extern void         (* const& glMultiTexCoord1hvNV) (GLenum target, const GLhalfNV *v);
-extern void         (* const& glMultiTexCoord2hNV) (GLenum target, GLhalfNV s, GLhalfNV t);
-extern void         (* const& glMultiTexCoord2hvNV) (GLenum target, const GLhalfNV *v);
-extern void         (* const& glMultiTexCoord3hNV) (GLenum target, GLhalfNV s, GLhalfNV t, GLhalfNV r);
-extern void         (* const& glMultiTexCoord3hvNV) (GLenum target, const GLhalfNV *v);
-extern void         (* const& glMultiTexCoord4hNV) (GLenum target, GLhalfNV s, GLhalfNV t, GLhalfNV r, GLhalfNV q);
-extern void         (* const& glMultiTexCoord4hvNV) (GLenum target, const GLhalfNV *v);
-extern void         (* const& glFogCoordhNV) (GLhalfNV fog);
-extern void         (* const& glFogCoordhvNV) (const GLhalfNV *fog);
-extern void         (* const& glSecondaryColor3hNV) (GLhalfNV red, GLhalfNV green, GLhalfNV blue);
-extern void         (* const& glSecondaryColor3hvNV) (const GLhalfNV *v);
-extern void         (* const& glVertexWeighthNV) (GLhalfNV weight);
-extern void         (* const& glVertexWeighthvNV) (const GLhalfNV *weight);
-extern void         (* const& glVertexAttrib1hNV) (GLuint index, GLhalfNV x);
-extern void         (* const& glVertexAttrib1hvNV) (GLuint index, const GLhalfNV *v);
-extern void         (* const& glVertexAttrib2hNV) (GLuint index, GLhalfNV x, GLhalfNV y);
-extern void         (* const& glVertexAttrib2hvNV) (GLuint index, const GLhalfNV *v);
-extern void         (* const& glVertexAttrib3hNV) (GLuint index, GLhalfNV x, GLhalfNV y, GLhalfNV z);
-extern void         (* const& glVertexAttrib3hvNV) (GLuint index, const GLhalfNV *v);
-extern void         (* const& glVertexAttrib4hNV) (GLuint index, GLhalfNV x, GLhalfNV y, GLhalfNV z, GLhalfNV w);
-extern void         (* const& glVertexAttrib4hvNV) (GLuint index, const GLhalfNV *v);
-extern void         (* const& glVertexAttribs1hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
-extern void         (* const& glVertexAttribs2hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
-extern void         (* const& glVertexAttribs3hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
-extern void         (* const& glVertexAttribs4hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex2hNV) (GLhalfNV x, GLhalfNV y);
+extern void         (KHRONOS_APIENTRY* const& glVertex2hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex3hNV) (GLhalfNV x, GLhalfNV y, GLhalfNV z);
+extern void         (KHRONOS_APIENTRY* const& glVertex3hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertex4hNV) (GLhalfNV x, GLhalfNV y, GLhalfNV z, GLhalfNV w);
+extern void         (KHRONOS_APIENTRY* const& glVertex4hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glNormal3hNV) (GLhalfNV nx, GLhalfNV ny, GLhalfNV nz);
+extern void         (KHRONOS_APIENTRY* const& glNormal3hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3hNV) (GLhalfNV red, GLhalfNV green, GLhalfNV blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4hNV) (GLhalfNV red, GLhalfNV green, GLhalfNV blue, GLhalfNV alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor4hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1hNV) (GLhalfNV s);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2hNV) (GLhalfNV s, GLhalfNV t);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3hNV) (GLhalfNV s, GLhalfNV t, GLhalfNV r);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4hNV) (GLhalfNV s, GLhalfNV t, GLhalfNV r, GLhalfNV q);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1hNV) (GLenum target, GLhalfNV s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1hvNV) (GLenum target, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2hNV) (GLenum target, GLhalfNV s, GLhalfNV t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2hvNV) (GLenum target, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3hNV) (GLenum target, GLhalfNV s, GLhalfNV t, GLhalfNV r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3hvNV) (GLenum target, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4hNV) (GLenum target, GLhalfNV s, GLhalfNV t, GLhalfNV r, GLhalfNV q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4hvNV) (GLenum target, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordhNV) (GLhalfNV fog);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordhvNV) (const GLhalfNV *fog);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3hNV) (GLhalfNV red, GLhalfNV green, GLhalfNV blue);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColor3hvNV) (const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexWeighthNV) (GLhalfNV weight);
+extern void         (KHRONOS_APIENTRY* const& glVertexWeighthvNV) (const GLhalfNV *weight);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1hNV) (GLuint index, GLhalfNV x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1hvNV) (GLuint index, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2hNV) (GLuint index, GLhalfNV x, GLhalfNV y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2hvNV) (GLuint index, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3hNV) (GLuint index, GLhalfNV x, GLhalfNV y, GLhalfNV z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3hvNV) (GLuint index, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4hNV) (GLuint index, GLhalfNV x, GLhalfNV y, GLhalfNV z, GLhalfNV w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4hvNV) (GLuint index, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs1hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs2hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs3hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs4hvNV) (GLuint index, GLsizei n, const GLhalfNV *v);
 #endif
 
 #ifndef GL_NV_internalformat_sample_query
 #define GL_NV_internalformat_sample_query 1
-enum
+enum : GLenum
 {
     GL_MULTISAMPLES_NV                                      = 0x9371,
     GL_SUPERSAMPLE_SCALE_X_NV                               = 0x9372,
     GL_SUPERSAMPLE_SCALE_Y_NV                               = 0x9373,
     GL_CONFORMANT_NV                                        = 0x9374,
 };
-extern void         (* const& glGetInternalformatSampleivNV) (GLenum target, GLenum internalformat, GLsizei samples, GLenum pname, GLsizei count, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetInternalformatSampleivNV) (GLenum target, GLenum internalformat, GLsizei samples, GLenum pname, GLsizei count, GLint *params);
 #endif
 
 #ifndef GL_NV_light_max_exponent
 #define GL_NV_light_max_exponent 1
-enum
+enum : GLenum
 {
     GL_MAX_SHININESS_NV                                     = 0x8504,
     GL_MAX_SPOT_EXPONENT_NV                                 = 0x8505,
@@ -9412,7 +9424,7 @@ enum
 
 #ifndef GL_NV_gpu_multicast
 #define GL_NV_gpu_multicast 1
-enum
+enum : GLenum
 {
     GL_PER_GPU_STORAGE_BIT_NV                               = 0x0800,
     GL_MULTICAST_GPUS_NV                                    = 0x92BA,
@@ -9420,45 +9432,45 @@ enum
     GL_PER_GPU_STORAGE_NV                                   = 0x9548,
     GL_MULTICAST_PROGRAMMABLE_SAMPLE_LOCATION_NV            = 0x9549,
 };
-extern void         (* const& glRenderGpuMaskNV) (GLbitfield mask);
-extern void         (* const& glMulticastBufferSubDataNV) (GLbitfield gpuMask, GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
-extern void         (* const& glMulticastCopyBufferSubDataNV) (GLuint readGpu, GLbitfield writeGpuMask, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
-extern void         (* const& glMulticastCopyImageSubDataNV) (GLuint srcGpu, GLbitfield dstGpuMask, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
-extern void         (* const& glMulticastBlitFramebufferNV) (GLuint srcGpu, GLuint dstGpu, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-extern void         (* const& glMulticastFramebufferSampleLocationsfvNV) (GLuint gpu, GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v);
-extern void         (* const& glMulticastBarrierNV) ();
-extern void         (* const& glMulticastWaitSyncNV) (GLuint signalGpu, GLbitfield waitGpuMask);
-extern void         (* const& glMulticastGetQueryObjectivNV) (GLuint gpu, GLuint id, GLenum pname, GLint *params);
-extern void         (* const& glMulticastGetQueryObjectuivNV) (GLuint gpu, GLuint id, GLenum pname, GLuint *params);
-extern void         (* const& glMulticastGetQueryObjecti64vNV) (GLuint gpu, GLuint id, GLenum pname, GLint64 *params);
-extern void         (* const& glMulticastGetQueryObjectui64vNV) (GLuint gpu, GLuint id, GLenum pname, GLuint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glRenderGpuMaskNV) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glMulticastBufferSubDataNV) (GLbitfield gpuMask, GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
+extern void         (KHRONOS_APIENTRY* const& glMulticastCopyBufferSubDataNV) (GLuint readGpu, GLbitfield writeGpuMask, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glMulticastCopyImageSubDataNV) (GLuint srcGpu, GLbitfield dstGpuMask, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth);
+extern void         (KHRONOS_APIENTRY* const& glMulticastBlitFramebufferNV) (GLuint srcGpu, GLuint dstGpu, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+extern void         (KHRONOS_APIENTRY* const& glMulticastFramebufferSampleLocationsfvNV) (GLuint gpu, GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMulticastBarrierNV) ();
+extern void         (KHRONOS_APIENTRY* const& glMulticastWaitSyncNV) (GLuint signalGpu, GLbitfield waitGpuMask);
+extern void         (KHRONOS_APIENTRY* const& glMulticastGetQueryObjectivNV) (GLuint gpu, GLuint id, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glMulticastGetQueryObjectuivNV) (GLuint gpu, GLuint id, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glMulticastGetQueryObjecti64vNV) (GLuint gpu, GLuint id, GLenum pname, GLint64 *params);
+extern void         (KHRONOS_APIENTRY* const& glMulticastGetQueryObjectui64vNV) (GLuint gpu, GLuint id, GLenum pname, GLuint64 *params);
 #endif
 
 #ifndef GL_NVX_gpu_multicast2
 #define GL_NVX_gpu_multicast2 1
-enum
+enum : GLenum
 {
     GL_UPLOAD_GPU_MASK_NVX                                  = 0x954A,
 };
-extern void         (* const& glUploadGpuMaskNVX) (GLbitfield mask);
-extern void         (* const& glMulticastViewportArrayvNVX) (GLuint gpu, GLuint first, GLsizei count, const GLfloat *v);
-extern void         (* const& glMulticastViewportPositionWScaleNVX) (GLuint gpu, GLuint index, GLfloat xcoeff, GLfloat ycoeff);
-extern void         (* const& glMulticastScissorArrayvNVX) (GLuint gpu, GLuint first, GLsizei count, const GLint *v);
-extern GLuint       (* const& glAsyncCopyBufferSubDataNVX) (GLsizei waitSemaphoreCount, const GLuint *waitSemaphoreArray, const GLuint64 *fenceValueArray, GLuint readGpu, GLbitfield writeGpuMask, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size, GLsizei signalSemaphoreCount, const GLuint *signalSemaphoreArray, const GLuint64 *signalValueArray);
-extern GLuint       (* const& glAsyncCopyImageSubDataNVX) (GLsizei waitSemaphoreCount, const GLuint *waitSemaphoreArray, const GLuint64 *waitValueArray, GLuint srcGpu, GLbitfield dstGpuMask, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth, GLsizei signalSemaphoreCount, const GLuint *signalSemaphoreArray, const GLuint64 *signalValueArray);
+extern void         (KHRONOS_APIENTRY* const& glUploadGpuMaskNVX) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glMulticastViewportArrayvNVX) (GLuint gpu, GLuint first, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glMulticastViewportPositionWScaleNVX) (GLuint gpu, GLuint index, GLfloat xcoeff, GLfloat ycoeff);
+extern void         (KHRONOS_APIENTRY* const& glMulticastScissorArrayvNVX) (GLuint gpu, GLuint first, GLsizei count, const GLint *v);
+extern GLuint       (KHRONOS_APIENTRY* const& glAsyncCopyBufferSubDataNVX) (GLsizei waitSemaphoreCount, const GLuint *waitSemaphoreArray, const GLuint64 *fenceValueArray, GLuint readGpu, GLbitfield writeGpuMask, GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size, GLsizei signalSemaphoreCount, const GLuint *signalSemaphoreArray, const GLuint64 *signalValueArray);
+extern GLuint       (KHRONOS_APIENTRY* const& glAsyncCopyImageSubDataNVX) (GLsizei waitSemaphoreCount, const GLuint *waitSemaphoreArray, const GLuint64 *waitValueArray, GLuint srcGpu, GLbitfield dstGpuMask, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth, GLsizei signalSemaphoreCount, const GLuint *signalSemaphoreArray, const GLuint64 *signalValueArray);
 #endif
 
 #ifndef GL_NVX_progress_fence
 #define GL_NVX_progress_fence 1
-extern GLuint       (* const& glCreateProgressFenceNVX) ();
-extern void         (* const& glSignalSemaphoreui64NVX) (GLuint signalGpu, GLsizei fenceObjectCount, const GLuint *semaphoreArray, const GLuint64 *fenceValueArray);
-extern void         (* const& glWaitSemaphoreui64NVX) (GLuint waitGpu, GLsizei fenceObjectCount, const GLuint *semaphoreArray, const GLuint64 *fenceValueArray);
-extern void         (* const& glClientWaitSemaphoreui64NVX) (GLsizei fenceObjectCount, const GLuint *semaphoreArray, const GLuint64 *fenceValueArray);
+extern GLuint       (KHRONOS_APIENTRY* const& glCreateProgressFenceNVX) ();
+extern void         (KHRONOS_APIENTRY* const& glSignalSemaphoreui64NVX) (GLuint signalGpu, GLsizei fenceObjectCount, const GLuint *semaphoreArray, const GLuint64 *fenceValueArray);
+extern void         (KHRONOS_APIENTRY* const& glWaitSemaphoreui64NVX) (GLuint waitGpu, GLsizei fenceObjectCount, const GLuint *semaphoreArray, const GLuint64 *fenceValueArray);
+extern void         (KHRONOS_APIENTRY* const& glClientWaitSemaphoreui64NVX) (GLsizei fenceObjectCount, const GLuint *semaphoreArray, const GLuint64 *fenceValueArray);
 #endif
 
 #ifndef GL_NV_memory_attachment
 #define GL_NV_memory_attachment 1
-enum
+enum : GLenum
 {
     GL_ATTACHED_MEMORY_OBJECT_NV                            = 0x95A4,
     GL_ATTACHED_MEMORY_OFFSET_NV                            = 0x95A5,
@@ -9471,25 +9483,25 @@ enum
     GL_MAX_DETACHED_TEXTURES_NV                             = 0x95AC,
     GL_MAX_DETACHED_BUFFERS_NV                              = 0x95AD,
 };
-extern void         (* const& glGetMemoryObjectDetachedResourcesuivNV) (GLuint memory, GLenum pname, GLint first, GLsizei count, GLuint *params);
-extern void         (* const& glResetMemoryObjectParameterNV) (GLuint memory, GLenum pname);
-extern void         (* const& glTexAttachMemoryNV) (GLenum target, GLuint memory, GLuint64 offset);
-extern void         (* const& glBufferAttachMemoryNV) (GLenum target, GLuint memory, GLuint64 offset);
-extern void         (* const& glTextureAttachMemoryNV) (GLuint texture, GLuint memory, GLuint64 offset);
-extern void         (* const& glNamedBufferAttachMemoryNV) (GLuint buffer, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glGetMemoryObjectDetachedResourcesuivNV) (GLuint memory, GLenum pname, GLint first, GLsizei count, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glResetMemoryObjectParameterNV) (GLuint memory, GLenum pname);
+extern void         (KHRONOS_APIENTRY* const& glTexAttachMemoryNV) (GLenum target, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glBufferAttachMemoryNV) (GLenum target, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glTextureAttachMemoryNV) (GLuint texture, GLuint memory, GLuint64 offset);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferAttachMemoryNV) (GLuint buffer, GLuint memory, GLuint64 offset);
 #endif
 
 #ifndef GL_NV_memory_object_sparse
 #define GL_NV_memory_object_sparse 1
-extern void         (* const& glBufferPageCommitmentMemNV) (GLenum target, GLintptr offset, GLsizeiptr size, GLuint memory, GLuint64 memOffset, GLboolean commit);
-extern void         (* const& glTexPageCommitmentMemNV) (GLenum target, GLint layer, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset, GLboolean commit);
-extern void         (* const& glNamedBufferPageCommitmentMemNV) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLuint memory, GLuint64 memOffset, GLboolean commit);
-extern void         (* const& glTexturePageCommitmentMemNV) (GLuint texture, GLint layer, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glBufferPageCommitmentMemNV) (GLenum target, GLintptr offset, GLsizeiptr size, GLuint memory, GLuint64 memOffset, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glTexPageCommitmentMemNV) (GLenum target, GLint layer, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glNamedBufferPageCommitmentMemNV) (GLuint buffer, GLintptr offset, GLsizeiptr size, GLuint memory, GLuint64 memOffset, GLboolean commit);
+extern void         (KHRONOS_APIENTRY* const& glTexturePageCommitmentMemNV) (GLuint texture, GLint layer, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset, GLboolean commit);
 #endif
 
 #ifndef GL_NV_mesh_shader
 #define GL_NV_mesh_shader 1
-enum
+enum : GLenum
 {
     GL_MESH_SHADER_NV                                       = 0x9559,
     GL_TASK_SHADER_NV                                       = 0x955A,
@@ -9540,10 +9552,10 @@ enum
     GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_MESH_SHADER_NV   = 0x959E,
     GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TASK_SHADER_NV   = 0x959F,
 };
-extern void         (* const& glDrawMeshTasksNV) (GLuint first, GLuint count);
-extern void         (* const& glDrawMeshTasksIndirectNV) (GLintptr indirect);
-extern void         (* const& glMultiDrawMeshTasksIndirectNV) (GLintptr indirect, GLsizei drawcount, GLsizei stride);
-extern void         (* const& glMultiDrawMeshTasksIndirectCountNV) (GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glDrawMeshTasksNV) (GLuint first, GLuint count);
+extern void         (KHRONOS_APIENTRY* const& glDrawMeshTasksIndirectNV) (GLintptr indirect);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawMeshTasksIndirectNV) (GLintptr indirect, GLsizei drawcount, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glMultiDrawMeshTasksIndirectCountNV) (GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
 #endif
 
 #ifndef GL_NV_multisample_coverage
@@ -9552,7 +9564,7 @@ extern void         (* const& glMultiDrawMeshTasksIndirectCountNV) (GLintptr ind
 
 #ifndef GL_NV_multisample_filter_hint
 #define GL_NV_multisample_filter_hint 1
-enum
+enum : GLenum
 {
     GL_MULTISAMPLE_FILTER_HINT_NV                           = 0x8534,
 };
@@ -9560,25 +9572,25 @@ enum
 
 #ifndef GL_NV_occlusion_query
 #define GL_NV_occlusion_query 1
-enum
+enum : GLenum
 {
     GL_PIXEL_COUNTER_BITS_NV                                = 0x8864,
     GL_CURRENT_OCCLUSION_QUERY_ID_NV                        = 0x8865,
     GL_PIXEL_COUNT_NV                                       = 0x8866,
     GL_PIXEL_COUNT_AVAILABLE_NV                             = 0x8867,
 };
-extern void         (* const& glGenOcclusionQueriesNV) (GLsizei n, GLuint *ids);
-extern void         (* const& glDeleteOcclusionQueriesNV) (GLsizei n, const GLuint *ids);
-extern GLboolean    (* const& glIsOcclusionQueryNV) (GLuint id);
-extern void         (* const& glBeginOcclusionQueryNV) (GLuint id);
-extern void         (* const& glEndOcclusionQueryNV) ();
-extern void         (* const& glGetOcclusionQueryivNV) (GLuint id, GLenum pname, GLint *params);
-extern void         (* const& glGetOcclusionQueryuivNV) (GLuint id, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGenOcclusionQueriesNV) (GLsizei n, GLuint *ids);
+extern void         (KHRONOS_APIENTRY* const& glDeleteOcclusionQueriesNV) (GLsizei n, const GLuint *ids);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsOcclusionQueryNV) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glBeginOcclusionQueryNV) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glEndOcclusionQueryNV) ();
+extern void         (KHRONOS_APIENTRY* const& glGetOcclusionQueryivNV) (GLuint id, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetOcclusionQueryuivNV) (GLuint id, GLenum pname, GLuint *params);
 #endif
 
 #ifndef GL_NV_packed_depth_stencil
 #define GL_NV_packed_depth_stencil 1
-enum
+enum : GLenum
 {
     GL_DEPTH_STENCIL_NV                                     = 0x84F9,
     GL_UNSIGNED_INT_24_8_NV                                 = 0x84FA,
@@ -9587,7 +9599,7 @@ enum
 
 #ifndef GL_NV_parameter_buffer_object
 #define GL_NV_parameter_buffer_object 1
-enum
+enum : GLenum
 {
     GL_MAX_PROGRAM_PARAMETER_BUFFER_BINDINGS_NV             = 0x8DA0,
     GL_MAX_PROGRAM_PARAMETER_BUFFER_SIZE_NV                 = 0x8DA1,
@@ -9595,9 +9607,9 @@ enum
     GL_GEOMETRY_PROGRAM_PARAMETER_BUFFER_NV                 = 0x8DA3,
     GL_FRAGMENT_PROGRAM_PARAMETER_BUFFER_NV                 = 0x8DA4,
 };
-extern void         (* const& glProgramBufferParametersfvNV) (GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLfloat *params);
-extern void         (* const& glProgramBufferParametersIivNV) (GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLint *params);
-extern void         (* const& glProgramBufferParametersIuivNV) (GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramBufferParametersfvNV) (GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramBufferParametersIivNV) (GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glProgramBufferParametersIuivNV) (GLenum target, GLuint bindingIndex, GLuint wordIndex, GLsizei count, const GLuint *params);
 #endif
 
 #ifndef GL_NV_parameter_buffer_object2
@@ -9606,7 +9618,7 @@ extern void         (* const& glProgramBufferParametersIuivNV) (GLenum target, G
 
 #ifndef GL_NV_path_rendering
 #define GL_NV_path_rendering 1
-enum
+enum : GLenum
 {
     GL_PATH_FORMAT_SVG_NV                                   = 0x9070,
     GL_PATH_FORMAT_PS_NV                                    = 0x9071,
@@ -9772,75 +9784,75 @@ enum
     GL_PATH_TRANSPOSE_PROJECTION_MATRIX_NV                  = 0x84E4,
     GL_FRAGMENT_INPUT_NV                                    = 0x936D,
 };
-extern GLuint       (* const& glGenPathsNV) (GLsizei range);
-extern void         (* const& glDeletePathsNV) (GLuint path, GLsizei range);
-extern GLboolean    (* const& glIsPathNV) (GLuint path);
-extern void         (* const& glPathCommandsNV) (GLuint path, GLsizei numCommands, const GLubyte *commands, GLsizei numCoords, GLenum coordType, const void *coords);
-extern void         (* const& glPathCoordsNV) (GLuint path, GLsizei numCoords, GLenum coordType, const void *coords);
-extern void         (* const& glPathSubCommandsNV) (GLuint path, GLsizei commandStart, GLsizei commandsToDelete, GLsizei numCommands, const GLubyte *commands, GLsizei numCoords, GLenum coordType, const void *coords);
-extern void         (* const& glPathSubCoordsNV) (GLuint path, GLsizei coordStart, GLsizei numCoords, GLenum coordType, const void *coords);
-extern void         (* const& glPathStringNV) (GLuint path, GLenum format, GLsizei length, const void *pathString);
-extern void         (* const& glPathGlyphsNV) (GLuint firstPathName, GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLsizei numGlyphs, GLenum type, const void *charcodes, GLenum handleMissingGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
-extern void         (* const& glPathGlyphRangeNV) (GLuint firstPathName, GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLuint firstGlyph, GLsizei numGlyphs, GLenum handleMissingGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
-extern void         (* const& glWeightPathsNV) (GLuint resultPath, GLsizei numPaths, const GLuint *paths, const GLfloat *weights);
-extern void         (* const& glCopyPathNV) (GLuint resultPath, GLuint srcPath);
-extern void         (* const& glInterpolatePathsNV) (GLuint resultPath, GLuint pathA, GLuint pathB, GLfloat weight);
-extern void         (* const& glTransformPathNV) (GLuint resultPath, GLuint srcPath, GLenum transformType, const GLfloat *transformValues);
-extern void         (* const& glPathParameterivNV) (GLuint path, GLenum pname, const GLint *value);
-extern void         (* const& glPathParameteriNV) (GLuint path, GLenum pname, GLint value);
-extern void         (* const& glPathParameterfvNV) (GLuint path, GLenum pname, const GLfloat *value);
-extern void         (* const& glPathParameterfNV) (GLuint path, GLenum pname, GLfloat value);
-extern void         (* const& glPathDashArrayNV) (GLuint path, GLsizei dashCount, const GLfloat *dashArray);
-extern void         (* const& glPathStencilFuncNV) (GLenum func, GLint ref, GLuint mask);
-extern void         (* const& glPathStencilDepthOffsetNV) (GLfloat factor, GLfloat units);
-extern void         (* const& glStencilFillPathNV) (GLuint path, GLenum fillMode, GLuint mask);
-extern void         (* const& glStencilStrokePathNV) (GLuint path, GLint reference, GLuint mask);
-extern void         (* const& glStencilFillPathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum fillMode, GLuint mask, GLenum transformType, const GLfloat *transformValues);
-extern void         (* const& glStencilStrokePathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLint reference, GLuint mask, GLenum transformType, const GLfloat *transformValues);
-extern void         (* const& glPathCoverDepthFuncNV) (GLenum func);
-extern void         (* const& glCoverFillPathNV) (GLuint path, GLenum coverMode);
-extern void         (* const& glCoverStrokePathNV) (GLuint path, GLenum coverMode);
-extern void         (* const& glCoverFillPathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
-extern void         (* const& glCoverStrokePathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
-extern void         (* const& glGetPathParameterivNV) (GLuint path, GLenum pname, GLint *value);
-extern void         (* const& glGetPathParameterfvNV) (GLuint path, GLenum pname, GLfloat *value);
-extern void         (* const& glGetPathCommandsNV) (GLuint path, GLubyte *commands);
-extern void         (* const& glGetPathCoordsNV) (GLuint path, GLfloat *coords);
-extern void         (* const& glGetPathDashArrayNV) (GLuint path, GLfloat *dashArray);
-extern void         (* const& glGetPathMetricsNV) (GLbitfield metricQueryMask, GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLsizei stride, GLfloat *metrics);
-extern void         (* const& glGetPathMetricRangeNV) (GLbitfield metricQueryMask, GLuint firstPathName, GLsizei numPaths, GLsizei stride, GLfloat *metrics);
-extern void         (* const& glGetPathSpacingNV) (GLenum pathListMode, GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLfloat advanceScale, GLfloat kerningScale, GLenum transformType, GLfloat *returnedSpacing);
-extern GLboolean    (* const& glIsPointInFillPathNV) (GLuint path, GLuint mask, GLfloat x, GLfloat y);
-extern GLboolean    (* const& glIsPointInStrokePathNV) (GLuint path, GLfloat x, GLfloat y);
-extern GLfloat      (* const& glGetPathLengthNV) (GLuint path, GLsizei startSegment, GLsizei numSegments);
-extern GLboolean    (* const& glPointAlongPathNV) (GLuint path, GLsizei startSegment, GLsizei numSegments, GLfloat distance, GLfloat *x, GLfloat *y, GLfloat *tangentX, GLfloat *tangentY);
-extern void         (* const& glMatrixLoad3x2fNV) (GLenum matrixMode, const GLfloat *m);
-extern void         (* const& glMatrixLoad3x3fNV) (GLenum matrixMode, const GLfloat *m);
-extern void         (* const& glMatrixLoadTranspose3x3fNV) (GLenum matrixMode, const GLfloat *m);
-extern void         (* const& glMatrixMult3x2fNV) (GLenum matrixMode, const GLfloat *m);
-extern void         (* const& glMatrixMult3x3fNV) (GLenum matrixMode, const GLfloat *m);
-extern void         (* const& glMatrixMultTranspose3x3fNV) (GLenum matrixMode, const GLfloat *m);
-extern void         (* const& glStencilThenCoverFillPathNV) (GLuint path, GLenum fillMode, GLuint mask, GLenum coverMode);
-extern void         (* const& glStencilThenCoverStrokePathNV) (GLuint path, GLint reference, GLuint mask, GLenum coverMode);
-extern void         (* const& glStencilThenCoverFillPathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum fillMode, GLuint mask, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
-extern void         (* const& glStencilThenCoverStrokePathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLint reference, GLuint mask, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
-extern GLenum       (* const& glPathGlyphIndexRangeNV) (GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLuint pathParameterTemplate, GLfloat emScale, GLuint *baseAndCount);
-extern GLenum       (* const& glPathGlyphIndexArrayNV) (GLuint firstPathName, GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLuint firstGlyphIndex, GLsizei numGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
-extern GLenum       (* const& glPathMemoryGlyphIndexArrayNV) (GLuint firstPathName, GLenum fontTarget, GLsizeiptr fontSize, const void *fontData, GLsizei faceIndex, GLuint firstGlyphIndex, GLsizei numGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
-extern void         (* const& glProgramPathFragmentInputGenNV) (GLuint program, GLint location, GLenum genMode, GLint components, const GLfloat *coeffs);
-extern void         (* const& glGetProgramResourcefvNV) (GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei count, GLsizei *length, GLfloat *params);
-extern void         (* const& glPathColorGenNV) (GLenum color, GLenum genMode, GLenum colorFormat, const GLfloat *coeffs);
-extern void         (* const& glPathTexGenNV) (GLenum texCoordSet, GLenum genMode, GLint components, const GLfloat *coeffs);
-extern void         (* const& glPathFogGenNV) (GLenum genMode);
-extern void         (* const& glGetPathColorGenivNV) (GLenum color, GLenum pname, GLint *value);
-extern void         (* const& glGetPathColorGenfvNV) (GLenum color, GLenum pname, GLfloat *value);
-extern void         (* const& glGetPathTexGenivNV) (GLenum texCoordSet, GLenum pname, GLint *value);
-extern void         (* const& glGetPathTexGenfvNV) (GLenum texCoordSet, GLenum pname, GLfloat *value);
+extern GLuint       (KHRONOS_APIENTRY* const& glGenPathsNV) (GLsizei range);
+extern void         (KHRONOS_APIENTRY* const& glDeletePathsNV) (GLuint path, GLsizei range);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsPathNV) (GLuint path);
+extern void         (KHRONOS_APIENTRY* const& glPathCommandsNV) (GLuint path, GLsizei numCommands, const GLubyte *commands, GLsizei numCoords, GLenum coordType, const void *coords);
+extern void         (KHRONOS_APIENTRY* const& glPathCoordsNV) (GLuint path, GLsizei numCoords, GLenum coordType, const void *coords);
+extern void         (KHRONOS_APIENTRY* const& glPathSubCommandsNV) (GLuint path, GLsizei commandStart, GLsizei commandsToDelete, GLsizei numCommands, const GLubyte *commands, GLsizei numCoords, GLenum coordType, const void *coords);
+extern void         (KHRONOS_APIENTRY* const& glPathSubCoordsNV) (GLuint path, GLsizei coordStart, GLsizei numCoords, GLenum coordType, const void *coords);
+extern void         (KHRONOS_APIENTRY* const& glPathStringNV) (GLuint path, GLenum format, GLsizei length, const void *pathString);
+extern void         (KHRONOS_APIENTRY* const& glPathGlyphsNV) (GLuint firstPathName, GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLsizei numGlyphs, GLenum type, const void *charcodes, GLenum handleMissingGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
+extern void         (KHRONOS_APIENTRY* const& glPathGlyphRangeNV) (GLuint firstPathName, GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLuint firstGlyph, GLsizei numGlyphs, GLenum handleMissingGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
+extern void         (KHRONOS_APIENTRY* const& glWeightPathsNV) (GLuint resultPath, GLsizei numPaths, const GLuint *paths, const GLfloat *weights);
+extern void         (KHRONOS_APIENTRY* const& glCopyPathNV) (GLuint resultPath, GLuint srcPath);
+extern void         (KHRONOS_APIENTRY* const& glInterpolatePathsNV) (GLuint resultPath, GLuint pathA, GLuint pathB, GLfloat weight);
+extern void         (KHRONOS_APIENTRY* const& glTransformPathNV) (GLuint resultPath, GLuint srcPath, GLenum transformType, const GLfloat *transformValues);
+extern void         (KHRONOS_APIENTRY* const& glPathParameterivNV) (GLuint path, GLenum pname, const GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glPathParameteriNV) (GLuint path, GLenum pname, GLint value);
+extern void         (KHRONOS_APIENTRY* const& glPathParameterfvNV) (GLuint path, GLenum pname, const GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glPathParameterfNV) (GLuint path, GLenum pname, GLfloat value);
+extern void         (KHRONOS_APIENTRY* const& glPathDashArrayNV) (GLuint path, GLsizei dashCount, const GLfloat *dashArray);
+extern void         (KHRONOS_APIENTRY* const& glPathStencilFuncNV) (GLenum func, GLint ref, GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glPathStencilDepthOffsetNV) (GLfloat factor, GLfloat units);
+extern void         (KHRONOS_APIENTRY* const& glStencilFillPathNV) (GLuint path, GLenum fillMode, GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glStencilStrokePathNV) (GLuint path, GLint reference, GLuint mask);
+extern void         (KHRONOS_APIENTRY* const& glStencilFillPathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum fillMode, GLuint mask, GLenum transformType, const GLfloat *transformValues);
+extern void         (KHRONOS_APIENTRY* const& glStencilStrokePathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLint reference, GLuint mask, GLenum transformType, const GLfloat *transformValues);
+extern void         (KHRONOS_APIENTRY* const& glPathCoverDepthFuncNV) (GLenum func);
+extern void         (KHRONOS_APIENTRY* const& glCoverFillPathNV) (GLuint path, GLenum coverMode);
+extern void         (KHRONOS_APIENTRY* const& glCoverStrokePathNV) (GLuint path, GLenum coverMode);
+extern void         (KHRONOS_APIENTRY* const& glCoverFillPathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
+extern void         (KHRONOS_APIENTRY* const& glCoverStrokePathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
+extern void         (KHRONOS_APIENTRY* const& glGetPathParameterivNV) (GLuint path, GLenum pname, GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glGetPathParameterfvNV) (GLuint path, GLenum pname, GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glGetPathCommandsNV) (GLuint path, GLubyte *commands);
+extern void         (KHRONOS_APIENTRY* const& glGetPathCoordsNV) (GLuint path, GLfloat *coords);
+extern void         (KHRONOS_APIENTRY* const& glGetPathDashArrayNV) (GLuint path, GLfloat *dashArray);
+extern void         (KHRONOS_APIENTRY* const& glGetPathMetricsNV) (GLbitfield metricQueryMask, GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLsizei stride, GLfloat *metrics);
+extern void         (KHRONOS_APIENTRY* const& glGetPathMetricRangeNV) (GLbitfield metricQueryMask, GLuint firstPathName, GLsizei numPaths, GLsizei stride, GLfloat *metrics);
+extern void         (KHRONOS_APIENTRY* const& glGetPathSpacingNV) (GLenum pathListMode, GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLfloat advanceScale, GLfloat kerningScale, GLenum transformType, GLfloat *returnedSpacing);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsPointInFillPathNV) (GLuint path, GLuint mask, GLfloat x, GLfloat y);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsPointInStrokePathNV) (GLuint path, GLfloat x, GLfloat y);
+extern GLfloat      (KHRONOS_APIENTRY* const& glGetPathLengthNV) (GLuint path, GLsizei startSegment, GLsizei numSegments);
+extern GLboolean    (KHRONOS_APIENTRY* const& glPointAlongPathNV) (GLuint path, GLsizei startSegment, GLsizei numSegments, GLfloat distance, GLfloat *x, GLfloat *y, GLfloat *tangentX, GLfloat *tangentY);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoad3x2fNV) (GLenum matrixMode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoad3x3fNV) (GLenum matrixMode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixLoadTranspose3x3fNV) (GLenum matrixMode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMult3x2fNV) (GLenum matrixMode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMult3x3fNV) (GLenum matrixMode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glMatrixMultTranspose3x3fNV) (GLenum matrixMode, const GLfloat *m);
+extern void         (KHRONOS_APIENTRY* const& glStencilThenCoverFillPathNV) (GLuint path, GLenum fillMode, GLuint mask, GLenum coverMode);
+extern void         (KHRONOS_APIENTRY* const& glStencilThenCoverStrokePathNV) (GLuint path, GLint reference, GLuint mask, GLenum coverMode);
+extern void         (KHRONOS_APIENTRY* const& glStencilThenCoverFillPathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLenum fillMode, GLuint mask, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
+extern void         (KHRONOS_APIENTRY* const& glStencilThenCoverStrokePathInstancedNV) (GLsizei numPaths, GLenum pathNameType, const void *paths, GLuint pathBase, GLint reference, GLuint mask, GLenum coverMode, GLenum transformType, const GLfloat *transformValues);
+extern GLenum       (KHRONOS_APIENTRY* const& glPathGlyphIndexRangeNV) (GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLuint pathParameterTemplate, GLfloat emScale, GLuint *baseAndCount);
+extern GLenum       (KHRONOS_APIENTRY* const& glPathGlyphIndexArrayNV) (GLuint firstPathName, GLenum fontTarget, const void *fontName, GLbitfield fontStyle, GLuint firstGlyphIndex, GLsizei numGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
+extern GLenum       (KHRONOS_APIENTRY* const& glPathMemoryGlyphIndexArrayNV) (GLuint firstPathName, GLenum fontTarget, GLsizeiptr fontSize, const void *fontData, GLsizei faceIndex, GLuint firstGlyphIndex, GLsizei numGlyphs, GLuint pathParameterTemplate, GLfloat emScale);
+extern void         (KHRONOS_APIENTRY* const& glProgramPathFragmentInputGenNV) (GLuint program, GLint location, GLenum genMode, GLint components, const GLfloat *coeffs);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramResourcefvNV) (GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei count, GLsizei *length, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glPathColorGenNV) (GLenum color, GLenum genMode, GLenum colorFormat, const GLfloat *coeffs);
+extern void         (KHRONOS_APIENTRY* const& glPathTexGenNV) (GLenum texCoordSet, GLenum genMode, GLint components, const GLfloat *coeffs);
+extern void         (KHRONOS_APIENTRY* const& glPathFogGenNV) (GLenum genMode);
+extern void         (KHRONOS_APIENTRY* const& glGetPathColorGenivNV) (GLenum color, GLenum pname, GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glGetPathColorGenfvNV) (GLenum color, GLenum pname, GLfloat *value);
+extern void         (KHRONOS_APIENTRY* const& glGetPathTexGenivNV) (GLenum texCoordSet, GLenum pname, GLint *value);
+extern void         (KHRONOS_APIENTRY* const& glGetPathTexGenfvNV) (GLenum texCoordSet, GLenum pname, GLfloat *value);
 #endif
 
 #ifndef GL_NV_path_rendering_shared_edge
 #define GL_NV_path_rendering_shared_edge 1
-enum
+enum : GLenum
 {
     GL_SHARED_EDGE_NV                                       = 0xC0,
 };
@@ -9848,7 +9860,7 @@ enum
 
 #ifndef GL_NV_pixel_data_range
 #define GL_NV_pixel_data_range 1
-enum
+enum : GLenum
 {
     GL_WRITE_PIXEL_DATA_RANGE_NV                            = 0x8878,
     GL_READ_PIXEL_DATA_RANGE_NV                             = 0x8879,
@@ -9857,25 +9869,25 @@ enum
     GL_WRITE_PIXEL_DATA_RANGE_POINTER_NV                    = 0x887C,
     GL_READ_PIXEL_DATA_RANGE_POINTER_NV                     = 0x887D,
 };
-extern void         (* const& glPixelDataRangeNV) (GLenum target, GLsizei length, const void *pointer);
-extern void         (* const& glFlushPixelDataRangeNV) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glPixelDataRangeNV) (GLenum target, GLsizei length, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glFlushPixelDataRangeNV) (GLenum target);
 #endif
 
 #ifndef GL_NV_point_sprite
 #define GL_NV_point_sprite 1
-enum
+enum : GLenum
 {
     GL_POINT_SPRITE_NV                                      = 0x8861,
     GL_COORD_REPLACE_NV                                     = 0x8862,
     GL_POINT_SPRITE_R_MODE_NV                               = 0x8863,
 };
-extern void         (* const& glPointParameteriNV) (GLenum pname, GLint param);
-extern void         (* const& glPointParameterivNV) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glPointParameteriNV) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterivNV) (GLenum pname, const GLint *params);
 #endif
 
 #ifndef GL_NV_present_video
 #define GL_NV_present_video 1
-enum
+enum : GLenum
 {
     GL_FRAME_NV                                             = 0x8E26,
     GL_FIELDS_NV                                            = 0x8E27,
@@ -9884,28 +9896,28 @@ enum
     GL_PRESENT_TIME_NV                                      = 0x8E2A,
     GL_PRESENT_DURATION_NV                                  = 0x8E2B,
 };
-extern void         (* const& glPresentFrameKeyedNV) (GLuint video_slot, GLuint64EXT minPresentTime, GLuint beginPresentTimeId, GLuint presentDurationId, GLenum type, GLenum target0, GLuint fill0, GLuint key0, GLenum target1, GLuint fill1, GLuint key1);
-extern void         (* const& glPresentFrameDualFillNV) (GLuint video_slot, GLuint64EXT minPresentTime, GLuint beginPresentTimeId, GLuint presentDurationId, GLenum type, GLenum target0, GLuint fill0, GLenum target1, GLuint fill1, GLenum target2, GLuint fill2, GLenum target3, GLuint fill3);
-extern void         (* const& glGetVideoivNV) (GLuint video_slot, GLenum pname, GLint *params);
-extern void         (* const& glGetVideouivNV) (GLuint video_slot, GLenum pname, GLuint *params);
-extern void         (* const& glGetVideoi64vNV) (GLuint video_slot, GLenum pname, GLint64EXT *params);
-extern void         (* const& glGetVideoui64vNV) (GLuint video_slot, GLenum pname, GLuint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glPresentFrameKeyedNV) (GLuint video_slot, GLuint64EXT minPresentTime, GLuint beginPresentTimeId, GLuint presentDurationId, GLenum type, GLenum target0, GLuint fill0, GLuint key0, GLenum target1, GLuint fill1, GLuint key1);
+extern void         (KHRONOS_APIENTRY* const& glPresentFrameDualFillNV) (GLuint video_slot, GLuint64EXT minPresentTime, GLuint beginPresentTimeId, GLuint presentDurationId, GLenum type, GLenum target0, GLuint fill0, GLenum target1, GLuint fill1, GLenum target2, GLuint fill2, GLenum target3, GLuint fill3);
+extern void         (KHRONOS_APIENTRY* const& glGetVideoivNV) (GLuint video_slot, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVideouivNV) (GLuint video_slot, GLenum pname, GLuint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVideoi64vNV) (GLuint video_slot, GLenum pname, GLint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVideoui64vNV) (GLuint video_slot, GLenum pname, GLuint64EXT *params);
 #endif
 
 #ifndef GL_NV_primitive_restart
 #define GL_NV_primitive_restart 1
-enum
+enum : GLenum
 {
     GL_PRIMITIVE_RESTART_NV                                 = 0x8558,
     GL_PRIMITIVE_RESTART_INDEX_NV                           = 0x8559,
 };
-extern void         (* const& glPrimitiveRestartNV) ();
-extern void         (* const& glPrimitiveRestartIndexNV) (GLuint index);
+extern void         (KHRONOS_APIENTRY* const& glPrimitiveRestartNV) ();
+extern void         (KHRONOS_APIENTRY* const& glPrimitiveRestartIndexNV) (GLuint index);
 #endif
 
 #ifndef GL_NV_primitive_shading_rate
 #define GL_NV_primitive_shading_rate 1
-enum
+enum : GLenum
 {
     GL_SHADING_RATE_IMAGE_PER_PRIMITIVE_NV                  = 0x95B1,
     GL_SHADING_RATE_IMAGE_PALETTE_COUNT_NV                  = 0x95B2,
@@ -9914,7 +9926,7 @@ enum
 
 #ifndef GL_NV_query_resource
 #define GL_NV_query_resource 1
-enum
+enum : GLenum
 {
     GL_QUERY_RESOURCE_TYPE_VIDMEM_ALLOC_NV                  = 0x9540,
     GL_QUERY_RESOURCE_MEMTYPE_VIDMEM_NV                     = 0x9542,
@@ -9923,19 +9935,19 @@ enum
     GL_QUERY_RESOURCE_RENDERBUFFER_NV                       = 0x9546,
     GL_QUERY_RESOURCE_BUFFEROBJECT_NV                       = 0x9547,
 };
-extern GLint        (* const& glQueryResourceNV) (GLenum queryType, GLint tagId, GLuint count, GLint *buffer);
+extern GLint        (KHRONOS_APIENTRY* const& glQueryResourceNV) (GLenum queryType, GLint tagId, GLuint count, GLint *buffer);
 #endif
 
 #ifndef GL_NV_query_resource_tag
 #define GL_NV_query_resource_tag 1
-extern void         (* const& glGenQueryResourceTagNV) (GLsizei n, GLint *tagIds);
-extern void         (* const& glDeleteQueryResourceTagNV) (GLsizei n, const GLint *tagIds);
-extern void         (* const& glQueryResourceTagNV) (GLint tagId, const GLchar *tagString);
+extern void         (KHRONOS_APIENTRY* const& glGenQueryResourceTagNV) (GLsizei n, GLint *tagIds);
+extern void         (KHRONOS_APIENTRY* const& glDeleteQueryResourceTagNV) (GLsizei n, const GLint *tagIds);
+extern void         (KHRONOS_APIENTRY* const& glQueryResourceTagNV) (GLint tagId, const GLchar *tagString);
 #endif
 
 #ifndef GL_NV_register_combiners
 #define GL_NV_register_combiners 1
-enum
+enum : GLenum
 {
     GL_REGISTER_COMBINERS_NV                                = 0x8522,
     GL_VARIABLE_A_NV                                        = 0x8523,
@@ -9987,34 +9999,34 @@ enum
     GL_COMBINER6_NV                                         = 0x8556,
     GL_COMBINER7_NV                                         = 0x8557,
 };
-extern void         (* const& glCombinerParameterfvNV) (GLenum pname, const GLfloat *params);
-extern void         (* const& glCombinerParameterfNV) (GLenum pname, GLfloat param);
-extern void         (* const& glCombinerParameterivNV) (GLenum pname, const GLint *params);
-extern void         (* const& glCombinerParameteriNV) (GLenum pname, GLint param);
-extern void         (* const& glCombinerInputNV) (GLenum stage, GLenum portion, GLenum variable, GLenum input, GLenum mapping, GLenum componentUsage);
-extern void         (* const& glCombinerOutputNV) (GLenum stage, GLenum portion, GLenum abOutput, GLenum cdOutput, GLenum sumOutput, GLenum scale, GLenum bias, GLboolean abDotProduct, GLboolean cdDotProduct, GLboolean muxSum);
-extern void         (* const& glFinalCombinerInputNV) (GLenum variable, GLenum input, GLenum mapping, GLenum componentUsage);
-extern void         (* const& glGetCombinerInputParameterfvNV) (GLenum stage, GLenum portion, GLenum variable, GLenum pname, GLfloat *params);
-extern void         (* const& glGetCombinerInputParameterivNV) (GLenum stage, GLenum portion, GLenum variable, GLenum pname, GLint *params);
-extern void         (* const& glGetCombinerOutputParameterfvNV) (GLenum stage, GLenum portion, GLenum pname, GLfloat *params);
-extern void         (* const& glGetCombinerOutputParameterivNV) (GLenum stage, GLenum portion, GLenum pname, GLint *params);
-extern void         (* const& glGetFinalCombinerInputParameterfvNV) (GLenum variable, GLenum pname, GLfloat *params);
-extern void         (* const& glGetFinalCombinerInputParameterivNV) (GLenum variable, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCombinerParameterfvNV) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glCombinerParameterfNV) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glCombinerParameterivNV) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCombinerParameteriNV) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glCombinerInputNV) (GLenum stage, GLenum portion, GLenum variable, GLenum input, GLenum mapping, GLenum componentUsage);
+extern void         (KHRONOS_APIENTRY* const& glCombinerOutputNV) (GLenum stage, GLenum portion, GLenum abOutput, GLenum cdOutput, GLenum sumOutput, GLenum scale, GLenum bias, GLboolean abDotProduct, GLboolean cdDotProduct, GLboolean muxSum);
+extern void         (KHRONOS_APIENTRY* const& glFinalCombinerInputNV) (GLenum variable, GLenum input, GLenum mapping, GLenum componentUsage);
+extern void         (KHRONOS_APIENTRY* const& glGetCombinerInputParameterfvNV) (GLenum stage, GLenum portion, GLenum variable, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetCombinerInputParameterivNV) (GLenum stage, GLenum portion, GLenum variable, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetCombinerOutputParameterfvNV) (GLenum stage, GLenum portion, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetCombinerOutputParameterivNV) (GLenum stage, GLenum portion, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetFinalCombinerInputParameterfvNV) (GLenum variable, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetFinalCombinerInputParameterivNV) (GLenum variable, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_NV_register_combiners2
 #define GL_NV_register_combiners2 1
-enum
+enum : GLenum
 {
     GL_PER_STAGE_CONSTANTS_NV                               = 0x8535,
 };
-extern void         (* const& glCombinerStageParameterfvNV) (GLenum stage, GLenum pname, const GLfloat *params);
-extern void         (* const& glGetCombinerStageParameterfvNV) (GLenum stage, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glCombinerStageParameterfvNV) (GLenum stage, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetCombinerStageParameterfvNV) (GLenum stage, GLenum pname, GLfloat *params);
 #endif
 
 #ifndef GL_NV_representative_fragment_test
 #define GL_NV_representative_fragment_test 1
-enum
+enum : GLenum
 {
     GL_REPRESENTATIVE_FRAGMENT_TEST_NV                      = 0x937F,
 };
@@ -10022,7 +10034,7 @@ enum
 
 #ifndef GL_NV_robustness_video_memory_purge
 #define GL_NV_robustness_video_memory_purge 1
-enum
+enum : GLenum
 {
     GL_PURGED_CONTEXT_RESET_NV                              = 0x92BB,
 };
@@ -10030,7 +10042,7 @@ enum
 
 #ifndef GL_NV_sample_locations
 #define GL_NV_sample_locations 1
-enum
+enum : GLenum
 {
     GL_SAMPLE_LOCATION_SUBPIXEL_BITS_NV                     = 0x933D,
     GL_SAMPLE_LOCATION_PIXEL_GRID_WIDTH_NV                  = 0x933E,
@@ -10041,9 +10053,9 @@ enum
     GL_FRAMEBUFFER_PROGRAMMABLE_SAMPLE_LOCATIONS_NV         = 0x9342,
     GL_FRAMEBUFFER_SAMPLE_LOCATION_PIXEL_GRID_NV            = 0x9343,
 };
-extern void         (* const& glFramebufferSampleLocationsfvNV) (GLenum target, GLuint start, GLsizei count, const GLfloat *v);
-extern void         (* const& glNamedFramebufferSampleLocationsfvNV) (GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v);
-extern void         (* const& glResolveDepthValuesNV) ();
+extern void         (KHRONOS_APIENTRY* const& glFramebufferSampleLocationsfvNV) (GLenum target, GLuint start, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glNamedFramebufferSampleLocationsfvNV) (GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glResolveDepthValuesNV) ();
 #endif
 
 #ifndef GL_NV_sample_mask_override_coverage
@@ -10052,13 +10064,13 @@ extern void         (* const& glResolveDepthValuesNV) ();
 
 #ifndef GL_NV_scissor_exclusive
 #define GL_NV_scissor_exclusive 1
-enum
+enum : GLenum
 {
     GL_SCISSOR_TEST_EXCLUSIVE_NV                            = 0x9555,
     GL_SCISSOR_BOX_EXCLUSIVE_NV                             = 0x9556,
 };
-extern void         (* const& glScissorExclusiveNV) (GLint x, GLint y, GLsizei width, GLsizei height);
-extern void         (* const& glScissorExclusiveArrayvNV) (GLuint first, GLsizei count, const GLint *v);
+extern void         (KHRONOS_APIENTRY* const& glScissorExclusiveNV) (GLint x, GLint y, GLsizei width, GLsizei height);
+extern void         (KHRONOS_APIENTRY* const& glScissorExclusiveArrayvNV) (GLuint first, GLsizei count, const GLint *v);
 #endif
 
 #ifndef GL_NV_shader_atomic_counters
@@ -10083,30 +10095,30 @@ extern void         (* const& glScissorExclusiveArrayvNV) (GLuint first, GLsizei
 
 #ifndef GL_NV_shader_buffer_load
 #define GL_NV_shader_buffer_load 1
-enum
+enum : GLenum
 {
     GL_BUFFER_GPU_ADDRESS_NV                                = 0x8F1D,
     GL_GPU_ADDRESS_NV                                       = 0x8F34,
     GL_MAX_SHADER_BUFFER_ADDRESS_NV                         = 0x8F35,
 };
-extern void         (* const& glMakeBufferResidentNV) (GLenum target, GLenum access);
-extern void         (* const& glMakeBufferNonResidentNV) (GLenum target);
-extern GLboolean    (* const& glIsBufferResidentNV) (GLenum target);
-extern void         (* const& glMakeNamedBufferResidentNV) (GLuint buffer, GLenum access);
-extern void         (* const& glMakeNamedBufferNonResidentNV) (GLuint buffer);
-extern GLboolean    (* const& glIsNamedBufferResidentNV) (GLuint buffer);
-extern void         (* const& glGetBufferParameterui64vNV) (GLenum target, GLenum pname, GLuint64EXT *params);
-extern void         (* const& glGetNamedBufferParameterui64vNV) (GLuint buffer, GLenum pname, GLuint64EXT *params);
-extern void         (* const& glGetIntegerui64vNV) (GLenum value, GLuint64EXT *result);
-extern void         (* const& glUniformui64NV) (GLint location, GLuint64EXT value);
-extern void         (* const& glUniformui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
-extern void         (* const& glProgramUniformui64NV) (GLuint program, GLint location, GLuint64EXT value);
-extern void         (* const& glProgramUniformui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glMakeBufferResidentNV) (GLenum target, GLenum access);
+extern void         (KHRONOS_APIENTRY* const& glMakeBufferNonResidentNV) (GLenum target);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsBufferResidentNV) (GLenum target);
+extern void         (KHRONOS_APIENTRY* const& glMakeNamedBufferResidentNV) (GLuint buffer, GLenum access);
+extern void         (KHRONOS_APIENTRY* const& glMakeNamedBufferNonResidentNV) (GLuint buffer);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsNamedBufferResidentNV) (GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glGetBufferParameterui64vNV) (GLenum target, GLenum pname, GLuint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glGetNamedBufferParameterui64vNV) (GLuint buffer, GLenum pname, GLuint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glGetIntegerui64vNV) (GLenum value, GLuint64EXT *result);
+extern void         (KHRONOS_APIENTRY* const& glUniformui64NV) (GLint location, GLuint64EXT value);
+extern void         (KHRONOS_APIENTRY* const& glUniformui64vNV) (GLint location, GLsizei count, const GLuint64EXT *value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformui64NV) (GLuint program, GLint location, GLuint64EXT value);
+extern void         (KHRONOS_APIENTRY* const& glProgramUniformui64vNV) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
 #endif
 
 #ifndef GL_NV_shader_buffer_store
 #define GL_NV_shader_buffer_store 1
-enum
+enum : GLenum
 {
     GL_SHADER_GLOBAL_ACCESS_BARRIER_BIT_NV                  = 0x00000010,
 };
@@ -10118,7 +10130,7 @@ enum
 
 #ifndef GL_NV_shader_subgroup_partitioned
 #define GL_NV_shader_subgroup_partitioned 1
-enum
+enum : GLenum
 {
     GL_SUBGROUP_FEATURE_PARTITIONED_BIT_NV                  = 0x00000100,
 };
@@ -10130,7 +10142,7 @@ enum
 
 #ifndef GL_NV_shader_thread_group
 #define GL_NV_shader_thread_group 1
-enum
+enum : GLenum
 {
     GL_WARP_SIZE_NV                                         = 0x9339,
     GL_WARPS_PER_SM_NV                                      = 0x933A,
@@ -10144,7 +10156,7 @@ enum
 
 #ifndef GL_NV_shading_rate_image
 #define GL_NV_shading_rate_image 1
-enum
+enum : GLenum
 {
     GL_SHADING_RATE_IMAGE_NV                                = 0x9563,
     GL_SHADING_RATE_NO_INVOCATIONS_NV                       = 0x9564,
@@ -10168,13 +10180,13 @@ enum
     GL_SHADING_RATE_SAMPLE_ORDER_PIXEL_MAJOR_NV             = 0x95AF,
     GL_SHADING_RATE_SAMPLE_ORDER_SAMPLE_MAJOR_NV            = 0x95B0,
 };
-extern void         (* const& glBindShadingRateImageNV) (GLuint texture);
-extern void         (* const& glGetShadingRateImagePaletteNV) (GLuint viewport, GLuint entry, GLenum *rate);
-extern void         (* const& glGetShadingRateSampleLocationivNV) (GLenum rate, GLuint samples, GLuint index, GLint *location);
-extern void         (* const& glShadingRateImageBarrierNV) (GLboolean synchronize);
-extern void         (* const& glShadingRateImagePaletteNV) (GLuint viewport, GLuint first, GLsizei count, const GLenum *rates);
-extern void         (* const& glShadingRateSampleOrderNV) (GLenum order);
-extern void         (* const& glShadingRateSampleOrderCustomNV) (GLenum rate, GLuint samples, const GLint *locations);
+extern void         (KHRONOS_APIENTRY* const& glBindShadingRateImageNV) (GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glGetShadingRateImagePaletteNV) (GLuint viewport, GLuint entry, GLenum *rate);
+extern void         (KHRONOS_APIENTRY* const& glGetShadingRateSampleLocationivNV) (GLenum rate, GLuint samples, GLuint index, GLint *location);
+extern void         (KHRONOS_APIENTRY* const& glShadingRateImageBarrierNV) (GLboolean synchronize);
+extern void         (KHRONOS_APIENTRY* const& glShadingRateImagePaletteNV) (GLuint viewport, GLuint first, GLsizei count, const GLenum *rates);
+extern void         (KHRONOS_APIENTRY* const& glShadingRateSampleOrderNV) (GLenum order);
+extern void         (KHRONOS_APIENTRY* const& glShadingRateSampleOrderCustomNV) (GLenum rate, GLuint samples, const GLint *locations);
 #endif
 
 #ifndef GL_NV_stereo_view_rendering
@@ -10183,7 +10195,7 @@ extern void         (* const& glShadingRateSampleOrderCustomNV) (GLenum rate, GL
 
 #ifndef GL_NV_tessellation_program5
 #define GL_NV_tessellation_program5 1
-enum
+enum : GLenum
 {
     GL_MAX_PROGRAM_PATCH_ATTRIBS_NV                         = 0x86D8,
     GL_TESS_CONTROL_PROGRAM_NV                              = 0x891E,
@@ -10195,7 +10207,7 @@ enum
 
 #ifndef GL_NV_texgen_emboss
 #define GL_NV_texgen_emboss 1
-enum
+enum : GLenum
 {
     GL_EMBOSS_LIGHT_NV                                      = 0x855D,
     GL_EMBOSS_CONSTANT_NV                                   = 0x855E,
@@ -10205,7 +10217,7 @@ enum
 
 #ifndef GL_NV_texgen_reflection
 #define GL_NV_texgen_reflection 1
-enum
+enum : GLenum
 {
     GL_NORMAL_MAP_NV                                        = 0x8511,
     GL_REFLECTION_MAP_NV                                    = 0x8512,
@@ -10214,7 +10226,7 @@ enum
 
 #ifndef GL_NV_texture_barrier
 #define GL_NV_texture_barrier 1
-extern void         (* const& glTextureBarrierNV) ();
+extern void         (KHRONOS_APIENTRY* const& glTextureBarrierNV) ();
 #endif
 
 #ifndef GL_NV_texture_compression_vtc
@@ -10223,7 +10235,7 @@ extern void         (* const& glTextureBarrierNV) ();
 
 #ifndef GL_NV_texture_env_combine4
 #define GL_NV_texture_env_combine4 1
-enum
+enum : GLenum
 {
     GL_COMBINE4_NV                                          = 0x8503,
     GL_SOURCE3_RGB_NV                                       = 0x8583,
@@ -10235,7 +10247,7 @@ enum
 
 #ifndef GL_NV_texture_expand_normal
 #define GL_NV_texture_expand_normal 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_UNSIGNED_REMAP_MODE_NV                       = 0x888F,
 };
@@ -10243,22 +10255,22 @@ enum
 
 #ifndef GL_NV_texture_multisample
 #define GL_NV_texture_multisample 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_COVERAGE_SAMPLES_NV                          = 0x9045,
     GL_TEXTURE_COLOR_SAMPLES_NV                             = 0x9046,
 };
-extern void         (* const& glTexImage2DMultisampleCoverageNV) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-extern void         (* const& glTexImage3DMultisampleCoverageNV) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-extern void         (* const& glTextureImage2DMultisampleNV) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-extern void         (* const& glTextureImage3DMultisampleNV) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-extern void         (* const& glTextureImage2DMultisampleCoverageNV) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-extern void         (* const& glTextureImage3DMultisampleCoverageNV) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+extern void         (KHRONOS_APIENTRY* const& glTexImage2DMultisampleCoverageNV) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+extern void         (KHRONOS_APIENTRY* const& glTexImage3DMultisampleCoverageNV) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureImage2DMultisampleNV) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureImage3DMultisampleNV) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureImage2DMultisampleCoverageNV) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+extern void         (KHRONOS_APIENTRY* const& glTextureImage3DMultisampleCoverageNV) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
 #endif
 
 #ifndef GL_NV_texture_rectangle
 #define GL_NV_texture_rectangle 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_RECTANGLE_NV                                 = 0x84F5,
     GL_TEXTURE_BINDING_RECTANGLE_NV                         = 0x84F6,
@@ -10273,7 +10285,7 @@ enum
 
 #ifndef GL_NV_texture_shader
 #define GL_NV_texture_shader 1
-enum
+enum : GLenum
 {
     GL_OFFSET_TEXTURE_RECTANGLE_NV                          = 0x864C,
     GL_OFFSET_TEXTURE_RECTANGLE_SCALE_NV                    = 0x864D,
@@ -10353,7 +10365,7 @@ enum
 
 #ifndef GL_NV_texture_shader2
 #define GL_NV_texture_shader2 1
-enum
+enum : GLenum
 {
     GL_DOT_PRODUCT_TEXTURE_3D_NV                            = 0x86EF,
 };
@@ -10361,7 +10373,7 @@ enum
 
 #ifndef GL_NV_texture_shader3
 #define GL_NV_texture_shader3 1
-enum
+enum : GLenum
 {
     GL_OFFSET_PROJECTIVE_TEXTURE_2D_NV                      = 0x8850,
     GL_OFFSET_PROJECTIVE_TEXTURE_2D_SCALE_NV                = 0x8851,
@@ -10385,7 +10397,7 @@ enum
 
 #ifndef GL_NV_transform_feedback
 #define GL_NV_transform_feedback 1
-enum
+enum : GLenum
 {
     GL_BACK_PRIMARY_COLOR_NV                                = 0x8C77,
     GL_BACK_SECONDARY_COLOR_NV                              = 0x8C78,
@@ -10413,47 +10425,50 @@ enum
     GL_TRANSFORM_FEEDBACK_BUFFER_NV                         = 0x8C8E,
     GL_TRANSFORM_FEEDBACK_BUFFER_BINDING_NV                 = 0x8C8F,
     GL_LAYER_NV                                             = 0x8DAA,
+};
+enum : GLint
+{
     GL_NEXT_BUFFER_NV                                       = -2,
     GL_SKIP_COMPONENTS4_NV                                  = -3,
     GL_SKIP_COMPONENTS3_NV                                  = -4,
     GL_SKIP_COMPONENTS2_NV                                  = -5,
     GL_SKIP_COMPONENTS1_NV                                  = -6,
 };
-extern void         (* const& glBeginTransformFeedbackNV) (GLenum primitiveMode);
-extern void         (* const& glEndTransformFeedbackNV) ();
-extern void         (* const& glTransformFeedbackAttribsNV) (GLsizei count, const GLint *attribs, GLenum bufferMode);
-extern void         (* const& glBindBufferRangeNV) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-extern void         (* const& glBindBufferOffsetNV) (GLenum target, GLuint index, GLuint buffer, GLintptr offset);
-extern void         (* const& glBindBufferBaseNV) (GLenum target, GLuint index, GLuint buffer);
-extern void         (* const& glTransformFeedbackVaryingsNV) (GLuint program, GLsizei count, const GLint *locations, GLenum bufferMode);
-extern void         (* const& glActiveVaryingNV) (GLuint program, const GLchar *name);
-extern GLint        (* const& glGetVaryingLocationNV) (GLuint program, const GLchar *name);
-extern void         (* const& glGetActiveVaryingNV) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
-extern void         (* const& glGetTransformFeedbackVaryingNV) (GLuint program, GLuint index, GLint *location);
-extern void         (* const& glTransformFeedbackStreamAttribsNV) (GLsizei count, const GLint *attribs, GLsizei nbuffers, const GLint *bufstreams, GLenum bufferMode);
+extern void         (KHRONOS_APIENTRY* const& glBeginTransformFeedbackNV) (GLenum primitiveMode);
+extern void         (KHRONOS_APIENTRY* const& glEndTransformFeedbackNV) ();
+extern void         (KHRONOS_APIENTRY* const& glTransformFeedbackAttribsNV) (GLsizei count, const GLint *attribs, GLenum bufferMode);
+extern void         (KHRONOS_APIENTRY* const& glBindBufferRangeNV) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+extern void         (KHRONOS_APIENTRY* const& glBindBufferOffsetNV) (GLenum target, GLuint index, GLuint buffer, GLintptr offset);
+extern void         (KHRONOS_APIENTRY* const& glBindBufferBaseNV) (GLenum target, GLuint index, GLuint buffer);
+extern void         (KHRONOS_APIENTRY* const& glTransformFeedbackVaryingsNV) (GLuint program, GLsizei count, const GLint *locations, GLenum bufferMode);
+extern void         (KHRONOS_APIENTRY* const& glActiveVaryingNV) (GLuint program, const GLchar *name);
+extern GLint        (KHRONOS_APIENTRY* const& glGetVaryingLocationNV) (GLuint program, const GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetActiveVaryingNV) (GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
+extern void         (KHRONOS_APIENTRY* const& glGetTransformFeedbackVaryingNV) (GLuint program, GLuint index, GLint *location);
+extern void         (KHRONOS_APIENTRY* const& glTransformFeedbackStreamAttribsNV) (GLsizei count, const GLint *attribs, GLsizei nbuffers, const GLint *bufstreams, GLenum bufferMode);
 #endif
 
 #ifndef GL_NV_transform_feedback2
 #define GL_NV_transform_feedback2 1
-enum
+enum : GLenum
 {
     GL_TRANSFORM_FEEDBACK_NV                                = 0x8E22,
     GL_TRANSFORM_FEEDBACK_BUFFER_PAUSED_NV                  = 0x8E23,
     GL_TRANSFORM_FEEDBACK_BUFFER_ACTIVE_NV                  = 0x8E24,
     GL_TRANSFORM_FEEDBACK_BINDING_NV                        = 0x8E25,
 };
-extern void         (* const& glBindTransformFeedbackNV) (GLenum target, GLuint id);
-extern void         (* const& glDeleteTransformFeedbacksNV) (GLsizei n, const GLuint *ids);
-extern void         (* const& glGenTransformFeedbacksNV) (GLsizei n, GLuint *ids);
-extern GLboolean    (* const& glIsTransformFeedbackNV) (GLuint id);
-extern void         (* const& glPauseTransformFeedbackNV) ();
-extern void         (* const& glResumeTransformFeedbackNV) ();
-extern void         (* const& glDrawTransformFeedbackNV) (GLenum mode, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glBindTransformFeedbackNV) (GLenum target, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glDeleteTransformFeedbacksNV) (GLsizei n, const GLuint *ids);
+extern void         (KHRONOS_APIENTRY* const& glGenTransformFeedbacksNV) (GLsizei n, GLuint *ids);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsTransformFeedbackNV) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glPauseTransformFeedbackNV) ();
+extern void         (KHRONOS_APIENTRY* const& glResumeTransformFeedbackNV) ();
+extern void         (KHRONOS_APIENTRY* const& glDrawTransformFeedbackNV) (GLenum mode, GLuint id);
 #endif
 
 #ifndef GL_NV_uniform_buffer_unified_memory
 #define GL_NV_uniform_buffer_unified_memory 1
-enum
+enum : GLenum
 {
     GL_UNIFORM_BUFFER_UNIFIED_NV                            = 0x936E,
     GL_UNIFORM_BUFFER_ADDRESS_NV                            = 0x936F,
@@ -10463,33 +10478,33 @@ enum
 
 #ifndef GL_NV_vdpau_interop
 #define GL_NV_vdpau_interop 1
-enum
+enum : GLenum
 {
     GL_SURFACE_STATE_NV                                     = 0x86EB,
     GL_SURFACE_REGISTERED_NV                                = 0x86FD,
     GL_SURFACE_MAPPED_NV                                    = 0x8700,
     GL_WRITE_DISCARD_NV                                     = 0x88BE,
 };
-extern void         (* const& glVDPAUInitNV) (const void *vdpDevice, const void *getProcAddress);
-extern void         (* const& glVDPAUFiniNV) ();
-extern GLvdpauSurfaceNV (* const& glVDPAURegisterVideoSurfaceNV) (const void *vdpSurface, GLenum target, GLsizei numTextureNames, const GLuint *textureNames);
-extern GLvdpauSurfaceNV (* const& glVDPAURegisterOutputSurfaceNV) (const void *vdpSurface, GLenum target, GLsizei numTextureNames, const GLuint *textureNames);
-extern GLboolean    (* const& glVDPAUIsSurfaceNV) (GLvdpauSurfaceNV surface);
-extern void         (* const& glVDPAUUnregisterSurfaceNV) (GLvdpauSurfaceNV surface);
-extern void         (* const& glVDPAUGetSurfaceivNV) (GLvdpauSurfaceNV surface, GLenum pname, GLsizei count, GLsizei *length, GLint *values);
-extern void         (* const& glVDPAUSurfaceAccessNV) (GLvdpauSurfaceNV surface, GLenum access);
-extern void         (* const& glVDPAUMapSurfacesNV) (GLsizei numSurfaces, const GLvdpauSurfaceNV *surfaces);
-extern void         (* const& glVDPAUUnmapSurfacesNV) (GLsizei numSurface, const GLvdpauSurfaceNV *surfaces);
+extern void         (KHRONOS_APIENTRY* const& glVDPAUInitNV) (const void *vdpDevice, const void *getProcAddress);
+extern void         (KHRONOS_APIENTRY* const& glVDPAUFiniNV) ();
+extern GLvdpauSurfaceNV (KHRONOS_APIENTRY* const& glVDPAURegisterVideoSurfaceNV) (const void *vdpSurface, GLenum target, GLsizei numTextureNames, const GLuint *textureNames);
+extern GLvdpauSurfaceNV (KHRONOS_APIENTRY* const& glVDPAURegisterOutputSurfaceNV) (const void *vdpSurface, GLenum target, GLsizei numTextureNames, const GLuint *textureNames);
+extern GLboolean    (KHRONOS_APIENTRY* const& glVDPAUIsSurfaceNV) (GLvdpauSurfaceNV surface);
+extern void         (KHRONOS_APIENTRY* const& glVDPAUUnregisterSurfaceNV) (GLvdpauSurfaceNV surface);
+extern void         (KHRONOS_APIENTRY* const& glVDPAUGetSurfaceivNV) (GLvdpauSurfaceNV surface, GLenum pname, GLsizei count, GLsizei *length, GLint *values);
+extern void         (KHRONOS_APIENTRY* const& glVDPAUSurfaceAccessNV) (GLvdpauSurfaceNV surface, GLenum access);
+extern void         (KHRONOS_APIENTRY* const& glVDPAUMapSurfacesNV) (GLsizei numSurfaces, const GLvdpauSurfaceNV *surfaces);
+extern void         (KHRONOS_APIENTRY* const& glVDPAUUnmapSurfacesNV) (GLsizei numSurface, const GLvdpauSurfaceNV *surfaces);
 #endif
 
 #ifndef GL_NV_vdpau_interop2
 #define GL_NV_vdpau_interop2 1
-extern GLvdpauSurfaceNV (* const& glVDPAURegisterVideoSurfaceWithPictureStructureNV) (const void *vdpSurface, GLenum target, GLsizei numTextureNames, const GLuint *textureNames, GLboolean isFrameStructure);
+extern GLvdpauSurfaceNV (KHRONOS_APIENTRY* const& glVDPAURegisterVideoSurfaceWithPictureStructureNV) (const void *vdpSurface, GLenum target, GLsizei numTextureNames, const GLuint *textureNames, GLboolean isFrameStructure);
 #endif
 
 #ifndef GL_NV_vertex_array_range
 #define GL_NV_vertex_array_range 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ARRAY_RANGE_NV                                = 0x851D,
     GL_VERTEX_ARRAY_RANGE_LENGTH_NV                         = 0x851E,
@@ -10497,13 +10512,13 @@ enum
     GL_MAX_VERTEX_ARRAY_RANGE_ELEMENT_NV                    = 0x8520,
     GL_VERTEX_ARRAY_RANGE_POINTER_NV                        = 0x8521,
 };
-extern void         (* const& glFlushVertexArrayRangeNV) ();
-extern void         (* const& glVertexArrayRangeNV) (GLsizei length, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glFlushVertexArrayRangeNV) ();
+extern void         (KHRONOS_APIENTRY* const& glVertexArrayRangeNV) (GLsizei length, const void *pointer);
 #endif
 
 #ifndef GL_NV_vertex_array_range2
 #define GL_NV_vertex_array_range2 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ARRAY_RANGE_WITHOUT_FLUSH_NV                  = 0x8533,
 };
@@ -10511,30 +10526,30 @@ enum
 
 #ifndef GL_NV_vertex_attrib_integer_64bit
 #define GL_NV_vertex_attrib_integer_64bit 1
-extern void         (* const& glVertexAttribL1i64NV) (GLuint index, GLint64EXT x);
-extern void         (* const& glVertexAttribL2i64NV) (GLuint index, GLint64EXT x, GLint64EXT y);
-extern void         (* const& glVertexAttribL3i64NV) (GLuint index, GLint64EXT x, GLint64EXT y, GLint64EXT z);
-extern void         (* const& glVertexAttribL4i64NV) (GLuint index, GLint64EXT x, GLint64EXT y, GLint64EXT z, GLint64EXT w);
-extern void         (* const& glVertexAttribL1i64vNV) (GLuint index, const GLint64EXT *v);
-extern void         (* const& glVertexAttribL2i64vNV) (GLuint index, const GLint64EXT *v);
-extern void         (* const& glVertexAttribL3i64vNV) (GLuint index, const GLint64EXT *v);
-extern void         (* const& glVertexAttribL4i64vNV) (GLuint index, const GLint64EXT *v);
-extern void         (* const& glVertexAttribL1ui64NV) (GLuint index, GLuint64EXT x);
-extern void         (* const& glVertexAttribL2ui64NV) (GLuint index, GLuint64EXT x, GLuint64EXT y);
-extern void         (* const& glVertexAttribL3ui64NV) (GLuint index, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z);
-extern void         (* const& glVertexAttribL4ui64NV) (GLuint index, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z, GLuint64EXT w);
-extern void         (* const& glVertexAttribL1ui64vNV) (GLuint index, const GLuint64EXT *v);
-extern void         (* const& glVertexAttribL2ui64vNV) (GLuint index, const GLuint64EXT *v);
-extern void         (* const& glVertexAttribL3ui64vNV) (GLuint index, const GLuint64EXT *v);
-extern void         (* const& glVertexAttribL4ui64vNV) (GLuint index, const GLuint64EXT *v);
-extern void         (* const& glGetVertexAttribLi64vNV) (GLuint index, GLenum pname, GLint64EXT *params);
-extern void         (* const& glGetVertexAttribLui64vNV) (GLuint index, GLenum pname, GLuint64EXT *params);
-extern void         (* const& glVertexAttribLFormatNV) (GLuint index, GLint size, GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1i64NV) (GLuint index, GLint64EXT x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2i64NV) (GLuint index, GLint64EXT x, GLint64EXT y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3i64NV) (GLuint index, GLint64EXT x, GLint64EXT y, GLint64EXT z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4i64NV) (GLuint index, GLint64EXT x, GLint64EXT y, GLint64EXT z, GLint64EXT w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1i64vNV) (GLuint index, const GLint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2i64vNV) (GLuint index, const GLint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3i64vNV) (GLuint index, const GLint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4i64vNV) (GLuint index, const GLint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1ui64NV) (GLuint index, GLuint64EXT x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2ui64NV) (GLuint index, GLuint64EXT x, GLuint64EXT y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3ui64NV) (GLuint index, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4ui64NV) (GLuint index, GLuint64EXT x, GLuint64EXT y, GLuint64EXT z, GLuint64EXT w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL1ui64vNV) (GLuint index, const GLuint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL2ui64vNV) (GLuint index, const GLuint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL3ui64vNV) (GLuint index, const GLuint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribL4ui64vNV) (GLuint index, const GLuint64EXT *v);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribLi64vNV) (GLuint index, GLenum pname, GLint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribLui64vNV) (GLuint index, GLenum pname, GLuint64EXT *params);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribLFormatNV) (GLuint index, GLint size, GLenum type, GLsizei stride);
 #endif
 
 #ifndef GL_NV_vertex_buffer_unified_memory
 #define GL_NV_vertex_buffer_unified_memory 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV                       = 0x8F1E,
     GL_ELEMENT_ARRAY_UNIFIED_NV                             = 0x8F1F,
@@ -10562,23 +10577,23 @@ enum
     GL_DRAW_INDIRECT_ADDRESS_NV                             = 0x8F41,
     GL_DRAW_INDIRECT_LENGTH_NV                              = 0x8F42,
 };
-extern void         (* const& glBufferAddressRangeNV) (GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
-extern void         (* const& glVertexFormatNV) (GLint size, GLenum type, GLsizei stride);
-extern void         (* const& glNormalFormatNV) (GLenum type, GLsizei stride);
-extern void         (* const& glColorFormatNV) (GLint size, GLenum type, GLsizei stride);
-extern void         (* const& glIndexFormatNV) (GLenum type, GLsizei stride);
-extern void         (* const& glTexCoordFormatNV) (GLint size, GLenum type, GLsizei stride);
-extern void         (* const& glEdgeFlagFormatNV) (GLsizei stride);
-extern void         (* const& glSecondaryColorFormatNV) (GLint size, GLenum type, GLsizei stride);
-extern void         (* const& glFogCoordFormatNV) (GLenum type, GLsizei stride);
-extern void         (* const& glVertexAttribFormatNV) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
-extern void         (* const& glVertexAttribIFormatNV) (GLuint index, GLint size, GLenum type, GLsizei stride);
-extern void         (* const& glGetIntegerui64i_vNV) (GLenum value, GLuint index, GLuint64EXT *result);
+extern void         (KHRONOS_APIENTRY* const& glBufferAddressRangeNV) (GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
+extern void         (KHRONOS_APIENTRY* const& glVertexFormatNV) (GLint size, GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glNormalFormatNV) (GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glColorFormatNV) (GLint size, GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glIndexFormatNV) (GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glTexCoordFormatNV) (GLint size, GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glEdgeFlagFormatNV) (GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glSecondaryColorFormatNV) (GLint size, GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glFogCoordFormatNV) (GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribFormatNV) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribIFormatNV) (GLuint index, GLint size, GLenum type, GLsizei stride);
+extern void         (KHRONOS_APIENTRY* const& glGetIntegerui64i_vNV) (GLenum value, GLuint index, GLuint64EXT *result);
 #endif
 
 #ifndef GL_NV_vertex_program
 #define GL_NV_vertex_program 1
-enum
+enum : GLenum
 {
     GL_VERTEX_PROGRAM_NV                                    = 0x8620,
     GL_VERTEX_STATE_PROGRAM_NV                              = 0x8621,
@@ -10664,70 +10679,70 @@ enum
     GL_MAP2_VERTEX_ATTRIB14_4_NV                            = 0x867E,
     GL_MAP2_VERTEX_ATTRIB15_4_NV                            = 0x867F,
 };
-extern GLboolean    (* const& glAreProgramsResidentNV) (GLsizei n, const GLuint *programs, GLboolean *residences);
-extern void         (* const& glBindProgramNV) (GLenum target, GLuint id);
-extern void         (* const& glDeleteProgramsNV) (GLsizei n, const GLuint *programs);
-extern void         (* const& glExecuteProgramNV) (GLenum target, GLuint id, const GLfloat *params);
-extern void         (* const& glGenProgramsNV) (GLsizei n, GLuint *programs);
-extern void         (* const& glGetProgramParameterdvNV) (GLenum target, GLuint index, GLenum pname, GLdouble *params);
-extern void         (* const& glGetProgramParameterfvNV) (GLenum target, GLuint index, GLenum pname, GLfloat *params);
-extern void         (* const& glGetProgramivNV) (GLuint id, GLenum pname, GLint *params);
-extern void         (* const& glGetProgramStringNV) (GLuint id, GLenum pname, GLubyte *program);
-extern void         (* const& glGetTrackMatrixivNV) (GLenum target, GLuint address, GLenum pname, GLint *params);
-extern void         (* const& glGetVertexAttribdvNV) (GLuint index, GLenum pname, GLdouble *params);
-extern void         (* const& glGetVertexAttribfvNV) (GLuint index, GLenum pname, GLfloat *params);
-extern void         (* const& glGetVertexAttribivNV) (GLuint index, GLenum pname, GLint *params);
-extern void         (* const& glGetVertexAttribPointervNV) (GLuint index, GLenum pname, void **pointer);
-extern GLboolean    (* const& glIsProgramNV) (GLuint id);
-extern void         (* const& glLoadProgramNV) (GLenum target, GLuint id, GLsizei len, const GLubyte *program);
-extern void         (* const& glProgramParameter4dNV) (GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glProgramParameter4dvNV) (GLenum target, GLuint index, const GLdouble *v);
-extern void         (* const& glProgramParameter4fNV) (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glProgramParameter4fvNV) (GLenum target, GLuint index, const GLfloat *v);
-extern void         (* const& glProgramParameters4dvNV) (GLenum target, GLuint index, GLsizei count, const GLdouble *v);
-extern void         (* const& glProgramParameters4fvNV) (GLenum target, GLuint index, GLsizei count, const GLfloat *v);
-extern void         (* const& glRequestResidentProgramsNV) (GLsizei n, const GLuint *programs);
-extern void         (* const& glTrackMatrixNV) (GLenum target, GLuint address, GLenum matrix, GLenum transform);
-extern void         (* const& glVertexAttribPointerNV) (GLuint index, GLint fsize, GLenum type, GLsizei stride, const void *pointer);
-extern void         (* const& glVertexAttrib1dNV) (GLuint index, GLdouble x);
-extern void         (* const& glVertexAttrib1dvNV) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib1fNV) (GLuint index, GLfloat x);
-extern void         (* const& glVertexAttrib1fvNV) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib1sNV) (GLuint index, GLshort x);
-extern void         (* const& glVertexAttrib1svNV) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib2dNV) (GLuint index, GLdouble x, GLdouble y);
-extern void         (* const& glVertexAttrib2dvNV) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib2fNV) (GLuint index, GLfloat x, GLfloat y);
-extern void         (* const& glVertexAttrib2fvNV) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib2sNV) (GLuint index, GLshort x, GLshort y);
-extern void         (* const& glVertexAttrib2svNV) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib3dNV) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
-extern void         (* const& glVertexAttrib3dvNV) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib3fNV) (GLuint index, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glVertexAttrib3fvNV) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib3sNV) (GLuint index, GLshort x, GLshort y, GLshort z);
-extern void         (* const& glVertexAttrib3svNV) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4dNV) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
-extern void         (* const& glVertexAttrib4dvNV) (GLuint index, const GLdouble *v);
-extern void         (* const& glVertexAttrib4fNV) (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glVertexAttrib4fvNV) (GLuint index, const GLfloat *v);
-extern void         (* const& glVertexAttrib4sNV) (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
-extern void         (* const& glVertexAttrib4svNV) (GLuint index, const GLshort *v);
-extern void         (* const& glVertexAttrib4ubNV) (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
-extern void         (* const& glVertexAttrib4ubvNV) (GLuint index, const GLubyte *v);
-extern void         (* const& glVertexAttribs1dvNV) (GLuint index, GLsizei count, const GLdouble *v);
-extern void         (* const& glVertexAttribs1fvNV) (GLuint index, GLsizei count, const GLfloat *v);
-extern void         (* const& glVertexAttribs1svNV) (GLuint index, GLsizei count, const GLshort *v);
-extern void         (* const& glVertexAttribs2dvNV) (GLuint index, GLsizei count, const GLdouble *v);
-extern void         (* const& glVertexAttribs2fvNV) (GLuint index, GLsizei count, const GLfloat *v);
-extern void         (* const& glVertexAttribs2svNV) (GLuint index, GLsizei count, const GLshort *v);
-extern void         (* const& glVertexAttribs3dvNV) (GLuint index, GLsizei count, const GLdouble *v);
-extern void         (* const& glVertexAttribs3fvNV) (GLuint index, GLsizei count, const GLfloat *v);
-extern void         (* const& glVertexAttribs3svNV) (GLuint index, GLsizei count, const GLshort *v);
-extern void         (* const& glVertexAttribs4dvNV) (GLuint index, GLsizei count, const GLdouble *v);
-extern void         (* const& glVertexAttribs4fvNV) (GLuint index, GLsizei count, const GLfloat *v);
-extern void         (* const& glVertexAttribs4svNV) (GLuint index, GLsizei count, const GLshort *v);
-extern void         (* const& glVertexAttribs4ubvNV) (GLuint index, GLsizei count, const GLubyte *v);
+extern GLboolean    (KHRONOS_APIENTRY* const& glAreProgramsResidentNV) (GLsizei n, const GLuint *programs, GLboolean *residences);
+extern void         (KHRONOS_APIENTRY* const& glBindProgramNV) (GLenum target, GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glDeleteProgramsNV) (GLsizei n, const GLuint *programs);
+extern void         (KHRONOS_APIENTRY* const& glExecuteProgramNV) (GLenum target, GLuint id, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGenProgramsNV) (GLsizei n, GLuint *programs);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramParameterdvNV) (GLenum target, GLuint index, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramParameterfvNV) (GLenum target, GLuint index, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramivNV) (GLuint id, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetProgramStringNV) (GLuint id, GLenum pname, GLubyte *program);
+extern void         (KHRONOS_APIENTRY* const& glGetTrackMatrixivNV) (GLenum target, GLuint address, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribdvNV) (GLuint index, GLenum pname, GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribfvNV) (GLuint index, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribivNV) (GLuint index, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVertexAttribPointervNV) (GLuint index, GLenum pname, void **pointer);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsProgramNV) (GLuint id);
+extern void         (KHRONOS_APIENTRY* const& glLoadProgramNV) (GLenum target, GLuint id, GLsizei len, const GLubyte *program);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameter4dNV) (GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameter4dvNV) (GLenum target, GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameter4fNV) (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameter4fvNV) (GLenum target, GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameters4dvNV) (GLenum target, GLuint index, GLsizei count, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glProgramParameters4fvNV) (GLenum target, GLuint index, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glRequestResidentProgramsNV) (GLsizei n, const GLuint *programs);
+extern void         (KHRONOS_APIENTRY* const& glTrackMatrixNV) (GLenum target, GLuint address, GLenum matrix, GLenum transform);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribPointerNV) (GLuint index, GLint fsize, GLenum type, GLsizei stride, const void *pointer);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1dNV) (GLuint index, GLdouble x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1dvNV) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1fNV) (GLuint index, GLfloat x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1fvNV) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1sNV) (GLuint index, GLshort x);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib1svNV) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2dNV) (GLuint index, GLdouble x, GLdouble y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2dvNV) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2fNV) (GLuint index, GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2fvNV) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2sNV) (GLuint index, GLshort x, GLshort y);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib2svNV) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3dNV) (GLuint index, GLdouble x, GLdouble y, GLdouble z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3dvNV) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3fNV) (GLuint index, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3fvNV) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3sNV) (GLuint index, GLshort x, GLshort y, GLshort z);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib3svNV) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4dNV) (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4dvNV) (GLuint index, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4fNV) (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4fvNV) (GLuint index, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4sNV) (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4svNV) (GLuint index, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4ubNV) (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttrib4ubvNV) (GLuint index, const GLubyte *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs1dvNV) (GLuint index, GLsizei count, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs1fvNV) (GLuint index, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs1svNV) (GLuint index, GLsizei count, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs2dvNV) (GLuint index, GLsizei count, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs2fvNV) (GLuint index, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs2svNV) (GLuint index, GLsizei count, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs3dvNV) (GLuint index, GLsizei count, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs3fvNV) (GLuint index, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs3svNV) (GLuint index, GLsizei count, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs4dvNV) (GLuint index, GLsizei count, const GLdouble *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs4fvNV) (GLuint index, GLsizei count, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs4svNV) (GLuint index, GLsizei count, const GLshort *v);
+extern void         (KHRONOS_APIENTRY* const& glVertexAttribs4ubvNV) (GLuint index, GLsizei count, const GLubyte *v);
 #endif
 
 #ifndef GL_NV_vertex_program1_1
@@ -10748,7 +10763,7 @@ extern void         (* const& glVertexAttribs4ubvNV) (GLuint index, GLsizei coun
 
 #ifndef GL_NV_vertex_program4
 #define GL_NV_vertex_program4 1
-enum
+enum : GLenum
 {
     GL_VERTEX_ATTRIB_ARRAY_INTEGER_NV                       = 0x88FD,
 };
@@ -10756,7 +10771,7 @@ enum
 
 #ifndef GL_NV_video_capture
 #define GL_NV_video_capture 1
-enum
+enum : GLenum
 {
     GL_VIDEO_BUFFER_NV                                      = 0x9020,
     GL_VIDEO_BUFFER_BINDING_NV                              = 0x9021,
@@ -10788,18 +10803,18 @@ enum
     GL_VIDEO_CAPTURE_FIELD_LOWER_HEIGHT_NV                  = 0x903B,
     GL_VIDEO_CAPTURE_SURFACE_ORIGIN_NV                      = 0x903C,
 };
-extern void         (* const& glBeginVideoCaptureNV) (GLuint video_capture_slot);
-extern void         (* const& glBindVideoCaptureStreamBufferNV) (GLuint video_capture_slot, GLuint stream, GLenum frame_region, GLintptrARB offset);
-extern void         (* const& glBindVideoCaptureStreamTextureNV) (GLuint video_capture_slot, GLuint stream, GLenum frame_region, GLenum target, GLuint texture);
-extern void         (* const& glEndVideoCaptureNV) (GLuint video_capture_slot);
-extern void         (* const& glGetVideoCaptureivNV) (GLuint video_capture_slot, GLenum pname, GLint *params);
-extern void         (* const& glGetVideoCaptureStreamivNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, GLint *params);
-extern void         (* const& glGetVideoCaptureStreamfvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, GLfloat *params);
-extern void         (* const& glGetVideoCaptureStreamdvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, GLdouble *params);
-extern GLenum       (* const& glVideoCaptureNV) (GLuint video_capture_slot, GLuint *sequence_num, GLuint64EXT *capture_time);
-extern void         (* const& glVideoCaptureStreamParameterivNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, const GLint *params);
-extern void         (* const& glVideoCaptureStreamParameterfvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, const GLfloat *params);
-extern void         (* const& glVideoCaptureStreamParameterdvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, const GLdouble *params);
+extern void         (KHRONOS_APIENTRY* const& glBeginVideoCaptureNV) (GLuint video_capture_slot);
+extern void         (KHRONOS_APIENTRY* const& glBindVideoCaptureStreamBufferNV) (GLuint video_capture_slot, GLuint stream, GLenum frame_region, GLintptrARB offset);
+extern void         (KHRONOS_APIENTRY* const& glBindVideoCaptureStreamTextureNV) (GLuint video_capture_slot, GLuint stream, GLenum frame_region, GLenum target, GLuint texture);
+extern void         (KHRONOS_APIENTRY* const& glEndVideoCaptureNV) (GLuint video_capture_slot);
+extern void         (KHRONOS_APIENTRY* const& glGetVideoCaptureivNV) (GLuint video_capture_slot, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVideoCaptureStreamivNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVideoCaptureStreamfvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetVideoCaptureStreamdvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, GLdouble *params);
+extern GLenum       (KHRONOS_APIENTRY* const& glVideoCaptureNV) (GLuint video_capture_slot, GLuint *sequence_num, GLuint64EXT *capture_time);
+extern void         (KHRONOS_APIENTRY* const& glVideoCaptureStreamParameterivNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glVideoCaptureStreamParameterfvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glVideoCaptureStreamParameterdvNV) (GLuint video_capture_slot, GLuint stream, GLenum pname, const GLdouble *params);
 #endif
 
 #ifndef GL_NV_viewport_array2
@@ -10808,7 +10823,7 @@ extern void         (* const& glVideoCaptureStreamParameterdvNV) (GLuint video_c
 
 #ifndef GL_NV_viewport_swizzle
 #define GL_NV_viewport_swizzle 1
-enum
+enum : GLenum
 {
     GL_VIEWPORT_SWIZZLE_POSITIVE_X_NV                       = 0x9350,
     GL_VIEWPORT_SWIZZLE_NEGATIVE_X_NV                       = 0x9351,
@@ -10823,38 +10838,38 @@ enum
     GL_VIEWPORT_SWIZZLE_Z_NV                                = 0x935A,
     GL_VIEWPORT_SWIZZLE_W_NV                                = 0x935B,
 };
-extern void         (* const& glViewportSwizzleNV) (GLuint index, GLenum swizzlex, GLenum swizzley, GLenum swizzlez, GLenum swizzlew);
+extern void         (KHRONOS_APIENTRY* const& glViewportSwizzleNV) (GLuint index, GLenum swizzlex, GLenum swizzley, GLenum swizzlez, GLenum swizzlew);
 #endif
 
 #ifndef GL_OES_byte_coordinates
 #define GL_OES_byte_coordinates 1
-extern void         (* const& glMultiTexCoord1bOES) (GLenum texture, GLbyte s);
-extern void         (* const& glMultiTexCoord1bvOES) (GLenum texture, const GLbyte *coords);
-extern void         (* const& glMultiTexCoord2bOES) (GLenum texture, GLbyte s, GLbyte t);
-extern void         (* const& glMultiTexCoord2bvOES) (GLenum texture, const GLbyte *coords);
-extern void         (* const& glMultiTexCoord3bOES) (GLenum texture, GLbyte s, GLbyte t, GLbyte r);
-extern void         (* const& glMultiTexCoord3bvOES) (GLenum texture, const GLbyte *coords);
-extern void         (* const& glMultiTexCoord4bOES) (GLenum texture, GLbyte s, GLbyte t, GLbyte r, GLbyte q);
-extern void         (* const& glMultiTexCoord4bvOES) (GLenum texture, const GLbyte *coords);
-extern void         (* const& glTexCoord1bOES) (GLbyte s);
-extern void         (* const& glTexCoord1bvOES) (const GLbyte *coords);
-extern void         (* const& glTexCoord2bOES) (GLbyte s, GLbyte t);
-extern void         (* const& glTexCoord2bvOES) (const GLbyte *coords);
-extern void         (* const& glTexCoord3bOES) (GLbyte s, GLbyte t, GLbyte r);
-extern void         (* const& glTexCoord3bvOES) (const GLbyte *coords);
-extern void         (* const& glTexCoord4bOES) (GLbyte s, GLbyte t, GLbyte r, GLbyte q);
-extern void         (* const& glTexCoord4bvOES) (const GLbyte *coords);
-extern void         (* const& glVertex2bOES) (GLbyte x, GLbyte y);
-extern void         (* const& glVertex2bvOES) (const GLbyte *coords);
-extern void         (* const& glVertex3bOES) (GLbyte x, GLbyte y, GLbyte z);
-extern void         (* const& glVertex3bvOES) (const GLbyte *coords);
-extern void         (* const& glVertex4bOES) (GLbyte x, GLbyte y, GLbyte z, GLbyte w);
-extern void         (* const& glVertex4bvOES) (const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1bOES) (GLenum texture, GLbyte s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1bvOES) (GLenum texture, const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2bOES) (GLenum texture, GLbyte s, GLbyte t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2bvOES) (GLenum texture, const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3bOES) (GLenum texture, GLbyte s, GLbyte t, GLbyte r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3bvOES) (GLenum texture, const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4bOES) (GLenum texture, GLbyte s, GLbyte t, GLbyte r, GLbyte q);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4bvOES) (GLenum texture, const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1bOES) (GLbyte s);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1bvOES) (const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2bOES) (GLbyte s, GLbyte t);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2bvOES) (const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3bOES) (GLbyte s, GLbyte t, GLbyte r);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3bvOES) (const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4bOES) (GLbyte s, GLbyte t, GLbyte r, GLbyte q);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4bvOES) (const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertex2bOES) (GLbyte x, GLbyte y);
+extern void         (KHRONOS_APIENTRY* const& glVertex2bvOES) (const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertex3bOES) (GLbyte x, GLbyte y, GLbyte z);
+extern void         (KHRONOS_APIENTRY* const& glVertex3bvOES) (const GLbyte *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertex4bOES) (GLbyte x, GLbyte y, GLbyte z, GLbyte w);
+extern void         (KHRONOS_APIENTRY* const& glVertex4bvOES) (const GLbyte *coords);
 #endif
 
 #ifndef GL_OES_compressed_paletted_texture
 #define GL_OES_compressed_paletted_texture 1
-enum
+enum : GLenum
 {
     GL_PALETTE4_RGB8_OES                                    = 0x8B90,
     GL_PALETTE4_RGBA8_OES                                   = 0x8B91,
@@ -10871,127 +10886,127 @@ enum
 
 #ifndef GL_OES_fixed_point
 #define GL_OES_fixed_point 1
-enum
+enum : GLenum
 {
     GL_FIXED_OES                                            = 0x140C,
 };
-extern void         (* const& glAlphaFuncxOES) (GLenum func, GLfixed ref);
-extern void         (* const& glClearColorxOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
-extern void         (* const& glClearDepthxOES) (GLfixed depth);
-extern void         (* const& glClipPlanexOES) (GLenum plane, const GLfixed *equation);
-extern void         (* const& glColor4xOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
-extern void         (* const& glDepthRangexOES) (GLfixed n, GLfixed f);
-extern void         (* const& glFogxOES) (GLenum pname, GLfixed param);
-extern void         (* const& glFogxvOES) (GLenum pname, const GLfixed *param);
-extern void         (* const& glFrustumxOES) (GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f);
-extern void         (* const& glGetClipPlanexOES) (GLenum plane, GLfixed *equation);
-extern void         (* const& glGetFixedvOES) (GLenum pname, GLfixed *params);
-extern void         (* const& glGetTexEnvxvOES) (GLenum target, GLenum pname, GLfixed *params);
-extern void         (* const& glGetTexParameterxvOES) (GLenum target, GLenum pname, GLfixed *params);
-extern void         (* const& glLightModelxOES) (GLenum pname, GLfixed param);
-extern void         (* const& glLightModelxvOES) (GLenum pname, const GLfixed *param);
-extern void         (* const& glLightxOES) (GLenum light, GLenum pname, GLfixed param);
-extern void         (* const& glLightxvOES) (GLenum light, GLenum pname, const GLfixed *params);
-extern void         (* const& glLineWidthxOES) (GLfixed width);
-extern void         (* const& glLoadMatrixxOES) (const GLfixed *m);
-extern void         (* const& glMaterialxOES) (GLenum face, GLenum pname, GLfixed param);
-extern void         (* const& glMaterialxvOES) (GLenum face, GLenum pname, const GLfixed *param);
-extern void         (* const& glMultMatrixxOES) (const GLfixed *m);
-extern void         (* const& glMultiTexCoord4xOES) (GLenum texture, GLfixed s, GLfixed t, GLfixed r, GLfixed q);
-extern void         (* const& glNormal3xOES) (GLfixed nx, GLfixed ny, GLfixed nz);
-extern void         (* const& glOrthoxOES) (GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f);
-extern void         (* const& glPointParameterxvOES) (GLenum pname, const GLfixed *params);
-extern void         (* const& glPointSizexOES) (GLfixed size);
-extern void         (* const& glPolygonOffsetxOES) (GLfixed factor, GLfixed units);
-extern void         (* const& glRotatexOES) (GLfixed angle, GLfixed x, GLfixed y, GLfixed z);
-extern void         (* const& glScalexOES) (GLfixed x, GLfixed y, GLfixed z);
-extern void         (* const& glTexEnvxOES) (GLenum target, GLenum pname, GLfixed param);
-extern void         (* const& glTexEnvxvOES) (GLenum target, GLenum pname, const GLfixed *params);
-extern void         (* const& glTexParameterxOES) (GLenum target, GLenum pname, GLfixed param);
-extern void         (* const& glTexParameterxvOES) (GLenum target, GLenum pname, const GLfixed *params);
-extern void         (* const& glTranslatexOES) (GLfixed x, GLfixed y, GLfixed z);
-extern void         (* const& glGetLightxvOES) (GLenum light, GLenum pname, GLfixed *params);
-extern void         (* const& glGetMaterialxvOES) (GLenum face, GLenum pname, GLfixed *params);
-extern void         (* const& glPointParameterxOES) (GLenum pname, GLfixed param);
-extern void         (* const& glSampleCoveragexOES) (GLclampx value, GLboolean invert);
-extern void         (* const& glAccumxOES) (GLenum op, GLfixed value);
-extern void         (* const& glBitmapxOES) (GLsizei width, GLsizei height, GLfixed xorig, GLfixed yorig, GLfixed xmove, GLfixed ymove, const GLubyte *bitmap);
-extern void         (* const& glBlendColorxOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
-extern void         (* const& glClearAccumxOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
-extern void         (* const& glColor3xOES) (GLfixed red, GLfixed green, GLfixed blue);
-extern void         (* const& glColor3xvOES) (const GLfixed *components);
-extern void         (* const& glColor4xvOES) (const GLfixed *components);
-extern void         (* const& glConvolutionParameterxOES) (GLenum target, GLenum pname, GLfixed param);
-extern void         (* const& glConvolutionParameterxvOES) (GLenum target, GLenum pname, const GLfixed *params);
-extern void         (* const& glEvalCoord1xOES) (GLfixed u);
-extern void         (* const& glEvalCoord1xvOES) (const GLfixed *coords);
-extern void         (* const& glEvalCoord2xOES) (GLfixed u, GLfixed v);
-extern void         (* const& glEvalCoord2xvOES) (const GLfixed *coords);
-extern void         (* const& glFeedbackBufferxOES) (GLsizei n, GLenum type, const GLfixed *buffer);
-extern void         (* const& glGetConvolutionParameterxvOES) (GLenum target, GLenum pname, GLfixed *params);
-extern void         (* const& glGetHistogramParameterxvOES) (GLenum target, GLenum pname, GLfixed *params);
-extern void         (* const& glGetLightxOES) (GLenum light, GLenum pname, GLfixed *params);
-extern void         (* const& glGetMapxvOES) (GLenum target, GLenum query, GLfixed *v);
-extern void         (* const& glGetMaterialxOES) (GLenum face, GLenum pname, GLfixed param);
-extern void         (* const& glGetPixelMapxv) (GLenum map, GLint size, GLfixed *values);
-extern void         (* const& glGetTexGenxvOES) (GLenum coord, GLenum pname, GLfixed *params);
-extern void         (* const& glGetTexLevelParameterxvOES) (GLenum target, GLint level, GLenum pname, GLfixed *params);
-extern void         (* const& glIndexxOES) (GLfixed component);
-extern void         (* const& glIndexxvOES) (const GLfixed *component);
-extern void         (* const& glLoadTransposeMatrixxOES) (const GLfixed *m);
-extern void         (* const& glMap1xOES) (GLenum target, GLfixed u1, GLfixed u2, GLint stride, GLint order, GLfixed points);
-extern void         (* const& glMap2xOES) (GLenum target, GLfixed u1, GLfixed u2, GLint ustride, GLint uorder, GLfixed v1, GLfixed v2, GLint vstride, GLint vorder, GLfixed points);
-extern void         (* const& glMapGrid1xOES) (GLint n, GLfixed u1, GLfixed u2);
-extern void         (* const& glMapGrid2xOES) (GLint n, GLfixed u1, GLfixed u2, GLfixed v1, GLfixed v2);
-extern void         (* const& glMultTransposeMatrixxOES) (const GLfixed *m);
-extern void         (* const& glMultiTexCoord1xOES) (GLenum texture, GLfixed s);
-extern void         (* const& glMultiTexCoord1xvOES) (GLenum texture, const GLfixed *coords);
-extern void         (* const& glMultiTexCoord2xOES) (GLenum texture, GLfixed s, GLfixed t);
-extern void         (* const& glMultiTexCoord2xvOES) (GLenum texture, const GLfixed *coords);
-extern void         (* const& glMultiTexCoord3xOES) (GLenum texture, GLfixed s, GLfixed t, GLfixed r);
-extern void         (* const& glMultiTexCoord3xvOES) (GLenum texture, const GLfixed *coords);
-extern void         (* const& glMultiTexCoord4xvOES) (GLenum texture, const GLfixed *coords);
-extern void         (* const& glNormal3xvOES) (const GLfixed *coords);
-extern void         (* const& glPassThroughxOES) (GLfixed token);
-extern void         (* const& glPixelMapx) (GLenum map, GLint size, const GLfixed *values);
-extern void         (* const& glPixelStorex) (GLenum pname, GLfixed param);
-extern void         (* const& glPixelTransferxOES) (GLenum pname, GLfixed param);
-extern void         (* const& glPixelZoomxOES) (GLfixed xfactor, GLfixed yfactor);
-extern void         (* const& glPrioritizeTexturesxOES) (GLsizei n, const GLuint *textures, const GLfixed *priorities);
-extern void         (* const& glRasterPos2xOES) (GLfixed x, GLfixed y);
-extern void         (* const& glRasterPos2xvOES) (const GLfixed *coords);
-extern void         (* const& glRasterPos3xOES) (GLfixed x, GLfixed y, GLfixed z);
-extern void         (* const& glRasterPos3xvOES) (const GLfixed *coords);
-extern void         (* const& glRasterPos4xOES) (GLfixed x, GLfixed y, GLfixed z, GLfixed w);
-extern void         (* const& glRasterPos4xvOES) (const GLfixed *coords);
-extern void         (* const& glRectxOES) (GLfixed x1, GLfixed y1, GLfixed x2, GLfixed y2);
-extern void         (* const& glRectxvOES) (const GLfixed *v1, const GLfixed *v2);
-extern void         (* const& glTexCoord1xOES) (GLfixed s);
-extern void         (* const& glTexCoord1xvOES) (const GLfixed *coords);
-extern void         (* const& glTexCoord2xOES) (GLfixed s, GLfixed t);
-extern void         (* const& glTexCoord2xvOES) (const GLfixed *coords);
-extern void         (* const& glTexCoord3xOES) (GLfixed s, GLfixed t, GLfixed r);
-extern void         (* const& glTexCoord3xvOES) (const GLfixed *coords);
-extern void         (* const& glTexCoord4xOES) (GLfixed s, GLfixed t, GLfixed r, GLfixed q);
-extern void         (* const& glTexCoord4xvOES) (const GLfixed *coords);
-extern void         (* const& glTexGenxOES) (GLenum coord, GLenum pname, GLfixed param);
-extern void         (* const& glTexGenxvOES) (GLenum coord, GLenum pname, const GLfixed *params);
-extern void         (* const& glVertex2xOES) (GLfixed x);
-extern void         (* const& glVertex2xvOES) (const GLfixed *coords);
-extern void         (* const& glVertex3xOES) (GLfixed x, GLfixed y);
-extern void         (* const& glVertex3xvOES) (const GLfixed *coords);
-extern void         (* const& glVertex4xOES) (GLfixed x, GLfixed y, GLfixed z);
-extern void         (* const& glVertex4xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glAlphaFuncxOES) (GLenum func, GLfixed ref);
+extern void         (KHRONOS_APIENTRY* const& glClearColorxOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
+extern void         (KHRONOS_APIENTRY* const& glClearDepthxOES) (GLfixed depth);
+extern void         (KHRONOS_APIENTRY* const& glClipPlanexOES) (GLenum plane, const GLfixed *equation);
+extern void         (KHRONOS_APIENTRY* const& glColor4xOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangexOES) (GLfixed n, GLfixed f);
+extern void         (KHRONOS_APIENTRY* const& glFogxOES) (GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glFogxvOES) (GLenum pname, const GLfixed *param);
+extern void         (KHRONOS_APIENTRY* const& glFrustumxOES) (GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f);
+extern void         (KHRONOS_APIENTRY* const& glGetClipPlanexOES) (GLenum plane, GLfixed *equation);
+extern void         (KHRONOS_APIENTRY* const& glGetFixedvOES) (GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexEnvxvOES) (GLenum target, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexParameterxvOES) (GLenum target, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glLightModelxOES) (GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glLightModelxvOES) (GLenum pname, const GLfixed *param);
+extern void         (KHRONOS_APIENTRY* const& glLightxOES) (GLenum light, GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glLightxvOES) (GLenum light, GLenum pname, const GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glLineWidthxOES) (GLfixed width);
+extern void         (KHRONOS_APIENTRY* const& glLoadMatrixxOES) (const GLfixed *m);
+extern void         (KHRONOS_APIENTRY* const& glMaterialxOES) (GLenum face, GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glMaterialxvOES) (GLenum face, GLenum pname, const GLfixed *param);
+extern void         (KHRONOS_APIENTRY* const& glMultMatrixxOES) (const GLfixed *m);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4xOES) (GLenum texture, GLfixed s, GLfixed t, GLfixed r, GLfixed q);
+extern void         (KHRONOS_APIENTRY* const& glNormal3xOES) (GLfixed nx, GLfixed ny, GLfixed nz);
+extern void         (KHRONOS_APIENTRY* const& glOrthoxOES) (GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterxvOES) (GLenum pname, const GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glPointSizexOES) (GLfixed size);
+extern void         (KHRONOS_APIENTRY* const& glPolygonOffsetxOES) (GLfixed factor, GLfixed units);
+extern void         (KHRONOS_APIENTRY* const& glRotatexOES) (GLfixed angle, GLfixed x, GLfixed y, GLfixed z);
+extern void         (KHRONOS_APIENTRY* const& glScalexOES) (GLfixed x, GLfixed y, GLfixed z);
+extern void         (KHRONOS_APIENTRY* const& glTexEnvxOES) (GLenum target, GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glTexEnvxvOES) (GLenum target, GLenum pname, const GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterxOES) (GLenum target, GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glTexParameterxvOES) (GLenum target, GLenum pname, const GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glTranslatexOES) (GLfixed x, GLfixed y, GLfixed z);
+extern void         (KHRONOS_APIENTRY* const& glGetLightxvOES) (GLenum light, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMaterialxvOES) (GLenum face, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterxOES) (GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glSampleCoveragexOES) (GLclampx value, GLboolean invert);
+extern void         (KHRONOS_APIENTRY* const& glAccumxOES) (GLenum op, GLfixed value);
+extern void         (KHRONOS_APIENTRY* const& glBitmapxOES) (GLsizei width, GLsizei height, GLfixed xorig, GLfixed yorig, GLfixed xmove, GLfixed ymove, const GLubyte *bitmap);
+extern void         (KHRONOS_APIENTRY* const& glBlendColorxOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
+extern void         (KHRONOS_APIENTRY* const& glClearAccumxOES) (GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha);
+extern void         (KHRONOS_APIENTRY* const& glColor3xOES) (GLfixed red, GLfixed green, GLfixed blue);
+extern void         (KHRONOS_APIENTRY* const& glColor3xvOES) (const GLfixed *components);
+extern void         (KHRONOS_APIENTRY* const& glColor4xvOES) (const GLfixed *components);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameterxOES) (GLenum target, GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glConvolutionParameterxvOES) (GLenum target, GLenum pname, const GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord1xOES) (GLfixed u);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord1xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord2xOES) (GLfixed u, GLfixed v);
+extern void         (KHRONOS_APIENTRY* const& glEvalCoord2xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glFeedbackBufferxOES) (GLsizei n, GLenum type, const GLfixed *buffer);
+extern void         (KHRONOS_APIENTRY* const& glGetConvolutionParameterxvOES) (GLenum target, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glGetHistogramParameterxvOES) (GLenum target, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glGetLightxOES) (GLenum light, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glGetMapxvOES) (GLenum target, GLenum query, GLfixed *v);
+extern void         (KHRONOS_APIENTRY* const& glGetMaterialxOES) (GLenum face, GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelMapxv) (GLenum map, GLint size, GLfixed *values);
+extern void         (KHRONOS_APIENTRY* const& glGetTexGenxvOES) (GLenum coord, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glGetTexLevelParameterxvOES) (GLenum target, GLint level, GLenum pname, GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glIndexxOES) (GLfixed component);
+extern void         (KHRONOS_APIENTRY* const& glIndexxvOES) (const GLfixed *component);
+extern void         (KHRONOS_APIENTRY* const& glLoadTransposeMatrixxOES) (const GLfixed *m);
+extern void         (KHRONOS_APIENTRY* const& glMap1xOES) (GLenum target, GLfixed u1, GLfixed u2, GLint stride, GLint order, GLfixed points);
+extern void         (KHRONOS_APIENTRY* const& glMap2xOES) (GLenum target, GLfixed u1, GLfixed u2, GLint ustride, GLint uorder, GLfixed v1, GLfixed v2, GLint vstride, GLint vorder, GLfixed points);
+extern void         (KHRONOS_APIENTRY* const& glMapGrid1xOES) (GLint n, GLfixed u1, GLfixed u2);
+extern void         (KHRONOS_APIENTRY* const& glMapGrid2xOES) (GLint n, GLfixed u1, GLfixed u2, GLfixed v1, GLfixed v2);
+extern void         (KHRONOS_APIENTRY* const& glMultTransposeMatrixxOES) (const GLfixed *m);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1xOES) (GLenum texture, GLfixed s);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord1xvOES) (GLenum texture, const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2xOES) (GLenum texture, GLfixed s, GLfixed t);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord2xvOES) (GLenum texture, const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3xOES) (GLenum texture, GLfixed s, GLfixed t, GLfixed r);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord3xvOES) (GLenum texture, const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glMultiTexCoord4xvOES) (GLenum texture, const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glNormal3xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glPassThroughxOES) (GLfixed token);
+extern void         (KHRONOS_APIENTRY* const& glPixelMapx) (GLenum map, GLint size, const GLfixed *values);
+extern void         (KHRONOS_APIENTRY* const& glPixelStorex) (GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glPixelTransferxOES) (GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glPixelZoomxOES) (GLfixed xfactor, GLfixed yfactor);
+extern void         (KHRONOS_APIENTRY* const& glPrioritizeTexturesxOES) (GLsizei n, const GLuint *textures, const GLfixed *priorities);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2xOES) (GLfixed x, GLfixed y);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos2xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3xOES) (GLfixed x, GLfixed y, GLfixed z);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos3xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4xOES) (GLfixed x, GLfixed y, GLfixed z, GLfixed w);
+extern void         (KHRONOS_APIENTRY* const& glRasterPos4xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glRectxOES) (GLfixed x1, GLfixed y1, GLfixed x2, GLfixed y2);
+extern void         (KHRONOS_APIENTRY* const& glRectxvOES) (const GLfixed *v1, const GLfixed *v2);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1xOES) (GLfixed s);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord1xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2xOES) (GLfixed s, GLfixed t);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3xOES) (GLfixed s, GLfixed t, GLfixed r);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord3xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4xOES) (GLfixed s, GLfixed t, GLfixed r, GLfixed q);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glTexGenxOES) (GLenum coord, GLenum pname, GLfixed param);
+extern void         (KHRONOS_APIENTRY* const& glTexGenxvOES) (GLenum coord, GLenum pname, const GLfixed *params);
+extern void         (KHRONOS_APIENTRY* const& glVertex2xOES) (GLfixed x);
+extern void         (KHRONOS_APIENTRY* const& glVertex2xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertex3xOES) (GLfixed x, GLfixed y);
+extern void         (KHRONOS_APIENTRY* const& glVertex3xvOES) (const GLfixed *coords);
+extern void         (KHRONOS_APIENTRY* const& glVertex4xOES) (GLfixed x, GLfixed y, GLfixed z);
+extern void         (KHRONOS_APIENTRY* const& glVertex4xvOES) (const GLfixed *coords);
 #endif
 
 #ifndef GL_OES_query_matrix
 #define GL_OES_query_matrix 1
-extern GLbitfield   (* const& glQueryMatrixxOES) (GLfixed *mantissa, GLint *exponent);
+extern GLbitfield   (KHRONOS_APIENTRY* const& glQueryMatrixxOES) (GLfixed *mantissa, GLint *exponent);
 #endif
 
 #ifndef GL_OES_read_format
 #define GL_OES_read_format 1
-enum
+enum : GLenum
 {
     GL_IMPLEMENTATION_COLOR_READ_TYPE_OES                   = 0x8B9A,
     GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES                 = 0x8B9B,
@@ -11000,17 +11015,17 @@ enum
 
 #ifndef GL_OES_single_precision
 #define GL_OES_single_precision 1
-extern void         (* const& glClearDepthfOES) (GLclampf depth);
-extern void         (* const& glClipPlanefOES) (GLenum plane, const GLfloat *equation);
-extern void         (* const& glDepthRangefOES) (GLclampf n, GLclampf f);
-extern void         (* const& glFrustumfOES) (GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f);
-extern void         (* const& glGetClipPlanefOES) (GLenum plane, GLfloat *equation);
-extern void         (* const& glOrthofOES) (GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f);
+extern void         (KHRONOS_APIENTRY* const& glClearDepthfOES) (GLclampf depth);
+extern void         (KHRONOS_APIENTRY* const& glClipPlanefOES) (GLenum plane, const GLfloat *equation);
+extern void         (KHRONOS_APIENTRY* const& glDepthRangefOES) (GLclampf n, GLclampf f);
+extern void         (KHRONOS_APIENTRY* const& glFrustumfOES) (GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f);
+extern void         (KHRONOS_APIENTRY* const& glGetClipPlanefOES) (GLenum plane, GLfloat *equation);
+extern void         (KHRONOS_APIENTRY* const& glOrthofOES) (GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f);
 #endif
 
 #ifndef GL_OML_interlace
 #define GL_OML_interlace 1
-enum
+enum : GLenum
 {
     GL_INTERLACE_OML                                        = 0x8980,
     GL_INTERLACE_READ_OML                                   = 0x8981,
@@ -11019,7 +11034,7 @@ enum
 
 #ifndef GL_OML_resample
 #define GL_OML_resample 1
-enum
+enum : GLenum
 {
     GL_PACK_RESAMPLE_OML                                    = 0x8984,
     GL_UNPACK_RESAMPLE_OML                                  = 0x8985,
@@ -11032,7 +11047,7 @@ enum
 
 #ifndef GL_OML_subsample
 #define GL_OML_subsample 1
-enum
+enum : GLenum
 {
     GL_FORMAT_SUBSAMPLE_24_24_OML                           = 0x8982,
     GL_FORMAT_SUBSAMPLE_244_244_OML                         = 0x8983,
@@ -11041,14 +11056,14 @@ enum
 
 #ifndef GL_OVR_multiview
 #define GL_OVR_multiview 1
-enum
+enum : GLenum
 {
     GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_NUM_VIEWS_OVR         = 0x9630,
     GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_BASE_VIEW_INDEX_OVR   = 0x9632,
     GL_MAX_VIEWS_OVR                                        = 0x9631,
     GL_FRAMEBUFFER_INCOMPLETE_VIEW_TARGETS_OVR              = 0x9633,
 };
-extern void         (* const& glFramebufferTextureMultiviewOVR) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
+extern void         (KHRONOS_APIENTRY* const& glFramebufferTextureMultiviewOVR) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint baseViewIndex, GLsizei numViews);
 #endif
 
 #ifndef GL_OVR_multiview2
@@ -11057,7 +11072,7 @@ extern void         (* const& glFramebufferTextureMultiviewOVR) (GLenum target, 
 
 #ifndef GL_PGI_misc_hints
 #define GL_PGI_misc_hints 1
-enum
+enum : GLenum
 {
     GL_PREFER_DOUBLEBUFFER_HINT_PGI                         = 0x1A1F8,
     GL_CONSERVE_MEMORY_HINT_PGI                             = 0x1A1FD,
@@ -11080,12 +11095,12 @@ enum
     GL_WIDE_LINE_HINT_PGI                                   = 0x1A222,
     GL_BACK_NORMALS_HINT_PGI                                = 0x1A223,
 };
-extern void         (* const& glHintPGI) (GLenum target, GLint mode);
+extern void         (KHRONOS_APIENTRY* const& glHintPGI) (GLenum target, GLint mode);
 #endif
 
 #ifndef GL_PGI_vertex_hints
 #define GL_PGI_vertex_hints 1
-enum
+enum : GLenum
 {
     GL_VERTEX_DATA_HINT_PGI                                 = 0x1A22A,
     GL_VERTEX_CONSISTENT_HINT_PGI                           = 0x1A22B,
@@ -11114,7 +11129,7 @@ enum
 
 #ifndef GL_REND_screen_coordinates
 #define GL_REND_screen_coordinates 1
-enum
+enum : GLenum
 {
     GL_SCREEN_COORDINATES_REND                              = 0x8490,
     GL_INVERTED_SCREEN_W_REND                               = 0x8491,
@@ -11123,7 +11138,7 @@ enum
 
 #ifndef GL_S3_s3tc
 #define GL_S3_s3tc 1
-enum
+enum : GLenum
 {
     GL_RGB_S3TC                                             = 0x83A0,
     GL_RGB4_S3TC                                            = 0x83A1,
@@ -11136,7 +11151,7 @@ enum
 
 #ifndef GL_SGIS_detail_texture
 #define GL_SGIS_detail_texture 1
-enum
+enum : GLenum
 {
     GL_DETAIL_TEXTURE_2D_SGIS                               = 0x8095,
     GL_DETAIL_TEXTURE_2D_BINDING_SGIS                       = 0x8096,
@@ -11147,25 +11162,25 @@ enum
     GL_DETAIL_TEXTURE_MODE_SGIS                             = 0x809B,
     GL_DETAIL_TEXTURE_FUNC_POINTS_SGIS                      = 0x809C,
 };
-extern void         (* const& glDetailTexFuncSGIS) (GLenum target, GLsizei n, const GLfloat *points);
-extern void         (* const& glGetDetailTexFuncSGIS) (GLenum target, GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glDetailTexFuncSGIS) (GLenum target, GLsizei n, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glGetDetailTexFuncSGIS) (GLenum target, GLfloat *points);
 #endif
 
 #ifndef GL_SGIS_fog_function
 #define GL_SGIS_fog_function 1
-enum
+enum : GLenum
 {
     GL_FOG_FUNC_SGIS                                        = 0x812A,
     GL_FOG_FUNC_POINTS_SGIS                                 = 0x812B,
     GL_MAX_FOG_FUNC_POINTS_SGIS                             = 0x812C,
 };
-extern void         (* const& glFogFuncSGIS) (GLsizei n, const GLfloat *points);
-extern void         (* const& glGetFogFuncSGIS) (GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glFogFuncSGIS) (GLsizei n, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glGetFogFuncSGIS) (GLfloat *points);
 #endif
 
 #ifndef GL_SGIS_generate_mipmap
 #define GL_SGIS_generate_mipmap 1
-enum
+enum : GLenum
 {
     GL_GENERATE_MIPMAP_SGIS                                 = 0x8191,
     GL_GENERATE_MIPMAP_HINT_SGIS                            = 0x8192,
@@ -11174,7 +11189,7 @@ enum
 
 #ifndef GL_SGIS_multisample
 #define GL_SGIS_multisample 1
-enum
+enum : GLenum
 {
     GL_MULTISAMPLE_SGIS                                     = 0x809D,
     GL_SAMPLE_ALPHA_TO_MASK_SGIS                            = 0x809E,
@@ -11193,30 +11208,30 @@ enum
     GL_SAMPLE_MASK_INVERT_SGIS                              = 0x80AB,
     GL_SAMPLE_PATTERN_SGIS                                  = 0x80AC,
 };
-extern void         (* const& glSampleMaskSGIS) (GLclampf value, GLboolean invert);
-extern void         (* const& glSamplePatternSGIS) (GLenum pattern);
+extern void         (KHRONOS_APIENTRY* const& glSampleMaskSGIS) (GLclampf value, GLboolean invert);
+extern void         (KHRONOS_APIENTRY* const& glSamplePatternSGIS) (GLenum pattern);
 #endif
 
 #ifndef GL_SGIS_pixel_texture
 #define GL_SGIS_pixel_texture 1
-enum
+enum : GLenum
 {
     GL_PIXEL_TEXTURE_SGIS                                   = 0x8353,
     GL_PIXEL_FRAGMENT_RGB_SOURCE_SGIS                       = 0x8354,
     GL_PIXEL_FRAGMENT_ALPHA_SOURCE_SGIS                     = 0x8355,
     GL_PIXEL_GROUP_COLOR_SGIS                               = 0x8356,
 };
-extern void         (* const& glPixelTexGenParameteriSGIS) (GLenum pname, GLint param);
-extern void         (* const& glPixelTexGenParameterivSGIS) (GLenum pname, const GLint *params);
-extern void         (* const& glPixelTexGenParameterfSGIS) (GLenum pname, GLfloat param);
-extern void         (* const& glPixelTexGenParameterfvSGIS) (GLenum pname, const GLfloat *params);
-extern void         (* const& glGetPixelTexGenParameterivSGIS) (GLenum pname, GLint *params);
-extern void         (* const& glGetPixelTexGenParameterfvSGIS) (GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glPixelTexGenParameteriSGIS) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glPixelTexGenParameterivSGIS) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glPixelTexGenParameterfSGIS) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPixelTexGenParameterfvSGIS) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelTexGenParameterivSGIS) (GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetPixelTexGenParameterfvSGIS) (GLenum pname, GLfloat *params);
 #endif
 
 #ifndef GL_SGIS_point_line_texgen
 #define GL_SGIS_point_line_texgen 1
-enum
+enum : GLenum
 {
     GL_EYE_DISTANCE_TO_POINT_SGIS                           = 0x81F0,
     GL_OBJECT_DISTANCE_TO_POINT_SGIS                        = 0x81F1,
@@ -11231,33 +11246,33 @@ enum
 
 #ifndef GL_SGIS_point_parameters
 #define GL_SGIS_point_parameters 1
-enum
+enum : GLenum
 {
     GL_POINT_SIZE_MIN_SGIS                                  = 0x8126,
     GL_POINT_SIZE_MAX_SGIS                                  = 0x8127,
     GL_POINT_FADE_THRESHOLD_SIZE_SGIS                       = 0x8128,
     GL_DISTANCE_ATTENUATION_SGIS                            = 0x8129,
 };
-extern void         (* const& glPointParameterfSGIS) (GLenum pname, GLfloat param);
-extern void         (* const& glPointParameterfvSGIS) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterfSGIS) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glPointParameterfvSGIS) (GLenum pname, const GLfloat *params);
 #endif
 
 #ifndef GL_SGIS_sharpen_texture
 #define GL_SGIS_sharpen_texture 1
-enum
+enum : GLenum
 {
     GL_LINEAR_SHARPEN_SGIS                                  = 0x80AD,
     GL_LINEAR_SHARPEN_ALPHA_SGIS                            = 0x80AE,
     GL_LINEAR_SHARPEN_COLOR_SGIS                            = 0x80AF,
     GL_SHARPEN_TEXTURE_FUNC_POINTS_SGIS                     = 0x80B0,
 };
-extern void         (* const& glSharpenTexFuncSGIS) (GLenum target, GLsizei n, const GLfloat *points);
-extern void         (* const& glGetSharpenTexFuncSGIS) (GLenum target, GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glSharpenTexFuncSGIS) (GLenum target, GLsizei n, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glGetSharpenTexFuncSGIS) (GLenum target, GLfloat *points);
 #endif
 
 #ifndef GL_SGIS_texture4D
 #define GL_SGIS_texture4D 1
-enum
+enum : GLenum
 {
     GL_PACK_SKIP_VOLUMES_SGIS                               = 0x8130,
     GL_PACK_IMAGE_DEPTH_SGIS                                = 0x8131,
@@ -11270,13 +11285,13 @@ enum
     GL_MAX_4D_TEXTURE_SIZE_SGIS                             = 0x8138,
     GL_TEXTURE_4D_BINDING_SGIS                              = 0x814F,
 };
-extern void         (* const& glTexImage4DSGIS) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLsizei size4d, GLint border, GLenum format, GLenum type, const void *pixels);
-extern void         (* const& glTexSubImage4DSGIS) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint woffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei size4d, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexImage4DSGIS) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLsizei size4d, GLint border, GLenum format, GLenum type, const void *pixels);
+extern void         (KHRONOS_APIENTRY* const& glTexSubImage4DSGIS) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint woffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei size4d, GLenum format, GLenum type, const void *pixels);
 #endif
 
 #ifndef GL_SGIS_texture_border_clamp
 #define GL_SGIS_texture_border_clamp 1
-enum
+enum : GLenum
 {
     GL_CLAMP_TO_BORDER_SGIS                                 = 0x812D,
 };
@@ -11284,16 +11299,16 @@ enum
 
 #ifndef GL_SGIS_texture_color_mask
 #define GL_SGIS_texture_color_mask 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_COLOR_WRITEMASK_SGIS                         = 0x81EF,
 };
-extern void         (* const& glTextureColorMaskSGIS) (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
+extern void         (KHRONOS_APIENTRY* const& glTextureColorMaskSGIS) (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 #endif
 
 #ifndef GL_SGIS_texture_edge_clamp
 #define GL_SGIS_texture_edge_clamp 1
-enum
+enum : GLenum
 {
     GL_CLAMP_TO_EDGE_SGIS                                   = 0x812F,
 };
@@ -11301,18 +11316,18 @@ enum
 
 #ifndef GL_SGIS_texture_filter4
 #define GL_SGIS_texture_filter4 1
-enum
+enum : GLenum
 {
     GL_FILTER4_SGIS                                         = 0x8146,
     GL_TEXTURE_FILTER4_SIZE_SGIS                            = 0x8147,
 };
-extern void         (* const& glGetTexFilterFuncSGIS) (GLenum target, GLenum filter, GLfloat *weights);
-extern void         (* const& glTexFilterFuncSGIS) (GLenum target, GLenum filter, GLsizei n, const GLfloat *weights);
+extern void         (KHRONOS_APIENTRY* const& glGetTexFilterFuncSGIS) (GLenum target, GLenum filter, GLfloat *weights);
+extern void         (KHRONOS_APIENTRY* const& glTexFilterFuncSGIS) (GLenum target, GLenum filter, GLsizei n, const GLfloat *weights);
 #endif
 
 #ifndef GL_SGIS_texture_lod
 #define GL_SGIS_texture_lod 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_MIN_LOD_SGIS                                 = 0x813A,
     GL_TEXTURE_MAX_LOD_SGIS                                 = 0x813B,
@@ -11323,7 +11338,7 @@ enum
 
 #ifndef GL_SGIS_texture_select
 #define GL_SGIS_texture_select 1
-enum
+enum : GLenum
 {
     GL_DUAL_ALPHA4_SGIS                                     = 0x8110,
     GL_DUAL_ALPHA8_SGIS                                     = 0x8111,
@@ -11352,21 +11367,21 @@ enum
 
 #ifndef GL_SGIX_async
 #define GL_SGIX_async 1
-enum
+enum : GLenum
 {
     GL_ASYNC_MARKER_SGIX                                    = 0x8329,
 };
-extern void         (* const& glAsyncMarkerSGIX) (GLuint marker);
-extern GLint        (* const& glFinishAsyncSGIX) (GLuint *markerp);
-extern GLint        (* const& glPollAsyncSGIX) (GLuint *markerp);
-extern GLuint       (* const& glGenAsyncMarkersSGIX) (GLsizei range);
-extern void         (* const& glDeleteAsyncMarkersSGIX) (GLuint marker, GLsizei range);
-extern GLboolean    (* const& glIsAsyncMarkerSGIX) (GLuint marker);
+extern void         (KHRONOS_APIENTRY* const& glAsyncMarkerSGIX) (GLuint marker);
+extern GLint        (KHRONOS_APIENTRY* const& glFinishAsyncSGIX) (GLuint *markerp);
+extern GLint        (KHRONOS_APIENTRY* const& glPollAsyncSGIX) (GLuint *markerp);
+extern GLuint       (KHRONOS_APIENTRY* const& glGenAsyncMarkersSGIX) (GLsizei range);
+extern void         (KHRONOS_APIENTRY* const& glDeleteAsyncMarkersSGIX) (GLuint marker, GLsizei range);
+extern GLboolean    (KHRONOS_APIENTRY* const& glIsAsyncMarkerSGIX) (GLuint marker);
 #endif
 
 #ifndef GL_SGIX_async_histogram
 #define GL_SGIX_async_histogram 1
-enum
+enum : GLenum
 {
     GL_ASYNC_HISTOGRAM_SGIX                                 = 0x832C,
     GL_MAX_ASYNC_HISTOGRAM_SGIX                             = 0x832D,
@@ -11375,7 +11390,7 @@ enum
 
 #ifndef GL_SGIX_async_pixel
 #define GL_SGIX_async_pixel 1
-enum
+enum : GLenum
 {
     GL_ASYNC_TEX_IMAGE_SGIX                                 = 0x835C,
     GL_ASYNC_DRAW_PIXELS_SGIX                               = 0x835D,
@@ -11388,7 +11403,7 @@ enum
 
 #ifndef GL_SGIX_blend_alpha_minmax
 #define GL_SGIX_blend_alpha_minmax 1
-enum
+enum : GLenum
 {
     GL_ALPHA_MIN_SGIX                                       = 0x8320,
     GL_ALPHA_MAX_SGIX                                       = 0x8321,
@@ -11397,7 +11412,7 @@ enum
 
 #ifndef GL_SGIX_calligraphic_fragment
 #define GL_SGIX_calligraphic_fragment 1
-enum
+enum : GLenum
 {
     GL_CALLIGRAPHIC_FRAGMENT_SGIX                           = 0x8183,
 };
@@ -11405,7 +11420,7 @@ enum
 
 #ifndef GL_SGIX_clipmap
 #define GL_SGIX_clipmap 1
-enum
+enum : GLenum
 {
     GL_LINEAR_CLIPMAP_LINEAR_SGIX                           = 0x8170,
     GL_TEXTURE_CLIPMAP_CENTER_SGIX                          = 0x8171,
@@ -11424,7 +11439,7 @@ enum
 
 #ifndef GL_SGIX_convolution_accuracy
 #define GL_SGIX_convolution_accuracy 1
-enum
+enum : GLenum
 {
     GL_CONVOLUTION_HINT_SGIX                                = 0x8316,
 };
@@ -11436,7 +11451,7 @@ enum
 
 #ifndef GL_SGIX_depth_texture
 #define GL_SGIX_depth_texture 1
-enum
+enum : GLenum
 {
     GL_DEPTH_COMPONENT16_SGIX                               = 0x81A5,
     GL_DEPTH_COMPONENT24_SGIX                               = 0x81A6,
@@ -11446,12 +11461,12 @@ enum
 
 #ifndef GL_SGIX_flush_raster
 #define GL_SGIX_flush_raster 1
-extern void         (* const& glFlushRasterSGIX) ();
+extern void         (KHRONOS_APIENTRY* const& glFlushRasterSGIX) ();
 #endif
 
 #ifndef GL_SGIX_fog_offset
 #define GL_SGIX_fog_offset 1
-enum
+enum : GLenum
 {
     GL_FOG_OFFSET_SGIX                                      = 0x8198,
     GL_FOG_OFFSET_VALUE_SGIX                                = 0x8199,
@@ -11460,7 +11475,7 @@ enum
 
 #ifndef GL_SGIX_fragment_lighting
 #define GL_SGIX_fragment_lighting 1
-enum
+enum : GLenum
 {
     GL_FRAGMENT_LIGHTING_SGIX                               = 0x8400,
     GL_FRAGMENT_COLOR_MATERIAL_SGIX                         = 0x8401,
@@ -11483,60 +11498,60 @@ enum
     GL_FRAGMENT_LIGHT6_SGIX                                 = 0x8412,
     GL_FRAGMENT_LIGHT7_SGIX                                 = 0x8413,
 };
-extern void         (* const& glFragmentColorMaterialSGIX) (GLenum face, GLenum mode);
-extern void         (* const& glFragmentLightfSGIX) (GLenum light, GLenum pname, GLfloat param);
-extern void         (* const& glFragmentLightfvSGIX) (GLenum light, GLenum pname, const GLfloat *params);
-extern void         (* const& glFragmentLightiSGIX) (GLenum light, GLenum pname, GLint param);
-extern void         (* const& glFragmentLightivSGIX) (GLenum light, GLenum pname, const GLint *params);
-extern void         (* const& glFragmentLightModelfSGIX) (GLenum pname, GLfloat param);
-extern void         (* const& glFragmentLightModelfvSGIX) (GLenum pname, const GLfloat *params);
-extern void         (* const& glFragmentLightModeliSGIX) (GLenum pname, GLint param);
-extern void         (* const& glFragmentLightModelivSGIX) (GLenum pname, const GLint *params);
-extern void         (* const& glFragmentMaterialfSGIX) (GLenum face, GLenum pname, GLfloat param);
-extern void         (* const& glFragmentMaterialfvSGIX) (GLenum face, GLenum pname, const GLfloat *params);
-extern void         (* const& glFragmentMaterialiSGIX) (GLenum face, GLenum pname, GLint param);
-extern void         (* const& glFragmentMaterialivSGIX) (GLenum face, GLenum pname, const GLint *params);
-extern void         (* const& glGetFragmentLightfvSGIX) (GLenum light, GLenum pname, GLfloat *params);
-extern void         (* const& glGetFragmentLightivSGIX) (GLenum light, GLenum pname, GLint *params);
-extern void         (* const& glGetFragmentMaterialfvSGIX) (GLenum face, GLenum pname, GLfloat *params);
-extern void         (* const& glGetFragmentMaterialivSGIX) (GLenum face, GLenum pname, GLint *params);
-extern void         (* const& glLightEnviSGIX) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glFragmentColorMaterialSGIX) (GLenum face, GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightfSGIX) (GLenum light, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightfvSGIX) (GLenum light, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightiSGIX) (GLenum light, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightivSGIX) (GLenum light, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightModelfSGIX) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightModelfvSGIX) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightModeliSGIX) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glFragmentLightModelivSGIX) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glFragmentMaterialfSGIX) (GLenum face, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glFragmentMaterialfvSGIX) (GLenum face, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glFragmentMaterialiSGIX) (GLenum face, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glFragmentMaterialivSGIX) (GLenum face, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetFragmentLightfvSGIX) (GLenum light, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetFragmentLightivSGIX) (GLenum light, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetFragmentMaterialfvSGIX) (GLenum face, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetFragmentMaterialivSGIX) (GLenum face, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glLightEnviSGIX) (GLenum pname, GLint param);
 #endif
 
 #ifndef GL_SGIX_framezoom
 #define GL_SGIX_framezoom 1
-enum
+enum : GLenum
 {
     GL_FRAMEZOOM_SGIX                                       = 0x818B,
     GL_FRAMEZOOM_FACTOR_SGIX                                = 0x818C,
     GL_MAX_FRAMEZOOM_FACTOR_SGIX                            = 0x818D,
 };
-extern void         (* const& glFrameZoomSGIX) (GLint factor);
+extern void         (KHRONOS_APIENTRY* const& glFrameZoomSGIX) (GLint factor);
 #endif
 
 #ifndef GL_SGIX_igloo_interface
 #define GL_SGIX_igloo_interface 1
-extern void         (* const& glIglooInterfaceSGIX) (GLenum pname, const void *params);
+extern void         (KHRONOS_APIENTRY* const& glIglooInterfaceSGIX) (GLenum pname, const void *params);
 #endif
 
 #ifndef GL_SGIX_instruments
 #define GL_SGIX_instruments 1
-enum
+enum : GLenum
 {
     GL_INSTRUMENT_BUFFER_POINTER_SGIX                       = 0x8180,
     GL_INSTRUMENT_MEASUREMENTS_SGIX                         = 0x8181,
 };
-extern GLint        (* const& glGetInstrumentsSGIX) ();
-extern void         (* const& glInstrumentsBufferSGIX) (GLsizei size, GLint *buffer);
-extern GLint        (* const& glPollInstrumentsSGIX) (GLint *marker_p);
-extern void         (* const& glReadInstrumentsSGIX) (GLint marker);
-extern void         (* const& glStartInstrumentsSGIX) ();
-extern void         (* const& glStopInstrumentsSGIX) (GLint marker);
+extern GLint        (KHRONOS_APIENTRY* const& glGetInstrumentsSGIX) ();
+extern void         (KHRONOS_APIENTRY* const& glInstrumentsBufferSGIX) (GLsizei size, GLint *buffer);
+extern GLint        (KHRONOS_APIENTRY* const& glPollInstrumentsSGIX) (GLint *marker_p);
+extern void         (KHRONOS_APIENTRY* const& glReadInstrumentsSGIX) (GLint marker);
+extern void         (KHRONOS_APIENTRY* const& glStartInstrumentsSGIX) ();
+extern void         (KHRONOS_APIENTRY* const& glStopInstrumentsSGIX) (GLint marker);
 #endif
 
 #ifndef GL_SGIX_interlace
 #define GL_SGIX_interlace 1
-enum
+enum : GLenum
 {
     GL_INTERLACE_SGIX                                       = 0x8094,
 };
@@ -11544,7 +11559,7 @@ enum
 
 #ifndef GL_SGIX_ir_instrument1
 #define GL_SGIX_ir_instrument1 1
-enum
+enum : GLenum
 {
     GL_IR_INSTRUMENT1_SGIX                                  = 0x817F,
 };
@@ -11552,31 +11567,31 @@ enum
 
 #ifndef GL_SGIX_list_priority
 #define GL_SGIX_list_priority 1
-enum
+enum : GLenum
 {
     GL_LIST_PRIORITY_SGIX                                   = 0x8182,
 };
-extern void         (* const& glGetListParameterfvSGIX) (GLuint list, GLenum pname, GLfloat *params);
-extern void         (* const& glGetListParameterivSGIX) (GLuint list, GLenum pname, GLint *params);
-extern void         (* const& glListParameterfSGIX) (GLuint list, GLenum pname, GLfloat param);
-extern void         (* const& glListParameterfvSGIX) (GLuint list, GLenum pname, const GLfloat *params);
-extern void         (* const& glListParameteriSGIX) (GLuint list, GLenum pname, GLint param);
-extern void         (* const& glListParameterivSGIX) (GLuint list, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glGetListParameterfvSGIX) (GLuint list, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetListParameterivSGIX) (GLuint list, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glListParameterfSGIX) (GLuint list, GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glListParameterfvSGIX) (GLuint list, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glListParameteriSGIX) (GLuint list, GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glListParameterivSGIX) (GLuint list, GLenum pname, const GLint *params);
 #endif
 
 #ifndef GL_SGIX_pixel_texture
 #define GL_SGIX_pixel_texture 1
-enum
+enum : GLenum
 {
     GL_PIXEL_TEX_GEN_SGIX                                   = 0x8139,
     GL_PIXEL_TEX_GEN_MODE_SGIX                              = 0x832B,
 };
-extern void         (* const& glPixelTexGenSGIX) (GLenum mode);
+extern void         (KHRONOS_APIENTRY* const& glPixelTexGenSGIX) (GLenum mode);
 #endif
 
 #ifndef GL_SGIX_pixel_tiles
 #define GL_SGIX_pixel_tiles 1
-enum
+enum : GLenum
 {
     GL_PIXEL_TILE_BEST_ALIGNMENT_SGIX                       = 0x813E,
     GL_PIXEL_TILE_CACHE_INCREMENT_SGIX                      = 0x813F,
@@ -11591,7 +11606,7 @@ enum
 
 #ifndef GL_SGIX_polynomial_ffd
 #define GL_SGIX_polynomial_ffd 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_DEFORMATION_BIT_SGIX                         = 0x00000001,
     GL_GEOMETRY_DEFORMATION_BIT_SGIX                        = 0x00000002,
@@ -11600,25 +11615,25 @@ enum
     GL_DEFORMATIONS_MASK_SGIX                               = 0x8196,
     GL_MAX_DEFORMATION_ORDER_SGIX                           = 0x8197,
 };
-extern void         (* const& glDeformationMap3dSGIX) (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, GLdouble w1, GLdouble w2, GLint wstride, GLint worder, const GLdouble *points);
-extern void         (* const& glDeformationMap3fSGIX) (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, GLfloat w1, GLfloat w2, GLint wstride, GLint worder, const GLfloat *points);
-extern void         (* const& glDeformSGIX) (GLbitfield mask);
-extern void         (* const& glLoadIdentityDeformationMapSGIX) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glDeformationMap3dSGIX) (GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, GLdouble w1, GLdouble w2, GLint wstride, GLint worder, const GLdouble *points);
+extern void         (KHRONOS_APIENTRY* const& glDeformationMap3fSGIX) (GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, GLfloat w1, GLfloat w2, GLint wstride, GLint worder, const GLfloat *points);
+extern void         (KHRONOS_APIENTRY* const& glDeformSGIX) (GLbitfield mask);
+extern void         (KHRONOS_APIENTRY* const& glLoadIdentityDeformationMapSGIX) (GLbitfield mask);
 #endif
 
 #ifndef GL_SGIX_reference_plane
 #define GL_SGIX_reference_plane 1
-enum
+enum : GLenum
 {
     GL_REFERENCE_PLANE_SGIX                                 = 0x817D,
     GL_REFERENCE_PLANE_EQUATION_SGIX                        = 0x817E,
 };
-extern void         (* const& glReferencePlaneSGIX) (const GLdouble *equation);
+extern void         (KHRONOS_APIENTRY* const& glReferencePlaneSGIX) (const GLdouble *equation);
 #endif
 
 #ifndef GL_SGIX_resample
 #define GL_SGIX_resample 1
-enum
+enum : GLenum
 {
     GL_PACK_RESAMPLE_SGIX                                   = 0x842E,
     GL_UNPACK_RESAMPLE_SGIX                                 = 0x842F,
@@ -11630,7 +11645,7 @@ enum
 
 #ifndef GL_SGIX_scalebias_hint
 #define GL_SGIX_scalebias_hint 1
-enum
+enum : GLenum
 {
     GL_SCALEBIAS_HINT_SGIX                                  = 0x8322,
 };
@@ -11638,7 +11653,7 @@ enum
 
 #ifndef GL_SGIX_shadow
 #define GL_SGIX_shadow 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_COMPARE_SGIX                                 = 0x819A,
     GL_TEXTURE_COMPARE_OPERATOR_SGIX                        = 0x819B,
@@ -11649,7 +11664,7 @@ enum
 
 #ifndef GL_SGIX_shadow_ambient
 #define GL_SGIX_shadow_ambient 1
-enum
+enum : GLenum
 {
     GL_SHADOW_AMBIENT_SGIX                                  = 0x80BF,
 };
@@ -11657,7 +11672,7 @@ enum
 
 #ifndef GL_SGIX_sprite
 #define GL_SGIX_sprite 1
-enum
+enum : GLenum
 {
     GL_SPRITE_SGIX                                          = 0x8148,
     GL_SPRITE_MODE_SGIX                                     = 0x8149,
@@ -11667,15 +11682,15 @@ enum
     GL_SPRITE_OBJECT_ALIGNED_SGIX                           = 0x814D,
     GL_SPRITE_EYE_ALIGNED_SGIX                              = 0x814E,
 };
-extern void         (* const& glSpriteParameterfSGIX) (GLenum pname, GLfloat param);
-extern void         (* const& glSpriteParameterfvSGIX) (GLenum pname, const GLfloat *params);
-extern void         (* const& glSpriteParameteriSGIX) (GLenum pname, GLint param);
-extern void         (* const& glSpriteParameterivSGIX) (GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glSpriteParameterfSGIX) (GLenum pname, GLfloat param);
+extern void         (KHRONOS_APIENTRY* const& glSpriteParameterfvSGIX) (GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glSpriteParameteriSGIX) (GLenum pname, GLint param);
+extern void         (KHRONOS_APIENTRY* const& glSpriteParameterivSGIX) (GLenum pname, const GLint *params);
 #endif
 
 #ifndef GL_SGIX_subsample
 #define GL_SGIX_subsample 1
-enum
+enum : GLenum
 {
     GL_PACK_SUBSAMPLE_RATE_SGIX                             = 0x85A0,
     GL_UNPACK_SUBSAMPLE_RATE_SGIX                           = 0x85A1,
@@ -11687,12 +11702,12 @@ enum
 
 #ifndef GL_SGIX_tag_sample_buffer
 #define GL_SGIX_tag_sample_buffer 1
-extern void         (* const& glTagSampleBufferSGIX) ();
+extern void         (KHRONOS_APIENTRY* const& glTagSampleBufferSGIX) ();
 #endif
 
 #ifndef GL_SGIX_texture_add_env
 #define GL_SGIX_texture_add_env 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_ENV_BIAS_SGIX                                = 0x80BE,
 };
@@ -11700,7 +11715,7 @@ enum
 
 #ifndef GL_SGIX_texture_coordinate_clamp
 #define GL_SGIX_texture_coordinate_clamp 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_MAX_CLAMP_S_SGIX                             = 0x8369,
     GL_TEXTURE_MAX_CLAMP_T_SGIX                             = 0x836A,
@@ -11710,7 +11725,7 @@ enum
 
 #ifndef GL_SGIX_texture_lod_bias
 #define GL_SGIX_texture_lod_bias 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_LOD_BIAS_S_SGIX                              = 0x818E,
     GL_TEXTURE_LOD_BIAS_T_SGIX                              = 0x818F,
@@ -11720,7 +11735,7 @@ enum
 
 #ifndef GL_SGIX_texture_multi_buffer
 #define GL_SGIX_texture_multi_buffer 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_MULTI_BUFFER_HINT_SGIX                       = 0x812E,
 };
@@ -11728,7 +11743,7 @@ enum
 
 #ifndef GL_SGIX_texture_scale_bias
 #define GL_SGIX_texture_scale_bias 1
-enum
+enum : GLenum
 {
     GL_POST_TEXTURE_FILTER_BIAS_SGIX                        = 0x8179,
     GL_POST_TEXTURE_FILTER_SCALE_SGIX                       = 0x817A,
@@ -11739,7 +11754,7 @@ enum
 
 #ifndef GL_SGIX_vertex_preclip
 #define GL_SGIX_vertex_preclip 1
-enum
+enum : GLenum
 {
     GL_VERTEX_PRECLIP_SGIX                                  = 0x83EE,
     GL_VERTEX_PRECLIP_HINT_SGIX                             = 0x83EF,
@@ -11748,7 +11763,7 @@ enum
 
 #ifndef GL_SGIX_ycrcb
 #define GL_SGIX_ycrcb 1
-enum
+enum : GLenum
 {
     GL_YCRCB_422_SGIX                                       = 0x81BB,
     GL_YCRCB_444_SGIX                                       = 0x81BC,
@@ -11761,7 +11776,7 @@ enum
 
 #ifndef GL_SGIX_ycrcba
 #define GL_SGIX_ycrcba 1
-enum
+enum : GLenum
 {
     GL_YCRCB_SGIX                                           = 0x8318,
     GL_YCRCBA_SGIX                                          = 0x8319,
@@ -11770,7 +11785,7 @@ enum
 
 #ifndef GL_SGI_color_matrix
 #define GL_SGI_color_matrix 1
-enum
+enum : GLenum
 {
     GL_COLOR_MATRIX_SGI                                     = 0x80B1,
     GL_COLOR_MATRIX_STACK_DEPTH_SGI                         = 0x80B2,
@@ -11788,7 +11803,7 @@ enum
 
 #ifndef GL_SGI_color_table
 #define GL_SGI_color_table 1
-enum
+enum : GLenum
 {
     GL_COLOR_TABLE_SGI                                      = 0x80D0,
     GL_POST_CONVOLUTION_COLOR_TABLE_SGI                     = 0x80D1,
@@ -11807,18 +11822,18 @@ enum
     GL_COLOR_TABLE_LUMINANCE_SIZE_SGI                       = 0x80DE,
     GL_COLOR_TABLE_INTENSITY_SIZE_SGI                       = 0x80DF,
 };
-extern void         (* const& glColorTableSGI) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table);
-extern void         (* const& glColorTableParameterfvSGI) (GLenum target, GLenum pname, const GLfloat *params);
-extern void         (* const& glColorTableParameterivSGI) (GLenum target, GLenum pname, const GLint *params);
-extern void         (* const& glCopyColorTableSGI) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
-extern void         (* const& glGetColorTableSGI) (GLenum target, GLenum format, GLenum type, void *table);
-extern void         (* const& glGetColorTableParameterfvSGI) (GLenum target, GLenum pname, GLfloat *params);
-extern void         (* const& glGetColorTableParameterivSGI) (GLenum target, GLenum pname, GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glColorTableSGI) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table);
+extern void         (KHRONOS_APIENTRY* const& glColorTableParameterfvSGI) (GLenum target, GLenum pname, const GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glColorTableParameterivSGI) (GLenum target, GLenum pname, const GLint *params);
+extern void         (KHRONOS_APIENTRY* const& glCopyColorTableSGI) (GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableSGI) (GLenum target, GLenum format, GLenum type, void *table);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableParameterfvSGI) (GLenum target, GLenum pname, GLfloat *params);
+extern void         (KHRONOS_APIENTRY* const& glGetColorTableParameterivSGI) (GLenum target, GLenum pname, GLint *params);
 #endif
 
 #ifndef GL_SGI_texture_color_table
 #define GL_SGI_texture_color_table 1
-enum
+enum : GLenum
 {
     GL_TEXTURE_COLOR_TABLE_SGI                              = 0x80BC,
     GL_PROXY_TEXTURE_COLOR_TABLE_SGI                        = 0x80BD,
@@ -11827,17 +11842,17 @@ enum
 
 #ifndef GL_SUNX_constant_data
 #define GL_SUNX_constant_data 1
-enum
+enum : GLenum
 {
     GL_UNPACK_CONSTANT_DATA_SUNX                            = 0x81D5,
     GL_TEXTURE_CONSTANT_DATA_SUNX                           = 0x81D6,
 };
-extern void         (* const& glFinishTextureSUNX) ();
+extern void         (KHRONOS_APIENTRY* const& glFinishTextureSUNX) ();
 #endif
 
 #ifndef GL_SUN_convolution_border_modes
 #define GL_SUN_convolution_border_modes 1
-enum
+enum : GLenum
 {
     GL_WRAP_BORDER_SUN                                      = 0x81D4,
 };
@@ -11845,34 +11860,34 @@ enum
 
 #ifndef GL_SUN_global_alpha
 #define GL_SUN_global_alpha 1
-enum
+enum : GLenum
 {
     GL_GLOBAL_ALPHA_SUN                                     = 0x81D9,
     GL_GLOBAL_ALPHA_FACTOR_SUN                              = 0x81DA,
 };
-extern void         (* const& glGlobalAlphaFactorbSUN) (GLbyte factor);
-extern void         (* const& glGlobalAlphaFactorsSUN) (GLshort factor);
-extern void         (* const& glGlobalAlphaFactoriSUN) (GLint factor);
-extern void         (* const& glGlobalAlphaFactorfSUN) (GLfloat factor);
-extern void         (* const& glGlobalAlphaFactordSUN) (GLdouble factor);
-extern void         (* const& glGlobalAlphaFactorubSUN) (GLubyte factor);
-extern void         (* const& glGlobalAlphaFactorusSUN) (GLushort factor);
-extern void         (* const& glGlobalAlphaFactoruiSUN) (GLuint factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactorbSUN) (GLbyte factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactorsSUN) (GLshort factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactoriSUN) (GLint factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactorfSUN) (GLfloat factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactordSUN) (GLdouble factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactorubSUN) (GLubyte factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactorusSUN) (GLushort factor);
+extern void         (KHRONOS_APIENTRY* const& glGlobalAlphaFactoruiSUN) (GLuint factor);
 #endif
 
 #ifndef GL_SUN_mesh_array
 #define GL_SUN_mesh_array 1
-enum
+enum : GLenum
 {
     GL_QUAD_MESH_SUN                                        = 0x8614,
     GL_TRIANGLE_MESH_SUN                                    = 0x8615,
 };
-extern void         (* const& glDrawMeshArraysSUN) (GLenum mode, GLint first, GLsizei count, GLsizei width);
+extern void         (KHRONOS_APIENTRY* const& glDrawMeshArraysSUN) (GLenum mode, GLint first, GLsizei count, GLsizei width);
 #endif
 
 #ifndef GL_SUN_slice_accum
 #define GL_SUN_slice_accum 1
-enum
+enum : GLenum
 {
     GL_SLICE_ACCUM_SUN                                      = 0x85CC,
 };
@@ -11880,7 +11895,7 @@ enum
 
 #ifndef GL_SUN_triangle_list
 #define GL_SUN_triangle_list 1
-enum
+enum : GLenum
 {
     GL_RESTART_SUN                                          = 0x0001,
     GL_REPLACE_MIDDLE_SUN                                   = 0x0002,
@@ -11900,62 +11915,62 @@ enum
     GL_R1UI_T2F_N3F_V3F_SUN                                 = 0x85CA,
     GL_R1UI_T2F_C4F_N3F_V3F_SUN                             = 0x85CB,
 };
-extern void         (* const& glReplacementCodeuiSUN) (GLuint code);
-extern void         (* const& glReplacementCodeusSUN) (GLushort code);
-extern void         (* const& glReplacementCodeubSUN) (GLubyte code);
-extern void         (* const& glReplacementCodeuivSUN) (const GLuint *code);
-extern void         (* const& glReplacementCodeusvSUN) (const GLushort *code);
-extern void         (* const& glReplacementCodeubvSUN) (const GLubyte *code);
-extern void         (* const& glReplacementCodePointerSUN) (GLenum type, GLsizei stride, const void **pointer);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiSUN) (GLuint code);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeusSUN) (GLushort code);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeubSUN) (GLubyte code);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuivSUN) (const GLuint *code);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeusvSUN) (const GLushort *code);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeubvSUN) (const GLubyte *code);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodePointerSUN) (GLenum type, GLsizei stride, const void **pointer);
 #endif
 
 #ifndef GL_SUN_vertex
 #define GL_SUN_vertex 1
-extern void         (* const& glColor4ubVertex2fSUN) (GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y);
-extern void         (* const& glColor4ubVertex2fvSUN) (const GLubyte *c, const GLfloat *v);
-extern void         (* const& glColor4ubVertex3fSUN) (GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glColor4ubVertex3fvSUN) (const GLubyte *c, const GLfloat *v);
-extern void         (* const& glColor3fVertex3fSUN) (GLfloat r, GLfloat g, GLfloat b, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glColor3fVertex3fvSUN) (const GLfloat *c, const GLfloat *v);
-extern void         (* const& glNormal3fVertex3fSUN) (GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glNormal3fVertex3fvSUN) (const GLfloat *n, const GLfloat *v);
-extern void         (* const& glColor4fNormal3fVertex3fSUN) (GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glColor4fNormal3fVertex3fvSUN) (const GLfloat *c, const GLfloat *n, const GLfloat *v);
-extern void         (* const& glTexCoord2fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glTexCoord2fVertex3fvSUN) (const GLfloat *tc, const GLfloat *v);
-extern void         (* const& glTexCoord4fVertex4fSUN) (GLfloat s, GLfloat t, GLfloat p, GLfloat q, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glTexCoord4fVertex4fvSUN) (const GLfloat *tc, const GLfloat *v);
-extern void         (* const& glTexCoord2fColor4ubVertex3fSUN) (GLfloat s, GLfloat t, GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glTexCoord2fColor4ubVertex3fvSUN) (const GLfloat *tc, const GLubyte *c, const GLfloat *v);
-extern void         (* const& glTexCoord2fColor3fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glTexCoord2fColor3fVertex3fvSUN) (const GLfloat *tc, const GLfloat *c, const GLfloat *v);
-extern void         (* const& glTexCoord2fNormal3fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glTexCoord2fNormal3fVertex3fvSUN) (const GLfloat *tc, const GLfloat *n, const GLfloat *v);
-extern void         (* const& glTexCoord2fColor4fNormal3fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glTexCoord2fColor4fNormal3fVertex3fvSUN) (const GLfloat *tc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
-extern void         (* const& glTexCoord4fColor4fNormal3fVertex4fSUN) (GLfloat s, GLfloat t, GLfloat p, GLfloat q, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-extern void         (* const& glTexCoord4fColor4fNormal3fVertex4fvSUN) (const GLfloat *tc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiVertex3fSUN) (GLuint rc, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiVertex3fvSUN) (const GLuint *rc, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiColor4ubVertex3fSUN) (GLuint rc, GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiColor4ubVertex3fvSUN) (const GLuint *rc, const GLubyte *c, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiColor3fVertex3fSUN) (GLuint rc, GLfloat r, GLfloat g, GLfloat b, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiColor3fVertex3fvSUN) (const GLuint *rc, const GLfloat *c, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiNormal3fVertex3fSUN) (GLuint rc, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *n, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiColor4fNormal3fVertex3fSUN) (GLuint rc, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiColor4fNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiTexCoord2fVertex3fSUN) (GLuint rc, GLfloat s, GLfloat t, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiTexCoord2fVertex3fvSUN) (const GLuint *rc, const GLfloat *tc, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiTexCoord2fNormal3fVertex3fSUN) (GLuint rc, GLfloat s, GLfloat t, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *tc, const GLfloat *n, const GLfloat *v);
-extern void         (* const& glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN) (GLuint rc, GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
-extern void         (* const& glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *tc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4ubVertex2fSUN) (GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y);
+extern void         (KHRONOS_APIENTRY* const& glColor4ubVertex2fvSUN) (const GLubyte *c, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4ubVertex3fSUN) (GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glColor4ubVertex3fvSUN) (const GLubyte *c, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glColor3fVertex3fSUN) (GLfloat r, GLfloat g, GLfloat b, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glColor3fVertex3fvSUN) (const GLfloat *c, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glNormal3fVertex3fSUN) (GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glNormal3fVertex3fvSUN) (const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glColor4fNormal3fVertex3fSUN) (GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glColor4fNormal3fVertex3fvSUN) (const GLfloat *c, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fVertex3fvSUN) (const GLfloat *tc, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4fVertex4fSUN) (GLfloat s, GLfloat t, GLfloat p, GLfloat q, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4fVertex4fvSUN) (const GLfloat *tc, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fColor4ubVertex3fSUN) (GLfloat s, GLfloat t, GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fColor4ubVertex3fvSUN) (const GLfloat *tc, const GLubyte *c, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fColor3fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fColor3fVertex3fvSUN) (const GLfloat *tc, const GLfloat *c, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fNormal3fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fNormal3fVertex3fvSUN) (const GLfloat *tc, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fColor4fNormal3fVertex3fSUN) (GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord2fColor4fNormal3fVertex3fvSUN) (const GLfloat *tc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4fColor4fNormal3fVertex4fSUN) (GLfloat s, GLfloat t, GLfloat p, GLfloat q, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+extern void         (KHRONOS_APIENTRY* const& glTexCoord4fColor4fNormal3fVertex4fvSUN) (const GLfloat *tc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiVertex3fSUN) (GLuint rc, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiVertex3fvSUN) (const GLuint *rc, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiColor4ubVertex3fSUN) (GLuint rc, GLubyte r, GLubyte g, GLubyte b, GLubyte a, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiColor4ubVertex3fvSUN) (const GLuint *rc, const GLubyte *c, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiColor3fVertex3fSUN) (GLuint rc, GLfloat r, GLfloat g, GLfloat b, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiColor3fVertex3fvSUN) (const GLuint *rc, const GLfloat *c, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiNormal3fVertex3fSUN) (GLuint rc, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiColor4fNormal3fVertex3fSUN) (GLuint rc, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiColor4fNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiTexCoord2fVertex3fSUN) (GLuint rc, GLfloat s, GLfloat t, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiTexCoord2fVertex3fvSUN) (const GLuint *rc, const GLfloat *tc, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiTexCoord2fNormal3fVertex3fSUN) (GLuint rc, GLfloat s, GLfloat t, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiTexCoord2fNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *tc, const GLfloat *n, const GLfloat *v);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fSUN) (GLuint rc, GLfloat s, GLfloat t, GLfloat r, GLfloat g, GLfloat b, GLfloat a, GLfloat nx, GLfloat ny, GLfloat nz, GLfloat x, GLfloat y, GLfloat z);
+extern void         (KHRONOS_APIENTRY* const& glReplacementCodeuiTexCoord2fColor4fNormal3fVertex3fvSUN) (const GLuint *rc, const GLfloat *tc, const GLfloat *c, const GLfloat *n, const GLfloat *v);
 #endif
 
 #ifndef GL_WIN_phong_shading
 #define GL_WIN_phong_shading 1
-enum
+enum : GLenum
 {
     GL_PHONG_WIN                                            = 0x80EA,
     GL_PHONG_HINT_WIN                                       = 0x80EB,
@@ -11964,7 +11979,7 @@ enum
 
 #ifndef GL_WIN_specular_fog
 #define GL_WIN_specular_fog 1
-enum
+enum : GLenum
 {
     GL_FOG_SPECULAR_TEXTURE_WIN                             = 0x80EC,
 };
@@ -11975,7 +11990,19 @@ enum
 #endif
 
 
+/** Load all available functions from the OpenGL core API.
+
+    This will not load extensions!
+*/
 void loadFunctions();
+
+/** Load all available OpenGL extension functions.
+
+    It's probably a good idea to stick to the core API as much as possible.
+    Extensions are not as portable, and it can be a little time-consuming to
+    load all of the extension entry-points.
+*/
+void loadExtensions();
 
 }
 }

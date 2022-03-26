@@ -28,6 +28,8 @@
 
 #include "zitaRev.h"
 
+#include "SoundboardChannelProcessor.h"
+
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -282,6 +284,7 @@ public:
     static String paramMetTempo;
     static String paramSendMetAudio;
     static String paramSendFileAudio;
+    static String paramSendSoundboardAudio;
     static String paramHearLatencyTest;
     static String paramMetIsRecorded;
     static String paramMainReverbEnabled;
@@ -296,6 +299,7 @@ public:
     static String paramAutoReconnectLast;
     static String paramDefaultPeerLevel;
     static String paramSyncMetToHost;
+    static String paramSyncMetToFilePlayback;
     static String paramInputReverbLevel;
     static String paramInputReverbSize;
     static String paramInputReverbDamping;
@@ -389,6 +393,9 @@ public:
 
     void setRemotePeerChannelReverbSend(int index, int changroup, float rgain);
     float getRemotePeerChannelReverbSend(int index, int changroup);
+
+    void setRemotePeerPolarityInvert(int index, int changroup, bool invert);
+    bool getRemotePeerPolarityInvert(int index, int changroup);
 
 
     void setRemotePeerUserName(int index, const String & name);
@@ -568,14 +575,17 @@ public:
     void setInputReverbSend(int changroup, float rgain, bool input=false);
     float getInputReverbSend(int changroup, bool input=false);
 
+    void setInputPolarityInvert(int changroup, bool invert);
+    bool getInputPolarityInvert(int changroup);
 
     void setInputEqParams(int changroup, SonoAudio::ParametricEqParams & params);
     bool getInputEqParams(int changroup, SonoAudio::ParametricEqParams & retparams);
     
     
-    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled; }
+    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity || (mInputChannelGroups[changroup].params.inReverbSend > 0.0f); }
 
-    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled; }
+    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled
+        || (mInputChannelGroups[changroup].params.monReverbSend > 0.0f); }
 
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
@@ -605,6 +615,9 @@ public:
     bool getSlidersSnapToMousePosition() const { return mSliderSnapToMouse; }
     void setSlidersSnapToMousePosition(bool flag) {  mSliderSnapToMouse = flag; }
 
+    bool getDisableKeyboardShortcuts() const { return mDisableKeyboardShortcuts; }
+    void setDisableKeyboardShortcuts(bool flag) {  mDisableKeyboardShortcuts = flag; }
+
 
 
 
@@ -619,6 +632,9 @@ public:
     
     int getRemotePeerSendPacketsize(int index) const;
     void setRemotePeerSendPacketsize(int index, int psize);
+
+    int getRemotePeerOrderPriority(int index) const;
+    void setRemotePeerOrderPriority(int index, int priority);
 
     // select by index or by peer, or don't specify for all
     void updateRemotePeerUserFormat(int index=-1, RemotePeer * onlypeer=nullptr);
@@ -738,6 +754,9 @@ public:
     void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
     String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
 
+    void setLastBrowseDirectory(String recdir)  { mLastBrowseDir = recdir; }
+    String getLastBrowseDirectory() const { return mLastBrowseDir; }
+
     uint32 getDefaultRecordingOptions() const { return mDefaultRecordingOptions; }
     void setDefaultRecordingOptions(uint32 opts) { mDefaultRecordingOptions = opts; }
 
@@ -749,6 +768,9 @@ public:
 
     bool getSelfRecordingPreFX() const { return mRecordInputPreFX; }
     void setSelfRecordingPreFX(bool flag) { mRecordInputPreFX = flag; }
+
+    bool getRecordFinishOpens() const { return mRecordFinishOpens; }
+    void setRecordFinishOpens(bool flag) { mRecordFinishOpens = flag; }
 
 
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
@@ -778,6 +800,13 @@ public:
     void setChatFontSizeOffset(int offset) { mChatFontSizeOffset = offset;}
     int getChatFontSizeOffset() const { return mChatFontSizeOffset; }
     Array<SBChatEvent, CriticalSection> & getAllChatEvents() { return mAllChatEvents; }
+
+    // soundboard
+    void setLastSoundboardWidth(int width) { mLastSoundboardWidth = width; }
+    int getLastSoundboardWidth() const { return mLastSoundboardWidth; }
+    void setLastSoundboardShown(bool shown) { mLastSoundboardShown = shown; }
+    bool getLastSoundboardShown() const { return mLastSoundboardShown; }
+    SoundboardChannelProcessor* getSoundboardProcessor() { return soundboardChannelProcessor.get(); }
 
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
@@ -811,6 +840,7 @@ private:
         SonoAudio::ChannelGroupParams channelGroupMultiParams[MAX_CHANGROUPS];
         int numMultiChanGroups = 0;
         bool modifiedChanGroups = false;
+        int orderPriority = -1;
     };
 
     // key is peer name
@@ -933,6 +963,7 @@ private:
     Atomic<float>   mMetGain    { 0.5f };
     Atomic<double>   mMetTempo    { 100.0f };
     Atomic<bool>   mSendPlaybackAudio  { false };
+    Atomic<bool>   mSendSoundboardAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };
     Atomic<bool>   mMetIsRecorded  { true };
     Atomic<bool>   mMainReverbEnabled  { false };
@@ -945,6 +976,7 @@ private:
     Atomic<bool>   mAutoReconnectLast  { false };
     Atomic<float>   mDefUserLevel    { 1.0f };
     Atomic<bool>   mSyncMetToHost  { false };
+    Atomic<bool>   mSyncMetStartToPlayback  { false };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };
@@ -980,7 +1012,7 @@ private:
 
     // acceptable limit for drop rate in dropinstance/second
     // above which it will adjust the jitter buffer in Auto modes
-    float mAutoresizeDropRateThresh = 0.2f;
+    float mAutoresizeDropRateThresh = 0.5f;
 
     bool hasInitializedInMonPanners = false;
     
@@ -1006,6 +1038,9 @@ private:
     int mChatFontSizeOffset = 0;
     // chat message storage, thread-safe
     Array<SBChatEvent, CriticalSection> mAllChatEvents;
+
+    int mLastSoundboardWidth = 250;
+    bool mLastSoundboardShown = false;
 
     int mPluginWindowWidth = 800;
     int mPluginWindowHeight = 600;
@@ -1153,10 +1188,12 @@ private:
     RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
     int mDefaultRecordingBitsPerSample = 16;
     bool mRecordInputPreFX = true;
+    bool mRecordFinishOpens = true;
     String mDefaultRecordDir;
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;
+    String mLastBrowseDir;
 
     std::atomic<bool> writingPossible = { false };
     std::atomic<bool> userWritingPossible = { false };
@@ -1179,12 +1216,17 @@ private:
     AudioFormatManager mFormatManager;
     TimeSliceThread mDiskThread  { "audio file reader" };
     URL mCurrTransportURL;
+    bool mTransportWasPlaying = false;
+
+    // soundboard
+    std::unique_ptr<SoundboardChannelProcessor> soundboardChannelProcessor;
 
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    
     // misc
     bool mSliderSnapToMouse = true;
+    bool mDisableKeyboardShortcuts = false;
 
     String mLangOverrideCode;
 

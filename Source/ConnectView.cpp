@@ -775,6 +775,8 @@ void ConnectView::connectTabChanged (int newCurrentTabIndex)
 
     // public groups
     if (adjindex == 2) {
+        // put focus somewhere a text editor won't activate on ios
+        mPublicServerAddGroupButton->grabKeyboardFocus();
         publicGroupLogin();
     }
     else if (adjindex == 1) {

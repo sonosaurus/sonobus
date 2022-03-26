@@ -660,7 +660,6 @@ void PaintElement::updateSiblingComps()
     }
 }
 
-
 void PaintElement::showPopupMenu()
 {
     auto* commandManager = &ProjucerApplication::getCommandManager();
@@ -671,7 +670,7 @@ void PaintElement::showPopupMenu()
     m.addCommandItem (commandManager, JucerCommandIDs::toBack);
     m.addSeparator();
 
-    if (owner->getSelectedElements().getNumSelected() > 1)
+    if (owner != nullptr && owner->getSelectedElements().getNumSelected() > 1)
     {
         m.addCommandItem (commandManager, JucerCommandIDs::alignTop);
         m.addCommandItem (commandManager, JucerCommandIDs::alignRight);
@@ -685,5 +684,5 @@ void PaintElement::showPopupMenu()
     m.addCommandItem (commandManager, StandardApplicationCommandIDs::paste);
     m.addCommandItem (commandManager, StandardApplicationCommandIDs::del);
 
-    m.show();
+    m.showMenuAsync ({});
 }

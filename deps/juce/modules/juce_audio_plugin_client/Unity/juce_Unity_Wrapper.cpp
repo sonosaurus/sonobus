@@ -325,9 +325,7 @@ public:
         short configs[][2] = { JucePlugin_PreferredChannelConfigurations };
         const int numConfigs = sizeof (configs) / sizeof (short[2]);
 
-        jassert (numConfigs > 0 && (configs[0][0] > 0 || configs[0][1] > 0));
-
-        ignoreUnused (numConfigs);
+        jassertquiet (numConfigs > 0 && (configs[0][0] > 0 || configs[0][1] > 0));
 
         pluginInstance->setPlayConfigDetails (configs[0][0], configs[0][1], state->sampleRate, samplesPerBlock);
        #else
@@ -367,7 +365,7 @@ public:
 
         if (parametersPtr == nullptr)
         {
-            numParams = juceParameters.params.size();
+            numParams = (int) juceParameters.size();
 
             parametersPtr.reset (static_cast<UnityAudioParameterDefinition*> (std::calloc (static_cast<size_t> (numParams),
                                                                               sizeof (UnityAudioParameterDefinition))));
@@ -376,7 +374,7 @@ public:
 
             for (int i = 0; i < numParams; ++i)
             {
-                auto* parameter = juceParameters.params[i];
+                auto* parameter = juceParameters.getParamForIndex (i);
                 auto& paramDef = parametersPtr.get()[i];
 
                 const auto nameLength = (size_t) numElementsInArray (paramDef.name);

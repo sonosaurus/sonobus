@@ -134,6 +134,9 @@ public:
     void setMobileBufferBugMitigation(bool flag);
     bool getMobileBufferBugMitigation() const;
 
+    /** Returns true if non-power-of-two textures are supported in this context. */
+    bool isTextureNpotSupported() const;
+
     /** OpenGL versions, used by setOpenGLVersionRequired(). */
     enum OpenGLVersion
     {

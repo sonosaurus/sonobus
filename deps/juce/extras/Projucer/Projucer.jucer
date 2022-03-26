@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="M70qfTRRk" name="Projucer" projectType="guiapp" juceFolder="../../juce"
-              version="6.0.8" bundleIdentifier="com.juce.theprojucer" splashScreenColour="Dark"
+              version="6.1.2" bundleIdentifier="com.juce.theprojucer" splashScreenColour="Dark"
               displaySplashScreen="0" reportAppUsage="0" companyName="Raw Material Software Limited"
-              companyCopyright="Raw Material Software Limited" cppLanguageStandard="11"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="1" jucerFormatVersion="1">
+              companyCopyright="Raw Material Software Limited" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="1" jucerFormatVersion="1">
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" vstFolder="~/SDKs/vstsdk2.4" rtasFolder="~/SDKs/PT_80_SDK"
                documentExtensions=".jucer" objCExtraSuffix="zkVtji" bigIcon="Zrx1Gl"
@@ -13,9 +13,9 @@
                applicationCategory="public.app-category.developer-tools">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" targetName="Projucer" cppLibType="libc++"
-                       recommendedWarnings="LLVM"/>
+                       recommendedWarnings="LLVM" macOSDeploymentTarget="10.12"/>
         <CONFIGURATION name="Release" isDebug="0" targetName="Projucer" cppLibType="libc++"
-                       linkTimeOptimisation="0" recommendedWarnings="LLVM"/>
+                       linkTimeOptimisation="0" recommendedWarnings="LLVM" macOSDeploymentTarget="10.12"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_gui_extra" path="../../modules"/>
@@ -205,8 +205,6 @@
         <FILE id="G0oYd6" name="export_xcode.svg" compile="0" resource="1"
               file="Source/BinaryData/Icons/export_xcode.svg"/>
         <FILE id="CfDTJ0" name="gpl_logo.svg" compile="0" resource="1" file="Source/BinaryData/Icons/gpl_logo.svg"/>
-        <FILE id="Pk2LIn" name="juce-logo-with-text.svg" compile="0" resource="1"
-              file="Source/BinaryData/Icons/juce-logo-with-text.svg"/>
         <FILE id="Zrx1Gl" name="juce_icon.png" compile="0" resource="1" file="Source/BinaryData/Icons/juce_icon.png"/>
         <FILE id="iPYmG9" name="wizard_AnimatedApp.svg" compile="0" resource="1"
               file="Source/BinaryData/Icons/wizard_AnimatedApp.svg"/>
