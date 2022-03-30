@@ -363,6 +363,8 @@ public:
 
     void clearClipIndicators();
 
+    void toggleAllMonitorDelay();
+
     void setEstimatedWidth(int estwidth) { mEstimatedWidth = estwidth; }
     int getEstimatedWidth() const { return mEstimatedWidth;}
 
@@ -381,6 +383,7 @@ protected:
     void updateLayoutForRemotePeer(bool notify=true);
     void updateLayoutForInput(bool notify=true);
 
+    void updateMonDelayButton();
 
     void configLevelSlider(Slider * slider, bool monmode=false);    
     void configLabel(Label *label, int ltype);
@@ -423,6 +426,7 @@ protected:
 
     std::unique_ptr<ChannelGroupView> mFileChannelView; // used for input
     std::unique_ptr<ChannelGroupView> mMetChannelView; // used for input
+    std::unique_ptr<ChannelGroupView> mSoundboardChannelView; // used for init
 
 
     std::unique_ptr<ChannelGroupEffectsView> mEffectsView;
@@ -435,6 +439,7 @@ protected:
     std::unique_ptr<TextButton> mAddButton;
     std::unique_ptr<TextButton> mClearButton;
     std::unique_ptr<TextButton> mInReverbButton;
+    std::unique_ptr<TextButton> mMonDelayButton;
 
     std::unique_ptr<DrawableRectangle> mInsertLine;
     std::unique_ptr<DrawableImage> mDragDrawable;
@@ -445,6 +450,7 @@ protected:
 
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMetSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mFileSendAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mSoundboardSendAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMetLevelAttachment;
 
 

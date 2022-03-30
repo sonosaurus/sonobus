@@ -30,6 +30,7 @@ public:
     class Listener {
     public:
         virtual ~Listener() {}
+        virtual void choiceButtonEmptyClick(SonoChoiceButton *comp) {}
         virtual void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) {}
     };
 
@@ -39,8 +40,8 @@ public:
     void genericItemChooserSelected(GenericItemChooser *comp, int index) override;
     
     void clearItems();
-    void addItem(const String & name, int ident);
-    void addItem(const String & name, int ident, const Image & newItemImage);
+    void addItem(const String & name, int ident, bool separator=false, bool disabled=false);
+    void addItem(const String & name, int ident, const Image & newItemImage, bool separator=false, bool disabled=false);
     
     //void setItems(const StringArray & items);
     //const StringArray & getItems() const { return items; }

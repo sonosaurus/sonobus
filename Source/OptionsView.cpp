@@ -110,8 +110,15 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
-        mOptionsFormatChoiceDefaultChoice->addItem(processor.getAudioCodeFormatName(i), i+1);
+        SonobusAudioProcessor::AudioCodecFormatInfo finfo;
+        processor.getAudioCodeFormatInfo(i, finfo);
+        auto name = finfo.name;
+        if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
+            name += String(" (*)");
+        }
+        mOptionsFormatChoiceDefaultChoice->addItem(name, i+1);
     }
+    mOptionsFormatChoiceDefaultChoice->addItem("(*) " + TRANS("not recommended"), -2, true, true);
 
     mOptionsFormatChoiceDefaultChoice->setTooltip(TRANS("The default send quality will be used when you first connect with someone. The values specified with a kbps/ch are Opus compressed audio and use less network bandwidth at the expense of a little latency. It is not recommended to use less than 96 kpbs/ch, as that will increase latency more. The PCM 16bit (and above) use uncompressed audio data and will use the most network bandwidth, but have the least latency and CPU load. If you are connecting with a known small group who all have network service that can support it, using PCM 16 bit is recommended for the lowest latency. Otherwise 96 kbps/ch is a good default."));
 
@@ -288,7 +295,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutoDropThreshSlider->setTextValueSuffix(" " + TRANS("sec"));
     mOptionsAutoDropThreshSlider->setSliderSnapsToMousePosition(false);
     mOptionsAutoDropThreshSlider->setChangeNotificationOnlyOnRelease(true);
-    mOptionsAutoDropThreshSlider->setDoubleClickReturnValue(true, 5.0);
+    mOptionsAutoDropThreshSlider->setDoubleClickReturnValue(true, 2.0);
     mOptionsAutoDropThreshSlider->setTextBoxIsEditable(false);
     mOptionsAutoDropThreshSlider->setScrollWheelEnabled(false);
     mOptionsAutoDropThreshSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));

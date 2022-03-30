@@ -31,6 +31,7 @@ class SonobusAudioProcessorEditor;
 class ChannelGroupsView;
 class MonitorDelayView;
 class ChatView;
+class SoundboardView;
 class LatencyMatchView;
 
 //==============================================================================
@@ -235,6 +236,7 @@ private:
     void showLoadSettingsPreset();
 
     void showChatPanel(bool show, bool allowresize=true);
+    void showSoundboardPanel(bool show, bool allowresize=true);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -467,8 +469,16 @@ private:
     bool mAboutToShowChat = false;
     bool mChatShowDidResize = false;
     bool mChatWasVisible = false;
-    bool mChatOverlay = false;
-    bool mIgnoreChatViewResize = false;
+    bool mChatOverlay  = false;
+    volatile bool mIgnoreResize = false;
+
+   std::unique_ptr<SoundboardView> mSoundboardView;
+   std::unique_ptr<SonoDrawableButton> mSoundboardButton;
+   std::unique_ptr<ComponentBoundsConstrainer> mSoundboardSizeConstrainer;
+   std::unique_ptr<ResizableEdgeComponent> mSoundboardEdgeResizer;
+   bool mAboutToShowSoundboard = false;
+   bool mSoundboardShowDidResize = false;
+   bool mSoundboardWasVisible = false;
 
     bool peerStateUpdated = false;
     double serverStatusFadeTimestamp = 0;

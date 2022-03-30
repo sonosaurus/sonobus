@@ -12,7 +12,7 @@ add_subdirectory (${OBOE_DIR} ./oboe)
 add_library("cpufeatures" STATIC "${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c")
 set_source_files_properties("${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c" PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-gnu-statement-expression")
 
-add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.8-73"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.8]] [[-DJUCE_APP_VERSION_HEX=0x10408]])
+add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.9]] [[-DJUCE_APP_VERSION_HEX=0x10409]])
 
 include_directories( AFTER
     "../../../JuceLibraryCode"
@@ -28,7 +28,7 @@ if(JUCE_BUILD_CONFIGURATION MATCHES "DEBUG")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.8-73"]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.8]] [[-DJUCE_APP_VERSION_HEX=0x10408]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.9]] [[-DJUCE_APP_VERSION_HEX=0x10409]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -45,7 +45,7 @@ elseif(JUCE_BUILD_CONFIGURATION MATCHES "RELEASE")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.8-73"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.8]] [[-DJUCE_APP_VERSION_HEX=0x10408]] [[-DNDEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.4.9]] [[-DJUCE_APP_VERSION_HEX=0x10409]] [[-DNDEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -122,7 +122,9 @@ add_library( ${BINARY_NAME}
     "../../../../images/beat_click.wav"
     "../../../../images/chat.svg"
     "../../../../images/chat_dots.svg"
+    "../../../../images/checkmark.svg"
     "../../../../images/chevron_forward.svg"
+    "../../../../images/continue.svg"
     "../../../../images/copy_icon.svg"
     "../../../../Source/DejaVuSans.ttf"
     "../../../../images/dice_icon_128.png"
@@ -132,16 +134,22 @@ add_library( ${BINARY_NAME}
     "../../../../images/dots_icon.png"
     "../../../../images/expand_arrow_active.svg"
     "../../../../images/expand_arrow_inactive.svg"
+    "../../../../images/eyedropper.svg"
     "../../../../images/folder_icon.svg"
     "../../../../images/hear-others.svg"
+    "../../../../images/hold.svg"
     "../../../../images/incoming_allowed.svg"
     "../../../../images/incoming_allowed_active.svg"
     "../../../../images/incoming_disallowed.svg"
+    "../../../../images/keyboard.svg"
+    "../../../../images/keyboard_disabled.svg"
     "../../../../images/lgc_bar.wav"
     "../../../../images/link.svg"
     "../../../../images/link_all.svg"
     "../../../../images/link_up.svg"
     "../../../../images/loop_icon.svg"
+    "../../../../images/loop_off_icon.png"
+    "../../../../images/loop_off_icon.svg"
     "../../../../images/met.svg"
     "../../../../images/mic.svg"
     "../../../../images/mic_disabled.svg"
@@ -149,6 +157,7 @@ add_library( ${BINARY_NAME}
     "../../../../images/move_updown.svg"
     "../../../../images/mute-others.svg"
     "../../../../images/network.svg"
+    "../../../../images/oneshot.svg"
     "../../../../images/outgoing_allowed.svg"
     "../../../../images/outgoing_allowed_active.svg"
     "../../../../images/outgoing_disallowed.svg"
@@ -158,13 +167,18 @@ add_library( ${BINARY_NAME}
     "../../../../images/people.svg"
     "../../../../images/person.png"
     "../../../../images/person.svg"
+    "../../../../images/play_back_to_back.svg"
+    "../../../../images/play_background.svg"
     "../../../../images/play_icon.svg"
+    "../../../../images/play_simultaneous.svg"
+    "../../../../images/plus_icon.svg"
     "../../../../images/power.svg"
     "../../../../images/power_sel.svg"
     "../../../../images/record.svg"
     "../../../../images/record_active.svg"
     "../../../../images/record_active_alt.svg"
     "../../../../images/rectape.svg"
+    "../../../../images/replay_icon.svg"
     "../../../../images/reset_buffer_icon.svg"
     "../../../../images/send_group.svg"
     "../../../../images/send_group_small.svg"
@@ -174,8 +188,11 @@ add_library( ${BINARY_NAME}
     "../../../../images/sonobus_icon_ios_1024.png"
     "../../../../images/sonobus_logo_96.png"
     "../../../../images/sonobus_title_small.png"
+    "../../../../images/soundboard.svg"
     "../../../../images/speaker.svg"
     "../../../../images/speaker_disabled.svg"
+    "../../../../images/speaker_disabled_grey.svg"
+    "../../../../images/toggle.svg"
     "../../../../images/triangle_disclosure.svg"
     "../../../../images/triangle_disclosure_right.svg"
     "../../../../images/urei_main.wav"
@@ -228,6 +245,7 @@ add_library( ${BINARY_NAME}
     "../../../../Source/ParametricEqView.h"
     "../../../../Source/PeersContainerView.cpp"
     "../../../../Source/PeersContainerView.h"
+    "../../../../Source/PolarityInvertView.h"
     "../../../../Source/RandomSentenceGenerator.cpp"
     "../../../../Source/RandomSentenceGenerator.h"
     "../../../../Source/ReverbSendView.h"
@@ -235,6 +253,8 @@ add_library( ${BINARY_NAME}
     "../../../../Source/RunCumulantor.h"
     "../../../../Source/RunningCumulant.c"
     "../../../../Source/RunningCumulant.h"
+    "../../../../Source/SampleEditView.cpp"
+    "../../../../Source/SampleEditView.h"
     "../../../../Source/SonobusPluginEditor.cpp"
     "../../../../Source/SonobusPluginEditor.h"
     "../../../../Source/SonobusPluginProcessor.cpp"
@@ -246,16 +266,32 @@ add_library( ${BINARY_NAME}
     "../../../../Source/SonoDrawableButton.h"
     "../../../../Source/SonoLookAndFeel.cpp"
     "../../../../Source/SonoLookAndFeel.h"
+    "../../../../Source/SonoMultiStateDrawableButton.cpp"
+    "../../../../Source/SonoMultiStateDrawableButton.h"
+    "../../../../Source/SonoPlaybackProgressButton.cpp"
+    "../../../../Source/SonoPlaybackProgressButton.h"
     "../../../../Source/SonoStandaloneFilterApp.cpp"
     "../../../../Source/SonoStandaloneFilterWindow.h"
     "../../../../Source/SonoTextButton.cpp"
     "../../../../Source/SonoTextButton.h"
     "../../../../Source/SonoUtility.h"
+    "../../../../Source/Soundboard.cpp"
+    "../../../../Source/Soundboard.h"
+    "../../../../Source/SoundboardButtonColors.h"
+    "../../../../Source/SoundboardChannelProcessor.cpp"
+    "../../../../Source/SoundboardChannelProcessor.h"
+    "../../../../Source/SoundboardEditView.cpp"
+    "../../../../Source/SoundboardEditView.h"
+    "../../../../Source/SoundboardProcessor.cpp"
+    "../../../../Source/SoundboardProcessor.h"
+    "../../../../Source/SoundboardView.cpp"
+    "../../../../Source/SoundboardView.h"
+    "../../../../Source/SoundSampleButtonColourPicker.cpp"
+    "../../../../Source/SoundSampleButtonColourPicker.h"
     "../../../../Source/VersionInfo.cpp"
     "../../../../Source/VersionInfo.h"
     "../../../../Source/WaveformTransportComponent.h"
     "../../../../Source/zitaRev.h"
-    "../../../../Source/PolarityInvertView.h"
     "../../../../deps/ff_meters/LevelMeter/LevelMeter.cpp"
     "../../../../deps/ff_meters/LevelMeter/LevelMeter.h"
     "../../../../deps/ff_meters/LevelMeter/LevelMeterSource.h"
@@ -2063,7 +2099,9 @@ set_source_files_properties("../../../../images/bar_click.wav" PROPERTIES HEADER
 set_source_files_properties("../../../../images/beat_click.wav" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/chat.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/chat_dots.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/checkmark.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/chevron_forward.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/continue.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/copy_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/DejaVuSans.ttf" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/dice_icon_128.png" PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -2073,16 +2111,22 @@ set_source_files_properties("../../../../images/dots.svg" PROPERTIES HEADER_FILE
 set_source_files_properties("../../../../images/dots_icon.png" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/expand_arrow_active.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/expand_arrow_inactive.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/eyedropper.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/folder_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/hear-others.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/hold.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/incoming_allowed.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/incoming_allowed_active.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/incoming_disallowed.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/keyboard.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/keyboard_disabled.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/lgc_bar.wav" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/link.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/link_all.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/link_up.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/loop_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/loop_off_icon.png" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/loop_off_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/met.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/mic.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/mic_disabled.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -2090,6 +2134,7 @@ set_source_files_properties("../../../../images/mic_pointing.svg" PROPERTIES HEA
 set_source_files_properties("../../../../images/move_updown.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/mute-others.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/network.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/oneshot.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/outgoing_allowed.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/outgoing_allowed_active.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/outgoing_disallowed.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -2099,13 +2144,18 @@ set_source_files_properties("../../../../images/people.png" PROPERTIES HEADER_FI
 set_source_files_properties("../../../../images/people.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/person.png" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/person.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/play_back_to_back.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/play_background.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/play_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/play_simultaneous.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/plus_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/power.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/power_sel.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/record.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/record_active.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/record_active_alt.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/rectape.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/replay_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/reset_buffer_icon.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/send_group.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/send_group_small.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -2115,8 +2165,11 @@ set_source_files_properties("../../../../images/sonobus_icon_ios_256.png" PROPER
 set_source_files_properties("../../../../images/sonobus_icon_ios_1024.png" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/sonobus_logo_96.png" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/sonobus_title_small.png" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/soundboard.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/speaker.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/speaker_disabled.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/speaker_disabled_grey.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../images/toggle.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/triangle_disclosure.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/triangle_disclosure_right.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../images/urei_main.wav" PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -2152,23 +2205,33 @@ set_source_files_properties("../../../../Source/MVerb.h" PROPERTIES HEADER_FILE_
 set_source_files_properties("../../../../Source/OptionsView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/ParametricEqView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/PeersContainerView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/PolarityInvertView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/RandomSentenceGenerator.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/ReverbSendView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/RunCumulantor.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/RunningCumulant.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SampleEditView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonobusPluginEditor.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonobusPluginProcessor.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonobusTypes.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonoChoiceButton.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonoDrawableButton.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonoLookAndFeel.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SonoMultiStateDrawableButton.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SonoPlaybackProgressButton.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonoStandaloneFilterWindow.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonoTextButton.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/SonoUtility.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/Soundboard.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SoundboardButtonColors.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SoundboardChannelProcessor.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SoundboardEditView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SoundboardProcessor.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SoundboardView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties("../../../../Source/SoundSampleButtonColourPicker.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/VersionInfo.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/WaveformTransportComponent.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../Source/zitaRev.h" PROPERTIES HEADER_FILE_ONLY TRUE)
-set_source_files_properties("../../../../Source/PolarityInvertView.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../deps/ff_meters/LevelMeter/LevelMeter.cpp" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../deps/ff_meters/LevelMeter/LevelMeter.h" PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties("../../../../deps/ff_meters/LevelMeter/LevelMeterSource.h" PROPERTIES HEADER_FILE_ONLY TRUE)

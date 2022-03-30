@@ -20,6 +20,8 @@
 
 #include "zitaRev.h"
 
+#include "SoundboardChannelProcessor.h"
+
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -242,6 +244,7 @@ public:
     static String paramMetTempo;
     static String paramSendMetAudio;
     static String paramSendFileAudio;
+    static String paramSendSoundboardAudio;
     static String paramHearLatencyTest;
     static String paramMetIsRecorded;
     static String paramMainReverbEnabled;
@@ -532,9 +535,10 @@ public:
     bool getInputEqParams(int changroup, SonoAudio::ParametricEqParams & retparams);
     
     
-    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity; }
+    bool getInputEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.compressorParams.enabled || mInputChannelGroups[changroup].params.expanderParams.enabled || mInputChannelGroups[changroup].params.eqParams.enabled || mInputChannelGroups[changroup].params.invertPolarity || (mInputChannelGroups[changroup].params.inReverbSend > 0.0f); }
 
-    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled; }
+    bool getInputMonitorEffectsActive(int changroup) const { return mInputChannelGroups[changroup].params.monitorDelayParams.enabled
+        || (mInputChannelGroups[changroup].params.monReverbSend > 0.0f); }
 
     int getNumberAudioCodecFormats() const {  return mAudioFormats.size(); }
 
@@ -703,6 +707,9 @@ public:
     void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
     String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
 
+    void setLastBrowseDirectory(String recdir)  { mLastBrowseDir = recdir; }
+    String getLastBrowseDirectory() const { return mLastBrowseDir; }
+
     uint32 getDefaultRecordingOptions() const { return mDefaultRecordingOptions; }
     void setDefaultRecordingOptions(uint32 opts) { mDefaultRecordingOptions = opts; }
 
@@ -746,6 +753,13 @@ public:
     void setChatFontSizeOffset(int offset) { mChatFontSizeOffset = offset;}
     int getChatFontSizeOffset() const { return mChatFontSizeOffset; }
     Array<SBChatEvent, CriticalSection> & getAllChatEvents() { return mAllChatEvents; }
+
+    // soundboard
+    void setLastSoundboardWidth(int width) { mLastSoundboardWidth = width; }
+    int getLastSoundboardWidth() const { return mLastSoundboardWidth; }
+    void setLastSoundboardShown(bool shown) { mLastSoundboardShown = shown; }
+    bool getLastSoundboardShown() const { return mLastSoundboardShown; }
+    SoundboardChannelProcessor* getSoundboardProcessor() { return soundboardChannelProcessor.get(); }
 
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
@@ -899,6 +913,7 @@ private:
     Atomic<float>   mMetGain    { 0.5f };
     Atomic<double>   mMetTempo    { 100.0f };
     Atomic<bool>   mSendPlaybackAudio  { false };
+    Atomic<bool>   mSendSoundboardAudio  { false };
     Atomic<bool>   mHearLatencyTest  { false };
     Atomic<bool>   mMetIsRecorded  { true };
     Atomic<bool>   mMainReverbEnabled  { false };
@@ -947,7 +962,7 @@ private:
 
     // acceptable limit for drop rate in dropinstance/second
     // above which it will adjust the jitter buffer in Auto modes
-    float mAutoresizeDropRateThresh = 0.2f;
+    float mAutoresizeDropRateThresh = 0.5f;
 
     bool hasInitializedInMonPanners = false;
     
@@ -973,6 +988,9 @@ private:
     int mChatFontSizeOffset = 0;
     // chat message storage, thread-safe
     Array<SBChatEvent, CriticalSection> mAllChatEvents;
+
+    int mLastSoundboardWidth = 250;
+    bool mLastSoundboardShown = false;
 
     int mPluginWindowWidth = 800;
     int mPluginWindowHeight = 600;
@@ -1116,6 +1134,7 @@ private:
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;
+    String mLastBrowseDir;
 
     std::atomic<bool> writingPossible = { false };
     std::atomic<bool> userWritingPossible = { false };
@@ -1139,6 +1158,9 @@ private:
     TimeSliceThread mDiskThread  { "audio file reader" };
     URL mCurrTransportURL;
     bool mTransportWasPlaying = false;
+
+    // soundboard
+    std::unique_ptr<SoundboardChannelProcessor> soundboardChannelProcessor;
 
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;

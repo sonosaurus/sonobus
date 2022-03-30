@@ -527,8 +527,15 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->formatChoiceButton->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
-        pvf->formatChoiceButton->addItem(processor.getAudioCodeFormatName(i), i);
+        SonobusAudioProcessor::AudioCodecFormatInfo finfo;
+        processor.getAudioCodeFormatInfo(i, finfo);
+        auto name = finfo.name;
+        if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
+            name += String(" (*)");
+        }
+        pvf->formatChoiceButton->addItem(name, i);
     }
+    pvf->formatChoiceButton->addItem("(*) " + TRANS("not recommended"), -2, true, true);
 
     pvf->staticFormatChoiceLabel = std::make_unique<Label>("sendfmtst", TRANS("Send Quality"));
     pvf->staticFormatChoiceLabel->setAccessible(false);
@@ -1544,21 +1551,6 @@ void PeersContainerView::updatePeerViews(int specific)
 
         pvf->addrLabel->setText(addrname, dontSendNotification);
 
-#if 0
-        String username = processor.getRemotePeerUserName(i);
-
-        //DBG("Got username: '" << username << "'");
-        
-        if (username.isNotEmpty()) {
-            pvf->nameLabel->setText(username, dontSendNotification);
-            pvf->addrLabel->setText(addrname, dontSendNotification);
-            //pvf->addrLabel->setVisible(true);
-        } else {
-            //pvf->addrLabel->setVisible(false);
-            pvf->nameLabel->setText(addrname, dontSendNotification);
-        }
-#endif
-
         String sendtext;
         bool sendactive = processor.getRemotePeerSendActive(i);
         bool sendallow = processor.getRemotePeerSendAllow(i);
@@ -1645,6 +1637,8 @@ void PeersContainerView::updatePeerViews(int specific)
 
 
         pvf->changeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
+
+        pvf->changeAllRecvFormatButton->setToggleState(processor.getChangingDefaultRecvAudioCodecSetsExisting(), dontSendNotification);
 
         pvf->sendActualBitrateLabel->setText(sendtext, dontSendNotification);
         pvf->recvActualBitrateLabel->setText(recvtext, dontSendNotification);
