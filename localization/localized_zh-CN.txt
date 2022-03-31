@@ -570,7 +570,7 @@ countries: zh
 "Soundboard Menu" = "Soundboard 菜单"
 "Select Soundboard" = "选择 Soundboard"
 "Toggle hotkeys" = "切换热键"
-"Toggles whether sound samples can be played using hotkeys." = "切换是否可以使用热键播放声音样本。"
+"Toggles whether sound samples can be played using hotkeys." = "切换是否可以使用热键播放声音示例。"
 "Stop all playback" = "停止所有播放"
 "Stops all playing samples." = "停止所有播放示例。"
 "Add Sample" = "所有示例"
