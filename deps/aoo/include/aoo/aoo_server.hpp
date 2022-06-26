@@ -210,6 +210,20 @@ public:
     {
         return control(kAooCtlGetGroupAutoCreate, 0, AOO_ARG(b));
     }
+
+    /*--------------------------------------------------*/
+    /*         type-safe group control functions        */
+    /*--------------------------------------------------*/
+
+    AooError updateGroup(AooId group, const AooDataView *metadata)
+    {
+        return groupControl(group, kAooCtlUpdateGroup, 0, AOO_ARG(metadata));
+    }
+
+    AooError updateUser(AooId group, AooId user, const AooDataView *metadata)
+    {
+        return groupControl(group, kAooCtlUpdateUser, user, AOO_ARG(metadata));
+    }
 protected:
     ~AooServer(){} // non-virtual!
 };

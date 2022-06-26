@@ -64,7 +64,7 @@ AOO_API AooError AOO_CALL AooSource_stopStream(AooSource *source);
 
 /** \brief sink should start active
  * \see AooSource_addSink */
-#define kAooSinkActive 0x01 // start active
+#define kAooSinkActive 0x01
 
 /** \copydoc AooSource::addSink() */
 AOO_API AooError AOO_CALL AooSource_addSink(

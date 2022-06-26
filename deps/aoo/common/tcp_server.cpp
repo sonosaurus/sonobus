@@ -3,6 +3,7 @@
 #include "common/utils.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace aoo {
 
@@ -33,7 +34,7 @@ void tcp_server::start(int port, accept_handler accept, receive_handler receive)
                                  + socket_strerror(e));
     }
     // listen
-    if (listen(listen_socket_, 32) < 0){
+    if (listen(listen_socket_, SOMAXCONN) < 0){
         // cache errno
         auto e = socket_errno();
         // clean up
@@ -263,6 +264,14 @@ bool tcp_server::accept_client() {
         ip_address addr(ip_address::max_length);
         auto sock = (AooSocket)accept(listen_socket_, addr.address_ptr(), addr.length_ptr());
         if (sock >= 0) {
+        #if 1
+            // disable Nagle's algorithm
+            int val = 1;
+            if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+                           (char *)&val, sizeof(val)) != 0) {
+                LOG_ERROR("tcp_server: couldn't set TCP_NODELAY");
+            }
+        #endif
             auto id = accept_handler_(0, addr, sock);
             if (id == kAooIdInvalid) {
                 // user refused to accept client

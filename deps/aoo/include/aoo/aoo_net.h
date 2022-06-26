@@ -44,6 +44,11 @@ AOO_PACK_BEGIN
 #define AOO_DEBUG_RELAY 0
 #endif
 
+/** \brief debug client messages */
+#ifndef AOO_DEBUG_CLIENT_MESSAGE
+#define AOO_DEBUG_CLIENT_MESSAGE 0
+#endif
+
 /*-------------- default values ---------------------*/
 
 /** \brief enable/disable server relay by default */
@@ -59,6 +64,11 @@ AOO_PACK_BEGIN
 /** \brief enable/disable automatic user creation by default */
 #ifndef AOO_NET_USER_AUTO_CREATE
 #define AOO_NET_USER_AUTO_CREATE 1
+#endif
+
+/** \brief enable/disable binary format for client messages */
+#ifndef AOO_NET_CLIENT_BINARY_MSG
+ #define AOO_NET_CLIENT_BINARY_MSG 1
 #endif
 
 /*-------------- public OSC interface ---------------*/
@@ -84,6 +94,9 @@ AOO_PACK_BEGIN
 #define kAooNetMsgMessage "/msg"
 #define kAooNetMsgMessageLen 4
 
+#define kAooNetMsgAck "/ack"
+#define kAooNetMsgAckLen 4
+
 #define kAooNetMsgLogin "/login"
 #define kAooNetMsgLoginLen 6
 
@@ -93,11 +106,20 @@ AOO_PACK_BEGIN
 #define kAooNetMsgGroup "/group"
 #define kAooNetMsgGroupLen 6
 
+#define kAooNetMsgUser "/user"
+#define kAooNetMsgUserLen 5
+
 #define kAooNetMsgJoin "/join"
 #define kAooNetMsgJoinLen 5
 
 #define kAooNetMsgLeave "/leave"
 #define kAooNetMsgLeaveLen 6
+
+#define kAooNetMsgUpdate "/update"
+#define kAooNetMsgUpdateLen 7
+
+#define kAooNetMsgChanged "/changed"
+#define kAooNetMsgChangedLen 8
 
 #define kAooNetMsgRequest "/request"
 #define kAooNetMsgRequestLen 8
@@ -138,6 +160,10 @@ enum AooNetRequestTypes
     kAooNetRequestGroupJoin,
     /** leave group */
     kAooNetRequestGroupLeave,
+    /** update group */
+    kAooNetRequestGroupUpdate,
+    /** update user */
+    kAooNetRequestUserUpdate,
     /** custom request */
     kAooNetRequestCustom
 };
@@ -330,6 +356,45 @@ typedef struct AooNetRequestGroupLeave
 } AooNetRequestGroupLeave;
 
 #define AooNetResponseGroupLeave AooNetResponse
+
+/* update group metadata */
+
+/** \brief request for updating a group */
+typedef struct AooNetRequestGroupUpdate
+{
+    AooNetRequestType type;
+    AooFlag flags;
+    AooId groupId;
+    AooDataView groupMetadata;
+} AooNetRequestGroupUpdate;
+
+/** \brief response for updating a group */
+typedef struct AooNetResponseGroupUpdate
+{
+    AooNetRequestType type;
+    AooFlag flags;
+    AooDataView groupMetadata;
+} AooNetResponseGroupUpdate;
+
+/* update user metadata */
+
+/** \brief request for updating a user */
+typedef struct AooNetRequestUserUpdate
+{
+    AooNetRequestType type;
+    AooFlag flags;
+    AooId groupId;
+    AooId userId;
+    AooDataView userMetadata;
+} AooNetRequestUserUpdate;
+
+/** \brief response for updating a user */
+typedef struct AooNetResponseUserUpdate
+{
+    AooNetRequestType type;
+    AooFlag flags;
+    AooDataView userMetadata;
+} AooNetResponseUserUpdate;
 
 /* custom request (server/client) */
 

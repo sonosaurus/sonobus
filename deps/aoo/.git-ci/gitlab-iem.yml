@@ -1,7 +1,7 @@
 ### global variables
 
 variables:
-  PD_VERSION: 0.51-1
+  PD_VERSION: 0.52-2
 # PD_PATH: only set on Windows
   SC_PATH: /tmp/supercollider
 
@@ -19,7 +19,7 @@ variables:
 .script:cmake: &script_cmake
   - prefix="$(pwd)/build/${CI_JOB_NAME}"
   - rm -rf build
-  - cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release
+  - cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="${OSX_ARCHITECTURES}"
     -DCMAKE_INSTALL_PREFIX="$prefix/aoo" -DAOO_STATIC_LIBS=${STATIC_LIBS} -DAOO_SYSTEM_OPUS=OFF
     ${PD_EXTENSION:+-DPD_EXTENSION=${PD_EXTENSION}} -DPD_DIR="${PD_PATH}" -DPD_INSTALLDIR="$prefix/pd"
     -DSC_SUPERNOVA=${SUPERNOVA} -DSC_INCLUDEDIR="${SC_PATH}" -DSC_INSTALLDIR="$prefix/sc"
@@ -88,13 +88,15 @@ variables:
 .build:macos: &build_macos
   extends: .build:script
   tags:
-     - osx
+     - bigsur
   variables:
+    OSX_ARCHITECTURES: "arm64;x86_64"
     SUPERNOVA: 1
+    PD_EXTENSION: d_fat
   before_script:
-    - wget -q -O Pd.tgz http://msp.ucsd.edu/Software/pd-${PD_VERSION}.mac.tar.gz
+    - wget -q -O Pd.tgz http://msp.ucsd.edu/Software/pd-${PD_VERSION}-macosx7.mac.tar.gz
     - rm -rf /Applications/Pd*.app/
-    - tar xvf Pd.tgz -C /Applications/
+    - tar -xf Pd.tgz -C /Applications/
     - rm -f Pd.tgz
     - *script_deps
     - *script_cmake

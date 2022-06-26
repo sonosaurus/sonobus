@@ -28,17 +28,34 @@ struct t_aoo_server
     aoo::tcp_server x_tcpserver;
     std::thread x_udpthread;
     std::thread x_tcpthread;
+    int x_port = 0;
     int32_t x_numclients = 0;
     t_clock *x_clock = nullptr;
     t_outlet *x_stateout = nullptr;
     t_outlet *x_msgout = nullptr;
 
-private:
+    void close();
     AooId handle_accept(int e, const aoo::ip_address& addr, AooSocket sock);
     void handle_receive(AooId client, int e, const AooByte *data, AooSize size);
     void handle_udp_receive(int e, const aoo::ip_address& addr,
                             const AooByte *data, AooSize size);
 };
+
+void t_aoo_server::close() {
+    if (x_port > 0) {
+        x_udpserver.stop();
+        if (x_udpthread.joinable()) {
+            x_udpthread.join();
+        }
+
+        x_tcpserver.stop();
+        if (x_tcpthread.joinable()) {
+            x_tcpthread.join();
+        }
+    }
+    clock_unset(x_clock);
+    x_port = 0;
+}
 
 AooId t_aoo_server::handle_accept(int e, const aoo::ip_address& addr, AooSocket sock) {
     if (e == 0) {
@@ -109,9 +126,9 @@ void t_aoo_server::handle_udp_receive(int e, const aoo::ip_address& addr,
 static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int32_t)
 {
     switch (event->type) {
-    case kAooNetEventClientLogin:
+    case kAooNetEventServerClientLogin:
     {
-        auto e = (const AooNetEventClientLogin *)event;
+        auto e = (const AooNetEventServerClientLogin *)event;
 
         t_atom msg[3];
 
@@ -131,9 +148,9 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooNetEventClientRemove:
+    case kAooNetEventServerClientRemove:
     {
-        auto e = (const AooNetEventClientRemove *)event;
+        auto e = (const AooNetEventServerClientRemove *)event;
 
         t_atom msg;
         char id[64];
@@ -148,9 +165,9 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooNetEventGroupAdd:
+    case kAooNetEventServerGroupAdd:
     {
-        auto e = (const AooNetEventGroupAdd *)event;
+        auto e = (const AooNetEventServerGroupAdd *)event;
         // TODO add group
         t_atom msg;
         SETSYMBOL(&msg, gensym(e->name));
@@ -160,9 +177,9 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooNetEventGroupRemove:
+    case kAooNetEventServerGroupRemove:
     {
-        auto e = (const AooNetEventGroupRemove *)event;
+        auto e = (const AooNetEventServerGroupRemove *)event;
         // TODO remove group
         t_atom msg;
         SETSYMBOL(&msg, gensym(e->name));
@@ -170,9 +187,9 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooNetEventGroupJoin:
+    case kAooNetEventServerGroupJoin:
     {
-        auto e = (const AooNetEventGroupJoin *)event;
+        auto e = (const AooNetEventServerGroupJoin *)event;
 
         t_atom msg[3];
         SETSYMBOL(msg, gensym(e->groupName));
@@ -182,9 +199,9 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooNetEventGroupLeave:
+    case kAooNetEventServerGroupLeave:
     {
-        auto e = (const AooNetEventGroupLeave *)event;
+        auto e = (const AooNetEventServerGroupLeave *)event;
 
         t_atom msg[3];
         SETSYMBOL(msg, gensym(e->groupName));
@@ -218,6 +235,55 @@ static void aoo_server_relay(t_aoo_server *x, t_floatarg f) {
     }
 }
 
+static void aoo_server_port(t_aoo_server *x, t_floatarg f)
+{
+    int port = f;
+    if (port == x->x_port) {
+        return;
+    }
+
+    x->close();
+
+    if (port > 0) {
+        try {
+            // setup UDP server
+            x->x_udpserver.start(port,
+                [x](auto&&... args) { x->handle_udp_receive(args...); });
+
+            // setup TCP server
+            x->x_tcpserver.start(port,
+                [x](auto&&... args) { return x->handle_accept(args...); },
+                [x](auto&&... args) { x->handle_receive(args...); });
+
+            verbose(0, "aoo server listening on port %d", port);
+        } catch (const std::runtime_error& e) {
+            pd_error(x, "%s: %s", classname(x), e.what());
+            return;
+        }
+
+        // first set event handler!
+        x->x_server->setEventHandler((AooEventHandler)aoo_server_handle_event,
+                                     x, kAooEventModePoll);
+        // then start network threads
+        x->x_udpthread = std::thread([x, pd=pd_this]() {
+        #ifdef PDINSTANCE
+            pd_setinstance(pd);
+        #endif
+            x->x_udpserver.run(-1);
+        });
+        x->x_tcpthread = std::thread([x, pd=pd_this]() {
+        #ifdef PDINSTANCE
+            pd_setinstance(pd);
+        #endif
+            x->x_tcpserver.run();
+        });
+        // start clock
+        clock_delay(x->x_clock, AOO_SERVER_POLL_INTERVAL);
+
+        x->x_port = port;
+    }
+}
+
 static void * aoo_server_new(t_symbol *s, int argc, t_atom *argv)
 {
     void *x = pd_new(aoo_server_class);
@@ -230,45 +296,10 @@ t_aoo_server::t_aoo_server(int argc, t_atom *argv)
     x_clock = clock_new(this, (t_method)aoo_server_tick);
     x_stateout = outlet_new(&x_obj, 0);
     x_msgout = outlet_new(&x_obj, 0);
+    x_server = AooServer::create(0, nullptr);
 
     int port = atom_getfloatarg(0, argc, argv);
-
-    if (port > 0) {
-        try {
-            // setup UDP server
-            x_udpserver.start(port,
-                              [this](auto&&... args) { handle_udp_receive(args...); });
-
-            // setup TCP server
-            x_tcpserver.start(port,
-                              [this](auto&&... args) { return handle_accept(args...); },
-                              [this](auto&&... args) { handle_receive(args...); });
-
-            // success
-            x_server = AooServer::create(0, nullptr);
-            verbose(0, "aoo server listening on port %d", port);
-            // first set event handler!
-            x_server->setEventHandler((AooEventHandler)aoo_server_handle_event,
-                                       this, kAooEventModePoll);
-            // then start network threads
-            x_udpthread = std::thread([this, pd=pd_this]() {
-            #ifdef PDINSTANCE
-                pd_setinstance(pd);
-            #endif
-                x_udpserver.run(-1);
-            });
-            x_tcpthread = std::thread([this, pd=pd_this]() {
-            #ifdef PDINSTANCE
-                pd_setinstance(pd);
-            #endif
-                x_tcpserver.run();
-            });
-            // start clock
-            clock_delay(x_clock, AOO_SERVER_POLL_INTERVAL);
-        } catch (const std::runtime_error& e) {
-            pd_error(this, "%s: %s", classname(this), e.what());
-        }
-    }
+    aoo_server_port(this, port);
 }
 
 static void aoo_server_free(t_aoo_server *x)
@@ -278,17 +309,7 @@ static void aoo_server_free(t_aoo_server *x)
 
 t_aoo_server::~t_aoo_server()
 {
-    if (x_server) {
-        x_udpserver.stop();
-        if (x_udpthread.joinable()) {
-            x_udpthread.join();
-        }
-
-        x_tcpserver.stop();
-        if (x_tcpthread.joinable()) {
-            x_tcpthread.join();
-        }
-    }
+    close();
     clock_free(x_clock);
 }
 
@@ -296,7 +317,9 @@ void aoo_server_setup(void)
 {
     aoo_server_class = class_new(gensym("aoo_server"), (t_newmethod)(void *)aoo_server_new,
         (t_method)aoo_server_free, sizeof(t_aoo_server), 0, A_GIMME, A_NULL);
-    class_addmethod(aoo_server_class, (t_method)aoo_server_relay,
-                    gensym("relay"), A_FLOAT, A_NULL);
     class_sethelpsymbol(aoo_server_class, gensym("aoo_net"));
+    class_addmethod(aoo_server_class, (t_method)aoo_server_relay,
+         gensym("relay"), A_FLOAT, A_NULL);
+    class_addmethod(aoo_server_class, (t_method)aoo_server_port,
+         gensym("port"), A_FLOAT, A_NULL);
 }

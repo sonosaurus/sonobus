@@ -9,14 +9,10 @@
 
 #ifndef _WIN32
   #include <pthread.h>
-  // HACK to check if pthread_rwlock_t is available
-  #ifdef PTHREAD_RWLOCK_INITIALIZER
-    #define HAVE_PTHREAD_RWLOCK
-  #endif
 #endif
 
 #ifdef __APPLE__
-// macOS doesn't support unnamed pthread semaphores,
+// macOS doesn't support unnamed posix semaphores,
 // so we use Mach semaphores instead
 #include <mach/mach.h>
 #endif
@@ -216,7 +212,7 @@ private:
 
 //------------------------ shared_mutex -------------------------//
 
-#if defined(_WIN32) || defined(HAVE_PTHREAD_RWLOCK)
+#if defined(_WIN32) || defined(AOO_HAVE_PTHREAD_RWLOCK)
 
 class shared_mutex {
 public:
@@ -244,7 +240,7 @@ private:
 // fallback
 using shared_mutex = std::shared_mutex;
 
-#endif // _WIN32 || HAVE_PTHREAD_RWLOCK
+#endif // _WIN32 || AOO_HAVE_PTHREAD_RWLOCK
 
 typedef std::try_to_lock_t try_to_lock_t;
 typedef std::defer_lock_t defer_lock_t;

@@ -210,7 +210,7 @@ void AooClient::handleEvent(const AooEvent* event) {
         handlePeerMessage(e->groupId, e->userId, e->timeStamp, e->data);
         return; // don't send event
     }
-    case kAooNetEventDisconnect:
+    case kAooNetEventClientDisconnect:
     {
         auto e = (const AooNetEventDisconnect *)event;
         msg << "/disconnect" << e->errorCode << e->errorMessage;

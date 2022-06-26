@@ -30,15 +30,15 @@ public:
         IPv6
     };
 
-    static std::vector<ip_address> resolve(const std::string& host, int port, ip_type type);
+    static std::vector<ip_address> resolve(const std::string& host, uint16_t port, ip_type type);
 
     ip_address();
     ip_address(socklen_t size);
     ip_address(const struct sockaddr *sa, socklen_t len);
     ip_address(const AooSockAddr& addr);
-    ip_address(int port, ip_type type); // "any" address
-    ip_address(const std::string& ip, int port, ip_type type);
-    ip_address(const AooByte *bytes, AooSize size, int port, ip_type type);
+    ip_address(uint16_t port, ip_type type); // "any" address
+    ip_address(const std::string& ip, uint16_t port, ip_type type);
+    ip_address(const AooByte *bytes, AooSize size, uint16_t port, ip_type type);
 
     ip_address(const ip_address& other);
     ip_address& operator=(const ip_address& other);
@@ -57,7 +57,7 @@ public:
 
     const char* name_unmapped() const;
 
-    int port() const;
+    uint16_t port() const;
 
     const AooByte* address_bytes() const;
 
@@ -105,9 +105,9 @@ private:
 
 int socket_init();
 
-int socket_udp(int port);
+int socket_udp(uint16_t port);
 
-int socket_tcp(int port);
+int socket_tcp(uint16_t port);
 
 int socket_close(int socket);
 

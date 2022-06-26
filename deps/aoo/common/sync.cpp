@@ -233,7 +233,7 @@ void shared_mutex::unlock_shared() {
     ReleaseSRWLockShared((PSRWLOCK)&rwlock_);
 }
 
-#elif defined(HAVE_PTHREAD_RWLOCK)
+#elif defined(AOO_HAVE_PTHREAD_RWLOCK)
 
 shared_mutex::shared_mutex() {
     pthread_rwlock_init(&rwlock_, nullptr);
@@ -262,7 +262,7 @@ void shared_mutex::unlock_shared() {
     pthread_rwlock_unlock(&rwlock_);
 }
 
-#endif // _WIN32 || HAVE_PTHREAD_RWLOCK
+#endif // _WIN32 || AOO_HAVE_PTHREAD_RWLOCK
 
 //-------------------- native_semaphore -----------------------//
 

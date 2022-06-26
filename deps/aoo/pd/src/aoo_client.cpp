@@ -66,6 +66,10 @@ struct t_aoo_client
     AooId x_target_user = kAooIdInvalid; // broadcast
     std::multimap<float, t_peer_message> x_queue; // TODO replace with heap
 
+    bool check(const char *name) const;
+
+    bool check(int argc, t_atom *argv, int minargs, const char *name) const;
+
     void handle_message(AooId group, AooId user, AooNtpTime time, const AooDataView& msg);
 
     void dispatch_message(AooId group, AooId user, const AooDataView& msg, double delay) const;
@@ -104,6 +108,28 @@ struct t_aoo_client
     t_outlet *x_addrout = nullptr;
 };
 
+bool t_aoo_client::check(const char *name) const
+{
+    if (x_node){
+        return true;
+    } else {
+        pd_error(this, "%s: '%s' failed: no socket!", classname(this), name);
+        return false;
+    }
+}
+
+bool t_aoo_client::check(int argc, t_atom *argv, int minargs, const char *name) const
+{
+    if (!check(name)) return false;
+
+    if (argc < minargs){
+        pd_error(this, "%s: too few arguments for '%s' message", classname(this), name);
+        return false;
+    }
+
+    return true;
+}
+
 const t_peer * t_aoo_client::find_peer(const aoo::ip_address& addr) const {
     for (auto& peer : x_peers) {
         if (peer.address == addr) {
@@ -111,6 +137,19 @@ const t_peer * t_aoo_client::find_peer(const aoo::ip_address& addr) const {
         }
     }
     return nullptr;
+}
+
+// for t_node
+bool aoo_client_find_peer(t_aoo_client *x, const aoo::ip_address& addr,
+                          t_symbol *& group, t_symbol *& user)
+{
+    if (auto peer = x->find_peer(addr)) {
+        group = peer->group_name;
+        user = peer->user_name;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 const t_peer * t_aoo_client::find_peer(AooId group, AooId user) const {
@@ -129,6 +168,18 @@ const t_peer * t_aoo_client::find_peer(t_symbol *group, t_symbol *user) const {
         }
     }
     return nullptr;
+}
+
+// for t_node
+bool aoo_client_find_peer(t_aoo_client *x, t_symbol *group, t_symbol *user,
+                          aoo::ip_address& addr)
+{
+    if (auto peer = x->find_peer(group, user)) {
+        addr = peer->address;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 const t_group * t_aoo_client::find_group(t_symbol *name) const {
@@ -174,8 +225,8 @@ static void aoo_client_peer_list(t_aoo_client *x)
 // send OSC messages to peers
 void t_aoo_client::send_message(int argc, t_atom *argv, AooId group, AooId user)
 {
-    // need at least type + 1 argument
-    if (argc < 2){
+    if (argc < 2) {
+        pd_error(this, "%s: message needs type + arguments", classname(this));
         return;
     }
     if (!x_connected){
@@ -215,50 +266,54 @@ void t_aoo_client::send_message(int argc, t_atom *argv, AooId group, AooId user)
 
 static void aoo_client_broadcast(t_aoo_client *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (x->x_node){
-        x->send_message(argc, argv, kAooIdInvalid, kAooIdInvalid);
-    }
+    if (!x->check("broadcast")) return;
+
+    x->send_message(argc, argv, kAooIdInvalid, kAooIdInvalid);
 }
 
 static void aoo_client_send_group(t_aoo_client *x, t_symbol *s, int argc, t_atom *argv)
 {
+    if (!x->check("send_group")) return;
+
     // only attempt to send if there are peers!
-    if (x->x_node && !x->x_peers.empty()) {
+    if (!x->x_peers.empty()) {
         if (argc > 1 && argv->a_type == A_SYMBOL) {
             auto name = argv->a_w.w_symbol;
             if (auto group = x->find_group(name)) {
                 x->send_message(argc - 1, argv + 1, group->id, kAooIdInvalid);
             } else {
-                pd_error(x, "%: could not find group '%s'", name->s_name);
+                pd_error(x, "%s: could not find group '%s'", classname(x), name->s_name);
             }
         } else {
-            pd_error(x, "%s: bad arguments to 'send_group': expecting <group> ...",
-                     classname(x));
+            pd_error(x, "%s: bad arguments to 'send_group': expecting <group> ...", classname(x));
         }
     }
 }
 
 static void aoo_client_send_peer(t_aoo_client *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (x->x_node) {
-        if (argc > 2 && argv[0].a_type == A_SYMBOL && argv[1].a_type == A_SYMBOL) {
-            auto group = argv[0].a_w.w_symbol;
-            auto user = argv[1].a_w.w_symbol;
-            if (auto peer = x->find_peer(group, user)) {
-                x->send_message(argc - 1, argv + 1, peer->group_id, peer->user_id);
-            } else {
-                pd_error(x, "%: could not find peer %s|%s", group->s_name, user->s_name);
-            }
+    if (!x->check("send_peer")) return;
+
+    if (argc > 2 && argv[0].a_type == A_SYMBOL && argv[1].a_type == A_SYMBOL) {
+        auto group = argv[0].a_w.w_symbol;
+        auto user = argv[1].a_w.w_symbol;
+        if (auto peer = x->find_peer(group, user)) {
+            x->send_message(argc - 2, argv + 2, peer->group_id, peer->user_id);
         } else {
-            pd_error(x, "%s: bad arguments to 'send_peer': expecting <group> <user> ...",
-                     classname(x));
+            pd_error(x, "%s: could not find peer %s|%s",
+                     classname(x), group->s_name, user->s_name);
         }
+    } else {
+        pd_error(x, "%s: bad arguments to 'send_peer': expecting <group> <user> ...",
+                 classname(x));
     }
 }
 
 static void aoo_client_send(t_aoo_client *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (x->x_node && x->x_target) {
+    if (!x->check("send")) return;
+
+    if (x->x_target) {
         x->send_message(argc, argv, x->x_target_group, x->x_target_user);
     }
 }
@@ -283,6 +338,13 @@ static void aoo_client_reliable(t_aoo_client *x, t_floatarg f)
     x->x_reliable = (f != 0);
 }
 
+static void aoo_client_binary(t_aoo_client *x, t_floatarg f)
+{
+    if (!x->check("binary")) return;
+
+    x->x_node->client()->setBinaryMsg(f != 0);
+}
+
 static void aoo_client_port(t_aoo_client *x, t_floatarg f)
 {
     int port = f;
@@ -304,38 +366,74 @@ static void aoo_client_port(t_aoo_client *x, t_floatarg f)
     }
 }
 
+static void aoo_client_sim_packet_drop(t_aoo_client *x, t_floatarg f)
+{
+    if (!x->check("sim_packet_drop")) return;
+
+    float val = f;
+    auto e = x->x_node->client()->control(kAooCtlSetSimulatePacketDrop, 0, AOO_ARG(val));
+    if (e != kAooOk) {
+        pd_error(x, "%s: 'sim_packet_drop' message failed (%s)",
+                 classname(x), aoo_strerror(e));
+    }
+}
+
+static void aoo_client_sim_packet_reorder(t_aoo_client *x, t_floatarg f)
+{
+    if (!x->check("sim_packet_reorder")) return;
+
+    AooSeconds val = f * 0.001;
+    auto e = x->x_node->client()->control(kAooCtlSetSimulatePacketReorder, 0, AOO_ARG(val));
+    if (e != kAooOk) {
+        pd_error(x, "%s: 'sim_packet_reorder' message failed (%s)",
+                 classname(x), aoo_strerror(e));
+    }
+}
+
+static void aoo_client_sim_packet_jitter(t_aoo_client *x, t_floatarg f)
+{
+    if (!x->check("sim_packet_jitter")) return;
+
+    AooBool val = f;
+    auto e = x->x_node->client()->control(kAooCtlSetSimulatePacketJitter, 0, AOO_ARG(val));
+    if (e != kAooOk) {
+        pd_error(x, "%s: 'sim_packet_jitter' message failed (%s)",
+                 classname(x), aoo_strerror(e));
+    }
+}
+
 static void aoo_client_target(t_aoo_client *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (x->x_node){
-        if (argc > 1){
-            // <ip> <port> or <group> <user>
-            if (x->x_node->get_peer_arg((t_pd *)x, argc, argv,
-                                        x->x_target_group, x->x_target_user)){
-                x->x_target = true;
-            } else {
-                x->x_target = false;
-            }
-        } else if (argc == 1){
-            // <group>
-            if (argv->a_type == A_SYMBOL) {
-                auto name = argv->a_w.w_symbol;
-                if (auto group = x->find_group(name)) {
-                    x->x_target_group = group->id;
-                    x->x_target_user = kAooIdInvalid; // broadcast to all users
-                    x->x_target = true;
-                } else {
-                    pd_error(x, "%s: could not find group '%s'", classname(x), name->s_name);
-                    x->x_target = false;
-                }
-            } else {
-                pd_error(x, "%s: bad argument to 'target' message", classname(x));
-                x->x_target = false;
-            }
-        } else {
-            x->x_target_group = kAooIdInvalid; // broadcast to all groups
-            x->x_target_user = kAooIdInvalid;
+    if (!x->check("target")) return;
+
+    if (argc > 1){
+        // <group> <user>
+        t_symbol *groupname = atom_getsymbol(argv);
+        t_symbol *username = atom_getsymbol(argv + 1);
+        if (auto peer = x->find_peer(groupname, username)) {
+            x->x_target_group = peer->group_id;
+            x->x_target_user = peer->user_id;
             x->x_target = true;
+        } else {
+            pd_error(x, "%s: could not find peer '%s|%s'",
+                     classname(x), groupname->s_name, username->s_name);
+            x->x_target = false;
         }
+    } else if (argc == 1){
+        // <group>
+        auto name = atom_getsymbol(argv);
+        if (auto group = x->find_group(name)) {
+            x->x_target_group = group->id;
+            x->x_target_user = kAooIdInvalid; // broadcast to all users
+            x->x_target = true;
+        } else {
+            pd_error(x, "%s: could not find group '%s'", classname(x), name->s_name);
+            x->x_target = false;
+        }
+    } else {
+        x->x_target_group = kAooIdInvalid; // broadcast to all groups
+        x->x_target_user = kAooIdInvalid;
+        x->x_target = true;
     }
 }
 
@@ -433,7 +531,7 @@ void aoo_client_handle_event(t_aoo_client *x, const AooEvent *event, int32_t lev
         x->handle_message(e->groupId, e->userId, e->timeStamp, e->data);
         break;
     }
-    case kAooNetEventDisconnect:
+    case kAooNetEventClientDisconnect:
     {
         post("%s: disconnected from server", classname(x));
 
@@ -867,4 +965,13 @@ void aoo_client_setup(void)
                     gensym("reliable"), A_FLOAT, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_port,
                     gensym("port"), A_FLOAT, A_NULL);
+    class_addmethod(aoo_client_class, (t_method)aoo_client_binary,
+                    gensym("binary"), A_FLOAT, A_NULL);
+    // debug/simulate
+    class_addmethod(aoo_client_class, (t_method)aoo_client_sim_packet_reorder,
+                    gensym("sim_packet_reorder"), A_FLOAT, A_NULL);
+    class_addmethod(aoo_client_class, (t_method)aoo_client_sim_packet_drop,
+                    gensym("sim_packet_drop"), A_FLOAT, A_NULL);
+    class_addmethod(aoo_client_class, (t_method)aoo_client_sim_packet_jitter,
+                    gensym("sim_packet_jitter"), A_FLOAT, A_NULL);
 }

@@ -7,7 +7,21 @@
 #include <algorithm>
 #include <cmath>
 
-const size_t kAooEventQueueSize = 8;
+namespace aoo {
+
+// OSC data message
+const int32_t kDataMaxAddrSize = kAooMsgDomainLen + kAooMsgSourceLen + 16 + kAooMsgDataLen;
+// typetag string: 4 bytes
+// args: 8 bytes (sink ID + stream ID)
+const int32_t kDataHeaderSize = kDataMaxAddrSize + 8;
+
+// binary data message:
+// args: 8 bytes (stream ID + count)
+const int32_t kBinDataHeaderSize = kAooBinMsgLargeHeaderSize + 8;
+
+const int32_t kEventQueueSize = 8;
+
+} // aoo
 
 //------------------------- Sink ------------------------------//
 
@@ -18,7 +32,7 @@ AOO_API AooSink * AOO_CALL AooSink_new(
 
 aoo::Sink::Sink(AooId id, AooFlag flags, AooError *err)
     : id_(id) {
-    eventqueue_.reserve(kAooEventQueueSize);
+    eventqueue_.reserve(kEventQueueSize);
 }
 
 AOO_API void AOO_CALL AooSink_free(AooSink *sink) {
@@ -199,7 +213,7 @@ AooError AOO_CALL aoo::Sink::control(
     case kAooCtlSetPacketSize:
     {
         CHECKARG(int32_t);
-        const int32_t minpacketsize = 64;
+        const int32_t minpacketsize = kDataHeaderSize + 64;
         auto packetsize = as<int32_t>(ptr);
         if (packetsize < minpacketsize){
             LOG_WARNING("AooSink: packet size too small! setting to " << minpacketsize);
@@ -758,7 +772,7 @@ AooError Sink::handle_start_message(const osc::ReceivedMessage& msg,
         md.data = (const AooByte *)md_data;
         md.size = md_size;
     } else {
-        md.type = kAooDataTypeInvalid;
+        md.type = kAooDataTypeUnspec;
         md.data = nullptr;
         md.size = 0;
     }
@@ -936,7 +950,7 @@ source_desc::source_desc(const ip_address& addr, AooId id, double time)
 {
     // reserve some memory, so we don't have to allocate memory
     // when pushing events in the audio thread.
-    eventqueue_.reserve(kAooEventQueueSize);
+    eventqueue_.reserve(kEventQueueSize);
     // resendqueue_.reserve(256);
     LOG_DEBUG("AooSink: source_desc");
 }
@@ -1847,12 +1861,12 @@ bool source_desc::add_packet(const Sink& s, const net_packet& d,
 
             // fill gaps with empty blocks
             for (int32_t i = newest + 1; i < d.sequence; ++i){
-                jitterbuffer_.push_back(i)->init(i, false);
+                jitterbuffer_.push(i)->init(i, false);
             }
         }
 
         // add new block
-        block = jitterbuffer_.push_back(d.sequence);
+        block = jitterbuffer_.push(d.sequence);
 
         if (d.totalsize == 0){
             // dropped block
@@ -1983,7 +1997,7 @@ void source_desc::process_blocks(const Sink& s, stream_stats& stats){
         }
     #endif
 
-        jitterbuffer_.pop_front();
+        jitterbuffer_.pop();
     }
 }
 
@@ -1991,7 +2005,7 @@ void source_desc::skip_blocks(const Sink& s){
     auto n = std::min<int>(skipblocks_, jitterbuffer_.size());
     LOG_VERBOSE("AooSink: skip " << n << " blocks");
     while (n--){
-        jitterbuffer_.pop_front();
+        jitterbuffer_.pop();
     }
 }
 
@@ -2089,8 +2103,8 @@ void source_desc::send_ping_reply(const Sink &s, AooNtpTime tt1,
     const int32_t max_addr_size = kAooMsgDomainLen
             + kAooMsgSourceLen + 16 + kAooMsgPingLen;
     char address[max_addr_size];
-    snprintf(address, sizeof(address), "%s%s/%d%s",
-             kAooMsgDomain, kAooMsgSource, ep.id, kAooMsgPing);
+    snprintf(address, sizeof(address), "%s/%d%s",
+             kAooMsgDomain kAooMsgSource, ep.id, kAooMsgPing);
 
     msg << osc::BeginMessage(address) << s.id()
         << osc::TimeTag(tt1) << osc::TimeTag(tt2) << packetloss
@@ -2111,8 +2125,8 @@ void source_desc::send_start_request(const Sink& s, const sendfn& fn) {
     const int32_t max_addr_size = kAooMsgDomainLen +
             kAooMsgSourceLen + 16 + kAooMsgStartLen;
     char address[max_addr_size];
-    snprintf(address, sizeof(address), "%s%s/%d%s",
-             kAooMsgDomain, kAooMsgSource, ep.id, kAooMsgStart);
+    snprintf(address, sizeof(address), "%s/%d%s",
+             kAooMsgDomain kAooMsgSource, ep.id, kAooMsgStart);
 
     msg << osc::BeginMessage(address) << s.id()
         << (int32_t)make_version() << osc::EndMessage;
@@ -2142,8 +2156,7 @@ void source_desc::send_data_requests(const Sink& s, const sendfn& fn){
 
     if (binary_.load(std::memory_order_relaxed)){
         // --- binary version ---
-        const int32_t maxdatasize = s.packetsize()
-                - (kAooBinMsgLargeHeaderSize + 8); // header + stream_id + count
+        const int32_t maxdatasize = s.packetsize() - kBinDataHeaderSize;
         const int32_t maxrequests = maxdatasize / 8; // 2 * int32
 
         // write header
@@ -2188,14 +2201,12 @@ void source_desc::send_data_requests(const Sink& s, const sendfn& fn){
         osc::OutboundPacketStream msg(buf, sizeof(buf));
 
         // make OSC address pattern
-        const int32_t maxaddrsize = kAooMsgDomainLen +
-                kAooMsgSourceLen + 16 + kAooMsgDataLen;
-        char pattern[maxaddrsize];
-        snprintf(pattern, sizeof(pattern), "%s%s/%d%s",
-                 kAooMsgDomain, kAooMsgSource, ep.id, kAooMsgData);
+        char pattern[kDataMaxAddrSize];
+        snprintf(pattern, sizeof(pattern), "%s/%d%s",
+                 kAooMsgDomain kAooMsgSource, ep.id, kAooMsgData);
 
-        const int32_t maxdatasize = s.packetsize() - maxaddrsize - 16; // id + stream_id + padding
-        const int32_t maxrequests = maxdatasize / 10; // 2 * (int32_t + typetag)
+        const int32_t maxdatasize = s.packetsize() - kDataHeaderSize;
+        const int32_t maxrequests = maxdatasize / 10; // 2 * (int32_t + typetag + padding)
         int32_t numrequests = 0;
 
         msg << osc::BeginMessage(pattern) << s.id() << stream_id;
@@ -2240,8 +2251,8 @@ void send_invitation(const Sink& s, const endpoint& ep, AooId token,
     const int32_t max_addr_size = kAooMsgDomainLen
             + kAooMsgSourceLen + 16 + kAooMsgInviteLen;
     char address[max_addr_size];
-    snprintf(address, sizeof(address), "%s%s/%d%s",
-             kAooMsgDomain, kAooMsgSource, ep.id, kAooMsgInvite);
+    snprintf(address, sizeof(address), "%s/%d%s",
+             kAooMsgDomain kAooMsgSource, ep.id, kAooMsgInvite);
 
     msg << osc::BeginMessage(address) << s.id() << token;
     if (metadata){
@@ -2268,8 +2279,8 @@ void send_uninvitation(const Sink& s, const endpoint& ep,
     const int32_t max_addr_size = kAooMsgDomainLen
             + kAooMsgSourceLen + 16 + kAooMsgUninviteLen;
     char address[max_addr_size];
-    snprintf(address, sizeof(address), "%s%s/%d%s",
-             kAooMsgDomain, kAooMsgSource, ep.id, kAooMsgUninvite);
+    snprintf(address, sizeof(address), "%s/%d%s",
+             kAooMsgDomain kAooMsgSource, ep.id, kAooMsgUninvite);
 
     msg << osc::BeginMessage(address) << s.id() << token
         << osc::EndMessage;

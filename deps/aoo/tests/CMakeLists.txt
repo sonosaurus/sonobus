@@ -14,6 +14,9 @@ else()
 endif()
 
 if (NOT MSVC)
+    # C89 does not have "inline" and GCC/Clang warn about unused static non-inline functions
+    target_compile_options(TEST_C_INTERFACE PUBLIC "-Wno-unused-function")
+    # force C standard
     target_compile_options(TEST_C_INTERFACE PUBLIC "-std=${TEST_C_STANDARD}" "-pedantic")
 endif()
 

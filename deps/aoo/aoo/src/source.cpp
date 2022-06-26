@@ -8,22 +8,21 @@
 #include <algorithm>
 #include <cmath>
 
-const size_t kAooEventQueueSize = 8;
+namespace aoo {
+
+const int32_t kEventQueueSize = 8;
 
 // OSC data message
-// address pattern string: max 32 bytes
+const int32_t kDataMaxAddrSize = kAooMsgDomainLen + kAooMsgSinkLen + 16 + kAooMsgDataLen;
 // typetag string: max. 12 bytes
 // args (without blob data): 36 bytes
-#define kAooMsgDataHeaderSize 80
+const int32_t kDataHeaderSize = kDataMaxAddrSize + 48;
 
 // binary data message:
-// header: 12 bytes
-// args: 48 bytes (max.)
-#define kAooBinMsgDataHeaderSize 48
+// args: 28 bytes (max.)
+const int32_t kBinDataHeaderSize = kAooBinMsgLargeHeaderSize + 28;
 
 //-------------------- sink_desc ------------------------//
-
-namespace aoo {
 
 // called while locked
 void sink_desc::start(){
@@ -142,7 +141,7 @@ aoo::Source::Source(AooId id, AooFlag flags, AooError *err)
     : id_(id)
 {
     // event queue
-    eventqueue_.reserve(kAooEventQueueSize);
+    eventqueue_.reserve(kEventQueueSize);
     // request queues
     // formatrequestqueue_.resize(64);
     // datarequestqueue_.resize(1024);
@@ -284,7 +283,7 @@ AooError AOO_CALL aoo::Source::control(
     case kAooCtlSetPacketSize:
     {
         CHECKARG(int32_t);
-        const int32_t minpacketsize = kAooMsgDataHeaderSize + 64;
+        const int32_t minpacketsize = kDataHeaderSize + 64;
         auto packetsize = as<int32_t>(ptr);
         if (packetsize < minpacketsize){
             LOG_WARNING("AooSource: packet size too small! setting to " << minpacketsize);
@@ -849,7 +848,7 @@ AooError AOO_CALL aoo::Source::startStream(const AooDataView *md) {
                 flat_metadata_copy(*md, *metadata_);
             } else {
                 // clear previous metadata
-                metadata_->type = kAooDataTypeInvalid;
+                metadata_->type = kAooDataTypeUnspec;
                 metadata_->data = nullptr;
                 metadata_->size = 0;
             }
@@ -959,6 +958,7 @@ AOO_API AooError AOO_CALL AooSource_acceptInvitation(
 
 AooError AOO_CALL aoo::Source::acceptInvitation(const AooEndpoint& ep, AooId token) {
     ip_address addr((const sockaddr *)ep.address, ep.addrlen);
+    sink_lock lock(sinks_);
     auto sink = find_sink(addr, ep.id);
     if (sink){
         sink->accept_invitation(*this, token);
@@ -981,6 +981,7 @@ AOO_API AooError AOO_CALL AooSource_acceptUninvitation(
 
 AooError AOO_CALL aoo::Source::acceptUninvitation(const AooEndpoint& ep, AooId token) {
     ip_address addr((const sockaddr *)ep.address, ep.addrlen);
+    sink_lock lock(sinks_);
     auto sink = find_sink(addr, ep.id);
     if (sink){
         sink->accept_uninvitation(*this, token);
@@ -1228,7 +1229,7 @@ void Source::allocate_metadata(int32_t size){
         auto maxsize = flat_metadata_maxsize(size);
         metadata = (AooDataView *)aoo::allocate(maxsize);
         if (metadata){
-            metadata->type = kAooDataTypeInvalid;
+            metadata->type = kAooDataTypeUnspec;
             metadata->data = nullptr;
             metadata->size = 0;
         } else {
@@ -1268,7 +1269,7 @@ void Source::update_audioqueue(){
     if (encoder_ && samplerate_ > 0){
         // recalculate buffersize from seconds to samples
         int32_t bufsize = buffersize_.load() * format_->sampleRate;
-        auto d = div(bufsize, format_->blockSize);
+        auto d = std::div(bufsize, format_->blockSize);
         int32_t nbuffers = d.quot + (d.rem != 0); // round up
         // minimum buffer size depends on resampling and reblocking!
         auto downsample = (double)format_->sampleRate / (double)samplerate_;
@@ -1303,7 +1304,7 @@ void Source::update_historybuffer(){
     if (encoder_){
         // bufsize can also be 0 (= don't resend)!
         int32_t bufsize = resend_buffersize_.load() * format_->sampleRate;
-        auto d = div(bufsize, format_->blockSize);
+        auto d = std::div(bufsize, format_->blockSize);
         int32_t nbuffers = d.quot + (d.rem != 0); // round up
         history_.resize(nbuffers);
         LOG_DEBUG("AooSource: history buffersize (ms): "
@@ -1328,8 +1329,8 @@ void send_start_msg(const endpoint& ep, int32_t id, int32_t stream, int32_t last
     const int32_t max_addr_size = kAooMsgDomainLen
             + kAooMsgSinkLen + 16 + kAooMsgStartLen;
     char address[max_addr_size];
-    snprintf(address, sizeof(address), "%s%s/%d%s",
-             kAooMsgDomain, kAooMsgSink, ep.id, kAooMsgStart);
+    snprintf(address, sizeof(address), "%s/%d%s",
+             kAooMsgDomain kAooMsgSink, ep.id, kAooMsgStart);
 
     // stream specific flags (for future use)
     AooFlag flags = 0;
@@ -1357,8 +1358,8 @@ void send_stop_msg(const endpoint& ep, int32_t id, int32_t stream, const sendfn&
     const int32_t max_addr_size = kAooMsgDomainLen
             + kAooMsgSinkLen + 16 + kAooMsgStopLen;
     char address[max_addr_size];
-    snprintf(address, sizeof(address), "%s%s/%d%s",
-             kAooMsgDomain, kAooMsgSink, ep.id, kAooMsgStop);
+    snprintf(address, sizeof(address), "%s/%d%s",
+             kAooMsgDomain kAooMsgSink, ep.id, kAooMsgStop);
 
     msg << osc::BeginMessage(address) << id << stream << osc::EndMessage;
 
@@ -1479,11 +1480,9 @@ void send_packet_osc(const endpoint& ep, AooId id, int32_t stream_id,
     char buf[AOO_MAX_PACKET_SIZE];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
 
-    const int32_t max_addr_size = kAooMsgDomainLen
-            + kAooMsgSinkLen + 16 + kAooMsgDataLen;
-    char address[max_addr_size];
-    snprintf(address, sizeof(address), "%s%s/%d%s",
-             kAooMsgDomain, kAooMsgSink, ep.id, kAooMsgData);
+    char address[kDataMaxAddrSize];
+    snprintf(address, sizeof(address), "%s/%d%s",
+             kAooMsgDomain kAooMsgSink, ep.id, kAooMsgData);
 
     msg << osc::BeginMessage(address) << id << stream_id << d.sequence << d.samplerate
         << d.channel << d.totalsize << d.nframes << d.frame << osc::Blob(d.data, d.size)
@@ -1669,8 +1668,8 @@ void Source::send_data(const sendfn& fn){
             bool binary = binary_.load();
             auto packetsize = packetsize_.load();
             auto maxpacketsize = packetsize -
-                    (binary ? kAooBinMsgDataHeaderSize : kAooMsgDataHeaderSize);
-            auto dv = div(d.totalsize, maxpacketsize);
+                    (binary ? kDataHeaderSize : kBinDataHeaderSize);
+            auto dv = std::div(d.totalsize, maxpacketsize);
             d.nframes = dv.quot + (dv.rem != 0);
 
             // save block (if we have a history buffer)
@@ -1864,8 +1863,8 @@ void Source::send_ping(const sendfn& fn){
                 const int32_t max_addr_size = kAooMsgDomainLen
                         + kAooMsgSinkLen + 16 + kAooMsgPingLen;
                 char address[max_addr_size];
-                snprintf(address, sizeof(address), "%s%s/%d%s",
-                         kAooMsgDomain, kAooMsgSink, sink.ep.id, kAooMsgPing);
+                snprintf(address, sizeof(address), "%s/%d%s",
+                         kAooMsgDomain kAooMsgSink, sink.ep.id, kAooMsgPing);
 
                 msg << osc::BeginMessage(address) << id() << osc::TimeTag(tt)
                     << osc::EndMessage;
@@ -2099,7 +2098,7 @@ void Source::handle_uninvite(const osc::ReceivedMessage& msg,
                 // if the sink is inactive, it probably means that we have
                 // accepted the uninvitation, but the /stop message got lost.
                 LOG_DEBUG("AooSource: ignoring '" << kAooMsgUninvite << "' message: "
-                          << " sink not active (/stop message got loast?)");
+                          << " sink not active (/stop message got lost?)");
             }
         } else {
             LOG_VERBOSE("AooSource: ignoring '" << kAooMsgUninvite

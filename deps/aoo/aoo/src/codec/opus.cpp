@@ -18,6 +18,7 @@ namespace {
 //---------------- helper functions -----------------//
 
 void print_format(const AooFormatOpus& f){
+#if AOO_LOG_LEVEL >= kAooLogLevelVerbose
     const char *application;
 
     switch (f.applicationType){
@@ -37,6 +38,7 @@ void print_format(const AooFormatOpus& f){
                 << ", blocksize = " << f.header.blockSize
                 << ", samplerate = " << f.header.sampleRate
                 << ", application = " << application);
+#endif
 }
 
 bool validate_format(AooFormatOpus& f, bool loud = true)

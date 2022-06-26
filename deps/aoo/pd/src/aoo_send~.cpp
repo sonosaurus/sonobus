@@ -35,8 +35,9 @@ t_class *aoo_send_class;
 struct t_sink
 {
     aoo::ip_address s_address;
-    int32_t s_id;
-    uint32_t s_flags;
+    AooId s_id;
+    t_symbol *s_group;
+    t_symbol *s_user;
 };
 
 struct t_aoo_send
@@ -68,95 +69,170 @@ struct t_aoo_send
     // (un)invite
     AooId x_invite_token = kAooIdInvalid;
     bool x_auto_invite = true; // on by default
+
+    bool get_sink_arg(int argc, t_atom *argv,
+                      aoo::ip_address& addr, AooId& id, bool check) const;
+
+    bool check(const char *name) const;
+
+    bool check(int argc, t_atom *argv, int minargs, const char *name) const;
+
+    void add_sink(const aoo::ip_address& addr, AooId id);
+
+    void remove_all();
+
+    void remove_sink(const aoo::ip_address& addr, AooId id);
+
+    const t_sink *find_sink(const aoo::ip_address& addr, AooId id) const;
 };
 
-bool static aoo_send_check(t_aoo_send *x, const char *name)
+bool t_aoo_send::get_sink_arg(int argc, t_atom *argv,
+                              aoo::ip_address& addr, AooId& id, bool check) const
 {
-    if (x->x_node){
+    if (!x_node) {
+        pd_error(this, "%s: no socket!", classname(this));
+        return false;
+    }
+    if (argc < 3){
+        pd_error(this, "%s: too few arguments for sink", classname(this));
+        return false;
+    }
+    // first try peer (group|user)
+    if (argv[1].a_type == A_SYMBOL) {
+        t_symbol *group = atom_getsymbol(argv);
+        t_symbol *user = atom_getsymbol(argv + 1);
+        id = atom_getfloat(argv + 2);
+        // first search sink list, in case the client has been disconnected
+        for (auto& s : x_sinks) {
+            if (s.s_group == group && s.s_user == user && s.s_id == id) {
+                addr = s.s_address;
+                return true;
+            }
+        }
+        if (!check) {
+            // not yet in list -> try to get from client
+            if (x_node->find_peer(group, user, addr)) {
+                return true;
+            }
+        }
+        pd_error(this, "%s: couldn't find sink %s|%s %d",
+                 classname(this), group->s_name, user->s_name, id);
+        return false;
+    } else {
+        // otherwise try host|port
+        t_symbol *host = atom_getsymbol(argv);
+        int port = atom_getfloat(argv + 1);
+        id = atom_getfloat(argv + 2);
+        if (x_node->resolve(host, port, addr)) {
+            if (check) {
+                // try to find in list
+                for (auto& s : x_sinks) {
+                    if (s.s_address == addr && s.s_id == id) {
+                        return true;
+                    }
+                }
+                pd_error(this, "%s: couldn't find sink %s %d %d",
+                         classname(this), host->s_name, port, id);
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            pd_error(this, "%s: couldn't resolve sink hostname '%s'",
+                     classname(this), host->s_name);
+            return false;
+        }
+    }
+}
+
+bool t_aoo_send::check(const char *name) const
+{
+    if (x_node){
         return true;
     } else {
-        pd_error(x, "%s: '%s' failed: no socket!", classname(x), name);
+        pd_error(this, "%s: '%s' failed: no socket!", classname(this), name);
         return false;
     }
 }
 
-bool static aoo_send_check(t_aoo_send *x, int argc, t_atom *argv,
-                           int minargs, const char *name)
+bool t_aoo_send::check(int argc, t_atom *argv, int minargs, const char *name) const
 {
-    if (!aoo_send_check(x, name)) return false;
+    if (!check(name)) return false;
 
     if (argc < minargs){
-        pd_error(x, "%s: too few arguments for '%s' message", classname(x), name);
+        pd_error(this, "%s: too few arguments for '%s' message", classname(this), name);
         return false;
     }
 
     return true;
 }
 
-static void aoo_send_doaddsink(t_aoo_send *x, const aoo::ip_address& addr,
-                               AooId id)
+void t_aoo_send::add_sink(const aoo::ip_address& addr, AooId id)
 {
-    // add sink to list
-    x->x_sinks.push_back({addr, id});
+    // add sink to list; try to find peer name!
+    t_symbol *group = nullptr;
+    t_symbol *user = nullptr;
+    x_node->find_peer(addr, group, user);
+    x_sinks.push_back({addr, id, group, user});
 
     // output message
     t_atom msg[3];
-    if (x->x_node->serialize_endpoint(addr, id, 3, msg)){
-        outlet_anything(x->x_msgout, gensym("add"), 3, msg);
+    if (x_node->serialize_endpoint(addr, id, 3, msg)){
+        outlet_anything(x_msgout, gensym("add"), 3, msg);
     } else {
-        bug("aoo_send_doaddsink: serialize_endpoint");
+        bug("t_aoo_send::add_sink: serialize_endpoint");
     }
 }
 
-static void aoo_send_doremoveall(t_aoo_send *x)
+void t_aoo_send::remove_all()
 {
-    x->x_source->removeAll();
+    x_source->removeAll();
 
-    int numsinks = x->x_sinks.size();
+    int numsinks = x_sinks.size();
     if (!numsinks){
         return;
     }
 
     // temporary copies (for reentrancy)
     t_sink *sinks = (t_sink *)alloca(sizeof(t_sink) * numsinks);
-    std::copy(x->x_sinks.begin(), x->x_sinks.end(), sinks);
+    std::copy(x_sinks.begin(), x_sinks.end(), sinks);
 
-    x->x_sinks.clear();
+    x_sinks.clear();
 
     // output messages
     for (int i = 0; i < numsinks; ++i){
         t_atom msg[3];
-        if (x->x_node->serialize_endpoint(sinks[i].s_address, sinks[i].s_id, 3, msg)){
-            outlet_anything(x->x_msgout, gensym("remove"), 3, msg);
+        if (x_node->serialize_endpoint(sinks[i].s_address, sinks[i].s_id, 3, msg)){
+            outlet_anything(x_msgout, gensym("remove"), 3, msg);
         } else {
             bug("aoo_send_doremoveall: serialize_endpoint");
         }
     }
 }
 
-static void aoo_send_doremovesink(t_aoo_send *x, const aoo::ip_address& addr, AooId id)
+void t_aoo_send::remove_sink(const aoo::ip_address& addr, AooId id)
 {
     // remove the sink matching endpoint and id
-    for (auto it = x->x_sinks.begin(); it != x->x_sinks.end(); ++it){
+    for (auto it = x_sinks.begin(); it != x_sinks.end(); ++it){
         if (it->s_address == addr && it->s_id == id){
-            x->x_sinks.erase(it);
+            x_sinks.erase(it);
 
             // output message
             t_atom msg[3];
-            if (x->x_node->serialize_endpoint(addr, id, 3, msg)){
-                outlet_anything(x->x_msgout, gensym("remove"), 3, msg);
+            if (x_node->serialize_endpoint(addr, id, 3, msg)){
+                outlet_anything(x_msgout, gensym("remove"), 3, msg);
             } else {
                 bug("aoo_send_doremovesink: serialize_endpoint");
             }
             return;
         }
     }
-    bug("aoo_send_doremovesink");
+    bug("t_aoo_send::remove_sink");
 }
 
-static t_sink *aoo_send_findsink(t_aoo_send *x, const aoo::ip_address& addr, AooId id)
+const t_sink *t_aoo_send::find_sink(const aoo::ip_address& addr, AooId id) const
 {
-    for (auto& sink : x->x_sinks){
+    for (auto& sink : x_sinks){
         if (sink.s_address == addr && sink.s_id == id){
             return &sink;
         }
@@ -166,7 +242,7 @@ static t_sink *aoo_send_findsink(t_aoo_send *x, const aoo::ip_address& addr, Aoo
 
 #if USE_CODEC_OPUS
 
-bool get_opus_bitrate(t_aoo_send *x, t_atom *a) {
+static bool get_opus_bitrate(t_aoo_send *x, t_atom *a) {
     opus_int32 value;
     auto err = AooSource_getOpusBitrate(x->x_source.get(), 0, &value);
     if (err != kAooOk){
@@ -189,7 +265,7 @@ bool get_opus_bitrate(t_aoo_send *x, t_atom *a) {
     return true;
 }
 
-void set_opus_bitrate(t_aoo_send *x, const t_atom *a) {
+static void set_opus_bitrate(t_aoo_send *x, const t_atom *a) {
     // "auto", "max" or number
     opus_int32 value;
     if (a->a_type == A_SYMBOL){
@@ -220,7 +296,7 @@ void set_opus_bitrate(t_aoo_send *x, const t_atom *a) {
     }
 }
 
-bool get_opus_complexity(t_aoo_send *x, t_atom *a){
+static bool get_opus_complexity(t_aoo_send *x, t_atom *a){
     opus_int32 value;
     auto err = AooSource_getOpusComplexity(x->x_source.get(), 0, &value);
     if (err != kAooOk){
@@ -232,7 +308,7 @@ bool get_opus_complexity(t_aoo_send *x, t_atom *a){
     return true;
 }
 
-void set_opus_complexity(t_aoo_send *x, const t_atom *a){
+static void set_opus_complexity(t_aoo_send *x, const t_atom *a){
     // 0-10
     opus_int32 value = atom_getfloat(a);
     if (value < 0 || value > 10){
@@ -247,7 +323,7 @@ void set_opus_complexity(t_aoo_send *x, const t_atom *a){
     }
 }
 
-bool get_opus_signal(t_aoo_send *x, t_atom *a){
+static bool get_opus_signal(t_aoo_send *x, t_atom *a){
     opus_int32 value;
     auto err = AooSource_getOpusSignalType(x->x_source.get(), 0, &value);
     if (err != kAooOk){
@@ -271,7 +347,7 @@ bool get_opus_signal(t_aoo_send *x, t_atom *a){
     return true;
 }
 
-void set_opus_signal(t_aoo_send *x, const t_atom *a){
+static void set_opus_signal(t_aoo_send *x, const t_atom *a){
     // "auto", "music", "voice"
     opus_int32 value;
     t_symbol *type = atom_getsymbol(a);
@@ -296,7 +372,7 @@ void set_opus_signal(t_aoo_send *x, const t_atom *a){
 #endif
 
 static void aoo_send_codec_set(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv){
-    if (!aoo_send_check(x, argc, argv, 2, "codec_set")) return;
+    if (!x->check(argc, argv, 2, "codec_set")) return;
 
     auto name = atom_getsymbol(argv);
 #if USE_CODEC_OPUS
@@ -319,7 +395,7 @@ static void aoo_send_codec_set(t_aoo_send *x, t_symbol *s, int argc, t_atom *arg
 }
 
 static void aoo_send_codec_get(t_aoo_send *x, t_symbol *s){
-    if (!aoo_send_check(x, "codec_get")) return;
+    if (!x->check("codec_get")) return;
 
     t_atom msg[2];
     SETSYMBOL(msg, s);
@@ -451,8 +527,8 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         }
         case kAooEventSinkAdd:
         {
-            if (!aoo_send_findsink(x, addr, ep.id)){
-                aoo_send_doaddsink(x, addr, ep.id);
+            if (!x->find_sink(addr, ep.id)){
+                x->add_sink(addr, ep.id);
             } else {
                 // the sink might have been added concurrently by the user (very unlikely)
                 verbose(0, "sink %s %d %d already added",
@@ -462,10 +538,10 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         }
         case kAooEventSinkRemove:
         {
-            if (aoo_send_findsink(x, addr, ep.id)){
-                aoo_send_doremovesink(x, addr, ep.id);
+            if (x->find_sink(addr, ep.id)){
+                x->remove_sink(addr, ep.id);
             } else {
-                // the sink might been removed concurrently by the user (very unlikely)
+                // the sink might have been removed concurrently by the user (very unlikely)
                 verbose(0, "sink %s %d %d already removed",
                         addr.name(), addr.port(), ep.id);
             }
@@ -522,21 +598,15 @@ static void aoo_send_auto_invite(t_aoo_send *x, t_floatarg f) {
 
 static void aoo_send_invite(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!aoo_send_check(x, argc, argv, 3, "invite")) return;
+    if (!x->check(argc, argv, 3, "invite")) return;
 
     aoo::ip_address addr;
     AooId id;
-    if (x->x_node->get_sink_arg((t_pd *)x, argc, argv, addr, id)){
+    if (x->get_sink_arg(argc, argv, addr, id, true)){
         // interpret non-float argument as 'yes', so we can simply
         // pass the original 'invite' message - including the metadata!
         bool accept = ((argc > 3) && (argv[3].a_type == A_FLOAT)) ?
                     argv[3].a_w.w_float : true;
-    #if 1
-        if (!aoo_send_findsink(x, addr, id)){
-            pd_error(x, "%s: couldn't find sink!", classname(x));
-            return;
-        }
-    #endif
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
         x->x_source->acceptInvitation(ep, accept ? x->x_invite_token : kAooIdInvalid);
     }
@@ -544,21 +614,15 @@ static void aoo_send_invite(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 
 static void aoo_send_uninvite(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!aoo_send_check(x, argc, argv, 3, "uninvite")) return;
+    if (!x->check(argc, argv, 3, "uninvite")) return;
 
     aoo::ip_address addr;
     AooId id;
-    if (x->x_node->get_sink_arg((t_pd *)x, argc, argv, addr, id)){
+    if (x->get_sink_arg(argc, argv, addr, id, true)){
         // interpret non-float argument as 'yes', so we can simply
         // pass the original 'invite' message - including the metadata!
         bool accept = ((argc > 3) && (argv[3].a_type == A_FLOAT)) ?
                     argv[3].a_w.w_float : true;
-    #if 1
-        if (!aoo_send_findsink(x, addr, id)){
-            pd_error(x, "%s: couldn't find sink!", classname(x));
-            return;
-        }
-    #endif
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
         x->x_source->acceptUninvitation(ep, accept ? x->x_invite_token : kAooIdInvalid);
     }
@@ -566,18 +630,12 @@ static void aoo_send_uninvite(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv
 
 static void aoo_send_channel(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!aoo_send_check(x, argc, argv, 4, "channel")) return;
+    if (!x->check(argc, argv, 4, "channel")) return;
 
     aoo::ip_address addr;
     AooId id;
-    if (x->x_node->get_sink_arg((t_pd *)x, argc, argv, addr, id)){
+    if (x->get_sink_arg(argc, argv, addr, id, true)){
         int32_t chn = atom_getfloat(argv + 3);
-    #if 1
-        if (!aoo_send_findsink(x, addr, id)){
-            pd_error(x, "%s: couldn't find sink!", classname(x));
-            return;
-        }
-    #endif
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
         x->x_source->setSinkChannelOnset(ep, chn);
     }
@@ -620,13 +678,13 @@ static void aoo_send_binary(t_aoo_send *x, t_floatarg f)
 
 static void aoo_send_add(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!aoo_send_check(x, argc, argv, 3, "add")) return;
+    if (!x->check(argc, argv, 3, "add")) return;
 
     aoo::ip_address addr;
     AooId id;
-    if (x->x_node->get_sink_arg((t_pd *)x, argc, argv, addr, id)){
+    if (x->get_sink_arg(argc, argv, addr, id, false)){
         // check if sink exists
-        if (aoo_send_findsink(x, addr, id)){
+        if (x->find_sink(addr, id)) {
             if (argv[1].a_type == A_SYMBOL){
                 // group + user
                 auto group = atom_getsymbol(argv)->s_name;
@@ -653,7 +711,7 @@ static void aoo_send_add(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
             x->x_source->setSinkChannelOnset(ep, channel);
         }
 
-        aoo_send_doaddsink(x, addr, id);
+        x->add_sink(addr, id);
 
         // print message (use actual IP address)
         verbose(0, "added sink %s %d %d", addr.name(), addr.port(), id);
@@ -662,10 +720,10 @@ static void aoo_send_add(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 
 static void aoo_send_remove(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!aoo_send_check(x, "remove")) return;
+    if (!x->check("remove")) return;
 
     if (!argc){
-        aoo_send_doremoveall(x);
+        x->remove_all();
         return;
     }
 
@@ -676,28 +734,13 @@ static void aoo_send_remove(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 
     aoo::ip_address addr;
     AooId id;
-    if (x->x_node->get_sink_arg((t_pd *)x, argc, argv, addr, id)){
-        if (aoo_send_findsink(x, addr, id)){
-            AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
-            x->x_source->removeSink(ep);
+    if (x->get_sink_arg(argc, argv, addr, id, true)) {
+        AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
+        x->x_source->removeSink(ep);
 
-            aoo_send_doremovesink(x, addr, id);
+        x->remove_sink(addr, id);
 
-            verbose(0, "removed sink %s %d %d", addr.name(), addr.port(), id);
-        } else {
-            if (argv[1].a_type == A_SYMBOL){
-                // group + user
-                auto group = atom_getsymbol(argv)->s_name;
-                auto user = atom_getsymbol(argv + 1)->s_name;
-                pd_error(x, "%s: sink %s|%s %d not found!",
-                         classname(x), group, user, id);
-            } else {
-                // host + port
-                auto host = atom_getsymbol(argv)->s_name;
-                pd_error(x, "%s: sink %s %d %d not found!",
-                         classname(x), host, addr.port(), id);
-            }
-        }
+        verbose(0, "removed sink %s %d %d", addr.name(), addr.port(), id);
     }
 }
 
@@ -722,18 +765,11 @@ static void aoo_send_stop(t_aoo_send *x)
 
 static void aoo_send_active(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!aoo_send_check(x, argc, argv, 4, "active")) return;
+    if (!x->check(argc, argv, 4, "active")) return;
 
     aoo::ip_address addr;
     AooId id;
-    if (x->x_node->get_sink_arg((t_pd *)x, argc, argv, addr, id)){
-        int32_t chn = atom_getfloat(argv + 3);
-    #if 1
-        if (!aoo_send_findsink(x, addr, id)){
-            pd_error(x, "%s: couldn't find sink!", classname(x));
-            return;
-        }
-    #endif
+    if (x->get_sink_arg(argc, argv, addr, id, true)){
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
         bool active = atom_getfloat(argv + 3);
         x->x_source->activate(ep, active);
@@ -777,8 +813,10 @@ static void aoo_send_metadata(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv
     }
 }
 
-static void aoo_send_listsinks(t_aoo_send *x)
+static void aoo_send_sink_list(t_aoo_send *x)
 {
+    if (!x->check("sink_list")) return;
+
     for (auto& sink : x->x_sinks){
         t_atom msg[3];
         if (x->x_node->serialize_endpoint(sink.s_address, sink.s_id, 3, msg)){
@@ -1015,6 +1053,6 @@ void aoo_send_tilde_setup(void)
                     gensym("dll_bandwidth"), A_FLOAT, A_NULL);
     class_addmethod(aoo_send_class, (t_method)aoo_send_binary,
                     gensym("binary"), A_FLOAT, A_NULL);
-    class_addmethod(aoo_send_class, (t_method)aoo_send_listsinks,
-                    gensym("list_sinks"), A_NULL);
+    class_addmethod(aoo_send_class, (t_method)aoo_send_sink_list,
+                    gensym("sink_list"), A_NULL);
 }

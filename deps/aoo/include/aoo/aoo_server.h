@@ -141,7 +141,7 @@ AOO_API AooError AOO_CALL AooServer_removeUserFromGroup(
         AooServer *server, AooId group, AooId user);
 
 /** \copydoc AooServer::groupControl() */
-AOO_API AooError AOO_CALL groupControl(
+AOO_API AooError AOO_CALL AooServer_groupControl(
         AooServer *server, AooId group, AooCtl ctl,
         AooIntPtr index, void *data, AooSize size);
 
@@ -200,6 +200,22 @@ AOO_INLINE AooError AooServer_setGroupAutoCreate(AooServer *server, AooBool b)
 AOO_INLINE AooError AooServer_getGroupAutoCreate(AooServer *server, AooBool* b)
 {
     return AooServer_control(server, kAooCtlGetGroupAutoCreate, 0, AOO_ARG(*b));
+}
+
+/*--------------------------------------------------*/
+/*         type-safe group control functions        */
+/*--------------------------------------------------*/
+
+AOO_INLINE AooError AooServer_updateGroup(
+        AooServer *server, AooId group, const AooDataView *metadata)
+{
+    return AooServer_groupControl(server, group, kAooCtlUpdateGroup, 0, AOO_ARG(metadata));
+}
+
+AOO_INLINE AooError AooServer_updateUser(
+        AooServer *server, AooId group, AooId user, const AooDataView *metadata)
+{
+    return AooServer_groupControl(server, group, kAooCtlUpdateUser, user, AOO_ARG(metadata));
 }
 
 /*----------------------------------------------------------------------*/

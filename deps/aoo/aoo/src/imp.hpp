@@ -305,11 +305,6 @@ public:
     template<typename U>
     allocator& operator=(const allocator<U>&) noexcept {}
 
-    template<class U>
-    struct rebind {
-        typedef allocator<U> other;
-    };
-
     value_type* allocate(size_t n) {
         return (value_type *)aoo::allocate(sizeof(T) * n);
     }

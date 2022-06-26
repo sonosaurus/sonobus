@@ -72,6 +72,11 @@ enum AooControls
     kAooCtlGetServerRelay,
     kAooCtlSetGroupAutoCreate,
     kAooCtlGetGroupAutoCreate,
+    kAooCtlSetBinaryClientMsg,
+    kAooCtlGetBinaryClientMsg,
+    /* server group controls */
+    kAooCtlUpdateGroup,
+    kAooCtlUpdateUser,
 #endif
     kAooCtlSentinel
 };
@@ -104,5 +109,8 @@ enum AooPrivateControls
 {
     kAooCtlSetClient = -1000,
     kAooCtlNeedRelay,
-    kAooCtlGetRelayAddress
+    kAooCtlGetRelayAddress,
+    kAooCtlSetSimulatePacketReorder,
+    kAooCtlSetSimulatePacketDrop,
+    kAooCtlSetSimulatePacketJitter
 };

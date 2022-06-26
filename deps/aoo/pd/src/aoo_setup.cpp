@@ -149,7 +149,7 @@ extern "C" EXPORT void aoo_setup(void)
     if (aoo::check_ntp_server(msg)){
         post("%s", msg.c_str());
     } else {
-        error("%s", msg.c_str());
+        pd_error(0, "%s", msg.c_str());
     }
 
     post("");

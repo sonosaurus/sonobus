@@ -123,7 +123,34 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
     test_atomic(ATOMIC_INT64 "atomic_int64.cpp")
     # message(STATUS "atomic 64-bit integers supported: ${AOO_HAVE_ATOMIC_INT64}")
 
+    # pthread_rwlock_t support
+    if (NOT WIN32)
+        if (NOT DEFINED AOO_HAVE_PTHREAD_RWLOCK)
+            message(STATUS "Testing support for pthread_rwlock_t")
+
+            try_compile(RESULT_VAR
+                "${CMAKE_CURRENT_BINARY_DIR}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/cmake/pthread_rwlock.cpp"
+                OUTPUT_VARIABLE COMPILE_OUTPUT
+                CXX_STANDARD 17
+                LINK_LIBRARIES "pthread")
+
+            if (RESULT_VAR)
+                message(STATUS "- ok")
+            else()
+                message(STATUS "- failed")
+                message(VERBOSE ${COMPILE_OUTPUT})
+            endif()
+
+            set(AOO_HAVE_PTHREAD_RWLOCK ${RESULT_VAR} CACHE INTERNAL "pthread_rwlock_t support")
+        endif()
+    endif()
+
     # warnings/errors
+    add_compile_options("-Wall" "-Wextra")
+    # disable some useless and noisy warnings
+    add_compile_options("-Wno-unused-parameter" "-Wno-unused-variable" "-Wno-sign-compare")
+    # some warnings should be errors
     add_compile_options("-Werror=return-type")
 endif()
 
@@ -183,6 +210,10 @@ endif()
 if (AOO_HAVE_LIB_ATOMIC AND
         (NOT AOO_HAVE_ATOMIC_DOUBLE OR NOT AOO_HAVE_ATOMIC_INT64))
     list(APPEND LIBS "-latomic")
+endif()
+# pthread_rwlock
+if (AOO_HAVE_PTHREAD_RWLOCK)
+    add_definitions(-DAOO_HAVE_PTHREAD_RWLOCK)
 endif()
 
 # opus support

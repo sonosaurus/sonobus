@@ -188,9 +188,9 @@ struct atomic_node_base {
 template<typename C, typename Alloc>
 class node_allocator_base :
         protected C,
-        protected Alloc::template rebind<typename C::node>::other
+        std::allocator_traits<Alloc>::template rebind_alloc<typename C::node>
 {
-    typedef typename Alloc::template rebind<typename C::node>::other base;
+    typedef typename std::allocator_traits<Alloc>::template rebind_alloc<typename C::node> base;
 protected:
     typedef typename C::node node;
 

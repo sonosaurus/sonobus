@@ -316,9 +316,12 @@ bool parseFormat(const AooUnit& unit, int defNumChannels,
         auto blockSize = getFormatParam(args, "blocksize", unit.bufferSize());
         auto sampleRate = getFormatParam(args, "samplerate", unit.sampleRate());
 
-        int nbits = getFormatParam(args, "bitdepth", 4);
+        int nbytes = getFormatParam(args, "bitdepth", 4);
         AooPcmBitDepth bitdepth;
-        switch (nbits){
+        switch (nbytes){
+        case 1:
+            bitdepth = kAooPcmInt8;
+            break;
         case 2:
             bitdepth = kAooPcmInt16;
             break;
@@ -332,7 +335,7 @@ bool parseFormat(const AooUnit& unit, int defNumChannels,
             bitdepth = kAooPcmFloat64;
             break;
         default:
-            LOG_ERROR("bad bitdepth argument " << nbits);
+            LOG_ERROR("bad bitdepth argument " << nbytes);
             return false;
         }
 
@@ -381,25 +384,28 @@ bool serializeFormat(osc::OutboundPacketStream& msg, const AooFormat& f)
     if (!strcmp(f.codec, kAooCodecPcm)){
         // pcm <channels> <blocksize> <samplerate> <bitdepth>
         auto& fmt = (AooFormatPcm &)f;
-        int nbits;
+        int nbytes;
         switch (fmt.bitDepth){
+        case kAooPcmInt8:
+            nbytes = 1;
+            break;
         case kAooPcmInt16:
-            nbits = 2;
+            nbytes = 2;
             break;
         case kAooPcmInt24:
-            nbits = 3;
+            nbytes = 3;
             break;
         case kAooPcmFloat32:
-            nbits = 4;
+            nbytes = 4;
             break;
         case kAooPcmFloat64:
-            nbits = 8;
+            nbytes = 8;
             break;
         default:
-            LOG_ERROR("serializeFormat: bad bitdepth argument " << nbits);
+            LOG_ERROR("serializeFormat: bad bitdepth argument " << fmt.bitDepth);
             return false;
         }
-        msg << nbits;
+        msg << nbytes;
         return true;
     }
 #if USE_CODEC_OPUS

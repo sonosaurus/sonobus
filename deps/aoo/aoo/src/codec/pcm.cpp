@@ -30,6 +30,8 @@ union convert {
 int32_t bytes_per_sample(AooPcmBitDepth bitdepth)
 {
     switch (bitdepth){
+    case kAooPcmInt8:
+        return 1;
     case kAooPcmInt16:
         return 2;
     case kAooPcmInt24:
@@ -43,6 +45,19 @@ int32_t bytes_per_sample(AooPcmBitDepth bitdepth)
         assert(false);
         return 0;
     }
+}
+
+void sample_to_int8(AooSample in, AooByte *out)
+{
+    // convert to 8 bit range
+    AooSample temp = std::rint(in * INT8_MAX);
+    // check for overflow!
+    if (temp > INT8_MAX){
+        temp = INT8_MAX;
+    } else if (temp < INT8_MIN){
+        temp = INT8_MIN;
+    }
+    *out = (AooByte)(int8_t)temp;
 }
 
 void sample_to_int16(AooSample in, AooByte *out)
@@ -99,6 +114,10 @@ void sample_to_float64(AooSample in, AooByte *out)
     aoo::to_bytes<double>(in, out);
 }
 
+AooSample int8_to_sample(const AooByte *in){
+    return (AooSample)(int8_t)(*in) / (AooSample)INT8_MAX;
+}
+
 AooSample int16_to_sample(const AooByte *in){
     convert c;
 #if BYTE_ORDER == BIG_ENDIAN
@@ -107,7 +126,7 @@ AooSample int16_to_sample(const AooByte *in){
     c.b[0] = in[1];
     c.b[1] = in[0];
 #endif
-    return(AooSample)c.i16 / (AooSample)INT16_MAX;
+    return (AooSample)c.i16 / (AooSample)INT16_MAX;
 }
 
 AooSample int24_to_sample(const AooByte *in)
@@ -256,6 +275,9 @@ AooError AOO_CALL PcmCodec_encode(
     };
 
     switch (samplesize){
+    case 1:
+        samples_to_bytes(sample_to_int8);
+        break;
     case 2:
         samples_to_bytes(sample_to_int16);
         break;
@@ -307,6 +329,9 @@ AooError AOO_CALL PcmCodec_decode(
     };
 
     switch (samplesize){
+    case 1:
+        blob_to_samples(int8_to_sample);
+        break;
     case 2:
         blob_to_samples(int16_to_sample);
         break;

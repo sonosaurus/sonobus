@@ -39,27 +39,6 @@ int endpoint_to_atoms(const aoo::ip_address& addr, AooId id, int argc, t_atom *a
     return 3;
 }
 
-static bool getarg(const char *name, void *x, int which,
-                      int argc, const t_atom *argv, t_float &f, t_float def)
-{
-    if (argc > which){
-        if (argv[which].a_type == A_SYMBOL){
-            t_symbol *sym = argv[which].a_w.w_symbol;
-            if (sym == gensym("auto")){
-                f = def;
-            } else {
-                pd_error(x, "%s: bad '%s' argument '%s'", classname(x), name, sym->s_name);
-                return false;
-            }
-        } else {
-            f = atom_getfloat(argv + which);
-        }
-    } else {
-        f = def;
-    }
-    return true;
-}
-
 void format_makedefault(AooFormatStorage &f, int nchannels)
 {
     AooFormatPcm_init((AooFormatPcm *)&f, nchannels,
@@ -97,6 +76,9 @@ bool format_parse(t_pd *x, AooFormatStorage &f, int argc, t_atom *argv,
         auto nbits = format_getparam(x, argc, argv, 4, "bitdepth", 4);
         AooPcmBitDepth bitdepth;
         switch (nbits){
+        case 1:
+            bitdepth =  kAooPcmInt8;
+            break;
         case 2:
             bitdepth = kAooPcmInt16;
             break;
@@ -172,25 +154,28 @@ int format_to_atoms(const AooFormat &f, int argc, t_atom *argv)
             return 0;
         }
         auto& fmt = (AooFormatPcm &)f;
-        int nbits;
+        int nbytes;
         switch (fmt.bitDepth){
+        case kAooPcmInt8:
+            nbytes = 1;
+            break;
         case kAooPcmInt16:
-            nbits = 2;
+            nbytes = 2;
             break;
         case kAooPcmInt24:
-            nbits = 3;
+            nbytes = 3;
             break;
         case kAooPcmFloat32:
-            nbits = 4;
+            nbytes = 4;
             break;
         case kAooPcmFloat64:
-            nbits = 8;
+            nbytes = 8;
             break;
         default:
-            error("format_to_atoms: bad bitdepth argument %d", nbits);
+            pd_error(0, "format_to_atoms: bad bitdepth argument %d", fmt.bitDepth);
             return 0;
         }
-        SETFLOAT(argv + 4, nbits);
+        SETFLOAT(argv + 4, nbytes);
         return 5;
     }
 #if USE_CODEC_OPUS
@@ -216,7 +201,7 @@ int format_to_atoms(const AooFormat &f, int argc, t_atom *argv)
             type = gensym("audio");
             break;
         default:
-            error("format_to_atoms: bad application type argument %d",
+            pd_error(0, "format_to_atoms: bad application type argument %d",
                   fmt.applicationType);
             return 0;
         }
@@ -226,7 +211,7 @@ int format_to_atoms(const AooFormat &f, int argc, t_atom *argv)
     }
 #endif
     else {
-        error("format_to_atoms: unknown format %s!", codec->s_name);
+        pd_error(0, "format_to_atoms: unknown format %s!", codec->s_name);
     }
     return 0;
 }

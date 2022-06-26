@@ -171,12 +171,23 @@
 #define kAooBinMsgCmdData 0
 #define kAooBinMsgCmdRelayIPv4 0
 #define kAooBinMsgCmdRelayIPv6 1
+#define kAooBinMsgCmdMessage 2
+#define kAooBinMsgCmdAck 3
 
 enum AooBinMsgDataFlags
 {
     kAooBinMsgDataSampleRate = 0x01,
     kAooBinMsgDataFrames = 0x02
 };
+
+#if USE_AOO_NET
+enum AooBinMsgMessageFlags
+{
+    kAooBinMsgMessageReliable = 0x01,
+    kAooBinMsgMessageFrames = 0x02,
+    kAooBinMsgMessageTimestamp = 0x04
+};
+#endif
 
 /*------------------ library functions --------------------*/
 

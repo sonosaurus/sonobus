@@ -36,6 +36,12 @@ struct t_aoo_client;
 
 void aoo_client_handle_event(t_aoo_client *x, const AooEvent *event, int32_t level);
 
+bool aoo_client_find_peer(t_aoo_client *x, const aoo::ip_address& addr,
+                          t_symbol *& group, t_symbol *& user);
+
+bool aoo_client_find_peer(t_aoo_client *x, t_symbol * group, t_symbol * user,
+                          aoo::ip_address& addr);
+
 /*////////////////////// aoo node //////////////////*/
 
 static t_class *node_proxy_class;
@@ -107,29 +113,13 @@ public:
         x_clientmutex.unlock();
     }
 
-    bool get_source_arg(t_pd *x, int argc, const t_atom *argv,
-                        aoo::ip_address& addr, AooId &id) const override{
-        return get_endpoint_arg(x, argc, argv, addr, &id, "source");
-    }
+    bool resolve(t_symbol *host, int port, aoo::ip_address& addr) const override;
 
-    bool get_sink_arg(t_pd *x, int argc, const t_atom *argv,
-                      aoo::ip_address& addr, AooId &id) const override {
-        return get_endpoint_arg(x, argc, argv, addr, &id, "sink");
-    }
+    bool find_peer(const aoo::ip_address& addr,
+                   t_symbol *& group, t_symbol *& user) const override;
 
-    bool get_peer_arg(t_pd *x, int argc, const t_atom *argv,
-                      AooId& group, AooId& user) const override {
-        if (x_client) {
-            aoo::ip_address addr;
-            if (get_endpoint_arg(x, argc, argv, addr, nullptr, "peer")) {
-                if (x_client->getPeerByAddress(addr.address(), addr.length(),
-                                               &group, &user, 0, 0, 0, 0) == kAooOk) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+    bool find_peer(t_symbol * group, t_symbol * user,
+                   aoo::ip_address& addr) const override;
 
     int serialize_endpoint(const aoo::ip_address &addr, AooId id,
                            int argc, t_atom *argv) const override;
@@ -149,67 +139,38 @@ private:
 #endif
 
     bool add_object(t_pd *obj, void *x, AooId id);
-
-    bool get_endpoint_arg(t_pd *x, int argc, const t_atom *argv,
-                          aoo::ip_address& addr, int32_t *id, const char *what) const;
 };
 
-// private methods
-
-bool t_node_imp::get_endpoint_arg(t_pd *x, int argc, const t_atom *argv,
-                                  aoo::ip_address& addr, int32_t *id, const char *what) const
-{
-    if (argc < (2 + (id != nullptr))){
-        pd_error(x, "%s: too few arguments for %s", classname(x), what);
+bool t_node_imp::resolve(t_symbol *host, int port, aoo::ip_address& addr) const {
+    auto result = aoo::ip_address::resolve(host->s_name, port, type());
+    if (!result.empty()){
+        addr = result.front();
+        return true;
+    } else {
         return false;
     }
+}
 
-    // first try peer (group|user)
-    if (argv[1].a_type == A_SYMBOL){
-        t_symbol *group = atom_getsymbol(argv);
-        t_symbol *user = atom_getsymbol(argv + 1);
-        // we can't use length_ptr() because socklen_t != int32_t on many platforms
-        AooAddrSize len = aoo::ip_address::max_length;
-        if (x_client && x_client->getPeerByName(
-                    group->s_name, user->s_name, addr.address_ptr(), &len) == kAooOk) {
-            *addr.length_ptr() = len;
-        } else {
-            pd_error(x, "%s: couldn't find peer %s|%s",
-                     classname(x), group->s_name, user->s_name);
-            return false;
-        }
+bool t_node_imp::find_peer(const aoo::ip_address& addr,
+                           t_symbol *& group, t_symbol *& user) const {
+    if (x_clientobj &&
+            aoo_client_find_peer(
+                (t_aoo_client *)x_clientobj, addr, group, user)) {
+        return true;
     } else {
-        // otherwise try host|port
-        t_symbol *host = atom_getsymbol(argv);
-        int port = atom_getfloat(argv + 1);
-        auto result = aoo::ip_address::resolve(host->s_name, port, type());
-        if (!result.empty()){
-            addr = result.front(); // just pick the first one
-        } else {
-            pd_error(x, "%s: couldn't resolve hostname '%s' for %s",
-                     classname(x), host->s_name, what);
-            return false;
-        }
+        return false;
     }
+}
 
-    if (id){
-        if (argv[2].a_type == A_FLOAT){
-            AooId i = argv[2].a_w.w_float;
-            if (i >= 0){
-                *id = i;
-            } else {
-                pd_error(x, "%s: bad ID '%d' for %s",
-                         classname(x), i, what);
-                return false;
-            }
-        } else {
-            pd_error(x, "%s: bad ID '%s' for %s", classname(x),
-                     atom_getsymbol(argv + 2)->s_name, what);
-            return false;
-        }
+bool t_node_imp::find_peer(t_symbol * group, t_symbol * user,
+                           aoo::ip_address& addr) const {
+    if (x_clientobj &&
+            aoo_client_find_peer(
+                (t_aoo_client *)x_clientobj, group, user, addr)) {
+        return true;
+    } else {
+        return false;
     }
-
-    return true;
 }
 
 int t_node_imp::serialize_endpoint(const aoo::ip_address &addr, AooId id,
@@ -218,16 +179,11 @@ int t_node_imp::serialize_endpoint(const aoo::ip_address &addr, AooId id,
         LOG_DEBUG("serialize_endpoint: invalid address");
         return 0;
     }
-    char group[MAXPDSTRING];
-    AooSize grouplen = sizeof(group);
-    char user[MAXPDSTRING];
-    AooSize userlen = sizeof(user);
-    if (x_client && x_client->getPeerByAddress(
-            addr.address(), addr.length(), 0, 0,
-                group, &grouplen, user, &userlen) == kAooOk) {
+    t_symbol *group, *user;
+    if (find_peer(addr, group, user)) {
         // group name, user name, id
-        SETSYMBOL(argv, gensym(group));
-        SETSYMBOL(argv + 1, gensym(user));
+        SETSYMBOL(argv, group);
+        SETSYMBOL(argv + 1, user);
         SETFLOAT(argv + 2, id);
     } else {
         // ip string, port number, id
@@ -237,6 +193,8 @@ int t_node_imp::serialize_endpoint(const aoo::ip_address &addr, AooId id,
     }
     return 3;
 }
+
+// private methods
 
 bool t_node_imp::add_object(t_pd *obj, void *x, AooId id)
 {

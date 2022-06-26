@@ -45,14 +45,13 @@ public:
 
     virtual void unlock() = 0;
 
-    virtual bool get_source_arg(t_pd *x, int argc, const t_atom *argv,
-                                aoo::ip_address& addr, AooId &id) const = 0;
+    virtual bool resolve(t_symbol *host, int port, aoo::ip_address& addr) const = 0;
 
-    virtual bool get_sink_arg(t_pd *x, int argc, const t_atom *argv,
-                              aoo::ip_address& addr, AooId &id) const = 0;
+    virtual bool find_peer(const aoo::ip_address& addr,
+                           t_symbol *& group, t_symbol *& user) const = 0;
 
-    virtual bool get_peer_arg(t_pd *x, int argc, const t_atom *argv,
-                              AooId& group, AooId& user) const = 0;
+    virtual bool find_peer(t_symbol * group, t_symbol * user,
+                           aoo::ip_address& addr) const = 0;
 
     virtual int serialize_endpoint(const aoo::ip_address& addr, AooId id,
                                    int argc, t_atom *argv) const = 0;

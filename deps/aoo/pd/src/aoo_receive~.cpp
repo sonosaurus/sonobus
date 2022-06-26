@@ -21,7 +21,9 @@ t_class *aoo_receive_class;
 struct t_source
 {
     aoo::ip_address s_address;
-    int32_t s_id;
+    AooId s_id;
+    t_symbol *s_group;
+    t_symbol *s_user;
 };
 
 struct t_aoo_receive
@@ -45,45 +47,108 @@ struct t_aoo_receive
     // sources
     std::vector<t_source> x_sources;
     // node
-    t_node * x_node = nullptr;
+    t_node *x_node = nullptr;
     // events
     t_outlet *x_msgout = nullptr;
     t_clock *x_clock = nullptr;
+
+    bool get_source_arg(int argc, t_atom *argv,
+                        aoo::ip_address& addr, AooId& id, bool check) const;
+
+    bool check(const char *name) const;
+
+    bool check(int argc, t_atom *argv, int minargs, const char *name) const;
 };
 
-static t_source * aoo_receive_findsource(t_aoo_receive *x, int argc, t_atom *argv)
+bool t_aoo_receive::get_source_arg(int argc, t_atom *argv,
+                                   aoo::ip_address& addr, AooId& id, bool check) const
 {
-    aoo::ip_address addr;
-    AooId id = 0;
-    if (x->x_node->get_source_arg((t_pd *)x, argc, argv, addr, id)){
-        for (auto& src : x->x_sources){
-            if (src.s_address == addr && src.s_id == id){
-                return &src;
+    if (!x_node) {
+        pd_error(this, "%s: no socket!", classname(this));
+        return false;
+    }
+    if (argc < 3){
+        pd_error(this, "%s: too few arguments for source", classname(this));
+        return false;
+    }
+    // first try peer (group|user)
+    if (argv[1].a_type == A_SYMBOL) {
+        t_symbol *group = atom_getsymbol(argv);
+        t_symbol *user = atom_getsymbol(argv + 1);
+        id = atom_getfloat(argv + 2);
+        // first search source list, in case the client has been disconnected
+        for (auto& s : x_sources) {
+            if (s.s_group == group && s.s_user == user && s.s_id == id) {
+                addr = s.s_address;
+                return true;
             }
         }
+        if (!check) {
+            // not yet in list -> try to get from client
+            if (x_node->find_peer(group, user, addr)) {
+                return true;
+            }
+        }
+        pd_error(this, "%s: couldn't find source %s|%s %d",
+                 classname(this), group->s_name, user->s_name, id);
+        return false;
+    } else {
+        // otherwise try host|port
         t_symbol *host = atom_getsymbol(argv);
         int port = atom_getfloat(argv + 1);
-        pd_error(x, "%s: couldn't find source %s %d %d",
-                 classname(x), host->s_name, port, id);
+        id = atom_getfloat(argv + 2);
+        if (x_node->resolve(host, port, addr)) {
+            if (check) {
+                // try to find in list
+                for (auto& s : x_sources) {
+                    if (s.s_address == addr && s.s_id == id) {
+                        return true;
+                    }
+                }
+                pd_error(this, "%s: couldn't find source %s %d %d",
+                         classname(this), host->s_name, port, id);
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            pd_error(this, "%s: couldn't resolve source hostname '%s'",
+                     classname(this), host->s_name);
+            return false;
+        }
     }
-    return 0;
 }
+
+bool t_aoo_receive::check(const char *name) const
+{
+    if (x_node){
+        return true;
+    } else {
+        pd_error(this, "%s: '%s' failed: no socket!", classname(this), name);
+        return false;
+    }
+}
+
+bool t_aoo_receive::check(int argc, t_atom *argv, int minargs, const char *name) const
+{
+    if (!check(name)) return false;
+
+    if (argc < minargs){
+        pd_error(this, "%s: too few arguments for '%s' message", classname(this), name);
+        return false;
+    }
+
+    return true;
+}
+
 
 static void aoo_receive_invite(t_aoo_receive *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!x->x_node){
-        pd_error(x, "%s: can't invite source - no socket!", classname(x));
-        return;
-    }
-
-    if (argc < 3){
-        pd_error(x, "%s: too few arguments for 'invite' message", classname(x));
-        return;
-    }
+    if (!x->check(argc, argv, 3, "invite")) return;
 
     aoo::ip_address addr;
     AooId id = 0;
-    if (x->x_node->get_source_arg((t_pd *)x, argc, argv, addr, id)){
+    if (x->get_source_arg(argc, argv, addr, id, false)) {
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
 
         if (x->x_metadata_type){
@@ -103,10 +168,7 @@ static void aoo_receive_invite(t_aoo_receive *x, t_symbol *s, int argc, t_atom *
 
 static void aoo_receive_uninvite(t_aoo_receive *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (!x->x_node){
-        pd_error(x, "%s: can't uninvite source - no socket!", classname(x));
-        return;
-    }
+    if (!x->check("uninvite")) return;
 
     if (!argc){
         x->x_sink->uninviteAll();
@@ -118,10 +180,10 @@ static void aoo_receive_uninvite(t_aoo_receive *x, t_symbol *s, int argc, t_atom
         return;
     }
 
-    t_source *src = aoo_receive_findsource(x, argc, argv);
-    if (src){
-        AooEndpoint ep { src->s_address.address(),
-            (AooAddrSize)src->s_address.length(), src->s_id };
+    aoo::ip_address addr;
+    AooId id = 0;
+    if (x->get_source_arg(argc, argv, addr, id, true)){
+        AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
         x->x_sink->uninviteSource(ep);
         // notify send thread
         x->x_node->notify();
@@ -189,10 +251,10 @@ static void aoo_receive_reset(t_aoo_receive *x, t_symbol *s, int argc, t_atom *a
 {
     if (argc){
         // reset specific source
-        t_source *source = aoo_receive_findsource(x, argc, argv);
-        if (source){
-            AooEndpoint ep { source->s_address.address(),
-                (AooAddrSize)source->s_address.length(), source->s_id };
+        aoo::ip_address addr;
+        AooId id = 0;
+        if (x->get_source_arg(argc, argv, addr, id, true)) {
+            AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
             x->x_sink->resetSource(ep);
         }
     } else {
@@ -202,16 +264,15 @@ static void aoo_receive_reset(t_aoo_receive *x, t_symbol *s, int argc, t_atom *a
 }
 
 static void aoo_receive_fill_ratio(t_aoo_receive *x, t_symbol *s, int argc, t_atom *argv){
-    // reset specific source
-    t_source *source = aoo_receive_findsource(x, argc, argv);
-    if (source){
-        AooEndpoint ep { source->s_address.address(),
-            (AooAddrSize)source->s_address.length(), source->s_id };
+    aoo::ip_address addr;
+    AooId id = 0;
+    if (x->get_source_arg(argc, argv, addr, id, true)) {
+        AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
         double ratio = 0;
         x->x_sink->getBufferFillRatio(ep, ratio);
 
         t_atom msg[4];
-        if (x->x_node->serialize_endpoint(source->s_address, source->s_id, 3, msg)){
+        if (x->x_node->serialize_endpoint(addr, id, 3, msg)){
             SETFLOAT(msg + 3, ratio);
             outlet_anything(x->x_msgout, gensym("fill_ratio"), 4, msg);
         }
@@ -233,40 +294,18 @@ static void aoo_receive_resend_interval(t_aoo_receive *x, t_floatarg f)
     x->x_sink->setResendInterval(f * 0.001);
 }
 
-static void aoo_receive_listsources(t_aoo_receive *x)
+static void aoo_receive_source_list(t_aoo_receive *x)
 {
-    if (x->x_node) {
-        for (auto& src : x->x_sources)
-        {
-            t_atom msg[3];
-            if (x->x_node->serialize_endpoint(src.s_address, src.s_id, 3, msg)) {
-                outlet_anything(x->x_msgout, gensym("source"), 3, msg);
-            } else {
-                bug("aoo_receive_listsources: serialize_endpoint");
-            }
-        }
-    }
-}
+    if (!x->check("source_list")) return;
 
-static void aoo_receive_listen(t_aoo_receive *x, t_floatarg f)
-{
-    int port = f;
-    if (x->x_node){
-        if (x->x_node->port() == port){
-            return;
+    for (auto& src : x->x_sources)
+    {
+        t_atom msg[3];
+        if (x->x_node->serialize_endpoint(src.s_address, src.s_id, 3, msg)) {
+            outlet_anything(x->x_msgout, gensym("source"), 3, msg);
+        } else {
+            bug("aoo_receive_source_list: serialize_endpoint");
         }
-        // release old node
-        x->x_node->release((t_pd *)x, x->x_sink.get());
-    }
-    // add new node
-    if (port){
-        x->x_node = t_node::get((t_pd *)x, port, x->x_sink.get(), x->x_id);
-        if (x->x_node){
-            post("listening on port %d", x->x_node->port());
-        }
-    } else {
-        // stop listening
-        x->x_node = 0;
     }
 }
 
@@ -308,8 +347,11 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
         switch (event->type){
         case kAooEventSourceAdd:
         {
-            // first add to source list
-            x->x_sources.push_back({ addr, ep.id });
+            // first add to source list; try to find peer name!
+            t_symbol *group = nullptr;
+            t_symbol *user = nullptr;
+            x->x_node->find_peer(addr, group, user);
+            x->x_sources.push_back({ addr, ep.id, group, user });
 
             outlet_anything(x->x_msgout, gensym("add"), 3, msg);
             break;
@@ -648,8 +690,8 @@ void aoo_receive_tilde_setup(void)
                     gensym("resend_limit"), A_FLOAT, A_NULL);
     class_addmethod(aoo_receive_class, (t_method)aoo_receive_resend_interval,
                     gensym("resend_interval"), A_FLOAT, A_NULL);
-    class_addmethod(aoo_receive_class, (t_method)aoo_receive_listsources,
-                    gensym("list_sources"), A_NULL);
+    class_addmethod(aoo_receive_class, (t_method)aoo_receive_source_list,
+                    gensym("source_list"), A_NULL);
     class_addmethod(aoo_receive_class, (t_method)aoo_receive_reset,
                     gensym("reset"), A_GIMME, A_NULL);
     class_addmethod(aoo_receive_class, (t_method)aoo_receive_fill_ratio,

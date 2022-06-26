@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SC_PlugIn.hpp"
+#undef IN
+#undef OUT
 
 #include "rt_shared_ptr.hpp"
 

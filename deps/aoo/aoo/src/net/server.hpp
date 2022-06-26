@@ -69,6 +69,10 @@ struct user {
 
     AooId id() const { return id_; }
 
+    void set_metadata(const AooDataView& md) {
+        md_ = aoo::metadata(&md);
+    }
+
     const aoo::metadata& metadata() const { return md_; }
 
     AooId group() const { return group_; }
@@ -125,6 +129,10 @@ struct group {
 
     AooId id() const { return id_; }
 
+    void set_metadata(const AooDataView& md) {
+        md_ = aoo::metadata(&md);
+    }
+
     const aoo::metadata& metadata() const { return md_; }
 
     const ip_host& relay_addr() const { return relay_; }
@@ -157,7 +165,7 @@ private:
     bool persistent_;
     bool user_auto_create_ = AOO_NET_USER_AUTO_CREATE; // TODO
     user_list users_;
-    uint32_t next_user_id_{0};
+    AooId next_user_id_{0};
 };
 
 inline std::ostream& operator<<(std::ostream& os, const group& g) {
@@ -170,7 +178,7 @@ inline std::ostream& operator<<(std::ostream& os, const group& g) {
 class client_endpoint {
 public:
     client_endpoint(int sockfd, AooId id, AooNetReplyFunc replyfn, void *context)
-        : sockfd_(sockfd), id_(id), replyfn_(replyfn), context_(context) {}
+        : id_(id), sockfd_(sockfd), replyfn_(replyfn), context_(context) {}
 
     ~client_endpoint() {}
 
@@ -203,6 +211,12 @@ public:
 
     void send_peer_remove(Server& server, const group& grp, const user& usr) const;
 
+    void send_group_update(Server& server, const group& grp);
+
+    void send_user_update(Server& server, const user& usr);
+
+    void send_peer_update(Server& server, const user& peer);
+
     void on_group_join(const group& grp, const user& usr);
 
     void on_group_leave(const group& grp, const user& usr, bool force);
@@ -232,8 +246,8 @@ struct client_login_event : ievent
         : id_(c.id()), sockfd_(c.sockfd()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooNetEventClientLogin e;
-        e.type = kAooNetEventClientLogin;
+        AooNetEventServerClientLogin e;
+        e.type = kAooNetEventServerClientLogin;
         e.flags = 0;
         e.id = id_;
         e.sockfd = sockfd_;
@@ -251,8 +265,8 @@ struct client_remove_event : ievent
         : id_(id) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooNetEventClientRemove e;
-        e.type = kAooNetEventClientRemove;
+        AooNetEventServerClientRemove e;
+        e.type = kAooNetEventServerClientRemove;
         e.id = id_;
 
         fn(e);
@@ -267,8 +281,8 @@ struct group_add_event : ievent
         : id_(grp.id()), name_(grp.name()), metadata_(grp.metadata()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooNetEventGroupAdd e;
-        e.type = kAooNetEventGroupAdd;
+        AooNetEventServerGroupAdd e;
+        e.type = kAooNetEventServerGroupAdd;
         e.id = id_;
         e.name = name_.c_str();
         AooDataView md { metadata_.type(), metadata_.data(), metadata_.size() };
@@ -289,8 +303,8 @@ struct group_remove_event : ievent
         : id_(grp.id()), name_(grp.name()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooNetEventGroupRemove e;
-        e.type = kAooNetEventGroupRemove;
+        AooNetEventServerGroupRemove e;
+        e.type = kAooNetEventServerGroupRemove;
         e.id = id_;
         e.name = name_.c_str();
 
@@ -309,8 +323,8 @@ struct group_join_event : ievent
           metadata_(usr.metadata()), client_id_(usr.client()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooNetEventGroupJoin e;
-        e.type = kAooNetEventGroupJoin;
+        AooNetEventServerGroupJoin e;
+        e.type = kAooNetEventServerGroupJoin;
         e.flags = 0;
         e.groupId = group_id_;
         e.userId = user_id_;
@@ -339,8 +353,8 @@ struct group_leave_event : ievent
           group_name_(grp.name()), user_name_(usr.name()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooNetEventGroupLeave e;
-        e.type = kAooNetEventGroupLeave;
+        AooNetEventServerGroupLeave e;
+        e.type = kAooNetEventServerGroupLeave;
         e.flags = 0;
         e.groupId = group_id_;
         e.userId = user_id_;
@@ -354,6 +368,51 @@ struct group_leave_event : ievent
     AooId user_id_;
     std::string group_name_;
     std::string user_name_;
+};
+
+struct group_update_event : ievent
+{
+    group_update_event(const group& grp)
+        : group_(grp.id()), md_(grp.metadata()) {}
+
+    void dispatch(const event_handler& fn) const override {
+        AooNetEventServerGroupUpdate e;
+        e.type = kAooNetEventServerGroupUpdate;
+        e.flags = 0;
+        e.groupId = group_;
+        e.groupMetadata.type = md_.type();
+        e.groupMetadata.data = md_.data();
+        e.groupMetadata.size = md_.size();
+
+        fn(e);
+    }
+
+    AooId group_;
+    aoo::metadata md_;
+};
+
+struct user_update_event : ievent
+{
+    user_update_event(const user& usr)
+        : group_(usr.group()), user_(usr.id()),
+          md_(usr.metadata()) {}
+
+    void dispatch(const event_handler& fn) const override {
+        AooNetEventServerUserUpdate e;
+        e.type = kAooNetEventServerUserUpdate;
+        e.flags = 0;
+        e.groupId = group_;
+        e.userId = user_;
+        e.userMetadata.type = md_.type();
+        e.userMetadata.data = md_.data();
+        e.userMetadata.size = md_.size();
+
+        fn(e);
+    }
+
+    AooId group_;
+    AooId user_;
+    aoo::metadata md_;
 };
 
 //------------------------- Server -------------------------------//
@@ -455,6 +514,10 @@ public:
 
     bool remove_group(AooId id);
 
+    void update_group(group& grp, const AooDataView& md);
+
+    void update_user(const group& grp, user& usr, const AooDataView& md);
+
     void on_user_joined_group(const group& grp, const user& usr,
                               const client_endpoint& client);
 
@@ -502,6 +565,18 @@ private:
     AooError do_group_leave(client_endpoint& client, AooId token,
                             const AooNetRequestGroupLeave& request,
                             AooNetResponseGroupLeave& response);
+
+    void handle_group_update(client_endpoint& client, const osc::ReceivedMessage& msg);
+
+    AooError do_group_update(client_endpoint& client, AooId token,
+                             const AooNetRequestGroupUpdate& request,
+                             AooNetResponseGroupUpdate& response);
+
+    void handle_user_update(client_endpoint& client, const osc::ReceivedMessage& msg);
+
+    AooError do_user_update(client_endpoint& client, AooId token,
+                            const AooNetRequestUserUpdate& request,
+                            AooNetResponseUserUpdate& response);
 
     void handle_custom_request(client_endpoint& client, const osc::ReceivedMessage& msg);
 

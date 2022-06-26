@@ -101,41 +101,41 @@ void AooServer::handleEvent(const AooEvent *event){
     msg << osc::BeginMessage("/aoo/server/event") << port_;
 
     switch (event->type) {
-    case kAooNetEventClientLogin:
+    case kAooNetEventServerClientLogin:
     {
-        auto e = (const AooNetEventClientLogin *)event;
+        auto e = (const AooNetEventServerClientLogin *)event;
         aoo::ip_address addr;
         aoo::socket_peer(e->sockfd, addr);
         msg << "/client/add" << e->id << addr.address() << addr.port();
         break;
     }
-    case kAooNetEventClientRemove:
+    case kAooNetEventServerClientRemove:
     {
-        auto e = (const AooNetEventClientRemove *)event;
+        auto e = (const AooNetEventServerClientRemove *)event;
         msg << "/client/remove" << e->id;
         break;
     }
-    case kAooNetEventGroupAdd:
+    case kAooNetEventServerGroupAdd:
     {
-        auto e = (const AooNetEventGroupAdd *)event;
+        auto e = (const AooNetEventServerGroupAdd *)event;
         msg << "/group/add" << e->id << e->name; // TODO metadata
         break;
     }
-    case kAooNetEventGroupRemove:
+    case kAooNetEventServerGroupRemove:
     {
-        auto e = (const AooNetEventGroupRemove *)event;
+        auto e = (const AooNetEventServerGroupRemove *)event;
         msg << "/group/remove" << e->id;
         break;
     }
-    case kAooNetEventGroupJoin:
+    case kAooNetEventServerGroupJoin:
     {
-        auto e = (const AooNetEventGroupJoin *)event;
+        auto e = (const AooNetEventServerGroupJoin *)event;
         msg << "/group/join" << e->groupId << e->userId << e->userName << e->clientId;
         break;
     }
-    case kAooNetEventGroupLeave:
+    case kAooNetEventServerGroupLeave:
     {
-        auto e = (const AooNetEventGroupLeave *)event;
+        auto e = (const AooNetEventServerGroupLeave *)event;
         msg << "/group/leave" << e->groupId << e->userId;
         break;
     }

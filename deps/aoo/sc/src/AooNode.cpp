@@ -152,9 +152,10 @@ bool AooNode::getEndpointArg(sc_msg_iter *args, aoo::ip_address& addr,
         auto group = s;
         auto user = args->gets();
         // we can't use length_ptr() because socklen_t != int32_t on many platforms
-        AooAddrSize len = aoo::ip_address::max_length;
-        if (client_->getPeerByName(group, user, addr.address_ptr(), &len) == kAooOk) {
-            *addr.length_ptr() = len;
+        AooAddrSize addrlen = aoo::ip_address::max_length;
+        if (client_->findPeerByName(group, user, nullptr, nullptr,
+                                    addr.address_ptr(), &addrlen) == kAooOk) {
+            addr.resize(addrlen);
         } else {
             LOG_ERROR("couldn't find peer " << group << "|" << user);
             return false;

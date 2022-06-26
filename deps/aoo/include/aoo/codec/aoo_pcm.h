@@ -23,7 +23,8 @@ typedef AooInt32 AooPcmBitDepth;
 /** \brief PCM bit depth values */
 enum AooPcmBitDepthValues
 {
-    kAooPcmInt16 = 0,
+    kAooPcmInt8 = 0,
+    kAooPcmInt16,
     kAooPcmInt24,
     kAooPcmFloat32,
     kAooPcmFloat64,

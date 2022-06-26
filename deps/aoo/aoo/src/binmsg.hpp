@@ -49,6 +49,30 @@ inline int binmsg_write_header(AooByte *buffer, AooSize size,
     }
 }
 
+inline int binmsg_string_size(int size) {
+    return (size + 3) & ~3;
+}
+
+inline int binmsg_write_string(AooByte *buffer, AooSize size, const char *str) {
+    auto length = strlen(str) + 1;
+    auto total = binmsg_string_size(length);
+    assert(size >= total);
+    memcpy(buffer, (const AooByte *)str, length);
+    for (int i = length; i < total; ++i) {
+        buffer[i] = 0;
+    }
+    return total;
+}
+
+inline int binmsg_skip_string(const AooByte *buffer, AooSize size) {
+    auto length = strnlen((const char *)buffer, size) + 1;
+    if (length <= size) {
+        return binmsg_string_size(length);
+    } else {
+        return 0; // fail
+    }
+}
+
 inline bool binmsg_check(const AooByte *data, AooSize size) {
     return size >= 4 && (data[0] & kAooBinMsgDomainBit);
 }
@@ -111,6 +135,8 @@ inline AooId binmsg_user(const AooByte *data, AooSize size) {
     return binmsg_from(data, size);
 }
 
+#if USE_AOO_NET
+
 // type + domain bit (uint8), cmd [IPv6|IPv4] (uint8), port (uint16),
 // a) IPv4 address (4 bytes)
 // b) IPv6 address (16 bytes)
@@ -159,5 +185,7 @@ inline int binmsg_read_relay(const AooByte *buffer, AooSize size,
     }
     return 0;
 }
+
+#endif // USE_AOO_NET
 
 } // aoo
