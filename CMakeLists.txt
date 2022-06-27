@@ -86,6 +86,12 @@ endif()
 
 add_subdirectory(deps/aoo EXCLUDE_FROM_ALL )
 
+# need to get these out of the AOO build so we can add them to our our own build defs
+get_directory_property(AOODIR_COMPILE_DEFS DIRECTORY deps/aoo COMPILE_DEFINITIONS)
+
+#message(STATUS "AOODIR_DEFS: ${AOODIR_COMPILE_DEFS}")
+
+
 
 # include JUCE
 # Create a /Modules directory in the IDE with the JUCE Module code
@@ -466,7 +472,9 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         JUCE_LOAD_CURL_SYMBOLS_LAZILY=1
         FF_AUDIO_ALLOW_ALLOCATIONS_IN_MEASURE_BLOCK=0
         SONOBUS_BUILD_VERSION="${VERSION}"
-        ${PLAT_COMPILE_DEFS} )
+        ${PLAT_COMPILE_DEFS}
+        ${AOODIR_COMPILE_DEFS}
+     )
 
     juce_add_binary_data("${target_name}_SBData" SOURCES
         Source/wordmaker.g

@@ -3478,57 +3478,55 @@ static int32_t gHandleClientEvents(void * user, const aoo_event ** events, int32
 int32_t SonobusAudioProcessor::handleAooServerEvent(const AooEvent *event, int32_t level)
 {
     switch (event->type){
-        case kAooNetEventClientLogin:
+        case kAooNetEventServerClientLogin:
         {
-            auto e = (const AooNetEventClientLogin *)event;
+            auto e = (const AooNetEventServerClientLogin *)event;
 
             DBG("Server - Client login: " << e->id);
 
             break;
         }
-        case kAooNetEventClientRemove:
+        case kAooNetEventServerClientRemove:
         {
-            auto e = (const AooNetEventClientRemove *)event;
+            auto e = (const AooNetEventServerClientRemove *)event;
 
             DBG("Server - Client removed: " << e->id);
 
 
             break;
         }
-        case kAooNetEventGroupJoin:
+        case kAooNetRequestGroupJoin:
         {
-            auto e = (const AooNetEventGroupJoin *)event;
+            auto e = (const AooNetRequestGroupJoin *)event;
 
             DBG("Server - Group Joined: " << e->groupName << "  by user: " << e->userName << "id:" << e->userId);
 
             break;
         }
-        case kAooNetEventGroupLeave:
+        case kAooNetRequestGroupLeave:
         {
-            auto e = (const AooNetEventGroupLeave *)event;
+            auto e = (const AooNetRequestGroupLeave *)event;
 
-            DBG("Server - Group Left: " << e->groupName << "  by user: " << e->userName << "id:" << e->userId);
+            DBG("Server - Group Left: " << e->group );
 
             break;
         }
-        case kAooNetEventGroupAdd:
+        case kAooNetEventServerGroupAdd:
         {
-            auto e = (const AooNetEventGroupAdd *)event;
+            auto e = (const AooNetEventServerGroupAdd *)event;
             DBG("Server - Group Added: " << e->id << " : " << e->name);
             break;
         }
-        case kAooNetEventGroupRemove:
+        case kAooNetEventServerGroupRemove:
         {
-            auto e = (const AooNetEventGroupRemove *)event;
+            auto e = (const AooNetEventServerGroupRemove *)event;
             DBG("Server - Group Remove: " << e->id);
             break;
         }
         case kAooNetEventError:
         {
             auto e = (const AooNetEventError *)event;
-
             DBG("Server error: " << e->errorMessage);
-
             break;
         }
         default:
@@ -3580,7 +3578,7 @@ int32_t SonobusAudioProcessor::handleAooClientEvent(const AooEvent *event, int32
         }
 
 
-    case kAooNetEventDisconnect:
+        case kAooNetRequestDisconnect:
     {
         // don't remove all peers?
         //removeAllRemotePeers();
@@ -3728,6 +3726,19 @@ int32_t SonobusAudioProcessor::handleAooClientEvent(const AooEvent *event, int32
         clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientError, this, e->errorMessage);
         break;
     }
+    case kAooNetEventPeerPing:
+    {
+        auto e = (const AooNetEventPeerPing *)event;
+        DBG("Peer ping " <<  e->group << " - user " << e->user);
+        break;
+    }
+    case kAooNetEventPeerPingReply:
+    {
+        auto e = (const AooNetEventPeerPingReply *)event;
+        DBG("Peer ping reply " <<  e->group << " - user " << e->user);
+        break;
+    }
+
     default:
         DBG("Got unknown client event: " << event->type);
         break;
