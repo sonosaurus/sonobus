@@ -149,7 +149,7 @@ public:
     virtual void createPlugin()
     {
       #if JUCE_MODULE_AVAILABLE_juce_audio_plugin_client
-        processor.reset (::createPluginFilterOfType (AudioProcessor::wrapperType_Standalone));
+        processor = ::createPluginFilterOfType (AudioProcessor::wrapperType_Standalone);
       #else
         AudioProcessor::setTypeOfNextNewPlugin (AudioProcessor::wrapperType_Standalone);
         processor.reset (createPluginFilter());
@@ -588,10 +588,8 @@ private:
         void audioDeviceAboutToStart (AudioIODevice* device) override
         {
             maximumSize = device->getCurrentBufferSizeSamples();
-            //storedInputChannels .resize ((size_t) device->getActiveInputChannels() .countNumberOfSetBits());
-            //storedOutputChannels.resize ((size_t) device->getActiveOutputChannels().countNumberOfSetBits());
-            storedInputChannels .resize ((size_t) device->getInputChannelNames().size());
-            storedOutputChannels.resize ((size_t) device->getOutputChannelNames().size());
+            storedInputChannels .resize ((size_t) device->getActiveInputChannels() .countNumberOfSetBits());
+            storedOutputChannels.resize ((size_t) device->getActiveOutputChannels().countNumberOfSetBits());
 
 
             inner.audioDeviceAboutToStart (device);
