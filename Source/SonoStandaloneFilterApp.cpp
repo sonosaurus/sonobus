@@ -741,7 +741,7 @@ public:
                     // shutdown audio engine
                     DBG("no connections shutting down audio");
                     mainWindow->getDeviceManager().closeAudioDevice();
-
+                    sonoproc->setPlayHead (nullptr);
 #if JUCE_ANDROID
                     setAndroidForegroundServiceActive(false);
 #endif
