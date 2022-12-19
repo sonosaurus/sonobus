@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -35,20 +35,19 @@ struct AudioTrackProducerClass  : public ObjCClass<NSObject>
         addIvar<AudioSourceHolder*> ("source");
 
         JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wundeclared-selector")
-        addMethod (@selector (initWithAudioSourceHolder:),     initWithAudioSourceHolder,     "@@:^v");
-        addMethod (@selector (verifyDataForTrack:intoBuffer:length:atAddress:blockSize:ioFlags:),
-                   produceDataForTrack,           "I@:@^cIQI^I");
+        addMethod (@selector (initWithAudioSourceHolder:),     initWithAudioSourceHolder);
+        addMethod (@selector (verifyDataForTrack:intoBuffer:length:atAddress:blockSize:ioFlags:), produceDataForTrack);
         JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 
-        addMethod (@selector (cleanupTrackAfterBurn:),         cleanupTrackAfterBurn,         "v@:@");
-        addMethod (@selector (cleanupTrackAfterVerification:), cleanupTrackAfterVerification, "c@:@");
-        addMethod (@selector (estimateLengthOfTrack:),         estimateLengthOfTrack,         "Q@:@");
-        addMethod (@selector (prepareTrack:forBurn:toMedia:),  prepareTrack,                  "c@:@@@");
-        addMethod (@selector (prepareTrackForVerification:),   prepareTrackForVerification,   "c@:@");
+        addMethod (@selector (cleanupTrackAfterBurn:),         cleanupTrackAfterBurn);
+        addMethod (@selector (cleanupTrackAfterVerification:), cleanupTrackAfterVerification);
+        addMethod (@selector (estimateLengthOfTrack:),         estimateLengthOfTrack);
+        addMethod (@selector (prepareTrack:forBurn:toMedia:),  prepareTrack);
+        addMethod (@selector (prepareTrackForVerification:),   prepareTrackForVerification);
         addMethod (@selector (produceDataForTrack:intoBuffer:length:atAddress:blockSize:ioFlags:),
-                                                               produceDataForTrack,           "I@:@^cIQI^I");
+                                                               produceDataForTrack);
         addMethod (@selector (producePreGapForTrack:intoBuffer:length:atAddress:blockSize:ioFlags:),
-                                                               produceDataForTrack,           "I@:@^cIQI^I");
+                                                               produceDataForTrack);
 
         registerClass();
     }
@@ -132,13 +131,9 @@ private:
 
                 source->source->getNextAudioBlock (info);
 
-                typedef AudioData::Pointer <AudioData::Int16,   AudioData::LittleEndian, AudioData::Interleaved,    AudioData::NonConst> CDSampleFormat;
-                typedef AudioData::Pointer <AudioData::Float32, AudioData::NativeEndian, AudioData::NonInterleaved, AudioData::Const> SourceSampleFormat;
-
-                CDSampleFormat left (buffer, 2);
-                left.convertSamples (SourceSampleFormat (tempBuffer.getReadPointer (0)), numSamples);
-                CDSampleFormat right (buffer + 2, 2);
-                right.convertSamples (SourceSampleFormat (tempBuffer.getReadPointer (1)), numSamples);
+                AudioData::interleaveSamples (AudioData::NonInterleavedSource<AudioData::Float32, AudioData::NativeEndian> { tempBuffer.getArrayOfReadPointers(), 2 },
+                                              AudioData::InterleavedDest<AudioData::Int16, AudioData::LittleEndian>        { reinterpret_cast<uint16*> (buffer),  2 },
+                                              numSamples);
 
                 source->readPosition += numSamples;
             }

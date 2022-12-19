@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -76,7 +76,7 @@ public:
     virtual void setLoopRange (int64 loopStart, int64 loopLength) { ignoreUnused(loopStart); ignoreUnused(loopLength); }
     
     /** Returns the position where the loop playback starts.  */
-    virtual void getLoopRange(int64 & loopStart, int64 & loopLength) const = 0;
+    virtual void getLoopRange(int64 & loopStart, int64 & loopLength) const  { };
 
 };
 

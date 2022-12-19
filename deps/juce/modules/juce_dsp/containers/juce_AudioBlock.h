@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -31,10 +31,16 @@ namespace dsp
 #ifndef DOXYGEN
 namespace SampleTypeHelpers // Internal classes needed for handling sample type classes
 {
-    template <typename T, bool = std::is_floating_point<T>::value>
+    template <typename T, bool = std::is_floating_point_v<T>>
     struct ElementType
     {
         using Type = T;
+    };
+
+    template <typename T>
+    struct ElementType<const T, false>
+    {
+        using Type = const typename T::value_type;
     };
 
     template <typename T>
@@ -65,10 +71,10 @@ class AudioBlock
 private:
     template <typename OtherSampleType>
     using MayUseConvertingConstructor =
-        std::enable_if_t<std::is_same<std::remove_const_t<SampleType>,
-                                      std::remove_const_t<OtherSampleType>>::value
-                             && std::is_const<SampleType>::value
-                             && ! std::is_const<OtherSampleType>::value,
+        std::enable_if_t<std::is_same_v<std::remove_const_t<SampleType>,
+                                        std::remove_const_t<OtherSampleType>>
+                             && std::is_const_v<SampleType>
+                             && ! std::is_const_v<OtherSampleType>,
                          int>;
 
 public:
@@ -331,16 +337,15 @@ public:
         SIMDRegister then incrementing dstPos by one will increase the sample position
         in the AudioBuffer's units by a factor of SIMDRegister<SampleType>::SIMDNumElements.
     */
-    void copyTo (AudioBuffer<typename std::remove_const<NumericType>::type>& dst, size_t srcPos = 0, size_t dstPos = 0,
+    void copyTo (AudioBuffer<std::remove_const_t<NumericType>>& dst, size_t srcPos = 0, size_t dstPos = 0,
                  size_t numElements = std::numeric_limits<size_t>::max()) const
     {
         auto dstlen = static_cast<size_t> (dst.getNumSamples()) / sizeFactor;
-        auto n = static_cast<int> (jmin (numSamples - srcPos, dstlen - dstPos, numElements) * sizeFactor);
+        auto n = jmin (numSamples - srcPos, dstlen - dstPos, numElements) * sizeFactor;
         auto maxChannels = jmin (static_cast<size_t> (dst.getNumChannels()), static_cast<size_t> (numChannels));
 
         for (size_t ch = 0; ch < maxChannels; ++ch)
-            FloatVectorOperations::copy (dst.getWritePointer (static_cast<int> (ch),
-                                                              static_cast<int> (dstPos * sizeFactor)),
+            FloatVectorOperations::copy (dst.getWritePointer ((int) ch, (int) (dstPos * sizeFactor)),
                                          getDataPointer (ch) + (srcPos * sizeFactor),
                                          n);
     }
@@ -513,12 +518,12 @@ public:
 
     //==============================================================================
     /** Finds the minimum and maximum value of the buffer. */
-    Range<typename std::remove_const<NumericType>::type> findMinAndMax() const noexcept
+    Range<std::remove_const_t<NumericType>> findMinAndMax() const noexcept
     {
         if (numChannels == 0)
             return {};
 
-        auto n = static_cast<int> (numSamples * sizeFactor);
+        auto n = numSamples * sizeFactor;
         auto minmax = FloatVectorOperations::findMinAndMax (getDataPointer (0), n);
 
         for (size_t ch = 1; ch < numChannels; ++ch)
@@ -554,11 +559,11 @@ public:
 
     //==============================================================================
     // This class can only be used with floating point types
-    static_assert (std::is_same<std::remove_const_t<SampleType>, float>::value
-                    || std::is_same<std::remove_const_t<SampleType>, double>::value
+    static_assert (std::is_same_v<std::remove_const_t<SampleType>, float>
+                    || std::is_same_v<std::remove_const_t<SampleType>, double>
                   #if JUCE_USE_SIMD
-                    || std::is_same<std::remove_const_t<SampleType>, SIMDRegister<float>>::value
-                    || std::is_same<std::remove_const_t<SampleType>, SIMDRegister<double>>::value
+                    || std::is_same_v<std::remove_const_t<SampleType>, SIMDRegister<float>>
+                    || std::is_same_v<std::remove_const_t<SampleType>, SIMDRegister<double>>
                   #endif
                    , "AudioBlock only supports single or double precision floating point types");
 
@@ -595,7 +600,7 @@ private:
     //==============================================================================
     void JUCE_VECTOR_CALLTYPE clearInternal() const noexcept
     {
-        auto n = static_cast<int> (numSamples * sizeFactor);
+        auto n = numSamples * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::clear (getDataPointer (ch), n);
@@ -603,7 +608,7 @@ private:
 
     void JUCE_VECTOR_CALLTYPE fillInternal (NumericType value) const noexcept
     {
-        auto n = static_cast<int> (numSamples * sizeFactor);
+        auto n = numSamples * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::fill (getDataPointer (ch), value, n);
@@ -613,8 +618,7 @@ private:
     void copyFromInternal (const AudioBlock<OtherSampleType>& src) const noexcept
     {
         auto maxChannels = jmin (src.numChannels, numChannels);
-        auto n = static_cast<int> (jmin (src.numSamples * src.sizeFactor,
-                                         numSamples * sizeFactor));
+        auto n = jmin (src.numSamples * src.sizeFactor, numSamples * sizeFactor);
 
         for (size_t ch = 0; ch < maxChannels; ++ch)
             FloatVectorOperations::copy (getDataPointer (ch), src.getDataPointer (ch), n);
@@ -624,13 +628,12 @@ private:
     void copyFromInternal (const AudioBuffer<OtherNumericType>& src, size_t srcPos, size_t dstPos, size_t numElements) const
     {
         auto srclen = static_cast<size_t> (src.getNumSamples()) / sizeFactor;
-        auto n = static_cast<int> (jmin (srclen - srcPos, numSamples - dstPos, numElements) * sizeFactor);
+        auto n = jmin (srclen - srcPos, numSamples - dstPos, numElements) * sizeFactor;
         auto maxChannels = jmin (static_cast<size_t> (src.getNumChannels()), static_cast<size_t> (numChannels));
 
         for (size_t ch = 0; ch < maxChannels; ++ch)
             FloatVectorOperations::copy (getDataPointer (ch) + (dstPos * sizeFactor),
-                                         src.getReadPointer (static_cast<int> (ch),
-                                                             static_cast<int> (srcPos * sizeFactor)),
+                                         src.getReadPointer ((int) ch, (int) (srcPos * sizeFactor)),
                                          n);
     }
 
@@ -649,7 +652,7 @@ private:
     //==============================================================================
     void JUCE_VECTOR_CALLTYPE addInternal (NumericType value) const noexcept
     {
-        auto n = static_cast<int> (numSamples * sizeFactor);
+        auto n = numSamples * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::add (getDataPointer (ch), value, n);
@@ -659,7 +662,7 @@ private:
     void addInternal (AudioBlock<OtherSampleType> src) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::add (getDataPointer (ch), src.getDataPointer (ch), n);
@@ -669,7 +672,7 @@ private:
     void JUCE_VECTOR_CALLTYPE replaceWithSumOfInternal (AudioBlock<OtherSampleType> src, NumericType value) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::add (getDataPointer (ch), src.getDataPointer (ch), value, n);
@@ -679,7 +682,7 @@ private:
     void replaceWithSumOfInternal (AudioBlock<Src1SampleType> src1, AudioBlock<Src2SampleType> src2) const noexcept
     {
         jassert (numChannels == src1.numChannels && src1.numChannels == src2.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::add (getDataPointer (ch), src1.getDataPointer (ch), src2.getDataPointer (ch), n);
@@ -695,7 +698,7 @@ private:
     void subtractInternal (AudioBlock<OtherSampleType> src) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::subtract (getDataPointer (ch), src.getDataPointer (ch), n);
@@ -711,7 +714,7 @@ private:
     void replaceWithDifferenceOfInternal (AudioBlock<Src1SampleType> src1, AudioBlock<Src2SampleType> src2) const noexcept
     {
         jassert (numChannels == src1.numChannels && src1.numChannels == src2.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::subtract (getDataPointer (ch), src1.getDataPointer (ch), src2.getDataPointer (ch), n);
@@ -720,7 +723,7 @@ private:
     //==============================================================================
     void JUCE_VECTOR_CALLTYPE multiplyByInternal (NumericType value) const noexcept
     {
-        auto n = static_cast<int> (numSamples * sizeFactor);
+        auto n = numSamples * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::multiply (getDataPointer (ch), value, n);
@@ -730,7 +733,7 @@ private:
     void multiplyByInternal (AudioBlock<OtherSampleType> src) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::multiply (getDataPointer (ch), src.getDataPointer (ch), n);
@@ -740,7 +743,7 @@ private:
     void JUCE_VECTOR_CALLTYPE replaceWithProductOfInternal (AudioBlock<OtherSampleType> src, NumericType value) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::multiply (getDataPointer (ch), src.getDataPointer (ch), value, n);
@@ -750,7 +753,7 @@ private:
     void replaceWithProductOfInternal (AudioBlock<Src1SampleType> src1, AudioBlock<Src2SampleType> src2) const noexcept
     {
         jassert (numChannels == src1.numChannels && src1.numChannels == src2.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::multiply (getDataPointer (ch), src1.getDataPointer (ch), src2.getDataPointer (ch), n);
@@ -803,7 +806,7 @@ private:
     void JUCE_VECTOR_CALLTYPE addProductOfInternal (AudioBlock<OtherSampleType> src, NumericType factor) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::addWithMultiply (getDataPointer (ch), src.getDataPointer (ch), factor, n);
@@ -813,7 +816,7 @@ private:
     void addProductOfInternal (AudioBlock<Src1SampleType> src1, AudioBlock<Src2SampleType> src2) const noexcept
     {
         jassert (numChannels == src1.numChannels && src1.numChannels == src2.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src1.numSamples, src2.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::addWithMultiply (getDataPointer (ch), src1.getDataPointer (ch), src2.getDataPointer (ch), n);
@@ -829,7 +832,7 @@ private:
     void replaceWithNegativeOfInternal (AudioBlock<OtherSampleType> src) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::negate (getDataPointer (ch), src.getDataPointer (ch), n);
@@ -839,7 +842,7 @@ private:
     void replaceWithAbsoluteValueOfInternal (AudioBlock<OtherSampleType> src) const noexcept
     {
         jassert (numChannels == src.numChannels);
-        auto n = static_cast<int> (jmin (numSamples, src.numSamples) * sizeFactor);
+        auto n = jmin (numSamples, src.numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::abs (getDataPointer (ch), src.getDataPointer (ch), n);
@@ -850,7 +853,7 @@ private:
     void replaceWithMinOfInternal (AudioBlock<Src1SampleType> src1, AudioBlock<Src2SampleType> src2) const noexcept
     {
         jassert (numChannels == src1.numChannels && src1.numChannels == src2.numChannels);
-        auto n = static_cast<int> (jmin (src1.numSamples, src2.numSamples, numSamples) * sizeFactor);
+        auto n = jmin (src1.numSamples, src2.numSamples, numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::min (getDataPointer (ch), src1.getDataPointer (ch), src2.getDataPointer (ch), n);
@@ -860,7 +863,7 @@ private:
     void replaceWithMaxOfInternal (AudioBlock<Src1SampleType> src1, AudioBlock<Src2SampleType> src2) const noexcept
     {
         jassert (numChannels == src1.numChannels && src1.numChannels == src2.numChannels);
-        auto n = static_cast<int> (jmin (src1.numSamples, src2.numSamples, numSamples) * sizeFactor);
+        auto n = jmin (src1.numSamples, src2.numSamples, numSamples) * sizeFactor;
 
         for (size_t ch = 0; ch < numChannels; ++ch)
             FloatVectorOperations::max (getDataPointer (ch), src1.getDataPointer (ch), src2.getDataPointer (ch), n);

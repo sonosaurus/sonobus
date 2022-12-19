@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -41,7 +41,7 @@ NetworkServiceDiscovery::Advertiser::Advertiser (const String& serviceTypeUID,
     message.setAttribute ("address", String());
     message.setAttribute ("port", connectionPort);
 
-    startThread (2);
+    startThread (Priority::background);
 }
 
 NetworkServiceDiscovery::Advertiser::~Advertiser()
@@ -92,7 +92,7 @@ NetworkServiceDiscovery::AvailableServiceList::AvailableServiceList (const Strin
    #endif
 
     socket.bindToPort (broadcastPort);
-    startThread (2);
+    startThread (Priority::background);
 }
 
 NetworkServiceDiscovery::AvailableServiceList::~AvailableServiceList()

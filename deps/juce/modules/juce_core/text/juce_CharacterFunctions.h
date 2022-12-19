@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -490,6 +490,9 @@ public:
     template <typename ResultType>
     struct HexParser
     {
+        static_assert (std::is_unsigned_v<ResultType>, "ResultType must be unsigned because "
+                                                       "left-shifting a negative value is UB");
+
         template <typename CharPointerType>
         static ResultType parse (CharPointerType t) noexcept
         {
@@ -500,7 +503,7 @@ public:
                 auto hexValue = CharacterFunctions::getHexDigitValue (t.getAndAdvance());
 
                 if (hexValue >= 0)
-                    result = (result << 4) | hexValue;
+                    result = static_cast<ResultType> (result << 4) | static_cast<ResultType> (hexValue);
             }
 
             return result;

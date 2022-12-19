@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -89,6 +89,7 @@ void TimeSliceThread::moveToFrontOfQueue (TimeSliceClient* client)
 
 int TimeSliceThread::getNumClients() const
 {
+    const ScopedLock sl (listLock);
     return clients.size();
 }
 
@@ -96,6 +97,12 @@ TimeSliceClient* TimeSliceThread::getClient (const int i) const
 {
     const ScopedLock sl (listLock);
     return clients[i];
+}
+
+bool TimeSliceThread::contains (const TimeSliceClient* c) const
+{
+    const ScopedLock sl (listLock);
+    return std::any_of (clients.begin(), clients.end(), [=] (auto* registered) { return registered == c; });
 }
 
 //==============================================================================

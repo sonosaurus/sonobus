@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -50,7 +50,7 @@ public:
         @param priority     the process priority, where
                             0=low, 1=normal, 2=high, 3=realtime
     */
-    static void JUCE_CALLTYPE setPriority (const ProcessPriority priority);
+    static void JUCE_CALLTYPE setPriority (ProcessPriority priority);
 
     /** Kills the current process immediately.
 

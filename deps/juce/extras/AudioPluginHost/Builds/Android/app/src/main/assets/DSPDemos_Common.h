@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE examples.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    The code included in this file is provided under the terms of the ISC license
    http://www.isc.org/downloads/software-support-policy/isc-license. Permission
@@ -308,7 +308,11 @@ struct DSPDemo  : public AudioSource,
 
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
     {
-        jassert (bufferToFill.buffer != nullptr);
+        if (bufferToFill.buffer == nullptr)
+        {
+            jassertfalse;
+            return;
+        }
 
         inputSource->getNextAudioBlock (bufferToFill);
 
@@ -414,7 +418,7 @@ public:
        #endif
         {
             if (newReader == nullptr)
-                newReader = formatManager.createReaderFor (fileToPlay.createInputStream (false));
+                newReader = formatManager.createReaderFor (fileToPlay.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)));
         }
 
         reader.reset (newReader);

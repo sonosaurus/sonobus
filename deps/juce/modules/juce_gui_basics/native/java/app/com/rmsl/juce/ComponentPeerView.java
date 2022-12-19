@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -35,6 +35,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.Choreographer;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -53,7 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ComponentPeerView extends ViewGroup
-        implements View.OnFocusChangeListener, Application.ActivityLifecycleCallbacks
+        implements View.OnFocusChangeListener, Application.ActivityLifecycleCallbacks, Choreographer.FrameCallback
 {
     public ComponentPeerView (Context context, boolean opaque_, long host)
     {
@@ -111,6 +112,8 @@ public final class ComponentPeerView extends ViewGroup
             {
             }
         }
+
+        Choreographer.getInstance().postFrameCallback (this);
     }
 
     public void clear ()
@@ -130,6 +133,19 @@ public final class ComponentPeerView extends ViewGroup
         handlePaint (host, canvas, paint);
     }
 
+    private native void handleDoFrame (long host, long frameTimeNanos);
+
+    @Override
+    public void doFrame (long frameTimeNanos)
+    {
+        if (host == 0)
+            return;
+
+        handleDoFrame (host, frameTimeNanos);
+
+        Choreographer.getInstance().postFrameCallback (this);
+    }
+
     @Override
     public boolean isOpaque ()
     {
@@ -144,6 +160,7 @@ public final class ComponentPeerView extends ViewGroup
     private native void handleMouseDown (long host, int index, float x, float y, long time);
     private native void handleMouseDrag (long host, int index, float x, float y, long time);
     private native void handleMouseUp (long host, int index, float x, float y, long time);
+    private native void handleAccessibilityHover (long host, int action, float x, float y, long time);
 
     @Override
     public boolean onTouchEvent (MotionEvent event)
@@ -227,35 +244,17 @@ public final class ComponentPeerView extends ViewGroup
     @Override
     public boolean onHoverEvent (MotionEvent event)
     {
-        if (host == 0 || ! accessibilityManager.isTouchExplorationEnabled ())
-            return false;
-
-        int action = event.getAction ();
-        long time = event.getEventTime ();
-
-        switch (action & MotionEvent.ACTION_MASK) // simulate "mouse" events when touch exploration is enabled
+        if (accessibilityManager.isTouchExplorationEnabled())
         {
-            case MotionEvent.ACTION_HOVER_ENTER:
-                handleMouseDown (host, event.getPointerId (0), event.getRawX (), event.getRawY (), time);
-                return true;
-
-            case MotionEvent.ACTION_HOVER_EXIT:
-                handleMouseUp (host, event.getPointerId (0), event.getRawX (), event.getRawY (), time);
-                return true;
-
-            case MotionEvent.ACTION_HOVER_MOVE:
-                handleMouseDrag (host, event.getPointerId (0), event.getRawX (), event.getRawY (), time);
-                return true;
-
-            default:
-                break;
+            handleAccessibilityHover (host, event.getActionMasked(), event.getRawX(), event.getRawY(), event.getEventTime());
+            return true;
         }
 
         return false;
     }
 
     //==============================================================================
-    private native void handleKeyDown (long host, int keycode, int textchar);
+    private native void handleKeyDown (long host, int keycode, int textchar, int kbFlags);
     private native void handleKeyUp (long host, int keycode, int textchar);
     private native void handleBackButton (long host);
     private native void handleKeyboardHidden (long host);
@@ -300,7 +299,7 @@ public final class ComponentPeerView extends ViewGroup
                 return super.onKeyDown (keyCode, event);
             case KeyEvent.KEYCODE_BACK:
             {
-                backButtonPressed();
+                backButtonPressed ();
                 return true;
             }
 
@@ -308,7 +307,10 @@ public final class ComponentPeerView extends ViewGroup
                 break;
         }
 
-        handleKeyDown (host, keyCode, event.getUnicodeChar ());
+        handleKeyDown (host,
+                       keyCode,
+                       event.getUnicodeChar (),
+                       event.getMetaState ());
         return true;
     }
 
@@ -334,7 +336,11 @@ public final class ComponentPeerView extends ViewGroup
         if (event.getCharacters () != null)
         {
             int utf8Char = event.getCharacters ().codePointAt (0);
-            handleKeyDown (host, utf8Char, utf8Char);
+
+            handleKeyDown (host,
+                           keyCode,
+                           utf8Char,
+                           event.getMetaState ());
             return true;
         }
 

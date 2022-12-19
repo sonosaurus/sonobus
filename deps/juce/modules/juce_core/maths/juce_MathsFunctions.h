@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -175,8 +175,8 @@ Type mapFromLog10 (Type valueInLogRange, Type logRangeMin, Type logRangeMax)
 }
 
 /** Scans an array of values, returning the minimum value that it contains. */
-template <typename Type>
-Type findMinimum (const Type* data, int numValues)
+template <typename Type, typename Size>
+Type findMinimum (const Type* data, Size numValues)
 {
     if (numValues <= 0)
         return Type (0);
@@ -195,8 +195,8 @@ Type findMinimum (const Type* data, int numValues)
 }
 
 /** Scans an array of values, returning the maximum value that it contains. */
-template <typename Type>
-Type findMaximum (const Type* values, int numValues)
+template <typename Type, typename Size>
+Type findMaximum (const Type* values, Size numValues)
 {
     if (numValues <= 0)
         return Type (0);
@@ -400,7 +400,7 @@ struct MathConstants
 const constexpr double  double_Pi  = MathConstants<double>::pi;
 
 /** A single-precision constant for pi. */
-[[deprecated ("This is deprecated in favour of MathConstants<double>::pi.")]]
+[[deprecated ("This is deprecated in favour of MathConstants<float>::pi.")]]
 const constexpr float   float_Pi   = MathConstants<float>::pi;
 #endif
 
@@ -548,7 +548,7 @@ inline int nextPowerOfTwo (int n) noexcept
 int findHighestSetBit (uint32 n) noexcept;
 
 /** Returns the number of bits in a 32-bit integer. */
-inline int countNumberOfBits (uint32 n) noexcept
+constexpr int countNumberOfBits (uint32 n) noexcept
 {
     n -= ((n >> 1) & 0x55555555);
     n =  (((n >> 2) & 0x33333333) + (n & 0x33333333));
@@ -559,7 +559,7 @@ inline int countNumberOfBits (uint32 n) noexcept
 }
 
 /** Returns the number of bits in a 64-bit integer. */
-inline int countNumberOfBits (uint64 n) noexcept
+constexpr int countNumberOfBits (uint64 n) noexcept
 {
     return countNumberOfBits ((uint32) n) + countNumberOfBits ((uint32) (n >> 32));
 }
@@ -654,11 +654,8 @@ namespace TypeHelpers
 
         @tags{Core}
     */
-    template <typename Type> struct SmallestFloatType               { using type = float; };
-
-   #ifndef DOXYGEN
-    template <>              struct SmallestFloatType <double>      { using type = double; };
-   #endif
+    template <typename Type>
+    using SmallestFloatType = std::conditional_t<std::is_same_v<Type, double>, double, float>;
 
     /** These templates are designed to take an integer type, and return an unsigned int
         version with the same size.

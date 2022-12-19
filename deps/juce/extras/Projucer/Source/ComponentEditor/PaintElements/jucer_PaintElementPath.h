@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -70,21 +70,21 @@ public:
     //==============================================================================
     void setInitialBounds (int parentWidth, int parentHeight) override;
     Rectangle<int> getCurrentBounds (const Rectangle<int>& parentArea) const override;
-    void setCurrentBounds (const Rectangle<int>& b, const Rectangle<int>& parentArea, const bool undoable) override;
+    void setCurrentBounds (const Rectangle<int>& b, const Rectangle<int>& parentArea, bool undoable) override;
 
     //==============================================================================
     bool getPoint (int index, int pointNumber, double& x, double& y, const Rectangle<int>& parentArea) const;
-    void movePoint (int index, int pointNumber, double newX, double newY, const Rectangle<int>& parentArea, const bool undoable);
+    void movePoint (int index, int pointNumber, double newX, double newY, const Rectangle<int>& parentArea, bool undoable);
 
     RelativePositionedRectangle getPoint (int index, int pointNumber) const;
-    void setPoint (int index, int pointNumber, const RelativePositionedRectangle& newPoint, const bool undoable);
+    void setPoint (int index, int pointNumber, const RelativePositionedRectangle& newPoint, bool undoable);
 
     int getNumPoints() const noexcept                                    { return points.size(); }
     PathPoint* getPoint (int index) const noexcept                       { return points [index]; }
-    int indexOfPoint (PathPoint* const p) const noexcept                 { return points.indexOf (p); }
+    int indexOfPoint (const PathPoint* p) const noexcept                 { return points.indexOf (p); }
 
-    PathPoint* addPoint (int pointIndexToAddItAfter, const bool undoable);
-    void deletePoint (int pointIndex, const bool undoable);
+    PathPoint* addPoint (int pointIndexToAddItAfter, bool undoable);
+    void deletePoint (int pointIndex, bool undoable);
 
     void pointListChanged();
 
@@ -92,10 +92,10 @@ public:
 
     //==============================================================================
     bool isSubpathClosed (int pointIndex) const;
-    void setSubpathClosed (int pointIndex, const bool closed, const bool undoable);
+    void setSubpathClosed (int pointIndex, bool closed, bool undoable);
 
     bool isNonZeroWinding() const noexcept                               { return nonZeroWinding; }
-    void setNonZeroWinding (const bool nonZero, const bool undoable);
+    void setNonZeroWinding (bool nonZero, bool undoable);
 
     //==============================================================================
     void getEditableProperties (Array<PropertyComponent*>& props, bool multipleSelected) override;
@@ -125,8 +125,6 @@ public:
     void changed() override;
 
 private:
-    friend class PathPoint;
-    friend class PathPointComponent;
     OwnedArray<PathPoint> points;
     bool nonZeroWinding;
     mutable Path path;

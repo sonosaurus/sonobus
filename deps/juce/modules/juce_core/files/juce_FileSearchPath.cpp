@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -22,9 +22,6 @@
 
 namespace juce
 {
-
-FileSearchPath::FileSearchPath() {}
-FileSearchPath::~FileSearchPath() {}
 
 FileSearchPath::FileSearchPath (const String& path)
 {
@@ -71,13 +68,18 @@ File FileSearchPath::operator[] (int index) const
 
 String FileSearchPath::toString() const
 {
+    return toStringWithSeparator (";");
+}
+
+String FileSearchPath::toStringWithSeparator (StringRef separator) const
+{
     auto dirs = directories;
 
     for (auto& d : dirs)
-        if (d.containsChar (';'))
+        if (d.contains (separator))
             d = d.quoted();
 
-    return dirs.joinIntoString (";");
+    return dirs.joinIntoString (separator);
 }
 
 void FileSearchPath::add (const File& dir, int insertIndex)

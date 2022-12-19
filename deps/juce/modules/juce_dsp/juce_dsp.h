@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -35,12 +35,12 @@
 
   ID:                 juce_dsp
   vendor:             juce
-  version:            6.1.2
+  version:            7.0.2
   name:               JUCE DSP classes
   description:        Classes for audio buffer manipulation, digital audio processing, filtering, oversampling, fast math functions etc.
   website:            http://www.juce.com/juce
   license:            GPL/Commercial
-  minimumCppStandard: 14
+  minimumCppStandard: 17
 
   dependencies:       juce_audio_formats
   OSXFrameworks:      Accelerate
@@ -74,7 +74,9 @@
   #include <immintrin.h>
  #endif
 
-#elif defined (__ARM_NEON__) || defined (__ARM_NEON) || defined (__arm64__) || defined (__aarch64__)
+// it's ok to check for _M_ARM below as this is only defined on Windows for Arm 32-bit
+// which has a minimum requirement of armv7, which supports neon.
+#elif defined (__ARM_NEON__) || defined (__ARM_NEON) || defined (__arm64__) || defined (__aarch64__) || defined (_M_ARM) || defined (_M_ARM64)
 
  #ifndef JUCE_USE_SIMD
   #define JUCE_USE_SIMD 1
@@ -93,7 +95,7 @@
 
 #ifndef JUCE_VECTOR_CALLTYPE
  // __vectorcall does not work on 64-bit due to internal compiler error in
- // release mode in both VS2015 and VS2017. Re-enable when Microsoft fixes this
+ // release mode VS2017. Re-enable when Microsoft fixes this
  #if _MSC_VER && JUCE_USE_SIMD && ! (defined(_M_X64) || defined(__amd64__))
   #define JUCE_VECTOR_CALLTYPE __vectorcall
  #else
@@ -227,7 +229,7 @@ namespace juce
   #else
    #include "native/juce_sse_SIMDNativeOps.h"
   #endif
- #elif defined(__arm__) || defined(_M_ARM) || defined (__arm64__) || defined (__aarch64__)
+ #elif JUCE_ARM
   #include "native/juce_neon_SIMDNativeOps.h"
  #else
   #error "SIMD register support not implemented for this platform"

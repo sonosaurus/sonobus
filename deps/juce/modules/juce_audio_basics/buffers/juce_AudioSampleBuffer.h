@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -22,53 +22,6 @@
 
 namespace juce
 {
-
-#ifndef DOXYGEN
-/** The contents of this namespace are used to implement AudioBuffer and should
-    not be used elsewhere. Their interfaces (and existence) are liable to change!
-*/
-namespace detail
-{
-    /** On iOS/arm7 the alignment of `double` is greater than the alignment of
-        `std::max_align_t`, so we can't trust max_align_t. Instead, we query
-        lots of primitive types and use the maximum alignment of all of them.
-
-        We're putting this stuff outside AudioBuffer itself to avoid creating
-        unnecessary copies for each distinct template instantiation of
-        AudioBuffer.
-
-        MSVC 2015 doesn't like when we write getMaxAlignment as a loop which
-        accumulates the max alignment (declarations not allowed in constexpr
-        function body) so instead we use this recursive version which
-        instantiates a zillion templates.
-    */
-
-    template <typename> struct Type {};
-
-    constexpr size_t getMaxAlignment() noexcept { return 0; }
-
-    template <typename Head, typename... Tail>
-    constexpr size_t getMaxAlignment (Type<Head>, Type<Tail>... tail) noexcept
-    {
-        return jmax (alignof (Head), getMaxAlignment (tail...));
-    }
-
-    constexpr size_t maxAlignment = getMaxAlignment (Type<std::max_align_t>{},
-                                                     Type<void*>{},
-                                                     Type<float>{},
-                                                     Type<double>{},
-                                                     Type<long double>{},
-                                                     Type<short int>{},
-                                                     Type<int>{},
-                                                     Type<long int>{},
-                                                     Type<long long int>{},
-                                                     Type<bool>{},
-                                                     Type<char>{},
-                                                     Type<char16_t>{},
-                                                     Type<char32_t>{},
-                                                     Type<wchar_t>{});
-} // namespace detail
-#endif
 
 //==============================================================================
 /**
@@ -371,7 +324,7 @@ public:
         Don't modify any of the pointers that are returned, and bear in mind that
         these will become invalid if the buffer is resized.
     */
-    const Type** getArrayOfReadPointers() const noexcept            { return const_cast<const Type**> (channels); }
+    const Type* const* getArrayOfReadPointers() const noexcept            { return channels; }
 
     /** Returns an array of pointers to the channels in the buffer.
 
@@ -386,7 +339,7 @@ public:
 
         @see setNotClear
     */
-    Type** getArrayOfWritePointers() noexcept                       { isClear = false; return channels; }
+    Type* const* getArrayOfWritePointers() noexcept                       { isClear = false; return channels; }
 
     //==============================================================================
     /** Changes the buffer's size or number of channels.
@@ -512,7 +465,7 @@ public:
         @param newNumSamples    the number of samples to use - this must correspond to the
                                 size of the arrays passed in
     */
-    void setDataToReferTo (Type** dataToReferTo,
+    void setDataToReferTo (Type* const* dataToReferTo,
                            int newNumChannels,
                            int newStartSample,
                            int newNumSamples)
@@ -553,7 +506,7 @@ public:
         @param newNumSamples    the number of samples to use - this must correspond to the
                                 size of the arrays passed in
     */
-    void setDataToReferTo (Type** dataToReferTo,
+    void setDataToReferTo (Type* const* dataToReferTo,
                            int newNumChannels,
                            int newNumSamples)
     {
@@ -1215,23 +1168,16 @@ public:
 
 private:
     //==============================================================================
-    int numChannels = 0, size = 0;
-    size_t allocatedBytes = 0;
-    Type** channels;
-    HeapBlock<char, true> allocatedData;
-    Type* preallocatedChannelSpace[32];
-    bool isClear = false;
-
     void allocateData()
     {
        #if (! JUCE_GCC || (__GNUC__ * 100 + __GNUC_MINOR__) >= 409)
-        static_assert (alignof (Type) <= detail::maxAlignment,
+        static_assert (alignof (Type) <= maxAlignment,
                        "AudioBuffer cannot hold types with alignment requirements larger than that guaranteed by malloc");
        #endif
         jassert (size >= 0);
 
         auto channelListSize = (size_t) (numChannels + 1) * sizeof (Type*);
-        auto requiredSampleAlignment = std::alignment_of<Type>::value;
+        auto requiredSampleAlignment = std::alignment_of_v<Type>;
         size_t alignmentOverflow = channelListSize % requiredSampleAlignment;
 
         if (alignmentOverflow != 0)
@@ -1277,6 +1223,43 @@ private:
         channels[numChannels] = nullptr;
         isClear = false;
     }
+
+    /*  On iOS/arm7 the alignment of `double` is greater than the alignment of
+        `std::max_align_t`, so we can't trust max_align_t. Instead, we query
+        lots of primitive types and use the maximum alignment of all of them.
+    */
+    static constexpr size_t getMaxAlignment() noexcept
+    {
+        constexpr size_t alignments[] { alignof (std::max_align_t),
+                                        alignof (void*),
+                                        alignof (float),
+                                        alignof (double),
+                                        alignof (long double),
+                                        alignof (short int),
+                                        alignof (int),
+                                        alignof (long int),
+                                        alignof (long long int),
+                                        alignof (bool),
+                                        alignof (char),
+                                        alignof (char16_t),
+                                        alignof (char32_t),
+                                        alignof (wchar_t) };
+
+        size_t max = 0;
+
+        for (const auto elem : alignments)
+            max = jmax (max, elem);
+
+        return max;
+    }
+
+    int numChannels = 0, size = 0;
+    size_t allocatedBytes = 0;
+    Type** channels;
+    HeapBlock<char, true> allocatedData;
+    Type* preallocatedChannelSpace[32];
+    bool isClear = false;
+    static constexpr size_t maxAlignment = getMaxAlignment();
 
     JUCE_LEAK_DETECTOR (AudioBuffer)
 };

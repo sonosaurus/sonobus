@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -57,8 +57,6 @@ public:
     //==============================================================================
     /** Constructor. */
     SmoothedValueBase() = default;
-
-    virtual ~SmoothedValueBase() {}
 
     //==============================================================================
     /** Returns true if the current value is currently being interpolated. */
@@ -231,7 +229,7 @@ public:
     //==============================================================================
     /** Constructor. */
     SmoothedValue() noexcept
-        : SmoothedValue ((FloatType) (std::is_same<SmoothingType, ValueSmoothingTypes::Linear>::value ? 0 : 1))
+        : SmoothedValue ((FloatType) (std::is_same_v<SmoothingType, ValueSmoothingTypes::Linear> ? 0 : 1))
     {
     }
 
@@ -239,7 +237,7 @@ public:
     SmoothedValue (FloatType initialValue) noexcept
     {
         // Multiplicative smoothed values cannot ever reach 0!
-        jassert (! (std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && initialValue == 0));
+        jassert (! (std::is_same_v<SmoothingType, ValueSmoothingTypes::Multiplicative> && initialValue == 0));
 
         // Visual Studio can't handle base class initialisation with CRTP
         this->currentValue = initialValue;
@@ -282,7 +280,7 @@ public:
         }
 
         // Multiplicative smoothed values cannot ever reach 0!
-        jassert (! (std::is_same<SmoothingType, ValueSmoothingTypes::Multiplicative>::value && newValue == 0));
+        jassert (! (std::is_same_v<SmoothingType, ValueSmoothingTypes::Multiplicative> && newValue == 0));
 
         this->target = newValue;
         this->countdown = stepsToTarget;
@@ -354,49 +352,45 @@ public:
 
 private:
     //==============================================================================
-    template <typename T>
-    using LinearVoid = typename std::enable_if <std::is_same <T, ValueSmoothingTypes::Linear>::value, void>::type;
-
-    template <typename T>
-    using MultiplicativeVoid = typename std::enable_if <std::is_same <T, ValueSmoothingTypes::Multiplicative>::value, void>::type;
-
-    //==============================================================================
     template <typename T = SmoothingType>
-    LinearVoid<T> setStepSize() noexcept
+    void setStepSize() noexcept
     {
-        step = (this->target - this->currentValue) / (FloatType) this->countdown;
-    }
-
-    template <typename T = SmoothingType>
-    MultiplicativeVoid<T> setStepSize()
-    {
-        step = std::exp ((std::log (std::abs (this->target)) - std::log (std::abs (this->currentValue))) / (FloatType) this->countdown);
+        if constexpr (std::is_same_v<T, ValueSmoothingTypes::Linear>)
+        {
+            step = (this->target - this->currentValue) / (FloatType) this->countdown;
+        }
+        else if constexpr (std::is_same_v<T, ValueSmoothingTypes::Multiplicative>)
+        {
+            step = std::exp ((std::log (std::abs (this->target)) - std::log (std::abs (this->currentValue))) / (FloatType) this->countdown);
+        }
     }
 
     //==============================================================================
     template <typename T = SmoothingType>
-    LinearVoid<T> setNextValue() noexcept
+    void setNextValue() noexcept
     {
-        this->currentValue += step;
-    }
-
-    template <typename T = SmoothingType>
-    MultiplicativeVoid<T> setNextValue() noexcept
-    {
-        this->currentValue *= step;
+        if constexpr (std::is_same_v<T, ValueSmoothingTypes::Linear>)
+        {
+            this->currentValue += step;
+        }
+        else if constexpr (std::is_same_v<T, ValueSmoothingTypes::Multiplicative>)
+        {
+            this->currentValue *= step;
+        }
     }
 
     //==============================================================================
     template <typename T = SmoothingType>
-    LinearVoid<T> skipCurrentValue (int numSamples) noexcept
+    void skipCurrentValue (int numSamples) noexcept
     {
-        this->currentValue += step * (FloatType) numSamples;
-    }
-
-    template <typename T = SmoothingType>
-    MultiplicativeVoid<T> skipCurrentValue (int numSamples)
-    {
-        this->currentValue *= (FloatType) std::pow (step, numSamples);
+        if constexpr (std::is_same_v<T, ValueSmoothingTypes::Linear>)
+        {
+            this->currentValue += step * (FloatType) numSamples;
+        }
+        else if constexpr (std::is_same_v<T, ValueSmoothingTypes::Multiplicative>)
+        {
+            this->currentValue *= (FloatType) std::pow (step, numSamples);
+        }
     }
 
     //==============================================================================
