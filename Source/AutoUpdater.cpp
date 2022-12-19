@@ -50,7 +50,7 @@ void LatestVersionCheckerAndUpdater::checkForNewVersion (bool showAlerts)
     if (! isThreadRunning())
     {
         showAlertWindows = showAlerts;
-        startThread (3);
+        startThread (Thread::Priority::low);
     }
 }
 
@@ -300,7 +300,7 @@ public:
         : ThreadWithProgressWindow ("Downloading New Version", true, true),
           asset (a), targetFolder (t), completionCallback (std::move (cb))
     {
-        launchThread (3);
+        launchThread (Thread::Priority::low);
     }
 
 private:

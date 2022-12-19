@@ -159,7 +159,7 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
     auto manager = std::make_shared<SamplePlaybackManager>(&sample, this);
 
     if (!diskThread.isThreadRunning()) {
-        diskThread.startThread(3);
+        diskThread.startThread(Thread::Priority::normal);
     }
 
     auto loaded = manager->loadFileFromSample(diskThread);

@@ -585,92 +585,92 @@ SonobusAudioProcessor::SonobusAudioProcessor()
      : AudioProcessor ( getDefaultLayout() ),
        mState (*this, &mUndoManager, "SonoBusAoO",
 {
-    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
+           std::make_unique<AudioParameterFloat>(ParameterID(paramInGain, 1),     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorMonoPan,     TRANS ("In Pan"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonMonoPan.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInMonitorMonoPan, 1),     TRANS ("In Pan"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonMonoPan.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorPan1,     TRANS ("In Pan 1"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan1.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInMonitorPan1, 1),     TRANS ("In Pan 1"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan1.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorPan2,     TRANS ("In Pan 2"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan2.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInMonitorPan2, 1),     TRANS ("In Pan 2"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan2.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramDry,     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), JUCEApplicationBase::isStandaloneApp() ? mDry.get() : 1.0f, "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramDry, 1),     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), JUCEApplicationBase::isStandaloneApp() ? mDry.get() : 1.0f, "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramWet,     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 2.0, 0.0, 0.5), mWet.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramWet, 1),     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 2.0, 0.0, 0.5), mWet.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramDefaultNetbufMs,     TRANS ("Default Jitter Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramDefaultNetbufMs, 1),     TRANS ("Default Jitter Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
-    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), JUCEApplicationBase::isStandaloneApp() ? mSendChannels.get() : 0),
+    std::make_unique<AudioParameterChoice>(ParameterID(paramSendChannels, 1), TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), JUCEApplicationBase::isStandaloneApp() ? mSendChannels.get() : 0),
 
-    std::make_unique<AudioParameterBool>(paramMetEnabled, TRANS ("Metronome Enabled"), mMetEnabled.get()),
-    std::make_unique<AudioParameterBool>(paramSendMetAudio, TRANS ("Send Metronome Audio"), mSendMet.get()),
-    std::make_unique<AudioParameterFloat>(paramMetGain,     TRANS ("Metronome Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.5), mMetGain.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterBool>(ParameterID(paramMetEnabled, 1), TRANS ("Metronome Enabled"), mMetEnabled.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramSendMetAudio, 1), TRANS ("Send Metronome Audio"), mSendMet.get()),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMetGain, 1),     TRANS ("Metronome Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.5), mMetGain.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramMetTempo,     TRANS ("Metronome Tempo"),    NormalisableRange<float>(10.0, 400.0, 1, 0.5), mMetTempo.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMetTempo, 1),     TRANS ("Metronome Tempo"),    NormalisableRange<float>(10.0, 400.0, 1, 0.5), mMetTempo.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v) + " bpm"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
 
-    std::make_unique<AudioParameterBool>(paramSendFileAudio, TRANS ("Send Playback Audio"), mSendPlaybackAudio.get()),
-    std::make_unique<AudioParameterBool>(paramSendSoundboardAudio, TRANS ("Send Soundboard Audio"), mSendSoundboardAudio.get()),
-    std::make_unique<AudioParameterBool>(paramHearLatencyTest, TRANS ("Hear Latency Test"), mHearLatencyTest.get()),
-    std::make_unique<AudioParameterBool>(paramMetIsRecorded, TRANS ("Record Metronome to File"), mMetIsRecorded.get()),
-    std::make_unique<AudioParameterBool>(paramMainReverbEnabled, TRANS ("Main Reverb Enabled"), mMainReverbEnabled.get()),
-    std::make_unique<AudioParameterFloat>(paramMainReverbLevel,     TRANS ("Main Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mMainReverbLevel.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterBool>(ParameterID(paramSendFileAudio, 1), TRANS ("Send Playback Audio"), mSendPlaybackAudio.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramSendSoundboardAudio, 1), TRANS ("Send Soundboard Audio"), mSendSoundboardAudio.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramHearLatencyTest, 1), TRANS ("Hear Latency Test"), mHearLatencyTest.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMetIsRecorded, 1), TRANS ("Record Metronome to File"), mMetIsRecorded.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainReverbEnabled, 1), TRANS ("Main Reverb Enabled"), mMainReverbEnabled.get()),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbLevel, 1),     TRANS ("Main Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mMainReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-    std::make_unique<AudioParameterFloat>(paramMainReverbSize,     TRANS ("Main Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbSize.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbSize, 1),     TRANS ("Main Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbSize.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramMainReverbDamping,     TRANS ("Main Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbDamping, 1),     TRANS ("Main Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramMainReverbPreDelay,     TRANS ("Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mMainReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbPreDelay, 1),     TRANS ("Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mMainReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue(); }),
 
-    std::make_unique<AudioParameterChoice>(paramMainReverbModel, TRANS ("Main Reverb Model"), StringArray({ "Freeverb", "MVerb", "Zita"}), mMainReverbModel.get()),
+    std::make_unique<AudioParameterChoice>(ParameterID(paramMainReverbModel, 1), TRANS ("Main Reverb Model"), StringArray({ "Freeverb", "MVerb", "Zita"}), mMainReverbModel.get()),
 
-    std::make_unique<AudioParameterBool>(paramMainSendMute, TRANS ("Main Send Mute"), mMainSendMute.get()),
-    std::make_unique<AudioParameterBool>(paramMainRecvMute, TRANS ("Main Receive Mute"), mMainRecvMute.get()),
-    std::make_unique<AudioParameterBool>(paramMainInMute, TRANS ("Main In Mute"), mMainInMute.get()),
-    std::make_unique<AudioParameterBool>(paramMainMonitorSolo, TRANS ("Main Monitor Solo"), mMainMonitorSolo.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainSendMute, 1), TRANS ("Main Send Mute"), mMainSendMute.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainRecvMute,1 ), TRANS ("Main Receive Mute"), mMainRecvMute.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainInMute, 1), TRANS ("Main In Mute"), mMainInMute.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainMonitorSolo, 1), TRANS ("Main Monitor Solo"), mMainMonitorSolo.get()),
 
-    std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full", "Initial-Auto"}), defaultAutoNetbufMode),
+    std::make_unique<AudioParameterChoice>(ParameterID(paramDefaultAutoNetbuf, 1), TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full", "Initial-Auto"}), defaultAutoNetbufMode),
 
-    std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
-    std::make_unique<AudioParameterBool>(paramDynamicResampling, TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
-    std::make_unique<AudioParameterBool>(paramAutoReconnectLast, TRANS ("Reconnect Last"), mAutoReconnectLast.get()),
-    std::make_unique<AudioParameterFloat>(paramDefaultPeerLevel,     TRANS ("Default User Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), mDefUserLevel.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterInt>(ParameterID(paramDefaultSendQual, 1), TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
+    std::make_unique<AudioParameterBool>(ParameterID(paramDynamicResampling, 1), TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramAutoReconnectLast, 1), TRANS ("Reconnect Last"), mAutoReconnectLast.get()),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramDefaultPeerLevel, 1),     TRANS ("Default User Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), mDefUserLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-    std::make_unique<AudioParameterBool>(paramSyncMetToHost, TRANS ("Sync to Host"), JUCEApplicationBase::isStandaloneApp() ? false : true),
-    std::make_unique<AudioParameterFloat>(paramInputReverbLevel,     TRANS ("Input Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mInputReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToHost, 1), TRANS ("Sync to Host"), JUCEApplicationBase::isStandaloneApp() ? false : true),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbLevel, 1),     TRANS ("Input Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mInputReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-    std::make_unique<AudioParameterFloat>(paramInputReverbSize,     TRANS ("Input Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbSize.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbSize, 1),     TRANS ("Input Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbSize.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramInputReverbDamping,     TRANS ("Input Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbDamping, 1),     TRANS ("Input Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramInputReverbPreDelay,     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbPreDelay, 1),     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
-    std::make_unique<AudioParameterBool>(paramSyncMetToFilePlayback, TRANS ("Sync Met to File Playback"), false),
+    std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToFilePlayback, 1), TRANS ("Sync Met to File Playback"), false),
 
 }),
    soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>())
@@ -931,18 +931,16 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
 
     
     mSendThread = std::make_unique<SendThread>(*this);
-    mSendThread->setPriority(9);
     mRecvThread = std::make_unique<RecvThread>(*this);
-    mRecvThread->setPriority(9);
     mEventThread = std::make_unique<EventThread>(*this);
 
     if (mAooClient) {
         mClientThread = std::make_unique<ClientThread>(*this);
     }
     
-    mSendThread->startThread();
-    mRecvThread->startThread();
-    mEventThread->startThread();
+    mSendThread->startThread(Thread::Priority::highest);
+    mRecvThread->startThread(Thread::Priority::highest);
+    mEventThread->startThread(Thread::Priority::normal);
 
     if (mAooClient) {
         mClientThread->startThread();
@@ -7421,7 +7419,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             mInputReverb.reset();
         }
 
-        mInputReverb.process(inputRevBuffer.getArrayOfWritePointers(), inputRevBuffer.getArrayOfWritePointers(), numSamples);
+        mInputReverb.process((float **)inputRevBuffer.getArrayOfWritePointers(), (float **)inputRevBuffer.getArrayOfWritePointers(), numSamples);
 
         if (inReverbEnabled != mLastInputReverbEnabled ) {
             float sgain = inReverbEnabled ? 0.0f : 1.0f;
@@ -7508,7 +7506,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
                 remote->workBuffer.clear(0, numSamples);
 
-                remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
+                remote->oursink->process((float **)remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
             }
 
             
@@ -7678,7 +7676,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 }
                 
                 
-                remote->oursource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);      
+                remote->oursource->process((const float **)workBuffer.getArrayOfReadPointers(), numSamples, t);
                 
                 //remote->sendMeterSource.measureBlock (workBuffer);
                 
@@ -7686,15 +7684,15 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 // now process echo and latency stuff
                 
                 workBuffer.clear(0, 0, numSamples);
-                if (remote->echosink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
+                if (remote->echosink->process((float **)workBuffer.getArrayOfWritePointers(), numSamples, t)) {
                     //DBG("received something from our ECHO sink");
-                    remote->echosource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);
+                    remote->echosource->process((const float **)workBuffer.getArrayOfReadPointers(), numSamples, t);
                 }
 
                 
                 if (remote->activeLatencyTest && remote->latencyMeasurer) {
                     workBuffer.clear(0, 0, numSamples);
-                    if (remote->latencysink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
+                    if (remote->latencysink->process((float **)workBuffer.getArrayOfWritePointers(), numSamples, t)) {
                         //DBG("received something from our latency sink");
                     }
 
@@ -7716,7 +7714,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     }
 
                     
-                    remote->latencysource->process(workBuffer.getArrayOfReadPointers(), numSamples, t);                                        
+                    remote->latencysource->process((const float **)workBuffer.getArrayOfReadPointers(), numSamples, t);
                 }
             }
             
@@ -7829,12 +7827,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         
         if (mMainReverbModel.get() == ReverbModelMVerb) {
             if (mainBusOutputChannels > 1) {            
-                mMReverb.process(mainFxBuffer.getArrayOfWritePointers(), mainFxBuffer.getArrayOfWritePointers(), numSamples);
+                mMReverb.process((float **)mainFxBuffer.getArrayOfWritePointers(), (float **)mainFxBuffer.getArrayOfWritePointers(), numSamples);
             } 
         }
         else if (mMainReverbModel.get() == ReverbModelZita) {
             if (mainBusOutputChannels > 1) {            
-                mZitaReverb.compute(numSamples, mainFxBuffer.getArrayOfWritePointers(), mainFxBuffer.getArrayOfWritePointers()); 
+                mZitaReverb.compute(numSamples, (float **)mainFxBuffer.getArrayOfWritePointers(), (float **)mainFxBuffer.getArrayOfWritePointers());
             }
         }
         else {
@@ -7936,7 +7934,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             {
                 // write the raw (pre or post FX) input
                 if (activeSelfWriters[0].load() != nullptr) {
-                    const float ** inbufs = mRecordInputPreFX ? inputPreBuffer.getArrayOfReadPointers() : inputPostBuffer.getArrayOfReadPointers();
+                    const float * const* inbufs = mRecordInputPreFX ? inputPreBuffer.getArrayOfReadPointers() : inputPostBuffer.getArrayOfReadPointers();
                     int chindex = 0;
                     for (int i=0; i < mInputChannelGroupCount; ++i) {
                         int chcnt = mInputChannelGroups[i].params.numChannels;
@@ -8804,7 +8802,7 @@ void SonobusAudioProcessor::clearTransportURL()
 bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 {
     if (!mDiskThread.isThreadRunning()) {
-        mDiskThread.startThread (3);
+        mDiskThread.startThread (Thread::Priority::normal);
     }
 
     // unload the previous file source and delete it..

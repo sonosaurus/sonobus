@@ -33,6 +33,7 @@
 		0E025ED2B9EF033C74973366 /* Foundation.framework */ = {isa = PBXBuildFile; fileRef = 35C88E99BCB508A95003E052; };
 		0EC5FB0370260FB9B4D93DBC /* OscReceivedElements.cpp */ = {isa = PBXBuildFile; fileRef = B47C37D545B672AF9924CC9F; };
 		0FA8C1335FFD74BD04230904 /* include_juce_audio_plugin_client_Standalone.cpp */ = {isa = PBXBuildFile; fileRef = 2389570162279B0CA0BFD47D; };
+		17520580077E8A931F4731B9 /* include_juce_audio_processors_ara.cpp */ = {isa = PBXBuildFile; fileRef = 73A0C3D1E8784746904DC34A; };
 		1AA6291F7F5B699F25043177 /* include_juce_events.mm */ = {isa = PBXBuildFile; fileRef = 60134C98DA04D14DBD0E5AC5; };
 		1C0A38DA5951F3CE316C0FA5 /* CoreAudio.framework */ = {isa = PBXBuildFile; fileRef = 298294CA34361C604CBC2EDA; };
 		1C2B85341EBF7F1169DD3652 /* SonoDrawableButton.cpp */ = {isa = PBXBuildFile; fileRef = 6786585D7F5FA7D813AAFAB0; };
@@ -50,6 +51,7 @@
 		2BAA96C461F8313DF4E00154 /* SonoStandaloneFilterApp.cpp */ = {isa = PBXBuildFile; fileRef = E936B81A3EC850C70172B283; };
 		2E78BE348B75B1B717FF98D1 /* Shared Code */ = {isa = PBXBuildFile; fileRef = 5B2C7AE6B6D711AC95214BF9; };
 		336F0377269006AB7C8D782E /* include_juce_audio_devices.mm */ = {isa = PBXBuildFile; fileRef = 32236041CD0595B513AA95B6; };
+		359A00D7E75A59916844A5F8 /* include_juce_audio_processors_lv2_libs.cpp */ = {isa = PBXBuildFile; fileRef = 8A2377C3DC5D2B8398769630; };
 		38D015418F023AEEBA76D531 /* sink.cpp */ = {isa = PBXBuildFile; fileRef = 2A211AC3A642B29674F1B9E1; };
 		3A065A495CC1EE7613782295 /* source.cpp */ = {isa = PBXBuildFile; fileRef = 34652F262151A012753C74FB; };
 		3C6DF95A7BBE1882F40AA270 /* md5.c */ = {isa = PBXBuildFile; fileRef = BDF049F5A191E0AD6AAAC553; };
@@ -62,6 +64,7 @@
 		4B45DA9A737E5AD255CF9E72 /* CoreText.framework */ = {isa = PBXBuildFile; fileRef = 21E1C6DDBCB412052BED36D2; };
 		4C2D0A63FD5CA2241C2FFE66 /* SoundboardChannelProcessor.cpp */ = {isa = PBXBuildFile; fileRef = 80E0EC8DC0696AA971CAD367; };
 		4DD71D0AF5D19CA3955FD785 /* CoreImage.framework */ = {isa = PBXBuildFile; fileRef = CA33AE73E84A0CD168AA64AE; };
+		50821275F64CDA0B5564913D /* include_juce_audio_plugin_client_ARA.cpp */ = {isa = PBXBuildFile; fileRef = C0C3193F99015220473B08F0; };
 		55125E4FA2E95642D369DFFA /* include_juce_audio_plugin_client_utils.cpp */ = {isa = PBXBuildFile; fileRef = 8197704B6F67CEDAF82C3DD8; };
 		595CAC567063E3BACC53A590 /* RunCumulantor.cpp */ = {isa = PBXBuildFile; fileRef = 76E713903E0640BC7CC75541; };
 		5B2B7FE93FB4DA4CF13EBE61 /* include_juce_dsp.mm */ = {isa = PBXBuildFile; fileRef = C7769A02C6DF7B9F3A95ABA7; };
@@ -279,6 +282,7 @@
 		701288E426BBC5F8A99F33FA /* CoreMIDI.framework */ /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		72F3148F968AC28B87CBBEFF /* WebKit.framework */ /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		73908F045E649D09D0F44D51 /* ConnectView.h */ /* ConnectView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ConnectView.h; path = ../../../Source/ConnectView.h; sourceTree = SOURCE_ROOT; };
+		73A0C3D1E8784746904DC34A /* include_juce_audio_processors_ara.cpp */ /* include_juce_audio_processors_ara.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_audio_processors_ara.cpp; path = ../../JuceLibraryCode/include_juce_audio_processors_ara.cpp; sourceTree = SOURCE_ROOT; };
 		74383204B5075099868F4BAE /* zitaRev.h */ /* zitaRev.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = zitaRev.h; path = ../../../Source/zitaRev.h; sourceTree = SOURCE_ROOT; };
 		75EBE6968814617FFE3B4CFE /* OpenGLES.framework */ /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		76E713903E0640BC7CC75541 /* RunCumulantor.cpp */ /* RunCumulantor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = RunCumulantor.cpp; path = ../../../Source/RunCumulantor.cpp; sourceTree = SOURCE_ROOT; };
@@ -302,6 +306,7 @@
 		863281820672F5AA0AEBBA4C /* SoundboardView.h */ /* SoundboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SoundboardView.h; path = ../../../Source/SoundboardView.h; sourceTree = SOURCE_ROOT; };
 		87D666B261CB45118082DE6C /* aoo_net.h */ /* aoo_net.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = aoo_net.h; path = ../../../deps/aoo/lib/aoo/aoo_net.h; sourceTree = SOURCE_ROOT; };
 		880AAE3C5A2AE296824C143F /* localized_ko.txt */ /* localized_ko.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = localized_ko.txt; path = ../../../localization/localized_ko.txt; sourceTree = SOURCE_ROOT; };
+		8A2377C3DC5D2B8398769630 /* include_juce_audio_processors_lv2_libs.cpp */ /* include_juce_audio_processors_lv2_libs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_audio_processors_lv2_libs.cpp; path = ../../JuceLibraryCode/include_juce_audio_processors_lv2_libs.cpp; sourceTree = SOURCE_ROOT; };
 		8C5EAD53B634FDAD140CDCB1 /* person.svg */ /* person.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = person.svg; path = ../../../images/person.svg; sourceTree = SOURCE_ROOT; };
 		8C8B8BAE5B29980A5DD5A060 /* network.svg */ /* network.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = network.svg; path = ../../../images/network.svg; sourceTree = SOURCE_ROOT; };
 		8D531D41FC4C59245B5A8265 /* rectape.svg */ /* rectape.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = rectape.svg; path = ../../../images/rectape.svg; sourceTree = SOURCE_ROOT; };
@@ -359,6 +364,7 @@
 		BD5F9C953D6EB245004E04DA /* hold.svg */ /* hold.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = hold.svg; path = ../../../images/hold.svg; sourceTree = SOURCE_ROOT; };
 		BDF049F5A191E0AD6AAAC553 /* md5.c */ /* md5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = md5.c; path = ../../../deps/aoo/deps/md5/md5.c; sourceTree = SOURCE_ROOT; };
 		C002E8B942447DA506042E44 /* sonobus_title_small.png */ /* sonobus_title_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sonobus_title_small.png; path = ../../../images/sonobus_title_small.png; sourceTree = SOURCE_ROOT; };
+		C0C3193F99015220473B08F0 /* include_juce_audio_plugin_client_ARA.cpp */ /* include_juce_audio_plugin_client_ARA.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_audio_plugin_client_ARA.cpp; path = ../../JuceLibraryCode/include_juce_audio_plugin_client_ARA.cpp; sourceTree = SOURCE_ROOT; };
 		C1219F41413AF1A42BB794A0 /* faustCompressor.h */ /* faustCompressor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = faustCompressor.h; path = ../../../Source/faustCompressor.h; sourceTree = SOURCE_ROOT; };
 		C1F04940EF29448710143F65 /* JucePluginDefines.h */ /* JucePluginDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = JucePluginDefines.h; path = ../../JuceLibraryCode/JucePluginDefines.h; sourceTree = SOURCE_ROOT; };
 		C2019A2F3AF76097728ED94F /* ff_meters */ /* ff_meters */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ff_meters; path = ../../../deps/ff_meters; sourceTree = SOURCE_ROOT; };
@@ -734,11 +740,14 @@
 				4B285F886B9D0FB75C2B6145,
 				32236041CD0595B513AA95B6,
 				DCC58A61382509AB1AB97723,
+				C0C3193F99015220473B08F0,
 				5F809C5F6621B872366C851D,
 				2389570162279B0CA0BFD47D,
 				8197704B6F67CEDAF82C3DD8,
 				0AA9729AFEB32A0246FAD80B,
 				57A012DCCBB25C4A68F7A55B,
+				73A0C3D1E8784746904DC34A,
+				8A2377C3DC5D2B8398769630,
 				ED4F129245E9DFA007CD27F6,
 				79B47F29A192DE435B03C467,
 				538FD52D0F49C75E4F2244F4,
@@ -958,7 +967,7 @@
 		748D9ADBE1AB46D7ECDA1324 = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1340;
 				ORGANIZATIONNAME = "Sonosaurus";
 				TargetAttributes = {
 					682C787A7ABF2AAC57AF5600 = {
@@ -1176,9 +1185,12 @@
 				227F708818B9ADF4D4FAFAA5,
 				336F0377269006AB7C8D782E,
 				6616BFD4F4DAC38A30E86CFB,
+				50821275F64CDA0B5564913D,
 				55125E4FA2E95642D369DFFA,
 				68B3ECB9C5A4CA0C4AEFC83D,
 				6ED32852E041D57ACFE69212,
+				17520580077E8A931F4731B9,
+				359A00D7E75A59916844A5F8,
 				EEAF0F617FF4F9DB25640503,
 				B69553C3A6102A35313FD1EA,
 				DE71686313905F8993635ADA,
@@ -1255,16 +1267,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=1",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
@@ -1274,7 +1286,7 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Info-Standalone_Plugin.plist;
@@ -1284,8 +1296,8 @@
 					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lSonoBus -lopus -weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1318,16 +1330,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=1",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=1",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 					"JUCE_SHARED_CODE=1",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -1338,7 +1350,7 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INSTALL_PATH = "@executable_path/Frameworks";
@@ -1347,7 +1359,8 @@
 					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1381,16 +1394,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=0",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
@@ -1400,7 +1413,7 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = (
@@ -1408,8 +1421,8 @@
 					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lSonoBus -lopus -weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1442,16 +1455,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=1",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=0",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
@@ -1461,7 +1474,7 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Info-AUv3_AppExtension.plist;
@@ -1471,8 +1484,8 @@
 					"\"../../../deps/ios/lib\"",
 				);
 				LLVM_LTO = YES;
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lSonoBus -lopus -weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus.SonoBusAUv3;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1508,16 +1521,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=1",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
@@ -1527,7 +1540,7 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Info-Standalone_Plugin.plist;
@@ -1536,8 +1549,8 @@
 					"$(inherited)",
 					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lSonoBus -lopus -weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1622,16 +1635,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=1",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=0",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
@@ -1641,7 +1654,7 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Info-AUv3_AppExtension.plist;
@@ -1650,8 +1663,8 @@
 					"$(inherited)",
 					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lSonoBus -lopus -weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus.SonoBusAUv3;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1737,16 +1750,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=1",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=1",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 					"JUCE_SHARED_CODE=1",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -1757,7 +1770,7 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				INSTALL_PATH = "@executable_path/Frameworks";
@@ -1765,7 +1778,8 @@
 					"$(inherited)",
 					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1801,16 +1815,16 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.4.9",
-					"JUCE_APP_VERSION_HEX=0x10409",
+					"JUCE_APP_VERSION=1.5.1",
+					"JUCE_APP_VERSION_HEX=0x10501",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
 					"JucePlugin_Build_AUv3=0",
-					"JucePlugin_Build_RTAS=0",
 					"JucePlugin_Build_AAX=0",
 					"JucePlugin_Build_Standalone=0",
 					"JucePlugin_Build_Unity=0",
+					"JucePlugin_Build_LV2=0",
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
@@ -1820,15 +1834,15 @@
 					"$(SRCROOT)/../../../deps/aoo/lib",
 					"$(SRCROOT)/../../../deps/aoo/deps",
 					"$(SRCROOT)/../../../deps/ios/include",
-					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client",
+					"$(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU",
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"../../../deps/ios/lib\"",
 				);
-				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = "-lSonoBus -lopus";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(SRCROOT)/../../../deps $(SRCROOT)/../../../deps/juce/modules $(SRCROOT)/../../../deps/aoo/lib $(SRCROOT)/../../../deps/aoo/deps $(SRCROOT)/../../../deps/ios/include $(SRCROOT)/../../../deps/juce/modules/juce_audio_plugin_client/AU";
+				OTHER_LDFLAGS = "-lSonoBus -lopus -weak_framework Metal -weak_framework MetalKit -weak_framework UserNotifications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sonosaurus.SonoBus;
 				PRODUCT_NAME = "SonoBus";
 				PROVISIONING_PROFILE_SPECIFIER = "";

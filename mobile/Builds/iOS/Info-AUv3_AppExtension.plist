@@ -43,11 +43,11 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.4.9</string>
+    <string>1.5.1</string>
     <key>CFBundleVersion</key>
-    <string>74</string>
+    <string>75</string>
     <key>NSHumanReadableCopyright</key>
-    <string>2021 Sonosaurus LLC</string>
+    <string>2022 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>UISupportsDocumentBrowser</key>
@@ -76,7 +76,7 @@
             <key>subtype</key>
             <string>NBus</string>
             <key>version</key>
-            <integer>66569</integer>
+            <integer>66817</integer>
             <key>sandboxSafe</key>
             <true/>
             <key>tags</key>
