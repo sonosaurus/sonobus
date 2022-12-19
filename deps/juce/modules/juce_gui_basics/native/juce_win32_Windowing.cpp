@@ -453,10 +453,9 @@ static bool isPerMonitorDPIAwareProcess()
    #endif
 }
 
-static bool isPerMonitorDPIAwareWindow (HWND nativeWindow)
+static bool isPerMonitorDPIAwareWindow ([[maybe_unused]] HWND nativeWindow)
 {
    #if ! JUCE_WIN_PER_MONITOR_DPI_AWARE
-    ignoreUnused (nativeWindow);
     return false;
    #else
     setDPIAwareness();
@@ -500,13 +499,36 @@ static double getGlobalDPI()
 }
 
 //==============================================================================
+class ScopedSuspendResumeNotificationRegistration
+{
+public:
+    ScopedSuspendResumeNotificationRegistration() = default;
+
+    explicit ScopedSuspendResumeNotificationRegistration (HWND window)
+        : handle (SystemStats::getOperatingSystemType() >= SystemStats::Windows8_0
+                      ? RegisterSuspendResumeNotification (window, DEVICE_NOTIFY_WINDOW_HANDLE)
+                      : nullptr)
+    {}
+
+private:
+    struct Destructor
+    {
+        void operator() (HPOWERNOTIFY ptr) const
+        {
+            if (ptr != nullptr)
+                UnregisterSuspendResumeNotification (ptr);
+        }
+    };
+
+    std::unique_ptr<std::remove_pointer_t<HPOWERNOTIFY>, Destructor> handle;
+};
+
+//==============================================================================
 class ScopedThreadDPIAwarenessSetter::NativeImpl
 {
 public:
-    explicit NativeImpl (HWND nativeWindow)
+    explicit NativeImpl (HWND nativeWindow [[maybe_unused]])
     {
-        ignoreUnused (nativeWindow);
-
        #if JUCE_WIN_PER_MONITOR_DPI_AWARE
         if (auto* functionSingleton = FunctionSingleton::getInstance())
         {
@@ -1662,10 +1684,14 @@ public:
 
         if (updateCurrentMonitor())
             VBlankDispatcher::getInstance()->updateDisplay (*this, currentMonitor);
+
+        suspendResumeRegistration = ScopedSuspendResumeNotificationRegistration { hwnd };
     }
 
     ~HWNDComponentPeer() override
     {
+        suspendResumeRegistration = {};
+
         VBlankDispatcher::getInstance()->removeListener (*this);
 
         // do this first to avoid messages arriving for this window before it's destroyed
@@ -2225,8 +2251,7 @@ public:
                 nameBuffer.clear();
                 nameBuffer.resize (bufferSize + 1, 0); // + 1 for the null terminator
 
-                const auto readCharacters = DragQueryFile (dropFiles, i, nameBuffer.data(), (UINT) nameBuffer.size());
-                ignoreUnused (readCharacters);
+                [[maybe_unused]] const auto readCharacters = DragQueryFile (dropFiles, i, nameBuffer.data(), (UINT) nameBuffer.size());
                 jassert (readCharacters == bufferSize);
 
                 dragInfo.files.add (String (nameBuffer.data()));
@@ -2912,10 +2937,8 @@ private:
     }
    #endif
 
-    void setCurrentRenderingEngine (int index) override
+    void setCurrentRenderingEngine ([[maybe_unused]] int index) override
     {
-        ignoreUnused (index);
-
        #if JUCE_DIRECT2D
         if (getAvailableRenderingEngines().size() > 1)
         {
@@ -3484,7 +3507,7 @@ private:
                         const UINT keyChar  = MapVirtualKey ((UINT) key, 2);
                         const UINT scanCode = MapVirtualKey ((UINT) key, 0);
                         BYTE keyState[256];
-                        ignoreUnused (GetKeyboardState (keyState));
+                        [[maybe_unused]] const auto state = GetKeyboardState (keyState);
 
                         WCHAR text[16] = { 0 };
                         if (ToUnicode ((UINT) key, scanCode, keyState, text, 8, 0) != 1)
@@ -4601,6 +4624,7 @@ private:
     bool shouldIgnoreModalDismiss = false;
 
     RectangleList<int> deferredRepaints;
+    ScopedSuspendResumeNotificationRegistration suspendResumeRegistration;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HWNDComponentPeer)

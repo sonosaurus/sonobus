@@ -70,7 +70,7 @@ public:
     virtual bool isLooping() const = 0;
 
     /** Tells the source whether you'd like it to play in a loop. */
-    virtual void setLooping (bool shouldLoop)       { ignoreUnused (shouldLoop); }
+    virtual void setLooping (bool shouldLoop);
 
     /** Sets the start position of the looping in samples. */
     virtual void setLoopRange (int64 loopStart, int64 loopLength) { ignoreUnused(loopStart); ignoreUnused(loopLength); }

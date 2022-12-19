@@ -614,16 +614,15 @@ struct iOSAudioIODevice::Pimpl      : public AsyncUpdater
             impl.fillHostCallbackInfo (callbackInfo);
 
             Boolean hostIsPlaying = NO;
-            OSStatus err = callbackInfo.transportStateProc2 (callbackInfo.hostUserData,
-                                                             &hostIsPlaying,
-                                                             nullptr,
-                                                             nullptr,
-                                                             nullptr,
-                                                             nullptr,
-                                                             nullptr,
-                                                             nullptr);
+            [[maybe_unused]] OSStatus err = callbackInfo.transportStateProc2 (callbackInfo.hostUserData,
+                                                                              &hostIsPlaying,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr);
 
-            ignoreUnused (err);
             jassert (err == noErr);
 
             if (hostIsPlaying != shouldSartPlaying)
@@ -639,15 +638,14 @@ struct iOSAudioIODevice::Pimpl      : public AsyncUpdater
             impl.fillHostCallbackInfo (callbackInfo);
 
             Boolean hostIsRecording = NO;
-            OSStatus err = callbackInfo.transportStateProc2 (callbackInfo.hostUserData,
-                                                             nullptr,
-                                                             &hostIsRecording,
-                                                             nullptr,
-                                                             nullptr,
-                                                             nullptr,
-                                                             nullptr,
-                                                             nullptr);
-            ignoreUnused (err);
+            [[maybe_unused]] OSStatus err = callbackInfo.transportStateProc2 (callbackInfo.hostUserData,
+                                                                              nullptr,
+                                                                              &hostIsRecording,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr,
+                                                                              nullptr);
             jassert (err == noErr);
 
             if (hostIsRecording != shouldStartRecording)
@@ -856,11 +854,9 @@ struct iOSAudioIODevice::Pimpl      : public AsyncUpdater
 
     void handleAudioUnitPropertyChange (AudioUnit,
                                         AudioUnitPropertyID propertyID,
-                                        AudioUnitScope scope,
-                                        AudioUnitElement element)
+                                        [[maybe_unused]] AudioUnitScope scope,
+                                        [[maybe_unused]] AudioUnitElement element)
     {
-        ignoreUnused (scope);
-        ignoreUnused (element);
         JUCE_IOS_AUDIO_LOG ("handleAudioUnitPropertyChange: propertyID: " << String (propertyID)
                                                             << " scope: " << String (scope)
                                                           << " element: " << String (element));
@@ -882,9 +878,8 @@ struct iOSAudioIODevice::Pimpl      : public AsyncUpdater
     {
         UInt32 connected;
         UInt32 dataSize = sizeof (connected);
-        OSStatus err = AudioUnitGetProperty (audioUnit, kAudioUnitProperty_IsInterAppConnected,
-                                             kAudioUnitScope_Global, 0, &connected, &dataSize);
-        ignoreUnused (err);
+        [[maybe_unused]] OSStatus err = AudioUnitGetProperty (audioUnit, kAudioUnitProperty_IsInterAppConnected,
+                                                              kAudioUnitScope_Global, 0, &connected, &dataSize);
         jassert (err == noErr);
 
         JUCE_IOS_AUDIO_LOG ("handleInterAppAudioConnectionChange: " << (connected ? "connected"
@@ -1126,21 +1121,19 @@ struct iOSAudioIODevice::Pimpl      : public AsyncUpdater
     {
         zerostruct (callbackInfo);
         UInt32 dataSize = sizeof (HostCallbackInfo);
-        OSStatus err = AudioUnitGetProperty (audioUnit,
-                                             kAudioUnitProperty_HostCallbacks,
-                                             kAudioUnitScope_Global,
-                                             0,
-                                             &callbackInfo,
-                                             &dataSize);
-        ignoreUnused (err);
+        [[maybe_unused]] OSStatus err = AudioUnitGetProperty (audioUnit,
+                                                              kAudioUnitProperty_HostCallbacks,
+                                                              kAudioUnitScope_Global,
+                                                              0,
+                                                              &callbackInfo,
+                                                              &dataSize);
         jassert (err == noErr);
     }
 
     void handleAudioTransportEvent (AudioUnitRemoteControlEvent event)
     {
-        OSStatus err = AudioUnitSetProperty (audioUnit, kAudioOutputUnitProperty_RemoteControlToHost,
-                                             kAudioUnitScope_Global, 0, &event, sizeof (event));
-        ignoreUnused (err);
+        [[maybe_unused]] OSStatus err = AudioUnitSetProperty (audioUnit, kAudioOutputUnitProperty_RemoteControlToHost,
+                                                              kAudioUnitScope_Global, 0, &event, sizeof (event));
         jassert (err == noErr);
     }
 

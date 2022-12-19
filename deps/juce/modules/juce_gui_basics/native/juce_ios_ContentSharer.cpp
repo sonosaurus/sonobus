@@ -111,12 +111,9 @@ private:
 
         controller.get().excludedActivityTypes = nil;
 
-        controller.get().completionWithItemsHandler = ^ (UIActivityType type, BOOL completed,
-                                                         NSArray* returnedItems, NSError* error)
-        {
-            ignoreUnused (type);
-            ignoreUnused (returnedItems);
-
+        controller.get().completionWithItemsHandler = ^([[maybe_unused]] UIActivityType type, BOOL completed,
+                                                        [[maybe_unused]] NSArray* returnedItems, NSError* error)
+        {       
             // In some odd cases (e.g. with 'Save to Files' activity, but only if it's dismissed
             // by tapping Cancel and not outside the modal window), completionWithItemsHandler
             // may be called twice: when an activity is cancelled and when the
