@@ -2132,6 +2132,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
             SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
+#if 0
+            // Don't need this anymore, writing into internal app space now
             if (! RuntimePermissions::isGranted (RuntimePermissions::writeExternalStorage))
             {
                 RuntimePermissions::request (RuntimePermissions::writeExternalStorage,
@@ -2142,7 +2144,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 });
                 return;
             }
-
+#endif
+            
             // create new timestamped filename
             String filename = (currGroup.isEmpty() ? "SonoBusSession" : currGroup) + String("_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
 

@@ -14,7 +14,7 @@ add_subdirectory (${OBOE_DIR} ./oboe)
 add_library("cpufeatures" STATIC "${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c")
 set_source_files_properties("${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c" PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-gnu-statement-expression")
 
-add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.5.1]] [[-DJUCE_APP_VERSION_HEX=0x10501]])
+add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.6.0]] [[-DJUCE_APP_VERSION_HEX=0x10600]])
 
 include_directories( AFTER
     "../../../JuceLibraryCode"
@@ -30,7 +30,7 @@ if(JUCE_BUILD_CONFIGURATION MATCHES "DEBUG")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.5.1]] [[-DJUCE_APP_VERSION_HEX=0x10501]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.6.0]] [[-DJUCE_APP_VERSION_HEX=0x10600]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -47,7 +47,7 @@ elseif(JUCE_BUILD_CONFIGURATION MATCHES "RELEASE")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.5.1]] [[-DJUCE_APP_VERSION_HEX=0x10501]] [[-DNDEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DSONOBUS_BUILD_VERSION="1.4.9-74"]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.6.0]] [[-DJUCE_APP_VERSION_HEX=0x10600]] [[-DNDEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -136,6 +136,8 @@ add_library( ${BINARY_NAME}
     "../../../../images/dots_icon.png"
     "../../../../images/expand_arrow_active.svg"
     "../../../../images/expand_arrow_inactive.svg"
+    "../../../../images/eye-off.svg"
+    "../../../../images/eye.svg"
     "../../../../images/eyedropper.svg"
     "../../../../images/folder_icon.svg"
     "../../../../images/hear-others.svg"
@@ -307,6 +309,7 @@ add_library( ${BINARY_NAME}
     "../../../../deps/ff_meters/LICENSE.md"
     "../../../../deps/ff_meters/README.md"
     "../../../../deps/ff_meters/ff_meters.h"
+    "../../../../deps/juce/modules/juce_audio_basics/audio_play_head/juce_AudioPlayHead.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/audio_play_head/juce_AudioPlayHead.h"
     "../../../../deps/juce/modules/juce_audio_basics/buffers/juce_AudioChannelSet.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/buffers/juce_AudioChannelSet.h"
@@ -325,6 +328,7 @@ add_library( ${BINARY_NAME}
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPConverters.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPDispatcher.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPFactory.h"
+    "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPIterator.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPIterator.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPMidi1ToBytestreamTranslator.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPMidi1ToMidi2DefaultTranslator.cpp"
@@ -381,6 +385,7 @@ add_library( ${BINARY_NAME}
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_MemoryAudioSource.h"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_MixerAudioSource.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_MixerAudioSource.h"
+    "../../../../deps/juce/modules/juce_audio_basics/sources/juce_PositionableAudioSource.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_PositionableAudioSource.h"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_ResamplingAudioSource.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_ResamplingAudioSource.h"
@@ -1089,6 +1094,7 @@ add_library( ${BINARY_NAME}
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_RangedAudioParameter.cpp"
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_RangedAudioParameter.h"
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_VST3ClientExtensions.h"
+    "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_VSTCallbackHandler.cpp"
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_VSTCallbackHandler.h"
     "../../../../deps/juce/modules/juce_audio_processors/juce_audio_processors.cpp"
     "../../../../deps/juce/modules/juce_audio_processors/juce_audio_processors.mm"
@@ -1415,6 +1421,7 @@ add_library( ${BINARY_NAME}
     "../../../../deps/juce/modules/juce_data_structures/app_properties/juce_ApplicationProperties.h"
     "../../../../deps/juce/modules/juce_data_structures/app_properties/juce_PropertiesFile.cpp"
     "../../../../deps/juce/modules/juce_data_structures/app_properties/juce_PropertiesFile.h"
+    "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoableAction.cpp"
     "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoableAction.h"
     "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoManager.cpp"
     "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoManager.h"
@@ -1954,6 +1961,7 @@ add_library( ${BINARY_NAME}
     "../../../../deps/juce/modules/juce_gui_basics/native/accessibility/juce_win32_UIAValueProvider.h"
     "../../../../deps/juce/modules/juce_gui_basics/native/accessibility/juce_win32_UIAWindowProvider.h"
     "../../../../deps/juce/modules/juce_gui_basics/native/accessibility/juce_win32_WindowsUIAWrapper.h"
+    "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_ScopedWindowAssociation.h"
     "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_X11_DragAndDrop.cpp"
     "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_X11_Symbols.cpp"
     "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_X11_Symbols.h"
@@ -2104,6 +2112,7 @@ add_library( ${BINARY_NAME}
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_SplashScreen.h"
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_SystemTrayIconComponent.cpp"
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_SystemTrayIconComponent.h"
+    "../../../../deps/juce/modules/juce_gui_extra/misc/juce_WebBrowserComponent.cpp"
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_WebBrowserComponent.h"
     "../../../../deps/juce/modules/juce_gui_extra/native/juce_android_PushNotifications.cpp"
     "../../../../deps/juce/modules/juce_gui_extra/native/juce_android_WebBrowserComponent.cpp"
@@ -2246,6 +2255,8 @@ set_source_files_properties(
     "../../../../images/dots_icon.png"
     "../../../../images/expand_arrow_active.svg"
     "../../../../images/expand_arrow_inactive.svg"
+    "../../../../images/eye-off.svg"
+    "../../../../images/eye.svg"
     "../../../../images/eyedropper.svg"
     "../../../../images/folder_icon.svg"
     "../../../../images/hear-others.svg"
@@ -2380,6 +2391,7 @@ set_source_files_properties(
     "../../../../deps/ff_meters/LICENSE.md"
     "../../../../deps/ff_meters/README.md"
     "../../../../deps/ff_meters/ff_meters.h"
+    "../../../../deps/juce/modules/juce_audio_basics/audio_play_head/juce_AudioPlayHead.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/audio_play_head/juce_AudioPlayHead.h"
     "../../../../deps/juce/modules/juce_audio_basics/buffers/juce_AudioChannelSet.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/buffers/juce_AudioChannelSet.h"
@@ -2398,6 +2410,7 @@ set_source_files_properties(
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPConverters.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPDispatcher.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPFactory.h"
+    "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPIterator.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPIterator.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPMidi1ToBytestreamTranslator.h"
     "../../../../deps/juce/modules/juce_audio_basics/midi/ump/juce_UMPMidi1ToMidi2DefaultTranslator.cpp"
@@ -2454,6 +2467,7 @@ set_source_files_properties(
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_MemoryAudioSource.h"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_MixerAudioSource.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_MixerAudioSource.h"
+    "../../../../deps/juce/modules/juce_audio_basics/sources/juce_PositionableAudioSource.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_PositionableAudioSource.h"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_ResamplingAudioSource.cpp"
     "../../../../deps/juce/modules/juce_audio_basics/sources/juce_ResamplingAudioSource.h"
@@ -3162,6 +3176,7 @@ set_source_files_properties(
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_RangedAudioParameter.cpp"
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_RangedAudioParameter.h"
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_VST3ClientExtensions.h"
+    "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_VSTCallbackHandler.cpp"
     "../../../../deps/juce/modules/juce_audio_processors/utilities/juce_VSTCallbackHandler.h"
     "../../../../deps/juce/modules/juce_audio_processors/juce_audio_processors.cpp"
     "../../../../deps/juce/modules/juce_audio_processors/juce_audio_processors.mm"
@@ -3488,6 +3503,7 @@ set_source_files_properties(
     "../../../../deps/juce/modules/juce_data_structures/app_properties/juce_ApplicationProperties.h"
     "../../../../deps/juce/modules/juce_data_structures/app_properties/juce_PropertiesFile.cpp"
     "../../../../deps/juce/modules/juce_data_structures/app_properties/juce_PropertiesFile.h"
+    "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoableAction.cpp"
     "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoableAction.h"
     "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoManager.cpp"
     "../../../../deps/juce/modules/juce_data_structures/undomanager/juce_UndoManager.h"
@@ -4027,6 +4043,7 @@ set_source_files_properties(
     "../../../../deps/juce/modules/juce_gui_basics/native/accessibility/juce_win32_UIAValueProvider.h"
     "../../../../deps/juce/modules/juce_gui_basics/native/accessibility/juce_win32_UIAWindowProvider.h"
     "../../../../deps/juce/modules/juce_gui_basics/native/accessibility/juce_win32_WindowsUIAWrapper.h"
+    "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_ScopedWindowAssociation.h"
     "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_X11_DragAndDrop.cpp"
     "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_X11_Symbols.cpp"
     "../../../../deps/juce/modules/juce_gui_basics/native/x11/juce_linux_X11_Symbols.h"
@@ -4177,6 +4194,7 @@ set_source_files_properties(
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_SplashScreen.h"
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_SystemTrayIconComponent.cpp"
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_SystemTrayIconComponent.h"
+    "../../../../deps/juce/modules/juce_gui_extra/misc/juce_WebBrowserComponent.cpp"
     "../../../../deps/juce/modules/juce_gui_extra/misc/juce_WebBrowserComponent.h"
     "../../../../deps/juce/modules/juce_gui_extra/native/juce_android_PushNotifications.cpp"
     "../../../../deps/juce/modules/juce_gui_extra/native/juce_android_WebBrowserComponent.cpp"

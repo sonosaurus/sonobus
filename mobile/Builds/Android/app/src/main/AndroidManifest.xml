@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="75"
-          android:versionName="1.5.1">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="76"
+          android:versionName="1.6.0">
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:anyDensity="true"
                     android:xlargeScreens="true"/>
@@ -21,11 +21,10 @@
               android:grantUriPermissions="true" android:exported="true"/>
   </application>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-  <uses-permission android:name="android.permission.BLUETOOTH"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+  <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+  <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
   <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
   <uses-permission android:name="android.permission.INTERNET"/>

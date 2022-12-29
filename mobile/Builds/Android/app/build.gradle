@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     namespace "com.sonosaurus.sonobus"
     externalNativeBuild {
         cmake {
@@ -10,7 +10,7 @@ android {
     }
     signingConfigs {
         juceSigning {
-            storeFile     file("${System.properties['user.home']}${File.separator}.android${File.separator}sonoupload.keystore")
+            storeFile     file("${System.properties['user.home']}${File.separator}.android${File.separator}sonouploadnew.jks")
             storePassword "${sonoupload_keystore_password}"
             keyAlias      "${sonoupload_key}"
             keyPassword   "${sonoupload_key_password}"
@@ -21,7 +21,7 @@ android {
     defaultConfig {
         applicationId "com.sonosaurus.sonobus"
         minSdkVersion    24
-        targetSdkVersion 30
+        targetSdkVersion 31
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_TOOLCHAIN=clang", "-DANDROID_PLATFORM=android-24", "-DANDROID_STL=c++_static", "-DANDROID_CPP_FEATURES=exceptions rtti", "-DANDROID_ARM_MODE=arm", "-DANDROID_ARM_NEON=TRUE", "-DCMAKE_CXX_STANDARD=17", "-DCMAKE_CXX_EXTENSIONS=OFF"

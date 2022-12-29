@@ -290,6 +290,7 @@
 		7803F66ADB7FACF52AC736AD /* aoo_net.hpp */ /* aoo_net.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = aoo_net.hpp; path = ../../../deps/aoo/lib/aoo/aoo_net.hpp; sourceTree = SOURCE_ROOT; };
 		781FDC317867A21C53B65070 /* include_juce_opengl.mm */ /* include_juce_opengl.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_opengl.mm; path = ../../JuceLibraryCode/include_juce_opengl.mm; sourceTree = SOURCE_ROOT; };
 		78ECB819D328C1D3BC351404 /* sync.cpp */ /* sync.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = sync.cpp; path = ../../../deps/aoo/lib/src/sync.cpp; sourceTree = SOURCE_ROOT; };
+		796AC000ABEE0C2B69740775 /* eye-off.svg */ /* eye-off.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = "eye-off.svg"; path = "../../../images/eye-off.svg"; sourceTree = SOURCE_ROOT; };
 		79B47F29A192DE435B03C467 /* include_juce_core.mm */ /* include_juce_core.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_core.mm; path = ../../JuceLibraryCode/include_juce_core.mm; sourceTree = SOURCE_ROOT; };
 		7A4DD210ACA5F06231BA9FAD /* LevelMeterLookAndFeelMethods.h */ /* LevelMeterLookAndFeelMethods.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LevelMeterLookAndFeelMethods.h; path = ../../../Source/LevelMeterLookAndFeelMethods.h; sourceTree = SOURCE_ROOT; };
 		7D6F4B1F132619A0E3201CED /* SonobusTypes.h */ /* SonobusTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonobusTypes.h; path = ../../../Source/SonobusTypes.h; sourceTree = SOURCE_ROOT; };
@@ -321,6 +322,7 @@
 		96192F51CD0F604A949B9465 /* aoo_types.h */ /* aoo_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = aoo_types.h; path = ../../../deps/aoo/lib/aoo/aoo_types.h; sourceTree = SOURCE_ROOT; };
 		961DCCDF59B8EC7470A75E30 /* time.hpp */ /* time.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = time.hpp; path = ../../../deps/aoo/lib/src/time.hpp; sourceTree = SOURCE_ROOT; };
 		963516239259A3E4C0340E6A /* ParametricEqView.h */ /* ParametricEqView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ParametricEqView.h; path = ../../../Source/ParametricEqView.h; sourceTree = SOURCE_ROOT; };
+		965972F77DD8A0E23AB8E2E2 /* eye.svg */ /* eye.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = eye.svg; path = ../../../images/eye.svg; sourceTree = SOURCE_ROOT; };
 		96A084BA7D31185C3C845F96 /* OscPacketListener.h */ /* OscPacketListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscPacketListener.h; path = ../../../deps/aoo/deps/oscpack/osc/OscPacketListener.h; sourceTree = SOURCE_ROOT; };
 		973FAD34BB7E75EF17F22694 /* Soundboard.h */ /* Soundboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Soundboard.h; path = ../../../Source/Soundboard.h; sourceTree = SOURCE_ROOT; };
 		983DFAC09ED82E7B65188D1B /* wordmaker.g */ /* wordmaker.g */ = {isa = PBXFileReference; lastKnownFileType = file.g; name = wordmaker.g; path = ../../../Source/wordmaker.g; sourceTree = SOURCE_ROOT; };
@@ -837,6 +839,8 @@
 				FD51D45E2207ED322566E9B1,
 				29DFB8F80E7C650383B40B54,
 				37269B269C9FE8ED6C86497E,
+				796AC000ABEE0C2B69740775,
+				965972F77DD8A0E23AB8E2E2,
 				80D2EBD8CD1B6A70BA92674F,
 				DB612B82015B2C2D7970E2A5,
 				2D8F45041411E535ECE153AA,
@@ -1267,8 +1271,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1330,8 +1334,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1394,8 +1398,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1455,8 +1459,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1521,8 +1525,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1635,8 +1639,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1750,8 +1754,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1815,8 +1819,8 @@
 					"AOO_TIMEFILTER_CHECK=0",
 					"AOO_STATIC",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.5.1",
-					"JUCE_APP_VERSION_HEX=0x10501",
+					"JUCE_APP_VERSION=1.6.0",
+					"JUCE_APP_VERSION_HEX=0x10600",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
