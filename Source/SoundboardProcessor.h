@@ -96,9 +96,26 @@ public:
     SoundSample* addSoundSample(String name, String absolutePath, std::optional<int> index = std::nullopt );
 
     /**
+     * Moves a particular sample to a different position in the sample list of the sound board
+     *
+     * @param fromSampleIndex The sample index to move.
+     * @param toSampleIndex The sample index to move it to.
+     * @param index Optional index of soundboard, if not specified the selected soundboard is used
+     *
+     * @return Returns true if sample successfully moved, otherwise false
+     */
+    bool moveSoundSample(int fromSampleIndex, int toSampleIndex, std::optional<int> index = std::nullopt );
+
+    
+    /**
      * @param sampleToUpdate The sample to save with already containing the updated state.
      */
     void editSoundSample(SoundSample& sampleToUpdate);
+
+    /**
+     * @param sampleToUpdate update playback settings
+     */
+    void updatePlaybackSettings(SoundSample& sampleToUpdate);
 
     /**
      * Deletes the given Sound Sample from the soundboard.

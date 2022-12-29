@@ -58,6 +58,7 @@ void SamplePlaybackManager::unload()
     stopTimer();
     transportSource.stop();
     sample->setLastPlaybackPosition(transportSource.getCurrentPosition());
+    notifyPlaybackPositionListeners();
 }
 
 void SamplePlaybackManager::play()

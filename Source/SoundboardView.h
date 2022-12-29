@@ -34,6 +34,10 @@ public:
 
     void componentVisibilityChanged (Component& component) override;
 
+    void mouseDown (const MouseEvent& event) override;
+    void mouseDrag (const MouseEvent& event) override;
+    void mouseUp (const MouseEvent& event) override;
+
     /**
      * @param keyPress Pressed key code.
      */
@@ -271,7 +275,22 @@ private:
     void fileDraggedAt(int x, int y);
 
     void fileDragStopped();
+    
+    // reorder dragging stuff
+    juce::Rectangle<int> getBoundsForSampleIndex(int chgroup);
+    int getSampleIndexForPoint(Point<int> pos, bool inbetween);
 
+    bool mReorderDragging = false;
+    int mReorderDragSourceIndex = -1;
+    int mReorderDragPos = -1;
+    Array< juce::Rectangle<int> > mChanGroupBounds;
+
+    std::unique_ptr<DrawableImage> mDragDrawable;
+    std::unique_ptr<DrawableRectangle> mInsertLine;
+    Image  mDragImage;
+
+    bool mAutoscrolling = false;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };
 
@@ -293,7 +312,8 @@ private:
 
     SoundboardView* view;
 
-    bool dragging = false;
+    bool posDragging = false;
+
     Point<int> downPoint;
     double downTransportPos = 0.0;
 };

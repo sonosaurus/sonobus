@@ -74,7 +74,7 @@ public:
             String name,
             String filePath,
             bool loop = false,
-            int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
+            uint32 buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             int hotkeyCode = -1,
             PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS,
             ButtonBehaviour buttonBehaviour = ButtonBehaviour::TOGGLE,
@@ -218,7 +218,7 @@ private:
     /**
      * The argb colour the sample button must have with 0 alpha value.
      */
-    int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
+    uint32 buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     /**
      * Keycode for the hotkey, -1 for no hotkey.

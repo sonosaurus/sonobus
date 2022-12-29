@@ -117,10 +117,50 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
     return &sampleList[sampleList.size() - 1];
 }
 
+bool SoundboardProcessor::moveSoundSample(int fromSampleIndex, int toSampleIndex, std::optional<int> index)
+{
+    if (!index.has_value() && !selectedSoundboardIndex.has_value()) {
+        return false;
+    }
+    auto sindex = index.has_value() ? *index : *selectedSoundboardIndex;
+    if (sindex < 0 || sindex >= soundboards.size())
+        return false;
+
+    auto& soundboard = soundboards[sindex];
+    auto& sampleList = soundboard.getSamples();
+
+    if (fromSampleIndex < 0 || fromSampleIndex >= sampleList.size()) {
+        return false;
+    }
+
+    // stop all playback, just in case
+    stopAllPlayback();
+    
+    auto sampcopy = sampleList[fromSampleIndex];
+    auto destiter = std::next(sampleList.begin(), toSampleIndex);
+    
+    sampleList.insert(destiter, std::move(sampcopy));
+
+    // remove the original
+    int origpos = fromSampleIndex < toSampleIndex ? fromSampleIndex : fromSampleIndex+1;
+    auto origiter = std::next(sampleList.begin(), origpos);
+    sampleList.erase(origiter);
+    
+    saveToDisk();
+
+    return true;
+}
+
+
 void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
 {
     saveToDisk();
 
+    updatePlaybackSettings(sampleToUpdate);
+}
+
+void SoundboardProcessor::updatePlaybackSettings(SoundSample& sampleToUpdate)
+{
     // Immediately update transport source with new playback settings when this sample is currently playing
     auto& activeSamples = channelProcessor->getActiveSamples();
     auto playbackManager = activeSamples.find(&sampleToUpdate);
@@ -128,6 +168,7 @@ void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
         playbackManager->second->reloadPlaybackSettingsFromSample();
     }
 }
+
 
 bool SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete, std::optional<int> index)
 {
