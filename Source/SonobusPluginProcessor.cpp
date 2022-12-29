@@ -409,6 +409,8 @@ public:
     
     void run() override {
         
+        setPriority(Thread::Priority::highest);
+
         bool shouldwait = false;
 
         while (!threadShouldExit()) {
@@ -416,7 +418,7 @@ public:
             // if we are notified to send, the wait will return sooner than the timeout
 
             if (shouldwait) {
-                _processor.mSendWaitable.wait(50);
+                _processor.mSendWaitable.wait(20);
             }
 
             auto sentinel = _processor.mNeedSendSentinel.get();
@@ -440,6 +442,8 @@ public:
     {}
     
     void run() override {
+
+        setPriority(Thread::Priority::highest);
 
         while (!threadShouldExit()) {
          
@@ -938,8 +942,10 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
         mClientThread = std::make_unique<ClientThread>(*this);
     }
     
-    mSendThread->startThread(Thread::Priority::highest);
-    mRecvThread->startThread(Thread::Priority::highest);
+    uint32_t estWorkDurationMs = 10; // just a guess
+    mSendThread->startRealtimeThread({ 8, estWorkDurationMs });
+    mRecvThread->startRealtimeThread({ 8, estWorkDurationMs });
+
     mEventThread->startThread(Thread::Priority::normal);
 
     if (mAooClient) {
