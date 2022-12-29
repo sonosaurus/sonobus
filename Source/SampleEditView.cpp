@@ -9,9 +9,10 @@
 #include <iostream>
 
 SampleEditView::SampleEditView(
-        std::function<void(SampleEditView&)> callback,
-        const SoundSample* soundSample,
-        String* lastOpenedDirectoryString
+                               std::function<void(SampleEditView&)> submitcallback,
+                               std::function<void(SampleEditView&)> gaincallback,
+                               const SoundSample* soundSample,
+                               String* lastOpenedDirectoryString
 ) : editModeEnabled(soundSample != nullptr),
     initialName(soundSample == nullptr ? "" : soundSample->getName()),
     initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
@@ -20,7 +21,8 @@ SampleEditView::SampleEditView(
     initialButtonBehaviour(soundSample == nullptr ? SoundSample::ButtonBehaviour::TOGGLE : soundSample->getButtonBehaviour()),
     initialReplayBehaviour(soundSample == nullptr ? SoundSample::ReplayBehaviour::REPLAY_FROM_START : soundSample->getReplayBehaviour()),
     initialGain(soundSample == nullptr ? 1.0 : soundSample->getGain()),
-    submitCallback(std::move(callback)),
+    submitCallback(std::move(submitcallback)),
+    gainChangeCallback(std::move(gaincallback)),
     lastOpenedDirectory(lastOpenedDirectoryString),
     selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
     hotkeyCode(soundSample == nullptr ? -1 : soundSample->getHotkeyCode())
@@ -182,9 +184,10 @@ void SampleEditView::createVolumeInputs()
     mVolumeSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
     mVolumeSlider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
     mVolumeSlider->setValue(initialGain);
-    mVolumeSlider->setChangeNotificationOnlyOnRelease(true);
+    mVolumeSlider->setChangeNotificationOnlyOnRelease(false);
     mVolumeSlider->onValueChange = [this]() {
-        submitDialog(false);
+        if (gainChangeCallback)
+            gainChangeCallback(*this);
     };
 
     addAndMakeVisible(mVolumeSlider.get());
@@ -358,6 +361,7 @@ void SampleEditView::createButtonBar()
             submitDialog();
             // and make sure no more callbacks happen
             submitCallback = nullptr;
+            gainChangeCallback = nullptr;
         }
         else {
             dismissDialog();
