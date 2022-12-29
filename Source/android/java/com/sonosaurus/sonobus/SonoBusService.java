@@ -83,8 +83,10 @@ public class SonoBusService extends Service {
          } else {
          notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
          }*/
+		 
+        int immutableflag = 0x04000000; // done to avoid version checking
         
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | immutableflag);
         
         
         NotificationCompat.Builder notificationBuilder;
