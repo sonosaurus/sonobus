@@ -37,7 +37,7 @@ public:
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;
 
-    std::unique_ptr<Label> addrLabel;
+    std::unique_ptr<TextEditor> addrLabel;
     std::unique_ptr<Label> staticAddrLabel;
     std::unique_ptr<ToggleButton> sendMutedButton;
     std::unique_ptr<TextButton> recvMutedButton;
@@ -143,6 +143,7 @@ public:
     bool singlePanner = true;
     bool isNarrow = false;
     bool fullMode = true;
+    bool addrClicked = false;
     
     Colour bgColor;
     Colour borderColor;

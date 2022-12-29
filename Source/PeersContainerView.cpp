@@ -400,10 +400,15 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 {
     PeerViewInfo * pvf = new PeerViewInfo();
 
-    pvf->addrLabel = std::make_unique<Label>("name", "");
-    pvf->addrLabel->setJustificationType(Justification::centredLeft);
-    configLabel(pvf->addrLabel.get(), LabelTypeSmallDim);
+    pvf->addrLabel = std::make_unique<TextEditor>("addr");
+    pvf->addrLabel->setJustification(Justification::centred);
+    pvf->addrLabel->setColour(TextEditor::textColourId, dimTextColor);
+    pvf->addrLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+    pvf->addrLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+    pvf->addrLabel->setReadOnly(true);
+    pvf->addrLabel->setCaretVisible(false);
     pvf->addrLabel->setFont(13);
+    pvf->addrLabel->addMouseListener(this, false);
 
     pvf->staticAddrLabel = std::make_unique<Label>("addr", TRANS("Remote address:"));
     pvf->staticAddrLabel->setJustificationType(Justification::centredRight);
@@ -1447,6 +1452,11 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
             pvf->channelGroups->clearClipIndicators();
             break;
         }
+        else if (event.eventComponent == pvf->addrLabel.get()) {
+            pvf->addrClicked = true;
+            updatePeerViews(i);
+            break;
+        }
         else if (pvf->channelGroups->isDraggable(event.eventComponent)) {
             if (mDraggingActive) {
                 DBG("Mouse up after drag: " << event.getPosition().toString() << " srcpeer: " << mDraggingSourcePeer << " destpos: " << mDraggingGroupPos);
@@ -1549,7 +1559,11 @@ void PeersContainerView::updatePeerViews(int specific)
         String addrname;
         addrname << hostname << " : " << port;
 
-        pvf->addrLabel->setText(addrname, dontSendNotification);
+        if (pvf->addrClicked) {
+            pvf->addrLabel->setText(addrname, dontSendNotification);
+        } else {
+            pvf->addrLabel->setText(TRANS("<Press to show>"), dontSendNotification);
+        }
 
         String sendtext;
         bool sendactive = processor.getRemotePeerSendActive(i);
@@ -2067,11 +2081,12 @@ void PeersContainerView::showRecvOptions(int dindex, bool flag, Component * from
 #else
         const int defHeight = 152;
 #endif
-        
-        
+
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
         auto * pvf = mPeerViews.getUnchecked(dindex);
+
+        pvf->addrClicked = false;
         
         pvf->recvOptionsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
         
@@ -2081,6 +2096,7 @@ void PeersContainerView::showRecvOptions(int dindex, bool flag, Component * from
         pvf->recvOptionsBox.performLayout(pvf->recvOptionsContainer->getLocalBounds());
         pvf->bufferTimeLabel->setBounds(pvf->bufferTimeSlider->getBounds().removeFromLeft(pvf->bufferTimeSlider->getWidth()*0.5));
 
+        updatePeerViews(dindex);
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->recvOptionsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
