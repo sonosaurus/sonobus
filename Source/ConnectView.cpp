@@ -180,6 +180,16 @@ publicGroupsListModel(this)
     mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
     configEditor(mServerGroupPasswordEditor.get());
 
+    mServerGroupPasswordShowButton = std::make_unique<SonoDrawableButton>("passshow", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> eyeimg(Drawable::createFromImageData(BinaryData::eye_svg, BinaryData::eye_svgSize));
+    std::unique_ptr<Drawable> eyeoffimg(Drawable::createFromImageData(BinaryData::eyeoff_svg, BinaryData::eyeoff_svgSize));
+    mServerGroupPasswordShowButton->setTitle(TRANS("Show Password"));
+    mServerGroupPasswordShowButton->setImages(eyeoffimg.get(), {}, {}, {}, eyeimg.get());
+    mServerGroupPasswordShowButton->addListener(this);
+    mServerGroupPasswordShowButton->setTooltip(TRANS("Show password"));
+    mServerGroupPasswordShowButton->setColour(SonoDrawableButton::backgroundOnColourId, Colours::transparentBlack);
+
+    
     mServerGroupRandomButton = std::make_unique<SonoDrawableButton>("randgroup", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> randimg(Drawable::createFromImageData(BinaryData::dice_icon_128_png, BinaryData::dice_icon_128_pngSize));
     mServerGroupRandomButton->setTitle(TRANS("Randomize Group Name"));
@@ -333,6 +343,7 @@ publicGroupsListModel(this)
     mServerConnectContainer->addAndMakeVisible(mServerUserStaticLabel.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupEditor.get());
     mServerConnectContainer->addAndMakeVisible(mServerGroupRandomButton.get());
+    mServerConnectContainer->addAndMakeVisible(mServerGroupPasswordShowButton.get());
 #if ! (JUCE_IOS || JUCE_ANDROID)
     mServerConnectContainer->addAndMakeVisible(mServerPasteButton.get());
     mServerConnectContainer->addAndMakeVisible(mServerCopyButton.get());
@@ -550,6 +561,7 @@ void ConnectView::updateLayout()
     servGroupPassBox.flexDirection = FlexBox::Direction::row;
     servGroupPassBox.items.add(FlexItem(servLabelWidth, minpassheight, *mServerGroupPassStaticLabel).withMargin(2).withFlex(1));
     servGroupPassBox.items.add(FlexItem(90, minpassheight, *mServerGroupPasswordEditor).withMargin(2).withFlex(1));
+    servGroupPassBox.items.add(FlexItem(minPannerWidth, minitemheight, *mServerGroupPasswordShowButton).withMargin(2).withFlex(0));
 
     servStatusBox.items.clear();
     servStatusBox.flexDirection = FlexBox::Direction::row;
@@ -767,6 +779,18 @@ bool ConnectView::getServerGroupAndPasswordText(String & retgroup, String & retp
     return false;
 }
 
+void ConnectView::visibilityChanged ()
+{
+    if (!isVisible()) {
+        // force password show to off here
+        mServerGroupPasswordShowButton->setToggleState(false, dontSendNotification);
+        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.groupName = mServerGroupEditor->getText();
+        currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
+        updateState();
+    }
+}
+
 
 void ConnectView::connectTabChanged (int newCurrentTabIndex)
 {
@@ -778,6 +802,10 @@ void ConnectView::connectTabChanged (int newCurrentTabIndex)
         // put focus somewhere a text editor won't activate on ios
         mPublicServerAddGroupButton->grabKeyboardFocus();
         publicGroupLogin();
+        
+        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.groupName = mServerGroupEditor->getText();
+        currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
     }
     else if (adjindex == 1) {
         // private groups
@@ -1055,6 +1083,13 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         //mConnectionTimeLabel->setText("", dontSendNotification);
 
+    }
+    else if (buttonThatWasClicked == mServerGroupPasswordShowButton.get()) {
+        mServerGroupPasswordShowButton->setToggleState(!mServerGroupPasswordShowButton->getToggleState(), dontSendNotification);
+        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.groupName = mServerGroupEditor->getText();
+        currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
+        updateState();
     }
     else if (buttonThatWasClicked == mServerGroupRandomButton.get()) {
         // randomize group name
@@ -1409,7 +1444,11 @@ void ConnectView::updateServerFieldsFromConnectionInfo()
     } else if (currConnectionInfo.groupName.isNotEmpty()){
         mServerGroupEditor->setText(currConnectionInfo.groupName, false);
     }
+
+    mServerGroupPasswordEditor->setPasswordCharacter(mServerGroupPasswordShowButton->getToggleState() ? 0 : 0x2022); // bullet if not showing password
+    
     mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
+
 }
 
 void ConnectView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
