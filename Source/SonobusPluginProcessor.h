@@ -323,7 +323,7 @@ public:
     int connectRemotePeer(const String & host, int port, const String & username = "", const String & groupname = "",  bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
     bool disconnectRemotePeer(int index);
-    bool removeRemotePeer(int index);
+    bool removeRemotePeer(int index, bool sendblock=false);
 
     bool removeAllRemotePeers();
     
@@ -437,6 +437,7 @@ public:
     void    resetRemotePeerPacketStats(int index);
 
     bool getRemotePeerSafetyMuted(int index) const;
+    bool getRemotePeerBlockedUs(int index) const;
 
 
     struct LatencyInfo
@@ -619,6 +620,12 @@ public:
     
     bool isAnythingSoloed() const { return mAnythingSoloed.get(); }
     
+    // IP block list
+    bool isAddressBlocked(const String & ipaddr) const;
+    void addBlockedAddress(const String & ipaddr);
+    void removeBlockedAddress(const String & ipaddr);
+    StringArray getAllBlockedAddresses() const;
+    
     class ClientListener {
     public:
         virtual ~ClientListener() {}
@@ -632,11 +639,13 @@ public:
         virtual void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) {}
+        virtual void aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port) {}
         virtual void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) {}
         virtual void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) {}
         virtual void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & chatevent) {}
         virtual void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) {}
+        virtual void peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked) {}
     };
     
     void addClientListener(ClientListener * l) {
@@ -735,6 +744,8 @@ public:
     void getLatencyInfoList(Array<LatInfo> & retlist);
     void commitLatencyMatch(float latency);
 
+    void sendBlockedInfoMessage(EndpointState *endpoint, bool blocked);
+
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
     void clearTransportURL();
@@ -764,7 +775,9 @@ public:
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
 
-
+    // support dir path
+    File getSupportDir() const { return mSupportDir; }
+    
     // language
     void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
     String getLanguageOverrideCode() const { return mLangOverrideCode; }
@@ -871,6 +884,8 @@ private:
     void loadPeerCacheFromState();
     void storePeerCacheToState();
 
+    void loadGlobalState();
+    bool storeGlobalState();
 
     void handleLatInfo(const juce::var & obj);
     juce::var getAllLatInfo();
@@ -1169,6 +1184,11 @@ private:
     bool mSliderSnapToMouse = true;
     bool mDisableKeyboardShortcuts = false;
 
+    File mSupportDir;
+    
+    // global config
+    ValueTree   mGlobalState;
+    
     String mLangOverrideCode;
 
     // main state

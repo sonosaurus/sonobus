@@ -149,7 +149,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         
         String slang = lang.initialSectionNotContaining("_").toLowerCase();
         
-        if (slang == "ja") {
+        if (slang.startsWith("ja")) {
             DBG("Using japanese");
             Font jfont(font);
 #if (JUCE_MAC || JUCE_IOS)
@@ -162,7 +162,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 #endif
             return Typeface::createSystemTypefaceFor (jfont);            
         }
-        else if (slang == "ko") {
+        else if (slang.startsWith("ko")) {
             DBG("Using korean");
             Font jfont(font);
 #if (JUCE_MAC || JUCE_IOS)
@@ -176,7 +176,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 #endif
             return Typeface::createSystemTypefaceFor (jfont);
         }
-        else if (slang == "zh") {
+        else if (slang.startsWith("zh")) {
             DBG("Using chinese");
             Font jfont(font);
 #if (JUCE_MAC || JUCE_IOS)

@@ -271,21 +271,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
     sonoLookAndFeel.setUsingNativeAlertWindows(true);
 
-    // complete hack that I have to do this here just to get our settings folder for localization setup
-    if (JUCEApplication::isStandaloneApp()) {
-        PropertiesFile::Options options;
-        options.applicationName     = JUCEApplication::getInstance()->getApplicationName();
-        options.filenameSuffix      = ".settings";
-        options.osxLibrarySubFolder = "Application Support/" + JUCEApplication::getInstance()->getApplicationName();
-#if JUCE_LINUX
-        options.folderName          = "~/.config/sonobus";
-#else
-        options.folderName          = "";
-#endif
-
-        mSettingsFolder = options.getDefaultFile().getParentDirectory();
-    }
-
+    mSettingsFolder = processor.getSupportDir();
 
     setupLocalisation(processor.getLanguageOverrideCode());
 
@@ -824,18 +810,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mChatEdgeResizer = std::make_unique<ResizableEdgeComponent>(mChatView.get(), mChatSizeConstrainer.get(), ResizableEdgeComponent::leftEdge);
 
 
-    // use this to match our main app support dir
-    PropertiesFile::Options options;
-    options.applicationName     = "dummy";
-    options.filenameSuffix      = ".xml";
-    options.osxLibrarySubFolder = "Application Support/SonoBus";
-   #if JUCE_LINUX
-    options.folderName          = "~/.config/sonobus";
-   #else
-    options.folderName          = "";
-   #endif
-
-    File supportDir = options.getDefaultFile().getParentDirectory();
+    File supportDir = processor.getSupportDir();
 
     // Soundboard
     mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor(), supportDir);
@@ -1660,6 +1635,16 @@ void SonobusAudioProcessorEditor::aooClientPeerJoinFailed(SonobusAudioProcessor 
     triggerAsyncUpdate();
 }
 
+void SonobusAudioProcessorEditor::aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port)
+{
+    DBG("Client peer '" << user  << "' with address: " << address << " : " << port <<  " BLOCKED from joining group '" <<  group << "'");
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PeerBlockedJoinEvent, group, true, address, user, port));
+    }
+    triggerAsyncUpdate();
+}
+
 
 void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user)  
 {
@@ -1708,6 +1693,17 @@ void SonobusAudioProcessorEditor::peerRequestedLatencyMatch(SonobusAudioProcesso
     }
 
     triggerAsyncUpdate();
+}
+
+void SonobusAudioProcessorEditor::peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked)
+{
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PeerBlockedInfoChangedEvent, username, blocked));
+    }
+
+    triggerAsyncUpdate();
+
 }
 
 
@@ -3741,9 +3737,15 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         else if (ev.type == ClientEvent::PeerFailedJoinEvent) {
             mPeerContainer->peerFailedJoin(ev.group, ev.user);
         }
+        else if (ev.type == ClientEvent::PeerBlockedJoinEvent) {
+            mPeerContainer->peerBlockedJoin(ev.group, ev.user, ev.message, (int) lrint(ev.floatVal));
+        }
         else if (ev.type == ClientEvent::PeerRequestedLatencyMatchEvent) {
 
             showLatencyMatchPrompt(ev.message, ev.floatVal);
+        }
+        else if (ev.type == ClientEvent::PeerBlockedInfoChangedEvent) {
+            updatePeerState(true);
         }
     }
 
@@ -4904,6 +4906,8 @@ bool SonobusAudioProcessorEditor::setupLocalisation(const String & overrideLang)
         mActiveLanguageCode = "en-us"; // indicates we are using english
     }
 
+    DBG("Setup localization: active lang code: " << mActiveLanguageCode);
+    
     return retval;
 }
 

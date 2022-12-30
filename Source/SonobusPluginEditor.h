@@ -138,11 +138,13 @@ public:
     void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) override;
+    void aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port) override;
     void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) override;
     void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) override;
     void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) override;
     void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg) override;
     void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) override;
+    void peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked) override;
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
@@ -437,16 +439,18 @@ private:
             PeerChangedState,
             PeerPendingJoinEvent,
             PeerFailedJoinEvent,
+            PeerBlockedJoinEvent,
             PublicGroupModifiedEvent,
             PublicGroupDeletedEvent,
             PeerRequestedLatencyMatchEvent,
+            PeerBlockedInfoChangedEvent,
             Error
         };
         
         ClientEvent() : type(None) {}
         ClientEvent(Type type_, const String & mesg) : type(type_), success(true), message(mesg) {}
         ClientEvent(Type type_, bool success_, const String & mesg) : type(type_), success(success_), message(mesg) {}
-        ClientEvent(Type type_, const String & group_, bool success_, const String & mesg, const String & user_="") : type(type_), success(success_), message(mesg), user(user_), group(group_) {}
+        ClientEvent(Type type_, const String & group_, bool success_, const String & mesg, const String & user_="", float fval=0.0f) : type(type_), success(success_), message(mesg), user(user_), group(group_), floatVal(fval) {}
         ClientEvent(Type type_, const String & mesg, float val) : type(type_), success(true), message(mesg), floatVal(val) {}
 
         Type type = None;

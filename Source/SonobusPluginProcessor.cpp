@@ -116,6 +116,10 @@ static String eqStateKey("ParametricEqState");
 
 static String lastUsernameKey("lastUsername");
 
+static String blockedAddressesKey("BlockedAddresses");
+static String addressKey("Address");
+static String addressValueKey("value");
+
 
 //static String inputEffectsStateKey("InputEffects");
 
@@ -353,6 +357,7 @@ struct SonobusAudioProcessor::RemotePeer {
     int remoteNetType = RemoteNetTypeUnknown;
     bool remoteIsRecording = false;
     bool hasRemoteInfo = false;
+    bool blockedUs = false;
 
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> fileWriter;
 
@@ -586,8 +591,10 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
 
 //==============================================================================
 SonobusAudioProcessor::SonobusAudioProcessor()
-     : AudioProcessor ( getDefaultLayout() ),
-       mState (*this, &mUndoManager, "SonoBusAoO",
+: AudioProcessor ( getDefaultLayout() ),
+soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>()),
+mGlobalState("SonobusGlobalState"),
+mState (*this, &mUndoManager, "SonoBusAoO",
 {
            std::make_unique<AudioParameterFloat>(ParameterID(paramInGain, 1),     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
@@ -676,8 +683,7 @@ SonobusAudioProcessor::SonobusAudioProcessor()
                                           [](const String& s) -> float { return s.getFloatValue(); }),
     std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToFilePlayback, 1), TRANS ("Sync Met to File Playback"), false),
 
-}),
-   soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>())
+})
 {
     mState.addParameterListener (paramInGain, this);
     mState.addParameterListener (paramDry, this);
@@ -722,6 +728,19 @@ SonobusAudioProcessor::SonobusAudioProcessor()
             mRemoteSendMatrix[i][j] = false;
         }
     }
+
+    // use this to match our main app support dir
+    PropertiesFile::Options options;
+    options.applicationName     = "dummy";
+    options.filenameSuffix      = ".xml";
+    options.osxLibrarySubFolder = "Application Support/SonoBus";
+   #if JUCE_LINUX
+    options.folderName          = "~/.config/sonobus";
+   #else
+    options.folderName          = "";
+   #endif
+
+    mSupportDir = options.getDefaultFile().getParentDirectory();
 
 #if (JUCE_IOS)
     mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
@@ -802,6 +821,8 @@ SonobusAudioProcessor::SonobusAudioProcessor()
     mFormatManager.registerBasicFormats();    
     
     initializeAoo();
+
+    loadGlobalState();
 }
 
 
@@ -2354,6 +2375,10 @@ void SonobusAudioProcessor::doReceiveData()
 #define SONOBUS_MSG_SUGGESTLAT_LEN 11
 #define SONOBUS_FULLMSG_SUGGESTLAT SONOBUS_MSG_DOMAIN SONOBUS_MSG_SUGGESTLAT
 
+#define SONOBUS_MSG_BLOCKEDINFO "/blockedinfo"
+#define SONOBUS_MSG_BLOCKEDINFO_LEN 13
+#define SONOBUS_FULLMSG_BLOCKEDINFO SONOBUS_MSG_DOMAIN SONOBUS_MSG_BLOCKEDINFO
+
 
 enum {
     SONOBUS_MSGTYPE_UNKNOWN = 0,
@@ -2364,7 +2389,8 @@ enum {
     SONOBUS_MSGTYPE_PINGACK,
     SONOBUS_MSGTYPE_REQLATINFO,
     SONOBUS_MSGTYPE_LATINFO,
-    SONOBUS_MSGTYPE_SUGGESTLAT
+    SONOBUS_MSGTYPE_SUGGESTLAT,
+    SONOBUS_MSGTYPE_BLOCKEDINFO
 };
 
 static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rettype)
@@ -2429,6 +2455,13 @@ static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rett
         {
             rettype = SONOBUS_MSGTYPE_SUGGESTLAT;
             offset += SONOBUS_MSG_SUGGESTLAT_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_BLOCKEDINFO_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_BLOCKEDINFO, SONOBUS_MSG_BLOCKEDINFO_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_BLOCKEDINFO;
+            offset += SONOBUS_MSG_BLOCKEDINFO_LEN;
             return offset;
         }
         else {
@@ -2651,6 +2684,44 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
 
             clientListeners.call(&SonobusAudioProcessor::ClientListener::peerRequestedLatencyMatch, this, username, latency);
         }
+        else if (type == SONOBUS_MSGTYPE_BLOCKEDINFO) {
+            // received from the other side when they have blocked/unblocked us
+            // args: s:username  b:blocked
+
+            auto it = message.ArgumentsBegin();
+            auto username = (it++)->AsString();
+            auto blocked = (it++)->AsBool();
+
+            {
+                const ScopedReadLock sl (mCoreLock);
+
+                // find remote peer
+                RemotePeer * peer = findRemotePeer(endpoint, -1);
+                if (!peer) {
+                    DBG("Could not find peer recv blockinfo for endpoint: " << endpoint->ipaddr);
+                }
+                else {
+                    peer->blockedUs = blocked;
+                    DBG("Remote peer " << username << " set blocked = " << (int) blocked);
+                    
+                    int ind = 0;
+                    int retind = -1;
+                    for (auto s : mRemotePeers) {
+                        if (s->endpoint == endpoint) {
+                            retind = ind;
+                            break;
+                        }
+                        ++ind;
+                    }
+                    
+                    if (retind >= 0) {
+                        setRemotePeerSendActive(retind, false);
+                    }
+                }
+            }
+            
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::peerBlockedInfoChanged, this, username, blocked);
+        }
         return true;
     } catch (const osc::Exception& e){
         DBG("exception in handleOtherMessage: " << e.what());
@@ -2748,6 +2819,28 @@ juce::var SonobusAudioProcessor::getAllLatInfo()
 
     return infolist;
 }
+
+void SonobusAudioProcessor::sendBlockedInfoMessage(EndpointState *endpoint, bool blocked)
+{
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream outmsg(buf, sizeof(buf));
+
+    try {
+
+        outmsg << osc::BeginMessage(SONOBUS_FULLMSG_BLOCKEDINFO)
+        << mCurrentUsername.toRawUTF8()
+        << blocked
+        << osc::EndMessage;
+
+    }
+    catch (const osc::Exception& e){
+        DBG("exception in blockedinfo message constructions: " << e.what());
+        return;
+    }
+    
+    endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
+}
+
 
 void SonobusAudioProcessor::sendReqLatInfoToAll()
 {
@@ -3445,7 +3538,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
             if (peer) {
                 // someone has added us, thus accepting our invitation
                 int32_t dummyid;
-                
+                                            
                 if (mAooDummySource->get_id(dummyid) && dummyid == e->id ) {
                     // ignoring dummy add
                     DBG("Got dummy handshake add from " << es->ipaddr << ":" << es->port);
@@ -3467,12 +3560,9 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                     
                     peer->connected = true;
                     
-                    
-                   
                 }
                 
                 // do invite here?
-                
             }
             else {
                 DBG("Added source to unknown " << e->id);
@@ -4027,14 +4117,30 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             if (e->result > 0){
                 DBG("Peer joined group " <<  e->group << " - user " << e->user);
 
-                if (mAutoconnectGroupPeers) {
-                    connectRemotePeerRaw(e->address, CharPointer_UTF8 (e->user), CharPointer_UTF8 (e->group), !mMainRecvMute.get());
-                }
-                
-                //aoo_node_add_peer(x->x_node, gensym(e->group), gensym(e->user),
-                //                  (const struct sockaddr *)e->address, e->length);
+                EndpointState * endpoint = findOrAddRawEndpoint(e->address);
+                if (endpoint) {
+                 
+                    // check if blocked
+                    if (isAddressBlocked(endpoint->ipaddr)) {
+                        
+                        clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoinBlocked, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user), endpoint->ipaddr, endpoint->port);
 
-                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoined, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
+                        // after a short delay
+                        Timer::callAfterDelay(400, [this, endpoint] {
+                            sendBlockedInfoMessage(endpoint, true);
+                        });
+                    }
+                    else {
+                        if (mAutoconnectGroupPeers) {
+                            connectRemotePeerRaw(e->address, CharPointer_UTF8 (e->user), CharPointer_UTF8 (e->group), !mMainRecvMute.get());
+                        }
+                        
+                        //aoo_node_add_peer(x->x_node, gensym(e->group), gensym(e->user),
+                        //                  (const struct sockaddr *)e->address, e->length);
+                        
+                        clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerJoined, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
+                    }
+                }
                 
             } else {
                 DBG("bug bad result on join event");
@@ -4127,6 +4233,7 @@ int SonobusAudioProcessor::connectRemotePeerRaw(void * sockaddr, const String & 
             remote->sendActive = false;
             remote->oursource->stop();
         }
+        sendBlockedInfoMessage(remote->endpoint, false);
         
     } else {
         DBG("Error inviting remote peer at " << endpoint->ipaddr << ":" << endpoint->port << " - ourId " << remote->ourId);
@@ -4158,7 +4265,8 @@ int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, cons
         }
 
         sendRemotePeerInfoUpdate(-1, remote);
-
+        sendBlockedInfoMessage(remote->endpoint, false);
+        
     } else {
         DBG("Error inviting remote peer at " << host << ":" << port << " - ourId " << remote->ourId);
     }
@@ -4346,7 +4454,7 @@ bool SonobusAudioProcessor::removeAllRemotePeers()
 }
 
 
-bool SonobusAudioProcessor::removeRemotePeer(int index)
+bool SonobusAudioProcessor::removeRemotePeer(int index, bool sendblock)
 {
     RemotePeer * remote = 0;
     bool ret = false;
@@ -4362,6 +4470,10 @@ bool SonobusAudioProcessor::removeRemotePeer(int index)
                 disconnectRemotePeer(index);
             }
                         
+            if (sendblock) {
+                sendBlockedInfoMessage(remote->endpoint, true);
+            }
+            
             adjustRemoteSendMatrix(index, true);
             
             std::unique_ptr<RemotePeer> removed(remote);
@@ -5244,9 +5356,18 @@ bool SonobusAudioProcessor::getRemotePeerSafetyMuted(int index) const
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         return remote->resetSafetyMuted;
     }
-    return 0;
+    return false;
 }
 
+bool SonobusAudioProcessor::getRemotePeerBlockedUs(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->blockedUs;
+    }
+    return false;
+}
 
 void  SonobusAudioProcessor::resetRemotePeerPacketStats(int index)
 {
@@ -5682,7 +5803,8 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         }
 
         retpeer->resetSafetyMuted = retpeer->buffertimeMs < 3.0f;
-
+        retpeer->blockedUs = false;
+        
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getMainBusNumOutputChannels());
         retpeer->oursink->set_buffersize(retpeer->buffertimeMs);
 
@@ -8444,6 +8566,108 @@ void SonobusAudioProcessor::storePeerCacheToState()
     }
 
 }
+
+void SonobusAudioProcessor::loadGlobalState()
+{
+    File file = mSupportDir.getChildFile("GlobalState.xml");
+    
+    if (!file.existsAsFile()) {
+        return;
+    }
+
+    XmlDocument doc(file);
+    auto tree = ValueTree::fromXml(*doc.getDocumentElement());
+
+    if (tree.isValid()) {
+        mGlobalState = tree;
+    }
+}
+
+bool SonobusAudioProcessor::storeGlobalState()
+{
+    File file = mSupportDir.getChildFile("GlobalState.xml");
+
+    // Make sure  the parent directory exists
+    file.getParentDirectory().createDirectory();
+
+    return mGlobalState.createXml()->writeTo(file);
+}
+
+bool SonobusAudioProcessor::isAddressBlocked(const String & ipaddr) const
+{
+    auto blocklist = mGlobalState.getChildWithName(blockedAddressesKey);
+    if (!blocklist.isValid()) return false;
+    
+    for (const auto & child : blocklist) {
+        auto prop = child.getProperty(addressValueKey);
+        if (prop.isString() && ipaddr == prop.toString()) {
+            // is blocked
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+void SonobusAudioProcessor::addBlockedAddress(const String & ipaddr)
+{
+    auto blocklist = mGlobalState.getOrCreateChildWithName(blockedAddressesKey, nullptr);
+    
+    auto newchild = ValueTree(addressKey);
+    newchild.setProperty(addressValueKey, ipaddr, nullptr);
+    
+    for (const auto & child : blocklist) {
+        auto prop = child.getProperty(addressValueKey);
+        if (prop.isString() && ipaddr == prop.toString()) {
+            // already exists
+            return;
+        }
+    }
+    
+    blocklist.appendChild(newchild, nullptr);
+    
+    storeGlobalState();
+}
+
+void SonobusAudioProcessor::removeBlockedAddress(const String & ipaddr)
+{
+    auto blocklist = mGlobalState.getOrCreateChildWithName(blockedAddressesKey, nullptr);
+
+    if (blocklist.isValid()) {
+        bool gotit = false;
+        for (const auto & child : blocklist) {
+            auto prop = child.getProperty(addressValueKey);
+            if (prop.isString() && ipaddr == prop.toString()) {
+                blocklist.removeChild(child, nullptr);
+                gotit = true;
+                break;
+            }
+        }
+        
+        if (gotit)
+            storeGlobalState();
+    }
+}
+
+StringArray SonobusAudioProcessor::getAllBlockedAddresses() const
+{
+    StringArray retlist;
+
+    auto blocklist = mGlobalState.getChildWithName(blockedAddressesKey);
+    if (blocklist.isValid()) {
+        for (const auto & child : blocklist) {
+            auto prop = child.getProperty(addressValueKey);
+            if (prop.isString()) {
+                auto val = prop.toString();
+                if (val.isNotEmpty()) {
+                    retlist.add(val);
+                }
+            }
+        }
+        return retlist;
+    }
+}
+
 
 bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptions, RecordFileFormat fileformat)
 {
