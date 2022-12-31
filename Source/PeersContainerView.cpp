@@ -1876,7 +1876,7 @@ void PeersContainerView::timerCallback(int timerId)
             int i = mPeerUpdateOrdering[di];
 
             float ratio, stdev;
-            if (processor.getRemotePeerReceiveBufferFillRatio(i, ratio, stdev) > 0) {
+            if (processor.getRemotePeerReceiveBufferFillRatio(i, ratio, stdev)) {
                 pvf->jitterBufferMeter->setFillRatio(ratio, stdev);
             }
         }

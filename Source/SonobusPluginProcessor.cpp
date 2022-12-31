@@ -8697,8 +8697,8 @@ StringArray SonobusAudioProcessor::getAllBlockedAddresses() const
                 }
             }
         }
-        return retlist;
-    }
+     }
+    return retlist;
 }
 
 

@@ -138,7 +138,7 @@ private:
     /**
      * All the button colours that can be selected (in order).
      */
-    const std::vector<int> BUTTON_COLOURS = {
+    const std::vector<int64> BUTTON_COLOURS = {
             SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             SoundboardButtonColors::RED,
             SoundboardButtonColors::ORANGE,
