@@ -373,6 +373,7 @@
             resource="0" file="../Source/SoundSampleButtonColourPicker.cpp"/>
       <FILE id="ET42V3" name="SoundSampleButtonColourPicker.h" compile="0"
             resource="0" file="../Source/SoundSampleButtonColourPicker.h"/>
+      <FILE id="thlweE" name="VDONinjaView.h" compile="0" resource="0" file="../Source/VDONinjaView.h"/>
       <FILE id="bmDRNP" name="VersionInfo.cpp" compile="1" resource="0" file="../Source/VersionInfo.cpp"/>
       <FILE id="xTwj0w" name="VersionInfo.h" compile="0" resource="0" file="../Source/VersionInfo.h"/>
       <FILE id="ENU7rn" name="WaveformTransportComponent.h" compile="0" resource="0"

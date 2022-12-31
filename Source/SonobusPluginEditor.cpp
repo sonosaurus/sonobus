@@ -2839,7 +2839,6 @@ void SonobusAudioProcessorEditor::showPatchbay(bool flag)
 
 void SonobusAudioProcessorEditor::showLatencyMatchView(bool show)
 {
-    // jlcc
     if (show && latmatchCalloutBox == nullptr) {
 
         auto wrap = std::make_unique<Viewport>();
@@ -2882,6 +2881,59 @@ void SonobusAudioProcessorEditor::showLatencyMatchView(bool show)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
             box->dismiss();
             latmatchCalloutBox = nullptr;
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::showVDONinjaView(bool show)
+{
+    if (show && latmatchCalloutBox == nullptr) {
+
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        const int defWidth = 260;
+        const int defHeight = 250;
+#else
+        const int defWidth = 500;
+        const int defHeight = 300;
+#endif
+
+        if (!mVDONinjaView) {
+            mVDONinjaView = std::make_unique<VDONinjaView>(processor);
+        }
+
+
+        int prefwidth = jmin(defWidth, dw->getWidth() - 30);
+        
+        // size it once, then get min height out of it
+        mVDONinjaView->setBounds(Rectangle<int>(0,0,prefwidth,defHeight));
+
+        auto useheight = mVDONinjaView->getMinimumContentBounds().getHeight() + mVDONinjaView->getMinimumHeaderBounds().getHeight();
+        auto usewidth = std::max(prefwidth, mVDONinjaView->getMinimumContentBounds().getWidth());
+
+        mVDONinjaView->setBounds(Rectangle<int>(0,0, usewidth,useheight));
+
+        wrap->setViewedComponent(mVDONinjaView.get(), false);
+        mVDONinjaView->updateState();
+        mVDONinjaView->setVisible(true);
+
+        wrap->setSize(usewidth, jmin(useheight, dw->getHeight() - 24));
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        vdoninjaViewCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(vdoninjaViewCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(vdoninjaViewCalloutBox.get())) {
+            box->dismiss();
+            vdoninjaViewCalloutBox = nullptr;
         }
     }
 }
@@ -3772,6 +3824,8 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
 
     items.add(GenericItemChooserItem(TRANS("Group Latency Match..."), {}, nullptr, true));
 
+    items.add(GenericItemChooserItem(TRANS("VDO.Ninja Video Link..."), {}, nullptr, true));
+    
 
     Component* dw = mMainLinkButton->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = mMainLinkButton->findParentComponentOfClass<Component>();
@@ -3806,6 +3860,9 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
         } else if (index == 1) {
             // group latency
             safeThis->showLatencyMatchView(true);
+        } else if (index == 2) {
+            // vdo ninja
+            safeThis->showVDONinjaView(true);
         }
     };
 
@@ -4107,7 +4164,8 @@ void SonobusAudioProcessorEditor::resized()
 
 
     //auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mMainGroupImage->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mMainGroupImage->getHeight()).expanded(2, 2);
-    auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mMainGroupImage->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mMainUserLabel->getBottom() - mMainGroupImage->getY());
+    //auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mMainGroupImage->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mMainUserLabel->getBottom() - mMainGroupImage->getY());
+    auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mPeerLayoutFullButton->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mPeerLayoutFullButton->getHeight());
     mMainLinkButton->setBounds(grouptextbounds);
 
 
@@ -4301,8 +4359,9 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     mainGroupUserBox.items.clear();
     mainGroupUserBox.flexDirection = FlexBox::Direction::column;
+    mainGroupUserBox.items.add(FlexItem(2, 2));
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 4, mainGroupBox).withMargin(0).withFlex(0));
-    mainGroupUserBox.items.add(FlexItem(2, 4));
+    mainGroupUserBox.items.add(FlexItem(2, 2));
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 4, mainUserBox).withMargin(0).withFlex(0));
 
     mainGroupLayoutBox.items.clear();

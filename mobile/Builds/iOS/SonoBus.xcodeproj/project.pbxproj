@@ -150,6 +150,7 @@
 		085495ED1FADB04B2F89A513 /* LatencyMeasurer.h */ /* LatencyMeasurer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LatencyMeasurer.h; path = ../../../Source/LatencyMeasurer.h; sourceTree = SOURCE_ROOT; };
 		086E89785190397952FC1A5B /* BeatToggleGrid.h */ /* BeatToggleGrid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BeatToggleGrid.h; path = ../../../Source/BeatToggleGrid.h; sourceTree = SOURCE_ROOT; };
 		0AA9729AFEB32A0246FAD80B /* include_juce_audio_plugin_client_VST_utils.mm */ /* include_juce_audio_plugin_client_VST_utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_plugin_client_VST_utils.mm; path = ../../JuceLibraryCode/include_juce_audio_plugin_client_VST_utils.mm; sourceTree = SOURCE_ROOT; };
+		0AD55AFCF8876F773027DDCE /* VDONinjaView.h */ /* VDONinjaView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = VDONinjaView.h; path = ../../../Source/VDONinjaView.h; sourceTree = SOURCE_ROOT; };
 		0CD57CE341E2EFBB5E2B7906 /* OscPrintReceivedElements.cpp */ /* OscPrintReceivedElements.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = OscPrintReceivedElements.cpp; path = ../../../deps/aoo/deps/oscpack/osc/OscPrintReceivedElements.cpp; sourceTree = SOURCE_ROOT; };
 		0CF53997F68EB46DAAEA63CB /* people.png */ /* people.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = people.png; path = ../../../images/people.png; sourceTree = SOURCE_ROOT; };
 		1084B0E84FF8C71B059AECDC /* LatencyMatchView.cpp */ /* LatencyMatchView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LatencyMatchView.cpp; path = ../../../Source/LatencyMatchView.cpp; sourceTree = SOURCE_ROOT; };
@@ -715,6 +716,7 @@
 				863281820672F5AA0AEBBA4C,
 				E5346F34D5E008658C0C8469,
 				18EB474D1EEF3DF23A25B831,
+				0AD55AFCF8876F773027DDCE,
 				EF8A1381DACF2896BBDE6BDD,
 				A22328F52A13D3D878F89C95,
 				CCC57E9D47682B9C33DB5D16,

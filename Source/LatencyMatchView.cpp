@@ -243,7 +243,7 @@ void LatencyMatchView::updatePeerSliders()
         peerSlidersBox.items.add(FlexItem(minButtonWidth, minitemheight, *slider).withMargin(1).withFlex(0));
     }
 
-    mMainSlider->setRange(0.0, maxlat, 0.1);
+    mMainSlider->setRange(0.0, std::max(maxlat, 0.2f), 0.1);
 
     if (!initialCheckDone) {
         mMainSlider->setValue(maxlat, dontSendNotification);

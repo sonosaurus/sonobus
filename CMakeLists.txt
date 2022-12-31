@@ -314,6 +314,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonobusPluginProcessor.cpp
         Source/SonobusPluginProcessor.h
         Source/SonobusTypes.h
+        Source/VDONinjaView.h
         Source/VersionInfo.cpp
         Source/VersionInfo.h
         Source/WaveformTransportComponent.h
@@ -581,6 +582,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         PRIVATE
             juce::juce_audio_utils
             juce::juce_dsp
+	    juce::juce_cryptography
             juce::juce_audio_plugin_client
             
             ff_meters

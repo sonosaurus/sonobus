@@ -23,6 +23,7 @@
 #include "PeersContainerView.h"
 #include "OptionsView.h"
 #include "ReverbView.h"
+#include "VDONinjaView.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -231,6 +232,9 @@ private:
     void showLatencyMatchPrompt(const String & name, float latencyms);
     void showLatencyMatchView(bool show);
 
+    void showVDONinjaView(bool show);
+
+    
     void updateSliderSnap();
 
 
@@ -383,6 +387,9 @@ private:
     std::unique_ptr<TextButton> mApproveLatMatchButton;
     std::unique_ptr<LatencyMatchView> mLatMatchView;
 
+    // vdo ninja
+    std::unique_ptr<VDONinjaView> mVDONinjaView;
+
 
     std::unique_ptr<FileChooser> mFileChooser;
     File  mCurrOpenDir;
@@ -411,6 +418,8 @@ private:
 
     WeakReference<Component> latmatchCalloutBox;
     WeakReference<Component> latmatchViewCalloutBox;
+
+    WeakReference<Component> vdoninjaViewCalloutBox;
 
 
     std::unique_ptr<PatchMatrixView> mPatchMatrixView;

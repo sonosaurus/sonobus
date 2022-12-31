@@ -772,7 +772,7 @@ void ConnectView::showPublicGroupTab()
 bool ConnectView::getServerGroupAndPasswordText(String & retgroup, String & retpass) const
 {
     if (mConnectTab->getCurrentContentComponent() == mServerConnectViewport.get()) {
-        retgroup = mServerGroupEditor->getText();
+        retgroup = mServerGroupEditor->getText().trim();
         retpass = mServerGroupPasswordEditor->getText();
         return true;
     }
@@ -785,7 +785,7 @@ void ConnectView::visibilityChanged ()
         // force password show to off here
         mServerGroupPasswordShowButton->setToggleState(false, dontSendNotification);
         currConnectionInfo.userName = mServerUsernameEditor->getText();
-        currConnectionInfo.groupName = mServerGroupEditor->getText();
+        currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
         updateState();
     }
@@ -804,7 +804,7 @@ void ConnectView::connectTabChanged (int newCurrentTabIndex)
         publicGroupLogin();
         
         currConnectionInfo.userName = mServerUsernameEditor->getText();
-        currConnectionInfo.groupName = mServerGroupEditor->getText();
+        currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
     }
     else if (adjindex == 1) {
@@ -874,7 +874,7 @@ bool ConnectView::copyInfoToClipboard(bool singleURL, String * retmessage)
 
     if (!currConnected) {
         if (mConnectTab->getCurrentContentComponent() == mServerConnectViewport.get()) {
-            groupName = mServerGroupEditor->getText();
+            groupName = mServerGroupEditor->getText().trim();
             groupPassword = mServerGroupPasswordEditor->getText();
         }
     } else {
@@ -1040,7 +1040,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         AooServerConnectionInfo info;
         info.userName = mServerUsernameEditor->getText();
-        info.groupName = mServerGroupEditor->getText();
+        info.groupName = mServerGroupEditor->getText().trim();
         info.groupPassword = mServerGroupPasswordEditor->getText();
         info.groupIsPublic = false;
         info.serverHost = host;
@@ -1071,7 +1071,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         AooServerConnectionInfo info;
         info.userName = mPublicServerUsernameEditor->getText();
-        info.groupName = mPublicServerGroupEditor->getText();
+        info.groupName = mPublicServerGroupEditor->getText().trim();
         info.groupPassword = "";
         info.groupIsPublic = true;
         info.serverHost = host;
@@ -1087,7 +1087,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mServerGroupPasswordShowButton.get()) {
         mServerGroupPasswordShowButton->setToggleState(!mServerGroupPasswordShowButton->getToggleState(), dontSendNotification);
         currConnectionInfo.userName = mServerUsernameEditor->getText();
-        currConnectionInfo.groupName = mServerGroupEditor->getText();
+        currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
         updateState();
     }

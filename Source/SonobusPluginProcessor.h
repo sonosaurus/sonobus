@@ -458,7 +458,7 @@ public:
     bool stopRemotePeerLatencyTest(int index);
     bool isRemotePeerLatencyTestActive(int index);
     
-
+    
     bool isAnyRemotePeerRecording() const;
     bool isRemotePeerRecording(int index) const;
 
@@ -573,6 +573,18 @@ public:
     void setDisableKeyboardShortcuts(bool flag) {  mDisableKeyboardShortcuts = flag; }
 
 
+    struct VideoLinkInfo
+    {
+        ValueTree getValueTree() const;
+        void setFromValueTree(const ValueTree & val);
+
+        bool roomMode = true;
+        bool showNames = true;
+        bool beDirector = false;
+        String extraParams;
+    };
+
+    VideoLinkInfo & getVideoLinkInfo() { return mVideoLinkInfo; }
 
 
     // sets and gets the format we send out
@@ -1183,7 +1195,8 @@ private:
     // misc
     bool mSliderSnapToMouse = true;
     bool mDisableKeyboardShortcuts = false;
-
+    VideoLinkInfo mVideoLinkInfo;
+    
     File mSupportDir;
     
     // global config

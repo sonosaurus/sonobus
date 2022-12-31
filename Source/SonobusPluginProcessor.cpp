@@ -147,7 +147,6 @@ static String peerSendFormatKey("sendformat");
 static String peerOrderPriorityKey("orderpriority");
 
 
-
 #define METER_RMS_SEC 0.03
 #define MAX_PANNERS 64
 
@@ -8235,6 +8234,33 @@ void AooServerConnectionInfo::setFromValueTree(const ValueTree & item)
 }
 
 
+static String videoLinkInfoKey("VideoLinkInfo");
+static String videoLinkRoomModeKey("roomMode");
+static String videoLinkShowNamesKey("showNames");
+static String videoLinkExtraParamsKey("extraParams");
+static String videoLinkBeDirectorKey("beDir");
+
+ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
+{
+    ValueTree item(videoLinkInfoKey);
+    
+    item.setProperty(videoLinkRoomModeKey, roomMode, nullptr);
+    item.setProperty(videoLinkShowNamesKey, showNames, nullptr);
+    item.setProperty(videoLinkExtraParamsKey, extraParams, nullptr);
+    item.setProperty(videoLinkBeDirectorKey, beDirector, nullptr);
+
+    return item;
+}
+
+void SonobusAudioProcessor::VideoLinkInfo::setFromValueTree(const ValueTree & item)
+{
+    roomMode = item.getProperty(videoLinkRoomModeKey, roomMode);
+    showNames = item.getProperty(videoLinkShowNamesKey, showNames);
+    extraParams = item.getProperty(videoLinkExtraParamsKey, extraParams);
+    beDirector = item.getProperty(videoLinkBeDirectorKey, beDirector);
+}
+
+
 void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData, bool includecache, bool xmlformat)
 {
     // You should use this method to store your parameters in the memory block.
@@ -8285,6 +8311,8 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
     extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
 
+    extraTree.appendChild(mVideoLinkInfo.getValueTree(), nullptr);
+    
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
     inputChannelGroupsTree.removeAllChildren(nullptr);
     inputChannelGroupsTree.setProperty(numChanGroupsKey, mInputChannelGroupCount, nullptr);
@@ -8401,6 +8429,11 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
                                                      extraTree.getProperty(lastWindowHeightKey, (int)mPluginWindowHeight)));
 
             setAutoresizeBufferDropRateThreshold(extraTree.getProperty(autoresizeDropRateThreshKey, (float)mAutoresizeDropRateThresh));
+            
+            ValueTree videoinfo = extraTree.getChildWithName(videoLinkInfoKey);
+            if (videoinfo.isValid()) {
+                mVideoLinkInfo.setFromValueTree(videoinfo);
+            }
         }
 
 
