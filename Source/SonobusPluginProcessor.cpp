@@ -963,8 +963,16 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
     }
     
     uint32_t estWorkDurationMs = 10; // just a guess
-    mSendThread->startRealtimeThread({ 8, estWorkDurationMs });
-    mRecvThread->startRealtimeThread({ 8, estWorkDurationMs });
+
+    if (!mSendThread->startRealtimeThread({ 8, estWorkDurationMs })) {
+        DBG("Send thread failed to start realtime: trying regular");
+        mSendThread->startThread(Thread::Priority::highest);
+    }
+
+    if (!mRecvThread->startRealtimeThread({ 8, estWorkDurationMs })) {
+        DBG("Recv thread failed to start realtime: trying regular");
+        mRecvThread->startThread(Thread::Priority::highest);
+    }
 
     mEventThread->startThread(Thread::Priority::normal);
 
