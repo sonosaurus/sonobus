@@ -2105,7 +2105,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
         else if (ppvf->unblockButton.get() == buttonThatWasClicked) {
             processor.removeBlockedAddress(pinfo.second.address);
 
-            processor.connectRemotePeer(pinfo.second.address, pinfo.second.port);
+            processor.connectRemotePeer(pinfo.second.address, pinfo.second.port, pinfo.second.user, pinfo.second.group);
 
             mPendingUsers.erase(pinfo.first);
             rebuildPeerViews();

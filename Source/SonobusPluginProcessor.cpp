@@ -963,16 +963,25 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
     }
     
     uint32_t estWorkDurationMs = 10; // just a guess
+    int rtprio = 1; // all that is necessary
 
-    if (!mSendThread->startRealtimeThread({ 8, estWorkDurationMs })) {
+#if JUCE_WINDOWS
+    // do not use startRealtimeThread() call because it triggers the whole process to be realtime, which we don't want
+    mSendThread->startThread(Thread::Priority::highest);
+    mRecvThread->startThread(Thread::Priority::highest);
+#else
+    if (!mSendThread->startRealtimeThread({ rtprio, estWorkDurationMs }))
+    {
         DBG("Send thread failed to start realtime: trying regular");
         mSendThread->startThread(Thread::Priority::highest);
     }
 
-    if (!mRecvThread->startRealtimeThread({ 8, estWorkDurationMs })) {
+    if (!mRecvThread->startRealtimeThread({ rtprio, estWorkDurationMs }))
+    {
         DBG("Recv thread failed to start realtime: trying regular");
         mRecvThread->startThread(Thread::Priority::highest);
     }
+#endif
 
     mEventThread->startThread(Thread::Priority::normal);
 
@@ -7198,26 +7207,27 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels || inputPostBuffer.getNumChannels() != totsendchans || inputPostBuffer.getNumSamples() < numSamples  || sendMeterSource.getNumChannels() < realsendchans) {
         ensureBuffers(numSamples);
     }
-    
-    
-    
-    AudioPlayHead::CurrentPositionInfo posInfo;
-    posInfo.resetToDefault();
-    posInfo.bpm = mMetTempo.get();
 
+    double useBpm = mMetTempo.get();
     bool syncmethost = mSyncMetToHost.get();
     bool syncmetplayback = mSyncMetStartToPlayback.get();
 
     AudioPlayHead * playhead = getPlayHead();
-    bool posValid = playhead && playhead->getCurrentPosition(posInfo);
-    bool hostPlaying = posValid && posInfo.isPlaying;
-    if (posInfo.bpm <= 0.0) {
-        posInfo.bpm = mMetTempo.get();
+    Optional<AudioPlayHead::PositionInfo> rposInfo;
+
+    if (playhead) {
+        rposInfo = playhead->getPosition();
+    }
+
+    bool hostPlaying = rposInfo && rposInfo->getIsPlaying();
+    auto hostBpm = rposInfo->getBpm();
+    if (hostBpm && *hostBpm > 0.0) {
+        useBpm = *hostBpm;
     }
 
     if (syncmethost) {
-        if (posValid && fabs(posInfo.bpm - mMetTempo.get()) > 0.001) {
-            mMetTempo = posInfo.bpm;
+        if (rposInfo && fabs(useBpm - mMetTempo.get()) > 0.001) {
+            mMetTempo = useBpm;
             mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetTempo.get()));
         }
     }
@@ -7509,8 +7519,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         mMetronome->setGain(metgain);
         mMetronome->setTempo(mettempo);
         double beattime = 0.0;
-        if (syncmethost && hostPlaying) {
-            beattime = posInfo.ppqPosition;
+        if (syncmethost && hostPlaying && rposInfo->getPpqPosition()) {
+            beattime = *rposInfo->getPpqPosition();
         }
         else if (syncmetplayback && mTransportSource.isPlaying()) {
             beattime = (mettempo / 60.0) * transportPos;

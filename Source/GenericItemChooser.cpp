@@ -96,7 +96,7 @@ GenericItemChooser::GenericItemChooser(const Array<GenericItemChooserItem> & ite
     
     //table.getViewport()->setScrollOnDragEnabled(true);
     table.getViewport()->setScrollBarsShown(true, false);
-    table.getViewport()->setScrollOnDragEnabled(true);
+    table.getViewport()->setScrollOnDragMode(Viewport::ScrollOnDragMode::nonHover);
     table.setRowSelectedOnMouseDown(true);
     table.setRowClickedOnMouseDown(false);
     table.setMultipleSelectionEnabled (false);
