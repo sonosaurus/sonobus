@@ -618,7 +618,7 @@ public:
         if (outputDevice != nullptr && JUCE_ALSA_FAILED (snd_pcm_prepare (outputDevice->handle)))
             return;
 
-        if (!startRealtimeThread ({9, 10})) {
+        if (!startRealtimeThread ({2, 10})) {
             startThread (Priority::highest);
         }
 
