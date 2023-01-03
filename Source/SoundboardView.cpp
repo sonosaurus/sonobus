@@ -780,7 +780,7 @@ void SoundboardView::applyOptionsToAll(SoundSample & fromsample)
 {
     auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
     if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
-        return false;
+        return;
     }
 
     auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
