@@ -356,6 +356,8 @@ public:
     bool getRemotePeerPolarityInvert(int index, int changroup);
 
 
+    bool isRemotePeerUserInGroup(const String & name) const;
+    
     void setRemotePeerUserName(int index, const String & name);
     String getRemotePeerUserName(int index) const;
 
@@ -750,6 +752,9 @@ public:
     bool getRecordFinishOpens() const { return mRecordFinishOpens; }
     void setRecordFinishOpens(bool flag) { mRecordFinishOpens = flag; }
 
+    bool getReconnectAfterServerLoss() const { return mReconnectAfterServerLoss.get(); }
+    void setReconnectAfterServerLoss(bool flag) { mReconnectAfterServerLoss = flag; }
+
 
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
     void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
@@ -907,6 +912,9 @@ private:
     juce::var getAllLatInfo();
     void sendReqLatInfoToAll();
 
+    bool reconnectToMostRecent();
+
+    
     ListenerList<ClientListener> clientListeners;
 
     
@@ -958,6 +966,7 @@ private:
     Atomic<float>   mDefUserLevel    { 1.0f };
     Atomic<bool>   mSyncMetToHost  { false };
     Atomic<bool>   mSyncMetStartToPlayback  { false };
+    Atomic<bool>   mReconnectAfterServerLoss  { true };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };
@@ -975,7 +984,8 @@ private:
     bool mReverbParamsChanged = false;
     bool mLastHasMainFx = false;
     bool mLastInputReverbEnabled = false;
-
+    bool mFreshInit = true;
+    
     Atomic<bool>   mAnythingSoloed  { false };
 
 
@@ -1085,6 +1095,23 @@ private:
 
     Array<AooServerConnectionInfo> mRecentConnectionInfos;
     CriticalSection  mRecentsLock;
+    
+    AooServerConnectionInfo mPendingReconnectInfo;
+    bool mPendingReconnect = false;
+    bool mRecoveringFromServerLoss = false;
+    
+    class ServerReconnectTimer : public Timer
+    {
+    public:
+        ServerReconnectTimer(SonobusAudioProcessor & proc) : processor(proc) {
+        }
+        
+        void timerCallback() override;
+        
+        SonobusAudioProcessor & processor;
+    };
+
+    ServerReconnectTimer mReconnectTimer;
     
     CriticalSection  mRemotesLock;
 

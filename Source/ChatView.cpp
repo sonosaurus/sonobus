@@ -285,7 +285,18 @@ void ChatView::updateTitles()
 {
     int selindex = mChatTabs->getCurrentTabIndex();
     auto name = selindex >= 0 ? mChatTabs->getTabNames().getReference(selindex) : "";
-    auto mesg = TRANS("Enter message here...") + String(juce::CharPointer_UTF8 (" \xe2\x86\x92 ")) + name;
+    bool enabled = selindex > 0 ? processor.isRemotePeerUserInGroup(name) : true;
+
+    String mesg;
+    
+    mChatSendTextEditor->setEnabled(enabled);
+    if (enabled) {
+        mesg = TRANS("Enter message here...") + String(juce::CharPointer_UTF8 (" \xe2\x86\x92 ")) + name;
+    }
+    else {
+        mesg = name + TRANS(" is not connected");
+        mChatSendTextEditor->clear();
+    }
     mChatSendTextEditor->setTextToShowWhenEmpty(mesg, Colour(0x88bbbbbb));
     mChatSendTextEditor->repaint();
     auto titletext = TRANS("Chat") + String(" : ") + name;

@@ -336,6 +336,7 @@
 		99EF44FDFC548498F0512EBE /* record_active_alt.svg */ /* record_active_alt.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = record_active_alt.svg; path = ../../../images/record_active_alt.svg; sourceTree = SOURCE_ROOT; };
 		9AB60FB09803620F811588B2 /* SonoPlaybackProgressButton.h */ /* SonoPlaybackProgressButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonoPlaybackProgressButton.h; path = ../../../Source/SonoPlaybackProgressButton.h; sourceTree = SOURCE_ROOT; };
 		9C2CEEA936FDFC57276A3879 /* GenericItemChooser.cpp */ /* GenericItemChooser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GenericItemChooser.cpp; path = ../../../Source/GenericItemChooser.cpp; sourceTree = SOURCE_ROOT; };
+		9D0815F81EA2504F4C1DC70D /* keypad-num-disabled.svg */ /* keypad-num-disabled.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = "keypad-num-disabled.svg"; path = "../../../images/keypad-num-disabled.svg"; sourceTree = SOURCE_ROOT; };
 		9D0C76C6EB24F1232573AEBC /* dice_icon_128.png */ /* dice_icon_128.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = dice_icon_128.png; path = ../../../images/dice_icon_128.png; sourceTree = SOURCE_ROOT; };
 		9DAB454F2DC46C4B34A880D7 /* SonoStandaloneFilterWindow.h */ /* SonoStandaloneFilterWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SonoStandaloneFilterWindow.h; path = ../../../Source/SonoStandaloneFilterWindow.h; sourceTree = SOURCE_ROOT; };
 		9E302561A825AA9B03E2CFFB /* mtdm.cc */ /* mtdm.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = mtdm.cc; path = ../../../Source/mtdm.cc; sourceTree = SOURCE_ROOT; };
@@ -435,6 +436,7 @@
 		F870528E489DA33C3B5E2964 /* juce_dsp */ /* juce_dsp */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_dsp; path = ../../../deps/juce/modules/juce_dsp; sourceTree = SOURCE_ROOT; };
 		F89BAE862136432CDC06C6E1 /* keyboard_disabled.svg */ /* keyboard_disabled.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = keyboard_disabled.svg; path = ../../../images/keyboard_disabled.svg; sourceTree = SOURCE_ROOT; };
 		F8C0FE745AF1AEEF71018D63 /* codec_pcm.cpp */ /* codec_pcm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = codec_pcm.cpp; path = ../../../deps/aoo/lib/src/codec_pcm.cpp; sourceTree = SOURCE_ROOT; };
+		FA6931915FE42AA8A36359FC /* keypad-num.svg */ /* keypad-num.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = "keypad-num.svg"; path = "../../../images/keypad-num.svg"; sourceTree = SOURCE_ROOT; };
 		FD51D45E2207ED322566E9B1 /* dots_icon.png */ /* dots_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = dots_icon.png; path = ../../../images/dots_icon.png; sourceTree = SOURCE_ROOT; };
 		FD949E435187D89121A07785 /* keyboard.svg */ /* keyboard.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = keyboard.svg; path = ../../../images/keyboard.svg; sourceTree = SOURCE_ROOT; };
 		FF1B4FCDFD60BE11E27E0076 /* OscOutboundPacketStream.h */ /* OscOutboundPacketStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscOutboundPacketStream.h; path = ../../../deps/aoo/deps/oscpack/osc/OscOutboundPacketStream.h; sourceTree = SOURCE_ROOT; };
@@ -854,6 +856,8 @@
 				EF90BE920B95D0A761172B28,
 				FD949E435187D89121A07785,
 				F89BAE862136432CDC06C6E1,
+				9D0815F81EA2504F4C1DC70D,
+				FA6931915FE42AA8A36359FC,
 				CE4EC5E56573F2F805FA749F,
 				3D90A911B84F27DDA3A7C3C1,
 				2828EBC17B759DA1EE11DB5C,

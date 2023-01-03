@@ -122,6 +122,11 @@ public:
      */
     std::function<void(SampleEditView&)> gainChangeCallback;
 
+    /**
+     * Function to call whenever the applyPlaybackOptionsToOthers button is pressed
+     */
+    std::function<void(SampleEditView&)> applyPlaybackOptionsToOthersCallback;
+
     
     int getMinimumContentWidth() const { return minContentWidth; }
     int getMinimumContentHeight() const { return minContentHeight; }
@@ -245,6 +250,8 @@ private:
     std::unique_ptr<SonoTextButton> mRemoveHotkeyButton;
     std::unique_ptr<SonoTextButton> mSubmitButton;
     std::unique_ptr<SonoTextButton> mDeleteButton;
+
+    std::unique_ptr<SonoTextButton> mApplyPlaybackOptionsToOthersButton;
 
 
     /**

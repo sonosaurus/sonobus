@@ -1329,11 +1329,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //setSize (defbounds.getWidth(), defbounds.getHeight());
 
 
-    if (processor.getAutoReconnectToLast()) {
-        mConnectView->updateRecents();
-        connectWithInfo(recents.getReference(0));
-    }
-
     // to make sure transport area is initialized with the current state
     if (updateTransportWithURL(processor.getCurrentLoadedTransportURL())) {
         processor.getTransportSource().sendChangeMessage();
@@ -3719,16 +3714,21 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 resized();
 
                 mMainMessageLabel->setWantsKeyboardFocus(true);
-                mMainMessageLabel->grabKeyboardFocus();
+                if (mMainMessageLabel->isShowing()) {
+                    mMainMessageLabel->grabKeyboardFocus();
+                }
             } else {
-                statstr = TRANS("Failed to join group: ") + ev.message;
 
-                mConnectView->groupJoinFailed();
+                if (processor.getCurrentJoinedGroup().isEmpty()) {
+                    statstr = TRANS("Failed to join group: ") + ev.message;
 
-                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
-
-                // disconnect
-                processor.disconnectFromServer();
+                    mConnectView->groupJoinFailed();
+                    
+                    mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+                    
+                    // disconnect
+                    processor.disconnectFromServer();
+                }
                 
             }
             updateServerStatusLabel(statstr, false);

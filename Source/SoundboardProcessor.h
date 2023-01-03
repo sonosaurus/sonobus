@@ -110,7 +110,7 @@ public:
     /**
      * @param sampleToUpdate The sample to save with already containing the updated state.
      */
-    void editSoundSample(SoundSample& sampleToUpdate);
+    void editSoundSample(SoundSample& sampleToUpdate, bool saveIt=true);
 
     /**
      * @param sampleToUpdate update playback settings
@@ -138,17 +138,38 @@ public:
     /**
      * @return Whether the hotkeys are muted (true) or not (false).
      */
-    [[nodiscard]] bool isHotkeysSelected() const { return hotkeysMuted; }
+    [[nodiscard]] bool isHotkeysMuted() const { return hotkeysMuted; }
 
     /**
      * Set Whether the hotkeys are muted (true) or not (false).
      */
-    void setHotkeysSelected(bool selected)
+    void setHotkeysMuted(bool selected)
     {
         hotkeysMuted = selected;
         saveToDisk();
     }
 
+    /**
+     * @return Whether the default numeric hotkeys are allowed.
+     */
+    [[nodiscard]] bool isDefaultNumericHotkeyAllowed() const { return numericHotkeyAllowed; }
+
+    /**
+     * Set Whether the hotkeys are muted (true) or not (false).
+     */
+    void setDefaultNumericHotkeyAllowed(bool selected)
+    {
+        numericHotkeyAllowed = selected;
+        saveToDisk();
+    }
+
+    
+    /**
+     * Saves the current soundboard data to disk.
+     */
+    void saveToDisk() const;
+
+    
 private:
 
     /**
@@ -165,6 +186,7 @@ private:
      * Key of the root node property in the serialized tree data structure that stores whether hotkeys must be muted.
      */
     constexpr static const char HOTKEYS_MUTED_KEY[] = "hotkeysMuted";
+    constexpr static const char HOTKEYS_NUMERIC_KEY[] = "hotkeysAllowNumeric";
 
     File soundboardsFile;
 
@@ -191,6 +213,8 @@ private:
      */
     bool hotkeysMuted = false;
 
+    bool numericHotkeyAllowed = true;
+
     /**
      * Writes the soundboard data to the given file.
      *
@@ -209,10 +233,6 @@ private:
      */
     void readSoundboardsFromFile(const File& file);
 
-    /**
-     * Saves the current soundboard data to disk.
-     */
-    void saveToDisk() const;
 
     /**
      * Loads the current soundboard data from disk.

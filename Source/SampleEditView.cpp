@@ -153,6 +153,7 @@ void SampleEditView::createPlaybackOptionInputs()
     mPlaybackOptionsLabel->setColour(Label::textColourId, Colour(0xeeffffff));
     addAndMakeVisible(mPlaybackOptionsLabel.get());
 
+
     createButtonBehaviourButton();
 
     createLoopButton();
@@ -160,6 +161,15 @@ void SampleEditView::createPlaybackOptionInputs()
     createPlaybackBehaviourButton();
 
     createReplayBehaviourButton();
+    
+    mApplyPlaybackOptionsToOthersButton = std::make_unique<SonoTextButton>(TRANS("Apply to others"));
+    mApplyPlaybackOptionsToOthersButton->setTooltip(TRANS("Apply these options to all samples in the selected soundboard"));
+    mApplyPlaybackOptionsToOthersButton->onClick = [this]() {
+        if (applyPlaybackOptionsToOthersCallback) {
+            applyPlaybackOptionsToOthersCallback(*this);
+        }
+    };
+    addAndMakeVisible(mApplyPlaybackOptionsToOthersButton.get());
 }
 
 void SampleEditView::createVolumeInputs()
@@ -535,6 +545,8 @@ void SampleEditView::resized()
     playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mReplayBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(1));
+    playbackOptionsRowBox.items.add(FlexItem(mintextbuttwidth, rowheight, *mApplyPlaybackOptionsToOthersButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));

@@ -173,6 +173,11 @@ private:
     std::unique_ptr<SonoDrawableButton> mHotkeyStateButton;
 
     /**
+     * Button for enabling/disabling numeric default hotkeys.
+     */
+    std::unique_ptr<SonoDrawableButton> mNumericHotkeyStateButton;
+
+    /**
      * Button for stopping all playing sample playbacks.
      */
     std::unique_ptr<SonoDrawableButton> mStopAllPlayback;
@@ -272,6 +277,12 @@ private:
      */
     void clickedEditSoundSample(Component & button, SoundSample& sample);
 
+    /**
+     * Apply all playback options from the passed in fromsample to all the others in the current soundboard
+     */
+    void applyOptionsToAll(SoundSample & fromsample);
+
+    
     void fileDraggedAt(int x, int y);
 
     void fileDragStopped();

@@ -141,12 +141,29 @@ void SoundboardView::createControlPanel()
     mHotkeyStateButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mHotkeyStateButton->setTitle(TRANS("Toggle hotkeys"));
     mHotkeyStateButton->setTooltip(TRANS("Toggles whether sound samples can be played using hotkeys."));
-    mHotkeyStateButton->setToggleState(processor->isHotkeysSelected(), NotificationType::dontSendNotification);
+    mHotkeyStateButton->setToggleState(processor->isHotkeysMuted(), NotificationType::dontSendNotification);
     mHotkeyStateButton->onClick = [this]() {
-        processor->setHotkeysSelected(mHotkeyStateButton->getToggleState());
+        processor->setHotkeysMuted(mHotkeyStateButton->getToggleState());
     };
     addAndMakeVisible(mHotkeyStateButton.get());
 
+    mNumericHotkeyStateButton = std::make_unique<SonoDrawableButton>("Hotkey switch", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> keypadImage(Drawable::createFromImageData(BinaryData::keypadnum_svg, BinaryData::keypadnum_svgSize));
+    std::unique_ptr<Drawable> keypadDisabledImage(Drawable::createFromImageData(BinaryData::keypadnumdisabled_svg, BinaryData::keypadnumdisabled_svgSize));
+    mNumericHotkeyStateButton->setImages(keypadDisabledImage.get(), nullptr, nullptr, nullptr, keypadImage.get());
+    mNumericHotkeyStateButton->setForegroundImageRatio(0.75f);
+    mNumericHotkeyStateButton->setClickingTogglesState(true);
+    mNumericHotkeyStateButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mNumericHotkeyStateButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mNumericHotkeyStateButton->setTitle(TRANS("Toggle numeric hotkeys"));
+    mNumericHotkeyStateButton->setTooltip(TRANS("Toggles whether sound samples can be played using default numeric hotkeys."));
+    mNumericHotkeyStateButton->setToggleState(processor->isDefaultNumericHotkeyAllowed(), NotificationType::dontSendNotification);
+    mNumericHotkeyStateButton->onClick = [this]() {
+        processor->setDefaultNumericHotkeyAllowed(mNumericHotkeyStateButton->getToggleState());
+    };
+    addAndMakeVisible(mNumericHotkeyStateButton.get());
+
+    
     mStopAllPlayback = std::make_unique<SonoDrawableButton>("StopAllPlayback", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> speakerImage(Drawable::createFromImageData(BinaryData::speaker_disabled_grey_svg, BinaryData::speaker_disabled_grey_svgSize));
     mStopAllPlayback->setImages(speakerImage.get());
@@ -164,6 +181,7 @@ void SoundboardView::createControlPanel()
     controlsBox.justifyContent = FlexBox::JustifyContent::center;
     controlsBox.items.add(FlexItem(38, 34, *mStopAllPlayback).withMargin(4).withFlex(0));
     controlsBox.items.add(FlexItem(38, 34, *mHotkeyStateButton).withMargin(4).withFlex(0));
+    controlsBox.items.add(FlexItem(38, 34, *mNumericHotkeyStateButton).withMargin(4).withFlex(0));
 }
 
 void SoundboardView::updateSoundboardSelector()
@@ -725,10 +743,17 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
         sample.setGain(editView.getGain());
         processor->updatePlaybackSettings(sample);
     };
+
+    auto applyToOthersCallback = [this, &sample, &button](SampleEditView& editView) {
+        applyOptionsToAll(sample);
+    };
+
     
     auto wrap = std::make_unique<Viewport>();
     auto content = std::make_unique<SampleEditView>(submitcallback, gaincallback, &sample, mLastSampleBrowseDirectory.get());
 
+    content->applyPlaybackOptionsToOthersCallback = applyToOthersCallback;
+    
     Component* dw = findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = findParentComponentOfClass<Component>();
     if (!dw) dw = this;
@@ -749,6 +774,31 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
     mSampleEditCalloutBox = & CallOutBox::launchAsynchronously(std::move(wrap),
                                                             bounds, dw, false);
     mSampleEditCalloutBox->addComponentListener(this);
+}
+
+void SoundboardView::applyOptionsToAll(SoundSample & fromsample)
+{
+    auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
+        return false;
+    }
+
+    auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
+    auto& samples = soundboard.getSamples();
+
+    auto sampleCount = samples.size();
+    bool gotone = false;
+    for (int i = 0; i < sampleCount; ++i) {
+        auto& sample = samples[i];
+        if (&fromsample != &sample) {
+            sample.setReplayBehaviour(fromsample.getReplayBehaviour());
+            sample.setPlaybackBehaviour(fromsample.getPlaybackBehaviour());
+            sample.setLoop(fromsample.isLoop());
+            sample.setButtonBehaviour(fromsample.getButtonBehaviour());
+            processor->editSoundSample(sample, false);
+        }
+    }
+    processor->saveToDisk();
 }
 
 void SoundboardView::paint(Graphics& g)
@@ -803,17 +853,7 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
     // 0 is already assigned to jump to start.
     auto keyCode = keyPress.getKeyCode();
 
-    if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
-        if (triggerSampleAtIndex(keyCode - 49)) {
-            return true;
-        }
-    }
-
-    if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
-        if (triggerSampleAtIndex(keyCode - KeyPress::numberPad1)) {
-            return true;
-        }
-    }
+    
 
     // Look for custom keybinds.
     auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
@@ -833,6 +873,24 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
             gotone = true;
         }
     }
+    
+    if (!gotone && mNumericHotkeyStateButton->getToggleState()) {
+        // if something wasn't already triggered by this keycode, and if default numeric ones are allowed
+        if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
+            auto index = keyCode - 49;
+            if (triggerSampleAtIndex(index)) {
+                return true;
+            }
+        }
+
+        if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
+            auto index = keyCode - KeyPress::numberPad1;
+            if (triggerSampleAtIndex(index)) {
+                return true;
+            }
+        }
+    }
+    
     return gotone;
 }
 

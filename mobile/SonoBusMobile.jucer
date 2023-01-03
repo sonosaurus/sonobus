@@ -128,6 +128,9 @@
       <FILE id="Wl1PWP" name="keyboard.svg" compile="0" resource="1" file="../images/keyboard.svg"/>
       <FILE id="X9WfOj" name="keyboard_disabled.svg" compile="0" resource="1"
             file="../images/keyboard_disabled.svg"/>
+      <FILE id="XdQ5lO" name="keypad-num-disabled.svg" compile="0" resource="1"
+            file="../images/keypad-num-disabled.svg"/>
+      <FILE id="li5ES7" name="keypad-num.svg" compile="0" resource="1" file="../images/keypad-num.svg"/>
       <FILE id="A49mBq" name="launchicon@2x.png" compile="0" resource="0"
             file="../images/launchicon@2x.png" xcodeResource="1"/>
       <FILE id="VADUKt" name="LaunchScreen.storyboard" compile="0" resource="0"

@@ -114,10 +114,16 @@ namespace BinaryData
     const int            incoming_disallowed_svgSize = 9407;
 
     extern const char*   keyboard_svg;
-    const int            keyboard_svgSize = 5011;
+    const int            keyboard_svgSize = 6005;
 
     extern const char*   keyboard_disabled_svg;
-    const int            keyboard_disabled_svgSize = 5151;
+    const int            keyboard_disabled_svgSize = 6288;
+
+    extern const char*   keypadnumdisabled_svg;
+    const int            keypadnumdisabled_svgSize = 8796;
+
+    extern const char*   keypadnum_svg;
+    const int            keypadnum_svgSize = 8962;
 
     extern const char*   lgc_bar_wav;
     const int            lgc_bar_wavSize = 806;
@@ -285,7 +291,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 92;
+    const int namedResourceListSize = 94;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

@@ -108,6 +108,7 @@ static String langOverrideCodeKey("langOverrideCode");
 static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
 static String autoresizeDropRateThreshKey("autoDropRateThreshNew");
+static String reconnectServerLossKey("reconnServLoss");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -592,6 +593,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
 //==============================================================================
 SonobusAudioProcessor::SonobusAudioProcessor()
 : AudioProcessor ( getDefaultLayout() ),
+mReconnectTimer(*this),
 soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>()),
 mGlobalState("SonobusGlobalState"),
 mState (*this, &mUndoManager, "SonoBusAoO",
@@ -1072,8 +1074,11 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
 {
     if (!mAooClient) return false;
     
-    // disconnect from everything else!
-    removeAllRemotePeers();
+    // disconnect from everything else, unless we are recovering from server loss
+    if (!mRecoveringFromServerLoss) {
+        removeAllRemotePeers();
+    }
+    
     
     mServerEndpoint->ipaddr = host;
     mServerEndpoint->port = port;
@@ -2633,40 +2638,47 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
 
             SBChatEvent chatevent(SBChatEvent::UserType, group, from, targets, tags, message);
             
-            mAllChatEvents.add(chatevent);
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
+            if (!isAddressBlocked(endpoint->ipaddr)) {
+                
+                mAllChatEvents.add(chatevent);
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
+            }
 
         }
         else if (type == SONOBUS_MSGTYPE_REQLATINFO) {
             // received from the other side
             // args: none
 
-            auto latinfo = getAllLatInfo();
+            if (!isAddressBlocked(endpoint->ipaddr)) {
 
-            char buf[AOO_MAXPACKETSIZE];
-            osc::OutboundPacketStream outmsg(buf, sizeof(buf));
-
-            String jsonstr = JSON::toString(latinfo, true, 6);
-
-            if (jsonstr.getNumBytesAsUTF8() > AOO_MAXPACKETSIZE - 100) {
-                DBG("Info too big for packet!");
-                return false;
+                
+                auto latinfo = getAllLatInfo();
+                
+                char buf[AOO_MAXPACKETSIZE];
+                osc::OutboundPacketStream outmsg(buf, sizeof(buf));
+                
+                String jsonstr = JSON::toString(latinfo, true, 6);
+                
+                if (jsonstr.getNumBytesAsUTF8() > AOO_MAXPACKETSIZE - 100) {
+                    DBG("Info too big for packet!");
+                    return false;
+                }
+                
+                
+                try {
+                    outmsg << osc::BeginMessage(SONOBUS_FULLMSG_LATINFO)
+                    << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
+                    << osc::EndMessage;
+                }
+                catch (const osc::Exception& e){
+                    DBG("exception in reqlat message constructions: " << e.what());
+                    return false;
+                }
+                
+                endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
+                
+                DBG("Received REQLAT from " << endpoint->ipaddr << ":" << endpoint->port);
             }
-
-
-            try {
-                outmsg << osc::BeginMessage(SONOBUS_FULLMSG_LATINFO)
-                << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
-                << osc::EndMessage;
-            }
-            catch (const osc::Exception& e){
-                DBG("exception in reqlat message constructions: " << e.what());
-                return false;
-            }
-
-            endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
-
-            DBG("Received REQLAT from " << endpoint->ipaddr << ":" << endpoint->port);
 
         }
         else if (type == SONOBUS_MSGTYPE_LATINFO) {
@@ -2699,7 +2711,9 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             auto username = (it++)->AsString();
             auto latency = (it++)->AsFloat();
 
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::peerRequestedLatencyMatch, this, username, latency);
+            if (!isAddressBlocked(endpoint->ipaddr)) {
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::peerRequestedLatencyMatch, this, username, latency);
+            }
         }
         else if (type == SONOBUS_MSGTYPE_BLOCKEDINFO) {
             // received from the other side when they have blocked/unblocked us
@@ -4020,6 +4034,25 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 mSessionConnectionStamp = 0.0;
             }
 
+            if (mPendingReconnect) {
+                
+                if (mIsConnectedToServer && mPendingReconnectInfo.groupName.isNotEmpty()) {
+                    mPendingReconnectInfo.timestamp = Time::getCurrentTime().toMilliseconds();
+                    addRecentServerConnectionInfo(mPendingReconnectInfo);
+                    setWatchPublicGroups(false);
+                    DBG("Joining group after pending reconnect: " << mPendingReconnectInfo.groupName);
+                    joinServerGroup(mPendingReconnectInfo.groupName, mPendingReconnectInfo.groupPassword, mPendingReconnectInfo.groupIsPublic);
+                }
+                
+                mPendingReconnect = false;
+            }
+
+            if (mIsConnectedToServer && mReconnectTimer.isTimerRunning()) {
+                DBG("Stopping reconnect timer");
+                mReconnectTimer.stopTimer();
+                mRecoveringFromServerLoss = false;
+            }
+            
             clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, this, e->result > 0, String::fromUTF8(e->errormsg));
             
             break;
@@ -4029,14 +4062,22 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             aoonet_client_group_event *e = (aoonet_client_group_event *)events[i];
             if (e->result == 0){
                 DBG("Disconnected from server - " << String::fromUTF8(e->errormsg));
+                
+                if (mReconnectAfterServerLoss.get() && !mReconnectTimer.isTimerRunning()) {
+                    DBG("Starting reconnect timer");
+                    mRecoveringFromServerLoss = true;
+                    mReconnectTimer.startTimer(1000);
+                }
             }
+
+            mPendingReconnect = false;
 
             // don't remove all peers?
             //removeAllRemotePeers();
             
             mIsConnectedToServer = false;
             mSessionConnectionStamp = 0.0;
-
+            
             clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientDisconnected, this, e->result > 0, String::fromUTF8(e->errormsg));
 
             break;
@@ -4699,6 +4740,18 @@ String SonobusAudioProcessor::getRemotePeerUserName(int index) const
     }
     return "";
 }
+
+bool SonobusAudioProcessor::isRemotePeerUserInGroup(const String & name) const
+{
+    const ScopedReadLock sl (mCoreLock);
+    for (int index = 0; index < mRemotePeers.size(); ++index) {
+        auto * remote = mRemotePeers.getUnchecked(index);
+        if (remote->userName == name)
+            return true;
+    }
+    return false;
+}
+
 
 void SonobusAudioProcessor::setRemotePeerChannelPan(int index, int changroup, int chan, float pan)
 {
@@ -8329,6 +8382,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastWindowWidthKey, var((int)mPluginWindowWidth), nullptr);
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
     extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
+    extraTree.setProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get(), nullptr);
 
     extraTree.appendChild(mVideoLinkInfo.getValueTree(), nullptr);
     
@@ -8448,6 +8502,9 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
                                                      extraTree.getProperty(lastWindowHeightKey, (int)mPluginWindowHeight)));
 
             setAutoresizeBufferDropRateThreshold(extraTree.getProperty(autoresizeDropRateThreshKey, (float)mAutoresizeDropRateThresh));
+
+            setReconnectAfterServerLoss(extraTree.getProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get()));
+
             
             ValueTree videoinfo = extraTree.getChildWithName(videoLinkInfoKey);
             if (videoinfo.isValid()) {
@@ -8486,6 +8543,15 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
         // don't recover main solo
         mState.getParameter(paramMainMonitorSolo)->setValueNotifyingHost(0.0f);
         
+        if (mFreshInit) {
+            // only do initial auto reconnect on the first state restore
+            
+            if (getAutoReconnectToLast() && !isConnectedToServer()) {
+                reconnectToMostRecent();
+            }
+
+            mFreshInit = false;
+        }
     }
 }
 
@@ -8494,7 +8560,37 @@ void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInByt
     setStateInformationWithOptions(data, sizeInBytes, true);
 }
 
+void SonobusAudioProcessor::ServerReconnectTimer::timerCallback()
+{
+    if (!processor.isConnectedToServer() && !processor.mPendingReconnect) {
+        processor.reconnectToMostRecent();
+    }
+    else if (processor.isConnectedToServer()){
+        processor.mRecoveringFromServerLoss = false;
 
+        stopTimer();
+    }
+}
+
+bool SonobusAudioProcessor::reconnectToMostRecent()
+{
+    Array<AooServerConnectionInfo> recents;
+    getRecentServerConnectionInfos(recents);
+    
+    if (recents.size() > 0) {
+        const auto & info = recents.getReference(0);
+
+        if (info.serverHost.isNotEmpty() && info.userName.isNotEmpty()) {
+            DBG("Reconnecting to server and group: " << info.groupName);
+            mPendingReconnectInfo = info;
+            mPendingReconnect = true;
+            connectToServer(info.serverHost, info.serverPort, info.userName, info.userPassword);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 SonobusAudioProcessor::PeerStateCache::PeerStateCache()
 {
