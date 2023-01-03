@@ -498,6 +498,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/mic.svg
         images/mic_disabled.svg
         images/mic_pointing.svg
+        images/mesg-unread.svg
         images/move_updown.svg
         images/mute-others.svg
         images/network.svg
@@ -523,6 +524,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/record_active_alt.svg
         images/rectape.svg
         images/reset_buffer_icon.svg
+        images/send.svg
         images/send_group.svg
         images/send_group_small.svg
         images/replay_icon.svg

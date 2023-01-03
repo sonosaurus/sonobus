@@ -141,6 +141,7 @@
             file="../images/loop_off_icon.png"/>
       <FILE id="FyV3zd" name="loop_off_icon.svg" compile="0" resource="1"
             file="../images/loop_off_icon.svg"/>
+      <FILE id="kb2kLi" name="mesg-unread.svg" compile="0" resource="1" file="../images/mesg-unread.svg"/>
       <FILE id="GIpd7j" name="met.svg" compile="0" resource="1" file="../images/met.svg"/>
       <FILE id="pUqtix" name="mic.svg" compile="0" resource="1" file="../images/mic.svg"/>
       <FILE id="ZeI5Mg" name="mic_disabled.svg" compile="0" resource="1"
@@ -182,6 +183,7 @@
       <FILE id="YDzjVZ" name="replay_icon.svg" compile="0" resource="1" file="../images/replay_icon.svg"/>
       <FILE id="VFKIt9" name="reset_buffer_icon.svg" compile="0" resource="1"
             file="../images/reset_buffer_icon.svg"/>
+      <FILE id="U8ugtl" name="send.svg" compile="0" resource="1" file="../images/send.svg"/>
       <FILE id="bq1pq6" name="send_group.svg" compile="0" resource="1" file="../images/send_group.svg"/>
       <FILE id="YJbZr5" name="send_group_small.svg" compile="0" resource="1"
             file="../images/send_group_small.svg"/>

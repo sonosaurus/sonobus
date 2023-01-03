@@ -241,25 +241,26 @@ enum {
 struct SonobusAudioProcessor::RemotePeer {
     RemotePeer(EndpointState * ep = 0, int id_=0, aoo::isink::pointer oursink_ = 0, aoo::isource::pointer oursource_ = 0) : endpoint(ep), 
         ourId(id_), 
-        oursink(std::move(oursink_)), oursource(std::move(oursource_)) {
-            for (int i=0; i < MAX_PANNERS; ++i) {
-                recvPan[i] = recvPanLast[i] = 0.0f;
-                if ((i % 2) == 0) {
-                    recvStereoPan[i] = -1.0f;
-                } else {
-                    recvStereoPan[i] = 1.0f;                    
-                }
+        oursink(std::move(oursink_)), oursource(std::move(oursource_))
+    {
+        for (int i=0; i < MAX_PANNERS; ++i) {
+            recvPan[i] = recvPanLast[i] = 0.0f;
+            if ((i % 2) == 0) {
+                recvStereoPan[i] = -1.0f;
+            } else {
+                recvStereoPan[i] = 1.0f;
             }
-            
-            oursink.reset(aoo::isink::create(ourId));
-            oursource.reset(aoo::isource::create(ourId));
-            
-            // create latency sink/sources
-            latencysink.reset(aoo::isink::create(ourId + LATENCY_ID_OFFSET));
-            latencysource.reset(aoo::isource::create(ourId + LATENCY_ID_OFFSET));
-            echosink.reset(aoo::isink::create(ourId + ECHO_ID_OFFSET));
-            echosource.reset(aoo::isource::create(ourId + ECHO_ID_OFFSET));               
         }
+        
+        oursink.reset(aoo::isink::create(ourId));
+        oursource.reset(aoo::isource::create(ourId));
+        
+        // create latency sink/sources
+        latencysink.reset(aoo::isink::create(ourId + LATENCY_ID_OFFSET));
+        latencysource.reset(aoo::isource::create(ourId + LATENCY_ID_OFFSET));
+        echosink.reset(aoo::isink::create(ourId + ECHO_ID_OFFSET));
+        echosource.reset(aoo::isource::create(ourId + ECHO_ID_OFFSET));
+    }
 
     EndpointState * endpoint = 0;
     int32_t ourId = AOO_ID_NONE;
@@ -2631,9 +2632,9 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             String message (CharPointer_UTF8((it++)->AsString()));
 
             SBChatEvent chatevent(SBChatEvent::UserType, group, from, targets, tags, message);
+            
             mAllChatEvents.add(chatevent);
             clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
-
 
         }
         else if (type == SONOBUS_MSGTYPE_REQLATINFO) {

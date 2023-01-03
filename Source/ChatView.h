@@ -51,6 +51,9 @@ public:
 
     void visibilityChanged() override;
 
+    void chatTabChanged (int tabindex);
+    void chatTabRightClicked (int tabindex);
+
 protected:
 
     void processNewChatMessages(int index, int count);
@@ -59,8 +62,18 @@ protected:
     void showMenu(bool show);
     void showSaveChat();
 
-    void updateFontSizes();
+    void showTabMenu(bool show);
+    void updatePrivateChatMap();
+    void appendPrivateChatTab(const String & name, bool setcurrent=false);
+    void deletePrivateChatTab(int index);
+    void setMesgUnreadForTab(int index, bool flag);
+    void setMesgUnreadForTab(const String & name, bool flag);
 
+    Colour getOrGenerateUserColor(const String & name);
+    
+    void updateFontSizes();
+    void updateTitles();
+    
     bool parseStringForUrl(const String & str, Array<Range<int> > & retranges);
 
     bool findUrlAtPos(juce::Point<int>, String & retstr);
@@ -77,6 +90,9 @@ protected:
 
     double mLastChatViewStamp = 0.0;
 
+    std::map<String,int> mLastPrivateChatViewEventIndex;
+    int mLastGlobalViewEventIndex = 0;
+    
     bool mUserScrolled = false;
 
     bool mKeyboardVisible = false;
@@ -89,12 +105,15 @@ protected:
 
     int lastShownCount = 0;
 
+    std::unique_ptr<TabbedButtonBar> mChatTabs;
     std::unique_ptr<Component> mChatContainer;
     std::unique_ptr<TextEditor> mChatTextEditor;
     std::unique_ptr<FocusTextEditor> mChatSendTextEditor;
     std::unique_ptr<SonoDrawableButton> mMenuButton;
     std::unique_ptr<SonoDrawableButton> mCloseButton;
     std::unique_ptr<Label> mTitleLabel;
+    std::unique_ptr<SonoDrawableButton> mChatTabMenuButton;
+    std::unique_ptr<SonoDrawableButton> mSendButton;
 
     // URL position list
     struct cmpRange {
@@ -108,6 +127,10 @@ protected:
 
     //Array<Range<int> > mUrlRanges;
 
+    // key is username, value is tab index
+    typedef std::map<String,int> PrivateChatMap;
+    PrivateChatMap mPrivateChatMap;
+    
     std::unique_ptr<FileChooser> mFileChooser;
 
 
@@ -123,7 +146,9 @@ protected:
     FlexBox mainBox;
     FlexBox titleBox;
     FlexBox chatContainerBox;
+    FlexBox chatTextBox;
     FlexBox chatSendBox;
+    FlexBox chatTabsBox;
 
 
 

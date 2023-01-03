@@ -85,6 +85,11 @@ struct SBChatEvent
     String message;
 };
 
+// chat message storage, thread-safe
+typedef Array<SBChatEvent, CriticalSection> SBChatEventList;
+
+
+
 inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs) {
     // compare all except timestamp
      return (lhs.userName == rhs.userName
@@ -438,8 +443,7 @@ public:
 
     bool getRemotePeerSafetyMuted(int index) const;
     bool getRemotePeerBlockedUs(int index) const;
-
-
+    
     struct LatencyInfo
     {
         float pingMs = 0.0f;
@@ -1014,7 +1018,7 @@ private:
     bool mChatUseFixedWidthFont = false;
     int mChatFontSizeOffset = 0;
     // chat message storage, thread-safe
-    Array<SBChatEvent, CriticalSection> mAllChatEvents;
+    SBChatEventList mAllChatEvents;
 
     int mLastSoundboardWidth = 250;
     bool mLastSoundboardShown = false;

@@ -3744,6 +3744,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
             //AccessibilityHandler::postAnnouncement(statstr, AccessibilityHandler::AnnouncementPriority::high);
 
+            mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+
             mPeerContainer->resetPendingUsers();
             updateServerStatusLabel(statstr);
             updatePeerState(true);

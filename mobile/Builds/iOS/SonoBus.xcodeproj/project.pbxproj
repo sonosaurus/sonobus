@@ -250,6 +250,7 @@
 		59738449C5A732517565CE89 /* localized_ru.txt */ /* localized_ru.txt */ = {isa = PBXFileReference; lastKnownFileType = text.txt; name = localized_ru.txt; path = ../../../localization/localized_ru.txt; sourceTree = SOURCE_ROOT; };
 		5A0DA232740E2178468D6013 /* LaunchScreen.storyboard */ /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ../../../images/LaunchScreen.storyboard; sourceTree = SOURCE_ROOT; };
 		5B2C7AE6B6D711AC95214BF9 /* Shared Code */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSonoBus.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5BA2F2166BBE41BA412234D3 /* mesg-unread.svg */ /* mesg-unread.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = "mesg-unread.svg"; path = "../../../images/mesg-unread.svg"; sourceTree = SOURCE_ROOT; };
 		5BC3101B3C0129A9667DC565 /* UIKit.framework */ /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		5BD328EAB5FD224676DA2345 /* GenericItemChooser.h */ /* GenericItemChooser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GenericItemChooser.h; path = ../../../Source/GenericItemChooser.h; sourceTree = SOURCE_ROOT; };
 		5C92573CA82D46BA00B9CA74 /* aoo_pcm.h */ /* aoo_pcm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = aoo_pcm.h; path = ../../../deps/aoo/lib/aoo/aoo_pcm.h; sourceTree = SOURCE_ROOT; };
@@ -271,6 +272,7 @@
 		65D4385C9458EB952446943C /* AutoUpdater.cpp */ /* AutoUpdater.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = AutoUpdater.cpp; path = ../../../Source/AutoUpdater.cpp; sourceTree = SOURCE_ROOT; };
 		676C5011753D72DEED7C9B6C /* BeatToggleGrid.cpp */ /* BeatToggleGrid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BeatToggleGrid.cpp; path = ../../../Source/BeatToggleGrid.cpp; sourceTree = SOURCE_ROOT; };
 		6786585D7F5FA7D813AAFAB0 /* SonoDrawableButton.cpp */ /* SonoDrawableButton.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SonoDrawableButton.cpp; path = ../../../Source/SonoDrawableButton.cpp; sourceTree = SOURCE_ROOT; };
+		679D50A92F99CF0F414C0693 /* send.svg */ /* send.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = send.svg; path = ../../../images/send.svg; sourceTree = SOURCE_ROOT; };
 		67FCF5374C5085DFF4A4E0AA /* chevron_forward.svg */ /* chevron_forward.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = chevron_forward.svg; path = ../../../images/chevron_forward.svg; sourceTree = SOURCE_ROOT; };
 		686C6BA48375D32E482AB6BF /* ConnectView.cpp */ /* ConnectView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ConnectView.cpp; path = ../../../Source/ConnectView.cpp; sourceTree = SOURCE_ROOT; };
 		696387BC4FD65080B3A3BE8E /* loop_off_icon.svg */ /* loop_off_icon.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = loop_off_icon.svg; path = ../../../images/loop_off_icon.svg; sourceTree = SOURCE_ROOT; };
@@ -859,6 +861,7 @@
 				6CE15B1F882190FC0D19F744,
 				8D90EC2C6CC7527F2AB1A4FF,
 				696387BC4FD65080B3A3BE8E,
+				5BA2F2166BBE41BA412234D3,
 				1C6ACDCE3465E2D32EEE510A,
 				A6793CC81FC748FD61552325,
 				D55E5C96BDF74F5FBC5BC106,
@@ -889,6 +892,7 @@
 				8D531D41FC4C59245B5A8265,
 				18D1CECF3D8CF7736531D2F4,
 				54829E4C0504534D9B511EE6,
+				679D50A92F99CF0F414C0693,
 				6C0BC308D7E143B29C39C6F5,
 				2B5AE910F27403AD32A72632,
 				32D3BCD99AC6A16B7A871732,

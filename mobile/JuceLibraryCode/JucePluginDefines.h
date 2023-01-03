@@ -155,7 +155,7 @@
  #define JucePlugin_ARAFactoryID           "com.Sonosaurus.SonoBus.factory"
 #endif
 #ifndef  JucePlugin_ARADocumentArchiveID
- #define JucePlugin_ARADocumentArchiveID   "com.Sonosaurus.SonoBus.aradocumentarchive.1.5.1"
+ #define JucePlugin_ARADocumentArchiveID   "com.Sonosaurus.SonoBus.aradocumentarchive.1.6.0"
 #endif
 #ifndef  JucePlugin_ARACompatibleArchiveIDs
  #define JucePlugin_ARACompatibleArchiveIDs  ""
