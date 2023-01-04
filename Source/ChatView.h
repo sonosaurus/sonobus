@@ -96,7 +96,8 @@ protected:
     bool mUserScrolled = false;
 
     bool mKeyboardVisible = false;
-
+    uint32 mKeyboardShownStamp = 0;
+    
     uint32 mLastUrlCheckStampMs = 0;
     bool mOverUrl = false;
 

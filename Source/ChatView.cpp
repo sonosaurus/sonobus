@@ -213,14 +213,24 @@ void ChatView::resized()
 {
     if (mKeyboardVisible) {
         int keybh = 0;
-        // silly heuristics
 #if JUCE_IOS || JUCE_ANDROID
         auto * display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
-        int maxheight = display ? display->userArea.getHeight() : 500;
-        int maxwidth = display ? display->userArea.getWidth() : 300;
-        keybh = maxwidth > 700 ? (maxwidth / 1.8f) : (maxwidth / 1.5f);
-        keybh = jmin(maxheight > 700 ?  350 : 174, keybh);
-        //keybh = (int) (maxwidth / 1.5f);
+        //int maxheight = display ? display->userArea.getHeight() : 500;
+        //int maxwidth = display ? display->userArea.getWidth() : 300;
+        keybh = display ? display->keyboardInsets.getBottom() : 0;
+        //keybh = maxwidth > 700 ? (maxwidth / 1.8f) : (maxwidth / 1.5f);
+        //keybh = jmin(maxheight > 700 ?  350 : 174, keybh);
+
+        if (keybh > 0) {
+            keybh -= display ? display->totalArea.getBottom() - getScreenBounds().getBottom() : 0;
+        }
+        else if (Time::getApproximateMillisecondCounter() < mKeyboardShownStamp + 3000){
+            // call resized again shortly for some time until the keyboard height is something
+            DBG("Calling delayed resize");
+            Timer::callAfterDelay(200, [this]() {
+                resized();
+            });
+        }
 #endif
         mainBox.performLayout(getLocalBounds().withTrimmedBottom(keybh).reduced(2));
     }
@@ -240,6 +250,7 @@ void ChatView::chatTextGainedFocus(FocusChangeType ctype)
 {
 #if JUCE_IOS || JUCE_ANDROID
     mKeyboardVisible = true;
+    mKeyboardShownStamp = Time::getApproximateMillisecondCounter();
     resized();
 #endif
 }
