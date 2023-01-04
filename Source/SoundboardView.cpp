@@ -150,16 +150,16 @@ void SoundboardView::createControlPanel()
     mNumericHotkeyStateButton = std::make_unique<SonoDrawableButton>("Hotkey switch", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> keypadImage(Drawable::createFromImageData(BinaryData::keypadnum_svg, BinaryData::keypadnum_svgSize));
     std::unique_ptr<Drawable> keypadDisabledImage(Drawable::createFromImageData(BinaryData::keypadnumdisabled_svg, BinaryData::keypadnumdisabled_svgSize));
-    mNumericHotkeyStateButton->setImages(keypadDisabledImage.get(), nullptr, nullptr, nullptr, keypadImage.get());
+    mNumericHotkeyStateButton->setImages(keypadImage.get(), nullptr, nullptr, nullptr, keypadDisabledImage.get());
     mNumericHotkeyStateButton->setForegroundImageRatio(0.75f);
     mNumericHotkeyStateButton->setClickingTogglesState(true);
     mNumericHotkeyStateButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     mNumericHotkeyStateButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mNumericHotkeyStateButton->setTitle(TRANS("Toggle numeric hotkeys"));
     mNumericHotkeyStateButton->setTooltip(TRANS("Toggles whether sound samples can be played using default numeric hotkeys."));
-    mNumericHotkeyStateButton->setToggleState(processor->isDefaultNumericHotkeyAllowed(), NotificationType::dontSendNotification);
+    mNumericHotkeyStateButton->setToggleState(!processor->isDefaultNumericHotkeyAllowed(), NotificationType::dontSendNotification);
     mNumericHotkeyStateButton->onClick = [this]() {
-        processor->setDefaultNumericHotkeyAllowed(mNumericHotkeyStateButton->getToggleState());
+        processor->setDefaultNumericHotkeyAllowed(!mNumericHotkeyStateButton->getToggleState());
     };
     addAndMakeVisible(mNumericHotkeyStateButton.get());
 
@@ -217,7 +217,7 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
     auto buttonAddress = playbackButton;
     if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD) {
         playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
-            if (sample.getFilePath().isEmpty()) {
+            if (sample.getFileURL().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
             }
             else if (mods.isCommandDown()) {
@@ -227,7 +227,7 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
     }
     else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::ONE_SHOT) {
         playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
-            if (sample.getFilePath().isEmpty()) {
+            if (sample.getFileURL().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
             }
             else if (mods.isCommandDown()) {
@@ -239,7 +239,7 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
     }
     else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE) {
         playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
-            if (sample.getFilePath().isEmpty()) {
+            if (sample.getFileURL().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
             }
             else if (mods.isCommandDown()) {
@@ -339,6 +339,11 @@ void SoundboardView::mouseDown (const MouseEvent& event)
 
 void SoundboardView::mouseDrag (const MouseEvent& event)
 {
+    auto thresh = 5;
+#if JUCE_IOS || JUCE_ANDROID
+    thresh = 12;
+#endif
+
     for (int i=0; i < mSoundButtons.size(); ++i) {
         auto & sbutton = mSoundButtons[i];
 
@@ -346,7 +351,7 @@ void SoundboardView::mouseDrag (const MouseEvent& event)
             auto adjpos =  getLocalPoint(event.eventComponent, event.getPosition());
             DBG("Dragging sample button: " << adjpos.toString());
             
-            if (abs(event.getDistanceFromDragStartY()) > 5 && !mReorderDragging && !sbutton->isPositionDragging()) {
+            if (abs(event.getDistanceFromDragStartY()) > thresh && !mReorderDragging && !sbutton->isPositionDragging()) {
                 // start reorder dragging
                 mReorderDragSourceIndex = i;
                 mReorderDragging = true;
@@ -711,7 +716,7 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
         }
         else {
             auto sampleName = editView.getSampleName();
-            auto filePath = editView.getAbsoluteFilePath();
+            auto fileURL = editView.getFileURL();
             auto buttonColour = editView.getButtonColour();
             auto loop = editView.isLoop();
             auto playbackBehaviour = editView.getPlaybackBehaviour();
@@ -721,7 +726,7 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
             auto hotkeyCode = editView.getHotkeyCode();
 
             sample.setName(sampleName);
-            sample.setFilePath(filePath);
+            sample.setFileURL(fileURL);
             sample.setButtonColour(buttonColour);
             sample.setLoop(loop);
             sample.setPlaybackBehaviour(playbackBehaviour);
@@ -874,7 +879,7 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
         }
     }
     
-    if (!gotone && mNumericHotkeyStateButton->getToggleState()) {
+    if (!gotone && processor->isDefaultNumericHotkeyAllowed()) {
         // if something wasn't already triggered by this keycode, and if default numeric ones are allowed
         if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
             auto index = keyCode - 49;
@@ -995,7 +1000,11 @@ void HoldSampleButtonMouseListener::mouseDown(const MouseEvent& event)
 
 void HoldSampleButtonMouseListener::mouseDrag(const MouseEvent &event)
 {
-    if (!posDragging && abs(event.getDistanceFromDragStartX()) > 5)
+    auto thresh = 5;
+#if JUCE_IOS || JUCE_ANDROID
+    thresh = 12;
+#endif
+    if (!posDragging && abs(event.getDistanceFromDragStartX()) > thresh && !view->isReorderDragging())
     {
         downPoint = event.getPosition();
         if (auto * manager = button->getPlaybackManager()) {

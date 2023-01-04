@@ -22,7 +22,7 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
     if (!fileReadThread.isThreadRunning()) return false;
 
     AudioFormatReader* reader = nullptr;
-    auto audioFileUrl = URL(File(sample->getFilePath()));
+    auto audioFileUrl = sample->getFileURL();
 
 #if !JUCE_IOS
     if (audioFileUrl.isLocalFile()) {
@@ -31,7 +31,13 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
     else
 #endif
     {
-        reader = formatManager.createReaderFor(audioFileUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
+        if (auto strm = audioFileUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress))) {
+            reader = formatManager.createReaderFor(std::move(strm));
+        }
+        else {
+            DBG("Could not load from URL: " << audioFileUrl.toString(false));
+            return false;
+        }
     }
 
     if (reader == nullptr) {

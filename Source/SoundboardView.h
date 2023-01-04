@@ -65,6 +65,8 @@ public:
 
     void stopAllSamples();
 
+    bool isReorderDragging() const { return mReorderDragging; }
+    
     /**
      * Callback used when a sample is command/control clicked to indicate that it should
      * be opened for playback in the main UI (for example)
@@ -72,13 +74,23 @@ public:
     std::function<void(const SoundSample& sample)> onOpenSample;
 
 private:
+    
+#if JUCE_IOS || JUCE_ANDROID
+    constexpr static const float MENU_BUTTON_WIDTH = 36;
+    constexpr static const float TITLE_LABEL_WIDTH = 90;
+    constexpr static const float TITLE_HEIGHT = 40;
+    constexpr static const float TITLE_FONT_HEIGHT = 18;
+    constexpr static const float ELEMENT_MARGIN = 4;
+    constexpr static const float BUTTON_SPACING_MARGIN = 2;
+#else
     constexpr static const float MENU_BUTTON_WIDTH = 36;
     constexpr static const float TITLE_LABEL_WIDTH = 90;
     constexpr static const float TITLE_HEIGHT = 32;
     constexpr static const float TITLE_FONT_HEIGHT = 18;
     constexpr static const float ELEMENT_MARGIN = 4;
     constexpr static const float BUTTON_SPACING_MARGIN = 2;
-
+#endif
+    
     /**
      * Controller for soundboard view.
      */

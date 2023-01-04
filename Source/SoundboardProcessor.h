@@ -23,7 +23,8 @@ class SoundboardProcessor
 {
 public:
     SoundboardProcessor(SoundboardChannelProcessor* channelProcessor, File supportDir);
-
+    virtual ~SoundboardProcessor();
+    
     /**
      * Adds a new soundboard.
      *
@@ -167,7 +168,7 @@ public:
     /**
      * Saves the current soundboard data to disk.
      */
-    void saveToDisk() const;
+    void saveToDisk();
 
     
 private:
@@ -222,7 +223,7 @@ private:
      *
      * @param [in] file The file to store the soundboard data in.
      */
-    void writeSoundboardsToFile(const File& file) const;
+    void writeSoundboardsToFile(const File& file);
 
     /**
      * Reads the soundboard data from the given file.

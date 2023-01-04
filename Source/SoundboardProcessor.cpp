@@ -15,6 +15,11 @@ SoundboardProcessor::SoundboardProcessor(SoundboardChannelProcessor* channelProc
     loadFromDisk();
 }
 
+SoundboardProcessor::~SoundboardProcessor()
+{
+    saveToDisk();
+}
+
 Soundboard& SoundboardProcessor::addSoundboard(const String& name, const bool select)
 {
     auto newSoundboard = Soundboard(name);
@@ -210,7 +215,7 @@ void SoundboardProcessor::stopAllPlayback()
     channelProcessor->unloadAll();
 }
 
-void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
+void SoundboardProcessor::writeSoundboardsToFile(const File& file)
 {
     ValueTree tree(SOUNDBOARDS_KEY);
 
@@ -219,7 +224,7 @@ void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
     tree.setProperty(HOTKEYS_NUMERIC_KEY, numericHotkeyAllowed, nullptr);
 
     int i = 0;
-    for (const auto& soundboard: soundboards) {
+    for (auto& soundboard: soundboards) {
         tree.addChild(soundboard.serialize(), i++, nullptr);
     }
 
@@ -250,7 +255,7 @@ void SoundboardProcessor::readSoundboardsFromFile(const File& file)
     }
 }
 
-void SoundboardProcessor::saveToDisk() const
+void SoundboardProcessor::saveToDisk()
 {
     writeSoundboardsToFile(soundboardsFile);
 }

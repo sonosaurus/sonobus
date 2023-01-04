@@ -27,9 +27,9 @@ std::unique_ptr<InputStream> VersionInfo::createInputStreamForAsset (const Asset
         extraHeaders += "Authorization: Basic " + Base64::toBase64(authuserpass) + "\r\n";
     }
     
-    return std::unique_ptr<InputStream> (downloadUrl.createInputStream (false, nullptr, nullptr,
-                                                                        extraHeaders,
-                                                                        0, &responseHeaders, &statusCode, 1));
+    ;
+    
+    return std::unique_ptr<InputStream> (downloadUrl.createInputStream (URL::InputStreamOptions(URL::ParameterHandling::inAddress).withExtraHeaders(extraHeaders).withResponseHeaders(&responseHeaders).withStatusCode(&statusCode).withNumRedirectsToFollow(1)));
 }
 
 bool VersionInfo::isNewerVersionThanCurrent()
@@ -67,7 +67,7 @@ bool VersionInfo::isNewerVersionThanCurrent()
 
 std::unique_ptr<VersionInfo> VersionInfo::fetch (const String& endpoint)
 {
-    URL latestVersionURL ("https://api.github.com/repos/essej/sonobus/releases/" + endpoint);
+    URL latestVersionURL ("https://api.github.com/repos/sonosaurus/sonobus/releases/" + endpoint);
     String extraHeaders;      
     String authuserpass = SystemStats::getEnvironmentVariable("GITUSERPASS", "");
     
@@ -75,7 +75,7 @@ std::unique_ptr<VersionInfo> VersionInfo::fetch (const String& endpoint)
         extraHeaders = "Authorization: Basic " + Base64::toBase64(authuserpass) + "\r\n";
     }
 
-    std::unique_ptr<InputStream> inStream (latestVersionURL.createInputStream (false, nullptr, nullptr, extraHeaders));
+    std::unique_ptr<InputStream> inStream (latestVersionURL.createInputStream (URL::InputStreamOptions(URL::ParameterHandling::inAddress).withExtraHeaders(extraHeaders)));
 
     if (inStream == nullptr)
         return nullptr;

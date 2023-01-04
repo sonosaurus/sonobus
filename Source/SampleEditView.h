@@ -56,6 +56,11 @@ public:
     [[nodiscard]] String getAbsoluteFilePath() const;
 
     /**
+     * @return The absolute file path to the sound file of the sound sample.
+     */
+    [[nodiscard]] juce::URL getFileURL() const;
+
+    /**
      * Whether the dialog is in edit mode.
      *
      * @return true if the dialog is in edit mode.
@@ -253,7 +258,8 @@ private:
 
     std::unique_ptr<SonoTextButton> mApplyPlaybackOptionsToOthersButton;
 
-
+    juce::URL mFileURL;
+    
     /**
      * Creates the input controls for the sample name.
      */

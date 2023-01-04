@@ -817,8 +817,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mSoundboardView->setVisible(false);
     mSoundboardView->addComponentListener(this);
     mSoundboardView->onOpenSample = [this](const SoundSample& sample) {
-        if (!sample.getFilePath().isEmpty()) {
-            URL audiourl = URL (File (sample.getFilePath()));
+        if (!sample.getFileURL().isEmpty()) {
+            URL audiourl = sample.getFileURL();
             loadAudioFromURL(audiourl);
             updateLayout();
             resized();

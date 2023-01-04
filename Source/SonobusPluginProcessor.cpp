@@ -747,6 +747,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 #if (JUCE_IOS)
     mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
     mLastBrowseDir = mDefaultRecordDir;
+    DBG("Default record dir: " << mDefaultRecordDir);
 #elif (JUCE_ANDROID)
     auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
     parentDir = parentDir.getChildFile("Recordings");
@@ -9197,7 +9198,7 @@ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 #endif
     {
         if (reader == nullptr) {
-            reader = mFormatManager.createReaderFor (audioURL.createInputStream (false));
+            reader = mFormatManager.createReaderFor (audioURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
         }
     }
 
