@@ -394,7 +394,7 @@
                   UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="../images/LaunchScreen.storyboard"
                   iosScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
                   iPadScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
-                  UIRequiresFullScreen="0" buildNumber="76">
+                  UIRequiresFullScreen="0" buildNumber="77">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/ios/include&#10;"
                        libraryPath="../../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"
