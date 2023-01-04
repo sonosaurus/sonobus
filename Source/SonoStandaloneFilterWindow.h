@@ -466,7 +466,7 @@ public:
             MemoryBlock data;
 
             if (usexmlstate && sonobusprocessor) {
-                sonobusprocessor->getStateInformationWithOptions (data, true, usexmlstate);
+                sonobusprocessor->getStateInformationWithOptions (data, true, true, usexmlstate);
                 std::unique_ptr<XmlElement> filtxml = juce::parseXML(String::createStringFromData(data.getData(), (int)data.getSize()));
                 if (filtxml) {
                     settings->setValue ("filterStateXML", filtxml.get());
@@ -496,7 +496,7 @@ public:
                 String filtxml = settings->getValue ("filterStateXML");
                 data.replaceWith(filtxml.toUTF8(), filtxml.getNumBytesAsUTF8());
                 if (data.getSize() > 0) {
-                    sonobusprocessor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), true, true);
+                    sonobusprocessor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), true, true, true);
                     return;
                 }
             }

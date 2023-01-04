@@ -2464,7 +2464,7 @@ bool SonobusAudioProcessorEditor::loadSettingsFromFile(const File & file)
         String filtxml = propfile.getValue ("filterStateXML");
         data.replaceWith(filtxml.toUTF8(), filtxml.getNumBytesAsUTF8());
         if (data.getSize() > 0) {
-            processor.setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, true);
+            processor.setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, true, true);
         }
         else {
             DBG("Empty XML filterstate");
@@ -2473,7 +2473,7 @@ bool SonobusAudioProcessorEditor::loadSettingsFromFile(const File & file)
     }
     else {
         if (data.fromBase64Encoding (propfile.getValue ("filterState")) && data.getSize() > 0) {
-            processor.setStateInformationWithOptions (data.getData(), (int) data.getSize(), false);
+            processor.setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, true);
         } else {
             retval = false;
         }
@@ -2568,7 +2568,7 @@ bool SonobusAudioProcessorEditor::saveSettingsToFile(const File & file)
     bool usexmlstate = true;
 
     MemoryBlock data;
-    processor.getStateInformationWithOptions(data, false, usexmlstate);
+    processor.getStateInformationWithOptions(data, false, true, usexmlstate);
 
     PropertiesFile::Options opts;
     PropertiesFile propfile = PropertiesFile(file, opts);

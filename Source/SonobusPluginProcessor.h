@@ -226,9 +226,13 @@ public:
     void parameterChanged (const String &parameterID, float newValue) override;
 
 
-    void getStateInformationWithOptions(MemoryBlock& destData, bool includecache=true, bool xmlformat=false);
-    void setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache=true, bool xmlformat=false);
+    void getStateInformationWithOptions(MemoryBlock& destData, bool includecache=true, bool includeInputGroups = true, bool xmlformat=false);
+    void setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache=true, bool includeInputGroups = true, bool xmlformat=false);
 
+    bool saveCurrentAsDefaultPluginSettings();
+    void resetDefaultPluginSettings();
+    bool loadDefaultPluginSettings();
+    
     AudioProcessorValueTreeState& getValueTreeState();
 
     static String paramInGain;

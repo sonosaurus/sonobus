@@ -825,6 +825,10 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     initializeAoo();
 
+    if (isplugin) {
+        loadDefaultPluginSettings();
+    }
+    
     loadGlobalState();
 }
 
@@ -8334,7 +8338,7 @@ void SonobusAudioProcessor::VideoLinkInfo::setFromValueTree(const ValueTree & it
 }
 
 
-void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData, bool includecache, bool xmlformat)
+void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData, bool includecache, bool includeInputGroups, bool xmlformat)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
@@ -8388,13 +8392,18 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.appendChild(mVideoLinkInfo.getValueTree(), nullptr);
     
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
-    inputChannelGroupsTree.removeAllChildren(nullptr);
-    inputChannelGroupsTree.setProperty(numChanGroupsKey, mInputChannelGroupCount, nullptr);
-
-    for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
-        inputChannelGroupsTree.appendChild(mInputChannelGroups[i].params.getValueTree(), nullptr);
+    if (includeInputGroups) {
+        inputChannelGroupsTree.removeAllChildren(nullptr);
+        inputChannelGroupsTree.setProperty(numChanGroupsKey, mInputChannelGroupCount, nullptr);
+        
+        for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
+            inputChannelGroupsTree.appendChild(mInputChannelGroups[i].params.getValueTree(), nullptr);
+        }
     }
-
+    else {
+        tempstate.removeChild(inputChannelGroupsTree, nullptr);
+    }
+    
     ValueTree peerCacheTree = tempstate.getOrCreateChildWithName(peerStateCacheMapKey, nullptr);
     if (includecache) {
         // update state with our recents info
@@ -8424,7 +8433,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
 
 }
 
-void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache, bool xmlformat)
+void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache, bool includeInputGroups, bool xmlformat)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -8513,22 +8522,23 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             }
         }
 
-
-        ValueTree inputChannelGroupsTree = mState.state.getChildWithName(inputChannelGroupsStateKey);
-        if (inputChannelGroupsTree.isValid()) {
-
-            mInputChannelGroupCount = inputChannelGroupsTree.getProperty(numChanGroupsKey, (int)mInputChannelGroupCount);
-
-            int i = 0;
-            for (auto channelGroupTree : inputChannelGroupsTree) {
-                if (!channelGroupTree.isValid()) continue;
-                if (i >= MAX_CHANGROUPS) break;
-
-                mInputChannelGroups[i].params.setFromValueTree(channelGroupTree);
-
-                ++i;
+        if (includeInputGroups) {
+            ValueTree inputChannelGroupsTree = mState.state.getChildWithName(inputChannelGroupsStateKey);
+            if (inputChannelGroupsTree.isValid()) {
+                
+                mInputChannelGroupCount = inputChannelGroupsTree.getProperty(numChanGroupsKey, (int)mInputChannelGroupCount);
+                
+                int i = 0;
+                for (auto channelGroupTree : inputChannelGroupsTree) {
+                    if (!channelGroupTree.isValid()) continue;
+                    if (i >= MAX_CHANGROUPS) break;
+                    
+                    mInputChannelGroups[i].params.setFromValueTree(channelGroupTree);
+                    
+                    ++i;
+                }
+                
             }
-
         }
 
         if (includecache) {
@@ -8558,8 +8568,39 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
 void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    setStateInformationWithOptions(data, sizeInBytes, true);
+    setStateInformationWithOptions(data, sizeInBytes, true, true);
 }
+
+
+bool SonobusAudioProcessor::saveCurrentAsDefaultPluginSettings()
+{
+    MemoryBlock data;
+    // as xml, with no cache, and no channel group stuff
+    getStateInformationWithOptions(data, false, false, true);
+    File defFile = getSupportDir().getChildFile("PluginDefault.xml");
+    
+    return defFile.replaceWithData (data.getData(), data.getSize());
+}
+
+bool SonobusAudioProcessor::loadDefaultPluginSettings()
+{
+    File defFile = getSupportDir().getChildFile("PluginDefault.xml");
+    MemoryBlock data;
+    if (defFile.loadFileAsData (data)) {
+        // no cache, no channel group, xml
+        setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, false, true);
+        return true;
+    }
+    return false;
+}
+
+void SonobusAudioProcessor::resetDefaultPluginSettings()
+{
+    // remove the default file
+    File defFile = getSupportDir().getChildFile("PluginDefault.xml");
+    defFile.deleteFile();
+}
+
 
 void SonobusAudioProcessor::ServerReconnectTimer::timerCallback()
 {

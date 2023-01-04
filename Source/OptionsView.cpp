@@ -314,7 +314,17 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     configLabel(mOptionsAutoDropThreshLabel.get(), false);
     mOptionsAutoDropThreshLabel->setJustificationType(Justification::centredLeft);
 
+    mOptionsSavePluginDefaultButton = std::make_unique<TextButton>("saveopt");
+    mOptionsSavePluginDefaultButton->setButtonText(TRANS("Save as default plugin options"));
+    mOptionsSavePluginDefaultButton->setLookAndFeel(&smallLNF);
+    mOptionsSavePluginDefaultButton->addListener(this);
 
+    mOptionsResetPluginDefaultButton = std::make_unique<TextButton>("resetopt");
+    mOptionsResetPluginDefaultButton->setButtonText(TRANS("Reset default plugin options"));
+    mOptionsResetPluginDefaultButton->setLookAndFeel(&smallLNF);
+    mOptionsResetPluginDefaultButton->addListener(this);
+
+    
 
 #if JUCE_IOS
     mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
@@ -345,6 +355,12 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshSlider.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshLabel.get());
+
+    if (!JUCEApplication::isStandaloneApp()) {
+        mOptionsComponent->addAndMakeVisible(mOptionsSavePluginDefaultButton.get());
+        mOptionsComponent->addAndMakeVisible(mOptionsResetPluginDefaultButton.get());
+    }
+
     //mOptionsComponent->addAndMakeVisible(mTitleImage.get());
 
     if (JUCEApplicationBase::isStandaloneApp()) {
@@ -753,7 +769,14 @@ void OptionsView::updateLayout()
         optionsAllowBluetoothBox.items.add(FlexItem(180, minpassheight, *mOptionsAllowBluetoothInput).withMargin(0).withFlex(1));
     }
 
+    optionsPluginDefaultBox.items.clear();
+    optionsPluginDefaultBox.flexDirection = FlexBox::Direction::row;
+    optionsPluginDefaultBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsPluginDefaultBox.items.add(FlexItem(80, minpassheight, *mOptionsSavePluginDefaultButton).withMargin(0).withFlex(1));
+    optionsPluginDefaultBox.items.add(FlexItem(6, 12).withFlex(0));
+    optionsPluginDefaultBox.items.add(FlexItem(80, minpassheight, *mOptionsResetPluginDefaultButton).withMargin(0).withFlex(1));
 
+    
     optionsBox.items.clear();
     optionsBox.flexDirection = FlexBox::Direction::column;
     optionsBox.items.add(FlexItem(4, 6));
@@ -785,6 +808,10 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDisableShortcutsBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
 
+    if ( ! JUCEApplicationBase::isStandaloneApp()) {
+        optionsBox.items.add(FlexItem(100, minitemheight, optionsPluginDefaultBox).withMargin(2).withFlex(0));
+    }
+    
     minOptionsHeight = 0;
     for (auto & item : optionsBox.items) {
         minOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;
@@ -1092,6 +1119,13 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             updateKeybindings();
         }
     }
+    else if (buttonThatWasClicked == mOptionsSavePluginDefaultButton.get()) {
+        processor.saveCurrentAsDefaultPluginSettings();
+    }
+    else if (buttonThatWasClicked == mOptionsResetPluginDefaultButton.get()) {
+        processor.resetDefaultPluginSettings();
+    }
+
 }
 
 
