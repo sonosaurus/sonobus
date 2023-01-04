@@ -109,6 +109,7 @@ ChatView::ChatView(SonobusAudioProcessor& proc, AooServerConnectionInfo & connec
     mSendButton->setTitle(TRANS("Send Message"));
     mSendButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
     mSendButton->setAlpha(0.6f);
+    mSendButton->setWantsKeyboardFocus(false);
     mSendButton->onClick = [this]() {
         commitChatMessage();
     };
