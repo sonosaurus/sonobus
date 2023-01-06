@@ -746,9 +746,11 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mSupportDir = options.getDefaultFile().getParentDirectory();
 
 #if (JUCE_IOS)
-    mDefaultRecordDir = URL(File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName());
-    mLastBrowseDir = mDefaultRecordDir.getLocalFile();
-    DBG("Default record dir: " << mDefaultRecordDir);
+    mDefaultRecordDir = URL(File::getSpecialLocation (File::userDocumentsDirectory));
+    if (mDefaultRecordDir.isLocalFile()) {
+        mLastBrowseDir = mDefaultRecordDir.getLocalFile().getFullPathName();
+    }
+    DBG("Default record dir: " << mDefaultRecordDir.toString(false));
 #elif (JUCE_ANDROID)
     //auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
     //parentDir = parentDir.getChildFile("Recordings");
