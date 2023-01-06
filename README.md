@@ -104,7 +104,7 @@ one at aoo.sonobus.net, you can build the headless aooserver code at
 > https://github.com/essej/aooserver
 
 The standalone SonoBus application also provides a connection server internally,
-which you can connect to on port 10998, or port forward TCP/UDP 10998 from your internet
+which you can connect to on port 10999, or port forward TCP/UDP 10999 from your internet
 router to the machine you are running it on.
 
 

@@ -237,8 +237,8 @@ void ChatView::resized()
         int maxheight = display ? display->userArea.getHeight() : 500;
         int maxwidth = display ? display->userArea.getWidth() : 300;
         //keybh = display ? display->keyboardInsets.getBottom() : 0;
-        keybh = maxwidth > 700 ? (maxwidth / 1.8f) : (maxwidth / 1.0f);
-        keybh = jmin(maxheight > 700 ?  400 : 190, keybh);
+        keybh = maxwidth > 700 ? (maxheight * 0.35f) : (maxheight * 0.45f);
+        //keybh = jmin(maxheight > 700 ?  400 : 190, keybh);
         DBG("Width: " << maxwidth << " height: " << maxheight << " keybh : " << keybh);
 #endif
         mainBox.performLayout(getLocalBounds().withTrimmedBottom(keybh).reduced(2));

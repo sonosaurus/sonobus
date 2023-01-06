@@ -3,6 +3,11 @@
 
 #include "OptionsView.h"
 
+#if JUCE_ANDROID
+#include "juce_core/native/juce_BasicNativeHeaders.h"
+#include "juce_core/juce_core.h"
+#include "juce_core/native/juce_android_JNIHelpers.h"
+#endif
 
 using namespace SonoAudio;
 
@@ -1019,18 +1024,21 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         // browse folder chooser
         SafePointer<OptionsView> safeThis (this);
 
-        /*
-        if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
-        {
-            RuntimePermissions::request (RuntimePermissions::readExternalStorage,
-                                         [safeThis] (bool granted) mutable
-                                         {
-                if (granted)
-                    safeThis->buttonClicked (safeThis->mRecLocationButton.get());
-            });
-            return;
+#if JUCE_ANDROID
+        if (getAndroidSDKVersion() < 29) {
+            if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
+            {
+                RuntimePermissions::request (RuntimePermissions::readExternalStorage,
+                                             [safeThis] (bool granted) mutable
+                                             {
+                    if (granted)
+                        safeThis->buttonClicked (safeThis->mRecLocationButton.get());
+                });
+                return;
+            }
         }
-         */
+#endif
+        
          
         chooseRecDirBrowser();
     }

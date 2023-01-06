@@ -8,6 +8,12 @@
 #include <utility>
 #include <iostream>
 
+#if JUCE_ANDROID
+#include "juce_core/native/juce_BasicNativeHeaders.h"
+#include "juce_core/juce_core.h"
+#include "juce_core/native/juce_android_JNIHelpers.h"
+#endif
+
 SampleEditView::SampleEditView(
                                std::function<void(SampleEditView&)> submitcallback,
                                std::function<void(SampleEditView&)> gaincallback,
@@ -426,6 +432,23 @@ float SampleEditView::getGain() const
 
 void SampleEditView::browseFilePath()
 {
+    
+#if JUCE_ANDROID
+    if (getAndroidSDKVersion() < 29) {
+        SafePointer<SampleEditView> safeThis (this);
+        if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
+        {
+            RuntimePermissions::request (RuntimePermissions::readExternalStorage,
+                                         [safeThis] (bool granted) mutable
+                                         {
+                if (granted)
+                    safeThis->browseFilePath();
+            });
+            return;
+        }
+    }
+#endif
+    
     // Determine where to open the file chooser.
     File defaultDirectory = File::getSpecialLocation(File::userMusicDirectory);
     if (lastOpenedDirectory != nullptr) {

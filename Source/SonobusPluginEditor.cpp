@@ -22,6 +22,13 @@
 
 #include <sstream>
 
+#if JUCE_ANDROID
+#include "juce_core/native/juce_BasicNativeHeaders.h"
+#include "juce_core/juce_core.h"
+#include "juce_core/native/juce_android_JNIHelpers.h"
+#endif
+
+
 enum {
     PeriodicUpdateTimerId = 0,
     CheckForNewVersionTimerId
@@ -2137,17 +2144,18 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
             SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-#if 0
-            // Don't need this anymore, writing into internal app space now
-            if (! RuntimePermissions::isGranted (RuntimePermissions::writeExternalStorage))
-            {
-                RuntimePermissions::request (RuntimePermissions::writeExternalStorage,
-                                             [safeThis] (bool granted) mutable
-                                             {
-                    if (granted)
-                        safeThis->buttonClicked (safeThis->mRecordingButton.get());
-                });
-                return;
+#if JUCE_ANDROID
+            if (getAndroidSDKVersion() < 29) {
+                if (! RuntimePermissions::isGranted (RuntimePermissions::writeExternalStorage))
+                {
+                    RuntimePermissions::request (RuntimePermissions::writeExternalStorage,
+                                                 [safeThis] (bool granted) mutable
+                                                 {
+                        if (granted)
+                            safeThis->buttonClicked (safeThis->mRecordingButton.get());
+                    });
+                    return;
+                }
             }
 #endif
             
@@ -2263,18 +2271,21 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         if (mFileChooser.get() == nullptr) {
 
             SafePointer<SonobusAudioProcessorEditor> safeThis (this);
-            /*
-            if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
-            {
-                RuntimePermissions::request (RuntimePermissions::readExternalStorage,
-                                             [safeThis] (bool granted) mutable
-                                             {
-                    if (granted)
-                        safeThis->buttonClicked (safeThis->mFileBrowseButton.get());
-                });
-                return;
+#if JUCE_ANDROID
+            if (getAndroidSDKVersion() < 29) {
+                
+                if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
+                {
+                    RuntimePermissions::request (RuntimePermissions::readExternalStorage,
+                                                 [safeThis] (bool granted) mutable
+                                                 {
+                        if (granted)
+                            safeThis->buttonClicked (safeThis->mFileBrowseButton.get());
+                    });
+                    return;
+                }
             }
-           */
+#endif
             
             if (ModifierKeys::currentModifiers.isCommandDown()) {
                 // file file
