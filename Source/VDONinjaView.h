@@ -298,7 +298,8 @@ private:
         }
         
         params.set("push", makeId(processor.getCurrentUsername()));
-
+        
+        
         if (state.roomMode) {
             auto roomName = "SB_" + processor.getCurrentJoinedGroup();
             if (state.beDirector) {
@@ -307,6 +308,8 @@ private:
             }
             else {
                 params.set("room", roomName);
+                params.set("wc", ""); // go to webcam selection immediately
+                params.set("ssb", ""); // allow screenshare later
             }
         }
         else {
@@ -315,6 +318,10 @@ private:
                 auto name = processor.getRemotePeerUserName(i);
                 others.add(makeId(name));
             }
+
+            params.set("wc", ""); // go to webcam selection immediately
+            params.set("ssb", ""); // allow screenshare later
+
             
             if (others.size() > 0) {
                 params.set("view", others.joinIntoString(","));
