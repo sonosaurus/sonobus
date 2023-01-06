@@ -460,7 +460,6 @@ void SampleEditView::browseFilePath()
             }
             
             mFileURL = chosenUrl;
-        
             inferSampleName();
         }
 

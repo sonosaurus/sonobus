@@ -93,6 +93,7 @@ static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
 static String recordFinishOpenKey("RecordFinishOpen");
 static String defRecordDirKey("DefaultRecordDir");
+static String defRecordDirURLKey("DefaultRecordDirURL");
 static String lastBrowseDirKey("LastBrowseDir");
 static String sliderSnapKey("SliderSnapToMouse");
 static String disableShortcutsKey("DisableKeyShortcuts");
@@ -745,19 +746,20 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mSupportDir = options.getDefaultFile().getParentDirectory();
 
 #if (JUCE_IOS)
-    mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
-    mLastBrowseDir = mDefaultRecordDir;
+    mDefaultRecordDir = URL(File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName());
+    mLastBrowseDir = mDefaultRecordDir.getLocalFile();
     DBG("Default record dir: " << mDefaultRecordDir);
 #elif (JUCE_ANDROID)
-    auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
-    parentDir = parentDir.getChildFile("Recordings");
-    mDefaultRecordDir = parentDir.getFullPathName();
-    mLastBrowseDir = mDefaultRecordDir;
+    //auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+    //parentDir = parentDir.getChildFile("Recordings");
+    //mDefaultRecordDir = URL(parentDir);
+    //mLastBrowseDir = mDefaultRecordDir.getLocalFile().getFullPathName();
+    // LEAVE EMPTY by default
 #else
     auto parentDir = File::getSpecialLocation (File::userMusicDirectory);
     parentDir = parentDir.getChildFile("SonoBus");
-    mDefaultRecordDir = parentDir.getFullPathName();
-    mLastBrowseDir = mDefaultRecordDir;
+    mDefaultRecordDir = URL(parentDir);
+    mLastBrowseDir = mDefaultRecordDir.getLocalFile().getFullPathName();
 #endif
 
 
@@ -8370,7 +8372,13 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
-    extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
+
+    if (mDefaultRecordDir.isLocalFile()) {
+        // backwards compat
+        extraTree.setProperty(defRecordDirKey, mDefaultRecordDir.getLocalFile().getFullPathName(), nullptr);
+    }
+    extraTree.setProperty(defRecordDirURLKey, mDefaultRecordDir.toString(false), nullptr);
+
     extraTree.setProperty(lastBrowseDirKey, mLastBrowseDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
     extraTree.setProperty(disableShortcutsKey, mDisableKeyboardShortcuts, nullptr);
@@ -8492,8 +8500,23 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setRecordFinishOpens(extraTree.getProperty(recordFinishOpenKey, mRecordFinishOpens));
 
 
+#if !(JUCE_IOS)
+            String urlstr = extraTree.getProperty(defRecordDirURLKey, "");
+            if (urlstr.isNotEmpty()) {
+                setDefaultRecordingDirectory(URL(urlstr));
+            } else {
+#if ! JUCE_ANDROID
+                // backward compat (but not on android)
+                String filestr = extraTree.getProperty(defRecordDirKey, "");
+                if (filestr.isNotEmpty()) {
+                    File recdir = File(filestr);
+                    setDefaultRecordingDirectory(URL(recdir));
+                }
+#endif
+            }
+#endif
+
 #if !(JUCE_IOS || JUCE_ANDROID)
-            setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
             setLastBrowseDirectory(extraTree.getProperty(lastBrowseDirKey, mLastBrowseDir));
 #endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
@@ -8859,7 +8882,7 @@ StringArray SonobusAudioProcessor::getAllBlockedAddresses() const
 }
 
 
-bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptions, RecordFileFormat fileformat)
+bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, const String & filename, URL & mainreturl, uint32 recordOptions, RecordFileFormat fileformat)
 {
     if (!recordingThread) {
         recordingThread = std::make_unique<TimeSliceThread>("Recording Thread");
@@ -8884,7 +8907,9 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         return false;
     }
     
-    File usefile = file;
+    // just put a bogus directory in it, we'll be using only the filename part
+    File usefile = File::getCurrentWorkingDirectory().getChildFile(filename);
+    String mimetype;
     
     if (fileformat == FileFormatDefault) {
         fileformat = mDefaultRecordingFormat;
@@ -8904,18 +8929,21 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         fileformat = FileFormatWAV;
     }
 
-    if (fileformat == FileFormatFLAC || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".flac")) {
+    if (fileformat == FileFormatFLAC || (fileformat == FileFormatAuto && usefile.getFileExtension().toLowerCase() == ".flac")) {
         audioFormat = std::make_unique<FlacAudioFormat>();
-        usefile = file.withFileExtension(".flac");
+        usefile = usefile.withFileExtension(".flac");
+        mimetype = "audio/flac" ;
     }
-    else if (fileformat == FileFormatWAV || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".wav")) {
+    else if (fileformat == FileFormatWAV || (fileformat == FileFormatAuto && usefile.getFileExtension().toLowerCase() == ".wav")) {
         audioFormat = std::make_unique<WavAudioFormat>();
-        usefile = file.withFileExtension(".wav");
+        usefile = usefile.withFileExtension(".wav");
+        mimetype = "audio/wav" ;
     }
-    else if (fileformat == FileFormatOGG || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".ogg")) {
+    else if (fileformat == FileFormatOGG || (fileformat == FileFormatAuto && usefile.getFileExtension().toLowerCase() == ".ogg")) {
         audioFormat = std::make_unique<OggVorbisAudioFormat>();
         qualindex = 8; // 256k
-        usefile = file.withFileExtension(".ogg");
+        usefile = usefile.withFileExtension(".ogg");
+        mimetype = "audio/ogg" ;
     }
     else {
         mLastError = TRANS("Could not find format for filename");
@@ -8925,14 +8953,141 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
 
     bool userwriting = false;
 
+    
+#if JUCE_ANDROID
+
+    auto makeStream = [this,mimetype](const URL & parent, String & name, URL & returl) {
+        auto parentTree = AndroidDocument::fromDocument(parent);
+        if (!parentTree.hasValue() && parent.isLocalFile()) {
+            parentTree = AndroidDocument::fromFile(parent.getLocalFile());
+        }
+        if (parentTree.hasValue()) {
+            auto fileurl = parent.getChildURL(name);
+            //auto doc = AndroidDocument::fromDocument(fileurl);
+            auto bname = File::getCurrentWorkingDirectory().getChildFile(name).getFileNameWithoutExtension();
+            auto doc = parentTree.createChildDocumentWithTypeAndName(mimetype, bname);
+            if (!doc.hasValue()) {
+                // fall back to file ops
+                DBG("creating fallback file stream");
+
+                if (fileurl.isLocalFile()) {
+                    auto file = fileurl.getLocalFile().getNonexistentSibling();
+                    name = file.getFileName();
+                    returl = URL(file);
+                    return std::unique_ptr<OutputStream> (file.createOutputStream());
+                }
+            }
+            else {
+                // TODO, prevent creating existing filename
+                DBG("creating doc stream: " << doc.getUrl().toString(false));
+                returl = doc.getUrl();
+                return doc.createOutputStream();
+            }
+        }
+        return std::unique_ptr<OutputStream>();
+    };
+
+    auto deleteExisting = [this,mimetype](const URL & parent, String name) {
+        auto childurl = parent.getChildURL(name);
+        auto doc = AndroidDocument::fromDocument(childurl);
+        
+        if (doc.hasValue()) {
+            DBG("deleting doc: " << doc.getUrl().toString(false));
+            return doc.deleteDocument();
+        }
+        else if (childurl.isLocalFile()) {
+            return childurl.getLocalFile().deleteFile();
+        }
+
+        return false;
+    };
+
+    auto makeReturnUrl = [this,mimetype](const URL & parent, String name) {
+        auto childurl = parent.getChildURL(name);
+        return childurl;
+    };
+    
+    
+    auto makeChildDirUrl = [this](const URL & parent, String name) {
+        auto parentTree = AndroidDocument::fromDocument(parent);
+        if (!parentTree.hasValue() && parent.isLocalFile()) {
+            parentTree = AndroidDocument::fromFile(parent.getLocalFile());
+        }
+        if (parentTree.hasValue()) {
+            auto childDir = parentTree.createChildDirectory(name);
+            // TODO, create unique name
+            if (childDir.hasValue()) {
+                DBG("Created child dir: " << childDir.getUrl().toString(false));
+                return childDir.getUrl();
+            }
+        }
+        else {
+            auto recdirurl = parent.getChildURL(name);
+            if (recdirurl.isLocalFile()) {
+                File recdir = recdirurl.getLocalFile().getNonexistentSibling();
+                if (recdir.createDirectory()) {
+                    DBG("Created child dir as file: " << name);
+                    return URL(recdir);
+                }
+            }
+        }
+            
+        return URL();
+    };
+
+    
+#else
+    
+    auto makeStream = [this](const URL & parent, String & name, URL & returl) {
+        URL fileurl = parent.getChildURL(name);
+        if (fileurl.isLocalFile()) {
+            auto file = fileurl.getLocalFile().getNonexistentSibling();
+            name = file.getFileName();
+            returl = URL(file);
+            return std::unique_ptr<OutputStream> (file.createOutputStream());
+        }
+        return std::unique_ptr<OutputStream>();
+    };
+
+    auto deleteExisting = [this](const URL & parent, String name) {
+        URL fileurl = parent.getChildURL(name);
+        if (fileurl.isLocalFile()) {
+            return fileurl.getLocalFile().deleteFile();
+        }
+        return false;
+    };
+
+    auto makeReturnUrl = [this](const URL & parent, String name) {
+        return parent.getChildURL(name);
+    };
+    
+    
+    auto makeChildDirUrl = [this](const URL & parent, String name) {
+        auto recdirurl = parent.getChildURL(name);
+        if (recdirurl.isLocalFile()) {
+            File recdir = recdirurl.getLocalFile().getNonexistentSibling();
+            if (recdir.createDirectory()) {
+                return URL(recdir);
+            }
+        }
+            
+        return URL();
+    };
+
+#endif
+    
+    
+    
     if (recordOptions == RecordMix) {
 
         // Create an OutputStream to write to our destination file...
-        usefile.deleteFile();
+        deleteExisting(recordLocationUrl, usefile.getFileName());
         
-        if (auto fileStream = std::unique_ptr<FileOutputStream> (usefile.createOutputStream()))
+        String filename = usefile.getFileName();
+        URL returl;
+        
+        if (auto fileStream = makeStream(recordLocationUrl, filename, returl))
         {
-            
             if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
             {
                 fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
@@ -8941,28 +9096,32 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 // write the data to disk on our background thread.
                 threadedMixWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
                 
-                DBG("Started recording only mix file " << usefile.getFullPathName());
+                DBG("Started recording only mix file " << returl.toString(false));
 
-                file = usefile;
+                mainreturl = returl;
                 ret = true;
             } else {
                 mLastError.clear();
-                mLastError << TRANS("Error creating writer for ") << usefile.getFullPathName();
+                mLastError << TRANS("Error creating writer for ") << returl.toString(false);
                 DBG(mLastError);
             }
         } else {
+            auto returl = makeReturnUrl(recordLocationUrl, filename);
             mLastError.clear();
-            mLastError << TRANS("Error creating output file: ") << usefile.getFullPathName();
+            mLastError << TRANS("Error creating output file: ") << returl.toString(false);
             DBG(mLastError);
         }
         
     }
     else {
         // make directory from the filename
-        File recdir = usefile.getParentDirectory().getChildFile(usefile.getFileNameWithoutExtension()).getNonexistentSibling();
-        if (!recdir.createDirectory()) {
+        auto recdir = makeChildDirUrl(recordLocationUrl, usefile.getFileNameWithoutExtension());
+        
+        //File recdir = usefile.getParentDirectory().getChildFile(usefile.getFileNameWithoutExtension()).getNonexistentSibling();
+        //if (!recdir.createDirectory()) {
+        if (recdir.isEmpty()) {
             mLastError.clear();
-            mLastError << TRANS("Error creating directory for recording: ") << recdir.getFullPathName();
+            mLastError << TRANS("Error creating directory for recording: ") << makeReturnUrl(recordLocationUrl, usefile.getFileNameWithoutExtension()).toString(false);
             DBG(mLastError);
             return false;
         }
@@ -8972,9 +9131,13 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         if (recordOptions & RecordMixMinusSelf) {
             String filename = usefile.getFileNameWithoutExtension() + "-MIXMINUS" + usefile.getFileExtension();
             filename = File::createLegalFileName(filename);
-            File thefile = recdir.getChildFile(filename).getNonexistentSibling();
-            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
-            {                
+            
+            //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
+            URL returl;
+            
+            if (auto fileStream = makeStream(recdir, filename, returl))
+            //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+            {
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
@@ -8983,15 +9146,15 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                     // write the data to disk on our background thread.
                     threadedMixMinusWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
 
-                    DBG("Created mix minus output file: " << thefile.getFullPathName());
+                    DBG("Created mix minus output file: " << returl.toString(false));
              
-                    file = thefile;
+                    mainreturl = returl;
                     ret = true;
                 } else {
-                    DBG("Error creating mix minus writer for " << thefile.getFullPathName());
+                    DBG("Error creating mix minus writer for " << returl.toString(false));
                 }
             } else {
-                DBG("Error creating mix minus output file: " << thefile.getFullPathName());
+                DBG("Error creating mix minus output file: " << makeReturnUrl(recdir, filename).toString(false));
             }
         }
         
@@ -9004,8 +9167,12 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 String inname = mInputChannelGroups[i].params.name;
                 String filename = usefile.getFileNameWithoutExtension() + (inname.isEmpty() ? "-SELF" : ("-SELF-" + inname)) + usefile.getFileExtension();
                 filename = File::createLegalFileName(filename);
-                File thefile = recdir.getChildFile(filename).getNonexistentSibling();
-                if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+                
+                //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
+                URL returl;
+
+                if (auto fileStream = makeStream(recdir, filename, returl))
+                //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
                     if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), chans, bitsPerSample, {}, qualindex))
                     {
@@ -9015,16 +9182,16 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                         // write the data to disk on our background thread.
                         threadedSelfWriters.add (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
 
-                        DBG("Created self output file: " << thefile.getFullPathName());
+                        DBG("Created self output file: " << returl.toString(false));
 
-                        file = thefile;
+                        mainreturl = returl;
                         ret = true;
 
                     } else {
-                        DBG("Error creating self writer for " << thefile.getFullPathName());
+                        DBG("Error creating self writer for " << returl.toString(false));
                     }
                 } else {
-                    DBG("Error creating self output file: " << thefile.getFullPathName());
+                    DBG("Error creating self output file: " << makeReturnUrl(recdir, filename).toString(false));
                 }
             }
         }
@@ -9032,9 +9199,14 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         if (recordOptions & RecordMix) {
             String filename = usefile.getFileNameWithoutExtension() + "-MIX" + usefile.getFileExtension();
             filename = File::createLegalFileName(filename);
-            File thefile = recdir.getChildFile(filename).getNonexistentSibling();
-            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
-            {                
+            
+            //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
+            URL returl;
+
+            if (auto fileStream = makeStream(recdir, filename, returl))
+            //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+            {
+
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
@@ -9043,15 +9215,15 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                     // write the data to disk on our background thread.
                     threadedMixWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
 
-                    DBG("Created mix output file: " << thefile.getFullPathName());
+                    DBG("Created mix output file: " << returl.toString(false));
 
-                    file = thefile;  
+                    mainreturl = returl;
                     ret = true;
                 } else {
-                    DBG("Error creating mix writer for " << thefile.getFullPathName());
+                    DBG("Error creating mix writer for " << returl.toString(false));
                 }
             } else {
-                DBG("Error creating mix output file: " << thefile.getFullPathName());
+                DBG("Error creating mix output file: " << makeReturnUrl(recdir, filename).toString(false));
             }
         }
 
@@ -9080,11 +9252,13 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 String userfilename = usefile.getFileNameWithoutExtension() + "-" + remote->userName + fileext;
                 userfilename = File::createLegalFileName(userfilename);
 
-                File thefile = recdir.getChildFile(userfilename).getNonexistentSibling();
+                //File thefile = recdir.getChildFile(userfilename).getNonexistentSibling();
+                URL returl;
 
-
-                if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+                if (auto fileStream = makeStream(recdir, userfilename, returl))
+                // if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
+
                     // flac has a max of FLAC__MAX_CHANNELS, if we exceed that, fallback to WAV
                     if (auto writer = useformat->createWriterFor (fileStream.get(), getSampleRate(), numchan, bitsPerSample, {}, qualindex))
                     {
@@ -9094,14 +9268,14 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                         // write the data to disk on our background thread.
                         remote->fileWriter = std::make_unique<AudioFormatWriter::ThreadedWriter>(writer, *recordingThread, 32768);
 
-                        DBG("Created user output file: " << thefile.getFullPathName());
+                        DBG("Created user output file: " << returl.toString(false));
                         ret = true;
                         userwriting = true;
                     } else {
-                        DBG("Error user writer for " << thefile.getFullPathName());
+                        DBG("Error user writer for " << returl.toString(false));
                     }
                 } else {
-                    DBG("Error creating user output file: " << thefile.getFullPathName());
+                    DBG("Error creating user output file: " << makeReturnUrl(recdir, filename).toString(false));
                 }
             }
         }
@@ -9230,7 +9404,7 @@ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
     
     AudioFormatReader* reader = nullptr;
     
-#if ! JUCE_IOS
+#if ! (JUCE_IOS || JUCE_ANDROID)
     if (audioURL.isLocalFile())
     {
         reader = mFormatManager.createReaderFor (audioURL.getLocalFile());
@@ -9239,7 +9413,28 @@ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 #endif
     {
         if (reader == nullptr) {
+#if JUCE_ANDROID
+            auto doc = AndroidDocument::fromDocument(audioURL);
+            if (!doc.hasValue()) {
+                DBG("Fallback to from file for audiourl: " << audioURL.toString(false));
+                doc = AndroidDocument::fromFile(audioURL.getLocalFile());
+            }
+
+            if (doc.hasValue()) {
+                if (doc.getInfo().canRead()) {
+
+                    DBG("Opening Android doc: " << doc.getUrl().toString(false));
+                    if (auto istr = doc.createInputStream()) {
+                        reader = mFormatManager.createReaderFor (std::move(istr));
+                    }
+                }
+                else {
+                    DBG("No permission to read android doc with URL: " << audioURL.toString(false));
+                }
+            }
+#else
             reader = mFormatManager.createReaderFor (audioURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
+#endif
         }
     }
 

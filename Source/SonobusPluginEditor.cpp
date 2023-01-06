@@ -2095,10 +2095,22 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
             String filepath;
 #if (JUCE_IOS || JUCE_ANDROID)
-            filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
-            //showPopTip(TRANS("Finished recording to ") + filepath, 4000, mRecordingButton.get(), 130);
+            if (lastRecordedFile.isLocalFile()) {
+                filepath = lastRecordedFile.getLocalFile().getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+                //showPopTip(TRANS("Finished recording to ") + filepath, 4000, mRecordingButton.get(), 130);
+            }
+            else {
+                filepath = lastRecordedFile.getFileName();
+            }
+#elif (JUCE_ANDROID)
+            filepath = lastRecordedFile.getFileName();
 #else
-            filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+            if (lastRecordedFile.isLocalFile()) {
+                filepath = lastRecordedFile.getLocalFile().getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+            }
+            else {
+                filepath = lastRecordedFile.getFileName();
+            }
 #endif
 
             mRecordingButton->setTooltip(TRANS("Last recorded file: ") + filepath);
@@ -2113,8 +2125,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
             if (processor.getRecordFinishOpens()) {
                 // load up recording
-                loadAudioFromURL(URL(lastRecordedFile));
-                mCurrOpenDir = lastRecordedFile.getParentDirectory();
+                loadAudioFromURL(lastRecordedFile);
+                if (lastRecordedFile.isLocalFile()) {
+                    mCurrOpenDir = lastRecordedFile.getLocalFile().getParentDirectory();
+                }
                 updateLayout();
                 resized();
             }
@@ -2142,14 +2156,47 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
             filename = File::createLegalFileName(filename);
 
-            auto parentDir = File(processor.getDefaultRecordingDirectory());
-            parentDir.createDirectory();
+            auto parentDirUrl = processor.getDefaultRecordingDirectory();
+            
+            if (parentDirUrl.isEmpty()) {
+                // only happens on android, ask for external location to store files
+                
+                auto alertcb = [safeThis] (int button) {
+                    if (safeThis && button == 0) {
+                        safeThis->requestRecordDir([safeThis] (URL recurl) mutable
+                                                   {
+                            //if (!recurl.isEmpty()) {
+                            //    safeThis->buttonClicked (safeThis->mRecordingButton.get());
+                            //}
+                        });
+                    }
+                };
+                
+#if JUCE_ANDROID
+                auto mbopts = MessageBoxOptions().withTitle(TRANS("Select Folder")).withMessage(TRANS("You need to first choose a folder on your device to save recordings to.")).withButton(TRANS("Choose Folder")).withButton(TRANS("Cancel")).withAssociatedComponent(this);
 
-            File file (parentDir.getNonexistentChildFile (filename, ".flac"));
+                AlertWindow::showAsync(mbopts, alertcb);
+#else
+                // just do it
+                alertcb(0);
+#endif
+                return;
+            }
+            
+            File parentDir;
+            if (parentDirUrl.isLocalFile()) {
+                parentDir = parentDirUrl.getLocalFile();
+                parentDir.createDirectory();
+            }
 
-            if (processor.startRecordingToFile(file)) {
+            filename += ".flac";
+            
+            //File file (parentDir.getNonexistentChildFile (filename, ".flac"));
+            URL returl;
+            
+            if (processor.startRecordingToFile(parentDirUrl, filename, returl)) {
                 //updateServerStatusLabel("Started recording...");
-                lastRecordedFile = file;
+                lastRecordedFile = returl;
                 String filepath;
 
 #if (JUCE_IOS || JUCE_ANDROID)
@@ -2163,20 +2210,40 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
 
 
                 if (processor.getDefaultRecordingOptions() == SonobusAudioProcessor::RecordMix) {
-                    
-#if (JUCE_IOS || JUCE_ANDROID)
-                    filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+
+#if (JUCE_IOS)
+                    if (lastRecordedFile.isLocalFile()) {
+                        filepath = lastRecordedFile.getLocalFile().getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+                    } else {
+                        filepath = lastRecordedFile.getFileName();
+                    }
+#elif JUCE_ANDROID
+                    filepath = lastRecordedFile.getFileName();
 #else
-                    filepath = lastRecordedFile.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+                    if (lastRecordedFile.isLocalFile()) {
+                        filepath = lastRecordedFile.getLocalFile().getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+                    } else {
+                        filepath = lastRecordedFile.getFileName();
+                    }
 #endif
 
                     mRecordingButton->setTooltip(TRANS("Recording audio to: ") + filepath);
                 } else 
                 {
-#if (JUCE_IOS || JUCE_ANDROID)
-                    filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+#if (JUCE_IOS)
+                    if (lastRecordedFile.isLocalFile()) {
+                        filepath = lastRecordedFile.getLocalFile().getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userDocumentsDirectory));
+                    } else {
+                        filepath = lastRecordedFile.getFileName();
+                    }
+#elif (JUCE_ANDROID)
+                    filepath = lastRecordedFile.getFileName();
 #else
-                    filepath = lastRecordedFile.getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+                    if (lastRecordedFile.isLocalFile()) {
+                        filepath = lastRecordedFile.getLocalFile().getParentDirectory().getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+                    } else {
+                        filepath = lastRecordedFile.getFileName();
+                    }
 #endif
                     mRecordingButton->setTooltip(TRANS("Recording multi-track audio to: ") + filepath);
                 }
@@ -2196,7 +2263,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         if (mFileChooser.get() == nullptr) {
 
             SafePointer<SonobusAudioProcessorEditor> safeThis (this);
-            
+            /*
             if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
             {
                 RuntimePermissions::request (RuntimePermissions::readExternalStorage,
@@ -2207,7 +2274,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 });
                 return;
             }
-
+           */
+            
             if (ModifierKeys::currentModifiers.isCommandDown()) {
                 // file file
                 if (mCurrentAudioFile.getFileName().isNotEmpty()) {
@@ -2215,7 +2283,7 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 }
                 else {
                     if (mCurrOpenDir.getFullPathName().isEmpty()) {
-                        mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
+                        mCurrOpenDir = processor.getDefaultRecordingDirectory().getLocalFile();
                         DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
                     }
                     mCurrOpenDir.revealToUser();
@@ -2274,6 +2342,82 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     else {
         
        
+    }
+}
+
+void SonobusAudioProcessorEditor::requestRecordDir(std::function<void (URL)> callback)
+{
+    SafePointer<SonobusAudioProcessorEditor> safeThis (this);
+
+    if (FileChooser::isPlatformDialogAvailable())
+    {
+        
+        DBG("Requesting recdir");
+        
+        File initopendir = mCurrOpenDir;
+#if JUCE_ANDROID
+        initopendir = File::getSpecialLocation(File::SpecialLocationType::userMusicDirectory);
+        // doens't work
+#endif
+        
+        mFileChooser.reset(new FileChooser(TRANS("Choose a location to store recorded files."),
+                                           initopendir,
+                                           "",
+                                           true, false, getTopLevelComponent()));
+        
+        
+        
+        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                                   [safeThis,callback] (const FileChooser& chooser) mutable
+                                   {
+            auto results = chooser.getURLResults();
+            if (safeThis != nullptr && results.size() > 0)
+            {
+                auto url = results.getReference (0);
+                
+                DBG("Chosen recdir to save in: " <<  url.toString(false));
+                
+#if JUCE_ANDROID
+                auto docdir = AndroidDocument::fromTree(url);
+                if (!docdir.hasValue()) {
+                    docdir = AndroidDocument::fromFile(url.getLocalFile());
+                }
+                
+                if (docdir.hasValue()) {
+                    AndroidDocumentPermission::takePersistentReadWriteAccess(url);
+                    if (docdir.getInfo().isDirectory()) {
+                        safeThis->processor.setDefaultRecordingDirectory(url);
+                    }
+                }
+#else
+                if (url.isLocalFile()) {
+                    File lfile = url.getLocalFile();
+                    if (lfile.isDirectory()) {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getFullPathName());
+                    } else {
+                        safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
+                    }
+
+                }
+#endif
+                
+                if (url.isLocalFile()) {
+                    safeThis->mCurrOpenDir = url.getLocalFile();
+                    safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
+                }
+
+                callback(url);
+            }
+            
+            if (safeThis) {
+                safeThis->mFileChooser.reset();
+            }
+                        
+        }, nullptr);
+        
+    }
+    else {
+        DBG("Need to enable code signing");
     }
 }
 
@@ -5336,7 +5480,7 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             }
             else {
                 if (mCurrOpenDir.getFullPathName().isEmpty()) {
-                    mCurrOpenDir = File(processor.getDefaultRecordingDirectory());
+                    mCurrOpenDir = processor.getDefaultRecordingDirectory().getLocalFile();
                 }
                 mCurrOpenDir.revealToUser();
             }

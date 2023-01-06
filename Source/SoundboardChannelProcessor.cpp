@@ -24,13 +24,36 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
     AudioFormatReader* reader = nullptr;
     auto audioFileUrl = sample->getFileURL();
 
-#if !JUCE_IOS
+#if ! (JUCE_IOS || JUCE_ANDROID)
     if (audioFileUrl.isLocalFile()) {
         reader = formatManager.createReaderFor(audioFileUrl.getLocalFile());
     }
     else
 #endif
     {
+#if JUCE_ANDROID
+        auto doc = AndroidDocument::fromDocument(audioFileUrl);
+        if (!doc.hasValue()) {
+            doc = AndroidDocument::fromFile(audioFileUrl.getLocalFile());
+        }
+        
+        if (doc.hasValue()) {
+            DBG("Loading Android doc: " << doc.getInfo().getName());
+            if (doc.getInfo().canRead()) {
+                
+                if (auto strm = doc.createInputStream()) {
+                    reader = formatManager.createReaderFor (std::move(strm));
+                }
+                else {
+                    DBG("Could not load android doc with URL: " << audioFileUrl.toString(false));
+                    return false;
+                }
+            } else {
+                DBG("No permission to read android doc with URL: " << audioFileUrl.toString(false));
+                return false;
+            }
+        }
+#else
         if (auto strm = audioFileUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress))) {
             reader = formatManager.createReaderFor(std::move(strm));
         }
@@ -38,6 +61,7 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
             DBG("Could not load from URL: " << audioFileUrl.toString(false));
             return false;
         }
+#endif
     }
 
     if (reader == nullptr) {

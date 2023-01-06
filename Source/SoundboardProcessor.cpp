@@ -48,15 +48,27 @@ void SoundboardProcessor::deleteSoundboard(int index)
 {
     // When a sample from this soundboard was playing, stop playback
     auto& activeSamples = channelProcessor->getActiveSamples();
+    std::vector<juce::URL> urls;
+    
     for (const auto& sample : soundboards[index].getSamples()) {
         auto playbackManager = activeSamples.find(&sample);
         if (playbackManager != activeSamples.end()) {
             playbackManager->second->unload();
         }
+        urls.push_back(sample.getFileURL());
     }
 
     soundboards.erase(soundboards.begin() + index);
 
+#if JUCE_ANDROID
+    for (const auto& url : urls) {
+        if ( ! isSampleURLInUse(url)) {
+            AndroidDocumentPermission::releasePersistentReadWriteAccess(url);
+        }
+    }
+#endif
+
+    
     // If the last soundboard was selected
     if (selectedSoundboardIndex == soundboards.size()) {
         auto selected = *selectedSoundboardIndex;
@@ -159,6 +171,10 @@ bool SoundboardProcessor::moveSoundSample(int fromSampleIndex, int toSampleIndex
 
 void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate, bool saveIt)
 {
+#if JUCE_ANDROID
+    AndroidDocumentPermission::takePersistentReadOnlyAccess(sampleToUpdate.getFileURL());
+#endif
+
     if (saveIt) {
         saveToDisk();
     }
@@ -176,6 +192,19 @@ void SoundboardProcessor::updatePlaybackSettings(SoundSample& sampleToUpdate)
     }
 }
 
+bool SoundboardProcessor::isSampleURLInUse(const juce::URL & url)
+{
+    for (auto& soundboard : soundboards) {
+        auto& sampleList = soundboard.getSamples();
+        
+        for (auto & sample : sampleList) {
+            if (sample.getFileURL() == url) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 bool SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete, std::optional<int> index)
 {
@@ -200,7 +229,15 @@ bool SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete, std::op
                 playbackManager->second->unload();
             }
 
+            auto url = sample.getFileURL();
+            
             sampleList.erase(iter);
+
+#if JUCE_ANDROID
+            if ( ! isSampleURLInUse(url)) {
+                AndroidDocumentPermission::releasePersistentReadWriteAccess(url);
+            }
+#endif
 
             break;
         }

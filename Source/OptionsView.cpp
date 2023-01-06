@@ -627,9 +627,13 @@ void OptionsView::updateState(bool ignorecheck)
     mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
     mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
 
-    File recdir = File(processor.getDefaultRecordingDirectory());
-    String dispath = recdir.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
-    if (dispath.startsWith(".")) dispath = processor.getDefaultRecordingDirectory();
+    auto recdirurl = processor.getDefaultRecordingDirectory();
+    String dispath = recdirurl.getFileName();
+    if (recdirurl.isLocalFile()) {
+        File recdir = recdirurl.getLocalFile();
+        dispath = recdir.getRelativePathFrom(File::getSpecialLocation (File::userHomeDirectory));
+        if (dispath.startsWith(".")) dispath = recdir.getFullPathName();
+    }
     mRecLocationButton->setButtonText(dispath);
 
     CompressorParams limparams;
@@ -873,7 +877,8 @@ void OptionsView::updateLayout()
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
     recOptionsBox.items.add(FlexItem(4, 6));
-#if !(JUCE_IOS || JUCE_ANDROID)
+//#if !(JUCE_IOS || JUCE_ANDROID)
+#if !(JUCE_IOS)
     recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordDirBox).withMargin(2).withFlex(0));
 #endif
     recOptionsBox.items.add(FlexItem(100, minitemheight, optionsRecordFormatBox).withMargin(2).withFlex(0));
@@ -1014,6 +1019,7 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         // browse folder chooser
         SafePointer<OptionsView> safeThis (this);
 
+        /*
         if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
         {
             RuntimePermissions::request (RuntimePermissions::readExternalStorage,
@@ -1024,7 +1030,8 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             });
             return;
         }
-
+         */
+         
         chooseRecDirBrowser();
     }
     else if (buttonThatWasClicked == mOptionsInputLimiterButton.get()) {
@@ -1194,7 +1201,10 @@ void OptionsView::chooseRecDirBrowser()
 
     if (FileChooser::isPlatformDialogAvailable())
     {
-        File recdir = File(processor.getDefaultRecordingDirectory());
+        File recdir;
+        if (processor.getDefaultRecordingDirectory().isLocalFile()) {
+            recdir = processor.getDefaultRecordingDirectory().getLocalFile();
+        }
 
         mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
                                            recdir,
@@ -1202,8 +1212,8 @@ void OptionsView::chooseRecDirBrowser()
                                            true, false, getTopLevelComponent()));
 
 
-
-        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+        int modes = FileBrowserComponent::canSelectDirectories | FileBrowserComponent::openMode;
+        mFileChooser->launchAsync (modes,
                                    [safeThis] (const FileChooser& chooser) mutable
                                    {
             auto results = chooser.getURLResults();
@@ -1213,6 +1223,19 @@ void OptionsView::chooseRecDirBrowser()
 
                 DBG("Chose directory: " <<  url.toString(false));
 
+#if JUCE_ANDROID
+                auto docdir = AndroidDocument::fromTree(url);
+                if (!docdir.hasValue()) {
+                    docdir = AndroidDocument::fromFile(url.getLocalFile());
+                }
+                
+                if (docdir.hasValue()) {
+                    AndroidDocumentPermission::takePersistentReadWriteAccess(url);
+                    if (docdir.getInfo().isDirectory()) {
+                        safeThis->processor.setDefaultRecordingDirectory(url);
+                    }
+                }
+#else
                 if (url.isLocalFile()) {
                     File lfile = url.getLocalFile();
                     if (lfile.isDirectory()) {
@@ -1221,8 +1244,11 @@ void OptionsView::chooseRecDirBrowser()
                         safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
                     }
 
-                    safeThis->updateState();
                 }
+#endif
+
+                safeThis->updateState();
+
             }
 
             if (safeThis) {

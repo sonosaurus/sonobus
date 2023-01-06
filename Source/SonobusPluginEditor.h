@@ -234,6 +234,7 @@ private:
 
     void showVDONinjaView(bool show);
 
+    void requestRecordDir(std::function<void (URL)> callback);
     
     void updateSliderSnap();
 
@@ -429,7 +430,7 @@ private:
     bool mPanChanged = false;
     
 
-    File lastRecordedFile;
+    URL lastRecordedFile;
 
     String mActiveLanguageCode;
 

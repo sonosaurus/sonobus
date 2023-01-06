@@ -189,6 +189,7 @@ public:
         the result of the file picker.
     */
     static void takePersistentReadWriteAccess (const URL&);
+    static void takePersistentReadOnlyAccess (const URL&);
 
     /** Revokes persistent access to a document or tree. */
     static void releasePersistentReadWriteAccess (const URL&);

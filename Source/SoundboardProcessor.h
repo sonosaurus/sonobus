@@ -107,7 +107,12 @@ public:
      */
     bool moveSoundSample(int fromSampleIndex, int toSampleIndex, std::optional<int> index = std::nullopt );
 
-    
+    /**
+     * @param url Checks to see if the given sample URL is used anywhere, in any soundboard
+     */
+
+    bool isSampleURLInUse(const juce::URL & url);
+
     /**
      * @param sampleToUpdate The sample to save with already containing the updated state.
      */

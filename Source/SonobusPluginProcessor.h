@@ -729,14 +729,14 @@ public:
 
     // recording stuff, if record options are RecordMixOnly, or RecordSelf  (only) the file refers to the name of the file
     //   otherwise it refers to a directory where the files will be recorded (and also the prefix for the recorded files)
-    bool startRecordingToFile(File & file, uint32 recordOptions=RecordDefaultOptions, RecordFileFormat fileformat=FileFormatDefault);
+    bool startRecordingToFile(const URL & recordLocation, const String & filename, URL & mainreturl, uint32 recordOptions=RecordDefaultOptions, RecordFileFormat fileformat=FileFormatDefault);
     bool stopRecordingToFile();
     bool isRecordingToFile();
     double getElapsedRecordTime() const { return mElapsedRecordSamples / getSampleRate(); }
     String getLastErrorMessage() const { return mLastError; }
 
-    void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
-    String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
+    void setDefaultRecordingDirectory(const URL & recdir)  { mDefaultRecordDir = recdir; }
+    URL getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
 
     void setLastBrowseDirectory(String recdir)  { mLastBrowseDir = recdir; }
     String getLastBrowseDirectory() const { return mLastBrowseDir; }
@@ -1192,7 +1192,7 @@ private:
     int mDefaultRecordingBitsPerSample = 16;
     bool mRecordInputPreFX = true;
     bool mRecordFinishOpens = true;
-    String mDefaultRecordDir;
+    URL mDefaultRecordDir;
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;

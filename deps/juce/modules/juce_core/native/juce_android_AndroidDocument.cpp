@@ -204,7 +204,7 @@ struct AndroidDocumentDetail
 
     enum { FLAG_GRANT_READ_URI_PERMISSION = 1, FLAG_GRANT_WRITE_URI_PERMISSION = 2 };
 
-    static void setPermissions (const URL& url, jmethodID func)
+    static void setPermissions (const URL& url, jmethodID func, bool readonly=false)
     {
         if (getAndroidSDKVersion() < 19)
             return;
@@ -213,7 +213,7 @@ struct AndroidDocumentDetail
 
         if (const auto resolver = AndroidContentUriResolver::getContentResolver())
         {
-            const jint flags = FLAG_GRANT_READ_URI_PERMISSION | FLAG_GRANT_WRITE_URI_PERMISSION;
+            const jint flags = readonly ? FLAG_GRANT_READ_URI_PERMISSION : (FLAG_GRANT_READ_URI_PERMISSION | FLAG_GRANT_WRITE_URI_PERMISSION);
             getEnv()->CallVoidMethod (resolver, func, javaUri.get(), flags);
             jniCheckHasExceptionOccurredAndClear();
         }
@@ -751,6 +751,13 @@ void AndroidDocumentPermission::takePersistentReadWriteAccess ([[maybe_unused]] 
    #endif
 }
 
+void AndroidDocumentPermission::takePersistentReadOnlyAccess ([[maybe_unused]] const URL& url)
+{
+   #if JUCE_ANDROID
+    AndroidDocumentDetail::setPermissions (url, ContentResolver19.takePersistableUriPermission, true);
+   #endif
+}
+        
 void AndroidDocumentPermission::releasePersistentReadWriteAccess ([[maybe_unused]] const URL& url)
 {
    #if JUCE_ANDROID
