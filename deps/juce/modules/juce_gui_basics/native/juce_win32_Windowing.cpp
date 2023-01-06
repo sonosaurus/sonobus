@@ -498,6 +498,8 @@ static double getGlobalDPI()
     return (GetDeviceCaps (deviceContext.dc, LOGPIXELSX) + GetDeviceCaps (deviceContext.dc, LOGPIXELSY)) / 2.0;
 }
 
+// breaks windows 7 compatibility, don't use for now
+#if 0
 //==============================================================================
 class ScopedSuspendResumeNotificationRegistration
 {
@@ -522,6 +524,7 @@ private:
 
     std::unique_ptr<std::remove_pointer_t<HPOWERNOTIFY>, Destructor> handle;
 };
+#endif
 
 //==============================================================================
 class ScopedThreadDPIAwarenessSetter::NativeImpl
@@ -1685,12 +1688,12 @@ public:
         if (updateCurrentMonitor())
             VBlankDispatcher::getInstance()->updateDisplay (*this, currentMonitor);
 
-        suspendResumeRegistration = ScopedSuspendResumeNotificationRegistration { hwnd };
+        // suspendResumeRegistration = ScopedSuspendResumeNotificationRegistration { hwnd };
     }
 
     ~HWNDComponentPeer() override
     {
-        suspendResumeRegistration = {};
+        // suspendResumeRegistration = {};
 
         VBlankDispatcher::getInstance()->removeListener (*this);
 
@@ -4624,7 +4627,7 @@ private:
     bool shouldIgnoreModalDismiss = false;
 
     RectangleList<int> deferredRepaints;
-    ScopedSuspendResumeNotificationRegistration suspendResumeRegistration;
+    //ScopedSuspendResumeNotificationRegistration suspendResumeRegistration;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HWNDComponentPeer)
