@@ -46,6 +46,8 @@ public:
     void textEditorTextChanged (TextEditor&) override;
     void textEditorFocusLost (TextEditor&) override;
 
+    void visibilityChanged () override;
+    
     juce::Rectangle<int> getMinimumContentBounds() const;
 
     void grabInitialFocus();
@@ -138,6 +140,7 @@ protected:
     std::unique_ptr<TextEditor> mServerGroupEditor;
     std::unique_ptr<Label> mServerGroupPassStaticLabel;
     std::unique_ptr<TextEditor> mServerGroupPasswordEditor;
+    std::unique_ptr<SonoDrawableButton> mServerGroupPasswordShowButton;
 
     std::unique_ptr<SonoDrawableButton> mServerGroupRandomButton;
     std::unique_ptr<SonoDrawableButton> mServerPasteButton;

@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -139,8 +139,12 @@ public:
         the buffer's floating-point format, and will try to intelligently
         cope with mismatches between the number of channels in the reader
         and the buffer.
+
+        @returns    true if the operation succeeded, false if there was an error. Note
+                    that reading sections of data beyond the extent of the stream isn't an
+                    error - the reader should just return zeros for these regions
     */
-    void read (AudioBuffer<float>* buffer,
+    bool read (AudioBuffer<float>* buffer,
                int startSampleInDestBuffer,
                int numSamples,
                int64 readerStartSample,
@@ -263,7 +267,7 @@ public:
                                          to begin reading. This value is guaranteed to be >= 0.
         @param numSamples                the number of samples to read
     */
-    virtual bool readSamples (int** destChannels,
+    virtual bool readSamples (int* const* destChannels,
                               int numDestChannels,
                               int startOffsetInDestBuffer,
                               int64 startSampleInFile,
@@ -302,7 +306,7 @@ protected:
     /** Used by AudioFormatReader subclasses to clear any parts of the data blocks that lie
         beyond the end of their available length.
     */
-    static void clearSamplesBeyondAvailableLength (int** destChannels, int numDestChannels,
+    static void clearSamplesBeyondAvailableLength (int* const* destChannels, int numDestChannels,
                                                    int startOffsetInDestBuffer, int64 startSampleInFile,
                                                    int& numSamples, int64 fileLengthInSamples)
     {

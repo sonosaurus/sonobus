@@ -1,15 +1,15 @@
 # ==============================================================================
 #
 #  This file is part of the JUCE library.
-#  Copyright (c) 2020 - Raw Material Software Limited
+#  Copyright (c) 2022 - Raw Material Software Limited
 #
 #  JUCE is an open source library subject to commercial or open-source
 #  licensing.
 #
-#  By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-#  Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+#  By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+#  Agreement and JUCE Privacy Policy.
 #
-#  End User License Agreement: www.juce.com/juce-6-licence
+#  End User License Agreement: www.juce.com/juce-7-licence
 #  Privacy Policy: www.juce.com/juce-privacy-policy
 #
 #  Or: You may also use this code under the terms of the GPL v3 (see
@@ -29,10 +29,6 @@ juce_add_gui_app(Projucer
     NEEDS_WEB_BROWSER                   TRUE)
 
 juce_generate_juce_header(Projucer)
-
-# This is to work around a bug with how cmake computes language standard flags with
-# target_compile_features
-set_target_properties(Projucer PROPERTIES CXX_STANDARD 11)
 
 target_sources(Projucer PRIVATE
     Source/Application/jucer_AutoUpdater.cpp
@@ -96,7 +92,6 @@ target_compile_definitions(Projucer PRIVATE
 juce_add_binary_data(ProjucerData SOURCES
     Source/BinaryData/Icons/background_logo.svg
     Source/BinaryData/Icons/export_android.svg
-    Source/BinaryData/Icons/export_clion.svg
     Source/BinaryData/Icons/export_codeBlocks.svg
     Source/BinaryData/Icons/export_linux.svg
     Source/BinaryData/Icons/export_visualStudio.svg
@@ -119,6 +114,10 @@ juce_add_binary_data(ProjucerData SOURCES
     Source/BinaryData/Templates/jucer_AudioComponentSimpleTemplate.h
     Source/BinaryData/Templates/jucer_AudioComponentTemplate.cpp
     Source/BinaryData/Templates/jucer_AudioComponentTemplate.h
+    Source/BinaryData/Templates/jucer_AudioPluginARADocumentControllerTemplate.cpp
+    Source/BinaryData/Templates/jucer_AudioPluginARADocumentControllerTemplate.h
+    Source/BinaryData/Templates/jucer_AudioPluginARAPlaybackRendererTemplate.cpp
+    Source/BinaryData/Templates/jucer_AudioPluginARAPlaybackRendererTemplate.h
     Source/BinaryData/Templates/jucer_AudioPluginEditorTemplate.cpp
     Source/BinaryData/Templates/jucer_AudioPluginEditorTemplate.h
     Source/BinaryData/Templates/jucer_AudioPluginFilterTemplate.cpp
@@ -149,8 +148,10 @@ juce_add_binary_data(ProjucerData SOURCES
     Source/BinaryData/gradle/gradlew
     Source/BinaryData/gradle/gradlew.bat
 
+    ../Build/CMake/JuceLV2Defines.h.in
     ../Build/CMake/LaunchScreen.storyboard
     ../Build/CMake/PIPAudioProcessor.cpp.in
+    ../Build/CMake/PIPAudioProcessorWithARA.cpp.in
     ../Build/CMake/PIPComponent.cpp.in
     ../Build/CMake/PIPConsole.cpp.in
     ../Build/CMake/RecentFilesMenuTemplate.nib

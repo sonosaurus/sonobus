@@ -8,25 +8,42 @@
 #include <utility>
 #include <iostream>
 
+#if JUCE_ANDROID
+#include "juce_core/native/juce_BasicNativeHeaders.h"
+#include "juce_core/juce_core.h"
+#include "juce_core/native/juce_android_JNIHelpers.h"
+#endif
+
 SampleEditView::SampleEditView(
-        std::function<void(SampleEditView&)> callback,
-        const SoundSample* soundSample,
-        String* lastOpenedDirectoryString
-) : editModeEnabled(soundSample != nullptr),
-    initialName(soundSample == nullptr ? "" : soundSample->getName()),
-    initialFilePath(soundSample == nullptr ? "" : soundSample->getFilePath()),
-    initialLoop(soundSample != nullptr && soundSample->isLoop()),
-    initialPlaybackBehaviour(soundSample == nullptr ? SoundSample::PlaybackBehaviour::SIMULTANEOUS : soundSample->getPlaybackBehaviour()),
-    initialButtonBehaviour(soundSample == nullptr ? SoundSample::ButtonBehaviour::TOGGLE : soundSample->getButtonBehaviour()),
-    initialReplayBehaviour(soundSample == nullptr ? SoundSample::ReplayBehaviour::REPLAY_FROM_START : soundSample->getReplayBehaviour()),
-    initialGain(soundSample == nullptr ? 1.0 : soundSample->getGain()),
-    submitCallback(std::move(callback)),
-    lastOpenedDirectory(lastOpenedDirectoryString),
-    selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
-    hotkeyCode(soundSample == nullptr ? -1 : soundSample->getHotkeyCode())
+                               std::function<void(SampleEditView&)> submitcallback,
+                               std::function<void(SampleEditView&)> gaincallback,
+                               const SoundSample* soundSample,
+                               String* lastOpenedDirectoryString
+                               )
+: submitCallback(std::move(submitcallback)),
+gainChangeCallback(std::move(gaincallback)),
+editModeEnabled(soundSample != nullptr),
+selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
+initialName(soundSample == nullptr ? "" : soundSample->getName()),
+initialLoop(soundSample != nullptr && soundSample->isLoop()),
+initialPlaybackBehaviour(soundSample == nullptr ? SoundSample::PlaybackBehaviour::SIMULTANEOUS : soundSample->getPlaybackBehaviour()),
+initialButtonBehaviour(soundSample == nullptr ? SoundSample::ButtonBehaviour::TOGGLE : soundSample->getButtonBehaviour()),
+initialReplayBehaviour(soundSample == nullptr ? SoundSample::ReplayBehaviour::REPLAY_FROM_START : soundSample->getReplayBehaviour()),
+initialGain(soundSample == nullptr ? 1.0 : soundSample->getGain()),
+hotkeyCode(soundSample == nullptr ? -1 : soundSample->getHotkeyCode()),
+lastOpenedDirectory(lastOpenedDirectoryString),
+mFileURL(soundSample == nullptr ? URL() : soundSample->getFileURL())
 {
     setOpaque(true);
 
+    if (!mFileURL.isEmpty()) {
+        if (mFileURL.isLocalFile()) {
+            initialFilePath = mFileURL.getLocalFile().getFullPathName();
+        } else {
+            initialFilePath = mFileURL.getFileName();
+        }
+    }
+    
     createNameInputs();
     createFilePathInputs();
     createColourInput();
@@ -56,6 +73,7 @@ void SampleEditView::createNameInputs()
     mNameInput->setText(initialName);
     mNameInput->onReturnKey = [this]() {
         submitDialog(false);
+        mNameInput->giveAwayKeyboardFocus();
     };
     mNameInput->onEscapeKey = [this]() {
         dismissDialog();
@@ -73,6 +91,9 @@ void SampleEditView::createFilePathInputs()
 
     mFilePathInput = std::make_unique<TextEditor>("filePathInput");
     mFilePathInput->setText(initialFilePath);
+#if JUCE_IOS || JUCE_ANDROID
+    mFilePathInput->setReadOnly(true);
+#endif
     addAndMakeVisible(mFilePathInput.get());
 
     mBrowseFilePathButton = std::make_unique<SonoTextButton>(TRANS("Browse"));
@@ -86,6 +107,11 @@ void SampleEditView::createFilePathInputs()
 
 void SampleEditView::createColourInput()
 {
+    auto buttonH = 32;
+#if JUCE_IOS || JUCE_ANDROID
+    buttonH = 36;
+#endif
+
     mColourInputLabel = std::make_unique<Label>("colourInputLabel", TRANS("Button colour"));
     mColourInputLabel->setJustificationType(Justification::left);
     mColourInputLabel->setFont(Font(14, Font::bold));
@@ -97,7 +123,7 @@ void SampleEditView::createColourInput()
     colourButtonRowTopBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
     for (int i = 0; i < 6; ++i) {
         auto colourButton = createColourButton(i);
-        colourButtonRowTopBox.items.add(FlexItem(32, 32, *colourButton).withMargin(0).withFlex(1));
+        colourButtonRowTopBox.items.add(FlexItem(32, buttonH, *colourButton).withMargin(0).withFlex(1));
         colourButtonRowTopBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
         mColourButtons.emplace_back(std::move(colourButton));
     }
@@ -106,7 +132,7 @@ void SampleEditView::createColourInput()
     colourButtonRowBottomBox.items.add(FlexItem(ELEMENT_MARGIN * 2, ELEMENT_MARGIN).withMargin(0));
     for (int i = 6; i < 11; ++i) {
         auto colourButton = createColourButton(i);
-        colourButtonRowBottomBox.items.add(FlexItem(32, 32, *colourButton).withMargin(0).withFlex(1));
+        colourButtonRowBottomBox.items.add(FlexItem(32, buttonH, *colourButton).withMargin(0).withFlex(1));
         colourButtonRowBottomBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
         mColourButtons.emplace_back(std::move(colourButton));
     }
@@ -131,14 +157,14 @@ void SampleEditView::createColourInput()
     customColourButton->setImages(eyedropperImage.get());
     customColourButton->setForegroundImageRatio(0.55f);
 
-    colourButtonRowBottomBox.items.add(FlexItem(32, 32, *customColourButton).withMargin(0).withFlex(1));
+    colourButtonRowBottomBox.items.add(FlexItem(32, buttonH, *customColourButton).withMargin(0).withFlex(1));
     colourButtonRowBottomBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     mColourButtons.emplace_back(std::move(customColourButton));
 
     colourButtonBox.flexDirection = FlexBox::Direction::column;
-    colourButtonBox.items.add(FlexItem(32 * 6, 32, colourButtonRowTopBox).withMargin(0).withFlex(0));
+    colourButtonBox.items.add(FlexItem(32 * 6, buttonH, colourButtonRowTopBox).withMargin(0).withFlex(0));
     colourButtonBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    colourButtonBox.items.add(FlexItem(32 * 6, 32, colourButtonRowBottomBox).withMargin(0).withFlex(0));
+    colourButtonBox.items.add(FlexItem(32 * 6, buttonH, colourButtonRowBottomBox).withMargin(0).withFlex(0));
 
     updateColourButtonCheckmark();
 }
@@ -151,6 +177,7 @@ void SampleEditView::createPlaybackOptionInputs()
     mPlaybackOptionsLabel->setColour(Label::textColourId, Colour(0xeeffffff));
     addAndMakeVisible(mPlaybackOptionsLabel.get());
 
+
     createButtonBehaviourButton();
 
     createLoopButton();
@@ -158,6 +185,15 @@ void SampleEditView::createPlaybackOptionInputs()
     createPlaybackBehaviourButton();
 
     createReplayBehaviourButton();
+    
+    mApplyPlaybackOptionsToOthersButton = std::make_unique<SonoTextButton>(TRANS("Apply to others"));
+    mApplyPlaybackOptionsToOthersButton->setTooltip(TRANS("Apply these options to all samples in the selected soundboard"));
+    mApplyPlaybackOptionsToOthersButton->onClick = [this]() {
+        if (applyPlaybackOptionsToOthersCallback) {
+            applyPlaybackOptionsToOthersCallback(*this);
+        }
+    };
+    addAndMakeVisible(mApplyPlaybackOptionsToOthersButton.get());
 }
 
 void SampleEditView::createVolumeInputs()
@@ -182,9 +218,10 @@ void SampleEditView::createVolumeInputs()
     mVolumeSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
     mVolumeSlider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
     mVolumeSlider->setValue(initialGain);
-    mVolumeSlider->setChangeNotificationOnlyOnRelease(true);
+    mVolumeSlider->setChangeNotificationOnlyOnRelease(false);
     mVolumeSlider->onValueChange = [this]() {
-        submitDialog(false);
+        if (gainChangeCallback)
+            gainChangeCallback(*this);
     };
 
     addAndMakeVisible(mVolumeSlider.get());
@@ -358,6 +395,7 @@ void SampleEditView::createButtonBar()
             submitDialog();
             // and make sure no more callbacks happen
             submitCallback = nullptr;
+            gainChangeCallback = nullptr;
         }
         else {
             dismissDialog();
@@ -382,6 +420,11 @@ String SampleEditView::getAbsoluteFilePath() const
     return mFilePathInput->getText().trim();
 }
 
+juce::URL SampleEditView::getFileURL() const
+{
+    return mFileURL;
+}
+
 float SampleEditView::getGain() const
 {
     return mVolumeSlider->getValue();
@@ -389,6 +432,23 @@ float SampleEditView::getGain() const
 
 void SampleEditView::browseFilePath()
 {
+    
+#if JUCE_ANDROID
+    if (getAndroidSDKVersion() < 29) {
+        SafePointer<SampleEditView> safeThis (this);
+        if (! RuntimePermissions::isGranted (RuntimePermissions::readExternalStorage))
+        {
+            RuntimePermissions::request (RuntimePermissions::readExternalStorage,
+                                         [safeThis] (bool granted) mutable
+                                         {
+                if (granted)
+                    safeThis->browseFilePath();
+            });
+            return;
+        }
+    }
+#endif
+    
     // Determine where to open the file chooser.
     File defaultDirectory = File::getSpecialLocation(File::userMusicDirectory);
     if (lastOpenedDirectory != nullptr) {
@@ -407,14 +467,25 @@ void SampleEditView::browseFilePath()
     auto folderFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
 
     mFileChooser->launchAsync(folderFlags, [this](const FileChooser& chooser) {
-        File chosenFile = chooser.getResult();
-        mFilePathInput->setText(chosenFile.getFullPathName(), true);
+        URL chosenUrl = chooser.getURLResult();
 
-        inferSampleName();
-
-        if (lastOpenedDirectory != nullptr) {
-            *lastOpenedDirectory = chosenFile.getParentDirectory().getFullPathName();
+        if (chosenUrl.isEmpty()) {
+            mFilePathInput->clear();
         }
+        else {
+            if (chosenUrl.isLocalFile()) {
+                auto lfile = chosenUrl.getLocalFile();
+                mFilePathInput->setText(lfile.getFullPathName(), true);
+                
+                if (lastOpenedDirectory != nullptr) {
+                    *lastOpenedDirectory = lfile.getParentDirectory().getFullPathName();
+                }
+            }
+            
+            mFileURL = chosenUrl;
+            inferSampleName();
+        }
+
     });
 }
 
@@ -480,12 +551,17 @@ void SampleEditView::resized()
     const int minlabwidth = 60;
     const int mintextwidth = 100;
     const int mintextbuttwidth = 72;
-    const int rowheight = 32;
-    const int labrowheight = 24;
+    int rowheight = 32;
+    int labrowheight = 24;
     const int volheight = 38;
     const int playbackboxw = 50;
     const int playbackboxh = 50;
 
+#if JUCE_IOS || JUCE_ANDROID
+    rowheight = 36;
+    labrowheight = 28;
+#endif
+    
     FlexBox contentBox;
     contentBox.flexDirection = FlexBox::Direction::column;
 
@@ -514,7 +590,7 @@ void SampleEditView::resized()
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(mintextwidth, labrowheight, *mColourInputLabel).withMargin(0).withFlex(0));
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    contentBox.items.add(FlexItem(32*6, 32 * 2, colourButtonBox).withMargin(0).withFlex(0));
+    contentBox.items.add(FlexItem(32*6, rowheight * 2, colourButtonBox).withMargin(0).withFlex(0));
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN * 2).withMargin(0));
     contentBox.items.add(FlexItem(mintextwidth, labrowheight, *mPlaybackOptionsLabel).withMargin(0).withFlex(0));
@@ -531,6 +607,8 @@ void SampleEditView::resized()
     playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mPlaybackBehaviourButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     playbackOptionsRowBox.items.add(FlexItem(playbackboxw, playbackboxh, *mReplayBehaviourButton).withMargin(0).withFlex(0, 0));
+    playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0).withFlex(1));
+    playbackOptionsRowBox.items.add(FlexItem(mintextbuttwidth, rowheight, *mApplyPlaybackOptionsToOthersButton).withMargin(0).withFlex(0, 0));
     playbackOptionsRowBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
 
     contentBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));

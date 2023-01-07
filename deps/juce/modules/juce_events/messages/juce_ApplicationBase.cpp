@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -199,14 +199,12 @@ String JUCEApplicationBase::getCommandLineParameters()
 {
     String argString;
 
-    for (int i = 1; i < juce_argc; ++i)
+    for (const auto& arg : getCommandLineParameterArray())
     {
-        String arg { CharPointer_UTF8 (juce_argv[i]) };
-
-        if (arg.containsChar (' ') && ! arg.isQuotedString())
-            arg = arg.quoted ('"');
-
-        argString << arg << ' ';
+        const auto withQuotes = arg.containsChar (' ') && ! arg.isQuotedString()
+                              ? arg.quoted ('"')
+                              : arg;
+        argString << withQuotes << ' ';
     }
 
     return argString.trim();
@@ -214,7 +212,12 @@ String JUCEApplicationBase::getCommandLineParameters()
 
 StringArray JUCEApplicationBase::getCommandLineParameterArray()
 {
-    return StringArray (juce_argv + 1, juce_argc - 1);
+    StringArray result;
+
+    for (int i = 1; i < juce_argc; ++i)
+        result.add (CharPointer_UTF8 (juce_argv[i]));
+
+    return result;
 }
 
 int JUCEApplicationBase::main (int argc, const char* argv[])
@@ -279,8 +282,8 @@ bool JUCEApplicationBase::initialiseApp()
     }
    #endif
 
-   #if JUCE_WINDOWS && JUCE_STANDALONE_APPLICATION && (! defined (_CONSOLE)) && (! JUCE_MINGW)
-    if (AttachConsole (ATTACH_PARENT_PROCESS) != 0)
+   #if JUCE_WINDOWS && (! defined (_CONSOLE)) && (! JUCE_MINGW)
+    if (isStandaloneApp() && AttachConsole (ATTACH_PARENT_PROCESS) != 0)
     {
         // if we've launched a GUI app from cmd.exe or PowerShell, we need this to enable printf etc.
         // However, only reassign stdout, stderr, stdin if they have not been already opened by

@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -39,6 +39,12 @@ class JUCE_API ContentSharer  : public DeletedAtShutdown
 public:
     JUCE_DECLARE_SINGLETON (ContentSharer, false)
 
+    /**
+     * Sets the parent component to be used in subsequent calls to iOS native sharer.
+     * Required to make ContentSharer work in AUv3 plugins.
+     */
+    void setParentComponent(Component* parentComponentToUse, Component* sourceComponentToUse);
+    
     /** Shares the given files. Each URL should be either a full file path
         or it should point to a resource within the application bundle. For
         resources on iOS it should be something like "content/image.png" if you
@@ -109,6 +115,9 @@ private:
 
     std::function<void (bool, String)> callback;
 
+    Component* parentComponent = nullptr;
+    Component::SafePointer<Component> sourceComponent;
+    
   #if JUCE_CONTENT_SHARING
     struct Pimpl
     {

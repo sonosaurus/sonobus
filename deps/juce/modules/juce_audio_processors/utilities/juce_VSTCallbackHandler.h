@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -46,11 +46,7 @@ struct VSTCallbackHandler
     virtual pointer_sized_int handleVstPluginCanDo (int32 index,
                                                     pointer_sized_int value,
                                                     void* ptr,
-                                                    float opt)
-    {
-        ignoreUnused (index, value, ptr, opt);
-        return 0;
-    }
+                                                    float opt);
 
     /** This is called by the VST plug-in wrapper when it receives unhandled
         vendor specific calls from the host.
@@ -71,10 +67,7 @@ struct VSTCallbackHandler
     /** This is called once by the VST plug-in wrapper after its constructor.
         You can use the supplied function to query the VST host.
     */
-    virtual void handleVstHostCallbackAvailable (std::function<VstHostCallbackType>&& callback)
-    {
-        ignoreUnused (callback);
-    }
+    virtual void handleVstHostCallbackAvailable (std::function<VstHostCallbackType>&& callback);
 };
 
 } // namespace juce

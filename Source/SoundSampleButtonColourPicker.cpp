@@ -31,7 +31,7 @@ void SoundSampleButtonColourPicker::show(const Rectangle<int>& bounds)
     CallOutBox::launchAsynchronously (std::move (colourSelector), abounds, dw);
 }
 
-void SoundSampleButtonColourPicker::updateSelectedColour(unsigned int newColour)
+void SoundSampleButtonColourPicker::updateSelectedColour(uint32 newColour)
 {
     if (selectedColour == nullptr) {
         return;
@@ -40,7 +40,7 @@ void SoundSampleButtonColourPicker::updateSelectedColour(unsigned int newColour)
     *selectedColour = newColour & 0xFFFFFF;
 }
 
-void SoundSampleButtonColourPicker::updatePickerButton(unsigned int newColour)
+void SoundSampleButtonColourPicker::updatePickerButton(uint32 newColour)
 {
     if (pickerButton == nullptr) {
         return;

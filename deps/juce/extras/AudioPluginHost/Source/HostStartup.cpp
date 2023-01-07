@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -27,20 +27,136 @@
 #include "UI/MainHostWindow.h"
 #include "Plugins/InternalPlugins.h"
 
+#include "MacSpecific.h"
+
 #if ! (JUCE_PLUGINHOST_VST || JUCE_PLUGINHOST_VST3 || JUCE_PLUGINHOST_AU)
  #error "If you're building the audio plugin host, you probably want to enable VST and/or AU support"
 #endif
 
+class PluginScannerSubprocess : private ChildProcessWorker,
+                                private AsyncUpdater
+{
+public:
+    PluginScannerSubprocess()
+    {
+        formatManager.addDefaultFormats();
+    }
+
+    using ChildProcessWorker::initialiseFromCommandLine;
+
+private:
+    void handleMessageFromCoordinator (const MemoryBlock& mb) override
+    {
+        if (mb.isEmpty())
+            return;
+
+        if (! doScan (mb))
+        {
+            {
+                const std::lock_guard<std::mutex> lock (mutex);
+                pendingBlocks.emplace (mb);
+            }
+
+            triggerAsyncUpdate();
+        }
+    }
+
+    void handleConnectionLost() override
+    {
+        JUCEApplicationBase::quit();
+    }
+
+    void handleAsyncUpdate() override
+    {
+        for (;;)
+        {
+            const auto block = [&]() -> MemoryBlock
+            {
+                const std::lock_guard<std::mutex> lock (mutex);
+
+                if (pendingBlocks.empty())
+                    return {};
+
+                auto out = std::move (pendingBlocks.front());
+                pendingBlocks.pop();
+                return out;
+            }();
+
+            if (block.isEmpty())
+                return;
+
+            doScan (block);
+        }
+    }
+
+    bool doScan (const MemoryBlock& block)
+    {
+        MemoryInputStream stream { block, false };
+        const auto formatName = stream.readString();
+        const auto identifier = stream.readString();
+
+        PluginDescription pd;
+        pd.fileOrIdentifier = identifier;
+        pd.uniqueId = pd.deprecatedUid = 0;
+
+        const auto matchingFormat = [&]() -> AudioPluginFormat*
+        {
+            for (auto* format : formatManager.getFormats())
+                if (format->getName() == formatName)
+                    return format;
+
+            return nullptr;
+        }();
+
+        if (matchingFormat == nullptr
+            || (! MessageManager::getInstance()->isThisTheMessageThread()
+                && ! matchingFormat->requiresUnblockedMessageThreadDuringCreation (pd)))
+        {
+            return false;
+        }
+
+        OwnedArray<PluginDescription> results;
+        matchingFormat->findAllTypesForFile (results, identifier);
+        sendPluginDescriptions (results);
+        return true;
+    }
+
+    void sendPluginDescriptions (const OwnedArray<PluginDescription>& results)
+    {
+        XmlElement xml ("LIST");
+
+        for (const auto& desc : results)
+            xml.addChildElement (desc->createXml().release());
+
+        const auto str = xml.toString();
+        sendMessageToCoordinator ({ str.toRawUTF8(), str.getNumBytesAsUTF8() });
+    }
+
+    std::mutex mutex;
+    std::queue<MemoryBlock> pendingBlocks;
+
+    // After construction, this will only be accessed by doScan so there's no need
+    // to worry about synchronisation.
+    AudioPluginFormatManager formatManager;
+};
 
 //==============================================================================
 class PluginHostApp  : public JUCEApplication,
                        private AsyncUpdater
 {
 public:
-    PluginHostApp() {}
+    PluginHostApp() = default;
 
-    void initialise (const String&) override
+    void initialise (const String& commandLine) override
     {
+        auto scannerSubprocess = std::make_unique<PluginScannerSubprocess>();
+
+        if (scannerSubprocess->initialiseFromCommandLine (commandLine, processUID))
+        {
+            storedScannerSubprocess = std::move (scannerSubprocess);
+            return;
+        }
+
         // initialise our settings file..
 
         PropertiesFile::Options options;
@@ -52,12 +168,15 @@ public:
         appProperties->setStorageParameters (options);
 
         mainWindow.reset (new MainHostWindow());
-        mainWindow->setUsingNativeTitleBar (true);
 
         commandManager.registerAllCommandsForTarget (this);
         commandManager.registerAllCommandsForTarget (mainWindow.get());
 
         mainWindow->menuItemsChanged();
+
+#if JUCE_MAC
+        disableAppNap();
+#endif
 
         // Important note! We're going to use an async update here so that if we need
         // to re-open a file and instantiate some plugins, it will happen AFTER this
@@ -142,6 +261,7 @@ public:
 
 private:
     std::unique_ptr<MainHostWindow> mainWindow;
+    std::unique_ptr<PluginScannerSubprocess> storedScannerSubprocess;
 };
 
 static PluginHostApp& getApp()                    { return *dynamic_cast<PluginHostApp*>(JUCEApplication::getInstance()); }
@@ -226,7 +346,8 @@ void setAutoScaleValueForPlugin (const String& identifier, AutoScale s)
 static bool isAutoScaleAvailableForPlugin (const PluginDescription& description)
 {
     return autoScaleOptionAvailable
-          && description.pluginFormatName.containsIgnoreCase ("VST");
+          && (description.pluginFormatName.containsIgnoreCase ("VST")
+              || description.pluginFormatName.containsIgnoreCase ("LV2"));
 }
 
 bool shouldAutoScalePlugin (const PluginDescription& description)

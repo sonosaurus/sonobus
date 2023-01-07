@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -50,7 +50,11 @@ void ComboBox::setEditableText (const bool isEditable)
         label->setEditable (isEditable, isEditable, false);
         labelEditableState = (isEditable ? labelIsEditable : labelIsNotEditable);
 
-        setWantsKeyboardFocus (labelEditableState == labelIsNotEditable);
+        const auto isLabelEditable = (labelEditableState == labelIsEditable);
+
+        setWantsKeyboardFocus (! isLabelEditable);
+        label->setAccessible (isLabelEditable);
+
         resized();
     }
 }
@@ -407,6 +411,9 @@ void ComboBox::resized()
 
 void ComboBox::enablementChanged()
 {
+    if (! isEnabled())
+        hidePopup();
+
     repaint();
 }
 
@@ -649,6 +656,12 @@ void ComboBox::handleAsyncUpdate()
 
     if (onChange != nullptr)
         onChange();
+
+    if (checker.shouldBailOut())
+        return;
+
+    if (auto* handler = getAccessibilityHandler())
+        handler->notifyAccessibilityEvent (AccessibilityEvent::valueChanged);
 }
 
 void ComboBox::sendChange (const NotificationType notification)
@@ -673,7 +686,8 @@ public:
     explicit ComboBoxAccessibilityHandler (ComboBox& comboBoxToWrap)
         : AccessibilityHandler (comboBoxToWrap,
                                 AccessibilityRole::comboBox,
-                                getAccessibilityActions (comboBoxToWrap)),
+                                getAccessibilityActions (comboBoxToWrap),
+                                { std::make_unique<ComboBoxValueInterface> (comboBoxToWrap) }),
           comboBox (comboBoxToWrap)
     {
     }
@@ -689,6 +703,25 @@ public:
     String getHelp() const override   { return comboBox.getTooltip(); }
 
 private:
+    class ComboBoxValueInterface  : public AccessibilityTextValueInterface
+    {
+    public:
+        explicit ComboBoxValueInterface (ComboBox& comboBoxToWrap)
+            : comboBox (comboBoxToWrap)
+        {
+        }
+
+        bool isReadOnly() const override                 { return true; }
+        String getCurrentValueAsString() const override  { return comboBox.getText(); }
+        void setValueAsString (const String&) override   {}
+
+    private:
+        ComboBox& comboBox;
+
+        //==============================================================================
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ComboBoxValueInterface)
+    };
+
     static AccessibilityActions getAccessibilityActions (ComboBox& comboBox)
     {
         return AccessibilityActions().addAction (AccessibilityActionType::press,    [&comboBox] { comboBox.showPopup(); })

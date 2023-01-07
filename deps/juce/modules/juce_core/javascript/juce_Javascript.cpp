@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -1539,9 +1539,9 @@ struct JavascriptEngine::RootObject   : public DynamicObject
             setMethod ("clone", cloneFn);
         }
 
-        static Identifier getClassName()   { static const Identifier i ("Object"); return i; }
-        static var dump  (Args a)          { DBG (JSON::toString (a.thisObject)); ignoreUnused (a); return var::undefined(); }
-        static var cloneFn (Args a)        { return a.thisObject.clone(); }
+        static Identifier getClassName()            { static const Identifier i ("Object"); return i; }
+        static var dump  ([[maybe_unused]] Args a)  { DBG (JSON::toString (a.thisObject)); return var::undefined(); }
+        static var cloneFn (Args a)                 { return a.thisObject.clone(); }
     };
 
     //==============================================================================

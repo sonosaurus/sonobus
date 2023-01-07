@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -44,6 +44,8 @@
 #endif
 
 #include "juce_audio_devices.h"
+
+#include "audio_io/juce_SampleRateHelpers.cpp"
 
 //==============================================================================
 #if JUCE_MAC || JUCE_IOS
@@ -186,7 +188,13 @@
 //==============================================================================
 #elif JUCE_ANDROID
 
- #include "native/juce_android_Audio.cpp"
+namespace juce
+{
+    using RealtimeThreadFactory = pthread_t (*) (void* (*) (void*), void*);
+    RealtimeThreadFactory getAndroidRealtimeThreadFactory();
+} // namespace juce
+
+#include "native/juce_android_Audio.cpp"
 
  #include <juce_audio_basics/midi/juce_MidiDataConcatenator.h>
  #include "native/juce_android_Midi.cpp"
@@ -216,6 +224,9 @@
 
    #include "native/juce_android_Oboe.cpp"
   #endif
+ #else
+// No audio library, so no way to create realtime threads.
+  RealtimeThreadFactory getAndroidRealtimeThreadFactory() { return nullptr; }
  #endif
 
 #endif

@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -44,30 +44,25 @@ struct OboeAudioIODeviceBufferHelpers<int16>
 
     static bool referAudioBufferDirectlyToOboeIfPossible (int16*, AudioBuffer<float>&, int)  { return false; }
 
+    using NativeInt16   = AudioData::Format<AudioData::Int16, AudioData::NativeEndian>;
+    using NativeFloat32 = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
+
     static void convertFromOboe (const int16* srcInterleaved, AudioBuffer<float>& audioBuffer, int numSamples)
     {
-        for (int i = 0; i < audioBuffer.getNumChannels(); ++i)
-        {
-            using DstSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::NonInterleaved, AudioData::NonConst>;
-            using SrcSampleType = AudioData::Pointer<AudioData::Int16,   AudioData::NativeEndian, AudioData::Interleaved,    AudioData::Const>;
+        const auto numChannels = audioBuffer.getNumChannels();
 
-            DstSampleType dstData (audioBuffer.getWritePointer (i));
-            SrcSampleType srcData (srcInterleaved + i, audioBuffer.getNumChannels());
-            dstData.convertSamples (srcData, numSamples);
-        }
+        AudioData::deinterleaveSamples (AudioData::InterleavedSource<NativeInt16>    { reinterpret_cast<const uint16*> (srcInterleaved), numChannels },
+                                        AudioData::NonInterleavedDest<NativeFloat32> { audioBuffer.getArrayOfWritePointers(),            numChannels },
+                                        numSamples);
     }
 
     static void convertToOboe (const AudioBuffer<float>& audioBuffer, int16* dstInterleaved, int numSamples)
     {
-        for (int i = 0; i < audioBuffer.getNumChannels(); ++i)
-        {
-            using DstSampleType = AudioData::Pointer<AudioData::Int16,   AudioData::NativeEndian, AudioData::Interleaved,    AudioData::NonConst>;
-            using SrcSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::NonInterleaved, AudioData::Const>;
+        const auto numChannels = audioBuffer.getNumChannels();
 
-            DstSampleType dstData (dstInterleaved + i, audioBuffer.getNumChannels());
-            SrcSampleType srcData (audioBuffer.getReadPointer (i));
-            dstData.convertSamples (srcData, numSamples);
-        }
+        AudioData::interleaveSamples (AudioData::NonInterleavedSource<NativeFloat32> { audioBuffer.getArrayOfReadPointers(),       numChannels },
+                                      AudioData::InterleavedDest<NativeInt16>        { reinterpret_cast<uint16*> (dstInterleaved), numChannels },
+                                      numSamples);
     }
 };
 
@@ -89,6 +84,8 @@ struct OboeAudioIODeviceBufferHelpers<float>
         return false;
     }
 
+    using Format = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
+
     static void convertFromOboe (const float* srcInterleaved, AudioBuffer<float>& audioBuffer, int numSamples)
     {
         auto numChannels = audioBuffer.getNumChannels();
@@ -98,15 +95,9 @@ struct OboeAudioIODeviceBufferHelpers<float>
             // No need to convert, we instructed the buffer to point to the src data directly already
             jassert (audioBuffer.getWritePointer (0) != srcInterleaved);
 
-            for (int i = 0; i < numChannels; ++i)
-            {
-                using DstSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::NonInterleaved, AudioData::NonConst>;
-                using SrcSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::Interleaved,    AudioData::Const>;
-
-                DstSampleType dstData (audioBuffer.getWritePointer (i));
-                SrcSampleType srcData (srcInterleaved + i, audioBuffer.getNumChannels());
-                dstData.convertSamples (srcData, numSamples);
-            }
+            AudioData::deinterleaveSamples (AudioData::InterleavedSource<Format>  { srcInterleaved,                        numChannels },
+                                            AudioData::NonInterleavedDest<Format> { audioBuffer.getArrayOfWritePointers(), numChannels },
+                                            numSamples);
         }
     }
 
@@ -119,15 +110,9 @@ struct OboeAudioIODeviceBufferHelpers<float>
             // No need to convert, we instructed the buffer to point to the src data directly already
             jassert (audioBuffer.getReadPointer (0) != dstInterleaved);
 
-            for (int i = 0; i < numChannels; ++i)
-            {
-                using DstSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::Interleaved,    AudioData::NonConst>;
-                using SrcSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::NonInterleaved, AudioData::Const>;
-
-                DstSampleType dstData (dstInterleaved + i, audioBuffer.getNumChannels());
-                SrcSampleType srcData (audioBuffer.getReadPointer (i));
-                dstData.convertSamples (srcData, numSamples);
-            }
+            AudioData::interleaveSamples (AudioData::NonInterleavedSource<Format> { audioBuffer.getArrayOfReadPointers(), numChannels },
+                                          AudioData::InterleavedDest<Format>      { dstInterleaved,                       numChannels },
+                                          numSamples);
         }
     }
 };
@@ -438,13 +423,17 @@ private:
         }
     }
 
-    void process (const float** inputChannelData, int numInputChannels,
-                  float** outputChannelData, int numOutputChannels, int32_t numFrames)
+    void process (const float* const* inputChannelData, int numInputChannels,
+                  float* const* outputChannelData, int numOutputChannels, int32_t numFrames)
     {
         if (auto* cb = callback.exchange (nullptr))
         {
-            cb->audioDeviceIOCallback (inputChannelData, numInputChannels,
-                                       outputChannelData, numOutputChannels, numFrames);
+            cb->audioDeviceIOCallbackWithContext (inputChannelData,
+                                                  numInputChannels,
+                                                  outputChannelData,
+                                                  numOutputChannels,
+                                                  numFrames,
+                                                  {});
             callback.set (cb);
         }
         else
@@ -607,8 +596,7 @@ private:
         {
             if (stream != nullptr)
             {
-                oboe::Result result = stream->close();
-                ignoreUnused (result);
+                [[maybe_unused]] oboe::Result result = stream->close();
                 JUCE_OBOE_LOG ("Requested Oboe stream close with result: " + getOboeString (result));
             }
         }
@@ -704,14 +692,15 @@ private:
         }
 
         // Not strictly required as these should not change, but recommended by Google anyway
-        void checkStreamSetup (OboeStream* stream, int deviceId, int numChannels, int expectedSampleRate,
-                               int expectedBufferSize, oboe::AudioFormat format)
+        void checkStreamSetup (OboeStream* stream,
+                               [[maybe_unused]] int deviceId,
+                               [[maybe_unused]] int numChannels,
+                               [[maybe_unused]] int expectedSampleRate,
+                               [[maybe_unused]] int expectedBufferSize,
+                               oboe::AudioFormat format)
         {
-            if (auto* nativeStream = stream != nullptr ? stream->getNativeStream() : nullptr)
+            if ([[maybe_unused]] auto* nativeStream = stream != nullptr ? stream->getNativeStream() : nullptr)
             {
-                ignoreUnused (deviceId, numChannels, sampleRate, expectedBufferSize);
-                ignoreUnused (streamFormat, bitDepth);
-
                 jassert (numChannels == 0 || numChannels == nativeStream->getChannelCount());
                 jassert (expectedSampleRate == 0 || expectedSampleRate == nativeStream->getSampleRate());
                 jassert (format == nativeStream->getFormat());
@@ -871,10 +860,8 @@ private:
             return oboe::DataCallbackResult::Continue;
         }
 
-        void printStreamDebugInfo (oboe::AudioStream* stream)
+        void printStreamDebugInfo ([[maybe_unused]] oboe::AudioStream* stream)
         {
-            ignoreUnused (stream);
-
             JUCE_OBOE_LOG ("\nUses AAudio = " + (stream != nullptr ? String ((int) stream->usesAAudio()) : String ("?"))
                  + "\nDirection = " + (stream != nullptr ? getOboeString (stream->getDirection()) : String ("?"))
                  + "\nSharingMode = " + (stream != nullptr ? getOboeString (stream->getSharingMode()) : String ("?"))
@@ -939,10 +926,8 @@ private:
             return time.tv_sec * oboe::kNanosPerSecond + time.tv_nsec;
         }
 
-        void onErrorBeforeClose (oboe::AudioStream* stream, oboe::Result error) override
+        void onErrorBeforeClose (oboe::AudioStream* stream, [[maybe_unused]] oboe::Result error) override
         {
-            ignoreUnused (error);
-
             // only output stream should be the master stream receiving callbacks
             jassert (stream->getDirection() == oboe::Direction::Output);
 
@@ -1180,10 +1165,8 @@ public:
 
         JUCE_OBOE_LOG ("-----InputDevices:");
 
-        for (auto& device : inputDevices)
+        for ([[maybe_unused]] auto& device : inputDevices)
         {
-            ignoreUnused (device);
-
             JUCE_OBOE_LOG ("name = " << device.name);
             JUCE_OBOE_LOG ("id = " << String (device.id));
             JUCE_OBOE_LOG ("sample rates size = " << String (device.sampleRates.size()));
@@ -1192,10 +1175,8 @@ public:
 
         JUCE_OBOE_LOG ("-----OutputDevices:");
 
-        for (auto& device : outputDevices)
+        for ([[maybe_unused]] auto& device : outputDevices)
         {
-            ignoreUnused (device);
-
             JUCE_OBOE_LOG ("name = " << device.name);
             JUCE_OBOE_LOG ("id = " << String (device.id));
             JUCE_OBOE_LOG ("sample rates size = " << String (device.sampleRates.size()));
@@ -1405,17 +1386,15 @@ public:
         return oboe::DataCallbackResult::Continue;
     }
 
-    void onErrorBeforeClose (oboe::AudioStream*, oboe::Result error) override
+    void onErrorBeforeClose (oboe::AudioStream*, [[maybe_unused]] oboe::Result error) override
     {
         JUCE_OBOE_LOG ("OboeRealtimeThread: Oboe stream onErrorBeforeClose(): " + getOboeString (error));
-        ignoreUnused (error);
         jassertfalse;  // Should never get here!
     }
 
-    void onErrorAfterClose (oboe::AudioStream*, oboe::Result error) override
+    void onErrorAfterClose (oboe::AudioStream*, [[maybe_unused]] oboe::Result error) override
     {
         JUCE_OBOE_LOG ("OboeRealtimeThread: Oboe stream onErrorAfterClose(): " + getOboeString (error));
-        ignoreUnused (error);
         jassertfalse;  // Should never get here!
     }
 
@@ -1433,19 +1412,22 @@ private:
 };
 
 //==============================================================================
-pthread_t juce_createRealtimeAudioThread (void* (*entry) (void*), void* userPtr)
+RealtimeThreadFactory getAndroidRealtimeThreadFactory()
 {
-    auto thread = std::make_unique<OboeRealtimeThread>();
+    return [] (void* (*entry) (void*), void* userPtr) -> pthread_t
+    {
+        auto thread = std::make_unique<OboeRealtimeThread>();
 
-    if (! thread->isOk())
-        return {};
+        if (! thread->isOk())
+            return {};
 
-    auto threadID = thread->startThread (entry, userPtr);
+        auto threadID = thread->startThread (entry, userPtr);
 
-    // the thread will de-allocate itself
-    thread.release();
+        // the thread will de-allocate itself
+        thread.release();
 
-    return threadID;
+        return threadID;
+    };
 }
 
 } // namespace juce

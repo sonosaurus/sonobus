@@ -24,6 +24,17 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor, Fil
 
     mLastSampleBrowseDirectory = std::make_unique<String>(
             File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
+    
+    mInsertLine = std::make_unique<DrawableRectangle>();
+    mInsertLine->setFill (Colours::transparentBlack);
+    mInsertLine->setStrokeFill (Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.75));
+    mInsertLine->setStrokeThickness(2);
+    addChildComponent(mInsertLine.get());
+
+    mDragDrawable = std::make_unique<DrawableImage>();
+    mDragDrawable->setAlpha(0.4f);
+    mDragDrawable->setAlwaysOnTop(true);
+    addChildComponent(mDragDrawable.get());
 }
 
 void SoundboardView::createBasePanels()
@@ -130,12 +141,29 @@ void SoundboardView::createControlPanel()
     mHotkeyStateButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
     mHotkeyStateButton->setTitle(TRANS("Toggle hotkeys"));
     mHotkeyStateButton->setTooltip(TRANS("Toggles whether sound samples can be played using hotkeys."));
-    mHotkeyStateButton->setToggleState(processor->isHotkeysSelected(), NotificationType::dontSendNotification);
+    mHotkeyStateButton->setToggleState(processor->isHotkeysMuted(), NotificationType::dontSendNotification);
     mHotkeyStateButton->onClick = [this]() {
-        processor->setHotkeysSelected(mHotkeyStateButton->getToggleState());
+        processor->setHotkeysMuted(mHotkeyStateButton->getToggleState());
     };
     addAndMakeVisible(mHotkeyStateButton.get());
 
+    mNumericHotkeyStateButton = std::make_unique<SonoDrawableButton>("Hotkey switch", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> keypadImage(Drawable::createFromImageData(BinaryData::keypadnum_svg, BinaryData::keypadnum_svgSize));
+    std::unique_ptr<Drawable> keypadDisabledImage(Drawable::createFromImageData(BinaryData::keypadnumdisabled_svg, BinaryData::keypadnumdisabled_svgSize));
+    mNumericHotkeyStateButton->setImages(keypadImage.get(), nullptr, nullptr, nullptr, keypadDisabledImage.get());
+    mNumericHotkeyStateButton->setForegroundImageRatio(0.75f);
+    mNumericHotkeyStateButton->setClickingTogglesState(true);
+    mNumericHotkeyStateButton->setColour(DrawableButton::backgroundColourId, Colours::transparentBlack);
+    mNumericHotkeyStateButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.2, 0.2, 0.7));
+    mNumericHotkeyStateButton->setTitle(TRANS("Toggle numeric hotkeys"));
+    mNumericHotkeyStateButton->setTooltip(TRANS("Toggles whether sound samples can be played using default numeric hotkeys."));
+    mNumericHotkeyStateButton->setToggleState(!processor->isDefaultNumericHotkeyAllowed(), NotificationType::dontSendNotification);
+    mNumericHotkeyStateButton->onClick = [this]() {
+        processor->setDefaultNumericHotkeyAllowed(!mNumericHotkeyStateButton->getToggleState());
+    };
+    addAndMakeVisible(mNumericHotkeyStateButton.get());
+
+    
     mStopAllPlayback = std::make_unique<SonoDrawableButton>("StopAllPlayback", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> speakerImage(Drawable::createFromImageData(BinaryData::speaker_disabled_grey_svg, BinaryData::speaker_disabled_grey_svgSize));
     mStopAllPlayback->setImages(speakerImage.get());
@@ -153,6 +181,7 @@ void SoundboardView::createControlPanel()
     controlsBox.justifyContent = FlexBox::JustifyContent::center;
     controlsBox.items.add(FlexItem(38, 34, *mStopAllPlayback).withMargin(4).withFlex(0));
     controlsBox.items.add(FlexItem(38, 34, *mHotkeyStateButton).withMargin(4).withFlex(0));
+    controlsBox.items.add(FlexItem(38, 34, *mNumericHotkeyStateButton).withMargin(4).withFlex(0));
 }
 
 void SoundboardView::updateSoundboardSelector()
@@ -188,7 +217,7 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
     auto buttonAddress = playbackButton;
     if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD) {
         playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
-            if (sample.getFilePath().isEmpty()) {
+            if (sample.getFileURL().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
             }
             else if (mods.isCommandDown()) {
@@ -198,7 +227,7 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
     }
     else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::ONE_SHOT) {
         playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
-            if (sample.getFilePath().isEmpty()) {
+            if (sample.getFileURL().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
             }
             else if (mods.isCommandDown()) {
@@ -210,7 +239,7 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
     }
     else if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE) {
         playbackButton->onPrimaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
-            if (sample.getFilePath().isEmpty()) {
+            if (sample.getFileURL().isEmpty()) {
                 clickedEditSoundSample(*buttonAddress, sample);
             }
             else if (mods.isCommandDown()) {
@@ -255,6 +284,9 @@ void SoundboardView::updateButtons()
 
         playbackButton->setMouseListener(std::make_unique<HoldSampleButtonMouseListener>(buttonAddress, &sample, this));
 
+        // for reorder dragging
+        playbackButton->addMouseListener(this, false);
+        
         playbackButton->onSecondaryClick = [this, &sample, buttonAddress](const ModifierKeys& mods) {
             clickedEditSoundSample(*buttonAddress, sample);
         };
@@ -290,6 +322,163 @@ void SoundboardView::updateButtons()
 
     // Trigger repaint
     resized();
+}
+
+
+void SoundboardView::mouseDown (const MouseEvent& event)
+{
+    for (int i=0; i < mSoundButtons.size(); ++i) {
+        auto & sbutton = mSoundButtons[i];
+
+        if (event.eventComponent == sbutton.get()) {
+            mReorderDragSourceIndex = i;
+            break;
+        }
+    }
+}
+
+void SoundboardView::mouseDrag (const MouseEvent& event)
+{
+    auto thresh = 5;
+#if JUCE_IOS || JUCE_ANDROID
+    thresh = 12;
+#endif
+
+    for (int i=0; i < mSoundButtons.size(); ++i) {
+        auto & sbutton = mSoundButtons[i];
+
+        if (event.eventComponent == sbutton.get()) {
+            auto adjpos =  getLocalPoint(event.eventComponent, event.getPosition());
+            DBG("Dragging sample button: " << adjpos.toString());
+            
+            if (abs(event.getDistanceFromDragStartY()) > thresh && !mReorderDragging && !sbutton->isPositionDragging()) {
+                // start reorder dragging
+                mReorderDragSourceIndex = i;
+                mReorderDragging = true;
+                
+                mReorderDragPos = getSampleIndexForPoint(adjpos, true);
+                auto groupbounds = getBoundsForSampleIndex(mReorderDragSourceIndex);
+                mDragImage = createComponentSnapshot(groupbounds);
+                mDragDrawable->setImage(mDragImage);
+                mDragDrawable->setVisible(true);
+                mDragDrawable->setBounds(groupbounds.getX(), adjpos.getY() - groupbounds.getHeight()/2, groupbounds.getWidth(), groupbounds.getHeight());
+            }
+            else if (mReorderDragging) {
+                // adjust drag indicator
+                int sampind = getSampleIndexForPoint(adjpos, true);
+                DBG("In sample: " << sampind);
+
+                mDragDrawable->setBounds(mDragDrawable->getX(), adjpos.getY() - mDragDrawable->getHeight()/2, mDragDrawable->getWidth(), mDragDrawable->getHeight());
+
+                if (auto viewport = &buttonViewport) {
+                    auto vppos = viewport->getLocalPoint(this, adjpos);
+                    if (viewport->autoScroll(vppos.getX(), vppos.getY(), 8, 8)) {
+                        if (!mAutoscrolling) {
+                            event.eventComponent->beginDragAutoRepeat(40);
+                            mAutoscrolling = true;
+                        }
+                    } else if (mAutoscrolling){
+                        event.eventComponent->beginDragAutoRepeat(0);
+                        mAutoscrolling = false;
+                    }
+                }
+
+                if (sampind != mReorderDragPos) {
+                    // insert point changed, update it
+                    mReorderDragPos = sampind;
+
+                    auto groupbounds = getBoundsForSampleIndex(mReorderDragPos);
+                    groupbounds.setHeight(0);
+                    groupbounds.setWidth(getWidth() - 16);
+                    groupbounds.setX(7);
+                    mInsertLine->setRectangle (groupbounds.toFloat());
+
+                    int delta = mReorderDragPos - mReorderDragSourceIndex;
+                    bool canmove = delta > 1 || delta < 0;
+                    mInsertLine->setVisible(canmove);
+                }
+            }
+            break;
+        }
+    }
+}
+
+void SoundboardView::mouseUp (const MouseEvent& event)
+{
+    auto selectedBoardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedBoardIndex >= processor->getNumberOfSoundboards()) {
+        return;
+    }
+    
+    for (int i=0; i < mSoundButtons.size(); ++i) {
+        auto & sbutton = mSoundButtons[i];
+        if (event.eventComponent == sbutton.get()) {
+            if (mReorderDragging) {
+                DBG("Mouse up after drag: " << event.getPosition().toString());
+                // commit it
+                int delta = mReorderDragPos - mReorderDragSourceIndex;
+                bool canmove = delta > 1 || delta < 0;
+                                
+                if (canmove && processor->moveSoundSample(mReorderDragSourceIndex, mReorderDragPos, selectedBoardIndex)) {
+                    DBG("Move from " << mReorderDragSourceIndex << " to " << mReorderDragPos << " success");
+                    // moved it
+                    updateButtons();
+                }
+
+                mInsertLine->setVisible(false);
+                mDragDrawable->setVisible(false);
+                mReorderDragging = false;
+                mAutoscrolling = false;
+            }
+         
+            break;
+        }
+    }
+}
+
+int SoundboardView::getSampleIndexForPoint(Point<int> pos, bool inbetween)
+{
+    int i=0;
+    for (; i < mSoundButtons.size(); ++i) {
+        auto bounds = getLocalArea(mSoundButtons[i]->getParentComponent(), mSoundButtons[i]->getBounds());
+
+        if (inbetween) {
+            // round it from midpoints
+            auto tophalf = bounds.withTrimmedBottom(bounds.getHeight()/2);
+            auto bottomhalf = bounds.withTrimmedTop(bounds.getHeight()/2);
+            if (tophalf.contains(pos) || pos.getY() < bounds.getY()) {
+                return i;
+            }
+            else if (bottomhalf.contains(pos)) {
+                return i+1;
+            }
+        }
+        else {
+            if (bounds.contains(pos)) {
+                return i;
+            }
+            if (pos.getY() < bounds.getY()) {
+                // return one less
+                return i-1;
+            }
+        }
+    }
+
+    return i;
+}
+
+Rectangle<int> SoundboardView::getBoundsForSampleIndex(int sampind)
+{
+    if (sampind >= 0 && sampind < mSoundButtons.size()) {
+        return getLocalArea(mSoundButtons[sampind]->getParentComponent(), mSoundButtons[sampind]->getBounds());
+    }
+    // otherwise return a line after the last of them
+    if (!mSoundButtons.empty()) {
+        auto & lastone = mSoundButtons.back();
+        auto bounds = lastone->getBounds();
+        return getLocalArea(lastone->getParentComponent(), Rectangle<int>(bounds.getX(), bounds.getBottom(), bounds.getWidth(), 0));
+    }
+    return {};
 }
 
 void SoundboardView::playSample(SoundSample& sample, SonoPlaybackProgressButton* button)
@@ -520,14 +709,14 @@ void SoundboardView::clickedAddSoundSample()
 
 void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& sample)
 {
-    auto callback = [this, &sample, &button](SampleEditView& editView) {
+    auto submitcallback = [this, &sample, &button](SampleEditView& editView) {
         if (editView.isDeleteSample()) {
             processor->deleteSoundSample(sample);
             updateButtons();
         }
         else {
             auto sampleName = editView.getSampleName();
-            auto filePath = editView.getAbsoluteFilePath();
+            auto fileURL = editView.getFileURL();
             auto buttonColour = editView.getButtonColour();
             auto loop = editView.isLoop();
             auto playbackBehaviour = editView.getPlaybackBehaviour();
@@ -537,7 +726,7 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
             auto hotkeyCode = editView.getHotkeyCode();
 
             sample.setName(sampleName);
-            sample.setFilePath(filePath);
+            sample.setFileURL(fileURL);
             sample.setButtonColour(buttonColour);
             sample.setLoop(loop);
             sample.setPlaybackBehaviour(playbackBehaviour);
@@ -555,9 +744,21 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
         }
     };
 
-    auto wrap = std::make_unique<Viewport>();
-    auto content = std::make_unique<SampleEditView>(callback, &sample, mLastSampleBrowseDirectory.get());
+    auto gaincallback = [this, &sample, &button](SampleEditView& editView) {
+        sample.setGain(editView.getGain());
+        processor->updatePlaybackSettings(sample);
+    };
 
+    auto applyToOthersCallback = [this, &sample, &button](SampleEditView& editView) {
+        applyOptionsToAll(sample);
+    };
+
+    
+    auto wrap = std::make_unique<Viewport>();
+    auto content = std::make_unique<SampleEditView>(submitcallback, gaincallback, &sample, mLastSampleBrowseDirectory.get());
+
+    content->applyPlaybackOptionsToOthersCallback = applyToOthersCallback;
+    
     Component* dw = findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = findParentComponentOfClass<Component>();
     if (!dw) dw = this;
@@ -578,6 +779,31 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
     mSampleEditCalloutBox = & CallOutBox::launchAsynchronously(std::move(wrap),
                                                             bounds, dw, false);
     mSampleEditCalloutBox->addComponentListener(this);
+}
+
+void SoundboardView::applyOptionsToAll(SoundSample & fromsample)
+{
+    auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedSoundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
+        return;
+    }
+
+    auto& soundboard = getSoundboardProcessor()->getSoundboard(selectedSoundboardIndex);
+    auto& samples = soundboard.getSamples();
+
+    auto sampleCount = samples.size();
+    bool gotone = false;
+    for (int i = 0; i < sampleCount; ++i) {
+        auto& sample = samples[i];
+        if (&fromsample != &sample) {
+            sample.setReplayBehaviour(fromsample.getReplayBehaviour());
+            sample.setPlaybackBehaviour(fromsample.getPlaybackBehaviour());
+            sample.setLoop(fromsample.isLoop());
+            sample.setButtonBehaviour(fromsample.getButtonBehaviour());
+            processor->editSoundSample(sample, false);
+        }
+    }
+    processor->saveToDisk();
 }
 
 void SoundboardView::paint(Graphics& g)
@@ -632,17 +858,7 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
     // 0 is already assigned to jump to start.
     auto keyCode = keyPress.getKeyCode();
 
-    if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
-        if (triggerSampleAtIndex(keyCode - 49)) {
-            return true;
-        }
-    }
-
-    if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
-        if (triggerSampleAtIndex(keyCode - KeyPress::numberPad1)) {
-            return true;
-        }
-    }
+    
 
     // Look for custom keybinds.
     auto selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
@@ -662,6 +878,24 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
             gotone = true;
         }
     }
+    
+    if (!gotone && processor->isDefaultNumericHotkeyAllowed()) {
+        // if something wasn't already triggered by this keycode, and if default numeric ones are allowed
+        if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= 49 /* 1 */ && keyCode <= 57 /* 9 */) {
+            auto index = keyCode - 49;
+            if (triggerSampleAtIndex(index)) {
+                return true;
+            }
+        }
+
+        if (!keyPress.getModifiers().isAnyModifierKeyDown() && keyCode >= KeyPress::numberPad1 && keyCode <= KeyPress::numberPad9) {
+            auto index = keyCode - KeyPress::numberPad1;
+            if (triggerSampleAtIndex(index)) {
+                return true;
+            }
+        }
+    }
+    
     return gotone;
 }
 
@@ -757,7 +991,7 @@ HoldSampleButtonMouseListener::HoldSampleButtonMouseListener(SonoPlaybackProgres
 
 void HoldSampleButtonMouseListener::mouseDown(const MouseEvent& event)
 {
-    dragging = false;
+    posDragging = false;
 
     if (sample->getButtonBehaviour() == SoundSample::ButtonBehaviour::HOLD && event.mods.isLeftButtonDown() && !button->isClickEdit()) {
         view->playSample(*sample, button);
@@ -766,16 +1000,21 @@ void HoldSampleButtonMouseListener::mouseDown(const MouseEvent& event)
 
 void HoldSampleButtonMouseListener::mouseDrag(const MouseEvent &event)
 {
-    if (!dragging && abs(event.getDistanceFromDragStartX()) > 5)
+    auto thresh = 5;
+#if JUCE_IOS || JUCE_ANDROID
+    thresh = 12;
+#endif
+    if (!posDragging && abs(event.getDistanceFromDragStartX()) > thresh && !view->isReorderDragging())
     {
         downPoint = event.getPosition();
         if (auto * manager = button->getPlaybackManager()) {
             downTransportPos = manager->getCurrentPosition();
         }
-        dragging = true;
+        posDragging = true;
+        button->setPositionDragging(posDragging);
         button->setIgnoreNextClick();
     }
-    else if (dragging) {
+    else if (posDragging) {
         if (auto * manager = button->getPlaybackManager()) {
 
             double posdelta = manager->getLength() * (event.getPosition().getX() - downPoint.getX()) / (double)button->getWidth();
@@ -796,7 +1035,7 @@ void HoldSampleButtonMouseListener::mouseUp(const MouseEvent& event)
         view->stopSample(*sample);
     }
 
-    if (dragging) {
+    if (posDragging) {
         if (auto * manager = button->getPlaybackManager()) {
 
             double posdelta = manager->getLength() * (event.getPosition().getX() - downPoint.getX()) / (double)button->getWidth();
@@ -805,6 +1044,9 @@ void HoldSampleButtonMouseListener::mouseUp(const MouseEvent& event)
             sample->setLastPlaybackPosition(pos);
             manager->seek(pos);
         }
+        
+        posDragging = false;
+        button->setPositionDragging(posDragging);
     }
 }
 

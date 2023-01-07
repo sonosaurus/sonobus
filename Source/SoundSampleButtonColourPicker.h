@@ -17,7 +17,7 @@ class SoundSampleButtonColourPicker : public ChangeListener
 {
 public:
     explicit SoundSampleButtonColourPicker(
-            int* theSelectedColour,
+            uint32* theSelectedColour,
             SonoDrawableButton* thePickerButton
     ) : selectedColour(theSelectedColour),
         pickerButton(thePickerButton)
@@ -39,7 +39,7 @@ private:
     /**
      * Where the currently selected colour is stored.
      */
-    int* selectedColour;
+    uint32* selectedColour;
 
     /**
      * Pointer to the button that should reflect the selected colour.
@@ -51,7 +51,7 @@ private:
      *
      * @param newColour The newly selected colour (may contain alpha value).
      */
-    void updateSelectedColour(unsigned int newColour);
+    void updateSelectedColour(uint32 newColour);
 
     /**
      * Updates the picker button to display the newly selected colour.
@@ -59,7 +59,7 @@ private:
      *
      * @param newColour The newly selected colour (may contain alpha value).
      */
-    void updatePickerButton(unsigned int newColour);
+    void updatePickerButton(uint32 newColour);
 
     void changeListenerCallback(ChangeBroadcaster* source) override
     {

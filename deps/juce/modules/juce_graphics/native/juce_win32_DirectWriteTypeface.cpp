@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -35,7 +35,7 @@ namespace
 
         uint32 index = 0;
         BOOL exists = false;
-        auto hr = names->FindLocaleName (L"en-us", &index, &exists);
+        [[maybe_unused]] auto hr = names->FindLocaleName (L"en-us", &index, &exists);
 
         if (! exists)
             index = 0;
@@ -54,7 +54,7 @@ namespace
         jassert (family != nullptr);
         ComSmartPtr<IDWriteLocalizedStrings> familyNames;
         auto hr = family->GetFamilyNames (familyNames.resetAndGetPointerAddress());
-        jassert (SUCCEEDED (hr)); ignoreUnused (hr);
+        jassertquiet (SUCCEEDED (hr));
         return getLocalisedName (familyNames);
     }
 
@@ -63,7 +63,7 @@ namespace
         jassert (font != nullptr);
         ComSmartPtr<IDWriteLocalizedStrings> faceNames;
         auto hr = font->GetFaceNames (faceNames.resetAndGetPointerAddress());
-        jassert (SUCCEEDED (hr)); ignoreUnused (hr);
+        jassertquiet (SUCCEEDED (hr));
         return getLocalisedName (faceNames);
     }
 
@@ -151,7 +151,7 @@ public:
         jassert (fontCollection != nullptr);
 
         uint32 fontIndex = 0;
-        auto hr = fontCollection->FindFamilyName (font.getTypefaceName().toWideCharPointer(), &fontIndex, &fontFound);
+        [[maybe_unused]] auto hr = fontCollection->FindFamilyName (font.getTypefaceName().toWideCharPointer(), &fontIndex, &fontFound);
 
         if (! fontFound)
             fontIndex = 0;

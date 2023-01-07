@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -31,11 +31,7 @@ namespace juce
 #elif JUCE_WINDOWS
  #include "../native/juce_win32_CameraDevice.h"
 #elif JUCE_IOS
- JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wunguarded-availability-new")
-
  #include "../native/juce_ios_CameraDevice.h"
-
- JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 #elif JUCE_ANDROID
  #include "../native/juce_android_CameraDevice.h"
 #endif
@@ -195,10 +191,10 @@ StringArray CameraDevice::getAvailableDevices()
     }
 }
 
-CameraDevice* CameraDevice::openDevice (int index,
-                                        int minWidth, int minHeight,
-                                        int maxWidth, int maxHeight,
-                                        bool useHighQuality)
+CameraDevice* CameraDevice::openDevice ([[maybe_unused]] int index,
+                                        [[maybe_unused]] int minWidth, [[maybe_unused]] int minHeight,
+                                        [[maybe_unused]] int maxWidth, [[maybe_unused]] int maxHeight,
+                                        [[maybe_unused]] bool useHighQuality)
 {
     jassert (juce::MessageManager::getInstance()->currentThreadHasLockedMessageManager());
 
@@ -208,9 +204,6 @@ CameraDevice* CameraDevice::openDevice (int index,
     if (d != nullptr && d->pimpl->openedOk())
         return d.release();
    #else
-    ignoreUnused (index, minWidth, minHeight);
-    ignoreUnused (maxWidth, maxHeight, useHighQuality);
-
     // Use openDeviceAsync to open a camera device on iOS or Android.
     jassertfalse;
    #endif

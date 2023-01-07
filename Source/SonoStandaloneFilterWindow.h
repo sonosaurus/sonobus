@@ -149,7 +149,7 @@ public:
     virtual void createPlugin()
     {
       #if JUCE_MODULE_AVAILABLE_juce_audio_plugin_client
-        processor.reset (::createPluginFilterOfType (AudioProcessor::wrapperType_Standalone));
+        processor = ::createPluginFilterOfType (AudioProcessor::wrapperType_Standalone);
       #else
         AudioProcessor::setTypeOfNextNewPlugin (AudioProcessor::wrapperType_Standalone);
         processor.reset (createPluginFilter());
@@ -466,7 +466,7 @@ public:
             MemoryBlock data;
 
             if (usexmlstate && sonobusprocessor) {
-                sonobusprocessor->getStateInformationWithOptions (data, true, usexmlstate);
+                sonobusprocessor->getStateInformationWithOptions (data, true, true, usexmlstate);
                 std::unique_ptr<XmlElement> filtxml = juce::parseXML(String::createStringFromData(data.getData(), (int)data.getSize()));
                 if (filtxml) {
                     settings->setValue ("filterStateXML", filtxml.get());
@@ -496,7 +496,7 @@ public:
                 String filtxml = settings->getValue ("filterStateXML");
                 data.replaceWith(filtxml.toUTF8(), filtxml.getNumBytesAsUTF8());
                 if (data.getSize() > 0) {
-                    sonobusprocessor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), true, true);
+                    sonobusprocessor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), true, true, true);
                     return;
                 }
             }
@@ -565,6 +565,94 @@ public:
     StringArray lastMidiDevices;
 
 private:
+    
+    /*  This class can be used to ensure that audio callbacks use buffers with a
+        predictable maximum size.
+
+        On some platforms (such as iOS 10), the expected buffer size reported in
+        audioDeviceAboutToStart may be smaller than the blocks passed to
+        audioDeviceIOCallbackWithContext. This can lead to out-of-bounds reads if the render
+        callback depends on additional buffers which were initialised using the
+        smaller size.
+
+        As a workaround, this class will ensure that the render callback will
+        only ever be called with a block with a length less than or equal to the
+        expected block size.
+    */
+    class CallbackMaxSizeEnforcer  : public AudioIODeviceCallback
+    {
+    public:
+        explicit CallbackMaxSizeEnforcer (AudioIODeviceCallback& callbackIn)
+            : inner (callbackIn) {}
+
+        void audioDeviceAboutToStart (AudioIODevice* device) override
+        {
+            maximumSize = device->getCurrentBufferSizeSamples();
+            storedInputChannels .resize ((size_t) device->getActiveInputChannels() .countNumberOfSetBits());
+            storedOutputChannels.resize ((size_t) device->getActiveOutputChannels().countNumberOfSetBits());
+
+
+            inner.audioDeviceAboutToStart (device);
+        }
+
+        void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
+                                               int numInputChannels,
+                                               float* const* outputChannelData,
+                                               int numOutputChannels,
+                                               int numSamples,
+                                               const AudioIODeviceCallbackContext& context) override
+        {
+            jassertquiet ((int) storedInputChannels.size()  == numInputChannels);
+            jassertquiet ((int) storedOutputChannels.size() == numOutputChannels);
+
+            int position = 0;
+
+            while (position < numSamples)
+            {
+                const auto blockLength = jmin (maximumSize, numSamples - position);
+
+                initChannelPointers (inputChannelData,  storedInputChannels,  position);
+                initChannelPointers (outputChannelData, storedOutputChannels, position);
+
+                inner.audioDeviceIOCallbackWithContext (storedInputChannels.data(),
+                                                        (int) storedInputChannels.size(),
+                                                        storedOutputChannels.data(),
+                                                        (int) storedOutputChannels.size(),
+                                                        blockLength,
+                                                        context);
+
+                position += blockLength;
+            }
+        }
+
+        void audioDeviceStopped() override
+        {
+            inner.audioDeviceStopped();
+        }
+
+    private:
+        struct GetChannelWithOffset
+        {
+            int offset;
+
+            template <typename Ptr>
+            auto operator() (Ptr ptr) const noexcept -> Ptr { return ptr + offset; }
+        };
+
+        template <typename Ptr, typename Vector>
+        void initChannelPointers (Ptr&& source, Vector&& target, int offset)
+        {
+            std::transform (source, source + target.size(), target.begin(), GetChannelWithOffset { offset });
+        }
+
+        AudioIODeviceCallback& inner;
+        int maximumSize = 0;
+        std::vector<const float*> storedInputChannels;
+        std::vector<float*> storedOutputChannels;
+    };
+
+    CallbackMaxSizeEnforcer maxSizeEnforcer { *this };
+    
     //==============================================================================
     class SettingsComponent : public Component
     {
@@ -637,11 +725,12 @@ private:
     };
 
     //==============================================================================
-    void audioDeviceIOCallback (const float** inputChannelData,
-                                int numInputChannels,
-                                float** outputChannelData,
-                                int numOutputChannels,
-                                int numSamples) override
+    void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
+                                           int numInputChannels,
+                                           float* const* outputChannelData,
+                                           int numOutputChannels,
+                                           int numSamples,
+                                           const AudioIODeviceCallbackContext& context) override
     {
         const bool inputMuted = shouldMuteInput.getValue();
 
@@ -651,8 +740,8 @@ private:
             inputChannelData = emptyBuffer.getArrayOfReadPointers();
         }
 
-        player.audioDeviceIOCallback (inputChannelData, numInputChannels,
-                                      outputChannelData, numOutputChannels, numSamples);
+        player.audioDeviceIOCallbackWithContext (inputChannelData, numInputChannels,
+                                      outputChannelData, numOutputChannels, numSamples, context);
     }
 
     void audioDeviceAboutToStart (AudioIODevice* device) override
@@ -687,7 +776,7 @@ private:
                             const String& preferredDefaultDeviceName,
                             const AudioDeviceManager::AudioDeviceSetup* preferredSetupOptions)
     {
-        deviceManager.addAudioCallback (this);
+        deviceManager.addAudioCallback (&maxSizeEnforcer);
         deviceManager.addMidiInputCallback ({}, &player);
 
         reloadAudioDeviceState (enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
@@ -698,7 +787,7 @@ private:
         saveAudioDeviceState();
 
         deviceManager.removeMidiInputCallback ({}, &player);
-        deviceManager.removeAudioCallback (this);
+        deviceManager.removeAudioCallback (&maxSizeEnforcer);
 
     }
 

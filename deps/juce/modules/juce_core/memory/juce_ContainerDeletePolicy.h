@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -49,7 +49,7 @@ struct ContainerDeletePolicy
         // implementation of all methods trying to use the OwnedArray (e.g. the destructor
         // of the class owning it) into cpp files where they can see to the definition
         // of ObjectType. This should fix the error.
-        ignoreUnused (sizeof (ObjectType));
+        [[maybe_unused]] constexpr auto size = sizeof (ObjectType);
 
         delete object;
     }

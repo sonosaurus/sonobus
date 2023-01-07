@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -23,6 +23,12 @@
 namespace juce
 {
 
+void MidiInputCallback::handlePartialSysexMessage ([[maybe_unused]] MidiInput* source,
+                                                   [[maybe_unused]] const uint8* messageData,
+                                                   [[maybe_unused]] int numBytesSoFar,
+                                                   [[maybe_unused]] double timestamp) {}
+
+//==============================================================================
 MidiOutput::MidiOutput (const String& deviceName, const String& deviceIdentifier)
     : Thread ("midi out"), deviceInfo (deviceName, deviceIdentifier)
 {
@@ -87,7 +93,7 @@ void MidiOutput::clearAllPendingMessages()
 
 void MidiOutput::startBackgroundThread()
 {
-    startThread (9);
+    startThread (Priority::high);
 }
 
 void MidiOutput::stopBackgroundThread()

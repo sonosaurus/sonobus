@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -195,15 +195,7 @@ DECLARE_JNI_CLASS (StringBuffer, "java/lang/StringBuffer")
  METHOD (isExhausted, "isExhausted", "()Z") \
  METHOD (setPosition, "setPosition", "(J)Z") \
 
-DECLARE_JNI_CLASS_WITH_BYTECODE (HTTPStream, "com/rmsl/juce/JuceHTTPStream", 16, javaJuceHttpStream, sizeof(javaJuceHttpStream))
-#undef JNI_CLASS_MEMBERS
-
-//==============================================================================
-#define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK) \
- METHOD (close,     "close",     "()V") \
- METHOD (read,      "read",      "([BII)I") \
-
-DECLARE_JNI_CLASS (AndroidInputStream, "java/io/InputStream")
+DECLARE_JNI_CLASS_WITH_BYTECODE (HTTPStream, "com/rmsl/juce/JuceHTTPStream", 16, javaJuceHttpStream)
 #undef JNI_CLASS_MEMBERS
 
 //==============================================================================
@@ -246,6 +238,7 @@ static LocalRef<jobject> getMulticastLock()
     return multicastLock;
 }
 
+JUCE_API void JUCE_CALLTYPE acquireMulticastLock();
 JUCE_API void JUCE_CALLTYPE acquireMulticastLock()
 {
     auto multicastLock = getMulticastLock();
@@ -254,6 +247,7 @@ JUCE_API void JUCE_CALLTYPE acquireMulticastLock()
         getEnv()->CallVoidMethod (multicastLock.get(), AndroidMulticastLock.acquire);
 }
 
+JUCE_API void JUCE_CALLTYPE releaseMulticastLock();
 JUCE_API void JUCE_CALLTYPE releaseMulticastLock()
 {
     auto multicastLock = getMulticastLock();
@@ -363,7 +357,8 @@ public:
 
         if (isContentURL)
         {
-            auto inputStream = AndroidContentUriResolver::getStreamForContentUri (url, true);
+            GlobalRef urlRef { urlToUri (url) };
+            auto inputStream = AndroidStreamHelpers::createStream (urlRef, AndroidStreamHelpers::StreamKind::input);
 
             if (inputStream != nullptr)
             {

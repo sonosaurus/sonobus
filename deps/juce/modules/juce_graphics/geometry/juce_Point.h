@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -123,7 +123,7 @@ public:
     template <typename OtherType>
     constexpr Point operator* (OtherType multiplier) const noexcept
     {
-        using CommonType = typename std::common_type<ValueType, OtherType>::type;
+        using CommonType = std::common_type_t<ValueType, OtherType>;
         return Point ((ValueType) ((CommonType) x * (CommonType) multiplier),
                       (ValueType) ((CommonType) y * (CommonType) multiplier));
     }
@@ -132,7 +132,7 @@ public:
     template <typename OtherType>
     constexpr Point operator/ (OtherType divisor) const noexcept
     {
-        using CommonType = typename std::common_type<ValueType, OtherType>::type;
+        using CommonType = std::common_type_t<ValueType, OtherType>;
         return Point ((ValueType) ((CommonType) x / (CommonType) divisor),
                       (ValueType) ((CommonType) y / (CommonType) divisor));
     }
@@ -150,7 +150,7 @@ public:
 
     //==============================================================================
     /** This type will be double if the Point's type is double, otherwise it will be float. */
-    using FloatType = typename TypeHelpers::SmallestFloatType<ValueType>::type;
+    using FloatType = TypeHelpers::SmallestFloatType<ValueType>;
 
     //==============================================================================
     /** Returns the straight-line distance between this point and the origin. */

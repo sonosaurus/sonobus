@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -122,10 +122,10 @@ public:
         Before returning, the dialog box will be hidden.
 
         @param priority   the priority to use when starting the thread - see
-                          Thread::startThread() for values
+                          Thread::Priority for values
         @returns true if the thread finished normally; false if the user pressed cancel
     */
-    bool runThread (int priority = 5);
+    bool runThread (Priority Priority = Priority::normal);
    #endif
 
     /** Starts the thread and returns.
@@ -135,9 +135,9 @@ public:
         hidden and the threadComplete() method will be called.
 
         @param priority   the priority to use when starting the thread - see
-                          Thread::startThread() for values
+                          Thread::Priority for values
     */
-    void launchThread (int priority = 5);
+    void launchThread (Priority priority = Priority::normal);
 
     /** The thread should call this periodically to update the position of the progress bar.
 

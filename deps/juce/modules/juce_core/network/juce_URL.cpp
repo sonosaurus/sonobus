@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -178,7 +178,15 @@ URL::URL (File localFile)
 
 void URL::init()
 {
-    auto i = url.indexOfChar ('?');
+    auto i = url.indexOfChar ('#');
+
+    if (i >= 0)
+    {
+        anchor = removeEscapeChars (url.substring (i + 1));
+        url = url.upToFirstOccurrenceOf ("#", false, false);
+    }
+
+    i = url.indexOfChar ('?');
 
     if (i >= 0)
     {
@@ -346,8 +354,21 @@ String URL::getSubPath (bool includeGetParameters) const
 
 String URL::getQueryString() const
 {
+    String result;
+
     if (parameterNames.size() > 0)
-        return "?" + URLHelpers::getMangledParameters (*this);
+        result += "?" + URLHelpers::getMangledParameters (*this);
+
+    if (anchor.isNotEmpty())
+        result += getAnchorString();
+
+    return result;
+}
+
+String URL::getAnchorString() const
+{
+    if (anchor.isNotEmpty())
+        return "#" + URL::addEscapeChars (anchor, true);
 
     return {};
 }
@@ -609,8 +630,7 @@ public:
             }
             else
             {
-                auto desc = [error localizedDescription];
-                ignoreUnused (desc);
+                [[maybe_unused]] auto desc = [error localizedDescription];
                 jassertfalse;
             }
         }
@@ -643,8 +663,7 @@ private:
                 return urlToUse.getLocalFile();
             }
 
-            auto desc = [error localizedDescription];
-            ignoreUnused (desc);
+            [[maybe_unused]] auto desc = [error localizedDescription];
             jassertfalse;
         }
 
@@ -790,12 +809,13 @@ std::unique_ptr<InputStream> URL::createInputStream (const InputStreamOptions& o
     JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 }
 
-#if JUCE_ANDROID
-OutputStream* juce_CreateContentURIOutputStream (const URL&);
-#endif
-
 std::unique_ptr<OutputStream> URL::createOutputStream() const
 {
+   #if JUCE_ANDROID
+    if (auto stream = AndroidDocument::fromDocument (*this).createOutputStream())
+        return stream;
+   #endif
+
     if (isLocalFile())
     {
        #if JUCE_IOS
@@ -806,11 +826,7 @@ std::unique_ptr<OutputStream> URL::createOutputStream() const
        #endif
     }
 
-   #if JUCE_ANDROID
-    return std::unique_ptr<OutputStream> (juce_CreateContentURIOutputStream (*this));
-   #else
     return nullptr;
-   #endif
 }
 
 //==============================================================================
@@ -861,6 +877,14 @@ URL URL::withParameters (const StringPairArray& parametersToAdd) const
         u.addParameter (parametersToAdd.getAllKeys()[i],
                         parametersToAdd.getAllValues()[i]);
 
+    return u;
+}
+
+URL URL::withAnchor (const String& anchorToAdd) const
+{
+    auto u = *this;
+
+    u.anchor = anchorToAdd;
     return u;
 }
 

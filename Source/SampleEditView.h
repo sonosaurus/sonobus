@@ -32,15 +32,17 @@ public:
     constexpr static const float DEFAULT_VIEW_HEIGHT = 500;
 
     /**
-     * @param callback Function with the actual selected name that gets called when the submit button is pressed.
+     * @param submitcallback Function with the actual selected name that gets called when the submit button is pressed.
+     * @param gaincallback Function that will get called for gain changes
      * @param soundSample The sample that must be edited, or null when a new sample must be created.
      * @param lastOpenedDirectoryString Where to store the directory that was last opened using the browse button,
      *              or nullptr when the last directory should not be stored.
      */
     explicit SampleEditView(
-            std::function<void(SampleEditView&)> callback,
-            const SoundSample* soundSample = nullptr,
-            String* lastOpenedDirectoryString = nullptr
+                            std::function<void(SampleEditView&)> submitcallback,
+                            std::function<void(SampleEditView&)> gaincallback,
+                            const SoundSample* soundSample = nullptr,
+                            String* lastOpenedDirectoryString = nullptr
     );
 
     /**
@@ -52,6 +54,11 @@ public:
      * @return The absolute file path to the sound file of the sound sample.
      */
     [[nodiscard]] String getAbsoluteFilePath() const;
+
+    /**
+     * @return The absolute file path to the sound file of the sound sample.
+     */
+    [[nodiscard]] juce::URL getFileURL() const;
 
     /**
      * Whether the dialog is in edit mode.
@@ -115,6 +122,17 @@ public:
      */
     std::function<void(SampleEditView&)> submitCallback;
 
+    /**
+     * Function to call whenever the gain/volume is changed
+     */
+    std::function<void(SampleEditView&)> gainChangeCallback;
+
+    /**
+     * Function to call whenever the applyPlaybackOptionsToOthers button is pressed
+     */
+    std::function<void(SampleEditView&)> applyPlaybackOptionsToOthersCallback;
+
+    
     int getMinimumContentWidth() const { return minContentWidth; }
     int getMinimumContentHeight() const { return minContentHeight; }
 
@@ -130,7 +148,7 @@ private:
     /**
      * All the button colours that can be selected (in order).
      */
-    const std::vector<int> BUTTON_COLOURS = {
+    const std::vector<int64> BUTTON_COLOURS = {
             SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             SoundboardButtonColors::RED,
             SoundboardButtonColors::ORANGE,
@@ -158,7 +176,7 @@ private:
     /**
      * The selected button colour without alpha value.
      */
-    int selectedColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
+    uint32 selectedColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     /**
      * The name that is shown upon opening the dialog.
@@ -238,7 +256,10 @@ private:
     std::unique_ptr<SonoTextButton> mSubmitButton;
     std::unique_ptr<SonoTextButton> mDeleteButton;
 
+    std::unique_ptr<SonoTextButton> mApplyPlaybackOptionsToOthersButton;
 
+    juce::URL mFileURL;
+    
     /**
      * Creates the input controls for the sample name.
      */

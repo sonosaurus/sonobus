@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -23,6 +23,14 @@
 namespace juce
 {
 
+void AudioIODeviceCallback::audioDeviceIOCallbackWithContext ([[maybe_unused]] const float* const* inputChannelData,
+                                                              [[maybe_unused]] int numInputChannels,
+                                                              [[maybe_unused]] float* const* outputChannelData,
+                                                              [[maybe_unused]] int numOutputChannels,
+                                                              [[maybe_unused]] int numSamples,
+                                                              [[maybe_unused]] const AudioIODeviceCallbackContext& context) {}
+
+//==============================================================================
 AudioIODevice::AudioIODevice (const String& deviceName, const String& deviceTypeName)
     : name (deviceName), typeName (deviceTypeName)
 {

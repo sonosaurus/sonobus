@@ -37,7 +37,7 @@ public:
     SonoLookAndFeel rmeterLnf;
     SonoLookAndFeel smeterLnf;
 
-    std::unique_ptr<Label> addrLabel;
+    std::unique_ptr<TextEditor> addrLabel;
     std::unique_ptr<Label> staticAddrLabel;
     std::unique_ptr<ToggleButton> sendMutedButton;
     std::unique_ptr<TextButton> recvMutedButton;
@@ -53,6 +53,7 @@ public:
     std::unique_ptr<ToggleButton> changeAllFormatButton;
     std::unique_ptr<TextButton> optionsResetDropButton;
     std::unique_ptr<TextButton> optionsRemoveButton;
+    std::unique_ptr<TextButton> optionsBlockButton;
     std::unique_ptr<SonoChoiceButton> remoteSendFormatChoiceButton;
     std::unique_ptr<ToggleButton> changeAllRecvFormatButton;
     std::unique_ptr<SonoDrawableButton> bufferMinButton;
@@ -143,6 +144,7 @@ public:
     bool singlePanner = true;
     bool isNarrow = false;
     bool fullMode = true;
+    bool addrClicked = false;
     
     Colour bgColor;
     Colour borderColor;
@@ -162,6 +164,7 @@ public:
     std::unique_ptr<Label>  nameLabel;
     std::unique_ptr<Label>  messageLabel;
     std::unique_ptr<TextButton>  removeButton;
+    std::unique_ptr<TextButton>  unblockButton;
 
     FlexBox mainbox;
 
@@ -210,6 +213,7 @@ public:
     void resetPendingUsers();
     void peerPendingJoin(String & group, String & user);
     void peerFailedJoin(String & group, String & user);
+    void peerBlockedJoin(String & group, String & user, String & address, int port);
     int getPendingPeerCount() const { return (int)mPendingUsers.size(); }
     
     void rebuildPeerViews();
@@ -282,6 +286,9 @@ protected:
         String group;
         String user;
         bool failed = false;
+        bool blocked = false;
+        String address;
+        int    port = 0;
     };
     
     std::map<String,PendingUserInfo> mPendingUsers;

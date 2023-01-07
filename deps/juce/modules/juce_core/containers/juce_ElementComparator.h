@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -35,12 +35,14 @@ template <typename ElementComparator>
 struct SortFunctionConverter
 {
     SortFunctionConverter (ElementComparator& e) : comparator (e) {}
+    SortFunctionConverter (const SortFunctionConverter&) = default;
 
     template <typename Type>
     bool operator() (Type a, Type b)  { return comparator.compareElements (a, b) < 0; }
 
 private:
     ElementComparator& comparator;
+
     SortFunctionConverter& operator= (const SortFunctionConverter&) = delete;
 };
 
@@ -121,16 +123,13 @@ static void sortArray (ElementComparator& comparator,
     @param lastElement      the index of the last element in the range (this is non-inclusive)
 */
 template <class ElementType, class ElementComparator>
-static int findInsertIndexInSortedArray (ElementComparator& comparator,
+static int findInsertIndexInSortedArray ([[maybe_unused]] ElementComparator& comparator,
                                          ElementType* const array,
                                          const ElementType newElement,
                                          int firstElement,
                                          int lastElement)
 {
     jassert (firstElement <= lastElement);
-
-    ignoreUnused (comparator); // if you pass in an object with a static compareElements() method, this
-                               // avoids getting warning messages about the parameter being unused
 
     while (firstElement < lastElement)
     {

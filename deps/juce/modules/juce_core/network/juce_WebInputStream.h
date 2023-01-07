@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -107,11 +107,7 @@ class JUCE_API WebInputStream  : public InputStream
 
             @returns true to continue or false to cancel the upload
         */
-        virtual bool postDataSendProgress (WebInputStream& request, int bytesSent, int totalBytes)
-        {
-            ignoreUnused (request, bytesSent, totalBytes);
-            return true;
-        }
+        virtual bool postDataSendProgress (WebInputStream& request, int bytesSent, int totalBytes);
     };
 
     /** Wait until the first byte is ready for reading.

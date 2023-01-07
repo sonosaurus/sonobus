@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="ZRovAH" name="SonoBus" projectType="audioplug" companyName="Sonosaurus"
-              companyCopyright="2021 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
+              companyCopyright="2022 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAUv3,buildStandalone,enableIAA" pluginManufacturerCode="Sono"
-              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.4.9-74&quot;"
-              pluginDesc="SonoBus - Network Audio" version="1.4.9" cppLanguageStandard="17"
+              pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;SONOBUS_BUILD_VERSION=&quot;1.4.9-74&quot;&#10;"
+              pluginDesc="SonoBus - Network Audio" version="1.6.0" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'"
               pluginAUIsSandboxSafe="1">
   <MAINGROUP id="i87g34" name="SonoBus">
@@ -113,6 +113,8 @@
             file="../images/expand_arrow_active.svg"/>
       <FILE id="LgWFFR" name="expand_arrow_inactive.svg" compile="0" resource="1"
             file="../images/expand_arrow_inactive.svg"/>
+      <FILE id="aRoQsK" name="eye-off.svg" compile="0" resource="1" file="../images/eye-off.svg"/>
+      <FILE id="eRcLK1" name="eye.svg" compile="0" resource="1" file="../images/eye.svg"/>
       <FILE id="TMcX5m" name="eyedropper.svg" compile="0" resource="1" file="../images/eyedropper.svg"/>
       <FILE id="POLysK" name="folder_icon.svg" compile="0" resource="1" file="../images/folder_icon.svg"/>
       <FILE id="wCjBZE" name="hear-others.svg" compile="0" resource="1" file="../images/hear-others.svg"/>
@@ -126,6 +128,9 @@
       <FILE id="Wl1PWP" name="keyboard.svg" compile="0" resource="1" file="../images/keyboard.svg"/>
       <FILE id="X9WfOj" name="keyboard_disabled.svg" compile="0" resource="1"
             file="../images/keyboard_disabled.svg"/>
+      <FILE id="XdQ5lO" name="keypad-num-disabled.svg" compile="0" resource="1"
+            file="../images/keypad-num-disabled.svg"/>
+      <FILE id="li5ES7" name="keypad-num.svg" compile="0" resource="1" file="../images/keypad-num.svg"/>
       <FILE id="A49mBq" name="launchicon@2x.png" compile="0" resource="0"
             file="../images/launchicon@2x.png" xcodeResource="1"/>
       <FILE id="VADUKt" name="LaunchScreen.storyboard" compile="0" resource="0"
@@ -139,6 +144,7 @@
             file="../images/loop_off_icon.png"/>
       <FILE id="FyV3zd" name="loop_off_icon.svg" compile="0" resource="1"
             file="../images/loop_off_icon.svg"/>
+      <FILE id="kb2kLi" name="mesg-unread.svg" compile="0" resource="1" file="../images/mesg-unread.svg"/>
       <FILE id="GIpd7j" name="met.svg" compile="0" resource="1" file="../images/met.svg"/>
       <FILE id="pUqtix" name="mic.svg" compile="0" resource="1" file="../images/mic.svg"/>
       <FILE id="ZeI5Mg" name="mic_disabled.svg" compile="0" resource="1"
@@ -180,6 +186,7 @@
       <FILE id="YDzjVZ" name="replay_icon.svg" compile="0" resource="1" file="../images/replay_icon.svg"/>
       <FILE id="VFKIt9" name="reset_buffer_icon.svg" compile="0" resource="1"
             file="../images/reset_buffer_icon.svg"/>
+      <FILE id="U8ugtl" name="send.svg" compile="0" resource="1" file="../images/send.svg"/>
       <FILE id="bq1pq6" name="send_group.svg" compile="0" resource="1" file="../images/send_group.svg"/>
       <FILE id="YJbZr5" name="send_group_small.svg" compile="0" resource="1"
             file="../images/send_group_small.svg"/>
@@ -371,6 +378,7 @@
             resource="0" file="../Source/SoundSampleButtonColourPicker.cpp"/>
       <FILE id="ET42V3" name="SoundSampleButtonColourPicker.h" compile="0"
             resource="0" file="../Source/SoundSampleButtonColourPicker.h"/>
+      <FILE id="thlweE" name="VDONinjaView.h" compile="0" resource="0" file="../Source/VDONinjaView.h"/>
       <FILE id="bmDRNP" name="VersionInfo.cpp" compile="1" resource="0" file="../Source/VersionInfo.cpp"/>
       <FILE id="xTwj0w" name="VersionInfo.h" compile="0" resource="0" file="../Source/VersionInfo.h"/>
       <FILE id="ENU7rn" name="WaveformTransportComponent.h" compile="0" resource="0"
@@ -381,12 +389,12 @@
   <EXPORTFORMATS>
     <XCODE_IPHONE targetFolder="Builds/iOS" microphonePermissionNeeded="1" iosBackgroundAudio="1"
                   iosDevelopmentTeamID="XCS435894D" customPList="&lt;plist version=&quot;1.0&quot;&gt;&#10;&lt;dict&gt;&#10;&#10;&lt;key&gt;ITSAppUsesNonExemptEncryption&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#10;&lt;key&gt;UIStatusBarHidden&lt;/key&gt;&#10;&#9;&lt;false/&gt;&#10;&#9;&lt;key&gt;UIStatusBarStyle&lt;/key&gt;&#10;&#9;&lt;string&gt;UIStatusBarStyleLightContent&lt;/string&gt;&#10;&lt;key&gt;UIViewControllerBasedStatusBarAppearance&lt;/key&gt;&#10;&lt;false/&gt;&#10;&#10;&lt;key&gt;CFBundleURLTypes&lt;/key&gt;&#10;&lt;array&gt;&#10;     &lt;dict&gt;&#10;         &lt;key&gt;CFBundleURLName&lt;/key&gt;&#10;         &lt;string&gt;net.sonobus&lt;/string&gt;&#10;         &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;&#10;         &lt;array&gt;&#10;              &lt;string&gt;sonobus&lt;/string&gt;&#10;         &lt;/array&gt;&#10;      &lt;/dict&gt;&#10;   &lt;/array&gt;&#10;&#10;&lt;key&gt;NSLocalNetworkUsageDescription&lt;/key&gt;&#10;&#9;&lt;string&gt;SonoBus uses networking to communicate with other local services&lt;/string&gt;&#10;&#10;&lt;/dict&gt;&#10;&lt;/plist&gt;"
-                  extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC"
+                  extraDefs="USE_CODEC_OPUS=1&#10;AOO_TIMEFILTER_CHECK=0&#10;AOO_STATIC&#10;JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000\,16000\,22050\,44100\,48000\,88200\,96000\,192000"
                   externalLibraries="opus" smallIcon="tb00W2" bigIcon="rlxTrd"
                   UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="../images/LaunchScreen.storyboard"
                   iosScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
                   iPadScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
-                  UIRequiresFullScreen="0" buildNumber="74">
+                  UIRequiresFullScreen="0" buildNumber="78">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/ios/include&#10;"
                        libraryPath="../../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"
@@ -418,12 +426,12 @@
                    androidAdditionalJavaFolders="../Source/android/java" androidRepositories="maven { url 'https://maven.google.com' }"
                    androidDependencies="implementation 'androidx.appcompat:appcompat:1.0.2'"
                    androidCustomAppBuildGradleContent="ndkVersion &quot;22.0.7026061&quot;"
-                   androidMinimumSDK="24" androidTargetSDK="29" microphonePermissionNeeded="1"
+                   androidMinimumSDK="24" androidTargetSDK="31" microphonePermissionNeeded="1"
                    androidEnableContentSharing="1" androidManifestCustomXmlElements="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#10;&#10;&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;  package=&quot;com.sonosaurus.sonobus&quot;&gt;&#10;&#10; &lt;uses-permission android:name=&quot;android.permission.FOREGROUND_SERVICE&quot;/&gt;&#10;  &lt;supports-screens android:smallScreens=&quot;true&quot; android:normalScreens=&quot;true&quot; android:largeScreens=&quot;true&quot; android:anyDensity=&quot;true&quot;&#10;                    android:xlargeScreens=&quot;true&quot;/&gt;&#10;  &#10;  &lt;application android:label=&quot;@string/app_name&quot; android:name=&quot;com.rmsl.juce.JuceApp&quot; android:icon=&quot;@mipmap/ic_launcher&quot; android:roundIcon=&quot;@mipmap/ic_launcher_round&quot; android:hardwareAccelerated=&quot;false&quot;  android:allowAudioPlaybackCapture=&quot;true&quot;&gt;&#10;&#10;      &lt;service   android:name=&quot;SonoBusService&quot;   android:enabled=&quot;true&quot;   android:exported=&quot;false&quot;  /&gt;&#10;&#10;    &lt;activity  android:label=&quot;@string/app_name&quot; android:configChanges=&quot;keyboardHidden|orientation|screenSize&quot;&#10;              android:screenOrientation=&quot;unspecified&quot; android:launchMode=&quot;singleTask&quot;  android:hardwareAccelerated=&quot;false&quot;&gt;&#10;     &#10;    &lt;/activity&gt;&#10;    &#10;  &lt;/application&gt;&#10;&lt;/manifest&gt;&#10;"
-                   androidKeyStore="${user.home}/.android/sonoupload.keystore" androidKeyStorePass="${sonoupload_keystore_password}"
+                   androidKeyStore="${user.home}/.android/sonouploadnew.jks" androidKeyStorePass="${sonoupload_keystore_password}"
                    androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
                    androidTheme="@android:style/Theme.NoTitleBar" androidActivitySubClassName="com.sonosaurus.sonobus.SonoBusActivity"
-                   androidVersionCode="74">
+                   androidVersionCode="78">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/android&#10;"
                        libraryPath="../../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>

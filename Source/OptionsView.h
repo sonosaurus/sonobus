@@ -136,6 +136,8 @@ protected:
     std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
     std::unique_ptr<ToggleButton> mOptionsAllowBluetoothInput;
     std::unique_ptr<ToggleButton> mOptionsDisableShortcutButton;
+    std::unique_ptr<TextButton> mOptionsSavePluginDefaultButton;
+    std::unique_ptr<TextButton> mOptionsResetPluginDefaultButton;
 
     std::unique_ptr<ToggleButton> mOptionsInputLimiterButton;
     std::unique_ptr<Label> mOptionsDefaultLevelSliderLabel;
@@ -181,6 +183,7 @@ protected:
     FlexBox optionsLanguageBox;
     FlexBox optionsAllowBluetoothBox;
     FlexBox optionsAutoDropThreshBox;
+    FlexBox optionsPluginDefaultBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;

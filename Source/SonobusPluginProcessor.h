@@ -85,6 +85,11 @@ struct SBChatEvent
     String message;
 };
 
+// chat message storage, thread-safe
+typedef Array<SBChatEvent, CriticalSection> SBChatEventList;
+
+
+
 inline bool operator==(const AooServerConnectionInfo& lhs, const AooServerConnectionInfo& rhs) {
     // compare all except timestamp
      return (lhs.userName == rhs.userName
@@ -221,9 +226,13 @@ public:
     void parameterChanged (const String &parameterID, float newValue) override;
 
 
-    void getStateInformationWithOptions(MemoryBlock& destData, bool includecache=true, bool xmlformat=false);
-    void setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache=true, bool xmlformat=false);
+    void getStateInformationWithOptions(MemoryBlock& destData, bool includecache=true, bool includeInputGroups = true, bool xmlformat=false);
+    void setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache=true, bool includeInputGroups = true, bool xmlformat=false);
 
+    bool saveCurrentAsDefaultPluginSettings();
+    void resetDefaultPluginSettings();
+    bool loadDefaultPluginSettings();
+    
     AudioProcessorValueTreeState& getValueTreeState();
 
     static String paramInGain;
@@ -323,7 +332,7 @@ public:
     int connectRemotePeer(const String & host, int port, const String & username = "", const String & groupname = "",  bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
     bool disconnectRemotePeer(int index);
-    bool removeRemotePeer(int index);
+    bool removeRemotePeer(int index, bool sendblock=false);
 
     bool removeAllRemotePeers();
     
@@ -351,6 +360,8 @@ public:
     bool getRemotePeerPolarityInvert(int index, int changroup);
 
 
+    bool isRemotePeerUserInGroup(const String & name) const;
+    
     void setRemotePeerUserName(int index, const String & name);
     String getRemotePeerUserName(int index) const;
 
@@ -437,8 +448,8 @@ public:
     void    resetRemotePeerPacketStats(int index);
 
     bool getRemotePeerSafetyMuted(int index) const;
-
-
+    bool getRemotePeerBlockedUs(int index) const;
+    
     struct LatencyInfo
     {
         float pingMs = 0.0f;
@@ -457,7 +468,7 @@ public:
     bool stopRemotePeerLatencyTest(int index);
     bool isRemotePeerLatencyTestActive(int index);
     
-
+    
     bool isAnyRemotePeerRecording() const;
     bool isRemotePeerRecording(int index) const;
 
@@ -572,6 +583,18 @@ public:
     void setDisableKeyboardShortcuts(bool flag) {  mDisableKeyboardShortcuts = flag; }
 
 
+    struct VideoLinkInfo
+    {
+        ValueTree getValueTree() const;
+        void setFromValueTree(const ValueTree & val);
+
+        bool roomMode = true;
+        bool showNames = true;
+        bool beDirector = false;
+        String extraParams;
+    };
+
+    VideoLinkInfo & getVideoLinkInfo() { return mVideoLinkInfo; }
 
 
     // sets and gets the format we send out
@@ -619,6 +642,12 @@ public:
     
     bool isAnythingSoloed() const { return mAnythingSoloed.get(); }
     
+    // IP block list
+    bool isAddressBlocked(const String & ipaddr) const;
+    void addBlockedAddress(const String & ipaddr);
+    void removeBlockedAddress(const String & ipaddr);
+    StringArray getAllBlockedAddresses() const;
+    
     class ClientListener {
     public:
         virtual ~ClientListener() {}
@@ -632,11 +661,13 @@ public:
         virtual void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) {}
+        virtual void aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port) {}
         virtual void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) {}
         virtual void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) {}
         virtual void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) {}
         virtual void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & chatevent) {}
         virtual void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) {}
+        virtual void peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked) {}
     };
     
     void addClientListener(ClientListener * l) {
@@ -698,14 +729,14 @@ public:
 
     // recording stuff, if record options are RecordMixOnly, or RecordSelf  (only) the file refers to the name of the file
     //   otherwise it refers to a directory where the files will be recorded (and also the prefix for the recorded files)
-    bool startRecordingToFile(File & file, uint32 recordOptions=RecordDefaultOptions, RecordFileFormat fileformat=FileFormatDefault);
+    bool startRecordingToFile(const URL & recordLocation, const String & filename, URL & mainreturl, uint32 recordOptions=RecordDefaultOptions, RecordFileFormat fileformat=FileFormatDefault);
     bool stopRecordingToFile();
     bool isRecordingToFile();
     double getElapsedRecordTime() const { return mElapsedRecordSamples / getSampleRate(); }
     String getLastErrorMessage() const { return mLastError; }
 
-    void setDefaultRecordingDirectory(String recdir)  { mDefaultRecordDir = recdir; }
-    String getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
+    void setDefaultRecordingDirectory(const URL & recdir)  { mDefaultRecordDir = recdir; }
+    URL getDefaultRecordingDirectory() const { return mDefaultRecordDir; }
 
     void setLastBrowseDirectory(String recdir)  { mLastBrowseDir = recdir; }
     String getLastBrowseDirectory() const { return mLastBrowseDir; }
@@ -725,6 +756,9 @@ public:
     bool getRecordFinishOpens() const { return mRecordFinishOpens; }
     void setRecordFinishOpens(bool flag) { mRecordFinishOpens = flag; }
 
+    bool getReconnectAfterServerLoss() const { return mReconnectAfterServerLoss.get(); }
+    void setReconnectAfterServerLoss(bool flag) { mReconnectAfterServerLoss = flag; }
+
 
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
     void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
@@ -734,6 +768,8 @@ public:
     void sendLatencyMatchToAll(float latency);
     void getLatencyInfoList(Array<LatInfo> & retlist);
     void commitLatencyMatch(float latency);
+
+    void sendBlockedInfoMessage(EndpointState *endpoint, bool blocked);
 
     // playback stuff
     bool loadURLIntoTransport (const URL& audioURL);
@@ -764,7 +800,9 @@ public:
     void setLastPluginBounds(juce::Rectangle<int> bounds) { mPluginWindowWidth = bounds.getWidth(); mPluginWindowHeight = bounds.getHeight();}
     juce::Rectangle<int> getLastPluginBounds() const { return juce::Rectangle<int>(0,0,mPluginWindowWidth, mPluginWindowHeight); }
 
-
+    // support dir path
+    File getSupportDir() const { return mSupportDir; }
+    
     // language
     void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
     String getLanguageOverrideCode() const { return mLangOverrideCode; }
@@ -871,11 +909,16 @@ private:
     void loadPeerCacheFromState();
     void storePeerCacheToState();
 
+    void loadGlobalState();
+    bool storeGlobalState();
 
     void handleLatInfo(const juce::var & obj);
     juce::var getAllLatInfo();
     void sendReqLatInfoToAll();
 
+    bool reconnectToMostRecent();
+
+    
     ListenerList<ClientListener> clientListeners;
 
     
@@ -927,6 +970,7 @@ private:
     Atomic<float>   mDefUserLevel    { 1.0f };
     Atomic<bool>   mSyncMetToHost  { false };
     Atomic<bool>   mSyncMetStartToPlayback  { false };
+    Atomic<bool>   mReconnectAfterServerLoss  { true };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };
@@ -944,7 +988,8 @@ private:
     bool mReverbParamsChanged = false;
     bool mLastHasMainFx = false;
     bool mLastInputReverbEnabled = false;
-
+    bool mFreshInit = true;
+    
     Atomic<bool>   mAnythingSoloed  { false };
 
 
@@ -987,7 +1032,7 @@ private:
     bool mChatUseFixedWidthFont = false;
     int mChatFontSizeOffset = 0;
     // chat message storage, thread-safe
-    Array<SBChatEvent, CriticalSection> mAllChatEvents;
+    SBChatEventList mAllChatEvents;
 
     int mLastSoundboardWidth = 250;
     bool mLastSoundboardShown = false;
@@ -1054,6 +1099,23 @@ private:
 
     Array<AooServerConnectionInfo> mRecentConnectionInfos;
     CriticalSection  mRecentsLock;
+    
+    AooServerConnectionInfo mPendingReconnectInfo;
+    bool mPendingReconnect = false;
+    bool mRecoveringFromServerLoss = false;
+    
+    class ServerReconnectTimer : public Timer
+    {
+    public:
+        ServerReconnectTimer(SonobusAudioProcessor & proc) : processor(proc) {
+        }
+        
+        void timerCallback() override;
+        
+        SonobusAudioProcessor & processor;
+    };
+
+    ServerReconnectTimer mReconnectTimer;
     
     CriticalSection  mRemotesLock;
 
@@ -1130,7 +1192,7 @@ private:
     int mDefaultRecordingBitsPerSample = 16;
     bool mRecordInputPreFX = true;
     bool mRecordFinishOpens = true;
-    String mDefaultRecordDir;
+    URL mDefaultRecordDir;
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;
@@ -1168,7 +1230,13 @@ private:
     // misc
     bool mSliderSnapToMouse = true;
     bool mDisableKeyboardShortcuts = false;
-
+    VideoLinkInfo mVideoLinkInfo;
+    
+    File mSupportDir;
+    
+    // global config
+    ValueTree   mGlobalState;
+    
     String mLangOverrideCode;
 
     // main state

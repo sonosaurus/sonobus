@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -39,6 +39,9 @@ public:
 
     JUCE_GENERATE_FUNCTION_WITH_DEFAULT (webkit_settings_set_hardware_acceleration_policy, juce_webkit_settings_set_hardware_acceleration_policy,
                                          (WebKitSettings*, int), void)
+
+    JUCE_GENERATE_FUNCTION_WITH_DEFAULT (webkit_settings_set_user_agent, juce_webkit_settings_set_user_agent,
+                                         (WebKitSettings*, const gchar*), void)
 
     JUCE_GENERATE_FUNCTION_WITH_DEFAULT (webkit_web_view_new_with_settings, juce_webkit_web_view_new_with_settings,
                                          (WebKitSettings*), GtkWidget*)
@@ -117,6 +120,10 @@ public:
                                          (gpointer, const gchar*, GCallback, gpointer, GClosureNotify, GConnectFlags), gulong)
 
     //==============================================================================
+    JUCE_GENERATE_FUNCTION_WITH_DEFAULT (gdk_set_allowed_backends, juce_gdk_set_allowed_backends,
+                                         (const char*), void)
+
+    //==============================================================================
     JUCE_DECLARE_SINGLETON_SINGLETHREADED_MINIMAL (WebKitSymbols)
 
 private:
@@ -164,6 +171,7 @@ private:
         return loadSymbols (webkitLib,
                             makeSymbolBinding (juce_webkit_settings_new,                                     "webkit_settings_new"),
                             makeSymbolBinding (juce_webkit_settings_set_hardware_acceleration_policy,        "webkit_settings_set_hardware_acceleration_policy"),
+                            makeSymbolBinding (juce_webkit_settings_set_user_agent,                          "webkit_settings_set_user_agent"),
                             makeSymbolBinding (juce_webkit_web_view_new_with_settings,                       "webkit_web_view_new_with_settings"),
                             makeSymbolBinding (juce_webkit_policy_decision_use,                              "webkit_policy_decision_use"),
                             makeSymbolBinding (juce_webkit_policy_decision_ignore,                           "webkit_policy_decision_ignore"),
@@ -182,18 +190,19 @@ private:
     bool loadGtkSymbols()
     {
         return loadSymbols (gtkLib,
-                            makeSymbolBinding (juce_gtk_init,                "gtk_init"),
-                            makeSymbolBinding (juce_gtk_plug_new,            "gtk_plug_new"),
-                            makeSymbolBinding (juce_gtk_scrolled_window_new, "gtk_scrolled_window_new"),
-                            makeSymbolBinding (juce_gtk_container_add,       "gtk_container_add"),
-                            makeSymbolBinding (juce_gtk_widget_show_all,     "gtk_widget_show_all"),
-                            makeSymbolBinding (juce_gtk_plug_get_id,         "gtk_plug_get_id"),
-                            makeSymbolBinding (juce_gtk_main,                "gtk_main"),
-                            makeSymbolBinding (juce_gtk_main_quit,           "gtk_main_quit"),
-                            makeSymbolBinding (juce_g_unix_fd_add,           "g_unix_fd_add"),
-                            makeSymbolBinding (juce_g_object_ref,            "g_object_ref"),
-                            makeSymbolBinding (juce_g_object_unref,          "g_object_unref"),
-                            makeSymbolBinding (juce_g_signal_connect_data,   "g_signal_connect_data"));
+                            makeSymbolBinding (juce_gtk_init,                 "gtk_init"),
+                            makeSymbolBinding (juce_gtk_plug_new,             "gtk_plug_new"),
+                            makeSymbolBinding (juce_gtk_scrolled_window_new,  "gtk_scrolled_window_new"),
+                            makeSymbolBinding (juce_gtk_container_add,        "gtk_container_add"),
+                            makeSymbolBinding (juce_gtk_widget_show_all,      "gtk_widget_show_all"),
+                            makeSymbolBinding (juce_gtk_plug_get_id,          "gtk_plug_get_id"),
+                            makeSymbolBinding (juce_gtk_main,                 "gtk_main"),
+                            makeSymbolBinding (juce_gtk_main_quit,            "gtk_main_quit"),
+                            makeSymbolBinding (juce_g_unix_fd_add,            "g_unix_fd_add"),
+                            makeSymbolBinding (juce_g_object_ref,             "g_object_ref"),
+                            makeSymbolBinding (juce_g_object_unref,           "g_object_unref"),
+                            makeSymbolBinding (juce_g_signal_connect_data,    "g_signal_connect_data"),
+                            makeSymbolBinding (juce_gdk_set_allowed_backends, "gdk_set_allowed_backends"));
     }
 
     //==============================================================================
@@ -339,20 +348,26 @@ class GtkChildProcess : private CommandReceiver::Responder
 {
 public:
     //==============================================================================
-    GtkChildProcess (int inChannel, int outChannelToUse)
+    GtkChildProcess (int inChannel, int outChannelToUse, const String& userAgentToUse)
         : outChannel (outChannelToUse),
-          receiver (this, inChannel)
+          receiver (this, inChannel),
+          userAgent (userAgentToUse)
     {}
 
     int entry()
     {
         CommandReceiver::setBlocking (outChannel, true);
 
+        // webkit2gtk crashes when using the wayland backend embedded into an x11 window
+        WebKitSymbols::getInstance()->juce_gdk_set_allowed_backends ("x11");
+
         WebKitSymbols::getInstance()->juce_gtk_init (nullptr, nullptr);
 
         auto* settings = WebKitSymbols::getInstance()->juce_webkit_settings_new();
         WebKitSymbols::getInstance()->juce_webkit_settings_set_hardware_acceleration_policy (settings,
                                                                                              /* WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER */ 2);
+        if (userAgent.isNotEmpty())
+            WebKitSymbols::getInstance()->juce_webkit_settings_set_user_agent (settings, userAgent.toRawUTF8());
 
         auto* plug      = WebKitSymbols::getInstance()->juce_gtk_plug_new (0);
         auto* container = WebKitSymbols::getInstance()->juce_gtk_scrolled_window_new (nullptr, nullptr);
@@ -540,10 +555,9 @@ public:
             break;
         case WEBKIT_POLICY_DECISION_TYPE_RESPONSE:
             {
-                auto* response = (WebKitNavigationPolicyDecision*) decision;
+                [[maybe_unused]] auto* response = (WebKitNavigationPolicyDecision*) decision;
 
                 // for now just always allow response requests
-                ignoreUnused (response);
                 WebKitSymbols::getInstance()->juce_webkit_policy_decision_use (decision);
                 return true;
             }
@@ -598,6 +612,7 @@ private:
 
     int outChannel = 0;
     CommandReceiver receiver;
+    String userAgent;
     WebKitWebView* webview = nullptr;
     Array<WebKitPolicyDecision*> decisions;
 };
@@ -607,8 +622,8 @@ class WebBrowserComponent::Pimpl  : private Thread,
                                     private CommandReceiver::Responder
 {
 public:
-    Pimpl (WebBrowserComponent& parent)
-        : Thread ("Webview"), owner (parent)
+    Pimpl (WebBrowserComponent& parent, const String& userAgentToUse)
+        : Thread ("Webview"), owner (parent), userAgent (userAgentToUse)
     {
         webKitIsAvailable = WebKitSymbols::getInstance()->isWebKitAvailable();
     }
@@ -626,9 +641,8 @@ public:
 
         launchChild();
 
-        auto ret = pipe (threadControl);
+        [[maybe_unused]] auto ret = pipe (threadControl);
 
-        ignoreUnused (ret);
         jassert (ret == 0);
 
         CommandReceiver::setBlocking (inChannel,        true);
@@ -756,11 +770,11 @@ private:
     {
         int inPipe[2], outPipe[2];
 
-        auto ret = pipe (inPipe);
-        ignoreUnused (ret); jassert (ret == 0);
+        [[maybe_unused]] auto ret = pipe (inPipe);
+        jassert (ret == 0);
 
         ret = pipe (outPipe);
-        ignoreUnused (ret); jassert (ret == 0);
+        jassert (ret == 0);
 
         auto pid = fork();
         if (pid == 0)
@@ -768,7 +782,6 @@ private:
             close (inPipe[0]);
             close (outPipe[1]);
 
-            HeapBlock<const char*> argv (5);
             StringArray arguments;
 
             arguments.add (File::getSpecialLocation (File::currentExecutableFile).getFullPathName());
@@ -776,16 +789,22 @@ private:
             arguments.add (String (outPipe[0]));
             arguments.add (String (inPipe [1]));
 
-            for (int i = 0; i < arguments.size(); ++i)
-                argv[i] = arguments[i].toRawUTF8();
+            if (userAgent.isNotEmpty())
+                arguments.add (userAgent);
 
-            argv[4] = nullptr;
+            std::vector<const char*> argv;
+            argv.reserve (static_cast<std::size_t> (arguments.size() + 1));
 
-           #if JUCE_STANDALONE_APPLICATION
-            execv (arguments[0].toRawUTF8(), (char**) argv.getData());
-           #else
-            juce_gtkWebkitMain (4, (const char**) argv.getData());
-           #endif
+            for (const auto& arg : arguments)
+                argv.push_back (arg.toRawUTF8());
+
+            argv.push_back (nullptr);
+
+            if (JUCEApplicationBase::isStandaloneApp())
+                execv (arguments[0].toRawUTF8(), (char**) argv.data());
+            else
+                juce_gtkWebkitMain (arguments.size(), (const char**) argv.data());
+
             exit (0);
         }
 
@@ -896,6 +915,7 @@ private:
     bool webKitIsAvailable = false;
 
     WebBrowserComponent& owner;
+    String userAgent;
     std::unique_ptr<CommandReceiver> receiver;
     int childProcess = 0, inChannel = 0, outChannel = 0;
     int threadControl[2];
@@ -905,9 +925,8 @@ private:
 };
 
 //==============================================================================
-WebBrowserComponent::WebBrowserComponent (const bool unloadWhenHidden)
-    : browser (new Pimpl (*this)),
-      unloadPageWhenHidden (unloadWhenHidden)
+WebBrowserComponent::WebBrowserComponent (const Options& options)
+    : browser (new Pimpl (*this, options.getUserAgent()))
 {
     ignoreUnused (blankPageShown);
     ignoreUnused (unloadPageWhenHidden);
@@ -1010,13 +1029,19 @@ void WebBrowserComponent::clearCookies()
     jassertfalse;
 }
 
+bool WebBrowserComponent::areOptionsSupported (const Options& options)
+{
+    return (options.getBackend() == Options::Backend::defaultBackend);
+}
+
 int juce_gtkWebkitMain (int argc, const char* argv[])
 {
-    if (argc != 4)
+    if (argc < 4)
         return -1;
 
     GtkChildProcess child (String (argv[2]).getIntValue(),
-                           String (argv[3]).getIntValue());
+                           String (argv[3]).getIntValue(),
+                           argc >= 5 ? String (argv[4]) : String());
 
     return child.entry();
 }

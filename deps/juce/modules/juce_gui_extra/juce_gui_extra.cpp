@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -67,10 +67,7 @@
  #import <WebKit/WebKit.h>
 
  #if JUCE_PUSH_NOTIFICATIONS
-  #if defined (__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
-   #import <UserNotifications/UserNotifications.h>
-  #endif
-
+  #import <UserNotifications/UserNotifications.h>
   #include "native/juce_ios_PushNotifications.cpp"
  #endif
 
@@ -138,11 +135,13 @@
 #include "misc/juce_SystemTrayIconComponent.cpp"
 #include "misc/juce_LiveConstantEditor.cpp"
 #include "misc/juce_AnimatedAppComponent.cpp"
+#include "misc/juce_WebBrowserComponent.cpp"
 
 //==============================================================================
 #if JUCE_MAC || JUCE_IOS
 
  #if JUCE_MAC
+  #include "native/juce_mac_NSViewFrameWatcher.h"
   #include "native/juce_mac_NSViewComponent.mm"
   #include "native/juce_mac_AppleRemote.mm"
   #include "native/juce_mac_SystemTrayIcon.cpp"
@@ -169,6 +168,7 @@
 #elif JUCE_LINUX || JUCE_BSD
  JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wzero-as-null-pointer-constant")
 
+ #include <juce_gui_basics/native/x11/juce_linux_ScopedWindowAssociation.h>
  #include "native/juce_linux_XEmbedComponent.cpp"
 
  #if JUCE_WEB_BROWSER
@@ -186,12 +186,4 @@
  #if JUCE_WEB_BROWSER
   #include "native/juce_android_WebBrowserComponent.cpp"
  #endif
-#endif
-
-//==============================================================================
-#if ! JUCE_WINDOWS && JUCE_WEB_BROWSER
- juce::WebBrowserComponent::WebBrowserComponent (ConstructWithoutPimpl) {}
- juce::WindowsWebView2WebBrowserComponent::WindowsWebView2WebBrowserComponent (bool unloadWhenHidden,
-                                                                               const WebView2Preferences&)
-     : WebBrowserComponent (unloadWhenHidden) {}
 #endif

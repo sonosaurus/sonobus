@@ -74,7 +74,10 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
 
     graphics.setColour(colour);
     graphics.fillRoundedRectangle(bounds, cornerSize);
-
+    if (isPlaying) {
+        graphics.setColour(Colour(PROGRESS_PLAY_OUTLINE_COLOUR));
+        graphics.drawRoundedRectangle(bounds, cornerSize, 2.0f);
+    }
 
     lf.drawButtonText(graphics, *this, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
 
@@ -96,8 +99,11 @@ void SonoPlaybackProgressButton::onPlaybackPositionChanged(const SamplePlaybackM
         : 0.0;
 
     if (!ignoreNextClick) {
-        setPlaybackPosition(position);
-        repaint();
+        if (abs(playbackPosition - position) > 1e-10 || manager.isPlaying() != isPlaying) {
+            isPlaying = manager.isPlaying();
+            setPlaybackPosition(position);
+            repaint();
+        }
     }
 }
 

@@ -12,13 +12,13 @@ namespace BinaryData
     const int            localized_de_txtSize = 41259;
 
     extern const char*   localized_es_txt;
-    const int            localized_es_txtSize = 40914;
+    const int            localized_es_txtSize = 40860;
 
     extern const char*   localized_fr_txt;
     const int            localized_fr_txtSize = 42503;
 
     extern const char*   localized_it_txt;
-    const int            localized_it_txtSize = 41335;
+    const int            localized_it_txtSize = 41319;
 
     extern const char*   localized_ja_txt;
     const int            localized_ja_txtSize = 45488;
@@ -27,13 +27,13 @@ namespace BinaryData
     const int            localized_ko_txtSize = 41451;
 
     extern const char*   localized_nl_txt;
-    const int            localized_nl_txtSize = 38895;
+    const int            localized_nl_txtSize = 38897;
 
     extern const char*   localized_ptbr_txt;
-    const int            localized_ptbr_txtSize = 40599;
+    const int            localized_ptbr_txtSize = 40612;
 
     extern const char*   localized_ptpt_txt;
-    const int            localized_ptpt_txtSize = 40104;
+    const int            localized_ptpt_txtSize = 40509;
 
     extern const char*   localized_ru_txt;
     const int            localized_ru_txtSize = 54011;
@@ -86,6 +86,12 @@ namespace BinaryData
     extern const char*   expand_arrow_inactive_svg;
     const int            expand_arrow_inactive_svgSize = 3098;
 
+    extern const char*   eyeoff_svg;
+    const int            eyeoff_svgSize = 2986;
+
+    extern const char*   eye_svg;
+    const int            eye_svgSize = 1920;
+
     extern const char*   eyedropper_svg;
     const int            eyedropper_svgSize = 1414;
 
@@ -108,10 +114,16 @@ namespace BinaryData
     const int            incoming_disallowed_svgSize = 9407;
 
     extern const char*   keyboard_svg;
-    const int            keyboard_svgSize = 5011;
+    const int            keyboard_svgSize = 6005;
 
     extern const char*   keyboard_disabled_svg;
-    const int            keyboard_disabled_svgSize = 5151;
+    const int            keyboard_disabled_svgSize = 6288;
+
+    extern const char*   keypadnumdisabled_svg;
+    const int            keypadnumdisabled_svgSize = 8796;
+
+    extern const char*   keypadnum_svg;
+    const int            keypadnum_svgSize = 8962;
 
     extern const char*   lgc_bar_wav;
     const int            lgc_bar_wavSize = 806;
@@ -133,6 +145,9 @@ namespace BinaryData
 
     extern const char*   loop_off_icon_svg;
     const int            loop_off_icon_svgSize = 3585;
+
+    extern const char*   mesgunread_svg;
+    const int            mesgunread_svgSize = 3290;
 
     extern const char*   met_svg;
     const int            met_svgSize = 3784;
@@ -224,6 +239,9 @@ namespace BinaryData
     extern const char*   reset_buffer_icon_svg;
     const int            reset_buffer_icon_svgSize = 3285;
 
+    extern const char*   send_svg;
+    const int            send_svgSize = 1035;
+
     extern const char*   send_group_svg;
     const int            send_group_svgSize = 6905;
 
@@ -273,7 +291,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 88;
+    const int namedResourceListSize = 94;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

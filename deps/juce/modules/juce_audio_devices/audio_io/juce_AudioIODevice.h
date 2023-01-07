@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -25,13 +25,21 @@ namespace juce
 
 class AudioIODevice;
 
+/** Additional information that may be passed to the AudioIODeviceCallback. */
+struct AudioIODeviceCallbackContext
+{
+    /** If the host provides this information, this field will be set to point to
+        an integer holding the current value; otherwise, this will be nullptr.
+    */
+    const uint64_t* hostTimeNs = nullptr;
+};
 
 //==============================================================================
 /**
     One of these is passed to an AudioIODevice object to stream the audio data
     in and out.
 
-    The AudioIODevice will repeatedly call this class's audioDeviceIOCallback()
+    The AudioIODevice will repeatedly call this class's audioDeviceIOCallbackWithContext()
     method on its own high-priority audio thread, when it needs to send or receive
     the next block of data.
 
@@ -82,12 +90,15 @@ public:
                                     processing into several smaller callbacks to ensure higher audio
                                     performance. So make sure your code can cope with reasonable
                                     changes in the buffer size from one callback to the next.
+        @param context              Additional information that may be passed to the
+                                    AudioIODeviceCallback.
     */
-    virtual void audioDeviceIOCallback (const float** inputChannelData,
-                                        int numInputChannels,
-                                        float** outputChannelData,
-                                        int numOutputChannels,
-                                        int numSamples) = 0;
+    virtual void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
+                                                   int numInputChannels,
+                                                   float* const* outputChannelData,
+                                                   int numOutputChannels,
+                                                   int numSamples,
+                                                   const AudioIODeviceCallbackContext& context);
 
     /** Called to indicate that the device is about to start calling back.
 
@@ -114,7 +125,6 @@ public:
     */
     virtual void audioDeviceError (const String& errorMessage);
 };
-
 
 //==============================================================================
 /**

@@ -60,8 +60,12 @@ public:
 
 private:
     constexpr static const float ELEMENT_MARGIN = 4;
+#if JUCE_IOS || JUCE_ANDROID
+    constexpr static const float CONTROL_HEIGHT = 36;
+#else
     constexpr static const float CONTROL_HEIGHT = 24;
-
+#endif
+    
     /**
      * true if the dialog is in rename mode, or false when the dialog is in create mode.
      */

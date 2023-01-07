@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -56,11 +56,12 @@ void AudioSourcePlayer::setGain (const float newGain) noexcept
     gain = newGain;
 }
 
-void AudioSourcePlayer::audioDeviceIOCallback (const float** inputChannelData,
-                                               int totalNumInputChannels,
-                                               float** outputChannelData,
-                                               int totalNumOutputChannels,
-                                               int numSamples)
+void AudioSourcePlayer::audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
+                                                          int totalNumInputChannels,
+                                                          float* const* outputChannelData,
+                                                          int totalNumOutputChannels,
+                                                          int numSamples,
+                                                          [[maybe_unused]] const AudioIODeviceCallbackContext& context)
 {
     // these should have been prepared by audioDeviceAboutToStart()...
     jassert (sampleRate > 0 && bufferSize > 0);

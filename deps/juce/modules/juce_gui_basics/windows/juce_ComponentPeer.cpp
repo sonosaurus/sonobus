@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -34,12 +34,15 @@ ComponentPeer::ComponentPeer (Component& comp, int flags)
       styleFlags (flags),
       uniqueID (lastUniquePeerID += 2) // increment by 2 so that this can never hit 0
 {
-    Desktop::getInstance().peers.add (this);
+    auto& desktop = Desktop::getInstance();
+    desktop.peers.add (this);
+    desktop.addFocusChangeListener (this);
 }
 
 ComponentPeer::~ComponentPeer()
 {
     auto& desktop = Desktop::getInstance();
+    desktop.removeFocusChangeListener (this);
     desktop.peers.removeFirstMatchingValue (this);
     desktop.triggerFocusCallback();
 }
@@ -179,7 +182,6 @@ bool ComponentPeer::handleKeyPress (const int keyCode, const juce_wchar textChar
                                      textCharacter));
 }
 
-
 bool ComponentPeer::handleKeyPress (const KeyPress& keyInfo)
 {
     bool keyWasUsed = false;
@@ -262,6 +264,19 @@ void ComponentPeer::handleModifierKeysChange()
     target->internalModifierKeysChanged();
 }
 
+void ComponentPeer::refreshTextInputTarget()
+{
+    const auto* lastTarget = std::exchange (textInputTarget, findCurrentTextInputTarget());
+
+    if (lastTarget == textInputTarget)
+        return;
+
+    if (textInputTarget == nullptr)
+        dismissPendingTextInput();
+    else if (auto* c = Component::getCurrentlyFocusedComponent())
+        textInputRequired (globalToLocal (c->getScreenPosition()), *textInputTarget);
+}
+
 TextInputTarget* ComponentPeer::findCurrentTextInputTarget()
 {
     auto* c = Component::getCurrentlyFocusedComponent();
@@ -274,7 +289,12 @@ TextInputTarget* ComponentPeer::findCurrentTextInputTarget()
     return nullptr;
 }
 
-void ComponentPeer::dismissPendingTextInput() {}
+void ComponentPeer::closeInputMethodContext() {}
+
+void ComponentPeer::dismissPendingTextInput()
+{
+    closeInputMethodContext();
+}
 
 //==============================================================================
 void ComponentPeer::handleBroughtToFront()
@@ -566,8 +586,8 @@ void ComponentPeer::setRepresentedFile (const File&)
 }
 
 //==============================================================================
-int ComponentPeer::getCurrentRenderingEngine() const            { return 0; }
-void ComponentPeer::setCurrentRenderingEngine (int index)       { jassert (index == 0); ignoreUnused (index); }
+int ComponentPeer::getCurrentRenderingEngine() const                             { return 0; }
+void ComponentPeer::setCurrentRenderingEngine ([[maybe_unused]] int index)       { jassert (index == 0); }
 
 //==============================================================================
 std::function<ModifierKeys()> ComponentPeer::getNativeRealtimeModifiers = nullptr;
@@ -584,6 +604,11 @@ ModifierKeys ComponentPeer::getCurrentModifiersRealtime() noexcept
 void ComponentPeer::forceDisplayUpdate()
 {
     Desktop::getInstance().displays->refresh();
+}
+
+void ComponentPeer::globalFocusChanged ([[maybe_unused]] Component* comp)
+{
+    refreshTextInputTarget();
 }
 
 } // namespace juce

@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -76,23 +76,7 @@ public:
     */
     virtual void getExtensions (ExtensionsVisitor&) const;
 
-    /**
-        A parameter with functions which are useful for plugin hosts.
-    */
-    struct HostedParameter : public AudioProcessorParameter
-    {
-        /** Returns an ID which is unique to this parameter.
-
-            Parameter indices are unstable across plugin versions, which means that the
-            parameter found at a particular index in one version of a plugin might move
-            to a different index in the subsequent version.
-
-            Unlike the parameter index, the ID returned by this function should be
-            somewhat stable (depending on the format of the plugin), so it is more
-            suitable for storing/recalling automation data.
-        */
-        virtual String getParameterID() const = 0;
-    };
+    using HostedParameter = HostedAudioProcessorParameter;
 
     /** Adds a parameter to this instance.
 
@@ -166,13 +150,12 @@ protected:
     {
     public:
         Parameter();
-        ~Parameter() override;
 
         String getText (float value, int maximumStringLength) const override;
         float getValueForText (const String& text) const override;
 
     private:
-        StringArray onStrings, offStrings;
+        const StringArray onStrings, offStrings;
     };
 
     AudioPluginInstance() = default;

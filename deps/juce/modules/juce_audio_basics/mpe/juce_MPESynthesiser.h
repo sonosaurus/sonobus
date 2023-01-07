@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -65,11 +65,10 @@ public:
     /** Constructor to pass to the synthesiser a custom MPEInstrument object
         to handle the MPE note state, MIDI channel assignment etc.
         (in case you need custom logic for this that goes beyond MIDI and MPE).
-        The synthesiser will take ownership of this object.
 
         @see MPESynthesiserBase, MPEInstrument
     */
-    MPESynthesiser (MPEInstrument* instrumentToUse);
+    MPESynthesiser (MPEInstrument& instrumentToUse);
 
     /** Destructor. */
     ~MPESynthesiser() override;
@@ -303,8 +302,10 @@ protected:
 
 protected:
     //==============================================================================
-    bool shouldStealVoices = false;
+    std::atomic<bool> shouldStealVoices { false };
     uint32 lastNoteOnCounter = 0;
+    mutable CriticalSection stealLock;
+    mutable Array<MPESynthesiserVoice*> usableVoicesToStealArray;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MPESynthesiser)
 };

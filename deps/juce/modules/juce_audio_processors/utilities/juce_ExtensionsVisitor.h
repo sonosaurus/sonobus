@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -23,6 +23,49 @@
   ==============================================================================
 */
 
+#ifndef DOXYGEN
+
+// Forward declarations to avoid leaking implementation details.
+namespace Steinberg
+{
+    namespace Vst
+    {
+        class IComponent;
+    }
+} // namespace Steinberg
+
+#endif
+
+//==============================================================================
+#if TARGET_OS_IPHONE
+struct OpaqueAudioComponentInstance;
+typedef struct OpaqueAudioComponentInstance* AudioComponentInstance;
+#else
+struct ComponentInstanceRecord;
+typedef struct ComponentInstanceRecord* AudioComponentInstance;
+#endif
+
+typedef AudioComponentInstance AudioUnit;
+
+//==============================================================================
+/*  If you are including the VST headers inside a namespace this forward
+    declaration may cause a collision with the contents of `aeffect.h`.
+
+    If that is the case you can avoid the collision by placing a `struct AEffect;`
+    forward declaration inside the namespace and before the inclusion of the VST
+    headers, e.g. @code
+
+    namespace Vst2
+    {
+    struct AEffect;
+    #include <pluginterfaces/vst2.x/aeffect.h>
+    #include <pluginterfaces/vst2.x/aeffectx.h>
+    }
+    @endcode
+*/
+struct AEffect;
+
+//==============================================================================
 namespace juce
 {
 
@@ -50,7 +93,7 @@ struct ExtensionsVisitor
     struct VST3Client
     {
         virtual ~VST3Client() = default;
-        virtual void* getIComponentPtr() const noexcept = 0;
+        virtual Steinberg::Vst::IComponent* getIComponentPtr() const noexcept = 0;
 
         virtual MemoryBlock getPreset() const = 0;
         virtual bool setPreset (const MemoryBlock&) const = 0;
@@ -60,15 +103,30 @@ struct ExtensionsVisitor
     struct AudioUnitClient
     {
         virtual ~AudioUnitClient() = default;
-        virtual void* getAudioUnitHandle() const noexcept = 0;
+        virtual AudioUnit getAudioUnitHandle() const noexcept = 0;
     };
 
     /** Can be used to retrieve information about a VST that is wrapped by an AudioProcessor. */
     struct VSTClient
     {
         virtual ~VSTClient() = default;
-        virtual void* getAEffectPtr() const noexcept = 0;
+        virtual AEffect* getAEffectPtr() const noexcept = 0;
     };
+
+    /** Can be used to retrieve information about a plugin that provides ARA extensions. */
+    struct ARAClient
+    {
+        virtual ~ARAClient() = default;
+        virtual void createARAFactoryAsync (std::function<void (ARAFactoryWrapper)>) const = 0;
+    };
+
+    ExtensionsVisitor() = default;
+
+    ExtensionsVisitor (const ExtensionsVisitor&) = default;
+    ExtensionsVisitor (ExtensionsVisitor&&) = default;
+
+    ExtensionsVisitor& operator= (const ExtensionsVisitor&) = default;
+    ExtensionsVisitor& operator= (ExtensionsVisitor&&) = default;
 
     virtual ~ExtensionsVisitor() = default;
 
@@ -83,6 +141,9 @@ struct ExtensionsVisitor
 
     /** Called with AU-specific information. */
     virtual void visitAudioUnitClient   (const AudioUnitClient&) {}
+
+    /** Called with ARA-specific information. */
+    virtual void visitARAClient         (const ARAClient&)       {}
 };
 
 } // namespace juce
