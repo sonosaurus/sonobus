@@ -394,7 +394,7 @@
                   UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="../images/LaunchScreen.storyboard"
                   iosScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
                   iPadScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
-                  UIRequiresFullScreen="0" buildNumber="77">
+                  UIRequiresFullScreen="0" buildNumber="78">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/ios/include&#10;"
                        libraryPath="../../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"
@@ -431,7 +431,7 @@
                    androidKeyStore="${user.home}/.android/sonouploadnew.jks" androidKeyStorePass="${sonoupload_keystore_password}"
                    androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
                    androidTheme="@android:style/Theme.NoTitleBar" androidActivitySubClassName="com.sonosaurus.sonobus.SonoBusActivity"
-                   androidVersionCode="76">
+                   androidVersionCode="78">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/android&#10;"
                        libraryPath="../../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>
