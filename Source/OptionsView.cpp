@@ -1247,9 +1247,10 @@ void OptionsView::chooseRecDirBrowser()
                 if (url.isLocalFile()) {
                     File lfile = url.getLocalFile();
                     if (lfile.isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(lfile.getFullPathName());
+                        safeThis->processor.setDefaultRecordingDirectory(url);
                     } else {
-                        safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
+                        auto parurl = URL(lfile.getParentDirectory());
+                        safeThis->processor.setDefaultRecordingDirectory(parurl);
                     }
 
                 }

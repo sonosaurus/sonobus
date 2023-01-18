@@ -8523,7 +8523,14 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 #if !(JUCE_IOS)
             String urlstr = extraTree.getProperty(defRecordDirURLKey, "");
             if (urlstr.isNotEmpty()) {
-                setDefaultRecordingDirectory(URL(urlstr));
+                // doublecheck it's a valid URL due to bad update
+                auto url = URL(urlstr);
+                if (url.getScheme().isEmpty()) {
+                    // asssume its a file
+                    DBG("Bad saved record URL: " << urlstr);
+                    url = URL(File(urlstr));
+                }
+                setDefaultRecordingDirectory(url);
             } else {
 #if ! JUCE_ANDROID
                 // backward compat (but not on android)
