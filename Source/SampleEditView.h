@@ -87,13 +87,10 @@ public:
     [[nodiscard]] int getButtonColour() const { return selectedColour; }
 
     /**
-     * @return true if the loop button is in the 'toggle on' state.
-     */
-    [[nodiscard]] bool isLoop() const { return mLoopButton->getState() == 1; }
-
-    /**
      * @return The selected playback behaviour.
      */
+    [[nodiscard]] SoundSample::EndPlaybackBehaviour getEndPlaybackBehaviour() const { return static_cast<SoundSample::EndPlaybackBehaviour>(mLoopButton->getState()); }
+
     [[nodiscard]] SoundSample::PlaybackBehaviour getPlaybackBehaviour() const { return static_cast<SoundSample::PlaybackBehaviour>(mPlaybackBehaviourButton->getState()); }
 
     [[nodiscard]] SoundSample::ButtonBehaviour getButtonBehaviour() const { return static_cast<SoundSample::ButtonBehaviour>(mButtonBehaviourButton->getState()); }
@@ -188,10 +185,6 @@ private:
      */
     String initialFilePath = "";
 
-    /**
-     * Loop playback option that is chosen upon opening the dialog.
-     */
-    bool initialLoop = false;
 
     /**
      * Playback behaviour option that is chosen upon opening the dialog.
@@ -201,6 +194,8 @@ private:
     SoundSample::ButtonBehaviour initialButtonBehaviour = SoundSample::ButtonBehaviour::TOGGLE;
 
     SoundSample::ReplayBehaviour initialReplayBehaviour = SoundSample::ReplayBehaviour::REPLAY_FROM_START;
+
+    SoundSample::EndPlaybackBehaviour initialEndPlaybackBehaviour = SoundSample::EndPlaybackBehaviour::STOP_AT_END;
 
     /**
      * Gain option that is chosen upon opening the dialog.

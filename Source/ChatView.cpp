@@ -823,6 +823,9 @@ void ChatView::processNewChatMessages(int index, int count)
 
     bool fixedwidth = processor.getChatUseFixedWidthFont();
 
+    mChatTextEditor->setScrollToShowCursor(doscroll);
+
+    
     auto & allChatEvents = processor.getAllChatEvents();
     auto privateChat = mChatTabs->getCurrentTabIndex() > 0;
     auto privateUser = privateChat ? mChatTabs->getCurrentTabName() : "";
@@ -900,6 +903,7 @@ void ChatView::processNewChatMessages(int index, int count)
         if (event.type == SBChatEvent::SelfType) {
             usecolor = selfTextColour;
             doscroll = true;
+            mChatTextEditor->setScrollToShowCursor(doscroll);
         }
         else if (event.type == SBChatEvent::SystemType) {
             usecolor = sysTextColour;
@@ -991,9 +995,8 @@ void ChatView::processNewChatMessages(int index, int count)
         mLastChatMessageStamp = nowtime;
     }
 
-    if (doscroll) {
-        mChatTextEditor->scrollEditorToPositionCaret(0, mChatTextEditor->getLocalBounds().getBottom());
-    }
+    // reset to default
+    mChatTextEditor->setScrollToShowCursor(false);
 
     if (isVisible()) {
         mLastChatViewStamp = mLastChatUserMessageStamp;

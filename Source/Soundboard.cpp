@@ -8,12 +8,12 @@
 #include "CrossPlatformUtils.h"
 
 SoundSample::SoundSample(
-        String newName, URL newFileURL, bool newLoop, uint32 buttonColour, int hotkeyCode,
+        String newName, URL newFileURL, EndPlaybackBehaviour endBehavior, uint32 buttonColour, int hotkeyCode,
         PlaybackBehaviour playbackBehaviour,  ButtonBehaviour buttonBehaviour, ReplayBehaviour replayBehaviour,
         float newGain
 ) : name(std::move(newName)),
         fileURL(std::move(newFileURL)),
-        loop(newLoop),
+        endPlaybackBehaviour(endBehavior),
         buttonColour(buttonColour),
         hotkeyCode(hotkeyCode),
         playbackBehaviour(playbackBehaviour),
@@ -43,14 +43,10 @@ void SoundSample::setFileURL(juce::URL newFileUrl)
     fileURL = std::move(newFileUrl);
 }
 
-bool SoundSample::isLoop() const
-{
-    return loop;
-}
 
-void SoundSample::setLoop(bool newLoop)
+void SoundSample::setEndPlaybackBehaviour(EndPlaybackBehaviour newEndBehavior)
 {
-    loop = newLoop;
+    endPlaybackBehaviour = newEndBehavior;
 }
 
 int SoundSample::getButtonColour() const
@@ -138,7 +134,8 @@ ValueTree SoundSample::serialize()
     }
 #endif
     
-    tree.setProperty(LOOP_KEY, loop, nullptr);
+    tree.setProperty(END_PLAYBACK_BEHAVIOUR_KEY, endPlaybackBehaviour, nullptr);
+    tree.setProperty(LOOP_KEY, endPlaybackBehaviour == LOOP_AT_END, nullptr); // backwards compat
     tree.setProperty(BUTTON_COLOUR_KEY, (int64)buttonColour, nullptr);
     tree.setProperty(HOTKEY_KEY, hotkeyCode, nullptr);
     tree.setProperty(PLAYBACK_BEHAVIOUR_KEY, playbackBehaviour, nullptr);
@@ -154,6 +151,10 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
     int playbackBehaviour = tree.getProperty(PLAYBACK_BEHAVIOUR_KEY, PlaybackBehaviour::SIMULTANEOUS);
     int buttonBehaviour = tree.getProperty(BUTTON_BEHAVIOUR_KEY, ButtonBehaviour::TOGGLE);
     int replayBehaviour = tree.getProperty(REPLAY_BEHAVIOUR_KEY, ReplayBehaviour::REPLAY_FROM_START);
+    
+    // backwards compat
+    bool oldloop = tree.getProperty(LOOP_KEY, false);
+    int endPlaybackBehaviour = tree.getProperty(END_PLAYBACK_BEHAVIOUR_KEY, oldloop ? EndPlaybackBehaviour::LOOP_AT_END : EndPlaybackBehaviour::STOP_AT_END);
 
     URL fileurl;
     String fileurlstr = tree.getProperty(FILE_URL_KEY, "");
@@ -182,7 +183,7 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
     SoundSample soundSample(
         tree.getProperty(NAME_KEY),
         fileurl,
-        tree.getProperty(LOOP_KEY, false),
+        static_cast<EndPlaybackBehaviour>(endPlaybackBehaviour),
         (uint32)(int64)tree.getProperty(BUTTON_COLOUR_KEY, (int64)SoundboardButtonColors::DEFAULT_BUTTON_COLOUR),
         tree.getProperty(HOTKEY_KEY, -1),
         static_cast<PlaybackBehaviour>(playbackBehaviour),

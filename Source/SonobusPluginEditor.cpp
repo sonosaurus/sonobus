@@ -2404,9 +2404,10 @@ void SonobusAudioProcessorEditor::requestRecordDir(std::function<void (URL)> cal
                 if (url.isLocalFile()) {
                     File lfile = url.getLocalFile();
                     if (lfile.isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(lfile.getFullPathName());
+                        safeThis->processor.setDefaultRecordingDirectory(url);
                     } else {
-                        safeThis->processor.setDefaultRecordingDirectory(lfile.getParentDirectory().getFullPathName());
+                        auto parurl = URL(lfile.getParentDirectory());
+                        safeThis->processor.setDefaultRecordingDirectory(parurl);
                     }
 
                 }
@@ -3936,6 +3937,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 mesg << ev.user << TRANS(" - left group");
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
             }
+
+            mPeerContainer->peerLeftGroup(ev.group, ev.user);
 
             updatePeerState(true);
             updateState(false);

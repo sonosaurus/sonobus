@@ -254,6 +254,9 @@ namespace BinaryData
     extern const char*   skipback_icon_svg;
     const int            skipback_icon_svgSize = 2211;
 
+    extern const char*   skipforward_icon_svg;
+    const int            skipforward_icon_svgSize = 2449;
+
     extern const char*   sonobus_logo_96_png;
     const int            sonobus_logo_96_pngSize = 5099;
 
@@ -271,6 +274,9 @@ namespace BinaryData
 
     extern const char*   speaker_disabled_grey_svg;
     const int            speaker_disabled_grey_svgSize = 2651;
+
+    extern const char*   stop_svg;
+    const int            stop_svgSize = 1802;
 
     extern const char*   toggle_svg;
     const int            toggle_svgSize = 6218;
@@ -291,7 +297,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 94;
+    const int namedResourceListSize = 96;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
