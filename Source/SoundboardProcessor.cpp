@@ -286,7 +286,6 @@ void SoundboardProcessor::onPlaybackFinished(SamplePlaybackManager* playbackMana
                     }
                 }
             }
-            return false;
         }
     }
 }
