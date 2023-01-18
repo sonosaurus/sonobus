@@ -276,10 +276,16 @@ private:
 
         if (state.showNames) {
             params.set("showlabels", "");
+            params.set("fontsize", "40");
         }
         
-        // no audio device selection possible, because we are doing the audio
+        // make sure no audio is possible, because we are doing the audio
         params.set("adevice", "0");
+        params.set("nmb", ""); // no mic button
+        params.set("nsb", ""); // no speaker button
+        params.set("noaudio", "");
+        params.set("deaf", "");
+        params.set("noap", ""); // no audio processing
 
         
         // parse more params out of custom text
