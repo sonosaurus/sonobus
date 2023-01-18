@@ -48,6 +48,12 @@ public:
         BACKGROUND = 2
     };
 
+    enum EndPlaybackBehaviour {
+        STOP_AT_END = 0,
+        LOOP_AT_END = 1,
+        NEXT_AT_END = 2
+    };
+    
     enum ButtonBehaviour {
         TOGGLE = 0,
         HOLD = 1,
@@ -62,7 +68,7 @@ public:
     /**
      * @param name The name representing the sound sample.
      * @param fileURL The absolute URL containing a file path of the underlying sound file.
-     * @param loop Whether the sample should loop on playback.
+     * @param endBehavior Whether the sample should stop, loop, or go to next on playback end.
      * @param buttonColour The colour of the sample button in RGB value with an alpha of 0.
      * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
      * @param playbackBehaviour The playback behaviour.
@@ -73,7 +79,7 @@ public:
     SoundSample(
             String name,
             juce::URL fileURL,
-            bool loop = false,
+            EndPlaybackBehaviour endBehavior = EndPlaybackBehaviour::STOP_AT_END,
             uint32 buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             int hotkeyCode = -1,
             PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS,
@@ -96,9 +102,9 @@ public:
      */
     void setFileURL(juce::URL fileURL);
 
-    bool isLoop() const;
+    [[nodiscard]] EndPlaybackBehaviour getEndPlaybackBehaviour() const { return endPlaybackBehaviour; }
 
-    void setLoop(bool newLoop);
+    void setEndPlaybackBehaviour(EndPlaybackBehaviour newEndBehavior);
 
     /**
      * @return 0xRRGGBB without alpha value.
@@ -177,6 +183,7 @@ private:
      * Key for the loop property of the root node in the serialization tree data structure.
      */
     constexpr static const char LOOP_KEY[] = "loop";
+    constexpr static const char END_PLAYBACK_BEHAVIOUR_KEY[] = "endPlaybackBehavior";
 
     /**
      * Key for the button colour property of the root node in the serialization tree data structure.
@@ -213,9 +220,9 @@ private:
     juce::URL fileURL;
 
     /**
-     * Whether the sample should loop (indefinitely).
+     * How the sample should end playback
      */
-    bool loop;
+    EndPlaybackBehaviour endPlaybackBehaviour;
 
     /**
      * The argb colour the sample button must have with 0 alpha value.

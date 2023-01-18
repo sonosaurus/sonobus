@@ -19,7 +19,7 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardProcessor
+class SoundboardProcessor : public PlaybackPositionListener
 {
 public:
     SoundboardProcessor(SoundboardChannelProcessor* channelProcessor, File supportDir);
@@ -175,8 +175,15 @@ public:
      */
     void saveToDisk();
 
+
+    /**
+     * Currently called when a new sample has been triggered by NEXT_ON_END sample ending
+     */
+    std::function<void()> onPlaybackStateChange;
     
-private:
+protected:
+
+    void onPlaybackFinished(SamplePlaybackManager* playbackManager) override;
 
     /**
      * Key of the root node in the serialized tree data structure that holds the soundboard data.

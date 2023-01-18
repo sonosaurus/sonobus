@@ -126,6 +126,7 @@ static String addressValueKey("value");
 //static String inputEffectsStateKey("InputEffects");
 
 static String inputChannelGroupsStateKey("InputChannelGroups");
+static String extraChannelGroupsStateKey("ExtraChannelGroups");
 static String channelGroupsStateKey("ChannelGroups");
 static String channelGroupsMultiStateKey("MultiChannelGroups");
 static String channelGroupStateKey("ChannelGroup");
@@ -8413,6 +8414,23 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     else {
         tempstate.removeChild(inputChannelGroupsTree, nullptr);
     }
+
+    
+    ValueTree extraChannelGroupsTree = tempstate.getOrCreateChildWithName(extraChannelGroupsStateKey, nullptr);
+    extraChannelGroupsTree.removeAllChildren(nullptr);
+    
+    auto fpcg = mFilePlaybackChannelGroup.params.getValueTree();
+    fpcg.setProperty("chgID", "filepb", nullptr);
+    extraChannelGroupsTree.appendChild(fpcg, nullptr);
+
+    auto metcg = mMetChannelGroup.params.getValueTree();
+    metcg.setProperty("chgID", "met", nullptr);
+    extraChannelGroupsTree.appendChild(metcg, nullptr);
+
+    auto sbcg = soundboardChannelProcessor->getChannelGroupParams().getValueTree();
+    sbcg.setProperty("chgID", "soundboard", nullptr);
+    extraChannelGroupsTree.appendChild(sbcg, nullptr);
+
     
     ValueTree peerCacheTree = tempstate.getOrCreateChildWithName(peerStateCacheMapKey, nullptr);
     if (includecache) {
@@ -8566,6 +8584,35 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             }
         }
 
+        ValueTree extraChannelGroupsTree = mState.state.getChildWithName(extraChannelGroupsStateKey);
+        if (extraChannelGroupsTree.isValid()) {
+            
+            for (auto channelGroupTree : extraChannelGroupsTree) {
+                if (!channelGroupTree.isValid()) continue;
+                
+                auto cid = channelGroupTree.getProperty("chgID");
+
+                ChannelGroupParams params;
+                params.setFromValueTree(channelGroupTree);
+
+                if (cid == "filepb") {
+                    mFilePlaybackChannelGroup.params = params;
+                    mFilePlaybackChannelGroup.commitAllParams();
+                    mRecFilePlaybackChannelGroup.params = params;
+                    mRecFilePlaybackChannelGroup.commitAllParams();
+                }
+                else if (cid == "met") {
+                    mMetChannelGroup.params = params;
+                    mMetChannelGroup.commitAllParams();
+                    mRecMetChannelGroup.params = params;
+                    mRecMetChannelGroup.commitAllParams();
+                } else if (cid == "soundboard") {
+                    soundboardChannelProcessor->setChannelGroupParams(params);
+                }
+            }
+        }
+
+        
         if (includecache) {
             loadPeerCacheFromState();
         }

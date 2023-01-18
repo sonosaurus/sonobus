@@ -759,6 +759,17 @@ void PeersContainerView::peerBlockedJoin(String & group, String & user, String &
     }    
 }
 
+void PeersContainerView::peerLeftGroup(String & group, String & user)
+{
+    // check if it was pending and remove it
+    auto found = mPendingUsers.find(user);
+    if (found != mPendingUsers.end()) {
+        auto & peer = found->second;
+        mPendingUsers.erase(found);
+    }
+}
+
+
 void PeersContainerView::setPeerDisplayMode(SonobusAudioProcessor::PeerDisplayMode mode)
 {
     // set full mode for all

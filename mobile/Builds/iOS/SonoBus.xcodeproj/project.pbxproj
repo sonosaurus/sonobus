@@ -239,6 +239,7 @@
 		5310B50E507FFDA0188F4F87 /* RunningCumulant.c */ /* RunningCumulant.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = RunningCumulant.c; path = ../../../Source/RunningCumulant.c; sourceTree = SOURCE_ROOT; };
 		5356623FE375C4134791DD08 /* sonobus_logo_96.png */ /* sonobus_logo_96.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = sonobus_logo_96.png; path = ../../../images/sonobus_logo_96.png; sourceTree = SOURCE_ROOT; };
 		53643BAA25312BC00F7C899F /* PolarityInvertView.h */ /* PolarityInvertView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PolarityInvertView.h; path = ../../../Source/PolarityInvertView.h; sourceTree = SOURCE_ROOT; };
+		536481B716E8A7464D62CA03 /* skipforward_icon.svg */ /* skipforward_icon.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = skipforward_icon.svg; path = ../../../images/skipforward_icon.svg; sourceTree = SOURCE_ROOT; };
 		538FD52D0F49C75E4F2244F4 /* include_juce_cryptography.mm */ /* include_juce_cryptography.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_cryptography.mm; path = ../../JuceLibraryCode/include_juce_cryptography.mm; sourceTree = SOURCE_ROOT; };
 		53D6CC4056D898E3696B544E /* CoreServices.framework */ /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		54570CE663E70D2E4A9B7E67 /* triangle_disclosure_right.svg */ /* triangle_disclosure_right.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = triangle_disclosure_right.svg; path = ../../../images/triangle_disclosure_right.svg; sourceTree = SOURCE_ROOT; };
@@ -416,6 +417,7 @@
 		E617D5D641954D74CB24784A /* skipback_icon.svg */ /* skipback_icon.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = skipback_icon.svg; path = ../../../images/skipback_icon.svg; sourceTree = SOURCE_ROOT; };
 		E66F796965DC6E38ECC19571 /* ChannelGroupsView.h */ /* ChannelGroupsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ChannelGroupsView.h; path = ../../../Source/ChannelGroupsView.h; sourceTree = SOURCE_ROOT; };
 		E6AB82F5E3A0D306CB84EC10 /* Standalone_Plugin.entitlements */ /* Standalone_Plugin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Standalone_Plugin.entitlements; path = Standalone_Plugin.entitlements; sourceTree = SOURCE_ROOT; };
+		E701D4D64AE152B5C42415F3 /* stop.svg */ /* stop.svg */ = {isa = PBXFileReference; lastKnownFileType = file.svg; name = stop.svg; path = ../../../images/stop.svg; sourceTree = SOURCE_ROOT; };
 		E855B443D6742C3E71E59401 /* faustExpander.h */ /* faustExpander.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = faustExpander.h; path = ../../../Source/faustExpander.h; sourceTree = SOURCE_ROOT; };
 		E8B902881B492832E6358CDC /* BinaryData.h */ /* BinaryData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BinaryData.h; path = ../../JuceLibraryCode/BinaryData.h; sourceTree = SOURCE_ROOT; };
 		E923597D3EE4367A2F1934C3 /* AutoUpdater.h */ /* AutoUpdater.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AutoUpdater.h; path = ../../../Source/AutoUpdater.h; sourceTree = SOURCE_ROOT; };
@@ -901,6 +903,7 @@
 				2B5AE910F27403AD32A72632,
 				32D3BCD99AC6A16B7A871732,
 				E617D5D641954D74CB24784A,
+				536481B716E8A7464D62CA03,
 				E131BF8BA0666616BBD30732,
 				DE276C3A0DE5880C7E8F2B30,
 				5356623FE375C4134791DD08,
@@ -909,6 +912,7 @@
 				E9B3AC03E96BF913B8CE443E,
 				600C7FE92F01BD86CED6588A,
 				03269732AF8C1960BE15C676,
+				E701D4D64AE152B5C42415F3,
 				19917752AEA39FAFDC5ED1AD,
 				B5D2AE6173221B9C3CAC8A5C,
 				54570CE663E70D2E4A9B7E67,
@@ -1282,8 +1286,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1346,8 +1350,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1411,8 +1415,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1473,8 +1477,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1540,8 +1544,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1655,8 +1659,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1771,8 +1775,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",
@@ -1837,8 +1841,8 @@
 					"AOO_STATIC",
 					"JUCE_IOS_AUDIO_EXPLICIT_SAMPLERATES=8000,16000,22050,44100,48000,88200,96000,192000",
 					"JUCER_XCODE_IPHONE_5BC26AE3=1",
-					"JUCE_APP_VERSION=1.6.0",
-					"JUCE_APP_VERSION_HEX=0x10600",
+					"JUCE_APP_VERSION=1.6.1",
+					"JUCE_APP_VERSION_HEX=0x10601",
 					"JucePlugin_Build_VST=0",
 					"JucePlugin_Build_VST3=0",
 					"JucePlugin_Build_AU=0",

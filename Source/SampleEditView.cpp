@@ -25,10 +25,10 @@ gainChangeCallback(std::move(gaincallback)),
 editModeEnabled(soundSample != nullptr),
 selectedColour(soundSample == nullptr ? SoundboardButtonColors::DEFAULT_BUTTON_COLOUR : soundSample->getButtonColour()),
 initialName(soundSample == nullptr ? "" : soundSample->getName()),
-initialLoop(soundSample != nullptr && soundSample->isLoop()),
 initialPlaybackBehaviour(soundSample == nullptr ? SoundSample::PlaybackBehaviour::SIMULTANEOUS : soundSample->getPlaybackBehaviour()),
 initialButtonBehaviour(soundSample == nullptr ? SoundSample::ButtonBehaviour::TOGGLE : soundSample->getButtonBehaviour()),
 initialReplayBehaviour(soundSample == nullptr ? SoundSample::ReplayBehaviour::REPLAY_FROM_START : soundSample->getReplayBehaviour()),
+initialEndPlaybackBehaviour(soundSample == nullptr ? SoundSample::EndPlaybackBehaviour::STOP_AT_END : soundSample->getEndPlaybackBehaviour()),
 initialGain(soundSample == nullptr ? 1.0 : soundSample->getGain()),
 hotkeyCode(soundSample == nullptr ? -1 : soundSample->getHotkeyCode()),
 lastOpenedDirectory(lastOpenedDirectoryString),
@@ -231,16 +231,18 @@ void SampleEditView::createVolumeInputs()
 
 void SampleEditView::createLoopButton()
 {
+    auto loopOffImg = Drawable::createFromImageData(BinaryData::stop_svg, BinaryData::stop_svgSize);
     auto loopImg = Drawable::createFromImageData(BinaryData::loop_icon_svg, BinaryData::loop_icon_svgSize);
-    auto loopOffImg = Drawable::createFromImageData(BinaryData::loop_off_icon_png, BinaryData::loop_off_icon_pngSize);
+    auto nextImg = Drawable::createFromImageData(BinaryData::skipforward_icon_svg, BinaryData::skipforward_icon_svgSize);
     auto loopImages = std::vector<std::unique_ptr<Drawable>>();
     loopImages.push_back(std::move(loopOffImg));
     loopImages.push_back(std::move(loopImg));
-    auto labels = std::vector<String>{TRANS("Loop Off"), TRANS("Loop On")};
+    loopImages.push_back(std::move(nextImg));
+    auto labels = std::vector<String>{TRANS("Stop at End"), TRANS("Loop at End"), TRANS("Play Next")};
 
     mLoopButton = std::make_unique<SonoMultiStateDrawableButton>("loop", std::move(loopImages), std::move(labels));
     mLoopButton->setColour(DrawableButton::backgroundColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.3));
-    mLoopButton->setState(initialLoop);
+    mLoopButton->setState(initialEndPlaybackBehaviour);
     mLoopButton->onStateChange = [this]() {
         submitDialog(false);
     };

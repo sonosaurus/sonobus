@@ -93,7 +93,7 @@ public:
 
     void paintButton(Graphics& graphics, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
-    void onPlaybackPositionChanged(const SamplePlaybackManager& samplePlaybackManager) override;
+    void onPlaybackPositionChanged(SamplePlaybackManager* samplePlaybackManager) override;
 
     void attachToPlaybackManager(std::shared_ptr<SamplePlaybackManager> playbackManager);
 

@@ -252,6 +252,47 @@ void SoundboardProcessor::stopAllPlayback()
     channelProcessor->unloadAll();
 }
 
+void SoundboardProcessor::onPlaybackFinished(SamplePlaybackManager* playbackManager)
+{
+    if (auto * sample = playbackManager->getSample()) {
+        if (sample->getEndPlaybackBehaviour() == SoundSample::EndPlaybackBehaviour::NEXT_AT_END) {
+            // trigger the next one in the relevant soundboard
+            for (auto& soundboard : soundboards) {
+                auto& sampleList = soundboard.getSamples();
+                
+                bool playit = false;
+                bool foundboard = false;
+                for (auto & samp : sampleList) {
+                    if (playit) {
+                        // we are the next, trigger playback
+                        DBG("Triggering next sample");
+                        auto playbackManagerMaybe = channelProcessor->loadSample(samp);
+                        if (playbackManagerMaybe.has_value()) {
+                            playbackManagerMaybe->get()->attach(this);
+                            playbackManagerMaybe->get()->play();
+                            if (onPlaybackStateChange) {
+                                onPlaybackStateChange();
+                            }
+                        }
+                        break;
+                    }
+
+                    if (foundboard) break;
+                    
+                    if (&samp == sample) {
+                        playit = true;
+                        foundboard = true;
+                        continue;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+}
+
+
+
 void SoundboardProcessor::writeSoundboardsToFile(const File& file)
 {
     ValueTree tree(SOUNDBOARDS_KEY);

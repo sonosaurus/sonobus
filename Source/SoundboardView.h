@@ -241,7 +241,8 @@ private:
      * Adds buttons for all available sounds for the selected soundboard.
      * Removes buttons of sounds that are not available anymore.
      */
-    void updateButtons();
+    void rebuildButtons();
+    void refreshButtons();
     void updateButton(SonoPlaybackProgressButton * button, SoundSample & sample);
 
     /**

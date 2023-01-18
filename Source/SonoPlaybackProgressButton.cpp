@@ -25,7 +25,7 @@ SonoPlaybackProgressButton::SonoPlaybackProgressButton(const String& buttonName,
 SonoPlaybackProgressButton::~SonoPlaybackProgressButton()
 {
     if (playbackManager != nullptr) {
-        playbackManager->detach(*this);
+        playbackManager->detach(this);
     }
 }
 
@@ -92,15 +92,15 @@ void SonoPlaybackProgressButton::paintButton(Graphics& graphics,
     }
 }
 
-void SonoPlaybackProgressButton::onPlaybackPositionChanged(const SamplePlaybackManager& manager)
+void SonoPlaybackProgressButton::onPlaybackPositionChanged(SamplePlaybackManager * manager)
 {
-    auto position = manager.getLength() != 0.0
-        ? manager.getCurrentPosition() / manager.getLength()
+    auto position = manager->getLength() != 0.0
+        ? manager->getCurrentPosition() / manager->getLength()
         : 0.0;
 
     if (!ignoreNextClick) {
-        if (abs(playbackPosition - position) > 1e-10 || manager.isPlaying() != isPlaying) {
-            isPlaying = manager.isPlaying();
+        if (abs(playbackPosition - position) > 1e-10 || manager->isPlaying() != isPlaying) {
+            isPlaying = manager->isPlaying();
             setPlaybackPosition(position);
             repaint();
         }
@@ -110,8 +110,8 @@ void SonoPlaybackProgressButton::onPlaybackPositionChanged(const SamplePlaybackM
 void SonoPlaybackProgressButton::attachToPlaybackManager(std::shared_ptr<SamplePlaybackManager> playbackManager_)
 {
     playbackManager = std::move(playbackManager_);
-    playbackManager->detach(*this);
-    playbackManager->attach(*this);
+    playbackManager->detach(this);
+    playbackManager->attach(this);
 }
 
 void SonoPlaybackProgressButton::setMouseListener(std::unique_ptr<MouseListener> listener) {

@@ -3937,6 +3937,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
             }
 
+            mPeerContainer->peerLeftGroup(ev.group, ev.user);
+
             updatePeerState(true);
             updateState(false);
         }

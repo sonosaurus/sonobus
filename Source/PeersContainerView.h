@@ -214,6 +214,7 @@ public:
     void peerPendingJoin(String & group, String & user);
     void peerFailedJoin(String & group, String & user);
     void peerBlockedJoin(String & group, String & user, String & address, int port);
+    void peerLeftGroup(String & group, String & user);
     int getPendingPeerCount() const { return (int)mPendingUsers.size(); }
     
     void rebuildPeerViews();

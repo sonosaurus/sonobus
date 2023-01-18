@@ -20,7 +20,7 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor, Fil
     createBasePanels();
 
     updateSoundboardSelector();
-    updateButtons();
+    rebuildButtons();
 
     mLastSampleBrowseDirectory = std::make_unique<String>(
             File::getSpecialLocation(File::userMusicDirectory).getFullPathName());
@@ -35,6 +35,13 @@ SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor, Fil
     mDragDrawable->setAlpha(0.4f);
     mDragDrawable->setAlwaysOnTop(true);
     addChildComponent(mDragDrawable.get());
+
+    processor->onPlaybackStateChange = [this] {
+        // could be called from a non-UI thread
+        MessageManager::callAsync([this]() {
+            refreshButtons();
+        });
+    };
 }
 
 void SoundboardView::createBasePanels()
@@ -265,7 +272,33 @@ void SoundboardView::updateButton(SonoPlaybackProgressButton * playbackButton, S
     playbackButton->repaint();
 }
 
-void SoundboardView::updateButtons()
+void SoundboardView::refreshButtons()
+{
+    // go through existing and make sure each has an attachment to playing sample, if necessary
+    auto selectedBoardIndex = mBoardSelectComboBox->getSelectedItemIndex();
+    if (selectedBoardIndex < 0 || selectedBoardIndex >= processor->getNumberOfSoundboards()) {
+        return;
+    }
+
+    auto& selectedBoard = processor->getSoundboard(selectedBoardIndex);
+
+    int i=0;
+    for (auto& sample : selectedBoard.getSamples()) {
+        if (i < mSoundButtons.size()) {
+            auto & sbutton = mSoundButtons[i];
+
+            auto playbackManagerMaybe = processor->getChannelProcessor()->findPlaybackManager(sample);
+            if (playbackManagerMaybe.has_value()) {
+                sbutton->attachToPlaybackManager(*playbackManagerMaybe);
+            }
+        }
+        
+        ++i;
+    }
+    
+}
+
+void SoundboardView::rebuildButtons()
 {
     buttonBox.items.clear();
     mSoundButtons.clear();
@@ -422,7 +455,7 @@ void SoundboardView::mouseUp (const MouseEvent& event)
                 if (canmove && processor->moveSoundSample(mReorderDragSourceIndex, mReorderDragPos, selectedBoardIndex)) {
                     DBG("Move from " << mReorderDragSourceIndex << " to " << mReorderDragPos << " success");
                     // moved it
-                    updateButtons();
+                    rebuildButtons();
                 }
 
                 mInsertLine->setVisible(false);
@@ -500,6 +533,8 @@ void SoundboardView::playSample(SoundSample& sample, SonoPlaybackProgressButton*
         button->attachToPlaybackManager(playbackManager);
     }
 
+    playbackManager->attach(processor.get());
+    
     playbackManager->play();
 }
 
@@ -587,7 +622,7 @@ void SoundboardView::clickedAddSoundboard()
     auto callback = [this](const String& name) {
         Soundboard& createdSoundboard = processor->addSoundboard(name, true);
         updateSoundboardSelector();
-        updateButtons();
+        rebuildButtons();
     };
 
     auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
@@ -640,7 +675,7 @@ void SoundboardView::clickedDuplicateSoundboard()
         createdSoundboard = currSoundboard;
         createdSoundboard.setName(name);
         updateSoundboardSelector();
-        updateButtons();
+        rebuildButtons();
     };
 
     auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
@@ -689,7 +724,7 @@ void SoundboardView::clickedDeleteSoundboard()
             int selectedIndex = safeThis->mBoardSelectComboBox->getSelectedItemIndex();
             safeThis->processor->deleteSoundboard(selectedIndex);
             safeThis->updateSoundboardSelector();
-            safeThis->updateButtons();
+            safeThis->rebuildButtons();
         }
     };
 
@@ -700,7 +735,7 @@ void SoundboardView::clickedAddSoundSample()
 {
     SoundSample* createdSample = processor->addSoundSample("", "");
 
-    updateButtons();
+    rebuildButtons();
     auto * button = mSoundButtons.back().get();
     if (button) {
         clickedEditSoundSample(*button, *createdSample);
@@ -712,13 +747,13 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
     auto submitcallback = [this, &sample, &button](SampleEditView& editView) {
         if (editView.isDeleteSample()) {
             processor->deleteSoundSample(sample);
-            updateButtons();
+            rebuildButtons();
         }
         else {
             auto sampleName = editView.getSampleName();
             auto fileURL = editView.getFileURL();
             auto buttonColour = editView.getButtonColour();
-            auto loop = editView.isLoop();
+            auto endPlaybackBehaviour = editView.getEndPlaybackBehaviour();
             auto playbackBehaviour = editView.getPlaybackBehaviour();
             auto buttonBehaviour = editView.getButtonBehaviour();
             auto replayBehaviour = editView.getReplayBehaviour();
@@ -728,7 +763,7 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
             sample.setName(sampleName);
             sample.setFileURL(fileURL);
             sample.setButtonColour(buttonColour);
-            sample.setLoop(loop);
+            sample.setEndPlaybackBehaviour(endPlaybackBehaviour);
             sample.setPlaybackBehaviour(playbackBehaviour);
             sample.setButtonBehaviour(buttonBehaviour);
             sample.setReplayBehaviour(replayBehaviour);
@@ -739,7 +774,7 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
             if (auto * pbutton = dynamic_cast<SonoPlaybackProgressButton*>(&button)) {
                 updateButton(pbutton, sample);
             } else {
-                updateButtons();
+                rebuildButtons();
             }
         }
     };
@@ -798,7 +833,7 @@ void SoundboardView::applyOptionsToAll(SoundSample & fromsample)
         if (&fromsample != &sample) {
             sample.setReplayBehaviour(fromsample.getReplayBehaviour());
             sample.setPlaybackBehaviour(fromsample.getPlaybackBehaviour());
-            sample.setLoop(fromsample.isLoop());
+            sample.setEndPlaybackBehaviour(fromsample.getEndPlaybackBehaviour());
             sample.setButtonBehaviour(fromsample.getButtonBehaviour());
             processor->editSoundSample(sample, false);
         }
@@ -902,7 +937,7 @@ bool SoundboardView::processKeystroke(const KeyPress& keyPress)
 void SoundboardView::choiceButtonSelected(SonoChoiceButton* choiceButton, int index, int ident)
 {
     processor->selectSoundboard(index);
-    updateButtons();
+    rebuildButtons();
 }
 
 void SoundboardView::choiceButtonEmptyClick(SonoChoiceButton* choiceButton)
@@ -973,7 +1008,7 @@ void SoundboardView::filesDropped(const StringArray& files, int x, int y)
         createdSample = processor->addSoundSample(sampleName, filePath);
     }
 
-    updateButtons();
+    rebuildButtons();
 
     // Open the edit view by default if only 1 file was dragged
     if (files.size() == 1) {
