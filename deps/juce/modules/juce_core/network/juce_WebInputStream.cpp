@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -94,6 +94,13 @@ void WebInputStream::createHeadersAndPostData (const URL& aURL,
                                                bool addParametersToBody)
 {
     aURL.createHeadersAndPostData (headers, data, addParametersToBody);
+}
+
+bool WebInputStream::Listener::postDataSendProgress ([[maybe_unused]] WebInputStream& request,
+                                                     [[maybe_unused]] int bytesSent,
+                                                     [[maybe_unused]] int totalBytes)
+{
+    return true;
 }
 
 } // namespace juce

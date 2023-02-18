@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -147,6 +147,12 @@ namespace ActiveXHelpers
         ~JuceIOleClientSite()
         {
             inplaceSite->Release();
+
+            if (dispatchEventHandler != nullptr)
+            {
+                dispatchEventHandler->Release();
+                dispatchEventHandler = nullptr;
+            }
         }
 
         JUCE_COMRESULT QueryInterface (REFIID type, void** result)
@@ -157,6 +163,12 @@ namespace ActiveXHelpers
             {
                 inplaceSite->AddRef();
                 *result = static_cast<IOleInPlaceSite*> (inplaceSite);
+                return S_OK;
+            }
+            else if (type == __uuidof(IDispatch) && dispatchEventHandler != nullptr)
+            {
+                dispatchEventHandler->AddRef();
+                *result = dispatchEventHandler;
                 return S_OK;
             }
 
@@ -180,7 +192,31 @@ namespace ActiveXHelpers
             return S_FALSE;
         }
 
+        void setEventHandler (void* eventHandler)
+        {
+            IDispatch* newEventHandler = nullptr;
+
+            if (eventHandler != nullptr)
+            {
+                JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wlanguage-extension-token")
+
+                auto iidIDispatch = __uuidof (IDispatch);
+
+                if (static_cast<IUnknown*>(eventHandler)->QueryInterface (iidIDispatch, (void**) &newEventHandler) != S_OK
+                    || newEventHandler == nullptr)
+                    return;
+
+               JUCE_END_IGNORE_WARNINGS_GCC_LIKE
+            }
+
+            if (dispatchEventHandler != nullptr)
+                dispatchEventHandler->Release();
+
+            dispatchEventHandler = newEventHandler;
+        }
+
         JuceIOleInPlaceSite* inplaceSite;
+        IDispatch* dispatchEventHandler = nullptr;
     };
 
     //==============================================================================
@@ -224,8 +260,8 @@ namespace ActiveXHelpers
                                         { (float) (GET_X_LPARAM (lParam) + activeXRect.left - peerRect.left),
                                           (float) (GET_Y_LPARAM (lParam) + activeXRect.top  - peerRect.top) },
                                         ComponentPeer::getCurrentModifiersRealtime(),
-                                        MouseInputSource::invalidPressure,
-                                        MouseInputSource::invalidOrientation,
+                                        MouseInputSource::defaultPressure,
+                                        MouseInputSource::defaultOrientation,
                                         getMouseEventTime());
                 break;
             }
@@ -251,6 +287,11 @@ public:
 
     ~Pimpl() override
     {
+        // If the wndproc of the ActiveX HWND isn't set back to it's original
+        // wndproc, then clientSite will leak when control is released
+        if (controlHWND != nullptr)
+            SetWindowLongPtr ((HWND) controlHWND, GWLP_WNDPROC, (LONG_PTR) originalWndProc);
+
         if (control != nullptr)
         {
             control->Close (OLECLOSE_NOSAVE);
@@ -485,6 +526,13 @@ intptr_t ActiveXControlComponent::offerEventToActiveXControlStatic (void* ptr)
     return S_FALSE;
 }
 
+void ActiveXControlComponent::setEventHandler (void* eventHandler)
+{
+    if (control->clientSite != nullptr)
+        control->clientSite->setEventHandler (eventHandler);
+}
+
+LRESULT juce_offerEventToActiveXControl (::MSG& msg);
 LRESULT juce_offerEventToActiveXControl (::MSG& msg)
 {
     if (msg.message >= WM_KEYFIRST && msg.message <= WM_KEYLAST)

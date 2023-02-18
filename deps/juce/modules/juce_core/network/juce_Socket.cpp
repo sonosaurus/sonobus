@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -91,15 +91,16 @@ namespace SocketHelpers
                                : setOption (handle, IPPROTO_TCP, TCP_NODELAY, (int) 1));
     }
 
-    static void closeSocket (std::atomic<int>& handle, CriticalSection& readLock,
-                             bool isListener, int portNumber, std::atomic<bool>& connected) noexcept
+    static void closeSocket (std::atomic<int>& handle,
+                             [[maybe_unused]] CriticalSection& readLock,
+                             [[maybe_unused]] bool isListener,
+                             [[maybe_unused]] int portNumber,
+                             std::atomic<bool>& connected) noexcept
     {
         const auto h = (SocketHandle) handle.load();
         handle = -1;
 
        #if JUCE_WINDOWS
-        ignoreUnused (portNumber, isListener, readLock);
-
         if (h != invalidSocket || connected)
             closesocket (h);
 
@@ -795,11 +796,9 @@ bool DatagramSocket::setMulticastLoopbackEnabled (bool enable)
     return SocketHelpers::setOption<bool> ((SocketHandle) handle.load(), IPPROTO_IP, IP_MULTICAST_LOOP, enable);
 }
 
-bool DatagramSocket::setEnablePortReuse (bool enabled)
+bool DatagramSocket::setEnablePortReuse ([[maybe_unused]] bool enabled)
 {
-   #if JUCE_ANDROID
-    ignoreUnused (enabled);
-   #else
+   #if ! JUCE_ANDROID
     if (handle >= 0)
         return SocketHelpers::setOption ((SocketHandle) handle.load(),
                                         #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD

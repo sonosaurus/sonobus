@@ -36,9 +36,9 @@ endif()
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(SonoBus VERSION 1.6.0)
+project(SonoBus VERSION 1.9.0)
 
-set(BUILDVERSION 74)
+set(BUILDVERSION 174)
 
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
@@ -338,6 +338,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonobusPluginProcessor.cpp
         Source/SonobusPluginProcessor.h
         Source/SonobusTypes.h
+        Source/VDONinjaView.h
         Source/VersionInfo.cpp
         Source/VersionInfo.h
         Source/WaveformTransportComponent.h
@@ -506,6 +507,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/expand_arrow_active.svg
         images/expand_arrow_inactive.svg
         images/eyedropper.svg
+        images/eye.svg
+        images/eye-off.svg
         images/folder_icon.svg
         images/hear-others.svg
         images/hold.svg
@@ -514,6 +517,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/incoming_disallowed.svg
         images/keyboard.svg
         images/keyboard_disabled.svg
+	images/keypad-num-disabled.svg
+	images/keypad-num.svg
         images/lgc_bar.wav
         images/link.svg
         images/link_all.svg
@@ -525,6 +530,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/mic.svg
         images/mic_disabled.svg
         images/mic_pointing.svg
+        images/mesg-unread.svg
         images/move_updown.svg
         images/mute-others.svg
         images/network.svg
@@ -550,17 +556,20 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/record_active_alt.svg
         images/rectape.svg
         images/reset_buffer_icon.svg
+        images/send.svg
         images/send_group.svg
         images/send_group_small.svg
         images/replay_icon.svg
         images/settings_icon.svg
         images/skipback_icon.svg
+        images/skipforward_icon.svg
         images/sonobus_logo_96.png
         images/sonobus_title_small.png
         images/soundboard.svg
         images/speaker.svg
         images/speaker_disabled.svg
         images/speaker_disabled_grey.svg
+        images/stop.svg
         images/toggle.svg
         images/triangle_disclosure.svg
         images/triangle_disclosure_right.svg
@@ -609,6 +618,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         PRIVATE
             juce::juce_audio_utils
             juce::juce_dsp
+	    juce::juce_cryptography
             juce::juce_audio_plugin_client
             
             ff_meters

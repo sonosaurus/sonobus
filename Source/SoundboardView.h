@@ -34,6 +34,10 @@ public:
 
     void componentVisibilityChanged (Component& component) override;
 
+    void mouseDown (const MouseEvent& event) override;
+    void mouseDrag (const MouseEvent& event) override;
+    void mouseUp (const MouseEvent& event) override;
+
     /**
      * @param keyPress Pressed key code.
      */
@@ -61,6 +65,8 @@ public:
 
     void stopAllSamples();
 
+    bool isReorderDragging() const { return mReorderDragging; }
+    
     /**
      * Callback used when a sample is command/control clicked to indicate that it should
      * be opened for playback in the main UI (for example)
@@ -68,13 +74,23 @@ public:
     std::function<void(const SoundSample& sample)> onOpenSample;
 
 private:
+    
+#if JUCE_IOS || JUCE_ANDROID
+    constexpr static const float MENU_BUTTON_WIDTH = 36;
+    constexpr static const float TITLE_LABEL_WIDTH = 90;
+    constexpr static const float TITLE_HEIGHT = 40;
+    constexpr static const float TITLE_FONT_HEIGHT = 18;
+    constexpr static const float ELEMENT_MARGIN = 4;
+    constexpr static const float BUTTON_SPACING_MARGIN = 2;
+#else
     constexpr static const float MENU_BUTTON_WIDTH = 36;
     constexpr static const float TITLE_LABEL_WIDTH = 90;
     constexpr static const float TITLE_HEIGHT = 32;
     constexpr static const float TITLE_FONT_HEIGHT = 18;
     constexpr static const float ELEMENT_MARGIN = 4;
     constexpr static const float BUTTON_SPACING_MARGIN = 2;
-
+#endif
+    
     /**
      * Controller for soundboard view.
      */
@@ -169,6 +185,11 @@ private:
     std::unique_ptr<SonoDrawableButton> mHotkeyStateButton;
 
     /**
+     * Button for enabling/disabling numeric default hotkeys.
+     */
+    std::unique_ptr<SonoDrawableButton> mNumericHotkeyStateButton;
+
+    /**
      * Button for stopping all playing sample playbacks.
      */
     std::unique_ptr<SonoDrawableButton> mStopAllPlayback;
@@ -220,7 +241,8 @@ private:
      * Adds buttons for all available sounds for the selected soundboard.
      * Removes buttons of sounds that are not available anymore.
      */
-    void updateButtons();
+    void rebuildButtons();
+    void refreshButtons();
     void updateButton(SonoPlaybackProgressButton * button, SoundSample & sample);
 
     /**
@@ -268,10 +290,31 @@ private:
      */
     void clickedEditSoundSample(Component & button, SoundSample& sample);
 
+    /**
+     * Apply all playback options from the passed in fromsample to all the others in the current soundboard
+     */
+    void applyOptionsToAll(SoundSample & fromsample);
+
+    
     void fileDraggedAt(int x, int y);
 
     void fileDragStopped();
+    
+    // reorder dragging stuff
+    juce::Rectangle<int> getBoundsForSampleIndex(int chgroup);
+    int getSampleIndexForPoint(Point<int> pos, bool inbetween);
 
+    bool mReorderDragging = false;
+    int mReorderDragSourceIndex = -1;
+    int mReorderDragPos = -1;
+    Array< juce::Rectangle<int> > mChanGroupBounds;
+
+    std::unique_ptr<DrawableImage> mDragDrawable;
+    std::unique_ptr<DrawableRectangle> mInsertLine;
+    Image  mDragImage;
+
+    bool mAutoscrolling = false;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundboardView)
 };
 
@@ -293,7 +336,8 @@ private:
 
     SoundboardView* view;
 
-    bool dragging = false;
+    bool posDragging = false;
+
     Point<int> downPoint;
     double downTransportPos = 0.0;
 };

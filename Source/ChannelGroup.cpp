@@ -21,6 +21,7 @@ static String monDestStartKey("mondeststart");
 static String monDestChannelsKey("mondestchans");
 static String sendMainMixKey("sendmainmix");
 static String invertPolarityKey("invertpolarity");
+static String mutedKey("muted");
 
 
 static String stereoPanListKey("StereoPanners");
@@ -629,6 +630,7 @@ ValueTree ChannelGroupParams::getValueTree() const
     channelGroupTree.setProperty(gainKey, gain, nullptr);
     channelGroupTree.setProperty(channelStartIndexKey, chanStartIndex, nullptr);
     channelGroupTree.setProperty(numChannelsKey, numChannels, nullptr);
+    channelGroupTree.setProperty(mutedKey, muted, nullptr);
 
     channelGroupTree.setProperty(peerPan1Key, panStereo[0], nullptr);
     channelGroupTree.setProperty(peerPan2Key, panStereo[1], nullptr);
@@ -671,6 +673,7 @@ void ChannelGroupParams::setFromValueTree(const ValueTree & channelGroupTree)
     gain = channelGroupTree.getProperty(gainKey, gain);
     chanStartIndex = channelGroupTree.getProperty(channelStartIndexKey, chanStartIndex);
     numChannels = channelGroupTree.getProperty(numChannelsKey, numChannels);
+    muted = channelGroupTree.getProperty(mutedKey, muted);
     //pan = channelGroupTree.getProperty(peerMonoPanKey, pan);
     panStereo[0] = channelGroupTree.getProperty(peerPan1Key, panStereo[0]);
     panStereo[1] = channelGroupTree.getProperty(peerPan2Key, panStereo[1]);

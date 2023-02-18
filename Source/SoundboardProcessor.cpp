@@ -15,6 +15,11 @@ SoundboardProcessor::SoundboardProcessor(SoundboardChannelProcessor* channelProc
     loadFromDisk();
 }
 
+SoundboardProcessor::~SoundboardProcessor()
+{
+    saveToDisk();
+}
+
 Soundboard& SoundboardProcessor::addSoundboard(const String& name, const bool select)
 {
     auto newSoundboard = Soundboard(name);
@@ -43,15 +48,27 @@ void SoundboardProcessor::deleteSoundboard(int index)
 {
     // When a sample from this soundboard was playing, stop playback
     auto& activeSamples = channelProcessor->getActiveSamples();
+    std::vector<juce::URL> urls;
+    
     for (const auto& sample : soundboards[index].getSamples()) {
         auto playbackManager = activeSamples.find(&sample);
         if (playbackManager != activeSamples.end()) {
             playbackManager->second->unload();
         }
+        urls.push_back(sample.getFileURL());
     }
 
     soundboards.erase(soundboards.begin() + index);
 
+#if JUCE_ANDROID
+    for (const auto& url : urls) {
+        if ( ! isSampleURLInUse(url)) {
+            AndroidDocumentPermission::releasePersistentReadWriteAccess(url);
+        }
+    }
+#endif
+
+    
     // If the last soundboard was selected
     if (selectedSoundboardIndex == soundboards.size()) {
         auto selected = *selectedSoundboardIndex;
@@ -117,16 +134,76 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
     return &sampleList[sampleList.size() - 1];
 }
 
-void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate)
+bool SoundboardProcessor::moveSoundSample(int fromSampleIndex, int toSampleIndex, std::optional<int> index)
 {
+    if (!index.has_value() && !selectedSoundboardIndex.has_value()) {
+        return false;
+    }
+    auto sindex = index.has_value() ? *index : *selectedSoundboardIndex;
+    if (sindex < 0 || sindex >= soundboards.size())
+        return false;
+
+    auto& soundboard = soundboards[sindex];
+    auto& sampleList = soundboard.getSamples();
+
+    if (fromSampleIndex < 0 || fromSampleIndex >= sampleList.size()) {
+        return false;
+    }
+
+    // stop all playback, just in case
+    stopAllPlayback();
+    
+    auto sampcopy = sampleList[fromSampleIndex];
+    auto destiter = std::next(sampleList.begin(), toSampleIndex);
+    
+    sampleList.insert(destiter, std::move(sampcopy));
+
+    // remove the original
+    int origpos = fromSampleIndex < toSampleIndex ? fromSampleIndex : fromSampleIndex+1;
+    auto origiter = std::next(sampleList.begin(), origpos);
+    sampleList.erase(origiter);
+    
     saveToDisk();
 
+    return true;
+}
+
+
+void SoundboardProcessor::editSoundSample(SoundSample& sampleToUpdate, bool saveIt)
+{
+#if JUCE_ANDROID
+    AndroidDocumentPermission::takePersistentReadOnlyAccess(sampleToUpdate.getFileURL());
+#endif
+
+    if (saveIt) {
+        saveToDisk();
+    }
+
+    updatePlaybackSettings(sampleToUpdate);
+}
+
+void SoundboardProcessor::updatePlaybackSettings(SoundSample& sampleToUpdate)
+{
     // Immediately update transport source with new playback settings when this sample is currently playing
     auto& activeSamples = channelProcessor->getActiveSamples();
     auto playbackManager = activeSamples.find(&sampleToUpdate);
     if (playbackManager != activeSamples.end()) {
         playbackManager->second->reloadPlaybackSettingsFromSample();
     }
+}
+
+bool SoundboardProcessor::isSampleURLInUse(const juce::URL & url)
+{
+    for (auto& soundboard : soundboards) {
+        auto& sampleList = soundboard.getSamples();
+        
+        for (auto & sample : sampleList) {
+            if (sample.getFileURL() == url) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete, std::optional<int> index)
@@ -152,7 +229,15 @@ bool SoundboardProcessor::deleteSoundSample(SoundSample& sampleToDelete, std::op
                 playbackManager->second->unload();
             }
 
+            auto url = sample.getFileURL();
+            
             sampleList.erase(iter);
+
+#if JUCE_ANDROID
+            if ( ! isSampleURLInUse(url)) {
+                AndroidDocumentPermission::releasePersistentReadWriteAccess(url);
+            }
+#endif
 
             break;
         }
@@ -167,15 +252,56 @@ void SoundboardProcessor::stopAllPlayback()
     channelProcessor->unloadAll();
 }
 
-void SoundboardProcessor::writeSoundboardsToFile(const File& file) const
+void SoundboardProcessor::onPlaybackFinished(SamplePlaybackManager* playbackManager)
+{
+    if (auto * sample = playbackManager->getSample()) {
+        if (sample->getEndPlaybackBehaviour() == SoundSample::EndPlaybackBehaviour::NEXT_AT_END) {
+            // trigger the next one in the relevant soundboard
+            for (auto& soundboard : soundboards) {
+                auto& sampleList = soundboard.getSamples();
+                
+                bool playit = false;
+                bool foundboard = false;
+                for (auto & samp : sampleList) {
+                    if (playit) {
+                        // we are the next, trigger playback
+                        DBG("Triggering next sample");
+                        auto playbackManagerMaybe = channelProcessor->loadSample(samp);
+                        if (playbackManagerMaybe.has_value()) {
+                            playbackManagerMaybe->get()->attach(this);
+                            playbackManagerMaybe->get()->play();
+                            if (onPlaybackStateChange) {
+                                onPlaybackStateChange();
+                            }
+                        }
+                        break;
+                    }
+
+                    if (foundboard) break;
+                    
+                    if (&samp == sample) {
+                        playit = true;
+                        foundboard = true;
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+void SoundboardProcessor::writeSoundboardsToFile(const File& file)
 {
     ValueTree tree(SOUNDBOARDS_KEY);
 
     tree.setProperty(SELECTED_KEY, selectedSoundboardIndex.value_or(-1), nullptr);
     tree.setProperty(HOTKEYS_MUTED_KEY, hotkeysMuted, nullptr);
+    tree.setProperty(HOTKEYS_NUMERIC_KEY, numericHotkeyAllowed, nullptr);
 
     int i = 0;
-    for (const auto& soundboard: soundboards) {
+    for (auto& soundboard: soundboards) {
         tree.addChild(soundboard.serialize(), i++, nullptr);
     }
 
@@ -196,7 +322,8 @@ void SoundboardProcessor::readSoundboardsFromFile(const File& file)
 
     int selected = tree.getProperty(SELECTED_KEY);
     selectedSoundboardIndex = selected >= 0 ? std::optional<size_t>(selected) : std::nullopt;
-    hotkeysMuted = tree.getProperty(HOTKEYS_MUTED_KEY, false);
+    hotkeysMuted = tree.getProperty(HOTKEYS_MUTED_KEY, hotkeysMuted);
+    numericHotkeyAllowed = tree.getProperty(HOTKEYS_NUMERIC_KEY, numericHotkeyAllowed);
 
     soundboards.clear();
 
@@ -205,7 +332,7 @@ void SoundboardProcessor::readSoundboardsFromFile(const File& file)
     }
 }
 
-void SoundboardProcessor::saveToDisk() const
+void SoundboardProcessor::saveToDisk()
 {
     writeSoundboardsToFile(soundboardsFile);
 }

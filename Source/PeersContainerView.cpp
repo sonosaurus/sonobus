@@ -400,10 +400,15 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
 {
     PeerViewInfo * pvf = new PeerViewInfo();
 
-    pvf->addrLabel = std::make_unique<Label>("name", "");
-    pvf->addrLabel->setJustificationType(Justification::centredLeft);
-    configLabel(pvf->addrLabel.get(), LabelTypeSmallDim);
+    pvf->addrLabel = std::make_unique<TextEditor>("addr");
+    pvf->addrLabel->setJustification(Justification::centred);
+    pvf->addrLabel->setColour(TextEditor::textColourId, dimTextColor);
+    pvf->addrLabel->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+    pvf->addrLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+    pvf->addrLabel->setReadOnly(true);
+    pvf->addrLabel->setCaretVisible(false);
     pvf->addrLabel->setFont(13);
+    pvf->addrLabel->addMouseListener(this, false);
 
     pvf->staticAddrLabel = std::make_unique<Label>("addr", TRANS("Remote address:"));
     pvf->staticAddrLabel->setJustificationType(Justification::centredRight);
@@ -623,6 +628,11 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->optionsRemoveButton->setLookAndFeel(&pvf->smallLnf);
     pvf->optionsRemoveButton->setTooltip(TRANS("Removes user from your own connections, does not affect the whole group"));
 
+    pvf->optionsBlockButton = std::make_unique<TextButton>(TRANS("BLOCK"));
+    pvf->optionsBlockButton->addListener(this);
+    pvf->optionsBlockButton->setLookAndFeel(&pvf->smallLnf);
+    pvf->optionsBlockButton->setTooltip(TRANS("BLOCK any connections from this users IP address for yourself, does not affect other users"));
+
     
     // meters
     auto flags = foleys::LevelMeter::Minimal;
@@ -682,6 +692,10 @@ PendingPeerViewInfo * PeersContainerView::createPendingPeerViewInfo()
     pvf->removeButton->addListener(this);
     pvf->removeButton->setTooltip(TRANS("Removes pending user from list"));
 
+    pvf->unblockButton = std::make_unique<TextButton>(TRANS("Unblock"));
+    pvf->unblockButton->addListener(this);
+    pvf->unblockButton->setTooltip(TRANS("Unblocks address from blocked list"));
+
     return pvf;
 }
 
@@ -730,8 +744,31 @@ void PeersContainerView::peerFailedJoin(String & group, String & user)
     if (found != mPendingUsers.end()) {
         found->second.failed = true;
         updatePeerViews();
+    }
+}
+
+void PeersContainerView::peerBlockedJoin(String & group, String & user, String & address, int port)
+{
+    auto found = mPendingUsers.find(user);
+    if (found != mPendingUsers.end()) {
+        found->second.failed = true;
+        found->second.blocked = true;
+        found->second.address = address;
+        found->second.port = port;
+        updatePeerViews();
     }    
 }
+
+void PeersContainerView::peerLeftGroup(String & group, String & user)
+{
+    // check if it was pending and remove it
+    auto found = mPendingUsers.find(user);
+    if (found != mPendingUsers.end()) {
+        auto & peer = found->second;
+        mPendingUsers.erase(found);
+    }
+}
+
 
 void PeersContainerView::setPeerDisplayMode(SonobusAudioProcessor::PeerDisplayMode mode)
 {
@@ -827,7 +864,8 @@ void PeersContainerView::rebuildPeerViews()
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->staticFormatChoiceLabel.get());
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->sendMutedButton.get());
         pvf->sendOptionsContainer->addAndMakeVisible(pvf->optionsRemoveButton.get());
-        
+        pvf->sendOptionsContainer->addAndMakeVisible(pvf->optionsBlockButton.get());
+
         //pvf->addAndMakeVisible(pvf->recvMeter.get());
         pvf->addAndMakeVisible(pvf->sendActualBitrateLabel.get());
         pvf->addAndMakeVisible(pvf->recvActualBitrateLabel.get());
@@ -876,6 +914,7 @@ void PeersContainerView::rebuildPeerViews()
         ppvf->addAndMakeVisible(ppvf->nameLabel.get());
         ppvf->addAndMakeVisible(ppvf->messageLabel.get());
         ppvf->addChildComponent(ppvf->removeButton.get());
+        ppvf->addChildComponent(ppvf->unblockButton.get());
         addAndMakeVisible(ppvf);
     }
     
@@ -930,7 +969,8 @@ void PeersContainerView::updateLayout()
     int minPannerWidth = 58;
     int minButtonWidth = 90;
     int maxPannerWidth = 110;
-    
+    int minSmallButtonWidth = 55;
+
     int mutebuttwidth = 52;
     
 #if JUCE_IOS || JUCE_ANDROID
@@ -1101,8 +1141,11 @@ void PeersContainerView::updateLayout()
         pvf->optionsSendMutedBox.flexDirection = FlexBox::Direction::row;
         pvf->optionsSendMutedBox.items.add(FlexItem(5, 12));
         pvf->optionsSendMutedBox.items.add(FlexItem(100, minitemheight, *pvf->sendMutedButton).withMargin(0).withFlex(1));
-        pvf->optionsSendMutedBox.items.add(FlexItem(minButtonWidth -20, minitemheight, *pvf->optionsRemoveButton).withMargin(0).withFlex(0));
-        
+        pvf->optionsSendMutedBox.items.add(FlexItem(3, 12));
+        pvf->optionsSendMutedBox.items.add(FlexItem(minSmallButtonWidth, minitemheight, *pvf->optionsRemoveButton).withMargin(0).withFlex(0));
+        pvf->optionsSendMutedBox.items.add(FlexItem(3, 12));
+        pvf->optionsSendMutedBox.items.add(FlexItem(minSmallButtonWidth, minitemheight, *pvf->optionsBlockButton).withMargin(0).withFlex(0));
+
         
         pvf->optionsChangeAllQualBox.items.clear();
         pvf->optionsChangeAllQualBox.flexDirection = FlexBox::Direction::row;
@@ -1283,8 +1326,9 @@ void PeersContainerView::updateLayout()
         ppvf->mainbox.items.clear();
         ppvf->mainbox.flexDirection = FlexBox::Direction::row;
         ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->nameLabel).withMargin(0).withFlex(0));
-        ppvf->mainbox.items.add(FlexItem(minButtonWidth-14, minitemheight, *ppvf->removeButton).withMargin(0).withFlex(0));
+        ppvf->mainbox.items.add(FlexItem(minButtonWidth-14, minitemheight, *ppvf->removeButton).withMargin(3).withFlex(0));
         ppvf->mainbox.items.add(FlexItem(110, minitemheight, *ppvf->messageLabel).withMargin(0).withFlex(1));
+        ppvf->mainbox.items.add(FlexItem(minButtonWidth-14, minitemheight, *ppvf->unblockButton).withMargin(3).withFlex(0));
 
         peersBox.items.add(FlexItem(ppw, ppheight + 5, *ppvf).withMargin(1).withFlex(0));
         peersheight += ppheight + 5;
@@ -1447,6 +1491,11 @@ void PeersContainerView::mouseUp (const MouseEvent& event)
             pvf->channelGroups->clearClipIndicators();
             break;
         }
+        else if (event.eventComponent == pvf->addrLabel.get()) {
+            pvf->addrClicked = true;
+            updatePeerViews(i);
+            break;
+        }
         else if (pvf->channelGroups->isDraggable(event.eventComponent)) {
             if (mDraggingActive) {
                 DBG("Mouse up after drag: " << event.getPosition().toString() << " srcpeer: " << mDraggingSourcePeer << " destpos: " << mDraggingGroupPos);
@@ -1549,7 +1598,11 @@ void PeersContainerView::updatePeerViews(int specific)
         String addrname;
         addrname << hostname << " : " << port;
 
-        pvf->addrLabel->setText(addrname, dontSendNotification);
+        if (pvf->addrClicked) {
+            pvf->addrLabel->setText(addrname, dontSendNotification);
+        } else {
+            pvf->addrLabel->setText(TRANS("<Press to show>"), dontSendNotification);
+        }
 
         String sendtext;
         bool sendactive = processor.getRemotePeerSendActive(i);
@@ -1559,6 +1612,7 @@ void PeersContainerView::updatePeerViews(int specific)
         bool recvallow = processor.getRemotePeerRecvAllow(i);
         bool latactive = processor.isRemotePeerLatencyTestActive(i);
         bool safetymuted = processor.getRemotePeerSafetyMuted(i);
+        bool blocked = processor.getRemotePeerBlockedUs(i);
 
         const int chcnt = processor.getRemotePeerRecvChannelCount(i);
 
@@ -1576,8 +1630,12 @@ void PeersContainerView::updatePeerViews(int specific)
             pvf->lastBytesRecv = nbr;
             pvf->lastBytesSent = nbs;
         }
-                
-        if (sendactive) {
+
+        if (blocked) {
+            sendtext += TRANS("Other end BLOCKED us");
+            pvf->sendActualBitrateLabel->setColour(Label::textColourId, mutedTextColor);
+        }
+        else if (sendactive) {
             //sendtext += String::formatted("%Ld sent", processor.getRemotePeerPacketsSent(i) );
             sendtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x91")); // up arrow
             sendtext << String::formatted(" %.d kb/s", lrintf(sendrate * 8 * 1e-3) );
@@ -1740,12 +1798,21 @@ void PeersContainerView::updatePeerViews(int specific)
         ppvf->nameLabel->setText(pinfo.second.user, dontSendNotification);
         
         if (pinfo.second.failed) {
-            ppvf->messageLabel->setText(TRANS("Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router."), dontSendNotification);
-            ppvf->removeButton->setVisible(true);
+            if (pinfo.second.blocked) {
+                ppvf->messageLabel->setText(TRANS("User BLOCKED from address: ") + pinfo.second.address, dontSendNotification);
+                ppvf->removeButton->setVisible(true);
+                ppvf->unblockButton->setVisible(true);
+            }
+            else {
+
+                ppvf->messageLabel->setText(TRANS("Could not connect with user, one or both of you may need to configure your internal firewall or network router to allow SonoBus to work between you. See the help documentation to enable port forwarding on your router."), dontSendNotification);
+                ppvf->removeButton->setVisible(true);
+            }
         }
         else {
             ppvf->messageLabel->setText(TRANS("Connecting..."), dontSendNotification);
             ppvf->removeButton->setVisible(false);
+            ppvf->unblockButton->setVisible(false);
         }
         ++i;
     }
@@ -1820,7 +1887,7 @@ void PeersContainerView::timerCallback(int timerId)
             int i = mPeerUpdateOrdering[di];
 
             float ratio, stdev;
-            if (processor.getRemotePeerReceiveBufferFillRatio(i, ratio, stdev) > 0) {
+            if (processor.getRemotePeerReceiveBufferFillRatio(i, ratio, stdev)) {
                 pvf->jitterBufferMeter->setFillRatio(ratio, stdev);
             }
         }
@@ -1996,6 +2063,17 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             showSendOptions(di, false);
             return;
         }
+        else if (pvf->optionsBlockButton.get() == buttonThatWasClicked) {
+            // TODO: confirm blocking?
+            String remhost;
+            int remport;
+            processor.getRemotePeerAddressInfo(i, remhost, remport);
+            processor.addBlockedAddress(remhost);
+
+            processor.removeRemotePeer(i, true);
+            showSendOptions(di, false);
+            return;
+        }
         else if (pvf->bufferMinButton.get() == buttonThatWasClicked || pvf->bufferMinFrontButton.get() == buttonThatWasClicked) {
             // force to minimum
             if (ModifierKeys::currentModifiers.isAltDown()) {
@@ -2035,6 +2113,16 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
             rebuildPeerViews();
             return;
         }
+        else if (ppvf->unblockButton.get() == buttonThatWasClicked) {
+            processor.removeBlockedAddress(pinfo.second.address);
+
+            processor.connectRemotePeer(pinfo.second.address, pinfo.second.port, pinfo.second.user, pinfo.second.group);
+
+            mPendingUsers.erase(pinfo.first);
+            rebuildPeerViews();
+            return;
+        }
+
         ++i;
     }
 
@@ -2067,11 +2155,12 @@ void PeersContainerView::showRecvOptions(int dindex, bool flag, Component * from
 #else
         const int defHeight = 152;
 #endif
-        
-        
+
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
         
         auto * pvf = mPeerViews.getUnchecked(dindex);
+
+        pvf->addrClicked = false;
         
         pvf->recvOptionsContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
         
@@ -2081,6 +2170,7 @@ void PeersContainerView::showRecvOptions(int dindex, bool flag, Component * from
         pvf->recvOptionsBox.performLayout(pvf->recvOptionsContainer->getLocalBounds());
         pvf->bufferTimeLabel->setBounds(pvf->bufferTimeSlider->getBounds().removeFromLeft(pvf->bufferTimeSlider->getWidth()*0.5));
 
+        updatePeerViews(dindex);
         
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, fromView ? fromView->getScreenBounds() : pvf->recvOptionsButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());

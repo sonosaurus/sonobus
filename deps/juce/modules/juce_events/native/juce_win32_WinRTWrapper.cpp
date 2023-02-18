@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -42,7 +42,7 @@ WinRTWrapper::WinRTWrapper()
         return;
 
     HRESULT status = roInitialize (1);
-    initialised = ! (status != S_OK && status != S_FALSE && status != 0x80010106L);
+    initialised = ! (status != S_OK && status != S_FALSE && status != (HRESULT) 0x80010106L);
 }
 
 WinRTWrapper::~WinRTWrapper()

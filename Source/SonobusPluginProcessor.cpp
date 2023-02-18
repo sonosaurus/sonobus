@@ -101,6 +101,7 @@ static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
 static String recordFinishOpenKey("RecordFinishOpen");
 static String defRecordDirKey("DefaultRecordDir");
+static String defRecordDirURLKey("DefaultRecordDirURL");
 static String lastBrowseDirKey("LastBrowseDir");
 static String sliderSnapKey("SliderSnapToMouse");
 static String disableShortcutsKey("DisableKeyShortcuts");
@@ -116,6 +117,7 @@ static String langOverrideCodeKey("langOverrideCode");
 static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
 static String autoresizeDropRateThreshKey("autoDropRateThreshNew");
+static String reconnectServerLossKey("reconnServLoss");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -124,10 +126,15 @@ static String eqStateKey("ParametricEqState");
 
 static String lastUsernameKey("lastUsername");
 
+static String blockedAddressesKey("BlockedAddresses");
+static String addressKey("Address");
+static String addressValueKey("value");
+
 
 //static String inputEffectsStateKey("InputEffects");
 
 static String inputChannelGroupsStateKey("InputChannelGroups");
+static String extraChannelGroupsStateKey("ExtraChannelGroups");
 static String channelGroupsStateKey("ChannelGroups");
 static String channelGroupsMultiStateKey("MultiChannelGroups");
 static String channelGroupStateKey("ChannelGroup");
@@ -149,7 +156,6 @@ static String peerNetbufKey("netbuf");
 static String peerNetbufAutoKey("netbufauto");
 static String peerSendFormatKey("sendformat");
 static String peerOrderPriorityKey("orderpriority");
-
 
 
 #define METER_RMS_SEC 0.03
@@ -282,25 +288,26 @@ struct ProcessorIdPair
 struct SonobusAudioProcessor::RemotePeer {
     RemotePeer(EndpointState * ep = 0, int id_=0, AooSink::Ptr oursink_ = 0, AooSource::Ptr oursource_ = 0) : endpoint(ep),
         ourId(id_), 
-        oursink(std::move(oursink_)), oursource(std::move(oursource_)) {
-            for (int i=0; i < MAX_PANNERS; ++i) {
-                recvPan[i] = recvPanLast[i] = 0.0f;
-                if ((i % 2) == 0) {
-                    recvStereoPan[i] = -1.0f;
-                } else {
-                    recvStereoPan[i] = 1.0f;                    
-                }
+        oursink(std::move(oursink_)), oursource(std::move(oursource_))
+    {
+        for (int i=0; i < MAX_PANNERS; ++i) {
+            recvPan[i] = recvPanLast[i] = 0.0f;
+            if ((i % 2) == 0) {
+                recvStereoPan[i] = -1.0f;
+            } else {
+                recvStereoPan[i] = 1.0f;
             }
-            
-            oursink = AooSink::create(ourId, 0, nullptr);
-            oursource = AooSource::create(ourId, 0, nullptr);
-            
-            // create latency sink/sources
-            latencysink = AooSink::create(ourId + LATENCY_ID_OFFSET, 0, nullptr);
-            latencysource = AooSource::create(ourId + LATENCY_ID_OFFSET, 0, nullptr);
-            echosink = AooSink::create(ourId + ECHO_ID_OFFSET, 0, nullptr);
-            echosource = AooSource::create(ourId + ECHO_ID_OFFSET, 0, nullptr);
         }
+            
+        oursink = AooSink::create(ourId, 0, nullptr);
+        oursource = AooSource::create(ourId, 0, nullptr);
+            
+        // create latency sink/sources
+        latencysink = AooSink::create(ourId + LATENCY_ID_OFFSET, 0, nullptr);
+        latencysource = AooSource::create(ourId + LATENCY_ID_OFFSET, 0, nullptr);
+        echosink = AooSink::create(ourId + ECHO_ID_OFFSET, 0, nullptr);
+        echosource = AooSource::create(ourId + ECHO_ID_OFFSET, 0, nullptr);
+    }
 
     EndpointState * endpoint = 0;
     int32_t ourId = kAooIdInvalid;
@@ -408,6 +415,7 @@ struct SonobusAudioProcessor::RemotePeer {
     int remoteNetType = RemoteNetTypeUnknown;
     bool remoteIsRecording = false;
     bool hasRemoteInfo = false;
+    bool blockedUs = false;
 
     struct PeerInfo {
         int32_t flags = 0;
@@ -468,6 +476,8 @@ public:
     
     void run() override {
         
+        setPriority(Thread::Priority::highest);
+
         bool shouldwait = false;
 
         while (!threadShouldExit()) {
@@ -475,7 +485,7 @@ public:
             // if we are notified to send, the wait will return sooner than the timeout
 
             if (shouldwait) {
-                _processor.mSendWaitable.wait(50);
+                _processor.mSendWaitable.wait(20);
             }
 
             auto sentinel = _processor.mNeedSendSentinel.get();
@@ -499,6 +509,8 @@ public:
     {}
     
     void run() override {
+
+        setPriority(Thread::Priority::highest);
 
         while (!threadShouldExit()) {
 
@@ -639,98 +651,100 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
 
 //==============================================================================
 SonobusAudioProcessor::SonobusAudioProcessor()
-     : AudioProcessor ( getDefaultLayout() ),
-       mState (*this, &mUndoManager, "SonoBusAoO",
+: AudioProcessor ( getDefaultLayout() ),
+mReconnectTimer(*this),
+soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>()),
+mGlobalState("SonobusGlobalState"),
+mState (*this, &mUndoManager, "SonoBusAoO",
 {
-    std::make_unique<AudioParameterFloat>(paramInGain,     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
+           std::make_unique<AudioParameterFloat>(ParameterID(paramInGain, 1),     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorMonoPan,     TRANS ("In Pan"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonMonoPan.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInMonitorMonoPan, 1),     TRANS ("In Pan"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonMonoPan.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorPan1,     TRANS ("In Pan 1"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan1.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInMonitorPan1, 1),     TRANS ("In Pan 1"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan1.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramInMonitorPan2,     TRANS ("In Pan 2"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan2.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInMonitorPan2, 1),     TRANS ("In Pan 2"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonPan2.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
 
-    std::make_unique<AudioParameterFloat>(paramDry,     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), JUCEApplicationBase::isStandaloneApp() ? mDry.get() : 1.0f, "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramDry, 1),     TRANS ("Dry Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), JUCEApplicationBase::isStandaloneApp() ? mDry.get() : 1.0f, "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramWet,     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 2.0, 0.0, 0.5), mWet.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramWet, 1),     TRANS ("Output Level"),    NormalisableRange<float>(0.0, 2.0, 0.0, 0.5), mWet.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramDefaultNetbufMs,     TRANS ("Default Jitter Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramDefaultNetbufMs, 1),     TRANS ("Default Jitter Buffer Time"),    NormalisableRange<float>(0.0, mMaxBufferTime.get(), 0.001, 0.5), mBufferTime.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v*1000.0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue()*1e-3f; }),
-    std::make_unique<AudioParameterChoice>(paramSendChannels, TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), JUCEApplicationBase::isStandaloneApp() ? mSendChannels.get() : 0),
+    std::make_unique<AudioParameterChoice>(ParameterID(paramSendChannels, 1), TRANS ("Send Channels"), StringArray({ "Match # Inputs", "Send Mono", "Send Stereo"}), JUCEApplicationBase::isStandaloneApp() ? mSendChannels.get() : 0),
 
-    std::make_unique<AudioParameterBool>(paramMetEnabled, TRANS ("Metronome Enabled"), mMetEnabled.get()),
-    std::make_unique<AudioParameterBool>(paramSendMetAudio, TRANS ("Send Metronome Audio"), mSendMet.get()),
-    std::make_unique<AudioParameterFloat>(paramMetGain,     TRANS ("Metronome Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.5), mMetGain.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterBool>(ParameterID(paramMetEnabled, 1), TRANS ("Metronome Enabled"), mMetEnabled.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramSendMetAudio, 1), TRANS ("Send Metronome Audio"), mSendMet.get()),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMetGain, 1),     TRANS ("Metronome Gain"),    NormalisableRange<float>(0.0, 1.0, 0.0, 0.5), mMetGain.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
 
-    std::make_unique<AudioParameterFloat>(paramMetTempo,     TRANS ("Metronome Tempo"),    NormalisableRange<float>(10.0, 400.0, 1, 0.5), mMetTempo.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMetTempo, 1),     TRANS ("Metronome Tempo"),    NormalisableRange<float>(10.0, 400.0, 1, 0.5), mMetTempo.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v) + " bpm"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
 
-    std::make_unique<AudioParameterBool>(paramSendFileAudio, TRANS ("Send Playback Audio"), mSendPlaybackAudio.get()),
-    std::make_unique<AudioParameterBool>(paramSendSoundboardAudio, TRANS ("Send Soundboard Audio"), mSendSoundboardAudio.get()),
-    std::make_unique<AudioParameterBool>(paramHearLatencyTest, TRANS ("Hear Latency Test"), mHearLatencyTest.get()),
-    std::make_unique<AudioParameterBool>(paramMetIsRecorded, TRANS ("Record Metronome to File"), mMetIsRecorded.get()),
-    std::make_unique<AudioParameterBool>(paramMainReverbEnabled, TRANS ("Main Reverb Enabled"), mMainReverbEnabled.get()),
-    std::make_unique<AudioParameterFloat>(paramMainReverbLevel,     TRANS ("Main Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mMainReverbLevel.get(), "", AudioProcessorParameter::genericParameter, 
+    std::make_unique<AudioParameterBool>(ParameterID(paramSendFileAudio, 1), TRANS ("Send Playback Audio"), mSendPlaybackAudio.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramSendSoundboardAudio, 1), TRANS ("Send Soundboard Audio"), mSendSoundboardAudio.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramHearLatencyTest, 1), TRANS ("Hear Latency Test"), mHearLatencyTest.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMetIsRecorded, 1), TRANS ("Record Metronome to File"), mMetIsRecorded.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainReverbEnabled, 1), TRANS ("Main Reverb Enabled"), mMainReverbEnabled.get()),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbLevel, 1),     TRANS ("Main Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mMainReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-    std::make_unique<AudioParameterFloat>(paramMainReverbSize,     TRANS ("Main Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbSize.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbSize, 1),     TRANS ("Main Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbSize.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramMainReverbDamping,     TRANS ("Main Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbDamping, 1),     TRANS ("Main Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mMainReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramMainReverbPreDelay,     TRANS ("Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mMainReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMainReverbPreDelay, 1),     TRANS ("Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mMainReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; }, 
                                           [](const String& s) -> float { return s.getFloatValue(); }),
 
-    std::make_unique<AudioParameterChoice>(paramMainReverbModel, TRANS ("Main Reverb Model"), StringArray({ "Freeverb", "MVerb", "Zita"}), mMainReverbModel.get()),
+    std::make_unique<AudioParameterChoice>(ParameterID(paramMainReverbModel, 1), TRANS ("Main Reverb Model"), StringArray({ "Freeverb", "MVerb", "Zita"}), mMainReverbModel.get()),
 
-    std::make_unique<AudioParameterBool>(paramMainSendMute, TRANS ("Main Send Mute"), mMainSendMute.get()),
-    std::make_unique<AudioParameterBool>(paramMainRecvMute, TRANS ("Main Receive Mute"), mMainRecvMute.get()),
-    std::make_unique<AudioParameterBool>(paramMainInMute, TRANS ("Main In Mute"), mMainInMute.get()),
-    std::make_unique<AudioParameterBool>(paramMainMonitorSolo, TRANS ("Main Monitor Solo"), mMainMonitorSolo.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainSendMute, 1), TRANS ("Main Send Mute"), mMainSendMute.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainRecvMute,1 ), TRANS ("Main Receive Mute"), mMainRecvMute.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainInMute, 1), TRANS ("Main In Mute"), mMainInMute.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramMainMonitorSolo, 1), TRANS ("Main Monitor Solo"), mMainMonitorSolo.get()),
 
-    std::make_unique<AudioParameterChoice>(paramDefaultAutoNetbuf, TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full", "Initial-Auto"}), defaultAutoNetbufMode),
+    std::make_unique<AudioParameterChoice>(ParameterID(paramDefaultAutoNetbuf, 1), TRANS ("Def Auto Net Buffer Mode"), StringArray({ "Off", "Auto-Increase", "Auto-Full", "Initial-Auto"}), defaultAutoNetbufMode),
 
-    std::make_unique<AudioParameterInt>(paramDefaultSendQual, TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
-    std::make_unique<AudioParameterBool>(paramDynamicResampling, TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
-    std::make_unique<AudioParameterBool>(paramAutoReconnectLast, TRANS ("Reconnect Last"), mAutoReconnectLast.get()),
-    std::make_unique<AudioParameterFloat>(paramDefaultPeerLevel,     TRANS ("Default User Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), mDefUserLevel.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterInt>(ParameterID(paramDefaultSendQual, 1), TRANS ("Def Send Format"), 0, 14, mDefaultAudioFormatIndex),
+    std::make_unique<AudioParameterBool>(ParameterID(paramDynamicResampling, 1), TRANS ("Dynamic Resampling"), mDynamicResampling.get()),
+    std::make_unique<AudioParameterBool>(ParameterID(paramAutoReconnectLast, 1), TRANS ("Reconnect Last"), mAutoReconnectLast.get()),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramDefaultPeerLevel, 1),     TRANS ("Default User Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.5), mDefUserLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-    std::make_unique<AudioParameterBool>(paramSyncMetToHost, TRANS ("Sync to Host"), JUCEApplicationBase::isStandaloneApp() ? false : true),
-    std::make_unique<AudioParameterFloat>(paramInputReverbLevel,     TRANS ("Input Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mInputReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToHost, 1), TRANS ("Sync to Host"), JUCEApplicationBase::isStandaloneApp() ? false : true),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbLevel, 1),     TRANS ("Input Reverb Level"),    NormalisableRange<float>(0.0,    1.0, 0.0, 0.4), mInputReverbLevel.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); },
                                           [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-    std::make_unique<AudioParameterFloat>(paramInputReverbSize,     TRANS ("Input Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbSize.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbSize, 1),     TRANS ("Input Reverb Size"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbSize.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramInputReverbDamping,     TRANS ("Input Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbDamping, 1),     TRANS ("Input Reverb Damping"),    NormalisableRange<float>(0.0, 1.0, 0.0), mInputReverbDamping.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String((int)(v*100)) + " %"; },
                                           [](const String& s) -> float { return s.getFloatValue()*0.01f; }),
-    std::make_unique<AudioParameterFloat>(paramInputReverbPreDelay,     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
+    std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbPreDelay, 1),     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
-    std::make_unique<AudioParameterBool>(paramSyncMetToFilePlayback, TRANS ("Sync Met to File Playback"), false),
+    std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToFilePlayback, 1), TRANS ("Sync Met to File Playback"), false),
 
-}),
-   soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>())
+})
 {
     mState.addParameterListener (paramInGain, this);
     mState.addParameterListener (paramDry, this);
@@ -776,19 +790,36 @@ SonobusAudioProcessor::SonobusAudioProcessor()
         }
     }
 
+    // use this to match our main app support dir
+    PropertiesFile::Options options;
+    options.applicationName     = "SonoBus";
+    options.filenameSuffix      = ".xml";
+    options.osxLibrarySubFolder = "Application Support/SonoBus";
+   #if JUCE_LINUX
+    options.folderName          = "~/.config/sonobus";
+   #else
+    options.folderName          = "";
+   #endif
+
+    mSupportDir = options.getDefaultFile().getParentDirectory();
+
 #if (JUCE_IOS)
-    mDefaultRecordDir = File::getSpecialLocation (File::userDocumentsDirectory).getFullPathName();
-    mLastBrowseDir = mDefaultRecordDir;
+    mDefaultRecordDir = URL(File::getSpecialLocation (File::userDocumentsDirectory));
+    if (mDefaultRecordDir.isLocalFile()) {
+        mLastBrowseDir = mDefaultRecordDir.getLocalFile().getFullPathName();
+    }
+    DBG("Default record dir: " << mDefaultRecordDir.toString(false));
 #elif (JUCE_ANDROID)
-    auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
-    parentDir = parentDir.getChildFile("Recordings");
-    mDefaultRecordDir = parentDir.getFullPathName();
-    mLastBrowseDir = mDefaultRecordDir;
+    //auto parentDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+    //parentDir = parentDir.getChildFile("Recordings");
+    //mDefaultRecordDir = URL(parentDir);
+    //mLastBrowseDir = mDefaultRecordDir.getLocalFile().getFullPathName();
+    // LEAVE EMPTY by default
 #else
     auto parentDir = File::getSpecialLocation (File::userMusicDirectory);
     parentDir = parentDir.getChildFile("SonoBus");
-    mDefaultRecordDir = parentDir.getFullPathName();
-    mLastBrowseDir = mDefaultRecordDir;
+    mDefaultRecordDir = URL(parentDir);
+    mLastBrowseDir = mDefaultRecordDir.getLocalFile().getFullPathName();
 #endif
 
 
@@ -855,6 +886,12 @@ SonobusAudioProcessor::SonobusAudioProcessor()
     mFormatManager.registerBasicFormats();    
     
     initializeAoo();
+
+    if (isplugin) {
+        loadDefaultPluginSettings();
+    }
+    
+    loadGlobalState();
 }
 
 
@@ -1029,11 +1066,7 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
 
     
     mSendThread = std::make_unique<SendThread>(*this);
-    mSendThread->setPriority(9);
     mRecvThread = std::make_unique<RecvThread>(*this);
-    mRecvThread->setPriority(9);
-
-
     mEventThread = std::make_unique<EventThread>(*this);
 
     if (mAooClient) {
@@ -1050,10 +1083,28 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
 #endif
     }
     
-    mSendThread->startThread();
-    mRecvThread->startThread();
+    uint32_t estWorkDurationMs = 10; // just a guess
+    int rtprio = 1; // all that is necessary
 
-    mEventThread->startThread();
+#if JUCE_WINDOWS
+    // do not use startRealtimeThread() call because it triggers the whole process to be realtime, which we don't want
+    mSendThread->startThread(Thread::Priority::highest);
+    mRecvThread->startThread(Thread::Priority::highest);
+#else
+    if (!mSendThread->startRealtimeThread({ rtprio, estWorkDurationMs }))
+    {
+        DBG("Send thread failed to start realtime: trying regular");
+        mSendThread->startThread(Thread::Priority::highest);
+    }
+
+    if (!mRecvThread->startRealtimeThread({ rtprio, estWorkDurationMs }))
+    {
+        DBG("Recv thread failed to start realtime: trying regular");
+        mRecvThread->startThread(Thread::Priority::highest);
+    }
+#endif
+
+    mEventThread->startThread(Thread::Priority::normal);
 
     if (mAooClient) {
         mClientThread->startThread();
@@ -1179,8 +1230,11 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
 {
     if (!mAooClient) return false;
     
-    // disconnect from everything else!
-    removeAllRemotePeers();
+    // disconnect from everything else, unless we are recovering from server loss
+    if (!mRecoveringFromServerLoss) {
+        removeAllRemotePeers();
+    }
+    
     
     //mServerEndpoint->ipaddr = host;
     //mServerEndpoint->port = port;
@@ -2718,6 +2772,10 @@ void SonobusAudioProcessor::doReceiveData()
 #define SONOBUS_MSG_SUGGESTLAT_LEN 11
 #define SONOBUS_FULLMSG_SUGGESTLAT SONOBUS_MSG_DOMAIN SONOBUS_MSG_SUGGESTLAT
 
+#define SONOBUS_MSG_BLOCKEDINFO "/blockedinfo"
+#define SONOBUS_MSG_BLOCKEDINFO_LEN 13
+#define SONOBUS_FULLMSG_BLOCKEDINFO SONOBUS_MSG_DOMAIN SONOBUS_MSG_BLOCKEDINFO
+
 
 enum {
     SONOBUS_MSGTYPE_UNKNOWN = 0,
@@ -2728,7 +2786,8 @@ enum {
     SONOBUS_MSGTYPE_PINGACK,
     SONOBUS_MSGTYPE_REQLATINFO,
     SONOBUS_MSGTYPE_LATINFO,
-    SONOBUS_MSGTYPE_SUGGESTLAT
+    SONOBUS_MSGTYPE_SUGGESTLAT,
+    SONOBUS_MSGTYPE_BLOCKEDINFO
 };
 
 static int32_t sonobusOscParsePattern(const AooByte *msg, int32_t n, int32_t & rettype)
@@ -2793,6 +2852,13 @@ static int32_t sonobusOscParsePattern(const AooByte *msg, int32_t n, int32_t & r
         {
             rettype = SONOBUS_MSGTYPE_SUGGESTLAT;
             offset += SONOBUS_MSG_SUGGESTLAT_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_BLOCKEDINFO_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_BLOCKEDINFO, SONOBUS_MSG_BLOCKEDINFO_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_BLOCKEDINFO;
+            offset += SONOBUS_MSG_BLOCKEDINFO_LEN;
             return offset;
         }
         else {
@@ -2960,41 +3026,48 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const A
             String message (CharPointer_UTF8((it++)->AsString()));
 
             SBChatEvent chatevent(SBChatEvent::UserType, group, from, targets, tags, message);
-            mAllChatEvents.add(chatevent);
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
-
+            
+            if (!isAddressBlocked(endpoint->ipaddr)) {
+                
+                mAllChatEvents.add(chatevent);
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::sbChatEventReceived, this, chatevent);
+            }
 
         }
         else if (type == SONOBUS_MSGTYPE_REQLATINFO) {
             // received from the other side
             // args: none
 
-            auto latinfo = getAllLatInfo();
+            if (!isAddressBlocked(endpoint->ipaddr)) {
 
-            char buf[AOO_MAX_PACKET_SIZE];
-            osc::OutboundPacketStream outmsg(buf, sizeof(buf));
-
-            String jsonstr = JSON::toString(latinfo, true, 6);
-
-            if (jsonstr.getNumBytesAsUTF8() > AOO_MAX_PACKET_SIZE - 100) {
-                DBG("Info too big for packet!");
-                return false;
+                
+                auto latinfo = getAllLatInfo();
+                
+                char buf[AOO_MAXPACKETSIZE];
+                osc::OutboundPacketStream outmsg(buf, sizeof(buf));
+                
+                String jsonstr = JSON::toString(latinfo, true, 6);
+                
+                if (jsonstr.getNumBytesAsUTF8() > AOO_MAX_PACKET_SIZE - 100) {
+                    DBG("Info too big for packet!");
+                    return false;
+                }
+                
+                
+                try {
+                    outmsg << osc::BeginMessage(SONOBUS_FULLMSG_LATINFO)
+                    << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
+                    << osc::EndMessage;
+                }
+                catch (const osc::Exception& e){
+                    DBG("exception in reqlat message constructions: " << e.what());
+                    return false;
+                }
+                
+                endpoint_send(endpoint, (AooByte*)outmsg.Data(), (int) outmsg.Size());
+                
+                DBG("Received REQLAT from " << endpoint->ipaddr << ":" << endpoint->port);
             }
-
-
-            try {
-                outmsg << osc::BeginMessage(SONOBUS_FULLMSG_LATINFO)
-                << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
-                << osc::EndMessage;
-            }
-            catch (const osc::Exception& e){
-                DBG("exception in reqlat message constructions: " << e.what());
-                return false;
-            }
-
-            endpoint_send(endpoint, (AooByte*)outmsg.Data(), (int) outmsg.Size());
-
-            DBG("Received REQLAT from " << endpoint->ipaddr << ":" << endpoint->port);
 
         }
         else if (type == SONOBUS_MSGTYPE_LATINFO) {
@@ -3027,7 +3100,47 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const A
             auto username = (it++)->AsString();
             auto latency = (it++)->AsFloat();
 
-            clientListeners.call(&SonobusAudioProcessor::ClientListener::peerRequestedLatencyMatch, this, username, latency);
+            if (!isAddressBlocked(endpoint->ipaddr)) {
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::peerRequestedLatencyMatch, this, username, latency);
+            }
+        }
+        else if (type == SONOBUS_MSGTYPE_BLOCKEDINFO) {
+            // received from the other side when they have blocked/unblocked us
+            // args: s:username  b:blocked
+
+            auto it = message.ArgumentsBegin();
+            auto username = (it++)->AsString();
+            auto blocked = (it++)->AsBool();
+
+            {
+                const ScopedReadLock sl (mCoreLock);
+
+                // find remote peer
+                RemotePeer * peer = findRemotePeer(endpoint, -1);
+                if (!peer) {
+                    DBG("Could not find peer recv blockinfo for endpoint: " << endpoint->ipaddr);
+                }
+                else {
+                    peer->blockedUs = blocked;
+                    DBG("Remote peer " << username << " set blocked = " << (int) blocked);
+                    
+                    int ind = 0;
+                    int retind = -1;
+                    for (auto s : mRemotePeers) {
+                        if (s->endpoint == endpoint) {
+                            retind = ind;
+                            break;
+                        }
+                        ++ind;
+                    }
+                    
+                    if (retind >= 0) {
+                        setRemotePeerSendActive(retind, false);
+                    }
+                }
+            }
+            
+            clientListeners.call(&SonobusAudioProcessor::ClientListener::peerBlockedInfoChanged, this, username, blocked);
         }
         return true;
     } catch (const osc::Exception& e){
@@ -3129,6 +3242,28 @@ juce::var SonobusAudioProcessor::getAllLatInfo()
 
     return infolist;
 }
+
+void SonobusAudioProcessor::sendBlockedInfoMessage(EndpointState *endpoint, bool blocked)
+{
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream outmsg(buf, sizeof(buf));
+
+    try {
+
+        outmsg << osc::BeginMessage(SONOBUS_FULLMSG_BLOCKEDINFO)
+        << mCurrentUsername.toRawUTF8()
+        << blocked
+        << osc::EndMessage;
+
+    }
+    catch (const osc::Exception& e){
+        DBG("exception in blockedinfo message constructions: " << e.what());
+        return;
+    }
+    
+    endpoint_send(endpoint, outmsg.Data(), (int) outmsg.Size());
+}
+
 
 void SonobusAudioProcessor::sendReqLatInfoToAll()
 {
@@ -3785,9 +3920,6 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const AooEvent *event, int32_t
                     }
 
                     peer->connected = true;
-
-
-
                 }
 
                 // do invite here?
@@ -4654,6 +4786,7 @@ int SonobusAudioProcessor::connectRemotePeerRaw(const void * sockaddr, int addrl
             remote->sendActive = false;
             remote->oursource->stopStream();
         }
+        sendBlockedInfoMessage(remote->endpoint, false);
         
     } else {
         DBG("Error inviting remote peer at " << endpoint->ipaddr << ":" << endpoint->port << " - ourId " << remote->ourId);
@@ -4689,7 +4822,8 @@ int SonobusAudioProcessor::connectRemotePeer(const String & host, int port, AooI
         }
 
         sendRemotePeerInfoUpdate(-1, remote);
-
+        sendBlockedInfoMessage(remote->endpoint, false);
+        
     } else {
         DBG("Error inviting remote peer at " << host << ":" << port << " - ourId " << remote->ourId);
     }
@@ -4892,7 +5026,7 @@ bool SonobusAudioProcessor::removeAllRemotePeers()
 }
 
 
-bool SonobusAudioProcessor::removeRemotePeer(int index)
+bool SonobusAudioProcessor::removeRemotePeer(int index, bool sendblock)
 {
     RemotePeer * remote = 0;
     bool ret = false;
@@ -4908,6 +5042,10 @@ bool SonobusAudioProcessor::removeRemotePeer(int index)
                 disconnectRemotePeer(index);
             }
                         
+            if (sendblock) {
+                sendBlockedInfoMessage(remote->endpoint, true);
+            }
+            
             adjustRemoteSendMatrix(index, true);
             
             std::unique_ptr<RemotePeer> removed(remote);
@@ -5124,6 +5262,18 @@ String SonobusAudioProcessor::getRemotePeerUserName(int index) const
     }
     return "";
 }
+
+bool SonobusAudioProcessor::isRemotePeerUserInGroup(const String & name) const
+{
+    const ScopedReadLock sl (mCoreLock);
+    for (int index = 0; index < mRemotePeers.size(); ++index) {
+        auto * remote = mRemotePeers.getUnchecked(index);
+        if (remote->userName == name)
+            return true;
+    }
+    return false;
+}
+
 
 void SonobusAudioProcessor::setRemotePeerChannelPan(int index, int changroup, int chan, float pan)
 {
@@ -5800,9 +5950,18 @@ bool SonobusAudioProcessor::getRemotePeerSafetyMuted(int index) const
         RemotePeer * remote = mRemotePeers.getUnchecked(index);
         return remote->resetSafetyMuted;
     }
-    return 0;
+    return false;
 }
 
+bool SonobusAudioProcessor::getRemotePeerBlockedUs(int index) const
+{
+    const ScopedReadLock sl (mCoreLock);
+    if (index < mRemotePeers.size()) {
+        RemotePeer * remote = mRemotePeers.getUnchecked(index);
+        return remote->blockedUs;
+    }
+    return false;
+}
 
 void  SonobusAudioProcessor::resetRemotePeerPacketStats(int index)
 {
@@ -6291,6 +6450,8 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
             auto * pp = static_cast<ProcessorIdPair *>(user);
             pp->processor->handleAooSourceEvent(event, level, pp->id);
         }, &retpeer->echosourcepp, kAooEventModePoll);
+
+        retpeer->blockedUs = false;
 
         retpeer->oursink->setup(getSampleRate(), currSamplesPerBlock, getMainBusNumOutputChannels());
         retpeer->oursink->setBufferSize(retpeer->buffertimeMs * 1e-3);
@@ -7718,26 +7879,27 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     if (numSamples > mTempBufferSamples || maxchans > mTempBufferChannels || inputPostBuffer.getNumChannels() != totsendchans || inputPostBuffer.getNumSamples() < numSamples  || sendMeterSource.getNumChannels() < realsendchans) {
         ensureBuffers(numSamples);
     }
-    
-    
-    
-    AudioPlayHead::CurrentPositionInfo posInfo;
-    posInfo.resetToDefault();
-    posInfo.bpm = mMetTempo.get();
 
+    double useBpm = mMetTempo.get();
     bool syncmethost = mSyncMetToHost.get();
     bool syncmetplayback = mSyncMetStartToPlayback.get();
 
     AudioPlayHead * playhead = getPlayHead();
-    bool posValid = playhead && playhead->getCurrentPosition(posInfo);
-    bool hostPlaying = posValid && posInfo.isPlaying;
-    if (posInfo.bpm <= 0.0) {
-        posInfo.bpm = mMetTempo.get();
+    Optional<AudioPlayHead::PositionInfo> rposInfo;
+
+    if (playhead) {
+        rposInfo = playhead->getPosition();
+    }
+
+    bool hostPlaying = rposInfo && rposInfo->getIsPlaying();
+    auto hostBpm = rposInfo->getBpm();
+    if (hostBpm && *hostBpm > 0.0) {
+        useBpm = *hostBpm;
     }
 
     if (syncmethost) {
-        if (posValid && fabs(posInfo.bpm - mMetTempo.get()) > 0.001) {
-            mMetTempo = posInfo.bpm;
+        if (rposInfo && fabs(useBpm - mMetTempo.get()) > 0.001) {
+            mMetTempo = useBpm;
             mTempoParameter->setValueNotifyingHost(mTempoParameter->convertTo0to1(mMetTempo.get()));
         }
     }
@@ -8029,8 +8191,8 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         mMetronome->setGain(metgain);
         mMetronome->setTempo(mettempo);
         double beattime = 0.0;
-        if (syncmethost && hostPlaying) {
-            beattime = posInfo.ppqPosition;
+        if (syncmethost && hostPlaying && rposInfo->getPpqPosition()) {
+            beattime = *rposInfo->getPpqPosition();
         }
         else if (syncmetplayback && mTransportSource.isPlaying()) {
             beattime = (mettempo / 60.0) * transportPos;
@@ -8074,7 +8236,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             mInputReverb.reset();
         }
 
-        mInputReverb.process(inputRevBuffer.getArrayOfWritePointers(), inputRevBuffer.getArrayOfWritePointers(), numSamples);
+        mInputReverb.process((float **)inputRevBuffer.getArrayOfWritePointers(), (float **)inputRevBuffer.getArrayOfWritePointers(), numSamples);
 
         if (inReverbEnabled != mLastInputReverbEnabled ) {
             float sgain = inReverbEnabled ? 0.0f : 1.0f;
@@ -8163,7 +8325,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
                 remote->workBuffer.clear(0, numSamples);
 
-                remote->oursink->process(remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
+                remote->oursink->process((float **)remote->workBuffer.getArrayOfWritePointers(), numSamples, t);
             }
 
             
@@ -8349,7 +8511,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                 
                 if (remote->activeLatencyTest && remote->latencyMeasurer) {
                     workBuffer.clear(0, 0, numSamples);
-                    if (remote->latencysink->process(workBuffer.getArrayOfWritePointers(), numSamples, t)) {
+                    if (remote->latencysink->process((float **)workBuffer.getArrayOfWritePointers(), numSamples, t)) {
                         //DBG("received something from our latency sink");
                     }
 
@@ -8484,12 +8646,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         
         if (mMainReverbModel.get() == ReverbModelMVerb) {
             if (mainBusOutputChannels > 1) {            
-                mMReverb.process(mainFxBuffer.getArrayOfWritePointers(), mainFxBuffer.getArrayOfWritePointers(), numSamples);
+                mMReverb.process((float **)mainFxBuffer.getArrayOfWritePointers(), (float **)mainFxBuffer.getArrayOfWritePointers(), numSamples);
             } 
         }
         else if (mMainReverbModel.get() == ReverbModelZita) {
             if (mainBusOutputChannels > 1) {            
-                mZitaReverb.compute(numSamples, mainFxBuffer.getArrayOfWritePointers(), mainFxBuffer.getArrayOfWritePointers()); 
+                mZitaReverb.compute(numSamples, (float **)mainFxBuffer.getArrayOfWritePointers(), (float **)mainFxBuffer.getArrayOfWritePointers());
             }
         }
         else {
@@ -8591,7 +8753,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             {
                 // write the raw (pre or post FX) input
                 if (activeSelfWriters[0].load() != nullptr) {
-                    const float ** inbufs = mRecordInputPreFX ? inputPreBuffer.getArrayOfReadPointers() : inputPostBuffer.getArrayOfReadPointers();
+                    const float * const* inbufs = mRecordInputPreFX ? inputPreBuffer.getArrayOfReadPointers() : inputPostBuffer.getArrayOfReadPointers();
                     int chindex = 0;
                     for (int i=0; i < mInputChannelGroupCount; ++i) {
                         int chcnt = mInputChannelGroups[i].params.numChannels;
@@ -8764,7 +8926,34 @@ void AooServerConnectionInfo::setFromValueTree(const ValueTree & item)
 }
 
 
-void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData, bool includecache, bool xmlformat)
+static String videoLinkInfoKey("VideoLinkInfo");
+static String videoLinkRoomModeKey("roomMode");
+static String videoLinkShowNamesKey("showNames");
+static String videoLinkExtraParamsKey("extraParams");
+static String videoLinkBeDirectorKey("beDir");
+
+ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
+{
+    ValueTree item(videoLinkInfoKey);
+    
+    item.setProperty(videoLinkRoomModeKey, roomMode, nullptr);
+    item.setProperty(videoLinkShowNamesKey, showNames, nullptr);
+    item.setProperty(videoLinkExtraParamsKey, extraParams, nullptr);
+    item.setProperty(videoLinkBeDirectorKey, beDirector, nullptr);
+
+    return item;
+}
+
+void SonobusAudioProcessor::VideoLinkInfo::setFromValueTree(const ValueTree & item)
+{
+    roomMode = item.getProperty(videoLinkRoomModeKey, roomMode);
+    showNames = item.getProperty(videoLinkShowNamesKey, showNames);
+    extraParams = item.getProperty(videoLinkExtraParamsKey, extraParams);
+    beDirector = item.getProperty(videoLinkBeDirectorKey, beDirector);
+}
+
+
+void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData, bool includecache, bool includeInputGroups, bool xmlformat)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
@@ -8796,7 +8985,13 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
-    extraTree.setProperty(defRecordDirKey, mDefaultRecordDir, nullptr);
+
+    if (mDefaultRecordDir.isLocalFile()) {
+        // backwards compat
+        extraTree.setProperty(defRecordDirKey, mDefaultRecordDir.getLocalFile().getFullPathName(), nullptr);
+    }
+    extraTree.setProperty(defRecordDirURLKey, mDefaultRecordDir.toString(false), nullptr);
+
     extraTree.setProperty(lastBrowseDirKey, mLastBrowseDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
     extraTree.setProperty(disableShortcutsKey, mDisableKeyboardShortcuts, nullptr);
@@ -8813,15 +9008,40 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastWindowWidthKey, var((int)mPluginWindowWidth), nullptr);
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
     extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
+    extraTree.setProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get(), nullptr);
 
+    extraTree.appendChild(mVideoLinkInfo.getValueTree(), nullptr);
+    
     ValueTree inputChannelGroupsTree = tempstate.getOrCreateChildWithName(inputChannelGroupsStateKey, nullptr);
-    inputChannelGroupsTree.removeAllChildren(nullptr);
-    inputChannelGroupsTree.setProperty(numChanGroupsKey, mInputChannelGroupCount, nullptr);
-
-    for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
-        inputChannelGroupsTree.appendChild(mInputChannelGroups[i].params.getValueTree(), nullptr);
+    if (includeInputGroups) {
+        inputChannelGroupsTree.removeAllChildren(nullptr);
+        inputChannelGroupsTree.setProperty(numChanGroupsKey, mInputChannelGroupCount, nullptr);
+        
+        for (auto i = 0; i < mInputChannelGroupCount && i < MAX_CHANGROUPS; ++i) {
+            inputChannelGroupsTree.appendChild(mInputChannelGroups[i].params.getValueTree(), nullptr);
+        }
+    }
+    else {
+        tempstate.removeChild(inputChannelGroupsTree, nullptr);
     }
 
+    
+    ValueTree extraChannelGroupsTree = tempstate.getOrCreateChildWithName(extraChannelGroupsStateKey, nullptr);
+    extraChannelGroupsTree.removeAllChildren(nullptr);
+    
+    auto fpcg = mFilePlaybackChannelGroup.params.getValueTree();
+    fpcg.setProperty("chgID", "filepb", nullptr);
+    extraChannelGroupsTree.appendChild(fpcg, nullptr);
+
+    auto metcg = mMetChannelGroup.params.getValueTree();
+    metcg.setProperty("chgID", "met", nullptr);
+    extraChannelGroupsTree.appendChild(metcg, nullptr);
+
+    auto sbcg = soundboardChannelProcessor->getChannelGroupParams().getValueTree();
+    sbcg.setProperty("chgID", "soundboard", nullptr);
+    extraChannelGroupsTree.appendChild(sbcg, nullptr);
+
+    
     ValueTree peerCacheTree = tempstate.getOrCreateChildWithName(peerStateCacheMapKey, nullptr);
     if (includecache) {
         // update state with our recents info
@@ -8851,7 +9071,7 @@ void SonobusAudioProcessor::getStateInformation (MemoryBlock& destData)
 
 }
 
-void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache, bool xmlformat)
+void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, int sizeInBytes, bool includecache, bool includeInputGroups, bool xmlformat)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -8910,8 +9130,30 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setRecordFinishOpens(extraTree.getProperty(recordFinishOpenKey, mRecordFinishOpens));
 
 
+#if !(JUCE_IOS)
+            String urlstr = extraTree.getProperty(defRecordDirURLKey, "");
+            if (urlstr.isNotEmpty()) {
+                // doublecheck it's a valid URL due to bad update
+                auto url = URL(urlstr);
+                if (url.getScheme().isEmpty()) {
+                    // asssume its a file
+                    DBG("Bad saved record URL: " << urlstr);
+                    url = URL(File(urlstr));
+                }
+                setDefaultRecordingDirectory(url);
+            } else {
+#if ! JUCE_ANDROID
+                // backward compat (but not on android)
+                String filestr = extraTree.getProperty(defRecordDirKey, "");
+                if (filestr.isNotEmpty()) {
+                    File recdir = File(filestr);
+                    setDefaultRecordingDirectory(URL(recdir));
+                }
+#endif
+            }
+#endif
+
 #if !(JUCE_IOS || JUCE_ANDROID)
-            setDefaultRecordingDirectory(extraTree.getProperty(defRecordDirKey, mDefaultRecordDir));
             setLastBrowseDirectory(extraTree.getProperty(lastBrowseDirKey, mLastBrowseDir));
 #endif
             setSlidersSnapToMousePosition(extraTree.getProperty(sliderSnapKey, mSliderSnapToMouse));
@@ -8930,26 +9172,64 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
                                                      extraTree.getProperty(lastWindowHeightKey, (int)mPluginWindowHeight)));
 
             setAutoresizeBufferDropRateThreshold(extraTree.getProperty(autoresizeDropRateThreshKey, (float)mAutoresizeDropRateThresh));
-        }
 
+            setReconnectAfterServerLoss(extraTree.getProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get()));
 
-        ValueTree inputChannelGroupsTree = mState.state.getChildWithName(inputChannelGroupsStateKey);
-        if (inputChannelGroupsTree.isValid()) {
-
-            mInputChannelGroupCount = inputChannelGroupsTree.getProperty(numChanGroupsKey, (int)mInputChannelGroupCount);
-
-            int i = 0;
-            for (auto channelGroupTree : inputChannelGroupsTree) {
-                if (!channelGroupTree.isValid()) continue;
-                if (i >= MAX_CHANGROUPS) break;
-
-                mInputChannelGroups[i].params.setFromValueTree(channelGroupTree);
-
-                ++i;
+            
+            ValueTree videoinfo = extraTree.getChildWithName(videoLinkInfoKey);
+            if (videoinfo.isValid()) {
+                mVideoLinkInfo.setFromValueTree(videoinfo);
             }
-
         }
 
+        if (includeInputGroups) {
+            ValueTree inputChannelGroupsTree = mState.state.getChildWithName(inputChannelGroupsStateKey);
+            if (inputChannelGroupsTree.isValid()) {
+                
+                mInputChannelGroupCount = inputChannelGroupsTree.getProperty(numChanGroupsKey, (int)mInputChannelGroupCount);
+                
+                int i = 0;
+                for (auto channelGroupTree : inputChannelGroupsTree) {
+                    if (!channelGroupTree.isValid()) continue;
+                    if (i >= MAX_CHANGROUPS) break;
+                    
+                    mInputChannelGroups[i].params.setFromValueTree(channelGroupTree);
+                    
+                    ++i;
+                }
+                
+            }
+        }
+
+        ValueTree extraChannelGroupsTree = mState.state.getChildWithName(extraChannelGroupsStateKey);
+        if (extraChannelGroupsTree.isValid()) {
+            
+            for (auto channelGroupTree : extraChannelGroupsTree) {
+                if (!channelGroupTree.isValid()) continue;
+                
+                auto cid = channelGroupTree.getProperty("chgID");
+
+                ChannelGroupParams params;
+                params.setFromValueTree(channelGroupTree);
+
+                if (cid == "filepb") {
+                    mFilePlaybackChannelGroup.params = params;
+                    mFilePlaybackChannelGroup.commitAllParams();
+                    mRecFilePlaybackChannelGroup.params = params;
+                    mRecFilePlaybackChannelGroup.commitAllParams();
+                }
+                else if (cid == "met") {
+                    mMetChannelGroup.params = params;
+                    mMetChannelGroup.commitAllParams();
+                    mRecMetChannelGroup.params = params;
+                    mRecMetChannelGroup.commitAllParams();
+                } else if (cid == "soundboard") {
+                    soundboardChannelProcessor->setChannelGroupParams(params);
+                }
+            }
+        }
+
+        
         if (includecache) {
             loadPeerCacheFromState();
         }
@@ -8963,15 +9243,85 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
         // don't recover main solo
         mState.getParameter(paramMainMonitorSolo)->setValueNotifyingHost(0.0f);
         
+        if (mFreshInit) {
+            // only do initial auto reconnect on the first state restore
+            
+            if (getAutoReconnectToLast() && !isConnectedToServer()) {
+                reconnectToMostRecent();
+            }
+
+            mFreshInit = false;
+        }
     }
 }
 
 void SonobusAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    setStateInformationWithOptions(data, sizeInBytes, true);
+    setStateInformationWithOptions(data, sizeInBytes, true, true);
 }
 
 
+bool SonobusAudioProcessor::saveCurrentAsDefaultPluginSettings()
+{
+    MemoryBlock data;
+    // as xml, with no cache, and no channel group stuff
+    getStateInformationWithOptions(data, false, false, true);
+    File defFile = getSupportDir().getChildFile("PluginDefault.xml");
+    
+    return defFile.replaceWithData (data.getData(), data.getSize());
+}
+
+bool SonobusAudioProcessor::loadDefaultPluginSettings()
+{
+    File defFile = getSupportDir().getChildFile("PluginDefault.xml");
+    MemoryBlock data;
+    if (defFile.loadFileAsData (data)) {
+        // no cache, no channel group, xml
+        setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, false, true);
+        return true;
+    }
+    return false;
+}
+
+void SonobusAudioProcessor::resetDefaultPluginSettings()
+{
+    // remove the default file
+    File defFile = getSupportDir().getChildFile("PluginDefault.xml");
+    defFile.deleteFile();
+}
+
+
+void SonobusAudioProcessor::ServerReconnectTimer::timerCallback()
+{
+    if (!processor.isConnectedToServer() && !processor.mPendingReconnect) {
+        processor.reconnectToMostRecent();
+    }
+    else if (processor.isConnectedToServer()){
+        processor.mRecoveringFromServerLoss = false;
+
+        stopTimer();
+    }
+}
+
+bool SonobusAudioProcessor::reconnectToMostRecent()
+{
+    Array<AooServerConnectionInfo> recents;
+    getRecentServerConnectionInfos(recents);
+    
+    if (recents.size() > 0) {
+        const auto & info = recents.getReference(0);
+
+        if (info.serverHost.isNotEmpty() && info.userName.isNotEmpty()) {
+            DBG("Reconnecting to server and group: " << info.groupName);
+            mPendingReconnectInfo = info;
+            mPendingReconnect = true;
+            connectToServer(info.serverHost, info.serverPort, info.userName, info.userPassword);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 SonobusAudioProcessor::PeerStateCache::PeerStateCache()
 {
@@ -9096,7 +9446,109 @@ void SonobusAudioProcessor::storePeerCacheToState()
 
 }
 
-bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptions, RecordFileFormat fileformat)
+void SonobusAudioProcessor::loadGlobalState()
+{
+    File file = mSupportDir.getChildFile("GlobalState.xml");
+    
+    if (!file.existsAsFile()) {
+        return;
+    }
+
+    XmlDocument doc(file);
+    auto tree = ValueTree::fromXml(*doc.getDocumentElement());
+
+    if (tree.isValid()) {
+        mGlobalState = tree;
+    }
+}
+
+bool SonobusAudioProcessor::storeGlobalState()
+{
+    File file = mSupportDir.getChildFile("GlobalState.xml");
+
+    // Make sure  the parent directory exists
+    file.getParentDirectory().createDirectory();
+
+    return mGlobalState.createXml()->writeTo(file);
+}
+
+bool SonobusAudioProcessor::isAddressBlocked(const String & ipaddr) const
+{
+    auto blocklist = mGlobalState.getChildWithName(blockedAddressesKey);
+    if (!blocklist.isValid()) return false;
+    
+    for (const auto & child : blocklist) {
+        auto prop = child.getProperty(addressValueKey);
+        if (prop.isString() && ipaddr == prop.toString()) {
+            // is blocked
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+void SonobusAudioProcessor::addBlockedAddress(const String & ipaddr)
+{
+    auto blocklist = mGlobalState.getOrCreateChildWithName(blockedAddressesKey, nullptr);
+    
+    auto newchild = ValueTree(addressKey);
+    newchild.setProperty(addressValueKey, ipaddr, nullptr);
+    
+    for (const auto & child : blocklist) {
+        auto prop = child.getProperty(addressValueKey);
+        if (prop.isString() && ipaddr == prop.toString()) {
+            // already exists
+            return;
+        }
+    }
+    
+    blocklist.appendChild(newchild, nullptr);
+    
+    storeGlobalState();
+}
+
+void SonobusAudioProcessor::removeBlockedAddress(const String & ipaddr)
+{
+    auto blocklist = mGlobalState.getOrCreateChildWithName(blockedAddressesKey, nullptr);
+
+    if (blocklist.isValid()) {
+        bool gotit = false;
+        for (const auto & child : blocklist) {
+            auto prop = child.getProperty(addressValueKey);
+            if (prop.isString() && ipaddr == prop.toString()) {
+                blocklist.removeChild(child, nullptr);
+                gotit = true;
+                break;
+            }
+        }
+        
+        if (gotit)
+            storeGlobalState();
+    }
+}
+
+StringArray SonobusAudioProcessor::getAllBlockedAddresses() const
+{
+    StringArray retlist;
+
+    auto blocklist = mGlobalState.getChildWithName(blockedAddressesKey);
+    if (blocklist.isValid()) {
+        for (const auto & child : blocklist) {
+            auto prop = child.getProperty(addressValueKey);
+            if (prop.isString()) {
+                auto val = prop.toString();
+                if (val.isNotEmpty()) {
+                    retlist.add(val);
+                }
+            }
+        }
+     }
+    return retlist;
+}
+
+
+bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, const String & filename, URL & mainreturl, uint32 recordOptions, RecordFileFormat fileformat)
 {
     if (!recordingThread) {
         recordingThread = std::make_unique<TimeSliceThread>("Recording Thread");
@@ -9121,7 +9573,9 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         return false;
     }
     
-    File usefile = file;
+    // just put a bogus directory in it, we'll be using only the filename part
+    File usefile = File::getCurrentWorkingDirectory().getChildFile(filename);
+    String mimetype;
     
     if (fileformat == FileFormatDefault) {
         fileformat = mDefaultRecordingFormat;
@@ -9141,18 +9595,21 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         fileformat = FileFormatWAV;
     }
 
-    if (fileformat == FileFormatFLAC || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".flac")) {
+    if (fileformat == FileFormatFLAC || (fileformat == FileFormatAuto && usefile.getFileExtension().toLowerCase() == ".flac")) {
         audioFormat = std::make_unique<FlacAudioFormat>();
-        usefile = file.withFileExtension(".flac");
+        usefile = usefile.withFileExtension(".flac");
+        mimetype = "audio/flac" ;
     }
-    else if (fileformat == FileFormatWAV || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".wav")) {
+    else if (fileformat == FileFormatWAV || (fileformat == FileFormatAuto && usefile.getFileExtension().toLowerCase() == ".wav")) {
         audioFormat = std::make_unique<WavAudioFormat>();
-        usefile = file.withFileExtension(".wav");
+        usefile = usefile.withFileExtension(".wav");
+        mimetype = "audio/wav" ;
     }
-    else if (fileformat == FileFormatOGG || (fileformat == FileFormatAuto && file.getFileExtension().toLowerCase() == ".ogg")) {
+    else if (fileformat == FileFormatOGG || (fileformat == FileFormatAuto && usefile.getFileExtension().toLowerCase() == ".ogg")) {
         audioFormat = std::make_unique<OggVorbisAudioFormat>();
         qualindex = 8; // 256k
-        usefile = file.withFileExtension(".ogg");
+        usefile = usefile.withFileExtension(".ogg");
+        mimetype = "audio/ogg" ;
     }
     else {
         mLastError = TRANS("Could not find format for filename");
@@ -9162,14 +9619,141 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
 
     bool userwriting = false;
 
+    
+#if JUCE_ANDROID
+
+    auto makeStream = [this,mimetype](const URL & parent, String & name, URL & returl) {
+        auto parentTree = AndroidDocument::fromDocument(parent);
+        if (!parentTree.hasValue() && parent.isLocalFile()) {
+            parentTree = AndroidDocument::fromFile(parent.getLocalFile());
+        }
+        if (parentTree.hasValue()) {
+            auto fileurl = parent.getChildURL(name);
+            //auto doc = AndroidDocument::fromDocument(fileurl);
+            auto bname = File::getCurrentWorkingDirectory().getChildFile(name).getFileNameWithoutExtension();
+            auto doc = parentTree.createChildDocumentWithTypeAndName(mimetype, bname);
+            if (!doc.hasValue()) {
+                // fall back to file ops
+                DBG("creating fallback file stream");
+
+                if (fileurl.isLocalFile()) {
+                    auto file = fileurl.getLocalFile().getNonexistentSibling();
+                    name = file.getFileName();
+                    returl = URL(file);
+                    return std::unique_ptr<OutputStream> (file.createOutputStream());
+                }
+            }
+            else {
+                // TODO, prevent creating existing filename
+                DBG("creating doc stream: " << doc.getUrl().toString(false));
+                returl = doc.getUrl();
+                return doc.createOutputStream();
+            }
+        }
+        return std::unique_ptr<OutputStream>();
+    };
+
+    auto deleteExisting = [this,mimetype](const URL & parent, String name) {
+        auto childurl = parent.getChildURL(name);
+        auto doc = AndroidDocument::fromDocument(childurl);
+        
+        if (doc.hasValue()) {
+            DBG("deleting doc: " << doc.getUrl().toString(false));
+            return doc.deleteDocument();
+        }
+        else if (childurl.isLocalFile()) {
+            return childurl.getLocalFile().deleteFile();
+        }
+
+        return false;
+    };
+
+    auto makeReturnUrl = [this,mimetype](const URL & parent, String name) {
+        auto childurl = parent.getChildURL(name);
+        return childurl;
+    };
+    
+    
+    auto makeChildDirUrl = [this](const URL & parent, String name) {
+        auto parentTree = AndroidDocument::fromDocument(parent);
+        if (!parentTree.hasValue() && parent.isLocalFile()) {
+            parentTree = AndroidDocument::fromFile(parent.getLocalFile());
+        }
+        if (parentTree.hasValue()) {
+            auto childDir = parentTree.createChildDirectory(name);
+            // TODO, create unique name
+            if (childDir.hasValue()) {
+                DBG("Created child dir: " << childDir.getUrl().toString(false));
+                return childDir.getUrl();
+            }
+        }
+        else {
+            auto recdirurl = parent.getChildURL(name);
+            if (recdirurl.isLocalFile()) {
+                File recdir = recdirurl.getLocalFile().getNonexistentSibling();
+                if (recdir.createDirectory()) {
+                    DBG("Created child dir as file: " << name);
+                    return URL(recdir);
+                }
+            }
+        }
+            
+        return URL();
+    };
+
+    
+#else
+    
+    auto makeStream = [this](const URL & parent, String & name, URL & returl) {
+        URL fileurl = parent.getChildURL(name);
+        if (fileurl.isLocalFile()) {
+            auto file = fileurl.getLocalFile().getNonexistentSibling();
+            name = file.getFileName();
+            returl = URL(file);
+            return std::unique_ptr<OutputStream> (file.createOutputStream());
+        }
+        return std::unique_ptr<OutputStream>();
+    };
+
+    auto deleteExisting = [this](const URL & parent, String name) {
+        URL fileurl = parent.getChildURL(name);
+        if (fileurl.isLocalFile()) {
+            return fileurl.getLocalFile().deleteFile();
+        }
+        return false;
+    };
+
+    auto makeReturnUrl = [this](const URL & parent, String name) {
+        return parent.getChildURL(name);
+    };
+    
+    
+    auto makeChildDirUrl = [this](const URL & parent, String name) {
+        auto recdirurl = parent.getChildURL(name);
+        if (recdirurl.isLocalFile()) {
+            File recdir = recdirurl.getLocalFile().getNonexistentSibling();
+            if (recdir.createDirectory()) {
+                return URL(recdir);
+            }
+        }
+            
+        return URL();
+    };
+
+#endif
+    
+    
+    
     if (recordOptions == RecordMix) {
 
         // Create an OutputStream to write to our destination file...
-        usefile.deleteFile();
+        deleteExisting(recordLocationUrl, usefile.getFileName());
         
-        if (auto fileStream = std::unique_ptr<FileOutputStream> (usefile.createOutputStream()))
+        String filename = usefile.getFileName();
+        URL returl;
+        
+        if (auto fileStream = makeStream(recordLocationUrl, filename, returl))
         {
-            
             if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
             {
                 fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
@@ -9178,28 +9762,32 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 // write the data to disk on our background thread.
                 threadedMixWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
                 
-                DBG("Started recording only mix file " << usefile.getFullPathName());
+                DBG("Started recording only mix file " << returl.toString(false));
 
-                file = usefile;
+                mainreturl = returl;
                 ret = true;
             } else {
                 mLastError.clear();
-                mLastError << TRANS("Error creating writer for ") << usefile.getFullPathName();
+                mLastError << TRANS("Error creating writer for ") << returl.toString(false);
                 DBG(mLastError);
             }
         } else {
+            auto returl = makeReturnUrl(recordLocationUrl, filename);
             mLastError.clear();
-            mLastError << TRANS("Error creating output file: ") << usefile.getFullPathName();
+            mLastError << TRANS("Error creating output file: ") << returl.toString(false);
             DBG(mLastError);
         }
         
     }
     else {
         // make directory from the filename
-        File recdir = usefile.getParentDirectory().getChildFile(usefile.getFileNameWithoutExtension()).getNonexistentSibling();
-        if (!recdir.createDirectory()) {
+        auto recdir = makeChildDirUrl(recordLocationUrl, usefile.getFileNameWithoutExtension());
+        
+        //File recdir = usefile.getParentDirectory().getChildFile(usefile.getFileNameWithoutExtension()).getNonexistentSibling();
+        //if (!recdir.createDirectory()) {
+        if (recdir.isEmpty()) {
             mLastError.clear();
-            mLastError << TRANS("Error creating directory for recording: ") << recdir.getFullPathName();
+            mLastError << TRANS("Error creating directory for recording: ") << makeReturnUrl(recordLocationUrl, usefile.getFileNameWithoutExtension()).toString(false);
             DBG(mLastError);
             return false;
         }
@@ -9209,9 +9797,13 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         if (recordOptions & RecordMixMinusSelf) {
             String filename = usefile.getFileNameWithoutExtension() + "-MIXMINUS" + usefile.getFileExtension();
             filename = File::createLegalFileName(filename);
-            File thefile = recdir.getChildFile(filename).getNonexistentSibling();
-            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
-            {                
+            
+            //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
+            URL returl;
+            
+            if (auto fileStream = makeStream(recdir, filename, returl))
+            //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+            {
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
@@ -9220,15 +9812,15 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                     // write the data to disk on our background thread.
                     threadedMixMinusWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
 
-                    DBG("Created mix minus output file: " << thefile.getFullPathName());
+                    DBG("Created mix minus output file: " << returl.toString(false));
              
-                    file = thefile;
+                    mainreturl = returl;
                     ret = true;
                 } else {
-                    DBG("Error creating mix minus writer for " << thefile.getFullPathName());
+                    DBG("Error creating mix minus writer for " << returl.toString(false));
                 }
             } else {
-                DBG("Error creating mix minus output file: " << thefile.getFullPathName());
+                DBG("Error creating mix minus output file: " << makeReturnUrl(recdir, filename).toString(false));
             }
         }
         
@@ -9241,8 +9833,12 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 String inname = mInputChannelGroups[i].params.name;
                 String filename = usefile.getFileNameWithoutExtension() + (inname.isEmpty() ? "-SELF" : ("-SELF-" + inname)) + usefile.getFileExtension();
                 filename = File::createLegalFileName(filename);
-                File thefile = recdir.getChildFile(filename).getNonexistentSibling();
-                if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+                
+                //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
+                URL returl;
+
+                if (auto fileStream = makeStream(recdir, filename, returl))
+                //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
                     if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), chans, bitsPerSample, {}, qualindex))
                     {
@@ -9252,16 +9848,16 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                         // write the data to disk on our background thread.
                         threadedSelfWriters.add (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
 
-                        DBG("Created self output file: " << thefile.getFullPathName());
+                        DBG("Created self output file: " << returl.toString(false));
 
-                        file = thefile;
+                        mainreturl = returl;
                         ret = true;
 
                     } else {
-                        DBG("Error creating self writer for " << thefile.getFullPathName());
+                        DBG("Error creating self writer for " << returl.toString(false));
                     }
                 } else {
-                    DBG("Error creating self output file: " << thefile.getFullPathName());
+                    DBG("Error creating self output file: " << makeReturnUrl(recdir, filename).toString(false));
                 }
             }
         }
@@ -9269,9 +9865,14 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
         if (recordOptions & RecordMix) {
             String filename = usefile.getFileNameWithoutExtension() + "-MIX" + usefile.getFileExtension();
             filename = File::createLegalFileName(filename);
-            File thefile = recdir.getChildFile(filename).getNonexistentSibling();
-            if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
-            {                
+            
+            //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
+            URL returl;
+
+            if (auto fileStream = makeStream(recdir, filename, returl))
+            //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+            {
+
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
@@ -9280,15 +9881,15 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                     // write the data to disk on our background thread.
                     threadedMixWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, *recordingThread, 32768));
 
-                    DBG("Created mix output file: " << thefile.getFullPathName());
+                    DBG("Created mix output file: " << returl.toString(false));
 
-                    file = thefile;  
+                    mainreturl = returl;
                     ret = true;
                 } else {
-                    DBG("Error creating mix writer for " << thefile.getFullPathName());
+                    DBG("Error creating mix writer for " << returl.toString(false));
                 }
             } else {
-                DBG("Error creating mix output file: " << thefile.getFullPathName());
+                DBG("Error creating mix output file: " << makeReturnUrl(recdir, filename).toString(false));
             }
         }
 
@@ -9317,11 +9918,13 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                 String userfilename = usefile.getFileNameWithoutExtension() + "-" + remote->userName + fileext;
                 userfilename = File::createLegalFileName(userfilename);
 
-                File thefile = recdir.getChildFile(userfilename).getNonexistentSibling();
+                //File thefile = recdir.getChildFile(userfilename).getNonexistentSibling();
+                URL returl;
 
-
-                if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
+                if (auto fileStream = makeStream(recdir, userfilename, returl))
+                // if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
+
                     // flac has a max of FLAC__MAX_CHANNELS, if we exceed that, fallback to WAV
                     if (auto writer = useformat->createWriterFor (fileStream.get(), getSampleRate(), numchan, bitsPerSample, {}, qualindex))
                     {
@@ -9331,14 +9934,14 @@ bool SonobusAudioProcessor::startRecordingToFile(File & file, uint32 recordOptio
                         // write the data to disk on our background thread.
                         remote->fileWriter = std::make_unique<AudioFormatWriter::ThreadedWriter>(writer, *recordingThread, 32768);
 
-                        DBG("Created user output file: " << thefile.getFullPathName());
+                        DBG("Created user output file: " << returl.toString(false));
                         ret = true;
                         userwriting = true;
                     } else {
-                        DBG("Error user writer for " << thefile.getFullPathName());
+                        DBG("Error user writer for " << returl.toString(false));
                     }
                 } else {
-                    DBG("Error creating user output file: " << thefile.getFullPathName());
+                    DBG("Error creating user output file: " << makeReturnUrl(recdir, filename).toString(false));
                 }
             }
         }
@@ -9459,7 +10062,7 @@ void SonobusAudioProcessor::clearTransportURL()
 bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 {
     if (!mDiskThread.isThreadRunning()) {
-        mDiskThread.startThread (3);
+        mDiskThread.startThread (Thread::Priority::normal);
     }
 
     // unload the previous file source and delete it..
@@ -9467,7 +10070,7 @@ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
     
     AudioFormatReader* reader = nullptr;
     
-#if ! JUCE_IOS
+#if ! (JUCE_IOS || JUCE_ANDROID)
     if (audioURL.isLocalFile())
     {
         reader = mFormatManager.createReaderFor (audioURL.getLocalFile());
@@ -9476,7 +10079,28 @@ bool SonobusAudioProcessor::loadURLIntoTransport (const URL& audioURL)
 #endif
     {
         if (reader == nullptr) {
-            reader = mFormatManager.createReaderFor (audioURL.createInputStream (false));
+#if JUCE_ANDROID
+            auto doc = AndroidDocument::fromDocument(audioURL);
+            if (!doc.hasValue()) {
+                DBG("Fallback to from file for audiourl: " << audioURL.toString(false));
+                doc = AndroidDocument::fromFile(audioURL.getLocalFile());
+            }
+
+            if (doc.hasValue()) {
+                if (doc.getInfo().canRead()) {
+
+                    DBG("Opening Android doc: " << doc.getUrl().toString(false));
+                    if (auto istr = doc.createInputStream()) {
+                        reader = mFormatManager.createReaderFor (std::move(istr));
+                    }
+                }
+                else {
+                    DBG("No permission to read android doc with URL: " << audioURL.toString(false));
+                }
+            }
+#else
+            reader = mFormatManager.createReaderFor (audioURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
+#endif
         }
     }
 

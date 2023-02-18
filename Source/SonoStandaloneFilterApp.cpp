@@ -39,7 +39,6 @@
 #if !JUCE_LINUX
 #include "juce_audio_plugin_client/utility/juce_IncludeSystemHeaders.h"
 #include "juce_audio_plugin_client/utility/juce_IncludeModuleHeaders.h"
-#include "juce_audio_plugin_client/utility/juce_FakeMouseMoveGenerator.h"
 #include "juce_audio_plugin_client/utility/juce_WindowsHooks.h"
 #endif
 
@@ -611,7 +610,7 @@ public:
             String filtxml = propfile.getValue ("filterStateXML");
             data.replaceWith(filtxml.toUTF8(), filtxml.getNumBytesAsUTF8());
             if (data.getSize() > 0) {
-                processor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, true);
+                processor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, true, true);
             }
             else {
                 DBG("Empty XML filterstate");
@@ -620,7 +619,7 @@ public:
         }
         else {
             if (data.fromBase64Encoding (propfile.getValue ("filterState")) && data.getSize() > 0) {
-                processor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), false);
+                processor->setStateInformationWithOptions (data.getData(), (int) data.getSize(), false, true);
             } else {
                 retval = false;
             }
@@ -743,7 +742,7 @@ public:
                     // shutdown audio engine
                     DBG("no connections shutting down audio");
                     mainWindow->getDeviceManager().closeAudioDevice();
-
+                    sonoproc->setPlayHead (nullptr);
 #if JUCE_ANDROID
                     setAndroidForegroundServiceActive(false);
 #endif

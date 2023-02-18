@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -147,6 +147,17 @@ public:
     /** Returns true if this var has the same value as the one supplied.
         Note that this ignores the type, so a string var "123" and an integer var with the
         value 123 are considered to be equal.
+
+        Note that equality checking depends on the "wrapped" type of the object on which
+        equals() is called. That means the following code will convert the right-hand-side
+        argument to a string and compare the string values, because the object on the
+        left-hand-side was initialised from a string:
+        @code var ("123").equals (var (123)) @endcode
+        However, the following code will convert the right-hand-side argument to a double
+        and compare the values as doubles, because the object on the left-hand-side was
+        initialised from a double:
+        @code var (45.6).equals ("45.6000") @endcode
+
         @see equalsWithSameType
     */
     bool equals (const var& other) const noexcept;

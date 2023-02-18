@@ -5,21 +5,22 @@
 
 #include "Soundboard.h"
 #include <utility>
+#include "CrossPlatformUtils.h"
 
 SoundSample::SoundSample(
-        String newName, String newFilePath, bool newLoop, int buttonColour, int hotkeyCode,
+        String newName, URL newFileURL, EndPlaybackBehaviour endBehavior, uint32 buttonColour, int hotkeyCode,
         PlaybackBehaviour playbackBehaviour,  ButtonBehaviour buttonBehaviour, ReplayBehaviour replayBehaviour,
         float newGain
 ) : name(std::move(newName)),
-        filePath(std::move(newFilePath)),
-        loop(newLoop),
+        fileURL(std::move(newFileURL)),
+        endPlaybackBehaviour(endBehavior),
         buttonColour(buttonColour),
         hotkeyCode(hotkeyCode),
         playbackBehaviour(playbackBehaviour),
         buttonBehaviour(buttonBehaviour),
         replayBehaviour(replayBehaviour),
-        gain(newGain),
-        lastPlaybackPosition(0.0)
+        lastPlaybackPosition(0.0),
+        gain(newGain)
 {}
 
 String SoundSample::getName() const
@@ -32,24 +33,20 @@ void SoundSample::setName(String newName)
     this->name = std::move(newName);
 }
 
-String SoundSample::getFilePath() const
+juce::URL SoundSample::getFileURL() const
 {
-    return this->filePath;
+    return fileURL;
 }
 
-void SoundSample::setFilePath(String newFilePath)
+void SoundSample::setFileURL(juce::URL newFileUrl)
 {
-    this->filePath = std::move(newFilePath);
+    fileURL = std::move(newFileUrl);
 }
 
-bool SoundSample::isLoop() const
-{
-    return loop;
-}
 
-void SoundSample::setLoop(bool newLoop)
+void SoundSample::setEndPlaybackBehaviour(EndPlaybackBehaviour newEndBehavior)
 {
-    loop = newLoop;
+    endPlaybackBehaviour = newEndBehavior;
 }
 
 int SoundSample::getButtonColour() const
@@ -112,13 +109,34 @@ void SoundSample::setLastPlaybackPosition(double position)
     lastPlaybackPosition = position;
 }
 
-ValueTree SoundSample::serialize() const
+ValueTree SoundSample::serialize()
 {
     ValueTree tree(SAMPLE_KEY);
     tree.setProperty(NAME_KEY, name, nullptr);
-    tree.setProperty(FILE_PATH_KEY, filePath, nullptr);
-    tree.setProperty(LOOP_KEY, loop, nullptr);
-    tree.setProperty(BUTTON_COLOUR_KEY, buttonColour, nullptr);
+    
+    if (fileURL.isLocalFile()) {
+        tree.setProperty(FILE_PATH_KEY, fileURL.getLocalFile().getFullPathName(), nullptr); // old style, just in case
+    }
+    
+    tree.setProperty(FILE_URL_KEY, fileURL.toString(true), nullptr);
+
+#if JUCE_IOS
+    // store bookmark data if necessary
+    if (void * bookmark = getURLBookmark(fileURL)) {
+        const void * data = nullptr;
+        size_t datasize = 0;
+        if (urlBookmarkToBinaryData(bookmark, data, datasize)) {
+            DBG("Audio file has bookmark, storing it in state, size: " << datasize);
+            tree.setProperty(FILE_URL_BOOKMARK_KEY, var(data, datasize), nullptr);
+        } else {
+            DBG("Bookmark is not valid!");
+        }
+    }
+#endif
+    
+    tree.setProperty(END_PLAYBACK_BEHAVIOUR_KEY, endPlaybackBehaviour, nullptr);
+    tree.setProperty(LOOP_KEY, endPlaybackBehaviour == LOOP_AT_END, nullptr); // backwards compat
+    tree.setProperty(BUTTON_COLOUR_KEY, (int64)buttonColour, nullptr);
     tree.setProperty(HOTKEY_KEY, hotkeyCode, nullptr);
     tree.setProperty(PLAYBACK_BEHAVIOUR_KEY, playbackBehaviour, nullptr);
     tree.setProperty(BUTTON_BEHAVIOUR_KEY, buttonBehaviour, nullptr);
@@ -133,12 +151,40 @@ SoundSample SoundSample::deserialize(const ValueTree tree)
     int playbackBehaviour = tree.getProperty(PLAYBACK_BEHAVIOUR_KEY, PlaybackBehaviour::SIMULTANEOUS);
     int buttonBehaviour = tree.getProperty(BUTTON_BEHAVIOUR_KEY, ButtonBehaviour::TOGGLE);
     int replayBehaviour = tree.getProperty(REPLAY_BEHAVIOUR_KEY, ReplayBehaviour::REPLAY_FROM_START);
+    
+    // backwards compat
+    bool oldloop = tree.getProperty(LOOP_KEY, false);
+    int endPlaybackBehaviour = tree.getProperty(END_PLAYBACK_BEHAVIOUR_KEY, oldloop ? EndPlaybackBehaviour::LOOP_AT_END : EndPlaybackBehaviour::STOP_AT_END);
 
+    URL fileurl;
+    String fileurlstr = tree.getProperty(FILE_URL_KEY, "");
+    if (fileurlstr.isEmpty()) {
+        // old style
+        String filepathstr = tree.getProperty(FILE_PATH_KEY, "");
+        fileurl = URL(File(filepathstr));
+    } else {
+        fileurl = URL(fileurlstr);
+    }
+    
+#if JUCE_IOS
+    // check for bookmark
+    auto bptr = tree.getPropertyPointer(FILE_URL_BOOKMARK_KEY);
+    if (bptr) {
+        if (auto * block = bptr->getBinaryData()) {
+            DBG("Has file bookmark");
+            void * bookmark = binaryDataToUrlBookmark(block->getData(), block->getSize());
+            setURLBookmark(fileurl, bookmark);
+            fileurl = generateUpdatedURL(fileurl);
+        }
+    }
+#endif
+
+    
     SoundSample soundSample(
         tree.getProperty(NAME_KEY),
-        tree.getProperty(FILE_PATH_KEY),
-        tree.getProperty(LOOP_KEY, false),
-        tree.getProperty(BUTTON_COLOUR_KEY, SoundboardButtonColors::DEFAULT_BUTTON_COLOUR),
+        fileurl,
+        static_cast<EndPlaybackBehaviour>(endPlaybackBehaviour),
+        (uint32)(int64)tree.getProperty(BUTTON_COLOUR_KEY, (int64)SoundboardButtonColors::DEFAULT_BUTTON_COLOUR),
         tree.getProperty(HOTKEY_KEY, -1),
         static_cast<PlaybackBehaviour>(playbackBehaviour),
         static_cast<ButtonBehaviour>(buttonBehaviour),
@@ -168,7 +214,7 @@ std::vector<SoundSample>& Soundboard::getSamples()
     return this->samples;
 }
 
-ValueTree Soundboard::serialize() const
+ValueTree Soundboard::serialize()
 {
     ValueTree tree(SOUNDBOARD_KEY);
 
@@ -179,7 +225,7 @@ ValueTree Soundboard::serialize() const
     tree.addChild(samplesTree, 0, nullptr);
 
     int i = 0;
-    for (const auto &sample : samples) {
+    for (auto &sample : samples) {
         samplesTree.addChild(sample.serialize(), i++, nullptr);
     }
 

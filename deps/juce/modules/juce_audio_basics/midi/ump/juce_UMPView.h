@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -20,6 +20,8 @@
   ==============================================================================
 */
 
+#ifndef DOXYGEN
+
 namespace juce
 {
 namespace universal_midi_packets
@@ -31,7 +33,7 @@ namespace universal_midi_packets
     The packet must be well-formed for member functions to work correctly.
 
     Specifically, the constructor argument must be the beginning of a region of
-    uint32_t that contains at least `getNumWordsForMessageType(*ddata)` items,
+    uint32_t that contains at least `getNumWordsForMessageType(*data)` items,
     where `data` is the constructor argument.
 
     NOTE: Instances of this class do not own the memory that they point to!
@@ -86,3 +88,5 @@ private:
 
 }
 }
+
+#endif

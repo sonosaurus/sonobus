@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -85,15 +85,18 @@
 #include "sources/juce_ResamplingAudioSource.cpp"
 #include "sources/juce_ReverbAudioSource.cpp"
 #include "sources/juce_ToneGeneratorAudioSource.cpp"
+#include "sources/juce_PositionableAudioSource.cpp"
 #include "synthesisers/juce_Synthesiser.cpp"
+#include "audio_play_head/juce_AudioPlayHead.cpp"
 
 #include "midi/ump/juce_UMP.h"
 #include "midi/ump/juce_UMPUtils.cpp"
 #include "midi/ump/juce_UMPView.cpp"
 #include "midi/ump/juce_UMPSysEx7.cpp"
 #include "midi/ump/juce_UMPMidi1ToMidi2DefaultTranslator.cpp"
+#include "midi/ump/juce_UMPIterator.cpp"
 
 #if JUCE_UNIT_TESTS
  #include "utilities/juce_ADSR_test.cpp"
- #include "midi/ump/juce_UMPTests.cpp"
+ #include "midi/ump/juce_UMP_test.cpp"
 #endif

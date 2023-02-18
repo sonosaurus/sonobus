@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -150,6 +150,20 @@ struct ADSRTests  : public UnitTest
             adsr.applyEnvelopeToBuffer (buffer, 0, buffer.getNumSamples());
 
             expect (isSustained (buffer, parameters.sustain));
+        }
+
+        beginTest ("Zero-length attack and decay releases correctly");
+        {
+            adsr.reset();
+            adsr.setParameters ({ 0.0f, 0.0f, parameters.sustain, parameters.release });
+
+            adsr.noteOn();
+            adsr.noteOff();
+
+            auto buffer = getTestBuffer (sampleRate, parameters.release);
+            adsr.applyEnvelopeToBuffer (buffer, 0, buffer.getNumSamples());
+
+            expect (isDecreasing (buffer));
         }
 
         beginTest ("Zero-length release resets to idle");

@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -56,8 +56,9 @@ JNIEnv* getEnv() noexcept
     return nullptr;
 }
 
-void JNICALL juce_JavainitialiseJUCE (JNIEnv* env, jobject /*jclass*/, jobject context)
+static void JNICALL juce_JavainitialiseJUCE (JNIEnv* env, jobject /*jclass*/, jobject context)
 {
+    JNIClassBase::initialiseAllClasses (env, context);
     Thread::initialiseJUCE (env, context);
 }
 
@@ -88,8 +89,6 @@ extern "C" jint JNIEXPORT JNI_OnLoad (JavaVM* vm, void*)
         // call Thread::initialiseJUCE manually
         env->ExceptionClear();
     }
-
-    JNIClassBase::initialiseAllClasses (env);
 
     return JNI_VERSION_1_2;
 }
@@ -345,35 +344,90 @@ LocalRef<jobject> getMainActivity() noexcept
 }
 
 //==============================================================================
-// sets the process to 0=low priority, 1=normal, 2=high, 3=realtime
-JUCE_API void JUCE_CALLTYPE Process::setPriority (ProcessPriority prior)
+using RealtimeThreadFactory = pthread_t (*) (void* (*entry) (void*), void* userPtr);
+// This is defined in the juce_audio_devices module, with different definitions depending on
+// whether OpenSL/Oboe are enabled.
+RealtimeThreadFactory getAndroidRealtimeThreadFactory();
+
+extern JavaVM* androidJNIJavaVM;
+
+static auto setPriorityOfThisThread (Thread::Priority p)
 {
-    // TODO
-
-    struct sched_param param;
-    int policy, maxp, minp;
-
-    const int p = (int) prior;
-
-    if (p <= 1)
-        policy = SCHED_OTHER;
-    else
-        policy = SCHED_RR;
-
-    minp = sched_get_priority_min (policy);
-    maxp = sched_get_priority_max (policy);
-
-    if (p < 2)
-        param.sched_priority = 0;
-    else if (p == 2 )
-        // Set to middle of lower realtime priority range
-        param.sched_priority = minp + (maxp - minp) / 4;
-    else
-        // Set to middle of higher realtime priority range
-        param.sched_priority = minp + (3 * (maxp - minp) / 4);
-
-    pthread_setschedparam (pthread_self(), policy, &param);
+    return setpriority (PRIO_PROCESS,
+                        (id_t) gettid(),
+                        ThreadPriorities::getNativePriority (p)) == 0;
 }
+
+bool Thread::createNativeThread (Priority)
+{
+    const auto threadEntryProc = [] (void* userData) -> void*
+    {
+        auto* myself = static_cast<Thread*> (userData);
+
+        setPriorityOfThisThread (myself->priority);
+
+        juce_threadEntryPoint (myself);
+
+        if (androidJNIJavaVM != nullptr)
+        {
+            void* env = nullptr;
+            androidJNIJavaVM->GetEnv (&env, JNI_VERSION_1_2);
+
+            // only detach if we have actually been attached
+            if (env != nullptr)
+                androidJNIJavaVM->DetachCurrentThread();
+        }
+
+        return nullptr;
+    };
+
+    if (isRealtime())
+    {
+        if (const auto factory = getAndroidRealtimeThreadFactory())
+        {
+            threadHandle = (void*) factory (threadEntryProc, this);
+            threadId = (ThreadID) threadHandle.load();
+            return threadId != nullptr;
+        }
+        else
+        {
+            jassertfalse;
+        }
+    }
+
+    PosixThreadAttribute attr { threadStackSize };
+    threadId = threadHandle = makeThreadHandle (attr, this, threadEntryProc);
+
+    return threadId != nullptr;
+}
+
+void Thread::killThread()
+{
+    if (threadHandle != nullptr)
+        jassertfalse; // pthread_cancel not available!
+}
+
+Thread::Priority Thread::getPriority() const
+{
+    jassert (Thread::getCurrentThreadId() == getThreadId());
+
+    const auto native = getpriority (PRIO_PROCESS, (id_t) gettid());
+    return ThreadPriorities::getJucePriority (native);
+}
+
+bool Thread::setPriority (Priority priorityIn)
+{
+    jassert (Thread::getCurrentThreadId() == getThreadId());
+
+    if (isRealtime())
+        return false;
+
+    const auto priorityToUse = priority = priorityIn;
+    return setPriorityOfThisThread (priorityToUse) == 0;
+}
+
+//==============================================================================
+JUCE_API void JUCE_CALLTYPE Process::setPriority (ProcessPriority) {}
 
 JUCE_API bool JUCE_CALLTYPE juce_isRunningUnderDebugger() noexcept
 {

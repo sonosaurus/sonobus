@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -70,13 +70,13 @@ public:
     virtual bool isLooping() const = 0;
 
     /** Tells the source whether you'd like it to play in a loop. */
-    virtual void setLooping (bool shouldLoop)       { ignoreUnused (shouldLoop); }
+    virtual void setLooping (bool shouldLoop);
 
     /** Sets the start position of the looping in samples. */
     virtual void setLoopRange (int64 loopStart, int64 loopLength) { ignoreUnused(loopStart); ignoreUnused(loopLength); }
     
     /** Returns the position where the loop playback starts.  */
-    virtual void getLoopRange(int64 & loopStart, int64 & loopLength) const = 0;
+    virtual void getLoopRange(int64 & loopStart, int64 & loopLength) const  { };
 
 };
 

@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -51,10 +51,7 @@ void CriticalSection::enter() const noexcept        { EnterCriticalSection ((CRI
 bool CriticalSection::tryEnter() const noexcept     { return TryEnterCriticalSection ((CRITICAL_SECTION*) &lock) != FALSE; }
 void CriticalSection::exit() const noexcept         { LeaveCriticalSection ((CRITICAL_SECTION*) &lock); }
 
-
 //==============================================================================
-void JUCE_API juce_threadEntryPoint (void*);
-
 static unsigned int STDMETHODCALLTYPE threadEntryProc (void* userData)
 {
     if (juce_messageWindowHandle != nullptr)
@@ -67,36 +64,77 @@ static unsigned int STDMETHODCALLTYPE threadEntryProc (void* userData)
     return 0;
 }
 
-void Thread::launchThread()
+static bool setPriorityInternal (bool isRealtime, HANDLE handle, Thread::Priority priority)
+{
+    auto nativeThreadFlag = isRealtime ? THREAD_PRIORITY_TIME_CRITICAL
+                                       : ThreadPriorities::getNativePriority (priority);
+
+    if (isRealtime) // This should probably be a fail state too?
+        Process::setPriority (Process::ProcessPriority::RealtimePriority);
+
+    return SetThreadPriority (handle, nativeThreadFlag);
+}
+
+bool Thread::createNativeThread (Priority priority)
 {
     unsigned int newThreadId;
     threadHandle = (void*) _beginthreadex (nullptr, (unsigned int) threadStackSize,
-                                           &threadEntryProc, this, 0, &newThreadId);
-    threadId = (ThreadID) (pointer_sized_int) newThreadId;
+                                           &threadEntryProc, this, CREATE_SUSPENDED,
+                                           &newThreadId);
+
+    if (threadHandle != nullptr)
+    {
+        threadId = (ThreadID) (pointer_sized_int) newThreadId;
+
+        if (setPriorityInternal (isRealtime(), threadHandle, priority))
+        {
+            ResumeThread (threadHandle);
+            return true;
+        }
+
+        killThread();
+        closeThreadHandle();
+    }
+
+    return false;
+}
+
+Thread::Priority Thread::getPriority() const
+{
+    jassert (Thread::getCurrentThreadId() == getThreadId());
+
+    const auto native = GetThreadPriority (threadHandle);
+    return ThreadPriorities::getJucePriority (native);
+}
+
+bool Thread::setPriority (Priority priority)
+{
+    jassert (Thread::getCurrentThreadId() == getThreadId());
+    return setPriorityInternal (isRealtime(), this, priority);
 }
 
 void Thread::closeThreadHandle()
 {
-    CloseHandle ((HANDLE) threadHandle.get());
+    CloseHandle (threadHandle);
     threadId = nullptr;
     threadHandle = nullptr;
 }
 
 void Thread::killThread()
 {
-    if (threadHandle.get() != nullptr)
+    if (threadHandle != nullptr)
     {
        #if JUCE_DEBUG
         OutputDebugStringA ("** Warning - Forced thread termination **\n");
        #endif
 
         JUCE_BEGIN_IGNORE_WARNINGS_MSVC (6258)
-        TerminateThread (threadHandle.get(), 0);
+        TerminateThread (threadHandle, 0);
         JUCE_END_IGNORE_WARNINGS_MSVC
     }
 }
 
-void JUCE_CALLTYPE Thread::setCurrentThreadName (const String& name)
+void JUCE_CALLTYPE Thread::setCurrentThreadName ([[maybe_unused]] const String& name)
 {
    #if JUCE_DEBUG && JUCE_MSVC
     struct
@@ -121,31 +159,12 @@ void JUCE_CALLTYPE Thread::setCurrentThreadName (const String& name)
     {
         OutputDebugStringA ("** Warning - Encountered noncontinuable exception **\n");
     }
-   #else
-    ignoreUnused (name);
    #endif
 }
 
 Thread::ThreadID JUCE_CALLTYPE Thread::getCurrentThreadId()
 {
     return (ThreadID) (pointer_sized_int) GetCurrentThreadId();
-}
-
-bool Thread::setThreadPriority (void* handle, int priority)
-{
-    int pri = THREAD_PRIORITY_TIME_CRITICAL;
-
-    if (priority < 1)       pri = THREAD_PRIORITY_IDLE;
-    else if (priority < 2)  pri = THREAD_PRIORITY_LOWEST;
-    else if (priority < 5)  pri = THREAD_PRIORITY_BELOW_NORMAL;
-    else if (priority < 7)  pri = THREAD_PRIORITY_NORMAL;
-    else if (priority < 9)  pri = THREAD_PRIORITY_ABOVE_NORMAL;
-    else if (priority < 10) pri = THREAD_PRIORITY_HIGHEST;
-
-    if (handle == nullptr)
-        handle = GetCurrentThread();
-
-    return SetThreadPriority (handle, pri) != FALSE;
 }
 
 void JUCE_CALLTYPE Thread::setCurrentThreadAffinityMask (const uint32 affinityMask)
@@ -199,6 +218,7 @@ static int lastProcessPriority = -1;
 
 // called when the app gains focus because Windows does weird things to process priority
 // when you swap apps, and this forces an update when the app is brought to the front.
+void juce_repeatLastProcessPriority();
 void juce_repeatLastProcessPriority()
 {
     if (lastProcessPriority >= 0) // (avoid changing this if it's not been explicitly set by the app..)
@@ -218,11 +238,11 @@ void juce_repeatLastProcessPriority()
     }
 }
 
-void JUCE_CALLTYPE Process::setPriority (ProcessPriority prior)
+void JUCE_CALLTYPE Process::setPriority (ProcessPriority newPriority)
 {
-    if (lastProcessPriority != (int) prior)
+    if (lastProcessPriority != (int) newPriority)
     {
-        lastProcessPriority = (int) prior;
+        lastProcessPriority = (int) newPriority;
         juce_repeatLastProcessPriority();
     }
 }
@@ -267,6 +287,7 @@ void JUCE_CALLTYPE Process::terminate()
     ExitProcess (1);
 }
 
+bool juce_isRunningInWine();
 bool juce_isRunningInWine()
 {
     HMODULE ntdll = GetModuleHandleA ("ntdll");
@@ -526,57 +547,5 @@ bool ChildProcess::start (const StringArray& args, int streamFlags)
 
     return start (escaped.trim(), streamFlags);
 }
-
-//==============================================================================
-struct HighResolutionTimer::Pimpl
-{
-    Pimpl (HighResolutionTimer& t) noexcept  : owner (t)
-    {
-    }
-
-    ~Pimpl()
-    {
-        jassert (periodMs == 0);
-    }
-
-    void start (int newPeriod)
-    {
-        if (newPeriod != periodMs)
-        {
-            stop();
-            periodMs = newPeriod;
-
-            TIMECAPS tc;
-            if (timeGetDevCaps (&tc, sizeof (tc)) == TIMERR_NOERROR)
-            {
-                const int actualPeriod = jlimit ((int) tc.wPeriodMin, (int) tc.wPeriodMax, newPeriod);
-
-                timerID = timeSetEvent ((UINT) actualPeriod, tc.wPeriodMin, callbackFunction, (DWORD_PTR) this,
-                                        TIME_PERIODIC | TIME_CALLBACK_FUNCTION | 0x100 /*TIME_KILL_SYNCHRONOUS*/);
-            }
-        }
-    }
-
-    void stop()
-    {
-        periodMs = 0;
-        timeKillEvent (timerID);
-    }
-
-    HighResolutionTimer& owner;
-    int periodMs = 0;
-
-private:
-    unsigned int timerID;
-
-    static void STDMETHODCALLTYPE callbackFunction (UINT, UINT, DWORD_PTR userInfo, DWORD_PTR, DWORD_PTR)
-    {
-        if (Pimpl* const timer = reinterpret_cast<Pimpl*> (userInfo))
-            if (timer->periodMs != 0)
-                timer->owner.hiResTimerCallback();
-    }
-
-    JUCE_DECLARE_NON_COPYABLE (Pimpl)
-};
 
 } // namespace juce

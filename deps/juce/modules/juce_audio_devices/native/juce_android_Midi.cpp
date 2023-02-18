@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -327,7 +327,7 @@ static const uint8 javaMidiByteCode[] =
  STATICMETHOD (getAndroidMidiDeviceManager, "getAndroidMidiDeviceManager", "(Landroid/content/Context;)Lcom/rmsl/juce/JuceMidiSupport$MidiDeviceManager;") \
  STATICMETHOD (getAndroidBluetoothManager,  "getAndroidBluetoothManager",  "(Landroid/content/Context;)Lcom/rmsl/juce/JuceMidiSupport$BluetoothManager;")
 
-DECLARE_JNI_CLASS_WITH_BYTECODE (JuceMidiSupport, "com/rmsl/juce/JuceMidiSupport", 23, javaMidiByteCode, sizeof (javaMidiByteCode))
+DECLARE_JNI_CLASS_WITH_BYTECODE (JuceMidiSupport, "com/rmsl/juce/JuceMidiSupport", 23, javaMidiByteCode)
 #undef JNI_CLASS_MEMBERS
 
 #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK) \

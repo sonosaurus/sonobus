@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -101,7 +101,7 @@ public:
     class Owner
     {
     public:
-        virtual ~Owner() {}
+        virtual ~Owner() = default;
 
         virtual void cursorClosed (const AndroidContentSharerCursor&) = 0;
     };
@@ -121,9 +121,9 @@ public:
 
     jobject getNativeCursor() { return cursor.get(); }
 
-    void cursorClosed()
+    static void cursorClosed (JNIEnv*, AndroidContentSharerCursor& t)
     {
-        MessageManager::callAsync ([this] { owner.cursorClosed (*this); });
+        MessageManager::callAsync ([&t] { t.owner.cursorClosed (t); });
     }
 
     void addRow (LocalRef<jobjectArray>& values)
@@ -141,19 +141,11 @@ private:
     #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK) \
      METHOD (addRow,      "addRow", "([Ljava/lang/Object;)V") \
      METHOD (constructor, "<init>", "(J[Ljava/lang/String;)V") \
-     CALLBACK (contentSharerCursorClosed, "contentSharerCursorClosed", "(J)V") \
+     CALLBACK (generatedCallback<&AndroidContentSharerCursor::cursorClosed>, "contentSharerCursorClosed", "(J)V") \
 
-    DECLARE_JNI_CLASS_WITH_BYTECODE (JuceContentProviderCursor, "com/rmsl/juce/JuceContentProviderCursor", 16, javaJuceContentProviderCursor, sizeof (javaJuceContentProviderCursor))
+    DECLARE_JNI_CLASS_WITH_BYTECODE (JuceContentProviderCursor, "com/rmsl/juce/JuceContentProviderCursor", 16, javaJuceContentProviderCursor)
     #undef JNI_CLASS_MEMBERS
-
-    static void JNICALL contentSharerCursorClosed (JNIEnv*, jobject, jlong host)
-    {
-        if (auto* myself = reinterpret_cast<AndroidContentSharerCursor*> (host))
-            myself->cursorClosed();
-    }
 };
-
-AndroidContentSharerCursor::JuceContentProviderCursor_Class AndroidContentSharerCursor::JuceContentProviderCursor;
 
 //==============================================================================
 class AndroidContentSharerFileObserver
@@ -184,10 +176,8 @@ public:
         env->CallVoidMethod (fileObserver, JuceContentProviderFileObserver.startWatching);
     }
 
-    void onFileEvent (int event, const LocalRef<jstring>& path)
+    void onFileEvent (int event, [[maybe_unused]] const LocalRef<jstring>& path)
     {
-        ignoreUnused (path);
-
         if (event == open)
         {
             ++numOpenedHandles;
@@ -230,19 +220,16 @@ private:
      METHOD (constructor,   "<init>",        "(JLjava/lang/String;I)V") \
      METHOD (startWatching, "startWatching", "()V") \
      METHOD (stopWatching,  "stopWatching",  "()V") \
-     CALLBACK (contentSharerFileObserverEvent, "contentSharerFileObserverEvent", "(JILjava/lang/String;)V") \
+     CALLBACK (generatedCallback<&AndroidContentSharerFileObserver::onFileEventCallback>, "contentSharerFileObserverEvent", "(JILjava/lang/String;)V") \
 
-    DECLARE_JNI_CLASS_WITH_BYTECODE (JuceContentProviderFileObserver, "com/rmsl/juce/JuceContentProviderFileObserver", 16, javaJuceContentProviderFileObserver, sizeof (javaJuceContentProviderFileObserver))
+    DECLARE_JNI_CLASS_WITH_BYTECODE (JuceContentProviderFileObserver, "com/rmsl/juce/JuceContentProviderFileObserver", 16, javaJuceContentProviderFileObserver)
     #undef JNI_CLASS_MEMBERS
 
-    static void JNICALL contentSharerFileObserverEvent (JNIEnv*, jobject /*fileObserver*/, jlong host, int event, jstring path)
+    static void onFileEventCallback (JNIEnv*, AndroidContentSharerFileObserver& t, jint event, jstring path)
     {
-        if (auto* myself = reinterpret_cast<AndroidContentSharerFileObserver*> (host))
-            myself->onFileEvent (event, LocalRef<jstring> (path));
+        t.onFileEvent (event, LocalRef<jstring> (path));
     }
 };
-
-AndroidContentSharerFileObserver::JuceContentProviderFileObserver_Class AndroidContentSharerFileObserver::JuceContentProviderFileObserver;
 
 //==============================================================================
 class AndroidContentSharerPrepareFilesThread    : private Thread
@@ -337,7 +324,7 @@ private:
                 canSpecifyMimeTypes = fileExtension.isNotEmpty();
 
             if (canSpecifyMimeTypes)
-                mimeTypes.addArray (getMimeTypesForFileExtension (fileExtension));
+                mimeTypes.addArray (MimeTypeTable::getMimeTypesForFileExtension (fileExtension));
             else
                 mimeTypes.clear();
 
@@ -513,10 +500,8 @@ public:
 
     //==============================================================================
     jobject openFile (const LocalRef<jobject>& contentProvider,
-                      const LocalRef<jobject>& uri, const LocalRef<jstring>& mode)
+                      const LocalRef<jobject>& uri, [[maybe_unused]] const LocalRef<jstring>& mode)
     {
-        ignoreUnused (mode);
-
         WeakReference<ContentSharerNativeImpl> weakRef (this);
 
         if (weakRef == nullptr)
@@ -597,8 +582,8 @@ public:
         if (extension.isEmpty())
             return nullptr;
 
-        return juceStringArrayToJava (filterMimeTypes (getMimeTypesForFileExtension (extension),
-                                                                  juceString (mimeTypeFilter.get())));
+        return juceStringArrayToJava (filterMimeTypes (MimeTypeTable::getMimeTypesForFileExtension (extension),
+                                                       juceString (mimeTypeFilter.get())));
     }
 
     void sharingFinished (int resultCode)
@@ -894,7 +879,5 @@ ContentSharer::Pimpl* ContentSharer::createPimpl()
 {
     return new ContentSharerNativeImpl (*this);
 }
-
-ContentSharer::ContentSharerNativeImpl::JuceSharingContentProvider_Class ContentSharer::ContentSharerNativeImpl::JuceSharingContentProvider;
 
 } // namespace juce

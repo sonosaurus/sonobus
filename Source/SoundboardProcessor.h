@@ -19,11 +19,12 @@
  *
  * @author Hannah Schellekens, Sten Wessel
  */
-class SoundboardProcessor
+class SoundboardProcessor : public PlaybackPositionListener
 {
 public:
     SoundboardProcessor(SoundboardChannelProcessor* channelProcessor, File supportDir);
-
+    virtual ~SoundboardProcessor();
+    
     /**
      * Adds a new soundboard.
      *
@@ -96,9 +97,31 @@ public:
     SoundSample* addSoundSample(String name, String absolutePath, std::optional<int> index = std::nullopt );
 
     /**
+     * Moves a particular sample to a different position in the sample list of the sound board
+     *
+     * @param fromSampleIndex The sample index to move.
+     * @param toSampleIndex The sample index to move it to.
+     * @param index Optional index of soundboard, if not specified the selected soundboard is used
+     *
+     * @return Returns true if sample successfully moved, otherwise false
+     */
+    bool moveSoundSample(int fromSampleIndex, int toSampleIndex, std::optional<int> index = std::nullopt );
+
+    /**
+     * @param url Checks to see if the given sample URL is used anywhere, in any soundboard
+     */
+
+    bool isSampleURLInUse(const juce::URL & url);
+
+    /**
      * @param sampleToUpdate The sample to save with already containing the updated state.
      */
-    void editSoundSample(SoundSample& sampleToUpdate);
+    void editSoundSample(SoundSample& sampleToUpdate, bool saveIt=true);
+
+    /**
+     * @param sampleToUpdate update playback settings
+     */
+    void updatePlaybackSettings(SoundSample& sampleToUpdate);
 
     /**
      * Deletes the given Sound Sample from the soundboard.
@@ -121,18 +144,46 @@ public:
     /**
      * @return Whether the hotkeys are muted (true) or not (false).
      */
-    [[nodiscard]] bool isHotkeysSelected() const { return hotkeysMuted; }
+    [[nodiscard]] bool isHotkeysMuted() const { return hotkeysMuted; }
 
     /**
      * Set Whether the hotkeys are muted (true) or not (false).
      */
-    void setHotkeysSelected(bool selected)
+    void setHotkeysMuted(bool selected)
     {
         hotkeysMuted = selected;
         saveToDisk();
     }
 
-private:
+    /**
+     * @return Whether the default numeric hotkeys are allowed.
+     */
+    [[nodiscard]] bool isDefaultNumericHotkeyAllowed() const { return numericHotkeyAllowed; }
+
+    /**
+     * Set Whether the hotkeys are muted (true) or not (false).
+     */
+    void setDefaultNumericHotkeyAllowed(bool selected)
+    {
+        numericHotkeyAllowed = selected;
+        saveToDisk();
+    }
+
+    
+    /**
+     * Saves the current soundboard data to disk.
+     */
+    void saveToDisk();
+
+
+    /**
+     * Currently called when a new sample has been triggered by NEXT_ON_END sample ending
+     */
+    std::function<void()> onPlaybackStateChange;
+    
+protected:
+
+    void onPlaybackFinished(SamplePlaybackManager* playbackManager) override;
 
     /**
      * Key of the root node in the serialized tree data structure that holds the soundboard data.
@@ -148,6 +199,7 @@ private:
      * Key of the root node property in the serialized tree data structure that stores whether hotkeys must be muted.
      */
     constexpr static const char HOTKEYS_MUTED_KEY[] = "hotkeysMuted";
+    constexpr static const char HOTKEYS_NUMERIC_KEY[] = "hotkeysAllowNumeric";
 
     File soundboardsFile;
 
@@ -174,6 +226,8 @@ private:
      */
     bool hotkeysMuted = false;
 
+    bool numericHotkeyAllowed = true;
+
     /**
      * Writes the soundboard data to the given file.
      *
@@ -181,7 +235,7 @@ private:
      *
      * @param [in] file The file to store the soundboard data in.
      */
-    void writeSoundboardsToFile(const File& file) const;
+    void writeSoundboardsToFile(const File& file);
 
     /**
      * Reads the soundboard data from the given file.
@@ -192,10 +246,6 @@ private:
      */
     void readSoundboardsFromFile(const File& file);
 
-    /**
-     * Saves the current soundboard data to disk.
-     */
-    void saveToDisk() const;
 
     /**
      * Loads the current soundboard data from disk.

@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -70,7 +70,7 @@ struct SIMDRegister
 
     /** The corresponding primitive integer type, for example, this will be int32_t
         if type is a float. */
-    using MaskType = typename SIMDInternal::MaskTypeFor<ElementType>::type;
+    using MaskType = SIMDInternal::MaskType<ElementType>;
 
     //==============================================================================
     // Here are some types which are needed internally
@@ -115,9 +115,6 @@ struct SIMDRegister
 
     /** Constructs an object from a scalar type by broadcasting it to all elements. */
     inline SIMDRegister (Type s) noexcept  { *this = s; }
-
-    /** Destructor. */
-    inline ~SIMDRegister() noexcept = default;
 
     //==============================================================================
     /** Returns the number of elements in this vector. */

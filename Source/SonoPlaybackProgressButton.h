@@ -93,12 +93,11 @@ public:
 
     void paintButton(Graphics& graphics, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
-    void onPlaybackPositionChanged(const SamplePlaybackManager& samplePlaybackManager) override;
+    void onPlaybackPositionChanged(SamplePlaybackManager* samplePlaybackManager) override;
 
     void attachToPlaybackManager(std::shared_ptr<SamplePlaybackManager> playbackManager);
 
     void setMouseListener(std::unique_ptr<MouseListener> listener);
-
 
     SamplePlaybackManager * getPlaybackManager() const { return playbackManager.get(); }
 
@@ -106,23 +105,29 @@ public:
 
     bool isClickEdit() const { return clickIsEdit; }
 
+    void setPositionDragging(bool flag) { posDragging = flag; }
+    bool isPositionDragging() const { return posDragging; }
+    
 private:
 
     void initStuff();
 
-    constexpr static const int PROGRESS_COLOUR = 0x22FFFFFF;
+    constexpr static const uint32 PROGRESS_COLOUR = 0x33FFFFFF;
+    constexpr static const uint32 PROGRESS_PLAY_OUTLINE_COLOUR = 0x99AAAAFF;
 
     double playbackPosition = 0.0;
+    bool isPlaying = false;
     bool ignoreNextClick = false;
     bool clickIsEdit = false;
     bool overEditArea = false;
 
     bool showEditArea = true;
-
+    bool posDragging = false;
+    
     /**
      * The RGB value of the button background color with an alpha of 0.
      */
-    int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
+    uint32 buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     std::shared_ptr<SamplePlaybackManager> playbackManager;
 

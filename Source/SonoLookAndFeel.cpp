@@ -149,7 +149,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         
         String slang = lang.initialSectionNotContaining("_").toLowerCase();
         
-        if (slang == "ja") {
+        if (slang.startsWith("ja")) {
             DBG("Using japanese");
             Font jfont(font);
 #if (JUCE_MAC || JUCE_IOS)
@@ -162,7 +162,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 #endif
             return Typeface::createSystemTypefaceFor (jfont);            
         }
-        else if (slang == "ko") {
+        else if (slang.startsWith("ko")) {
             DBG("Using korean");
             Font jfont(font);
 #if (JUCE_MAC || JUCE_IOS)
@@ -176,7 +176,7 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 #endif
             return Typeface::createSystemTypefaceFor (jfont);
         }
-        else if (slang == "zh") {
+        else if (slang.startsWith("zh")) {
             DBG("Using chinese");
             Font jfont(font);
 #if (JUCE_MAC || JUCE_IOS)
@@ -313,7 +313,7 @@ Rectangle<int> SonoLookAndFeel::getTabButtonExtraComponentBounds (const TabBarBu
 void SonoLookAndFeel::createTabTextLayout (const TabBarButton& button, float length, float depth,
                                           Colour colour, TextLayout& textLayout)
 {
-    float fontsize = button.getExtraComponent() != nullptr ? jmin(depth, 32.0f) * 0.85f : jmin(depth, 32.0f) * 0.5f;
+    float fontsize = button.getExtraComponent() != nullptr ? jmin(depth, 32.0f) * 0.5f : jmin(depth, 32.0f) * 0.5f;
     Font font = myFont.withHeight(fontsize * fontScale);
     font.setUnderline (button.hasKeyboardFocus (false));
 
@@ -389,13 +389,15 @@ void SonoLookAndFeel::drawTabButton (TabBarButton& button, Graphics& g, bool isM
         TabbedButtonBar::ColourIds colID = button.isFrontTab() ? TabbedButtonBar::frontTextColourId
         : TabbedButtonBar::tabTextColourId;
         
-        if (bar->isColourSpecified (colID))
+        if (button.isColourSpecified (colID))
+            col = button.findColour (colID);
+        else if (bar->isColourSpecified (colID))
             col = bar->findColour (colID);
         else if (isColourSpecified (colID))
             col = findColour (colID);
     }
     
-    const Rectangle<float> area (button.getTextArea().toFloat());
+    const Rectangle<float> area (button.getTextArea().reduced(1).toFloat());
     
     float length = area.getWidth();
     float depth  = area.getHeight();
@@ -410,8 +412,8 @@ void SonoLookAndFeel::drawTabButton (TabBarButton& button, Graphics& g, bool isM
     
     switch (o)
     {
-        case TabbedButtonBar::TabsAtLeft:   t = t.rotated (float_Pi * -0.5f).translated (area.getX(), area.getBottom()); break;
-        case TabbedButtonBar::TabsAtRight:  t = t.rotated (float_Pi *  0.5f).translated (area.getRight(), area.getY()); break;
+        case TabbedButtonBar::TabsAtLeft:   t = t.rotated (MathConstants<float>::pi * -0.5f).translated (area.getX(), area.getBottom()); break;
+        case TabbedButtonBar::TabsAtRight:  t = t.rotated (MathConstants<float>::pi *  0.5f).translated (area.getRight(), area.getY()); break;
         case TabbedButtonBar::TabsAtTop:
         case TabbedButtonBar::TabsAtBottom: t = t.translated (area.getX(), area.getY()); break;
         default:                            jassertfalse; break;
@@ -419,6 +421,7 @@ void SonoLookAndFeel::drawTabButton (TabBarButton& button, Graphics& g, bool isM
     
     g.addTransform (t);
     textLayout.draw (g, Rectangle<float> (length, depth));
+
 }
 
 /*
@@ -512,8 +515,8 @@ void SonoLookAndFeel::drawTabButtonText (TabBarButton& button, Graphics& g, bool
     
     switch (button.getTabbedButtonBar().getOrientation())
     {
-        case TabbedButtonBar::TabsAtLeft:   t = t.rotated (float_Pi * -0.5f).translated (area.getX(), area.getBottom()); break;
-        case TabbedButtonBar::TabsAtRight:  t = t.rotated (float_Pi *  0.5f).translated (area.getRight(), area.getY()); break;
+        case TabbedButtonBar::TabsAtLeft:   t = t.rotated (MathConstants<float>::pi * -0.5f).translated (area.getX(), area.getBottom()); break;
+        case TabbedButtonBar::TabsAtRight:  t = t.rotated (MathConstants<float>::pi *  0.5f).translated (area.getRight(), area.getY()); break;
         case TabbedButtonBar::TabsAtTop:
         case TabbedButtonBar::TabsAtBottom: t = t.translated (area.getX(), area.getY()); break;
         default:                            jassertfalse; break;
@@ -968,8 +971,8 @@ void SonoLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, in
     }
     
     const auto thumbWidth = lineW ; // * 1.5f;
-    const Point<float> thumbPoint (bounds.getCentreX() + arcRadius * std::cos (toAngle - float_Pi * 0.5f),
-                                   bounds.getCentreY() + arcRadius * std::sin (toAngle - float_Pi * 0.5f));
+    const Point<float> thumbPoint (bounds.getCentreX() + arcRadius * std::cos (toAngle - MathConstants<float>::pi * 0.5f),
+                                   bounds.getCentreY() + arcRadius * std::sin (toAngle - MathConstants<float>::pi * 0.5f));
     
     g.setColour (findColour (Slider::thumbColourId));
     g.fillEllipse (Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));

@@ -40,6 +40,7 @@ public class SonoBusActivity   extends Activity
 {
     //==============================================================================
     private native void appNewIntent (Intent intent);
+    private native void appOnResume();
 
     private final static String TAG = "SonoBus";
  

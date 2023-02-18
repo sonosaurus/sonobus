@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -201,7 +201,7 @@ File File::getSpecialLocation (const SpecialLocationType type)
 
             case invokedExecutableFile:
                 if (juce_argv != nullptr && juce_argc > 0)
-                    return File::getCurrentWorkingDirectory().getChildFile (CharPointer_UTF8 (juce_argv[0]));
+                    return File::getCurrentWorkingDirectory().getChildFile (String (CharPointer_UTF8 (juce_argv[0])));
                 // deliberate fall-through...
                 JUCE_FALLTHROUGH
 
@@ -285,7 +285,6 @@ bool File::moveToTrash() const
 
     JUCE_AUTORELEASEPOOL
     {
-       #if JUCE_MAC || (JUCE_IOS && (defined (__IPHONE_11_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_11_0))
         if (@available (macOS 10.8, iOS 11.0, *))
         {
             NSError* error = nil;
@@ -293,7 +292,6 @@ bool File::moveToTrash() const
                                                  resultingItemURL: nil
                                                             error: &error];
         }
-       #endif
 
        #if JUCE_IOS
         return deleteFile();
@@ -399,7 +397,7 @@ bool DirectoryIterator::NativeIterator::next (String& filenameFound,
 
 
 //==============================================================================
-bool JUCE_CALLTYPE Process::openDocument (const String& fileName, const String& parameters)
+bool JUCE_CALLTYPE Process::openDocument (const String& fileName, [[maybe_unused]] const String& parameters)
 {
     JUCE_AUTORELEASEPOOL
     {
@@ -408,14 +406,18 @@ bool JUCE_CALLTYPE Process::openDocument (const String& fileName, const String& 
                                                                                        : [NSURL URLWithString: fileNameAsNS];
 
       #if JUCE_IOS
-        ignoreUnused (parameters);
+        if (@available (iOS 10.0, *))
+        {
+            [[UIApplication sharedApplication] openURL: filenameAsURL
+                                               options: @{}
+                                     completionHandler: nil];
 
-       #if (! defined __IPHONE_OS_VERSION_MIN_REQUIRED) || (! defined __IPHONE_10_0) || (__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_10_0)
+            return true;
+        }
+
+        JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wdeprecated-declarations")
         return [[UIApplication sharedApplication] openURL: filenameAsURL];
-       #else
-        [[UIApplication sharedApplication] openURL: filenameAsURL options: @{} completionHandler: nil];
-        return true;
-       #endif
+        JUCE_END_IGNORE_WARNINGS_GCC_LIKE
       #else
         NSWorkspace* workspace = [NSWorkspace sharedWorkspace];
 
@@ -434,16 +436,23 @@ bool JUCE_CALLTYPE Process::openDocument (const String& fileName, const String& 
             for (int i = 0; i < params.size(); ++i)
                 [paramArray addObject: juceStringToNS (params[i])];
 
-           #if (defined MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
-            auto config = [NSWorkspaceOpenConfiguration configuration];
-            [config setCreatesNewApplicationInstance: YES];
-            config.arguments = paramArray;
+           #if defined (MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_15
+            if (@available (macOS 10.15, *))
+            {
+                auto config = [NSWorkspaceOpenConfiguration configuration];
+                [config setCreatesNewApplicationInstance: YES];
+                config.arguments = paramArray;
 
-            [workspace openApplicationAtURL: filenameAsURL
-                              configuration: config
-                          completionHandler: nil];
-            return true;
-           #else
+                [workspace openApplicationAtURL: filenameAsURL
+                                  configuration: config
+                              completionHandler: nil];
+
+                return true;
+            }
+           #endif
+
+            JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wdeprecated-declarations")
+
             NSMutableDictionary* dict = [[NSMutableDictionary new] autorelease];
 
             [dict setObject: paramArray
@@ -453,7 +462,8 @@ bool JUCE_CALLTYPE Process::openDocument (const String& fileName, const String& 
                                              options: NSWorkspaceLaunchDefault | NSWorkspaceLaunchNewInstance
                                        configuration: dict
                                                error: nil];
-           #endif
+
+            JUCE_END_IGNORE_WARNINGS_GCC_LIKE
         }
 
         if (file.exists())
@@ -512,8 +522,9 @@ void File::addToDock() const
 
 File File::getContainerForSecurityApplicationGroupIdentifier (const String& appGroup)
 {
-    if (auto* url = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier: juceStringToNS (appGroup)])
-        return File (nsStringToJuce ([url path]));
+    if (@available (macOS 10.8, *))
+        if (auto* url = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier: juceStringToNS (appGroup)])
+            return File (nsStringToJuce ([url path]));
 
     return File();
 }

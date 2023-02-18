@@ -48,6 +48,12 @@ public:
         BACKGROUND = 2
     };
 
+    enum EndPlaybackBehaviour {
+        STOP_AT_END = 0,
+        LOOP_AT_END = 1,
+        NEXT_AT_END = 2
+    };
+    
     enum ButtonBehaviour {
         TOGGLE = 0,
         HOLD = 1,
@@ -61,8 +67,8 @@ public:
 
     /**
      * @param name The name representing the sound sample.
-     * @param filePath The absolute file path of the underlying sound file.
-     * @param loop Whether the sample should loop on playback.
+     * @param fileURL The absolute URL containing a file path of the underlying sound file.
+     * @param endBehavior Whether the sample should stop, loop, or go to next on playback end.
      * @param buttonColour The colour of the sample button in RGB value with an alpha of 0.
      * @param hotkeyCode The keycode for the hotkey to play this sample, -1 for no hotkey.
      * @param playbackBehaviour The playback behaviour.
@@ -72,9 +78,9 @@ public:
      */
     SoundSample(
             String name,
-            String filePath,
-            bool loop = false,
-            int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
+            juce::URL fileURL,
+            EndPlaybackBehaviour endBehavior = EndPlaybackBehaviour::STOP_AT_END,
+            uint32 buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR,
             int hotkeyCode = -1,
             PlaybackBehaviour playbackBehaviour = PlaybackBehaviour::SIMULTANEOUS,
             ButtonBehaviour buttonBehaviour = ButtonBehaviour::TOGGLE,
@@ -89,16 +95,16 @@ public:
     /**
      * @return The absolute file path of the underlying sound file.
      */
-    String getFilePath() const;
+    juce::URL getFileURL() const;
 
     /**
-     * @param filePath The absolute file path of the underlying sound file.
+     * @param fileURL The absolute URL of a file path of the underlying sound file.
      */
-    void setFilePath(String filePath);
+    void setFileURL(juce::URL fileURL);
 
-    bool isLoop() const;
+    [[nodiscard]] EndPlaybackBehaviour getEndPlaybackBehaviour() const { return endPlaybackBehaviour; }
 
-    void setLoop(bool newLoop);
+    void setEndPlaybackBehaviour(EndPlaybackBehaviour newEndBehavior);
 
     /**
      * @return 0xRRGGBB without alpha value.
@@ -145,7 +151,7 @@ public:
      *
      * @return Tree-shaped data structure representing the instance.
      */
-    ValueTree serialize() const;
+    ValueTree serialize();
 
     /**
      * Converts a serialized tree data structure back into a SoundSample instance.
@@ -170,11 +176,14 @@ private:
      * Key for the file path property of the root node in the serialization tree data structure.
      */
     constexpr static const char FILE_PATH_KEY[] = "filePath";
+    constexpr static const char FILE_URL_KEY[] = "fileURL";
+    constexpr static const char FILE_URL_BOOKMARK_KEY[] = "fileURLBM";
 
     /**
      * Key for the loop property of the root node in the serialization tree data structure.
      */
     constexpr static const char LOOP_KEY[] = "loop";
+    constexpr static const char END_PLAYBACK_BEHAVIOUR_KEY[] = "endPlaybackBehavior";
 
     /**
      * Key for the button colour property of the root node in the serialization tree data structure.
@@ -208,17 +217,17 @@ private:
     /**
      * The absolute file path of the underlying sound file.
      */
-    String filePath;
+    juce::URL fileURL;
 
     /**
-     * Whether the sample should loop (indefinitely).
+     * How the sample should end playback
      */
-    bool loop;
+    EndPlaybackBehaviour endPlaybackBehaviour;
 
     /**
      * The argb colour the sample button must have with 0 alpha value.
      */
-    int buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
+    uint32 buttonColour = SoundboardButtonColors::DEFAULT_BUTTON_COLOUR;
 
     /**
      * Keycode for the hotkey, -1 for no hotkey.
@@ -274,7 +283,7 @@ public:
      *
      * @return Tree-shaped data structure representing the instance.
      */
-    ValueTree serialize() const;
+    ValueTree serialize();
 
     /**
      * Converts a serialized tree data structure back into a Soundboard instance.

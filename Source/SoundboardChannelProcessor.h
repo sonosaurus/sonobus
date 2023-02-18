@@ -27,7 +27,15 @@ public:
      *
      * @param playbackManager The playback manager that is playing the audio.
      */
-    virtual void onPlaybackPositionChanged(const SamplePlaybackManager& playbackManager) {};
+    virtual void onPlaybackPositionChanged(SamplePlaybackManager* playbackManager) {};
+
+    /**
+     * Called when the playback reached the end naturally
+     *
+     * @param playbackManager The playback manager that is playing the audio.
+     */
+    virtual void onPlaybackFinished(SamplePlaybackManager* playbackManager) {};
+
 };
 
 class SamplePlaybackManager : private Timer, private ChangeListener
@@ -107,17 +115,19 @@ public:
 
     AudioSource* getAudioSource() { return &transportSource; };
 
-    void attach(PlaybackPositionListener& listener) { listeners.emplace_back(&listener); }
-    void detach(PlaybackPositionListener& listener) { listeners.remove(&listener); }
+    void attach(PlaybackPositionListener * listener) { listeners.add(listener); }
+    void detach(PlaybackPositionListener * listener) { listeners.remove(listener); }
 
 private:
     constexpr static const int READ_AHEAD_BUFFER_SIZE = 65536;
     constexpr static const int TIMER_HZ = 20;
 
-    SoundSample* sample;
+    SoundSample* sample = nullptr;
     SoundboardChannelProcessor* channelProcessor;
-    bool loaded;
-
+    bool loaded = false;
+    bool intentionallyStopped = false;
+    double lastPlaybackPos = -1.0;
+    
     // The order in which these two members are defined is important!
     // The current file source should be cleaned up AFTER transport source performs its destructing operations,
     // as the transport source attempts to clean up some things in the current file source.
@@ -128,9 +138,10 @@ private:
 
     AudioFormatManager formatManager;
 
-    std::list<PlaybackPositionListener*> listeners;
+    ListenerList<PlaybackPositionListener> listeners;
 
-    void notifyPlaybackPositionListeners() const;
+    void notifyPlaybackPosition(bool force=false);
+    void notifyPlaybackDone();
 
     void timerCallback() override;
 
@@ -185,7 +196,8 @@ public:
      * @return Hard copy of the channel group parameters.
      */
     SonoAudio::ChannelGroupParams getChannelGroupParams() const;
-
+    void setChannelGroupParams(const SonoAudio::ChannelGroupParams & other);
+    
     void prepareToPlay(int sampleRate, int meterRmsWindow, int currentSamplesPerBlock);
     void ensureBuffers(int numSamples, int maxChannels, int meterRmsWindow);
     void processMonitor(AudioBuffer<float>& otherBuffer, int numSamples, int totalOutputChannels, float wet = 1.0, bool recordChannel = false);

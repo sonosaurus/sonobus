@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE examples.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    The code included in this file is provided under the terms of the ISC license
    http://www.isc.org/downloads/software-support-policy/isc-license. Permission
@@ -33,7 +33,7 @@
                    juce_audio_processors, juce_audio_utils, juce_core,
                    juce_data_structures, juce_dsp, juce_events, juce_graphics,
                    juce_gui_basics, juce_gui_extra
- exporters:        xcode_mac, vs2019, linux_make
+ exporters:        xcode_mac, vs2022, linux_make
 
  moduleFlags:      JUCE_STRICT_REFCOUNTEDPOINTER=1
 
@@ -52,6 +52,14 @@
 #include "../Assets/DSPDemos_Common.h"
 
 using namespace dsp;
+
+template <typename T>
+static T* toBasePointer (SIMDRegister<T>* r) noexcept
+{
+    return reinterpret_cast<T*> (r);
+}
+
+constexpr auto registerSize = dsp::SIMDRegister<float>::size();
 
 //==============================================================================
 struct SIMDRegisterDemoDSP
@@ -73,33 +81,40 @@ struct SIMDRegisterDemoDSP
         iir->prepare (monoSpec);
     }
 
+    template <typename SampleType>
+    auto prepareChannelPointers (const AudioBlock<SampleType>& block)
+    {
+        std::array<SampleType*, registerSize> result {};
+
+        for (size_t ch = 0; ch < result.size(); ++ch)
+            result[ch] = (ch < block.getNumChannels() ? block.getChannelPointer (ch) : zero.getChannelPointer (ch));
+
+        return result;
+    }
+
     void process (const ProcessContextReplacing<float>& context)
     {
         jassert (context.getInputBlock().getNumSamples()  == context.getOutputBlock().getNumSamples());
         jassert (context.getInputBlock().getNumChannels() == context.getOutputBlock().getNumChannels());
 
-        auto& input  = context.getInputBlock();
-        auto& output = context.getOutputBlock();
-        auto n = (int) input.getNumSamples();
-        auto* inout = channelPointers.getData();
+        const auto& input  = context.getInputBlock();
+        const auto numSamples = (int) input.getNumSamples();
 
-        for (size_t ch = 0; ch < SIMDRegister<float>::size(); ++ch)
-            inout[ch] = (ch < input.getNumChannels() ? const_cast<float*> (input.getChannelPointer (ch)) : zero.getChannelPointer (ch));
+        auto inChannels = prepareChannelPointers (input);
 
-        using DstSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::Interleaved,    AudioData::NonConst>;
-        using SrcSampleType = AudioData::Pointer<AudioData::Float32, AudioData::NativeEndian, AudioData::NonInterleaved, AudioData::NonConst>;
+        using Format = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
 
-        DstSampleType dstData (interleaved.getChannelPointer (0), (int) interleaved.getNumChannels());
-        SrcSampleType srcData (inout);
-
-        dstData.convertSamples (srcData, n);
+        AudioData::interleaveSamples (AudioData::NonInterleavedSource<Format> { inChannels.data(),                                 registerSize, },
+                                      AudioData::InterleavedDest<Format>      { toBasePointer (interleaved.getChannelPointer (0)), registerSize },
+                                      numSamples);
 
         iir->process (ProcessContextReplacing<SIMDRegister<float>> (interleaved));
 
-        for (size_t ch = 0; ch < input.getNumChannels(); ++ch)
-            inout[ch] = output.getChannelPointer (ch);
+        auto outChannels = prepareChannelPointers (context.getOutputBlock());
 
-        srcData.convertSamples (dstData, n);
+        AudioData::deinterleaveSamples (AudioData::InterleavedSource<Format>  { toBasePointer (interleaved.getChannelPointer (0)), registerSize },
+                                        AudioData::NonInterleavedDest<Format> { outChannels.data(),                                registerSize },
+                                        numSamples);
     }
 
     void reset()
@@ -132,7 +147,6 @@ struct SIMDRegisterDemoDSP
     AudioBlock<float> zero;
 
     HeapBlock<char> interleavedBlockData, zeroData;
-    HeapBlock<const float*> channelPointers { SIMDRegister<float>::size() };
 
     ChoiceParameter typeParam { { "Low-pass", "High-pass", "Band-pass" }, 1, "Type" };
     SliderParameter cutoffParam { { 20.0, 20000.0 }, 0.5, 440.0f, "Cutoff", "Hz" };

@@ -4,7 +4,7 @@
 #include "SoundboardChannelProcessor.h"
 
 SamplePlaybackManager::SamplePlaybackManager(SoundSample* sample_, SoundboardChannelProcessor* channelProcessor_)
-    : sample(sample_), channelProcessor(channelProcessor_), loaded(false)
+    : sample(sample_), channelProcessor(channelProcessor_)
 {
     formatManager.registerBasicFormats();
     transportSource.addChangeListener(this);
@@ -22,16 +22,46 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
     if (!fileReadThread.isThreadRunning()) return false;
 
     AudioFormatReader* reader = nullptr;
-    auto audioFileUrl = URL(File(sample->getFilePath()));
+    auto audioFileUrl = sample->getFileURL();
 
-#if !JUCE_IOS
+#if ! (JUCE_IOS || JUCE_ANDROID)
     if (audioFileUrl.isLocalFile()) {
         reader = formatManager.createReaderFor(audioFileUrl.getLocalFile());
     }
     else
 #endif
     {
-        reader = formatManager.createReaderFor(audioFileUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
+#if JUCE_ANDROID
+        auto doc = AndroidDocument::fromDocument(audioFileUrl);
+        if (!doc.hasValue()) {
+            doc = AndroidDocument::fromFile(audioFileUrl.getLocalFile());
+        }
+        
+        if (doc.hasValue()) {
+            DBG("Loading Android doc: " << doc.getInfo().getName());
+            if (doc.getInfo().canRead()) {
+                
+                if (auto strm = doc.createInputStream()) {
+                    reader = formatManager.createReaderFor (std::move(strm));
+                }
+                else {
+                    DBG("Could not load android doc with URL: " << audioFileUrl.toString(false));
+                    return false;
+                }
+            } else {
+                DBG("No permission to read android doc with URL: " << audioFileUrl.toString(false));
+                return false;
+            }
+        }
+#else
+        if (auto strm = audioFileUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress))) {
+            reader = formatManager.createReaderFor(std::move(strm));
+        }
+        else {
+            DBG("Could not load from URL: " << audioFileUrl.toString(false));
+            return false;
+        }
+#endif
     }
 
     if (reader == nullptr) {
@@ -49,7 +79,7 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
 
 void SamplePlaybackManager::reloadPlaybackSettingsFromSample()
 {
-    transportSource.setLooping(sample->isLoop());
+    transportSource.setLooping(sample->getEndPlaybackBehaviour() == SoundSample::LOOP_AT_END);
     transportSource.setGain(sample->getGain());
 }
 
@@ -57,13 +87,16 @@ void SamplePlaybackManager::unload()
 {
     stopTimer();
     transportSource.stop();
+    intentionallyStopped = true;
     sample->setLastPlaybackPosition(transportSource.getCurrentPosition());
+    notifyPlaybackPosition(true);
 }
 
 void SamplePlaybackManager::play()
 {
     transportSource.start();
     startTimerHz(TIMER_HZ);
+    intentionallyStopped = false;
 }
 
 void SamplePlaybackManager::pause()
@@ -74,7 +107,7 @@ void SamplePlaybackManager::pause()
 void SamplePlaybackManager::seek(double position)
 {
     transportSource.setPosition(position);
-    notifyPlaybackPositionListeners();
+    notifyPlaybackPosition();
 }
 
 void SamplePlaybackManager::setGain(float gain)
@@ -97,16 +130,23 @@ double SamplePlaybackManager::getLength() const
     return transportSource.getLengthInSeconds();
 }
 
-void SamplePlaybackManager::notifyPlaybackPositionListeners() const
+void SamplePlaybackManager::notifyPlaybackPosition(bool force)
 {
-    for (auto& listener : listeners) {
-        listener->onPlaybackPositionChanged(*this);
+    auto nowpos = transportSource.getCurrentPosition();
+    if (fabs(lastPlaybackPos - nowpos) > 0.0001) {
+        listeners.call (&PlaybackPositionListener::onPlaybackPositionChanged, this);
+        lastPlaybackPos = nowpos;
     }
+}
+
+void SamplePlaybackManager::notifyPlaybackDone()
+{
+    listeners.call (&PlaybackPositionListener::onPlaybackFinished, this);
 }
 
 void SamplePlaybackManager::timerCallback()
 {
-    notifyPlaybackPositionListeners();
+    notifyPlaybackPosition();
 }
 
 void SamplePlaybackManager::changeListenerCallback(ChangeBroadcaster* source)
@@ -115,14 +155,21 @@ void SamplePlaybackManager::changeListenerCallback(ChangeBroadcaster* source)
         // We are at the end, return to start
         transportSource.setPosition(0.0);
         sample->setLastPlaybackPosition(0.0);
-        notifyPlaybackPositionListeners();
+        notifyPlaybackPosition(true);
     }
 
     if (!transportSource.isPlaying()) {
         if (sample->getReplayBehaviour() == SoundSample::ReplayBehaviour::REPLAY_FROM_START) {
             transportSource.setPosition(0.0);
-            notifyPlaybackPositionListeners();
+            notifyPlaybackPosition(true);
         }
+
+        if (!intentionallyStopped) {
+            notifyPlaybackDone();
+        }
+
+        //if (sample->getEndPlaybackBehaviour() == SoundSample::EndPlaybackBehaviour::NEXT_AT_END) {
+       // }
 
         // Notify the channel processor that this instance can be removed from the mixer
         // THIS MIGHT CAUSE THAT THIS OBJECT IS REMOVED!
@@ -159,7 +206,7 @@ std::optional<std::shared_ptr<SamplePlaybackManager>> SoundboardChannelProcessor
     auto manager = std::make_shared<SamplePlaybackManager>(&sample, this);
 
     if (!diskThread.isThreadRunning()) {
-        diskThread.startThread(3);
+        diskThread.startThread(Thread::Priority::normal);
     }
 
     auto loaded = manager->loadFileFromSample(diskThread);
@@ -234,6 +281,16 @@ void SoundboardChannelProcessor::setDestStartAndCount(int start, int count)
     recordChannelGroup.params.monDestChannels = std::max(1, std::min(count, MAX_CHANNELS));
     recordChannelGroup.commitMonitorDelayParams();
 }
+
+void SoundboardChannelProcessor::setChannelGroupParams(const SonoAudio::ChannelGroupParams & other)
+{
+    channelGroup.params = other;
+    channelGroup.commitAllParams();
+    
+    recordChannelGroup.params = other;
+    recordChannelGroup.commitAllParams();
+}
+
 
 float SoundboardChannelProcessor::getGain() const
 {

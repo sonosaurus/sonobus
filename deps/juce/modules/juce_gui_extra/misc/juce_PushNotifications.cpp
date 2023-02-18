@@ -2,15 +2,15 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 6 End-User License
-   Agreement and JUCE Privacy Policy (both effective as of the 16th June 2020).
+   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
+   Agreement and JUCE Privacy Policy.
 
-   End User License Agreement: www.juce.com/juce-6-licence
+   End User License Agreement: www.juce.com/juce-7-licence
    Privacy Policy: www.juce.com/juce-privacy-policy
 
    Or: You may also use this code under the terms of the GPL v3 (see
@@ -86,12 +86,11 @@ PushNotifications::~PushNotifications() { clearSingletonInstance(); }
 void PushNotifications::addListener (Listener* l)      { listeners.add (l); }
 void PushNotifications::removeListener (Listener* l)   { listeners.remove (l); }
 
-void PushNotifications::requestPermissionsWithSettings (const PushNotifications::Settings& settings)
+void PushNotifications::requestPermissionsWithSettings ([[maybe_unused]] const PushNotifications::Settings& settings)
 {
   #if JUCE_PUSH_NOTIFICATIONS && (JUCE_IOS || JUCE_MAC)
     pimpl->requestPermissionsWithSettings (settings);
   #else
-    ignoreUnused (settings);
     listeners.call ([] (Listener& l) { l.notificationSettingsReceived ({}); });
   #endif
 }
@@ -137,12 +136,10 @@ String PushNotifications::getDeviceToken() const
   #endif
 }
 
-void PushNotifications::setupChannels (const Array<ChannelGroup>& groups, const Array<Channel>& channels)
+void PushNotifications::setupChannels ([[maybe_unused]] const Array<ChannelGroup>& groups, [[maybe_unused]] const Array<Channel>& channels)
 {
   #if JUCE_PUSH_NOTIFICATIONS
     pimpl->setupChannels (groups, channels);
-  #else
-    ignoreUnused (groups, channels);
   #endif
 }
 
@@ -160,58 +157,48 @@ void PushNotifications::removeAllPendingLocalNotifications()
   #endif
 }
 
-void PushNotifications::subscribeToTopic (const String& topic)
+void PushNotifications::subscribeToTopic ([[maybe_unused]] const String& topic)
 {
   #if JUCE_PUSH_NOTIFICATIONS
     pimpl->subscribeToTopic (topic);
-  #else
-    ignoreUnused (topic);
   #endif
 }
 
-void PushNotifications::unsubscribeFromTopic (const String& topic)
+void PushNotifications::unsubscribeFromTopic ([[maybe_unused]] const String& topic)
 {
   #if JUCE_PUSH_NOTIFICATIONS
     pimpl->unsubscribeFromTopic (topic);
-  #else
-    ignoreUnused (topic);
   #endif
 }
 
 
-void PushNotifications::sendLocalNotification (const Notification& n)
+void PushNotifications::sendLocalNotification ([[maybe_unused]] const Notification& n)
 {
   #if JUCE_PUSH_NOTIFICATIONS
     pimpl->sendLocalNotification (n);
-  #else
-    ignoreUnused (n);
   #endif
 }
 
-void PushNotifications::removeDeliveredNotification (const String& identifier)
+void PushNotifications::removeDeliveredNotification ([[maybe_unused]] const String& identifier)
 {
   #if JUCE_PUSH_NOTIFICATIONS
     pimpl->removeDeliveredNotification (identifier);
-  #else
-    ignoreUnused (identifier);
   #endif
 }
 
-void PushNotifications::removePendingLocalNotification (const String& identifier)
+void PushNotifications::removePendingLocalNotification ([[maybe_unused]] const String& identifier)
 {
   #if JUCE_PUSH_NOTIFICATIONS
     pimpl->removePendingLocalNotification (identifier);
-  #else
-    ignoreUnused (identifier);
   #endif
 }
 
-void PushNotifications::sendUpstreamMessage (const String& serverSenderId,
-                                             const String& collapseKey,
-                                             const String& messageId,
-                                             const String& messageType,
-                                             int timeToLive,
-                                             const StringPairArray& additionalData)
+void PushNotifications::sendUpstreamMessage ([[maybe_unused]] const String& serverSenderId,
+                                             [[maybe_unused]] const String& collapseKey,
+                                             [[maybe_unused]] const String& messageId,
+                                             [[maybe_unused]] const String& messageType,
+                                             [[maybe_unused]] int timeToLive,
+                                             [[maybe_unused]] const StringPairArray& additionalData)
 {
   #if JUCE_PUSH_NOTIFICATIONS
     pimpl->sendUpstreamMessage (serverSenderId,
@@ -220,10 +207,24 @@ void PushNotifications::sendUpstreamMessage (const String& serverSenderId,
                                 messageType,
                                 timeToLive,
                                 additionalData);
-  #else
-    ignoreUnused (serverSenderId, collapseKey, messageId, messageType);
-    ignoreUnused (timeToLive, additionalData);
   #endif
 }
+
+//==============================================================================
+void PushNotifications::Listener::notificationSettingsReceived ([[maybe_unused]] const Settings& settings) {}
+void PushNotifications::Listener::pendingLocalNotificationsListReceived ([[maybe_unused]] const Array<Notification>& notifications) {}
+void PushNotifications::Listener::handleNotification ([[maybe_unused]] bool isLocalNotification,
+                                                      [[maybe_unused]] const Notification& notification) {}
+void PushNotifications::Listener::handleNotificationAction ([[maybe_unused]] bool isLocalNotification,
+                                                            [[maybe_unused]] const Notification& notification,
+                                                            [[maybe_unused]] const String& actionIdentifier,
+                                                            [[maybe_unused]] const String& optionalResponse) {}
+void PushNotifications::Listener::localNotificationDismissedByUser ([[maybe_unused]] const Notification& notification) {}
+void PushNotifications::Listener::deliveredNotificationsListReceived ([[maybe_unused]] const Array<Notification>& notifications) {}
+void PushNotifications::Listener::deviceTokenRefreshed ([[maybe_unused]] const String& token) {}
+void PushNotifications::Listener::remoteNotificationsDeleted() {}
+void PushNotifications::Listener::upstreamMessageSent ([[maybe_unused]] const String& messageId) {}
+void PushNotifications::Listener::upstreamMessageSendingError ([[maybe_unused]] const String& messageId,
+                                                               [[maybe_unused]] const String& error) {}
 
 } // namespace juce
