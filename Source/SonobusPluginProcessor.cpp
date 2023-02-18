@@ -735,7 +735,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     // use this to match our main app support dir
     PropertiesFile::Options options;
-    options.applicationName     = "dummy";
+    options.applicationName     = "SonoBus";
     options.filenameSuffix      = ".xml";
     options.osxLibrarySubFolder = "Application Support/SonoBus";
    #if JUCE_LINUX
