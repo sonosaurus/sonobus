@@ -271,6 +271,52 @@ bool tcp_server::accept_client() {
                            (char *)&val, sizeof(val)) != 0) {
                 LOG_ERROR("tcp_server: couldn't set TCP_NODELAY");
             }
+            
+            // keepalive and user timeout
+            int keepidle = 10;
+            int keepinterval = 10;
+            int keepcnt = 2;
+            
+            val = 1;
+            if (setsockopt (sock, SOL_SOCKET, SO_KEEPALIVE, (char*) &val, sizeof (val)) < 0){
+                LOG_WARNING("client_endpoint: couldn't set SO_KEEPALIVE");
+                // ignore
+            }
+         #ifdef TCP_KEEPIDLE
+            if (setsockopt (sock, IPPROTO_TCP, TCP_KEEPIDLE, (char*) &keepidle, sizeof (keepidle)) < 0){
+                LOG_WARNING("client_endpoint: couldn't set SO_KEEPIDLE");
+                // ignore
+            }
+         #elif defined(TCP_KEEPALIVE)
+            if (setsockopt (sock, IPPROTO_TCP, TCP_KEEPALIVE, (char*) &keepidle, sizeof (keepidle)) < 0){
+                LOG_WARNING("client_endpoint: couldn't set SO_KEEPALIVE");
+                // ignore
+            }
+         #endif
+            
+         #ifdef TCP_KEEPINTVL
+            if (setsockopt (sock, IPPROTO_TCP, TCP_KEEPINTVL, (char*) &keepinterval, sizeof (keepinterval)) < 0){
+                LOG_WARNING("client_endpoint: couldn't set SO_KEEPINTVL");
+                // ignore
+            }
+         #endif
+            
+         #ifdef TCP_KEEPCNT
+            if (setsockopt (sock, IPPROTO_TCP, TCP_KEEPCNT, (char*) &keepcnt, sizeof (keepcnt)) < 0){
+                LOG_WARNING("client_endpoint: couldn't set SO_KEEPCNT");
+                // ignore
+            }
+         #endif
+            
+         #ifdef TCP_USER_TIMEOUT
+            int utimeout = (keepidle + keepinterval * keepcnt - 1) * 1000;
+            // attempt to set TCP_USER_TIMEOUT option
+            if (setsockopt (sock, IPPROTO_TCP, TCP_USER_TIMEOUT, (char*) &utimeout, sizeof (utimeout)) < 0){
+                LOG_WARNING("client_endpoint: couldn't set TCP_USER_TIMEOUT");
+                // ignore
+            }
+         #endif
+
         #endif
             auto id = accept_handler_(0, addr, sock);
             if (id == kAooIdInvalid) {

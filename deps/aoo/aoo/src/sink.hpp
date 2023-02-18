@@ -5,7 +5,7 @@
 #pragma once
 
 #include "aoo/aoo_sink.hpp"
-#if USE_AOO_NET
+#if AOO_NET
 # include "aoo/aoo_client.hpp"
 #endif
 
@@ -16,8 +16,9 @@
 #include "common/utils.hpp"
 
 #include "binmsg.hpp"
-#include "buffer.hpp"
-#include "imp.hpp"
+#include "packet_buffer.hpp"
+#include "detail.hpp"
+#include "events.hpp"
 #include "resampler.hpp"
 #include "timer.hpp"
 #include "time_dll.hpp"
@@ -32,40 +33,6 @@ struct stream_stats {
     int32_t reordered = 0;
     int32_t resent = 0;
     int32_t dropped = 0;
-};
-
-// 'source_event' is always used inside 'source_desc', so we can safely
-// store a pointer to the sockaddr. the ip_address itself
-// never changes during lifetime of the 'source_desc'!
-// NOTE: this assumes that the event queue is polled regularly,
-// i.e. before a source_desc can be possibly autoremoved.
-struct source_event
-{
-    source_event() = default;
-
-    source_event(AooEventType _type) : type(_type) {}
-
-    source_event(AooEventType _type, const endpoint& _ep)
-        : type(_type) {
-        source.endpoint.address = _ep.address.address();
-        source.endpoint.addrlen = _ep.address.length();
-        source.endpoint.id = _ep.id;
-    }
-
-    union {
-        AooEventType type;
-        AooEvent event;
-        AooEventEndpoint source;
-        AooEventFormatChange format;
-        AooEventPing ping;
-        AooEventStreamStart stream_start;
-        AooEventStreamStop stream_stop;
-        AooEventStreamState stream_state;
-        AooEventBlockLost block_lost;
-        AooEventBlockReordered block_reordered;
-        AooEventBlockResent block_resent;
-        AooEventBlockDropped block_dropped;
-    };
 };
 
 enum class request_type {
@@ -112,7 +79,7 @@ struct source_request {
     union {
         struct {
             AooId token;
-            AooDataView *metadata;
+            AooData *metadata;
         } invite;
     };
 };
@@ -131,11 +98,23 @@ struct net_packet : data_packet {
     int32_t stream_id;
 };
 
+struct stream_message_header {
+    stream_message_header *next;
+    double time;
+    AooDataType type;
+    AooSize size;
+};
+
+struct flat_stream_message {
+    stream_message_header header;
+    char data[1];
+};
+
 class Sink;
 
 class source_desc {
 public:
-#if USE_AOO_NET
+#if AOO_NET
     source_desc(const ip_address& addr, AooId id,
                 const ip_address& relay, double time);
 #else
@@ -167,7 +146,7 @@ public:
     void reset(const Sink& s);
 
     AooError handle_start(const Sink& s, int32_t stream, uint32_t flags, int32_t format_id,
-                          const AooFormat& f, const AooByte *settings, int32_t size, const AooDataView& md);
+                          const AooFormat& f, const AooByte *settings, int32_t size, const AooData& md);
 
     AooError handle_stop(const Sink& s, int32_t stream);
 
@@ -177,17 +156,16 @@ public:
 
     void send(const Sink& s, const sendfn& fn);
 
-    bool process(const Sink& s, AooSample **buffer, int32_t nsamples);
+    bool process(const Sink& s, AooSample **buffer, int32_t nsamples,
+                 AooStreamMessageHandler handler, void *user);
 
-    void invite(const Sink& s, AooId token, AooDataView *metadata);
+    void invite(const Sink& s, AooId token, AooData *metadata);
 
     void uninvite(const Sink& s);
 
     float get_buffer_fill_ratio();
 
-    void add_xrun(int32_t nsamples){
-        xrunsamples_ += nsamples;
-    }
+    void add_xrun(double nblocks);
 private:
     using shared_lock = sync::shared_lock<sync::shared_mutex>;
     using unique_lock = sync::unique_lock<sync::shared_mutex>;
@@ -196,16 +174,12 @@ private:
 
     void update(const Sink& s);
 
-    void add_lost(stream_stats& stats, int32_t n);
-
     void handle_underrun(const Sink& s);
 
     bool add_packet(const Sink& s, const net_packet& d,
                     stream_stats& stats);
 
-    void process_blocks(const Sink& s, stream_stats& stats);
-
-    void skip_blocks(const Sink& s);
+    bool try_decode_block(const Sink& s, stream_stats& stats);
 
     void check_missing_blocks(const Sink& s);
 
@@ -225,15 +199,17 @@ private:
     AooId stream_id_ = kAooIdInvalid;
     AooId format_id_ = kAooIdInvalid;
 
+    int32_t channel_ = 0; // recent channel onset
     AooStreamState streamstate_{kAooStreamStateInactive};
     bool underrun_{false};
     bool didupdate_{false};
+    bool wait_for_buffer_{false};
     std::atomic<bool> binary_{false};
+    double xrunblocks_ = 0;
 
     std::atomic<source_state> state_{source_state::idle};
-    AooDataView *metadata_{nullptr};
-
-    std::unique_ptr<AooDataView, flat_metadata_deleter> invite_metadata_{nullptr};
+    rt_metadata_ptr metadata_;
+    rt_metadata_ptr invite_metadata_;
     std::atomic<int32_t> invite_token_{kAooIdInvalid};
 
     // timing
@@ -246,27 +222,18 @@ private:
     // audio decoder
     std::unique_ptr<AooFormat, format_deleter> format_;
     std::unique_ptr<AooCodec, decoder_deleter> decoder_;
-    // processing state
-    int32_t channel_ = 0; // recent channel onset
-    int32_t skipblocks_ = 0;
-    float xrun_ = 0;
-    int32_t xrunsamples_ = 0;
     // resampler
     dynamic_resampler resampler_;
-    // queues and buffers
-    struct block_data {
-        struct {
-            double samplerate;
-            int32_t channel;
-            int32_t padding;
-        } header;
-        AooSample data[1];
-    };
-    aoo::spsc_queue<char> audioqueue_;
-    int32_t minblocks_ = 0;
     // packet queue and jitter buffer
     aoo::unbounded_mpsc_queue<net_packet> packetqueue_;
     jitter_buffer jitterbuffer_;
+    int32_t wait_blocks_ = 0;
+    int32_t latency_blocks_ = 0;
+    // stream messages
+    stream_message_header *stream_messages_ = nullptr;
+    double stream_samples_ = 0;
+    uint64_t process_samples_ = 0;
+    void reset_stream_messages();
     // requests
     aoo::unbounded_mpsc_queue<request> requestqueue_;
     void push_request(const request& r){
@@ -281,16 +248,16 @@ private:
         datarequestqueue_.push(r);
     }
     // events
-    aoo::unbounded_mpsc_queue<source_event> eventqueue_;
-    void send_event(const Sink& s, const source_event& e, AooThreadLevel level);
-    void free_event(const source_event& e);
+    using event_queue = lockfree::unbounded_mpsc_queue<event_ptr, aoo::rt_allocator<event_ptr>>;
+    event_queue eventqueue_;
+    void send_event(const Sink& s, event_ptr e, AooThreadLevel level);
     // memory
     aoo::memory_list memory_;
     // thread synchronization
     sync::shared_mutex mutex_; // LATER replace with a spinlock?
 };
 
-class Sink final : public AooSink {
+class Sink final : public AooSink, rt_memory_pool_client {
 public:
     Sink(AooId id, AooFlag flags, AooError *err);
 
@@ -304,8 +271,8 @@ public:
 
     AooError AOO_CALL send(AooSendFunc fn, void *user) override;
 
-    AooError AOO_CALL process(AooSample **data, AooInt32 nsamples,
-                              AooNtpTime t) override;
+    AooError AOO_CALL process(AooSample **data, AooInt32 nsamples, AooNtpTime t,
+                              AooStreamMessageHandler messageHandler, void *user) override;
 
     AooError AOO_CALL setEventHandler(AooEventHandler fn, void *user,
                                       AooEventMode mode) override;
@@ -315,7 +282,7 @@ public:
     AooError AOO_CALL pollEvents() override;
 
     AooError AOO_CALL inviteSource(
-            const AooEndpoint& source, const AooDataView *metadata) override;
+            const AooEndpoint& source, const AooData *metadata) override;
 
     AooError AOO_CALL uninviteSource(const AooEndpoint& source) override;
 
@@ -340,6 +307,8 @@ public:
 
     int32_t blocksize() const { return blocksize_; }
 
+    AooSeconds latency() const { return latency_.load(); }
+
     AooSeconds buffersize() const { return buffersize_.load(); }
 
     int32_t packetsize() const { return packetsize_.load(); }
@@ -360,16 +329,16 @@ public:
 
     AooEventMode event_mode() const { return eventmode_; }
 
-    void send_event(const endpoint_event& e, AooThreadLevel level) const;
+    void send_event(event_ptr e, AooThreadLevel level) const;
 
-    void call_event(const source_event& e, AooThreadLevel level) const;
+    void call_event(event_ptr e, AooThreadLevel level) const;
 private:
     // settings
     parameter<AooId> id_;
     int32_t nchannels_ = 0;
     int32_t samplerate_ = 0;
     int32_t blocksize_ = 0;
-#if USE_AOO_NET
+#if AOO_NET
     AooClient *client_ = nullptr;
 #endif
     // the sources
@@ -382,7 +351,8 @@ private:
     time_dll dll_;
     timer timer_;
     // options
-    parameter<float> buffersize_{ AOO_SINK_BUFFER_SIZE };
+    parameter<float> latency_{ AOO_SINK_LATENCY };
+    parameter<float> buffersize_{ 0 };
     parameter<float> resend_interval_{ AOO_RESEND_INTERVAL };
     parameter<int32_t> packetsize_{ AOO_PACKET_SIZE };
     parameter<int32_t> resend_limit_{ AOO_RESEND_LIMIT };
@@ -393,7 +363,8 @@ private:
     parameter<bool> dynamic_resampling_{ AOO_DYNAMIC_RESAMPLING };
     parameter<bool> timer_check_{ AOO_XRUN_DETECTION };
     // events
-    mutable aoo::unbounded_mpsc_queue<endpoint_event> eventqueue_;
+    using event_queue = lockfree::unbounded_mpsc_queue<event_ptr, aoo::rt_allocator<event_ptr>>;
+    mutable event_queue eventqueue_;
     AooEventHandler eventhandler_ = nullptr;
     void *eventcontext_ = nullptr;
     AooEventMode eventmode_ = kAooEventModeNone;

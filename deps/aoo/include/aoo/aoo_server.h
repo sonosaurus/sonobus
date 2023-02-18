@@ -23,7 +23,7 @@
  * \param flags send flags
  * \return number of bytes written, or -1 on error
  */
-typedef AooInt32 (AOO_CALL *AooNetReplyFunc)(
+typedef AooInt32 (AOO_CALL *AooServerReplyFunc)(
         /** the user data */
         void *user,
         /** the client ID */
@@ -68,7 +68,7 @@ AOO_API AooError AOO_CALL AooServer_handleUdpMessage(
 
 /** \copydoc AooServer::addClient() */
 AOO_API AooError AOO_CALL AooServer_addClient(
-        AooServer *server, AooNetReplyFunc replyFn,
+        AooServer *server, AooServerReplyFunc replyFn,
         void *user, AooSocket sockfd, AooId *id);
 
 /** \copydoc AooServer::removeClient() */
@@ -82,19 +82,19 @@ AOO_API AooError AOO_CALL AooServer_handleClientMessage(
 
 /** \copydoc AooServer::setRequestHandler() */
 AOO_API AooError AOO_CALL AooServer_setRequestHandler(
-        AooServer *server, AooNetRequestHandler cb,
+        AooServer *server, AooRequestHandler cb,
         void *user, AooFlag flags);
 
 /** \copydoc AooServer::acceptRequest */
 AOO_API AooError AOO_CALL acceptRequest(
         AooServer *server,
-        AooId client, AooId token, const AooNetRequest *request,
-        const AooNetResponse *response);
+        AooId client, AooId token, const AooRequest *request,
+        const AooResponse *response);
 
 /** \copydoc AooServer::declineRequest */
 AOO_API AooError AOO_CALL declineRequest(
         AooServer *server,
-        AooId client, AooId token, const AooNetRequest *request,
+        AooId client, AooId token, const AooRequest *request,
         AooError errorCode, const AooChar *errorMessage);
 
 /* push notifications */
@@ -102,12 +102,12 @@ AOO_API AooError AOO_CALL declineRequest(
 /** \copydoc AooServer::notifyClient() */
 AOO_API AooError AOO_CALL AooServer_notifyClient(
         AooServer *server, AooId client,
-        const AooDataView *data);
+        const AooData *data);
 
 /** \copydoc AooServer::notifyGroup() */
 AOO_API AooError AOO_CALL AooServer_notifyGroup(
         AooServer *server, AooId group, AooId user,
-        const AooDataView *data);
+        const AooData *data);
 
 /* group management */
 
@@ -118,7 +118,7 @@ AOO_API AooError AOO_CALL AooServer_findGroup(
 /** \copydoc AooServer::addGroup() */
 AOO_API AooError AOO_CALL AooServer_addGroup(
         AooServer *server, const AooChar *name, const AooChar *password,
-        const AooDataView *metadata, const AooIpEndpoint *relayAddress,
+        const AooData *metadata, const AooIpEndpoint *relayAddress,
         AooFlag flags, AooId *groupId);
 
 /** \copydoc AooServer::removeGroup() */
@@ -134,7 +134,7 @@ AOO_API AooError AOO_CALL AooServer_findUserInGroup(
 AOO_API AooError AOO_CALL AooServer_addUserToGroup(
         AooServer *server, AooId group,
         const AooChar *userName, const AooChar *userPwd,
-        const AooDataView *metadata, AooFlag flags, AooId *userId);
+        const AooData *metadata, AooFlag flags, AooId *userId);
 
 /** \copydoc AooServer::removeUserFromGroup() */
 AOO_API AooError AOO_CALL AooServer_removeUserFromGroup(
@@ -207,13 +207,13 @@ AOO_INLINE AooError AooServer_getGroupAutoCreate(AooServer *server, AooBool* b)
 /*--------------------------------------------------*/
 
 AOO_INLINE AooError AooServer_updateGroup(
-        AooServer *server, AooId group, const AooDataView *metadata)
+        AooServer *server, AooId group, const AooData *metadata)
 {
     return AooServer_groupControl(server, group, kAooCtlUpdateGroup, 0, AOO_ARG(metadata));
 }
 
 AOO_INLINE AooError AooServer_updateUser(
-        AooServer *server, AooId group, AooId user, const AooDataView *metadata)
+        AooServer *server, AooId group, AooId user, const AooData *metadata)
 {
     return AooServer_groupControl(server, group, kAooCtlUpdateUser, user, AOO_ARG(metadata));
 }

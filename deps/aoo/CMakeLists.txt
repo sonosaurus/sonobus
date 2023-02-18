@@ -40,17 +40,17 @@ message(STATUS "\n*** Global settings ***\n")
 # oscpack
 option(AOO_SYSTEM_OSCPACK "use system provided oscpack library" OFF)
 if (AOO_SYSTEM_OSCPACK)
-	set(AOO_OSCPACK_LDFLAGS "oscpack" CACHE STRING "oscpack linker flags")
+    set(AOO_OSCPACK_LDFLAGS "oscpack" CACHE STRING "oscpack linker flags")
 endif()
 
 # md5
 option(AOO_SYSTEM_MD5 "use system provided md5 library" OFF)
 if (AOO_SYSTEM_MD5)
-	set(AOO_MD5_LDFLAGS "md5" CACHE STRING "md5 linker flags")
+    set(AOO_MD5_LDFLAGS "md5" CACHE STRING "md5 linker flags")
 endif()
 
 if(UNIX AND NOT APPLE AND NOT MINGW)
-	set(LINUX TRUE)
+    set(LINUX TRUE)
 endif()
 
 # some MinGW setups don't define WIN32!
@@ -61,23 +61,23 @@ endif()
 
 # check for Clang or AppleClang
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	set(CMAKE_COMPILER_IS_CLANG 1)
+    set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
 message(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
 endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 
 if(LINUX AND CMAKE_COMPILER_IS_GNUCXX)
-	option(AOO_STATIC_LIBS "link with static libraries (libstdc++ and libgcc)" ON)
+    option(AOO_STATIC_LIBS "link with static libraries (libstdc++ and libgcc)" ON)
 endif()
 if(MINGW)
-	option(AOO_STATIC_LIBS "link with static libraries (libstdc++, libgcc and phread)" ON)
-	set(CMAKE_EXECUTABLE_SUFFIX ".exe")
+    option(AOO_STATIC_LIBS "link with static libraries (libstdc++, libgcc and phread)" ON)
+    set(CMAKE_EXECUTABLE_SUFFIX ".exe")
 endif()
 
 # logging
@@ -155,8 +155,11 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
 endif()
 
 # global optimization flags
-
-add_compile_options("-ffast-math" "-funroll-loops" "-fomit-frame-pointer")
+if (MSVC)
+    add_compile_options("/fp:fast")
+else()
+    add_compile_options("-ffast-math" "-funroll-loops" "-fomit-frame-pointer")
+endif()
 if (HAVE_CXX_SSE)
     add_compile_options("-msse")
 endif()
@@ -228,7 +231,7 @@ endif()
 # networking support
 option(AOO_NET "Build with networking support" ON)
 message(STATUS "Use AOO NET: ${AOO_NET}")
-add_definitions(-DUSE_AOO_NET=$<BOOL:${AOO_NET}>)
+add_definitions(-DAOO_NET=$<BOOL:${AOO_NET}>)
 
 # platform specific linker flags
 if (LINUX)

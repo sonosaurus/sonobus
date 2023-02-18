@@ -118,7 +118,7 @@ struct _OpenCmd : CmdData {
     AooSampleRate sampleRate;
     int32_t blockSize;
     int32_t numChannels;
-    AooSeconds bufferSize;
+    AooSeconds latency;
 };
 
 struct OptionCmd : CmdData {
@@ -196,7 +196,7 @@ public:
     void beginReply(osc::OutboundPacketStream& msg, const char *cmd, int replyID);
     void beginEvent(osc::OutboundPacketStream &msg, const char *event);
     void beginEvent(osc::OutboundPacketStream& msg, const char *event,
-                    const aoo::ip_address& addr, AooId id);
+                    const AooEndpoint& ep);
     void sendMsgRT(osc::OutboundPacketStream& msg);
     void sendMsgNRT(osc::OutboundPacketStream& msg);
 protected:

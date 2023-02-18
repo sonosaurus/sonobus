@@ -74,6 +74,19 @@ public:
      */
     virtual AooError AOO_CALL send(AooSendFunc fn, void *user) = 0;
 
+    /** \brief add a stream message
+     *
+     * \note Threadsafe and RT-safe; call on the audio thread
+     *
+     * Call this function to add messages for the \em next process block.
+     *
+     * \note if the sample offset is larger than the next process block,
+     *       the message will be scheduled for later.
+     *
+     * \param message the message
+     */
+    virtual AooError AOO_CALL addStreamMessage(const AooStreamMessage& message) = 0;
+
     /** \brief process audio
      *
      * \note Threadsafe and RT-safe; call on the audio thread
@@ -110,12 +123,12 @@ public:
      *
      * \note Threadsafe, RT-safe and reentrant
      *
-     * You can pass an optional AooDataView structure which will be sent as
+     * You can pass an optional AooData structure which will be sent as
      * additional stream metadata. For example, it could contain information
      * about the channel layout, the musical content, etc.
      */
     virtual AooError AOO_CALL startStream(
-            const AooDataView *metadata) = 0;
+            const AooData *metadata) = 0;
 
     /** \brief Stop the current stream */
     virtual AooError AOO_CALL stopStream() = 0;
@@ -204,10 +217,7 @@ public:
 
     /** \brief Get the stream format
      *
-     * \param[out] format Pointer to an instance of `AooFormatStorage` or a similar
-     * struct that is large enough to hold any codec format.
-     * The `size` member in the format header should contain the storage size;
-     * on success it is updated to the actual format size
+     * \param[out] format Pointer to an instance of `AooFormatStorage`
      */
     AooError getFormat(AooFormatStorage& format) {
         return control(kAooCtlGetFormat, 0, AOO_ARG(format));
@@ -367,20 +377,6 @@ public:
     /** \brief Check if binary data messages are enabled */
     AooError getBinaryDataMsg(AooBool& b) {
         return control(kAooCtlGetBinaryDataMsg, 0, AOO_ARG(b));
-    }
-
-    /** \brief Set the max. size of stream metadata
-     *
-     * Setting this property will allocate enough memory to hold any stream metadata
-     * up to the given size. Use this to avoid allocating memory in kAooCtlStartStream.
-     */
-    AooError setStreamMetaDataSize(AooInt32 size) {
-        return control(kAooCtlSetStreamMetadataSize, 0, AOO_ARG(size));
-    }
-
-    /** \brief Get the current max. size of stream metadata. */
-    AooError getStreamMetaDataSize(AooInt32& size) {
-        return control(kAooCtlGetStreamMetadataSize, 0, AOO_ARG(size));
     }
 
     /** \brief Set the sink channel onset

@@ -2,7 +2,7 @@
 
 #include "aoo/aoo.h"
 
-#include "imp.hpp"
+#include "detail.hpp"
 
 #include "common/sync.hpp"
 #include "common/time.hpp"

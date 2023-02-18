@@ -53,7 +53,7 @@ private:
 
     int socket_;
     aoo::ip_address addr_;
-    std::atomic<bool> running_ = false;
+    std::atomic<bool> running_{false};
     bool threaded_ = false;
 
     std::vector<AooByte> buffer_;

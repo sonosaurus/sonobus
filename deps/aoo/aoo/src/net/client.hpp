@@ -8,41 +8,38 @@
 
 #include "osc_stream_receiver.hpp"
 
-#include "common/utils.hpp"
-#include "common/sync.hpp"
-#include "common/time.hpp"
 #include "common/lockfree.hpp"
 #include "common/net_utils.hpp"
+#include "common/time.hpp"
+#include "common/utils.hpp"
 
-#include "../imp.hpp"
-#include "../binmsg.hpp"
-#include "../buffer.hpp"
+#include "detail.hpp"
+#include "event.hpp"
+#include "peer.hpp"
 
 #include "oscpack/osc/OscOutboundPacketStream.h"
 #include "oscpack/osc/OscReceivedElements.h"
 
-#ifdef _WIN32
-#include <winsock2.h>
+#ifndef AOO_CLIENT_PING_INTERVAL
+ #define AOO_CLIENT_PING_INTERVAL 5000
+#endif
+
+#ifndef AOO_CLIENT_QUERY_INTERVAL
+ #define AOO_CLIENT_QUERY_INTERVAL 100
+#endif
+
+#ifndef AOO_CLIENT_QUERY_TIMEOUT
+ #define AOO_CLIENT_QUERY_TIMEOUT 5000
+#endif
+
+#ifndef AOO_CLIENT_SIMULATE
+# define AOO_CLIENT_SIMULATE 0
 #endif
 
 #include <vector>
 #include <unordered_map>
-#include <queue>
-
-#ifndef AOO_NET_CLIENT_PING_INTERVAL
- #define AOO_NET_CLIENT_PING_INTERVAL 5000
-#endif
-
-#ifndef AOO_NET_CLIENT_QUERY_INTERVAL
- #define AOO_NET_CLIENT_QUERY_INTERVAL 100
-#endif
-
-#ifndef AOO_NET_CLIENT_QUERY_TIMEOUT
- #define AOO_NET_CLIENT_QUERY_TIMEOUT 5000
-#endif
-
-#ifndef AOO_NET_CLIENT_SIMULATE
-#define AOO_NET_CLIENT_SIMULATE 0
+#if AOO_CLIENT_SIMULATE
+# include <queue>
 #endif
 
 struct AooSource;
@@ -53,367 +50,13 @@ namespace net {
 
 class Client;
 
-#if 0
-using ip_address_list = std::vector<ip_address, aoo::allocator<ip_address>>;
-#else
-using ip_address_list = std::vector<ip_address>;
-#endif
-
-//---------------------- peer -----------------------------------//
-
-struct message;
-
-struct message_packet {
-    const char *type;
-    const AooByte *data;
-    int32_t size;
-    time_tag tt;
-    int32_t sequence;
-    int32_t totalsize;
-    int32_t nframes;
-    int32_t frame;
-    bool reliable;
-};
-
-struct message_ack {
-    int32_t seq;
-    int32_t frame;
-};
-
-class peer {
-public:
-    peer(const std::string& groupname, AooId groupid,
-         const std::string& username, AooId userid, AooId localid,
-         ip_address_list&& addrlist, const AooDataView *metadata,
-         ip_address_list&& user_relay, const ip_address_list& group_relay);
-
-    ~peer();
-
-    bool connected() const {
-        return connected_.load(std::memory_order_acquire);
-    }
-
-    bool match(const ip_address& addr) const;
-
-    bool match(const std::string& group) const;
-
-    bool match(const std::string& group, const std::string& user) const;
-
-    bool match(AooId group) const;
-
-    bool match(AooId group, AooId user) const;
-
-    bool match_wildcard(AooId group, AooId user) const;
-
-    bool relay() const { return relay_; }
-
-    const ip_address& relay_address() const { return relay_address_; }
-
-    const ip_address_list& user_relay() const { return user_relay_;}
-
-    const std::string& group_name() const { return group_name_; }
-
-    AooId group_id() const { return group_id_; }
-
-    const std::string& user_name() const { return user_name_; }
-
-    AooId user_id() const { return user_id_; }
-
-    AooId local_id() const { return local_id_; }
-
-    const ip_address& address() const {
-        return real_address_;
-    }
-
-    const aoo::metadata& metadata() const { return metadata_; }
-
-    void send(Client& client, const sendfn& fn, time_tag now);
-
-    void send_message(const message& msg, const sendfn& fn, bool binary);
-
-    void handle_osc_message(Client& client, const char *pattern,
-                            osc::ReceivedMessageArgumentIterator it,
-                            const ip_address& addr);
-
-    void handle_bin_message(Client& client, const AooByte *data,
-                            AooSize size, int onset, const ip_address& addr);
-private:
-    void handle_ping(Client& client, osc::ReceivedMessageArgumentIterator it,
-                     const ip_address& addr, bool reply);
-
-    void handle_client_message(Client& client, osc::ReceivedMessageArgumentIterator it);
-
-    void handle_client_message(Client& client, const AooByte *data, AooSize size);
-
-    void do_handle_client_message(Client& client, const message_packet& p, AooFlag flags);
-
-    void handle_ack(Client& client, osc::ReceivedMessageArgumentIterator it);
-
-    void handle_ack(Client& client, const AooByte *data, AooSize size);
-
-    void do_send(Client& client, const sendfn& fn, time_tag now);
-
-    void send_packet_osc(const message_packet& frame, const sendfn& fn) const;
-
-    void send_packet_bin(const message_packet& frame, const sendfn& fn) const;
-
-    void send_ack(const message_ack& ack, const sendfn& fn);
-
-    void send(const osc::OutboundPacketStream& msg, const sendfn& fn) const {
-        send((const AooByte *)msg.Data(), msg.Size(), fn);
-    }
-
-    void send(const AooByte *data, AooSize size, const sendfn& fn) const;
-
-    void send(const osc::OutboundPacketStream& msg,
-              const ip_address& addr, const sendfn& fn) const {
-        send((const AooByte *)msg.Data(), msg.Size(), addr, fn);
-    }
-
-    void send(const AooByte *data, AooSize size,
-              const ip_address& addr, const sendfn &fn) const;
-
-    const std::string group_name_;
-    const std::string user_name_;
-    const AooId group_id_;
-    const AooId user_id_;
-    const AooId local_id_;
-    aoo::metadata metadata_;
-    bool relay_ = false;
-    ip_address_list addrlist_;
-    ip_address_list user_relay_;
-    ip_address_list group_relay_;
-    ip_address real_address_;
-    ip_address relay_address_;
-    time_tag start_time_;
-    double last_pingtime_ = 0;
-    time_tag ping_tt1_;
-    std::atomic<float> average_rtt_{0};
-    std::atomic<bool> connected_{false};
-    std::atomic<bool> got_ping_{false};
-    std::atomic<bool> binary_{false};
-    bool timeout_ = false;
-    int32_t next_sequence_reliable_ = 0;
-    int32_t next_sequence_unreliable_ = 0;
-    aoo::message_send_buffer send_buffer_;
-    aoo::message_receive_buffer receive_buffer_;
-    received_message current_msg_;
-    aoo::unbounded_mpsc_queue<message_ack> send_acks_;
-    aoo::unbounded_mpsc_queue<message_ack> received_acks_;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const peer& p) {
-    os << "" << p.group_name() << "|" << p.user_name()
-       << " (" << p.group_id() << "|" << p.user_id() << ")";
-    return os;
-}
-
-//------------------------ events ----------------------------//
-
-struct base_event : ievent {
-    base_event(AooEventType type) : type_(type) {}
-
-    void dispatch(const event_handler &fn) const override {
-        AooEvent e;
-        e.type = type_;
-        fn(e);
-    }
-
-    AooEventType type_;
-};
-
-struct peer_event : base_event
-{
-    peer_event(int32_t type, const peer& p)
-        : base_event(type), group_id_(p.group_id()), user_id_(p.user_id()),
-          group_name_(p.group_name()), user_name_(p.user_name()),
-          addr_(p.address()), metadata_(p.metadata()) {}
-
-    void dispatch(const event_handler &fn) const override {
-        AooNetEventPeer e;
-        e.type = type_;
-        e.flags = 0;
-        e.groupId = group_id_;
-        e.userId = user_id_;
-        e.groupName = group_name_.c_str();
-        e.userName = user_name_.c_str();
-        e.address.data = addr_.valid() ? addr_.address() : nullptr;
-        e.address.size = addr_.length();
-        AooDataView md { metadata_.type(), metadata_.data(), metadata_.size() };
-        e.metadata = md.size > 0 ? &md : nullptr;
-
-        fn(e);
-    }
-
-    AooId group_id_;
-    AooId user_id_;
-    std::string group_name_;
-    std::string user_name_;
-    ip_address addr_;
-    metadata metadata_;
-};
-
-struct peer_ping_base_event : base_event
-{
-    peer_ping_base_event(AooEventType type, const peer& p,
-                         time_tag tt1, time_tag tt2, time_tag tt3 = time_tag{})
-        : base_event(type), group_(p.group_id()), user_(p.user_id()),
-          tt1_(tt1), tt2_(tt2), tt3_(tt3) {}
-
-    void dispatch(const event_handler &fn) const override {
-        // AooNetEventPeerPing and AooNetEventPeerPingReply are layout compatible
-        AooNetEventPeerPingReply e;
-        e.type = type_;
-        e.flags = 0;
-        e.group = group_;
-        e.user = user_;
-        e.tt1 = tt1_;
-        e.tt2 = tt2_;
-        e.tt3 = tt3_;
-
-        fn(e);
-    }
-
-    AooId group_;
-    AooId user_;
-    time_tag tt1_;
-    time_tag tt2_;
-    time_tag tt3_;
-};
-
-struct peer_ping_event : peer_ping_base_event
-{
-    peer_ping_event(const peer& p, time_tag tt1, time_tag tt2)
-        : peer_ping_base_event(kAooNetEventPeerPing, p, tt1, tt2) {}
-};
-
-struct peer_ping_reply_event : peer_ping_base_event
-{
-    peer_ping_reply_event(const peer& p, time_tag tt1, time_tag tt2, time_tag tt3)
-        : peer_ping_base_event(kAooNetEventPeerPingReply, p, tt1, tt2, tt3) {}
-};
-
-struct peer_message_event : base_event
-{
-    peer_message_event(AooId group, AooId user, time_tag tt, const AooDataView& msg)
-        : base_event(kAooNetEventPeerMessage), group_(group), user_(user), tt_(tt), msg_(&msg) {}
-
-    void dispatch(const event_handler &fn) const override {
-        AooNetEventPeerMessage e;
-        e.type = type_;
-        e.flags = 0; // TODO
-        e.groupId = group_;
-        e.userId = user_;
-        e.timeStamp = tt_;
-        e.data.type = msg_.type();
-        e.data.data = msg_.data();
-        e.data.size = msg_.size();
-
-        fn(e);
-    }
-
-    AooId group_;
-    AooId user_;
-    time_tag tt_;
-    metadata msg_;
-};
-
-struct peer_update_event : base_event
-{
-    peer_update_event(AooId group, AooId user, const AooDataView& md)
-        : base_event(kAooNetEventPeerUpdate), group_(group), user_(user), md_(&md) {}
-
-    void dispatch(const event_handler &fn) const override {
-        AooNetEventPeerUpdate e;
-        e.type = type_;
-        e.flags = 0; // TODO
-        e.groupId = group_;
-        e.userId = user_;
-        e.userMetadata.type = md_.type();
-        e.userMetadata.data = md_.data();
-        e.userMetadata.size = md_.size();
-
-        fn(e);
-    }
-
-    AooId group_;
-    AooId user_;
-    metadata md_;
-};
-
-struct user_update_event : base_event
-{
-    user_update_event(AooId group, AooId user, const AooDataView& md)
-        : base_event(kAooNetEventClientUserUpdate), group_(group), user_(user), md_(&md) {}
-
-    void dispatch(const event_handler &fn) const override {
-        AooNetEventClientUserUpdate e;
-        e.type = type_;
-        e.flags = 0; // TODO
-        e.groupId = group_;
-        e.userId = user_;
-        e.userMetadata.type = md_.type();
-        e.userMetadata.data = md_.data();
-        e.userMetadata.size = md_.size();
-
-        fn(e);
-    }
-
-    AooId group_;
-    AooId user_;
-    metadata md_;
-};
-
-struct group_update_event : base_event
-{
-    group_update_event(AooId group, const AooDataView& md)
-        : base_event(kAooNetEventClientGroupUpdate), group_(group), md_(&md) {}
-
-    void dispatch(const event_handler &fn) const override {
-        AooNetEventClientGroupUpdate e;
-        e.type = type_;
-        e.flags = 0; // TODO
-        e.groupId = group_;
-        e.groupMetadata.type = md_.type();
-        e.groupMetadata.data = md_.data();
-        e.groupMetadata.size = md_.size();
-
-        fn(e);
-    }
-
-    AooId group_;
-    metadata md_;
-};
-
-struct notification_event : base_event
-{
-    notification_event(const AooDataView& msg)
-        : base_event(kAooNetEventClientNotification), msg_(&msg) {}
-
-    void dispatch(const event_handler &fn) const override {
-        AooNetEventClientNotification e;
-        e.type = type_;
-        e.flags = 0; // TODO
-        e.message.type = msg_.type();
-        e.message.data = msg_.data();
-        e.message.size = msg_.size();
-
-        fn(e);
-    }
-
-    AooId group_;
-    AooId user_;
-    time_tag tt_;
-    metadata msg_;
-};
-
 //---------------------------- message ---------------------------------//
 
 // peer/group messages
 struct message {
     message() = default;
 
-    message(AooId group, AooId user, time_tag tt, const AooDataView& data, bool reliable)
+    message(AooId group, AooId user, time_tag tt, const AooData& data, bool reliable)
         : group_(group), user_(user), tt_(tt), data_(&data), reliable_(reliable) {}
     // data
     AooId group_ = kAooIdInvalid;
@@ -512,25 +155,25 @@ public:
 
     AooError AOO_CALL connect(
             const AooChar *hostName, AooInt32 port, const AooChar *password,
-            const AooDataView *metadata, AooNetCallback cb, void *context) override;
+            const AooData *metadata, AooResponseHandler cb, void *context) override;
 
-    AooError AOO_CALL disconnect(AooNetCallback cb, void *context) override;
+    AooError AOO_CALL disconnect(AooResponseHandler cb, void *context) override;
 
     AooError AOO_CALL joinGroup(
-            const AooChar *groupName, const AooChar *groupPwd, const AooDataView *groupMetadata,
-            const AooChar *userName, const AooChar *userPwd, const AooDataView *userMetadata,
-            const AooIpEndpoint *relayAddress, AooNetCallback cb, void *context) override;
+            const AooChar *groupName, const AooChar *groupPwd, const AooData *groupMetadata,
+            const AooChar *userName, const AooChar *userPwd, const AooData *userMetadata,
+            const AooIpEndpoint *relayAddress, AooResponseHandler cb, void *context) override;
 
-    AooError AOO_CALL leaveGroup(AooId group, AooNetCallback cb, void *context) override;
+    AooError AOO_CALL leaveGroup(AooId group, AooResponseHandler cb, void *context) override;
 
-    AooError AOO_CALL updateGroup(AooId group, const AooDataView& metadata,
-                                  AooNetCallback cb, void *context) override;
+    AooError AOO_CALL updateGroup(AooId group, const AooData& metadata,
+                                  AooResponseHandler cb, void *context) override;
 
-    AooError AOO_CALL updateUser(AooId group, AooId user, const AooDataView& metadata,
-                                 AooNetCallback cb, void *context) override;
+    AooError AOO_CALL updateUser(AooId group, AooId user, const AooData& metadata,
+                                 AooResponseHandler cb, void *context) override;
 
-    AooError AOO_CALL customRequest(const AooDataView& data, AooFlag flags,
-                                    AooNetCallback cb, void *context) override;
+    AooError AOO_CALL customRequest(const AooData& data, AooFlag flags,
+                                    AooResponseHandler cb, void *context) override;
 
     AooError AOO_CALL findPeerByName(
             const AooChar *group, const AooChar *user, AooId *groupId,
@@ -544,7 +187,7 @@ public:
                                   AooChar *userNameBuffer, AooSize *userNameSize) override;
 
     AooError AOO_CALL sendMessage(
-            AooId group, AooId user, const AooDataView& msg,
+            AooId group, AooId user, const AooData& msg,
             AooNtpTime timeStamp, AooFlag flags) override;
 
 
@@ -562,7 +205,7 @@ public:
     AooError AOO_CALL pollEvents() override;
 
     AooError AOO_CALL sendRequest(
-            const AooNetRequest& request, AooNetCallback callback,
+            const AooRequest& request, AooResponseHandler callback,
             void *user, AooFlag flags) override;
 
     AooError AOO_CALL control(
@@ -679,28 +322,28 @@ private:
     // pending request
     struct callback_cmd : icommand
     {
-        callback_cmd(AooNetCallback cb, void *user)
+        callback_cmd(AooResponseHandler cb, void *user)
             : cb_(cb), user_(user) {}
 
         virtual void handle_response(Client& client, const osc::ReceivedMessage& msg) = 0;
 
-        virtual void reply(AooError result, const AooNetResponse *response) const = 0;
+        virtual void reply(AooError result, const AooResponse& response) const = 0;
 
         void reply_error(AooError result, const char *msg, int32_t code) const {
-            AooNetResponseError response;
-            response.type = kAooNetRequestError;
+            AooResponseError response;
+            response.type = kAooRequestError;
             response.errorCode = code;
             response.errorMessage = msg;
-            reply(result, (AooNetResponse*)&response);
+            reply(result, reinterpret_cast<AooResponse&>(response));
         }
     protected:
-        void callback(const AooNetRequest& request, AooError result, const AooNetResponse* response) const {
+        void callback(const AooRequest& request, AooError result, const AooResponse& response) const {
             if (cb_) {
-                cb_(user_, &request, result, response);
+                cb_(user_, &request, result, &response);
             }
         }
     private:
-        AooNetCallback cb_;
+        AooResponseHandler cb_;
         void *user_;
     };
     using callback_cmd_ptr = std::unique_ptr<callback_cmd>;
@@ -714,11 +357,11 @@ private:
     void *eventcontext_ = nullptr;
     AooEventMode eventmode_ = kAooEventModeNone;
     // options
-    parameter<AooSeconds> ping_interval_{AOO_NET_CLIENT_PING_INTERVAL * 0.001};
-    parameter<AooSeconds> query_interval_{AOO_NET_CLIENT_QUERY_INTERVAL * 0.001};
-    parameter<AooSeconds> query_timeout_{AOO_NET_CLIENT_QUERY_TIMEOUT * 0.001};
-    parameter<bool> binary_{AOO_NET_CLIENT_BINARY_MSG};
-#if AOO_NET_CLIENT_SIMULATE
+    parameter<AooSeconds> ping_interval_{AOO_CLIENT_PING_INTERVAL * 0.001};
+    parameter<AooSeconds> query_interval_{AOO_CLIENT_QUERY_INTERVAL * 0.001};
+    parameter<AooSeconds> query_timeout_{AOO_CLIENT_QUERY_TIMEOUT * 0.001};
+    parameter<bool> binary_{AOO_CLIENT_BINARY_MSG};
+#if AOO_CLIENT_SIMULATE
     parameter<float> sim_packet_drop_{0};
     parameter<float> sim_packet_reorder_{0};
     parameter<bool> sim_packet_jitter_{false};
@@ -787,7 +430,7 @@ public:
     struct connect_cmd : callback_cmd
     {
         connect_cmd(const std::string& hostname, int port, const char * pwd,
-                    const AooDataView *metadata, AooNetCallback cb, void *user)
+                    const AooData *metadata, AooResponseHandler cb, void *user)
             : callback_cmd(cb, user),
               host_(hostname, port), pwd_(pwd ? pwd : ""), metadata_(metadata) {}
 
@@ -799,17 +442,17 @@ public:
             // dummy
         }
 
-        void reply(AooError result, const AooNetResponse *response) const override {
-            AooNetRequestConnect request;
-            request.type = kAooNetRequestConnect;
+        void reply(AooError result, const AooResponse& response) const override {
+            AooRequestConnect request;
+            request.type = kAooRequestConnect;
             request.flags = 0; // TODO
             request.address.hostName = host_.name.c_str();
             request.address.port = host_.port;
             request.password = pwd_.empty() ? nullptr : pwd_.c_str();
-            AooDataView md { metadata_.type(), metadata_.data(), metadata_.size() };
+            AooData md { metadata_.type(), metadata_.data(), metadata_.size() };
             request.metadata = (md.size > 0) ? &md : nullptr;
 
-            callback((AooNetRequest&)request, result, response);
+            callback((AooRequest&)request, result, response);
         }
     public:
         ip_host host_;
@@ -819,7 +462,7 @@ public:
 
     struct disconnect_cmd : callback_cmd
     {
-        disconnect_cmd(AooNetCallback cb, void *user)
+        disconnect_cmd(AooResponseHandler cb, void *user)
             : callback_cmd(cb, user) {}
 
         void perform(Client& obj) override {
@@ -830,11 +473,12 @@ public:
             // dummy
         }
 
-        void reply(AooError result, const AooNetResponse* response) const override {
-            AooNetRequest request;
-            request.type = kAooNetRequestConnect;
+        void reply(AooError result, const AooResponse& response) const override {
+            AooRequestDisconnect request;
+            request.type = kAooRequestConnect;
+            request.flags = 0;
 
-            callback((AooNetRequest&)request, result, response);
+            callback((AooRequest&)request, result, response);
         }
     };
 
@@ -861,9 +505,9 @@ public:
 
     struct group_join_cmd : callback_cmd
     {
-        group_join_cmd(const std::string& group_name, const char * group_pwd, const AooDataView *group_md,
-                       const std::string& user_name, const char * user_pwd, const AooDataView *user_md,
-                       const ip_host& relay, AooNetCallback cb, void *user)
+        group_join_cmd(const std::string& group_name, const char * group_pwd, const AooData *group_md,
+                       const std::string& user_name, const char * user_pwd, const AooData *user_md,
+                       const ip_host& relay, AooResponseHandler cb, void *user)
             : callback_cmd(cb, user),
               group_name_(group_name), group_pwd_(group_pwd ? group_pwd : ""), group_md_(group_md),
               user_name_(user_name), user_pwd_(user_pwd ? user_pwd : ""), user_md_(user_md), relay_(relay) {}
@@ -876,19 +520,19 @@ public:
             client.handle_response(*this, msg);
         }
 
-        void reply(AooError result, const AooNetResponse* response) const override {
-            AooNetRequestGroupJoin request;
-            request.type = kAooNetRequestGroupJoin;
+        void reply(AooError result, const AooResponse& response) const override {
+            AooRequestGroupJoin request;
+            request.type = kAooRequestGroupJoin;
             request.flags = 0; // TODO
 
             request.groupName = group_name_.c_str();
             request.groupPwd = group_pwd_.empty() ? nullptr : group_pwd_.c_str();
-            AooDataView group_md { group_md_.type(), group_md_.data(), group_md_.size() };
+            AooData group_md { group_md_.type(), group_md_.data(), group_md_.size() };
             request.groupMetadata = (group_md.size > 0) ? &group_md : nullptr;
 
             request.userName = user_name_.c_str();
             request.userPwd = user_pwd_.empty() ? nullptr : user_pwd_.c_str();
-            AooDataView user_md { user_md_.type(), user_md_.data(), user_md_.size() };
+            AooData user_md { user_md_.type(), user_md_.data(), user_md_.size() };
             request.userMetadata = (user_md.size > 0) ? &user_md : nullptr;
 
             AooIpEndpoint relay;
@@ -900,7 +544,7 @@ public:
                 request.relayAddress = nullptr;
             }
 
-            callback((AooNetRequest&)request, result, response);
+            callback((AooRequest&)request, result, response);
         }
     public:
         std::string group_name_;
@@ -914,7 +558,7 @@ public:
 
     struct group_leave_cmd : callback_cmd
     {
-        group_leave_cmd(AooId group, AooNetCallback cb, void *user)
+        group_leave_cmd(AooId group, AooResponseHandler cb, void *user)
             : callback_cmd(cb, user), group_(group) {}
 
         void perform(Client& obj) override {
@@ -925,12 +569,12 @@ public:
             client.handle_response(*this, msg);
         }
 
-        void reply(AooError result, const AooNetResponse* response) const override {
-            AooNetRequestGroupLeave request;
-            request.type = kAooNetRequestGroupLeave;
+        void reply(AooError result, const AooResponse& response) const override {
+            AooRequestGroupLeave request;
+            request.type = kAooRequestGroupLeave;
             request.group = group_;
 
-            callback((AooNetRequest&)request, result, response);
+            callback((AooRequest&)request, result, response);
         }
     public:
         AooId group_;
@@ -938,7 +582,7 @@ public:
 
     struct group_update_cmd : callback_cmd
     {
-        group_update_cmd(AooId group, const AooDataView &md, AooNetCallback cb, void *context)
+        group_update_cmd(AooId group, const AooData &md, AooResponseHandler cb, void *context)
             : callback_cmd(cb, context),
               group_(group), md_(&md) {}
 
@@ -950,16 +594,16 @@ public:
             client.handle_response(*this, msg);
         }
 
-        void reply(AooError result, const AooNetResponse* response) const override {
-            AooNetRequestGroupUpdate request;
-            request.type = kAooNetRequestGroupUpdate;
+        void reply(AooError result, const AooResponse& response) const override {
+            AooRequestGroupUpdate request;
+            request.type = kAooRequestGroupUpdate;
             request.flags = 0; // TODO
             request.groupId = group_;
             request.groupMetadata.type = md_.type();
             request.groupMetadata.data = md_.data();
             request.groupMetadata.size = md_.size();
 
-            callback((AooNetRequest&)request, result, response);
+            callback((AooRequest&)request, result, response);
         }
     public:
         AooId group_;
@@ -969,7 +613,7 @@ public:
     struct user_update_cmd : callback_cmd
     {
         user_update_cmd(AooId group, AooId user,
-                        const AooDataView &md, AooNetCallback cb, void *context)
+                        const AooData &md, AooResponseHandler cb, void *context)
             : callback_cmd(cb, context),
               group_(group), user_(user), md_(&md) {}
 
@@ -981,9 +625,9 @@ public:
             client.handle_response(*this, msg);
         }
 
-        void reply(AooError result, const AooNetResponse* response) const override {
-            AooNetRequestUserUpdate request;
-            request.type = kAooNetRequestUserUpdate;
+        void reply(AooError result, const AooResponse& response) const override {
+            AooRequestUserUpdate request;
+            request.type = kAooRequestUserUpdate;
             request.flags = 0; // TODO
             request.groupId = group_;
             request.userId = user_;
@@ -991,7 +635,7 @@ public:
             request.userMetadata.data = md_.data();
             request.userMetadata.size = md_.size();
 
-            callback((AooNetRequest&)request, result, response);
+            callback((AooRequest&)request, result, response);
         }
     public:
         AooId group_;
@@ -1001,7 +645,7 @@ public:
 
     struct custom_request_cmd : callback_cmd
     {
-        custom_request_cmd(const AooDataView& data, AooFlag flags, AooNetCallback cb, void *user)
+        custom_request_cmd(const AooData& data, AooFlag flags, AooResponseHandler cb, void *user)
             : callback_cmd(cb, user), data_(&data), flags_(flags) {}
 
         void perform(Client& obj) override {
@@ -1013,12 +657,12 @@ public:
             auto token = (it++)->AsInt32(); // skip
             auto result = (it++)->AsInt32();
             if (result == kAooOk) {
-                AooNetResponseCustom response;
-                response.type = kAooNetRequestCustom;
+                AooResponseCustom response;
+                response.type = kAooRequestCustom;
                 response.flags = (AooFlag)(it++)->AsInt32();
                 response.data = osc_read_metadata(it);
 
-                reply(result, (AooNetResponse*)&response);
+                reply(result, (AooResponse&)response);
             } else {
                 auto code = (it++)->AsInt32();
                 auto msg = (it++)->AsString();
@@ -1026,15 +670,15 @@ public:
             }
         }
 
-        void reply(AooError result, const AooNetResponse* response) const override {
-            AooNetRequestCustom request;
-            request.type = kAooNetRequestCustom;
+        void reply(AooError result, const AooResponse& response) const override {
+            AooRequestCustom request;
+            request.type = kAooRequestCustom;
             request.flags = flags_;
             request.data.type = data_.type();
             request.data.data = data_.data();
             request.data.size = data_.size();
 
-            callback((AooNetRequest&)request, result, response);
+            callback((AooRequest&)request, result, response);
         }
     public:
         aoo::metadata data_;

@@ -86,7 +86,7 @@ public:
      */
     virtual AooError AOO_CALL connect(
             const AooChar *hostName, AooInt32 port, const AooChar *password,
-            const AooDataView *metadata, AooNetCallback cb, void *context) = 0;
+            const AooData *metadata, AooResponseHandler cb, void *context) = 0;
 
     /** \brief disconnect from AOO server
      *
@@ -95,7 +95,7 @@ public:
      * \param cb callback function for server reply
      * \param context user data passed to callback function
      */
-    virtual AooError AOO_CALL disconnect(AooNetCallback cb, void *context) = 0;
+    virtual AooError AOO_CALL disconnect(AooResponseHandler cb, void *context) = 0;
 
     /** \brief join a group on the server
      *
@@ -104,23 +104,23 @@ public:
      * \param groupName the group name
      * \param groupPwd (optional) group password
      * \param groupMetadata (optional) group metadata
-     *        See AooNetResponseGroupJoin::groupMetadata.
+     *        See AooResponseGroupJoin::groupMetadata.
      * \param userName your user name
      * \param userPwd (optional) user password
      * \param userMetadata (optional) user metadata
-     *        See AooNetResponseGroupJoin::userMetadata resp.
-     *        AooNetEventPeer::metadata.
+     *        See AooResponseGroupJoin::userMetadata resp.
+     *        AooEventPeer::metadata.
      * \param relayAddress relay address
      * \param cb function to be called with server reply
      * \param context user data passed to callback function
      */
     virtual AooError AOO_CALL joinGroup(
             const AooChar *groupName, const AooChar *groupPwd,
-            const AooDataView *groupMetadata,
+            const AooData *groupMetadata,
             const AooChar *userName, const AooChar *userPwd,
-            const AooDataView *userMetadata,
+            const AooData *userMetadata,
             const AooIpEndpoint *relayAddress,
-            AooNetCallback cb, void *context) = 0;
+            AooResponseHandler cb, void *context) = 0;
 
     /** \brief leave a group
      *
@@ -131,7 +131,7 @@ public:
      * \param context user data passed to callback function
      */
     virtual AooError AOO_CALL leaveGroup(
-            AooId group, AooNetCallback cb, void *context) = 0;
+            AooId group, AooResponseHandler cb, void *context) = 0;
 
     /** \brief update group metadata
      *
@@ -143,8 +143,8 @@ public:
      * \param context user data passed to callback function
      */
     virtual AooError AOO_CALL updateGroup(
-            AooId group, const AooDataView &metadata,
-            AooNetCallback cb, void *context) = 0;
+            AooId group, const AooData &metadata,
+            AooResponseHandler cb, void *context) = 0;
 
     /** \brief update user metadata
      *
@@ -157,8 +157,8 @@ public:
      * \param context user data passed to callback function
      */
     virtual AooError AOO_CALL updateUser(
-            AooId group, AooId user, const AooDataView &metadata,
-            AooNetCallback cb, void *context) = 0;
+            AooId group, AooId user, const AooData &metadata,
+            AooResponseHandler cb, void *context) = 0;
 
     /** \brief send custom request
      *
@@ -170,8 +170,8 @@ public:
      * \param context user data passed to callback function
      */
     virtual AooError AOO_CALL customRequest(
-            const AooDataView& data, AooFlag flags,
-            AooNetCallback cb, void *context) = 0;
+            const AooData& data, AooFlag flags,
+            AooResponseHandler cb, void *context) = 0;
 
     // TODO: findGroupByName() and getGroupName()?
 
@@ -230,10 +230,10 @@ public:
      * \param user the target user (#kAooIdInvalid for all group members)
      * \param msg the message
      * \param timeStamp future NTP time stamp or #kAooNtpTimeNow
-     * \param flags contains one or more values from AooNetMessageFlags
+     * \param flags contains one or more values from AooMessageFlags
      */
     virtual AooError AOO_CALL sendMessage(
-            AooId group, AooId user, const AooDataView &msg,
+            AooId group, AooId user, const AooData &msg,
             AooNtpTime timeStamp, AooFlag flags) = 0;
 
     /** \brief handle messages from peers
@@ -293,7 +293,7 @@ public:
      * \param flags additional flags
      */
     virtual AooError AOO_CALL sendRequest(
-            const AooNetRequest& request, AooNetCallback callback,
+            const AooRequest& request, AooResponseHandler callback,
             void *user, AooFlag flags) = 0;
 
     /** \brief control interface

@@ -10,6 +10,7 @@
 #include "aoo/aoo_client.hpp"
 
 #include "common/net_utils.hpp"
+#include "common/priority_queue.hpp"
 
 #define classname(x) class_getname(*(t_pd *)x)
 
@@ -69,3 +70,26 @@ bool format_parse(t_pd *x, AooFormatStorage &f, int argc, t_atom *argv,
                   int maxnumchannels);
 
 int format_to_atoms(const AooFormat &f, int argc, t_atom *argv);
+
+bool atom_to_datatype(const t_atom &a, AooDataType& type, void *x);
+
+void datatype_to_atom(AooDataType type, t_atom& a);
+
+/*//////////////////////////// priority queue ////////////////////////////////*/
+
+template<typename T>
+struct t_queue_item {
+    template<typename U>
+    t_queue_item(U&& _data, double _time)
+        : data(std::forward<U>(_data)), time(_time) {}
+    T data;
+    double time;
+};
+
+template<typename T>
+bool operator> (const t_queue_item<T>& a, const t_queue_item<T>& b) {
+    return a.time > b.time;
+}
+
+template<typename T>
+using t_priority_queue = aoo::priority_queue<t_queue_item<T>, std::greater<t_queue_item<T>>>;

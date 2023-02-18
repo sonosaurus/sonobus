@@ -248,11 +248,12 @@ void AooDelegate::beginEvent(osc::OutboundPacketStream &msg, const char *event)
 }
 
 void AooDelegate::beginEvent(osc::OutboundPacketStream &msg, const char *event,
-                             const aoo::ip_address& addr, AooId id)
+                             const AooEndpoint& ep)
 {
+    aoo::ip_address addr((const sockaddr *)ep.address, ep.addrlen);
     msg << osc::BeginMessage("/aoo/event")
         << owner_->mParent->mNode.mID << owner_->mParentIndex
-        << event << addr.name() << addr.port() << id;
+        << event << addr.name() << addr.port() << ep.id;
 }
 
 void AooDelegate::sendMsgRT(osc::OutboundPacketStream &msg){

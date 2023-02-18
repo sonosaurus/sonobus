@@ -30,6 +30,8 @@ enum AooControls
     kAooCtlReset,
     kAooCtlActivate,
     kAooCtlIsActive,
+    kAooCtlSetLatency,
+    kAooCtlGetLatency,
     kAooCtlSetBufferSize,
     kAooCtlGetBufferSize,
     kAooCtlSetDynamicResampling,
@@ -62,9 +64,7 @@ enum AooControls
     kAooCtlGetBufferFillRatio,
     kAooCtlSetBinaryDataMsg,
     kAooCtlGetBinaryDataMsg,
-    kAooCtlSetStreamMetadataSize,
-    kAooCtlGetStreamMetadataSize,
-#if USE_AOO_NET
+#if AOO_NET
     kAooCtlSetPassword = 1000,
     kAooCtlSetTcpHost,
     kAooCtlSetRelayHost,

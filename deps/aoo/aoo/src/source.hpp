@@ -5,19 +5,21 @@
 #pragma once
 
 #include "aoo/aoo_source.hpp"
-#if USE_AOO_NET
+#if AOO_NET
 # include "aoo/aoo_client.hpp"
 #endif
 
 #include "common/lockfree.hpp"
 #include "common/net_utils.hpp"
+#include "common/priority_queue.hpp"
 #include "common/sync.hpp"
 #include "common/time.hpp"
 #include "common/utils.hpp"
 
 #include "binmsg.hpp"
-#include "buffer.hpp"
-#include "imp.hpp"
+#include "packet_buffer.hpp"
+#include "detail.hpp"
+#include "events.hpp"
 #include "resampler.hpp"
 #include "timer.hpp"
 #include "time_dll.hpp"
@@ -29,7 +31,7 @@
 
 namespace aoo {
 
-struct Source;
+class Source;
 
 struct data_request {
     int32_t sequence;
@@ -62,7 +64,7 @@ struct sink_request {
 // NOTE: the stream ID can change anytime, it only
 // has to be synchronized with any format change.
 struct sink_desc {
-#if USE_AOO_NET
+#if AOO_NET
     sink_desc(const ip_address& addr, int32_t id,
               AooId stream_id, const ip_address& relay)
         : ep(addr, id, relay), stream_id_(stream_id) {}
@@ -139,7 +141,56 @@ struct cached_sink {
     int32_t channel;
 };
 
-class Source final : public AooSource {
+template<typename Alloc>
+struct stream_message : Alloc {
+    stream_message() = default;
+    stream_message(uint64_t _time, AooDataType _type,
+                   const char *_data, AooSize _size)
+        : time(_time), type(_type), size(_size) {
+        data = (char *)Alloc::allocate(size);
+        memcpy(data, _data, size);
+    }
+
+    ~stream_message() {
+        if (data) Alloc::deallocate(data, size);
+    }
+
+    stream_message(stream_message&& other)
+        : time(other.time), type(other.type),
+          data(other.data), size(other.size) {
+        other.data = nullptr;
+        other.size = 0;
+    }
+
+    stream_message& operator=(stream_message&& other) {
+        time = other.time;
+        type = other.type;
+        data = other.data;
+        size = other.size;
+        other.data = nullptr;
+        other.size = 0;
+        return *this;
+    }
+
+    uint64_t time = 0;
+    AooDataType type = 0;
+    char *data = nullptr;
+    AooSize size = 0;
+};
+
+using rt_stream_message = stream_message<rt_allocator<char>>;
+using nrt_stream_message = stream_message<aoo::allocator<char>>;
+
+class stream_message_comp {
+public:
+    template<typename T>
+    bool operator()(const T& a, const T& b) const {
+        return a.time > b.time;
+    }
+};
+
+
+class Source final : public AooSource, rt_memory_pool_client {
  public:
     Source(AooId id, AooFlag flags, AooError *err);
 
@@ -155,17 +206,17 @@ class Source final : public AooSource {
 
     AooError AOO_CALL send(AooSendFunc fn, void *user) override;
 
-    AooError AOO_CALL process(AooSample **data, AooInt32 n,
-                              AooNtpTime t) override;
+    AooError AOO_CALL addStreamMessage(const AooStreamMessage& message) override;
 
-    AooError AOO_CALL setEventHandler(AooEventHandler fn, void *user,
-                                      AooEventMode mode) override;
+    AooError AOO_CALL process(AooSample **data, AooInt32 n, AooNtpTime t) override;
+
+    AooError AOO_CALL setEventHandler(AooEventHandler fn, void *user, AooEventMode mode) override;
 
     AooBool AOO_CALL eventsAvailable() override;
 
     AooError AOO_CALL pollEvents() override;
 
-    AooError AOO_CALL startStream(const AooDataView *metadata) override;
+    AooError AOO_CALL startStream(const AooData *metadata) override;
 
     AooError AOO_CALL stopStream() override;
 
@@ -182,8 +233,7 @@ class Source final : public AooSource {
     AooError AOO_CALL control(AooCtl ctl, AooIntPtr index,
                               void *ptr, AooSize size) override;
 
-    AooError AOO_CALL codecControl(AooCtl ctl, AooIntPtr index,
-                                   void *ptr, AooSize size) override;
+    AooError AOO_CALL codecControl(AooCtl ctl, AooIntPtr index, void *ptr, AooSize size) override;
 
     //----------------------- semi-public methods -------------------//
 
@@ -208,7 +258,7 @@ class Source final : public AooSource {
     int32_t nchannels_ = 0;
     int32_t blocksize_ = 0;
     int32_t samplerate_ = 0;
-#if USE_AOO_NET
+#if AOO_NET
     AooClient *client_ = nullptr;
 #endif
     // audio encoder
@@ -216,8 +266,10 @@ class Source final : public AooSource {
     std::unique_ptr<AooCodec, encoder_deleter> encoder_;
     AooId format_id_ {kAooIdInvalid};
     // state
+    uint64_t process_samples_ = 0;
+    double stream_samples_ = 0;
     int32_t sequence_ = 0;
-    std::atomic<float> xrun_{0};
+    std::atomic<float> xrunblocks_{0};
     std::atomic<float> lastpingtime_{0};
     std::atomic<bool> needstart_{false};
     enum class stream_state {
@@ -228,8 +280,7 @@ class Source final : public AooSource {
     };
     std::atomic<stream_state> state_{stream_state::idle};
     // metadata
-    AooDataView *metadata_{nullptr};
-    std::atomic<int32_t> metadata_size_{ AOO_STREAM_METADATA_SIZE };
+    rt_metadata_ptr metadata_;
     bool metadata_accepted_{false};
     sync::spinlock metadata_lock_;
     // timing
@@ -245,8 +296,13 @@ class Source final : public AooSource {
     };
     aoo::spsc_queue<char> audioqueue_;
     history_buffer history_;
+    using message_queue = lockfree::unbounded_mpsc_queue<rt_stream_message, aoo::rt_allocator<rt_stream_message>>;
+    message_queue message_queue_;
+    using message_prio_queue = priority_queue<nrt_stream_message, stream_message_comp, aoo::allocator<nrt_stream_message>>;
+    message_prio_queue message_prio_queue_;
     // events
-    aoo::unbounded_mpsc_queue<endpoint_event> eventqueue_;
+    using event_queue = lockfree::unbounded_mpsc_queue<event_ptr, aoo::rt_allocator<event_ptr>>;
+    event_queue eventqueue_;
     AooEventHandler eventhandler_ = nullptr;
     void *eventcontext_ = nullptr;
     AooEventMode eventmode_ = kAooEventModeNone;
@@ -258,8 +314,6 @@ class Source final : public AooSource {
     sink_list sinks_;
     sync::mutex sink_mutex_;
     aoo::vector<cached_sink> cached_sinks_; // only for the send thread
-    // memory
-    memory_list memory_;
     // thread synchronization
     sync::shared_mutex update_mutex_;
     // options
@@ -280,23 +334,19 @@ class Source final : public AooSource {
 
     AooError set_format(AooFormat& fmt);
 
-    AooError get_format(AooFormat& fmt);
+    AooError get_format(AooFormat& fmt, size_t size);
 
     sink_desc * find_sink(const ip_address& addr, AooId id);
 
     sink_desc *get_sink_arg(intptr_t index);
 
-    void send_event(const endpoint_event& e, AooThreadLevel level);
-
-    void free_event(const endpoint_event& e);
+    void send_event(event_ptr event, AooThreadLevel level);
 
     bool need_resampling() const;
 
     void make_new_stream();
 
-    void allocate_metadata(int32_t size);
-
-    void add_xrun(float n);
+    void add_xrun(double nblocks);
 
     void update_audioqueue();
 

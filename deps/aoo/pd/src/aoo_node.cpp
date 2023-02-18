@@ -321,13 +321,16 @@ t_node_imp::t_node_imp(t_symbol *s, int port)
     : x_proxy(this), x_bindsym(s)
 {
     // increase socket buffers
-    const int sendbufsize = 1 << 16; // 65 KB
+    const int sendbufsize = 1 << 18; // 256 KB
+    // NB: with a threaded UDP server we wouldn't need large receive buffers...
 #if NETWORK_THREAD_POLL
-    const int recvbufsize = 1 << 20; // 1 MB
+    // The receive thread also does the sending (and encoding)! This requires a larger buffer.
+    const int recvbufsize = 1 << 20; // 1 B
 #else
-    const int recvbufsize = 1 << 16; // 65 KB
+    const int recvbufsize = 1 << 18; // 256 KB
 #endif
     // udp_server::start() throws on error!
+    // TODO: should we use threaded=true instead?
     x_server.start(port, [this](auto&&... args) { handle_packet(args...); },
                    false, recvbufsize, sendbufsize);
 

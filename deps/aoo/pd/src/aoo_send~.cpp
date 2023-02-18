@@ -55,9 +55,10 @@ struct t_aoo_send
     int32_t x_nchannels = 0;
     int32_t x_port = 0;
     AooId x_id = 0;
+    double x_logicaltime = 0;
     std::unique_ptr<t_float *[]> x_vec;
     // metadata
-    t_symbol *x_metadata_type;
+    AooDataType x_metadata_type;
     std::vector<AooByte> x_metadata;
     // sinks
     std::vector<t_sink> x_sinks;
@@ -464,9 +465,8 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
     switch (event->type){
     case kAooEventXRun:
     {
-        auto e = (const AooEventXRun *)event;
         t_atom msg;
-        SETFLOAT(&msg, e->count);
+        SETFLOAT(&msg, event->xrun.count);
         outlet_anything(x->x_msgout, gensym("xrun"), 1, &msg);
         break;
     }
@@ -477,7 +477,7 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
     case kAooEventSinkRemove:
     {
         // common endpoint header
-        auto& ep = ((const AooEventEndpoint *)event)->endpoint;
+        auto& ep = event->endpoint.endpoint;
         aoo::ip_address addr((const sockaddr *)ep.address, ep.addrlen);
         t_atom msg[12];
         if (!x->x_node->serialize_endpoint(addr, ep.id, 3, msg)) {
@@ -488,23 +488,23 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         switch (event->type){
         case kAooEventInvite:
         {
-            auto e = (const AooEventInvite *)event;
+            auto& e = event->invite;
 
-            x->x_invite_token = e->token;
+            x->x_invite_token = e.token;
             if (x->x_auto_invite) {
-                x->x_source->acceptInvitation(ep, e->token);
+                x->x_source->acceptInvitation(ep, e.token);
             }
 
-            if (e->metadata){
-                auto count = e->metadata->size + 4;
+            if (e.metadata){
+                auto count = e.metadata->size + 4;
                 t_atom *vec = (t_atom *)alloca(count * sizeof(t_atom));
                 // copy endpoint
                 memcpy(vec, msg, 3 * sizeof(t_atom));
                 // type
-                SETSYMBOL(vec + 3, gensym(e->metadata->type));
+                datatype_to_atom(e.metadata->type, vec[3]);
                 // data
-                for (int i = 0; i < e->metadata->size; ++i){
-                    SETFLOAT(vec + 4 + i, (uint8_t)e->metadata->data[i]);
+                for (int i = 0; i < e.metadata->size; ++i){
+                    SETFLOAT(vec + 4 + i, (uint8_t)e.metadata->data[i]);
                 }
                 outlet_anything(x->x_msgout, gensym("invite"), count, vec);
             } else {
@@ -514,11 +514,9 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         }
         case kAooEventUninvite:
         {
-            auto e = (const AooEventUninvite *)event;
-
-            x->x_invite_token = e->token;
+            x->x_invite_token = event->uninvite.token;
             if (x->x_auto_invite) {
-                x->x_source->acceptUninvitation(ep, e->token);
+                x->x_source->acceptUninvitation(ep, event->uninvite.token);
             }
 
             outlet_anything(x->x_msgout, gensym("uninvite"), 3, msg);
@@ -550,17 +548,17 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         //--------------------- sink events -----------------------//
         case kAooEventPingReply:
         {
-            auto e = (const AooEventPingReply *)event;
+            auto& e = event->pingReply;
 
-            double diff1 = aoo_ntpTimeDuration(e->t1, e->t2) * 1000.0;
-            double diff2 = aoo_ntpTimeDuration(e->t2, e->t3) * 1000.0;
-            double rtt = aoo_ntpTimeDuration(e->t1, e->t3) * 1000.0;
+            double diff1 = aoo_ntpTimeDuration(e.t1, e.t2) * 1000.0;
+            double diff2 = aoo_ntpTimeDuration(e.t2, e.t3) * 1000.0;
+            double rtt = aoo_ntpTimeDuration(e.t1, e.t3) * 1000.0;
 
             SETSYMBOL(msg + 3, gensym("ping"));
             SETFLOAT(msg + 4, diff1);
             SETFLOAT(msg + 5, diff2);
             SETFLOAT(msg + 6, rtt);
-            SETFLOAT(msg + 7, e->packetLoss);
+            SETFLOAT(msg + 7, e.packetLoss);
 
             outlet_anything(x->x_msgout, gensym("event"), 8, msg);
 
@@ -746,9 +744,9 @@ static void aoo_send_remove(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 
 static void aoo_send_start(t_aoo_send *x)
 {
-    if (x->x_metadata_type){
-        AooDataView md;
-        md.type = x->x_metadata_type->s_name;
+    if (!x->x_metadata.empty()){
+        AooData md;
+        md.type = x->x_metadata_type;
         md.data = x->x_metadata.data();
         md.size = x->x_metadata.size();
 
@@ -778,38 +776,33 @@ static void aoo_send_active(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 
 static void aoo_send_metadata(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (argc > 0){
-        // metadata type
-        t_symbol *type;
-        if (argv->a_type == A_SYMBOL){
-            type = argv->a_w.w_symbol;
-        } else {
-            pd_error(x, "%s: bad metadata type", classname(x));
-        #if 1
-            x->x_metadata_type = nullptr;
-        #endif
-            return;
-        }
-        // metadata content
-        if (argc > 1){
-            // set new stream metadata
-            auto size = argc - 1;
-            x->x_metadata.resize(size);
-            for (int i = 0; i < size; ++i){
-                x->x_metadata[i] = (AooByte)atom_getfloat(argv + i + 1);
-            }
-        } else {
-            // empty metadata is not allowed
-            pd_error(x, "%s: metadata must not be empty", classname(x));
-        #if 1
-            x->x_metadata_type = nullptr;
-        #endif
-            return;
-        }
-        x->x_metadata_type = type;
-    } else {
-        // clear stream metadata
-        x->x_metadata_type = nullptr;
+    if (!argc){
+        return;
+    }
+    if (argc < 2) {
+        // empty metadata is not allowed
+        pd_error(x, "%s: metadata must not be empty", classname(x));
+    #if 1
+        x->x_metadata_type = kAooDataUnspecified;
+        x->x_metadata.clear();
+    #endif
+        return;
+    }
+    // metadata type
+    AooDataType type;
+    if (!atom_to_datatype(*argv, type, x)) {
+    #if 1
+        x->x_metadata_type = kAooDataUnspecified;
+        x->x_metadata.clear();
+    #endif
+        return;
+    }
+    x->x_metadata_type = type;
+    // metadata content
+    auto size = argc - 1;
+    x->x_metadata.resize(size);
+    for (int i = 0; i < size; ++i){
+        x->x_metadata[i] = (AooByte)atom_getfloat(argv + i + 1);
     }
 }
 
@@ -825,6 +818,29 @@ static void aoo_send_sink_list(t_aoo_send *x)
             bug("t_node::serialize_endpoint");
         }
     }
+}
+
+static void aoo_send_list(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
+{
+    if (!x->check("list")) return;
+
+    if (argc < 2) {
+        return;
+    }
+    AooStreamMessage msg;
+    if (!atom_to_datatype(argv[0], msg.type, x)) {
+        return;
+    }
+    auto delta = clock_gettimesince(x->x_logicaltime) * 0.001;
+    msg.sampleOffset = delta * x->x_samplerate;
+    msg.size = argc - 1;
+    auto buffer = (AooByte *)alloca(msg.size);
+    for (int i = 0; i < msg.size; ++i) {
+        buffer[i] = (AooByte)atom_getfloat(argv + i + 1);
+    }
+    msg.data = buffer;
+
+    x->x_source->addStreamMessage(msg);
 }
 
 static t_int * aoo_send_perform(t_int *w)
@@ -846,6 +862,8 @@ static t_int * aoo_send_perform(t_int *w)
             clock_delay(x->x_clock, 0);
         }
     }
+
+    x->x_logicaltime = clock_getlogicaltime();
 
     return w + 3;
 }
@@ -936,8 +954,7 @@ static void * aoo_send_new(t_symbol *s, int argc, t_atom *argv)
 t_aoo_send::t_aoo_send(int argc, t_atom *argv)
 {
     x_clock = clock_new(this, (t_method)aoo_send_tick);
-    x_metadata_type = nullptr;
-    x_metadata.reserve(AOO_STREAM_METADATA_SIZE);
+    x_metadata_type = kAooDataUnspecified;
 
     // arg #1: port number
     x_port = atom_getfloatarg(0, argc, argv);
@@ -1007,6 +1024,7 @@ void aoo_send_tilde_setup(void)
     aoo_send_class = class_new(gensym("aoo_send~"), (t_newmethod)(void *)aoo_send_new,
         (t_method)aoo_send_free, sizeof(t_aoo_send), 0, A_GIMME, A_NULL);
     CLASS_MAINSIGNALIN(aoo_send_class, t_aoo_send, x_f);
+    class_addlist(aoo_send_class, (t_method)aoo_send_list);
     class_addmethod(aoo_send_class, (t_method)aoo_send_dsp,
                     gensym("dsp"), A_CANT, A_NULL);
     class_addmethod(aoo_send_class, (t_method)aoo_send_port,

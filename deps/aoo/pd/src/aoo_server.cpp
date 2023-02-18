@@ -126,18 +126,18 @@ void t_aoo_server::handle_udp_receive(int e, const aoo::ip_address& addr,
 static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int32_t)
 {
     switch (event->type) {
-    case kAooNetEventServerClientLogin:
+    case kAooEventServerClientLogin:
     {
-        auto e = (const AooNetEventServerClientLogin *)event;
+        auto& e = event->serverClientLogin;
 
         t_atom msg[3];
 
         char id[64];
-        snprintf(id, sizeof(id), "0x%X", e->id);
+        snprintf(id, sizeof(id), "0x%X", e.id);
         SETSYMBOL(msg, gensym(id));
 
         aoo::ip_address addr;
-        aoo::socket_peer(e->sockfd, addr);
+        aoo::socket_peer(e.sockfd, addr);
         address_to_atoms(addr, 2, msg + 1);
 
         outlet_anything(x->x_msgout, gensym("client_add"), 3, msg);
@@ -148,13 +148,11 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooNetEventServerClientRemove:
+    case kAooEventServerClientRemove:
     {
-        auto e = (const AooNetEventServerClientRemove *)event;
-
         t_atom msg;
         char id[64];
-        snprintf(id, sizeof(id), "0x%X", e->id);
+        snprintf(id, sizeof(id), "0x%X", event->serverClientRemove.id);
         SETSYMBOL(&msg, gensym(id));
 
         outlet_anything(x->x_msgout, gensym("client_remove"), 1, &msg);
@@ -165,56 +163,52 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooNetEventServerGroupAdd:
+    case kAooEventServerGroupAdd:
     {
-        auto e = (const AooNetEventServerGroupAdd *)event;
         // TODO add group
         t_atom msg;
-        SETSYMBOL(&msg, gensym(e->name));
+        SETSYMBOL(&msg, gensym(event->serverGroupAdd.name));
         // TODO metadata
         outlet_anything(x->x_msgout, gensym("group_add"), 1, &msg);
 
-
         break;
     }
-    case kAooNetEventServerGroupRemove:
+    case kAooEventServerGroupRemove:
     {
-        auto e = (const AooNetEventServerGroupRemove *)event;
         // TODO remove group
         t_atom msg;
-        SETSYMBOL(&msg, gensym(e->name));
+        SETSYMBOL(&msg, gensym(event->serverGroupRemove.name));
         outlet_anything(x->x_msgout, gensym("group_remove"), 1, &msg);
 
         break;
     }
-    case kAooNetEventServerGroupJoin:
+    case kAooEventServerGroupJoin:
     {
-        auto e = (const AooNetEventServerGroupJoin *)event;
+        auto& e = event->serverGroupJoin;
 
         t_atom msg[3];
-        SETSYMBOL(msg, gensym(e->groupName));
-        SETSYMBOL(msg + 1, gensym(e->userName));
-        SETFLOAT(msg + 2, e->userId); // always small
+        SETSYMBOL(msg, gensym(e.groupName));
+        SETSYMBOL(msg + 1, gensym(e.userName));
+        SETFLOAT(msg + 2, e.userId); // always small
         outlet_anything(x->x_msgout, gensym("group_join"), 3, msg);
 
         break;
     }
-    case kAooNetEventServerGroupLeave:
+    case kAooEventServerGroupLeave:
     {
-        auto e = (const AooNetEventServerGroupLeave *)event;
+        auto& e = event->serverGroupLeave;
 
         t_atom msg[3];
-        SETSYMBOL(msg, gensym(e->groupName));
-        SETSYMBOL(msg + 1, gensym(e->userName));
-        SETFLOAT(msg + 2, e->userId); // always small
+        SETSYMBOL(msg, gensym(e.groupName));
+        SETSYMBOL(msg + 1, gensym(e.userName));
+        SETFLOAT(msg + 2, e.userId); // always small
         outlet_anything(x->x_msgout, gensym("group_leave"), 3, msg);
 
         break;
     }
-    case kAooNetEventError:
+    case kAooEventError:
     {
-        auto e = (const AooNetEventError *)event;
-        pd_error(x, "%s: %s", classname(x), e->errorMessage);
+        pd_error(x, "%s: %s", classname(x), event->error.errorMessage);
         break;
     }
     default:
@@ -247,6 +241,7 @@ static void aoo_server_port(t_aoo_server *x, t_floatarg f)
     if (port > 0) {
         try {
             // setup UDP server
+            // TODO: increase socket receive buffer for relay? Use threaded receive?
             x->x_udpserver.start(port,
                 [x](auto&&... args) { x->handle_udp_receive(args...); });
 

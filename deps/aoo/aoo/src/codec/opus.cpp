@@ -5,7 +5,7 @@
 #include "aoo/aoo_codec.h"
 #include "aoo/codec/aoo_opus.h"
 
-#include "../imp.hpp"
+#include "../detail.hpp"
 
 #include "common/utils.hpp"
 
@@ -390,7 +390,7 @@ AooError Decoder_decode(
     auto result = opus_multistream_decode_float(
                 d->state_, (const unsigned char *)buf, size, output, framesize, 0);
     if (result > 0){
-        *numSamples = result;
+        *numSamples = result * d->numChannels_;
         return kAooOk;
     } else {
         LOG_VERBOSE("Opus: opus_decode_float() failed with error code " << result);

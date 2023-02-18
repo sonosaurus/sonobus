@@ -39,31 +39,31 @@
 # define AOO_DEBUG_RESAMPLING 0
 #endif
 
-/** \brief debug the state of the audio buffer */
-#ifndef AOO_DEBUG_AUDIO_BUFFER
-# define AOO_DEBUG_AUDIO_BUFFER 0
-#endif
-
 /** \brief debug the state of the jitter buffer */
 #ifndef AOO_DEBUG_JITTER_BUFFER
 # define AOO_DEBUG_JITTER_BUFFER 0
 #endif
 
+/** \brief debug stream message scheduling */
+#ifndef AOO_DEBUG_STREAM_MESSAGE
+# define AOO_DEBUG_STREAM_MESSAGE 0
+#endif
+
 /*---------------- default values --------------*/
 
-/** \brief default source buffer size in seconds */
+/** \brief default size of the RT memory pool */
+#ifndef AOO_MEM_POOL_SIZE
+ #define AOO_MEM_POOL_SIZE (1 << 20) /* 1 MB */
+#endif
+
+/** \brief default source send buffer size in seconds */
 #ifndef AOO_SOURCE_BUFFER_SIZE
  #define AOO_SOURCE_BUFFER_SIZE 0.025
 #endif
 
-/** \brief default sink buffer size in seconds */
-#ifndef AOO_SINK_BUFFER_SIZE
- #define AOO_SINK_BUFFER_SIZE 0.05
-#endif
-
-/** \brief default sink buffer size in seconds */
-#ifndef AOO_STREAM_METADATA_SIZE
- #define AOO_STREAM_METADATA_SIZE 256
+/** \brief default sink latency in seconds */
+#ifndef AOO_SINK_LATENCY
+ #define AOO_SINK_LATENCY 0.05
 #endif
 
 /** \brief use binary data message format by default */
@@ -139,20 +139,28 @@
 /* OSC address patterns */
 #define kAooMsgDomain "/aoo"
 #define kAooMsgDomainLen 4
+
 #define kAooMsgSource "/src"
 #define kAooMsgSourceLen 4
+
 #define kAooMsgSink "/sink"
 #define kAooMsgSinkLen 5
+
 #define kAooMsgStart "/start"
 #define kAooMsgStartLen 6
+
 #define kAooMsgStop "/stop"
 #define kAooMsgStopLen 5
+
 #define kAooMsgData "/data"
 #define kAooMsgDataLen 5
+
 #define kAooMsgPing "/ping"
 #define kAooMsgPingLen 5
+
 #define kAooMsgInvite "/invite"
 #define kAooMsgInviteLen 7
+
 #define kAooMsgUninvite "/uninvite"
 #define kAooMsgUninviteLen 9
 
@@ -177,10 +185,11 @@
 enum AooBinMsgDataFlags
 {
     kAooBinMsgDataSampleRate = 0x01,
-    kAooBinMsgDataFrames = 0x02
+    kAooBinMsgDataFrames = 0x02,
+    kAooBinMsgDataStreamMessage = 0x04
 };
 
-#if USE_AOO_NET
+#if AOO_NET
 enum AooBinMsgMessageFlags
 {
     kAooBinMsgMessageReliable = 0x01,
@@ -197,6 +206,7 @@ typedef struct AooSettings
     AooSize size; /** `sizeof(AooSettings)` */
     AooAllocFunc allocFunc; /** custom allocator function, or `NULL` */
     AooLogFunc logFunc; /** custom log function, or `NULL` */
+    AooSize memPoolSize; /** size of RT memory pool */
 } AooSettings;
 
 /** \brief default initialization for AooSettings struct */
@@ -205,6 +215,7 @@ AOO_INLINE void AooSettings_init(AooSettings *settings)
     settings->size = sizeof(AooSettings);
     settings->allocFunc = NULL;
     settings->logFunc = NULL;
+    settings->memPoolSize = AOO_MEM_POOL_SIZE;
 }
 
 /**
@@ -297,3 +308,17 @@ AOO_API AooSeconds AOO_CALL aoo_ntpTimeDuration(AooNtpTime t1, AooNtpTime t2);
 AOO_API AooError AOO_CALL aoo_parsePattern(
         const AooByte *msg, AooInt32 size, AooMsgType *type, AooId *id, AooInt32 *offset);
 
+/**
+ * \brief get AooData type from string representation
+ *
+ * \param str the string
+ * \return error the data type on success, kAooDataUnspecified on failure
+ */
+AOO_API AooDataType AOO_CALL aoo_dataTypeFromString(const AooChar *str);
+
+/**
+ * \brief convert AooData type to string representation
+ * \param type the data type
+ * \return a C string on success, NULL if the data type is not valid
+ */
+AOO_API const AooChar * AOO_CALL aoo_dataTypeToString(AooDataType type);

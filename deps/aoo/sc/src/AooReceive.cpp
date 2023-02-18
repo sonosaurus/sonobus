@@ -4,7 +4,7 @@ static InterfaceTable* ft;
 
 /*////////////////// AooReceive ////////////////*/
 
-void AooReceive::init(int32_t port, AooId id, AooSeconds bufsize) {
+void AooReceive::init(int32_t port, AooId id, AooSeconds latency) {
     auto data = CmdData::create<OpenCmd>(world());
     if (data){
         data->port = port;
@@ -12,7 +12,7 @@ void AooReceive::init(int32_t port, AooId id, AooSeconds bufsize) {
         data->sampleRate = unit().sampleRate();
         data->blockSize = unit().bufferSize();
         data->numChannels = unit().numOutputs();
-        data->bufferSize = bufsize;
+        data->latency = latency;
 
         doCmd(data,
             [](World *world, void *data){
@@ -32,10 +32,10 @@ void AooReceive::init(int32_t port, AooId id, AooSeconds bufsize) {
                                     static_cast<AooReceive *>(user)->handleEvent(event);
                                 }, cmd->owner.get(), kAooEventModePoll);
 
-                            if (cmd->bufferSize <= 0) {
-                                sink->setBufferSize(DEFBUFSIZE);
+                            if (cmd->latency <= 0) {
+                                sink->setBufferSize(DEFAULT_LATENCY);
                             } else {
-                                sink->setBufferSize(cmd->bufferSize);
+                                sink->setBufferSize(cmd->latency);
                             }
 
                             cmd->node = std::move(node);
@@ -94,131 +94,96 @@ void AooReceive::handleEvent(const AooEvent *event){
     switch (event->type){
     case kAooEventSourceAdd:
     {
-        auto e = (const AooEventSourceAdd *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/add", addr, e->endpoint.id);
+        beginEvent(msg, "/add", event->sourceAdd.endpoint);
         sendMsgRT(msg);
         break;
     }
     case kAooEventSourceRemove:
     {
-        auto e = (const AooEventSourceRemove *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/remove", addr, e->endpoint.id);
+        beginEvent(msg, "/remove", event->sourceRemove.endpoint);
         sendMsgRT(msg);
         break;
     }
     case kAooEventInviteTimeout:
     {
-        auto e = (const AooEventInviteTimeout *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/invite/timeout", addr, e->endpoint.id);
+        beginEvent(msg, "/invite/timeout", event->inviteTimeout.endpoint);
         sendMsgRT(msg);
         break;
     }
     case kAooEventFormatChange:
     {
-        auto e = (const AooEventFormatChange *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/format", addr, e->endpoint.id);
-        serializeFormat(msg, *e->format);
+        auto& e = event->formatChange;
+        beginEvent(msg, "/format", e.endpoint);
+        serializeFormat(msg, *e.format);
         sendMsgRT(msg);
         break;
     }
     case kAooEventStreamStart:
     {
-        auto e = (const AooEventStreamStart *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/start", addr, e->endpoint.id);
+        auto& e = event->streamStart;
+        beginEvent(msg, "/start", e.endpoint);
         // TODO metadata
         sendMsgRT(msg);
         break;
     }
     case kAooEventStreamStop:
     {
-        auto e = (const AooEventStreamStop *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/stop", addr, e->endpoint.id);
+        beginEvent(msg, "/stop", event->streamStop.endpoint);
         sendMsgRT(msg);
         break;
     }
     case kAooEventStreamState:
     {
-        auto e = (const AooEventStreamState *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/state", addr, e->endpoint.id);
-        msg << e->state;
+        beginEvent(msg, "/state", event->streamState.endpoint);
+        msg << event->streamState.state;
         sendMsgRT(msg);
         break;
     }
     case kAooEventBlockLost:
     {
-        auto e = (const AooEventBlockLost *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/block/lost", addr, e->endpoint.id);
-        msg << e->count;
+        beginEvent(msg, "/block/lost", event->blockLost.endpoint);
+        msg << event->blockLost.count;
         sendMsgRT(msg);
         break;
     }
     case kAooEventBlockDropped:
     {
-        auto e = (const AooEventBlockDropped *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/block/dropped", addr, e->endpoint.id);
-        msg << e->count;
+        beginEvent(msg, "/block/dropped", event->blockDropped.endpoint);
+        msg << event->blockDropped.count;
         sendMsgRT(msg);
         break;
     }
     case kAooEventBlockReordered:
     {
-        auto e = (const AooEventBlockReordered *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/block/reordered", addr, e->endpoint.id);
-        msg << e->count;
+        beginEvent(msg, "/block/reordered", event->blockReordered.endpoint);
+        msg << event->blockReordered.count;
         sendMsgRT(msg);
         break;
     }
     case kAooEventBlockResent:
     {
-        auto e = (const AooEventBlockResent *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        beginEvent(msg, "/block/resent", addr, e->endpoint.id);
-        msg << e->count;
+        beginEvent(msg, "/block/resent", event->blockResent.endpoint);
+        msg << event->blockResent.count;
+        sendMsgRT(msg);
+        break;
+    }
+    case kAooEventBufferOverrun:
+    {
+        beginEvent(msg, "/buffer/overrun", event->bufferOverrrun.endpoint);
+        sendMsgRT(msg);
+        break;
+    }
+    case kAooEventBufferUnderrun:
+    {
+        beginEvent(msg, "/buffer/underrun", event->bufferUnderrun.endpoint);
         sendMsgRT(msg);
         break;
     }
     case kAooEventPing:
     {
-        auto e = (const AooEventPing *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address,
-                             e->endpoint.addrlen);
-
-        double diff = aoo_ntpTimeDuration(e->t1, e->t2);
-
-        beginEvent(msg, "/ping", addr, e->endpoint.id);
-        msg << diff;
+        auto& e = event->ping;
+        beginEvent(msg, "/ping", e.endpoint);
+        msg << aoo_ntpTimeDuration(e.t1, e.t2); // diff
         sendMsgRT(msg);
         break;
     }
@@ -246,7 +211,7 @@ void AooReceiveUnit::next(int numSamples){
     if (sink){
         uint64_t t = getOSCTime(mWorld);
 
-        if (sink->process(mOutBuf, numSamples, t) == kAooOk){
+        if (sink->process(mOutBuf, numSamples, t, nullptr, nullptr) == kAooOk){
             delegate().node()->notify();
         } else {
             ClearUnitOutputs(this, numSamples);
@@ -332,7 +297,20 @@ void aoo_recv_uninvite(AooReceiveUnit *unit, sc_msg_iter *args){
         });
 }
 
-void aoo_recv_bufsize(AooReceiveUnit *unit, sc_msg_iter *args){
+void aoo_recv_latency(AooReceiveUnit *unit, sc_msg_iter *args){
+    auto cmd = CmdData::create<OptionCmd>(unit->mWorld);
+    cmd->f = args->getf();
+    unit->delegate().doCmd(cmd,
+        [](World *world, void *cmdData){
+            auto data = (OptionCmd *)cmdData;
+            auto& owner = static_cast<AooReceive&>(*data->owner);
+            owner.sink()->setLatency(data->f);
+
+            return false; // done
+        });
+}
+
+void aoo_recv_buffersize(AooReceiveUnit *unit, sc_msg_iter *args){
     auto cmd = CmdData::create<OptionCmd>(unit->mWorld);
     cmd->f = args->getf();
     unit->delegate().doCmd(cmd,
@@ -418,9 +396,10 @@ void AooReceiveLoad(InterfaceTable* inTable) {
 
     AooUnitCmd(invite);
     AooUnitCmd(uninvite);
-    AooUnitCmd(bufsize);
+    AooUnitCmd(latency);
     AooUnitCmd(dll_bw);
     AooUnitCmd(packetsize);
+    AooUnitCmd(buffersize);
     AooUnitCmd(resend);
     AooUnitCmd(resend_limit);
     AooUnitCmd(resend_interval);

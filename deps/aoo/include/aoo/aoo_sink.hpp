@@ -77,13 +77,20 @@ public:
      *
      * \note Threadsafe and RT-safe; call on the audio thread
      *
+     * The audio output for the next N samples is copied into the provided buffers.
+     * After that, any incoming stream messages that fall into this sample interval
+     * are dispatched to the message handler function (if provided).
+     *
      * \param data an array of audio channels; the number of
      *        channels must match the number in #AooSource_setup.
      * \param numSamples the number of samples per channel
      * \param t current NTP time; \see aoo_getCurrentNtpTime
+     * \param messageHandler an optional stream message handler function
+     * \param user optional user data that will be passed to the message handler
      */
-    virtual AooError AOO_CALL process(AooSample **data, AooInt32 numSamples,
-                                      AooNtpTime t) = 0;
+    virtual AooError AOO_CALL process(
+            AooSample **data, AooInt32 numSamples, AooNtpTime t,
+            AooStreamMessageHandler messageHandler, void *user) = 0;
 
     /** \brief set event handler function and event handling mode
      *
@@ -121,7 +128,7 @@ public:
      *        before accepting the invitation
      */
     virtual AooError AOO_CALL inviteSource(
-            const AooEndpoint& source, const AooDataView *metadata) = 0;
+            const AooEndpoint& source, const AooData *metadata) = 0;
 
     /** \brief uninvite source
      *
@@ -170,25 +177,48 @@ public:
         return control(kAooCtlReset, 0, nullptr, 0);
     }
 
-    /** \brief Set the buffer size in seconds (in seconds)
+    /** \brief Set the latency (in seconds)
      *
-     * This is the size of the ring buffer between the audio and network thread.
+     * If a new stream is started, processing is delayed for the specified
+     * time resp. until we have received the corresponding number of blocks.
+     * This gives a buffer for compensating network and audio jitter.
      *
-     * A larger buffer size helps to deal with network jitter, packet reordering
-     * and packet loss.
-     *
-     * For local networks small buffersizes between 10-50ms should work;
+     * For local networks small latencies of 5-20 ms should work;
      * for unreliable/unpredictable networks you might need to increase it
      * significantly if you want to avoid dropouts.
      *
-     * Some codecs, like Opus, offer packet loss concealment, so you can use
-     * very low buffer sizes and still get acceptable results.
+     * Higher latencies also allow for missing packets to be resent (if enabled).
+     * You can effectively create 'reliable' streams over unstable connections.
+     *
+     * Some codecs, such as Opus, offer packet loss concealment, so you can
+     * use very low latencies and still get acceptable results.
+     */
+    AooError setLatency(AooSeconds s) {
+        return control(kAooCtlSetLatency, 0, AOO_ARG(s));
+    }
+
+    /** \brief Get the current latency (in seconds) */
+    AooError getLatency(AooSeconds& s) {
+        return control(kAooCtlGetLatency, 0, AOO_ARG(s));
+    }
+
+    /** \brief Set the network packet buffer size (in seconds)
+     *
+     * By default, the size of the network packet buffer is 2 * latency.
+     *
+     * In certain situations, you may want to set the buffer size independently
+     * from the latency. Only use this if you know what you are doing!
+     *
+     * You can revert to the default behavior by passing a value of 0.0.
      */
     AooError setBufferSize(AooSeconds s) {
         return control(kAooCtlSetBufferSize, 0, AOO_ARG(s));
     }
 
-    /** \brief Get the current buffer size (in seconds) */
+    /** \brief Get the current buffer size (in seconds)
+     *
+     * 0.0 = default behavior (2 * latency)
+     */
     AooError getBufferSize(AooSeconds& s) {
         return control(kAooCtlGetBufferSize, 0, AOO_ARG(s));
     }

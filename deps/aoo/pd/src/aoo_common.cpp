@@ -215,3 +215,24 @@ int format_to_atoms(const AooFormat &f, int argc, t_atom *argv)
     }
     return 0;
 }
+
+bool atom_to_datatype(const t_atom &a, AooDataType& type, void *x) {
+    if (a.a_type == A_SYMBOL) {
+        auto str = a.a_w.w_symbol->s_name;
+        auto result = aoo_dataTypeFromString(str);
+        if (result != kAooDataUnspecified) {
+            type = result;
+            return true;
+        } else {
+            pd_error(x, "%s: unknown data type '%s'", classname(x), str);
+        }
+    } else {
+        pd_error(x, "%s: bad metadata type", classname(x));
+    }
+    return false;
+}
+
+void datatype_to_atom(AooDataType type, t_atom& a) {
+    auto str = aoo_dataTypeToString(type);
+    SETSYMBOL(&a, str ? gensym(str) : gensym("unknown"));
+}

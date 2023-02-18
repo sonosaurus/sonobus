@@ -6,6 +6,7 @@
 
 #include <inttypes.h>
 #include <atomic>
+#include <utility>
 
 #ifndef _WIN32
   #include <pthread.h>
@@ -27,12 +28,52 @@
   #define HAVE_SEMAPHORE
 #endif
 
+// for spinlock
+// Intel
+#if defined(__i386__) || defined(_M_IX86) || \
+    defined(__x86_64__) || defined(_M_X64)
+  #define HAVE_PAUSE
+  #include <immintrin.h>
+// ARM
+#elif (defined(__ARM_ARCH_6K__) || \
+       defined(__ARM_ARCH_6Z__) || \
+       defined(__ARM_ARCH_6ZK__) || \
+       defined(__ARM_ARCH_6T2__) || \
+       defined(__ARM_ARCH_7__) || \
+       defined(__ARM_ARCH_7A__) || \
+       defined(__ARM_ARCH_7R__) || \
+       defined(__ARM_ARCH_7M__) || \
+       defined(__ARM_ARCH_7S__) || \
+       defined(__ARM_ARCH_8A__) || \
+       defined(__aarch64__))
+// mnemonic 'yield' is supported from ARMv6k onwards
+  #define HAVE_YIELD
+#else
+// fallback
+  #include <thread>
+#endif
+
 // for shared_lock
 #include <mutex>
 #include <shared_mutex>
 
 namespace aoo {
 namespace sync {
+
+inline void pause_cpu(){
+#if defined(HAVE_PAUSE)
+    _mm_pause();
+#elif defined(HAVE_YIELD)
+    __asm__ __volatile__("yield");
+#else // fallback
+  #warning "architecture does not support yield/pause instruction"
+  #if 0
+    std::this_thread::sleep_for(std::chrono::microseconds(0));
+  #else
+    std::this_thread::yield();
+  #endif
+#endif
+}
 
 //-------------- thread priority ------------------//
 
@@ -140,9 +181,26 @@ public:
     spinlock() = default;
     spinlock(const spinlock&) = delete;
     spinlock& operator=(const spinlock&) = delete;
-    void lock();
-    bool try_lock();
-    void unlock();
+
+    void lock() {
+        // only try to modify the shared state if the lock seems to be available.
+        // this should prevent unnecessary cache invalidation.
+        do {
+            while (locked_.load(std::memory_order_relaxed)){
+                pause_cpu();
+            }
+        } while (!try_lock());
+    }
+
+    bool try_lock() {
+        // if the previous value was false, it means be could aquire the lock.
+        // this is faster than a CAS loop.
+        return !locked_.exchange(true, std::memory_order_acquire);
+    }
+
+    void unlock() {
+        locked_.store(false, std::memory_order_release);
+    }
 protected:
     std::atomic<uint32_t> locked_{false};
 };
@@ -154,14 +212,69 @@ public:
     shared_spinlock() = default;
     shared_spinlock(const shared_spinlock&) = delete;
     shared_spinlock& operator=(const shared_spinlock&) = delete;
+
     // exclusive
-    void lock();
-    bool try_lock();
-    void unlock();
+    void lock() {
+        // only try to modify the shared state if the lock seems to be available.
+        // this should prevent unnecessary cache invalidation.
+        for (;;) {
+            if (state_.load(std::memory_order_relaxed) == UNLOCKED){
+                // check if state is UNLOCKED and set LOCKED bit on success.
+                uint32_t expected = UNLOCKED;
+                if (state_.compare_exchange_weak(expected, LOCKED,
+                    std::memory_order_acquire, std::memory_order_relaxed)) return;
+                // CAS failed -> retry immediately
+            } else {
+                pause_cpu();
+            }
+        }
+    }
+
+    bool try_lock() {
+        // check if state is UNLOCKED and set LOCKED bit on success.
+        uint32_t expected = UNLOCKED;
+        return state_.compare_exchange_strong(expected, LOCKED,
+            std::memory_order_acquire, std::memory_order_relaxed);
+    }
+
+    void unlock() {
+        // clear LOCKED bit, see try_lock_shared()
+        state_.fetch_and(~LOCKED, std::memory_order_release);
+    }
+
     // shared
-    void lock_shared();
-    bool try_lock_shared();
-    void unlock_shared();
+    void lock_shared() {
+        // only try to modify the shared state if the lock seems to be
+        // available. this should prevent unnecessary cache invalidation.
+        for (;;)
+        {
+            auto state = state_.load(std::memory_order_relaxed);
+            if (!(state & LOCKED) && try_lock_shared()) {
+                return;
+            } else {
+                pause_cpu();
+            }
+        }
+    }
+
+    bool try_lock_shared() {
+        // optimistically increment the reader count and then
+        // check whether the LOCKED bit is *not* set, otherwise
+        // we simply decrement the reader count again. this is
+        // optimized for the likely case that there's no writer.
+        auto state = state_.fetch_add(1, std::memory_order_acquire);
+        if (!(state & LOCKED)){
+            return true;
+        } else {
+            state_.fetch_sub(1, std::memory_order_acq_rel); // memory order?
+            return false;
+        }
+    }
+
+    void unlock_shared() {
+        // decrement the reader count
+        state_.fetch_sub(1, std::memory_order_release);
+    }
 protected:
     const uint32_t UNLOCKED = 0;
     const uint32_t LOCKED = 0x80000000;
@@ -184,10 +297,8 @@ using padded_shared_spinlock =  padded_class<shared_spinlock, CACHELINE_SIZE>;
 
 //------------------------------ mutex ------------------------------------//
 
-// The std::mutex implementation on Windows is bad on both MSVC and MinGW:
-// the MSVC version apparantely has some additional overhead;
-// winpthreads (MinGW) doesn't even use the obvious platform primitive (SRWLOCK),
-// they rather roll their own mutex based on atomics and Events, which is bad for our use case.
+// The std::mutex implementation on Windows rolls their own mutex based on atomics and
+// Events, but for our cases we can just use the most suitable platform primitive (SRWLOCK).
 //
 // Older OSX versions (OSX 10.11 and below) don't have std:shared_mutex...
 //

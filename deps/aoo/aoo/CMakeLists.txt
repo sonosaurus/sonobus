@@ -12,7 +12,7 @@ if (AOO_PACKET_SIZE GREATER AOO_MAX_PACKET_SIZE)
     message(FATAL_ERROR "AOO_PACKET_SIZE must not exceed AOO_MAX_PACKET_SIZE")
 endif()
 
-option(AOO_DYNAMIC_RESAMPLING "enable/disable dynamic resampling" ON)
+option(AOO_DYNAMIC_RESAMPLING "enable/disable dynamic resampling" OFF)
 message(STATUS "Use dynamic resampling: ${AOO_DYNAMIC_RESAMPLING}")
 
 set(AOO_DLL_BANDWIDTH 0.0001 CACHE STRING "default DLL filter bandwidth")
@@ -38,9 +38,9 @@ option(AOO_DEBUG_TIMER "debug timer" OFF)
 
 option(AOO_DEBUG_RESAMPLER "debug resampler" OFF)
 
-option(AOO_DEBUG_AUDIO_BUFFER "debug audio buffer" OFF)
-
 option(AOO_DEBUG_JITTER_BUFFER "debug jitter buffer" OFF)
+
+option(AOO_DEBUG_STREAM_MESSAGE "debug jitter buffer" OFF)
 
 option(AOO_DEBUG_RELAY "debug relay" OFF)
 
@@ -62,11 +62,11 @@ set(OPTIONS
     -DAOO_DEBUG_DLL=$<BOOL:${AOO_DEBUG_DLL}>
     -DAOO_DEBUG_TIMER=$<BOOL:${AOO_DEBUG_TIMER}>
     -DAOO_DEBUG_RESAMPLER=$<BOOL:${AOO_DEBUG_RESAMPLER}>
-    -DAOO_DEBUG_AUDIO_BUFFER=$<BOOL:${AOO_DEBUG_AUDIO_BUFFER}>
+    -DAOO_DEBUG_STREAM_MESSAGE=$<BOOL:${AOO_DEBUG_STREAM_MESSAGE}>
     -DAOO_DEBUG_JITTER_BUFFER=$<BOOL:${AOO_DEBUG_JITTER_BUFFER}>
     -DAOO_DEBUG_RELAY=$<BOOL:${AOO_DEBUG_RELAY}>
     -DAOO_DEBUG_CLIENT_MESSAGE=$<BOOL:${AOO_DEBUG_CLIENT_MESSAGE}>
-    -DAOO_NET_CLIENT_SIMULATE=$<BOOL:${AOO_CLIENT_SIMULATE}>
+    -DAOO_CLIENT_SIMULATE=$<BOOL:${AOO_CLIENT_SIMULATE}>
 )
 
 set(INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../include/aoo")
@@ -99,8 +99,13 @@ if (AOO_CODEC_OPUS)
 endif()
 
 if (AOO_NET)
-    list(APPEND HEADERS "src/net/server.hpp" "src/net/client.hpp")
-    list(APPEND SOURCES "src/net/client.cpp" "src/net/server.cpp")
+    file(GLOB NET_HEADERS "src/net/*.hpp")
+
+    file(GLOB NET_SOURCES "src/net/*.cpp")
+
+    list(APPEND HEADERS ${NET_HEADERS})
+    list(APPEND SOURCES ${NET_SOURCES})
+
     if (NOT AOO_SYSTEM_MD5)
         list(APPEND HEADERS "${DEPS}/md5/md5.h")
         list(APPEND SOURCES "${DEPS}/md5/md5.c")

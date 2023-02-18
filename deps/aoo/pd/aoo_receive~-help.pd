@@ -1,33 +1,24 @@
 #N canvas 813 70 636 611 12;
 #X declare -lib aoo;
 #X text 276 308 creation arguments:;
-#X msg 88 263 bufsize \$1;
-#X obj 88 239 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#N canvas 961 0 539 802 events 0;
+#X obj 88 239 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#N canvas 961 0 539 906 events 0;
 #X obj 37 32 inlet;
 #X text 104 598 the source format has changed;
-#X text 100 656 blocks have been lost;
-#X text 100 711 blocks arrived out of order;
-#X text 100 766 blocks have been resent;
+#X text 100 766 blocks have been lost;
+#X text 100 821 blocks arrived out of order;
+#X text 100 876 blocks have been resent;
 #X text 63 144 a source has been added;
-#X text 101 542 the source has change its state (0: stop \, 1: play)
-;
-#X text 93 933 <delta> is the approx. delay between source and sink
-(in ms), f 62;
+#X text 101 542 the source has change its state (0: stop \, 1: play);
+#X text 93 1043 <delta> is the approx. delay between source and sink (in ms), f 62;
 #X obj 37 85 outlet;
 #X msg 38 219 invite_timeout <host> <port> <ID>;
-#X text 64 243 an invite request for the given source has timed out
-;
-#X text 94 882 a periodic message coming from the source. The sink
-automatically replies with another ping message to tell the source
-that it is actively listening., f 54;
+#X text 64 243 an invite request for the given source has timed out;
+#X text 94 992 a periodic message coming from the source. The sink automatically replies with another ping message to tell the source that it is actively listening., f 54;
 #X text 101 489 the stream has been stopped;
 #X text 103 407 a new stream has been started., f 32;
-#X text 103 427 'type' and 'data' are the (optional) stream metadata
-\, see [pd metadata] in [aoo_send~], f 45;
-#X obj 115 60 tgl 15 0 \$0-ping \$0-ping empty 17 7 0 10 -262144 -1
--1 0 1;
+#X text 103 427 'type' and 'data' are the (optional) stream metadata \, see [pd metadata] in [aoo_send~], f 45;
+#X obj 115 60 tgl 15 0 \$0-ping \$0-ping empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X text 138 58 post pings;
 #N canvas 899 257 365 267 route 0;
 #X obj 83 58 inlet;
@@ -98,40 +89,38 @@ that it is actively listening., f 54;
 #X msg 38 170 remove <host> <port> <ID>;
 #X text 65 192 a source has been removed;
 #X msg 40 271 uninvite_timeout <host> <port> <ID>;
-#X text 66 295 an uninvite request for the given source has timed out
-;
+#X text 66 295 an uninvite request for the given source has timed out;
 #X text 40 322 source events:;
 #X msg 42 349 event <host> <port> <ID> ...;
 #X msg 68 383 ... start [<type> <data...>];
 #X msg 69 466 ... stop;
 #X msg 69 518 ... state <state>;
-#X msg 68 570 ... format <codec> <channels> <blocksize> <sr> ...,
-f 53;
-#X text 99 823 blocks have been dropped at the source;
-#X text 72 960 ---;
-#X msg 67 628 ... block_lost <count>;
-#X msg 68 684 ... block_reordered <count>;
-#X msg 68 739 ... block_resent <count>;
-#X msg 69 795 ... block_dropped <count>;
-#X msg 69 854 ... ping <delta>;
+#X msg 68 570 ... format <codec> <channels> <blocksize> <sr> ..., f 53;
+#X text 99 933 blocks have been dropped at the source;
+#X text 72 1070 ---;
+#X msg 67 738 ... block_lost <count>;
+#X msg 68 794 ... block_reordered <count>;
+#X msg 68 849 ... block_resent <count>;
+#X msg 69 905 ... block_dropped <count>;
+#X msg 69 964 ... ping <delta>;
+#X msg 68 625 ... overrun;
+#X text 97 649 jitter buffer overrun;
+#X msg 68 677 ... underrun;
+#X text 96 705 jitter buffer underrun;
 #X connect 0 0 17 0;
 #X connect 17 0 8 0;
 #X restore 182 357 pd events;
 #X text 35 24 aoo_receive~: receive one or more AoO audio streams;
 #X msg 522 539 \; pd dsp \$1;
-#X obj 522 516 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
-1;
+#X obj 522 516 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X msg 79 201 list_sources;
-#X text 179 192 list sources. This will output a message [source <host>
-<port> <id>( for each source., f 45;
+#X text 179 192 list sources. This will output a message [source <host> <port> <id>( for each source., f 45;
 #X obj 474 24 declare -lib aoo;
 #X obj 38 330 aoo_receive~ 9999 1 2;
 #X msg 38 64 invite localhost 9998 1;
-#X text 216 64 invite an AoO source (hostname \, port \, source ID)
-;
+#X text 216 64 invite an AoO source (hostname \, port \, source ID);
 #X msg 46 98 uninvite localhost 9998 1;
-#X text 236 97 uninvite an AoO source (hostname \, port \, source ID)
-;
+#X text 236 97 uninvite an AoO source (hostname \, port \, source ID);
 #X obj 36 447 aoo_receive~ 9999 2 2;
 #X obj 202 502 aoo_send~ 9999 1 2;
 #X text 276 336 1) port number for incoming messages;
@@ -140,62 +129,48 @@ f 53;
 #X text 277 408 3) number of channels (default: 1);
 #X text 33 421 another sink on the same port;
 #X obj 36 472 env~;
-#X floatatom 36 496 5 0 0 0 - - -;
+#X floatatom 36 496 5 0 0 0 - - - 0;
 #X obj 107 473 env~;
-#X floatatom 107 497 5 0 0 0 - - -;
+#X floatatom 107 497 5 0 0 0 - - - 0;
 #X text 199 478 the same port can also be used by sources;
 #X msg 58 130 uninvite;
 #X text 129 129 uninvite all AoO sources;
 #N canvas 808 108 547 640 advanced 0;
 #X obj 39 596 outlet;
-#X obj 79 227 nbx 8 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#X obj 88 280 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 79 227 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X obj 88 280 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 88 304 packetsize \$1;
 #X text 194 302 max. UDP packet size (default: 512 bytes);
 #X msg 95 342 reset;
-#X text 152 335 reset all sources (e.g. if the stream seems to be broken
-or out of sync), f 47;
+#X text 152 335 reset all sources (e.g. if the stream seems to be broken or out of sync), f 47;
 #X text 270 376 reset individual source;
 #X msg 101 375 reset localhost 9998 1;
-#X obj 39 28 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0 10
--262144 -1 -1 0 256;
+#X obj 39 28 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 99 28 0;
 #X text 133 28 stop listening;
 #X msg 39 53 port \$1;
 #X text 101 53 change receive port;
 #X msg 49 102 id \$1;
-#X obj 49 83 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0 10
--262144 -1 -1 0 256;
+#X obj 49 83 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X text 103 101 change AoO sink ID;
 #X msg 113 451 resend \$1;
-#X obj 113 429 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 113 429 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X msg 118 506 resend_limit \$1;
-#X obj 118 485 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#X obj 124 536 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 118 485 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X obj 124 536 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 124 557 resend_interval \$1;
-#X text 242 506 max. number of frames to request per message (default:
-16), f 34;
-#X text 262 555 time interval (ms) between resend requests (default:
-10 ms), f 34;
-#X text 194 445 enable/disable resending of lost packets (enabled by
-default), f 40;
+#X text 242 506 max. number of frames to request per message (default: 16), f 34;
+#X text 262 555 time interval (ms) between resend requests (default: 10 ms), f 34;
+#X text 194 445 enable/disable resending of lost packets (enabled by default), f 40;
 #X text 110 405 packet resending:;
-#X text 268 129 get the current buffer fill ratio of the given source
-, f 27;
+#X text 268 129 get the current buffer fill ratio of the given source, f 27;
 #X text 269 162 0: empty \, 1: full;
 #X msg 59 135 fill_ratio localhost 9998 1;
 #X msg 69 196 dynamic_resampling \$1;
-#X obj 69 174 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 69 174 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X text 233 197 enable/disable dynamic resampling;
 #X msg 79 247 dll_bandwidth \$1;
-#X text 209 246 time DLL filter bandwidth for dynamic resampling (default:
-0.0001), f 38;
+#X text 209 246 time DLL filter bandwidth for dynamic resampling (default: 0.0001), f 38;
 #X connect 1 0 33 0;
 #X connect 2 0 3 0;
 #X connect 3 0 0 0;
@@ -219,21 +194,17 @@ default), f 40;
 #X restore 99 295 pd advanced;
 #X text 37 542 see also;
 #X obj 107 542 aoo_send~;
-#X text 277 435 4) buffer size (default: 25 ms);
-#X text 175 241 buffer size in ms (default: 25 ms);
-#X text 173 262 increase for jittery \, unreliable networks!;
-#X obj 182 383 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
+#X text 174 262 increase for jittery \, unreliable networks!;
+#X obj 182 383 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
 #N canvas 0 50 450 387 output 0;
 #X obj 105 188 inlet~;
 #X obj 173 191 inlet~;
 #X obj 238 100 loadbang;
 #X msg 238 124 -100;
 #X obj 238 148 s /\$0/master;
-#X obj 143 108 nbx 5 14 -100 0 0 0 /\$0/master /\$0/master empty 0
--8 0 10 -262144 -1 -1 -100 256;
-#X obj 201 105 cnv 15 1 1 empty empty dB 0 12 0 14 -262144 -1 0;
-#X obj 105 105 cnv 15 1 1 empty empty Vol: 0 12 0 14 -262144 -1 0;
+#X obj 143 108 nbx 5 14 -100 0 0 0 /\$0/master /\$0/master empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X obj 201 105 cnv 15 1 1 empty empty dB 0 12 0 14 #fcfcfc #000000 0;
+#X obj 105 105 cnv 15 1 1 empty empty Vol: 0 12 0 14 #fcfcfc #000000 0;
 #X obj 227 191 r /\$0/master;
 #X obj 227 215 + 100;
 #X obj 227 239 dbtorms;
@@ -261,9 +232,7 @@ default), f 40;
 #N canvas 969 173 529 559 metadata 0;
 #X msg 31 325 metadata <type> <data...>;
 #X msg 46 354 metadata;
-#X text 30 143 The metadata consists of a 'type' symbol \, followed
-by a list of bytes. 'type' can be either a user-defined name or one
-of the following pre-defined names:;
+#X text 30 143 The metadata consists of a 'type' symbol \, followed by a list of bytes. 'type' can be either a user-defined name or one of the following pre-defined names:;
 #X text 39 197 "text": UTF-8 encoded plain text;
 #X text 41 216 "json": UTF-8 encoded JSON;
 #X text 42 238 "xml": UTF-8 encoded XML;
@@ -272,8 +241,7 @@ of the following pre-defined names:;
 #X obj 62 414 oscformat;
 #X msg 62 385 set /foo \, 1 2 3;
 #X obj 62 443 list prepend metadata osc;
-#X text 30 108 The actual content and its interpretation is user-defined
-and will be different for each application., f 58;
+#X text 30 108 The actual content and its interpretation is user-defined and will be different for each application., f 58;
 #X obj 251 413 fudiformat;
 #X text 139 414 "osc";
 #X text 333 414 "fudi";
@@ -281,11 +249,8 @@ and will be different for each application., f 58;
 #X obj 62 471 list trim;
 #X obj 251 443 list prepend metadata fudi;
 #X obj 31 506 outlet;
-#X text 31 35 Users can add metadata to their invitations \, e.g. to
-request format parameters \, channel layouts \, musical content \,
-etc.;
-#X text 30 71 The metadata will be output in the [aoo_send~] object
-as part of the 'invite' event message.;
+#X text 31 35 Users can add metadata to their invitations \, e.g. to request format parameters \, channel layouts \, musical content \, etc.;
+#X text 30 71 The metadata will be output in the [aoo_send~] object as part of the 'invite' event message.;
 #X msg 251 385 foo 1 2 3;
 #X connect 0 0 18 0;
 #X connect 1 0 18 0;
@@ -298,20 +263,23 @@ as part of the 'invite' event message.;
 #X connect 21 0 12 0;
 #X restore 69 161 pd metadata;
 #X text 160 161 set invitation metadata;
-#X connect 1 0 10 0;
-#X connect 2 0 1 0;
-#X connect 3 0 35 0;
-#X connect 6 0 5 0;
-#X connect 7 0 10 0;
-#X connect 10 0 36 0;
-#X connect 10 1 36 1;
-#X connect 10 2 3 0;
-#X connect 11 0 10 0;
-#X connect 13 0 10 0;
-#X connect 15 0 22 0;
-#X connect 15 1 24 0;
-#X connect 22 0 23 0;
-#X connect 24 0 25 0;
-#X connect 27 0 10 0;
-#X connect 29 0 10 0;
-#X connect 39 0 10 0;
+#X msg 87 262 latency \$1;
+#X text 175 241 latency in ms (default: 25 ms);
+#X text 277 435 4) latency (default: 25 ms);
+#X connect 1 0 38 0;
+#X connect 2 0 32 0;
+#X connect 5 0 4 0;
+#X connect 6 0 9 0;
+#X connect 9 0 33 0;
+#X connect 9 1 33 1;
+#X connect 9 2 2 0;
+#X connect 10 0 9 0;
+#X connect 12 0 9 0;
+#X connect 14 0 21 0;
+#X connect 14 1 23 0;
+#X connect 21 0 22 0;
+#X connect 23 0 24 0;
+#X connect 26 0 9 0;
+#X connect 28 0 9 0;
+#X connect 36 0 9 0;
+#X connect 38 0 9 0;

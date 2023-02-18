@@ -60,7 +60,7 @@ public:
 
     /** \brief add a new client */
     virtual AooError AOO_CALL addClient(
-            AooNetReplyFunc replyFn, void *user,
+            AooServerReplyFunc replyFn, void *user,
             AooSocket sockfd, AooId *id) = 0;
 
     /** \brief remove a client */
@@ -72,28 +72,28 @@ public:
 
     /** \brief set request handler (to intercept client requests) */
     virtual AooError AOO_CALL setRequestHandler(
-            AooNetRequestHandler cb, void *user, AooFlag flags) = 0;
+            AooRequestHandler cb, void *user, AooFlag flags) = 0;
 
     /** \brief accept request */
     virtual AooError AOO_CALL acceptRequest(
-            AooId client, AooId token, const AooNetRequest *request,
-            AooNetResponse *response) = 0;
+            AooId client, AooId token, const AooRequest *request,
+            AooResponse *response) = 0;
 
     /** \brief decline request */
     virtual AooError AOO_CALL declineRequest(
-            AooId client, AooId token, const AooNetRequest *request,
+            AooId client, AooId token, const AooRequest *request,
             AooError errorCode, const AooChar *errorMessage) = 0;
 
     /* push notifications */
 
     /** \brief send custom push notification to client */
     virtual AooError AOO_CALL notifyClient(
-            AooId client, const AooDataView *data) = 0;
+            AooId client, const AooData *data) = 0;
 
     /** \brief send custom push notification to group member(s);
         if `user` is `kAooIdInvalid`, all group members are notified. */
     virtual AooError AOO_CALL notifyGroup(
-            AooId group, AooId user, const AooDataView *data) = 0;
+            AooId group, AooId user, const AooData *data) = 0;
 
     /* group management */
 
@@ -103,10 +103,10 @@ public:
 
     /** \brief add a group
      * By default, the metadata is passed to clients
-     * via AooNetResponseGroupJoin::groupMetadata. */
+     * via AooResponseGroupJoin::groupMetadata. */
     virtual AooError AOO_CALL addGroup(
             const AooChar *name, const AooChar *password,
-            const AooDataView *metadata, const AooIpEndpoint *relayAddress,
+            const AooData *metadata, const AooIpEndpoint *relayAddress,
             AooFlag flags, AooId *groupId) = 0;
 
     /** \brief remove a group */
@@ -118,10 +118,10 @@ public:
             AooId group, const AooChar *userName, AooId *userId) = 0;
 
     /** \brief add user to group
-     * By default, the metadata is passed to peers via AooNetEventPeer::metadata. */
+     * By default, the metadata is passed to peers via AooEventPeer::metadata. */
     virtual AooError AOO_CALL addUserToGroup(
             AooId group, const AooChar *userName, const AooChar *userPwd,
-            const AooDataView *metadata, AooFlag flags, AooId *userId) = 0;
+            const AooData *metadata, AooFlag flags, AooId *userId) = 0;
 
     /** \brief remove user from group */
     virtual AooError AOO_CALL removeUserFromGroup(
@@ -215,12 +215,12 @@ public:
     /*         type-safe group control functions        */
     /*--------------------------------------------------*/
 
-    AooError updateGroup(AooId group, const AooDataView *metadata)
+    AooError updateGroup(AooId group, const AooData *metadata)
     {
         return groupControl(group, kAooCtlUpdateGroup, 0, AOO_ARG(metadata));
     }
 
-    AooError updateUser(AooId group, AooId user, const AooDataView *metadata)
+    AooError updateUser(AooId group, AooId user, const AooData *metadata)
     {
         return groupControl(group, kAooCtlUpdateUser, user, AOO_ARG(metadata));
     }

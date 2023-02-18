@@ -19,8 +19,6 @@ const int32_t kDataHeaderSize = kDataMaxAddrSize + 8;
 // args: 8 bytes (stream ID + count)
 const int32_t kBinDataHeaderSize = kAooBinMsgLargeHeaderSize + 8;
 
-const int32_t kEventQueueSize = 8;
-
 } // aoo
 
 //------------------------- Sink ------------------------------//
@@ -31,9 +29,7 @@ AOO_API AooSink * AOO_CALL AooSink_new(
 }
 
 aoo::Sink::Sink(AooId id, AooFlag flags, AooError *err)
-    : id_(id) {
-    eventqueue_.reserve(kEventQueueSize);
-}
+    : id_(id) {}
 
 AOO_API void AOO_CALL AooSink_free(AooSink *sink) {
     // cast to correct type because base class
@@ -49,8 +45,8 @@ aoo::Sink::~Sink(){
             // free metadata
             auto md = r.invite.metadata;
             if (md != nullptr){
-                auto mdsize = flat_metadata_size(*md);
-                aoo::deallocate(md, mdsize);
+                auto size = flat_metadata_size(*md);
+                aoo::rt_deallocate(md, size);
             }
         }
     }
@@ -150,6 +146,20 @@ AooError AOO_CALL aoo::Sink::control(
         GETSOURCEARG
         return src->get_format(as<AooFormat>(ptr));
     }
+    // latency
+    case kAooCtlSetLatency:
+    {
+        CHECKARG(AooSeconds);
+        auto bufsize = std::max<AooSeconds>(0, as<AooSeconds>(ptr));
+        if (latency_.exchange(bufsize) != bufsize){
+            reset_sources();
+        }
+        break;
+    }
+    case kAooCtlGetLatency:
+        CHECKARG(AooSeconds);
+        as<AooSeconds>(ptr) = latency_.load();
+        break;
     // buffer size
     case kAooCtlSetBufferSize:
     {
@@ -167,9 +177,9 @@ AooError AOO_CALL aoo::Sink::control(
     // get buffer fill ratio
     case kAooCtlGetBufferFillRatio:
     {
-        CHECKARG(float);
+        CHECKARG(double);
         GETSOURCEARG
-        as<float>(ptr) = src->get_buffer_fill_ratio();
+        as<double>(ptr) = src->get_buffer_fill_ratio();
         break;
     }
     // timer check
@@ -286,7 +296,7 @@ AooError AOO_CALL aoo::Sink::control(
         CHECKARG(AooSeconds);
         as<AooSeconds>(ptr) = invite_timeout_.load();
         break;
-#if USE_AOO_NET
+#if AOO_NET
     case kAooCtlSetClient:
         client_ = reinterpret_cast<AooClient *>(index);
         break;
@@ -405,12 +415,14 @@ AooError AOO_CALL aoo::Sink::send(AooSendFunc fn, void *user){
 }
 
 AOO_API AooError AOO_CALL AooSink_process(
-        AooSink *sink, AooSample **data, AooInt32 nsamples, AooNtpTime t) {
-    return sink->process(data, nsamples, t);
+        AooSink *sink, AooSample **data, AooInt32 nsamples, AooNtpTime t,
+        AooStreamMessageHandler messageHandler, void *user) {
+    return sink->process(data, nsamples, t, messageHandler, user);
 }
 
 AooError AOO_CALL aoo::Sink::process(
-        AooSample **data, AooInt32 nsamples, AooNtpTime t){
+        AooSample **data, AooInt32 nsamples, AooNtpTime t,
+        AooStreamMessageHandler messageHandler, void *user) {
     // clear outputs
     for (int i = 0; i < nchannels_; ++i){
         std::fill(data[i], data[i] + nsamples, 0);
@@ -428,18 +440,20 @@ AooError AOO_CALL aoo::Sink::process(
         realsr_.store(samplerate_);
     } else if (state == timer::state::error){
         // recover sources
-        int32_t xrunsamples = error * samplerate_ + 0.5;
+        double xrunblocks = error * (double)samplerate_ / (double)blocksize_;
 
         // no lock needed - sources are only removed in this thread!
         for (auto& s : sources_){
-            s.add_xrun(xrunsamples);
+            s.add_xrun(xrunblocks);
         }
 
-        endpoint_event e(kAooEventXRun);
-        e.xrun.count = (float)xrunsamples / (float)blocksize_;
-        send_event(e, kAooThreadLevelAudio);
+        int count = std::ceil(xrunblocks); // ?
+        auto e = make_event<xrun_event>(count);
+        send_event(std::move(e), kAooThreadLevelAudio);
 
         timer_.reset();
+
+        // TODO: flush stream messages?
     } else if (dynamic_resampling) {
         // update time DLL, but only if n matches blocksize!
         auto elapsed = timer_.get_elapsed();
@@ -461,12 +475,12 @@ AooError AOO_CALL aoo::Sink::process(
 
     // no lock needed - sources are only removed in this thread!
     for (auto it = sources_.begin(); it != sources_.end();){
-        if (it->process(*this, data, nsamples)){
+        if (it->process(*this, data, nsamples, messageHandler, user)){
             didsomething = true;
         } else if (!it->check_active(*this)){
             LOG_VERBOSE("AooSink: removed inactive source " << it->ep);
-            endpoint_event e(kAooEventSourceRemove, it->ep);
-            send_event(e, kAooThreadLevelAudio);
+            auto e = make_event<source_event>(kAooEventSourceRemove, it->ep);
+            send_event(std::move(e), kAooThreadLevelAudio);
             // move source to garbage list (will be freed in send())
             it = sources_.erase(it);
             continue;
@@ -533,9 +547,9 @@ AOO_API AooError AOO_CALL AooSink_pollEvents(AooSink *sink){
 
 AooError AOO_CALL aoo::Sink::pollEvents(){
     int total = 0;
-    endpoint_event e;
+    event_ptr e;
     while (eventqueue_.try_pop(e)){
-        eventhandler_(eventcontext_, &e.event, kAooThreadLevelUnknown);
+        eventhandler_(eventcontext_, &e->cast(), kAooThreadLevelUnknown);
         total++;
     }
     // we only need to protect against source removal
@@ -550,7 +564,7 @@ AooError AOO_CALL aoo::Sink::pollEvents(){
 }
 
 AOO_API AooError AOO_CALL AooSink_inviteSource(
-        AooSink *sink, const AooEndpoint *source, const AooDataView *metadata)
+        AooSink *sink, const AooEndpoint *source, const AooData *metadata)
 {
     if (sink) {
         return sink->inviteSource(*source, metadata);
@@ -560,13 +574,13 @@ AOO_API AooError AOO_CALL AooSink_inviteSource(
 }
 
 AooError AOO_CALL aoo::Sink::inviteSource(
-        const AooEndpoint& ep, const AooDataView *md) {
+        const AooEndpoint& ep, const AooData *md) {
     ip_address addr((const sockaddr *)ep.address, ep.addrlen);
 
-    AooDataView *metadata = nullptr;
+    AooData *metadata = nullptr;
     if (md) {
-        auto mdsize = flat_metadata_size(*md);
-        metadata = (AooDataView *)aoo::allocate(mdsize);
+        auto size = flat_metadata_size(*md);
+        metadata = (AooData *)aoo::rt_allocate(size);
         flat_metadata_copy(*md, *metadata);
     }
 
@@ -606,13 +620,13 @@ AooError AOO_CALL aoo::Sink::uninviteAll() {
 
 namespace aoo {
 
-void Sink::send_event(const endpoint_event &e, AooThreadLevel level) const {
+void Sink::send_event(event_ptr e, AooThreadLevel level) const {
     switch (eventmode_){
     case kAooEventModePoll:
-        eventqueue_.push(e);
+        eventqueue_.push(std::move(e));
         break;
     case kAooEventModeCallback:
-        eventhandler_(eventcontext_, &e.event, level);
+        eventhandler_(eventcontext_, &e->cast(), level);
         break;
     default:
         break;
@@ -620,8 +634,8 @@ void Sink::send_event(const endpoint_event &e, AooThreadLevel level) const {
 }
 
 // only called if mode is kAooEventModeCallback
-void Sink::call_event(const source_event &e, AooThreadLevel level) const {
-    eventhandler_(eventcontext_, &e.event, level);
+void Sink::call_event(event_ptr e, AooThreadLevel level) const {
+    eventhandler_(eventcontext_, &e->cast(), level);
 }
 
 void Sink::dispatch_requests(){
@@ -696,7 +710,7 @@ aoo::source_desc * Sink::get_source_arg(intptr_t index){
 
 source_desc * Sink::add_source(const ip_address& addr, AooId id){
     // add new source
-#if USE_AOO_NET
+#if AOO_NET
     ip_address relay;
     // check if the peer needs to be relayed
     if (client_){
@@ -763,16 +777,16 @@ AooError Sink::handle_start_message(const osc::ReceivedMessage& msg,
     (it++)->AsBlob(extension, size);
 
     // get stream metadata
-    AooDataView md;
+    AooData md;
     if (msg.ArgumentCount() >= 12) {
-        md.type = (it++)->AsString();
+        md.type = (it++)->AsInt32();
         const void *md_data;
         osc::osc_bundle_element_size_t md_size;
         (it++)->AsBlob(md_data, md_size);
         md.data = (const AooByte *)md_data;
         md.size = md_size;
     } else {
-        md.type = kAooDataTypeUnspec;
+        md.type = kAooDataUnspecified;
         md.data = nullptr;
         md.size = 0;
     }
@@ -816,6 +830,9 @@ AooError Sink::handle_stop_message(const osc::ReceivedMessage& msg,
     }
 }
 
+// /aoo/sink/<id>/data <src> <stream_id> <seq> <sr> <channel_onset>
+// <totalsize> <msgsize> <nframes> <frame> <data>
+
 AooError Sink::handle_data_message(const osc::ReceivedMessage& msg,
                                    const ip_address& addr)
 {
@@ -829,6 +846,7 @@ AooError Sink::handle_data_message(const osc::ReceivedMessage& msg,
     d.samplerate = (it++)->AsDouble();
     d.channel = (it++)->AsInt32();
     d.totalsize = (it++)->AsInt32();
+    d.msgsize = (it++)->AsInt32();
     d.nframes = (it++)->AsInt32();
     d.frame = (it++)->AsInt32();
     const void *blobdata;
@@ -842,7 +860,7 @@ AooError Sink::handle_data_message(const osc::ReceivedMessage& msg,
 
 // binary data message:
 // stream_id (int32), seq (int32), channel (uint8), flags (uint8), size (uint16)
-// [total (int32), nframes (int16), frame (int16)], [sr (float64)], data...
+// [total (int32), nframes (int16), frame (int16)], [msgsize (int32)], [sr (float64)], data...
 
 AooError Sink::handle_data_message(const AooByte *msg, int32_t n,
                                    AooId id, const ip_address& addr)
@@ -872,6 +890,14 @@ AooError Sink::handle_data_message(const AooByte *msg, int32_t n,
         d.totalsize = d.size;
         d.nframes = 1;
         d.frame = 0;
+    }
+    if (flags & kAooBinMsgDataStreamMessage) {
+        if ((end - it) < 4) {
+            goto wrong_size;
+        }
+        d.msgsize = aoo::read_bytes<uint32_t>(it);
+    } else {
+        d.msgsize = 0;
     }
     if (flags & kAooBinMsgDataSampleRate) {
         if ((end - it) < 8) {
@@ -939,7 +965,7 @@ AooError Sink::handle_ping_message(const osc::ReceivedMessage& msg,
 
 //----------------------- source_desc --------------------------//
 
-#if USE_AOO_NET
+#if AOO_NET
 source_desc::source_desc(const ip_address& addr, AooId id,
                          const ip_address& relay, double time)
     : ep(addr, id, relay), last_packet_time_(time)
@@ -948,28 +974,18 @@ source_desc::source_desc(const ip_address& addr, AooId id, double time)
     : ep(addr, id), last_packet_time_(time)
 #endif
 {
-    // reserve some memory, so we don't have to allocate memory
-    // when pushing events in the audio thread.
-    eventqueue_.reserve(kEventQueueSize);
     // resendqueue_.reserve(256);
     LOG_DEBUG("AooSink: source_desc");
 }
 
-source_desc::~source_desc(){
-    // flush event queue
-    source_event e;
-    while (eventqueue_.try_pop(e)){
-        free_event(e);
-    }
+source_desc::~source_desc() {
     // flush packet queue
     net_packet d;
     while (packetqueue_.try_pop(d)){
         memory_.deallocate((void *)d.data);
     }
-    // free metadata
-    if (metadata_){
-        memory_.deallocate((void *)metadata_);
-    }
+    // flush stream message queue
+    reset_stream_messages();
     LOG_DEBUG("AooSink: ~source_desc");
 }
 
@@ -1016,73 +1032,58 @@ void source_desc::reset(const Sink& s){
     update(s);
 }
 
-#define MAXHWBUFSIZE 2048
-#define MINSAMPLERATE 44100
-
 void source_desc::update(const Sink& s){
     // resize audio ring buffer
     if (format_ && format_->blockSize > 0 && format_->sampleRate > 0){
         assert(decoder_ != nullptr);
-        // recalculate buffersize from seconds to samples
-        int32_t bufsize = s.buffersize() * format_->sampleRate;
-        // number of buffers (round up!)
-        int32_t nbuffers = std::ceil((double)bufsize / (double)format_->blockSize);
+        auto convert = (double)format_->sampleRate / (double)format_->blockSize;
+        // calculate latency
+        auto latency = s.latency();
+        int32_t latency_blocks = std::ceil(latency * convert);
         // minimum buffer size depends on resampling and reblocking!
         auto downsample = (double)format_->sampleRate / (double)s.samplerate();
         auto reblock = (double)s.blocksize() / (double)format_->blockSize;
-        minblocks_ = std::ceil(downsample * reblock);
-        nbuffers = std::max<int32_t>(nbuffers, minblocks_);
-        LOG_DEBUG("AooSink: source_desc: buffersize (ms): " << (s.buffersize() * 1000)
-                  << ", samples: " << bufsize << ", nbuffers: " << nbuffers
-                  << ", minimum: " << minblocks_);
+        auto min_latency_blocks = std::ceil(downsample * reblock);
+        latency_blocks_ = std::max<int32_t>(latency_blocks, min_latency_blocks);
+        // calculate jitter buffer size
+        auto buffersize = s.buffersize();
+        if (buffersize <= 0) {
+            buffersize = latency * 2; // default
+        } else if (buffersize < latency) {
+            LOG_VERBOSE("AooSink: buffer size (" << (buffersize * 1000)
+                        << " ms) smaller than latency (" << (latency * 1000) << " ms)");
+            buffersize = latency;
+        }
+        auto jitter_buffersize = std::max<int32_t>(latency_blocks_,
+                                                   std::ceil(buffersize * convert));
+        LOG_DEBUG("AooSink: latency (ms): " << (latency * 1000)
+                  << ", num blocks: " << latency_blocks_
+                  << ", min. blocks: " << min_latency_blocks
+                  << ", jitter buffersize: " << (buffersize * 1000)
+                  << ", num blocks: " << jitter_buffersize);
 
     #if 0
         // don't touch the event queue once constructed
         eventqueue_.reset();
     #endif
 
-        auto nsamples = format_->numChannels * format_->blockSize;
-        double sr = format_->sampleRate; // nominal samplerate
-
-        // setup audio buffer
-        auto nbytes = sizeof(block_data::header) + nsamples * sizeof(AooSample);
-        // align to 8 bytes
-        nbytes = (nbytes + 7) & ~7;
-        audioqueue_.resize(nbytes, nbuffers);
-    #if 1
-        audioqueue_.shrink_to_fit();
-    #endif
-        // fill buffer
-        for (int i = 0; i < nbuffers; ++i){
-            auto b = (block_data *)audioqueue_.write_data();
-            // push nominal samplerate, channel + silence
-            b->header.samplerate = sr;
-            b->header.channel = 0;
-            std::fill(b->data, b->data + nsamples, 0);
-            audioqueue_.write_commit();
-        }
+        reset_stream_messages();
 
         // setup resampler
         resampler_.setup(format_->blockSize, s.blocksize(),
                          format_->sampleRate, s.samplerate(),
                          format_->numChannels);
 
-        // setup jitter buffer.
-        // if we use a very small audio buffer size, we have to make sure that
-        // we have enough space in the jitter buffer in case the source uses
-        // a larger hardware buffer size and consequently sends packets in batches.
-        // we don't know the actual source samplerate and hardware buffer size,
-        // so we have to make a pessimistic guess.
-        auto hwsamples = (double)format_->sampleRate / MINSAMPLERATE * MAXHWBUFSIZE;
-        auto minbuffers = std::ceil(hwsamples / (double)format_->blockSize);
-        auto jitterbufsize = std::max<int32_t>(nbuffers, minbuffers);
-        // LATER optimize max. block size
-        jitterbuffer_.resize(jitterbufsize, nsamples * sizeof(double));
-        LOG_DEBUG("AooSink: jitter buffer: " << jitterbufsize << " blocks");
+        // NB: the actual latency is still numbuffers_ because that is the number
+        // of buffers we wait before we start decoding, see try_decode_block().
+        // LATER optimize max. block size, see remark in packet_buffer.hpp.
+        auto nbytes = format_->numChannels * format_->blockSize * sizeof(double);
+        jitterbuffer_.resize(jitter_buffersize, nbytes);
 
+        wait_for_buffer_ = true;
+        wait_blocks_ = latency_blocks_;
         lost_blocks_.store(0);
         channel_ = 0;
-        skipblocks_ = 0;
         underrun_ = false;
         didupdate_ = true;
 
@@ -1091,7 +1092,7 @@ void source_desc::update(const Sink& s){
     }
 }
 
-void source_desc::invite(const Sink& s, AooId token, AooDataView *metadata){
+void source_desc::invite(const Sink& s, AooId token, AooData *metadata){
     // always invite, even if we're already running!
     invite_token_.store(token);
     // NOTE: the metadata is only read/set in this thread (= send thread)
@@ -1134,25 +1135,28 @@ float source_desc::get_buffer_fill_ratio(){
     if (decoder_){
         // consider samples in resampler!
         auto nsamples = format_->numChannels * format_->blockSize;
-        auto available = (double)audioqueue_.read_available() +
+        auto available = (double)jitterbuffer_.size() +
                 (double)resampler_.size() / (double)nsamples;
-        auto ratio = available / (double)audioqueue_.capacity();
-        LOG_DEBUG("AooSink: fill ratio: " << ratio << ", audioqueue: " << audioqueue_.read_available()
+        auto ratio = available / (double)jitterbuffer_.capacity();
+        LOG_DEBUG("AooSink: fill ratio: " << ratio << ", jitter buffer: " << jitterbuffer_.size()
                   << ", resampler: " << (double)resampler_.size() / (double)nsamples);
-        // FIXME sometimes the result is bigger than 1.0
         return std::min<float>(1.0, ratio);
     } else {
         return 0.0;
     }
 }
 
+void source_desc::add_xrun(double nblocks){
+    xrunblocks_ += nblocks;
+}
+
 // /aoo/sink/<id>/start <src> <version> <stream_id> <flags>
-// <lastformat> <nchannels> <samplerate> <blocksize> <codec> <options>
+// <lastformat> <nchannels> <samplerate> <blocksize> <codec> <options> <metadata>
 
 AooError source_desc::handle_start(const Sink& s, int32_t stream, uint32_t flags,
                                    int32_t format_id, const AooFormat& f,
                                    const AooByte *extension, int32_t size,
-                                   const AooDataView& md) {
+                                   const AooData& md) {
     LOG_DEBUG("AooSink: handle start (" << stream << ")");
     auto state = state_.load(std::memory_order_acquire);
     if (state == source_state::invite) {
@@ -1213,14 +1217,14 @@ AooError source_desc::handle_start(const Sink& s, int32_t stream, uint32_t flags
     }
 
     // copy metadata
-    AooDataView *metadata = nullptr;
+    AooData *metadata = nullptr;
     if (md.data){
         assert(md.size > 0);
         LOG_DEBUG("AooSink: stream metadata: "
                   << md.type << ", " << md.size << " bytes");
         // allocate flat metadata
-        auto mdsize = flat_metadata_size(md);
-        metadata = (AooDataView *)memory_.allocate(mdsize);
+        auto md_size = flat_metadata_size(md);
+        metadata = (AooData *)rt_allocate(md_size);
         flat_metadata_copy(md, *metadata);
     }
 
@@ -1239,17 +1243,11 @@ AooError source_desc::handle_start(const Sink& s, int32_t stream, uint32_t flags
         decoder_ = std::move(new_decoder);
     }
 
-    // free old metadata
-    if (metadata_){
-        memory_.deallocate((void *)metadata_);
-    }
-    // set new metadata (can be NULL!)
-    metadata_ = metadata;
+    // replace metadata
+    metadata_.reset(metadata);
 
     // always update!
     update(s);
-
-    state_.store(source_state::start);
 
     lock.unlock();
 
@@ -1257,28 +1255,18 @@ AooError source_desc::handle_start(const Sink& s, int32_t stream, uint32_t flags
     // possible wrong ordering with subsequent "start" event
     if (first_stream){
         // first /start message -> source added.
-        source_event e(kAooEventSourceAdd, ep);
-        send_event(s, e, kAooThreadLevelNetwork);
+        auto e = make_event<source_event>(kAooEventSourceAdd, ep);
+        send_event(s, std::move(e), kAooThreadLevelNetwork);
         LOG_DEBUG("AooSink: add new source " << ep);
     }
 
     if (format_changed){
         // send "format" event
-        source_event e(kAooEventFormatChange, ep);
-
-        auto mode = s.event_mode();
-        if (mode == kAooEventModeCallback){
-            // use stack
-            e.format.format = &fmt.header;
-        } else if (kAooEventModePoll){
-            // use heap
-            auto fp = (AooFormat *)memory_.allocate(fmt.header.size);
-            memcpy(fp, &fmt, fmt.header.size);
-            e.format.format = fp;
-        }
-
-        send_event(s, e, kAooThreadLevelNetwork);
+        auto e = make_event<format_change_event>(ep, fmt.header);
+        send_event(s, std::move(e), kAooThreadLevelNetwork);
     }
+
+    state_.store(source_state::start);
 
     return kAooOk;
 }
@@ -1306,7 +1294,8 @@ AooError source_desc::handle_stop(const Sink& s, int32_t stream) {
     return kAooOk;
 }
 
-// /aoo/sink/<id>/data <src> <stream_id> <seq> <sr> <channel_onset> <totalsize> <numpackets> <packetnum> <data>
+// /aoo/sink/<id>/data <src> <stream_id> <seq> <sr> <channel_onset>
+// <totalsize> <msgsize> <numpackets> <packetnum> <data>
 
 AooError source_desc::handle_data(const Sink& s, net_packet& d, bool binary)
 {
@@ -1341,8 +1330,8 @@ AooError source_desc::handle_data(const Sink& s, net_packet& d, bool binary)
             }
             // always send timeout event
             LOG_VERBOSE(ep << ": uninvitation timed out");
-            endpoint_event e(kAooEventUninviteTimeout, ep);
-            s.send_event(e, kAooThreadLevelNetwork);
+            auto e = make_event<sink_event>(kAooEventUninviteTimeout, ep);
+            s.send_event(std::move(e), kAooThreadLevelNetwork);
         }
         return kAooOk;
     } else if (state == source_state::timeout) {
@@ -1404,8 +1393,9 @@ AooError source_desc::handle_data(const Sink& s, net_packet& d, bool binary)
 
 #if AOO_DEBUG_DATA
     LOG_DEBUG("AooSink: got block: seq = " << d.sequence << ", sr = " << d.samplerate
-              << ", chn = " << d.channel << ", totalsize = " << d.totalsize
-              << ", nframes = " << d.nframes << ", frame = " << d.frame << ", size " << d.size);
+              << ", chn = " << d.channel << ", msgsize = " << d.msgsize
+              << ", totalsize = " << d.totalsize << ", nframes = " << d.nframes
+              << ", frame = " << d.frame << ", size " << d.size);
 #endif
 
     return kAooOk;
@@ -1437,10 +1427,8 @@ AooError source_desc::handle_ping(const Sink& s, time_tag tt){
     push_request(r);
 
     // push "ping" event
-    source_event e(kAooEventPing, ep);
-    e.ping.t1 = tt;
-    e.ping.t2 = tt2;
-    send_event(s, e, kAooThreadLevelNetwork);
+    auto e = make_event<ping_event>(ep, tt, tt2);
+    send_event(s, std::move(e), kAooThreadLevelNetwork);
 
     return kAooOk;
 }
@@ -1475,17 +1463,16 @@ void source_desc::send(const Sink& s, const sendfn& fn){
 
 // TODO: make sure not to send events while holding a lock!
 
-bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
+bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples,
+                          AooStreamMessageHandler handler, void *user)
 {
     // synchronize with update()!
     // the mutex should be uncontended most of the time.
     shared_lock lock(mutex_, sync::try_to_lock);
     if (!lock.owns_lock()) {
         if (streamstate_ == kAooStreamStateActive) {
-            xrun_ += 1.0;
-            LOG_VERBOSE("AooSink: source_desc::process() would block");
-        } else {
-            // I'm not sure if this can happen...
+            add_xrun(1);
+            LOG_DEBUG("AooSink: source_desc::process() would block");
         }
         // how to report this to the client?
         return false;
@@ -1507,21 +1494,13 @@ bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
                     streamstate_ = kAooStreamStateInactive;
                 #endif
                     // send missing /stop message
-                    source_event e(kAooEventStreamStop, ep);
-                    send_event(s, e, kAooThreadLevelAudio);
+                    auto e = make_event<stream_stop_event>(ep);
+                    send_event(s, std::move(e), kAooThreadLevelAudio);
                 }
 
-                source_event e(kAooEventStreamStart, ep);
-                // move metadata into event
-                e.stream_start.metadata = metadata_;
-                metadata_ = nullptr;
-
-                send_event(s, e, kAooThreadLevelAudio);
-
-                // deallocate metadata if we don't need it anymore, see also poll_events().
-                if (s.event_mode() != kAooEventModePoll && e.stream_start.metadata){
-                    memory_.deallocate((void *)e.stream_start.metadata);
-                }
+                // *move* metadata into event
+                auto e = make_event<stream_start_event>(ep, metadata_.release());
+                send_event(s, std::move(e), kAooThreadLevelAudio);
 
                 // stream state is handled at the end of the function
 
@@ -1537,13 +1516,12 @@ bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
                 if (streamstate_ != kAooStreamStateInactive){
                     streamstate_ = kAooStreamStateInactive;
 
-                    source_event e(kAooEventStreamState, ep);
-                    e.stream_state.state = kAooStreamStateInactive;
-                    send_event(s, e, kAooThreadLevelAudio);
+                    auto e = make_event<stream_state_event>(ep, kAooStreamStateInactive);
+                    send_event(s, std::move(e), kAooThreadLevelAudio);
                 }
 
-                source_event e(kAooEventStreamStop, ep);
-                send_event(s, e, kAooThreadLevelAudio);
+                auto e = make_event<stream_stop_event>(ep);
+                send_event(s, std::move(e), kAooThreadLevelAudio);
 
                 return false;
             }
@@ -1554,9 +1532,8 @@ bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
 
                 streamstate_ = kAooStreamStateInactive;
 
-                source_event e(kAooEventStreamState, ep);
-                e.stream_state.state = kAooStreamStateInactive;
-                send_event(s, e, kAooThreadLevelAudio);
+                auto e = make_event<stream_state_event>(ep, kAooStreamStateInactive);
+                send_event(s, std::move(e), kAooThreadLevelAudio);
             }
 
             return false;
@@ -1565,15 +1542,9 @@ bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
 
     // check for sink xruns
     if (didupdate_){
-        xrunsamples_ = 0;
-        xrun_ = 0;
+        xrunblocks_ = 0;
         assert(underrun_ == false);
-        assert(skipblocks_ == 0);
         didupdate_ = false;
-    } else if (xrunsamples_ > 0) {
-        auto xrunblocks = (float)xrunsamples_ / (float)format_->blockSize;
-        xrun_ += xrunblocks;
-        xrunsamples_ = 0;
     }
 
     stream_stats stats;
@@ -1593,98 +1564,92 @@ bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
         }
     }
 
-    if (skipblocks_ > 0){
-        skip_blocks(s);
-    }
-
-    process_blocks(s, stats);
-
     check_missing_blocks(s);
 
 #if AOO_DEBUG_JITTER_BUFFER
     LOG_ALL(jitterbuffer_);
     LOG_ALL("oldest: " << jitterbuffer_.last_popped()
             << ", newest: " << jitterbuffer_.last_pushed());
-#endif
-
-    if (stats.lost > 0){
-        // push packet loss event
-        source_event e(kAooEventBlockLost, ep);
-        e.block_lost.count = stats.lost;
-        send_event(s, e, kAooThreadLevelAudio);
-    }
-    if (stats.reordered > 0){
-        // push packet reorder event
-        source_event e(kAooEventBlockReordered, ep);
-        e.block_reordered.count = stats.reordered;
-        send_event(s, e, kAooThreadLevelAudio);
-    }
-    if (stats.resent > 0){
-        // push packet resend event
-        source_event e(kAooEventBlockResent, ep);
-        e.block_resent.count = stats.resent;
-        send_event(s, e, kAooThreadLevelAudio);
-    }
-    if (stats.dropped > 0){
-        // push packet resend event
-        source_event e(kAooEventBlockDropped, ep);
-        e.block_dropped.count = stats.dropped;
-        send_event(s, e, kAooThreadLevelAudio);
-    }
-
-    auto nchannels = format_->numChannels;
-    auto insize = format_->blockSize * nchannels;
-    auto outsize = nsamples * nchannels;
-    // if dynamic resampling is disabled, this will simply
-    // return the nominal samplerate
-    double sr = s.real_samplerate();
-
-#if AOO_DEBUG_AUDIO_BUFFER
-    // will print audio buffer and resampler balance
     get_buffer_fill_ratio();
 #endif
 
-    // try to read samples from resampler
+    auto nchannels = format_->numChannels;
+    auto outsize = nsamples * nchannels;
     auto buf = (AooSample *)alloca(outsize * sizeof(AooSample));
-
-    while (!resampler_.read(buf, outsize)){
-        // try to write samples from buffer into resampler
-        if (audioqueue_.read_available()){
-            auto d = (block_data *)audioqueue_.read_data();
-
-            if (xrun_ > XRUN_THRESHOLD){
-                // skip audio and decrement xrun counter proportionally
-                xrun_ -= sr / format_->sampleRate;
+#if AOO_DEBUG_STREAM_MESSAGE
+    LOG_ALL("AooSink: process samples: " << process_samples_
+            << ", stream samples: " << stream_samples_
+            << ", diff: " << (stream_samples_ - (double)process_samples_)
+            << ", resampler size: " << resampler_.size());
+#endif
+    // try to read samples from resampler
+    for (;;) {
+        if (resampler_.read(buf, outsize)){
+            // if there have been xruns, skip one block of audio and try again.
+            if (xrunblocks_ > XRUN_THRESHOLD){
+                LOG_DEBUG("AooSink: skip process block for xrun");
+                // decrement xrun counter and advance process time
+                xrunblocks_ -= 1.0;
+                process_samples_ += nsamples;
             } else {
-                // try to write audio into resampler
-                if (resampler_.write(d->data, insize)){
-                    // update resampler
-                    resampler_.update(d->header.samplerate, sr);
-                    // set channel; negative = current
-                    if (d->header.channel >= 0){
-                        channel_ = d->header.channel;
-                    }
-                } else {
-                    LOG_ERROR("AooSink: bug: couldn't write to resampler");
-                    // let the buffer run out
-                }
+                break; // got a block
             }
-
-            audioqueue_.read_commit();
-        } else {
+        } else if (!try_decode_block(s, stats)) {
             // buffer ran out -> "inactive"
             if (streamstate_ != kAooStreamStateInactive){
                 streamstate_ = kAooStreamStateInactive;
 
-                source_event e(kAooEventStreamState, ep);
-                e.stream_state.state = kAooStreamStateInactive;
-                send_event(s, e, kAooThreadLevelAudio);
+                auto e = make_event<stream_state_event>(ep, kAooStreamStateInactive);
+                send_event(s, std::move(e), kAooThreadLevelAudio);
             }
             underrun_ = true;
 
             return false;
         }
     }
+
+    auto deadline = process_samples_ + nsamples;
+    while (stream_messages_) {
+        auto it = stream_messages_;
+        if (it->time < deadline) {
+            AooStreamMessage msg;
+            int32_t offset = it->time - process_samples_ + 0.5;
+            if (offset >= nsamples) {
+                break;
+            }
+            if (offset >= 0) {
+                msg.sampleOffset = offset;
+                msg.type = it->type;
+                msg.size = it->size;
+                msg.data = (const AooByte *)reinterpret_cast<flat_stream_message *>(it)->data;
+
+                AooEndpoint ep;
+                ep.address = this->ep.address.address();
+                ep.addrlen = this->ep.address.length();
+                ep.id = this->ep.id;
+
+            #if AOO_DEBUG_STREAM_MESSAGE
+                LOG_ALL("AooSink: dispatch stream message "
+                        << "(type: " << aoo_dataTypeToString(msg.type)
+                        << ", size: " << msg.size
+                        << ", offset: " << msg.sampleOffset << ")");
+            #endif
+
+                handler(user, &msg, &ep);
+            } else {
+                // this may happen with xruns
+                LOG_VERBOSE("AooSink: skip stream message (offset: " << offset << ")");
+            }
+
+            auto next = it->next;
+            auto alloc_size = sizeof(stream_message_header) + it->size;
+            aoo::rt_deallocate(it, alloc_size);
+            stream_messages_ = next;
+        } else {
+            break;
+        }
+    }
+    process_samples_ = deadline;
 
     // sum source into sink (interleaved -> non-interleaved),
     // starting at the desired sink channel offset.
@@ -1700,14 +1665,38 @@ bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
         }
     }
 
+    // send events
+
+    if (stats.lost > 0){
+        // add to lost blocks for packet loss reporting
+        lost_blocks_.fetch_add(stats.lost, std::memory_order_relaxed);
+        // push block loss event
+        auto e = make_event<block_lost_event>(ep, stats.lost);
+        send_event(s, std::move(e), kAooThreadLevelAudio);
+    }
+    if (stats.reordered > 0){
+        // push block reorder event
+        auto e = make_event<block_reordered_event>(ep, stats.reordered);
+        send_event(s, std::move(e), kAooThreadLevelAudio);
+    }
+    if (stats.resent > 0){
+        // push block resent event
+        auto e = make_event<block_resent_event>(ep, stats.resent);
+        send_event(s, std::move(e), kAooThreadLevelAudio);
+    }
+    if (stats.dropped > 0){
+        // push block dropped event
+        auto e = make_event<block_dropped_event>(ep, stats.dropped);
+        send_event(s, std::move(e), kAooThreadLevelAudio);
+    }
+
     // LOG_DEBUG("AooSink: read samples from source " << id_);
 
     if (streamstate_ != kAooStreamStateActive){
         streamstate_ = kAooStreamStateActive;
 
-        source_event e(kAooEventStreamState, ep);
-        e.stream_state.state = kAooStreamStateActive;
-        send_event(s, e, kAooThreadLevelAudio);
+        auto e = make_event<stream_state_event>(ep, kAooStreamStateActive);
+        send_event(s, std::move(e), kAooThreadLevelAudio);
     }
 
     return true;
@@ -1716,68 +1705,39 @@ bool source_desc::process(const Sink& s, AooSample **buffer, int32_t nsamples)
 int32_t source_desc::poll_events(Sink& s, AooEventHandler fn, void *user){
     // always lockfree!
     int count = 0;
-    source_event e;
-    while (eventqueue_.try_pop(e)){
-        fn(user, &e.event, kAooThreadLevelUnknown);
-        free_event(e);
+    event_ptr e;
+    while (eventqueue_.try_pop(e)) {
+        fn(user, &e->cast(), kAooThreadLevelUnknown);
         count++;
     }
     return count;
 }
 
-void source_desc::add_lost(stream_stats& stats, int32_t n) {
-    stats.lost += n;
-    lost_blocks_.fetch_add(n, std::memory_order_relaxed);
-}
-
-#define SILENT_REFILL 0
-#define SKIP_BLOCKS 0
+#define SILENT_PREFILL 0
 
 void source_desc::handle_underrun(const Sink& s){
-    LOG_VERBOSE("AooSink: audio buffer underrun");
+    LOG_VERBOSE("AooSink: jitter buffer underrun");
 
-    int32_t n = audioqueue_.write_available();
-    auto nsamples = format_->blockSize * format_->numChannels;
-    // reduce by blocks in resampler!
-    n -= static_cast<int32_t>((double)resampler_.size() / (double)nsamples + 0.5);
-
-    LOG_DEBUG("AooSink: audioqueue: " << audioqueue_.read_available()
-              << ", resampler: " << (double)resampler_.size() / (double)nsamples);
-
-    if (n > 0){
-        double sr = format_->sampleRate;
-        for (int i = 0; i < n; ++i){
-            auto b = (block_data *)audioqueue_.write_data();
-            // push nominal samplerate, channel + silence
-            b->header.samplerate = sr;
-            b->header.channel = -1; // last channel
-        #if SILENT_REFILL
-            // push silence
-            std::fill(b->data, b->data + nsamples, 0);
-        #else
-            // use packet loss concealment
-            AooInt32 size = nsamples;
-            if (AooDecoder_decode(decoder_.get(), nullptr, 0,
-                                  b->data, &size) != kAooOk) {
-                LOG_WARNING("AooSink: couldn't decode block!");
-                // fill with zeros
-                std::fill(b->data, b->data + nsamples, 0);
-            }
-        #endif
-            audioqueue_.write_commit();
-        }
-
-        LOG_DEBUG("AooSink: write " << n << " empty blocks to audio buffer");
-
-    #if SKIP_BLOCKS
-        skipblocks_ += n;
-
-        LOG_DEBUG("AooSink: skip next " << n << " blocks");
+    if (!jitterbuffer_.empty()) {
+        LOG_ERROR("AooSink: bug: jitter buffer not empty");
+    #if 1
+        jitterbuffer_.clear();
     #endif
     }
 
-    source_event e(kAooEventBufferUnderrun, ep);
-    send_event(s, e, kAooThreadLevelAudio);
+    resampler_.reset(); // !
+
+    wait_for_buffer_ = true;
+#if 0
+    wait_blocks_ = latency_blocks_;
+#else
+    wait_blocks_ = 0;
+#endif
+
+    reset_stream_messages();
+
+    auto e = make_event<source_event>(kAooEventBufferUnderrun, ep);
+    send_event(s, std::move(e), kAooThreadLevelAudio);
 
     underrun_ = false;
 }
@@ -1798,32 +1758,11 @@ bool source_desc::add_packet(const Sink& s, const net_packet& d,
         return false;
     }
 
-    // check for large gap between incoming block and most recent block
-    // (either network problem or stream has temporarily stopped.)
     auto newest = jitterbuffer_.last_pushed();
-    auto diff = d.sequence - newest;
-    if (newest >= 0 && diff > jitterbuffer_.capacity()){
-        // jitter buffer should be empty.
-        if (!jitterbuffer_.empty()){
-            LOG_VERBOSE("AooSink: source_desc: transmission gap, but jitter buffer is not empty");
-            jitterbuffer_.clear();
-        }
-        // we don't need to skip blocks!
-        skipblocks_ = 0;
-        // No need to refill, because audio buffer should have ran out.
-        if (audioqueue_.write_available()){
-            LOG_VERBOSE("AooSink: source_desc: transmission gap, but audio buffer is not empty");
-        }
-        // report gap to source
-        lost_blocks_.fetch_add(diff - 1);
-        // send event
-        source_event e(kAooEventBlockLost, ep);
-        e.block_lost.count = diff - 1;
-        send_event(s, e, kAooThreadLevelAudio);
-    }
 
     auto block = jitterbuffer_.find(d.sequence);
     if (!block){
+        // add new block
     #if 1
         // can this ever happen!?
         if (d.sequence <= newest){
@@ -1832,33 +1771,47 @@ bool source_desc::add_packet(const Sink& s, const net_packet& d,
             return false;
         }
     #endif
-
         if (newest >= 0){
+            auto numblocks = newest >= 0 ? d.sequence - newest : 1;
+
             // notify for gap
-            if (diff > 1){
-                LOG_VERBOSE("AooSink: skipped " << (diff - 1) << " blocks");
+            if (numblocks > 1){
+                LOG_VERBOSE("AooSink: skipped " << (numblocks - 1) << " blocks");
             }
 
-            // check for jitter buffer overrun
-            // can happen if the sink blocks for a longer time
-            // or with extreme network jitter (packets have piled up)
-        try_again:
+            // check for jitter buffer overrun.
+            // can happen if the latency resp. buffer size is too small.
             auto space = jitterbuffer_.capacity() - jitterbuffer_.size();
-            if (diff > space){
-                if (skipblocks_ > 0){
-                    LOG_DEBUG("AooSink: jitter buffer would overrun!");
-                    skip_blocks(s);
-                    goto try_again;
-                } else {
-                    // for now, just clear the jitter buffer and let the
-                    // audio buffer underrun.
-                    LOG_VERBOSE("AooSink: jitter buffer overrun!");
-                    jitterbuffer_.clear();
-
-                    newest = d.sequence; // !
+            if (numblocks > space){
+                LOG_VERBOSE("AooSink: jitter buffer overrun!");
+                // reset the buffer to latency_blocks_, considering both the stored blocks
+                // and the incoming block(s)
+                auto excess_blocks = numblocks + jitterbuffer_.size() - latency_blocks_;
+                assert(excess_blocks > 0);
+                // *first* discard stored blocks
+                // remove one extra block to make space for new block
+                auto discard_stored = std::min(jitterbuffer_.size(), latency_blocks_ + 1);
+                if (discard_stored > 0) {
+                    LOG_DEBUG("AooSink: discard " << discard_stored << " stored blocks");
+                    // TODO: consider popping blocks from the back of the queue
+                    for (int32_t i = 0; i < discard_stored; ++i) {
+                        jitterbuffer_.pop();
+                    }
                 }
+                // then discard incoming blocks (except for the most recent one)
+                auto discard_incoming = std::min(numblocks - 1, excess_blocks - discard_stored);
+                if (discard_incoming > 0) {
+                    LOG_DEBUG("AooSink: discard " << discard_incoming << " incoming blocks");
+                    newest += discard_incoming;
+                    jitterbuffer_.reset_head(); // !
+                }
+              #if 0
+                // TODO: should we report these as lost blocks? or only the incomplete ones?
+                stats.lost += excess_blocks;
+              #endif
+                auto e = make_event<source_event>(kAooEventBufferOverrun, ep);
+                send_event(s, std::move(e), kAooThreadLevelAudio);
             }
-
             // fill gaps with empty blocks
             for (int32_t i = newest + 1; i < d.sequence; ++i){
                 jitterbuffer_.push(i)->init(i, false);
@@ -1873,10 +1826,11 @@ bool source_desc::add_packet(const Sink& s, const net_packet& d,
             block->init(d.sequence, true);
             return true;
         } else {
-            block->init(d.sequence, d.samplerate,
-                        d.channel, d.totalsize, d.nframes);
+            block->init(d.sequence, d.samplerate, d.channel,
+                        d.totalsize, d.msgsize, d.nframes);
         }
     } else {
+        // add frame to existing block
         if (d.totalsize == 0){
             if (!block->dropped()){
                 // dropped block arrived out of order
@@ -1891,8 +1845,8 @@ bool source_desc::add_packet(const Sink& s, const net_packet& d,
 
         if (block->num_frames() == 0){
             // placeholder block
-            block->init(d.sequence, d.samplerate,
-                        d.channel, d.totalsize, d.nframes);
+            block->init(d.sequence, d.samplerate, d.channel,
+                        d.totalsize, d.msgsize, d.nframes);
         } else if (block->has_frame(d.frame)){
             // frame already received
             LOG_VERBOSE("AooSink: frame " << d.frame << " of block " << d.sequence << " already received");
@@ -1917,96 +1871,174 @@ bool source_desc::add_packet(const Sink& s, const net_packet& d,
     return true;
 }
 
-void source_desc::process_blocks(const Sink& s, stream_stats& stats){
-    if (jitterbuffer_.empty()){
-        return;
-    }
-
+bool source_desc::try_decode_block(const Sink& s, stream_stats& stats){
     auto nsamples = format_->blockSize * format_->numChannels;
 
-    // Transfer all consecutive complete blocks
-    while (!jitterbuffer_.empty() && audioqueue_.write_available()){
-        const AooByte *data;
-        int32_t size;
-        double sr;
-        int32_t channel;
+    // first handle prefill.
+    // Wait until the jitter buffer has a certain number of blocks,
+    // but also wait for a certain number of times to avoid draining
+    // the buffer too early - which would cause an underrun shortly after.
+    if (wait_for_buffer_) {
+        if ((wait_blocks_ > 0) || (jitterbuffer_.size() < latency_blocks_)) {
+            if (wait_blocks_ > 0) {
+                wait_blocks_--;
+            }
+            LOG_DEBUG("AooSink: prefill (remaining: " << wait_blocks_ << ")");
+            // use nominal sample rate
+            resampler_.update(format_->sampleRate, s.samplerate());
 
-        auto& b = jitterbuffer_.front();
-        if (b.complete()){
-            if (b.dropped()){
-                data = nullptr;
-                size = 0;
-                sr = format_->sampleRate; // nominal samplerate
-                channel = -1; // current channel
-            #if AOO_DEBUG_JITTER_BUFFER
-                LOG_ALL("jitter buffer: write empty block ("
-                        << b.sequence << ") for source xrun");
-            #endif
-                // record dropped block
-                stats.dropped++;
+            auto buffer = (AooSample *)alloca(nsamples * sizeof(AooSample));
+        #if SILENT_PREFILL
+            std::fill(buffer, buffer + nsamples, 0);
+        #else
+            // use packet loss concealment
+            AooInt32 n = nsamples;
+            if (AooDecoder_decode(decoder_.get(), nullptr, 0,
+                                  buffer, &n) != kAooOk) {
+                LOG_WARNING("AooSink: couldn't decode block!");
+                // fill with zeros
+                std::fill(buffer, buffer + nsamples, 0);
+            }
+        #endif
+            // advance stream time! use nominal sample rate.
+            double resample = (double)s.samplerate() / (double)format_->sampleRate;
+            stream_samples_ += (double)format_->blockSize * resample;
+
+            if (resampler_.write(buffer, nsamples)) {
+                return true;
             } else {
-                // block is ready
-                data = b.data();
-                size = b.size();
-                sr = b.samplerate; // real samplerate
-                channel = b.channel;
-            #if AOO_DEBUG_JITTER_BUFFER
-                LOG_ALL("jitter buffer: write samples for block ("
-                        << b.sequence << ")");
-            #endif
+                LOG_ERROR("AooSink: bug: couldn't write to resampler");
+                // let the buffer run out
+                return false;
             }
         } else {
-            // we also have to consider the content of the resampler!
-            auto remaining = audioqueue_.read_available() + resampler_.size() / nsamples;
-            if (remaining < minblocks_){
-                // we need audio, so we have to drop a block
-                LOG_DEBUG("AooSink: remaining: " << remaining << " / " << audioqueue_.capacity()
-                          << ", limit: " << minblocks_);
-                data = nullptr;
-                size = 0;
-                sr = format_->sampleRate; // nominal samplerate
-                channel = -1; // current channel
-                add_lost(stats, 1);
-                LOG_VERBOSE("AooSink: dropped block " << b.sequence);
-            } else {
-                // wait for block
-            #if AOO_DEBUG_JITTER_BUFFER
-                LOG_ALL("jitter buffer: wait");
-            #endif
+            wait_for_buffer_ = false;
+        }
+    }
+
+    // buffer empty -> underrun
+    if (jitterbuffer_.empty()){
+        return false;
+    }
+
+    const AooByte *data;
+    int32_t size;
+    int32_t msgsize;
+    double sr;
+    int32_t channel;
+
+    auto& b = jitterbuffer_.front();
+    if (b.complete()){
+        if (b.dropped()){
+            data = nullptr;
+            size = msgsize = 0;
+            sr = format_->sampleRate; // nominal samplerate
+            channel = -1; // current channel
+        #if AOO_DEBUG_JITTER_BUFFER
+            LOG_ALL("jitter buffer: write empty block ("
+                    << b.sequence << ") for source xrun");
+        #endif
+            // record dropped block
+            stats.dropped++;
+        } else {
+            // block is ready
+            data = b.data();
+            size = b.size();
+            msgsize = b.message_size;
+            sr = b.samplerate; // real samplerate
+            channel = b.channel;
+        #if AOO_DEBUG_JITTER_BUFFER
+            LOG_ALL("jitter buffer: write samples for block ("
+                    << b.sequence << ")");
+        #endif
+        }
+    } else {
+        // we need audio, so we have to drop a block
+        data = nullptr;
+        size = msgsize = 0;
+        sr = format_->sampleRate; // nominal samplerate
+        channel = -1; // current channel
+        stats.lost++;
+        LOG_VERBOSE("AooSink: dropped block " << b.sequence);
+        LOG_DEBUG("AooSink: remaining blocks: " << jitterbuffer_.size() - 1);
+    }
+
+    // decode and push audio data to resampler
+    AooInt32 n = nsamples;
+    auto buffer = (AooSample *)alloca(nsamples * sizeof(AooSample));
+    if (AooDecoder_decode(decoder_.get(), data + msgsize, size - msgsize, buffer, &n) != kAooOk) {
+        LOG_WARNING("AooSink: couldn't decode block!");
+        // decoder failed - fill with zeros
+        std::fill(buffer, buffer + nsamples, 0);
+    }
+    assert(n == nsamples);
+
+    if (resampler_.write(buffer, nsamples)){
+        // update resampler
+        // real_samplerate() is our real samplerate, sr is the real source samplerate.
+        // This will dynamically adjust the resampler so that it corrects the clock
+        // difference between source and sink.
+        // NB: If dynamic resampling is disabled, the nominal samplerate will be used.
+        resampler_.update(sr, s.real_samplerate());
+        // set channel; negative = current
+        if (channel >= 0){
+            channel_ = channel;
+        }
+    } else {
+        LOG_ERROR("AooSink: bug: couldn't write to resampler");
+        // let the buffer run out
+        jitterbuffer_.pop(); // !
+        return false;
+    }
+
+    // push messages
+    double resample = (double)s.samplerate() / sr;
+
+    if (msgsize > 0) {
+        int32_t num_messages = aoo::from_bytes<int32_t>(data);
+        auto msgptr = data + 4;
+        auto endptr = data + msgsize;
+        for (int32_t i = 0; i < num_messages; ++i) {
+            auto offset = aoo::read_bytes<uint16_t>(msgptr);
+            auto type = aoo::read_bytes<uint16_t>(msgptr);
+            auto size = aoo::read_bytes<uint32_t>(msgptr);
+            auto aligned_size = (size + 3) & ~3; // aligned to 4 bytes
+            if ((endptr - msgptr) < aligned_size) {
+                LOG_ERROR("AooSink: stream message with bad size argument");
                 break;
             }
+            auto alloc_size = sizeof(stream_message_header) + size;
+            auto msg = (flat_stream_message *)aoo::rt_allocate(alloc_size);
+            msg->header.next = nullptr;
+            msg->header.time = stream_samples_ + offset * resample;
+            msg->header.type = type;
+            msg->header.size = size;
+        #if AOO_DEBUG_STREAM_MESSAGE
+            LOG_ALL("AooSink: schedule stream message "
+                    << "(type: " << aoo_dataTypeToString(type)
+                    << ", size: " << size << ", offset: " << offset
+                    << ", time: " << (int64_t)msg->header.time << ")");
+        #endif
+            memcpy(msg->data, msgptr, size);
+            if (stream_messages_) {
+                // append to list; LATER cache list tail
+                auto it = stream_messages_;
+                while (it->next) {
+                    it = it->next;
+                }
+                it->next = &msg->header;
+            } else {
+                stream_messages_ = &msg->header;
+            }
+            msgptr += aligned_size;
         }
-
-        // push samples and channel
-        auto d = (block_data *)audioqueue_.write_data();
-        d->header.samplerate = sr;
-        d->header.channel = channel;
-        // decode and push audio data
-        AooInt32 n = nsamples;
-        if (AooDecoder_decode(decoder_.get(), data, size, d->data, &n) != kAooOk){
-            LOG_WARNING("AooSink: couldn't decode block!");
-            // decoder failed - fill with zeros
-            std::fill(d->data, d->data + nsamples, 0);
-        }
-        audioqueue_.write_commit();
-
-    #if 0
-        Log log;
-        for (int i = 0; i < nsamples; ++i){
-            log << d->data[i] << " ";
-        }
-    #endif
-
-        jitterbuffer_.pop();
     }
-}
 
-void source_desc::skip_blocks(const Sink& s){
-    auto n = std::min<int>(skipblocks_, jitterbuffer_.size());
-    LOG_VERBOSE("AooSink: skip " << n << " blocks");
-    while (n--){
-        jitterbuffer_.pop();
-    }
+    stream_samples_ += (double)format_->blockSize * resample;
+
+    jitterbuffer_.pop();
+
+    return true;
 }
 
 // /aoo/src/<id>/data <sink> <stream_id> <seq0> <frame0> <seq1> <frame1> ...
@@ -2143,6 +2175,9 @@ void source_desc::send_start_request(const Sink& s, const sendfn& fn) {
 // header, stream_id (int32), count (int32),
 // seq1 (int32), offset1 (int16), bitset1 (uint16) etc. // offset < 0 -> all
 
+// NB: resend_request should already be a 16-bit bitset, so we don't have to
+// reassemble the bitset from individual requests.
+
 void source_desc::send_data_requests(const Sink& s, const sendfn& fn){
     if (datarequestqueue_.empty()){
         return;
@@ -2243,7 +2278,7 @@ void source_desc::send_data_requests(const Sink& s, const sendfn& fn){
 
 // called without lock!
 void send_invitation(const Sink& s, const endpoint& ep, AooId token,
-                     const AooDataView *metadata, const sendfn& fn){
+                     const AooData *metadata, const sendfn& fn){
     char buffer[AOO_MAX_PACKET_SIZE];
     osc::OutboundPacketStream msg(buffer, sizeof(buffer));
 
@@ -2309,8 +2344,8 @@ void source_desc::send_invitations(const Sink &s, const sendfn &fn){
         }
         // always send timeout event
         LOG_VERBOSE(ep << ": invitation timed out");
-        endpoint_event e(kAooEventInviteTimeout, ep);
-        s.send_event(e, kAooThreadLevelNetwork);
+        auto e = make_event<sink_event>(kAooEventUninviteTimeout, ep);
+        s.send_event(std::move(e), kAooThreadLevelNetwork);
     } else {
         delta = now - last_invite_time_.load(std::memory_order_relaxed);
         if (delta >= INVITE_INTERVAL){
@@ -2325,27 +2360,27 @@ void source_desc::send_invitations(const Sink &s, const sendfn &fn){
     }
 }
 
-void source_desc::send_event(const Sink& s, const source_event& e,
-                             AooThreadLevel level){
+void source_desc::reset_stream_messages() {
+    for (auto it = stream_messages_; it; ){
+        auto next = it->next;
+        auto alloc_size = sizeof(stream_message_header) + it->size;
+        aoo::rt_deallocate(it, alloc_size);
+        it = next;
+    }
+    stream_messages_ = nullptr;
+    process_samples_ = stream_samples_ = 0;
+}
+
+void source_desc::send_event(const Sink& s, event_ptr e, AooThreadLevel level){
     switch (s.event_mode()){
     case kAooEventModePoll:
-        eventqueue_.push(e);
+        eventqueue_.push(std::move(e));
         break;
     case kAooEventModeCallback:
-        s.call_event(e, level);
+        s.call_event(std::move(e), level);
         break;
     default:
         break;
-    }
-}
-
-void source_desc::free_event(const source_event &e){
-    if (e.type == kAooEventFormatChange){
-        memory_.deallocate((void *)e.format.format);
-    } else if (e.type == kAooEventStreamStart){
-        if (e.stream_start.metadata){
-            memory_.deallocate((void *)e.stream_start.metadata);
-        }
     }
 }
 

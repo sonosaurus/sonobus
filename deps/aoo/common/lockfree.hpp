@@ -9,6 +9,8 @@
 #include <vector>
 #include <cassert>
 
+#include "sync.hpp"
+
 namespace aoo {
 namespace lockfree {
 
@@ -208,6 +210,10 @@ protected:
 
 } // detail
 
+// unbounded lockfree MPSC queue; multiple producers are synchronized with a simple spin lock.
+// NB: the free list *could* be atomic, but we would need to be extra careful to avoid the
+// ABA problem. (During a CAS loop the current node could be popped and pushed again, so that
+// the CAS would succeed even though the object has changed.)
 template<typename T, typename Alloc = std::allocator<T>>
 class unbounded_mpsc_queue :
     detail::node_allocator_base<detail::node_base<T>, Alloc>
@@ -220,7 +226,7 @@ class unbounded_mpsc_queue :
         // add dummy node
         auto n = base::allocate();
         new (n) node();
-        first_ = devider_ = last_ = n;
+        first_ = divider_ = last_ = n;
     }
 
     unbounded_mpsc_queue(const unbounded_mpsc_queue&) = delete;
@@ -229,62 +235,60 @@ class unbounded_mpsc_queue :
         : base(std::move(other))
     {
         first_ = other.first_;
-        devider_ = other.devider_;
+        divider_ = other.divider_;
         last_ = other.last_;
         other.first_ = nullptr;
-        other.devider_ = nullptr;
+        other.divider_ = nullptr;
         other.last_ = nullptr;
     }
 
     unbounded_mpsc_queue& operator=(unbounded_mpsc_queue&& other){
         base::operator=(std::move(other));
         first_ = other.first_;
-        devider_ = other.devider_;
+        divider_ = other.divider_;
         last_ = other.last_;
         other.first_ = nullptr;
-        other.devider_ = nullptr;
+        other.divider_ = nullptr;
         other.last_ = nullptr;
         return *this;
     }
 
-    ~unbounded_mpsc_queue(){
-        auto it = first_.load();
+    ~unbounded_mpsc_queue() {
+        auto it = first_;
         while (it){
-            auto tmp = it;
-            it = it->next_;
-            tmp->~node();
-            base::deallocate(tmp);
+            auto next = it->next_;
+            it->~node();
+            base::deallocate(it);
+            it = next;
         }
     }
 
     // not thread-safe!
-    void reserve(size_t n){
+    void reserve(size_t n) {
         // check for existing empty nodes
-        auto it = first_.load();
-        auto end = devider_.load();
-        while (it != end){
+        for (auto it = first_, end = divider_.load();
+             it != end; it = it->next_) {
             n--;
-            it = it->next_;
         }
         // add empty nodes
-        while (n--){
+        for (size_t i = 0; i < n; ++i) {
             auto tmp = base::allocate();
             new (tmp) node();
             tmp->next_ = first_;
-            first_.store(tmp);
+            first_ = tmp;
         }
     }
 
     // can be called by several threads
     template<typename... U>
-    void push(U&&... args){
+    void push(U&&... args) {
         auto n = get_node();
         n->data_ = T{std::forward<U>(args)...};
         push_node(n);
     }
 
     template<typename Fn>
-    void produce(Fn&& func){
+    void produce(Fn&& func) {
         auto n = get_node();
         func(n->data_);
         push_node(n);
@@ -292,10 +296,10 @@ class unbounded_mpsc_queue :
 
     // must be called from a single thread!
     void pop(T& result){
-        // use node *after* devider, because devider is always a dummy!
-        auto next = devider_.load(std::memory_order_relaxed)->next_;
-        result = std::move(next->data_);
-        devider_.store(next, std::memory_order_release); // publish
+        // use node *after* divider, because the divider itself is always a dummy!
+        auto n = divider_.load(std::memory_order_relaxed)->next_;
+        result = std::move(n->data_); // get the data
+        divider_.store(n, std::memory_order_release); // publish new divider
     }
 
     bool try_pop(T& result){
@@ -309,11 +313,11 @@ class unbounded_mpsc_queue :
 
     template<typename Fn>
     void consume(Fn&& func){
-        // use node *after* devider, because devider is always a dummy!
-        // doesn't delete the actual data. LATER make this an option?
-        auto next = devider_.load(std::memory_order_relaxed)->next_;
-        func(next->data_);
-        devider_.store(next, std::memory_order_release); // publish
+        // use node *after* divider, because the divider itself is always a dummy!
+        auto n = divider_.load(std::memory_order_relaxed)->next_;
+        auto data = std::move(n->data_); // get the data
+        divider_.store(n, std::memory_order_release); // publish new divider
+        func(data); // finally use data
     }
 
     template<typename Fn>
@@ -334,46 +338,42 @@ class unbounded_mpsc_queue :
     }
 
     bool empty() const {
-        return devider_.load(std::memory_order_relaxed)
+        return divider_.load(std::memory_order_relaxed)
                 == last_.load(std::memory_order_relaxed);
     }
 
     // not thread-safe (?)
-    void clear(){
-        devider_.store(last_);
+    void clear() {
+        divider_.store(last_);
     }
  private:
-    std::atomic<node *> first_;
-    std::atomic<node *> devider_;
+    node * first_;
+    std::atomic<node *> divider_;
     std::atomic<node *> last_;
-    std::atomic<int32_t> lock_{0};
+    sync::spinlock lock_;
 
-    node * get_node(){
-        for (;;){
-            auto first = first_.load(std::memory_order_relaxed);
-            if (first != devider_.load(std::memory_order_relaxed)){
-                // try to reuse existing node
-                if (first_.compare_exchange_weak(first, first->next_,
-                                                 std::memory_order_acq_rel))
-                {
-                    first->next_ = nullptr; // !
-                    return first;
-                }
-            } else {
-                // make new node
-                auto n = base::allocate();
-                new (n) node();
-                return n;
-            }
+    node * get_node() {
+        // try to reuse existing node
+        sync::unique_lock<sync::spinlock> l(lock_);
+        if (first_ != divider_.load(std::memory_order_relaxed)) {
+            auto n = first_;
+            first_ = first_->next_;
+            n->next_ = nullptr; // !
+            return n;
+        } else {
+            // allocate new node
+            l.unlock();
+            auto n = base::allocate();
+            new (n) node{};
+            return n;
         }
     }
 
-    void push_node(node *n){
-        while (lock_.exchange(1, std::memory_order_acquire)) ; // lock
+    void push_node(node *n) {
+        sync::scoped_lock<sync::spinlock> l(lock_);
         auto last = last_.load(std::memory_order_relaxed);
         last->next_ = n;
         last_.store(n, std::memory_order_release); // publish
-        lock_.store(0, std::memory_order_release); // unlock
     }
 };
 
@@ -459,6 +459,11 @@ public:
 
     template<typename... U>
     iterator emplace_front(U&&... args){
+        // "lock" the list to avoid the ABA problem
+        // (otherwise two other threads might concurrently free the list
+        // and push a new node with the same address as the current head;
+        // highly unlikely, but not impossible.)
+        lock();
         auto n = base::allocate();
         new (n) node(std::forward<U>(args)...);
         auto next = head_.load(std::memory_order_relaxed);
@@ -467,6 +472,7 @@ public:
             // check if the head has changed and update it atomically.
             // (if the CAS fails, 'next' is updated to the current head)
         } while (!head_.compare_exchange_weak(next, n, std::memory_order_acq_rel)) ;
+        unlock();
         return iterator(n);
     }
 

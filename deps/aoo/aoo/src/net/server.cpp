@@ -3,320 +3,14 @@
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
 #include "server.hpp"
+#include "server_events.hpp"
 
 #include <functional>
 #include <algorithm>
 #include <iostream>
 #include <sstream>
 
-// OSC address patterns
-
-#define kAooNetMsgClientPingReply \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgPing kAooNetMsgReply
-
-#define kAooNetMsgClientQuery \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgQuery
-
-#define kAooNetMsgClientLogin \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgLogin
-
-#define kAooNetMsgGroupJoin \
-    kAooNetMsgGroup kAooNetMsgJoin
-
-#define kAooNetMsgGroupLeave \
-    kAooNetMsgGroup kAooNetMsgLeave
-
-#define kAooNetMsgGroupUpdate \
-    kAooNetMsgGroup kAooNetMsgUpdate
-
-#define kAooNetMsgUserUpdate \
-    kAooNetMsgUser kAooNetMsgUpdate
-
-#define kAooNetMsgGroupChanged \
-    kAooNetMsgGroup kAooNetMsgChanged
-
-#define kAooNetMsgUserChanged \
-    kAooNetMsgUser kAooNetMsgChanged
-
-#define kAooNetMsgPeerChanged \
-    kAooNetMsgPeer kAooNetMsgChanged
-
-#define kAooNetMsgClientGroupJoin \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgGroupJoin
-
-#define kAooNetMsgClientGroupLeave \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgGroupLeave
-
-#define kAooNetMsgClientGroupUpdate \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgGroupUpdate
-
-#define kAooNetMsgClientUserUpdate \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgUserUpdate
-
-#define kAooNetMsgClientGroupChanged \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgGroupChanged
-
-#define kAooNetMsgClientUserChanged \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgUserChanged
-
-#define kAooNetMsgClientPeerChanged \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgPeerChanged
-
-#define kAooNetMsgClientRequest \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgRequest
-
-#define kAooNetMsgPeerJoin \
-    kAooNetMsgPeer kAooNetMsgJoin
-
-#define kAooNetMsgPeerLeave \
-    kAooNetMsgPeer kAooNetMsgLeave
-
-#define kAooNetMsgClientPeerJoin \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgPeerJoin
-
-#define kAooNetMsgClientPeerLeave \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgPeerLeave
-
-#define kAooNetMsgClientMessage \
-    kAooMsgDomain kAooNetMsgClient kAooNetMsgMessage
-
-namespace aoo {
-namespace net {
-
-//--------------------- group -------------------------//
-
-user* group::add_user(user&& usr) {
-    if (!find_user(usr.name())) {
-        return &users_.emplace_back(std::move(usr));
-    } else {
-        return nullptr;
-    }
-}
-
-user* group::find_user(const std::string& name) {
-    for (auto& usr : users_) {
-        if (usr.name() == name) {
-            return &usr;
-        }
-    }
-    return nullptr;
-}
-
-user* group::find_user(AooId id) {
-    for (auto& usr : users_) {
-        if (usr.id() == id) {
-            return &usr;
-        }
-    }
-    return nullptr;
-}
-
-user* group::find_user(const client_endpoint& client) {
-    for (auto& usr : users_) {
-        if (usr.client() == client.id()) {
-            return &usr;
-        }
-    }
-    return nullptr;
-}
-
-bool group::remove_user(AooId id) {
-    for (auto it = users_.begin(); it != users_.end(); ++it) {
-        if (it->id() == id) {
-            users_.erase(it);
-            return true;
-        }
-    }
-    return false;
-}
-
-AooId group::get_next_user_id() {
-#if 1
-    // try to reclaim ID
-    for (AooId i = 0; i < next_user_id_; ++i) {
-        if (!find_user(i)) {
-            return i;
-        }
-    }
-#endif
-    // make new ID
-    return next_user_id_++;
-}
-
-//------------------- client_endpoint -------------------//
-
-bool client_endpoint::match(const ip_address& addr) const {
-    // match public UDP addresses!
-    for (auto& a : public_addresses_) {
-        if (a == addr){
-            return true;
-        }
-    }
-    return false;
-}
-
-void client_endpoint::send_message(const osc::OutboundPacketStream& msg) const {
-    // prepend message size (int32_t)
-    auto data = msg.Data() - 4;
-    auto size = msg.Size() + 4;
-    // we know that the buffer is not really constant
-    aoo::to_bytes<int32_t>(msg.Size(), const_cast<char *>(data));
-    if (replyfn_(context_, id_, (AooByte *)data, size) < 0) {
-        // TODO handle error
-    }
-}
-
-void client_endpoint::send_error(Server& server, AooId token, AooNetRequestType type,
-                                 AooError result, int32_t errcode, const char *errmsg) {
-    const char *pattern;
-    switch (type) {
-    case kAooNetRequestLogin:
-        pattern = kAooNetMsgClientLogin;
-        break;
-    case kAooNetRequestGroupJoin:
-        pattern = kAooNetMsgClientGroupJoin;
-        break;
-    case kAooNetRequestGroupLeave:
-        pattern = kAooNetMsgClientGroupLeave;
-        break;
-    case kAooNetRequestCustom:
-        pattern = kAooNetMsgClientRequest;
-        break;
-    default:
-        // TODO bug
-        return;
-    }
-
-    auto msg = server.start_message();
-
-    msg << osc::BeginMessage(pattern) << (int32_t)token
-        << (int32_t)result << (int32_t)errcode << errmsg << osc::EndMessage;
-
-    send_message(msg);
-}
-
-void client_endpoint::send_notification(Server& server, const AooDataView &data) const {
-    auto msg = server.start_message(data.size);
-
-    msg << osc::BeginMessage(kAooNetMsgClientMessage)
-        << osc::Blob(data.data, data.size) << osc::EndMessage;
-
-    send_message(msg);
-}
-
-void client_endpoint::send_peer_add(Server& server, const group& grp, const user& usr,
-                                    const client_endpoint& client) const {
-
-    LOG_DEBUG("AooServer: send peer " << grp << "|" << usr << " " << client.public_addresses().front()
-              << " to client " << id() << " " << public_addresses().front());
-
-    auto msg = server.start_message(usr.metadata().size());
-
-    msg << osc::BeginMessage(kAooNetMsgClientPeerJoin)
-        << grp.name().c_str() << grp.id()
-        << usr.name().c_str() << usr.id() << usr.metadata()
-    // addresses
-        << (int32_t)client.public_addresses().size();
-    for (auto& addr : client.public_addresses()){
-        msg << addr;
-    }
-    msg << usr.relay_addr() << osc::EndMessage;
-
-    send_message(msg);
-}
-
-void client_endpoint::send_peer_remove(Server& server, const group& grp, const user& usr) const {
-    LOG_DEBUG("AooServer: remove peer " << grp.name() << "|" << usr.name());
-
-    auto msg = server.start_message();
-
-    msg << osc::BeginMessage(kAooNetMsgClientPeerLeave)
-        << grp.id() << usr.id() << osc::EndMessage;
-
-    send_message(msg);
-}
-
-void client_endpoint::send_group_update(Server& server, const group& grp) {
-    auto msg = server.start_message();
-
-    msg << osc::BeginMessage(kAooNetMsgClientGroupChanged)
-        << grp.id() << grp.metadata() << osc::EndMessage;
-
-    send_message(msg);
-}
-
-void client_endpoint::send_user_update(Server& server, const user& usr) {
-    auto msg = server.start_message();
-
-    msg << osc::BeginMessage(kAooNetMsgUserChanged)
-        << usr.group() << usr.id() << usr.metadata() << osc::EndMessage;
-
-    send_message(msg);
-}
-
-void client_endpoint::send_peer_update(Server& server, const user& peer) {
-    auto msg = server.start_message();
-
-    msg << osc::BeginMessage(kAooNetMsgClientPeerChanged)
-        << peer.group() << peer.id() << peer.metadata() << osc::EndMessage;
-
-    send_message(msg);
-}
-
-void client_endpoint::on_close(Server& server) {
-    for (auto& gu : group_users_) {
-        if (auto grp = server.find_group(gu.group)) {
-            if (auto usr = grp->find_user(gu.user)) {
-                server.on_user_left_group(*grp, *usr);
-                server.do_remove_user_from_group(*grp, *usr);
-            } else {
-                LOG_ERROR("AooServer: client_endpoint::on_close: could not find user " << gu.user);
-            }
-        } else {
-            LOG_ERROR("AooServer: client_endpoint::on_close: could not find group " << gu.group);
-        }
-    }
-    group_users_.clear();
-    id_ = kAooIdInvalid;
-}
-
-void client_endpoint::handle_message(Server &server, const AooByte *data, int32_t n) {
-    receiver_.handle_message((const char *)data, n,
-            [&](const osc::ReceivedPacket& packet) {
-        osc::ReceivedMessage msg(packet);
-        server.handle_message(*this, msg, packet.Size());
-    });
-}
-
-void client_endpoint::on_group_join(const group& grp, const user& usr) {
-#if 1
-    for (auto& gu : group_users_) {
-        if (gu.group == grp.id() && gu.user == usr.id()) {
-            LOG_ERROR("AooServer: client_endpoint::add_group_user: "
-                      << "group user already exists");
-            return;
-        }
-    }
-#endif
-    group_users_.emplace_back(group_user { grp.id(), usr.id() });
-}
-
-void client_endpoint::on_group_leave(const group& grp, const user& usr, bool force) {
-    if (force) {
-        // TODO send message to user, so that it knows it has been removed!
-    }
-    for (auto it = group_users_.begin(); it != group_users_.end(); ++it) {
-        if (it->group == grp.id() && it->user == usr.id()) {
-            group_users_.erase(it);
-            return;
-        }
-    }
-    LOG_ERROR("AooServer: client_endpoint::remove_group_user(): "
-              << "couldn't remove group user " << grp.id() << "|" << usr.id());
-}
-
-} // net
-} // aoo
+#include "../binmsg.hpp"
 
 //----------------------- Server --------------------------//
 
@@ -376,13 +70,13 @@ AooError AOO_CALL aoo::net::Server::handleUdpMessage(
 }
 
 AOO_API AooError AOO_CALL AooServer_addClient(
-        AooServer *server, AooNetReplyFunc replyFn,
+        AooServer *server, AooServerReplyFunc replyFn,
         void *user, AooSocket sockfd, AooId *id) {
     return server->addClient(replyFn, user, sockfd, id);
 }
 
 AooError AOO_CALL aoo::net::Server::addClient(
-        AooNetReplyFunc replyFn, void *user, AooSocket sockfd, AooId *clientId) {
+        AooServerReplyFunc replyFn, void *user, AooSocket sockfd, AooId *clientId) {
     // NB: we don't protect against duplicate clients;
     // the user is supposed to only call this when a new client
     // socket is accepted.
@@ -432,12 +126,12 @@ AooError AOO_CALL aoo::net::Server::handleClientMessage(
 }
 
 AOO_API AooError AOO_CALL AooServer_setRequestHandler(
-        AooServer *server, AooNetRequestHandler cb, void *user, AooFlag flags) {
+        AooServer *server, AooRequestHandler cb, void *user, AooFlag flags) {
     return server->setRequestHandler(cb, user, flags);
 }
 
 AooError AOO_CALL aoo::net::Server::setRequestHandler(
-        AooNetRequestHandler cb, void *user, AooFlag flags) {
+        AooRequestHandler cb, void *user, AooFlag flags) {
     request_handler_ = cb;
     request_context_ = user;
     return kAooOk;
@@ -445,14 +139,14 @@ AooError AOO_CALL aoo::net::Server::setRequestHandler(
 
 AOO_API AooError AooServer_acceptRequest(
         AooServer *server, AooId client, AooId token,
-        const AooNetRequest *request, AooNetResponse *response)
+        const AooRequest *request, AooResponse *response)
 {
     return server->acceptRequest(client, token, request, response);
 }
 
 AooError AOO_CALL aoo::net::Server::acceptRequest(
-        AooId client, AooId token, const AooNetRequest *request,
-        AooNetResponse *response)
+        AooId client, AooId token, const AooRequest *request,
+        AooResponse *response)
 {
     // currently all requests that can be intercepted require a response
     if (!request || !response) {
@@ -463,34 +157,26 @@ AooError AOO_CALL aoo::net::Server::acceptRequest(
         return kAooErrorBadArgument;
     }
     // query request needs to handled specially
-    if (request->type == kAooNetRequestQuery) {
-        do_query((const AooNetRequestQuery&)request,
-                 (AooNetResponseQuery&)response);
+    if (request->type == kAooRequestQuery) {
+        do_query(request->query, response->query);
         return kAooOk; // always succeeds
     }
     // client requests
     auto c = find_client(client);
     if (c) {
         switch (request->type) {
-        case kAooNetRequestLogin:
-            return do_login(*c, token, (const AooNetRequestLogin&)*request,
-                            (AooNetResponseLogin&)*response);
-        case kAooNetRequestGroupJoin:
-            return do_group_join(*c, token, (const AooNetRequestGroupJoin&)*request,
-                                 (AooNetResponseGroupJoin&)*response);
-        case kAooNetRequestGroupLeave:
-            return do_group_leave(*c, token, (const AooNetRequestGroupLeave&)*request,
-                                  (AooNetResponseGroupLeave&)*response);
-            break;
-        case kAooNetRequestGroupUpdate:
-            return do_group_update(*c, token, (const AooNetRequestGroupUpdate&)*request,
-                                   (AooNetResponseGroupUpdate&)*response);
-        case kAooNetRequestUserUpdate:
-            return do_user_update(*c, token, (const AooNetRequestUserUpdate&)*request,
-                                  (AooNetResponseUserUpdate&)*response);
-        case kAooNetRequestCustom:
-            return do_custom_request(*c, token, (const AooNetRequestCustom&)*request,
-                                     (AooNetResponseCustom&)*response);
+        case kAooRequestLogin:
+            return do_login(*c, token, request->login, response->login);
+        case kAooRequestGroupJoin:
+            return do_group_join(*c, token, request->groupJoin, response->groupJoin);
+        case kAooRequestGroupLeave:
+            return do_group_leave(*c, token, request->groupLeave, response->groupLeave);
+        case kAooRequestGroupUpdate:
+            return do_group_update(*c, token, request->groupUpdate, response->groupUpdate);
+        case kAooRequestUserUpdate:
+            return do_user_update(*c, token, request->userUpdate, response->userUpdate);
+        case kAooRequestCustom:
+            return do_custom_request(*c, token, request->custom, response->custom);
         default:
             return kAooErrorUnknown;
         }
@@ -501,21 +187,21 @@ AooError AOO_CALL aoo::net::Server::acceptRequest(
 
 AOO_API AooError AooServer_declineRequest(
         AooServer *server,
-        AooId client, AooId token, const AooNetRequest *request,
+        AooId client, AooId token, const AooRequest *request,
         AooError errorCode, const AooChar *errorMessage)
 {
     return server->declineRequest(client, token, request, errorCode, errorMessage);
 }
 
 AooError AOO_CALL aoo::net::Server::declineRequest(
-        AooId client, AooId token, const AooNetRequest *request,
+        AooId client, AooId token, const AooRequest *request,
         AooError errorCode, const AooChar *errorMessage)
 {
     if (!request) {
         return kAooErrorBadArgument;
     }
     // query request needs to handled specially
-    if (request->type == kAooNetRequestQuery) {
+    if (request->type == kAooRequestQuery) {
         // for now, just ignore request
         // TODO think about error response
         return kAooOk;
@@ -533,12 +219,12 @@ AooError AOO_CALL aoo::net::Server::declineRequest(
 }
 
 AOO_API AooError AOO_CALL AooServer_notifyClient(
-        AooServer *server, AooId client, const AooDataView *data) {
+        AooServer *server, AooId client, const AooData *data) {
     return  server->notifyClient(client, data);
 }
 
 AooError AOO_CALL aoo::net::Server::notifyClient(
-        AooId client, const AooDataView *data) {
+        AooId client, const AooData *data) {
     if (auto c = find_client(client)) {
         c->send_notification(*this, *data);
         return kAooOk;
@@ -550,12 +236,12 @@ AooError AOO_CALL aoo::net::Server::notifyClient(
 
 AOO_API AooError AOO_CALL AooServer_notifyGroup(
         AooServer *server, AooId group, AooId user,
-        const AooDataView *data) {
+        const AooData *data) {
     return server->notifyGroup(group, user, data);
 }
 
 AooError AOO_CALL aoo::net::Server::notifyGroup(
-        AooId group, AooId user, const AooDataView *data) {
+        AooId group, AooId user, const AooData *data) {
     if (auto g = find_group(group)) {
         if (user == kAooIdInvalid) {
             // all users
@@ -606,12 +292,12 @@ AooError AOO_CALL aoo::net::Server::findGroup(
 
 AOO_API AooError AOO_CALL AooServer_addGroup(
         AooServer *server, const AooChar *name, const AooChar *password,
-        const AooDataView *metadata, const AooIpEndpoint *relayAddress, AooFlag flags, AooId *groupId) {
+        const AooData *metadata, const AooIpEndpoint *relayAddress, AooFlag flags, AooId *groupId) {
     return server->addGroup(name, password, metadata, relayAddress, flags, groupId);
 }
 
 AooError AOO_CALL aoo::net::Server::addGroup(
-        const AooChar *name, const AooChar *password, const AooDataView *metadata,
+        const AooChar *name, const AooChar *password, const AooData *metadata,
         const AooIpEndpoint *relayAddress, AooFlag flags, AooId *groupId) {
     // this might "waste" a group ID, but we don't care.
     auto id = get_next_group_id();
@@ -664,13 +350,13 @@ AooError AOO_CALL aoo::net::Server::findUserInGroup(
 AOO_API AooError AOO_CALL AooServer_addUserToGroup(
         AooServer *server, AooId group,
         const AooChar *userName, const AooChar *userPwd,
-        const AooDataView *metadata, AooFlag flags, AooId *userId) {
+        const AooData *metadata, AooFlag flags, AooId *userId) {
     return server->addUserToGroup(group, userName, userPwd, metadata, flags, userId);
 }
 
 AooError AOO_CALL aoo::net::Server::addUserToGroup(
         AooId group, const AooChar *userName, const AooChar *userPwd,
-        const AooDataView *metadata, AooFlag flags, AooId *userId) {
+        const AooData *metadata, AooFlag flags, AooId *userId) {
     if (auto g = find_group(group)) {
         auto id = g->get_next_user_id();
         std::string hashed_pwd = userPwd ? aoo::net::encrypt(userPwd) : "";
@@ -746,8 +432,8 @@ AooError AOO_CALL aoo::net::Server ::groupControl(
     switch (ctl) {
     case kAooCtlUpdateGroup:
     {
-        CHECKARG(AooDataView*);
-        auto md = as<const AooDataView*>(ptr);
+        CHECKARG(AooData*);
+        auto md = as<const AooData*>(ptr);
         if (md) {
             update_group(*grp, *md);
         } else {
@@ -763,8 +449,8 @@ AooError AOO_CALL aoo::net::Server ::groupControl(
                       << index << " in group " << group);
             return kAooErrorNotFound;
         }
-        CHECKARG(AooDataView*);
-        auto md = as<const AooDataView*>(ptr);
+        CHECKARG(AooData*);
+        auto md = as<const AooData*>(ptr);
         if (md) {
             update_user(*grp, *usr, *md);
         } else {
@@ -917,11 +603,15 @@ bool Server::remove_client(AooId id) {
     if (it == clients_.end()) {
         return false;
     }
+    // only send event if client has actually logged in!
+    auto valid = it->second.valid();
     it->second.on_close(*this);
     clients_.erase(it);
 
-    auto e = std::make_unique<client_remove_event>(id);
-    send_event(std::move(e));
+    if (valid) {
+        auto e = std::make_unique<client_remove_event>(id);
+        send_event(std::move(e));
+    }
 
     return true;
 }
@@ -973,7 +663,7 @@ bool Server::remove_group(AooId id) {
     return true;
 }
 
-void Server::update_group(group& grp, const AooDataView& md) {
+void Server::update_group(group& grp, const AooData& md) {
     LOG_DEBUG("AooServer: update group " << grp);
 
     grp.set_metadata(md);
@@ -988,7 +678,7 @@ void Server::update_group(group& grp, const AooDataView& md) {
     }
 }
 
-void Server::update_user(const group& grp, user& usr, const AooDataView& md) {
+void Server::update_user(const group& grp, user& usr, const AooData& md) {
     LOG_DEBUG("AooServer: update group " << grp);
 
     usr.set_metadata(md);
@@ -1085,7 +775,7 @@ void Server::handle_ping(const client_endpoint& client,
     // send reply
     auto reply = start_message();
 
-    reply << osc::BeginMessage(kAooNetMsgClientPingReply) << osc::EndMessage;
+    reply << osc::BeginMessage(kAooMsgClientPong) << osc::EndMessage;
 
     client.send_message(reply);
 }
@@ -1103,17 +793,17 @@ void Server::handle_message(client_endpoint& client,
         if (type == kAooTypeServer){
             auto pattern = msg.AddressPattern() + onset;
             LOG_DEBUG("AooServer: got server message " << pattern);
-            if (!strcmp(pattern, kAooNetMsgPing)){
+            if (!strcmp(pattern, kAooMsgPing)){
                 handle_ping(client, msg);
-            } else if (!strcmp(pattern, kAooNetMsgLogin)){
+            } else if (!strcmp(pattern, kAooMsgLogin)){
                 handle_login(client, msg);
-            } else if (!strcmp(pattern, kAooNetMsgGroupJoin)){
+            } else if (!strcmp(pattern, kAooMsgGroupJoin)){
                 handle_group_join(client, msg);
-            } else if (!strcmp(pattern, kAooNetMsgGroupLeave)){
+            } else if (!strcmp(pattern, kAooMsgGroupLeave)){
                 handle_group_leave(client, msg);
-            } else if (!strcmp(pattern, kAooNetMsgGroupUpdate)){
+            } else if (!strcmp(pattern, kAooMsgGroupUpdate)){
                 handle_group_update(client, msg);
-            } else if (!strcmp(pattern, kAooNetMsgUserUpdate)){
+            } else if (!strcmp(pattern, kAooMsgUserUpdate)){
                 handle_user_update(client, msg);
             } else {
                 throw std::runtime_error("unknown server message " + std::string(pattern));
@@ -1143,8 +833,8 @@ void Server::handle_login(client_endpoint& client, const osc::ReceivedMessage& m
         client.add_public_address(osc_read_address(it));
     }
 
-    AooNetRequestLogin request;
-    request.type = kAooNetRequestLogin;
+    AooRequestLogin request;
+    request.type = kAooRequestLogin;
     request.flags = 0;
     request.password = pwd;
     request.metadata = metadata.data ? &metadata : nullptr;
@@ -1163,9 +853,9 @@ void Server::handle_login(client_endpoint& client, const osc::ReceivedMessage& m
         return;
     }
 
-    if (!handle_request(client, token, (AooNetRequest&)request)) {
-        AooNetResponseLogin response;
-        response.type = kAooNetRequestLogin;
+    if (!handle_request(client, token, (AooRequest&)request)) {
+        AooResponseLogin response;
+        response.type = kAooRequestLogin;
         response.flags = 0;
         response.metadata = nullptr;
 
@@ -1174,19 +864,19 @@ void Server::handle_login(client_endpoint& client, const osc::ReceivedMessage& m
 }
 
 AooError Server::do_login(client_endpoint& client, AooId token,
-                          const AooNetRequestLogin& request,
-                          AooNetResponseLogin& response) {
+                          const AooRequestLogin& request,
+                          AooResponseLogin& response) {
     // flags
     AooFlag flags = 0;
     if (allow_relay_.load()) {
-        flags |= kAooNetServerRelay;
+        flags |= kAooServerRelay;
     }
 
     // send reply
     auto extra = response.metadata ? response.metadata->size : 0;
     auto msg = start_message(extra);
 
-    msg << osc::BeginMessage(kAooNetMsgClientLogin)
+    msg << osc::BeginMessage(kAooMsgClientLogin)
         << token << (int32_t)kAooOk
         << client.id() << (int32_t)flags << response.metadata
         << osc::EndMessage;
@@ -1215,8 +905,8 @@ void Server::handle_group_join(client_endpoint& client, const osc::ReceivedMessa
     relay.hostName = (it++)->AsString();
     relay.port = (it++)->AsInt32();
 
-    AooNetRequestGroupJoin request;
-    request.type = kAooNetRequestGroupJoin;
+    AooRequestGroupJoin request;
+    request.type = kAooRequestGroupJoin;
     request.flags = 0;
     request.groupName = group_name;
     request.groupPwd = group_pwd;
@@ -1276,9 +966,9 @@ void Server::handle_group_join(client_endpoint& client, const osc::ReceivedMessa
         }
     }
 
-    if (!handle_request(client, token, (AooNetRequest&)request)) {
-        AooNetResponseGroupJoin response;
-        response.type = kAooNetRequestGroupJoin;
+    if (!handle_request(client, token, (AooRequest&)request)) {
+        AooResponseGroupJoin response;
+        response.type = kAooRequestGroupJoin;
         response.flags = 0;
         response.groupId = 0;
         response.groupFlags = 0;
@@ -1294,8 +984,8 @@ void Server::handle_group_join(client_endpoint& client, const osc::ReceivedMessa
 }
 
 AooError Server::do_group_join(client_endpoint &client, AooId token,
-                               const AooNetRequestGroupJoin& request,
-                               AooNetResponseGroupJoin& response) {
+                               const AooRequestGroupJoin& request,
+                               AooResponseGroupJoin& response) {
     // prefer response group metadata
     auto group_md = response.groupMetadata ? response.groupMetadata : request.groupMetadata;
     // prefer response group relay address over server relay
@@ -1344,7 +1034,7 @@ AooError Server::do_group_join(client_endpoint &client, AooId token,
             (response.privateMetadata ? response.privateMetadata->size : 0);
     auto msg = start_message(extra);
 
-    msg << osc::BeginMessage(kAooNetMsgClientGroupJoin)
+    msg << osc::BeginMessage(kAooMsgClientGroupJoin)
         << token << (int32_t)kAooOk
         << grp->id() << usr->id()
         << grp->metadata() << usr->metadata()
@@ -1366,21 +1056,21 @@ void Server::handle_group_leave(client_endpoint& client, const osc::ReceivedMess
     auto token = (AooId)(it++)->AsInt32();
     auto group = (it++)->AsInt32();
 
-    AooNetRequestGroupLeave request;
-    request.type = kAooNetRequestGroupLeave;
+    AooRequestGroupLeave request;
+    request.type = kAooRequestGroupLeave;
     request.group = group;
 
-    AooNetResponseGroupLeave response;
-    response.type = kAooNetRequestGroupLeave;
+    AooResponseGroupLeave response;
+    response.type = kAooRequestGroupLeave;
 
-    if (!handle_request(client, token, (AooNetRequest&)request)) {
+    if (!handle_request(client, token, (AooRequest&)request)) {
         do_group_leave(client, token, request, response);
     }
 }
 
 AooError Server::do_group_leave(client_endpoint& client, AooId token,
-                                const AooNetRequestGroupLeave& request,
-                                AooNetResponseGroupLeave& response) {
+                                const AooRequestGroupLeave& request,
+                                AooResponseGroupLeave& response) {
     const char *errmsg;
 
     if (auto grp = find_group(request.group)) {
@@ -1397,7 +1087,7 @@ AooError Server::do_group_leave(client_endpoint& client, AooId token,
             // send reply
             auto msg = start_message();
 
-            msg << osc::BeginMessage(kAooNetMsgClientGroupLeave)
+            msg << osc::BeginMessage(kAooMsgClientGroupLeave)
                 << token << (int32_t)kAooOk << osc::EndMessage;
 
             client.send_message(msg);
@@ -1423,8 +1113,8 @@ void Server::handle_group_update(client_endpoint& client, const osc::ReceivedMes
     auto group_id = (it++)->AsInt32();
     auto md = osc_read_metadata(it);
 
-    AooNetRequestGroupUpdate request;
-    request.type = kAooNetRequestGroupUpdate;
+    AooRequestGroupUpdate request;
+    request.type = kAooRequestGroupUpdate;
     request.flags = 0;
     request.groupId = group_id;
     request.groupMetadata = md;
@@ -1436,9 +1126,9 @@ void Server::handle_group_update(client_endpoint& client, const osc::ReceivedMes
         return;
     }
 
-    if (!handle_request(client, token, (AooNetRequest&)request)) {
-        AooNetResponseGroupUpdate response;
-        response.type = kAooNetRequestGroupUpdate;
+    if (!handle_request(client, token, (AooRequest&)request)) {
+        AooResponseGroupUpdate response;
+        response.type = kAooRequestGroupUpdate;
         response.flags = 0;
         response.groupMetadata = request.groupMetadata;
 
@@ -1447,8 +1137,8 @@ void Server::handle_group_update(client_endpoint& client, const osc::ReceivedMes
 }
 
 AooError Server::do_group_update(client_endpoint &client, AooId token,
-                                 const AooNetRequestGroupUpdate& request,
-                                 AooNetResponseGroupUpdate& response) {
+                                 const AooRequestGroupUpdate& request,
+                                 AooResponseGroupUpdate& response) {
     auto grp = find_group(request.groupId);
     if (!grp) {
         LOG_ERROR("AooServer: could not find group");
@@ -1473,7 +1163,7 @@ AooError Server::do_group_update(client_endpoint &client, AooId token,
     // send reply
     auto msg = start_message(grp->metadata().size());
 
-    msg << osc::BeginMessage(kAooNetMsgClientGroupUpdate)
+    msg << osc::BeginMessage(kAooMsgClientGroupUpdate)
         << token << (int32_t)kAooOk << grp->metadata()
         << osc::EndMessage;
 
@@ -1496,8 +1186,8 @@ void Server::handle_user_update(client_endpoint& client, const osc::ReceivedMess
     auto user_id = (it++)->AsInt32();
     auto md = osc_read_metadata(it);
 
-    AooNetRequestUserUpdate request;
-    request.type = kAooNetRequestUserUpdate;
+    AooRequestUserUpdate request;
+    request.type = kAooRequestUserUpdate;
     request.flags = 0;
     request.groupId = group_id;
     request.userId = user_id;
@@ -1515,9 +1205,9 @@ void Server::handle_user_update(client_endpoint& client, const osc::ReceivedMess
                           0, "user not found");
     }
 
-    if (!handle_request(client, token, (AooNetRequest&)request)) {
-        AooNetResponseUserUpdate response;
-        response.type = kAooNetRequestUserUpdate;
+    if (!handle_request(client, token, (AooRequest&)request)) {
+        AooResponseUserUpdate response;
+        response.type = kAooRequestUserUpdate;
         response.flags = 0;
         response.userMetadata = request.userMetadata;
 
@@ -1526,8 +1216,8 @@ void Server::handle_user_update(client_endpoint& client, const osc::ReceivedMess
 }
 
 AooError Server::do_user_update(client_endpoint &client, AooId token,
-                                const AooNetRequestUserUpdate& request,
-                                AooNetResponseUserUpdate& response) {
+                                const AooRequestUserUpdate& request,
+                                AooResponseUserUpdate& response) {
     auto grp = find_group(request.groupId);
     if (!grp) {
         LOG_ERROR("AooServer: could not find group");
@@ -1558,7 +1248,7 @@ AooError Server::do_user_update(client_endpoint &client, AooId token,
     // send reply
     auto msg = start_message(usr->metadata().size());
 
-    msg << osc::BeginMessage(kAooNetMsgClientUserUpdate)
+    msg << osc::BeginMessage(kAooMsgClientUserUpdate)
         << token << (int32_t)kAooOk << usr->metadata()
         << osc::EndMessage;
 
@@ -1579,12 +1269,12 @@ void Server::handle_custom_request(client_endpoint& client, const osc::ReceivedM
     auto flags = (it++)->AsInt32();
     auto data = osc_read_metadata(it);
 
-    AooNetRequestCustom request;
-    request.type = kAooNetRequestCustom;
+    AooRequestCustom request;
+    request.type = kAooRequestCustom;
     request.flags = flags;
     request.data = data;
 
-    if (!handle_request(client, token, (AooNetRequest&)request)) {
+    if (!handle_request(client, token, (AooRequest&)request)) {
         // requests must be handled by the user!
         client.send_error(*this, token, request.type, kAooErrorUnknown,
                           0, "request not handled");
@@ -1592,12 +1282,12 @@ void Server::handle_custom_request(client_endpoint& client, const osc::ReceivedM
 }
 
 AooError Server::do_custom_request(client_endpoint& client, AooId token,
-                                   const AooNetRequestCustom& request,
-                                   AooNetResponseCustom& response) {
+                                   const AooRequestCustom& request,
+                                   AooResponseCustom& response) {
     // send reply
     auto msg = start_message(response.data.size);
 
-    msg << osc::BeginMessage(kAooNetMsgClientRequest)
+    msg << osc::BeginMessage(kAooMsgClientRequest)
         << token << (int32_t)kAooOk << (int32_t)response.flags
         << &response.data << osc::EndMessage;
 
@@ -1622,9 +1312,9 @@ AooError Server::handle_udp_message(const AooByte *data, AooSize size, int onset
         auto pattern = msg.AddressPattern() + onset;
         LOG_DEBUG("AooServer: handle client UDP message " << pattern);
 
-        if (!strcmp(pattern, kAooNetMsgPing)){
+        if (!strcmp(pattern, kAooMsgPing)){
             handle_ping(msg, addr, fn);
-        } else if (!strcmp(pattern, kAooNetMsgQuery)) {
+        } else if (!strcmp(pattern, kAooMsgQuery)) {
             handle_query(msg, addr, fn);
         } else {
             LOG_ERROR("AooServer: unknown message " << pattern);
@@ -1696,7 +1386,7 @@ AooError Server::handle_relay(const AooByte *data, AooSize size,
             // don't prepend size for UDP message!
             char buf[AOO_MAX_PACKET_SIZE];
             osc::OutboundPacketStream out(buf, sizeof(buf));
-            out << osc::BeginMessage(kAooMsgDomain kAooNetMsgRelay)
+            out << osc::BeginMessage(kAooMsgDomain kAooMsgRelay)
                 << addr << osc::Blob(msgData, msgSize)
                 << osc::EndMessage;
 
@@ -1715,11 +1405,11 @@ AooError Server::handle_relay(const AooByte *data, AooSize size,
 
 void Server::handle_ping(const osc::ReceivedMessage& msg,
                          const ip_address& addr, const sendfn& fn) const {
-    // reply with /ping message
+    // reply with /pong message
     // NB: don't prepend size for UDP message!
     char buf[512];
     osc::OutboundPacketStream reply(buf, sizeof(buf));
-    reply << osc::BeginMessage(kAooNetMsgClientPingReply)
+    reply << osc::BeginMessage(kAooMsgClientPong)
           << osc::EndMessage;
 
     fn((const AooByte *)reply.Data(), reply.Size(), addr);
@@ -1727,16 +1417,16 @@ void Server::handle_ping(const osc::ReceivedMessage& msg,
 
 void Server::handle_query(const osc::ReceivedMessage& msg,
                           const ip_address& addr, const sendfn& fn) {
-    AooNetRequestQuery request;
-    request.type = kAooNetRequestQuery;
+    AooRequestQuery request;
+    request.type = kAooRequestQuery;
     request.flags = 0;
     request.replyFunc = fn.fn();
     request.replyContext = fn.user();
     request.replyAddr.data = addr.address();
     request.replyAddr.size = addr.length();
-    if (!handle_request((AooNetRequest&)request)) {
-        AooNetResponseQuery response;
-        response.type = kAooNetRequestQuery;
+    if (!handle_request((AooRequest&)request)) {
+        AooResponseQuery response;
+        response.type = kAooRequestQuery;
         response.flags = 0;
         response.serverAddress.hostName = nullptr;
         response.serverAddress.port = 0;
@@ -1744,8 +1434,8 @@ void Server::handle_query(const osc::ReceivedMessage& msg,
     }
 }
 
-void Server::do_query(const AooNetRequestQuery& request,
-                      const AooNetResponseQuery& response) const {
+void Server::do_query(const AooRequestQuery& request,
+                      const AooResponseQuery& response) const {
     sendfn fn(request.replyFunc, request.replyContext);
     ip_address public_addr((const struct sockaddr *)request.replyAddr.data,
                            request.replyAddr.size);
@@ -1755,7 +1445,7 @@ void Server::do_query(const AooNetRequestQuery& request,
     // do not prepend size for UDP message!
     char buf[AOO_MAX_PACKET_SIZE];
     osc::OutboundPacketStream reply(buf, sizeof(buf));
-    reply << osc::BeginMessage(kAooNetMsgClientQuery)
+    reply << osc::BeginMessage(kAooMsgClientQuery)
           << public_addr << server_addr << osc::EndMessage;
 
     fn((const AooByte *)reply.Data(), reply.Size(), public_addr);

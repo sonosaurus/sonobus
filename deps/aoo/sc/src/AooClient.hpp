@@ -31,10 +31,10 @@ private:
     std::shared_ptr<INode> node_;
 
     void sendError(const char *cmd, AooId token, AooError result,
-                   const AooNetResponse *response = nullptr);
+                   const AooResponse *response = nullptr);
 
     void handlePeerMessage(AooId group, AooId user, AooNtpTime time,
-                           const AooDataView& data);
+                           const AooData& data);
 
     template<typename T>
     T * createCommand(int port, int token);

@@ -4,11 +4,13 @@
 
 AooNode::AooNode(World *world, int port) {
     // increase socket buffers
-    const int sendbufsize = 1 << 16; // 65 KB
+    const int sendbufsize = 1 << 18; // 256 KB
+    // NB: with a threaded UDP server we wouldn't need large receive buffers...
 #if NETWORK_THREAD_POLL
+    // The receive thread also does the sending (and encoding)! This requires a larger buffer.
     const int recvbufsize = 1 << 20; // 1 MB
 #else
-    const int recvbufsize = 1 << 16; // 65 KB
+    const int recvbufsize = 1 << 18; // 256 KB
 #endif
     // udp_server::start() throws on error!
     server_.start(port, [this](auto&&... args) { handlePacket(args...); },

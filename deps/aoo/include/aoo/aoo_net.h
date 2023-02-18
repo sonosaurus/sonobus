@@ -52,128 +52,120 @@ AOO_PACK_BEGIN
 /*-------------- default values ---------------------*/
 
 /** \brief enable/disable server relay by default */
-#ifndef AOO_NET_SERVER_RELAY
- #define AOO_NET_SERVER_RELAY 0
+#ifndef AOO_SERVER_RELAY
+ #define AOO_SERVER_RELAY 0
 #endif
 
 /** \brief enable/disable automatic group creation by default */
-#ifndef AOO_NET_GROUP_AUTO_CREATE
-#define AOO_NET_GROUP_AUTO_CREATE 1
+#ifndef AOO_GROUP_AUTO_CREATE
+#define AOO_GROUP_AUTO_CREATE 1
 #endif
 
 /** \brief enable/disable automatic user creation by default */
-#ifndef AOO_NET_USER_AUTO_CREATE
-#define AOO_NET_USER_AUTO_CREATE 1
+#ifndef AOO_USER_AUTO_CREATE
+#define AOO_USER_AUTO_CREATE 1
 #endif
 
 /** \brief enable/disable binary format for client messages */
-#ifndef AOO_NET_CLIENT_BINARY_MSG
- #define AOO_NET_CLIENT_BINARY_MSG 1
+#ifndef AOO_CLIENT_BINARY_MSG
+ #define AOO_CLIENT_BINARY_MSG 1
 #endif
 
 /*-------------- public OSC interface ---------------*/
 
-#define kAooNetMsgServer "/server"
-#define kAooNetMsgServerLen 7
+#define kAooMsgServer "/server"
+#define kAooMsgServerLen 7
 
-#define kAooNetMsgClient "/client"
-#define kAooNetMsgClientLen 7
+#define kAooMsgClient "/client"
+#define kAooMsgClientLen 7
 
-#define kAooNetMsgPeer "/peer"
-#define kAooNetMsgPeerLen 5
+#define kAooMsgPeer "/peer"
+#define kAooMsgPeerLen 5
 
-#define kAooNetMsgRelay "/relay"
-#define kAooNetMsgRelayLen 6
+#define kAooMsgRelay "/relay"
+#define kAooMsgRelayLen 6
 
-#define kAooNetMsgPing "/ping"
-#define kAooNetMsgPingLen 5
+#define kAooMsgPong "/pong"
+#define kAooMsgReplyLen 5
 
-#define kAooNetMsgReply "/r"
-#define kAooNetMsgReplyLen 2
+#define kAooMsgMessage "/msg"
+#define kAooMsgMessageLen 4
 
-#define kAooNetMsgMessage "/msg"
-#define kAooNetMsgMessageLen 4
+#define kAooMsgAck "/ack"
+#define kAooMsgAckLen 4
 
-#define kAooNetMsgAck "/ack"
-#define kAooNetMsgAckLen 4
+#define kAooMsgLogin "/login"
+#define kAooMsgLoginLen 6
 
-#define kAooNetMsgLogin "/login"
-#define kAooNetMsgLoginLen 6
+#define kAooMsgQuery "/query"
+#define kAooMsgQueryLen 6
 
-#define kAooNetMsgQuery "/query"
-#define kAooNetMsgQueryLen 6
+#define kAooMsgGroup "/group"
+#define kAooMsgGroupLen 6
 
-#define kAooNetMsgGroup "/group"
-#define kAooNetMsgGroupLen 6
+#define kAooMsgUser "/user"
+#define kAooMsgUserLen 5
 
-#define kAooNetMsgUser "/user"
-#define kAooNetMsgUserLen 5
+#define kAooMsgJoin "/join"
+#define kAooMsgJoinLen 5
 
-#define kAooNetMsgJoin "/join"
-#define kAooNetMsgJoinLen 5
+#define kAooMsgLeave "/leave"
+#define kAooMsgLeaveLen 6
 
-#define kAooNetMsgLeave "/leave"
-#define kAooNetMsgLeaveLen 6
+#define kAooMsgUpdate "/update"
+#define kAooMsgUpdateLen 7
 
-#define kAooNetMsgUpdate "/update"
-#define kAooNetMsgUpdateLen 7
+#define kAooMsgChanged "/changed"
+#define kAooMsgChangedLen 8
 
-#define kAooNetMsgChanged "/changed"
-#define kAooNetMsgChangedLen 8
-
-#define kAooNetMsgRequest "/request"
-#define kAooNetMsgRequestLen 8
+#define kAooMsgRequest "/request"
+#define kAooMsgRequestLen 8
 
 /*------------- defines --------------------------*/
 
 /** \brief used in AooClient_sendMessage / AooClient::sendMessage */
-enum AooNetMessageFlags
+enum AooMessageFlags
 {
-    kAooNetMessageReliable = 0x01
+    kAooMessageReliable = 0x01
 };
 
 /** \brief server flags */
-enum AooNetServerFlags
+enum AooServerFlags
 {
-    kAooNetServerRelay = 0x01
+    kAooServerRelay = 0x01
 };
 
 /*------------- requests/replies ----------------*/
 
 /** \brief type for client requests */
-typedef AooInt32 AooNetRequestType;
+typedef AooInt32 AooRequestType;
 
-/** \brief client request constants */
-enum AooNetRequestTypes
+/** \brief client request type constants */
+enum AooRequestTypes
 {
     /** error response */
-    kAooNetRequestError = 0,
+    kAooRequestError = 0,
     /** connect to server */
-    kAooNetRequestConnect,
+    kAooRequestConnect,
     /** query public IP + server IP */
-    kAooNetRequestQuery,
+    kAooRequestQuery,
     /** login to server */
-    kAooNetRequestLogin,
+    kAooRequestLogin,
     /** disconnect from server */
-    kAooNetRequestDisconnect,
+    kAooRequestDisconnect,
     /** join group */
-    kAooNetRequestGroupJoin,
+    kAooRequestGroupJoin,
     /** leave group */
-    kAooNetRequestGroupLeave,
+    kAooRequestGroupLeave,
     /** update group */
-    kAooNetRequestGroupUpdate,
+    kAooRequestGroupUpdate,
     /** update user */
-    kAooNetRequestUserUpdate,
+    kAooRequestUserUpdate,
     /** custom request */
-    kAooNetRequestCustom
+    kAooRequestCustom
 };
 
-/** \brief generic request */
-typedef struct AooNetRequest
-{
-    /** the request type */
-    AooNetRequestType type;
-} AooNetRequest;
+typedef union AooRequest AooRequest;
 
 /** \brief request handler (to intercept client requests)
  * \param user user data
@@ -182,112 +174,120 @@ typedef struct AooNetRequest
  * \param request the client request
  * \return #kAooTrue: handled manually; #kAooFalse: handle automatically.
  */
-typedef AooBool (AOO_CALL *AooNetRequestHandler)(
+typedef AooBool (AOO_CALL *AooRequestHandler)(
         void *user,
         AooId client,
         AooId token,
-        const AooNetRequest *request
+        const AooRequest *request
 );
 
-/** \brief generic response */
-typedef struct AooNetResponse
-{
-    /** the response type */
-    AooNetRequestType type;
-    AooFlag flags;
-} AooNetResponse;
+typedef union AooResponse AooResponse;
 
 /** \brief callback for client requests */
-typedef void (AOO_CALL *AooNetCallback)(
+typedef void (AOO_CALL *AooResponseHandler)(
         /** the user data */
         void *user,
         /** the original request */
-        const AooNetRequest *request,
+        const AooRequest *request,
         /** the result */
         AooError result,
         /** the response data */
-        const AooNetResponse *response
+        const AooResponse *response
 );
+
+/* generic request/response */
+
+typedef struct AooRequestBase
+{
+    AooRequestType type;
+    AooFlag flags;
+} AooRequestBase;
+
+typedef AooRequestBase AooResponseBase;
 
 /* error */
 
 /** \brief error response */
-typedef struct AooNetResponseError
+typedef struct AooResponseError
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
-    /** discriptive error message */
-    const AooChar *errorMessage;
     /** platform- or user-specific error code */
     AooInt32 errorCode;
-} AooNetResponseError;
+    /** discriptive error message */
+    const AooChar *errorMessage;
+} AooResponseError;
 
 /* connect (client-side) */
 
-/** \brief login request */
-typedef struct AooNetRequestConnect
+/** \brief connect request */
+typedef struct AooRequestConnect
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     AooIpEndpoint address;
     const AooChar *password;
-    const AooDataView *metadata;
-} AooNetRequestConnect;
+    const AooData *metadata;
+} AooRequestConnect;
 
-/** \brief login response */
-typedef struct AooNetResponseConnect
+/** \brief connect response */
+typedef struct AooResponseConnect
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     AooId clientId; /* client-only */
-    const AooDataView *metadata;
-} AooNetResponseConnect;
+    const AooData *metadata;
+} AooResponseConnect;
+
+/* disconnect (client-side) */
+typedef AooRequestBase AooRequestDisconnect;
+typedef AooResponseBase AooResponseDisconnect;
 
 /* query (server-side) */
 
 /** \brief query request */
-typedef struct AooNetRequestQuery
+typedef struct AooRequestQuery
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     AooSockAddr replyAddr;
     AooSendFunc replyFunc;
     void *replyContext;
-} AooNetRequestQuery;
+} AooRequestQuery;
 
 /** \brief query response */
-typedef struct AooNetResponseQuery
+typedef struct AooResponseQuery
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     AooIpEndpoint serverAddress;
-} AooNetResponseQuery;
+} AooResponseQuery;
 
 /* login (server-side) */
 
 /** \brief login request */
-typedef struct AooNetRequestLogin
+typedef struct AooRequestLogin
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     const AooChar *password;
-    const AooDataView *metadata;
-} AooNetRequestLogin;
+    const AooData *metadata;
+} AooRequestLogin;
 
 /** \brief login response */
-typedef struct AooNetResponseLogin
+typedef struct AooResponseLogin
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
-    const AooDataView *metadata;
-} AooNetResponseLogin;
+    const AooData *metadata;
+} AooResponseLogin;
 
 /* join group (server/client) */
 
 /** \brief request for joining a group */
-typedef struct AooNetRequestGroupJoin
+typedef struct AooRequestGroupJoin
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     /* group */
     const AooChar *groupName;
@@ -299,8 +299,8 @@ typedef struct AooNetRequestGroupJoin
      * the metadata and sends it to all subsequent users via this field.
      * However, it may also intercept the request and validate/modify the
      * metadata, or provide any kind of metadata it wants, by setting
-     * AooNetResponseGroupJoin::groupMetadata. */
-    const AooDataView *groupMetadata;
+     * AooResponseGroupJoin::groupMetadata. */
+    const AooData *groupMetadata;
     /* user */
     const AooChar *userName;
     const AooChar *userPwd;
@@ -308,111 +308,147 @@ typedef struct AooNetRequestGroupJoin
     AooFlag userFlags;
     /** Each client may provide user metadata in AooClient::joinGroup().
      * By default, the server just stores the metadata and sends it to all
-     * peers via AooNetEventPeer::metadata. However, it may also intercept
+     * peers via AooEventPeer::metadata. However, it may also intercept
      * the request and validate/modify the metadata, or provide any kind of
-     * metadata it wants, by setting AooNetResponseGroupJoin::userMetadata. */
-    const AooDataView *userMetadata;
+     * metadata it wants, by setting AooResponseGroupJoin::userMetadata. */
+    const AooData *userMetadata;
     /* other */
     /** (optional) Relay address provided by the user/client. The server will
      * forward it to all peers. */
     const AooIpEndpoint *relayAddress;
-} AooNetRequestGroupJoin;
+} AooRequestGroupJoin;
 
 /** \brief response for joining a group */
-typedef struct AooNetResponseGroupJoin
+typedef struct AooResponseGroupJoin
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     /* group */
     /** group ID generated by the server */
     AooId groupId;
     AooFlag groupFlags;
     /** (optional) group metadata validated/modified by the server. */
-    const AooDataView *groupMetadata;
+    const AooData *groupMetadata;
     /* user */
     /** user Id generated by the server */
     AooId userId;
     AooFlag userFlags;
     /** (optional) user metadata validated/modified by the server. */
-    const AooDataView *userMetadata;
+    const AooData *userMetadata;
     /* other */
     /** (optional) private metadata that is only sent to the client.
      * For example, this can be used for state synchronization. */
-    const AooDataView *privateMetadata;
+    const AooData *privateMetadata;
     /** (optional) relay address provided by the server.
       * For example, the AOO server might provide a group with a
       * dedicated UDP relay server. */
     const AooIpEndpoint *relayAddress;
-} AooNetResponseGroupJoin;
+} AooResponseGroupJoin;
 
 /* leave group (server/client) */
 
 /** \brief request for leaving a group */
-typedef struct AooNetRequestGroupLeave
+typedef struct AooRequestGroupLeave
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     AooId group;
-} AooNetRequestGroupLeave;
+} AooRequestGroupLeave;
 
-#define AooNetResponseGroupLeave AooNetResponse
+/** \brief response for leaving a group */
+typedef AooResponseBase AooResponseGroupLeave;
 
 /* update group metadata */
 
 /** \brief request for updating a group */
-typedef struct AooNetRequestGroupUpdate
+typedef struct AooRequestGroupUpdate
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     AooId groupId;
-    AooDataView groupMetadata;
-} AooNetRequestGroupUpdate;
+    AooData groupMetadata;
+} AooRequestGroupUpdate;
 
 /** \brief response for updating a group */
-typedef struct AooNetResponseGroupUpdate
+typedef struct AooResponseGroupUpdate
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
-    AooDataView groupMetadata;
-} AooNetResponseGroupUpdate;
+    AooData groupMetadata;
+} AooResponseGroupUpdate;
 
 /* update user metadata */
 
 /** \brief request for updating a user */
-typedef struct AooNetRequestUserUpdate
+typedef struct AooRequestUserUpdate
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
     AooId groupId;
     AooId userId;
-    AooDataView userMetadata;
-} AooNetRequestUserUpdate;
+    AooData userMetadata;
+} AooRequestUserUpdate;
 
 /** \brief response for updating a user */
-typedef struct AooNetResponseUserUpdate
+typedef struct AooResponseUserUpdate
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
-    AooDataView userMetadata;
-} AooNetResponseUserUpdate;
+    AooData userMetadata;
+} AooResponseUserUpdate;
 
 /* custom request (server/client) */
 
 /** \brief custom client request */
-typedef struct AooNetRequestCustom
+typedef struct AooRequestCustom
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
-    AooDataView data;
-} AooNetRequestCustom;
+    AooData data;
+} AooRequestCustom;
 
 /** \brief custom server response */
-typedef struct AooNetResponseCustom
+typedef struct AooResponseCustom
 {
-    AooNetRequestType type;
+    AooRequestType type;
     AooFlag flags;
-    AooDataView data;
-} AooNetResponseCustom;
+    AooData data;
+} AooResponseCustom;
+
+/*--------------------------------------------*/
+
+/** \brief union of all client requests */
+union AooRequest
+{
+    AooRequestType type; /** request type */
+    AooRequestConnect connect;
+    AooRequestDisconnect disconnect;
+    AooRequestQuery query;
+    AooRequestLogin login;
+    AooRequestGroupJoin groupJoin;
+    AooRequestGroupLeave groupLeave;
+    AooRequestGroupUpdate groupUpdate;
+    AooRequestUserUpdate userUpdate;
+    AooRequestCustom custom;
+};
+
+/*--------------------------------------------*/
+
+/** \brief union of all client requests */
+union AooResponse
+{
+    AooRequestType type; /** request type */
+    AooResponseError error;
+    AooResponseConnect connect;
+    AooResponseDisconnect disconnect;
+    AooResponseQuery query;
+    AooResponseLogin login;
+    AooResponseGroupJoin groupJoin;
+    AooResponseGroupLeave groupLeave;
+    AooResponseGroupUpdate groupUpdate;
+    AooResponseUserUpdate userUpdate;
+    AooResponseCustom custom;
+};
 
 /*--------------------------------------------*/
 

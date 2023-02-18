@@ -54,6 +54,7 @@ AooServer::AooServer(World *world, int port, const char *password)
     : world_(world), port_(port)
 {
     // setup UDP server
+    // TODO: increase socket receive buffer for relay? Use threaded receive?
     udpserver_.start(port,
                      [this](auto&&... args) { handleUdpReceive(args...); });
 
@@ -101,48 +102,47 @@ void AooServer::handleEvent(const AooEvent *event){
     msg << osc::BeginMessage("/aoo/server/event") << port_;
 
     switch (event->type) {
-    case kAooNetEventServerClientLogin:
+    case kAooEventServerClientLogin:
     {
-        auto e = (const AooNetEventServerClientLogin *)event;
+        auto& e = event->serverClientLogin;
         aoo::ip_address addr;
-        aoo::socket_peer(e->sockfd, addr);
-        msg << "/client/add" << e->id << addr.address() << addr.port();
+        aoo::socket_peer(e.sockfd, addr);
+        msg << "/client/add" << e.id << addr.address() << addr.port();
         break;
     }
-    case kAooNetEventServerClientRemove:
+    case kAooEventServerClientRemove:
     {
-        auto e = (const AooNetEventServerClientRemove *)event;
-        msg << "/client/remove" << e->id;
+        msg << "/client/remove" << event->serverClientRemove.id;
         break;
     }
-    case kAooNetEventServerGroupAdd:
+    case kAooEventServerGroupAdd:
     {
-        auto e = (const AooNetEventServerGroupAdd *)event;
-        msg << "/group/add" << e->id << e->name; // TODO metadata
+        auto& e = event->serverGroupAdd;
+        msg << "/group/add" << e.id << e.name; // TODO metadata
         break;
     }
-    case kAooNetEventServerGroupRemove:
+    case kAooEventServerGroupRemove:
     {
-        auto e = (const AooNetEventServerGroupRemove *)event;
-        msg << "/group/remove" << e->id;
+        auto& e = event->serverGroupRemove;
+        msg << "/group/remove" << e.id;
         break;
     }
-    case kAooNetEventServerGroupJoin:
+    case kAooEventServerGroupJoin:
     {
-        auto e = (const AooNetEventServerGroupJoin *)event;
-        msg << "/group/join" << e->groupId << e->userId << e->userName << e->clientId;
+        auto& e = event->serverGroupJoin;
+        msg << "/group/join" << e.groupId << e.userId << e.userName << e.clientId;
         break;
     }
-    case kAooNetEventServerGroupLeave:
+    case kAooEventServerGroupLeave:
     {
-        auto e = (const AooNetEventServerGroupLeave *)event;
-        msg << "/group/leave" << e->groupId << e->userId;
+        auto& e = event->serverGroupLeave;
+        msg << "/group/leave" << e.groupId << e.userId;
         break;
     }
-    case kAooNetEventError:
+    case kAooEventError:
     {
-        auto e = (const AooNetEventError*)event;
-        msg << "/error" << e->errorCode << e->errorMessage;
+        auto& e = event->error;
+        msg << "/error" << e.errorCode << e.errorMessage;
         break;
     }
     default:

@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#define DEFBUFSIZE 25
+#define DEFAULT_LATENCY 25
 
 /*///////////////////// aoo_receive~ ////////////////////*/
 
@@ -24,6 +24,17 @@ struct t_source
     AooId s_id;
     t_symbol *s_group;
     t_symbol *s_user;
+};
+
+struct t_stream_message
+{
+    t_stream_message(const AooStreamMessage& msg, const AooEndpoint& ep)
+        : address((const sockaddr *)ep.address, ep.addrlen), id(ep.id),
+          type(msg.type), data(msg.data, msg.data + msg.size) {}
+    aoo::ip_address address;
+    AooId id;
+    AooDataType type;
+    std::vector<AooByte> data;
 };
 
 struct t_aoo_receive
@@ -42,7 +53,7 @@ struct t_aoo_receive
     AooId x_id = 0;
     std::unique_ptr<t_sample *[]> x_vec;
     // metadata
-    t_symbol *x_metadata_type;
+    AooDataType x_metadata_type;
     std::vector<AooByte> x_metadata;
     // sources
     std::vector<t_source> x_sources;
@@ -51,6 +62,9 @@ struct t_aoo_receive
     // events
     t_outlet *x_msgout = nullptr;
     t_clock *x_clock = nullptr;
+    t_clock *x_queue_clock = nullptr;
+
+    t_priority_queue<t_stream_message> x_queue;
 
     bool get_source_arg(int argc, t_atom *argv,
                         aoo::ip_address& addr, AooId& id, bool check) const;
@@ -58,6 +72,8 @@ struct t_aoo_receive
     bool check(const char *name) const;
 
     bool check(int argc, t_atom *argv, int minargs, const char *name) const;
+
+    void dispatch_stream_message(const AooStreamMessage& msg, const aoo::ip_address& address, AooId id);
 };
 
 bool t_aoo_receive::get_source_arg(int argc, t_atom *argv,
@@ -151,9 +167,9 @@ static void aoo_receive_invite(t_aoo_receive *x, t_symbol *s, int argc, t_atom *
     if (x->get_source_arg(argc, argv, addr, id, false)) {
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
 
-        if (x->x_metadata_type){
-            AooDataView md;
-            md.type = x->x_metadata_type->s_name;
+        if (!x->x_metadata.empty()){
+            AooData md;
+            md.type = x->x_metadata_type;
             md.data = x->x_metadata.data();
             md.size = x->x_metadata.size();
 
@@ -192,39 +208,39 @@ static void aoo_receive_uninvite(t_aoo_receive *x, t_symbol *s, int argc, t_atom
 
 static void aoo_receive_metadata(t_aoo_receive *x, t_symbol *s, int argc, t_atom *argv)
 {
-    if (argc > 0){
-        // metadata type
-        t_symbol *type;
-        if (argv->a_type == A_SYMBOL){
-            type = argv->a_w.w_symbol;
-        } else {
-            pd_error(x, "%s: bad metadata type", classname(x));
-        #if 1
-            x->x_metadata_type = nullptr;
-        #endif
-            return;
-        }
-        // metadata content
-        if (argc > 1){
-            // set new stream metadata
-            auto size = argc - 1;
-            x->x_metadata.resize(size);
-            for (int i = 0; i < size; ++i){
-                x->x_metadata[i] = (AooByte)atom_getfloat(argv + i + 1);
-            }
-        } else {
-            // empty metadata is not allowed
-            pd_error(x, "%s: metadata must not be empty", classname(x));
-        #if 1
-            x->x_metadata_type = nullptr;
-        #endif
-            return;
-        }
-        x->x_metadata_type = type;
-    } else {
-        // clear stream metadata
-        x->x_metadata_type = nullptr;
+    if (!argc){
+        return;
     }
+    if (argc < 2) {
+        // empty metadata is not allowed
+        pd_error(x, "%s: metadata must not be empty", classname(x));
+    #if 1
+        x->x_metadata_type = kAooDataUnspecified;
+        x->x_metadata.clear();
+    #endif
+        return;
+    }
+    // metadata type
+    AooDataType type;
+    if (!atom_to_datatype(*argv, type, x)) {
+    #if 1
+        x->x_metadata_type = kAooDataUnspecified;
+        x->x_metadata.clear();
+    #endif
+        return;
+    }
+    x->x_metadata_type = type;
+    // metadata content
+    auto size = argc - 1;
+    x->x_metadata.resize(size);
+    for (int i = 0; i < size; ++i){
+        x->x_metadata[i] = (AooByte)atom_getfloat(argv + i + 1);
+    }
+}
+
+static void aoo_receive_latency(t_aoo_receive *x, t_floatarg f)
+{
+    x->x_sink->setLatency(f * 0.001);
 }
 
 static void aoo_receive_buffersize(t_aoo_receive *x, t_floatarg f)
@@ -315,8 +331,7 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
     case kAooEventXRun:
     {
         t_atom msg;
-        auto e = (const AooEventXRun *)event;
-        SETFLOAT(&msg, e->count);
+        SETFLOAT(&msg, event->xrun.count);
         outlet_anything(x->x_msgout, gensym("xrun"), 1, &msg);
         break;
     }
@@ -324,6 +339,7 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
     case kAooEventSourceRemove:
     case kAooEventInviteTimeout:
     case kAooEventUninviteTimeout:
+    case kAooEventBufferOverrun:
     case kAooEventBufferUnderrun:
     case kAooEventFormatChange:
     case kAooEventStreamStart:
@@ -336,7 +352,7 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
     case kAooEventPing:
     {
         // common endpoint header
-        auto& ep = ((const AooEventEndpoint *)event)->endpoint;
+        auto& ep = event->endpoint.endpoint;
         aoo::ip_address addr((const sockaddr *)ep.address, ep.addrlen);
         t_atom msg[32];
         if (!x->x_node->serialize_endpoint(addr, ep.id, 3, msg)) {
@@ -380,6 +396,12 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
             break;
         }
         //---------------------- source events ------------------------------//
+        case kAooEventBufferOverrun:
+        {
+            SETSYMBOL(msg + 3, gensym("overrun"));
+            outlet_anything(x->x_msgout, gensym("event"), 4, msg);
+            break;
+        }
         case kAooEventBufferUnderrun:
         {
             SETSYMBOL(msg + 3, gensym("underrun"));
@@ -388,26 +410,26 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
         }
         case kAooEventFormatChange:
         {
-            auto e = (const AooEventFormatChange *)event;
             SETSYMBOL(msg + 3, gensym("format"));
-            int n = format_to_atoms(*e->format, 29, msg + 4); // skip first 4 atoms
+            // skip first 4 atoms
+            int n = format_to_atoms(*event->formatChange.format, 29, msg + 4);
             outlet_anything(x->x_msgout, gensym("event"), n + 4, msg);
             break;
         }
         case kAooEventStreamStart:
         {
-            auto e = (const AooEventStreamStart *)event;
+            auto& e = event->streamStart;
             SETSYMBOL(msg + 3, gensym("start"));
-            if (e->metadata){
-                auto count = e->metadata->size + 5;
+            if (e.metadata){
+                auto count = e.metadata->size + 5;
                 t_atom *vec = (t_atom *)alloca(count * sizeof(t_atom));
                 // copy endpoint + event name
                 memcpy(vec, msg, 4 * sizeof(t_atom));
                 // type
-                SETSYMBOL(vec + 4, gensym(e->metadata->type));
+                datatype_to_atom(e.metadata->type, vec[4]);
                 // data
-                for (int i = 0; i < e->metadata->size; ++i){
-                    SETFLOAT(vec + 5 + i, (uint8_t)e->metadata->data[i]);
+                for (int i = 0; i < e.metadata->size; ++i){
+                    SETFLOAT(vec + 5 + i, (uint8_t)e.metadata->data[i]);
                 }
                 outlet_anything(x->x_msgout, gensym("event"), count, vec);
             } else {
@@ -423,48 +445,42 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
         }
         case kAooEventStreamState:
         {
-            auto e = (const AooEventStreamState *)event;
             SETSYMBOL(msg + 3, gensym("state"));
-            SETFLOAT(msg + 4, e->state);
+            SETFLOAT(msg + 4, event->streamState.state);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
         case kAooEventBlockLost:
         {
-            auto e = (const AooEventBlockLost *)event;
             SETSYMBOL(msg + 3, gensym("block_lost"));
-            SETFLOAT(msg + 4, e->count);
+            SETFLOAT(msg + 4, event->blockLost.count);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
         case kAooEventBlockDropped:
         {
-            auto e = (const AooEventBlockDropped *)event;
             SETSYMBOL(msg + 3, gensym("block_dropped"));
-            SETFLOAT(msg + 4, e->count);
+            SETFLOAT(msg + 4, event->blockDropped.count);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
         case kAooEventBlockReordered:
         {
-            auto e = (const AooEventBlockReordered *)event;
             SETSYMBOL(msg + 3, gensym("block_reordered"));
-            SETFLOAT(msg + 4, e->count);
+            SETFLOAT(msg + 4, event->blockReordered.count);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
         case kAooEventBlockResent:
         {
-            auto e = (const AooEventBlockResent *)event;
             SETSYMBOL(msg + 3, gensym("block_resent"));
-            SETFLOAT(msg + 4, e->count);
+            SETFLOAT(msg + 4, event->blockResent.count);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
         case kAooEventPing:
         {
-            auto e = (const AooEventPing *)event;
-            double diff = aoo_ntpTimeDuration(e->t1, e->t2) * 1000.0;
+            double diff = aoo_ntpTimeDuration(event->ping.t1, event->ping.t2) * 1000.0;
             SETSYMBOL(msg + 3, gensym("ping"));
             SETFLOAT(msg + 4, diff);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
@@ -488,13 +504,72 @@ static void aoo_receive_tick(t_aoo_receive *x)
     x->x_sink->pollEvents();
 }
 
+static void aoo_receive_queue_tick(t_aoo_receive *x)
+{
+    auto& queue = x->x_queue;
+    auto now = clock_getlogicaltime();
+
+    while (!queue.empty()){
+        if (queue.top().time <= now) {
+            auto& m = queue.top().data;
+            AooStreamMessage msg { 0, m.type, m.data.data(), m.data.size() };
+            x->dispatch_stream_message(msg, m.address, m.id);
+            queue.pop();
+        } else {
+            break;
+        }
+    }
+    // reschedule
+    if (!queue.empty()){
+        clock_set(x->x_queue_clock, queue.top().time);
+    }
+}
+
+void t_aoo_receive::dispatch_stream_message(const AooStreamMessage& msg,
+                                            const aoo::ip_address& address, AooId id) {
+    auto size = msg.size + 4;
+    auto vec = (t_atom *)alloca(sizeof(t_atom) * size);
+    if (!x_node->serialize_endpoint(address, id, 3, vec)) {
+        bug("dispatch_stream_message: serialize_endpoint");
+        return;
+    }
+    // message type
+    datatype_to_atom(msg.type, vec[3]);
+    // message content
+    for (int i = 0; i < msg.size; ++i) {
+        SETFLOAT(&vec[i + 4], msg.data[i]);
+    }
+
+    outlet_anything(x_msgout, gensym("msg"), size, vec);
+}
+
+static void aoo_receive_handle_stream_message(t_aoo_receive *x, const AooStreamMessage *msg, const AooEndpoint *ep)
+{
+    auto delay = (double)msg->sampleOffset / (double)x->x_samplerate * 1000.0;
+    if (delay > 0) {
+        // put on queue and schedule on clock (using logical time)
+        auto abstime = clock_getsystimeafter(delay);
+        // reschedule if we are the next due element
+        if (x->x_queue.empty() || abstime < x->x_queue.top().time) {
+            clock_set(x->x_queue_clock, abstime);
+        }
+        x->x_queue.emplace(t_stream_message(*msg, *ep), abstime);
+    } else {
+        // dispatch immediately
+        aoo::ip_address addr((const sockaddr *)ep->address, ep->addrlen);
+        x->dispatch_stream_message(*msg, addr, ep->id);
+    }
+
+}
+
 static t_int * aoo_receive_perform(t_int *w)
 {
     t_aoo_receive *x = (t_aoo_receive *)(w[1]);
     int n = (int)(w[2]);
 
     if (x->x_node){
-        auto err = x->x_sink->process(x->x_vec.get(), n, get_osctime());
+        auto err = x->x_sink->process(x->x_vec.get(), n, get_osctime(),
+                                      (AooStreamMessageHandler)aoo_receive_handle_stream_message, x);
         if (err != kAooErrorIdle){
             x->x_node->notify();
         }
@@ -600,8 +675,8 @@ static void * aoo_receive_new(t_symbol *s, int argc, t_atom *argv)
 t_aoo_receive::t_aoo_receive(int argc, t_atom *argv)
 {
     x_clock = clock_new(this, (t_method)aoo_receive_tick);
-    x_metadata_type = nullptr;
-    x_metadata.reserve(AOO_STREAM_METADATA_SIZE);
+    x_queue_clock = clock_new(this, (t_method)aoo_receive_queue_tick);
+    x_metadata_type = kAooDataUnspecified;
 
     // arg #1: port number
     x_port = atom_getfloatarg(0, argc, argv);
@@ -622,7 +697,7 @@ t_aoo_receive::t_aoo_receive(int argc, t_atom *argv)
     x_nchannels = nchannels;
 
     // arg #4: buffer size (ms)
-    float buffersize = argc > 3 ? atom_getfloat(argv + 3) : DEFBUFSIZE;
+    float latency = argc > 3 ? atom_getfloat(argv + 3) : DEFAULT_LATENCY;
 
     // make signal outlets
     for (int i = 0; i < nchannels; ++i){
@@ -640,7 +715,7 @@ t_aoo_receive::t_aoo_receive(int argc, t_atom *argv)
     x_sink->setEventHandler((AooEventHandler)aoo_receive_handle_event,
                              this, kAooEventModePoll);
 
-    x_sink->setBufferSize(buffersize * 0.001);
+    x_sink->setLatency(latency * 0.001);
 
     // finally we're ready to receive messages
     aoo_receive_port(this, x_port);
@@ -658,6 +733,7 @@ t_aoo_receive::~t_aoo_receive()
     }
 
     clock_free(x_clock);
+    clock_free(x_queue_clock);
 }
 
 void aoo_receive_tilde_setup(void)
@@ -676,8 +752,10 @@ void aoo_receive_tilde_setup(void)
                     gensym("uninvite"), A_GIMME, A_NULL);
     class_addmethod(aoo_receive_class, (t_method)aoo_receive_metadata,
                     gensym("metadata"), A_GIMME, A_NULL);
+    class_addmethod(aoo_receive_class, (t_method)aoo_receive_latency,
+                    gensym("latency"), A_FLOAT, A_NULL);
     class_addmethod(aoo_receive_class, (t_method)aoo_receive_buffersize,
-                    gensym("bufsize"), A_FLOAT, A_NULL);
+                    gensym("buffersize"), A_FLOAT, A_NULL);
     class_addmethod(aoo_receive_class, (t_method)aoo_receive_dynamic_resampling,
                     gensym("dynamic_resampling"), A_FLOAT, A_NULL);
     class_addmethod(aoo_receive_class, (t_method)aoo_receive_dll_bandwidth,

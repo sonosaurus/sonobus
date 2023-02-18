@@ -98,39 +98,32 @@ void AooSend::handleEvent(const AooEvent *event){
     switch (event->type){
     case kAooEventPingReply:
     {
-        auto e = (const AooEventPingReply *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address, e->endpoint.addrlen);
-        double diff1 = aoo_ntpTimeDuration(e->t1, e->t2);
-        double diff2 = aoo_ntpTimeDuration(e->t2, e->t3);
-        double rtt = aoo_ntpTimeDuration(e->t1, e->t3);
+        auto& e = event->pingReply;
+        double diff1 = aoo_ntpTimeDuration(e.t1, e.t2);
+        double diff2 = aoo_ntpTimeDuration(e.t2, e.t3);
+        double rtt = aoo_ntpTimeDuration(e.t1, e.t3);
 
-        beginEvent(msg, "/ping", addr, e->endpoint.id);
-        msg << diff1 << diff2 << rtt << e->packetLoss;
+        beginEvent(msg, "/ping", e.endpoint);
+        msg << diff1 << diff2 << rtt << e.packetLoss;
         sendMsgRT(msg);
         break;
     }
     case kAooEventInvite:
     {
-        auto e = (const AooEventInvite *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address, e->endpoint.addrlen);
-
         if (accept_){
             // TODO
         } else {
-            beginEvent(msg, "/invite", addr, e->endpoint.id);
+            beginEvent(msg, "/invite", event->invite.endpoint);
             sendMsgRT(msg);
         }
         break;
     }
     case kAooEventUninvite:
     {
-        auto e = (const AooEventUninvite *)event;
-        aoo::ip_address addr((const sockaddr *)e->endpoint.address, e->endpoint.addrlen);
-
         if (accept_){
             // TODO
         } else {
-            beginEvent(msg, "/uninvite", addr, e->endpoint.id);
+            beginEvent(msg, "/uninvite", event->uninvite.endpoint);
             sendMsgRT(msg);
         }
         break;

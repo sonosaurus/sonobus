@@ -1,4 +1,4 @@
-#include "buffer.hpp"
+#include "packet_buffer.hpp"
 
 #include "common/utils.hpp"
 
@@ -10,14 +10,15 @@ namespace aoo {
 //-------------------------- sent_block -----------------------------//
 
 void sent_block::set(int32_t seq, double sr,
-                     const AooByte *data, int32_t nbytes,
-                     int32_t nframes, int32_t framesize)
+                     const AooByte *data, int32_t totalsize,
+                     int32_t msgsize, int32_t nframes, int32_t framesize)
 {
     sequence = seq;
+    message_size = msgsize;
     samplerate = sr;
     numframes_ = nframes;
     framesize_ = framesize;
-    buffer_.assign(data, data + nbytes);
+    buffer_.assign(data, data + totalsize);
 }
 
 int32_t sent_block::get_frame(int32_t which, AooByte *data, int32_t n){
@@ -145,9 +146,9 @@ void received_block::reserve(int32_t size){
 }
 
 void received_block::init(int32_t seq, double sr, int32_t chn,
-    int32_t nbytes, int32_t nframes)
+    int32_t totalsize, int32_t msgsize, int32_t nframes)
 {
-    assert(nbytes > 0);
+    assert(totalsize > 0);
     // LATER support blocks with arbitrary number of frames
     assert(nframes <= (int32_t)frames_.size());
     // keep timestamp and numtries if we're actually reiniting
@@ -157,8 +158,9 @@ void received_block::init(int32_t seq, double sr, int32_t chn,
     }
     sequence = seq;
     samplerate = sr;
+    message_size = msgsize;
     channel = chn;
-    buffer_.resize(nbytes);
+    buffer_.resize(totalsize);
     numframes_ = nframes;
     framesize_ = 0;
     dropped_ = false;
@@ -172,6 +174,7 @@ void received_block::init(int32_t seq, bool dropped)
 {
     sequence = seq;
     samplerate = 0;
+    message_size = 0;
     channel = 0;
     buffer_.clear();
     numframes_ = 0;
@@ -298,6 +301,7 @@ received_block* jitter_buffer::push(int32_t seq){
         head_ = 0;
     }
     size_++;
+    assert((last_pushed_ == -1) || ((seq - last_pushed_) == 1));
     last_pushed_ = seq;
     return &data_[old];
 }
@@ -369,84 +373,6 @@ std::ostream& operator<<(std::ostream& os, const jitter_buffer& jb){
         os << b.sequence << " " << "(" << b.count_frames() << "/" << b.num_frames() << ") ";
     }
     return os;
-}
-
-//------------------------ sent_message -----------------------------//
-
-#define AOO_MAX_RESEND_INTERVAL 1.0
-#define AOO_RESEND_INTERVAL_BACKOFF 2.0
-
-bool sent_message::need_resend(double now) {
-    if (time_ > 0) {
-        if ((now - time_) >= interval_) {
-            time_ = now;
-            interval_ *= AOO_RESEND_INTERVAL_BACKOFF;
-            if (interval_ > AOO_MAX_RESEND_INTERVAL) {
-                interval_ = AOO_MAX_RESEND_INTERVAL;
-            }
-            return true;
-        }
-    } else {
-        time_ = now;
-    }
-    return false;
-}
-
-//------------------------ message_send_buffer ----------------------//
-
-sent_message& message_send_buffer::push(sent_message&& msg) {
-    data_.push_back(std::move(msg));
-    return data_.back();
-}
-
-void message_send_buffer::pop() {
-    data_.pop_front();
-}
-
-sent_message* message_send_buffer::find(int32_t seq) {
-    for (auto& item : data_) {
-        if (item.sequence_ ==  seq) {
-            return &item;
-        }
-    }
-    return nullptr;
-}
-
-
-//------------------------ received_message ------------------------//
-
-void received_message::add_frame(int32_t which, const AooByte *data, int32_t n) {
-    assert(!buffer_.empty());
-    assert(which < nframes_);
-    if (which == nframes_ - 1){
-        std::copy(data, data + n, buffer_.end() - n);
-    } else {
-        std::copy(data, data + n, buffer_.data() + (which * n));
-        framesize_ = n; // LATER allow varying framesizes
-    }
-    frames_[which] = 0;
-}
-
-//------------------------- message_receive_buffer ------------------//
-
-received_message& message_receive_buffer::push(received_message&& msg) {
-    last_pushed_ = msg.sequence_;
-    data_.push_back(std::move(msg));
-    return data_.back();
-}
-
-void message_receive_buffer::pop() {
-    last_popped_ = data_.front().sequence_;
-    data_.pop_front();
-}
-
-received_message* message_receive_buffer::find(int32_t seq) {
-    for (auto& item : data_) {
-        if (item.sequence_ ==  seq) {
-            return &item;
-        }
-    }
-    return nullptr;
 }
 
 } // aoo

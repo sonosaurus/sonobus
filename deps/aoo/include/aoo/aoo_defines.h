@@ -89,8 +89,8 @@ AOO_PACK_BEGIN
 /*---------- global compile time settings ----------*/
 
 /** \brief AOO_NET support */
-#ifndef USE_AOO_NET
-# define USE_AOO_NET 1
+#ifndef AOO_NET
+# define AOO_NET 1
 #endif
 
 /** \brief custom allocator support  */
@@ -251,11 +251,7 @@ enum AooErrorCodes
 typedef AooInt32 AooEventType;
 
 /** \brief generic AOO event */
-typedef struct AooEvent
-{
-    /** the event type; \see AooEventTypes */
-    AooEventType type;
-} AooEvent;
+typedef union AooEvent AooEvent;
 
 /** \brief thread level type */
 typedef AooInt32 AooThreadLevel;
@@ -367,7 +363,7 @@ enum AooMsgTypes
     kAooTypeSource = 0,
     /** AOO sink */
     kAooTypeSink,
-#if USE_AOO_NET
+#if AOO_NET
     /** AOO server */
     kAooTypeServer,
     /** AOO client */
@@ -380,45 +376,73 @@ enum AooMsgTypes
     kAooTypeSentinel
 };
 
-/*------------- AOO data view ---------------*/
+/*------------- AOO data ---------------*/
+
+/** \brief AooStreamMessage type */
+typedef AooInt32 AooDataType;
+
+enum AooDataTypes
+{
+    /** \brief unspecified data type */
+    kAooDataUnspecified = -1,
+    /** \brief raw or binary data */
+    kAooDataRaw = 0,
+    kAooDataBinary = kAooDataRaw,
+    /** \brief plain text (UTF-8 encoded) */
+    kAooDataText,
+    /** \brief OSC message (Open Sound Control) */
+    kAooDataOSC,
+    /** \brief MIDI */
+    kAooDataMIDI,
+    /** \brief FUDI (Pure Data) */
+    kAooDataFUDI,
+    /** \brief JSON (UTF-8 encoded) */
+    kAooDataJSON,
+    /** \brief XML (UTF-8 encoded) */
+    kAooDataXML,
+    /** \brief start of user specified types */
+    kAooDataUser = 1000
+};
 
 /** \brief view on arbitrary structured data */
-typedef struct AooDataView
+typedef struct AooData
 {
-    /** C string describing the data format */
-    const AooChar *type;
+    /** the data type */
+    AooDataType type;
     /** the data content */
     const AooByte *data;
     /** the data size in bytes */
     AooSize size;
-} AooDataView;
+} AooData;
 
-/** \brief max. length of data type strings (excluding the trailing `\0`) */
-#define kAooDataTypeMaxLen 63
+/*------------- AOO stream message ---------------*/
 
-/* pre-defined data type names */
+/** \brief a message that is sent together with an audio stream */
+typedef struct AooStreamMessage
+{
+    /** sample offset */
+    AooInt32 sampleOffset;
+    /** the message type */
+    AooDataType type;
+    /** the data content */
+    const AooByte *data;
+    /** the data size in bytes */
+    AooSize size;
+} AooStreamMessage;
 
-/** \brief plain text (UTF-8 encoded) */
-#define kAooDataTypeText "text"
-/** \brief JSON (UTF-8 encoded) */
-#define kAooDataTypeJSON "json"
-/** \brief XML (UTF-8 encoded) */
-#define kAooDataTypeXML "xml"
-/** \brief OSC message (Open Sound Control) */
-#define kAooDataTypeOSC "osc"
-/** \brief FUDI (Pure Data) */
-#define kAooDataTypeFUDI "fudi"
-/** \brief raw bytes */
-#define kAooDataTypeRaw "raw"
-/** \brief MIDI */
-#define kAooDataTypeMIDI "midi"
-/** \brief unspecified data type */
-#define kAooDataTypeUnspec ""
-
-/* Users may define their own data type names.
- * A type name must be a sequence of ASCII characters,
- * ideally starting with an underscore to avoid
- * clashes with built-in type names. */
+/** \brief stream message handler
+ *
+ * The type of function that is passed to #AooSink::process
+ * for handling stream messages.
+ */
+typedef void (AOO_CALL *AooStreamMessageHandler)(
+        /** the user data */
+        void *user,
+        /** the stream message */
+        const AooStreamMessage *message,
+        /** the AOO source that sent the message */
+        const AooEndpoint *source
+);
 
 /*---------------- AOO format --------------------*/
 

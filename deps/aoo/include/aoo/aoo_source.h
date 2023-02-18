@@ -41,6 +41,10 @@ AOO_API AooError AOO_CALL AooSource_handleMessage(
 AOO_API AooError AOO_CALL AooSource_send(
         AooSource *source, AooSendFunc fn, void *user);
 
+/** \copydoc AooSource::addStreamMessage() */
+AOO_API AooError AOO_CALL addStreamMessage(
+        AooSource *source, const AooStreamMessage *message);
+
 /** \copydoc AooSource::process() */
 AOO_API AooError AOO_CALL AooSource_process(
         AooSource *source, AooSample **data, AooInt32 numSamples, AooNtpTime t);
@@ -57,7 +61,7 @@ AOO_API AooError AOO_CALL AooSource_pollEvents(AooSource *source);
 
 /** \copydoc AooSource::startStream() */
 AOO_API AooError AOO_CALL AooSource_startStream(
-        AooSource *source, const AooDataView *metadata);
+        AooSource *source, const AooData *metadata);
 
 /** \copydoc AooSource::stopStream() */
 AOO_API AooError AOO_CALL AooSource_stopStream(AooSource *source);
@@ -124,7 +128,7 @@ AOO_INLINE AooError AooSource_setFormat(AooSource *source, AooFormat *format)
 }
 
 /** \copydoc AooSource::getFormat() */
-AOO_INLINE AooError AooSource_getFormat(AooSource *source, AooFormat *format)
+AOO_INLINE AooError AooSource_getFormat(AooSource *source, AooFormatStorage *format)
 {
     return AooSource_control(source, kAooCtlGetFormat, 0, AOO_ARG(*format));
 }
@@ -253,18 +257,6 @@ AOO_INLINE AooError AooSource_setBinaryDataMsg(AooSource *source, AooBool b)
 AOO_INLINE AooError AooSource_getBinaryDataMsg(AooSource *source, AooBool *b)
 {
     return AooSource_control(source, kAooCtlGetBinaryDataMsg, 0, AOO_ARG(*b));
-}
-
-/** \copydoc AooSource::setStreamMetaDataSize() */
-AOO_INLINE AooError AooSource_setStreamMetadataSize(AooSource *source, AooInt32 size)
-{
-    return AooSource_control(source, kAooCtlSetStreamMetadataSize, 0, AOO_ARG(size));
-}
-
-/** \copydoc AooSource::getStreamMetaDataSize() */
-AOO_INLINE AooError AooSource_getStreamMetadataSize(AooSource *source, AooInt32 *size)
-{
-    return AooSource_control(source, kAooCtlGetStreamMetadataSize, 0, AOO_ARG(*size));
 }
 
 /** \copydoc AooSource::setSinkChannelOnset() */

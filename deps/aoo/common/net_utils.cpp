@@ -35,7 +35,7 @@ namespace aoo {
 ip_address::ip_address(){
     static_assert(sizeof(address_) == max_length,
                   "wrong max_length value");
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     static_assert(sizeof(address_) >= sizeof(sockaddr_in6),
                   "ip_address can't hold IPv6 sockaddr");
 #endif
@@ -63,7 +63,7 @@ ip_address::ip_address(const AooSockAddr &addr)
 ip_address::ip_address(const AooByte *bytes, AooSize size,
                        uint16_t port, ip_type type) {
     switch (type) {
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     case IPv6:
     {
         assert(size == 16);
@@ -108,7 +108,7 @@ void ip_address::clear(){
 
 void ip_address::check() {
     auto f = address()->sa_family;
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     bool ok = (f == AF_INET6 || f == AF_INET || f == AF_UNSPEC);
 #else
     book ok = (f == AF_INET || f == AF_UNSPEC);
@@ -116,10 +116,6 @@ void ip_address::check() {
     if (!ok) {
         fprintf(stderr, "bad address family: %d\n", f);
         fflush(stderr);
-        volatile char foo[64];
-        memcpy((void *)foo, (void *)1, 64);
-        // so we can put a break point
-        assert(false);
     }
 }
 
@@ -145,7 +141,7 @@ std::vector<ip_address> ip_address::resolve(const std::string &host,
     // if we have IPv6 support, only get IPv6 addresses
     // (IPv4 addresses will be mapped to IPv6 addresses)
     switch (type){
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     case IPv6:
         hints.ai_family = AF_INET6;
         break;
@@ -159,7 +155,7 @@ std::vector<ip_address> ip_address::resolve(const std::string &host,
     }
 
     hints.ai_flags =
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     #ifdef AI_ALL
         AI_ALL |        // both IPv4 and IPv6 addresses
     #endif
@@ -212,7 +208,7 @@ ip_address::ip_address(uint16_t port, ip_type type) {
     // AI_PASSIVE: nullptr means "any" address
     hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
     switch (type){
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     case ip_type::IPv6:
         hints.ai_family = AF_INET6;
         break;
@@ -259,7 +255,7 @@ ip_address::ip_address(const std::string& ip, uint16_t port, ip_type type) {
     struct addrinfo *ailist;
     int err = getaddrinfo(ip.c_str(), portstr, &hints, &ailist);
     if (err == 0){
-    #if AOO_NET_USE_IPv6
+    #if AOO_USE_IPv6
         if (type == ip_type::IPv6 && ailist->ai_family == AF_INET){
             // manually create IPv4-mapped address.
             // this is workaround for the fact that AI_NUMERICHOST
@@ -317,7 +313,7 @@ bool ip_address::operator==(const ip_address& other) const {
             return (a->sin_addr.s_addr == b->sin_addr.s_addr)
                     && (a->sin_port == b->sin_port);
         }
-    #if AOO_NET_USE_IPv6
+    #if AOO_USE_IPv6
         case AF_INET6:
         {
             auto a = (const struct sockaddr_in6 *)&address_;
@@ -353,7 +349,7 @@ std::ostream& operator<<(std::ostream& os, const ip_address& addr) {
 }
 
 const char * ip_address::get_name(const sockaddr *addr){
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     thread_local char buf[INET6_ADDRSTRLEN];
 #else
     thread_local char buf[INET_ADDRSTRLEN];
@@ -361,7 +357,7 @@ const char * ip_address::get_name(const sockaddr *addr){
     const void *na;
     auto family = addr->sa_family;
     switch (family){
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     case AF_INET6:
         na = &reinterpret_cast<const sockaddr_in6 *>(addr)->sin6_addr;
         break;
@@ -404,7 +400,7 @@ uint16_t ip_address::port() const {
     switch (address()->sa_family){
     case AF_INET:
         return ntohs(reinterpret_cast<const sockaddr_in *>(address())->sin_port);
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     case AF_INET6:
         return ntohs(reinterpret_cast<const sockaddr_in6 *>(address())->sin6_port);
 #endif
@@ -417,7 +413,7 @@ const AooByte* ip_address::address_bytes() const {
     switch (address()->sa_family){
     case AF_INET:
         return (const AooByte *)&reinterpret_cast<const sockaddr_in *>(address())->sin_addr;
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     case AF_INET6:
         return (const AooByte *)&reinterpret_cast<const sockaddr_in6 *>(address())->sin6_addr;
 #endif
@@ -434,7 +430,7 @@ ip_address::ip_type ip_address::type() const {
     switch(address()->sa_family){
     case AF_INET:
         return IPv4;
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     case AF_INET6:
         return IPv6;
 #endif
@@ -444,7 +440,7 @@ ip_address::ip_type ip_address::type() const {
 }
 
 bool ip_address::is_ipv4_mapped() const {
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     if (address()->sa_family == AF_INET6){
         auto addr = reinterpret_cast<const sockaddr_in6 *>(address());
         auto a = (uint16_t *)addr->sin6_addr.s6_addr;
@@ -548,7 +544,7 @@ void socket_error_print(const char *label)
 
 int socket_udp(uint16_t port)
 {
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     // prefer IPv6, but fall back to IPv4 if disabled
     ip_address bindaddr;
     int sock = socket(AF_INET6, SOCK_DGRAM, 0);
@@ -584,7 +580,7 @@ int socket_udp(uint16_t port)
 
 int socket_tcp(uint16_t port)
 {
-#if AOO_NET_USE_IPv6
+#if AOO_USE_IPv6
     // prefer IPv6, but fall back to IPv4 if disabled
     ip_address bindaddr;
     int sock = socket(AF_INET6, SOCK_STREAM, 0);
@@ -725,25 +721,28 @@ int socket_receive(int socket, void *buf, int size,
     }
 }
 
+#define DEBUG_SOCKET_BUFFER 0
+
 int socket_set_sendbufsize(int socket, int bufsize)
 {
     int val = 0;
     socklen_t len;
     len = sizeof(val);
     getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char *)&val, &len);
-#if 0
+#if DEBUG_SOCKET_BUFFER
     fprintf(stderr, "old recvbufsize: %d\n", val);
     fflush(stderr);
 #endif
+    // don't set a smaller buffer size than the default
     if (val > bufsize){
         return 0;
     }
     val = bufsize;
     int result = setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char *)&val, sizeof(val));
-#if 0
+#if DEBUG_SOCKET_BUFFER
     if (result == 0){
         len = sizeof(val);
-        getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (void *)&val, &len);
+        getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char *)&val, &len);
         fprintf(stderr, "new recvbufsize: %d\n", val);
         fflush(stderr);
     }
@@ -757,19 +756,20 @@ int socket_set_recvbufsize(int socket, int bufsize)
     socklen_t len;
     len = sizeof(val);
     getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&val, &len);
-#if 0
+#if DEBUG_SOCKET_BUFFER
     fprintf(stderr, "old recvbufsize: %d\n", val);
     fflush(stderr);
 #endif
+    // don't set a smaller buffer size than the default
     if (val > bufsize){
         return 0;
     }
     val = bufsize;
     int result = setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&val, sizeof(val));
-#if 0
+#if DEBUG_SOCKET_BUFFER
     if (result == 0){
         len = sizeof(val);
-        getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (void *)&val, &len);
+        getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&val, &len);
         fprintf(stderr, "new recvbufsize: %d\n", val);
         fflush(stderr);
     }

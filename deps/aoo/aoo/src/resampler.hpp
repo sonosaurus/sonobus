@@ -2,7 +2,7 @@
 
 #include "aoo/aoo_defines.h"
 
-#include "imp.hpp"
+#include "detail.hpp"
 
 #include <vector>
 

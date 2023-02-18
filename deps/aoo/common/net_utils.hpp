@@ -12,10 +12,11 @@ typedef int socklen_t;
 struct sockaddr;
 #else
 #include <sys/socket.h>
+#include <errno.h>
 #endif
 
-#ifndef AOO_NET_USE_IPv6
-#define AOO_NET_USE_IPv6 1
+#ifndef AOO_USE_IPv6
+#define AOO_USE_IPv6 1
 #endif
 
 namespace aoo {

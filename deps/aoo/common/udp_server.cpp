@@ -49,6 +49,7 @@ void udp_server::start(int port, receive_handler receive,
     running_.store(true);
     threaded_ = threaded;
     if (threaded_) {
+        // TODO lower thread priority
         thread_ = std::thread(&udp_server::receive, this, -1);
     }
 }

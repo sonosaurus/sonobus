@@ -43,7 +43,8 @@ AOO_API AooError AOO_CALL AooSink_send(
 
 /** \copydoc AooSink::process() */
 AOO_API AooError AOO_CALL AooSink_process(
-        AooSink *sink, AooSample **data, AooInt32 numSamples, AooNtpTime t);
+        AooSink *sink, AooSample **data, AooInt32 numSamples, AooNtpTime t,
+        AooStreamMessageHandler messageHandler, void *user);
 
 /** \copydoc AooSink::setEventHandler() */
 AOO_API AooError AOO_CALL AooSink_setEventHandler(
@@ -58,7 +59,7 @@ AOO_API AooError AOO_CALL AooSink_pollEvents(AooSink *sink);
 /** \copydoc AooSink::inviteSource() */
 AOO_API AooError AOO_CALL AooSink_inviteSource(
         AooSink *sink, const AooEndpoint *source,
-        const AooDataView *metadata);
+        const AooData *metadata);
 
 /** \copydoc AooSink::uninviteSource() */
 AOO_API AooError AOO_CALL AooSink_uninviteSource(
@@ -97,6 +98,18 @@ AOO_INLINE AooError AooSink_getId(AooSink *sink, AooId *id)
 AOO_INLINE AooError AooSink_reset(AooSink *sink)
 {
     return AooSink_control(sink, kAooCtlReset, 0, 0, 0);
+}
+
+/** \copydoc AooSink::setLatency() */
+AOO_INLINE AooError AooSink_setLatency(AooSink *sink, AooSeconds s)
+{
+    return AooSink_control(sink, kAooCtlSetLatency, 0, AOO_ARG(s));
+}
+
+/** \copydoc AooSink::getLatency() */
+AOO_INLINE AooError AooSink_getLatency(AooSink *sink, AooSeconds *s)
+{
+    return AooSink_control(sink, kAooCtlGetLatency, 0, AOO_ARG(*s));
 }
 
 /** \copydoc AooSink::setBufferSize() */

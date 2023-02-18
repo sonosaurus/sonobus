@@ -2,7 +2,7 @@
 
 #include "aoo/aoo_sink.hpp"
 
-#define DEFBUFSIZE 0.050
+#define DEFAULT_LATENCY 0.050
 
 using OpenCmd = _OpenCmd<AooSink>;
 
@@ -12,7 +12,7 @@ class AooReceive final : public AooDelegate {
 public:
     using AooDelegate::AooDelegate;
 
-    void init(int32_t port, AooId id, AooSeconds bufsize);
+    void init(int32_t port, AooId id, AooSeconds latency);
 
     void onDetach() override;
 

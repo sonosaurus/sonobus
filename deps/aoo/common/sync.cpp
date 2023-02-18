@@ -8,48 +8,8 @@
   #include <windows.h>
 #endif
 
-// for spinlock
-// Intel
-#if defined(__i386__) || defined(_M_IX86) || \
-    defined(__x86_64__) || defined(_M_X64)
-  #define HAVE_PAUSE
-  #include <immintrin.h>
-// ARM
-#elif (defined(__ARM_ARCH_6K__) || \
-       defined(__ARM_ARCH_6Z__) || \
-       defined(__ARM_ARCH_6ZK__) || \
-       defined(__ARM_ARCH_6T2__) || \
-       defined(__ARM_ARCH_7__) || \
-       defined(__ARM_ARCH_7A__) || \
-       defined(__ARM_ARCH_7R__) || \
-       defined(__ARM_ARCH_7M__) || \
-       defined(__ARM_ARCH_7S__) || \
-       defined(__ARM_ARCH_8A__) || \
-       defined(__aarch64__))
-// mnemonic 'yield' is supported from ARMv6k onwards
-  #define HAVE_YIELD
-#else
-// fallback
-  #include <thread>
-#endif
-
 namespace aoo {
 namespace sync {
-
-void pause_cpu(){
-#if defined(HAVE_PAUSE)
-    _mm_pause();
-#elif defined(HAVE_YIELD)
-    __asm__ __volatile__("yield");
-#else // fallback
-  #warning "architecture does not support yield/pause instruction"
-  #if 0
-    std::this_thread::sleep_for(std::chrono::microseconds(0));
-  #else
-    std::this_thread::yield();
-  #endif
-#endif
-}
 
 //-------------------------- thread priority -----------------------------//
 
@@ -76,93 +36,6 @@ void global_spinlock_lock() { g_atomic_spinlock.lock(); }
 
 void global_spinlock_unlock() { g_atomic_spinlock.unlock(); }
 
-}
-
-//---------------------------- spinlock ------------------------------------//
-
-void spinlock::lock(){
-    // only try to modify the shared state if the lock seems to be available.
-    // this should prevent unnecessary cache invalidation.
-    do {
-        while (locked_.load(std::memory_order_relaxed)){
-            pause_cpu();
-        }
-    } while (!try_lock());
-}
-
-bool spinlock::try_lock(){
-    // if the previous value was false, it means be could aquire the lock.
-    // this is faster than a CAS loop.
-    return !locked_.exchange(true, std::memory_order_acquire);
-}
-
-void spinlock::unlock(){
-    locked_.store(false, std::memory_order_release);
-}
-
-//-------------------------- shared spinlock ---------------------------//
-
-// exclusive
-void shared_spinlock::lock(){
-    // only try to modify the shared state if the lock seems to be available.
-    // this should prevent unnecessary cache invalidation.
-    for (;;) {
-        if (state_.load(std::memory_order_relaxed) == UNLOCKED){
-            // check if state is UNLOCKED and set LOCKED bit on success.
-            uint32_t expected = UNLOCKED;
-            if (state_.compare_exchange_weak(expected, LOCKED,
-                std::memory_order_acquire, std::memory_order_relaxed)) return;
-            // CAS failed -> retry immediately
-        } else {
-            pause_cpu();
-        }
-    }
-}
-
-bool shared_spinlock::try_lock(){
-    // check if state is UNLOCKED and set LOCKED bit on success.
-    uint32_t expected = UNLOCKED;
-    return state_.compare_exchange_strong(expected, LOCKED,
-        std::memory_order_acquire, std::memory_order_relaxed);
-}
-
-void shared_spinlock::unlock(){
-    // clear LOCKED bit, see try_lock_shared()
-    state_.fetch_and(~LOCKED, std::memory_order_release);
-}
-
-// shared
-bool shared_spinlock::try_lock_shared(){
-    // optimistically increment the reader count and then
-    // check whether the LOCKED bit is *not* set, otherwise
-    // we simply decrement the reader count again. this is
-    // optimized for the likely case that there's no writer.
-    auto state = state_.fetch_add(1, std::memory_order_acquire);
-    if (!(state & LOCKED)){
-        return true;
-    } else {
-        state_.fetch_sub(1, std::memory_order_acq_rel); // memory order?
-        return false;
-    }
-}
-
-void shared_spinlock::lock_shared(){
-    // only try to modify the shared state if the lock seems to be
-    // available. this should prevent unnecessary cache invalidation.
-    for (;;)
-    {
-        auto state = state_.load(std::memory_order_relaxed);
-        if (!(state & LOCKED) && try_lock_shared()) {
-            return;
-        } else {
-            pause_cpu();
-        }
-    }
-}
-
-void shared_spinlock::unlock_shared(){
-    // decrement the reader count
-    state_.fetch_sub(1, std::memory_order_release);
 }
 
 //---------------------- mutex -------------------------//
@@ -322,13 +195,13 @@ semaphore::semaphore() {}
 
 semaphore::~semaphore() {}
 
-void semaphore::post(){
+void semaphore::post() {
     auto old = count_.fetch_add(1, std::memory_order_release);
     if (old < 0){
         sem_.post();
     }
 }
-void semaphore::wait(){
+void semaphore::wait() {
     auto old = count_.fetch_sub(1, std::memory_order_acquire);
     if (old <= 0){
         sem_.wait();
@@ -353,6 +226,7 @@ void semaphore::post() {
     pthread_mutex_unlock(&mutex_);
     pthread_cond_signal(&condition_);
 }
+
 void semaphore::wait() {
     pthread_mutex_lock(&mutex_);
     // wait till count is larger than zero
@@ -373,7 +247,7 @@ event::event() {}
 
 event::~event() {}
 
-void event::set(){
+void event::set() {
     int oldcount = count_.load(std::memory_order_relaxed);
     for (;;) {
         // don't increment past 1
@@ -389,7 +263,7 @@ void event::set(){
         sem_.post(); // release one waiting thread
 }
 
-void event::wait(){
+void event::wait() {
     auto old = count_.fetch_sub(1, std::memory_order_acquire);
     if (old <= 0){
         sem_.wait();
