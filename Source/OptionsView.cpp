@@ -331,11 +331,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     
 
-#if JUCE_IOS
-    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
-#else
     mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + ProjectInfo::versionString);
-#endif
     configLabel(mVersionLabel.get(), true);
     mVersionLabel->setJustificationType(Justification::centredRight);
 
