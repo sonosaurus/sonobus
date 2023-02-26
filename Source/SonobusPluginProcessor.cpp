@@ -733,6 +733,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
         }
     }
 
+   
+    
     // use this to match our main app support dir
     PropertiesFile::Options options;
     options.applicationName     = "SonoBus";
@@ -746,6 +748,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     mSupportDir = options.getDefaultFile().getParentDirectory();
 
+   
+    
 #if (JUCE_IOS)
     mDefaultRecordDir = URL(File::getSpecialLocation (File::userDocumentsDirectory));
     if (mDefaultRecordDir.isLocalFile()) {
@@ -835,6 +839,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     }
     
     loadGlobalState();
+    
+    moveOldMisplacedFiles();
 }
 
 
@@ -846,6 +852,37 @@ SonobusAudioProcessor::~SonobusAudioProcessor()
 
     cleanupAoo();
 }
+
+void SonobusAudioProcessor::moveOldMisplacedFiles()
+{
+    // old dummy mistake location
+    PropertiesFile::Options dummyoptions;
+    dummyoptions.applicationName     = "dummy";
+    dummyoptions.filenameSuffix      = ".xml";
+    dummyoptions.osxLibrarySubFolder = "Application Support/SonoBus";
+   #if JUCE_LINUX
+    dummyoptions.folderName          = "~/.config/sonobus";
+   #else
+    dummyoptions.folderName          = "";
+   #endif
+    auto dummyloc = dummyoptions.getDefaultFile().getParentDirectory();
+    
+    if (dummyloc.getFullPathName().contains("dummy") && dummyloc.exists()) {
+        // move any files from here into our real one... (and outside the iterator loop in case it gets mad)
+        std::vector<File> tomove;
+        for (auto entry : RangedDirectoryIterator(dummyloc, false)) {
+            tomove.push_back(entry.getFile());
+        }
+        for (auto & file : tomove) {
+            auto targfile = mSupportDir.getNonexistentChildFile(file.getFileNameWithoutExtension(), file.getFileExtension());
+            if (file.moveFileTo(targfile)) {
+                DBG("Moving old misplaced file: " << file.getFullPathName() << " to: " << targfile.getFullPathName());
+            }
+        }
+    }
+    
+}
+
 
 void SonobusAudioProcessor::setUseSpecificUdpPort(int port)
 {
@@ -4073,7 +4110,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
             if (e->result == 0){
                 DBG("Disconnected from server - " << String::fromUTF8(e->errormsg));
                 
-                if (mReconnectAfterServerLoss.get() && !mReconnectTimer.isTimerRunning()) {
+                if (mCurrentJoinedGroup.isNotEmpty() && mReconnectAfterServerLoss.get() && !mReconnectTimer.isTimerRunning()) {
                     DBG("Starting reconnect timer");
                     mRecoveringFromServerLoss = true;
                     mReconnectTimer.startTimer(1000);
