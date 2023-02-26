@@ -916,6 +916,8 @@ private:
     juce::var getAllLatInfo();
     void sendReqLatInfoToAll();
 
+    void moveOldMisplacedFiles();
+    
     bool reconnectToMostRecent();
 
     

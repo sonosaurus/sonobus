@@ -3799,32 +3799,41 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
             }
             
-            // now attempt to join group
-            if (ev.success) {
-
-                if (currConnectionInfo.groupName.isNotEmpty()) {
-
-                    currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
-                    processor.addRecentServerConnectionInfo(currConnectionInfo);
-
-                    processor.setWatchPublicGroups(false);
-
-                    processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword, currConnectionInfo.groupIsPublic);
+            // we might already have autojoined a group, only attempt if we haven't
+            if (processor.getCurrentJoinedGroup().isEmpty()) {
+                
+                // now attempt to join group
+                if (ev.success) {
+                    
+                    if (currConnectionInfo.groupName.isNotEmpty()) {
+                        
+                        currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
+                        processor.addRecentServerConnectionInfo(currConnectionInfo);
+                        
+                        processor.setWatchPublicGroups(false);
+                        
+                        processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword, currConnectionInfo.groupIsPublic);
+                    }
+                    else {
+                        // we've connected but have not specified group, assume we want to see public groups
+                        processor.setWatchPublicGroups(true);
+                        mConnectView->updatePublicGroups();
+                    }
+                    
+                    mConnectView->updateServerFieldsFromConnectionInfo();
+                    
+                    //mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, "", "", "", "", statstr));
+                    
                 }
                 else {
-                    // we've connected but have not specified group, assume we want to see public groups
-                    processor.setWatchPublicGroups(true);
-                    mConnectView->updatePublicGroups();
+                    // switch to group page
+                    mConnectView->showActiveGroupTab();
                 }
-
-                mConnectView->updateServerFieldsFromConnectionInfo();
-
-                //mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, "", "", "", "", statstr));
-
             }
             else {
-                // switch to group page
-                mConnectView->showActiveGroupTab();
+                DBG("Already joined a group, update currConnectionInfo");
+                currConnectionInfo.groupName = processor.getCurrentJoinedGroup();
+                currConnectionInfo.userName = processor.getCurrentUsername();
             }
             
             updateServerStatusLabel(statstr, false);
