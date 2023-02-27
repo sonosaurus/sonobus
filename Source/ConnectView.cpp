@@ -819,7 +819,7 @@ void ConnectView::publicGroupLogin()
     DBG("Public host enter pressed");
     // parse it
     StringArray toks = StringArray::fromTokens(hostport, ":", "");
-    String host = "aoo.sonobus.net";
+    String host = DEFAULT_SERVER_HOST;
     int port = DEFAULT_SERVER_PORT;
 
     if (toks.size() >= 1) {
@@ -866,7 +866,7 @@ bool ConnectView::copyInfoToClipboard(bool singleURL, String * retmessage)
 
     String hostport = mServerHostEditor->getText();
     if (hostport.isEmpty()) {
-        hostport = "aoo.sonobus.net";
+        hostport = DEFAULT_SERVER_HOST;
     }
 
     String groupName;
@@ -1028,7 +1028,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         // parse it
         StringArray toks = StringArray::fromTokens(hostport, ":", "");
-        String host = "aoo.sonobus.net";
+        String host = DEFAULT_SERVER_HOST;
         int port = DEFAULT_SERVER_PORT;
 
         if (toks.size() >= 1) {
@@ -1059,7 +1059,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         // parse it
         StringArray toks = StringArray::fromTokens(hostport, ":", "");
-        String host = "aoo.sonobus.net";
+        String host = DEFAULT_SERVER_HOST;
         int port = DEFAULT_SERVER_PORT;
 
         if (toks.size() >= 1) {
@@ -1576,7 +1576,7 @@ void ConnectView::RecentsListModel::paintListBoxItem (int rowNumber, Graphics &g
 
     infostr += TRANS("on") + " " + Time(info.timestamp).toString(true, true, false) + " " ;
 
-    if (info.serverHost != "aoo.sonobus.net") {
+    if (info.serverHost != DEFAULT_SERVER_HOST) {
         infostr += TRANS("to") + " " +  info.serverHost;
     }
 
