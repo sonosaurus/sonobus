@@ -111,7 +111,7 @@ void ip_address::check() {
 #if AOO_USE_IPv6
     bool ok = (f == AF_INET6 || f == AF_INET || f == AF_UNSPEC);
 #else
-    book ok = (f == AF_INET || f == AF_UNSPEC);
+    bool ok = (f == AF_INET || f == AF_UNSPEC);
 #endif
     if (!ok) {
         fprintf(stderr, "bad address family: %d\n", f);

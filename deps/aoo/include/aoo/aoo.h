@@ -12,6 +12,12 @@
 
 #include "aoo_defines.h"
 
+/*----------------- utilities ---------------------*/
+
+/** \brief check if a struct has a specific field */
+#define AOO_CHECK_FIELD(type, size, field) \
+    ((size) >= (offsetof(type, field) + sizeof(((type*)NULL)->field)))
+
 /*------------- compile time settings -------------*/
 
 /** \brief clip audio output between -1 and 1 */
@@ -27,6 +33,11 @@
 /** \brief debug incoming/outgoing data */
 #ifndef AOO_DEBUG_DATA
 # define AOO_DEBUG_DATA 0
+#endif
+
+/** \brief debug data resending */
+#ifndef AOO_DEBUG_RESEND
+# define AOO_DEBUG_RESEND 0
 #endif
 
 /** \brief debug the state of the xrun detector */
@@ -158,11 +169,17 @@
 #define kAooMsgPing "/ping"
 #define kAooMsgPingLen 5
 
+#define kAooMsgPong "/pong"
+#define kAooMsgPongLen 5
+
 #define kAooMsgInvite "/invite"
 #define kAooMsgInviteLen 7
 
 #define kAooMsgUninvite "/uninvite"
 #define kAooMsgUninviteLen 9
+
+#define kAooMsgDecline "/decline"
+#define kAooMsgDeclineLen 8
 
 /*------------------- binary message ---------------------*/
 

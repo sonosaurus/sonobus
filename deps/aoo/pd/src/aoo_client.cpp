@@ -617,41 +617,28 @@ void aoo_client_handle_event(t_aoo_client *x, const AooEvent *event, int32_t lev
         break; // !
     }
     case kAooEventPeerPing:
-    case kAooEventPeerPong:
     {
-        // HACK: AooEventPeerPong is compatible with AooEventPeerPing
-        auto& e = event->peerPong;
-        bool pong = e.type == kAooEventPeerPong;
+        auto& e = event->peerPing;
         t_atom msg[8];
 
         auto peer = x->find_peer(e.group, e.user);
         if (!peer) {
-            bug("aoo_client: can't find peer %d|%d for %s event",
-                e.group, e.user, pong ? "pong" : "ping");
+            bug("aoo_client: can't find peer %d|%d for ping event", e.group, e.user);
             return;
         }
 
         peer_to_atoms(*peer, 5, msg);
 
-        if (pong) {
-            // pong
-            auto delta1 = aoo::time_tag::duration(e.tt1, e.tt2) * 1000;
-            auto delta2 = aoo::time_tag::duration(e.tt2, e.tt3) * 1000;
-            auto rtt = aoo::time_tag::duration(e.tt1, e.tt3) * 1000;
+        auto delta1 = aoo::time_tag::duration(e.tt1, e.tt2) * 1000;
+        auto delta2 = aoo::time_tag::duration(e.tt2, e.tt3) * 1000;
+        auto rtt = aoo::time_tag::duration(e.tt1, e.tt3) * 1000;
 
-            peer_to_atoms(*peer, 5, msg);
-            SETFLOAT(msg + 5, delta1);
-            SETFLOAT(msg + 6, delta2);
-            SETFLOAT(msg + 7, rtt);
+        peer_to_atoms(*peer, 5, msg);
+        SETFLOAT(msg + 5, delta1);
+        SETFLOAT(msg + 6, delta2);
+        SETFLOAT(msg + 7, rtt);
 
-            outlet_anything(x->x_msgout, gensym("peer_pong"), 8, msg);
-        } else {
-            // ping
-            auto delta = aoo::time_tag::duration(e.tt1, e.tt2) * 1000;
-            SETFLOAT(msg + 5, delta);
-
-            outlet_anything(x->x_msgout, gensym("peer_ping"), 6, msg);
-        }
+        outlet_anything(x->x_msgout, gensym("peer_ping"), 8, msg);
 
         break;
     }
@@ -692,9 +679,9 @@ struct t_error_response {
     std::string msg;
 };
 
-static void AOO_CALL connect_cb(t_aoo_client *x, const AooRequestConnect *request,
-                                AooError result, const AooResponseConnect *response) {
-    if (result == kAooOk) {
+static void AOO_CALL connect_cb(t_aoo_client *x, const AooRequest *request,
+                                const AooResponse *response) {
+    if (response->type != kAooRequestError) {
         x->push_reply([x](){
             // remove all peers and groups (to be sure)
             x->x_peers.clear();
@@ -704,8 +691,8 @@ static void AOO_CALL connect_cb(t_aoo_client *x, const AooRequestConnect *reques
             outlet_float(x->x_stateout, 1); // connected
         });
     } else {
-        auto e = (const AooResponseError *)response;
-        t_error_response error { e->errorCode, e->errorMessage };
+        auto& e = response->error;
+        t_error_response error { e.errorCode, e.errorMessage };
 
         x->push_reply([x, error=std::move(error)](){
             pd_error(x, "%s: can't connect to server: %s",
@@ -756,10 +743,10 @@ static void aoo_client_disconnect(t_aoo_client *x)
     outlet_float(x->x_stateout, 0);
 }
 
-static void AOO_CALL group_join_cb(t_aoo_client *x, const AooRequestGroupJoin *request,
-                                   AooError result, const AooResponseGroupJoin *response){
-    if (result == kAooOk) {
-        x->push_reply([x, group=std::string(request->groupName), id=response->groupId](){
+static void AOO_CALL group_join_cb(t_aoo_client *x, const AooRequest *request,
+                                   const AooResponse *response){
+    if (response->type != kAooRequestError) {
+        x->push_reply([x, group=std::string(request->groupJoin.groupName), id=response->groupJoin.groupId](){
             // add group
             auto name = gensym(group.c_str());
             if (!x->find_group(id)) {
@@ -774,10 +761,10 @@ static void AOO_CALL group_join_cb(t_aoo_client *x, const AooRequestGroupJoin *r
             outlet_anything(x->x_msgout, gensym("group_join"), 2, msg);
         });
     } else {
-        auto e = (const AooResponseError *)response;
-        t_error_response error { e->errorCode, e->errorMessage };
+        auto& e = response->error;
+        t_error_response error { e.errorCode, e.errorMessage };
 
-        x->push_reply([x, group=std::string(request->groupName), error=std::move(error)](){
+        x->push_reply([x, group=std::string(request->groupJoin.groupName), error=std::move(error)](){
             pd_error(x, "%s: can't join group '%s': %s",
                      classname(x), group.c_str(), error.msg.c_str());
 
@@ -810,10 +797,10 @@ static void aoo_client_group_join(t_aoo_client *x, t_symbol *s, int argc, t_atom
     }
 }
 
-static void AOO_CALL group_leave_cb(t_aoo_client *x, const AooRequestGroupLeave *request,
-                                    AooError result, const AooResponseError *e) {
-    if (result == kAooOk){
-        x->push_reply([x, id=request->group]() {
+static void AOO_CALL group_leave_cb(t_aoo_client *x, const AooRequest *request,
+                                    const AooResponse *response) {
+    if (response->type != kAooRequestError){
+        x->push_reply([x, id=request->groupLeave.group]() {
             // remove group
             t_symbol *name = nullptr;
             for (auto it = x->x_groups.begin(); it != x->x_groups.end(); ++it) {
@@ -825,6 +812,7 @@ static void AOO_CALL group_leave_cb(t_aoo_client *x, const AooRequestGroupLeave 
             }
             if (!name) {
                 bug("group_leave_cb");
+                return;
             }
             // we have to remove the peers manually!
             for (auto it = x->x_peers.begin(); it != x->x_peers.end(); ) {
@@ -842,9 +830,10 @@ static void AOO_CALL group_leave_cb(t_aoo_client *x, const AooRequestGroupLeave 
             outlet_anything(x->x_msgout, gensym("group_leave"), 2, msg);
         });
     } else {
-        t_error_response error { e->errorCode, e->errorMessage };
+        auto& e = response->error;
+        t_error_response error { e.errorCode, e.errorMessage };
 
-        x->push_reply([x, id=request->group, error=std::move(error)]() {
+        x->push_reply([x, id=request->groupLeave.group, error=std::move(error)]() {
             auto group = x->find_group(id);
             if (!group) {
                 bug("group_leave_cb");

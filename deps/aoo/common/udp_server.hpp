@@ -26,6 +26,11 @@ namespace aoo {
 class udp_server
 {
 public:
+#ifdef _WIN32
+    static const int invalid_socket = (int)INVALID_SOCKET;
+#else
+    static const int invalid_socket = -1;
+#endif
     static const size_t max_udp_packet_size = 65536;
 
     using receive_handler = std::function<void(int error, const aoo::ip_address& addr,
@@ -51,7 +56,7 @@ private:
     void receive(double timeout);
     void do_close();
 
-    int socket_;
+    int socket_ = invalid_socket;
     aoo::ip_address addr_;
     std::atomic<bool> running_{false};
     bool threaded_ = false;

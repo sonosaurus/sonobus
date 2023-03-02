@@ -123,25 +123,25 @@ struct uninvite_event : endpoint_event<AooEventUninvite> {
 struct ping_event : endpoint_event<AooEventPing> {
     RT_CLASS(ping_event)
 
+    // sink ping
     ping_event(const aoo::endpoint& ep,
-               aoo::time_tag tt1, aoo::time_tag tt2)
+               aoo::time_tag tt1, aoo::time_tag tt2,
+               aoo::time_tag tt3)
         : endpoint_event(kAooEventPing, ep) {
         this->t1 = tt1;
         this->t2 = tt2;
-    }
-};
-
-struct ping_reply_event : endpoint_event<AooEventPingReply> {
-    RT_CLASS(ping_reply_event)
-
-    ping_reply_event(const aoo::endpoint& ep,
-                     aoo::time_tag tt1, aoo::time_tag tt2,
-                     aoo::time_tag tt3, float packet_loss)
-        : endpoint_event(kAooEventPingReply, ep) {
-        this->t1 = tt1;
-        this->t2 = tt2;
         this->t3 = tt3;
-        this->packetLoss = packet_loss;
+        this->size = 0;
+        this->info.sink = nullptr; /* dummy */
+    }
+
+    // source ping
+    ping_event(const aoo::endpoint& ep,
+               aoo::time_tag tt1, aoo::time_tag tt2,
+               aoo::time_tag tt3, float packet_loss)
+        : ping_event(ep, tt1, tt2, tt3) {
+        this->size = sizeof(AooSourcePingInfo);
+        this->info.source.packetLoss = packet_loss;
     }
 };
 
@@ -195,9 +195,10 @@ struct stream_stop_event : endpoint_event<AooEventStreamStop> {
 struct stream_state_event : endpoint_event<AooEventStreamState> {
     RT_CLASS(stream_state_event)
 
-    stream_state_event(const aoo::endpoint& ep, AooStreamState state)
+    stream_state_event(const aoo::endpoint& ep, AooStreamState state, int32_t offset)
         : endpoint_event(kAooEventStreamState, ep) {
         this->state = state;
+        this->sampleOffset = offset;
     }
 };
 

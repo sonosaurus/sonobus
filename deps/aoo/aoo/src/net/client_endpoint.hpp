@@ -171,7 +171,7 @@ public:
     void send_message(const osc::OutboundPacketStream& msg) const;
 
     void send_error(Server& server, AooId token, AooRequestType type,
-                    AooError result, int32_t errcode, const char *errmsg);
+                    int32_t errcode, const char *errmsg);
 
     void send_notification(Server& server, const AooData& data) const;
 

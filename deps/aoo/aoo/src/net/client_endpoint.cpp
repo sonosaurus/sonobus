@@ -89,7 +89,7 @@ void client_endpoint::send_message(const osc::OutboundPacketStream& msg) const {
 }
 
 void client_endpoint::send_error(Server& server, AooId token, AooRequestType type,
-                                 AooError result, int32_t errcode, const char *errmsg) {
+                                 int32_t errcode, const char *errmsg) {
     const char *pattern;
     switch (type) {
     case kAooRequestLogin:
@@ -112,7 +112,7 @@ void client_endpoint::send_error(Server& server, AooId token, AooRequestType typ
     auto msg = server.start_message();
 
     msg << osc::BeginMessage(pattern) << (int32_t)token
-        << (int32_t)result << (int32_t)errcode << errmsg << osc::EndMessage;
+        << (int32_t)0 << (int32_t)errcode << errmsg << osc::EndMessage;
 
     send_message(msg);
 }

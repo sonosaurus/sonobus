@@ -13,6 +13,8 @@
 #include <inttypes.h>
 
 #define DEFAULT_LATENCY 25
+// offset for "fake" stream messages
+#define STREAM_MESSAGE_OFFSET 64
 
 /*///////////////////// aoo_receive~ ////////////////////*/
 
@@ -325,6 +327,8 @@ static void aoo_receive_source_list(t_aoo_receive *x)
     }
 }
 
+static void aoo_receive_handle_stream_message(t_aoo_receive *x, const AooStreamMessage *msg, const AooEndpoint *ep);
+
 static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, int32_t)
 {
     switch (event->type){
@@ -337,6 +341,7 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
     }
     case kAooEventSourceAdd:
     case kAooEventSourceRemove:
+    case kAooEventInviteDecline:
     case kAooEventInviteTimeout:
     case kAooEventUninviteTimeout:
     case kAooEventBufferOverrun:
@@ -385,6 +390,11 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
             outlet_anything(x->x_msgout, gensym("remove"), 3, msg);
             break;
         }
+        case kAooEventInviteDecline:
+        {
+            outlet_anything(x->x_msgout, gensym("invite_decline"), 3, msg);
+            break;
+        }
         case kAooEventInviteTimeout:
         {
             outlet_anything(x->x_msgout, gensym("invite_timeout"), 3, msg);
@@ -396,6 +406,23 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
             break;
         }
         //---------------------- source events ------------------------------//
+        case kAooEventPing:
+        {
+            auto& e = event->ping;
+
+            double diff1 = aoo_ntpTimeDuration(e.t1, e.t2) * 1000.0;
+            double diff2 = aoo_ntpTimeDuration(e.t2, e.t3) * 1000.0;
+            double rtt = aoo_ntpTimeDuration(e.t1, e.t3) * 1000.0;
+
+            SETSYMBOL(msg + 3, gensym("ping"));
+            SETFLOAT(msg + 4, diff1);
+            SETFLOAT(msg + 5, diff2);
+            SETFLOAT(msg + 6, rtt);
+
+            outlet_anything(x->x_msgout, gensym("event"), 7, msg);
+
+            break;
+        }
         case kAooEventBufferOverrun:
         {
             SETSYMBOL(msg + 3, gensym("overrun"));
@@ -445,9 +472,22 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
         }
         case kAooEventStreamState:
         {
-            SETSYMBOL(msg + 3, gensym("state"));
-            SETFLOAT(msg + 4, event->streamState.state);
-            outlet_anything(x->x_msgout, gensym("event"), 5, msg);
+            auto state = event->streamState.state;
+            auto offset = event->streamState.sampleOffset;
+            if (offset > 0) {
+                // HACK: schedule as fake stream message
+                AooStreamMessage msg;
+                msg.type = STREAM_MESSAGE_OFFSET + state;
+                msg.sampleOffset = offset;
+                // pass 1 byte of dummy data
+                msg.size = 1;
+                msg.data = (AooByte *)event;
+                aoo_receive_handle_stream_message(x, &msg, &ep);
+            } else {
+                SETSYMBOL(msg + 3, gensym("state"));
+                SETFLOAT(msg + 4, state);
+                outlet_anything(x->x_msgout, gensym("event"), 5, msg);
+            }
             break;
         }
         case kAooEventBlockLost:
@@ -475,14 +515,6 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
         {
             SETSYMBOL(msg + 3, gensym("block_resent"));
             SETFLOAT(msg + 4, event->blockResent.count);
-            outlet_anything(x->x_msgout, gensym("event"), 5, msg);
-            break;
-        }
-        case kAooEventPing:
-        {
-            double diff = aoo_ntpTimeDuration(event->ping.t1, event->ping.t2) * 1000.0;
-            SETSYMBOL(msg + 3, gensym("ping"));
-            SETFLOAT(msg + 4, diff);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
@@ -533,14 +565,23 @@ void t_aoo_receive::dispatch_stream_message(const AooStreamMessage& msg,
         bug("dispatch_stream_message: serialize_endpoint");
         return;
     }
-    // message type
-    datatype_to_atom(msg.type, vec[3]);
-    // message content
-    for (int i = 0; i < msg.size; ++i) {
-        SETFLOAT(&vec[i + 4], msg.data[i]);
-    }
+    if (msg.type >= STREAM_MESSAGE_OFFSET) {
+        // fake stream message
+        assert(size == 5); // see aoo_receive_handle_event()
+        SETSYMBOL(vec + 3, gensym("state"));
+        SETFLOAT(vec + 4, msg.type - STREAM_MESSAGE_OFFSET);
 
-    outlet_anything(x_msgout, gensym("msg"), size, vec);
+        outlet_anything(x_msgout, gensym("event"), size, vec);
+    } else {
+        // message type
+        datatype_to_atom(msg.type, vec[3]);
+        // message content
+        for (int i = 0; i < msg.size; ++i) {
+            SETFLOAT(&vec[i + 4], msg.data[i]);
+        }
+
+        outlet_anything(x_msgout, gensym("msg"), size, vec);
+    }
 }
 
 static void aoo_receive_handle_stream_message(t_aoo_receive *x, const AooStreamMessage *msg, const AooEndpoint *ep)

@@ -470,7 +470,7 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         outlet_anything(x->x_msgout, gensym("xrun"), 1, &msg);
         break;
     }
-    case kAooEventPingReply:
+    case kAooEventPing:
     case kAooEventInvite:
     case kAooEventUninvite:
     case kAooEventSinkAdd:
@@ -492,7 +492,8 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
 
             x->x_invite_token = e.token;
             if (x->x_auto_invite) {
-                x->x_source->acceptInvitation(ep, e.token);
+                // accept by default
+                x->x_source->handleInvite(ep, e.token, true);
             }
 
             if (e.metadata){
@@ -516,7 +517,8 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
         {
             x->x_invite_token = event->uninvite.token;
             if (x->x_auto_invite) {
-                x->x_source->acceptUninvitation(ep, event->uninvite.token);
+                // accept by default
+                x->x_source->handleUninvite(ep, event->uninvite.token, true);
             }
 
             outlet_anything(x->x_msgout, gensym("uninvite"), 3, msg);
@@ -546,9 +548,9 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
             break;
         }
         //--------------------- sink events -----------------------//
-        case kAooEventPingReply:
+        case kAooEventPing:
         {
-            auto& e = event->pingReply;
+            auto& e = event->ping;
 
             double diff1 = aoo_ntpTimeDuration(e.t1, e.t2) * 1000.0;
             double diff2 = aoo_ntpTimeDuration(e.t2, e.t3) * 1000.0;
@@ -558,7 +560,7 @@ static void aoo_send_handle_event(t_aoo_send *x, const AooEvent *event, int32_t)
             SETFLOAT(msg + 4, diff1);
             SETFLOAT(msg + 5, diff2);
             SETFLOAT(msg + 6, rtt);
-            SETFLOAT(msg + 7, e.packetLoss);
+            SETFLOAT(msg + 7, e.info.source.packetLoss);
 
             outlet_anything(x->x_msgout, gensym("event"), 8, msg);
 
@@ -600,13 +602,10 @@ static void aoo_send_invite(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv)
 
     aoo::ip_address addr;
     AooId id;
-    if (x->get_sink_arg(argc, argv, addr, id, true)){
-        // interpret non-float argument as 'yes', so we can simply
-        // pass the original 'invite' message - including the metadata!
-        bool accept = ((argc > 3) && (argv[3].a_type == A_FLOAT)) ?
-                    argv[3].a_w.w_float : true;
+    if (x->get_sink_arg(argc, argv, addr, id, true)) {
+        bool accept = argc > 3 ? atom_getfloat(argv + 3) : true; // default: true
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
-        x->x_source->acceptInvitation(ep, accept ? x->x_invite_token : kAooIdInvalid);
+        x->x_source->handleInvite(ep, x->x_invite_token, accept);
     }
 }
 
@@ -617,12 +616,9 @@ static void aoo_send_uninvite(t_aoo_send *x, t_symbol *s, int argc, t_atom *argv
     aoo::ip_address addr;
     AooId id;
     if (x->get_sink_arg(argc, argv, addr, id, true)){
-        // interpret non-float argument as 'yes', so we can simply
-        // pass the original 'invite' message - including the metadata!
-        bool accept = ((argc > 3) && (argv[3].a_type == A_FLOAT)) ?
-                    argv[3].a_w.w_float : true;
+        bool accept = argc > 3 ? atom_getfloat(argv + 3) : true; // default: true
         AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
-        x->x_source->acceptUninvitation(ep, accept ? x->x_invite_token : kAooIdInvalid);
+        x->x_source->handleUninvite(ep, x->x_invite_token, accept);
     }
 }
 

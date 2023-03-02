@@ -434,6 +434,8 @@ typedef struct AooStreamMessage
  *
  * The type of function that is passed to #AooSink::process
  * for handling stream messages.
+ *
+ * \warning Do not call any AOO functions inside the handler function!
  */
 typedef void (AOO_CALL *AooStreamMessageHandler)(
         /** the user data */

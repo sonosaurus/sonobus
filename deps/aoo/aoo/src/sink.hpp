@@ -38,11 +38,10 @@ struct stream_stats {
 enum class request_type {
     none,
     start,
-    ping_reply,
+    pong,
     invite,
     uninvite,
-    uninvite_all,
-    // format
+    uninvite_all
 };
 
 // used in 'source_desc'
@@ -53,13 +52,18 @@ struct request {
     request_type type;
     union {
         struct {
-            AooNtpTime tt1;
-            AooNtpTime tt2;
-        } ping;
+            AooNtpTime time;
+        } pong;
         struct {
             AooId token;
         } uninvite;
     };
+};
+
+struct data_request {
+    int32_t sequence;
+    int16_t offset;
+    uint16_t bitset;
 };
 
 // used in 'sink'
@@ -92,6 +96,12 @@ enum class source_state {
     invite,
     uninvite,
     timeout
+};
+
+enum class stream_state {
+    active,
+    inactive,
+    buffering
 };
 
 struct net_packet : data_packet {
@@ -150,9 +160,13 @@ public:
 
     AooError handle_stop(const Sink& s, int32_t stream);
 
+    AooError handle_decline(const Sink& s, int32_t token);
+
     AooError handle_data(const Sink& s, net_packet& d, bool binary);
 
     AooError handle_ping(const Sink& s, time_tag tt);
+
+    AooError handle_pong(const Sink& s, time_tag tt1, time_tag tt2);
 
     void send(const Sink& s, const sendfn& fn);
 
@@ -184,8 +198,9 @@ private:
     void check_missing_blocks(const Sink& s);
 
     // send messages
-    void send_ping_reply(const Sink& s, AooNtpTime tt1, AooNtpTime tt2,
-                         const sendfn& fn);
+    void send_ping(const Sink&s, const sendfn& fn);
+
+    void send_pong(const Sink& s, AooNtpTime tt1, const sendfn& fn);
 
     void send_start_request(const Sink& s, const sendfn& fn);
 
@@ -199,11 +214,11 @@ private:
     AooId stream_id_ = kAooIdInvalid;
     AooId format_id_ = kAooIdInvalid;
 
-    int32_t channel_ = 0; // recent channel onset
-    AooStreamState streamstate_{kAooStreamStateInactive};
+    int16_t channel_ = 0; // recent channel onset
+    stream_state stream_state_ = stream_state::inactive;
+    bool did_update_{false};
     bool underrun_{false};
-    bool didupdate_{false};
-    bool wait_for_buffer_{false};
+    bool stopped_{false};
     std::atomic<bool> binary_{false};
     double xrunblocks_ = 0;
 
@@ -216,6 +231,7 @@ private:
     std::atomic<float> invite_start_time_{0};
     std::atomic<float> last_invite_time_{0};
     std::atomic<float> last_packet_time_{0};
+    std::atomic<float> last_ping_time_{0};
     // statistics
     std::atomic<int32_t> lost_blocks_{0};
     time_tag last_ping_reply_time_;
@@ -227,30 +243,33 @@ private:
     // packet queue and jitter buffer
     aoo::unbounded_mpsc_queue<net_packet> packetqueue_;
     jitter_buffer jitterbuffer_;
-    int32_t wait_blocks_ = 0;
     int32_t latency_blocks_ = 0;
+    int32_t latency_samples_ = 0;
     // stream messages
     stream_message_header *stream_messages_ = nullptr;
     double stream_samples_ = 0;
     uint64_t process_samples_ = 0;
     void reset_stream_messages();
     // requests
-    aoo::unbounded_mpsc_queue<request> requestqueue_;
+    aoo::unbounded_mpsc_queue<request> request_queue_;
     void push_request(const request& r){
-        requestqueue_.push(r);
+        request_queue_.push(r);
     }
-    struct data_request {
-        int32_t sequence;
-        int32_t frame;
-    };
-    aoo::unbounded_mpsc_queue<data_request> datarequestqueue_;
+    aoo::unbounded_mpsc_queue<data_request> data_requests_;
     void push_data_request(const data_request& r){
-        datarequestqueue_.push(r);
+    #if AOO_DEBUG_RESEND && 0
+        LOG_DEBUG("AooSink: push data request (" << r.sequence
+                  << " " << r.offset << " " << r.bitset << ")");
+    #endif
+        data_requests_.push(r);
     }
     // events
     using event_queue = lockfree::unbounded_mpsc_queue<event_ptr, aoo::rt_allocator<event_ptr>>;
     event_queue eventqueue_;
+    using event_buffer = std::vector<event_ptr, aoo::allocator<event_ptr>>;
+    event_buffer eventbuffer_;
     void send_event(const Sink& s, event_ptr e, AooThreadLevel level);
+    void flush_event_buffer(const Sink& s);
     // memory
     aoo::memory_list memory_;
     // thread synchronization
@@ -317,6 +336,8 @@ public:
 
     AooSeconds resend_interval() const { return resend_interval_.load(); }
 
+    AooSeconds ping_interval() const { return ping_interval_.load(); }
+
     int32_t resend_limit() const { return resend_limit_.load(); }
 
     AooSeconds source_timeout() const { return source_timeout_.load(); }
@@ -354,6 +375,7 @@ private:
     parameter<float> latency_{ AOO_SINK_LATENCY };
     parameter<float> buffersize_{ 0 };
     parameter<float> resend_interval_{ AOO_RESEND_INTERVAL };
+    parameter<float> ping_interval_{ AOO_PING_INTERVAL };
     parameter<int32_t> packetsize_{ AOO_PACKET_SIZE };
     parameter<int32_t> resend_limit_{ AOO_RESEND_LIMIT };
     parameter<float> source_timeout_{ AOO_SOURCE_TIMEOUT };
@@ -391,6 +413,9 @@ private:
     AooError handle_stop_message(const osc::ReceivedMessage& msg,
                                  const ip_address& addr);
 
+    AooError handle_decline_message(const osc::ReceivedMessage& msg,
+                                    const ip_address& addr);
+
     AooError handle_data_message(const osc::ReceivedMessage& msg,
                                  const ip_address& addr);
 
@@ -401,6 +426,9 @@ private:
                                 const ip_address& addr, AooId id);
 
     AooError handle_ping_message(const osc::ReceivedMessage& msg,
+                                 const ip_address& addr);
+
+    AooError handle_pong_message(const osc::ReceivedMessage& msg,
                                  const ip_address& addr);
 };
 

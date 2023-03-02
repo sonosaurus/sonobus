@@ -38,17 +38,15 @@ struct peer_event : ievent
     metadata metadata_;
 };
 
-template<AooEventType type>
-struct peer_ping_base_event : ievent
+struct peer_ping_event : ievent
 {
-    peer_ping_base_event(const peer& p, time_tag tt1, time_tag tt2, time_tag tt3 = time_tag{})
+    peer_ping_event(const peer& p, time_tag tt1, time_tag tt2, time_tag tt3)
         : group_(p.group_id()), user_(p.user_id()),
           tt1_(tt1), tt2_(tt2), tt3_(tt3) {}
 
     void dispatch(const event_handler &fn) const override {
-        // HACK: AooEventPeerPing and AooEventPeerPong are layout compatible
-        AooEventPeerPong e;
-        e.type = type;
+        AooEventPeerPing e;
+        e.type = kAooEventPeerPing;
         e.flags = 0;
         e.group = group_;
         e.user = user_;
@@ -65,9 +63,6 @@ struct peer_ping_base_event : ievent
     time_tag tt2_;
     time_tag tt3_;
 };
-
-using peer_ping_event = peer_ping_base_event<kAooEventPeerPing>;
-using peer_pong_event = peer_ping_base_event<kAooEventPeerPong>;
 
 struct peer_message_event : ievent
 {

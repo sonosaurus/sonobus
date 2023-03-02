@@ -178,6 +178,16 @@ AOO_INLINE AooError AooSink_getPacketSize(AooSink *sink, AooInt32 *n)
     return AooSink_control(sink, kAooCtlGetPacketSize, 0, AOO_ARG(*n));
 }
 
+/** \copydoc AooSink::setPingInterval */
+AOO_INLINE AooError AooSink_setPingInterval(AooSink *sink, AooSeconds s) {
+    return AooSink_control(sink, kAooCtlSetPingInterval, 0, AOO_ARG(s));
+}
+
+/** \copydoc AooSink::getPingInterval */
+AOO_INLINE AooError AooSink_getPingInterval(AooSink *sink, AooSeconds *s) {
+    return AooSink_control(sink, kAooCtlGetPingInterval, 0, AOO_ARG(*s));
+}
+
 /** \copydoc AooSink::setResendData() */
 AOO_INLINE AooError AooSink_setResendData(AooSink *sink, AooBool b)
 {

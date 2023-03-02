@@ -250,11 +250,9 @@ const char *aoo_strerror(AooError e){
 
 AooError AOO_CALL aoo_parsePattern(
         const AooByte *msg, AooInt32 size,
-        AooMsgType *type, AooId *id, AooInt32 *offset)
-{
+        AooMsgType *type, AooId *id, AooInt32 *offset) {
     int32_t count = 0;
-    if (aoo::binmsg_check(msg, size))
-    {
+    if (aoo::binmsg_check(msg, size)) {
         *type = aoo::binmsg_type(msg, size);
         *id = aoo::binmsg_to(msg, size);
         auto n = aoo::binmsg_headersize(msg, size);
@@ -267,46 +265,39 @@ AooError AOO_CALL aoo_parsePattern(
             return kAooErrorBadArgument;
         }
     } else if (size >= kAooMsgDomainLen
-        && !memcmp(msg, kAooMsgDomain, kAooMsgDomainLen))
-    {
+        && !memcmp(msg, kAooMsgDomain, kAooMsgDomainLen)) {
         count += kAooMsgDomainLen;
         if (size >= (count + kAooMsgSourceLen)
-            && !memcmp(msg + count, kAooMsgSource, kAooMsgSourceLen))
-        {
+            && !memcmp(msg + count, kAooMsgSource, kAooMsgSourceLen)) {
             *type = kAooTypeSource;
             count += kAooMsgSourceLen;
         } else if (size >= (count + kAooMsgSinkLen)
-            && !memcmp(msg + count, kAooMsgSink, kAooMsgSinkLen))
-        {
+            && !memcmp(msg + count, kAooMsgSink, kAooMsgSinkLen)) {
             *type = kAooTypeSink;
             count += kAooMsgSinkLen;
         } else {
         #if AOO_NET
             if (size >= (count + kAooMsgClientLen)
-                && !memcmp(msg + count, kAooMsgClient, kAooMsgClientLen))
-            {
+                && !memcmp(msg + count, kAooMsgClient, kAooMsgClientLen)) {
                 *type = kAooTypeClient;
                 count += kAooMsgClientLen;
             } else if (size >= (count + kAooMsgServerLen)
-                && !memcmp(msg + count, kAooMsgServer, kAooMsgServerLen))
-            {
+                && !memcmp(msg + count, kAooMsgServer, kAooMsgServerLen)) {
                 *type = kAooTypeServer;
                 count += kAooMsgServerLen;
             } else if (size >= (count + kAooMsgPeerLen)
-                && !memcmp(msg + count, kAooMsgPeer, kAooMsgPeerLen))
-            {
+                && !memcmp(msg + count, kAooMsgPeer, kAooMsgPeerLen)) {
                 *type = kAooTypePeer;
                 count += kAooMsgPeerLen;
             } else if (size >= (count + kAooMsgRelayLen)
-                && !memcmp(msg + count, kAooMsgRelay, kAooMsgRelayLen))
-            {
+                && !memcmp(msg + count, kAooMsgRelay, kAooMsgRelayLen)) {
                 *type = kAooTypeRelay;
                 count += kAooMsgRelayLen;
             } else {
-                return kAooErrorUnknown;
+                return kAooErrorBadArgument;
             }
 
-            if (offset){
+            if (offset) {
                 *offset = count;
             }
         #endif // AOO_NET
@@ -315,25 +306,25 @@ AooError AOO_CALL aoo_parsePattern(
         }
 
         // /aoo/source or /aoo/sink
-        if (id){
+        if (id) {
             int32_t skip = 0;
-            if (sscanf((const char *)(msg + count), "/%d%n", id, &skip) > 0){
+            if (sscanf((const char *)(msg + count), "/%d%n", id, &skip) > 0) {
                 count += skip;
             } else {
                 // TODO only print relevant part of OSC address string
                 LOG_ERROR("aoo_parse_pattern: bad ID " << (msg + count));
-                return kAooErrorUnknown;
+                return kAooErrorBadArgument;
             }
         } else {
-            return kAooErrorUnknown;
+            return kAooErrorBadArgument;
         }
 
-        if (offset){
+        if (offset) {
             *offset = count;
         }
         return kAooOk;
     } else {
-        return kAooErrorUnknown; // not an AOO message
+        return kAooErrorBadArgument; // not an AOO message
     }
 }
 
@@ -583,7 +574,7 @@ void aoo_opusUnload();
 #endif
 
 #define HAVE_SETTING(settings, field) \
-    (settings && (settings->size >= (offsetof(AooSettings, field) + sizeof(settings->field))))
+    (settings && AOO_CHECK_FIELD(AooSettings, settings->size, field))
 
 AooError AOO_CALL aoo_initialize(const AooSettings *settings) {
     static bool initialized = false;

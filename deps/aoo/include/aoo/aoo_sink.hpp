@@ -292,6 +292,16 @@ public:
         return control(kAooCtlGetPacketSize, 0, AOO_ARG(n));
     }
 
+    /** \brief Set the ping interval (in seconds) */
+    AooError setPingInterval(AooSeconds s) {
+        return control(kAooCtlSetPingInterval, 0, AOO_ARG(s));
+    }
+
+    /** \brief Get the ping interval (in seconds) */
+    AooError getPingInterval(AooSeconds& s) {
+        return control(kAooCtlGetPingInterval, 0, AOO_ARG(s));
+    }
+
     /** \brief Enable/disable data resending */
     AooError setResendData(AooBool b) {
         return control(kAooCtlSetResendData, 0, AOO_ARG(b));

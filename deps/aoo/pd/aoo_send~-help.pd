@@ -1,42 +1,33 @@
-#N canvas 178 69 611 672 12;
+#N canvas 417 74 611 672 12;
 #X declare -lib aoo;
 #X text 234 419 creation arguments:;
 #X obj 48 467 osc~ 440;
 #X obj 152 468 osc~ 220;
 #X obj 48 493 *~ 0.25;
 #X obj 152 494 *~ 0.25;
-#X text 26 19 aoo_send~: send an AoO audio stream to one or more AoO
-sinks;
+#X text 26 19 aoo_send~: send an AoO audio stream to one or more AoO sinks;
 #X msg 512 217 \; pd dsp \$1;
-#X obj 512 193 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
-1;
-#X obj 29 581 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
+#X obj 512 193 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
+#X obj 29 581 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
 #X msg 61 157 stop;
 #X msg 52 123 start;
 #X obj 469 20 declare -lib aoo;
 #X obj 29 521 aoo_send~ 9998 1 2;
-#N canvas 300 77 652 719 events 0;
+#N canvas 359 118 652 719 events 0;
 #X obj 37 26 inlet;
 #X obj 37 84 outlet;
-#X text 62 567 It also tells you the network latency:;
-#X text 64 588 <delta1> is the approx. delay between source and sink
-(in ms), f 62;
-#X text 64 609 <delta2> is the approx. delay between sink and source
-(in ms), f 62;
+#X text 82 567 It also tells you the network latency:;
+#X text 84 588 <delta1> is the approx. delay between source and sink (in ms), f 62;
+#X text 84 609 <delta2> is the approx. delay between sink and source (in ms), f 62;
 #X text 66 139 A sink invites you to send audio messages.;
-#X text 62 527 A periodic message exchanged between source and sink
-\, so the source knows that the sink is receiving its messages.;
-#X obj 115 56 tgl 15 0 \$0-ping \$0-ping empty 17 7 0 10 -262144 -1
--1 0 1;
+#X text 82 527 A periodic message exchanged between source and sink \, so the source knows that the sink is receiving its messages., f 73;
+#X obj 115 56 tgl 15 0 \$0-ping \$0-ping empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X msg 38 242 uninvite <host> <port> <ID>;
-#X text 64 355 A sink has been added \, either by the user or through
-an invitation., f 68;
+#X text 64 355 A sink has been added \, either by the user or through an invitation., f 68;
 #X text 64 407 A sink has been removed by the user.;
 #X msg 39 116 invite <host> <port> <ID> [<type> <data...>], f 46;
-#X text 64 162 'type' and 'data' are the (optional) invitation metadata
-\, see [pd metadata] in [aoo_receive~].;
-#N canvas 77 113 331 239 route 0;
+#X text 64 162 'type' and 'data' are the (optional) invitation metadata \, see [pd metadata] in [aoo_receive~].;
+#N canvas 77 113 331 191 route 0;
 #X obj 83 58 inlet;
 #X obj 83 161 outlet;
 #X obj 164 192 print aoo_send~;
@@ -50,29 +41,29 @@ an invitation., f 68;
 #X obj 58 322 list trim;
 #X obj 90 113 list split 3;
 #X obj 130 140 t s;
-#X obj 130 167 sel ping;
 #X obj 58 260 spigot;
 #X obj 130 194 t b b;
 #X obj 58 352 print aoo_send~;
 #X obj 162 224 f;
 #X msg 97 227 1;
-#X text 202 169 filter ping events;
 #X obj 180 197 r \$0-ping;
+#X text 202 169 filter ping events;
+#X obj 130 167 sel ping;
 #X connect 0 0 2 0;
-#X connect 2 0 8 0;
+#X connect 2 0 7 0;
 #X connect 2 1 5 0;
 #X connect 3 0 4 0;
-#X connect 4 0 10 0;
+#X connect 4 0 9 0;
 #X connect 5 1 6 0;
-#X connect 6 0 7 0;
-#X connect 7 0 9 0;
-#X connect 7 1 12 0;
-#X connect 8 0 3 0;
-#X connect 9 0 1 0;
-#X connect 9 1 11 0;
-#X connect 11 0 8 1;
-#X connect 12 0 8 1;
-#X connect 14 0 11 1;
+#X connect 6 0 14 0;
+#X connect 7 0 3 0;
+#X connect 8 0 1 0;
+#X connect 8 1 10 0;
+#X connect 10 0 7 1;
+#X connect 11 0 7 1;
+#X connect 12 0 10 1;
+#X connect 14 0 8 0;
+#X connect 14 1 11 0;
 #X restore 83 130 pd filter;
 #N canvas 164 259 450 371 metadata 0;
 #X obj 62 72 inlet;
@@ -113,22 +104,13 @@ an invitation., f 68;
 #X msg 35 329 add <host> <port> <ID>;
 #X msg 35 381 remove <host> <port> <ID>;
 #X text 66 267 A sink asks you to stop sending audio messages.;
-#X text 36 756 ---;
-#X text 65 198 If 'auto_invite' is off \, you have to manually accept
-it with the [invite( method - or ignore it., f 66;
-#X text 64 288 If 'auto_invite' is off \, you have to manually accept
-it with the [uninvite( method - or ignore it., f 66;
+#X text 36 766 ---;
+#X text 65 198 If 'auto_invite' is off \, you have to manually accept it with the [invite( method - or ignore it., f 66;
+#X text 64 288 If 'auto_invite' is off \, you have to manually accept it with the [uninvite( method - or ignore it., f 66;
+#X text 85 650 NOTE: The roundtrip time is not necessarily the same as the sum of the deltas \, especially if the clocks are not perfectly in sync. If one clock runs significantly early or late \, the deltas can even be negative!, f 73;
+#X text 84 629 <rtt> is the approx. roundtrip time (in ms) \, as measured on the source., f 71;
 #X msg 65 500 ... ping <delta1> <delta2> <rtt> <packetloss>;
-#X text 65 650 NOTE: The roundtrip time is not necessarily the same
-as the sum of the deltas \, especially if the clocks are not perfectly
-in sync. If one clock runs significantly early or late \, the deltas
-can even be negative!, f 73;
-#X text 65 701 <packetloss> the current packet loss in percent (averaged
-between pings). If you encounter continuous high packet loss \, you
-might want to adjust the codec settings (e.g. reduce the bandwidth).
-, f 74;
-#X text 64 629 <rtt> is the approx. roundtrip time (in ms) \, as measured
-on the source., f 71;
+#X text 82 705 <packetloss> is the current packet loss in percent (averaged between pings). If you encounter continuous high packet loss \, you might want to adjust the codec settings (e.g. reduce the bandwidth)., f 74;
 #X connect 0 0 13 0;
 #X connect 13 0 1 0;
 #X restore 29 550 pd events;
@@ -143,48 +125,35 @@ on the source., f 71;
 #X text 232 516 3) number of channels (default: 1);
 #X text 283 586 the same port can also be used by sinks;
 #N canvas 705 62 666 584 advanced 0;
-#X obj 63 174 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 63 174 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 63 193 packetsize \$1;
 #X text 172 192 max. UDP packet size (default: 512 bytes);
-#X obj 72 223 nbx 8 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 72 223 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 72 242 timefilter \$1;
 #X text 176 243 time DLL filter bandwidth (default: 0.0001);
-#X obj 77 277 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#X text 157 277 buffersize (ms) for resending lost packets (default:
-1000);
+#X obj 77 277 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X text 157 277 buffersize (ms) for resending lost packets (default: 1000);
 #X msg 52 144 ping \$1;
-#X obj 52 123 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#X text 118 144 set ping interval in ms (default: 1000) \, 0 = off
-;
+#X obj 52 123 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X text 118 144 set ping interval in ms (default: 1000) \, 0 = off;
 #X msg 29 48 port \$1;
-#X obj 29 28 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0 10
--262144 -1 -1 0 256;
+#X obj 29 28 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 41 96 id \$1;
-#X obj 41 77 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0 10
--262144 -1 -1 0 256;
+#X obj 41 77 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X text 98 47 change receive port;
 #X text 98 97 change AoO source ID;
 #X msg 83 353 redundancy \$1;
-#X obj 83 333 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 83 333 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X text 193 330 how often each packet should be sent (default: 1);
 #X msg 87 445 codec_set <param> <value>;
 #X msg 88 478 codec_get <param>;
 #X text 223 477 get the value of a codec parameter;
 #X obj 29 514 s \$0-msg;
-#X text 224 498 responds with a [codec_get <param> <value>( message.
-;
-#X text 193 352 redundancy might help to reduce packet loss \, at the
-cost of increased network traffic., f 44;
+#X text 224 498 responds with a [codec_get <param> <value>( message.;
+#X text 193 352 redundancy might help to reduce packet loss \, at the cost of increased network traffic., f 44;
 #X text 279 446 set the value of a codec parameter;
-#X text 87 417 see the relevant codec subpatch for available parameters.
-;
-#X text 87 397 set/get a parameter of the currently selected codec.
-;
+#X text 87 417 see the relevant codec subpatch for available parameters.;
+#X text 87 397 set/get a parameter of the currently selected codec.;
 #X msg 77 298 resend \$1;
 #X text 158 298 set to 0 to disable packet resending.;
 #X connect 0 0 1 0;
@@ -211,24 +180,18 @@ cost of increased network traffic., f 44;
 #N canvas 595 120 529 559 metadata 0;
 #X msg 31 325 metadata <type> <data...>;
 #X msg 46 354 metadata;
-#X text 30 143 The metadata consists of a 'type' symbol \, followed
-by a list of bytes. 'type' can be either a user-defined name or one
-of the following pre-defined names:;
+#X text 30 143 The metadata consists of a 'type' symbol \, followed by a list of bytes. 'type' can be either a user-defined name or one of the following pre-defined names:;
 #X text 39 197 "text": UTF-8 encoded plain text;
 #X text 41 216 "json": UTF-8 encoded JSON;
 #X text 42 238 "xml": UTF-8 encoded XML;
 #X text 43 261 "osc": an OSC message;
 #X text 120 354 unset metadata;
 #X obj 62 414 oscformat;
-#X text 30 71 The metadata will be output in the [aoo_receive~] object
-as part of the 'start' event message., f 60;
-#X text 31 35 Users can add stream metadata to inform the other end
-about properties like channel layout \, musical information \, etc.
-, f 60;
+#X text 30 71 The metadata will be output in the [aoo_receive~] object as part of the 'start' event message., f 60;
+#X text 31 35 Users can add stream metadata to inform the other end about properties like channel layout \, musical information \, etc., f 60;
 #X msg 62 385 set /foo \, 1 2 3;
 #X obj 62 443 list prepend metadata osc;
-#X text 30 108 The actual content and its interpretation is user-defined
-and will be different for each application., f 58;
+#X text 30 108 The actual content and its interpretation is user-defined and will be different for each application., f 58;
 #X obj 251 413 fudiformat;
 #X text 139 414 "osc";
 #X text 333 414 "fudi";
@@ -247,8 +210,7 @@ and will be different for each application., f 58;
 #X connect 19 0 18 0;
 #X connect 21 0 14 0;
 #X restore 73 192 pd metadata;
-#X msg 66 291 format <codec> <channels> <blocksize> <sr> ..., f 48
-;
+#X msg 66 291 format <codec> <channels> <blocksize> <sr> ..., f 48;
 #X obj 69 437 r \$0-msg;
 #X text 164 192 set stream metadata;
 #X text 175 379 advanced settings;
@@ -266,10 +228,8 @@ and will be different for each application., f 58;
 #X msg 119 203 128;
 #X msg 126 228 256;
 #X msg 133 254 512;
-#X obj 101 156 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#X obj 172 157 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 101 156 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X obj 172 157 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X text 299 158 16-bit integer;
 #X text 306 184 24-bit integer;
 #X text 317 236 64-bit float;
@@ -279,23 +239,16 @@ and will be different for each application., f 58;
 #X msg 41 426 format pcm;
 #X text 255 134 bitdepth;
 #X text 311 211 32-bit float (default);
-#X obj 31 156 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 31 156 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X text 29 133 channels;
 #X obj 101 291 t b f;
 #X obj 31 324 pack 2 64 44100 4, f 37;
 #X msg 31 393 format pcm \$1 \$2 \$3 \$4;
-#X text 27 52 PCM gives you maximum audio quality at the cost of high
-data rates and no packet loss concealment (missing packets just produce
-silence)., f 71;
+#X text 27 52 PCM gives you maximum audio quality at the cost of high data rates and no packet loss concealment (missing packets just produce silence)., f 71;
 #X text 26 25 PCM (uncompressed);
-#X text 27 87 It is a good choice for LANs or inter-app streaming \,
-but for unreliable networks (like the internet) the "opus" codec should
-be preferred., f 72;
-#X msg 43 358 [format pcm <nchannels> <blocksize> <samplerate> <bitdepth>(
-;
-#X text 47 478 (here we only specify the blocksize and bit depth),
-f 52;
+#X text 27 87 It is a good choice for LANs or inter-app streaming \, but for unreliable networks (like the internet) the "opus" codec should be preferred., f 72;
+#X msg 43 358 [format pcm <nchannels> <blocksize> <samplerate> <bitdepth>(;
+#X text 47 478 (here we only specify the blocksize and bit depth), f 52;
 #X obj 31 543 s \$0-msg;
 #X text 49 456 you can skip individual arguments with "_";
 #X msg 47 502 format pcm _ 256 _ 4;
@@ -326,15 +279,11 @@ f 52;
 #X restore 200 343 pd format pcm;
 #N canvas 543 103 887 643 format 0;
 #X msg 194 194 48000;
-#X obj 105 171 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#X obj 183 171 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 105 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X obj 183 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X text 177 148 samplerate;
-#X obj 499 135 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
-#X obj 501 371 nbx 5 14 0 10 0 0 empty empty empty 0 -8 0 10 -262144
--1 -1 0 256;
+#X obj 499 135 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
+#X obj 501 371 nbx 5 14 0 10 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 49 489 format opus;
 #X text 139 489 all arguments are optional!;
 #X text 496 310 complexity (0 - 10);
@@ -344,21 +293,16 @@ f 52;
 #X msg 592 503 voice;
 #X text 100 149 blocksize;
 #X msg 199 221 24000;
-#X text 497 333 higher values give better quality but need more CPU
-power. the default is 9, f 38;
+#X text 497 333 higher values give better quality but need more CPU power. the default is 9, f 38;
 #X msg 204 249 16000;
 #X msg 208 277 12000;
 #X msg 215 303 8000;
-#X obj 37 172 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 37 172 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X text 31 149 channels;
 #X text 570 134 NOTE: this is the *total* bitrate!;
 #X text 31 23 Opus codec (compressed);
-#X text 31 50 Opus is a low latency codec explicitly designed for streaming
-audio over the internet \, see http://opus-codec.org/, f 63;
-#X text 30 86 It offers good audio quality even at low data rates and
-does packet loss concealment to hide the effects of packet loss in
-unreliable networks., f 61;
+#X text 31 50 Opus is a low latency codec explicitly designed for streaming audio over the internet \, see http://opus-codec.org/, f 63;
+#X text 30 86 It offers good audio quality even at low data rates and does packet loss concealment to hide the effects of packet loss in unreliable networks., f 61;
 #X text 264 149 application type;
 #X msg 274 179 audio;
 #X msg 281 215 voip;
@@ -368,10 +312,8 @@ unreliable networks., f 61;
 #X msg 126 249 480;
 #X msg 132 276 960;
 #X msg 137 303 1920;
-#X msg 52 405 format opus <nchannels> <blocksize> <samplerate> <application>
-, f 37;
-#X text 54 540 (here we only specify the blocksize and application
-type), f 58;
+#X msg 52 405 format opus <nchannels> <blocksize> <samplerate> <application>, f 37;
+#X text 54 540 (here we only specify the blocksize and application type), f 58;
 #X text 359 246 optimize for low latency, f 13;
 #X text 326 174 high fidelity (default), f 15;
 #X text 327 209 optimize for VoIP applications, f 18;
@@ -455,48 +397,37 @@ type), f 58;
 #X restore 305 343 pd format opus;
 #X text 67 343 available codecs:;
 #X text 67 266 set the streaming format;
-#X text 67 317 outputs a [format( message with the validated format.
-;
-#X text 227 125 HINT: you can use these two methods to send short "audio
-messages" instead of continuous streams. Each "message" can contain
-additional metadata., f 50;
+#X text 67 317 outputs a [format( message with the validated format.;
+#X text 227 125 HINT: you can use these two methods to send short "audio messages" instead of continuous streams. Each "message" can contain additional metadata., f 50;
 #N canvas 352 69 684 642 sink 0;
 #X msg 29 95 add localhost 9999 1;
 #X msg 70 327 remove localhost 9999 1;
 #X text 132 365 remove all AoO sinks;
 #X msg 86 404 list_sinks;
-#X text 173 401 list all sinks. This will output a message [sink <host>
-<port> <id>( for each sink., f 44;
+#X text 173 401 list all sinks. This will output a message [sink <host> <port> <id>( for each sink., f 44;
 #X msg 79 364 remove;
 #X obj 29 602 s \$0-msg;
 #X msg 26 61 add <host> <port> <ID> [<active> <channel onset>];
 #X text 25 36 add an AoO sink;
 #X msg 37 134 add localhost 9999 1 0;
 #X msg 46 175 add localhost 9999 1 1 4;
-#X obj 61 261 nbx 5 14 -1e+037 1e+037 0 0 empty empty empty 0 -8 0
-10 -262144 -1 -1 0 256;
+#X obj 61 261 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X msg 61 281 channel localhost 9999 1 \$1;
 #X text 269 281 set sink channel onset;
 #X msg 53 228 active localhost 9999 1 \$1;
-#X obj 53 205 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 53 205 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X text 255 226 (de)activate sink;
 #X text 249 326 remove an AoO sink;
-#X text 232 131 by default \, sinks are initially activated \, but
-you can override this with the <active> argument., f 51;
+#X text 232 131 by default \, sinks are initially activated \, but you can override this with the <active> argument., f 51;
 #X msg 95 565 uninvite localhost 9999 1;
 #X msg 91 530 invite localhost 9999 1;
 #X text 234 176 with initial sink channel onset (default: 0);
 #X msg 88 462 auto_invite \$1;
-#X obj 88 441 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 88 441 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X text 269 529 manually accept invitation \, see [invite( event.;
-#X text 285 565 manually accept uninvitation \, see [uninvite( event.
-;
-#X text 88 497 the following methods are only needed if 'auto_invite'
-is off., f 62;
-#X text 204 463 automatically accept (un)invitations (default: on)
-;
+#X text 285 565 manually accept uninvitation \, see [uninvite( event.;
+#X text 88 497 the following methods are only needed if 'auto_invite' is off., f 62;
+#X text 204 463 automatically accept (un)invitations (default: on);
 #X connect 0 0 6 0;
 #X connect 1 0 6 0;
 #X connect 3 0 6 0;

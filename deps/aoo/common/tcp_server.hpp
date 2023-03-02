@@ -25,6 +25,12 @@ namespace aoo {
 class tcp_server
 {
 public:
+#ifdef _WIN32
+    static const int invalid_socket = (int)INVALID_SOCKET;
+#else
+    static const int invalid_socket = -1;
+#endif
+
     tcp_server() {}
     ~tcp_server();
 
@@ -54,8 +60,8 @@ private:
     }
     void do_close();
 
-    int listen_socket_;
-    int event_socket_;
+    int listen_socket_ = invalid_socket;
+    int event_socket_ = invalid_socket;
     std::atomic<bool> running_{false};
 
     std::vector<pollfd> poll_array_;

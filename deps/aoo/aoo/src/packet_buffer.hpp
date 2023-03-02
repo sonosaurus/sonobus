@@ -31,7 +31,7 @@ public:
 
     int32_t num_frames() const { return numframes_; }
     int32_t frame_size(int32_t which) const;
-    int32_t get_frame(int32_t which, AooByte * data, int32_t n);
+    int32_t get_frame(int32_t which, AooByte * data, int32_t n) const;
 
     // data
     int32_t sequence = -1;

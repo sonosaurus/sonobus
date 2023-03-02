@@ -92,6 +92,18 @@ void AooReceive::handleEvent(const AooEvent *event){
     osc::OutboundPacketStream msg(buf, sizeof(buf));
 
     switch (event->type){
+    case kAooEventPing:
+    {
+        auto& e = event->ping;
+        double diff1 = aoo_ntpTimeDuration(e.t1, e.t2);
+        double diff2 = aoo_ntpTimeDuration(e.t2, e.t3);
+        double rtt = aoo_ntpTimeDuration(e.t1, e.t3);
+
+        beginEvent(msg, "/ping", e.endpoint);
+        msg << diff1 << diff2 << rtt;
+        sendMsgRT(msg);
+        break;
+    }
     case kAooEventSourceAdd:
     {
         beginEvent(msg, "/add", event->sourceAdd.endpoint);
@@ -101,6 +113,12 @@ void AooReceive::handleEvent(const AooEvent *event){
     case kAooEventSourceRemove:
     {
         beginEvent(msg, "/remove", event->sourceRemove.endpoint);
+        sendMsgRT(msg);
+        break;
+    }
+    case kAooEventInviteDecline:
+    {
+        beginEvent(msg, "/invite/decline", event->inviteDecline.endpoint);
         sendMsgRT(msg);
         break;
     }
@@ -176,14 +194,6 @@ void AooReceive::handleEvent(const AooEvent *event){
     case kAooEventBufferUnderrun:
     {
         beginEvent(msg, "/buffer/underrun", event->bufferUnderrun.endpoint);
-        sendMsgRT(msg);
-        break;
-    }
-    case kAooEventPing:
-    {
-        auto& e = event->ping;
-        beginEvent(msg, "/ping", e.endpoint);
-        msg << aoo_ntpTimeDuration(e.t1, e.t2); // diff
         sendMsgRT(msg);
         break;
     }

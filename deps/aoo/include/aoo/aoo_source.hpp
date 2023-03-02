@@ -151,26 +151,27 @@ public:
      *
      * When you receive an #kAooEventInvite event, you can decide to
      * accept or decline the invitation.
-     * If you choose to accept it, you have to call this function with
-     * the `token` of the corresponding event; before you might want to
-     * perform certain actions, e.g. based on the metadata.
-     * (Calling this with a valid token essentially activates the sink.)
-     * If you choose to decline it, call it with #kAooIdInvalid.
+     *
+     * \param sink The sink that has sent the invitation
+     * \param token The invitation token (from the `AooEventInvite` event)
+     * \param accept `kAooTrue`: accept invitation (activates the sink)
+     *               `kAooFalse`: declines the invitation
      */
-    virtual AooError AOO_CALL acceptInvitation(
-            const AooEndpoint& sink, AooId token) = 0;
+    virtual AooError AOO_CALL handleInvite(
+            const AooEndpoint& sink, AooId token, AooBool accept) = 0;
 
     /** \brief accept/decline an uninvitation
      *
      * When you receive an #kAooEventUninvite event, you can decide to
      * accept or decline the uninvitation.
-     * If you choose to accept it, you have to call this function with
-     * the `token` of the corresponding event.
-     * (Calling this with a valid token essentially deactivates the sink.)
-     * If you choose to decline it, call it with #kAooIdInvalid.
+     *
+     * \param sink The sink that has sent the uninvitation
+     * \param token The uninvitation token (from the `AooEventUninvite` event)
+     * \param accept `kAooTrue`: accept invitation (deactivates the sink)
+     *               `kAooFalse`: declines the uninvitation
      */
-    virtual AooError AOO_CALL acceptUninvitation(
-            const AooEndpoint& sink, AooId token) = 0;
+    virtual AooError AOO_CALL handleUninvite(
+            const AooEndpoint& sink, AooId token, AooBool accept) = 0;
 
     /** \brief control interface
      *
@@ -320,13 +321,7 @@ public:
         return control(kAooCtlGetPacketSize, 0, AOO_ARG(n));
     }
 
-    /** \brief Set the ping interval (in seconds)
-     *
-     * The source sends a periodic ping message to each sink which the sink has
-     * to answer to signify that it is actually receiving data.
-     * For example, a application might choose to remove a sink after the source
-     * hasn't received a ping for a certain amount of time.
-     */
+    /** \brief Set the ping interval (in seconds) */
     AooError setPingInterval(AooSeconds s) {
         return control(kAooCtlSetPingInterval, 0, AOO_ARG(s));
     }
@@ -339,7 +334,9 @@ public:
     /** \brief Set the resend buffer size (in seconds)
      *
      * The source keeps the last N seconds of audio in a buffer, so it can resend
-     * parts of it if requested (to handle packet loss)
+     * parts of it if requested by the sink (because of packet loss).
+     *
+     * If set to 0.0, resending is disabled.
      */
     AooError setResendBufferSize(AooSeconds s) {
         return control(kAooCtlSetResendBufferSize, 0, AOO_ARG(s));

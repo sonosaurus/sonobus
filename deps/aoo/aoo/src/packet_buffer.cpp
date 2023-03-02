@@ -21,28 +21,19 @@ void sent_block::set(int32_t seq, double sr,
     buffer_.assign(data, data + totalsize);
 }
 
-int32_t sent_block::get_frame(int32_t which, AooByte *data, int32_t n){
+int32_t sent_block::get_frame(int32_t which, AooByte *data, int32_t n) const {
     assert(framesize_ > 0 && numframes_ > 0);
-    if (which >= 0 && which < numframes_){
-        auto onset = which * framesize_;
-        auto minsize = (which == numframes_ - 1) ? size() - onset : framesize_;
-        if (n >= minsize){
-            int32_t nbytes;
-            if (which == numframes_ - 1){ // last frame
-                nbytes = size() - onset;
-            } else {
-                nbytes = framesize_;
-            }
-            auto ptr = buffer_.data() + onset;
-            std::copy(ptr, ptr + n, data);
-            return nbytes;
-        } else {
-            LOG_ERROR("buffer too small! got " << n << ", need " << minsize);
-        }
+    assert(which >= 0 && which < numframes_);
+    auto onset = which * framesize_;
+    auto size = (which == numframes_ - 1) ? buffer_.size() - onset : framesize_;
+    if (n >= size){
+        auto ptr = buffer_.data() + onset;
+        std::copy(ptr, ptr + size, data);
+        return size;
     } else {
-        LOG_ERROR("frame number " << which << " out of range!");
+        LOG_ERROR("sent_block::get_frame(): buffer too small!");
+        return 0;
     }
-    return 0;
 }
 
 int32_t sent_block::frame_size(int32_t which) const {

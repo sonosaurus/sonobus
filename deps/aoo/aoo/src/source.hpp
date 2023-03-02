@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-Now Christof Ressi, Winfried Ritsch and others. 
+/* Copyright (c) 2010-Now Christof Ressi, Winfried Ritsch and others.
  * For information on usage and redistribution, and for a DISCLAIMER OF ALL
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
@@ -35,12 +35,15 @@ class Source;
 
 struct data_request {
     int32_t sequence;
-    int32_t frame;
+    int16_t offset;
+    uint16_t bitset;
 };
 
 enum class request_type {
     none,
-    stop
+    stop,
+    decline,
+    pong
 };
 
 struct sink_request {
@@ -58,6 +61,12 @@ struct sink_request {
         struct {
             int32_t stream;
         } stop;
+        struct {
+            int32_t token;
+        } decline;
+        struct {
+            AooNtpTime time;
+        } pong;
     };
 };
 
@@ -102,11 +111,11 @@ struct sink_desc {
 
     bool need_invite(AooId token);
 
-    void accept_invitation(Source& s, AooId token);
+    void handle_invite(Source& s, AooId token, bool accept);
 
     bool need_uninvite(AooId stream_id);
 
-    void accept_uninvitation(Source& s, AooId token);
+    void handle_uninvite(Source& s, AooId token, bool accept);
 
     void notify_start() {
         needstart_.exchange(true, std::memory_order_release);
@@ -116,8 +125,8 @@ struct sink_desc {
         return needstart_.exchange(false, std::memory_order_acquire);
     }
 
-    void add_data_request(int32_t sequence, int32_t frame){
-        data_requests_.push(sequence, frame);
+    void push_data_request(const data_request& r){
+        data_requests_.push(r);
     }
 
     bool get_data_request(data_request& r){
@@ -226,9 +235,9 @@ class Source final : public AooSource, rt_memory_pool_client {
 
     AooError AOO_CALL removeAll() override;
 
-    AooError AOO_CALL acceptInvitation(const AooEndpoint& sink, AooId token) override;
+    AooError AOO_CALL handleInvite(const AooEndpoint& sink, AooId token, AooBool accept) override;
 
-    AooError AOO_CALL acceptUninvitation(const AooEndpoint& sink, AooId token) override;
+    AooError AOO_CALL handleUninvite(const AooEndpoint& sink, AooId token, AooBool accept) override;
 
     AooError AOO_CALL control(AooCtl ctl, AooIntPtr index,
                               void *ptr, AooSize size) override;
@@ -270,7 +279,7 @@ class Source final : public AooSource, rt_memory_pool_client {
     double stream_samples_ = 0;
     int32_t sequence_ = 0;
     std::atomic<float> xrunblocks_{0};
-    std::atomic<float> lastpingtime_{0};
+    std::atomic<float> last_ping_time_{0};
     std::atomic<bool> needstart_{false};
     enum class stream_state {
         stop,
@@ -344,7 +353,7 @@ class Source final : public AooSource, rt_memory_pool_client {
 
     bool need_resampling() const;
 
-    void make_new_stream();
+    void make_new_stream(bool notify);
 
     void add_xrun(double nblocks);
 
@@ -357,6 +366,8 @@ class Source final : public AooSource, rt_memory_pool_client {
     void dispatch_requests(const sendfn& fn);
 
     void send_start(const sendfn& fn);
+
+    void handle_xruns(const sendfn& fn);
 
     void send_data(const sendfn& fn);
 
@@ -374,6 +385,9 @@ class Source final : public AooSource, rt_memory_pool_client {
                              AooId id, const ip_address& addr);
 
     void handle_ping(const osc::ReceivedMessage& msg,
+                     const ip_address& addr);
+
+    void handle_pong(const osc::ReceivedMessage& msg,
                      const ip_address& addr);
 
     void handle_invite(const osc::ReceivedMessage& msg,

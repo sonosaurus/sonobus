@@ -7,12 +7,6 @@
 
 namespace aoo {
 
-#ifdef _WIN32
-const int kInvalidSocket = (int)INVALID_SOCKET;
-#else
-const int kInvalidSocket = -1;
-#endif
-
 void tcp_server::start(int port, accept_handler accept, receive_handler receive) {
     accept_handler_ = std::move(accept);
     receive_handler_ = std::move(receive);
@@ -78,22 +72,22 @@ void tcp_server::stop() {
 
 void tcp_server::do_close() {
     // close listening socket
-    if (listen_socket_ >= 0) {
+    if (listen_socket_ != invalid_socket) {
     #if 0
         error_handler_(0, 0); // no error
     #endif
         socket_close(listen_socket_);
-        listen_socket_ = kInvalidSocket;
+        listen_socket_ = invalid_socket;
     }
 
-    if (event_socket_ >= 0) {
+    if (event_socket_ != invalid_socket) {
         socket_close(event_socket_);
-        event_socket_ = kInvalidSocket;
+        event_socket_ = invalid_socket;
     }
 
     // close client sockets
     for (auto& c : clients_){
-        if (c.socket >= 0) {
+        if (c.socket != invalid_socket) {
         #if 0
             error_handler_(c.id, 0); // no error
         #endif
@@ -137,8 +131,8 @@ bool tcp_server::close(AooId client) {
         if (clients_[i].id == client) {
             socket_close(clients_[i].socket);
             // mark as stale (will be ignored in poll())
-            clients_[i].socket = kInvalidSocket;
-            poll_array_[client_index + i].fd = kInvalidSocket;
+            clients_[i].socket = invalid_socket;
+            poll_array_[client_index + i].fd = invalid_socket;
             stale_clients_.push_back(i);
             LOG_DEBUG("tcp_server: closed client " << client);
             return true;
@@ -236,8 +230,8 @@ void tcp_server::receive_from_clients() {
 
         socket_close(c.socket);
         // mark as stale (will be ignored in poll())
-        c.socket = kInvalidSocket;
-        poll_array_[client_index + i].fd = kInvalidSocket;
+        c.socket = invalid_socket;
+        poll_array_[client_index + i].fd = invalid_socket;
         stale_clients_.push_back(i);
     }
 
@@ -263,7 +257,7 @@ bool tcp_server::accept_client() {
     if (revents & POLLIN) {
         ip_address addr(ip_address::max_length);
         auto sock = (AooSocket)accept(listen_socket_, addr.address_ptr(), addr.length_ptr());
-        if (sock >= 0) {
+        if (sock != invalid_socket) {
         #if 1
             // disable Nagle's algorithm
             int val = 1;
@@ -365,7 +359,7 @@ bool tcp_server::accept_client() {
         on_error(-1); // ?
     }
     socket_close(listen_socket_);
-    listen_socket_ = kInvalidSocket;
+    listen_socket_ = invalid_socket;
     return false;
 }
 

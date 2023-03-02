@@ -507,15 +507,8 @@ void peer::handle_ping(Client& client, osc::ReceivedMessageArgumentIterator it,
     ping_tt1_ = tt1;
     got_ping_.store(true, std::memory_order_release);
     if (!tt1.is_empty()) {
-        // regular ping
-        time_tag tt2 = time_tag::now();
-
-        // only send event for regular ping!
-        auto e = std::make_unique<peer_ping_event>(*this, tt1, tt2);
-        client.send_event(std::move(e));
-
         LOG_DEBUG("AooClient: got ping from " << *this
-                  << "(tt1: " << tt1 << ", tt2: " << tt2 << ")");
+                  << "(tt1: " << tt1 << ", tt2: " << time_tag::now() << ")");
     } else {
         // handshake ping
         LOG_DEBUG("AooClient: got handshake ping from " << *this);
@@ -552,7 +545,7 @@ void peer::handle_pong(Client& client, osc::ReceivedMessageArgumentIterator it,
     #endif
 
         // only send event for regular pong!
-        auto e = std::make_unique<peer_pong_event>(*this, tt1, tt2, tt3);
+        auto e = std::make_unique<peer_ping_event>(*this, tt1, tt2, tt3);
         client.send_event(std::move(e));
 
         LOG_DEBUG("AooClient: got pong from " << *this

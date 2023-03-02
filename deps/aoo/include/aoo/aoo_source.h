@@ -81,13 +81,13 @@ AOO_API AooError AOO_CALL AooSource_removeSink(
 /** \copydoc AooSource::removeAll() */
 AOO_API AooError AOO_CALL AooSource_removeAll(AooSource *source);
 
-/** \copydoc AooSource::acceptInvitation() */
-AOO_API AooError AOO_CALL AooSource_acceptInvitation(
-        AooSource *source, const AooEndpoint *sink, AooId token);
+/** \copydoc AooSource::handleInvite() */
+AOO_API AooError AOO_CALL AooSource_handleInvite(
+        AooSource *source, const AooEndpoint *sink, AooId token, AooBool accept);
 
-/** \copydoc AooSource::acceptUninvitation() */
-AOO_API AooError AOO_CALL AooSource_acceptUninvitation(
-        AooSource *source, const AooEndpoint *sink, AooId token);
+/** \copydoc AooSource::handleUninvite() */
+AOO_API AooError AOO_CALL AooSource_handleUninvite(
+        AooSource *source, const AooEndpoint *sink, AooId token, AooBool accept);
 
 /** \copydoc AooSource::control() */
 AOO_API AooError AOO_CALL AooSource_control(

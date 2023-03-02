@@ -4,13 +4,6 @@
 
 namespace aoo {
 
-
-#ifdef _WIN32
-const int kInvalidSocket = (int)INVALID_SOCKET;
-#else
-const int kInvalidSocket = -1;
-#endif
-
 void udp_server::start(int port, receive_handler receive,
                        bool threaded, int rcvbufsize, int sndbufsize) {
     do_close();
@@ -29,7 +22,7 @@ void udp_server::start(int port, receive_handler receive,
         throw std::runtime_error("couldn't get socket address: "
                                  + socket_strerror(e));
         socket_close(socket_);
-        socket_ = kInvalidSocket;
+        socket_ = invalid_socket;
     }
 
     if (rcvbufsize > 0) {
@@ -95,10 +88,10 @@ void udp_server::stop() {
 }
 
 void udp_server::do_close() {
-    if (socket_ >= 0) {
+    if (socket_ != invalid_socket) {
         socket_close(socket_);
     }
-    socket_ = kInvalidSocket;
+    socket_ = invalid_socket;
     if (thread_.joinable()) {
         thread_.join();
     }

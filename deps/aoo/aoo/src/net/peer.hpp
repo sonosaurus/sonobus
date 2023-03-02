@@ -132,6 +132,7 @@ private:
     const AooId local_id_;
     aoo::metadata metadata_;
     bool relay_ = false;
+    bool timeout_ = false;
     ip_address_list addrlist_;
     ip_address_list user_relay_;
     ip_address_list group_relay_;
@@ -144,7 +145,6 @@ private:
     std::atomic<bool> connected_{false};
     std::atomic<bool> got_ping_{false};
     std::atomic<bool> binary_{false};
-    bool timeout_ = false;
     int32_t next_sequence_reliable_ = 0;
     int32_t next_sequence_unreliable_ = 0;
     message_send_buffer send_buffer_;

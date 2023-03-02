@@ -22,10 +22,8 @@ enum AooEventTypes
     /*----------------------------------*/
     /** source/sink: xruns occured */
     kAooEventXRun,
-    /** sink: received a ping from source */
+    /** source/sink: received a ping */
     kAooEventPing,
-    /** source: received a ping reply from sink */
-    kAooEventPingReply,
     /** source: invited by sink */
     kAooEventInvite,
     /** source: uninvited by sink */
@@ -46,6 +44,8 @@ enum AooEventTypes
     kAooEventStreamState,
     /** sink: source format changed */
     kAooEventFormatChange,
+    /** sink: invitation has been declined */
+    kAooEventInviteDecline,
     /** sink: invitation timed out */
     kAooEventInviteTimeout,
     /** sink: uninvitation timed out */
@@ -76,10 +76,8 @@ enum AooEventTypes
     kAooEventClientGroupUpdate,
     /** our user has been updated (by the server) */
     kAooEventClientUserUpdate,
-    /** received ping from peer */
+    /** received ping (reply) from peer */
     kAooEventPeerPing,
-    /** received pong from peer */
-    kAooEventPeerPong,
     /** peer handshake has started */
     kAooEventPeerHandshake,
     /** peer handshake has timed out */
@@ -149,23 +147,30 @@ typedef struct AooEventEndpoint
     AooEndpoint endpoint;
 } AooEventEndpoint;
 
-/** \brief received ping from source */
-typedef struct AooEventPing {
-    AooEventType type;
-    AooEndpoint endpoint;
-    AooNtpTime t1;
-    AooNtpTime t2;
-} AooEventPing;
+/** \brief ping info for AooSource */
+typedef struct AooSourcePingInfo
+{
+    float packetLoss; /** current packet loss in percent (0.0 - 1.0) */
+} AooSourcePingInfo;
 
-/** \brief received ping reply from sink */
-typedef struct AooEventPingReply {
+/** \brief ping info union */
+typedef union AooPingInfo
+{
+    AooSourcePingInfo source; /** for AooSource */
+    void *sink; /** for AooSink (placeholder) */
+} AooPingInfo;
+
+/** \brief received ping (reply) */
+typedef struct AooEventPing
+{
     AooEventType type;
     AooEndpoint endpoint;
-    AooNtpTime t1;
-    AooNtpTime t2;
-    AooNtpTime t3;
-    float packetLoss;
-} AooEventPingReply;
+    AooNtpTime t1; /** send time */
+    AooNtpTime t2; /** remote time */
+    AooNtpTime t3; /** receive time */
+    AooSize size; /** size of `info` union member */
+    AooPingInfo info; /** additional information */
+} AooEventPing;
 
 /** \brief a new source has been added */
 typedef AooEventEndpoint AooEventSourceAdd;
@@ -214,6 +219,9 @@ typedef struct AooEventUninvite
     AooId token;
 } AooEventUninvite;
 
+/** \brief invitation has been declined */
+typedef AooEventEndpoint AooEventInviteDecline;
+
 /** \brief invitation has timed out */
 typedef AooEventEndpoint AooEventInviteTimeout;
 
@@ -229,7 +237,9 @@ enum AooStreamStates
     /** \brief stream is (temporarily) inactive */
     kAooStreamStateInactive = 0,
     /** \brief stream is active */
-    kAooStreamStateActive = 1
+    kAooStreamStateActive = 1,
+    /** \brief stream is buffering */
+    kAooStreamStateBuffering = 2
 };
 
 /** \brief the stream state has changed */
@@ -238,6 +248,7 @@ typedef struct AooEventStreamState
     AooEventType type;
     AooEndpoint endpoint;
     AooStreamState state;
+    AooInt32 sampleOffset;
 } AooEventStreamState;
 
 /** \brief generic stream diagnostic event */
@@ -352,28 +363,18 @@ typedef struct AooEventPeerLeave
 } AooEventPeerLeave;
 #endif
 
-/** \brief received ping from peer */
+/** \brief received ping (reply) from peer */
 typedef struct AooEventPeerPing
 {
     AooEventType type;
     AooFlag flags;
     AooId group;
     AooId user;
-    AooNtpTime tt1;
-    AooNtpTime tt2;
+    AooNtpTime tt1; /** send time */
+    AooNtpTime tt2; /** remote time */
+    AooNtpTime tt3; /** receive time */
+    AooSize reserved;
 } AooEventPeerPing;
-
-/** \brief received pong */
-typedef struct AooEventPeerPong
-{
-    AooEventType type;
-    AooFlag flags;
-    AooId group;
-    AooId user;
-    AooNtpTime tt1;
-    AooNtpTime tt2;
-    AooNtpTime tt3;
-} AooEventPeerPong;
 
 /** \brief received peer message */
 typedef struct AooEventPeerMessage
@@ -502,7 +503,6 @@ union AooEvent
     AooEventXRun xrun;
     AooEventEndpoint endpoint;
     AooEventPing ping;
-    AooEventPingReply pingReply;
     AooEventInvite invite;
     AooEventUninvite uninvite;
     AooEventSinkAdd sinkAdd;
@@ -513,6 +513,7 @@ union AooEvent
     AooEventStreamStop streamStop;
     AooEventStreamState streamState;
     AooEventFormatChange formatChange;
+    AooEventInviteDecline inviteDecline;
     AooEventInviteTimeout inviteTimeout;
     AooEventUninviteTimeout uninviteTimeout;
     AooEventBufferOverrun bufferOverrrun;
@@ -531,7 +532,6 @@ union AooEvent
     AooEventClientUserUpdate clientUserUpdate;
     AooEventPeer peer;
     AooEventPeerPing peerPing;
-    AooEventPeerPong peerPong;
     AooEventPeerHandshake peerHandshake;
     AooEventPeerTimeout peerTimeout;
     AooEventPeerJoin peerJoin;

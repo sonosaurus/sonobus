@@ -30,7 +30,9 @@ message(STATUS "Use binary data message: ${AOO_BINARY_DATA_MSG}")
 # compile time debugging options
 option(AOO_DEBUG_MEMORY "debug memory usage" OFF)
 
-option(AOO_DEBUG_DATA "debug memory usage" OFF)
+option(AOO_DEBUG_DATA "debug data transmission" OFF)
+
+option(AOO_DEBUG_RESEND "debug data retransmission" OFF)
 
 option(AOO_DEBUG_DLL "debug time DLL filter" OFF)
 
@@ -59,6 +61,7 @@ set(OPTIONS
     -DAOO_BINARY_DATA_MSG=$<BOOL:${AOO_BINARY_DATA_MSG}>
     -DAOO_DEBUG_MEMORY=$<BOOL:${AOO_DEBUG_MEMORY}>
     -DAOO_DEBUG_DATA=$<BOOL:${AOO_DEBUG_DATA}>
+    -DAOO_DEBUG_RESEND=$<BOOL:${AOO_DEBUG_RESEND}>
     -DAOO_DEBUG_DLL=$<BOOL:${AOO_DEBUG_DLL}>
     -DAOO_DEBUG_TIMER=$<BOOL:${AOO_DEBUG_TIMER}>
     -DAOO_DEBUG_RESAMPLER=$<BOOL:${AOO_DEBUG_RESAMPLER}>
