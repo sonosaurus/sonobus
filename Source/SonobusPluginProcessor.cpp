@@ -1105,9 +1105,9 @@ void SonobusAudioProcessor::cleanupAoo()
 
     if (mAooClient) {
         auto cb = [](void* x, const AooRequest *request,
-                     AooError result, const AooResponse *response) {
+                     const AooResponse *response) {
             auto obj = (SonobusAudioProcessor *)x;
-            if (result == kAooOk){
+            if (response->type != kAooRequestError){
                 DBG("Disconnected");
             } else {
                 auto reply = reinterpret_cast<const AooResponseError *>(response);
@@ -1223,10 +1223,10 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
     int token = 0;
 
     auto cb = [](void* x, const AooRequest *request,
-                 AooError result, const AooResponse *response) {
+                 const AooResponse *response) {
         auto obj = (SonobusAudioProcessor *)x;
 
-        if (result == kAooOk) {
+        if (response->type != kAooRequestError) {
             auto resp = reinterpret_cast<const AooResponseConnect *>(response);
             
             auto client_id = resp->clientId;
@@ -1235,7 +1235,7 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
             obj->mSessionConnectionStamp = Time::getMillisecondCounterHiRes();
             obj->mCurrentClientId = client_id;
 
-            obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, obj, result == kAooOk, "");
+            obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, obj, response->type != kAooRequestError, "");
 
         } else {
             auto reply = reinterpret_cast<const AooResponseError *>(response);
@@ -1246,7 +1246,7 @@ bool SonobusAudioProcessor::connectToServer(const String & host, int port, const
 
             DBG("Error connecting to server: " << reply->errorCode << " msg: " << reply->errorMessage);
 
-            obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, obj, result == kAooOk, reply->errorMessage);
+            obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientConnected, obj, response->type != kAooRequestError, reply->errorMessage);
         }
     };
 
@@ -1306,9 +1306,9 @@ bool SonobusAudioProcessor::disconnectFromServer()
     if (!mAooClient) return false;
 
     auto cb = [](void* x, const AooRequest *request,
-                 AooError result, const AooResponse *response) {
+                 const AooResponse *response) {
         auto obj = (SonobusAudioProcessor *)x;
-        if (result == kAooOk){
+        if (response->type != kAooRequestError){
 
         } else {
             auto reply = reinterpret_cast<const AooResponseError *>(response);
@@ -1436,14 +1436,14 @@ bool SonobusAudioProcessor::joinServerGroup(const String & group, const String &
     if (!mAooClient) return false;
 
     auto cb = [](void* x, const AooRequest *request,
-                 AooError result, const AooResponse* response) {
+                 const AooResponse* response) {
 
         auto grreq = (GroupRequest *)x;
         auto obj = grreq->obj;
         auto group = grreq->group;
         std::string errmsg;
 
-        if (result == kAooOk){
+        if (response->type != kAooRequestError){
             DBG("Joined group - " << group);
             auto r = (const AooResponseGroupJoin *)response;
             const ScopedLock sl (obj->mClientLock);
@@ -1457,11 +1457,11 @@ bool SonobusAudioProcessor::joinServerGroup(const String & group, const String &
             //t_error_reply error { reply->error_code, reply->error_message };
             auto reply = reinterpret_cast<const AooResponseError *>(response);
             errmsg = reply ? reply->errorMessage : "";
-            DBG("Error joining group " << group << " : " << result);
+            DBG("Error joining group " << group << " : " << errmsg);
 
         }
 
-        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, obj, result == kAooOk, group, errmsg);
+        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupJoined, obj, response->type != kAooRequestError, group, errmsg);
 
         delete grreq;
     };
@@ -1485,13 +1485,13 @@ bool SonobusAudioProcessor::leaveServerGroup(const String & group)
     if (!mAooClient) return false;
 
     auto cb = [](void* x, const AooRequest *request,
-                 AooError result, const AooResponse* response) {
+                 const AooResponse* response) {
         auto grreq = (GroupRequest *)x;
         auto obj = grreq->obj;
         auto group = grreq->group;
         std::string errmsg;
 
-        if (result == kAooOk){
+        if (response->type != kAooRequestError){
             DBG("Group leave - " << group);
 
             const ScopedLock sl (obj->mClientLock);
@@ -1510,7 +1510,7 @@ bool SonobusAudioProcessor::leaveServerGroup(const String & group)
 
         }
 
-        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, obj, result == kAooOk, group, errmsg);
+        obj->clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientGroupLeft, obj, response->type != kAooRequestError, group, errmsg);
 
         delete grreq;
     };
@@ -3820,12 +3820,6 @@ int32_t SonobusAudioProcessor::handleAooClientEvent(const AooEvent *event, int32
         DBG("Peer ping " <<  e->group << " - user " << e->user);
         break;
     }
-        case kAooEventPeerPong:
-    {
-        auto e = (const AooEventPeerPong *)event;
-        DBG("Peer ping reply " <<  e->group << " - user " << e->user);
-        break;
-    }
 
     default:
         DBG("Got unknown client event: " << event->type);
@@ -4266,14 +4260,14 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const AooEvent *event, int32_t
 int32_t SonobusAudioProcessor::handleAooSourceEvent(const AooEvent *event, int32_t level, int32_t sourceId)
 {
     switch (event->type){
-        case kAooEventPingReply:
+        case kAooEventPing:
         {
-            auto  *e = (AooEventPingReply *)event;
-            double diff1 = aoo::time_tag::duration(e->t1, e->t2) * 1000.0;
-            double diff2 = aoo::time_tag::duration(e->t2, e->t3) * 1000.0;
-            double rtt = aoo::time_tag::duration(e->t1, e->t3) * 1000.0;
+            auto & e = event->ping;
+            double diff1 = aoo::time_tag::duration(e.t1, e.t2) * 1000.0;
+            double diff2 = aoo::time_tag::duration(e.t2, e.t3) * 1000.0;
+            double rtt = aoo::time_tag::duration(e.t1, e.t3) * 1000.0;
 
-            EndpointState * es = (EndpointState *) findOrAddRawEndpoint(e->endpoint.address, e->endpoint.addrlen);
+            EndpointState * es = (EndpointState *) findOrAddRawEndpoint(e.endpoint.address, e.endpoint.addrlen);
 
             RemotePeer * peer = findRemotePeer(es, sourceId);
             if (peer && !peer->gotNewStylePing) {
@@ -4332,11 +4326,11 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const AooEvent *event, int32
                         //peer->oursource->set_sinkoption(es, peer->remoteSinkId, aoo_opt_protocol_flags, &e->flags, sizeof(int32_t));
 
                         if (peer->sendAllow) {
-                            peer->oursource->acceptInvitation(e->endpoint, e->token);
+                            peer->oursource->handleInvite(e->endpoint, e->token, true);
                             DBG("Accepted invitation to send to remote sink: " << peer->remoteSinkId);
                         } else {
                             // don't accept invitation to send
-                            peer->oursource->acceptInvitation(e->endpoint, kAooIdInvalid);
+                            peer->oursource->handleInvite(e->endpoint, e->token, false);
                             DBG("Not sending , Not Accepting invitation to send to remote sink");
                         }
 
@@ -4377,7 +4371,7 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const AooEvent *event, int32
                     {
                         const ScopedReadLock sl (mCoreLock);
                         ourid = peer->ourId;
-                        peer->oursource->acceptUninvitation(e->endpoint, e->token);
+                        peer->oursource->handleUninvite(e->endpoint, e->token, true);
                         peer->oursource->removeAll();
                         //peer->oursink->uninvite_all(); // ??
                         //peer->connected = false;
