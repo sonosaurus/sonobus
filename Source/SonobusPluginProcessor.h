@@ -510,10 +510,6 @@ public:
     };
     
     bool getRemotePeerLatencyInfo(int index, LatencyInfo & retinfo) const;
-
-    bool startRemotePeerLatencyTest(int index, float durationsec = 1.0);
-    bool stopRemotePeerLatencyTest(int index);
-    bool isRemotePeerLatencyTestActive(int index);
     
     
     bool isAnyRemotePeerRecording() const;
@@ -705,11 +701,11 @@ public:
         virtual void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") {}
         virtual void aooClientPublicGroupModified(SonobusAudioProcessor *comp, const String & group, int count, const String & errmesg="") {}
         virtual void aooClientPublicGroupDeleted(SonobusAudioProcessor *comp, const String & group,  const String & errmesg="") {}
-        virtual void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) {}
-        virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) {}
-        virtual void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) {}
-        virtual void aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port) {}
-        virtual void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) {}
+        virtual void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId) {}
+        virtual void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId) {}
+        virtual void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId) {}
+        virtual void aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port, AooId groupId, AooId userId) {}
+        virtual void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId) {}
         virtual void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) {}
         virtual void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) {}
         virtual void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & chatevent) {}
@@ -915,8 +911,6 @@ private:
 
     
     RemotePeer *  findRemotePeer(EndpointState * endpoint, int32_t ourId);
-    RemotePeer *  findRemotePeerByEchoId(EndpointState * endpoint, int32_t echoId);
-    RemotePeer *  findRemotePeerByLatencyId(EndpointState * endpoint, int32_t latId);
     RemotePeer *  findRemotePeerByRemoteSourceId(EndpointState * endpoint, int32_t sourceId);
     RemotePeer *  findRemotePeerByRemoteSinkId(EndpointState * endpoint, int32_t sinkId);
     RemotePeer *  doAddRemotePeerIfNecessary(EndpointState * endpoint, int32_t ourId=kAooIdInvalid, AooId userid=kAooIdInvalid, const String & username={}, const String & groupname={}, AooId groupid=kAooIdInvalid);

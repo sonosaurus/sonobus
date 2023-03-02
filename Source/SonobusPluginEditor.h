@@ -136,11 +136,11 @@ public:
     void aooClientGroupLeft(SonobusAudioProcessor *comp, bool success, const String & group, const String & errmesg="") override;
     void aooClientPublicGroupModified(SonobusAudioProcessor *comp, const String & group, int count, const String & errmesg="") override;
     void aooClientPublicGroupDeleted(SonobusAudioProcessor *comp, const String & group,  const String & errmesg="") override;
-    void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user) override;
-    void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) override;
-    void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user) override;
-    void aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port) override;
-    void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user) override;
+    void aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId) override;
+    void aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId) override;
+    void aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user,AooId groupId, AooId userId) override;
+    void aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port, AooId groupId, AooId userId) override;
+    void aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId) override;
     void aooClientError(SonobusAudioProcessor *comp, const String & errmesg) override;
     void aooClientPeerChangedState(SonobusAudioProcessor *comp, const String & mesg) override;
     void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg) override;
@@ -468,6 +468,8 @@ private:
         String message;
         String user;
         String group;
+        AooId userId = kAooIdInvalid;
+        AooId groupId = kAooIdInvalid;
         float floatVal = 0.0f;
     };
     Array<ClientEvent> clientEvents;

@@ -1607,53 +1607,68 @@ void SonobusAudioProcessorEditor::aooClientPublicGroupDeleted(SonobusAudioProces
 }
 
 
-void SonobusAudioProcessorEditor::aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user)  
+void SonobusAudioProcessorEditor::aooClientPeerJoined(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId)
 {
     DBG("Client peer '" << user  << "' joined group '" <<  group << "'");
     {
-        const ScopedLock sl (clientStateLock);        
-        clientEvents.add(ClientEvent(ClientEvent::PeerJoinEvent, group, true, "", user));
+        const ScopedLock sl (clientStateLock);
+        auto cev = ClientEvent(ClientEvent::PeerJoinEvent, group, true, "", user);
+        cev.groupId = groupId;
+        cev.userId = userId;
+        clientEvents.add(cev);
     }
     triggerAsyncUpdate();
 }
 
-void SonobusAudioProcessorEditor::aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user) 
+void SonobusAudioProcessorEditor::aooClientPeerPendingJoin(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId)
 {
     DBG("Client peer '" << user  << "' pending join group '" <<  group << "'");
     {
-        const ScopedLock sl (clientStateLock);        
-        clientEvents.add(ClientEvent(ClientEvent::PeerPendingJoinEvent, group, true, "", user));
+        const ScopedLock sl (clientStateLock);
+        auto cev = ClientEvent(ClientEvent::PeerPendingJoinEvent, group, true, "", user);
+        cev.groupId = groupId;
+        cev.userId = userId;
+        clientEvents.add(cev);
     }
     triggerAsyncUpdate();    
 }
 
-void SonobusAudioProcessorEditor::aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user)
+void SonobusAudioProcessorEditor::aooClientPeerJoinFailed(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId)
 {
     DBG("Client peer '" << user  << "' FAILed to join group '" <<  group << "'");
     {
-        const ScopedLock sl (clientStateLock);        
-        clientEvents.add(ClientEvent(ClientEvent::PeerFailedJoinEvent, group, true, "", user));
+        const ScopedLock sl (clientStateLock);
+        auto cev = ClientEvent(ClientEvent::PeerFailedJoinEvent, group, true, "", user);
+        cev.groupId = groupId;
+        cev.userId = userId;
+        clientEvents.add(cev);
     }
     triggerAsyncUpdate();
 }
 
-void SonobusAudioProcessorEditor::aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port)
+void SonobusAudioProcessorEditor::aooClientPeerJoinBlocked(SonobusAudioProcessor *comp, const String & group, const String & user, const String & address, int port, AooId groupId, AooId userId)
 {
     DBG("Client peer '" << user  << "' with address: " << address << " : " << port <<  " BLOCKED from joining group '" <<  group << "'");
     {
         const ScopedLock sl (clientStateLock);
-        clientEvents.add(ClientEvent(ClientEvent::PeerBlockedJoinEvent, group, true, address, user, port));
+        auto cev = ClientEvent(ClientEvent::PeerBlockedJoinEvent, group, true, address, user, port);
+        cev.groupId = groupId;
+        cev.userId = userId;
+        clientEvents.add(cev);
     }
     triggerAsyncUpdate();
 }
 
 
-void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user)  
+void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user, AooId groupId, AooId userId)
 {
     DBG("Client peer '" << user  << "' left group '" <<  group << "'");
     {
-        const ScopedLock sl (clientStateLock);        
-        clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user));
+        const ScopedLock sl (clientStateLock);
+        auto cev = ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user);
+        cev.groupId = groupId;
+        cev.userId = userId;
+        clientEvents.add(cev);
     }
     triggerAsyncUpdate();
 
@@ -3940,19 +3955,19 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
             }
 
-            mPeerContainer->peerLeftGroup(ev.group, ev.user);
+            mPeerContainer->peerLeftGroup(ev.group, ev.user, ev.groupId, ev.userId);
 
             updatePeerState(true);
             updateState(false);
         }
         else if (ev.type == ClientEvent::PeerPendingJoinEvent) {
-            mPeerContainer->peerPendingJoin(ev.group, ev.user);
+            mPeerContainer->peerPendingJoin(ev.group, ev.user, ev.groupId, ev.userId);
         }
         else if (ev.type == ClientEvent::PeerFailedJoinEvent) {
-            mPeerContainer->peerFailedJoin(ev.group, ev.user);
+            mPeerContainer->peerFailedJoin(ev.group, ev.user, ev.groupId, ev.userId);
         }
         else if (ev.type == ClientEvent::PeerBlockedJoinEvent) {
-            mPeerContainer->peerBlockedJoin(ev.group, ev.user, ev.message, (int) lrint(ev.floatVal));
+            mPeerContainer->peerBlockedJoin(ev.group, ev.user, ev.message, (int) lrint(ev.floatVal), ev.groupId, ev.userId);
         }
         else if (ev.type == ClientEvent::PeerRequestedLatencyMatchEvent) {
 
