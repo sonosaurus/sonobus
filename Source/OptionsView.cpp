@@ -1203,69 +1203,63 @@ void OptionsView::chooseRecDirBrowser()
 {
     SafePointer<OptionsView> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir;
-        if (processor.getDefaultRecordingDirectory().isLocalFile()) {
-            recdir = processor.getDefaultRecordingDirectory().getLocalFile();
-        }
+    File recdir;
+    if (processor.getDefaultRecordingDirectory().isLocalFile()) {
+        recdir = processor.getDefaultRecordingDirectory().getLocalFile();
+    }
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
-                                           recdir,
-                                           "",
-                                           true, false, getTopLevelComponent()));
+    mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
+                                       recdir,
+                                       "",
+                                       true, false, getTopLevelComponent()));
 
 
-        int modes = FileBrowserComponent::canSelectDirectories | FileBrowserComponent::openMode;
-        mFileChooser->launchAsync (modes,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
+    int modes = FileBrowserComponent::canSelectDirectories | FileBrowserComponent::openMode;
+    mFileChooser->launchAsync (modes,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
 
-                DBG("Chose directory: " <<  url.toString(false));
+            DBG("Chose directory: " <<  url.toString(false));
 
 #if JUCE_ANDROID
-                auto docdir = AndroidDocument::fromTree(url);
-                if (!docdir.hasValue()) {
-                    docdir = AndroidDocument::fromFile(url.getLocalFile());
+            auto docdir = AndroidDocument::fromTree(url);
+            if (!docdir.hasValue()) {
+                docdir = AndroidDocument::fromFile(url.getLocalFile());
+            }
+            
+            if (docdir.hasValue()) {
+                AndroidDocumentPermission::takePersistentReadWriteAccess(url);
+                if (docdir.getInfo().isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
                 }
-                
-                if (docdir.hasValue()) {
-                    AndroidDocumentPermission::takePersistentReadWriteAccess(url);
-                    if (docdir.getInfo().isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    }
-                }
+            }
 #else
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-                    if (lfile.isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    } else {
-                        auto parurl = URL(lfile.getParentDirectory());
-                        safeThis->processor.setDefaultRecordingDirectory(parurl);
-                    }
-
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+                if (lfile.isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
+                } else {
+                    auto parurl = URL(lfile.getParentDirectory());
+                    safeThis->processor.setDefaultRecordingDirectory(parurl);
                 }
+
+            }
 #endif
 
-                safeThis->updateState();
+            safeThis->updateState();
 
-            }
+        }
 
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-        }, nullptr);
+    }, nullptr);
 
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
 }
 
 

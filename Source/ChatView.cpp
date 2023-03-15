@@ -648,50 +648,44 @@ void ChatView::showSaveChat()
 {
     SafePointer<ChatView> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+    File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
 
-        // TODO - on iOS we need to give it a name first
+    // TODO - on iOS we need to give it a name first
 //#if (JUCE_IOS || JUCE_ANDROID)
-        String filename = String("SonoBusChat_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
-        recdir = File::getSpecialLocation(File::userDocumentsDirectory).getNonexistentChildFile (filename, ".txt");
+    String filename = String("SonoBusChat_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
+    recdir = File::getSpecialLocation(File::userDocumentsDirectory).getNonexistentChildFile (filename, ".txt");
 //#endif
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
-                                           recdir,
-                                           "*.txt",
-                                           true, false, getTopLevelComponent()));
+    mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
+                                       recdir,
+                                       "*.txt",
+                                       true, false, getTopLevelComponent()));
 
 
 
-        mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
+    mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
 
-                DBG("Chose file to save chat: " <<  url.toString(false));
+            DBG("Chose file to save chat: " <<  url.toString(false));
 
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
 
-                    lfile.replaceWithText(safeThis->mChatTextEditor->getText());
-                }
+                lfile.replaceWithText(safeThis->mChatTextEditor->getText());
             }
+        }
 
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-        }, nullptr);
+    }, nullptr);
 
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
 }
 
 
