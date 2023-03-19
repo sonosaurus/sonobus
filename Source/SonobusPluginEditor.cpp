@@ -2360,134 +2360,119 @@ void SonobusAudioProcessorEditor::requestRecordDir(std::function<void (URL)> cal
 {
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        
-        DBG("Requesting recdir");
-        
-        File initopendir = mCurrOpenDir;
+    DBG("Requesting recdir");
+    
+    File initopendir = mCurrOpenDir;
 #if JUCE_ANDROID
-        initopendir = File::getSpecialLocation(File::SpecialLocationType::userMusicDirectory);
-        // doens't work
+    initopendir = File::getSpecialLocation(File::SpecialLocationType::userMusicDirectory);
+    // doens't work
 #endif
-        
-        mFileChooser.reset(new FileChooser(TRANS("Choose a location to store recorded files."),
-                                           initopendir,
-                                           "",
-                                           true, false, getTopLevelComponent()));
-        
-        
-        
-        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                                   [safeThis,callback] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-                
-                DBG("Chosen recdir to save in: " <<  url.toString(false));
-                
+    
+    mFileChooser.reset(new FileChooser(TRANS("Choose a location to store recorded files."),
+                                       initopendir,
+                                       "",
+                                       true, false, getTopLevelComponent()));
+    
+    
+    
+    mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                               [safeThis,callback] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+            
+            DBG("Chosen recdir to save in: " <<  url.toString(false));
+            
 #if JUCE_ANDROID
-                auto docdir = AndroidDocument::fromTree(url);
-                if (!docdir.hasValue()) {
-                    docdir = AndroidDocument::fromFile(url.getLocalFile());
-                }
-                
-                if (docdir.hasValue()) {
-                    AndroidDocumentPermission::takePersistentReadWriteAccess(url);
-                    if (docdir.getInfo().isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    }
-                }
-#else
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-                    if (lfile.isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    } else {
-                        auto parurl = URL(lfile.getParentDirectory());
-                        safeThis->processor.setDefaultRecordingDirectory(parurl);
-                    }
-
-                }
-#endif
-                
-                if (url.isLocalFile()) {
-                    safeThis->mCurrOpenDir = url.getLocalFile();
-                    safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
-                }
-
-                callback(url);
+            auto docdir = AndroidDocument::fromTree(url);
+            if (!docdir.hasValue()) {
+                docdir = AndroidDocument::fromFile(url.getLocalFile());
             }
             
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
+            if (docdir.hasValue()) {
+                AndroidDocumentPermission::takePersistentReadWriteAccess(url);
+                if (docdir.getInfo().isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
+                }
             }
-                        
-        }, nullptr);
+#else
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+                if (lfile.isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
+                } else {
+                    auto parurl = URL(lfile.getParentDirectory());
+                    safeThis->processor.setDefaultRecordingDirectory(parurl);
+                }
+
+            }
+#endif
+            
+            if (url.isLocalFile()) {
+                safeThis->mCurrOpenDir = url.getLocalFile();
+                safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
+            }
+
+            callback(url);
+        }
         
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
+                    
+    }, nullptr);
 }
 
 void SonobusAudioProcessorEditor::openFileBrowser()
 {
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
 #if !(JUCE_IOS || JUCE_ANDROID)
-        if (mCurrOpenDir.getFullPathName().isEmpty()) {
-            mCurrOpenDir = File(processor.getLastBrowseDirectory());
-            DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
-            
-        }
-#endif
+    if (mCurrOpenDir.getFullPathName().isEmpty()) {
+        mCurrOpenDir = File(processor.getLastBrowseDirectory());
+        DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
         
-        mFileChooser.reset(new FileChooser(TRANS("Choose an audio file to open..."),
-                                           mCurrOpenDir,
+    }
+#endif
+    
+    mFileChooser.reset(new FileChooser(TRANS("Choose an audio file to open..."),
+                                       mCurrOpenDir,
 #if (JUCE_IOS || JUCE_MAC)
-                                           "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf",
+                                       "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf",
 #else
-                                           "*.wav;*.flac;*.aif;*.ogg;*.mp3",
+                                       "*.wav;*.flac;*.aif;*.ogg;*.mp3",
 #endif
-                                           true, false, getTopLevelComponent()));
-        
-        
-        
-        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-                
-                DBG("Attempting to load from: " <<  url.toString(false));
-                
-                if (url.isLocalFile()) {
-                    safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
-                    safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
-                }
+                                       true, false, getTopLevelComponent()));
+    
+    
+    
+    mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+            
+            DBG("Attempting to load from: " <<  url.toString(false));
+            
+            if (url.isLocalFile()) {
+                safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
+                safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
+            }
 
-                safeThis->loadAudioFromURL(url);
-            }
-            
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
-            
-            safeThis->mDragDropBg->setVisible(false);    
-            
-        }, nullptr);
+            safeThis->loadAudioFromURL(url);
+        }
         
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
+        
+        safeThis->mDragDropBg->setVisible(false);    
+        
+    }, nullptr);
 }
 
 
@@ -2497,52 +2482,45 @@ void SonobusAudioProcessorEditor::showSaveSettingsPreset()
 
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
-        String * recentsfolder = nullptr;
-        if (getLastRecentsFolder) {
-            if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
-                recdir = File(*recentsfolder);
+    File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+    String * recentsfolder = nullptr;
+    if (getLastRecentsFolder) {
+        if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
+            recdir = File(*recentsfolder);
+        }
+    }
+    // TODO - on iOS we need to give it a name first
+
+    mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
+                                       recdir,
+                                       "*.sonobus",
+                                       true, false, getTopLevelComponent()));
+
+
+
+    mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+
+            DBG("Chose directory: " <<  url.toString(false));
+
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+
+                // save settings
+                safeThis->saveSettingsToFile(lfile);
             }
         }
-        // TODO - on iOS we need to give it a name first
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
-                                           recdir,
-                                           "*.sonobus",
-                                           true, false, getTopLevelComponent()));
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-
-
-        mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-
-                DBG("Chose directory: " <<  url.toString(false));
-
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-
-                    // save settings
-                    safeThis->saveSettingsToFile(lfile);
-                }
-            }
-
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
-
-        }, nullptr);
-
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+    }, nullptr);
 }
 
 void SonobusAudioProcessorEditor::showLoadSettingsPreset()
@@ -2551,51 +2529,44 @@ void SonobusAudioProcessorEditor::showLoadSettingsPreset()
 
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
-        String * recentsfolder = nullptr;
-        if (getLastRecentsFolder) {
-            if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
-                recdir = File(*recentsfolder);
+    File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+    String * recentsfolder = nullptr;
+    if (getLastRecentsFolder) {
+        if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
+            recdir = File(*recentsfolder);
+        }
+    }
+
+    mFileChooser.reset(new FileChooser(TRANS("Choose a setup file to load"),
+                                       recdir,
+                                       "*.sonobus",
+                                       true, false, getTopLevelComponent()));
+
+
+
+    mFileChooser->launchAsync (FileBrowserComponent::openMode|FileBrowserComponent::canSelectFiles,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+
+            DBG("Chose file: " <<  url.toString(false));
+
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+
+                // load settings
+                safeThis->loadSettingsFromFile(lfile);
             }
         }
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose a setup file to load"),
-                                           recdir,
-                                           "*.sonobus",
-                                           true, false, getTopLevelComponent()));
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-
-
-        mFileChooser->launchAsync (FileBrowserComponent::openMode|FileBrowserComponent::canSelectFiles,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-
-                DBG("Chose file: " <<  url.toString(false));
-
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-
-                    // load settings
-                    safeThis->loadSettingsFromFile(lfile);
-                }
-            }
-
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
-
-        }, nullptr);
-
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+    }, nullptr);
 }
 
 bool SonobusAudioProcessorEditor::loadSettingsFromFile(const File & file)
