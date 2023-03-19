@@ -460,6 +460,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         localization/localized_pt-pt.txt
         localization/localized_ko.txt
         localization/localized_ru.txt
+	localization/localized_zh-hans.txt
         images/bar_click.wav
         images/beat_click.wav
         images/chat.svg
