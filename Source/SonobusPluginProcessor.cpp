@@ -834,6 +834,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     initializeAoo();
 
+    mFreshInit = false; // need to ensure this before loaddefaultpluginstate
+
     if (isplugin) {
         loadDefaultPluginSettings();
     }
@@ -841,6 +843,8 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     loadGlobalState();
     
     moveOldMisplacedFiles();
+
+    mFreshInit = true;
 }
 
 
