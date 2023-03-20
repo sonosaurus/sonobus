@@ -1557,7 +1557,9 @@ void ConnectView::RecentsListModel::paintListBoxItem (int rowNumber, Graphics &g
     float iconsize = height*yratio;
     float groupheight = height*yratio;
     g.drawImageWithin(groupImage, 0, 0, iconsize, iconsize, RectanglePlacement::fillDestination);
-    g.drawFittedText (info.groupName, iconsize + 4, 0, adjwidth*xratio - 8 - iconsize, groupheight, Justification::centredLeft, true);
+    String grouptext;
+    grouptext << (info.groupIsPublic ? TRANS("[P] ") : "") << info.groupName;
+    g.drawFittedText (grouptext, iconsize + 4, 0, adjwidth*xratio - 8 - iconsize, groupheight, Justification::centredLeft, true);
 
     g.setFont (parent->recentsNameFont);
     g.setColour (parent->findColour(nameTextColourId).withAlpha(0.8f));
