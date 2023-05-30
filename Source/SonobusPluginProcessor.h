@@ -127,7 +127,7 @@ public:
         AutoNetBufferModeInitAuto
     };
     
-    enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus };
+    enum AudioCodecFormatCodec { CodecPCM = 0, CodecOpus, CodecUnknown };
 
     enum ReverbModel {
         ReverbModelFreeverb = 0,
@@ -159,11 +159,12 @@ public:
 
     struct AudioCodecFormatInfo {
         AudioCodecFormatInfo() {}
-        AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_), min_preferred_blocksize(16)  { computeName(); }
-        AudioCodecFormatInfo(int bitrate_, int complexity_, int signaltype, int minblocksize=120) :  codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype), min_preferred_blocksize(minblocksize) { computeName(); }
+        AudioCodecFormatInfo(Uuid id_, int bitdepth_) : codec(CodecPCM), id(id_), bitdepth(bitdepth_), min_preferred_blocksize(16)  { computeName(); }
+        AudioCodecFormatInfo(Uuid id_, int bitrate_, int complexity_, int signaltype, int minblocksize=120) : codec(CodecOpus), id(id_), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype), min_preferred_blocksize(minblocksize) { computeName(); }
         void computeName();
         
         String name;
+        Uuid id;
         AudioCodecFormatCodec codec;
         // PCM options
         int bitdepth = 2; // bytes
@@ -371,6 +372,8 @@ public:
 
     int getRemotePeerRecvChannelCount(int index) const;
 
+    std::vector<int> getRemotePeerSupportedAudioFormatIndexes(int index);
+
     //int getRemotePeerChannelGroupChannelCount(int index, int changroup) const;
     //void setRemotePeerChannelGroupChannelCount(int index, int changroup, int count);
 
@@ -563,8 +566,8 @@ public:
     bool getChangingDefaultRecvAudioCodecSetsExisting() const { return mChangingDefaultRecvAudioCodecChangesAll;}
 
     
-    String getAudioCodeFormatName(int formatIndex) const;
-    bool getAudioCodeFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const;
+    String getAudioCodecFormatName(int formatIndex) const;
+    bool getAudioCodecFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const;
 
     void setDefaultAutoresizeBufferMode(AutoNetBufferMode flag);
     AutoNetBufferMode getDefaultAutoresizeBufferMode() const { return (AutoNetBufferMode) defaultAutoNetbufMode; }
@@ -668,6 +671,7 @@ public:
         virtual void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & chatevent) {}
         virtual void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) {}
         virtual void peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked) {}
+        virtual void peerCodecInfoReceived(SonobusAudioProcessor *comp, const String & username) {}
     };
     
     void addClientListener(ClientListener * l) {
@@ -851,6 +855,11 @@ private:
     void handleRemotePeerInfoUpdate(RemotePeer * peer, const juce::var & infodata);
     void sendRemotePeerInfoUpdate(int peerindex = -1, RemotePeer * topeer = nullptr);
 
+    std::set<Uuid> getSupportedFallbackCodecs();
+    StringArray getSupportedCodecsByThisClient();
+    bool doesPeerSupportCodec(RemotePeer * peer, int audioFormatIndex);
+    AudioCodecFormatInfo resolveOpusCodecInfo(int bitdepth, int complexity, int signaltype);
+    AudioCodecFormatInfo resolvePcmCodecInfo(int bitdepth);
 
     void handlePingEvent(EndpointState * endpoint, uint64_t tt1, uint64_t tt2, uint64_t tt3);
 

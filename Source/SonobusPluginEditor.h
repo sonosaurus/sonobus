@@ -146,6 +146,7 @@ public:
     void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg) override;
     void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) override;
     void peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked) override;
+    void peerCodecInfoReceived(SonobusAudioProcessor *comp, const String & userName) override;
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
@@ -454,6 +455,7 @@ private:
             PublicGroupDeletedEvent,
             PeerRequestedLatencyMatchEvent,
             PeerBlockedInfoChangedEvent,
+            PeerCodecInfoReceivedEvent,
             Error
         };
         

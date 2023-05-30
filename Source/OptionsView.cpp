@@ -117,7 +117,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
         SonobusAudioProcessor::AudioCodecFormatInfo finfo;
-        processor.getAudioCodeFormatInfo(i, finfo);
+        processor.getAudioCodecFormatInfo(i, finfo);
         auto name = finfo.name;
         if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
             name += String(" (*)");

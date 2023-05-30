@@ -1708,6 +1708,14 @@ void SonobusAudioProcessorEditor::peerBlockedInfoChanged(SonobusAudioProcessor *
 
 }
 
+void SonobusAudioProcessorEditor::peerCodecInfoReceived(SonobusAudioProcessor *comp, const String & username)
+{
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add(ClientEvent(ClientEvent::PeerCodecInfoReceivedEvent, username));
+    }
+    triggerAsyncUpdate();
+}
 
 //////////////////////////
 
@@ -3938,6 +3946,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         }
         else if (ev.type == ClientEvent::PeerBlockedInfoChangedEvent) {
             updatePeerState(true);
+        } else if (ev.type == ClientEvent::PeerCodecInfoReceivedEvent) {
+            mPeerContainer->updateAvailableCodecOptions(ev.message);
         }
     }
 

@@ -244,6 +244,7 @@ public:
 
     void setPeerDisplayMode(SonobusAudioProcessor::PeerDisplayMode mode);
 
+    void updateAvailableCodecOptions(const String & username);
 
 protected:
     
