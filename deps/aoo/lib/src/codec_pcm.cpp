@@ -10,6 +10,20 @@
 
 namespace {
 
+// Q_8BIt is a constant required for the 8-bit dithered noise shaping
+// it's the pre-calculation of 1 / 256 and represents the "step size" of the quantized data for an 8-bit resolution
+const float Q_8BIT = 0.00390625f;
+// constants for the quantization error tracking ring-buffer
+const int ERROR_BUF_MASK = 15;
+const int ERROR_BUF_SIZE = 16;
+// example coefficients for a FIR filter of size 9 from "Minimally Audible Noise Shaping" by Lipshitz 1991
+const float SHAPED_BS[] = { 2.847f, -4.685f, 6.214f, -7.184f, 6.639f, -5.032f, 3.263f, -1.632f, 0.4191f};
+
+// returns a random number from 0.f to 1.f
+float get_random_number() {
+    return static_cast<float> (rand()) / static_cast<float> (RAND_MAX);
+}
+
 // conversion routines between aoo_sample and PCM data
 union convert {
     int8_t b[8];
@@ -23,6 +37,8 @@ union convert {
 int32_t bytes_per_sample(int32_t bd)
 {
     switch (bd){
+    case AOO_PCM_INT8:
+        return 1;
     case AOO_PCM_INT16:
         return 2;
     case AOO_PCM_INT24:
@@ -35,6 +51,38 @@ int32_t bytes_per_sample(int32_t bd)
         assert(false);
         return 0;
     }
+}
+
+// converts the sample to an 8-bit value including noise shaped dithering
+// it's based on the implementations from Ardour and from Audacity and uses
+// methods from "Minimally Audible Noise Shaping" by Lipshitz from 1991
+void sample_to_int8(aoo_sample in, char *out, int *mPhase, float *errorBuffer)
+{
+    // add shaped noise with a FIR filter function based on recent errors
+    in += errorBuffer[*mPhase] * SHAPED_BS[0]
+        + errorBuffer[(*mPhase - 1) & ERROR_BUF_MASK] * SHAPED_BS[1]
+        + errorBuffer[(*mPhase - 2) & ERROR_BUF_MASK] * SHAPED_BS[2]
+        + errorBuffer[(*mPhase - 3) & ERROR_BUF_MASK] * SHAPED_BS[3]
+        + errorBuffer[(*mPhase - 4) & ERROR_BUF_MASK] * SHAPED_BS[4]
+        + errorBuffer[(*mPhase - 5) & ERROR_BUF_MASK] * SHAPED_BS[5]
+        + errorBuffer[(*mPhase - 6) & ERROR_BUF_MASK] * SHAPED_BS[6]
+        + errorBuffer[(*mPhase - 7) & ERROR_BUF_MASK] * SHAPED_BS[7]
+        + errorBuffer[(*mPhase - 8) & ERROR_BUF_MASK] * SHAPED_BS[8];
+
+    *mPhase = (*mPhase + 1) & ERROR_BUF_MASK;
+    // save input value before quantization
+    float pre_quantization = in;
+
+    // add two linear probability density function (LPDF) values together
+    // to create a triangular probability density function (TPDF)
+    in += Q_8BIT * (get_random_number() + get_random_number() - 1.0f);
+
+    // quantize
+    int32_t temp = in * 0x80;
+    // save quantization error
+    errorBuffer[*mPhase] = pre_quantization - temp / 128.0f;
+
+    out[0] = (temp > INT8_MAX) ? INT8_MAX : (temp < INT8_MIN) ? INT8_MIN : temp;
 }
 
 void sample_to_int16(aoo_sample in, char *out)
@@ -75,6 +123,11 @@ void sample_to_float32(aoo_sample in, char *out)
 void sample_to_float64(aoo_sample in, char *out)
 {
     aoo::to_bytes<double>(in, out);
+}
+
+aoo_sample int8_to_sample(const char *in)
+{
+    return(aoo_sample)in[0] / 128.f;
 }
 
 aoo_sample int16_to_sample(const char *in){
@@ -134,14 +187,27 @@ struct codec {
     aoo_format_pcm format;
 };
 
-int32_t codec_setformat(void *enc, aoo_format *f)
-{
-    if (strcmp(f->codec, AOO_CODEC_PCM)){
-        return 0;
+// the encoder requires a state for the noise shaping per channel, the decoder is simpler and doesn't need any states
+struct encoder : codec {
+    ~encoder(){
+        if (errorBuffer) {
+            for (int i = 0; i < nchannels; i++) {
+                delete[] errorBuffer[i];
+            }
+            delete[] errorBuffer;
+        }
+        if (mPhase) {
+            delete[] mPhase;
+        }
     }
-    auto c = static_cast<codec *>(enc);
-    auto fmt = reinterpret_cast<aoo_format_pcm *>(f);
+    // remember the number of channels so that we can free the right amount of resources later on
+    int nchannels = 0;
+    int *mPhase = nullptr;
+    float **errorBuffer = nullptr;
+};
 
+void validate_format(aoo_format_pcm * fmt)
+{
     // validate blocksize
     if (fmt->header.blocksize <= 0){
         LOG_WARNING("PCM: bad blocksize " << fmt->header.blocksize
@@ -165,6 +231,38 @@ int32_t codec_setformat(void *enc, aoo_format *f)
         LOG_WARNING("PCM: bad bitdepth, using 32bit float");
         fmt->bitdepth = AOO_PCM_FLOAT32;
     }
+}
+
+int32_t encoder_setformat(void *enc, aoo_format *f)
+{
+    if (strcmp(f->codec, AOO_CODEC_PCM)){
+        return 0;
+    }
+    auto c = static_cast<encoder *>(enc);
+    auto fmt = reinterpret_cast<aoo_format_pcm *>(f);
+    validate_format(fmt);
+
+    // clear noise shaping state
+    if (c->errorBuffer != nullptr) {
+        // the number of channels could have changed in the format so use the old channels number for the free calls!
+        for(int i = 0; i < c->nchannels; i++) {
+            delete[] c->errorBuffer[i];
+        }
+        delete[] c->errorBuffer;
+    }
+    if (c->mPhase != nullptr) {
+        delete[] c->mPhase;
+    }
+
+    // init noise shaping state
+    c->nchannels = fmt->header.nchannels;
+    c->errorBuffer = new float*[c->nchannels];
+    for (int i = 0; i < c->nchannels; i++){
+        c->errorBuffer[i] = new float[ERROR_BUF_SIZE];
+        std::fill(c->errorBuffer[i], c->errorBuffer[i] + ERROR_BUF_SIZE, 0);
+    }
+    c->mPhase = new int[ERROR_BUF_SIZE];
+    std::fill(c->mPhase, c->mPhase + ERROR_BUF_SIZE, 0);
 
     // save and print settings
     memcpy(&c->format, fmt, sizeof(aoo_format_pcm));
@@ -188,7 +286,7 @@ int32_t encoder_readformat(void *enc, aoo_format *fmt,
             c->format.header.codec = AOO_CODEC_PCM; // !
             //print_settings(c->format);
             
-            if (codec_setformat(enc, &c->format.header)) {     
+            if (encoder_setformat(enc, &c->format.header)) {
                 // it could have been modified during validation, need to re-write the base format of 
                 // passed in value
                 memcpy(fmt, &c->format.header, sizeof(aoo_format));
@@ -226,11 +324,11 @@ int32_t codec_getformat(void *x, aoo_format_storage *f)
 }
 
 void *encoder_new(){
-    return new codec;
+    return new encoder;
 }
 
 void encoder_free(void *enc){
-    delete (codec *)enc;
+    delete (encoder *)enc;
 }
 
 int32_t encoder_encode(void *enc,
@@ -244,6 +342,16 @@ int32_t encoder_encode(void *enc,
         return 0;
     }
 
+    auto samples_to_blob_8bit = [&]{
+        auto c = static_cast<encoder *>(enc);
+        int nchannels = c->format.header.nchannels;
+        auto b = buf;
+        for (int i = 0; i < n; ++i){
+            sample_to_int8(s[i], b, &(c->mPhase[i % nchannels]), c->errorBuffer[i % nchannels]);
+            ++b;
+        }
+    };
+
     auto samples_to_blob = [&](auto fn){
         auto b = buf;
         for (int i = 0; i < n; ++i){
@@ -253,6 +361,9 @@ int32_t encoder_encode(void *enc,
     };
 
     switch (bitdepth){
+    case AOO_PCM_INT8:
+        samples_to_blob_8bit();
+        break;
     case AOO_PCM_INT16:
         samples_to_blob(sample_to_int16);
         break;
@@ -331,6 +442,9 @@ int32_t decoder_decode(void *dec,
     };
 
     switch (c->format.bitdepth){
+    case AOO_PCM_INT8:
+        blob_to_samples(int8_to_sample);
+        break;
     case AOO_PCM_INT16:
         blob_to_samples(int16_to_sample);
         break;
@@ -349,6 +463,23 @@ int32_t decoder_decode(void *dec,
     }
 
     return size / samplesize;
+}
+
+int32_t decoder_setformat(void *enc, aoo_format *f)
+{
+    if (strcmp(f->codec, AOO_CODEC_PCM)){
+        return 0;
+    }
+    auto c = static_cast<codec *>(enc);
+    auto fmt = reinterpret_cast<aoo_format_pcm *>(f);
+    validate_format(fmt);
+
+    // save and print settings
+    memcpy(&c->format, fmt, sizeof(aoo_format_pcm));
+    c->format.header.codec = AOO_CODEC_PCM; // !
+    print_settings(c->format);
+
+    return 1;
 }
 
 int32_t decoder_readformat(void *dec, aoo_format *fmt,
@@ -379,7 +510,7 @@ aoo_codec codec_class = {
     AOO_CODEC_PCM,
     encoder_new,
     encoder_free,
-    codec_setformat,
+    encoder_setformat,
     codec_getformat,
     encoder_readformat,
     encoder_writeformat,
@@ -387,7 +518,7 @@ aoo_codec codec_class = {
     codec_reset,
     decoder_new,
     decoder_free,
-    codec_setformat,
+    decoder_setformat,
     codec_getformat,
     decoder_readformat,
     decoder_decode,

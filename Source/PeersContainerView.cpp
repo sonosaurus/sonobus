@@ -1829,7 +1829,8 @@ void PeersContainerView::updateAvailableCodecOptions(const String & username) {
                 SonobusAudioProcessor::AudioCodecFormatInfo finfo;
                 processor.getAudioCodecFormatInfo(format, finfo);
                 auto name = finfo.name;
-                if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
+                if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000 ||
+                    finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecPCM  && finfo.bitdepth == 1) {
                     name += String(" (*)");
                 }
                 pvf->formatChoiceButton->addItem(name, format);

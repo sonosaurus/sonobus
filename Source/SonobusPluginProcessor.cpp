@@ -1310,6 +1310,9 @@ void SonobusAudioProcessor::AudioCodecFormatInfo::computeName()
         name = String::formatted("%d kbps/ch", bitrate/1000);
     }
     else {
+        if (bitdepth == 1) {
+            name = "PCM 8 bit";
+        }
         if (bitdepth == 2) {
             name = "PCM 16 bit";
         }
@@ -1340,6 +1343,7 @@ void SonobusAudioProcessor::initFormats()
     mAudioFormats.add(AudioCodecFormatInfo(Uuid("4333f3e5-7537-4b94-af9a-dfd836d59055"), 160000, 10, OPUS_SIGNAL_MUSIC, 120));
     mAudioFormats.add(AudioCodecFormatInfo(Uuid("46c728a4-d830-4388-a493-361cb3f7a220"), 256000, 10, OPUS_SIGNAL_MUSIC, 120));
 
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("25e8723d-4b66-4fa4-9c0b-1ee96ca74824"), 1));
     mAudioFormats.add(AudioCodecFormatInfo(Uuid("d7942c5c-4802-425b-ac51-16e995af03cd"), 2));
     mAudioFormats.add(AudioCodecFormatInfo(Uuid("70b9b5d8-e263-4053-a584-72a9e97ed97d"), 3));
     mAudioFormats.add(AudioCodecFormatInfo(Uuid("9825290e-f2cf-41be-9ff8-0c25f60ae8ad"), 4));
@@ -3686,7 +3690,7 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                         case CodecPCM:
                         {
                             aoo_format_pcm *pfmt = (aoo_format_pcm *)&fmt;
-                            int bdepth = pfmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : pfmt->bitdepth == AOO_PCM_INT24 ? 3 : pfmt->bitdepth == AOO_PCM_FLOAT64 ? 8 : 2;
+                            int bdepth = pfmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : pfmt->bitdepth == AOO_PCM_INT24 ? 3 : pfmt->bitdepth == AOO_PCM_FLOAT64 ? 8 : pfmt->bitdepth == AOO_PCM_INT16 ? 2 : 1;
                             int retindex = findFormatIndex(codec, 0, bdepth);
                             if (retindex >= 0) {
                                 peer->formatIndex = retindex; // new sending format index
@@ -3866,7 +3870,7 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                             case CodecPCM:
                             {
                                 aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
-                                int bitdepth = fmt->bitdepth == AOO_PCM_INT16 ? 2 : fmt->bitdepth == AOO_PCM_INT24  ? 3  : fmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : fmt->bitdepth == AOO_PCM_FLOAT64  ? 8 : 2;
+                                int bitdepth = fmt->bitdepth == AOO_PCM_INT16 ? 2 : fmt->bitdepth == AOO_PCM_INT24  ? 3  : fmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : fmt->bitdepth == AOO_PCM_FLOAT64 ? 8 : 1;
                                 peer->recvFormat = resolvePcmCodecInfo(bitdepth);
                                 //peer->recvFormatIndex = findFormatIndex(codec, 0, fmt->bitdepth);
                                 break;
@@ -6345,7 +6349,7 @@ bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & i
             fmt->header.blocksize = currSamplesPerBlock >= info.min_preferred_blocksize ? currSamplesPerBlock : info.min_preferred_blocksize;
             fmt->header.samplerate = getSampleRate();
             fmt->header.nchannels = channels;
-            fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT16;
+            fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT8;
 
             return true;
         } 

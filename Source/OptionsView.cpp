@@ -119,7 +119,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
         SonobusAudioProcessor::AudioCodecFormatInfo finfo;
         processor.getAudioCodecFormatInfo(i, finfo);
         auto name = finfo.name;
-        if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
+        if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000 ||
+            finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecPCM  && finfo.bitdepth == 1) {
             name += String(" (*)");
         }
         mOptionsFormatChoiceDefaultChoice->addItem(name, i+1);

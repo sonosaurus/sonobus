@@ -21,6 +21,9 @@ typedef enum
     AOO_PCM_INT24,
     AOO_PCM_FLOAT32,
     AOO_PCM_FLOAT64,
+    // int8 has been intentionally added to the last place before AOO_PCM_BITDEPTH_SIZE as moving it to another
+    // place WILL break old clients which will try to decode this enum
+    AOO_PCM_INT8,
     AOO_PCM_BITDEPTH_SIZE
 } aoo_pcm_bitdepth;
 
