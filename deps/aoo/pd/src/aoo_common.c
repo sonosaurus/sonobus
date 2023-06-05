@@ -229,6 +229,9 @@ int aoo_format_parse(void *x, aoo_format_storage *f, int argc, t_atom *argv)
 
         int bitdepth = argc > 3 ? atom_getfloat(argv + 3) : 4;
         switch (bitdepth){
+        case 1:
+            fmt->bitdepth = AOO_PCM_INT8;
+            break;
         case 2:
             fmt->bitdepth = AOO_PCM_INT16;
             break;
@@ -343,6 +346,9 @@ int aoo_format_toatoms(const aoo_format *f, int argc, t_atom *argv)
         aoo_format_pcm *fmt = (aoo_format_pcm *)f;
         int nbits;
         switch (fmt->bitdepth){
+        case AOO_PCM_INT8:
+            nbits = 1;
+            break;
         case AOO_PCM_INT16:
             nbits = 2;
             break;

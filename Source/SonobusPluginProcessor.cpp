@@ -359,6 +359,7 @@ struct SonobusAudioProcessor::RemotePeer {
     float remoteOutLatMs = 0.0f;
     int remoteNetType = RemoteNetTypeUnknown;
     bool remoteIsRecording = false;
+    std::set<Uuid> supportedCodecs;
     bool hasRemoteInfo = false;
     bool blockedUs = false;
 
@@ -1309,6 +1310,9 @@ void SonobusAudioProcessor::AudioCodecFormatInfo::computeName()
         name = String::formatted("%d kbps/ch", bitrate/1000);
     }
     else {
+        if (bitdepth == 1) {
+            name = "PCM 8 bit";
+        }
         if (bitdepth == 2) {
             name = "PCM 16 bit";
         }
@@ -1330,21 +1334,44 @@ void SonobusAudioProcessor::initFormats()
     
     // low bandwidth to high
     //mAudioFormats.add(AudioCodecFormatInfo(8000, 10, OPUS_SIGNAL_MUSIC, 960));
-    mAudioFormats.add(AudioCodecFormatInfo(16000, 10, OPUS_SIGNAL_MUSIC, 960));
-    mAudioFormats.add(AudioCodecFormatInfo(24000, 10, OPUS_SIGNAL_MUSIC, 480));
-    mAudioFormats.add(AudioCodecFormatInfo(48000, 10, OPUS_SIGNAL_MUSIC, 240));
-    mAudioFormats.add(AudioCodecFormatInfo(64000, 10, OPUS_SIGNAL_MUSIC, 240));
-    mAudioFormats.add(AudioCodecFormatInfo(96000, 10, OPUS_SIGNAL_MUSIC, 120));
-    mAudioFormats.add(AudioCodecFormatInfo(128000, 10, OPUS_SIGNAL_MUSIC, 120));
-    mAudioFormats.add(AudioCodecFormatInfo(160000, 10, OPUS_SIGNAL_MUSIC, 120));
-    mAudioFormats.add(AudioCodecFormatInfo(256000, 10, OPUS_SIGNAL_MUSIC, 120));
-    
-    mAudioFormats.add(AudioCodecFormatInfo(2));
-    mAudioFormats.add(AudioCodecFormatInfo(3));
-    mAudioFormats.add(AudioCodecFormatInfo(4));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("d30affc3-db76-40fd-85bd-6ba4f67d75f0"), 16000, 10, OPUS_SIGNAL_MUSIC, 960));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("540af31d-3047-420d-89d7-472c07dcbb2e"), 24000, 10, OPUS_SIGNAL_MUSIC, 480));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("df40ba8a-3621-42d2-a9d7-b6fa0ef1be84"), 48000, 10, OPUS_SIGNAL_MUSIC, 240));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("e440a4d9-a450-4462-8aa8-9b4af8576514"), 64000, 10, OPUS_SIGNAL_MUSIC, 240));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("14aaab94-dbd6-4446-bf1b-64efb55f16f6"), 96000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("79dbf03b-c112-4517-aa1c-fa501fc7d0b6"), 128000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("4333f3e5-7537-4b94-af9a-dfd836d59055"), 160000, 10, OPUS_SIGNAL_MUSIC, 120));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("46c728a4-d830-4388-a493-361cb3f7a220"), 256000, 10, OPUS_SIGNAL_MUSIC, 120));
+
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("25e8723d-4b66-4fa4-9c0b-1ee96ca74824"), 1));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("d7942c5c-4802-425b-ac51-16e995af03cd"), 2));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("70b9b5d8-e263-4053-a584-72a9e97ed97d"), 3));
+    mAudioFormats.add(AudioCodecFormatInfo(Uuid("9825290e-f2cf-41be-9ff8-0c25f60ae8ad"), 4));
     //mAudioFormats.add(AudioCodecFormatInfo(CodecPCM, 8)); // insanity!
 
     mDefaultAudioFormatIndex = 4; // 96kpbs/ch Opus
+}
+
+SonobusAudioProcessor::AudioCodecFormatInfo SonobusAudioProcessor::resolveOpusCodecInfo(int bitrate, int complexity, int signaltype) {
+    for (auto & format : mAudioFormats) {
+        if (format.codec == CodecOpus && format.bitrate == bitrate && format.complexity == complexity && format.signal_type == signaltype) {
+            DBG("resolved opus codec bitrate: " << format.bitrate << " complexity: " << format.complexity << " signaltype" << format.signal_type);
+            return format;
+        }
+    }
+    DBG("unable to resolve opus codec with bitrate: " << bitrate);
+    throw "opus codec not found";
+}
+
+SonobusAudioProcessor::AudioCodecFormatInfo SonobusAudioProcessor::resolvePcmCodecInfo(int bitdepth) {
+    for (auto & format : mAudioFormats) {
+        if (format.codec == CodecPCM && format.bitdepth == bitdepth) {
+            DBG("resolved pcm codec bitdepth: " << format.bitdepth);
+            return format;
+        }
+    }
+    DBG("unable to resolve pcm codec with bitdepth: " << bitdepth);
+    throw "pcm codec not found";
 }
 
 int SonobusAudioProcessor::findFormatIndex(SonobusAudioProcessor::AudioCodecFormatCodec codec, int bitrate, int bitdepth)
@@ -1367,7 +1394,7 @@ int SonobusAudioProcessor::findFormatIndex(SonobusAudioProcessor::AudioCodecForm
 }
 
 
-String SonobusAudioProcessor::getAudioCodeFormatName(int formatIndex) const
+String SonobusAudioProcessor::getAudioCodecFormatName(int formatIndex) const
 {
     if (formatIndex >= mAudioFormats.size() || formatIndex < 0) return "";
     
@@ -1375,7 +1402,7 @@ String SonobusAudioProcessor::getAudioCodeFormatName(int formatIndex) const
     return info.name;    
 }
 
-bool SonobusAudioProcessor::getAudioCodeFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const
+bool SonobusAudioProcessor::getAudioCodecFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const
 {
     if (formatIndex >= mAudioFormats.size() || formatIndex < 0) return false;
     retinfo = mAudioFormats.getReference(formatIndex);
@@ -1404,7 +1431,8 @@ void SonobusAudioProcessor::setDefaultAutoresizeBufferMode(AutoNetBufferMode fla
 void SonobusAudioProcessor::setRemotePeerAudioCodecFormat(int index, int formatIndex)
 {
     if (formatIndex >= mAudioFormats.size() || index >= mRemotePeers.size()) return;
-    
+    if (!doesPeerSupportCodec(mRemotePeers.getUnchecked(index), formatIndex)) return;
+
     const AudioCodecFormatInfo & info = mAudioFormats.getReference(formatIndex);
 
     const ScopedReadLock sl (mCoreLock);        
@@ -3073,20 +3101,89 @@ void SonobusAudioProcessor::handleRemotePeerInfoUpdate(RemotePeer * peer, const 
         DBG("peerinfo: Got remote recording: " << (int)isrec);
         peer->remoteIsRecording = isrec;
     }
+    if (infodata.hasProperty("supportedcodecs")) {
+        auto supportedCodecs = infodata.getProperty("supportedcodecs", var()).getArray();
+        for (auto& supportedCodec : *supportedCodecs) {
+            peer->supportedCodecs.insert(Uuid(supportedCodec));
+        }
+    } else {
+        // fallback mode if the client is too old to send codec support information
+        // static, because this map never changes, so avoid multiple unnecessary calls
+        static std::set<Uuid> fallbackSupportedCodecs = getSupportedFallbackCodecs();
+        peer->supportedCodecs = std::set(fallbackSupportedCodecs);
+    }
+    clientListeners.call(&SonobusAudioProcessor::ClientListener::peerCodecInfoReceived, this, peer->userName);
+
+    for (const auto & supportedCodec : peer->supportedCodecs) {
+        DBG("peerinfo: peer supports codec with ID: " << supportedCodec.toString());
+    }
 
     peer->hasRemoteInfo = true;
+}
 
+// returns all audio format indexes supported by the peer
+std::vector<int> SonobusAudioProcessor::getRemotePeerSupportedAudioFormatIndexes(int index) {
+    auto remote = mRemotePeers.getUnchecked(index);
+    std::vector<int> formats;
+    for (int i=0; i < mAudioFormats.size(); i++) {
+        for (const auto & supportedCodec : remote->supportedCodecs) {
+            if (supportedCodec == mAudioFormats[i].id) {
+                formats.push_back(i);
+                continue;
+            }
+        }
+    }
+    return formats;
+}
+
+// fallback mode, returns all codecs that are supported by the older clients which don't send any codec support information
+std::set<Uuid> SonobusAudioProcessor::getSupportedFallbackCodecs() {
+    std::set<Uuid> minimumSupportedCodecs;
+    minimumSupportedCodecs.insert(Uuid("d30affc3-db76-40fd-85bd-6ba4f67d75f0"));
+    minimumSupportedCodecs.insert(Uuid("540af31d-3047-420d-89d7-472c07dcbb2e"));
+    minimumSupportedCodecs.insert(Uuid("df40ba8a-3621-42d2-a9d7-b6fa0ef1be84"));
+    minimumSupportedCodecs.insert(Uuid("e440a4d9-a450-4462-8aa8-9b4af8576514"));
+    minimumSupportedCodecs.insert(Uuid("14aaab94-dbd6-4446-bf1b-64efb55f16f6"));
+    minimumSupportedCodecs.insert(Uuid("79dbf03b-c112-4517-aa1c-fa501fc7d0b6"));
+    minimumSupportedCodecs.insert(Uuid("4333f3e5-7537-4b94-af9a-dfd836d59055"));
+    minimumSupportedCodecs.insert(Uuid("46c728a4-d830-4388-a493-361cb3f7a220"));
+
+    minimumSupportedCodecs.insert(Uuid("d7942c5c-4802-425b-ac51-16e995af03cd"));
+    minimumSupportedCodecs.insert(Uuid("70b9b5d8-e263-4053-a584-72a9e97ed97d"));
+    minimumSupportedCodecs.insert(Uuid("9825290e-f2cf-41be-9ff8-0c25f60ae8ad"));
+    return minimumSupportedCodecs;
+}
+
+StringArray SonobusAudioProcessor::getSupportedCodecsByThisClient() {
+    StringArray supportedCodecs;
+    for (const auto & format : mAudioFormats) {
+         supportedCodecs.add(format.id.toString());
+    }
+    return supportedCodecs;
+}
+
+bool SonobusAudioProcessor::doesPeerSupportCodec(RemotePeer * peer, int audioFormatIndex) {
+    SonobusAudioProcessor::AudioCodecFormatInfo finfo;
+    getAudioCodecFormatInfo(audioFormatIndex, finfo);
+    for (auto & supportedCodec : peer->supportedCodecs) {
+        if (supportedCodec == finfo.id) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * topeer)
 {
     // send our info to this remote peer
     DynamicObject::Ptr info = new DynamicObject(); // this will delete itself
+    static StringArray supportedCodecs = getSupportedCodecsByThisClient();
 
     // not great, better than nothing - TODO make this accurate
     info->setProperty("inlat", 1e3 * currSamplesPerBlock / getSampleRate());
     info->setProperty("outlat", 1e3 * currSamplesPerBlock / getSampleRate());
     info->setProperty("rec", isRecordingToFile());
+    info->setProperty("supportedcodecs", supportedCodecs);
 
     // nettype TODO
 
@@ -3578,21 +3675,33 @@ int32_t SonobusAudioProcessor::handleSourceEvents(const aoo_event ** events, int
                     peer->latencysource->set_format(fmt.header);
                     peer->echosource->set_format(fmt.header);
 
-                    AudioCodecFormatCodec codec = String(fmt.header.codec) == AOO_CODEC_OPUS ? CodecOpus : CodecPCM;
-                    if (codec == CodecOpus) {
-                        aoo_format_opus *ofmt = (aoo_format_opus *)&fmt;
-                        int retindex = findFormatIndex(codec, ofmt->bitrate / ofmt->header.nchannels, 0);
-                        if (retindex >= 0) {
-                            peer->formatIndex = retindex; // new sending format index
+                    String codecHeader = String(fmt.header.codec);
+                    AudioCodecFormatCodec codec = codecHeader == AOO_CODEC_OPUS ? CodecOpus : codecHeader == AOO_CODEC_PCM ? CodecPCM : CodecUnknown;
+                    switch(codec) {
+                        case CodecOpus:
+                        {
+                            aoo_format_opus *ofmt = (aoo_format_opus *)&fmt;
+                            int retindex = findFormatIndex(codec, ofmt->bitrate / ofmt->header.nchannels, 0);
+                            if (retindex >= 0) {
+                                peer->formatIndex = retindex; // new sending format index
+                            }
+                            break;
                         }
-                    }
-                    else if (codec == CodecPCM) {
-                        aoo_format_pcm *pfmt = (aoo_format_pcm *)&fmt;
-                        int bdepth = pfmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : pfmt->bitdepth == AOO_PCM_INT24 ? 3 : pfmt->bitdepth == AOO_PCM_FLOAT64 ? 8 : 2;
-                        int retindex = findFormatIndex(codec, 0, bdepth);
-                        if (retindex >= 0) {
-                            peer->formatIndex = retindex; // new sending format index
-                        }                        
+                        case CodecPCM:
+                        {
+                            aoo_format_pcm *pfmt = (aoo_format_pcm *)&fmt;
+                            int bdepth = pfmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : pfmt->bitdepth == AOO_PCM_INT24 ? 3 : pfmt->bitdepth == AOO_PCM_FLOAT64 ? 8 : pfmt->bitdepth == AOO_PCM_INT16 ? 2 : 1;
+                            int retindex = findFormatIndex(codec, 0, bdepth);
+                            if (retindex >= 0) {
+                                peer->formatIndex = retindex; // new sending format index
+                            }
+                            break;
+                        }
+                        default:
+                            // codec unknown, this should theoretically never happen
+                            // only if for example a newer client for some reason sends us some codec not yet known to us without
+                            // regarding our supported codecs, or if this client doesn't correctly transmit the supported codecs
+                            DBG("codec is unknown to this sonobus client: " << codecHeader);
                     }
                 }
                 
@@ -3747,18 +3856,33 @@ int32_t SonobusAudioProcessor::handleSinkEvents(const aoo_event ** events, int32
                          */
                     }
 
-
-                    
-                    AudioCodecFormatCodec codec = String(f.header.codec) == AOO_CODEC_OPUS ? CodecOpus : CodecPCM;
-                    if (codec == CodecOpus) {
-                        aoo_format_opus *fmt = (aoo_format_opus *)&f;
-                        peer->recvFormat = AudioCodecFormatInfo(fmt->bitrate/fmt->header.nchannels, fmt->complexity, fmt->signal_type);
-                        //peer->recvFormatIndex = findFormatIndex(codec, fmt->bitrate / fmt->header.nchannels, 0);
-                    } else {
-                        aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
-                        int bitdepth = fmt->bitdepth == AOO_PCM_INT16 ? 2 : fmt->bitdepth == AOO_PCM_INT24  ? 3  : fmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : fmt->bitdepth == AOO_PCM_FLOAT64  ? 8 : 2;
-                        peer->recvFormat = AudioCodecFormatInfo(bitdepth);
-                        //peer->recvFormatIndex = findFormatIndex(codec, 0, fmt->bitdepth);
+                    String codecHeader = String(f.header.codec);
+                    AudioCodecFormatCodec codec = codecHeader == AOO_CODEC_OPUS ? CodecOpus : codecHeader == AOO_CODEC_PCM ? CodecPCM : CodecUnknown;
+                    try {
+                        switch (codec) {
+                            case CodecOpus:
+                            {
+                                aoo_format_opus *fmt = (aoo_format_opus *)&f;
+                                peer->recvFormat = resolveOpusCodecInfo(fmt->bitrate/fmt->header.nchannels, fmt->complexity, fmt->signal_type);
+                                //peer->recvFormatIndex = findFormatIndex(codec, fmt->bitrate / fmt->header.nchannels, 0);
+                                break;
+                            }
+                            case CodecPCM:
+                            {
+                                aoo_format_pcm *fmt = (aoo_format_pcm *)&f;
+                                int bitdepth = fmt->bitdepth == AOO_PCM_INT16 ? 2 : fmt->bitdepth == AOO_PCM_INT24  ? 3  : fmt->bitdepth == AOO_PCM_FLOAT32 ? 4 : fmt->bitdepth == AOO_PCM_FLOAT64 ? 8 : 1;
+                                peer->recvFormat = resolvePcmCodecInfo(bitdepth);
+                                //peer->recvFormatIndex = findFormatIndex(codec, 0, fmt->bitdepth);
+                                break;
+                            }
+                            default:
+                                // codec unknown, this should theoretically never happen
+                                // only if for example a newer client for some reason sends us some codec not yet known to us without
+                                // regarding our supported codecs, or if this client doesn't correctly transmit the supported codecs
+                                DBG("codec is unknown to this sonobus client: " << codecHeader);
+                        }
+                    } catch (const char * exceptionMsg) {
+                        DBG("exception at resolving the codec: " << exceptionMsg);
                     }
                     
                     clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerChangedState, this, "format");
@@ -6225,7 +6349,7 @@ bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & i
             fmt->header.blocksize = currSamplesPerBlock >= info.min_preferred_blocksize ? currSamplesPerBlock : info.min_preferred_blocksize;
             fmt->header.samplerate = getSampleRate();
             fmt->header.nchannels = channels;
-            fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT16;
+            fmt->bitdepth = info.bitdepth == 2 ? AOO_PCM_INT16 : info.bitdepth == 3 ? AOO_PCM_INT24 : info.bitdepth == 4 ? AOO_PCM_FLOAT32 : info.bitdepth == 8 ? AOO_PCM_FLOAT64 : AOO_PCM_INT8;
 
             return true;
         } 
