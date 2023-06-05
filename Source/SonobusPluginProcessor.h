@@ -289,7 +289,10 @@ public:
     void stopAooServer();
     
     // client stuff
-    
+
+    void setPacketRedundancy(int);
+    int getPacketRedundancy();
+
     // if value is 0, the system will choose any available UDP port (default)
     void setUseSpecificUdpPort(int port);
     int getUseSpecificUdpPort() const { return mUseSpecificUdpPort; }
@@ -1003,6 +1006,7 @@ private:
     RangedAudioParameter * mDefaultAutoNetbufModeParam;
     RangedAudioParameter * mTempoParameter;
 
+    int mPacketRedundancy = 1;
     int mUseSpecificUdpPort = 0;
 
     bool mLinkMonitoringDelayTimes = true;

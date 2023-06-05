@@ -85,6 +85,7 @@ static String recentsItemKey("ServerConnectionInfo");
 
 static String extraStateCollectionKey("ExtraState");
 static String useSpecificUdpPortKey("UseUdpPort");
+static String packetRedundancyKey("PacketRedundancy");
 static String changeQualForAllKey("ChangeQualForAll");
 static String changeRecvQualForAllKey("ChangeRecvQualForAll");
 static String defRecordOptionsKey("DefaultRecordingOptions");
@@ -5265,7 +5266,19 @@ void SonobusAudioProcessor::setAutoresizeBufferDropRateThreshold(float thresh)
     mAutoresizeDropRateThresh = thresh;
 }
 
+void SonobusAudioProcessor::setPacketRedundancy(int packetRedundancy)
+{
+    mPacketRedundancy = packetRedundancy;
+    for (RemotePeer * retpeer : mRemotePeers)
+    {
+        retpeer->oursource->set_redundancy(mPacketRedundancy);
+    }
+}
 
+int SonobusAudioProcessor::getPacketRedundancy()
+{
+    return mPacketRedundancy;
+}
 
 bool SonobusAudioProcessor::getRemotePeerReceiveBufferFillRatio(int index, float & retratio, float & retstddev) const
 {
@@ -5937,6 +5950,7 @@ SonobusAudioProcessor::RemotePeer * SonobusAudioProcessor::doAddRemotePeerIfNece
         retpeer->oursource->set_buffersize(sendbufsize);
         retpeer->oursource->set_packetsize(retpeer->packetsize);        
         //setupSourceUserFormat(retpeer, retpeer->oursource.get());
+        retpeer->oursource->set_redundancy(mPacketRedundancy);
 
         setupSourceFormat(retpeer, retpeer->latencysource.get(), true);
         retpeer->latencysource->setup(getSampleRate(), currSamplesPerBlock, 1);
@@ -8435,6 +8449,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastWindowWidthKey, var((int)mPluginWindowWidth), nullptr);
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
     extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
+    extraTree.setProperty(packetRedundancyKey, var((int)mPacketRedundancy), nullptr);
     extraTree.setProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get(), nullptr);
 
     extraTree.appendChild(mVideoLinkInfo.getValueTree(), nullptr);
@@ -8532,6 +8547,9 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
         if (extraTree.isValid()) {
             int port = extraTree.getProperty(useSpecificUdpPortKey, mUseSpecificUdpPort);
             setUseSpecificUdpPort(port);
+
+            int packetRedundancy = extraTree.getProperty(packetRedundancyKey, mPacketRedundancy);
+            setPacketRedundancy(packetRedundancy);
 
             bool chqual = extraTree.getProperty(changeQualForAllKey, mChangingDefaultAudioCodecChangesAll);
             setChangingDefaultAudioCodecSetsExisting(chqual);
