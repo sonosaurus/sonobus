@@ -1,6 +1,9 @@
 #pragma once
 
 #include "../detail.hpp"
+#include "aoo/aoo_requests.h"
+
+#include <exception>
 
 // OSC address patterns
 
@@ -9,6 +12,9 @@
 
 #define kAooMsgGroupLeave \
     kAooMsgGroup kAooMsgLeave
+
+#define kAooMsgGroupEject \
+    kAooMsgGroup kAooMsgEject
 
 #define kAooMsgGroupUpdate \
     kAooMsgGroup kAooMsgUpdate
@@ -61,6 +67,9 @@
 
 #define kAooMsgClientGroupLeave \
     kAooMsgDomain kAooMsgClient kAooMsgGroupLeave
+
+#define kAooMsgClientGroupEject\
+    kAooMsgDomain kAooMsgClient kAooMsgGroupEject
 
 #define kAooMsgClientGroupUpdate \
     kAooMsgDomain kAooMsgClient kAooMsgGroupUpdate
@@ -115,8 +124,24 @@
 #define kAooMsgServerRequest \
     kAooMsgDomain kAooMsgServer kAooMsgRequest
 
+
 namespace aoo {
 namespace net {
+
+class error : public std::exception {
+public:
+    error(AooError code, std::string msg)
+        : code_(code), msg_(std::move(msg)) {}
+
+    const char *what() const noexcept override {
+        return msg_.c_str();
+    }
+
+    AooError code() const { return code_; }
+private:
+    AooError code_;
+    std::string msg_;
+};
 
 AooError parse_pattern(const AooByte *msg, int32_t n,
                        AooMsgType& type, int32_t& offset);
@@ -126,6 +151,23 @@ AooSize write_relay_message(AooByte *buffer, AooSize bufsize,
                             const ip_address& addr);
 
 std::string encrypt(const std::string& input);
+
+#if 0
+using ip_address_list = std::vector<ip_address, aoo::allocator<ip_address>>;
+#else
+using ip_address_list = std::vector<ip_address>;
+#endif
+
+inline osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const ip_address& addr) {
+    msg << addr.name() << (int32_t)addr.port();
+    return msg;
+}
+
+inline ip_address osc_read_address(osc::ReceivedMessageArgumentIterator& it) {
+    auto hostname = (it++)->AsString();
+    auto port = (it++)->AsInt32();
+    return ip_address(hostname, port);
+}
 
 struct ip_host {
     ip_host() = default;
@@ -150,15 +192,22 @@ struct ip_host {
     }
 };
 
-#if 0
-using ip_address_list = std::vector<ip_address, aoo::allocator<ip_address>>;
-#else
-using ip_address_list = std::vector<ip_address>;
-#endif
+inline osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const ip_host& addr) {
+    msg << addr.name.c_str() << addr.port;
+    return msg;
+}
 
-osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const ip_host& addr);
-
-ip_host osc_read_host(osc::ReceivedMessageArgumentIterator& it);
+inline AooIpEndpoint osc_read_host(osc::ReceivedMessageArgumentIterator& it) {
+    try {
+        AooIpEndpoint ep;
+        ep.hostName = (it++)->AsString();
+        ep.port = (it++)->AsInt32();
+        return ep;
+    } catch (const osc::MissingArgumentException&) {
+        LOG_DEBUG("host argument not provided");
+        return AooIpEndpoint { "", 0 };
+    }
+}
 
 } // namespace net
 } // namespace aoo

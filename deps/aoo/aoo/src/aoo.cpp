@@ -1,6 +1,6 @@
 #include "aoo/aoo.h"
 #if AOO_NET
-# include "aoo/aoo_net.h"
+# include "aoo/aoo_requests.h"
 # include "common/net_utils.hpp"
 #endif
 #include "aoo/aoo_codec.h"
@@ -14,7 +14,7 @@
 #include "common/utils.hpp"
 
 #include "aoo/codec/aoo_pcm.h"
-#if USE_CODEC_OPUS
+#if AOO_USE_CODEC_OPUS
 # include "aoo/codec/aoo_opus.h"
 #endif
 
@@ -38,21 +38,16 @@ namespace aoo {
 
 //--------------------- interface table -------------------//
 
-void * AOO_CALL def_allocator(void *ptr, AooSize oldsize, AooSize newsize);
+void * AOO_CALL default_allocator(void *ptr, AooSize oldsize, AooSize newsize);
 
-#ifndef _MSC_VER
-void __attribute__((format(printf, 2, 3 )))
-#else
-void
-#endif
-    def_logfunc(AooLogLevel, const char *, ...);
+void AOO_CALL default_logfunc(AooLogLevel level, const char *message);
 
 // populate interface table with default implementations
 static AooCodecHostInterface g_interface = {
     sizeof(AooCodecHostInterface),
     aoo_registerCodec,
-    def_allocator,
-    def_logfunc
+    default_allocator,
+    default_logfunc
 };
 
 //--------------------- helper functions -----------------//
@@ -80,45 +75,6 @@ int32_t get_random_id(){
 #endif
 }
 
-//------------------------------ OSC utilities ---------------------------------//
-
-osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const aoo::metadata& md) {
-    if (md.size() > 0) {
-        msg << md.type() << osc::Blob(md.data(), md.size());
-    } else {
-        msg << kAooDataUnspecified << osc::Blob(msg.Data(), 0); // HACK: do not use nullptr because of memcpy()
-    }
-    return msg;
-}
-
-AooData osc_read_metadata(osc::ReceivedMessageArgumentIterator& it) {
-    auto type = (it++)->AsInt32();
-    const void *blobdata;
-    osc::osc_bundle_element_size_t blobsize;
-    (it++)->AsBlob(blobdata, blobsize);
-    if (blobsize) {
-        return AooData { type, (const AooByte *)blobdata, (AooSize)blobsize };
-    } else {
-        return AooData { type, nullptr, 0 };
-    }
-}
-
-osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const ip_address& addr) {
-    // send *unmapped* addresses in case the client is IPv4 only
-    if (addr.valid()) {
-        msg << addr.name_unmapped() << (int32_t)addr.port();
-    } else {
-        msg << "" << (int32_t)0;
-    }
-    return msg;
-}
-
-ip_address osc_read_address(osc::ReceivedMessageArgumentIterator& it, ip_address::ip_type type) {
-    auto host = (it++)->AsString();
-    auto port = (it++)->AsInt32();
-    return ip_address(host, port, type);
-}
-
 //----------------------- logging --------------------------//
 
 #if CERR_LOG_FUNCTION
@@ -127,13 +83,7 @@ ip_address osc_read_address(osc::ReceivedMessageArgumentIterator& it, ip_address
 static sync::mutex g_log_mutex;
 #endif
 
-#ifndef _MSC_VER
-void __attribute__((format(printf, 2, 3 )))
-#else
-void
-#endif
-    def_logfunc(AooLogLevel level, const char *fmt, ...)
-{
+void AOO_CALL default_logfunc(AooLogLevel level, const char *message) {
     const char *label = nullptr;
 
 #if CERR_LOG_LABEL
@@ -154,24 +104,15 @@ void
         break;
     }
 #endif
+
     const auto size = Log::buffer_size;
     char buffer[size];
-    int count = 0;
+    int count;
     if (label) {
-        count += snprintf(buffer, size, "[aoo][%s] ", label);
+        count = snprintf(buffer, size, "[aoo][%s] %s\n", label, message);
     } else {
-        count += snprintf(buffer, size, "[aoo] ");
+        count = snprintf(buffer, size, "[aoo] %s\n", message);
     }
-
-    va_list args;
-    va_start (args, fmt);
-    count += vsnprintf(buffer + count, size - count, fmt, args);
-    va_end (args);
-
-    // force newline
-    count = std::min(count, size - 2);
-    buffer[count++] = '\n';
-    buffer[count++] = '\0';
 
 #if CERR_LOG_MUTEX
     // shouldn't be necessary since fwrite() is supposed
@@ -189,7 +130,7 @@ void __attribute__((format(printf, 2, 3 )))
 #else
 void
 #endif
-    def_logfunc(AooLogLevel, const char *, ...) {}
+    default_logfunc(AooLogLevel, const char *, ...) {}
 
 #endif // CERR_LOG_FUNCTION
 
@@ -217,9 +158,9 @@ std::streamsize Log::xsputn(const char_type *s, std::streamsize n) {
 }
 
 Log::~Log() {
-    if (aoo::g_interface.logFunc) {
+    if (aoo::g_interface.log) {
         buffer_[pos_] = '\0';
-        aoo::g_interface.logFunc(level_, buffer_);
+        aoo::g_interface.log(level_, buffer_);
     }
 }
 
@@ -227,20 +168,72 @@ Log::~Log() {
 
 const char *aoo_strerror(AooError e){
     switch (e){
-    case kAooErrorUnknown:
+    case kAooErrorUnspecified:
         return "unspecified error";
     case kAooErrorNone:
         return "no error";
     case kAooErrorNotImplemented:
         return "not implemented";
+    case kAooErrorNotPermitted:
+        return "not permitted";
+    case kAooErrorNotInitialized:
+        return "not initialized";
     case kAooErrorBadArgument:
         return "bad argument";
+    case kAooErrorBadFormat:
+        return "bad format";
     case kAooErrorIdle:
         return "idle";
+    case kAooErrorWouldBlock:
+        return "would block";
+    case kAooErrorOverflow:
+        return "overflow";
     case kAooErrorOutOfMemory:
         return "out of memory";
+    case kAooErrorAlreadyExists:
+        return "already exists";
+    case kAooErrorNotFound:
+        return "not found";
     case kAooErrorInsufficientBuffer:
         return "insufficient buffer";
+    case kAooErrorBadState:
+        return "bad state";
+    case kAooErrorSocket:
+        return "socket error";
+    case kAooErrorInternal:
+        return "internal error";
+    case kAooErrorSystem:
+        return "system error";
+    case kAooErrorUserDefined:
+        return "user-defined error";
+    case kAooErrorRequestInProgress:
+        return "request in progress";
+    case kAooErrorUnhandledRequest:
+        return "unhandled request";
+    case kAooErrorVersionNotSupported:
+        return "version not supported";
+    case kAooErrorUDPHandshakeTimeOut:
+        return "UDP handshake time out";
+    case kAooErrorWrongPassword:
+        return "wrong password";
+    case kAooErrorAlreadyConnected:
+        return "already connected";
+    case kAooErrorNotConnected:
+        return "not connected";
+    case kAooErrorGroupDoesNotExist:
+        return "group does not exist";
+    case kAooErrorCannotCreateGroup:
+        return "cannot create group";
+    case kAooErrorAlreadyGroupMember:
+        return "already a group member";
+    case kAooErrorNotGroupMember:
+        return "not a group member";
+    case kAooErrorUserAlreadyExists:
+        return "user already exists";
+    case kAooErrorUserDoesNotExist:
+        return "user does not exist";
+    case kAooErrorCannotCreateUser:
+        return "cannot create user";
     default:
         return "unknown error code";
     }
@@ -269,29 +262,29 @@ AooError AOO_CALL aoo_parsePattern(
         count += kAooMsgDomainLen;
         if (size >= (count + kAooMsgSourceLen)
             && !memcmp(msg + count, kAooMsgSource, kAooMsgSourceLen)) {
-            *type = kAooTypeSource;
+            *type = kAooMsgTypeSource;
             count += kAooMsgSourceLen;
         } else if (size >= (count + kAooMsgSinkLen)
             && !memcmp(msg + count, kAooMsgSink, kAooMsgSinkLen)) {
-            *type = kAooTypeSink;
+            *type = kAooMsgTypeSink;
             count += kAooMsgSinkLen;
         } else {
         #if AOO_NET
             if (size >= (count + kAooMsgClientLen)
                 && !memcmp(msg + count, kAooMsgClient, kAooMsgClientLen)) {
-                *type = kAooTypeClient;
+                *type = kAooMsgTypeClient;
                 count += kAooMsgClientLen;
             } else if (size >= (count + kAooMsgServerLen)
                 && !memcmp(msg + count, kAooMsgServer, kAooMsgServerLen)) {
-                *type = kAooTypeServer;
+                *type = kAooMsgTypeServer;
                 count += kAooMsgServerLen;
             } else if (size >= (count + kAooMsgPeerLen)
                 && !memcmp(msg + count, kAooMsgPeer, kAooMsgPeerLen)) {
-                *type = kAooTypePeer;
+                *type = kAooMsgTypePeer;
                 count += kAooMsgPeerLen;
             } else if (size >= (count + kAooMsgRelayLen)
                 && !memcmp(msg + count, kAooMsgRelay, kAooMsgRelayLen)) {
-                *type = kAooTypeRelay;
+                *type = kAooMsgTypeRelay;
                 count += kAooMsgRelayLen;
             } else {
                 return kAooErrorBadArgument;
@@ -348,7 +341,7 @@ double AOO_CALL aoo_ntpTimeDuration(AooNtpTime t1, AooNtpTime t2){
 
 //---------------------- version -------------------------//
 
-void AOO_CALLaoo_getVersion(AooInt32 *major, AooInt32 *minor,
+void AOO_CALL aoo_getVersion(AooInt32 *major, AooInt32 *minor,
                             AooInt32 *patch, AooInt32 *test){
     if (major) *major = kAooVersionMajor;
     if (minor) *minor = kAooVersionMinor;
@@ -422,25 +415,18 @@ const AooChar * AOO_CALL aoo_dataTypeToString(AooDataType type) {
 
 namespace aoo {
 
-bool check_version(uint32_t version){
-    auto major = (version >> 24) & 255;
-#if 0
-    auto minor = (version >> 16) & 255;
-    auto bugfix = (version >> 8) & 255;
-#endif
-
-    if (major != kAooVersionMajor){
-        return false;
+AooError check_version(const char *version) {
+    int major, minor;
+    if (sscanf(version, "%d.%d", &major, &minor) != 2) {
+        return kAooErrorBadFormat;
     }
+    // LOG_DEBUG("major version: " << major << ", minor version: " << minor);
 
-    return true;
-}
-
-uint32_t make_version(){
-    // make version: major, minor, bugfix, [protocol]
-    return ((uint32_t)kAooVersionMajor << 24)
-            | ((uint32_t)kAooVersionMinor << 16)
-            | ((uint32_t)kAooVersionPatch << 8);
+    if (major == kAooVersionMajor){
+        return kAooOk;
+    } else {
+        return kAooErrorVersionNotSupported;
+    }
 }
 
 //------------------- allocator ------------------//
@@ -449,7 +435,7 @@ uint32_t make_version(){
 std::atomic<ptrdiff_t> total_memory{0};
 #endif
 
-void * AOO_CALL def_allocator(void *ptr, AooSize oldsize, AooSize newsize) {
+void * AOO_CALL default_allocator(void *ptr, AooSize oldsize, AooSize newsize) {
     if (newsize > 0) {
         // allocate new memory
         // NOTE: we never reallocate
@@ -476,7 +462,7 @@ void * AOO_CALL def_allocator(void *ptr, AooSize oldsize, AooSize newsize) {
 #if AOO_CUSTOM_ALLOCATOR || AOO_DEBUG_MEMORY
 
 void * allocate(size_t size) {
-    auto result = g_interface.allocFunc(nullptr, 0, size);
+    auto result = g_interface.alloc(nullptr, 0, size);
     if (!result && size > 0) {
         throw std::bad_alloc{};
     }
@@ -484,7 +470,7 @@ void * allocate(size_t size) {
 }
 
 void deallocate(void *ptr, size_t size){
-    g_interface.allocFunc(ptr, size, 0);
+    g_interface.alloc(ptr, size, 0);
 }
 
 #endif
@@ -511,18 +497,17 @@ size_t g_rt_memory_pool_refcount = 0;
 void rt_memory_pool_ref() {
     sync::scoped_lock<sync::mutex> l(g_rt_memory_pool_lock);
     g_rt_memory_pool_refcount++;
-    LOG_DEBUG("rt_memory_pool_ref: " << g_rt_memory_pool_refcount);
+    // LOG_DEBUG("rt_memory_pool_ref: " << g_rt_memory_pool_refcount);
 }
 
 void rt_memory_pool_unref() {
     sync::scoped_lock<sync::mutex> l(g_rt_memory_pool_lock);
     if (--g_rt_memory_pool_refcount == 0) {
-    #if AOO_LOG_LEVEL >= kAooLogLevelDebug
-        g_rt_memory_pool.print();
-    #endif
+        LOG_DEBUG("total RT memory usage: " << g_rt_memory_pool.memory_usage()
+                  << " / " << g_rt_memory_pool.size() << " bytes");
         g_rt_memory_pool.reset();
     }
-    LOG_DEBUG("rt_memory_pool_unref: " << g_rt_memory_pool_refcount);
+    // LOG_DEBUG("rt_memory_pool_unref: " << g_rt_memory_pool_refcount);
 }
 
 } // aoo
@@ -557,7 +542,7 @@ const AooCodecHostInterface * aoo_getCodecHostInterface(void)
 AooError AOO_CALL aoo_registerCodec(const char *name, const AooCodecInterface *codec){
     if (aoo::find_codec(name)) {
         LOG_WARNING("codec " << name << " already registered!");
-        return kAooErrorUnknown;
+        return kAooErrorAlreadyExists;
     }
     aoo::g_codec_list.emplace_back(name, codec);
     LOG_VERBOSE("registered codec '" << name << "'");
@@ -566,15 +551,17 @@ AooError AOO_CALL aoo_registerCodec(const char *name, const AooCodecInterface *c
 
 //--------------------------- (de)initialize -----------------------------------//
 
+void aoo_nullLoad(const AooCodecHostInterface *);
+void aoo_nullUnload();
 void aoo_pcmLoad(const AooCodecHostInterface *);
 void aoo_pcmUnload();
-#if USE_CODEC_OPUS
+#if AOO_USE_CODEC_OPUS
 void aoo_opusLoad(const AooCodecHostInterface *);
 void aoo_opusUnload();
 #endif
 
-#define HAVE_SETTING(settings, field) \
-    (settings && AOO_CHECK_FIELD(AooSettings, settings->size, field))
+#define CHECK_SETTING(ptr, field) \
+    (ptr && AOO_CHECK_FIELD(ptr, AooSettings, field))
 
 AooError AOO_CALL aoo_initialize(const AooSettings *settings) {
     static bool initialized = false;
@@ -583,27 +570,27 @@ AooError AOO_CALL aoo_initialize(const AooSettings *settings) {
         aoo::socket_init();
     #endif
         // optional settings
-        if (HAVE_SETTING(settings, logFunc) && settings->logFunc) {
-            aoo::g_interface.logFunc = settings->logFunc;
+        if (CHECK_SETTING(settings, logFunc) && settings->logFunc) {
+            aoo::g_interface.log = settings->logFunc;
         }
-        if (HAVE_SETTING(settings, allocFunc) && settings->allocFunc) {
+        if (CHECK_SETTING(settings, allocFunc) && settings->allocFunc) {
     #if AOO_CUSTOM_ALLOCATOR
-            aoo::g_interface.allocFunc = settings->allocFunc;
+            aoo::g_interface.alloc = settings->allocFunc;
     #else
             LOG_WARNING("aoo_initialize: custom allocator not supported");
     #endif
         }
 
-        if (HAVE_SETTING(settings, memPoolSize) && settings->memPoolSize > 0) {
+        if (CHECK_SETTING(settings, memPoolSize) && settings->memPoolSize > 0) {
             aoo::g_rt_memory_pool.resize(settings->memPoolSize);
         } else {
             aoo::g_rt_memory_pool.resize(AOO_MEM_POOL_SIZE);
         }
 
         // register codecs
+        aoo_nullLoad(&aoo::g_interface);
         aoo_pcmLoad(&aoo::g_interface);
-
-    #if USE_CODEC_OPUS
+    #if AOO_USE_CODEC_OPUS
         aoo_opusLoad(&aoo::g_interface);
     #endif
 
@@ -613,15 +600,16 @@ AooError AOO_CALL aoo_initialize(const AooSettings *settings) {
 }
 
 void AOO_CALL aoo_terminate() {
-#if AOO_LOG_LEVEL >= kAooLogLevelDebug
+#if AOO_DEBUG_MEMORY
     aoo::g_rt_memory_pool.print();
 #endif
     // unload codecs
+    aoo_nullUnload();
     aoo_pcmUnload();
-#if USE_CODEC_OPUS
+#if AOO_USE_CODEC_OPUS
     aoo_opusUnload();
 #endif
-    // free codec pluginlist
+    // free codec plugin list
     aoo::codec_list tmp;
     std::swap(tmp, aoo::g_codec_list);
 }

@@ -20,12 +20,11 @@ void AooReceive::init(int32_t port, AooId id, AooSeconds latency) {
                 auto cmd = (OpenCmd *)data;
                 auto node = INode::get(world, cmd->port);
                 if (node){
-                    AooSink * sink = AooSink_new(cmd->id, 0, nullptr);
+                    AooSink * sink = AooSink_new(cmd->id, nullptr);
                     if (sink){
                         NodeLock lock(*node);
                         if (node->client()->addSink(sink, cmd->id) == kAooOk){
-                            sink->setup(cmd->sampleRate, cmd->blockSize,
-                                        cmd->numChannels);
+                            sink->setup(cmd->numChannels, cmd->sampleRate, cmd->blockSize, 0);
 
                             sink->setEventHandler(
                                 [](void *user, const AooEvent *event, int32_t){
@@ -92,9 +91,9 @@ void AooReceive::handleEvent(const AooEvent *event){
     osc::OutboundPacketStream msg(buf, sizeof(buf));
 
     switch (event->type){
-    case kAooEventPing:
+    case kAooEventSourcePing:
     {
-        auto& e = event->ping;
+        auto& e = event->sourcePing;
         double diff1 = aoo_ntpTimeDuration(e.t1, e.t2);
         double diff2 = aoo_ntpTimeDuration(e.t2, e.t3);
         double rtt = aoo_ntpTimeDuration(e.t1, e.t3);
@@ -157,31 +156,24 @@ void AooReceive::handleEvent(const AooEvent *event){
         sendMsgRT(msg);
         break;
     }
-    case kAooEventBlockLost:
+    case kAooEventBlockDrop:
     {
-        beginEvent(msg, "/block/lost", event->blockLost.endpoint);
-        msg << event->blockLost.count;
+        beginEvent(msg, "/block/dropped", event->blockDrop.endpoint);
+        msg << event->blockDrop.count;
         sendMsgRT(msg);
         break;
     }
-    case kAooEventBlockDropped:
+    case kAooEventBlockResend:
     {
-        beginEvent(msg, "/block/dropped", event->blockDropped.endpoint);
-        msg << event->blockDropped.count;
+        beginEvent(msg, "/block/resent", event->blockResend.endpoint);
+        msg << event->blockResend.count;
         sendMsgRT(msg);
         break;
     }
-    case kAooEventBlockReordered:
+    case kAooEventBlockXRun:
     {
-        beginEvent(msg, "/block/reordered", event->blockReordered.endpoint);
-        msg << event->blockReordered.count;
-        sendMsgRT(msg);
-        break;
-    }
-    case kAooEventBlockResent:
-    {
-        beginEvent(msg, "/block/resent", event->blockResent.endpoint);
-        msg << event->blockResent.count;
+        beginEvent(msg, "/block/xrun", event->blockXRun.endpoint);
+        msg << event->blockXRun.count;
         sendMsgRT(msg);
         break;
     }

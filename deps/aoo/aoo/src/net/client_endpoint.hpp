@@ -1,6 +1,6 @@
 #pragma once
 
-#include "aoo/aoo_net.h"
+#include "aoo/aoo_requests.h"
 #include "aoo/aoo_server.h"
 
 #include "detail.hpp"
@@ -18,9 +18,10 @@ class user {
 public:
     user(const std::string& name, const std::string& pwd, AooId id,
          AooId group, AooId client, const AooData *md,
-         const ip_host& relay, bool persistent)
+         const ip_host& relay, AooFlag flags)
         : name_(name), pwd_(pwd), id_(id), group_(group),
-          client_(client), md_(md), relay_(relay), persistent_(persistent) {}
+          client_(client), flags_(flags), md_(md), relay_(relay) {}
+
     ~user() {}
 
     const std::string& name() const { return name_; }
@@ -32,6 +33,12 @@ public:
     }
 
     AooId id() const { return id_; }
+
+    bool flags() const { return flags_; }
+
+    bool group_creator() const { return flags_ & kAooUserGroupCreator; }
+
+    bool persistent() const { return flags_ & kAooUserPersistent; }
 
     void set_metadata(const AooData& md) {
         md_ = aoo::metadata(&md);
@@ -56,17 +63,15 @@ public:
     }
 
     const ip_host& relay_addr() const { return relay_; }
-
-    bool persistent() const { return persistent_; }
 private:
     std::string name_;
     std::string pwd_;
     AooId id_;
     AooId group_;
     AooId client_;
+    AooFlag flags_;
     aoo::metadata md_;
     ip_host relay_;
-    bool persistent_;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const user& u) {
@@ -81,8 +86,8 @@ using user_list = std::vector<user>;
 class group {
 public:
     group(const std::string& name, const std::string& pwd, AooId id,
-         const AooData *md, const ip_host& relay, bool persistent)
-        : name_(name), pwd_(pwd), id_(id), md_(md), relay_(relay), persistent_(persistent) {}
+         const AooData *md, const ip_host& relay, AooFlag flags)
+        : name_(name), pwd_(pwd), id_(id), flags_(flags), md_(md), relay_(relay) {}
 
     const std::string& name() const { return name_; }
 
@@ -102,7 +107,9 @@ public:
 
     const ip_host& relay_addr() const { return relay_; }
 
-    bool persistent() const { return persistent_; }
+    AooFlag flags() const { return flags_; }
+
+    bool persistent() const { return flags_ & kAooGroupPersistent; }
 
     bool user_auto_create() const { return user_auto_create_; }
 
@@ -125,9 +132,9 @@ private:
     std::string name_;
     std::string pwd_;
     AooId id_;
+    AooFlag flags_;
     aoo::metadata md_;
     ip_host relay_;
-    bool persistent_;
     bool user_auto_create_ = AOO_USER_AUTO_CREATE; // TODO
     user_list users_;
     AooId next_user_id_{0};
@@ -142,8 +149,8 @@ inline std::ostream& operator<<(std::ostream& os, const group& g) {
 
 class client_endpoint {
 public:
-    client_endpoint(int sockfd, AooId id, AooServerReplyFunc replyfn, void *context)
-        : id_(id), sockfd_(sockfd), replyfn_(replyfn), context_(context) {}
+    client_endpoint(AooId id, AooServerReplyFunc replyfn, void *context)
+        : id_(id), replyfn_(replyfn), context_(context) {}
 
     ~client_endpoint() {}
 
@@ -152,10 +159,14 @@ public:
 
     AooId id() const { return id_; }
 
-    AooSocket sockfd() const { return sockfd_; }
+    const std::string& version() const { return version_; }
 
-    bool valid() const {
-        return !public_addresses_.empty();
+    void activate(std::string version) {
+        version_ = std::move(version);
+    }
+
+    bool active() const {
+        return !version_.empty();
     }
 
     void add_public_address(const ip_address& addr) {
@@ -171,7 +182,7 @@ public:
     void send_message(const osc::OutboundPacketStream& msg) const;
 
     void send_error(Server& server, AooId token, AooRequestType type,
-                    int32_t errcode, const char *errmsg);
+                    AooError result, const AooResponseError *response = nullptr);
 
     void send_notification(Server& server, const AooData& data) const;
 
@@ -180,22 +191,22 @@ public:
 
     void send_peer_remove(Server& server, const group& grp, const user& usr) const;
 
-    void send_group_update(Server& server, const group& grp);
+    void send_group_update(Server& server, const group& grp, AooId usr);
 
     void send_user_update(Server& server, const user& usr);
 
     void send_peer_update(Server& server, const user& peer);
 
-    void on_group_join(const group& grp, const user& usr);
+    void on_group_join(Server& server, const group& grp, const user& usr);
 
-    void on_group_leave(const group& grp, const user& usr, bool force);
+    void on_group_leave(Server& server, const group& grp, const user& usr, bool eject);
 
     void on_close(Server& server);
 
     void handle_message(Server& server, const AooByte *data, int32_t n);
 private:
     AooId id_;
-    int sockfd_; // LATER use this to get information about the client (e.g. IP protocol)
+    std::string version_;
     AooServerReplyFunc replyfn_;
     void *context_;
     osc_stream_receiver receiver_;

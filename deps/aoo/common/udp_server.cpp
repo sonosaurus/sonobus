@@ -4,44 +4,40 @@
 
 namespace aoo {
 
-void udp_server::start(int port, receive_handler receive,
-                       bool threaded, int rcvbufsize, int sndbufsize) {
+void udp_server::start(int port, receive_handler receive, bool threaded) {
     do_close();
 
     receive_handler_ = std::move(receive);
 
-    socket_ = socket_udp(port);
-    if (socket_ < 0) {
+    auto sock = socket_udp(port);
+    if (sock < 0) {
         auto e = socket_errno();
-        throw std::runtime_error("couldn't create/bind UDP socket: "
-                                 + socket_strerror(e));
+        throw std::runtime_error("couldn't create/bind UDP socket: " + socket_strerror(e));
     }
 
-    if (socket_address(socket_, addr_) < 0) {
-        auto e = socket_errno();
-        throw std::runtime_error("couldn't get socket address: "
-                                 + socket_strerror(e));
-        socket_close(socket_);
-        socket_ = invalid_socket;
+    if (socket_address(sock, bind_addr_) < 0) {
+        auto e = socket_errno(); // cache error
+        socket_close(sock);
+        throw std::runtime_error("couldn't get socket address: " + socket_strerror(e));
     }
 
-    if (rcvbufsize > 0) {
-        if (aoo::socket_set_recvbufsize(socket_, rcvbufsize) < 0){
-            aoo::socket_error_print("setrecvbufsize");
-        }
-    }
-
-    if (sndbufsize > 0) {
-        if (aoo::socket_set_sendbufsize(socket_, sndbufsize) < 0){
+    if (send_buffer_size_ > 0) {
+        if (aoo::socket_set_sendbufsize(sock, send_buffer_size_) < 0){
             aoo::socket_error_print("setsendbufsize");
         }
     }
 
-    packet_queue_.clear();
+    if (receive_buffer_size_ > 0) {
+        if (aoo::socket_set_recvbufsize(sock, receive_buffer_size_) < 0){
+            aoo::socket_error_print("setrecvbufsize");
+        }
+    }
 
+    socket_ = sock;
     running_.store(true);
     threaded_ = threaded;
     if (threaded_) {
+        packet_queue_.clear();
         // TODO lower thread priority
         thread_ = std::thread(&udp_server::receive, this, -1);
     }
@@ -87,11 +83,20 @@ void udp_server::stop() {
     }
 }
 
+void udp_server::notify() {
+    if (threaded_) {
+        event_.set(); // wake up main thread
+    } else {
+        socket_signal(socket_);
+    }
+}
+
 void udp_server::do_close() {
     if (socket_ != invalid_socket) {
         socket_close(socket_);
     }
     socket_ = invalid_socket;
+    bind_addr_.clear();
     if (thread_.joinable()) {
         thread_.join();
     }
@@ -129,6 +134,10 @@ void udp_server::receive(double timeout) {
                 continue;
             }
         #endif
+            if (e == EINTR){
+                continue;
+            }
+
             LOG_DEBUG("udp_server: recv() failed: " << socket_strerror(e));
             receive_handler_(e, address, nullptr, 0);
 

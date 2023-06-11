@@ -1,6 +1,6 @@
 #include "AooSend.hpp"
 
-#if USE_CODEC_OPUS
+#if AOO_USE_CODEC_OPUS
 # include "aoo/codec/aoo_opus.h"
 #endif
 
@@ -24,12 +24,11 @@ void AooSend::init(int32_t port, AooId id) {
                 auto cmd = (OpenCmd *)data;
                 auto node = INode::get(world, cmd->port);
                 if (node){
-                    AooSource *source = AooSource_new(cmd->id, 0, nullptr);
+                    AooSource *source = AooSource_new(cmd->id, nullptr);
                     if (source){
                         NodeLock lock(*node);
                         if (node->client()->addSource(source, cmd->id) == kAooOk){
-                            source->setup(cmd->sampleRate, cmd->blockSize,
-                                          cmd->numChannels);
+                            source->setup(cmd->numChannels, cmd->sampleRate, cmd->blockSize, 0);
 
                             source->setEventHandler(
                                 [](void *user, const AooEvent *event, int32_t){
@@ -96,16 +95,15 @@ void AooSend::handleEvent(const AooEvent *event){
     osc::OutboundPacketStream msg(buf, 256);
 
     switch (event->type){
-    case kAooEventPing:
+    case kAooEventSinkPing:
     {
-        auto& e = event->ping;
+        auto& e = event->sinkPing;
         double diff1 = aoo_ntpTimeDuration(e.t1, e.t2);
         double diff2 = aoo_ntpTimeDuration(e.t2, e.t3);
         double rtt = aoo_ntpTimeDuration(e.t1, e.t3);
-        auto packetloss = e.info.source.packetLoss;
 
         beginEvent(msg, "/ping", e.endpoint);
-        msg << diff1 << diff2 << rtt << packetloss;
+        msg << diff1 << diff2 << rtt << e.packetLoss;
         sendMsgRT(msg);
         break;
     }
@@ -140,8 +138,7 @@ void AooSend::handleEvent(const AooEvent *event){
 bool AooSend::addSink(const aoo::ip_address& addr, AooId id,
                       bool active, int32_t channelOnset){
     AooEndpoint ep { addr.address(), (AooAddrSize)addr.length(), id };
-    AooFlag flags = active ? kAooSinkActive : 0;
-    if (source()->addSink(ep, flags) == kAooOk){
+    if (source()->addSink(ep, active) == kAooOk){
         if (channelOnset > 0){
             source()->setSinkChannelOnset(ep, channelOnset);
         }
@@ -313,7 +310,7 @@ void aoo_send_format(AooSendUnit *unit, sc_msg_iter* args){
         });
 }
 
-#if USE_CODEC_OPUS
+#if AOO_USE_CODEC_OPUS
 
 bool get_opus_bitrate(AooSource *src, osc::OutboundPacketStream& msg) {
     // NOTE: because of a bug in opus_multistream_encoder (as of opus v1.3.2)
@@ -446,7 +443,7 @@ void aoo_send_codec_set(AooSendUnit *unit, sc_msg_iter* args){
             auto codec = args.gets();
             auto param = args.gets();
 
-        #if USE_CODEC_OPUS
+        #if AOO_USE_CODEC_OPUS
             if (!strcmp(codec, "opus")){
                 opus_int32 value;
                 if (!strcmp(param ,"bitrate")){
@@ -488,7 +485,7 @@ void aoo_send_codec_get(AooSendUnit *unit, sc_msg_iter* args){
             owner.beginReply(msg, "/aoo/codec/get", replyID);
             msg << codec << param;
 
-        #if USE_CODEC_OPUS
+        #if AOO_USE_CODEC_OPUS
             if (!strcmp(codec, "opus")){
                 if (!strcmp(param, "bitrate")){
                     if (get_opus_bitrate(owner.source(), msg)){

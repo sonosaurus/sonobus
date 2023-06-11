@@ -144,7 +144,7 @@ inline int binmsg_write_relay(AooByte *buffer, AooSize size,
                               const aoo::ip_address& addr) {
     if (addr.type() == ip_address::IPv6) {
         if (size >= 20) {
-            buffer[0] = kAooTypeRelay | kAooBinMsgDomainBit;
+            buffer[0] = kAooMsgTypeRelay | kAooBinMsgDomainBit;
             buffer[1] = kAooBinMsgCmdRelayIPv6;
             aoo::to_bytes<uint16_t>(addr.port(), buffer + 2);
             memcpy(buffer + 4, addr.address_bytes(), 16);
@@ -152,7 +152,7 @@ inline int binmsg_write_relay(AooByte *buffer, AooSize size,
         }
     } else {
         if (size >= 8) {
-            buffer[0] = kAooTypeRelay | kAooBinMsgDomainBit;
+            buffer[0] = kAooMsgTypeRelay | kAooBinMsgDomainBit;
             buffer[1] = kAooBinMsgCmdRelayIPv4;
             aoo::to_bytes<uint16_t>(addr.port(), buffer + 2);
             memcpy(buffer + 4, addr.address_bytes(), 4);
@@ -162,19 +162,20 @@ inline int binmsg_write_relay(AooByte *buffer, AooSize size,
     return 0;
 }
 
-inline int binmsg_read_relay(const AooByte *buffer, AooSize size,
-                             aoo::ip_address& addr) {
+inline int binmsg_read_relay(const AooByte *buffer, AooSize size, aoo::ip_address& addr) {
     assert(size >= 4);
     assert(buffer[0] & kAooBinMsgDomainBit);
-    assert((buffer[0] & ~kAooBinMsgDomainBit) == kAooTypeRelay);
+    assert((buffer[0] & ~kAooBinMsgDomainBit) == kAooMsgTypeRelay);
 
     if (buffer[1] == kAooBinMsgCmdRelayIPv6) {
         // IPv6
+#if AOO_USE_IPv6
         if (size >= 20) {
             auto port = aoo::from_bytes<uint16_t>(buffer + 2);
             addr = ip_address(buffer + 4, 16, port, ip_address::IPv6);
             return 20;
         }
+#endif
     } else {
         // IPv4
         if (size >= 8) {

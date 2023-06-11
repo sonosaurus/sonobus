@@ -14,15 +14,23 @@
 
 #define classname(x) class_getname(*(t_pd *)x)
 
+#define DEJITTER_TOLERANCE 0.1 // jitter tolerance in percent
+
+#define DEJITTER_MAXDELTA 0.02 // max. expected jitter in seconds
+
+#define DEJITTER_DEBUG 0 // debug dejitter algorithm
+
 /*///////////////////////////// OSC time ///////////////////////////////*/
 
 uint64_t get_osctime();
 
 struct t_dejitter;
 
-t_dejitter *get_dejitter();
+t_dejitter *dejitter_get();
 
-uint64_t get_osctime_dejitter(t_dejitter *context);
+void dejitter_release(t_dejitter *x);
+
+uint64_t dejitter_osctime(t_dejitter *x);
 
 /*///////////////////////////// aoo_node /////////////////////////////*/
 

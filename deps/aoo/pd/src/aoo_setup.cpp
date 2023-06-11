@@ -18,83 +18,136 @@
 #define EXPORT
 #endif
 
-#define DEJITTER_THRESHOLD 0.75
-
-#define DEJITTER_DEBUG 0
-
 t_class *dejitter_class;
 
 struct t_dejitter
 {
+    static constexpr const char *bindsym = "aoo dejitter";
+
     t_dejitter();
     ~t_dejitter();
 
-    aoo::time_tag get_osctime(){
-        update();
+    aoo::time_tag osctime() const {
         return d_osctime_adjusted;
     }
-private:
-    t_pd d_header;
 
+    t_pd d_header;
+    int d_refcount;
+private:
     t_clock *d_clock;
     aoo::time_tag d_last_osctime;
     aoo::time_tag d_osctime_adjusted;
-    double d_last_clocktime = -1;
-    double d_jitter_offset = 0;
+    double d_last_big_delta = 0;
+    double d_last_logical_time = -1;
 
     void update();
 
-    static void tick(t_dejitter *x){
+    static void tick(t_dejitter *x) {
         x->update();
-        clock_delay(x->d_clock, 1); // once per DSP tick
+        clock_delay(x->d_clock, sys_getblksize()); // once per DSP tick
     }
 };
 
 t_dejitter::t_dejitter()
-    : d_header(dejitter_class)
+    : d_header(dejitter_class), d_refcount(1)
 {
+    pd_bind(&d_header, gensym(bindsym));
     d_clock = clock_new(this, (t_method)tick);
+    clock_setunit(d_clock, 1, 1); // use samples
     clock_delay(d_clock, 0);
 }
 
 t_dejitter::~t_dejitter(){
+    pd_unbind(&d_header, gensym(bindsym));
     clock_free(d_clock);
 }
 
-// This is called once per DSP tick!
+// This is called exactly once per DSP tick and before any other clocks in AOO objects.
 void t_dejitter::update()
 {
-    auto now = clock_getlogicaltime();
-    if (now != d_last_clocktime){
-        aoo::time_tag osctime = aoo_getCurrentNtpTime();
-        if (d_last_osctime.value()){
-            auto oldtime = d_osctime_adjusted;
-            auto elapsed = aoo::time_tag::duration(d_last_osctime, osctime);
-            auto ticktime = (double)sys_getblksize() / (double)sys_getsr();
-            if ((elapsed / ticktime) < DEJITTER_THRESHOLD){
-                auto diff = ticktime - elapsed;
-                d_jitter_offset += diff;
-                d_osctime_adjusted = osctime
-                        + aoo::time_tag::from_seconds(d_jitter_offset);
-            } else {
-                d_jitter_offset = 0;
+#if 1
+    // check if this is really called once per DSP tick
+    auto logical_time = clock_getlogicaltime();
+    if (logical_time == d_last_logical_time) {
+        bug("aoo dejitter");
+    }
+    d_last_logical_time = logical_time;
+#endif
+    aoo::time_tag osctime = aoo::time_tag::now();
+    if (!d_last_osctime.value()) {
+        d_osctime_adjusted = osctime;
+    } else {
+    #if DEJITTER_DEBUG
+        auto last_adjusted = d_osctime_adjusted;
+    #endif
+        auto delta = aoo::time_tag::duration(d_last_osctime, osctime);
+        auto period = (double)sys_getblksize() / (double)sys_getsr();
+        // check if the current delta is lower than the nominal delta (with some tolerance).
+        // If this is the case, we advance the adjusted OSC time by the nominal delta.
+        if ((delta / period) < (1.0 - DEJITTER_TOLERANCE)) {
+            // Don't advance if the previous big delta was larger than DEJITTER_MAXDELTA;
+            // this makes sure that we catch up if the scheduler blocked.
+            if (d_last_big_delta <= DEJITTER_MAXDELTA) {
+                d_osctime_adjusted += aoo::time_tag::from_seconds(period);
+            } else if (osctime > d_osctime_adjusted) {
+                // set to actual time, but only if larger.
                 d_osctime_adjusted = osctime;
             }
-            // never let time go backwards!
-            if (d_osctime_adjusted < oldtime){
-                d_osctime_adjusted = oldtime;
+        } else {
+            // set to actual time, but only if larger; never let time go backwards!
+            if (osctime > d_osctime_adjusted) {
+                d_osctime_adjusted = osctime;
             }
-        #if DEJITTER_DEBUG
-            DO_LOG_DEBUG("time difference: " << (elapsed * 1000.0) << " ms");
-            DO_LOG_DEBUG("jitter offset: " << (d_jitter_offset * 1000.0) << " ms");
-            DO_LOG_DEBUG("adjusted OSC time: " << d_osctime_adjusted);
-        #endif
+            d_last_big_delta = delta;
         }
-        d_last_osctime = osctime;
-        d_last_clocktime = now;
+    #if DEJITTER_DEBUG
+        auto adjusted_delta = aoo::time_tag::duration(last_adjusted, d_osctime_adjusted);
+        if (adjusted_delta == 0) {
+            // get actual (negative) delta
+            adjusted_delta = aoo::time_tag::duration(osctime, last_adjusted);
+        }
+        auto error = std::abs(adjusted_delta - period);
+        LOG_ALL("dejitter: real delta: " << (delta * 1000.0)
+                << " ms, adjusted delta: " << (adjusted_delta * 1000.0)
+                << " ms, error: " << (error * 1000.0) << " ms");
+        LOG_ALL("dejitter: real time: " << osctime
+                << ", adjusted time: " << d_osctime_adjusted);
+    #endif
+    }
+    d_last_osctime = osctime;
+}
+
+t_dejitter * dejitter_get() {
+    auto x = (t_dejitter *)pd_findbyclass(gensym(t_dejitter::bindsym), dejitter_class);
+    if (x) {
+        x->d_refcount++;
+    } else {
+        x = new t_dejitter();
+    }
+    return x;
+}
+
+void dejitter_release(t_dejitter *x) {
+    if (--x->d_refcount == 0) {
+        // last instance
+        delete x;
+    } else if (x->d_refcount < 0) {
+        bug("dejitter_release: negative refcount!");
     }
 }
 
+uint64_t dejitter_osctime(t_dejitter *x) {
+    return x->osctime();
+}
+
+static void aoo_dejitter_setup(){
+    dejitter_class = class_new(gensym("aoo dejitter"), 0, 0,
+                               sizeof(t_dejitter), CLASS_PD, A_NULL);
+}
+
+// make sure we only actually query the time once per DSP tick.
+// This is used in aoo_send~ and aoo_receive~, but also in aoo_client,
+// if dejitter is disabled.
 uint64_t get_osctime(){
     thread_local double lastclocktime = -1;
     thread_local aoo::time_tag osctime;
@@ -105,31 +158,6 @@ uint64_t get_osctime(){
         lastclocktime = now;
     }
     return osctime;
-}
-
-t_dejitter * get_dejitter(){
-    auto dejitter = (t_dejitter *)pd_findbyclass(gensym("__dejitter"),
-                                                 dejitter_class);
-    if (!dejitter){
-        bug("get_osctime_dejitter");
-    }
-    return dejitter;
-}
-
-uint64_t get_osctime_dejitter(t_dejitter *x){
-    if (x){
-        return x->get_osctime();
-    } else {
-        return get_osctime();
-    }
-}
-
-static void aoo_dejitter_setup(){
-    dejitter_class = class_new(gensym("aoo dejitter"), 0, 0,
-                               sizeof(t_dejitter), CLASS_PD, A_NULL);
-
-    auto dejitter = new t_dejitter(); // leak
-    pd_bind((t_pd *)dejitter, gensym("__dejitter"));
 }
 
 void aoo_send_tilde_setup(void);

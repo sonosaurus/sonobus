@@ -39,17 +39,25 @@ public:
     udp_server() : buffer_(max_udp_packet_size) {}
     ~udp_server();
 
-    int port() const { return addr_.port(); }
+    int port() const { return bind_addr_.port(); }
     int socket() const { return socket_; }
-    aoo::ip_address::ip_type type() const { return addr_.type(); }
+    aoo::ip_address::ip_type type() const { return bind_addr_.type(); }
 
     udp_server(const udp_server&) = delete;
     udp_server& operator=(const udp_server&) = delete;
 
-    void start(int port, receive_handler receive,
-               bool threaded = false, int rcvbufsize = 0, int sndbufsize = 0);
+    // call before start()
+    void set_send_buffer_size(int size) {
+        send_buffer_size_ = size;
+    }
+    void set_receive_buffer_size(int size) {
+        receive_buffer_size_ = size;
+    }
+
+    void start(int port, receive_handler receive, bool threaded = false);
     void run(double timeout = -1);
     void stop();
+    void notify();
 
     int send(const aoo::ip_address& addr, const AooByte *data, AooSize size);
 private:
@@ -57,7 +65,9 @@ private:
     void do_close();
 
     int socket_ = invalid_socket;
-    aoo::ip_address addr_;
+    aoo::ip_address bind_addr_;
+    int send_buffer_size_ = 0;
+    int receive_buffer_size_ = 0;
     std::atomic<bool> running_{false};
     bool threaded_ = false;
 

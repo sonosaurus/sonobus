@@ -645,7 +645,9 @@ OutboundPacketStream& OutboundPacketStream::operator<<( const Blob& rhs )
     FromUInt32( argumentCurrent_, rhs.size );
     argumentCurrent_ += 4;
     
-    std::memcpy( argumentCurrent_, rhs.data, rhs.size );
+    if (rhs.size > 0) {
+        std::memcpy( argumentCurrent_, rhs.data, rhs.size );
+    }
     argumentCurrent_ += rhs.size;
 
     // zero pad to 4-byte boundary

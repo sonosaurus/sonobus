@@ -18,12 +18,6 @@ message(STATUS "Use dynamic resampling: ${AOO_DYNAMIC_RESAMPLING}")
 set(AOO_DLL_BANDWIDTH 0.0001 CACHE STRING "default DLL filter bandwidth")
 message(STATUS "Default DLL filter bandwidth: ${AOO_DLL_BANDWIDTH}")
 
-option(AOO_XRUN_DETECTION "enable/disable xrun detection" ON)
-message(STATUS "Use xrun detection: ${AOO_XRUN_DETECTION}")
-
-set(AOO_TIMER_TOLERANCE 0.25 CACHE STRING "default timer tolerance")
-message(STATUS "Default timer tolerance: ${AOO_TIMER_TOLERANCE}")
-
 option(AOO_BINARY_DATA_MSG "use binary data messages" ON)
 message(STATUS "Use binary data message: ${AOO_BINARY_DATA_MSG}")
 
@@ -56,7 +50,6 @@ set(OPTIONS
     -DAOO_MAX_PACKET_SIZE=${AOO_MAX_PACKET_SIZE}
     -DAOO_DYNAMIC_RESAMPLING=$<BOOL:${AOO_DYNAMIC_RESAMPLING}>
     -DAOO_DLL_BANDWIDTH=${AOO_DLL_BANDWIDTH}
-    -DAOO_XRUN_DETECTION=$<BOOL:${AOO_XRUN_DETECTION}>
     -DAOO_TIMER_TOLERANCE=${AOO_TIMER_TOLERANCE}
     -DAOO_BINARY_DATA_MSG=$<BOOL:${AOO_BINARY_DATA_MSG}>
     -DAOO_DEBUG_MEMORY=$<BOOL:${AOO_DEBUG_MEMORY}>
@@ -79,7 +72,7 @@ set(DEPS "${CMAKE_CURRENT_SOURCE_DIR}/../deps")
 file(GLOB HEADERS "${INCLUDE}/*.h" "${INCLUDE}/*.hpp"
      "${INCLUDE}/codec/aoo_pcm.h" "src/*.hpp" "${COMMON}/*.hpp")
 
-file(GLOB SOURCES "src/*.cpp" "src/codec/pcm.cpp" "${COMMON}/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/codec/null.cpp" "src/codec/pcm.cpp" "${COMMON}/*.cpp")
 
 if (NOT AOO_SYSTEM_OSCPACK)
     # only build required files in "osc" folder
@@ -96,7 +89,7 @@ if (NOT AOO_SYSTEM_OSCPACK)
         "${OSC}/OscTypes.cpp")
 endif()
 
-if (AOO_CODEC_OPUS)
+if (AOO_USE_CODEC_OPUS)
     list(APPEND HEADERS "${INCLUDE}/codec/aoo_opus.h")
     list(APPEND SOURCES "src/codec/opus.cpp")
 endif()

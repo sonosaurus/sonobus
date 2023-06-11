@@ -8,7 +8,12 @@
 
 #pragma once
 
-#include "aoo_client.h"
+#include "aoo_config.h"
+#include "aoo_controls.h"
+#include "aoo_defines.h"
+#include "aoo_events.h"
+#include "aoo_requests.h"
+#include "aoo_types.h"
 
 #if AOO_HAVE_CXX11
 # include <memory>
@@ -16,6 +21,19 @@
 
 struct AooSource;
 struct AooSink;
+typedef struct AooClient AooClient;
+
+/** \brief create a new AOO source instance
+ *
+ * \param[out] err (optional) error code on failure
+ * \return new AooClient instance on success; `NULL` on failure
+ */
+AOO_API AooClient * AOO_CALL AooClient_new(AooError *err);
+
+/** \brief destroy AOO client */
+AOO_API void AOO_CALL AooClient_free(AooClient *client);
+
+/*-----------------------------------------------------------*/
 
 /** \brief AOO client interface */
 struct AooClient {
@@ -36,17 +54,28 @@ public:
      *
      * \copydetails AooClient_new()
      */
-    static Ptr create(AooSocket udpSocket, AooFlag flags, AooError *err) {
-        return Ptr(AooClient_new(udpSocket, flags, err));
+    static Ptr create(AooError *err) {
+        return Ptr(AooClient_new(err));
     }
 #endif
 
     /*------------------ methods -------------------------------*/
 
-    /** \brief run the AOO client
+    /** \brief setup the client object (before calling run())
      *
-     * \param nonBlocking #kAooTrue: the function does not block;
-     * #kAooFalse: blocks until until AooClient_quit() is called.
+     * \param port the listening port of the UDP server
+     * \param flags optional flags.
+     *
+     * \attention If `flags` is 0, we assume that the UDP server is IPv4-only.
+     */
+    virtual AooError AOO_CALL setup(AooUInt16 port, AooSocketFlags flags) = 0;
+
+    /** \brief run the internal TCP client
+     *
+     * \param nonBlocking
+     *   - #kAooTrue: returns immediately, either with #kAooOk (= did something)
+     *     or with #kAooErrorWouldBlock (= nothing to do).
+     *   - #kAooFalse: blocks until until quit() is called.
      */
     virtual AooError AOO_CALL run(AooBool nonBlocking) = 0;
 
@@ -85,8 +114,9 @@ public:
      * \param user user data passed to callback function
      */
     virtual AooError AOO_CALL connect(
-            const AooChar *hostName, AooInt32 port, const AooChar *password,
-            const AooData *metadata, AooResponseHandler cb, void *context) = 0;
+            const AooChar *hostName, AooInt32 port,
+            const AooChar *password, const AooData *metadata,
+            AooResponseHandler cb, void *context) = 0;
 
     /** \brief disconnect from AOO server
      *
@@ -137,27 +167,26 @@ public:
      *
      * \note Threadsafe and RT-safe
      *
-     * \param group the group
-     * \param metadata the new metadata
+     * \param groupId the group ID
+     * \param groupMetadata the new group metadata
      * \param cb function to be called with server reply
      * \param context user data passed to callback function
      */
     virtual AooError AOO_CALL updateGroup(
-            AooId group, const AooData &metadata,
+            AooId groupId, const AooData &groupMetadata,
             AooResponseHandler cb, void *context) = 0;
 
     /** \brief update user metadata
      *
      * \note Threadsafe and RT-safe
      *
-     * \param group the group
-     * \param user the user
-     * \param metadata the new metadata
+     * \param groupId the group ID
+     * \param userMetadata the new user metadata
      * \param cb function to be called with server reply
      * \param context user data passed to callback function
      */
     virtual AooError AOO_CALL updateUser(
-            AooId group, AooId user, const AooData &metadata,
+            AooId groupId, const AooData &userMetadata,
             AooResponseHandler cb, void *context) = 0;
 
     /** \brief send custom request
@@ -234,7 +263,7 @@ public:
      */
     virtual AooError AOO_CALL sendMessage(
             AooId group, AooId user, const AooData &msg,
-            AooNtpTime timeStamp, AooFlag flags) = 0;
+            AooNtpTime timeStamp, AooMessageFlags flags) = 0;
 
     /** \brief handle messages from peers
      *
@@ -318,6 +347,21 @@ public:
     /** \brief Check if binary messages are enabled */
     AooError getBinaryMsg(AooBool& b) {
         return control(kAooCtlGetBinaryClientMsg, 0, AOO_ARG(b));
+    }
+
+    /** \brief add interface address */
+    AooError addInterfaceAddress(const AooChar *address) {
+        return control(kAooCtlAddInterfaceAddress, (AooIntPtr)address, NULL, 0);
+    }
+
+    /** \brief remove interface address */
+    AooError removeInterfaceAddress(const AooChar *address) {
+        return control(kAooCtlRemoveInterfaceAddress, (AooIntPtr)address, NULL, 0);
+    }
+
+    /** \brief clear interface addresses */
+    AooError clearInterfaceAddresses() {
+        return control(kAooCtlRemoveInterfaceAddress, 0, NULL, 0);
     }
 
     /*--------------------------------------------*/

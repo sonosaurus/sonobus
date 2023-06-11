@@ -5,6 +5,10 @@
 #include <memory>
 #include <string>
 
+#define AOO_EVENT_INIT(ptr, name, field) \
+    (ptr)->type = k##name; \
+    (ptr)->structSize = AOO_STRUCT_SIZE(name, field);
+
 namespace aoo {
 namespace net {
 
@@ -37,7 +41,7 @@ struct error_event : ievent
 
     void dispatch(const event_handler& fn) const override {
         AooEventError e;
-        e.type = kAooEventError;
+        AOO_EVENT_INIT(&e, AooEventError, errorMessage);
         e.errorCode = code_;
         e.errorMessage = msg_.c_str();
 

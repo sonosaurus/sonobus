@@ -8,11 +8,30 @@
 
 #pragma once
 
-#include "aoo_source.h"
+#include "aoo_config.h"
+#include "aoo_controls.h"
+#include "aoo_defines.h"
+#include "aoo_events.h"
+#include "aoo_types.h"
 
 #if AOO_HAVE_CXX11
 # include <memory>
 #endif
+
+typedef struct AooSource AooSource;
+
+/** \brief create a new AOO source instance
+ *
+ * \param id the ID
+ * \param[out] err (optional) error code on failure
+ * \return new AooSource instance on success; `NULL` on failure
+ */
+AOO_API AooSource * AOO_CALL AooSource_new(AooId id, AooError *err);
+
+/** \brief destroy the AOO source instance */
+AOO_API void AOO_CALL AooSource_free(AooSource *source);
+
+/*------------------------------------------------------------*/
 
 /** \brief AOO source interface */
 struct AooSource {
@@ -33,8 +52,8 @@ public:
      *
      * \copydetails AooSource_new()
      */
-    static Ptr create(AooId id, AooFlag flags, AooError *err) {
-        return Ptr(AooSource_new(id, flags, err));
+    static Ptr create(AooId id, AooError *err) {
+        return Ptr(AooSource_new(id, err));
     }
 #endif
 
@@ -44,13 +63,14 @@ public:
      *
      * \attention Not threadsafe - needs to be synchronized with other method calls!
      *
-     * \param sampleRate the sample rate
-     * \param blockSize the max. blocksize
      * \param numChannels the max. number of channels
+     * \param sampleRate the sample rate
+     * \param maxBlockSize the max. number of samples per block
+     * \param flags optional flags (currently always 0)
      */
     virtual AooError AOO_CALL setup(
-            AooSampleRate sampleRate,
-            AooInt32 blockSize, AooInt32 numChannels) = 0;
+            AooInt32 numChannels, AooSampleRate sampleRate,
+            AooInt32 maxBlockSize, AooSetupFlags flags) = 0;
 
     /** \brief handle sink messages
      *
@@ -135,11 +155,11 @@ public:
 
     /** \brief add sink
      *
-     * Unless you pass the #kAooSinkActive flag, sinks are initially deactivated
-     * and have to be activated manually with AooSource_activateSink().
+     * If `active` is true, the sink will start active, otherwise
+     * it has to be activated manually with AooSource_activateSink().
      */
     virtual AooError AOO_CALL addSink(
-            const AooEndpoint& sink, AooFlag flags) = 0;
+            const AooEndpoint& sink, AooBool active) = 0;
 
     /** \brief remove sink */
     virtual AooError AOO_CALL removeSink(const AooEndpoint& sink) = 0;
@@ -251,20 +271,14 @@ public:
         return control(kAooCtlGetBufferSize, 0, AOO_ARG(s));
     }
 
-    /** \brief Enable/disable xrun detection
+    /** \brief Report xruns
      *
-     * xrun detection helps to catch timing problems, e.g. when the host accidentally
-     * blocks the audio callback, which would confuse the time DLL filter.
-     * Also, timing gaps are handled by sending empty blocks.
-     * \attention: only takes effect after calling AooSource::setup()!
+     * If your audio backend notifies you about xruns, you may report
+     * them to AooSink. "Missing" samples will be substituted with empty
+     * blocks and the dynamic resampler (if enabled) will be reset.
      */
-    AooError setXRunDetection(AooBool b) {
-        return control(kAooCtlSetXRunDetection, 0, AOO_ARG(b));
-    }
-
-    /** \brief Check if xrun detection is enabled */
-    AooError getXRunDetection(AooBool& b) {
-        return control(kAooCtlGetXRunDetection, 0, AOO_ARG(b));
+    AooError reportXRun(AooInt32 numSamples) {
+        return control(kAooCtlReportXRun, 0, AOO_ARG(numSamples));
     }
 
     /** \brief Enable/disable dynamic resampling
@@ -303,6 +317,16 @@ public:
     /** \brief get DLL filter bandwidth */
     AooError getDllBandwidth(double& q) {
         return control(kAooCtlGetDllBandwidth, 0, AOO_ARG(q));
+    }
+
+    /** \brief Reset the time DLL filter
+     *
+     * Use this if the audio thread experiences timing irregularities,
+     * but you cannot use AooSource::reportXRun(). This function only
+     * has an effect if dynamic resampling is enabled.
+     */
+    AooError resetDll() {
+        return control(kAooCtlResetDll, 0, nullptr, 0);
     }
 
     /** \brief Set the max. UDP packet size in bytes

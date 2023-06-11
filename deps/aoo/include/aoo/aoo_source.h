@@ -8,29 +8,29 @@
 
 #pragma once
 
-#include "aoo.h"
-#include "aoo_events.h"
+#include "aoo_config.h"
 #include "aoo_controls.h"
+#include "aoo_defines.h"
+#include "aoo_events.h"
+#include "aoo_types.h"
 
 typedef struct AooSource AooSource;
 
 /** \brief create a new AOO source instance
  *
  * \param id the ID
- * \param flags optional flags
- * \param[out] err error code on failure
+ * \param[out] err (optional) error code on failure
  * \return new AooSource instance on success; `NULL` on failure
  */
-AOO_API AooSource * AOO_CALL AooSource_new(
-        AooId id, AooFlag flags, AooError *err);
+AOO_API AooSource * AOO_CALL AooSource_new(AooId id, AooError *err);
 
 /** \brief destroy the AOO source instance */
 AOO_API void AOO_CALL AooSource_free(AooSource *source);
 
 /** \copydoc AooSource::setup() */
 AOO_API AooError AOO_CALL AooSource_setup(
-        AooSource *source, AooSampleRate sampleRate,
-        AooInt32 blockSize, AooInt32 numChannels);
+        AooSource *source, AooInt32 numChannels, AooSampleRate sampleRate,
+        AooInt32 maxBlockSize, AooSetupFlags flags);
 
 /** \copydoc AooSource::handleMessage() */
 AOO_API AooError AOO_CALL AooSource_handleMessage(
@@ -66,13 +66,9 @@ AOO_API AooError AOO_CALL AooSource_startStream(
 /** \copydoc AooSource::stopStream() */
 AOO_API AooError AOO_CALL AooSource_stopStream(AooSource *source);
 
-/** \brief sink should start active
- * \see AooSource_addSink */
-#define kAooSinkActive 0x01
-
 /** \copydoc AooSource::addSink() */
 AOO_API AooError AOO_CALL AooSource_addSink(
-        AooSource *source, const AooEndpoint *sink, AooFlag flags);
+        AooSource *source, const AooEndpoint *sink, AooBool active);
 
 /** \copydoc AooSource::removeSink() */
 AOO_API AooError AOO_CALL AooSource_removeSink(
@@ -157,16 +153,10 @@ AOO_INLINE AooError AooSource_getBufferSize(AooSource *source, AooSeconds *s)
     return AooSource_control(source, kAooCtlGetBufferSize, 0, AOO_ARG(*s));
 }
 
-/** \copydoc AooSource::setXRunDetection() */
-AOO_INLINE AooError AooSource_setXRunDetection(AooSource *source, AooBool b)
+/** \copydoc AooSource::reportXRun() */
+AOO_INLINE AooError AooSource_reportXRun(AooSource *source, AooInt32 numSamples)
 {
-    return AooSource_control(source, kAooCtlSetXRunDetection, 0, AOO_ARG(b));
-}
-
-/** \copydoc AooSource::getXRunDetection() */
-AOO_INLINE AooError AooSource_getXRunDetection(AooSource *source, AooBool *b)
-{
-    return AooSource_control(source, kAooCtlGetXRunDetection, 0, AOO_ARG(*b));
+    return AooSource_control(source, kAooCtlReportXRun, 0, AOO_ARG(numSamples));
 }
 
 /** \copydoc AooSource::setDynamicResampling() */
@@ -197,6 +187,12 @@ AOO_INLINE AooError AooSource_setDllBandwidth(AooSource *source, double q)
 AOO_INLINE AooError AooSource_getDllBandwidth(AooSource *source, double *q)
 {
     return AooSource_control(source, kAooCtlGetDllBandwidth, 0, AOO_ARG(*q));
+}
+
+/** \copydoc AooSource::resetDll() */
+AOO_INLINE AooError AooSource_resetDll(AooSource *source)
+{
+    return AooSource_control(source, kAooCtlResetDll, 0, NULL, 0);
 }
 
 /** \copydoc AooSource::setPacketSize() */

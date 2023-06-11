@@ -1,7 +1,5 @@
 #pragma once
 
-#include "aoo/aoo_defines.h"
-
 #include "detail.hpp"
 
 #include <vector>

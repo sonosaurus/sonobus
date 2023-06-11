@@ -84,7 +84,7 @@ void sample_to_int24(AooSample in, AooByte *out)
 {
     convert c;
     // convert to 32 bit range
-    AooSample temp = std::rint(in * INT32_MAX);
+    double temp = std::rint(in * (double)INT32_MAX);
     // check for overflow!
     if (temp > INT32_MAX){
         temp = INT32_MAX;
@@ -168,11 +168,11 @@ void print_format(const AooFormatPcm& f)
 
 bool validate_format(AooFormatPcm& f, bool loud = true)
 {
-    if (strcmp(f.header.codec, kAooCodecPcm)){
+    if (f.header.structSize < AOO_STRUCT_SIZE(AooFormatPcm, bitDepth)) {
         return false;
     }
 
-    if (f.header.size < sizeof(AooFormatPcm)){
+    if (strcmp(f.header.codecName, kAooCodecPcm)){
         return false;
     }
 
@@ -249,7 +249,7 @@ AooError AOO_CALL PcmCodec_control(
         return kAooOk;
     default:
         LOG_WARNING("PCM: unsupported codec ctl " << ctl);
-        return kAooErrorUnknown;
+        return kAooErrorNotImplemented;
     }
 }
 
@@ -263,7 +263,7 @@ AooError AOO_CALL PcmCodec_encode(
     if (*size < nbytes){
         LOG_WARNING("PCM: size mismatch! input bytes: "
                     << nbytes << ", output bytes " << *size);
-        return kAooErrorUnknown;
+        return kAooErrorInsufficientBuffer;
     }
 
     auto samples_to_bytes = [&](auto fn){
@@ -292,7 +292,7 @@ AooError AOO_CALL PcmCodec_encode(
         break;
     default:
         // unknown bitdepth
-        return kAooErrorUnknown;
+        return kAooErrorBadArgument;
     }
 
     *size = nbytes;
@@ -318,7 +318,7 @@ AooError AOO_CALL PcmCodec_decode(
     if (*n < nsamples){
         LOG_WARNING("PCM: size mismatch! input samples: "
                     << nsamples << ", output samples " << *n);
-        return kAooErrorUnknown;
+        return kAooErrorInsufficientBuffer;
     }
 
     auto blob_to_samples = [&](auto convfn){
@@ -346,7 +346,7 @@ AooError AOO_CALL PcmCodec_decode(
         break;
     default:
         // unknown bitdepth
-        return kAooErrorUnknown;
+        return kAooErrorBadArgument;
     }
 
     *n = nsamples;
@@ -357,45 +357,55 @@ AooError AOO_CALL PcmCodec_decode(
 AooError AOO_CALL serialize(
         const AooFormat *f, AooByte *buf, AooInt32 *size)
 {
+    if (!size) {
+        return kAooErrorBadArgument;
+    }
     if (!buf){
         *size = sizeof(AooInt32);
         return kAooOk;
     }
-    if (*size >= sizeof(AooInt32)){
-        auto fmt = (const AooFormatPcm *)f;
-        aoo::to_bytes<AooInt32>(fmt->bitDepth, buf);
-        *size = sizeof(AooInt32);
-
-        return kAooOk;
-    } else {
+    if (*size < sizeof(AooInt32)) {
         LOG_ERROR("PCM: couldn't write settings - buffer too small!");
+        return kAooErrorInsufficientBuffer;
+    }
+    if (!AOO_CHECK_FIELD(f, AooFormatPcm, bitDepth)) {
+        LOG_ERROR("PCM: bad format struct size");
         return kAooErrorBadArgument;
     }
+
+    auto fmt = (const AooFormatPcm *)f;
+    aoo::to_bytes<AooInt32>(fmt->bitDepth, buf);
+    *size = sizeof(AooInt32);
+
+    return kAooOk;
 }
 
 AooError AOO_CALL deserialize(
         const AooByte *buf, AooInt32 size, AooFormat *f, AooInt32 *fmtsize)
 {
-    if (!f){
-        *fmtsize = sizeof(AooFormatPcm);
+    if (!fmtsize) {
+        return kAooErrorBadArgument;
+    }
+    if (!f) {
+        *fmtsize = AOO_STRUCT_SIZE(AooFormatPcm, bitDepth);
         return kAooOk;
     }
-    if (size < sizeof(AooInt32)){
+    if (size < sizeof(AooInt32)) {
         LOG_ERROR("PCM: couldn't read format - not enough data!");
         return kAooErrorBadArgument;
     }
-    if (*fmtsize < sizeof(AooFormatPcm)){
+    if (*fmtsize < AOO_STRUCT_SIZE(AooFormatPcm, bitDepth)) {
         LOG_ERROR("PCM: output format storage too small");
         return kAooErrorBadArgument;
     }
     auto fmt = (AooFormatPcm *)f;
     fmt->bitDepth = aoo::from_bytes<AooInt32>(buf);
-    *fmtsize = sizeof(AooFormatPcm);
+    *fmtsize = AOO_STRUCT_SIZE(AooFormatPcm, bitDepth);
 
     return kAooOk;
 }
 
-static AooCodecInterface g_interface = {
+AooCodecInterface g_interface = {
     sizeof(AooCodecInterface),
     // encoder
     PcmCodec_new,
@@ -419,8 +429,8 @@ PcmCodec::PcmCodec(const AooFormatPcm& f) {
 
 } // namespace
 
-void aoo_pcmLoad(const AooCodecHostInterface *ift) {
-    ift->registerCodec(kAooCodecPcm, &g_interface);
+void aoo_pcmLoad(const AooCodecHostInterface *iface) {
+    iface->registerCodec(kAooCodecPcm, &g_interface);
     // the PCM codec is always statically linked, so we can simply use the
     // internal log function and allocator
 }

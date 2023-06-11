@@ -204,7 +204,7 @@ class ReceivedMessageArgument{
 public:
 	ReceivedMessageArgument( const char *typeTagPtr, const char *argumentPtr )
 		: typeTagPtr_( typeTagPtr )
-		, argumentPtr_( argumentPtr ) {}
+		, argumentPtr_( argumentPtr ) { assert(typeTagPtr_ != NULL); }
 
     friend class ReceivedMessageArgumentIterator;
     

@@ -29,16 +29,19 @@ struct t_aoo_server
     std::thread x_udpthread;
     std::thread x_tcpthread;
     int x_port = 0;
-    int32_t x_numclients = 0;
+    int x_numclients = 0;
     t_clock *x_clock = nullptr;
     t_outlet *x_stateout = nullptr;
     t_outlet *x_msgout = nullptr;
 
     void close();
-    AooId handle_accept(int e, const aoo::ip_address& addr, AooSocket sock);
-    void handle_receive(AooId client, int e, const AooByte *data, AooSize size);
+    AooId handle_accept(int e, const aoo::ip_address& addr);
+    void handle_receive(int e, AooId client, const aoo::ip_address& addr,
+                        const AooByte *data, AooSize size);
     void handle_udp_receive(int e, const aoo::ip_address& addr,
                             const AooByte *data, AooSize size);
+    void add_client(AooId id, const aoo::ip_address& addr);
+    void remove_client(AooId id, const aoo::ip_address& addr);
 };
 
 void t_aoo_server::close() {
@@ -57,7 +60,7 @@ void t_aoo_server::close() {
     x_port = 0;
 }
 
-AooId t_aoo_server::handle_accept(int e, const aoo::ip_address& addr, AooSocket sock) {
+AooId t_aoo_server::handle_accept(int e, const aoo::ip_address& addr) {
     if (e == 0) {
         // reply function
         auto replyfn = [](void *x, AooId client,
@@ -65,7 +68,12 @@ AooId t_aoo_server::handle_accept(int e, const aoo::ip_address& addr, AooSocket 
             return static_cast<aoo::tcp_server *>(x)->send(client, data, size);
         };
         AooId client;
-        x_server->addClient(replyfn, &x_tcpserver, sock, &client); // doesn't fail
+        x_server->addClient(replyfn, &x_tcpserver, &client); // doesn't fail
+
+        sys_lock();
+        add_client(client, addr);
+        sys_unlock();
+
         return client;
     } else {
         // called on network thread - must lock Pd!
@@ -78,12 +86,17 @@ AooId t_aoo_server::handle_accept(int e, const aoo::ip_address& addr, AooSocket 
     }
 }
 
-void t_aoo_server::handle_receive(AooId client, int e, const AooByte *data, AooSize size) {
+void t_aoo_server::handle_receive(int e, AooId client, const aoo::ip_address& addr,
+                                  const AooByte *data, AooSize size) {
     if (e == 0 && size > 0) {
-        if (x_server->handleClientMessage(client, data, size) != kAooOk) {
+        if (auto err = x_server->handleClientMessage(client, data, size); err != kAooOk) {
             // remove client!
             x_server->removeClient(client);
             x_tcpserver.close(client);
+
+            sys_lock();
+            remove_client(client, addr);
+            sys_unlock();
         }
     } else {
         // remove client!
@@ -97,6 +110,7 @@ void t_aoo_server::handle_receive(AooId client, int e, const AooByte *data, AooS
             pd_error(this, "%s: TCP error in client %d: %s",
                      classname(this), client, aoo::socket_strerror(e).c_str());
         }
+        remove_client(client, addr);
         // TODO handle error?
         sys_unlock();
     }
@@ -123,68 +137,81 @@ void t_aoo_server::handle_udp_receive(int e, const aoo::ip_address& addr,
     }
 }
 
+void t_aoo_server::add_client(AooId id, const aoo::ip_address& addr) {
+    t_atom msg[3];
+
+    char strid[64];
+    snprintf(strid, sizeof(strid), "0x%X", id);
+    SETSYMBOL(msg, gensym(strid));
+    address_to_atoms(addr, 2, msg + 1);
+
+    outlet_anything(x_msgout, gensym("client_add"), 3, msg);
+
+    x_numclients++;
+
+    outlet_float(x_stateout, x_numclients);
+}
+
+void t_aoo_server::remove_client(AooId id, const aoo::ip_address& addr) {
+    t_atom msg[3];
+
+    char strid[64];
+    snprintf(strid, sizeof(strid), "0x%X", id);
+    SETSYMBOL(msg, gensym(strid));
+    address_to_atoms(addr, 2, msg + 1);
+
+    outlet_anything(x_msgout, gensym("client_remove"), 3, msg);
+
+    x_numclients--;
+
+    outlet_float(x_stateout, x_numclients);
+}
+
 static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int32_t)
 {
     switch (event->type) {
-    case kAooEventServerClientLogin:
+    case kAooEventClientLogin:
     {
-        auto& e = event->serverClientLogin;
+        auto& e = event->clientLogin;
 
-        t_atom msg[3];
-
-        char id[64];
-        snprintf(id, sizeof(id), "0x%X", e.id);
-        SETSYMBOL(msg, gensym(id));
-
-        aoo::ip_address addr;
-        aoo::socket_peer(e.sockfd, addr);
-        address_to_atoms(addr, 2, msg + 1);
-
-        outlet_anything(x->x_msgout, gensym("client_add"), 3, msg);
-
-        x->x_numclients++;
-
-        outlet_float(x->x_stateout, x->x_numclients);
-
-        break;
-    }
-    case kAooEventServerClientRemove:
-    {
+        // TODO: address + metadata
         t_atom msg;
         char id[64];
-        snprintf(id, sizeof(id), "0x%X", event->serverClientRemove.id);
+        snprintf(id, sizeof(id), "0x%X", e.id);
         SETSYMBOL(&msg, gensym(id));
 
-        outlet_anything(x->x_msgout, gensym("client_remove"), 1, &msg);
-
-        x->x_numclients--;
-
-        outlet_float(x->x_stateout, x->x_numclients);
+        if (e.error == kAooOk) {
+            outlet_anything(x->x_msgout, gensym("client_login"), 1, &msg);
+        } else {
+            pd_error(x, "%s: client %d failed to login: %s",
+                     classname(x), e.id, aoo_strerror(e.error));
+            // For now, we expect the client to disconnect. LATER maybe close client.
+        }
 
         break;
     }
-    case kAooEventServerGroupAdd:
+    case kAooEventGroupAdd:
     {
         // TODO add group
         t_atom msg;
-        SETSYMBOL(&msg, gensym(event->serverGroupAdd.name));
+        SETSYMBOL(&msg, gensym(event->groupAdd.name));
         // TODO metadata
         outlet_anything(x->x_msgout, gensym("group_add"), 1, &msg);
 
         break;
     }
-    case kAooEventServerGroupRemove:
+    case kAooEventGroupRemove:
     {
         // TODO remove group
         t_atom msg;
-        SETSYMBOL(&msg, gensym(event->serverGroupRemove.name));
+        SETSYMBOL(&msg, gensym(event->groupRemove.name));
         outlet_anything(x->x_msgout, gensym("group_remove"), 1, &msg);
 
         break;
     }
-    case kAooEventServerGroupJoin:
+    case kAooEventGroupJoin:
     {
-        auto& e = event->serverGroupJoin;
+        auto& e = event->groupJoin;
 
         t_atom msg[3];
         SETSYMBOL(msg, gensym(e.groupName));
@@ -194,9 +221,9 @@ static void aoo_server_handle_event(t_aoo_server *x, const AooEvent *event, int3
 
         break;
     }
-    case kAooEventServerGroupLeave:
+    case kAooEventGroupLeave:
     {
-        auto& e = event->serverGroupLeave;
+        auto& e = event->groupLeave;
 
         t_atom msg[3];
         SETSYMBOL(msg, gensym(e.groupName));
@@ -238,12 +265,20 @@ static void aoo_server_port(t_aoo_server *x, t_floatarg f)
 
     x->close();
 
+    x->x_numclients = 0;
+    outlet_float(x->x_stateout, 0);
+
     if (port > 0) {
         try {
             // setup UDP server
             // TODO: increase socket receive buffer for relay? Use threaded receive?
             x->x_udpserver.start(port,
                 [x](auto&&... args) { x->handle_udp_receive(args...); });
+
+            auto flags = aoo::socket_family(x->x_udpserver.socket()) == aoo::ip_address::IPv6 ?
+                             kAooSocketDualStack : kAooSocketIPv4;
+
+            x->x_server->setup(port, flags);
 
             // setup TCP server
             x->x_tcpserver.start(port,
@@ -291,7 +326,8 @@ t_aoo_server::t_aoo_server(int argc, t_atom *argv)
     x_clock = clock_new(this, (t_method)aoo_server_tick);
     x_stateout = outlet_new(&x_obj, 0);
     x_msgout = outlet_new(&x_obj, 0);
-    x_server = AooServer::create(0, nullptr);
+
+    x_server = AooServer::create(nullptr);
 
     int port = atom_getfloatarg(0, argc, argv);
     aoo_server_port(this, port);

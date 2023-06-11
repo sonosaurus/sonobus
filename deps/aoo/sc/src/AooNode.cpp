@@ -13,11 +13,17 @@ AooNode::AooNode(World *world, int port) {
     const int recvbufsize = 1 << 18; // 256 KB
 #endif
     // udp_server::start() throws on error!
-    server_.start(port, [this](auto&&... args) { handlePacket(args...); },
-                  false, recvbufsize, sendbufsize);
+    server_.set_send_buffer_size(sendbufsize);
+    server_.set_receive_buffer_size(recvbufsize);
+    server_.start(port, [this](auto&&... args) { handlePacket(args...); }, false);
 
     LOG_DEBUG("create AooClient on port " << port);
-    client_ = AooClient::create(server_.socket(), 0, nullptr);
+
+    auto flags = aoo::socket_family(server_.socket()) == aoo::ip_address::IPv6 ?
+                     kAooSocketDualStack : kAooSocketIPv4;
+
+    client_ = AooClient::create(nullptr);
+    client_->setup(port, flags);
 
 #if NETWORK_THREAD_POLL
     // start network I/O thread

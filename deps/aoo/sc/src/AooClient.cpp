@@ -70,18 +70,20 @@ AooClient::~AooClient() {
     LOG_DEBUG("~AooClient");
 }
 
-void AooClient::connect(int token, const char* host, int port, const char *pwd) {
+void AooClient::connect(int token, const char* host,
+                        int port, const char *pwd) {
     if (!node_){
-        sendError("/aoo/client/connect", token);
+        sendError("/aoo/client/connect", token, kAooErrorInternal);
         return;
     }
 
-    auto cb = [](void* x, const AooRequest *request, const AooResponse *response) {
+    auto cb = [](void* x, const AooRequest *request,
+            AooError result, const AooResponse *response) {
         auto data = (RequestData *)x;
         auto client = data->client;
         auto token = data->token;
 
-        if (response->type != kAooRequestError) {
+        if (result == kAooErrorNone) {
             char buf[1024];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
             msg << osc::BeginMessage("/aoo/client/connect")
@@ -91,27 +93,29 @@ void AooClient::connect(int token, const char* host, int port, const char *pwd) 
 
             ::sendMsgNRT(client->world_, msg);
         } else {
-            client->sendError("/aoo/client/connect", token, *response);
+            client->sendError("/aoo/client/connect", token, result, *response);
         }
 
         delete data;
     };
 
-    node_->client()->connect(host, port, pwd, nullptr, cb, new RequestData { this, token });
+    node_->client()->connect(host, port, pwd, nullptr,
+                             cb, new RequestData { this, token });
 }
 
 void AooClient::disconnect(int token) {
     if (!node_) {
-        sendError("/aoo/client/disconnect", token);
+        sendError("/aoo/client/disconnect", token, kAooErrorInternal);
         return;
     }
 
-    auto cb = [](void* x, const AooRequest *request, const AooResponse *response) {
+    auto cb = [](void* x, const AooRequest *request,
+            AooError result, const AooResponse *response) {
         auto data = (RequestData *)x;
         auto client = data->client;
         auto token = data->token;
 
-        if (response->type != kAooRequestError) {
+        if (result == kAooErrorNone) {
             char buf[1024];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
             msg << osc::BeginMessage("/aoo/client/disconnect")
@@ -120,28 +124,29 @@ void AooClient::disconnect(int token) {
 
             ::sendMsgNRT(client->world_, msg);
         } else {
-            client->sendError("/aoo/client/disconnect", token, *response);
+            client->sendError("/aoo/client/disconnect", token, result, *response);
         }
 
         delete data;
     };
 
-    node_->client()->disconnect(cb, new RequestData{ this, token });
+    node_->client()->disconnect(cb, new RequestData { this, token });
 }
 
 void AooClient::joinGroup(int token, const char* groupName, const char *groupPwd,
                           const char *userName, const char *userPwd) {
     if (!node_) {
-        sendError("/aoo/client/group/join", token);
+        sendError("/aoo/client/group/join", token, kAooErrorInternal);
         return;
     }
 
-    auto cb = [](void* x, const AooRequest *request, const AooResponse* response) {
+    auto cb = [](void* x, const AooRequest *request,
+            AooError result, const AooResponse* response) {
         auto data = (RequestData *)x;
         auto client = data->client;
         auto token = data->token;
 
-        if (response->type != kAooRequestError) {
+        if (result == kAooErrorNone) {
             char buf[1024];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
             msg << osc::BeginMessage("/aoo/client/group/join")
@@ -151,7 +156,7 @@ void AooClient::joinGroup(int token, const char* groupName, const char *groupPwd
 
             ::sendMsgNRT(client->world_, msg);
         } else {
-            client->sendError("/aoo/client/group/join", token, *response);
+            client->sendError("/aoo/client/group/join", token, result, *response);
         }
 
         delete data;
@@ -159,36 +164,37 @@ void AooClient::joinGroup(int token, const char* groupName, const char *groupPwd
 
     node_->client()->joinGroup(groupName, groupPwd, nullptr,
                                userName, userPwd, nullptr, nullptr,
-                               cb, new RequestData{ this, token });
+                               cb, new RequestData { this, token });
 }
 
 void AooClient::leaveGroup(int token, AooId group) {
     if (!node_) {
-        sendError("/aoo/client/group/leave", token);
+        sendError("/aoo/client/group/leave", token, kAooErrorInternal);
         return;
     }
 
-    auto cb = [](void* x, const AooRequest *request, const AooResponse* response) {
+    auto cb = [](void* x, const AooRequest *request,
+            AooError result, const AooResponse* response) {
         auto data = (RequestData *)x;
         auto client = data->client;
         auto token = data->token;
 
-        if (response->type != kAooRequestError) {
+        if (result == kAooErrorNone) {
             char buf[1024];
             osc::OutboundPacketStream msg(buf, sizeof(buf));
-            msg << osc::BeginMessage("/aoo/client/group/join")
+            msg << osc::BeginMessage("/aoo/client/group/leave")
                 << client->node_->port() << token << (int32_t)1
                 << osc::EndMessage;
 
             ::sendMsgNRT(client->world_, msg);
         } else {
-            client->sendError("/aoo/client/group/join", token, *response);
+            client->sendError("/aoo/client/group/leave", token, result, *response);
         }
 
         delete data;
     };
 
-    node_->client()->leaveGroup(group, cb, new RequestData{ this, token });
+    node_->client()->leaveGroup(group, cb, new RequestData { this, token });
 }
 
 // called from network thread
@@ -204,10 +210,10 @@ void AooClient::handleEvent(const AooEvent* event) {
         handlePeerMessage(e.groupId, e.userId, e.timeStamp, e.data);
         return; // don't send event
     }
-    case kAooEventClientDisconnect:
+    case kAooEventDisconnect:
     {
-        msg << "/disconnect" << event->clientDisconnect.errorCode
-            << event->clientDisconnect.errorMessage;
+        msg << "/disconnect" << event->disconnect.errorCode
+            << event->disconnect.errorMessage;
         break;
     }
     case kAooEventPeerHandshake:
@@ -245,9 +251,9 @@ void AooClient::handleEvent(const AooEvent* event) {
     case kAooEventPeerPing:
     {
         auto& e = event->peerPing;
-        auto delta1 = aoo_ntpTimeDuration(e.tt1, e.tt2);
-        auto delta2 = aoo_ntpTimeDuration(e.tt2, e.tt3);
-        auto rtt = aoo_ntpTimeDuration(e.tt1, e.tt3);
+        auto delta1 = aoo_ntpTimeDuration(e.t1, e.t2);
+        auto delta2 = aoo_ntpTimeDuration(e.t2, e.t3);
+        auto rtt = aoo_ntpTimeDuration(e.t1, e.t3);
         msg << "/peer/ping" << e.group << e.user << delta1 << delta2 << rtt;
         break;
     }
@@ -265,21 +271,15 @@ void AooClient::handleEvent(const AooEvent* event) {
     ::sendMsgNRT(world_, msg);
 }
 
-void AooClient::sendError(const char *cmd, AooId token, const AooResponse& response) {
+void AooClient::sendError(const char *cmd, AooId token, AooError error,
+                          int errcode, const char *errmsg) {
     char buf[1024];
     osc::OutboundPacketStream msg(buf, sizeof(buf));
-    msg << osc::BeginMessage(cmd) << node_->port() << token << (int32_t)0
-        << response.error.errorCode << response.error.errorMessage
+    msg << osc::BeginMessage(cmd) << node_->port() << token
+        << error << aoo_strerror(error) << errcode << errmsg
         << osc::EndMessage;
 
     ::sendMsgNRT(world_, msg);
-}
-
-void AooClient::sendError(const char *cmd, AooId token) {
-    AooResponse r;
-    r.error.errorCode = -1;
-    r.error.errorMessage = "internal error";
-    sendError(cmd, token, r);
 }
 
 // group, user, offset, flags, type, content

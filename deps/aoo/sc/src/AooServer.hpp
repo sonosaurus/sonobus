@@ -23,12 +23,17 @@ private:
 
     void handleEvent(const AooEvent *event);
 
-    AooId handleAccept(int e, const aoo::ip_address& addr, AooSocket sock);
+    AooId handleAccept(int e, const aoo::ip_address& addr);
 
-    void handleReceive(AooId client, int e, const AooByte *data, AooSize size);
+    void handleReceive(int e, AooId client, const aoo::ip_address& addr,
+                       const AooByte *data, AooSize size);
 
     void handleUdpReceive(int e, const aoo::ip_address& addr,
                           const AooByte *data, AooSize size);
+
+    void addClient(AooId client, const aoo::ip_address& addr);
+
+    void removeClient(AooId client);
 };
 
 struct AooServerCmd {

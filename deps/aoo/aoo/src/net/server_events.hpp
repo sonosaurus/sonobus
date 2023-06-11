@@ -8,57 +8,54 @@ namespace net {
 
 struct client_login_event : ievent
 {
-    client_login_event(const client_endpoint& c)
-        : id_(c.id()), sockfd_(c.sockfd()) {}
+    client_login_event(const client_endpoint& c, AooError error, aoo::metadata md = aoo::metadata{})
+        : id_(c.id()), error_(error), version_(c.version()), metadata_(std::move(md)) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooEventServerClientLogin e;
-        e.type = kAooEventServerClientLogin;
-        e.flags = 0;
+        AooEventClientLogin e;
+        AOO_EVENT_INIT(&e, AooEventClientLogin, metadata);
         e.id = id_;
-        e.sockfd = sockfd_;
+        e.error = error_;
+        e.version = version_.c_str();
+        AooData md;
+        if (metadata_.type() != kAooDataUnspecified && metadata_.size() > 0) {
+            md.type = metadata_.type();
+            md.data = metadata_.data();
+            md.size = metadata_.size();
+            e.metadata = &md;
+        } else {
+            e.metadata = nullptr;
+        }
 
         fn(e);
     }
 
     AooId id_;
-    AooSocket sockfd_;
-};
-
-struct client_remove_event : ievent
-{
-    client_remove_event(AooId id)
-        : id_(id) {}
-
-    void dispatch(const event_handler& fn) const override {
-        AooEventServerClientRemove e;
-        e.type = kAooEventServerClientRemove;
-        e.id = id_;
-
-        fn(e);
-    }
-
-    AooId id_;
+    AooError error_;
+    std::string version_;
+    aoo::metadata metadata_;
 };
 
 struct group_add_event : ievent
 {
     group_add_event(const group& grp)
-        : id_(grp.id()), name_(grp.name()), metadata_(grp.metadata()) {}
+        : id_(grp.id()), flags_(grp.flags()), name_(grp.name()),
+          metadata_(grp.metadata()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooEventServerGroupAdd e;
-        e.type = kAooEventServerGroupAdd;
+        AooEventGroupAdd e;
+        AOO_EVENT_INIT(&e, AooEventGroupAdd, metadata);
         e.id = id_;
+        e.flags = flags_;
         e.name = name_.c_str();
         AooData md { metadata_.type(), metadata_.data(), metadata_.size() };
         e.metadata = md.size > 0 ? &md : nullptr;
-        e.flags = 0;
 
         fn(e);
     }
 
     AooId id_;
+    AooFlag flags_;
     std::string name_;
     aoo::metadata metadata_;
 };
@@ -69,10 +66,12 @@ struct group_remove_event : ievent
         : id_(grp.id()), name_(grp.name()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooEventServerGroupRemove e;
-        e.type = kAooEventServerGroupRemove;
+        AooEventGroupRemove e;
+        AOO_EVENT_INIT(&e, AooEventGroupRemove, name);
         e.id = id_;
+    #if 1
         e.name = name_.c_str();
+    #endif
 
         fn(e);
     }
@@ -86,18 +85,18 @@ struct group_join_event : ievent
     group_join_event(const group& grp, const user& usr)
         : group_id_(grp.id()), user_id_(usr.id()),
           group_name_(grp.name()), user_name_(usr.name()),
-          metadata_(usr.metadata()), client_id_(usr.client()) {}
+          metadata_(usr.metadata()), client_id_(usr.client()),
+          user_flags_(usr.flags()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooEventServerGroupJoin e;
-        e.type = kAooEventServerGroupJoin;
-        e.flags = 0;
+        AooEventGroupJoin e;
+        AOO_EVENT_INIT(&e, AooEventGroupJoin, userMetadata);
         e.groupId = group_id_;
         e.userId = user_id_;
         e.groupName = group_name_.c_str();
         e.userName = user_name_.c_str();
         e.clientId = client_id_;
-        e.userFlags = 0;
+        e.userFlags = user_flags_;
         AooData md { metadata_.type(), metadata_.data(), metadata_.size() };
         e.userMetadata = md.size > 0 ? &md : nullptr;
 
@@ -110,42 +109,50 @@ struct group_join_event : ievent
     std::string user_name_;
     aoo::metadata metadata_;
     AooId client_id_;
+    AooFlag user_flags_;
 };
 
 struct group_leave_event : ievent
 {
     group_leave_event(const group& grp, const user& usr)
+#if 1
         : group_id_(grp.id()), user_id_(usr.id()),
-          group_name_(grp.name()), user_name_(usr.name()) {}
+          group_name_(grp.name()), user_name_(usr.name()){}
+#else
+        : group_id_(grp.id()), user_id_(usr.id()) {}
+#endif
 
     void dispatch(const event_handler& fn) const override {
-        AooEventServerGroupLeave e;
-        e.type = kAooEventServerGroupLeave;
-        e.flags = 0;
+        AooEventGroupLeave e;
+        AOO_EVENT_INIT(&e, AooEventGroupLeave, userName);
         e.groupId = group_id_;
         e.userId = user_id_;
+    #if 1
         e.groupName = group_name_.c_str();
         e.userName = user_name_.c_str();
+    #endif
 
         fn(e);
     }
 
     AooId group_id_;
     AooId user_id_;
+#if 1
     std::string group_name_;
     std::string user_name_;
+#endif
 };
 
 struct group_update_event : ievent
 {
-    group_update_event(const group& grp)
-        : group_(grp.id()), md_(grp.metadata()) {}
+    group_update_event(const group& grp, const user& usr)
+        : group_(grp.id()), user_(usr.id()), md_(grp.metadata()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooEventServerGroupUpdate e;
-        e.type = kAooEventServerGroupUpdate;
-        e.flags = 0;
+        AooEventGroupUpdate e;
+        AOO_EVENT_INIT(&e, AooEventGroupUpdate, groupMetadata);
         e.groupId = group_;
+        e.userId = user_;
         e.groupMetadata.type = md_.type();
         e.groupMetadata.data = md_.data();
         e.groupMetadata.size = md_.size();
@@ -154,6 +161,7 @@ struct group_update_event : ievent
     }
 
     AooId group_;
+    AooId user_;
     aoo::metadata md_;
 };
 
@@ -164,9 +172,8 @@ struct user_update_event : ievent
           md_(usr.metadata()) {}
 
     void dispatch(const event_handler& fn) const override {
-        AooEventServerUserUpdate e;
-        e.type = kAooEventServerUserUpdate;
-        e.flags = 0;
+        AooEventUserUpdate e;
+        AOO_EVENT_INIT(&e, AooEventUserUpdate, userMetadata);
         e.groupId = group_;
         e.userId = user_;
         e.userMetadata.type = md_.type();

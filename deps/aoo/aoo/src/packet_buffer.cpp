@@ -9,20 +9,23 @@ namespace aoo {
 
 //-------------------------- sent_block -----------------------------//
 
-void sent_block::set(int32_t seq, double sr,
-                     const AooByte *data, int32_t totalsize,
-                     int32_t msgsize, int32_t nframes, int32_t framesize)
+void sent_block::set(const data_packet& d, int32_t framesize)
 {
-    sequence = seq;
-    message_size = msgsize;
-    samplerate = sr;
-    numframes_ = nframes;
+    sequence = d.sequence;
+    message_size = d.msgsize;
+    samplerate = d.samplerate;
+    flags = d.flags;
+    numframes_ = d.nframes;
     framesize_ = framesize;
-    buffer_.assign(data, data + totalsize);
+    if (d.totalsize > 0) {
+        buffer_.assign(d.data, d.data + d.totalsize);
+    } else {
+        buffer_.clear();
+    }
 }
 
 int32_t sent_block::get_frame(int32_t which, AooByte *data, int32_t n) const {
-    assert(framesize_ > 0 && numframes_ > 0);
+    assert((framesize_ > 0) == (numframes_ > 0));
     assert(which >= 0 && which < numframes_);
     auto onset = which * framesize_;
     auto size = (which == numframes_ - 1) ? buffer_.size() - onset : framesize_;
@@ -136,53 +139,45 @@ void received_block::reserve(int32_t size){
     buffer_.reserve(size);
 }
 
-void received_block::init(int32_t seq, double sr, int32_t chn,
-    int32_t totalsize, int32_t msgsize, int32_t nframes)
+void received_block::init(const data_packet& d)
 {
-    assert(totalsize > 0);
+    assert((d.totalsize > 0) == (d.nframes > 0));
     // LATER support blocks with arbitrary number of frames
-    assert(nframes <= (int32_t)frames_.size());
+    assert(d.nframes <= (int32_t)frames_.size());
     // keep timestamp and numtries if we're actually reiniting
-    if (seq != sequence){
+    if (d.sequence != sequence){
         timestamp_ = 0;
         numtries_ = 0;
     }
-    sequence = seq;
-    samplerate = sr;
-    message_size = msgsize;
-    channel = chn;
-    buffer_.resize(totalsize);
-    numframes_ = nframes;
-    framesize_ = 0;
-    dropped_ = false;
+    sequence = d.sequence;
+    samplerate = d.samplerate;
+    message_size = d.msgsize;
+    flags = d.flags;
+    channel = d.channel;
+    buffer_.resize(d.totalsize);
+    numframes_ = d.nframes;
     frames_.reset();
-    for (int i = 0; i < nframes; ++i){
+    for (int i = 0; i < d.nframes; ++i){
         frames_[i] = true;
     }
 }
 
-void received_block::init(int32_t seq, bool dropped)
+void received_block::init(int32_t seq)
 {
     sequence = seq;
     samplerate = 0;
     message_size = 0;
     channel = 0;
     buffer_.clear();
-    numframes_ = 0;
-    framesize_ = 0;
+    numframes_ = -1; // sentinel for placeholder block
     timestamp_ = 0;
     numtries_ = 0;
-    dropped_ = dropped;
-    if (dropped){
-        frames_.reset(); // complete
-    } else {
-        frames_.set(); // has_frame() always returns false
-    }
+    frames_.set(); // has_frame() always returns false
 }
 
 void received_block::add_frame(int32_t which, const AooByte *data, int32_t n){
     assert(!buffer_.empty());
-    assert(which < numframes_);
+    assert(numframes_ > 0 && which >= 0 && which < numframes_);
     if (which == numframes_ - 1){
     #if AOO_DEBUG_JITTER_BUFFER
         LOG_ALL("jitter buffer: copy last frame with " << n << " bytes");
@@ -193,7 +188,6 @@ void received_block::add_frame(int32_t which, const AooByte *data, int32_t n){
         LOG_ALL("jitter buffer: copy frame " << which << " with " << n << " bytes");
     #endif
         std::copy(data, data + n, buffer_.data() + (which * n));
-        framesize_ = n; // LATER allow varying framesizes
     }
     frames_[which] = false;
 }
@@ -361,7 +355,7 @@ jitter_buffer::const_iterator jitter_buffer::end() const {
 std::ostream& operator<<(std::ostream& os, const jitter_buffer& jb){
     os << "jitterbuffer (" << jb.size() << " / " << jb.capacity() << "): ";
     for (auto& b : jb){
-        os << b.sequence << " " << "(" << b.count_frames() << "/" << b.num_frames() << ") ";
+        os << "\n" << b.sequence << " " << "(" << b.received_frames() << "/" << b.num_frames() << ")";
     }
     return os;
 }

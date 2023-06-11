@@ -16,6 +16,7 @@ struct data_packet {
     int32_t frame;
     const AooByte *data;
     int32_t size;
+    uint32_t flags;
 };
 
 //---------------------- sent_block ---------------------------//
@@ -23,8 +24,7 @@ struct data_packet {
 class sent_block {
 public:
     // methods
-    void set(int32_t seq, double sr, const AooByte *data, int32_t totalsize,
-             int32_t msgsize, int32_t nframes, int32_t framesize);
+    void set(const data_packet& d, int32_t framesize);
 
     const AooByte* data() const { return buffer_.data(); }
     int32_t size() const { return buffer_.size(); }
@@ -37,6 +37,7 @@ public:
     int32_t sequence = -1;
     int32_t message_size = 0;
     double samplerate = 0;
+    uint32_t flags = 0;
 protected:
     aoo::vector<AooByte> buffer_;
     int32_t numframes_ = 0;
@@ -81,9 +82,8 @@ class received_block {
 public:
     void reserve(int32_t size);
 
-    void init(int32_t seq, bool dropped);
-    void init(int32_t seq, double sr, int32_t chn,
-              int32_t totalsize, int32_t msgsize, int32_t nframes);
+    void init(int32_t seq);
+    void init(const data_packet& d);
 
     const AooByte* data() const { return buffer_.data(); }
     int32_t size() const { return buffer_.size(); }
@@ -92,14 +92,15 @@ public:
     bool has_frame(int32_t which) const {
         return !frames_[which];
     }
-    int32_t count_frames() const {
+    int32_t received_frames() const {
         return std::max<int32_t>(0, numframes_ - frames_.count());
     }
     void add_frame(int32_t which, const AooByte *data, int32_t n);
 
     int32_t resend_count() const { return numtries_; }
-    bool dropped() const { return dropped_; }
     bool complete() const { return frames_.none(); }
+    bool placeholder() const { return numframes_ < 0; }
+    bool empty() const { return numframes_ == 0; }
     bool update(double time, double interval);
 
     // data
@@ -107,14 +108,13 @@ public:
     int32_t channel = 0;
     double samplerate = 0;
     int32_t message_size = 0;
+    uint32_t flags = 0;
 protected:
     aoo::vector<AooByte> buffer_;
     int32_t numframes_ = 0;
-    int32_t framesize_ = 0;
     std::bitset<256> frames_ = 0;
     double timestamp_ = 0;
     int32_t numtries_ = 0;
-    bool dropped_ = false;
 };
 
 //---------------------------- jitter_buffer ------------------------------//

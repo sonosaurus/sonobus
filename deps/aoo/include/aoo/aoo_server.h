@@ -8,31 +8,12 @@
 
 #pragma once
 
-#include "aoo_net.h"
-#include "aoo_events.h"
+#include "aoo_config.h"
 #include "aoo_controls.h"
-
-/** \brief server reply function
- *
- * \attention This function must send the entire message!
- * Partial writes are not allowed.
- * \param user user data
- * \param clientId client ID
- * \param data message data
- * \param size message size
- * \param flags send flags
- * \return number of bytes written, or -1 on error
- */
-typedef AooInt32 (AOO_CALL *AooServerReplyFunc)(
-        /** the user data */
-        void *user,
-        /** the client ID */
-        AooId clientId,
-        /** the message content */
-        const AooByte *data,
-        /** the message size in bytes */
-        AooSize size
-);
+#include "aoo_defines.h"
+#include "aoo_events.h"
+#include "aoo_requests.h"
+#include "aoo_types.h"
 
 /*--------------------------------------------------------------*/
 
@@ -40,15 +21,17 @@ typedef struct AooServer AooServer;
 
 /** \brief create a new AOO source instance
  *
- * \param flags optional flags
- * \param[out] err error code on failure
+ * \param[out] err (optional) error code on failure
  * \return new AooServer instance on success; `NULL` on failure
  */
-AOO_API AooServer * AOO_CALL AooServer_new(
-        AooFlag flags, AooError *err);
+AOO_API AooServer * AOO_CALL AooServer_new(AooError *err);
 
 /** \brief destroy AOO server instance */
 AOO_API void AOO_CALL AooServer_free(AooServer *server);
+
+/** \copydoc AooServer::setup() */
+AOO_API AooError AOO_CALL AooServer_setup(
+        AooServer *server, AooUInt16 port, AooSocketFlags flags);
 
 /** \copydoc AooServer::update() */
 AOO_API AooError AOO_CALL AooServer_update(AooServer *server);
@@ -68,8 +51,8 @@ AOO_API AooError AOO_CALL AooServer_handleUdpMessage(
 
 /** \copydoc AooServer::addClient() */
 AOO_API AooError AOO_CALL AooServer_addClient(
-        AooServer *server, AooServerReplyFunc replyFn,
-        void *user, AooSocket sockfd, AooId *id);
+        AooServer *server,
+        AooServerReplyFunc replyFn, void *user, AooId *id);
 
 /** \copydoc AooServer::removeClient() */
 AOO_API AooError AOO_CALL AooServer_removeClient(
@@ -85,17 +68,13 @@ AOO_API AooError AOO_CALL AooServer_setRequestHandler(
         AooServer *server, AooRequestHandler cb,
         void *user, AooFlag flags);
 
-/** \copydoc AooServer::acceptRequest */
-AOO_API AooError AOO_CALL acceptRequest(
-        AooServer *server,
-        AooId client, AooId token, const AooRequest *request,
-        const AooResponse *response);
+/* request handling */
 
-/** \copydoc AooServer::declineRequest */
-AOO_API AooError AOO_CALL declineRequest(
+/** \copydoc AooServer::handleRequest */
+AOO_API AooError AOO_CALL handleRequest(
         AooServer *server,
         AooId client, AooId token, const AooRequest *request,
-        AooError errorCode, const AooChar *errorMessage);
+        AooError result, const AooResponse *response);
 
 /* push notifications */
 
@@ -166,37 +145,38 @@ AOO_API AooError AOO_CALL AooServer_control(
 /*         type-safe control functions        */
 /*--------------------------------------------*/
 
+/** \copydoc AooServer::setPassword() */
 AOO_INLINE AooError AooServer_setPassword(AooServer *server, const AooChar *pwd)
 {
     return AooServer_control(server, kAooCtlSetPassword, 0, AOO_ARG(pwd));
 }
 
-AOO_INLINE AooError AooServer_setTcpHost(AooServer *server, const AooIpEndpoint *ep)
-{
-    return AooServer_control(server, kAooCtlSetTcpHost, 0, AOO_ARG(ep));
-}
-
+/** \copydoc AooServer::setPassword() */
 AOO_INLINE AooError AooServer_setRelayHost(
-        AooServer *server, const AooIpEndpoint *ep)
+    AooServer *server, const AooIpEndpoint *ep)
 {
     return AooServer_control(server, kAooCtlSetRelayHost, 0, AOO_ARG(ep));
 }
 
+/** \copydoc AooServer::setPassword() */
 AOO_INLINE AooError AooServer_setServerRelay(AooServer *server, AooBool b)
 {
     return AooServer_control(server, kAooCtlSetServerRelay, 0, AOO_ARG(b));
 }
 
+/** \copydoc AooServer::setServerRelay() */
 AOO_INLINE AooError AooServer_getServerRelay(AooServer *server, AooBool* b)
 {
     return AooServer_control(server, kAooCtlGetServerRelay, 0, AOO_ARG(*b));
 }
 
+/** \copydoc AooServer::setGroupAutoCreate() */
 AOO_INLINE AooError AooServer_setGroupAutoCreate(AooServer *server, AooBool b)
 {
     return AooServer_control(server, kAooCtlSetGroupAutoCreate, 0, AOO_ARG(b));
 }
 
+/** \copydoc AooServer::getGroupAutoCreate() */
 AOO_INLINE AooError AooServer_getGroupAutoCreate(AooServer *server, AooBool* b)
 {
     return AooServer_control(server, kAooCtlGetGroupAutoCreate, 0, AOO_ARG(*b));
@@ -206,14 +186,16 @@ AOO_INLINE AooError AooServer_getGroupAutoCreate(AooServer *server, AooBool* b)
 /*         type-safe group control functions        */
 /*--------------------------------------------------*/
 
+/** \copydoc AooServer::updateGroup() */
 AOO_INLINE AooError AooServer_updateGroup(
-        AooServer *server, AooId group, const AooData *metadata)
+    AooServer *server, AooId group, const AooData *metadata)
 {
     return AooServer_groupControl(server, group, kAooCtlUpdateGroup, 0, AOO_ARG(metadata));
 }
 
+/** \copydoc AooServer::updateUser() */
 AOO_INLINE AooError AooServer_updateUser(
-        AooServer *server, AooId group, AooId user, const AooData *metadata)
+    AooServer *server, AooId group, AooId user, const AooData *metadata)
 {
     return AooServer_groupControl(server, group, kAooCtlUpdateUser, user, AOO_ARG(metadata));
 }

@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include "aoo/aoo_config.h"
 #include "aoo/aoo_defines.h"
+#include "aoo/aoo_types.h"
 
 #include <string.h>
 
@@ -18,10 +20,8 @@ AOO_PACK_BEGIN
 
 #define kAooCodecPcm "pcm"
 
-typedef AooInt32 AooPcmBitDepth;
-
 /** \brief PCM bit depth values */
-enum AooPcmBitDepthValues
+AOO_ENUM(AooPcmBitDepth)
 {
     kAooPcmInt8 = 0,
     kAooPcmInt16,
@@ -46,11 +46,11 @@ AOO_INLINE void AooFormatPcm_init(
         AooInt32 numChannels, AooInt32 sampleRate,
         AooInt32 blockSize, AooPcmBitDepth bitDepth)
 {
-    strcpy(fmt->header.codec, kAooCodecPcm);
-    fmt->header.size = sizeof(AooFormatPcm);
+    AOO_STRUCT_INIT(&fmt->header, AooFormatPcm, bitDepth);
     fmt->header.numChannels = numChannels;
     fmt->header.sampleRate = sampleRate;
     fmt->header.blockSize = blockSize;
+    strcpy(fmt->header.codecName, kAooCodecPcm);
     fmt->bitDepth = bitDepth;
 }
 

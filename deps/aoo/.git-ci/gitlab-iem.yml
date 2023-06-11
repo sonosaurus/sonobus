@@ -111,9 +111,8 @@ variables:
     STATIC_LIBS: 1
     PD_PATH: /tmp/pd
     PD_URL: http://msp.ucsd.edu/Software/pd-${PD_VERSION}-i386.msw.zip
-    CMAKE: mingw-w64-i686-cmake
   before_script:
-    - pacman --noconfirm -S ${CMAKE}
+    - pacman --noconfirm -S "${MINGW_PACKAGE_PREFIX}-cmake"
     - wget -q -O Pd.zip ${PD_URL}
 # install locally to avoid hassles with Windows vs. Unix file paths.
     - rm -rf "${PD_PATH}"; mkdir -p "${PD_PATH}"
@@ -129,7 +128,6 @@ variables:
     IEMCI_CONFIGURATIONS: mingw64
     PD_EXTENSION: m_amd64
     PD_URL: http://msp.ucsd.edu/Software/pd-${PD_VERSION}.msw.zip
-    CMAKE: mingw-w64-x86_64-cmake
 
 ### job templates
 .Linux:

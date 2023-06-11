@@ -12,11 +12,30 @@
 
 #pragma once
 
-#include "aoo_server.h"
+#include "aoo_config.h"
+#include "aoo_controls.h"
+#include "aoo_defines.h"
+#include "aoo_events.h"
+#include "aoo_requests.h"
+#include "aoo_types.h"
 
 #if AOO_HAVE_CXX11
 # include <memory>
 #endif
+
+typedef struct AooServer AooServer;
+
+/** \brief create a new AOO source instance
+ *
+ * \param[out] err (optional) error code on failure
+ * \return new AooServer instance on success; `NULL` on failure
+ */
+AOO_API AooServer * AOO_CALL AooServer_new(AooError *err);
+
+/** \brief destroy AOO server instance */
+AOO_API void AOO_CALL AooServer_free(AooServer *server);
+
+/*-----------------------------------------------------------*/
 
 /** \brief AOO server interface */
 struct AooServer {
@@ -37,12 +56,18 @@ public:
      *
      * \copydetails AooServer_new()
      */
-    static Ptr create(AooFlag flags, AooError *err) {
-        return Ptr(AooServer_new(flags, err));
+    static Ptr create(AooError *err) {
+        return Ptr(AooServer_new(err));
     }
 #endif
 
     /*---------------------- methods ---------------------------*/
+
+    /** \brief setup the server object
+     *
+     * \attention If `flags` is 0, we assume that the server is IPv4-only.
+     */
+    virtual AooError AOO_CALL setup(AooUInt16 port, AooSocketFlags flags) = 0;
 
     /* UDP echo server */
 
@@ -60,8 +85,7 @@ public:
 
     /** \brief add a new client */
     virtual AooError AOO_CALL addClient(
-            AooServerReplyFunc replyFn, void *user,
-            AooSocket sockfd, AooId *id) = 0;
+            AooServerReplyFunc replyFn, void *user, AooId *id) = 0;
 
     /** \brief remove a client */
     virtual AooError AOO_CALL removeClient(AooId clientId) = 0;
@@ -70,30 +94,38 @@ public:
     virtual AooError AOO_CALL handleClientMessage(
             AooId client, const AooByte *data, AooInt32 size) = 0;
 
+    /* request handling */
+
     /** \brief set request handler (to intercept client requests) */
     virtual AooError AOO_CALL setRequestHandler(
             AooRequestHandler cb, void *user, AooFlag flags) = 0;
 
-    /** \brief accept request */
-    virtual AooError AOO_CALL acceptRequest(
+    /** \brief handle request
+     *
+     * If `result` is `kAooErrorNone`, the request has been handled successfully
+     * and `response` points to the corresponding response structure.
+     *
+     * Otherwise the request has failed or been denied; in this case `response`
+     * is either `NULL` or points to an `AooResponseError` structure for more detailed
+     * information about the error. For example, in the case of `kAooErrorSystem`,
+     * the response may contain an OS-specific error code and error message.
+     *
+     * \attention The response must be properly initialized with `AOO_RESPONSE_INIT`.
+     */
+    virtual AooError AOO_CALL handleRequest(
             AooId client, AooId token, const AooRequest *request,
-            AooResponse *response) = 0;
-
-    /** \brief decline request */
-    virtual AooError AOO_CALL declineRequest(
-            AooId client, AooId token, const AooRequest *request,
-            AooError errorCode, const AooChar *errorMessage) = 0;
+            AooError result, AooResponse *response) = 0;
 
     /* push notifications */
 
     /** \brief send custom push notification to client */
     virtual AooError AOO_CALL notifyClient(
-            AooId client, const AooData *data) = 0;
+            AooId client, const AooData &data) = 0;
 
     /** \brief send custom push notification to group member(s);
         if `user` is `kAooIdInvalid`, all group members are notified. */
     virtual AooError AOO_CALL notifyGroup(
-            AooId group, AooId user, const AooData *data) = 0;
+            AooId group, AooId user, const AooData &data) = 0;
 
     /* group management */
 
@@ -176,36 +208,37 @@ public:
     /*         type-safe control functions        */
     /*--------------------------------------------*/
 
+    /** \brief set the server password */
     AooError setPassword(const AooChar *pwd)
     {
         return control(kAooCtlSetPassword, 0, AOO_ARG(pwd));
     }
 
-    AooError setTcpHost(const AooIpEndpoint *ep)
-    {
-        return control(kAooCtlSetTcpHost, 0, AOO_ARG(ep));
-    }
-
+    /** \brief get the server password */
     AooError setRelayHost(const AooIpEndpoint *ep)
     {
         return control(kAooCtlSetRelayHost, 0, AOO_ARG(ep));
     }
 
+    /** \brief enabled/disable server relay */
     AooError setServerRelay(AooBool b)
     {
         return control(kAooCtlSetServerRelay, 0, AOO_ARG(b));
     }
 
+    /** \brief check if server relay is enabled */
     AooError getServerRelay(AooBool& b)
     {
         return control(kAooCtlGetServerRelay, 0, AOO_ARG(b));
     }
 
+    /** \brief enable/disable automatic group creation */
     AooError setGroupAutoCreate(AooBool b)
     {
         return control(kAooCtlSetGroupAutoCreate, 0, AOO_ARG(b));
     }
 
+    /** \brief check if automatic group creation is enabled */
     AooError getGroupAutoCreate(AooBool& b)
     {
         return control(kAooCtlGetGroupAutoCreate, 0, AOO_ARG(b));
@@ -215,11 +248,13 @@ public:
     /*         type-safe group control functions        */
     /*--------------------------------------------------*/
 
+    /** \brief update group metadata */
     AooError updateGroup(AooId group, const AooData *metadata)
     {
         return groupControl(group, kAooCtlUpdateGroup, 0, AOO_ARG(metadata));
     }
 
+    /** \brief update user metadata */
     AooError updateUser(AooId group, AooId user, const AooData *metadata)
     {
         return groupControl(group, kAooCtlUpdateUser, user, AOO_ARG(metadata));

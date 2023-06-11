@@ -1,3 +1,17 @@
+May 4, 2023
+--------------
+
+Modifications for AOO:
+
+    - Use <stdint.h> for integer types to make the code work on
+	non-Intel platforms.
+
+    - Fix undefined behavior when serializing empty blobs
+
+    - Never pass a NULL type tag pointer to the ReceivedMessageArgument constructor; instead pass a pointer to the end of the address pattern.
+    Also fix the check for missing argument in AsBool(), AsInt32(), etc.
+
+
 April 9, 2013
 -------------
 

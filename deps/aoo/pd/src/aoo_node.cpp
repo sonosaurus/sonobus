@@ -331,11 +331,17 @@ t_node_imp::t_node_imp(t_symbol *s, int port)
 #endif
     // udp_server::start() throws on error!
     // TODO: should we use threaded=true instead?
-    x_server.start(port, [this](auto&&... args) { handle_packet(args...); },
-                   false, recvbufsize, sendbufsize);
+    x_server.set_send_buffer_size(sendbufsize);
+    x_server.set_receive_buffer_size(recvbufsize);
+    x_server.start(port, [this](auto&&... args) { handle_packet(args...); }, false);
 
     LOG_DEBUG("create AooClient on port " << port);
-    x_client = AooClient::create(x_server.socket(), 0, nullptr);
+
+    auto flags = aoo::socket_family(x_server.socket()) == aoo::ip_address::IPv6 ?
+        kAooSocketDualStack : kAooSocketIPv4;
+
+    x_client = AooClient::create(nullptr);
+    x_client->setup(port, flags);
 
     pd_bind(&x_proxy.x_pd, x_bindsym);
 

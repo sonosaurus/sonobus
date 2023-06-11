@@ -10,7 +10,9 @@
 
 #pragma once
 
+#include "aoo_config.h"
 #include "aoo_defines.h"
+#include "aoo_types.h"
 
 AOO_PACK_BEGIN
 
@@ -66,14 +68,12 @@ typedef AooError (AOO_CALL *AooCodecDecodeFunc)(
         AooInt32 *numSamples
 );
 
-/** \brief type for AOO codec controls */
-typedef AooInt32 AooCodecCtl;
-
-/** \brief AOO codec control constants
+/** \brief AOO codec controls
  *
  * Negative values are reserved for generic controls;
- * codec specific controls must be positiv */
-enum AooCodecControls
+ * codec specific controls must be positiv.
+ */
+AOO_ENUM(AooCodecCtl)
 {
     /** reset the codec state (`NULL`) */
     kAooCodecCtlReset = -1000
@@ -95,7 +95,7 @@ typedef AooError (AOO_CALL *AooCodecControlFunc)
 /** \brief serialize format extension
  *
  * (= everything after the AooFormat header).
- * On success writes the format extension to the given buffer
+ * On success, write the format extension to the given buffer.
  */
 typedef AooError (AOO_CALL *AooCodecSerializeFunc)(
         /** [in] the source format */
@@ -109,10 +109,9 @@ typedef AooError (AOO_CALL *AooCodecSerializeFunc)(
 /** \brief deserialize format extension
  *
  * (= everything after the AooFormat header).
- * On success writes the format extension to the given format structure.
+ * On success, write the format extension to the given format structure.
  *
- * \note This function does *not* automatically update the `size` member
- * of the format structure, but you can simply point `fmtsize` to it.
+ * \note This function should *not* update the `size` member of the `format` argument.
  */
 typedef AooError (AOO_CALL *AooCodecDeserializeFunc)(
         /** [in] the extension buffer */
@@ -128,7 +127,7 @@ typedef AooError (AOO_CALL *AooCodecDeserializeFunc)(
 /** \brief interface to be implemented by AOO codec classes */
 typedef struct AooCodecInterface
 {
-    AooSize size;
+    AooSize structSize;
     /* encoder methods */
     AooCodecNewFunc encoderNew;
     AooCodecFreeFunc encoderFree;
@@ -148,39 +147,40 @@ typedef struct AooCodecInterface
 
 /** \brief encode audio samples to bytes
  * \see AooCodecEncodeFunc */
-AOO_INLINE AooError AooEncoder_encode(AooCodec *enc,
-                           const AooSample *input, AooInt32 numSamples,
-                           AooByte *output, AooInt32 *numBytes)
+AOO_INLINE AooError AooEncoder_encode(
+        AooCodec *enc, const AooSample *input, AooInt32 numSamples,
+        AooByte *output, AooInt32 *numBytes)
 {
     return enc->cls->encoderEncode(enc, input, numSamples, output, numBytes);
 }
 
 /** \brief control encoder instance
  * \see AooCodecControlFunc */
-AOO_INLINE AooError AooEncoder_control(AooCodec *enc,
-                           AooCodecCtl ctl, void *data, AooSize size)
+AOO_INLINE AooError AooEncoder_control(
+        AooCodec *enc, AooCodecCtl ctl, void *data, AooSize size)
 {
     return enc->cls->encoderControl(enc, ctl, data, size);
 }
 
 /** \brief reset encoder state */
-AOO_INLINE AooError AooEncoder_reset(AooCodec *enc) {
+AOO_INLINE AooError AooEncoder_reset(AooCodec *enc)
+{
     return enc->cls->encoderControl(enc, kAooCodecCtlReset, NULL, 0);
 }
 
 /** \brief decode bytes to audio samples
  * \see AooCodecDecodeFunc */
-AOO_INLINE AooError AooDecoder_decode(AooCodec *dec,
-                           const AooByte *input, AooInt32 numBytes,
-                           AooSample *output, AooInt32 *numSamples)
+AOO_INLINE AooError AooDecoder_decode(
+        AooCodec *dec, const AooByte *input, AooInt32 numBytes,
+        AooSample *output, AooInt32 *numSamples)
 {
     return dec->cls->decoderDecode(dec, input, numBytes, output, numSamples);
 }
 
 /** \brief control decoder instance
  * \see AooCodecControlFunc */
-AOO_INLINE AooError AooDecoder_control(AooCodec *dec,
-                           AooCodecCtl ctl, void *data, AooSize size)
+AOO_INLINE AooError AooDecoder_control(
+        AooCodec *dec, AooCodecCtl ctl, void *data, AooSize size)
 {
     return dec->cls->decoderControl(dec, ctl, data, size);
 }
@@ -188,27 +188,27 @@ AOO_INLINE AooError AooDecoder_control(AooCodec *dec,
 /** \brief reset decoder state */
 AOO_INLINE AooError AooDecoder_reset(AooCodec *dec)
 {
-    return dec->cls->encoderControl(dec, kAooCodecCtlReset, NULL, 0);
+    return dec->cls->decoderControl(dec, kAooCodecCtlReset, NULL, 0);
 }
 
 /*----------------- register codecs -----------------------*/
 
-/** \brief The type of #aoo_registerCodec, which gets passed to the
- * entry function of the codec plugin to register itself. */
+/** \brief function for registering codecs */
 typedef AooError (AOO_CALL *AooCodecRegisterFunc)(
-        const AooChar *name,                // codec name
-        const AooCodecInterface *cls  // codec interface
+        const AooChar *name,
+        const AooCodecInterface *cls
 );
 
+/** \brief host interface passed to codec plugins */
 typedef struct AooCodecHostInterface
 {
-    AooSize size;
+    AooSize structSize;
     AooCodecRegisterFunc registerCodec;
-    AooAllocFunc allocFunc;
-    AooLogFunc logFunc;
+    AooAllocFunc alloc;
+    AooLogFunc log;
 } AooCodecHostInterface;
 
-/** \brief global codec host interface instance */
+/** \brief global host interface instance */
 AOO_API const AooCodecHostInterface * aoo_getCodecHostInterface(void);
 
 /** \brief register an external codec plugin */
@@ -220,9 +220,9 @@ AOO_API AooError AOO_CALL aoo_registerCodec(
  * \note AOO doesn't support dynamic plugin loading out of the box,
  * but it is quite easy to implement on your own.
  * You just have to put one or more codecs in a shared library and export
- * a single function of type AooCodecSetupFunc with the name `aoo_load`:
+ * a single function of type AooCodecLoadFunc with the name `aoo_load`:
  *
- *     void aoo_load(AooCodecRegisterFunc fn, AooLogFunc log, const AooAllocator *alloc);
+ *     void aoo_load(const AooCodecHostInterface *interface);
  *
  * In your host application, you would then scan directories for shared libraries,
  * check if they export a function named `aoo_load`, and if yes, call it with a

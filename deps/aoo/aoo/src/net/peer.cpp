@@ -27,17 +27,24 @@ const int32_t kBinMessageHeaderSize = kAooBinMsgLargeHeaderSize + 28;
 
 //------------------------- peer ------------------------------//
 
-peer::peer(const std::string& groupname, AooId groupid,
-           const std::string& username, AooId userid, AooId localid,
-           ip_address_list&& addrlist, const AooData *metadata,
-           ip_address_list&& user_relay, const ip_address_list& group_relay)
-    : group_name_(groupname), user_name_(username), group_id_(groupid), user_id_(userid),
-      local_id_(localid), metadata_(metadata), addrlist_(std::move(addrlist)),
-      user_relay_(std::move(user_relay)), group_relay_(group_relay)
+peer::peer(const std::string& group_name, AooId group_id,
+           const std::string& user_name, AooId user_id,
+           const std::string& version, AooFlag flags, const AooData *metadata,
+           ip_address::ip_type address_family, bool use_ipv4_mapped,
+           ip_address_list&& addrlist, AooId local_id,
+           ip_address_list&& user_relay, const ip_address_list& relay_list)
+    : group_name_(group_name), user_name_(user_name),
+      group_id_(group_id), user_id_(user_id), local_id_(local_id), flags_(flags),
+      version_(version), address_family_(address_family), use_ipv4_mapped_(use_ipv4_mapped),
+      metadata_(metadata), addrlist_(std::move(addrlist)),
+      user_relay_(std::move(user_relay)), relay_list_(relay_list)
 {
     start_time_ = time_tag::now();
 
     LOG_DEBUG("AooClient: create peer " << *this);
+    for (auto& addr : addrlist_) {
+        LOG_DEBUG("\t" << addr);
+    }
 }
 
 peer::~peer(){
@@ -46,6 +53,7 @@ peer::~peer(){
 
 bool peer::match(const ip_address& addr) const {
     if (connected()){
+        // NB: 'addr' has been obtained with address(), so we can match as is.
         return real_address_ == addr;
     } else {
         return false;
@@ -73,6 +81,15 @@ bool peer::match_wildcard(AooId group, AooId user) const {
             (user_id_ == user || user == kAooIdInvalid);
 }
 
+ip_address peer::address() const {
+    if (connected()) {
+        // may be IPv4 mapped for peer-to-peer, but always unmapped for relay
+        return real_address_;
+    } else {
+        return ip_address{};
+    }
+}
+
 void peer::send(Client& client, const sendfn& fn, time_tag now) {
     if (connected()) {
         do_send(client, fn, now);
@@ -82,20 +99,20 @@ void peer::send(Client& client, const sendfn& fn, time_tag now) {
         auto delta = elapsed_time - last_pingtime_;
         if (elapsed_time > client.query_timeout()){
             // time out -> try to relay
-            if (!group_relay_.empty() && !relay()) {
+            if (!relay_list_.empty() && !need_relay()) {
                 start_time_ = now;
                 last_pingtime_ = 0;
                 // for now we just try with the first relay address.
                 // LATER try all of them.
-                relay_address_ = group_relay_.front();
-                relay_ = true;
+                relay_address_ = relay_list_.front();
+                flags_ |= kAooPeerNeedRelay;
                 LOG_WARNING("AooClient: UDP handshake with " << *this
                             << " timed out, try to relay over " << relay_address_);
                 return;
             }
 
             // couldn't establish connection!
-            const char *what = relay() ? "relay" : "peer-to-peer";
+            const char *what = need_relay() ? "relay" : "peer-to-peer";
             LOG_ERROR("AooClient: couldn't establish UDP " << what
                       << " connection to " << *this << "; timed out after "
                       << client.query_timeout() << " seconds");
@@ -107,8 +124,7 @@ void peer::send(Client& client, const sendfn& fn, time_tag now) {
             auto e1 = std::make_unique<error_event>(0, ss.str());
             client.send_event(std::move(e1));
 
-            auto e2 = std::make_unique<peer_event>(
-                        kAooEventPeerTimeout, *this);
+            auto e2 = std::make_unique<peer_event>(kAooEventPeerTimeout, *this);
             client.send_event(std::move(e2));
 
             timeout_ = true;
@@ -133,7 +149,26 @@ void peer::send(Client& client, const sendfn& fn, time_tag now) {
                 << osc::EndMessage;
 
             for (auto& addr : addrlist_) {
-                send(msg, addr, fn);
+                if (need_relay()) {
+                    send(msg, addr, fn); // always keep IP address as is!
+                } else {
+                    if (address_family_ == ip_address::IPv6 && addr.type() == ip_address::IPv4) {
+                        if (use_ipv4_mapped_) {
+                            // map address to IPv4
+                            send(msg, addr.ipv4_mapped(), fn);
+                        } else {
+                            // cannot send to IPv4 endpoint from IPv6-only socket, just ignore.
+                            // (We might still use the address later for relaying.)
+                            LOG_DEBUG("AooClient: cannot send to " << addr);
+                        }
+                    } else if (address_family_ == ip_address::IPv4 && addr.type() == ip_address::IPv6) {
+                        // cannot send to IPv6 endpoint from IPv4-only socket, just ignore.
+                        // (We might still use the address later for relaying.)
+                        LOG_DEBUG("AooClient: cannot send to " << addr);
+                    } else {
+                        send(msg, addr, fn);
+                    }
+                }
             }
 
             last_pingtime_ = elapsed_time;
@@ -271,11 +306,10 @@ void peer::do_send(Client& client, const sendfn& fn, time_tag now) {
 // /aoo/peer/msg <group> <user> <flags> <seq> <total> <nframes> <frame> <tt> <type> <data>
 //
 // binary:
-// header (group + user), flags (int16), size (int16), seq,
-// [total (int32), nframes (int16), frame (int16)], [tt (uint64)], [type (str)], data (bin)
+// header (group + user), flags (uint16), size (uint16), seq (int32),
+// [total (int32), nframes (int32), frame (int32)], [tt (uint64)], type (int32), data (bin)
 //
-// 'total', 'nframes' and 'frame' are omitted for single-frame messages.
-// 'tt' and 'type' are only sent with the first frame. 'tt' might be ommited if zero.
+// 'total', 'nframes' and 'frame' are omitted for single-frame messages. 'tt' may be omitted if zero.
 
 // if 'flags' contains kAooMessageReliable, the other end sends an ack messages:
 //
@@ -369,7 +403,7 @@ void peer::send_packet_bin(const message_packet& p, const sendfn& fn) const {
             ((!p.tt.is_empty()) * kAooBinMsgMessageTimestamp);
 
     // NB: we send *our* user ID
-    auto offset = aoo::binmsg_write_header(buf, sizeof(buf), kAooTypePeer,
+    auto offset = aoo::binmsg_write_header(buf, sizeof(buf), kAooMsgTypePeer,
                                            kAooBinMsgCmdMessage, group_id(), local_id());
     auto ptr = buf + offset;
     auto end = buf + sizeof(buf);
@@ -378,16 +412,14 @@ void peer::send_packet_bin(const message_packet& p, const sendfn& fn) const {
     aoo::write_bytes<uint16_t>(p.size, ptr);
     if (flags & kAooBinMsgMessageFrames) {
         aoo::write_bytes<int32_t>(p.totalsize, ptr);
-        aoo::write_bytes<int16_t>(p.nframes, ptr);
-        aoo::write_bytes<int16_t>(p.frame, ptr);
+        aoo::write_bytes<int32_t>(p.nframes, ptr);
+        aoo::write_bytes<int32_t>(p.frame, ptr);
     }
     // only send type and timetag with first frame
-    if (p.frame == 0) {
-        if (flags & kAooBinMsgMessageTimestamp) {
-            aoo::write_bytes<uint64_t>(p.tt, ptr);
-        }
-        aoo::write_bytes<int32_t>(p.type, ptr);
+    if (flags & kAooBinMsgMessageTimestamp) {
+        aoo::write_bytes<uint64_t>(p.tt, ptr);
     }
+    aoo::write_bytes<int32_t>(p.type, ptr);
     // write actual data
     assert((end - ptr) >= p.size);
     memcpy(ptr, p.data, p.size);
@@ -407,7 +439,7 @@ void peer::send_ack(const message_ack &ack, const sendfn& fn) {
 #endif
     if (binary_.load(std::memory_order_relaxed)) {
         AooByte buf[64];
-        auto onset = binmsg_write_header(buf, sizeof(buf), kAooTypePeer,
+        auto onset = binmsg_write_header(buf, sizeof(buf), kAooMsgTypePeer,
                                          kAooBinMsgCmdAck, group_id_, local_id_);
         auto ptr = buf + onset;
         aoo::write_bytes<int32_t>(1, ptr);
@@ -420,7 +452,7 @@ void peer::send_ack(const message_ack &ack, const sendfn& fn) {
         osc::OutboundPacketStream msg(buf, sizeof(buf));
         msg << osc::BeginMessage(kAooMsgPeerAck)
             << group_id_ << local_id_
-            << (int32_t)1 << ack.seq << ack.frame
+            << ack.seq << ack.frame
             << osc::EndMessage;
 
         send(msg, fn);
@@ -429,7 +461,7 @@ void peer::send_ack(const message_ack &ack, const sendfn& fn) {
 
 void peer::handle_osc_message(Client& client, const char *pattern,
                               osc::ReceivedMessageArgumentIterator it,
-                              const ip_address& addr) {
+                              int remaining, const ip_address& addr) {
     LOG_DEBUG("AooClient: got OSC message " << pattern << " from " << *this);
 
     if (!strcmp(pattern, kAooMsgPing)) {
@@ -439,7 +471,7 @@ void peer::handle_osc_message(Client& client, const char *pattern,
     } else if (!strcmp(pattern, kAooMsgMessage)) {
         handle_client_message(client, it);
     } else if (!strcmp(pattern, kAooMsgAck)) {
-        handle_ack(client, it);
+        handle_ack(client, it, remaining);
     } else {
         LOG_WARNING("AooClient: got unknown message "
                     << pattern << " from " << *this);
@@ -466,17 +498,17 @@ void peer::handle_first_ping(Client &client, const aoo::ip_address& addr) {
     // first ping
 #if FORCE_RELAY
     // force relay
-    if (!relay()){
+    if (!need_relay()){
         return;
     }
 #endif
     // Try to find matching address.
-    // If we receive a message from a peer behind a symmetric NAT,
-    // its IP address will be different from the one we obtained
-    // from the server, that's why we're sending and checking the
-    // group/user ID in the first place.
+    // If we receive a message from a peer behind a symmetric NAT, its IP address
+    // will be different from the one we obtained from the server, that's why we're
+    // sending and checking the group/user ID in the first place.
     // NB: this only works if *we* are behind a full cone or restricted cone NAT.
-    if (std::find(addrlist_.begin(), addrlist_.end(), addr) == addrlist_.end()) {
+    // NB: the address list contains *unmapped* IP addresses.
+    if (std::find(addrlist_.begin(), addrlist_.end(), addr.unmapped()) == addrlist_.end()) {
         LOG_WARNING("AooClient: peer " << *this << " is located behind a symmetric NAT!");
     }
 
@@ -489,7 +521,7 @@ void peer::handle_first_ping(Client &client, const aoo::ip_address& addr) {
     client.send_event(std::move(e));
 
     LOG_VERBOSE("AooClient: successfully established connection with "
-                << *this << " " << addr << (relay() ? " (relayed)" : ""));
+                << *this << " " << addr << (need_relay() ? " (relayed)" : ""));
 }
 
 void peer::handle_ping(Client& client, osc::ReceivedMessageArgumentIterator it,
@@ -592,32 +624,29 @@ void peer::handle_client_message(Client &client, const AooByte *data, AooSize si
     remaining -= 8;
 
     if (flags & kAooBinMsgMessageFrames) {
-        if (remaining < 8) {
+        if (remaining < 12) {
             goto bad_message;
         }
         p.totalsize = aoo::read_bytes<int32_t>(ptr);
-        p.nframes = aoo::read_bytes<int16_t>(ptr);
-        p.frame = aoo::read_bytes<int16_t>(ptr);
-        remaining -= 8;
+        p.nframes = aoo::read_bytes<int32_t>(ptr);
+        p.frame = aoo::read_bytes<int32_t>(ptr);
+        remaining -= 12;
     } else {
         p.totalsize = p.size;
         p.nframes = 1;
         p.frame = 0;
     }
-    // type and timetag is only sent with first frame
-    p.type = kAooDataUnspecified;
-    p.tt = 0;
-    if (p.frame == 0) {
-        if (flags & kAooBinMsgMessageTimestamp) {
-            if (remaining < 8) {
-                goto bad_message;
-            }
-            p.tt = aoo::read_bytes<uint64_t>(ptr);
-            remaining -= 8;
+    if (flags & kAooBinMsgMessageTimestamp) {
+        if (remaining < 8) {
+            goto bad_message;
         }
-        p.type = aoo::read_bytes<int32_t>(ptr);
-        remaining -= 4;
+        p.tt = aoo::read_bytes<uint64_t>(ptr);
+        remaining -= 8;
+    } else {
+        p.tt = 0;
     }
+    p.type = aoo::read_bytes<int32_t>(ptr);
+    remaining -= 4;
 
     if (remaining < p.size) {
         goto bad_message;
@@ -751,9 +780,8 @@ void peer::do_handle_client_message(Client& client, const message_packet& p, Aoo
     }
 }
 
-void peer::handle_ack(Client &client, osc::ReceivedMessageArgumentIterator it) {
-    auto count = (it++)->AsInt32();
-    while (count--) {
+void peer::handle_ack(Client &client, osc::ReceivedMessageArgumentIterator it, int remaining) {
+    for (; remaining >= 2; remaining -= 2) {
         auto seq = (it++)->AsInt32();
         auto frame = (it++)->AsInt32();
     #if AOO_DEBUG_CLIENT_MESSAGE
@@ -784,15 +812,9 @@ void peer::handle_ack(Client &client, const AooByte *data, AooSize size) {
     LOG_ERROR("AooClient: got malformed binary ack message from " << *this);
 }
 
-// only called if peer is connected!
-void peer::send(const AooByte *data, AooSize size, const sendfn &fn) const {
-    assert(connected());
-    send(data, size, real_address_, fn);
-}
-
 void peer::send(const AooByte *data, AooSize size,
                 const ip_address &addr, const sendfn &fn) const {
-    if (relay()) {
+    if (need_relay()) {
     #if AOO_DEBUG_RELAY
         if (binmsg_check(data, size)) {
             LOG_DEBUG("AooClient: relay binary message to peer " << *this);

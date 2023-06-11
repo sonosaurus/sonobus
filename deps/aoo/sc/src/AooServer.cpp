@@ -63,12 +63,18 @@ AooServer::AooServer(World *world, int port, const char *password)
                      [this](auto&&... args) { return handleAccept(args...); },
                      [this](auto&&... args) { return handleReceive(args...); });
 
+    auto flags = aoo::socket_family(udpserver_.socket()) == aoo::ip_address::IPv6 ?
+                     kAooSocketDualStack : kAooSocketIPv4;
+
     // success
-    server_ = ::AooServer::create(0, nullptr);
+    server_ = ::AooServer::create(nullptr);
+    server_->setup(port, flags);
     if (password) {
         server_->setPassword(password);
     }
+
     LOG_VERBOSE("AooServer: listening on port " << port);
+
     // first set event handler!
     server_->setEventHandler([](void *x, const AooEvent *e, AooThreadLevel) {
         static_cast<sc::AooServer *>(x)->handleEvent(e);
@@ -102,40 +108,34 @@ void AooServer::handleEvent(const AooEvent *event){
     msg << osc::BeginMessage("/aoo/server/event") << port_;
 
     switch (event->type) {
-    case kAooEventServerClientLogin:
+    case kAooEventClientLogin:
     {
-        auto& e = event->serverClientLogin;
-        aoo::ip_address addr;
-        aoo::socket_peer(e.sockfd, addr);
-        msg << "/client/add" << e.id << addr.address() << addr.port();
+        auto& e = event->clientLogin;
+        msg << "/client/login" << e.id; // TODO metadata
         break;
     }
-    case kAooEventServerClientRemove:
+    case kAooEventGroupAdd:
     {
-        msg << "/client/remove" << event->serverClientRemove.id;
-        break;
-    }
-    case kAooEventServerGroupAdd:
-    {
-        auto& e = event->serverGroupAdd;
+        auto& e = event->groupAdd;
         msg << "/group/add" << e.id << e.name; // TODO metadata
         break;
     }
-    case kAooEventServerGroupRemove:
+    case kAooEventGroupRemove:
     {
-        auto& e = event->serverGroupRemove;
+        auto& e = event->groupRemove;
         msg << "/group/remove" << e.id;
         break;
     }
-    case kAooEventServerGroupJoin:
+    case kAooEventGroupJoin:
     {
-        auto& e = event->serverGroupJoin;
-        msg << "/group/join" << e.groupId << e.userId << e.userName << e.clientId;
+        auto& e = event->groupJoin;
+        msg << "/group/join" << e.groupId << e.userId
+            << e.userName << e.clientId;
         break;
     }
-    case kAooEventServerGroupLeave:
+    case kAooEventGroupLeave:
     {
-        auto& e = event->serverGroupLeave;
+        auto& e = event->groupLeave;
         msg << "/group/leave" << e.groupId << e.userId;
         break;
     }
@@ -154,7 +154,7 @@ void AooServer::handleEvent(const AooEvent *event){
     ::sendMsgNRT(world_, msg);
 }
 
-AooId AooServer::handleAccept(int e, const aoo::ip_address& addr, AooSocket sock) {
+AooId AooServer::handleAccept(int e, const aoo::ip_address& addr) {
     if (e == 0) {
         // reply function
         auto replyfn = [](void *x, AooId client,
@@ -162,7 +162,8 @@ AooId AooServer::handleAccept(int e, const aoo::ip_address& addr, AooSocket sock
             return static_cast<aoo::tcp_server *>(x)->send(client, data, size);
         };
         AooId client;
-        server_->addClient(replyfn, &tcpserver_, sock, &client); // doesn't fail
+        server_->addClient(replyfn, &tcpserver_, &client); // doesn't fail
+        addClient(client, addr);
         return client;
     } else {
         LOG_ERROR("AooServer: accept() failed: " << aoo::socket_strerror(e));
@@ -171,11 +172,14 @@ AooId AooServer::handleAccept(int e, const aoo::ip_address& addr, AooSocket sock
     }
 }
 
-void AooServer::handleReceive(AooId client, int e, const AooByte *data, AooSize size) {
+void AooServer::handleReceive(int e, AooId client, const aoo::ip_address& addr,
+                              const AooByte *data, AooSize size) {
     if (e == 0 && size > 0) {
         if (server_->handleClientMessage(client, data, size) != kAooOk) {
+            // close and remove client!
             server_->removeClient(client);
             tcpserver_.close(client);
+            removeClient(client);
         }
     } else {
         // remove client!
@@ -186,6 +190,7 @@ void AooServer::handleReceive(AooId client, int e, const AooByte *data, AooSize 
             LOG_ERROR("AooServer: TCP error in client "
                       << client << ": " << aoo::socket_strerror(e));
         }
+        removeClient(client);
     }
 }
 
@@ -204,6 +209,24 @@ void AooServer::handleUdpReceive(int e, const aoo::ip_address& addr,
         LOG_ERROR("AooServer: UDP error: " << aoo::socket_strerror(e));
         // TODO handle error?
     }
+}
+
+void AooServer::addClient(AooId client, const aoo::ip_address& addr) {
+    char buf[1024];
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+    msg << osc::BeginMessage("/aoo/server/event") << port_
+        << "/client/add" << client << addr.name() << addr.port()
+        << osc::EndMessage;
+    ::sendMsgNRT(world_, msg);
+}
+
+void AooServer::removeClient(AooId client) {
+    char buf[1024];
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+    msg << osc::BeginMessage("/aoo/server/event") << port_
+        << "/client/remove" << client
+        << osc::EndMessage;
+    ::sendMsgNRT(world_, msg);
 }
 
 } // sc

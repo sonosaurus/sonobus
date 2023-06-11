@@ -1,8 +1,5 @@
 #define AOO_RT_MEMORY_POOL_BITSET 1
 
-#undef AOO_LOG_LEVEL
-#define AOO_LOG_LEVEL 0
-
 #include "aoo/src/rt_memory_pool.hpp"
 #include "common/sync.hpp"
 
@@ -110,7 +107,9 @@ int main(int argc, char *argv[]) {
     }
     std::cout << "joined threads" << std::endl;
     std::cout << "---" << std::endl;
+#if 1
     memory_pool.print();
     std::cout << "total number of allocations: " << global_alloc_count.load() << std::endl;
+#endif
     std::cout << "done!" << std::endl;
 }

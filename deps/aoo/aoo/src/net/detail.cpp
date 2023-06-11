@@ -6,29 +6,6 @@
 namespace aoo {
 namespace net {
 
-//------------------------------ OSC utilities ---------------------------------//
-
-// see comment in "detail.hpp"
-osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const AooData *md) {
-    if (md) {
-        msg << md->type << osc::Blob(md->data, md->size);
-    } else {
-        msg << kAooDataUnspecified << osc::Blob(msg.Data(), 0); // HACK: do not use nullptr because of memcpy()
-    }
-    return msg;
-}
-
-osc::OutboundPacketStream& operator<<(osc::OutboundPacketStream& msg, const ip_host& addr) {
-    msg << addr.name.c_str() << addr.port;
-    return msg;
-}
-
-ip_host osc_read_host(osc::ReceivedMessageArgumentIterator& it) {
-    auto host = (it++)->AsString();
-    auto port = (it++)->AsInt32();
-    return net::ip_host { host, port };
-}
-
 //------------------------ misc ---------------------------//
 
 std::string encrypt(const std::string& input) {
@@ -67,38 +44,40 @@ AooError parse_pattern(const AooByte *msg, int32_t n, AooMsgType& type, int32_t&
         if (n >= (count + kAooMsgServerLen)
             && !memcmp(msg + count, kAooMsgServer, kAooMsgServerLen))
         {
-            type = kAooTypeServer;
+            type = kAooMsgTypeServer;
             count += kAooMsgServerLen;
         }
         else if (n >= (count + kAooMsgClientLen)
             && !memcmp(msg + count, kAooMsgClient, kAooMsgClientLen))
         {
-            type = kAooTypeClient;
+            type = kAooMsgTypeClient;
             count += kAooMsgClientLen;
         }
         else if (n >= (count + kAooMsgPeerLen)
             && !memcmp(msg + count, kAooMsgPeer, kAooMsgPeerLen))
         {
-            type = kAooTypePeer;
+            type = kAooMsgTypePeer;
             count += kAooMsgPeerLen;
         }
         else if (n >= (count + kAooMsgRelayLen)
             && !memcmp(msg + count, kAooMsgRelay, kAooMsgRelayLen))
         {
-            type = kAooTypeRelay;
+            type = kAooMsgTypeRelay;
             count += kAooMsgRelayLen;
         } else {
-            return kAooErrorUnknown;
+            return kAooErrorBadFormat;
         }
 
         offset = count;
 
         return kAooOk;
     } else {
-        return kAooErrorUnknown; // not an AOO message
+        return kAooErrorBadFormat; // not an AOO message
     }
 }
 
+// For now we deduce the message type (OSC vs. binary) from
+// the relayed message.
 AooSize write_relay_message(AooByte *buffer, AooSize bufsize,
                             const AooByte *msg, AooSize msgsize,
                             const ip_address& addr) {

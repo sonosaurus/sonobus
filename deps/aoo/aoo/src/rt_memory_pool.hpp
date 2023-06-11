@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/utils.hpp"
+
 #include <limits.h>
 #include <stdint.h>
 #include <memory>
@@ -14,15 +16,13 @@
 #include <math.h>
 #include <atomic>
 
-#include "common/utils.hpp"
-
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
 
 namespace aoo {
 
-uint32_t clz(uint32_t i) {
+inline uint32_t clz(uint32_t i) {
 #if defined(_MSC_VER)
     unsigned long msb = 0;
     _BitScanReverse(&msb, i);
@@ -82,7 +82,7 @@ struct tagged_bitset {
     T bits;
     uint16_t tag; // always uint16_t, so we get the same behavior across platforms
 
-    tagged_bitset(T bits_ = 0, uint16_t tag_ = 0)
+    tagged_bitset(T bits_ = 0, uint16_t tag_ = 0) noexcept
         : bits(bits_), tag(tag_) {}
 
     void set(T index, bool state) {
@@ -348,14 +348,13 @@ public:
     void print() {
         std::cout << "total RT memory usage: " << memory_usage()
                   << " / " << size() << " bytes" << std::endl;
-    #if 0
+
         for (size_t i = 0; i < buckets_.size(); ++i) {
             auto count = buckets_[i].count(linear_allocator_.data());
             auto bytes = count * bucket_sizes_[i];
             std::cout << "bucket " << i << ": " << count << " elements, "
                       << bytes << " bytes" << std::endl;
         }
-    #endif
     }
 
     size_t memory_usage() const {

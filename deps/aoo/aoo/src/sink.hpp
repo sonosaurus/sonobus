@@ -20,7 +20,6 @@
 #include "detail.hpp"
 #include "events.hpp"
 #include "resampler.hpp"
-#include "timer.hpp"
 #include "time_dll.hpp"
 
 #include "oscpack/osc/OscOutboundPacketStream.h"
@@ -29,15 +28,15 @@
 namespace aoo {
 
 struct stream_stats {
-    int32_t lost = 0;
-    int32_t reordered = 0;
-    int32_t resent = 0;
     int32_t dropped = 0;
+    int32_t resent = 0;
+    int32_t xrun = 0;
 };
 
 enum class request_type {
     none,
     start,
+    stop,
     pong,
     invite,
     uninvite,
@@ -57,6 +56,9 @@ struct request {
         struct {
             AooId token;
         } uninvite;
+        struct {
+            AooId stream;
+        } stop;
     };
 };
 
@@ -148,15 +150,16 @@ public:
 
     int32_t poll_events(Sink& s, AooEventHandler fn, void *user);
 
-    AooError get_format(AooFormat& format);
+    AooError get_format(AooFormat& format, size_t size);
 
     AooError codec_control(AooCtl ctl, void *data, AooSize size);
 
     // methods
     void reset(const Sink& s);
 
-    AooError handle_start(const Sink& s, int32_t stream, uint32_t flags, int32_t format_id,
-                          const AooFormat& f, const AooByte *settings, int32_t size, const AooData& md);
+    AooError handle_start(const Sink& s, int32_t stream, int32_t format_id,
+                          const AooFormat& f, const AooByte *extension, int32_t size,
+                          const AooData *md);
 
     AooError handle_stop(const Sink& s, int32_t stream);
 
@@ -204,6 +207,8 @@ private:
 
     void send_start_request(const Sink& s, const sendfn& fn);
 
+    void send_stop_request(const Sink& s, int32_t stream, const sendfn& fn);
+
     void send_data_requests(const Sink& s, const sendfn& fn);
 
     void send_invitations(const Sink& s, const sendfn& fn);
@@ -232,8 +237,9 @@ private:
     std::atomic<float> last_invite_time_{0};
     std::atomic<float> last_packet_time_{0};
     std::atomic<float> last_ping_time_{0};
+    float last_stop_time_{0};
     // statistics
-    std::atomic<int32_t> lost_blocks_{0};
+    std::atomic<int32_t> dropped_blocks_{0};
     time_tag last_ping_reply_time_;
     // audio decoder
     std::unique_ptr<AooFormat, format_deleter> format_;
@@ -278,12 +284,12 @@ private:
 
 class Sink final : public AooSink, rt_memory_pool_client {
 public:
-    Sink(AooId id, AooFlag flags, AooError *err);
+    Sink(AooId id);
 
     ~Sink();
 
-    AooError AOO_CALL setup(AooSampleRate samplerate,
-                            AooInt32 blocksize, AooInt32 nchannels) override;
+    AooError AOO_CALL setup(AooInt32 nchannels, AooSampleRate samplerate,
+                            AooInt32 blocksize, AooFlag flags) override;
 
     AooError AOO_CALL handleMessage(const AooByte *data, AooInt32 n,
                                     const void *address, AooAddrSize addrlen) override;
@@ -320,6 +326,8 @@ public:
 
     int32_t samplerate() const { return samplerate_; }
 
+    float elapsed_time() const { return elapsed_time_.load(std::memory_order_relaxed); }
+
     AooSampleRate real_samplerate() const { return realsr_.load(); }
 
     bool dynamic_resampling() const { return dynamic_resampling_.load();}
@@ -344,10 +352,6 @@ public:
 
     AooSeconds invite_timeout() const { return invite_timeout_.load(); }
 
-    AooSeconds elapsed_time() const { return timer_.get_elapsed(); }
-
-    time_tag absolute_time() const { return timer_.get_absolute(); }
-
     AooEventMode event_mode() const { return eventmode_; }
 
     void send_event(event_ptr e, AooThreadLevel level) const;
@@ -370,7 +374,11 @@ private:
     // timing
     parameter<AooSampleRate> realsr_{0};
     time_dll dll_;
-    timer timer_;
+    std::atomic<AooNtpTime> start_time_{0};
+    std::atomic<float> elapsed_time_ = 0;
+    void reset_timer() {
+        start_time_.store(0);
+    }
     // options
     parameter<float> latency_{ AOO_SINK_LATENCY };
     parameter<float> buffersize_{ 0 };
@@ -383,7 +391,6 @@ private:
     parameter<float> dll_bandwidth_{ AOO_DLL_BANDWIDTH };
     parameter<bool> resend_{AOO_RESEND_DATA};
     parameter<bool> dynamic_resampling_{ AOO_DYNAMIC_RESAMPLING };
-    parameter<bool> timer_check_{ AOO_XRUN_DETECTION };
     // events
     using event_queue = lockfree::unbounded_mpsc_queue<event_ptr, aoo::rt_allocator<event_ptr>>;
     mutable event_queue eventqueue_;
@@ -406,6 +413,8 @@ private:
     source_desc *add_source(const ip_address& addr, AooId id);
 
     void reset_sources();
+
+    void handle_xrun(int32_t nsamples);
 
     AooError handle_start_message(const osc::ReceivedMessage& msg,
                                   const ip_address& addr);

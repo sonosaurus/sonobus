@@ -89,7 +89,7 @@ void client_endpoint::send_message(const osc::OutboundPacketStream& msg) const {
 }
 
 void client_endpoint::send_error(Server& server, AooId token, AooRequestType type,
-                                 int32_t errcode, const char *errmsg) {
+                                 AooError result, const AooResponseError *response) {
     const char *pattern;
     switch (type) {
     case kAooRequestLogin:
@@ -111,8 +111,13 @@ void client_endpoint::send_error(Server& server, AooId token, AooRequestType typ
 
     auto msg = server.start_message();
 
-    msg << osc::BeginMessage(pattern) << (int32_t)token
-        << (int32_t)0 << (int32_t)errcode << errmsg << osc::EndMessage;
+    msg << osc::BeginMessage(pattern) << (int32_t)token << result;
+    if (response) {
+        msg << response->errorCode << response->errorMessage;
+    } else {
+        msg << (int32_t)0 << "";
+    }
+    msg << osc::EndMessage;
 
     send_message(msg);
 }
@@ -134,15 +139,25 @@ void client_endpoint::send_peer_add(Server& server, const group& grp, const user
 
     auto msg = server.start_message(usr.metadata().size());
 
+    AooFlag flags = 0;
+    if (usr.group_creator()) {
+        flags |= kAooPeerGroupCreator;
+    }
+    if (usr.persistent()) {
+        flags |= kAooPeerPersistent;
+    }
+
     msg << osc::BeginMessage(kAooMsgClientPeerJoin)
         << grp.name().c_str() << grp.id()
-        << usr.name().c_str() << usr.id() << usr.metadata()
-    // addresses
+        << usr.name().c_str() << usr.id()
+        << client.version().c_str() << (int32_t)flags
+    // IP addresses
         << (int32_t)client.public_addresses().size();
     for (auto& addr : client.public_addresses()){
         msg << addr;
     }
-    msg << usr.relay_addr() << osc::EndMessage;
+    msg << usr.metadata() << usr.relay_addr()
+        << osc::EndMessage;
 
     send_message(msg);
 }
@@ -158,11 +173,11 @@ void client_endpoint::send_peer_remove(Server& server, const group& grp, const u
     send_message(msg);
 }
 
-void client_endpoint::send_group_update(Server& server, const group& grp) {
+void client_endpoint::send_group_update(Server& server, const group& grp, AooId usr) {
     auto msg = server.start_message();
 
     msg << osc::BeginMessage(kAooMsgClientGroupChanged)
-        << grp.id() << grp.metadata() << osc::EndMessage;
+        << grp.id() << usr << grp.metadata() << osc::EndMessage;
 
     send_message(msg);
 }
@@ -170,7 +185,7 @@ void client_endpoint::send_group_update(Server& server, const group& grp) {
 void client_endpoint::send_user_update(Server& server, const user& usr) {
     auto msg = server.start_message();
 
-    msg << osc::BeginMessage(kAooMsgUserChanged)
+    msg << osc::BeginMessage(kAooMsgClientUserChanged)
         << usr.group() << usr.id() << usr.metadata() << osc::EndMessage;
 
     send_message(msg);
@@ -210,7 +225,7 @@ void client_endpoint::handle_message(Server &server, const AooByte *data, int32_
     });
 }
 
-void client_endpoint::on_group_join(const group& grp, const user& usr) {
+void client_endpoint::on_group_join(Server&, const group& grp, const user& usr) {
 #if 1
     for (auto& gu : group_users_) {
         if (gu.group == grp.id() && gu.user == usr.id()) {
@@ -223,9 +238,16 @@ void client_endpoint::on_group_join(const group& grp, const user& usr) {
     group_users_.emplace_back(group_user { grp.id(), usr.id() });
 }
 
-void client_endpoint::on_group_leave(const group& grp, const user& usr, bool force) {
-    if (force) {
-        // TODO send message to user, so that it knows it has been removed!
+void client_endpoint::on_group_leave(Server& server, const group& grp,
+                                     const user& usr, bool eject) {
+    if (eject) {
+        // tell client that it has been ejected from the group
+        auto msg = server.start_message();
+
+        msg << osc::BeginMessage(kAooMsgClientGroupEject)
+            << grp.id() << osc::EndMessage;
+
+        send_message(msg);
     }
     for (auto it = group_users_.begin(); it != group_users_.end(); ++it) {
         if (it->group == grp.id() && it->user == usr.id()) {
@@ -233,8 +255,8 @@ void client_endpoint::on_group_leave(const group& grp, const user& usr, bool for
             return;
         }
     }
-    LOG_ERROR("AooServer: client_endpoint::remove_group_user(): "
-              << "couldn't remove group user " << grp.id() << "|" << usr.id());
+    LOG_ERROR("AooServer: on_group_leave: couldn't remove group user "
+              << grp.id() << "|" << usr.id());
 }
 
 } // net

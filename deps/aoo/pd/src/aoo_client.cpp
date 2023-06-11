@@ -17,8 +17,6 @@
 
 t_class *aoo_client_class;
 
-#define DEJITTER 1
-
 struct t_peer_message
 {
     t_peer_message(AooId grp, AooId usr, const AooData& msg)
@@ -246,11 +244,7 @@ void t_aoo_client::send_message(int argc, t_atom *argv, AooId group, AooId user)
     aoo::time_tag time;
     if (x_offset >= 0) {
         // make timetag relative to current OSC time
-    #if DEJITTER
-        aoo::time_tag now = get_osctime_dejitter(x_dejitter);
-    #else
-        aoo::time_tag now = get_osctime();
-    #endif
+        aoo::time_tag now = x_dejitter ? dejitter_osctime(x_dejitter) : get_osctime();
         time = now + aoo::time_tag::from_seconds(x_offset * 0.001);
     } else {
         time = aoo::time_tag::immediate();
@@ -342,6 +336,17 @@ static void aoo_client_reliable(t_aoo_client *x, t_floatarg f)
     x->x_reliable = (f != 0);
 }
 
+static void aoo_client_dejitter(t_aoo_client *x, t_floatarg f)
+{
+    int dejitter = f != 0;
+    if (dejitter && !x->x_dejitter) {
+        x->x_dejitter = dejitter_get();
+    } else if (!dejitter && x->x_dejitter) {
+        dejitter_release(x->x_dejitter);
+        x->x_dejitter = nullptr;
+    }
+}
+
 static void aoo_client_binary(t_aoo_client *x, t_floatarg f)
 {
     if (!x->check("binary")) return;
@@ -370,14 +375,14 @@ static void aoo_client_port(t_aoo_client *x, t_floatarg f)
     }
 }
 
-static void aoo_client_sim_packet_drop(t_aoo_client *x, t_floatarg f)
+static void aoo_client_sim_packet_loss(t_aoo_client *x, t_floatarg f)
 {
-    if (!x->check("sim_packet_drop")) return;
+    if (!x->check("sim_packet_loss")) return;
 
     float val = f;
-    auto e = x->x_node->client()->control(kAooCtlSetSimulatePacketDrop, 0, AOO_ARG(val));
+    auto e = x->x_node->client()->control(kAooCtlSetSimulatePacketLoss, 0, AOO_ARG(val));
     if (e != kAooOk) {
-        pd_error(x, "%s: 'sim_packet_drop' message failed (%s)",
+        pd_error(x, "%s: 'sim_packet_loss' message failed (%s)",
                  classname(x), aoo_strerror(e));
     }
 }
@@ -498,10 +503,10 @@ void t_aoo_client::handle_message(AooId group, AooId user, AooNtpTime time,
 {
     aoo::time_tag tt(time);
     if (!tt.is_empty() && !tt.is_immediate()){
-        auto now = get_osctime();
+        aoo::time_tag now = x_dejitter ? dejitter_osctime(x_dejitter) : get_osctime();
         auto delay = aoo::time_tag::duration(now, tt) * 1000.0;
         if (x_schedule) {
-            if (delay > 0){
+            if (delay > 0) {
                 // put on queue and schedule on clock (using logical time)
                 auto abstime = clock_getsystimeafter(delay);
                 // reschedule if we are the next due element
@@ -509,13 +514,12 @@ void t_aoo_client::handle_message(AooId group, AooId user, AooNtpTime time,
                     clock_set(x_queue_clock, abstime);
                 }
                 x_queue.emplace(t_peer_message(group, user, data), abstime);
-            } else if (!x_discard){
-                // treat like immediate message
-                // TODO: should we maybe output a negative delay time?
-                dispatch_message(group, user, data, 0);
+            } else if (!x_discard) {
+                // output late message (negative delay!)
+                dispatch_message(group, user, data, delay);
             }
         } else {
-            // output immediately with delay
+            // output immediately with delay (may be negative!)
             dispatch_message(group, user, data, delay);
         }
     } else {
@@ -533,7 +537,7 @@ void aoo_client_handle_event(t_aoo_client *x, const AooEvent *event, int32_t lev
         x->handle_message(e.groupId, e.userId, e.timeStamp, e.data);
         break;
     }
-    case kAooEventClientDisconnect:
+    case kAooEventDisconnect:
     {
         post("%s: disconnected from server", classname(x));
 
@@ -629,9 +633,9 @@ void aoo_client_handle_event(t_aoo_client *x, const AooEvent *event, int32_t lev
 
         peer_to_atoms(*peer, 5, msg);
 
-        auto delta1 = aoo::time_tag::duration(e.tt1, e.tt2) * 1000;
-        auto delta2 = aoo::time_tag::duration(e.tt2, e.tt3) * 1000;
-        auto rtt = aoo::time_tag::duration(e.tt1, e.tt3) * 1000;
+        auto delta1 = aoo::time_tag::duration(e.t1, e.t2) * 1000;
+        auto delta2 = aoo::time_tag::duration(e.t2, e.t3) * 1000;
+        auto rtt = aoo::time_tag::duration(e.t1, e.t3) * 1000;
 
         peer_to_atoms(*peer, 5, msg);
         SETFLOAT(msg + 5, delta1);
@@ -674,14 +678,9 @@ static void aoo_client_tick(t_aoo_client *x)
     clock_delay(x->x_clock, AOO_CLIENT_POLL_INTERVAL);
 }
 
-struct t_error_response {
-    int code;
-    std::string msg;
-};
-
 static void AOO_CALL connect_cb(t_aoo_client *x, const AooRequest *request,
-                                const AooResponse *response) {
-    if (response->type != kAooRequestError) {
+                                AooError result, const AooResponse *response) {
+    if (result == kAooErrorNone) {
         x->push_reply([x](){
             // remove all peers and groups (to be sure)
             x->x_peers.clear();
@@ -692,11 +691,11 @@ static void AOO_CALL connect_cb(t_aoo_client *x, const AooRequest *request,
         });
     } else {
         auto& e = response->error;
-        t_error_response error { e.errorCode, e.errorMessage };
+        std::string errmsg = *e.errorMessage ? e.errorMessage : aoo_strerror(result);
 
-        x->push_reply([x, error=std::move(error)](){
+        x->push_reply([x, errmsg=std::move(errmsg)](){
             pd_error(x, "%s: can't connect to server: %s",
-                     classname(x), error.msg.c_str());
+                     classname(x), errmsg.c_str());
 
             if (!x->x_connected){
                 outlet_float(x->x_stateout, 0);
@@ -744,8 +743,8 @@ static void aoo_client_disconnect(t_aoo_client *x)
 }
 
 static void AOO_CALL group_join_cb(t_aoo_client *x, const AooRequest *request,
-                                   const AooResponse *response){
-    if (response->type != kAooRequestError) {
+                                   AooError result, const AooResponse *response){
+    if (result == kAooErrorNone) {
         x->push_reply([x, group=std::string(request->groupJoin.groupName), id=response->groupJoin.groupId](){
             // add group
             auto name = gensym(group.c_str());
@@ -762,11 +761,12 @@ static void AOO_CALL group_join_cb(t_aoo_client *x, const AooRequest *request,
         });
     } else {
         auto& e = response->error;
-        t_error_response error { e.errorCode, e.errorMessage };
+        std::string group = std::string(request->groupJoin.groupName);
+        std::string errmsg = *e.errorMessage ? e.errorMessage : aoo_strerror(result);
 
-        x->push_reply([x, group=std::string(request->groupJoin.groupName), error=std::move(error)](){
+        x->push_reply([x, group=std::move(group), errmsg=std::move(errmsg)](){
             pd_error(x, "%s: can't join group '%s': %s",
-                     classname(x), group.c_str(), error.msg.c_str());
+                     classname(x), group.c_str(), errmsg.c_str());
 
             t_atom msg[2];
             SETSYMBOL(msg, gensym(group.c_str()));
@@ -798,8 +798,8 @@ static void aoo_client_group_join(t_aoo_client *x, t_symbol *s, int argc, t_atom
 }
 
 static void AOO_CALL group_leave_cb(t_aoo_client *x, const AooRequest *request,
-                                    const AooResponse *response) {
-    if (response->type != kAooRequestError){
+                                    AooError result, const AooResponse *response) {
+    if (result == kAooErrorNone){
         x->push_reply([x, id=request->groupLeave.group]() {
             // remove group
             t_symbol *name = nullptr;
@@ -831,16 +831,17 @@ static void AOO_CALL group_leave_cb(t_aoo_client *x, const AooRequest *request,
         });
     } else {
         auto& e = response->error;
-        t_error_response error { e.errorCode, e.errorMessage };
+        auto id = request->groupLeave.group;
+        std::string errmsg = *e.errorMessage ? e.errorMessage : aoo_strerror(result);
 
-        x->push_reply([x, id=request->groupLeave.group, error=std::move(error)]() {
+        x->push_reply([x, id=id, errmsg=std::move(errmsg)]() {
             auto group = x->find_group(id);
             if (!group) {
                 bug("group_leave_cb");
                 return;
             }
             pd_error(x, "%s: can't leave group '%s': %s",
-                     classname(x), group->name->s_name, error.msg.c_str());
+                     classname(x), group->name->s_name, errmsg.c_str());
 
             t_atom msg[2];
             SETSYMBOL(msg, group->name);
@@ -876,6 +877,7 @@ static void * aoo_client_new(t_symbol *s, int argc, t_atom *argv)
 
 t_aoo_client::t_aoo_client(int argc, t_atom *argv)
 {
+    x_dejitter = dejitter_get();
     x_clock = clock_new(this, (t_method)aoo_client_tick);
     x_queue_clock = clock_new(this, (t_method)aoo_client_queue_tick);
     x_stateout = outlet_new(&x_obj, 0);
@@ -888,8 +890,6 @@ t_aoo_client::t_aoo_client(int argc, t_atom *argv)
 
     if (x_node){
         verbose(0, "new aoo client on port %d", port);
-        // get dejitter context
-        x_dejitter = get_dejitter();
         // start clock
         clock_delay(x_clock, AOO_CLIENT_POLL_INTERVAL);
     }
@@ -910,7 +910,9 @@ t_aoo_client::~t_aoo_client()
     }
 
     // ignore pending requests (doesn't leak)
-
+    if (x_dejitter) {
+        dejitter_release(x_dejitter);
+    }
     clock_free(x_clock);
     clock_free(x_queue_clock);
 }
@@ -944,13 +946,15 @@ void aoo_client_setup(void)
     class_addmethod(aoo_client_class, (t_method)aoo_client_send,
                     gensym("send"), A_GIMME, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_offset,
-                    gensym("offset"), A_DEFFLOAT, A_NULL);
+                    gensym("offset"), A_FLOAT, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_schedule,
                     gensym("schedule"), A_FLOAT, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_discard_late,
                     gensym("discard_late"), A_FLOAT, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_reliable,
                     gensym("reliable"), A_FLOAT, A_NULL);
+    class_addmethod(aoo_client_class, (t_method)aoo_client_dejitter,
+                    gensym("dejitter"), A_FLOAT, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_port,
                     gensym("port"), A_FLOAT, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_binary,
@@ -958,8 +962,8 @@ void aoo_client_setup(void)
     // debug/simulate
     class_addmethod(aoo_client_class, (t_method)aoo_client_sim_packet_reorder,
                     gensym("sim_packet_reorder"), A_FLOAT, A_NULL);
-    class_addmethod(aoo_client_class, (t_method)aoo_client_sim_packet_drop,
-                    gensym("sim_packet_drop"), A_FLOAT, A_NULL);
+    class_addmethod(aoo_client_class, (t_method)aoo_client_sim_packet_loss,
+                    gensym("sim_packet_loss"), A_FLOAT, A_NULL);
     class_addmethod(aoo_client_class, (t_method)aoo_client_sim_packet_jitter,
                     gensym("sim_packet_jitter"), A_FLOAT, A_NULL);
 }

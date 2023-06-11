@@ -43,11 +43,11 @@ void print_format(const AooFormatOpus& f){
 
 bool validate_format(AooFormatOpus& f, bool loud = true)
 {
-    if (strcmp(f.header.codec, kAooCodecOpus)){
+    if (f.header.structSize < AOO_STRUCT_SIZE(AooFormatOpus, applicationType)) {
         return false;
     }
 
-    if (f.header.size < sizeof(AooFormatOpus)){
+    if (strcmp(f.header.codecName, kAooCodecOpus)){
         return false;
     }
 
@@ -290,7 +290,8 @@ AooError Encoder_encode(
         return kAooOk;
     } else {
         LOG_VERBOSE("Opus: opus_encode_float() failed with error code " << result);
-        return kAooErrorUnknown;
+        // LATER try to translate Opus error codes to AOO error codes?
+        return kAooErrorCodec;
     }
 }
 
@@ -394,51 +395,64 @@ AooError Decoder_decode(
         return kAooOk;
     } else {
         LOG_VERBOSE("Opus: opus_decode_float() failed with error code " << result);
-        return kAooErrorUnknown;
+        // LATER try to translate Opus error codes to AOO error codes?
+        return kAooErrorCodec;
     }
 }
 
 //-------------------------- free functions ------------------------//
 
-AooError serialize(const AooFormat *f, AooByte *buf, AooInt32 *size){
+AooError serialize(const AooFormat *f, AooByte *buf, AooInt32 *size)
+{
+    if (!size) {
+        return kAooErrorBadArgument;
+    }
     if (!buf){
         *size = sizeof(AooInt32);
         return kAooOk;
     }
-    if (*size >= sizeof(AooInt32)){
-        auto fmt = (const AooFormatOpus *)f;
-        aoo::to_bytes<AooInt32>(fmt->applicationType, buf);
-        *size = sizeof(AooInt32);
-
-        return kAooOk;
-    } else {
+    if (*size < sizeof(AooInt32)) {
         LOG_ERROR("Opus: couldn't write settings - buffer too small!");
+        return kAooErrorInsufficientBuffer;
+    }
+    if (!AOO_CHECK_FIELD(f, AooFormatOpus, applicationType)) {
+        LOG_ERROR("Opus: bad format struct size");
         return kAooErrorBadArgument;
     }
+
+    auto fmt = (const AooFormatOpus *)f;
+    aoo::to_bytes<AooInt32>(fmt->applicationType, buf);
+    *size = sizeof(AooInt32);
+
+    return kAooOk;
 }
 
 AooError deserialize(
-        const AooByte *buf, AooInt32 size, AooFormat *f, AooInt32 *fmtsize){
-    if (!f){
-        *fmtsize = sizeof(AooFormatOpus);
+        const AooByte *buf, AooInt32 size, AooFormat *f, AooInt32 *fmtsize)
+{
+    if (!fmtsize) {
+        return kAooErrorBadArgument;
+    }
+    if (!f) {
+        *fmtsize = AOO_STRUCT_SIZE(AooFormatOpus, applicationType);
         return kAooOk;
     }
-    if (size < sizeof(AooInt32)){
+    if (size < sizeof(AooInt32)) {
         LOG_ERROR("Opus: couldn't read format - not enough data!");
         return kAooErrorBadArgument;
     }
-    if (*fmtsize < sizeof(AooFormatOpus)){
+    if (*fmtsize < AOO_STRUCT_SIZE(AooFormatOpus, applicationType)) {
         LOG_ERROR("Opus: output format storage too small");
         return kAooErrorBadArgument;
     }
     auto fmt = (AooFormatOpus *)f;
     fmt->applicationType = aoo::from_bytes<AooInt32>(buf);
-    *fmtsize = sizeof(AooFormatOpus);
+    *fmtsize = AOO_STRUCT_SIZE(AooFormatOpus, applicationType);
 
     return kAooOk;
 }
 
-static AooCodecInterface g_interface = {
+AooCodecInterface g_interface = {
     sizeof(AooCodecInterface),
     // encoder
     Encoder_new,
@@ -471,8 +485,8 @@ Decoder::Decoder(OpusMSDecoder *state, size_t size, const AooFormatOpus& f) {
 
 } // namespace
 
-void aoo_opusLoad(const AooCodecHostInterface *ift){
-    ift->registerCodec(kAooCodecOpus, &g_interface);
+void aoo_opusLoad(const AooCodecHostInterface *iface){
+    iface->registerCodec(kAooCodecOpus, &g_interface);
     // the Opus codec is always statically linked, so we can simply use the
     // internal log function and allocator
 }

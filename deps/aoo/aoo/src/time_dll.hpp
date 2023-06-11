@@ -51,6 +51,12 @@ public:
             }
         }
     }
+    double time() const {
+        return t0_;
+    }
+    double next_time() const {
+        return t1_;
+    }
     double period() const {
         return t1_ - t0_;
     }

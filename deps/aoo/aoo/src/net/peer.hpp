@@ -29,10 +29,13 @@ struct message_ack {
 
 class peer {
 public:
-    peer(const std::string& groupname, AooId groupid,
-         const std::string& username, AooId userid, AooId localid,
-         ip_address_list&& addrlist, const AooData *metadata,
-         ip_address_list&& user_relay, const ip_address_list& group_relay);
+    // NB: be must set everything in the constructor to avoid race conditions!
+    peer(const std::string& group_name, AooId group_id,
+         const std::string& user_name, AooId user_id,
+         const std::string& version, AooFlag flags, const AooData *metadata,
+         ip_address::ip_type address_family, bool use_ipv4_mapped,
+         ip_address_list&& addrlist, AooId local_id,
+         ip_address_list&& user_relay, const ip_address_list& relay_list);
 
     ~peer();
 
@@ -52,7 +55,9 @@ public:
 
     bool match_wildcard(AooId group, AooId user) const;
 
-    bool relay() const { return relay_; }
+    ip_address address() const;
+
+    bool need_relay() const { return flags_ & kAooPeerNeedRelay; }
 
     const ip_address& relay_address() const { return relay_address_; }
 
@@ -68,9 +73,9 @@ public:
 
     AooId local_id() const { return local_id_; }
 
-    const ip_address& address() const {
-        return real_address_;
-    }
+    const std::string& version() const { return version_; }
+
+    AooFlag flags() const { return flags_; }
 
     const aoo::metadata& metadata() const { return metadata_; }
 
@@ -80,7 +85,7 @@ public:
 
     void handle_osc_message(Client& client, const char *pattern,
                             osc::ReceivedMessageArgumentIterator it,
-                            const ip_address& addr);
+                            int remaining, const ip_address& addr);
 
     void handle_bin_message(Client& client, const AooByte *data,
                             AooSize size, int onset, const ip_address& addr);
@@ -99,7 +104,7 @@ private:
 
     void do_handle_client_message(Client& client, const message_packet& p, AooFlag flags);
 
-    void handle_ack(Client& client, osc::ReceivedMessageArgumentIterator it);
+    void handle_ack(Client& client, osc::ReceivedMessageArgumentIterator it, int remaining);
 
     void handle_ack(Client& client, const AooByte *data, AooSize size);
 
@@ -115,11 +120,15 @@ private:
         send((const AooByte *)msg.Data(), msg.Size(), fn);
     }
 
-    void send(const AooByte *data, AooSize size, const sendfn& fn) const;
-
     void send(const osc::OutboundPacketStream& msg,
               const ip_address& addr, const sendfn& fn) const {
         send((const AooByte *)msg.Data(), msg.Size(), addr, fn);
+    }
+
+    // only called if peer is connected!
+    void send(const AooByte *data, AooSize size, const sendfn &fn) const {
+        assert(connected());
+        send(data, size, real_address_, fn);
     }
 
     void send(const AooByte *data, AooSize size,
@@ -130,13 +139,16 @@ private:
     const AooId group_id_;
     const AooId user_id_;
     const AooId local_id_;
-    aoo::metadata metadata_;
-    bool relay_ = false;
+    AooFlag flags_;
+    std::string version_;
+    ip_address::ip_type address_family_;
+    bool use_ipv4_mapped_;
     bool timeout_ = false;
+    aoo::metadata metadata_;
     ip_address_list addrlist_;
     ip_address_list user_relay_;
-    ip_address_list group_relay_;
-    ip_address real_address_;
+    ip_address_list relay_list_;
+    ip_address real_address_; // IPv4-mapped if peer-to-peer, unmapped if relayed
     ip_address relay_address_;
     time_tag start_time_;
     double last_pingtime_ = 0;

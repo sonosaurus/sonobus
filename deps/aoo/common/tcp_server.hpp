@@ -20,15 +20,13 @@
 
 namespace aoo {
 
-// TODO: make multi-threaded
-
 class tcp_server
 {
 public:
 #ifdef _WIN32
-    static const int invalid_socket = (int)INVALID_SOCKET;
+    static const AooSocket invalid_socket = (AooSocket)INVALID_SOCKET;
 #else
-    static const int invalid_socket = -1;
+    static const AooSocket invalid_socket = -1;
 #endif
 
     tcp_server() {}
@@ -38,30 +36,39 @@ public:
     tcp_server& operator=(const tcp_server&) = delete;
 
     // returns client ID
-    using accept_handler = std::function<AooId(int errorcode, const aoo::ip_address& address, AooSocket socket)>;
+    using accept_handler = std::function<AooId(int errorcode, const aoo::ip_address& address)>;
 
-    using receive_handler = std::function<void(AooId client, int errorcode, const AooByte *data, AooSize size)>;
+    using receive_handler = std::function<void(int errorcode, AooId client, const ip_address& address,
+                                               const AooByte *data, AooSize size)>;
 
     void start(int port, accept_handler accept, receive_handler receive);
     void run();
     void stop();
+    void notify();
 
     int send(AooId client, const AooByte *data, AooSize size);
     bool close(AooId client);
+    int client_count() const { return client_count_; }
 private:
-    void receive();
-    bool accept_client();
+    struct client {
+        ip_address address;
+        AooSocket socket;
+        AooId id;
+    };
+
+    void loop();
+    void accept_client();
+    void on_accept_error(int code, const ip_address& addr);
     void receive_from_clients();
-    void on_error(int code) {
-        accept_handler_(0, ip_address(), -1);
+    void on_client_error(const client& c, int code) {
+        receive_handler_(code, c.id, c.address, nullptr, 0);
     }
-    void on_error(AooId id, int code) {
-        receive_handler_(id, code, nullptr, 0);
-    }
+    void close_and_remove_client(int index);
     void do_close();
 
     int listen_socket_ = invalid_socket;
     int event_socket_ = invalid_socket;
+    int last_error_ = 0;
     std::atomic<bool> running_{false};
 
     std::vector<pollfd> poll_array_;
@@ -72,13 +79,9 @@ private:
     accept_handler accept_handler_;
     receive_handler receive_handler_;
 
-    struct client {
-        ip_address address;
-        AooSocket socket;
-        AooId id;
-    };
     std::vector<client> clients_;
     std::vector<size_t> stale_clients_;
+    int32_t client_count_ = 0;
     static const int max_stale_clients = 100;
 };
 

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "aoo_defines.h"
+#include "aoo_config.h"
 
 #define AOO_ARG(x) ((void *)&x), sizeof(x)
 
@@ -21,7 +21,7 @@
  * These are passed to AooSource_control() resp. AooSink_control()
  * internally by helper functions and shouldn't be used directly.
  */
-enum AooControls
+enum
 {
     kAooCtlSetId = 0,
     kAooCtlGetId,
@@ -34,13 +34,13 @@ enum AooControls
     kAooCtlGetLatency,
     kAooCtlSetBufferSize,
     kAooCtlGetBufferSize,
+    kAooCtlReportXRun,
     kAooCtlSetDynamicResampling,
     kAooCtlGetDynamicResampling,
     kAooCtlGetRealSampleRate,
     kAooCtlSetDllBandwidth,
     kAooCtlGetDllBandwidth,
-    kAooCtlSetXRunDetection,
-    kAooCtlGetXRunDetection,
+    kAooCtlResetDll,
     kAooCtlSetChannelOnset,
     kAooCtlGetChannelOnset,
     kAooCtlSetPacketSize,
@@ -66,7 +66,6 @@ enum AooControls
     kAooCtlGetBinaryDataMsg,
 #if AOO_NET
     kAooCtlSetPassword = 1000,
-    kAooCtlSetTcpHost,
     kAooCtlSetRelayHost,
     kAooCtlSetServerRelay,
     kAooCtlGetServerRelay,
@@ -74,12 +73,101 @@ enum AooControls
     kAooCtlGetGroupAutoCreate,
     kAooCtlSetBinaryClientMsg,
     kAooCtlGetBinaryClientMsg,
+    kAooCtlAddInterfaceAddress,
+    kAooCtlRemoveInterfaceAddress,
     /* server group controls */
     kAooCtlUpdateGroup,
     kAooCtlUpdateUser,
 #endif
     kAooCtlSentinel
 };
+
+/* default values */
+
+/** \brief default source send buffer size in seconds */
+#ifndef AOO_SOURCE_BUFFER_SIZE
+ #define AOO_SOURCE_BUFFER_SIZE 0.025
+#endif
+
+/** \brief default sink latency in seconds */
+#ifndef AOO_SINK_LATENCY
+ #define AOO_SINK_LATENCY 0.05
+#endif
+
+/** \brief use binary data message format by default */
+#ifndef AOO_BINARY_DATA_MSG
+ #define AOO_BINARY_DATA_MSG 1
+#endif
+
+/** \brief enable/disable dynamic resampling by default */
+#ifndef AOO_DYNAMIC_RESAMPLING
+ #define AOO_DYNAMIC_RESAMPLING 1
+#endif
+
+/** \brief default time DLL filter bandwidth */
+#ifndef AOO_DLL_BANDWIDTH
+ #define AOO_DLL_BANDWIDTH 0.012
+#endif
+
+/** \brief default ping interval in seconds */
+#ifndef AOO_PING_INTERVAL
+ #define AOO_PING_INTERVAL 1.0
+#endif
+
+/** \brief default resend buffer size in seconds */
+#ifndef AOO_RESEND_BUFFER_SIZE
+ #define AOO_RESEND_BUFFER_SIZE 1.0
+#endif
+
+/** \brief default send redundancy */
+#ifndef AOO_SEND_REDUNDANCY
+ #define AOO_SEND_REDUNDANCY 1
+#endif
+
+/** \brief enable/disable packet resending by default */
+#ifndef AOO_RESEND_DATA
+ #define AOO_RESEND_DATA 1
+#endif
+
+/** \brief default resend interval in seconds */
+#ifndef AOO_RESEND_INTERVAL
+ #define AOO_RESEND_INTERVAL 0.01
+#endif
+
+/** \brief default resend limit */
+#ifndef AOO_RESEND_LIMIT
+ #define AOO_RESEND_LIMIT 16
+#endif
+
+/** \brief default source timeout */
+#ifndef AOO_SOURCE_TIMEOUT
+ #define AOO_SOURCE_TIMEOUT 10.0
+#endif
+
+/** \brief default invite timeout */
+#ifndef AOO_INVITE_TIMEOUT
+ #define AOO_INVITE_TIMEOUT 1.0
+#endif
+
+/** \brief enable/disable server relay by default */
+#ifndef AOO_SERVER_RELAY
+ #define AOO_SERVER_RELAY 0
+#endif
+
+/** \brief enable/disable automatic group creation by default */
+#ifndef AOO_GROUP_AUTO_CREATE
+#define AOO_GROUP_AUTO_CREATE 1
+#endif
+
+/** \brief enable/disable automatic user creation by default */
+#ifndef AOO_USER_AUTO_CREATE
+#define AOO_USER_AUTO_CREATE 1
+#endif
+
+/** \brief enable/disable binary format for client messages */
+#ifndef AOO_CLIENT_BINARY_MSG
+ #define AOO_CLIENT_BINARY_MSG 1
+#endif
 
 /*------------------------------------------------------*/
 /*               user defined controls                  */
@@ -105,12 +193,12 @@ enum AooControls
 /*------------------------------------------------------*/
 
 /* Don't use! TODO: move somewhere else. */
-enum AooPrivateControls
+enum
 {
     kAooCtlSetClient = -1000,
     kAooCtlNeedRelay,
     kAooCtlGetRelayAddress,
+    kAooCtlSetSimulatePacketLoss,
     kAooCtlSetSimulatePacketReorder,
-    kAooCtlSetSimulatePacketDrop,
     kAooCtlSetSimulatePacketJitter
 };

@@ -30,9 +30,14 @@ private:
     World* world_;
     std::shared_ptr<INode> node_;
 
-    void sendError(const char *cmd, AooId token);
+    void sendError(const char *cmd, AooId token,
+                   AooError error, const AooResponse& response) {
+        sendError(cmd, token, error, response.error.errorCode,
+                  response.error.errorMessage);
+    }
 
-    void sendError(const char *cmd, AooId token, const AooResponse& response);
+    void sendError(const char *cmd, AooId token, AooError error,
+                   int code = 0, const char *msg = "");
 
     void handlePeerMessage(AooId group, AooId user, AooNtpTime time,
                            const AooData& data);

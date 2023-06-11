@@ -33,14 +33,15 @@ public:
 
     ~Server();
 
+    AooError AOO_CALL setup(AooUInt16 port, AooSocketFlags flags) override;
+
     AooError AOO_CALL handleUdpMessage(
             const AooByte *data, AooInt32 size,
             const void *address, AooAddrSize addrlen,
             AooSendFunc replyFn, void *user) override;
 
     AooError AOO_CALL addClient(
-            AooServerReplyFunc replyFn, void *user,
-            AooSocket sockfd, AooId *id) override;
+            AooServerReplyFunc replyFn, void *user, AooId *id) override;
 
     AooError AOO_CALL removeClient(AooId clientId) override;
 
@@ -50,19 +51,15 @@ public:
     AooError AOO_CALL setRequestHandler(
             AooRequestHandler cb, void *user, AooFlag flags) override;
 
-    AooError AOO_CALL acceptRequest(
+    AooError AOO_CALL handleRequest(
             AooId client, AooId token, const AooRequest *request,
-            AooResponse *response) override;
-
-    AooError AOO_CALL declineRequest(
-            AooId client, AooId token, const AooRequest *request,
-            AooError errorCode, const AooChar *errorMessage) override;
+            AooError result, AooResponse *response) override;
 
     AooError AOO_CALL notifyClient(
-            AooId client, const AooData *data) override;
+            AooId client, const AooData &data) override;
 
     AooError AOO_CALL notifyGroup(
-            AooId group, AooId user, const AooData *data) override;
+            AooId group, AooId user, const AooData &data) override;
 
     AooError AOO_CALL findGroup(const AooChar *name, AooId *id) override;
 
@@ -114,8 +111,6 @@ public:
 
     client_endpoint * find_client(const ip_address& addr);
 
-    bool remove_client(AooId id);
-
     group* find_group(AooId id);
 
     group* find_group(const std::string& name);
@@ -151,9 +146,6 @@ private:
 
     void handle_query(const osc::ReceivedMessage& msg,
                       const ip_address& addr, const sendfn& fn);
-
-    void do_query(const AooRequestQuery& request,
-                  const AooResponseQuery& response) const;
 
     // TCP
     void handle_ping(const client_endpoint& client, const osc::ReceivedMessage& msg);
@@ -215,6 +207,10 @@ private:
 
     //----------------------------------------------------------------//
 
+    // UDP server
+    int port_ = 0; // unused
+    ip_address::ip_type address_family_ = ip_address::Unspec;
+    bool use_ipv4_mapped_ = false;
     // clients
     using client_map = std::unordered_map<AooId, client_endpoint>;
     client_map clients_;
@@ -235,7 +231,6 @@ private:
     void *eventcontext_ = nullptr;
     AooEventMode eventmode_ = kAooEventModeNone;
     // options
-    ip_host tcp_addr_;
     ip_host relay_addr_;
     std::string password_;
     parameter<bool> allow_relay_{AOO_SERVER_RELAY};

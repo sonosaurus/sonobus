@@ -332,13 +332,6 @@ static void aoo_receive_handle_stream_message(t_aoo_receive *x, const AooStreamM
 static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, int32_t)
 {
     switch (event->type){
-    case kAooEventXRun:
-    {
-        t_atom msg;
-        SETFLOAT(&msg, event->xrun.count);
-        outlet_anything(x->x_msgout, gensym("xrun"), 1, &msg);
-        break;
-    }
     case kAooEventSourceAdd:
     case kAooEventSourceRemove:
     case kAooEventInviteDecline:
@@ -350,11 +343,10 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
     case kAooEventStreamStart:
     case kAooEventStreamStop:
     case kAooEventStreamState:
-    case kAooEventBlockLost:
-    case kAooEventBlockDropped:
-    case kAooEventBlockReordered:
-    case kAooEventBlockResent:
-    case kAooEventPing:
+    case kAooEventBlockDrop:
+    case kAooEventBlockResend:
+    case kAooEventBlockXRun:
+    case kAooEventSourcePing:
     {
         // common endpoint header
         auto& ep = event->endpoint.endpoint;
@@ -406,9 +398,9 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
             break;
         }
         //---------------------- source events ------------------------------//
-        case kAooEventPing:
+        case kAooEventSourcePing:
         {
-            auto& e = event->ping;
+            auto& e = event->sourcePing;
 
             double diff1 = aoo_ntpTimeDuration(e.t1, e.t2) * 1000.0;
             double diff2 = aoo_ntpTimeDuration(e.t2, e.t3) * 1000.0;
@@ -490,31 +482,24 @@ static void aoo_receive_handle_event(t_aoo_receive *x, const AooEvent *event, in
             }
             break;
         }
-        case kAooEventBlockLost:
-        {
-            SETSYMBOL(msg + 3, gensym("block_lost"));
-            SETFLOAT(msg + 4, event->blockLost.count);
-            outlet_anything(x->x_msgout, gensym("event"), 5, msg);
-            break;
-        }
-        case kAooEventBlockDropped:
+        case kAooEventBlockDrop:
         {
             SETSYMBOL(msg + 3, gensym("block_dropped"));
-            SETFLOAT(msg + 4, event->blockDropped.count);
+            SETFLOAT(msg + 4, event->blockDrop.count);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
-        case kAooEventBlockReordered:
-        {
-            SETSYMBOL(msg + 3, gensym("block_reordered"));
-            SETFLOAT(msg + 4, event->blockReordered.count);
-            outlet_anything(x->x_msgout, gensym("event"), 5, msg);
-            break;
-        }
-        case kAooEventBlockResent:
+        case kAooEventBlockResend:
         {
             SETSYMBOL(msg + 3, gensym("block_resent"));
-            SETFLOAT(msg + 4, event->blockResent.count);
+            SETFLOAT(msg + 4, event->blockResend.count);
+            outlet_anything(x->x_msgout, gensym("event"), 5, msg);
+            break;
+        }
+        case kAooEventBlockXRun:
+        {
+            SETSYMBOL(msg + 3, gensym("block_xrun"));
+            SETFLOAT(msg + 4, event->blockXRun.count);
             outlet_anything(x->x_msgout, gensym("event"), 5, msg);
             break;
         }
@@ -644,7 +629,7 @@ static void aoo_receive_dsp(t_aoo_receive *x, t_signal **sp)
         if (x->x_node){
             x->x_node->lock();
         }
-        x->x_sink->setup(samplerate, blocksize, x->x_nchannels);
+        x->x_sink->setup(x->x_nchannels, samplerate, blocksize, 0);
         if (x->x_node){
             x->x_node->unlock();
         }
@@ -731,9 +716,9 @@ t_aoo_receive::t_aoo_receive(int argc, t_atom *argv)
     x_id = id;
 
     // arg #3: num channels
-    int nchannels = atom_getfloatarg(2, argc, argv);
-    if (nchannels < 1){
-        nchannels = 1;
+    int nchannels = argc >= 3 ? atom_getfloat(argv + 2) : 1;
+    if (nchannels < 0){
+        nchannels = 0;
     }
     x_nchannels = nchannels;
 
@@ -744,13 +729,13 @@ t_aoo_receive::t_aoo_receive(int argc, t_atom *argv)
     for (int i = 0; i < nchannels; ++i){
         outlet_new(&x_obj, &s_signal);
     }
-    x_vec = std::make_unique<t_sample *[]>(nchannels);
+    x_vec = nchannels > 0 ? std::make_unique<t_sample *[]>(nchannels) : nullptr;
 
     // event outlet
     x_msgout = outlet_new(&x_obj, 0);
 
     // create and initialize AooSink object
-    x_sink = AooSink::create(x_id, 0, nullptr);
+    x_sink = AooSink::create(x_id, nullptr);
 
     // set event handler
     x_sink->setEventHandler((AooEventHandler)aoo_receive_handle_event,

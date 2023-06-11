@@ -201,8 +201,8 @@ osc_bundle_element_size_t ReceivedBundleElement::Size() const
 
 bool ReceivedMessageArgument::AsBool() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == TRUE_TYPE_TAG )
 		return true;
 	else if( *typeTagPtr_ == FALSE_TYPE_TAG )
@@ -214,19 +214,17 @@ bool ReceivedMessageArgument::AsBool() const
 
 bool ReceivedMessageArgument::AsBoolUnchecked() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
-	else if( *typeTagPtr_ == TRUE_TYPE_TAG )
+	if( *typeTagPtr_ == TRUE_TYPE_TAG )
 		return true;
-    else
-	    return false;
+	else
+		return false;
 }
 
 
 int32 ReceivedMessageArgument::AsInt32() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == INT32_TYPE_TAG )
 		return AsInt32Unchecked();
 	else
@@ -256,8 +254,8 @@ int32 ReceivedMessageArgument::AsInt32Unchecked() const
 
 float ReceivedMessageArgument::AsFloat() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == FLOAT_TYPE_TAG )
 		return AsFloatUnchecked();
 	else
@@ -287,8 +285,8 @@ float ReceivedMessageArgument::AsFloatUnchecked() const
 
 char ReceivedMessageArgument::AsChar() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == CHAR_TYPE_TAG )
 		return AsCharUnchecked();
 	else
@@ -304,8 +302,8 @@ char ReceivedMessageArgument::AsCharUnchecked() const
 
 uint32 ReceivedMessageArgument::AsRgbaColor() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == RGBA_COLOR_TYPE_TAG )
 		return AsRgbaColorUnchecked();
 	else
@@ -321,8 +319,8 @@ uint32 ReceivedMessageArgument::AsRgbaColorUnchecked() const
 
 uint32 ReceivedMessageArgument::AsMidiMessage() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == MIDI_MESSAGE_TYPE_TAG )
 		return AsMidiMessageUnchecked();
 	else
@@ -338,8 +336,8 @@ uint32 ReceivedMessageArgument::AsMidiMessageUnchecked() const
 
 int64 ReceivedMessageArgument::AsInt64() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == INT64_TYPE_TAG )
 		return AsInt64Unchecked();
 	else
@@ -355,8 +353,8 @@ int64 ReceivedMessageArgument::AsInt64Unchecked() const
 
 uint64 ReceivedMessageArgument::AsTimeTag() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == TIME_TAG_TYPE_TAG )
 		return AsTimeTagUnchecked();
 	else
@@ -372,8 +370,8 @@ uint64 ReceivedMessageArgument::AsTimeTagUnchecked() const
 
 double ReceivedMessageArgument::AsDouble() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == DOUBLE_TYPE_TAG )
 		return AsDoubleUnchecked();
 	else
@@ -407,8 +405,8 @@ double ReceivedMessageArgument::AsDoubleUnchecked() const
 
 const char* ReceivedMessageArgument::AsString() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == STRING_TYPE_TAG )
 		return argumentPtr_;
 	else
@@ -418,8 +416,8 @@ const char* ReceivedMessageArgument::AsString() const
 
 const char* ReceivedMessageArgument::AsSymbol() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == SYMBOL_TYPE_TAG )
 		return argumentPtr_;
 	else
@@ -429,8 +427,8 @@ const char* ReceivedMessageArgument::AsSymbol() const
 
 void ReceivedMessageArgument::AsBlob( const void*& data, osc_bundle_element_size_t& size ) const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
+	if( *typeTagPtr_ == 0 )
+		throw MissingArgumentException();
 	else if( *typeTagPtr_ == BLOB_TYPE_TAG )
 		AsBlobUnchecked( data, size );
 	else
@@ -603,8 +601,10 @@ void ReceivedMessage::Init( const char *message, osc_bundle_element_size_t size 
 
     if( typeTagsBegin_ == end ){
         // message consists of only the address pattern - no arguments or type tags.
-        typeTagsBegin_ = 0;
-        typeTagsEnd_ = 0;
+        // NB: ReceivedMessageArgument requires the type tag to be a valid C string,
+        // so we just point to the end of the address pattern (= '\0')
+        typeTagsBegin_ = end - 1;
+        typeTagsEnd_ = end - 1;
         arguments_ = 0;
             
     }else{
@@ -613,8 +613,8 @@ void ReceivedMessage::Init( const char *message, osc_bundle_element_size_t size 
 
         if( *(typeTagsBegin_ + 1) == '\0' ){
             // zero length type tags
-            typeTagsBegin_ = 0;
-            typeTagsEnd_ = 0;
+            typeTagsBegin_ = end - 1;
+            typeTagsEnd_ = end - 1;
             arguments_ = 0;
 
         }else{
