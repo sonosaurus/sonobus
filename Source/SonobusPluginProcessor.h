@@ -7,7 +7,7 @@
 
 #include "JuceHeader.h"
 
-#include "aoo/aoo_net.h"
+#include "aoo/aoo.h"
 #include "aoo/aoo_client.hpp"
 #include "aoo/aoo_server.hpp"
 #include "aoo/aoo_sink.hpp"
@@ -94,10 +94,9 @@ private:
 
     void handleEvent(const AooEvent *event, AooThreadLevel level);
 
-    AooId handleAccept(int e, const aoo::ip_address& addr, AooSocket sock);
+    AooId handleAccept(int e, const aoo::ip_address& addr);
 
-    void handleReceive(AooId client, int e, const AooByte *data, AooSize size);
-
+    void handleReceive(int e, AooId client, const aoo::ip_address& addr, const AooByte *data, AooSize size);
     void handleUdpReceive(int e, const aoo::ip_address& addr,
                           const AooByte *data, AooSize size);
 };
@@ -376,7 +375,7 @@ public:
 
     int getSendChannels() const { return mSendChannels.get(); }
 
-    int connectRemotePeer(const String & host, int port, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "",  AooId groupid=kAooIdInvalid, bool reciprocate=true);
+    bool connectRemotePeer(const String & host, int port, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "",  AooId groupid=kAooIdInvalid, bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
     bool disconnectRemotePeer(int index);
     bool removeRemotePeer(int index, bool sendblock=false);
@@ -894,6 +893,8 @@ private:
 
     int32_t sendPeerMessage(RemotePeer * peer, const AooByte *msg, int32_t n);
 
+    bool connectRemotePeerInternal(EndpointState * endpoint, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "",  AooId groupid=kAooIdInvalid, bool reciprocate=true);
+
     void handleRemotePeerInfoUpdate(RemotePeer * peer, const juce::var & infodata);
     void sendRemotePeerInfoUpdate(int peerindex = -1, RemotePeer * topeer = nullptr);
 
@@ -934,6 +935,9 @@ private:
 
     void updateRemotePeerSendChannels(int index, RemotePeer * remote);
 
+    bool setupCommonAooSource();
+
+    
     void setupSourceFormatsForAll();
     ValueTree getSendUserFormatLayoutTree();
 
@@ -941,7 +945,7 @@ private:
     void restoreLayoutFormatForPeer(RemotePeer * remote, bool resetmulti=false);
 
 
-    int connectRemotePeerRaw(const void * sockaddr, int addrlen, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "", AooId groupid=kAooIdInvalid,  bool reciprocate=true);
+    bool connectRemotePeerRaw(const void * sockaddr, int addrlen, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "", AooId groupid=kAooIdInvalid,  bool reciprocate=true);
 
     int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
 
@@ -1100,8 +1104,8 @@ private:
     foleys::LevelMeterSource metMeterSource;
 
     // AOO stuff
-    AooSource::Ptr mAooDummySource;
-
+    AooSource::Ptr mAooCommonSource;
+    
     std::unique_ptr<AooServerWrapper> mAooServerWrapper;
     AooServer::Ptr mAooServer;
 
