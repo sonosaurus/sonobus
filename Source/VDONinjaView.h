@@ -286,7 +286,7 @@ private:
         params.set("noaudio", "");
         params.set("deaf", "");
         params.set("noap", ""); // no audio processing
-
+        params.set("autohide", "");
         
         // parse more params out of custom text
         StringArray custrawparams;
