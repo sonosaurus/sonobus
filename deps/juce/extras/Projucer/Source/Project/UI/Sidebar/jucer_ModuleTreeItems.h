@@ -27,7 +27,7 @@
 
 
 //==============================================================================
-class ModuleItem   : public ProjectTreeItemBase
+class ModuleItem final : public ProjectTreeItemBase
 {
 public:
     ModuleItem (Project& p, const String& modID)
@@ -117,9 +117,9 @@ private:
     bool cppStandardHigherThanProject = false;
 
     //==============================================================================
-    class ModuleSettingsPanel  : public Component,
-                                 private ValueTree::Listener,
-                                 private Value::Listener
+    class ModuleSettingsPanel final : public Component,
+                                      private ValueTree::Listener,
+                                      private Value::Listener
     {
     public:
         ModuleSettingsPanel (Project& p, const String& modID, TreeView* tree)
@@ -275,8 +275,8 @@ private:
         String moduleID;
 
         //==============================================================================
-        class ModuleInfoComponent  : public PropertyComponent,
-                                     private Value::Listener
+        class ModuleInfoComponent final  : public PropertyComponent,
+                                           private Value::Listener
         {
         public:
             ModuleInfoComponent (Project& p, const String& modID)
@@ -337,7 +337,7 @@ private:
         };
 
         //==============================================================================
-        class MissingDependenciesComponent  : public PropertyComponent
+        class MissingDependenciesComponent final : public PropertyComponent
         {
         public:
             MissingDependenciesComponent (Project& p, const String& modID)
@@ -375,10 +375,11 @@ private:
                 {
                     missingDependencies = enabledModules.getExtraDependenciesNeeded (moduleID);
 
-                    AlertWindow::showMessageBoxAsync (MessageBoxIconType::WarningIcon,
-                                                      "Adding Missing Dependencies",
-                                                      "Couldn't locate some of these modules - you'll need to find their "
-                                                      "folders manually and add them to the list.");
+                    auto options = MessageBoxOptions::makeOptionsOk (MessageBoxIconType::WarningIcon,
+                                                                     "Adding Missing Dependencies",
+                                                                     "Couldn't locate some of these modules - you'll need to find their "
+                                                                     "folders manually and add them to the list.");
+                    messageBox = AlertWindow::showScopedAsync (options, nullptr);
                 }
             }
 
@@ -393,12 +394,13 @@ private:
             String moduleID;
             StringArray missingDependencies;
             TextButton fixButton { "Add Required Modules" };
+            ScopedMessageBox messageBox;
 
             JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MissingDependenciesComponent)
         };
 
         //==============================================================================
-        struct CppStandardWarningComponent    : public PropertyComponent
+        struct CppStandardWarningComponent final : public PropertyComponent
         {
             CppStandardWarningComponent()
                 : PropertyComponent ("CppStandard", 100)
@@ -426,9 +428,9 @@ private:
 };
 
 //==============================================================================
-class EnabledModulesItem   : public ProjectTreeItemBase,
-                             private Value::Listener,
-                             private AvailableModulesList::Listener
+class EnabledModulesItem final : public ProjectTreeItemBase,
+                                 private Value::Listener,
+                                 private AvailableModulesList::Listener
 {
 public:
     EnabledModulesItem (Project& p)
@@ -517,13 +519,14 @@ public:
         auto& enabledModules = project.getEnabledModules();
         PopupMenu allModules;
 
-        int index = 100;
-
         // JUCE path
         PopupMenu jucePathModules;
 
-        for (auto& mod : ProjucerApplication::getApp().getJUCEPathModulesList().getAllModules())
-            jucePathModules.addItem (index++, mod.first, ! enabledModules.isModuleEnabled (mod.first));
+        for (const auto [index, mod] : enumerate (ProjucerApplication::getApp().getJUCEPathModulesList().getAllModules(),
+                                                  100))
+        {
+            jucePathModules.addItem (index, mod.first, ! enabledModules.isModuleEnabled (mod.first));
+        }
 
         jucePathModules.addSeparator();
         jucePathModules.addItem (-1, "Re-scan path");
@@ -531,11 +534,13 @@ public:
         allModules.addSubMenu ("Global JUCE modules path", jucePathModules);
 
         // User path
-        index = 200;
         PopupMenu userPathModules;
 
-        for (auto& mod : ProjucerApplication::getApp().getUserPathsModulesList().getAllModules())
-            userPathModules.addItem (index++, mod.first, ! enabledModules.isModuleEnabled (mod.first));
+        for (const auto [index, mod] : enumerate (ProjucerApplication::getApp().getUserPathsModulesList().getAllModules(),
+                                                  200))
+        {
+            userPathModules.addItem (index, mod.first, ! enabledModules.isModuleEnabled (mod.first));
+        }
 
         userPathModules.addSeparator();
         userPathModules.addItem (-2, "Re-scan path");
@@ -543,11 +548,13 @@ public:
         allModules.addSubMenu ("Global user modules path", userPathModules);
 
         // Exporter path
-        index = 300;
         PopupMenu exporterPathModules;
 
-        for (auto& mod : project.getExporterPathsModulesList().getAllModules())
-            exporterPathModules.addItem (index++, mod.first, ! enabledModules.isModuleEnabled (mod.first));
+        for (const auto [index, mod] : enumerate (project.getExporterPathsModulesList().getAllModules(),
+                                                  300))
+        {
+            exporterPathModules.addItem (index, mod.first, ! enabledModules.isModuleEnabled (mod.first));
+        }
 
         exporterPathModules.addSeparator();
         exporterPathModules.addItem (-3, "Re-scan path");

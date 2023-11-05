@@ -2553,6 +2553,8 @@ public:
     //==============================================================================
     tresult PLUGIN_API setActive (TBool state) override
     {
+        const FLStudioDIYSpecificationEnforcementLock lock (flStudioDIYSpecificationEnforcementMutex);
+
         const auto willBeActive = (state != 0);
 
         active = false;
@@ -3053,7 +3055,9 @@ public:
                 info.mediaType = Vst::kAudio;
                 info.direction = dir;
                 info.channelCount = bus->getLastEnabledLayout().size();
-                jassert (info.channelCount == Steinberg::Vst::SpeakerArr::getChannelCount (getVst3SpeakerArrangement (bus->getLastEnabledLayout())));
+
+                [[maybe_unused]] const auto lastEnabledVst3Layout = getVst3SpeakerArrangement (bus->getLastEnabledLayout());
+                jassert (lastEnabledVst3Layout.has_value() && info.channelCount == Steinberg::Vst::SpeakerArr::getChannelCount (*lastEnabledVst3Layout));
                 toString128 (info.name, bus->getName());
 
                 info.busType = [&]
@@ -3140,6 +3144,8 @@ public:
                                     Steinberg::int32 index,
                                     TBool state) override
     {
+        const FLStudioDIYSpecificationEnforcementLock lock (flStudioDIYSpecificationEnforcementMutex);
+
         // The host is misbehaving! The plugin must be deactivated before setting new arrangements.
         jassert (! active);
 
@@ -3274,6 +3280,8 @@ public:
     tresult PLUGIN_API setBusArrangements (Vst::SpeakerArrangement* inputs, Steinberg::int32 numIns,
                                            Vst::SpeakerArrangement* outputs, Steinberg::int32 numOuts) override
     {
+        const FLStudioDIYSpecificationEnforcementLock lock (flStudioDIYSpecificationEnforcementMutex);
+
         if (active)
         {
             // The host is misbehaving! The plugin must be deactivated before setting new arrangements.
@@ -3285,23 +3293,46 @@ public:
         auto numOutputBuses = pluginInstance->getBusCount (false);
 
         if (numIns > numInputBuses || numOuts > numOutputBuses)
-            return false;
+            return kResultFalse;
 
         // see the following documentation to understand the correct way to react to this callback
         // https://steinbergmedia.github.io/vst3_doc/vstinterfaces/classSteinberg_1_1Vst_1_1IAudioProcessor.html#ad3bc7bac3fd3b194122669be2a1ecc42
 
-        const auto requestedLayout = [&]
+        const auto toLayoutsArray = [] (auto begin, auto end) -> std::optional<Array<AudioChannelSet>>
         {
-            auto result = pluginInstance->getBusesLayout();
+            Array<AudioChannelSet> result;
 
-            for (int i = 0; i < numIns; ++i)
-                result.getChannelSet (true,  i) = getChannelSetForSpeakerArrangement (inputs[i]);
+            for (auto it = begin; it != end; ++it)
+            {
+                const auto set = getChannelSetForSpeakerArrangement (*it);
 
-            for (int i = 0; i < numOuts; ++i)
-                result.getChannelSet (false, i) = getChannelSetForSpeakerArrangement (outputs[i]);
+                if (! set.has_value())
+                    return {};
+
+                result.add (*set);
+            }
 
             return result;
+        };
+
+        const auto optionalRequestedLayout = [&]() -> std::optional<AudioProcessor::BusesLayout>
+        {
+            const auto ins  = toLayoutsArray (inputs,  inputs  + numIns);
+            const auto outs = toLayoutsArray (outputs, outputs + numOuts);
+
+            if (! ins.has_value() || ! outs.has_value())
+                return {};
+
+            AudioProcessor::BusesLayout result;
+            result.inputBuses  = *ins;
+            result.outputBuses = *outs;
+            return result;
         }();
+
+        if (! optionalRequestedLayout.has_value())
+            return kResultFalse;
+
+        const auto& requestedLayout = *optionalRequestedLayout;
 
        #ifdef JucePlugin_PreferredChannelConfigurations
         short configs[][2] = { JucePlugin_PreferredChannelConfigurations };
@@ -3341,8 +3372,14 @@ public:
     {
         if (auto* bus = pluginInstance->getBus (dir == Vst::kInput, index))
         {
-            arr = getVst3SpeakerArrangement (bus->getLastEnabledLayout());
-            return kResultTrue;
+            if (const auto arrangement = getVst3SpeakerArrangement (bus->getLastEnabledLayout()))
+            {
+                arr = *arrangement;
+                return kResultTrue;
+            }
+
+            // There's a bus here, but we can't represent its layout in terms of VST3 speakers!
+            jassertfalse;
         }
 
         return kResultFalse;
@@ -3472,6 +3509,8 @@ public:
 
     tresult PLUGIN_API process (Vst::ProcessData& data) override
     {
+        const FLStudioDIYSpecificationEnforcementLock lock (flStudioDIYSpecificationEnforcementMutex);
+
         if (pluginInstance == nullptr)
             return kResultFalse;
 
@@ -3544,6 +3583,24 @@ public:
     }
 
 private:
+    /*  FL's Patcher implements the VST3 specification incorrectly, calls process() before/during
+        setActive().
+    */
+    class [[nodiscard]] FLStudioDIYSpecificationEnforcementLock
+    {
+    public:
+        explicit FLStudioDIYSpecificationEnforcementLock (CriticalSection& mutex)
+        {
+            static const auto lockRequired = PluginHostType().isFruityLoops();
+
+            if (lockRequired)
+                lock.emplace (mutex);
+        }
+
+    private:
+        std::optional<ScopedLock> lock;
+    };
+
     InterfaceResultWithDeferredAddRef queryInterfaceInternal (const TUID targetIID)
     {
         const auto result = testForMultiple (*this,
@@ -3761,6 +3818,7 @@ private:
    #endif
 
     static const char* kJucePrivateDataIdentifier;
+    CriticalSection flStudioDIYSpecificationEnforcementMutex;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JuceVST3Component)
 };
