@@ -1118,9 +1118,9 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
             if (url.isWellFormed()) {
                 Array<URL> urlarray;
                 urlarray.add(url);
-                ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
+                auto scopedbox = ContentSharer::shareFilesScoped(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
             } else {
-                ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });
+                auto scopedbox = ContentSharer::shareTextScoped(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });
             }
         }
 

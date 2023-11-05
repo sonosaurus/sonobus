@@ -1024,13 +1024,13 @@ void SonobusAudioProcessor::initializeAoo(int udpPort)
     mSendThread->startThread(Thread::Priority::highest);
     mRecvThread->startThread(Thread::Priority::highest);
 #else
-    if (!mSendThread->startRealtimeThread({ rtprio, estWorkDurationMs }))
+    if (!mSendThread->startRealtimeThread( juce::Thread::RealtimeOptions{}.withPriority(rtprio).withMaximumProcessingTimeMs(estWorkDurationMs)))
     {
         DBG("Send thread failed to start realtime: trying regular");
         mSendThread->startThread(Thread::Priority::highest);
     }
 
-    if (!mRecvThread->startRealtimeThread({ rtprio, estWorkDurationMs }))
+    if (!mRecvThread->startRealtimeThread(juce::Thread::RealtimeOptions{}.withPriority(rtprio).withMaximumProcessingTimeMs(estWorkDurationMs)))
     {
         DBG("Recv thread failed to start realtime: trying regular");
         mRecvThread->startThread(Thread::Priority::highest);
