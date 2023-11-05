@@ -1298,7 +1298,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->levelSlider->setLookAndFeel(&pvf->sonoSliderLNF);
 
     pvf->monitorSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
-    pvf->monitorSlider->setName("level");
+    pvf->monitorSlider->setName("monitor");
     pvf->monitorSlider->addListener(this);
 
     configLevelSlider(pvf->monitorSlider.get(), true);

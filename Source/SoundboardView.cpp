@@ -9,8 +9,8 @@
 #include "SoundboardEditView.h"
 #include "SampleEditView.h"
 
-SoundboardView::SoundboardView(SoundboardChannelProcessor* channelProcessor, File supportDir)
-        : processor(std::make_unique<SoundboardProcessor>(channelProcessor, supportDir))
+SoundboardView::SoundboardView(SonobusAudioProcessor& audioproc, SoundboardChannelProcessor* channelProcessor, File supportDir)
+        : audioProcessor(audioproc), processor(std::make_unique<SoundboardProcessor>(channelProcessor, supportDir))
 {
     setOpaque(true);
 
@@ -183,9 +183,39 @@ void SoundboardView::createControlPanel()
     };
     addAndMakeVisible(mStopAllPlayback.get());
 
+    mVolumeSlider  = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
+    mVolumeSlider->setName("level");
+    mVolumeSlider->setTitle(TRANS("Soundboard volume"));
+    //mVolumeSlider->addListener(this);
+    mVolumeSlider->onValueChange = [this]() {
+        audioProcessor.getSoundboardProcessor()->setGain(mVolumeSlider->getValue());
+    };
+    mVolumeSlider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+    mVolumeSlider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+    mVolumeSlider->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
+    mVolumeSlider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
+    mVolumeSlider->setTextBoxStyle(Slider::TextBoxAbove, true, 100, 12);
+    mVolumeSlider->setRange(0.0, 2.0, 0.0);
+    mVolumeSlider->setSkewFactor(0.5);
+    mVolumeSlider->setDoubleClickReturnValue(true, 1.0);
+    mVolumeSlider->setTextBoxIsEditable(true);
+    mVolumeSlider->setSliderSnapsToMousePosition(audioProcessor.getSlidersSnapToMousePosition());
+    mVolumeSlider->setScrollWheelEnabled(false);
+    mVolumeSlider->setWantsKeyboardFocus(true);
+    mVolumeSlider->setMouseDragSensitivity(90);
+    mVolumeSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
+    mVolumeSlider->textFromValueFunction = [](float v) -> String { return String(TRANS("Level: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
+    mVolumeSlider->setLookAndFeel(&volSliderLNF);
+    mVolumeSlider->setTextBoxStyle(Slider::NoTextBox, true, 60, 14);
+    mVolumeSlider->setValue(audioProcessor.getSoundboardProcessor()->getGain());
+    mVolumeSlider->setPopupDisplayEnabled(true, true, this);
+
+    addAndMakeVisible(mVolumeSlider.get());
+
     controlsBox.items.clear();
     controlsBox.flexDirection = FlexBox::Direction::row;
     controlsBox.justifyContent = FlexBox::JustifyContent::center;
+    controlsBox.items.add(FlexItem(38, 34, *mVolumeSlider).withMargin(4).withFlex(0));
     controlsBox.items.add(FlexItem(38, 34, *mStopAllPlayback).withMargin(4).withFlex(0));
     controlsBox.items.add(FlexItem(38, 34, *mHotkeyStateButton).withMargin(4).withFlex(0));
     controlsBox.items.add(FlexItem(38, 34, *mNumericHotkeyStateButton).withMargin(4).withFlex(0));
@@ -295,8 +325,17 @@ void SoundboardView::refreshButtons()
         
         ++i;
     }
-    
+
+    updateMiscState();
 }
+
+void SoundboardView::updateMiscState()
+{
+    mVolumeSlider->setValue(audioProcessor.getSoundboardProcessor()->getGain());
+    mHotkeyStateButton->setToggleState(processor->isHotkeysMuted(), NotificationType::dontSendNotification);
+    mNumericHotkeyStateButton->setToggleState(!processor->isDefaultNumericHotkeyAllowed(), NotificationType::dontSendNotification);
+}
+
 
 void SoundboardView::rebuildButtons()
 {
@@ -357,6 +396,11 @@ void SoundboardView::rebuildButtons()
     resized();
 }
 
+void SoundboardView::mouseEnter (const MouseEvent&)
+{
+    DBG("SoundboardView mouseEnter");
+    updateMiscState();
+}
 
 void SoundboardView::mouseDown (const MouseEvent& event)
 {
