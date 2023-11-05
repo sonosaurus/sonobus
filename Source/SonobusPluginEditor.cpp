@@ -3975,20 +3975,27 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
 
     auto callback = [safeThis,dw,bounds](GenericItemChooser* chooser,int index) mutable {
         if (!safeThis) return;
-
         if (index == 0) {
             // copy group link
 #if JUCE_IOS || JUCE_ANDROID
             String message;
             bool singleurl = true;
             if (safeThis->mConnectView->copyInfoToClipboard(singleurl, &message)) {
+                /*
                 URL url(message);
                 if (url.isWellFormed()) {
                     Array<URL> urlarray;
                     urlarray.add(url);
-                    ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
-                } else {
-                    ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });
+                    safeThis->mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg);
+                        safeThis->mScopedShareBox = {};
+                    });
+                } else
+                 */
+                // just share as text for now
+                {
+                    safeThis->mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
+                        safeThis->mScopedShareBox = {};
+                    });
                 }
             }
 #else
@@ -4866,8 +4873,11 @@ void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser 
 #if JUCE_IOS || JUCE_ANDROID
             // share
             Array<URL> urlarray;
+            SafePointer<SonobusAudioProcessorEditor> safeThis(this);
             urlarray.add(mCurrentAudioFile);
-            ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " << msg); });
+            mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " << msg);
+                safeThis->mScopedShareBox = {};
+            });
 #else
             // reveal
             if (mCurrentAudioFile.getFileName().isNotEmpty()) {

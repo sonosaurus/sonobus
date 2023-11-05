@@ -75,7 +75,7 @@ namespace BinaryData
     const int            dispminimal_svgSize = 2585;
 
     extern const char*   dots_svg;
-    const int            dots_svgSize = 3598;
+    const int            dots_svgSize = 3744;
 
     extern const char*   dots_icon_png;
     const int            dots_icon_pngSize = 362;

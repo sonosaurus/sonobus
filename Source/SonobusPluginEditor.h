@@ -692,6 +692,8 @@ private:
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;
 
+    ScopedMessageBox mScopedShareBox;
+
     bool iaaConnected = false;
 
     File mSettingsFolder;

@@ -413,7 +413,8 @@ void ConnectView::grabInitialFocus()
 {
     if (auto * butt = mConnectTab->getTabbedButtonBar().getTabButton(mConnectTab->getCurrentTabIndex())) {
         butt->setWantsKeyboardFocus(true);
-        butt->grabKeyboardFocus();
+        if (butt->isShowing())
+            butt->grabKeyboardFocus();
     }
 }
 
@@ -872,7 +873,7 @@ bool ConnectView::copyInfoToClipboard(bool singleURL, String * retmessage)
     String groupName;
     String groupPassword;
 
-    if (!currConnected) {
+    if (!processor.isConnectedToServer()) {
         if (mConnectTab->getCurrentContentComponent() == mServerConnectViewport.get()) {
             groupName = mServerGroupEditor->getText().trim();
             groupPassword = mServerGroupPasswordEditor->getText();
@@ -899,7 +900,7 @@ bool ConnectView::copyInfoToClipboard(bool singleURL, String * retmessage)
             url2 = url2.withParameter("p", groupPassword);
         }
 
-        if (currConnected && currConnectionInfo.groupIsPublic) {
+        if (processor.isConnectedToServer() && currConnectionInfo.groupIsPublic) {
             url = url.withParameter("public", "1");
             url2 = url2.withParameter("public", "1");
         }
@@ -1115,12 +1116,17 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 #endif
         if (copyInfoToClipboard(singleurl, &message)) {
             URL url(message);
+            SafePointer<ConnectView> safeThis(this);
             if (url.isWellFormed()) {
                 Array<URL> urlarray;
                 urlarray.add(url);
-                auto scopedbox = ContentSharer::shareFilesScoped(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
+                mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg);
+                    safeThis->mScopedShareBox = {};
+                });
             } else {
-                auto scopedbox = ContentSharer::shareTextScoped(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });
+                mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
+                    safeThis->mScopedShareBox = {};
+                });
             }
         }
 

@@ -274,6 +274,7 @@ protected:
     // keep this down here, so it gets destroyed early
     std::unique_ptr<BubbleMessageComponent> popTip;
 
+    ScopedMessageBox mScopedShareBox;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConnectView)
 
