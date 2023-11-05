@@ -222,13 +222,6 @@ private:
         }
 
         [controller.get() setDelegate: delegate.get()];
-<<<<<<< HEAD:modules/juce_gui_basics/native/juce_ios_FileChooser.mm
-        [controller.get() setModalTransitionStyle: UIModalTransitionStyleCrossDissolve];
-        [controller.get() setAllowsMultipleSelection: (flags & FileBrowserComponent::canSelectMultipleItems) != 0];
-||||||| a6638f8a6:modules/juce_gui_basics/native/juce_ios_FileChooser.mm
-        [controller.get() setModalTransitionStyle: UIModalTransitionStyleCrossDissolve];
-=======
->>>>>>> develop:modules/juce_gui_basics/native/juce_FileChooser_ios.mm
 
         displayNativeWindowModally (fileChooser.parent);
     }
