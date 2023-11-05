@@ -126,7 +126,7 @@ SoundSample* SoundboardProcessor::addSoundSample(String name, String absolutePat
     auto& soundboard = soundboards[sindex];
     auto& sampleList = soundboard.getSamples();
 
-    SoundSample sampleToAdd = SoundSample(std::move(name), std::move(absolutePath));
+    SoundSample sampleToAdd = SoundSample(std::move(name), URL(File(absolutePath)));
     sampleList.emplace_back(std::move(sampleToAdd));
 
     saveToDisk();
