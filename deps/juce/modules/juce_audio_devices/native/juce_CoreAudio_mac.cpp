@@ -2238,9 +2238,11 @@ public:
             return d->getIndexOfDevice (asInput);
 
         if (auto* d = dynamic_cast<AudioIODeviceCombiner*> (device))
-            for (auto* dev : d->getDeviceWrappers())
+            for (auto* dev : d->getDeviceWrappers()) {
+                if (dev->isInput() != asInput) continue;
                 if (const auto index = dev->getIndexOfDevice (asInput); index >= 0)
                     return index;
+            }
 
         return -1;
     }
