@@ -6990,7 +6990,7 @@ void SonobusAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
         if (mInputChannelGroupCount == 0) {
             mInputChannelGroupCount = 1;
             mInputChannelGroups[0].params.chanStartIndex = 0;
-            mInputChannelGroups[0].params.numChannels = getMainBusNumInputChannels(); // default to only as many channels as the main input bus has
+            mInputChannelGroups[0].params.numChannels = jmax(1, getMainBusNumInputChannels()); // default to only as many channels as the main input bus has
             mInputChannelGroups[0].params.monDestStartIndex = 0;
             mInputChannelGroups[0].params.monDestChannels = jmin(2, outchannels);
             mInputChannelGroups[0].commitMonitorDelayParams(); // need to do this too
@@ -9321,8 +9321,6 @@ bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, 
         // make directory from the filename
         auto recdir = makeChildDirUrl(recordLocationUrl, usefile.getFileNameWithoutExtension());
         
-        //File recdir = usefile.getParentDirectory().getChildFile(usefile.getFileNameWithoutExtension()).getNonexistentSibling();
-        //if (!recdir.createDirectory()) {
         if (recdir.isEmpty()) {
             mLastError.clear();
             mLastError << TRANS("Error creating directory for recording: ") << makeReturnUrl(recordLocationUrl, usefile.getFileNameWithoutExtension()).toString(false);
@@ -9336,11 +9334,9 @@ bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, 
             String filename = usefile.getFileNameWithoutExtension() + "-MIXMINUS" + usefile.getFileExtension();
             filename = File::createLegalFileName(filename);
             
-            //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
             URL returl;
             
             if (auto fileStream = makeStream(recdir, filename, returl))
-            //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
                 {
@@ -9372,11 +9368,9 @@ bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, 
                 String filename = usefile.getFileNameWithoutExtension() + (inname.isEmpty() ? "-SELF" : ("-SELF-" + inname)) + usefile.getFileExtension();
                 filename = File::createLegalFileName(filename);
                 
-                //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
                 URL returl;
 
                 if (auto fileStream = makeStream(recdir, filename, returl))
-                //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
                     if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), chans, bitsPerSample, {}, qualindex))
                     {
@@ -9404,11 +9398,9 @@ bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, 
             String filename = usefile.getFileNameWithoutExtension() + "-MIX" + usefile.getFileExtension();
             filename = File::createLegalFileName(filename);
             
-            //File thefile = recdir.getChildFile(filename).getNonexistentSibling();
             URL returl;
 
             if (auto fileStream = makeStream(recdir, filename, returl))
-            //if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
             {
 
                 if (auto writer = audioFormat->createWriterFor (fileStream.get(), getSampleRate(), totalRecordingChannels, bitsPerSample, {}, qualindex))
@@ -9456,14 +9448,10 @@ bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, 
                 String userfilename = usefile.getFileNameWithoutExtension() + "-" + remote->userName + fileext;
                 userfilename = File::createLegalFileName(userfilename);
 
-                //File thefile = recdir.getChildFile(userfilename).getNonexistentSibling();
                 URL returl;
 
                 if (auto fileStream = makeStream(recdir, userfilename, returl))
-                // if (auto fileStream = std::unique_ptr<FileOutputStream> (thefile.createOutputStream()))
                 {
-
-                    // flac has a max of FLAC__MAX_CHANNELS, if we exceed that, fallback to WAV
                     if (auto writer = useformat->createWriterFor (fileStream.get(), getSampleRate(), numchan, bitsPerSample, {}, qualindex))
                     {
                         fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
@@ -9518,6 +9506,7 @@ bool SonobusAudioProcessor::stopRecordingToFile()
     // First, clear this pointer to stop the audio callback from using our writer object..
 
     OwnedArray<AudioFormatWriter::ThreadedWriter> userwriters;
+    userwriters.ensureStorageAllocated(mRemotePeers.size());
 
     {
         const ScopedReadLock scl (mCoreLock);

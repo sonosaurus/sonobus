@@ -30,7 +30,7 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     }
     
     
-    CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent);
+    CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent, false);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     // box.setArrowSize(0);
     box.grabKeyboardFocus();

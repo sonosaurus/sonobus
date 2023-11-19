@@ -190,7 +190,7 @@ void SonoChoiceButton::showPopup()
     Rectangle<int> bounds =  dw->getLocalArea(nullptr, getScreenBounds());
 
 
-    CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), bounds , dw);
+    CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), bounds , dw, false);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     //box.setArrowSize(0);
 
