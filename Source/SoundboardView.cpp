@@ -57,6 +57,7 @@ void SoundboardView::createBasePanels()
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, titleBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     soundboardContainerBox.items.add(
+    soundboardContainerBox.items.add(
             FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     soundboardContainerBox.items.add(
@@ -212,13 +213,31 @@ void SoundboardView::createControlPanel()
 
     addAndMakeVisible(mVolumeSlider.get());
 
+    mSendAudioButton = std::make_unique<SonoDrawableButton>("sendaudio", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> filesendimg(Drawable::createFromImageData(BinaryData::send_group_small_svg, BinaryData::send_group_small_svgSize));
+    mSendAudioButton->setImages(filesendimg.get(), nullptr, nullptr, nullptr, nullptr);
+    mSendAudioButton->setClickingTogglesState(true);
+    mSendAudioButton->setColour(DrawableButton::backgroundOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.65));
+    mSendAudioButton->setColour(TextButton::buttonColourId, Colours::transparentBlack);
+    auto sendallstr = TRANS("Send Soundboard Playback to All");
+    mSendAudioButton->setTooltip(sendallstr);
+    mSendAudioButton->setTitle(sendallstr);
+    mSendAudioAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (audioProcessor.getValueTreeState(), SonobusAudioProcessor::paramSendSoundboardAudio, *mSendAudioButton);
+
+    addAndMakeVisible(mSendAudioButton.get());
+
     controlsBox.items.clear();
     controlsBox.flexDirection = FlexBox::Direction::row;
     controlsBox.justifyContent = FlexBox::JustifyContent::center;
-    controlsBox.items.add(FlexItem(38, 34, *mVolumeSlider).withMargin(4).withFlex(0));
-    controlsBox.items.add(FlexItem(38, 34, *mStopAllPlayback).withMargin(4).withFlex(0));
-    controlsBox.items.add(FlexItem(38, 34, *mHotkeyStateButton).withMargin(4).withFlex(0));
-    controlsBox.items.add(FlexItem(38, 34, *mNumericHotkeyStateButton).withMargin(4).withFlex(0));
+    controlsBox.items.add(FlexItem(44, 34, *mSendAudioButton).withFlex(0));
+    controlsBox.items.add(FlexItem(1, 34).withFlex(1).withMaxWidth(6));
+    controlsBox.items.add(FlexItem(38, 34, *mVolumeSlider).withFlex(0));
+    controlsBox.items.add(FlexItem(3, 34).withFlex(1));
+    controlsBox.items.add(FlexItem(38, 34, *mStopAllPlayback).withFlex(0));
+    controlsBox.items.add(FlexItem(3, 34).withFlex(1));
+    controlsBox.items.add(FlexItem(38, 34, *mHotkeyStateButton).withFlex(0));
+    controlsBox.items.add(FlexItem(1, 34).withFlex(1).withMaxWidth(6));
+    controlsBox.items.add(FlexItem(38, 34, *mNumericHotkeyStateButton).withFlex(0));
 }
 
 void SoundboardView::updateSoundboardSelector()

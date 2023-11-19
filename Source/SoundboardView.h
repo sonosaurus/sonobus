@@ -203,6 +203,8 @@ private:
     SonoPanSliderLookAndFeel volSliderLNF = { 12 };
     std::unique_ptr<Slider> mVolumeSlider;
 
+    std::unique_ptr<SonoDrawableButton> mSendAudioButton;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mSendAudioAttachment;
 
     WeakReference<Component> mSampleEditCalloutBox;
 
