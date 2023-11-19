@@ -281,6 +281,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/RunningCumulant.h
         Source/SampleEditView.cpp
         Source/SampleEditView.h
+        Source/SonoCalloutBox.cpp
+        Source/SonoCalloutBox.h
         Source/SonoChoiceButton.cpp
         Source/SonoChoiceButton.h
         Source/SonoDrawableButton.cpp
@@ -314,6 +316,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonobusPluginProcessor.cpp
         Source/SonobusPluginProcessor.h
         Source/SonobusTypes.h
+        Source/SuggestNewGroupView.cpp
+        Source/SuggestNewGroupView.h
         Source/VDONinjaView.h
         Source/VersionInfo.cpp
         Source/VersionInfo.h

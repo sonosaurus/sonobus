@@ -198,6 +198,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsRecSelfPostFxButton = std::make_unique<ToggleButton>(TRANS("Record yourself including input FX"));
     mOptionsRecSelfPostFxButton->addListener(this);
 
+    mOptionsRecSelfSilenceMutedButton = std::make_unique<ToggleButton>(TRANS("Silence self recording when input is muted"));
+    mOptionsRecSelfSilenceMutedButton->addListener(this);
+
 
     mRecFormatChoice = std::make_unique<SonoChoiceButton>();
     mRecFormatChoice->addChoiceListener(this);
@@ -385,6 +388,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixMinusButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecOthersButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfPostFxButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfSilenceMutedButton.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
@@ -623,6 +627,7 @@ void OptionsView::updateState(bool ignorecheck)
     mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
 
     mOptionsRecSelfPostFxButton->setToggleState(!processor.getSelfRecordingPreFX(), dontSendNotification);
+    mOptionsRecSelfSilenceMutedButton->setToggleState(processor.getSelfRecordingSilenceWhenMuted(), dontSendNotification);
 
     mOptionsRecFinishOpenButton->setToggleState(processor.getRecordFinishOpens(), dontSendNotification);
 
@@ -870,6 +875,11 @@ void OptionsView::updateLayout()
     optionsRecordSelfPostFxBox.items.add(FlexItem(10, 12));
     optionsRecordSelfPostFxBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfPostFxButton).withMargin(0).withFlex(1));
 
+    optionsRecordSilentSelfMuteBox.items.clear();
+    optionsRecordSilentSelfMuteBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordSilentSelfMuteBox.items.add(FlexItem(10, 12));
+    optionsRecordSilentSelfMuteBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfSilenceMutedButton).withMargin(0).withFlex(1));
+
     optionsRecordFinishBox.items.clear();
     optionsRecordFinishBox.flexDirection = FlexBox::Direction::row;
     optionsRecordFinishBox.items.add(FlexItem(10, 12));
@@ -893,6 +903,7 @@ void OptionsView::updateLayout()
     recOptionsBox.items.add(FlexItem(4, 4));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSelfPostFxBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSilentSelfMuteBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordFinishBox).withMargin(2).withFlex(0));
     minRecOptionsHeight = 0;
     for (auto & item : recOptionsBox.items) {
@@ -1071,6 +1082,9 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mOptionsRecSelfPostFxButton.get()) {
         processor.setSelfRecordingPreFX(!mOptionsRecSelfPostFxButton->getToggleState());
+    }
+    else if (buttonThatWasClicked == mOptionsRecSelfSilenceMutedButton.get()) {
+        processor.setSelfRecordingSilenceWhenMuted(mOptionsRecSelfSilenceMutedButton->getToggleState());
     }
     else if (buttonThatWasClicked == mOptionsRecFinishOpenButton.get()) {
         processor.setRecordFinishOpens(mOptionsRecFinishOpenButton->getToggleState());

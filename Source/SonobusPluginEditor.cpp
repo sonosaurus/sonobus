@@ -19,7 +19,8 @@
 #include "SoundboardView.h"
 #include "AutoUpdater.h"
 #include "LatencyMatchView.h"
-
+#include "SuggestNewGroupView.h"
+#include "SonoCallOutBox.h"
 #include <sstream>
 
 #if JUCE_ANDROID
@@ -1697,6 +1698,17 @@ void SonobusAudioProcessorEditor::peerRequestedLatencyMatch(SonobusAudioProcesso
     triggerAsyncUpdate();
 }
 
+void SonobusAudioProcessorEditor::peerSuggestedNewGroup(SonobusAudioProcessor *comp, const String & username, const String & newgroup, const String & passwd, bool isPublic, const StringArray & others)
+{
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add( ClientEvent::makeSuggestedNewGroupEvent(username, newgroup,  passwd, isPublic, others));
+    }
+
+    triggerAsyncUpdate();
+}
+
+
 void SonobusAudioProcessorEditor::peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked)
 {
     {
@@ -2993,14 +3005,17 @@ void SonobusAudioProcessorEditor::showLatencyMatchView(bool show)
 
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        latmatchCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
-        if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+        latmatchCalloutBox = & SonoCallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false, [this](const Component * comp) {
+            if (comp == mMainLinkButton.get()) return false;
+            return true;
+        });
+        if (auto * box = dynamic_cast<SonoCallOutBox*>(latmatchCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
     }
     else {
         // dismiss it
-        if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+        if (auto * box = dynamic_cast<SonoCallOutBox*>(latmatchCalloutBox.get())) {
             box->dismiss();
             latmatchCalloutBox = nullptr;
         }
@@ -3056,6 +3071,63 @@ void SonobusAudioProcessorEditor::showVDONinjaView(bool show)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(vdoninjaViewCalloutBox.get())) {
             box->dismiss();
             vdoninjaViewCalloutBox = nullptr;
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::showSuggestGroupView(bool show)
+{
+    if (show && suggestNewGroupViewCalloutBox == nullptr) {
+
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        const int defWidth = 260;
+        const int defHeight = 300;
+#else
+        const int defWidth = 260;
+        const int defHeight = 360;
+#endif
+
+        if (!mSuggestNewGroupView) {
+            mSuggestNewGroupView = std::make_unique<SuggestNewGroupView>(processor);
+
+            mSuggestNewGroupView->connectToGroup = [this] (const String & group, const String & groupPass, bool isPublic) {
+                currConnectionInfo.groupName = group;
+                currConnectionInfo.groupPassword = groupPass;
+                currConnectionInfo.groupIsPublic = isPublic;
+                connectWithInfo(currConnectionInfo);
+            };
+        }
+
+
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+
+
+        mSuggestNewGroupView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        wrap->setViewedComponent(mSuggestNewGroupView.get(), false);
+        mSuggestNewGroupView->setVisible(true);
+
+        mSuggestNewGroupView->updatePeerRows(true);
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        suggestNewGroupViewCalloutBox = & SonoCallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false, [this](const Component * comp) {
+            if (comp == mMainLinkButton.get()) return false;
+            return true;
+        });
+        if (SonoCallOutBox * box = dynamic_cast<SonoCallOutBox*>(suggestNewGroupViewCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(suggestNewGroupViewCalloutBox.get())) {
+            box->dismiss();
+            suggestNewGroupViewCalloutBox = nullptr;
         }
     }
 }
@@ -3933,8 +4005,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             mPeerContainer->peerBlockedJoin(ev.group, ev.user, ev.message, (int) lrint(ev.floatVal));
         }
         else if (ev.type == ClientEvent::PeerRequestedLatencyMatchEvent) {
-
             showLatencyMatchPrompt(ev.message, ev.floatVal);
+        }
+        else if (ev.type == ClientEvent::PeerSuggestedNewGroupEvent) {
+            showSuggestedGroupPrompt(ev.user, ev.group, ev.message, ev.success, ev.array);
         }
         else if (ev.type == ClientEvent::PeerBlockedInfoChangedEvent) {
             updatePeerState(true);
@@ -3965,7 +4039,9 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
     items.add(GenericItemChooserItem(TRANS("Group Latency Match..."), {}, nullptr, true));
 
     items.add(GenericItemChooserItem(TRANS("VDO.Ninja Video Link..."), {}, nullptr, true));
-    
+
+    items.add(GenericItemChooserItem(TRANS("Suggest New Group..."), {}, nullptr, true));
+
 
     Component* dw = mMainLinkButton->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = mMainLinkButton->findParentComponentOfClass<Component>();
@@ -3979,7 +4055,7 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
             // copy group link
 #if JUCE_IOS || JUCE_ANDROID
             String message;
-            bool singleurl = true;
+            const bool singleurl = true;
             if (safeThis->mConnectView->copyInfoToClipboard(singleurl, &message)) {
                 /*
                 URL url(message);
@@ -3999,7 +4075,8 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
                 }
             }
 #else
-            if (safeThis->mConnectView->copyInfoToClipboard()) {
+            const bool singleurl = true;
+            if (safeThis->mConnectView->copyInfoToClipboard(singleurl)) {
                 auto msg = TRANS("Copied group connection info to clipboard for you to share with others");
                 safeThis->showPopTip(msg, 3000, safeThis->mMainLinkButton.get());
             }
@@ -4011,36 +4088,63 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
             // vdo ninja
             safeThis->showVDONinjaView(true);
         }
+        else if (index == 3) {
+            // suggest new group
+            safeThis->showSuggestGroupView(true);
+        }
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, -1, dw ? dw->getHeight()-30 : 0);
 }
 
+class SonobusAudioProcessorEditor::ApproveComponent : public Component
+{
+public:
+    ApproveComponent(const String & buttonlabel, const String & button2Label="") {
+
+        button.setButtonText(buttonlabel);
+
+        button2.setButtonText(button2Label);
+
+        addAndMakeVisible(label);
+        addAndMakeVisible(button);
+
+        if (button2Label.isNotEmpty()) {
+            addAndMakeVisible(button2);
+        }
+    }
+
+    void resized() override {
+        FlexBox buttBox;
+        buttBox.flexDirection = FlexBox::Direction::row;
+        buttBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+        buttBox.items.add(FlexItem(100, 38, button).withMargin(0).withFlex(4));
+        if (button2.isVisible()) {
+            buttBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+            buttBox.items.add(FlexItem(70, 38, button2).withMargin(0).withFlex(2));
+        }
+        buttBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+
+        FlexBox mainBox;
+        mainBox.flexDirection = FlexBox::Direction::column;
+        mainBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(200, 40, label).withMargin(0).withFlex(1));
+        mainBox.items.add(FlexItem(100, 40, buttBox).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+
+
+        mainBox.performLayout(getLocalBounds());
+    }
+
+    Label  label;
+    TextButton button;
+    TextButton button2;
+};
 
 void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, float latencyms)
 {
-    if (!mLatMatchApproveContainer) {
-        mLatMatchApproveContainer = std::make_unique<Component>();
-        mLatMatchApproveLabel = std::make_unique<Label>();
-        mApproveLatMatchButton = std::make_unique<TextButton>();
-        mApproveLatMatchButton->setButtonText(TRANS("Match Latency"));
-
-        mLatMatchApproveContainer->addAndMakeVisible(mApproveLatMatchButton.get());
-        mLatMatchApproveContainer->addAndMakeVisible(mLatMatchApproveLabel.get());
-
-        latMatchButtBox.items.clear();
-        latMatchButtBox.flexDirection = FlexBox::Direction::row;
-        latMatchButtBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
-        latMatchButtBox.items.add(FlexItem(100, 48, *mApproveLatMatchButton).withMargin(0).withFlex(0));
-        latMatchButtBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
-
-        latMatchBox.items.clear();
-        latMatchBox.flexDirection = FlexBox::Direction::column;
-        latMatchBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
-        latMatchBox.items.add(FlexItem(100, 40, *mLatMatchApproveLabel).withMargin(0).withFlex(1));
-        latMatchBox.items.add(FlexItem(100, 40, latMatchButtBox).withMargin(0).withFlex(0));
-        latMatchBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
-
+    if (!mLatMatchApproveComponent) {
+        mLatMatchApproveComponent = std::make_unique<ApproveComponent>(TRANS("Match Latency"), TRANS("Ignore"));
     }
 
 
@@ -4061,20 +4165,20 @@ void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, fl
 
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
 
-        mLatMatchApproveContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        mLatMatchApproveComponent->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
 
-        wrap->setViewedComponent(mLatMatchApproveContainer.get(), false);
-        mLatMatchApproveContainer->setVisible(true);
+        wrap->setViewedComponent(mLatMatchApproveComponent.get(), false);
+        mLatMatchApproveComponent->setVisible(true);
 
-        latMatchBox.performLayout(mLatMatchApproveContainer->getLocalBounds());
+
 
         String mesg;
         mesg << name << " " << TRANS("requests to use a matched group latency of:");
         mesg << " " << lrintf(latencyms) << " ms";
         
-        mLatMatchApproveLabel->setText(mesg, dontSendNotification);
+        mLatMatchApproveComponent->label.setText(mesg, dontSendNotification);
 
-        mApproveLatMatchButton->onClick = [this,latencyms]() {
+        mLatMatchApproveComponent->button.onClick = [this,latencyms]() {
             processor.commitLatencyMatch(latencyms);
 
             // dismiss it
@@ -4088,6 +4192,83 @@ void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, fl
         DBG("callout bounds: " << bounds.toString());
         latmatchCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+
+}
+
+void SonobusAudioProcessorEditor::showSuggestedGroupPrompt(const String &name, const String &group, const String & grouppass, bool ispublic, const StringArray & others)
+{
+    if (!mSuggestedGroupComponent) {
+        mSuggestedGroupComponent = std::make_unique<ApproveComponent>(TRANS("Connect To Group"), TRANS("Ignore"));
+    }
+
+
+    if (suggestedGroupCalloutBox == nullptr) {
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        const int defWidth = 260;
+        const int defHeight = 190;
+#else
+        const int defWidth = 260;
+        const int defHeight = 170;
+#endif
+
+
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+
+        mSuggestedGroupComponent->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        wrap->setViewedComponent(mSuggestedGroupComponent.get(), false);
+        mSuggestedGroupComponent->setVisible(true);
+
+        String mesg;
+        if (ispublic) {
+            mesg << TRANS("Requested to join a new public group:");
+        } else {
+            mesg << TRANS("Requested to join a new private group:");
+        }
+
+        mesg << "\n   " <<  TRANS("From: ") << name;
+        mesg << "\n   " <<  TRANS("New Group: ") << group;
+        mesg << "\n   " <<  TRANS("With: ") << others.joinIntoString(", ");
+
+        mSuggestedGroupComponent->label.setText(mesg, dontSendNotification);
+
+        mSuggestedGroupComponent->button.onClick = [this,group, grouppass, ispublic]() {
+            // join new group
+            currConnectionInfo.groupName = group;
+            currConnectionInfo.groupPassword = grouppass;
+            currConnectionInfo.groupIsPublic = ispublic;
+            connectWithInfo(currConnectionInfo);
+
+            // dismiss it
+            if (CallOutBox * box = dynamic_cast<CallOutBox*>(suggestedGroupCalloutBox.get())) {
+                box->dismiss();
+                suggestedGroupCalloutBox = nullptr;
+            }
+        };
+
+        mSuggestedGroupComponent->button2.onClick = [this]() {
+            // dismiss it
+            if (CallOutBox * box = dynamic_cast<CallOutBox*>(suggestedGroupCalloutBox.get())) {
+                box->dismiss();
+                suggestedGroupCalloutBox = nullptr;
+            }
+        };
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        suggestedGroupCalloutBox = & SonoCallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false, [this](const Component * comp) {
+            if (comp == mMainLinkButton.get()) return false;
+            return true;
+        });
+
+        if (SonoCallOutBox * box = dynamic_cast<SonoCallOutBox*>(suggestedGroupCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
     }

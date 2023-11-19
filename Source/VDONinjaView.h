@@ -32,6 +32,7 @@ public:
         roomModeButton.onClick = [this]() {
             processor.getVideoLinkInfo().roomMode = true;
             updateState();
+            resized();
         };
         
         pushViewButton.setButtonText(TRANS("Push/View"));
@@ -41,15 +42,57 @@ public:
         pushViewButton.onClick = [this]() {
             processor.getVideoLinkInfo().roomMode = false;
             updateState();
+            resized();
         };
-        
+
+
         directorButton.setButtonText(TRANS("Be Director"));
         directorButton.setTooltip(TRANS("The room mode director can get direct feeds and control various options, can be used for setting up streaming"));
         directorButton.onClick = [this]() {
             processor.getVideoLinkInfo().beDirector = directorButton.getToggleState();
             refreshURL();
         };
-        
+
+
+        camscreenInfoLabel.setText(TRANS("Source:"), dontSendNotification);
+        camscreenInfoLabel.setJustificationType(Justification::centredLeft);
+
+        webcamButton.setButtonText(TRANS("Webcam"));
+        webcamButton.setTooltip(TRANS("Link will take you directly to webcam configuration of VDO.Ninja"));
+        webcamButton.setConnectedEdges(Button::ConnectedOnRight);
+        webcamButton.setRadioGroupId(2);
+        webcamButton.onClick = [this]() {
+            processor.getVideoLinkInfo().screenShareMode = false;
+            updateState();
+            resized();
+        };
+
+        screenshareButton.setButtonText(TRANS("Screenshare"));
+        screenshareButton.setTooltip(TRANS("Link will allow you to do screensharing only, which you can use separately from the webcam link in a separate browser window. Useful for when you want to do both in the same group."));
+        screenshareButton.setConnectedEdges(Button::ConnectedOnLeft);
+        screenshareButton.setRadioGroupId(2);
+        screenshareButton.onClick = [this]() {
+            processor.getVideoLinkInfo().screenShareMode = true;
+            updateState();
+            resized();
+        };
+
+        largescreenButton.setButtonText(TRANS("Large View"));
+        largescreenButton.setTooltip(TRANS("Select this to make your screen share show up larger than normal for other users"));
+        largescreenButton.onClick = [this]() {
+            processor.getVideoLinkInfo().largeShare = largescreenButton.getToggleState();
+            refreshURL();
+        };
+
+        shareOnlyButton.setButtonText(TRANS("Push Only"));
+        shareOnlyButton.setTooltip(TRANS("Select this to avoid seeing others, using the link only to push your content"));
+        shareOnlyButton.onClick = [this]() {
+            processor.getVideoLinkInfo().shareOnly = shareOnlyButton.getToggleState();
+            refreshURL();
+        };
+
+
+
         copyLinkButton.setButtonText(TRANS("Copy"));
         copyLinkButton.setTooltip(TRANS("Copies URL to clipboard"));
         copyLinkButton.onClick = [this]() {
@@ -127,6 +170,11 @@ public:
         addAndMakeVisible(moreInfoButton);
         addAndMakeVisible(showNamesButton);
         addChildComponent(directorButton);
+        addAndMakeVisible(screenshareButton);
+        addAndMakeVisible(webcamButton);
+        addAndMakeVisible(camscreenInfoLabel);
+        addAndMakeVisible(largescreenButton);
+        addAndMakeVisible(shareOnlyButton);
 
         addAndMakeVisible(titleLabel);
 
@@ -150,6 +198,8 @@ public:
         int headerheight = 44;
         int buttwidth = 100;
         int smallbuttwidth = 80;
+        int smalltoggwidth = 60;
+        int labwidth = 60;
         int autobuttwidth = 150;
 
 #if JUCE_IOS || JUCE_ANDROID
@@ -158,15 +208,32 @@ public:
         knobitemheight = 80;
         headerheight = 50;
 #endif
+
+        const auto & state = processor.getVideoLinkInfo();
+
         FlexBox modeBox;
         modeBox.flexDirection = FlexBox::Direction::row;
         modeBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
-        modeBox.items.add(FlexItem(smallbuttwidth, minitemheight, modeInfoLabel).withMargin(0).withFlex(0));
+        modeBox.items.add(FlexItem(labwidth, minitemheight, modeInfoLabel).withMargin(0).withFlex(0));
         modeBox.items.add(FlexItem(5, 4).withMargin(0));
         modeBox.items.add(FlexItem(smallbuttwidth, minitemheight, roomModeButton).withMargin(0).withFlex(1).withMaxWidth(130));
         modeBox.items.add(FlexItem(smallbuttwidth, minitemheight, pushViewButton).withMargin(0).withFlex(1).withMaxWidth(130));
         modeBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
         modeBox.items.add(FlexItem(buttwidth, minitemheight, directorButton).withMargin(0).withFlex(0));
+
+        FlexBox camBox;
+        camBox.flexDirection = FlexBox::Direction::row;
+        camBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+        camBox.items.add(FlexItem(labwidth, minitemheight, camscreenInfoLabel).withMargin(0).withFlex(0));
+        camBox.items.add(FlexItem(5, 4).withMargin(0));
+        camBox.items.add(FlexItem(smallbuttwidth, minitemheight, webcamButton).withMargin(0).withFlex(1).withMaxWidth(130));
+        camBox.items.add(FlexItem(smallbuttwidth, minitemheight, screenshareButton).withMargin(0).withFlex(1).withMaxWidth(130));
+        camBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
+        camBox.items.add(FlexItem(smalltoggwidth, minitemheight, shareOnlyButton).withMargin(0).withFlex(0.2));
+        if (state.screenShareMode) {
+            camBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+            camBox.items.add(FlexItem(smalltoggwidth, minitemheight, largescreenButton).withMargin(0).withFlex(0.2));
+        }
 
         FlexBox customBox;
         customBox.flexDirection = FlexBox::Direction::row;
@@ -208,6 +275,8 @@ public:
         mainBox.items.add(FlexItem(6, 8).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, modeBox).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(6, 8).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(100, minitemheight, camBox).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(6, 8).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, customBox).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(6, 14).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, editorBox).withMargin(0).withFlex(0));
@@ -237,9 +306,16 @@ public:
         showNamesButton.setToggleState(state.showNames, dontSendNotification);
         directorButton.setToggleState(state.beDirector, dontSendNotification);
         customFieldEditor.setText(state.extraParams);
-        
+
+        webcamButton.setToggleState(!state.screenShareMode, dontSendNotification);
+        screenshareButton.setToggleState(state.screenShareMode, dontSendNotification);
+        largescreenButton.setToggleState(state.largeShare, dontSendNotification);
+        shareOnlyButton.setToggleState(state.shareOnly, dontSendNotification);
+
         directorButton.setVisible(state.roomMode);
-        
+        largescreenButton.setVisible(state.screenShareMode);
+        //shareOnlyButton.setVisible(!state.roomMode);
+
         refreshURL();
     }
 
@@ -259,10 +335,10 @@ private:
         StringPairArray params;
         auto & state = processor.getVideoLinkInfo();
 
-        auto makeId = [this](const String & name) {
+        auto makeId = [this](const String & name, bool screenShare=false) {
             // Combine the group and the username, and take the first half of the MD5 hash
             // to compute a unique-ish, not-too-long, but reproducible by others ID for us
-            auto pushsource = processor.getCurrentJoinedGroup() + name;
+            auto pushsource = processor.getCurrentJoinedGroup() + name + (screenShare ? "@S" : "");
             auto pushid = MD5(pushsource.toUTF8());
             auto rawdata = pushid.getRawChecksumData();
             auto base64 = Base64::toBase64(rawdata.getData(), rawdata.getSize());
@@ -275,10 +351,68 @@ private:
         params.set("label", processor.getCurrentUsername());
 
         if (state.showNames) {
-            params.set("showlabels", "");
+            params.set("sl", ""); // show labels
             params.set("fontsize", "40");
         }
-        
+
+        // mode specific stuff
+        if (state.roomMode) {
+            auto roomName = "SB_" + processor.getCurrentJoinedGroup();
+            if (state.beDirector) {
+                params.set("dir", roomName);
+                params.set("sd", "");
+            }
+            else {
+                params.set("room", roomName);
+
+                if (state.screenShareMode) {
+                    params.set("ss", ""); // go to screenshare automatically
+                    params.set("nvb", ""); // no video button
+                    params.set("nosettings", ""); // no settings button
+                    params.set("ssb", ""); // allow changing screenshare later
+
+                    if (!state.largeShare) {
+                        params.set("smallshare", ""); // make it a small/normal share
+                    }
+                }
+                else {
+                    params.set("wc", ""); // go to webcam selection immediately
+                    params.set("ssb", ""); // allow screenshare later
+                }
+            }
+
+            if (state.shareOnly) {
+                params.set("view", ""); // means only push
+            }
+
+        }
+        else {
+            StringArray others;
+            for (int i=0; i < processor.getNumberRemotePeers(); ++i) {
+                auto name = processor.getRemotePeerUserName(i);
+                others.add(makeId(name));
+                others.add(makeId(name, true)); // and screenshare version
+            }
+
+            if (state.screenShareMode) {
+                params.set("ss", ""); // go to screenshare automatically
+                params.set("nvb", ""); // no video button
+                params.set("ssb", ""); // allow changing screenshare later
+                params.set("nosettings", ""); // no settings button
+                if (!state.largeShare) {
+                    params.set("smallshare", ""); // make it a small/normal share
+                }
+            }
+            else {
+                params.set("wc", ""); // go to webcam selection immediately
+                params.set("ssb", ""); // allow screenshare later
+            }
+
+            if (!state.shareOnly && others.size() > 0) {
+                params.set("view", others.joinIntoString(","));
+            }
+        }
+
         // make sure no audio is possible, because we are doing the audio
         params.set("adevice", "0");
         params.set("nmb", ""); // no mic button
@@ -287,7 +421,8 @@ private:
         params.set("deaf", "");
         params.set("noap", ""); // no audio processing
         params.set("autohide", "");
-        
+        params.set("fsb", ""); // fullscreen button
+
         // parse more params out of custom text
         StringArray custrawparams;
         custrawparams.addTokens(state.extraParams, "&", "");
@@ -303,39 +438,8 @@ private:
             }
         }
         
-        params.set("push", makeId(processor.getCurrentUsername()));
-        
-        
-        if (state.roomMode) {
-            auto roomName = "SB_" + processor.getCurrentJoinedGroup();
-            if (state.beDirector) {
-                params.set("dir", roomName);
-                params.set("sd", "");
-            }
-            else {
-                params.set("room", roomName);
-                params.set("wc", ""); // go to webcam selection immediately
-                params.set("ssb", ""); // allow screenshare later
-            }
-        }
-        else {
-            StringArray others;
-            for (int i=0; i < processor.getNumberRemotePeers(); ++i) {
-                auto name = processor.getRemotePeerUserName(i);
-                others.add(makeId(name));
-            }
+        params.set("push", makeId(processor.getCurrentUsername(), state.screenShareMode));
 
-            params.set("wc", ""); // go to webcam selection immediately
-            params.set("ssb", ""); // allow screenshare later
-
-            
-            if (others.size() > 0) {
-                params.set("view", others.joinIntoString(","));
-            }
-        }
-        
-        
-        
         auto url = URL(baseurl).withParameters(params);
 
         return url;
@@ -354,7 +458,14 @@ private:
     
     TextEditor   urlEditor;
     Label linkLabel;
-    
+
+    Label camscreenInfoLabel;
+    TextButton   webcamButton;
+    TextButton   screenshareButton;
+    ToggleButton largescreenButton;
+    ToggleButton shareOnlyButton;
+
+
     TextButton   copyLinkButton;
     TextButton   openLinkButton;
     TextButton   moreInfoButton;

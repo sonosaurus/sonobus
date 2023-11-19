@@ -591,6 +591,9 @@ public:
         bool roomMode = true;
         bool showNames = true;
         bool beDirector = false;
+        bool screenShareMode = false;
+        bool largeShare = false;
+        bool shareOnly = false;
         String extraParams;
     };
 
@@ -668,6 +671,7 @@ public:
         virtual void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & chatevent) {}
         virtual void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) {}
         virtual void peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked) {}
+        virtual void peerSuggestedNewGroup(SonobusAudioProcessor *comp, const String & username, const String & newgroup, const String & grouppass, bool isPublic, const StringArray & others) {}
     };
     
     void addClientListener(ClientListener * l) {
@@ -753,6 +757,9 @@ public:
     bool getSelfRecordingPreFX() const { return mRecordInputPreFX; }
     void setSelfRecordingPreFX(bool flag) { mRecordInputPreFX = flag; }
 
+    bool getSelfRecordingSilenceWhenMuted() const { return mRecordInputSilenceWhenMuted; }
+    void setSelfRecordingSilenceWhenMuted(bool flag) { mRecordInputSilenceWhenMuted = flag; }
+
     bool getRecordFinishOpens() const { return mRecordFinishOpens; }
     void setRecordFinishOpens(bool flag) { mRecordFinishOpens = flag; }
 
@@ -763,11 +770,15 @@ public:
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
     void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
 
+    // latency match stuff
     void beginLatencyMatchProcedure();
     bool isLatencyMatchProcedureReady();
     void sendLatencyMatchToAll(float latency);
     void getLatencyInfoList(Array<LatInfo> & retlist);
     void commitLatencyMatch(float latency);
+
+    // invite peers to new group stuff
+    void suggestNewGroupToPeers(const String & group, const String & groupPass, const StringArray & peernames, bool ispublic=false);
 
     void sendBlockedInfoMessage(EndpointState *endpoint, bool blocked);
 
@@ -1193,6 +1204,7 @@ private:
     RecordFileFormat mDefaultRecordingFormat = FileFormatFLAC;
     int mDefaultRecordingBitsPerSample = 16;
     bool mRecordInputPreFX = true;
+    bool mRecordInputSilenceWhenMuted = true;
     bool mRecordFinishOpens = true;
     URL mDefaultRecordDir;
     String mLastError;

@@ -801,7 +801,9 @@ void ConnectView::connectTabChanged (int newCurrentTabIndex)
     // public groups
     if (adjindex == 2) {
         // put focus somewhere a text editor won't activate on ios
-        mPublicServerAddGroupButton->grabKeyboardFocus();
+        if (mPublicServerAddGroupButton->isShowing()) {
+            mPublicServerAddGroupButton->grabKeyboardFocus();
+        }
         publicGroupLogin();
         
         currConnectionInfo.userName = mServerUsernameEditor->getText();
@@ -1110,7 +1112,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mServerShareButton.get()) {
         String message;
-        bool singleurl = false;
+        bool singleurl = true;
 #if JUCE_IOS || JUCE_ANDROID
         singleurl = true;
 #endif

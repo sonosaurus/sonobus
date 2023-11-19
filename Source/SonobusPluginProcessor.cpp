@@ -91,6 +91,7 @@ static String defRecordOptionsKey("DefaultRecordingOptions");
 static String defRecordFormatKey("DefaultRecordingFormat");
 static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
+static String recordSelfSilenceMutedKey("RecordSelfSilenceWhenMuted");
 static String recordFinishOpenKey("RecordFinishOpen");
 static String defRecordDirKey("DefaultRecordDir");
 static String defRecordDirURLKey("DefaultRecordDirURL");
@@ -2452,6 +2453,10 @@ void SonobusAudioProcessor::doReceiveData()
 #define SONOBUS_MSG_BLOCKEDINFO_LEN 13
 #define SONOBUS_FULLMSG_BLOCKEDINFO SONOBUS_MSG_DOMAIN SONOBUS_MSG_BLOCKEDINFO
 
+#define SONOBUS_MSG_SUGGEST_GROUP "/suggestgroup"
+#define SONOBUS_MSG_SUGGEST_GROUP_LEN 14
+#define SONOBUS_FULLMSG_SUGGEST_GROUP SONOBUS_MSG_DOMAIN SONOBUS_MSG_SUGGEST_GROUP
+
 
 enum {
     SONOBUS_MSGTYPE_UNKNOWN = 0,
@@ -2463,7 +2468,8 @@ enum {
     SONOBUS_MSGTYPE_REQLATINFO,
     SONOBUS_MSGTYPE_LATINFO,
     SONOBUS_MSGTYPE_SUGGESTLAT,
-    SONOBUS_MSGTYPE_BLOCKEDINFO
+    SONOBUS_MSGTYPE_BLOCKEDINFO,
+    SONOBUS_MSGTYPE_SUGGESTGROUP
 };
 
 static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rettype)
@@ -2535,6 +2541,13 @@ static int32_t sonobusOscParsePattern(const char *msg, int32_t n, int32_t & rett
         {
             rettype = SONOBUS_MSGTYPE_BLOCKEDINFO;
             offset += SONOBUS_MSG_BLOCKEDINFO_LEN;
+            return offset;
+        }
+        else if (n >= (offset + SONOBUS_MSG_SUGGEST_GROUP_LEN)
+            && !memcmp(msg + offset, SONOBUS_MSG_SUGGEST_GROUP, SONOBUS_MSG_SUGGEST_GROUP_LEN))
+        {
+            rettype = SONOBUS_MSGTYPE_SUGGESTGROUP;
+            offset += SONOBUS_MSG_SUGGEST_GROUP_LEN;
             return offset;
         }
         else {
@@ -2764,6 +2777,39 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
 
             if (!isAddressBlocked(endpoint->ipaddr)) {
                 clientListeners.call(&SonobusAudioProcessor::ClientListener::peerRequestedLatencyMatch, this, username, latency);
+            }
+        }
+        else if (type == SONOBUS_MSGTYPE_SUGGESTGROUP) {
+            // received from the other side
+            // args: s:username  s:newgroup s:ispublic
+
+            auto it = message.ArgumentsBegin();
+            if (message.ArgumentCount() >= 1) {
+                const void *infojson;
+                osc::osc_bundle_element_size_t size;
+
+                (it++)->AsBlob(infojson, size);
+
+                String jsonstr = String::createStringFromData(infojson, size);
+
+                juce::var infodata;
+                auto result = juce::JSON::parse(jsonstr, infodata);
+
+                if (!isAddressBlocked(endpoint->ipaddr) && infodata.isObject()) {
+                    auto username = infodata.getProperty("user", "");
+                    auto newgroup = infodata.getProperty("group", "");
+                    auto grouppass = infodata.getProperty("group_pass", "");
+                    auto ispublic = infodata.getProperty("public", false);
+                    auto others = infodata.getProperty("others", {});
+                    StringArray otherpeers;
+                    if (others.isArray()) {
+                        for (auto item : *others.getArray()) {
+                            otherpeers.add(item);
+                        }
+                    }
+
+                    clientListeners.call(&SonobusAudioProcessor::ClientListener::peerSuggestedNewGroup, this, username, newgroup, grouppass, ispublic, otherpeers);
+                }
             }
         }
         else if (type == SONOBUS_MSGTYPE_BLOCKEDINFO) {
@@ -3038,6 +3084,52 @@ void SonobusAudioProcessor::commitLatencyMatch(float latency)
     }
 }
 
+
+void SonobusAudioProcessor::suggestNewGroupToPeers(const String & group, const String & groupPass, const StringArray & peernames, bool ispublic)
+{
+    // suggest to other peers to join a new group
+
+    // send our info to this remote peer
+    DynamicObject::Ptr info = new DynamicObject(); // this will delete itself
+
+    info->setProperty("user", getCurrentUsername());
+    info->setProperty("group", group);
+    info->setProperty("group_pass", groupPass);
+    info->setProperty("public", ispublic);
+
+    info->setProperty("others", peernames);
+
+    char buf[AOO_MAXPACKETSIZE];
+    osc::OutboundPacketStream msg(buf, sizeof(buf));
+
+
+    String jsonstr = JSON::toString(info.get(), true, 6);
+
+    if (jsonstr.getNumBytesAsUTF8() > AOO_MAXPACKETSIZE - 100) {
+        DBG("Info too big for packet!");
+        return;
+    }
+
+    try {
+        msg << osc::BeginMessage(SONOBUS_FULLMSG_SUGGEST_GROUP)
+        << osc::Blob(jsonstr.toRawUTF8(), (int) jsonstr.getNumBytesAsUTF8())
+        << osc::EndMessage;
+    }
+    catch (const osc::Exception& e){
+        DBG("exception in suggest group message constructions: " << e.what());
+        return;
+    }
+
+    const ScopedReadLock sl (mCoreLock);
+    for (int i=0;  i < mRemotePeers.size(); ++i) {
+        auto * peer = mRemotePeers.getUnchecked(i);
+        if (peernames.contains(peer->userName)) {
+            DBG("Sending invite to new group: " << group << " message to " << i);
+            this->sendPeerMessage(peer, msg.Data(), (int32_t) msg.Size());
+        }
+    }
+
+}
 
 
 void SonobusAudioProcessor::handleRemotePeerInfoUpdate(RemotePeer * peer, const juce::var & infodata)
@@ -8188,11 +8280,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
                     int chindex = 0;
                     for (int i=0; i < mInputChannelGroupCount; ++i) {
                         int chcnt = mInputChannelGroups[i].params.numChannels;
+                        const bool silenceIns = mRecordInputSilenceWhenMuted && (inGain == 0.0f || mInputChannelGroups[i].params.muted);
                         if (activeSelfWriters[i].load() != nullptr) {
                             // we need to make sure the writer has at least all the inputs it expects
                             const float * useinbufs[MAX_PANNERS];
                             for (int j=0; j < mSelfRecordChans[i] && j < MAX_PANNERS; ++j) {
-                                useinbufs[j] = j < chcnt ? inbufs[chindex+j] : silentBuffer.getReadPointer(0);
+                                useinbufs[j] = (j < chcnt && !silenceIns) ? inbufs[chindex+j] : silentBuffer.getReadPointer(0);
                             }
                             activeSelfWriters[i].load()->write (useinbufs, numSamples);
                         }
@@ -8362,6 +8455,9 @@ static String videoLinkRoomModeKey("roomMode");
 static String videoLinkShowNamesKey("showNames");
 static String videoLinkExtraParamsKey("extraParams");
 static String videoLinkBeDirectorKey("beDir");
+static String videoLinkLargeShareKey("largeShare");
+static String videoLinkShareOnlyKey("shareOnly");
+static String videoLinkScreenShareParamsKey("screenShare");
 
 ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
 {
@@ -8369,8 +8465,11 @@ ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
     
     item.setProperty(videoLinkRoomModeKey, roomMode, nullptr);
     item.setProperty(videoLinkShowNamesKey, showNames, nullptr);
+    item.setProperty(videoLinkScreenShareParamsKey, screenShareMode, nullptr);
     item.setProperty(videoLinkExtraParamsKey, extraParams, nullptr);
     item.setProperty(videoLinkBeDirectorKey, beDirector, nullptr);
+    item.setProperty(videoLinkLargeShareKey, largeShare, nullptr);
+    item.setProperty(videoLinkShareOnlyKey, shareOnly, nullptr);
 
     return item;
 }
@@ -8379,8 +8478,11 @@ void SonobusAudioProcessor::VideoLinkInfo::setFromValueTree(const ValueTree & it
 {
     roomMode = item.getProperty(videoLinkRoomModeKey, roomMode);
     showNames = item.getProperty(videoLinkShowNamesKey, showNames);
+    screenShareMode = item.getProperty(videoLinkScreenShareParamsKey, screenShareMode);
     extraParams = item.getProperty(videoLinkExtraParamsKey, extraParams);
     beDirector = item.getProperty(videoLinkBeDirectorKey, beDirector);
+    largeShare = item.getProperty(videoLinkLargeShareKey, largeShare);
+    largeShare = item.getProperty(videoLinkShareOnlyKey, shareOnly);
 }
 
 
@@ -8415,6 +8517,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(defRecordFormatKey, var((int)mDefaultRecordingFormat), nullptr);
     extraTree.setProperty(defRecordBitsKey, var((int)mDefaultRecordingBitsPerSample), nullptr);
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
+    extraTree.setProperty(recordSelfSilenceMutedKey, mRecordInputSilenceWhenMuted, nullptr);
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
 
     if (mDefaultRecordDir.isLocalFile()) {
@@ -8557,6 +8660,10 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
             bool prefx = extraTree.getProperty(recordSelfPreFxKey, mRecordInputPreFX);
             setSelfRecordingPreFX(prefx);
+
+            bool silmute = extraTree.getProperty(recordSelfSilenceMutedKey, mRecordInputSilenceWhenMuted);
+            setSelfRecordingSilenceWhenMuted(silmute);
+
 
             setRecordFinishOpens(extraTree.getProperty(recordFinishOpenKey, mRecordFinishOpens));
 

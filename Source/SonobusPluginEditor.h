@@ -34,6 +34,7 @@ class MonitorDelayView;
 class ChatView;
 class SoundboardView;
 class LatencyMatchView;
+class SuggestNewGroupView;
 
 //==============================================================================
 /**
@@ -146,6 +147,8 @@ public:
     void sbChatEventReceived(SonobusAudioProcessor *comp, const SBChatEvent & mesg) override;
     void peerRequestedLatencyMatch(SonobusAudioProcessor *comp, const String & username, float latency) override;
     void peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked) override;
+    void peerSuggestedNewGroup(SonobusAudioProcessor *comp, const String & username, const String & newgroup, const String & groupPass, bool isPublic, const StringArray & others) override;
+
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<bool()> isInterAppAudioConnected; // = []() { return 0; };
@@ -231,6 +234,9 @@ private:
 
     void showLatencyMatchPrompt(const String & name, float latencyms);
     void showLatencyMatchView(bool show);
+
+    void showSuggestedGroupPrompt(const String & name, const String & group, const String & grouppass, bool ispublic, const StringArray & others);
+    void showSuggestGroupView(bool show);
 
     void showVDONinjaView(bool show);
 
@@ -382,11 +388,16 @@ private:
     std::unique_ptr<Label>  mReverbPreDelayLabel;
     std::unique_ptr<Slider> mReverbPreDelaySlider;
 
+
+    class ApproveComponent;
+
     // latency match stuff
-    std::unique_ptr<Component>  mLatMatchApproveContainer;
-    std::unique_ptr<Label>  mLatMatchApproveLabel;
-    std::unique_ptr<TextButton> mApproveLatMatchButton;
+    std::unique_ptr<ApproveComponent>  mLatMatchApproveComponent;
     std::unique_ptr<LatencyMatchView> mLatMatchView;
+
+    std::unique_ptr<ApproveComponent>  mSuggestedGroupComponent;
+    std::unique_ptr<SuggestNewGroupView> mSuggestNewGroupView;
+
 
     // vdo ninja
     std::unique_ptr<VDONinjaView> mVDONinjaView;
@@ -419,6 +430,9 @@ private:
 
     WeakReference<Component> latmatchCalloutBox;
     WeakReference<Component> latmatchViewCalloutBox;
+
+    WeakReference<Component> suggestedGroupCalloutBox;
+    WeakReference<Component> suggestNewGroupViewCalloutBox;
 
     WeakReference<Component> vdoninjaViewCalloutBox;
 
@@ -454,6 +468,7 @@ private:
             PublicGroupDeletedEvent,
             PeerRequestedLatencyMatchEvent,
             PeerBlockedInfoChangedEvent,
+            PeerSuggestedNewGroupEvent,
             Error
         };
         
@@ -463,12 +478,19 @@ private:
         ClientEvent(Type type_, const String & group_, bool success_, const String & mesg, const String & user_="", float fval=0.0f) : type(type_), success(success_), message(mesg), user(user_), group(group_), floatVal(fval) {}
         ClientEvent(Type type_, const String & mesg, float val) : type(type_), success(true), message(mesg), floatVal(val) {}
 
+        static ClientEvent makeSuggestedNewGroupEvent(const String & user, const String & group_, const String & passwd, bool ispublic, const StringArray & others) {
+            ClientEvent event(PeerSuggestedNewGroupEvent, group_, ispublic, passwd, user);
+            event.array = others;
+            return event;
+        }
+
         Type type = None;
         bool success = false;
         String message;
         String user;
         String group;
         float floatVal = 0.0f;
+        StringArray array;
     };
     Array<ClientEvent> clientEvents;
 
