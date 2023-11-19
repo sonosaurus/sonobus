@@ -56,9 +56,7 @@ void SoundboardView::createBasePanels()
     soundboardContainerBox.flexDirection = FlexBox::Direction::column;
     soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, titleBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
-    soundboardContainerBox.items.add(
-    soundboardContainerBox.items.add(
-            FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
+    soundboardContainerBox.items.add(FlexItem(TITLE_LABEL_WIDTH, TITLE_HEIGHT, soundboardSelectionBox).withMargin(0).withFlex(0));
     soundboardContainerBox.items.add(FlexItem(ELEMENT_MARGIN, ELEMENT_MARGIN).withMargin(0));
     soundboardContainerBox.items.add(
             FlexItem(buttonViewport).withMargin(2).withFlex(1));
@@ -237,7 +235,7 @@ void SoundboardView::createControlPanel()
     controlsBox.items.add(FlexItem(3, 34).withFlex(1));
     controlsBox.items.add(FlexItem(38, 34, *mHotkeyStateButton).withFlex(0));
     controlsBox.items.add(FlexItem(1, 34).withFlex(1).withMaxWidth(6));
-    controlsBox.items.add(FlexItem(38, 34, *mNumericHotkeyStateButton).withFlex(0));
+    controlsBox.items.add(FlexItem(38, 34, *mNumericHotkeyStateButton).withMargin(1).withFlex(0));
 }
 
 void SoundboardView::updateSoundboardSelector()
