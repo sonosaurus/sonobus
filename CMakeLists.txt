@@ -89,6 +89,11 @@ if (APPLE)
     list (APPEND FormatsToBuild AU)
 endif()
 
+# On Linux, LV2 will be built too
+if (UNIX)
+    list (APPEND FormatsToBuild LV2)
+endif()
+
 # If you are building a VST2 or AAX plugin, CMake needs to be told where to find these SDKs on your
 # system. This setup should be done before calling `juce_add_plugin`.
 
@@ -161,7 +166,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         VST3_CATEGORIES "${vst3cats}"
         AAX_CATEGORY "AAX_ePlugInCategory_None"
 
-        
+	LV2URI "https://sonobus.net/lv2/sonobus"
+	
         # mac settings
         HARDENED_RUNTIME_ENABLED TRUE
         HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input"
