@@ -50,15 +50,17 @@ void OptionsView::initializeLanguages()
     languages.add(TRANS("Portuguese (Brazil)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Brasil)")); codes.add("pt-br");
     languages.add(TRANS("Dutch"));  languagesNative.add("Nederlands"); codes.add("nl");
 
-    //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
-    languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
+    languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
+    //languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
 
-    languages.add(TRANS("Korean")); languagesNative.add("Korean"); codes.add("ko"); // TODO fix and use above when we have a font that can display this all the time
+    languages.add(TRANS("Korean")); languagesNative.add(juce::CharPointer_UTF8 ("\xed\x95\x9c\xea\xb5\xad\xec\x9d\xb8")); codes.add("ko");
+
+    //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add("Chinese (Simplified)"); codes.add("zh-hans");
+    languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh-hans");
+    //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh-hant");
+
     languages.add(TRANS("Russian"));  languagesNative.add(juce::CharPointer_UTF8 ("p\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9")); codes.add("ru");
 
-    languages.add(TRANS("Chinese (Simplified)")); languagesNative.add("Chinese (Simplified)"); codes.add("zh-hans");
-    //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh_hans");languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh-hans");
-    //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh-hant");
 
     // TOOD - parse any user files with localized_%s.txt in our settings folder and add as options if not existing already
 
