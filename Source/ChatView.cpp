@@ -5,6 +5,7 @@
 
 #include "ChatView.h"
 #include "GenericItemChooser.h"
+#include "SonoLookAndFeel.h"
 
 void FocusTextEditor::focusGained (FocusChangeType gtype)
 {
@@ -282,10 +283,10 @@ void ChatView::updateFontSizes()
 {
     auto offset = processor.getChatFontSizeOffset();
 
-    mChatNameFont = Font(13 + offset);
-    mChatMesgFont = Font(16 + offset);
+    mChatNameFont = Font((13 + offset) * SonoLookAndFeel::getFontScale());
+    mChatMesgFont = Font((16 + offset) * SonoLookAndFeel::getFontScale());
     mChatMesgFixedFont = Font(Font::getDefaultMonospacedFontName(), 15+offset, Font::plain);
-    mChatEditFont = Font(14 + offset);
+    mChatEditFont = Font((14 + offset) * SonoLookAndFeel::getFontScale());
     mChatEditFixedFont = Font(Font::getDefaultMonospacedFontName(), 15+offset, Font::plain);
     mChatSpacerFont = Font(6+offset);
 
@@ -312,7 +313,7 @@ void ChatView::updateTitles()
     
     mChatSendTextEditor->setEnabled(enabled);
     if (enabled) {
-        mesg = TRANS("Enter message here...") + String(juce::CharPointer_UTF8 (" \xe2\x86\x92 ")) + name;
+        mesg = TRANS("Enter message here...") + String(" -> ") + name;
     }
     else {
         mesg = name + TRANS(" is not connected");

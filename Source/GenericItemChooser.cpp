@@ -3,6 +3,7 @@
 
 
 #include "GenericItemChooser.h"
+#include "SonoLookAndFeel.h"
 
 enum {
     nameTextColourId = 0x1002830,
@@ -62,7 +63,7 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
 }
 
 
-GenericItemChooser::GenericItemChooser(const Array<GenericItemChooserItem> & items_, int tag_)   : font (16.0, Font::plain), catFont(15.0, Font::plain), items(items_), tag(tag_)
+GenericItemChooser::GenericItemChooser(const Array<GenericItemChooserItem> & items_, int tag_)   : font (16.0 * SonoLookAndFeel::getFontScale(), Font::plain), catFont(15.0 * SonoLookAndFeel::getFontScale(), Font::plain), items(items_), tag(tag_)
 
 {
     currentIndex = -1;

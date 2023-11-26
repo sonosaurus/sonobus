@@ -239,7 +239,8 @@ private:
     void showSuggestGroupView(bool show);
 
     void showVDONinjaView(bool show);
-
+    void copyGroupLink();
+    
     void requestRecordDir(std::function<void (URL)> callback);
     
     void updateSliderSnap();

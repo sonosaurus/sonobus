@@ -32,9 +32,14 @@ public:
         ShowTransportMenu,
         ShowViewMenu,
         ShowConnectMenu,
+        ShowGroupMenu,
         ToggleFullInfoView,
         StopAllSoundboardPlayback,
-        ToggleAllMonitorDelay
+        ToggleAllMonitorDelay,
+        CopyGroupLink,
+        GroupLatencyMatch,
+        VDONinjaVideoLink,
+        SuggestNewGroup
     };
     
 };

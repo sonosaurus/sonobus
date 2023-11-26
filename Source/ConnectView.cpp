@@ -35,7 +35,7 @@ enum {
 ConnectView::ConnectView(SonobusAudioProcessor& proc, AooServerConnectionInfo & info)
 : Component(), processor(proc), currConnectionInfo(info),
 recentsListModel(this),
-recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsInfoFont(13, Font::plain),
+recentsGroupFont (17.0 * SonoLookAndFeel::getFontScale(), Font::bold), recentsNameFont(15 * SonoLookAndFeel::getFontScale(), Font::plain), recentsInfoFont(13 * SonoLookAndFeel::getFontScale(), Font::plain),
 publicGroupsListModel(this)
 {
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
@@ -91,7 +91,7 @@ publicGroupsListModel(this)
 
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
     mAddRemoteHostEditor->setTitle(TRANS("Remote Host:Port"));
-    mAddRemoteHostEditor->setFont(Font(16));
+    mAddRemoteHostEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mAddRemoteHostEditor->setText("", false); // 100.36.128.246:11000
     mAddRemoteHostEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
 
@@ -134,17 +134,17 @@ publicGroupsListModel(this)
 
     mServerHostEditor = std::make_unique<TextEditor>("srvaddredit");
     mServerHostEditor->setTitle(TRANS("Connection Server"));
-    mServerHostEditor->setFont(Font(14));
+    mServerHostEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     configEditor(mServerHostEditor.get());
 
     mServerUsernameEditor = std::make_unique<TextEditor>("srvaddredit");
     mServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
-    mServerUsernameEditor->setFont(Font(16));
+    mServerUsernameEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mServerUsernameEditor.get());
 
     mServerUserPasswordEditor = std::make_unique<TextEditor>("userpass"); // 0x25cf
-    mServerUserPasswordEditor->setFont(Font(14));
+    mServerUserPasswordEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     mServerUserPasswordEditor->setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
     configEditor(mServerUserPasswordEditor.get());
 
@@ -169,13 +169,13 @@ publicGroupsListModel(this)
 
     mServerGroupEditor = std::make_unique<TextEditor>("groupedit");
     mServerGroupEditor->setTitle(TRANS("Group Name:"));
-    mServerGroupEditor->setFont(Font(16));
+    mServerGroupEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mServerGroupEditor.get());
 
     mServerGroupPasswordEditor = std::make_unique<TextEditor>("grouppass"); // 0x25cf
     mServerGroupPasswordEditor->setTitle(TRANS("Optional Group Password"));
-    mServerGroupPasswordEditor->setFont(Font(14));
+    mServerGroupPasswordEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     mServerGroupPasswordEditor->setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
     mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
     configEditor(mServerGroupPasswordEditor.get());
@@ -283,7 +283,7 @@ publicGroupsListModel(this)
 
     mPublicServerHostEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerHostEditor->setTitle(TRANS("Connection Server:"));
-    mPublicServerHostEditor->setFont(Font(14));
+    mPublicServerHostEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     configEditor(mPublicServerHostEditor.get());
     mPublicServerHostEditor->setTooltip(servaudioinfo);
 
@@ -300,7 +300,7 @@ publicGroupsListModel(this)
 
     mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
-    mPublicServerUsernameEditor->setFont(Font(16));
+    mPublicServerUsernameEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mPublicServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mPublicServerUsernameEditor.get());
 
@@ -311,7 +311,7 @@ publicGroupsListModel(this)
 
     mPublicServerInfoStaticLabel = std::make_unique<Label>("pubinfost", TRANS("Select existing group below OR "));
     configServerLabel(mPublicServerInfoStaticLabel.get());
-    mPublicServerInfoStaticLabel->setFont(16);
+    mPublicServerInfoStaticLabel->setFont(14);
     mPublicServerInfoStaticLabel->setMinimumHorizontalScale(0.8);
 
     mPublicServerAddGroupButton = std::make_unique<TextButton>("addgroup");
@@ -322,7 +322,7 @@ publicGroupsListModel(this)
 
     mPublicServerGroupEditor = std::make_unique<TextEditor>("pubgroupedit");
     mPublicServerGroupEditor->setTitle(TRANS("Public Group Name"));
-    mPublicServerGroupEditor->setFont(Font(16));
+    mPublicServerGroupEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mPublicServerGroupEditor->setText(currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mPublicServerGroupEditor.get());
     mPublicServerGroupEditor->setTextToShowWhenEmpty(TRANS("enter group name"), Colour(0x44ffffff));
@@ -1478,7 +1478,7 @@ void ConnectView::showPopTip(const String & message, int timeoutMs, Component * 
     AttributedString text(message);
     text.setJustification (Justification::centred);
     text.setColour (findColour (TextButton::textColourOffId));
-    text.setFont(Font(12));
+    text.setFont(Font(12 * SonoLookAndFeel::getFontScale()));
     if (target) {
         popTip->showAt(target, text, timeoutMs);
     }

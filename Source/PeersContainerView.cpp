@@ -364,7 +364,7 @@ void PeersContainerView::showPopTip(const String & message, int timeoutMs, Compo
     AttributedString text(message);
     text.setJustification (Justification::centred);
     text.setColour (findColour (TextButton::textColourOffId));
-    text.setFont(Font(12));
+    text.setFont(Font(12 * SonoLookAndFeel::getFontScale()));
     if (target) {
         popTip->showAt(target, text, timeoutMs);
     }
@@ -407,7 +407,7 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     pvf->addrLabel->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
     pvf->addrLabel->setReadOnly(true);
     pvf->addrLabel->setCaretVisible(false);
-    pvf->addrLabel->setFont(13);
+    pvf->addrLabel->setFont(13 * SonoLookAndFeel::getFontScale());
     pvf->addrLabel->addMouseListener(this, false);
 
     pvf->staticAddrLabel = std::make_unique<Label>("addr", TRANS("Remote address:"));

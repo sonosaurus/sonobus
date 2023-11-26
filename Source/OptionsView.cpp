@@ -268,7 +268,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mOptionsUdpPortEditor = std::make_unique<TextEditor>("udp");
     mOptionsUdpPortEditor->addListener(this);
-    mOptionsUdpPortEditor->setFont(Font(16));
+    mOptionsUdpPortEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mOptionsUdpPortEditor->setText(""); // 100.36.128.246:11000
     mOptionsUdpPortEditor->setKeyboardType(TextEditor::numericKeyboard);
     mOptionsUdpPortEditor->setInputRestrictions(5, "0123456789");
@@ -1298,7 +1298,7 @@ void OptionsView::showPopTip(const String & message, int timeoutMs, Component * 
     AttributedString text(message);
     text.setJustification (Justification::centred);
     text.setColour (findColour (TextButton::textColourOffId));
-    text.setFont(Font(12));
+    text.setFont(Font(12 * SonoLookAndFeel::getFontScale()));
     if (target) {
         popTip->showAt(target, text, timeoutMs);
     }

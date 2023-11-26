@@ -453,7 +453,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 
     juce_add_binary_data("${target_name}_SBData" SOURCES
         Source/wordmaker.g
-        Source/DejaVuSans.ttf
+        Source/GoNotoKurrent-Regular.ttf
         localization/localized_de.txt
         localization/localized_es.txt
         localization/localized_fr.txt

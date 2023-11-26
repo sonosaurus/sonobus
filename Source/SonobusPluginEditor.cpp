@@ -4026,6 +4026,40 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
     }
 }
 
+void SonobusAudioProcessorEditor::copyGroupLink()
+{
+#if JUCE_IOS || JUCE_ANDROID
+    String message;
+    const bool singleurl = true;
+
+    if (mConnectView && mConnectView->copyInfoToClipboard(singleurl, &message)) {
+        /*
+         URL url(message);
+         if (url.isWellFormed()) {
+         Array<URL> urlarray;
+         urlarray.add(url);
+         safeThis->mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg);
+         safeThis->mScopedShareBox = {};
+         });
+         } else
+         */
+        // just share as text for now
+        {
+            SafePointer<SonobusAudioProcessorEditor> safeThis(this);
+            mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
+                safeThis->mScopedShareBox = {};
+            });
+        }
+    }
+#else
+    const bool singleurl = true;
+    if (mConnectView && mConnectView->copyInfoToClipboard(singleurl)) {
+        auto msg = TRANS("Copied group connection info to clipboard for you to share with others");
+        showPopTip(msg, 3000, mMainLinkButton.get());
+    }
+#endif
+}
+
 void SonobusAudioProcessorEditor::showGroupMenu(bool show)
 {
     Array<GenericItemChooserItem> items;
@@ -4053,34 +4087,7 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
         if (!safeThis) return;
         if (index == 0) {
             // copy group link
-#if JUCE_IOS || JUCE_ANDROID
-            String message;
-            const bool singleurl = true;
-            if (safeThis->mConnectView->copyInfoToClipboard(singleurl, &message)) {
-                /*
-                URL url(message);
-                if (url.isWellFormed()) {
-                    Array<URL> urlarray;
-                    urlarray.add(url);
-                    safeThis->mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg);
-                        safeThis->mScopedShareBox = {};
-                    });
-                } else
-                 */
-                // just share as text for now
-                {
-                    safeThis->mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
-                        safeThis->mScopedShareBox = {};
-                    });
-                }
-            }
-#else
-            const bool singleurl = true;
-            if (safeThis->mConnectView->copyInfoToClipboard(singleurl)) {
-                auto msg = TRANS("Copied group connection info to clipboard for you to share with others");
-                safeThis->showPopTip(msg, 3000, safeThis->mMainLinkButton.get());
-            }
-#endif
+            safeThis->copyGroupLink();
         } else if (index == 1) {
             // group latency
             safeThis->showLatencyMatchView(true);
@@ -5308,6 +5315,7 @@ enum
 {
     MenuFileIndex = 0,
     MenuConnectIndex,
+    MenuGroupIndex,
     MenuTransportIndex,
     MenuViewIndex,
     MenuHelpIndex
@@ -5316,6 +5324,8 @@ enum
 
 void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) {
     bool useKeybindings = !processor.getDisableKeyboardShortcuts();
+    String name;
+
     switch (cmdID) {
         case SonobusCommands::MuteAllInput:
             info.setInfo (TRANS("Mute All Input"),
@@ -5530,6 +5540,15 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress('c', ModifierKeys::altModifier);
             }
             break;
+        case SonobusCommands::ShowGroupMenu:
+            info.setInfo(TRANS("Show Group Menu"),
+                TRANS("Show Group Menu"),
+                TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress('g', ModifierKeys::altModifier);
+            }
+            break;
         case SonobusCommands::ShowViewMenu:
             info.setInfo(TRANS("Show View Menu"),
                 TRANS("Show View Menu"),
@@ -5548,6 +5567,48 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress('t', ModifierKeys::altModifier);
             }
             break;
+        case SonobusCommands::CopyGroupLink:
+#if JUCE_IOS || JUCE_ANDROID
+            name = TRANS("Share Group Link");
+#else
+            name = TRANS("Copy Group Link");
+#endif
+
+            info.setInfo (name, name,
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('c', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::GroupLatencyMatch:
+            info.setInfo (TRANS("Group Latency Match..."),
+                          TRANS("Group Latency Match..."),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('l', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::VDONinjaVideoLink:
+            info.setInfo (TRANS("VDO.Ninja Video Link..."),
+                          TRANS("VDO.Ninja Video Link..."),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('v', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::SuggestNewGroup:
+            info.setInfo (TRANS("Suggest New Group..."),
+                          TRANS("Suggest New Group..."),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('s', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+
     }
 }
 
@@ -5574,10 +5635,15 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::ShowFileMenu);
     cmds.add(SonobusCommands::ShowTransportMenu);
     cmds.add(SonobusCommands::ShowViewMenu);
+    cmds.add(SonobusCommands::ShowGroupMenu);
     cmds.add(SonobusCommands::ShowConnectMenu);
     cmds.add(SonobusCommands::ToggleFullInfoView);
     cmds.add(SonobusCommands::StopAllSoundboardPlayback);
     cmds.add(SonobusCommands::ToggleAllMonitorDelay);
+    cmds.add(SonobusCommands::CopyGroupLink);
+    cmds.add(SonobusCommands::GroupLatencyMatch);
+    cmds.add(SonobusCommands::VDONinjaVideoLink);
+    cmds.add(SonobusCommands::SuggestNewGroup);
 
 }
 
@@ -5630,6 +5696,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::ShowConnectMenu:
             if (mMenuBar) {
                 mMenuBar->showMenu(MenuConnectIndex);
+            }
+            break;
+        case SonobusCommands::ShowGroupMenu:
+            if (mMenuBar) {
+                mMenuBar->showMenu(MenuGroupIndex);
             }
             break;
         case SonobusCommands::ShowViewMenu:
@@ -5720,6 +5791,20 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::CheckForNewVersion:   
             LatestVersionCheckerAndUpdater::getInstance()->checkForNewVersion (true); 
             break;
+
+        case SonobusCommands::CopyGroupLink:
+            copyGroupLink();
+            break;
+        case SonobusCommands::GroupLatencyMatch:
+            showLatencyMatchView(true);
+            break;
+        case SonobusCommands::VDONinjaVideoLink:
+            showVDONinjaView(true);
+            break;
+        case SonobusCommands::SuggestNewGroup:
+            showSuggestGroupView(true);
+            break;
+
         default:
             ret = false;
     }
@@ -5766,6 +5851,7 @@ StringArray SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuBarNames()
 {
     return StringArray(TRANS("File"),
                        TRANS("Connect"),
+                       TRANS("Group"),
                        TRANS("Transport"),
                        TRANS("View")
                        );
@@ -5813,6 +5899,12 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addCommandItem (&parent.commandManager, SonobusCommands::MuteAllPeers);
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleAllMonitorDelay);
+            break;
+        case MenuGroupIndex:
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::CopyGroupLink);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::GroupLatencyMatch);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::VDONinjaVideoLink);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::SuggestNewGroup);
             break;
         case MenuTransportIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::TogglePlayPause);
