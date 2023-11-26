@@ -103,7 +103,8 @@ public:
     PopupMenu::Options getOptionsForComboBoxPopupMenu (ComboBox&, Label&) override;
     Font getComboBoxFont (ComboBox&) override;
     Font getPopupMenuFont() override;
-
+    void drawPopupMenuBackground (Graphics& g, [[maybe_unused]] int width, [[maybe_unused]] int height) override;
+  
     void drawTooltip (Graphics& g, const String& text, int width, int height) override;
 
 

@@ -37,7 +37,7 @@ SonoLookAndFeel::SonoLookAndFeel()
     
 
     setColourScheme(getDarkColourScheme());
-    
+
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::windowBackground, Colour::fromFloatRGBA(0.0, 0.0, 0.0, 1.0));
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0));
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::outline, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
@@ -244,7 +244,7 @@ void SonoLookAndFeel::drawTooltip (Graphics& g, const String& text, int width, i
 
 Font SonoLookAndFeel::getMenuBarFont (MenuBarComponent& menuBar, int /*itemIndex*/, const String& /*itemText*/)
 {
-    return Font (menuBar.getHeight() * 0.7f);
+    return Font (menuBar.getHeight() * 0.7f * fontScale);
 }
 
 //==============================================================================
@@ -870,6 +870,16 @@ Font SonoLookAndFeel::getComboBoxFont (ComboBox& box)
 Font SonoLookAndFeel::getPopupMenuFont()
 {
     return Font (17.0f * fontScale);
+}
+
+void SonoLookAndFeel::drawPopupMenuBackground (Graphics& g, [[maybe_unused]] int width, [[maybe_unused]] int height)
+{
+    g.fillAll (findColour (PopupMenu::backgroundColourId));
+
+   #if ! JUCE_MAC
+    g.setColour (findColour (PopupMenu::textColourId).brighter(0.1f).withAlpha(0.1f));
+    g.drawRect (0, 0, width, height);
+   #endif
 }
 
 PopupMenu::Options SonoLookAndFeel::getOptionsForComboBoxPopupMenu (ComboBox& box, Label& label)
