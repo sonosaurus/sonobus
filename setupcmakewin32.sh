@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEFS=""
+DEPS=""
 
 if [ -n "${AAX_SDK_PATH}" ] ; then
   echo "Will build AAX plugin"
@@ -13,7 +13,7 @@ if [ -n "${VST2_SDK_PATH}" ] ; then
 fi
 
 
-cmake -G "Visual Studio 15 2017" $DEPS -B build32
+cmake -G "Visual Studio 15 2017" -T "host=x64" $DEPS -B build32
 
 
 
