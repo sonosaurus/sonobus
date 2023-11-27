@@ -9433,7 +9433,10 @@ bool SonobusAudioProcessor::startRecordingToFile(const URL & recordLocationUrl, 
             for (auto & remote : mRemotePeers) {
 
                 int numchan = remote->recvChannels;
-
+                if (numchan == 0) {
+                    // assume there will be something eventually
+                    numchan = 2;
+                }
                 AudioFormat * useformat = audioFormat.get();
                 String fileext = usefile.getFileExtension();
 
