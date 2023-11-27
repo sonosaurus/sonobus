@@ -762,7 +762,12 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMainLinkButton->setTitle(TRANS("Group Action Menu"));
     mMainLinkButton->addListener(this);
     mMainLinkButton->setTooltip(TRANS("Press for group action menu"));
-    
+
+    mMainLinkArrow = Drawable::createFromImageData(BinaryData::triangle_disclosure_svg, BinaryData::triangle_disclosure_svgSize);
+    mMainLinkArrow->setInterceptsMouseClicks(false, false);
+    mMainLinkArrow->setAlpha(0.7f);
+
+
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
     mPeerContainer->addListener(this);
     mPeerContainer->setFocusContainerType(FocusContainerType::focusContainer);
@@ -866,6 +871,14 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mEffectsButton->setLookAndFeel(&smallLNF);
     mEffectsButton->addListener(this);
     mEffectsButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
+
+    mBufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::reset_buffer_icon_svg, BinaryData::reset_buffer_icon_svgSize));
+    mBufferMinButton->setImages(backimg.get());
+    mBufferMinButton->addListener(this);
+    mBufferMinButton->setTooltip(TRANS("Resets jitter buffer to the minimum for all."));
+    mBufferMinButton->setTitle(TRANS("Reset All Jitter Buffers"));
+    mBufferMinButton->setAlpha(0.8f);
 
     mSendChannelsChoice = std::make_unique<SonoChoiceButton>();
     mSendChannelsChoice->setTitle(TRANS("Send Channels"));
@@ -1120,6 +1133,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //addAndMakeVisible(mTitleImage.get());
 
     mTopLevelContainer->addAndMakeVisible(mMainLinkButton.get());
+    mTopLevelContainer->addChildComponent(mMainLinkArrow.get());
     mTopLevelContainer->addAndMakeVisible(mMainGroupLabel.get());
     mTopLevelContainer->addAndMakeVisible(mMainPeerLabel.get());
     mTopLevelContainer->addAndMakeVisible(mMainMessageLabel.get());
@@ -1156,6 +1170,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mTopLevelContainer->addAndMakeVisible(mMetEnableButton.get());
     mTopLevelContainer->addAndMakeVisible(mMetConfigButton.get());
     mTopLevelContainer->addAndMakeVisible(mEffectsButton.get());
+    mTopLevelContainer->addAndMakeVisible(mBufferMinButton.get());
 
     mMetContainer->addAndMakeVisible(mMetLevelSlider.get());
     mMetContainer->addAndMakeVisible(mMetTempoSlider.get());
@@ -2022,6 +2037,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showEffectsConfig(false);
         }        
     }
+    else if (buttonThatWasClicked == mBufferMinButton.get()) {
+        resetJitterBufferForAll();
+    }
     else if (buttonThatWasClicked == mMainMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
 
@@ -2367,6 +2385,20 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
        
     }
 }
+
+void SonobusAudioProcessorEditor::resetJitterBufferForAll()
+{
+    // do it for everyone who's on auto
+    bool initCompleted = false;
+    for (int j=0; j < processor.getNumberRemotePeers(); ++j)
+    {
+        if (processor.getRemotePeerAutoresizeBufferMode(j, initCompleted) != SonobusAudioProcessor::AutoNetBufferModeOff) {
+            float buftime = 0.0;
+            processor.setRemotePeerBufferTime(j, buftime);
+        }
+    }
+}
+
 
 void SonobusAudioProcessorEditor::requestRecordDir(std::function<void (URL)> callback)
 {
@@ -3607,7 +3639,8 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         mMainPersonImage->setVisible(true);
         mMainPeerLabel->setVisible(true);
         mMainLinkButton->setVisible(true);
-        
+        mMainLinkArrow->setVisible(true);
+
         if (processor.getNumberRemotePeers() == 0 && mPeerContainer->getPendingPeerCount() == 0) {
             String labstr;
             labstr << TRANS("Waiting for other users to join group") << " \"" << currGroup << "\"...";
@@ -3633,6 +3666,8 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         mMainPersonImage->setVisible(false);
         mMainPeerLabel->setVisible(false);
         mMainLinkButton->setVisible(false);
+        mMainLinkArrow->setVisible(false);
+
         mPeerRecImage->setVisible(false);
 
         mMainMessageLabel->setVisible(true);
@@ -4503,6 +4538,12 @@ void SonobusAudioProcessorEditor::resized()
     auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mPeerLayoutFullButton->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mPeerLayoutFullButton->getHeight());
     mMainLinkButton->setBounds(grouptextbounds);
 
+    auto triwidth = 12;
+    auto triheight = 8;
+    //auto linkarrowrect = Rectangle<int>(mMainLinkButton->getRight() - triwidth - 4, mMainLinkButton->getBottom() - mMainLinkButton->getHeight()/2 - triheight + 2, triwidth, triheight);
+    auto linkarrowrect = Rectangle<int>(mMainLinkButton->getRight() - triwidth - 4, mMainLinkButton->getBottom() - triheight - 4, triwidth, triheight);
+    mMainLinkArrow->setTransformToFit(linkarrowrect.toFloat(), RectanglePlacement::stretchToFit);
+
 
     const auto precwidth = 20;
     auto peerrecbounds = Rectangle<int>(mMainLinkButton->getRight() - precwidth - 4, mMainLinkButton->getY() + mMainLinkButton->getHeight()/2 - precwidth/2, precwidth,  precwidth);
@@ -4659,6 +4700,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     outputMainBox.items.clear();
     outputMainBox.flexDirection = FlexBox::Direction::row;
     outputMainBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(toolwidth, minitemheight, *mBufferMinButton).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(toolwidth, minitemheight, *mEffectsButton).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(minSliderWidth, minitemheight, outBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
@@ -4945,7 +4988,7 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     if (!isNarrow) {
         toolbarBox.items.add(FlexItem(1, 5).withMargin(0).withFlex(0.1));
-        toolbarBox.items.add(FlexItem(100, minitemheight, outputMainBox).withMargin(0).withFlex(1).withMaxWidth(350));
+        toolbarBox.items.add(FlexItem(120, minitemheight, outputMainBox).withMargin(0).withFlex(1).withMaxWidth(390));
         toolbarBox.items.add(FlexItem(6, 6).withMargin(0).withFlex(0));
     }
     else {    
@@ -5608,6 +5651,15 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress ('s', ModifierKeys::commandModifier | ModifierKeys::altModifier);
             }
             break;
+        case SonobusCommands::ResetAllJitterBuffers:
+            info.setInfo (TRANS("Reset All Jitter Buffers"),
+                          TRANS("Reset All Jitter Buffers"),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('j', ModifierKeys::commandModifier);
+            }
+            break;
 
     }
 }
@@ -5644,6 +5696,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::GroupLatencyMatch);
     cmds.add(SonobusCommands::VDONinjaVideoLink);
     cmds.add(SonobusCommands::SuggestNewGroup);
+    cmds.add(SonobusCommands::ResetAllJitterBuffers);
 
 }
 
@@ -5804,6 +5857,9 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::SuggestNewGroup:
             showSuggestGroupView(true);
             break;
+        case SonobusCommands::ResetAllJitterBuffers:
+            resetJitterBufferForAll();
+            break;
 
         default:
             ret = false;
@@ -5899,6 +5955,7 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addCommandItem (&parent.commandManager, SonobusCommands::MuteAllPeers);
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleAllMonitorDelay);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::ResetAllJitterBuffers);
             break;
         case MenuGroupIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::CopyGroupLink);

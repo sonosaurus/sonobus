@@ -470,7 +470,10 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         localization/localized_pt-pt.txt
         localization/localized_ko.txt
         localization/localized_ru.txt
-	localization/localized_zh-hans.txt
+        localization/localized_zh-hans.txt
+        images/arrow-up-narrow.svg
+        images/arrow-down-narrow.svg
+        images/dots.svg
         images/bar_click.wav
         images/beat_click.wav
         images/chat.svg
@@ -498,8 +501,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/incoming_disallowed.svg
         images/keyboard.svg
         images/keyboard_disabled.svg
-	images/keypad-num-disabled.svg
-	images/keypad-num.svg
+        images/keypad-num-disabled.svg
+        images/keypad-num.svg
         images/lgc_bar.wav
         images/link.svg
         images/link_all.svg

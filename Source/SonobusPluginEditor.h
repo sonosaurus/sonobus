@@ -240,7 +240,9 @@ private:
 
     void showVDONinjaView(bool show);
     void copyGroupLink();
-    
+
+    void resetJitterBufferForAll();
+
     void requestRecordDir(std::function<void (URL)> callback);
     
     void updateSliderSnap();
@@ -293,6 +295,7 @@ private:
     std::unique_ptr<TextButton> mPatchbayButton;
     std::unique_ptr<SonoDrawableButton> mSettingsButton;
     std::unique_ptr<SonoDrawableButton> mMainLinkButton;
+    std::unique_ptr<Drawable> mMainLinkArrow;
 
     std::unique_ptr<Slider> mInGainSlider;
 
@@ -368,6 +371,7 @@ private:
 
     std::unique_ptr<MonitorDelayView> mMonitorDelayView;
 
+    std::unique_ptr<SonoDrawableButton> mBufferMinButton;
 
 
     

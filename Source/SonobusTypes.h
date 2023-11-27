@@ -39,7 +39,8 @@ public:
         CopyGroupLink,
         GroupLatencyMatch,
         VDONinjaVideoLink,
-        SuggestNewGroup
+        SuggestNewGroup,
+        ResetAllJitterBuffers
     };
     
 };

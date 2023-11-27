@@ -67,13 +67,20 @@ void PeerViewInfo::resized()
     
     if (latActiveButton) {
         //latActiveButton->setBounds(staticPingLabel->getX(), staticPingLabel->getY(), pingLabel->getRight() - staticPingLabel->getX(), latencyLabel->getBottom() - pingLabel->getY());
-        latActiveButton->setBounds(staticLatencyLabel->getX(), staticLatencyLabel->getY(), pingLabel->getRight() - staticLatencyLabel->getX(), latencyLabel->getBottom() - staticLatencyLabel->getY());
+        latActiveButton->setBounds(staticLatencyLabel->getX(), staticLatencyLabel->getY(), pingLabel->getRight() - staticLatencyLabel->getX(), latencyUpLabel->getBottom() - staticLatencyLabel->getY());
+
+        auto arrwidth = 10;
+        auto arrheight = 14;
+        auto urect = Rectangle<int>(latencyUpLabel->getX() - arrwidth, latencyUpLabel->getY() + (latencyUpLabel->getHeight() - arrheight)/2, arrwidth, arrheight);
+        latUpArrow->setTransformToFit(urect.toFloat(), RectanglePlacement::stretchToFit);
+        auto drect = Rectangle<int>(latencyDownLabel->getX() - arrwidth, latencyDownLabel->getY() + (latencyDownLabel->getHeight() - arrheight)/2, arrwidth, arrheight);
+        latDownArrow->setTransformToFit(drect.toFloat(), RectanglePlacement::stretchToFit);
     }
 
     int triwidth = 10;
     int triheight = 6;
 
-    if (recvOptionsButton) {
+    if (recvOptionsButton && latActiveButton) {
         auto leftedge = (sendActualBitrateLabel->getRight() + (recvActualBitrateLabel->getX() - sendActualBitrateLabel->getRight()) / 2) + 2;
         if (isNarrow) {
             //leftedge = 4;
@@ -82,7 +89,7 @@ void PeerViewInfo::resized()
             recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), bufferLabel->getRight() - leftedge + 2, bufferLabel->getBottom() - staticBufferLabel->getY());
         }
         else {
-            recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), recvActualBitrateLabel->getRight() - leftedge, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
+            recvOptionsButton->setBounds(leftedge, staticBufferLabel->getY(), latActiveButton->getX() - leftedge - 5, recvActualBitrateLabel->getBottom() - staticBufferLabel->getY());
         }
 
 
@@ -145,7 +152,15 @@ void PeerViewInfo::resized()
         //}
         pingBg->setRectangle (pingbounds.toFloat().expanded(1.0f));
     }
-    
+
+    if (!isNarrow) {
+        auto arrwidth = 10;
+        auto arrheight = 14;
+        auto srect = Rectangle<int>(sendActualBitrateLabel->getX() - arrwidth, sendActualBitrateLabel->getY() + (sendActualBitrateLabel->getHeight() - arrheight)/2, arrwidth, arrheight);
+        sendUpArrow->setTransformToFit(srect.toFloat(), RectanglePlacement::stretchToFit);
+        auto rrect = Rectangle<int>(recvActualBitrateLabel->getX() - arrwidth, recvActualBitrateLabel->getY() + (recvActualBitrateLabel->getHeight() - arrheight)/2, arrwidth, arrheight);
+        recvDownArrow->setTransformToFit(rrect.toFloat(), RectanglePlacement::stretchToFit);
+    }
 }
 
 /// --------------------------------------------
@@ -573,10 +588,15 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     configLabel(pvf->staticPingLabel.get(), LabelTypeSmallDim);
     pvf->staticPingLabel->setAccessible(false);
 
-    pvf->latencyLabel = std::make_unique<Label>("lat", TRANS("PRESS"));
-    configLabel(pvf->latencyLabel.get(), LabelTypeSmall);
-    pvf->latencyLabel->setJustificationType(Justification::centred);
-    pvf->latencyLabel->setAccessible(false);
+    pvf->latencyUpLabel = std::make_unique<Label>("ulat", TRANS("PRESS"));
+    configLabel(pvf->latencyUpLabel.get(), LabelTypeSmall);
+    pvf->latencyUpLabel->setJustificationType(Justification::left);
+    pvf->latencyUpLabel->setAccessible(false);
+
+    pvf->latencyDownLabel = std::make_unique<Label>("dlat", "");
+    configLabel(pvf->latencyDownLabel.get(), LabelTypeSmall);
+    pvf->latencyDownLabel->setJustificationType(Justification::left);
+    pvf->latencyDownLabel->setAccessible(false);
 
     pvf->pingLabel = std::make_unique<Label>("ping");
     configLabel(pvf->pingLabel.get(), LabelTypeSmall);
@@ -602,15 +622,26 @@ PeerViewInfo * PeersContainerView::createPeerViewInfo()
     
     pvf->sendActualBitrateLabel = std::make_unique<Label>("sbit");
     configLabel(pvf->sendActualBitrateLabel.get(), LabelTypeSmall);
-    pvf->sendActualBitrateLabel->setJustificationType(Justification::centred);
+    pvf->sendActualBitrateLabel->setJustificationType(Justification::centredLeft);
     pvf->sendActualBitrateLabel->setMinimumHorizontalScale(0.75);
     pvf->sendActualBitrateLabel->setAccessible(false);
 
     pvf->recvActualBitrateLabel = std::make_unique<Label>("rbit");
     configLabel(pvf->recvActualBitrateLabel.get(), LabelTypeSmall);
-    pvf->recvActualBitrateLabel->setJustificationType(Justification::centred);
+    pvf->recvActualBitrateLabel->setJustificationType(Justification::centredLeft);
     pvf->recvActualBitrateLabel->setMinimumHorizontalScale(0.75);
     pvf->recvActualBitrateLabel->setAccessible(false);
+
+    pvf->sendUpArrow =   Drawable::createFromImageData(BinaryData::arrowupnarrow_svg, BinaryData::arrowupnarrow_svgSize);
+    pvf->sendUpArrow->setInterceptsMouseClicks(false, false);
+
+    pvf->recvDownArrow = Drawable::createFromImageData(BinaryData::arrowdownnarrow_svg, BinaryData::arrowdownnarrow_svgSize);
+    pvf->recvDownArrow->setInterceptsMouseClicks(false, false);
+
+    pvf->latUpArrow =   pvf->sendUpArrow->createCopy();
+    pvf->latUpArrow->setInterceptsMouseClicks(false, false);
+    pvf->latDownArrow = pvf->recvDownArrow->createCopy();
+    pvf->latDownArrow->setInterceptsMouseClicks(false, false);
 
 
     pvf->channelGroups = std::make_unique<ChannelGroupsView>(processor, true);
@@ -835,7 +866,8 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->recvOptionsButton.get());
         pvf->addAndMakeVisible(pvf->staticLatencyLabel.get());
         pvf->addAndMakeVisible(pvf->staticPingLabel.get());
-        pvf->addAndMakeVisible(pvf->latencyLabel.get());
+        pvf->addAndMakeVisible(pvf->latencyUpLabel.get());
+        pvf->addAndMakeVisible(pvf->latencyDownLabel.get());
         pvf->addAndMakeVisible(pvf->pingLabel.get());
 
         pvf->addAndMakeVisible(pvf->statusLabel.get());
@@ -870,16 +902,26 @@ void PeersContainerView::rebuildPeerViews()
         pvf->addAndMakeVisible(pvf->sendActualBitrateLabel.get());
         pvf->addAndMakeVisible(pvf->recvActualBitrateLabel.get());
 
+        pvf->addAndMakeVisible(pvf->sendUpArrow.get());
+        pvf->addAndMakeVisible(pvf->recvDownArrow.get());
+        pvf->addAndMakeVisible(pvf->latUpArrow.get());
+        pvf->addAndMakeVisible(pvf->latDownArrow.get());
+
         auto fullmode = pvf->fullMode;
 
         // visibility based on peerdisplay mode
         pvf->sendQualityLabel->setVisible(fullmode);
         pvf->bufferLabel->setVisible(fullmode);
         pvf->bufferMinFrontButton->setVisible(fullmode);
-        pvf->latencyLabel->setVisible(fullmode);
+        pvf->latencyUpLabel->setVisible(fullmode);
+        pvf->latencyDownLabel->setVisible(fullmode);
         pvf->latActiveButton->setVisible(fullmode);
         pvf->sendActualBitrateLabel->setVisible(fullmode);
         pvf->recvActualBitrateLabel->setVisible(fullmode);
+        pvf->sendUpArrow->setVisible(fullmode);
+        pvf->recvDownArrow->setVisible(fullmode);
+        pvf->latUpArrow->setVisible(fullmode);
+        pvf->latDownArrow->setVisible(fullmode);
         pvf->recvStatsBg->setVisible(fullmode);
         pvf->sendStatsBg->setVisible(fullmode);
         pvf->staticSendQualLabel->setVisible(fullmode);
@@ -1013,41 +1055,29 @@ void PeersContainerView::updateLayout()
         pvf->sendmeterbox.items.clear();
         pvf->sendmeterbox.flexDirection = FlexBox::Direction::row;
 
-      
-#if 0        
-        pvf->pingbox.items.clear();
-        pvf->pingbox.flexDirection = FlexBox::Direction::row;
-        pvf->pingbox.items.add(FlexItem(40, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0.5));
-        pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->pingLabel).withMargin(0).withFlex(0.5));
-
-        pvf->latencybox.items.clear();
-        pvf->latencybox.flexDirection = FlexBox::Direction::row;
-        pvf->latencybox.items.add(FlexItem(40, textheight, *pvf->staticLatencyLabel).withMargin(0).withFlex(0.5));
-        pvf->latencybox.items.add(FlexItem(20, textheight, *pvf->latencyLabel).withMargin(0).withFlex(0.5));
-
-        
-        pvf->netstatbox.items.clear();
-        pvf->netstatbox.flexDirection = FlexBox::Direction::column;
-        pvf->netstatbox.items.add(FlexItem(80, textheight, pvf->pingbox).withMargin(0).withFlex(0));
-        pvf->netstatbox.items.add(FlexItem(80, textheight, pvf->latencybox).withMargin(0).withFlex(0));
-#else
         pvf->pingbox.items.clear();
         pvf->pingbox.flexDirection = FlexBox::Direction::column;
         pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->staticPingLabel).withMargin(0).withFlex(0.5));
         pvf->pingbox.items.add(FlexItem(20, textheight, *pvf->pingLabel).withMargin(0).withFlex(0.5));
 
+        pvf->latencylabbox.items.clear();
+        pvf->latencylabbox.flexDirection = FlexBox::Direction::row;
+        pvf->latencylabbox.items.add(FlexItem(11, textheight).withFlex(0.2).withMargin(0));
+        pvf->latencylabbox.items.add(FlexItem(25, textheight, *pvf->latencyUpLabel).withMargin(0).withFlex(1));
+        pvf->latencylabbox.items.add(FlexItem(14, textheight).withFlex(0.0).withMargin(0));
+        pvf->latencylabbox.items.add(FlexItem(25, textheight, *pvf->latencyDownLabel).withMargin(0).withFlex(1));
+
         pvf->latencybox.items.clear();
         pvf->latencybox.flexDirection = FlexBox::Direction::column;
         pvf->latencybox.items.add(FlexItem(60, textheight, *pvf->staticLatencyLabel).withMargin(0).withFlex(0.5));
-        pvf->latencybox.items.add(FlexItem(60, textheight, *pvf->latencyLabel).withMargin(0).withFlex(0.5));
+        pvf->latencybox.items.add(FlexItem(60, textheight, pvf->latencylabbox).withMargin(0).withFlex(0.5));
 
         
         pvf->netstatbox.items.clear();
         pvf->netstatbox.flexDirection = FlexBox::Direction::row;
         pvf->netstatbox.items.add(FlexItem(60, textheight, pvf->latencybox).withMargin(0).withFlex(3));
         pvf->netstatbox.items.add(FlexItem(20, textheight, pvf->pingbox).withMargin(0).withFlex(1));
-#endif
-        
+
 
         if (isNarrow) {
             pvf->squalbox.items.clear();
@@ -1072,6 +1102,7 @@ void PeersContainerView::updateLayout()
             pvf->optionsstatbox.items.add(FlexItem(70, 2*textheight, pvf->squalbox).withMargin(0).withFlex(0));
             //pvf->optionsstatbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
             pvf->sendActualBitrateLabel->setVisible(false);
+            pvf->sendUpArrow->setVisible(false);
 
 
             pvf->recvstatbox.items.clear();
@@ -1081,6 +1112,7 @@ void PeersContainerView::updateLayout()
             pvf->recvstatbox.items.add(FlexItem(2, 10).withFlex(0));
             //pvf->recvstatbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(0));
             pvf->recvActualBitrateLabel->setVisible(false);
+            pvf->recvDownArrow->setVisible(false);
 
         }
         else {
@@ -1100,18 +1132,35 @@ void PeersContainerView::updateLayout()
             pvf->staticBufferLabel->setJustificationType(Justification::centredRight);
 
 
+            pvf->sendlabbox.items.clear();
+            pvf->sendlabbox.flexDirection = FlexBox::Direction::row;
+            pvf->sendlabbox.items.add(FlexItem(15, 10).withFlex(1));
+            pvf->sendlabbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(1));
+            pvf->sendlabbox.items.add(FlexItem(0, 10).withFlex(1));
+
+            pvf->recvlabbox.items.clear();
+            pvf->recvlabbox.flexDirection = FlexBox::Direction::row;
+            pvf->recvlabbox.items.add(FlexItem(15, 10).withFlex(1));
+            pvf->recvlabbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(1));
+            pvf->recvlabbox.items.add(FlexItem(0, 10).withFlex(1));
+
+
             pvf->optionsstatbox.items.clear();
             pvf->optionsstatbox.flexDirection = FlexBox::Direction::column;
             pvf->optionsstatbox.items.add(FlexItem(100, textheight, pvf->squalbox).withMargin(0).withFlex(0));
-            pvf->optionsstatbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
+            //pvf->optionsstatbox.items.add(FlexItem(76, textheight, *pvf->sendActualBitrateLabel).withMargin(0).withFlex(0));
+            pvf->optionsstatbox.items.add(FlexItem(90, textheight, pvf->sendlabbox).withMargin(0).withFlex(0));
             pvf->sendActualBitrateLabel->setVisible(true);
+            pvf->sendUpArrow->setVisible(true);
 
 
             pvf->recvstatbox.items.clear();
             pvf->recvstatbox.flexDirection = FlexBox::Direction::column;
             pvf->recvstatbox.items.add(FlexItem(100, textheight, pvf->netbufbox).withMargin(0).withFlex(0));
-            pvf->recvstatbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(0));
+            pvf->recvstatbox.items.add(FlexItem(115, textheight, pvf->recvlabbox).withMargin(0).withFlex(0));
+            // pvf->recvstatbox.items.add(FlexItem(100, textheight, *pvf->recvActualBitrateLabel).withMargin(0).withFlex(0));
             pvf->recvActualBitrateLabel->setVisible(true);
+            pvf->recvDownArrow->setVisible(true);
 
         }
 
@@ -1637,7 +1686,7 @@ void PeersContainerView::updatePeerViews(int specific)
         }
         else if (sendactive) {
             //sendtext += String::formatted("%Ld sent", processor.getRemotePeerPacketsSent(i) );
-            sendtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x91")); // up arrow
+            //sendtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x91")); // up arrow
             sendtext << String::formatted(" %.d kb/s", lrintf(sendrate * 8 * 1e-3) );
             pvf->sendActualBitrateLabel->setColour(Label::textColourId, regularTextColor);
         }
@@ -1655,8 +1704,8 @@ void PeersContainerView::updatePeerViews(int specific)
         processor.getRemotePeerReceiveAudioCodecFormat(i, recvfinfo);
 
         if (recvactive) {
-            recvtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x93 ")) // down arrow
-            << chcnt << "ch "
+            //recvtext << String(juce::CharPointer_UTF8 ("\xe2\x86\x93 ")) // down arrow
+            recvtext << chcnt << "ch "
             << recvfinfo.name
             << String::formatted(" | %d kb/s", lrintf(recvrate * 8 * 1e-3));
 
@@ -1709,21 +1758,20 @@ void PeersContainerView::updatePeerViews(int specific)
         
         if (latinfo.legacy && !latinfo.isreal) {
             if (pvf->stopLatencyTestTimestampMs > 0) {
-                pvf->latencyLabel->setText("****", dontSendNotification);
+                pvf->latencyUpLabel->setText("***", dontSendNotification);
             } else {
-                pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
+                pvf->latencyUpLabel->setText(TRANS("PRESS"), dontSendNotification);
             }
         } else {
-            //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : ""), dontSendNotification);
-            String latlab = juce::CharPointer_UTF8 ("\xe2\x86\x91"); // up arrow
-            latlab << " " << (int)lrintf(latinfo.outgoingMs) << "    ";
-            //latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")) << (int)lrintf(latinfo.incomingMs);
-            latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")); // down arrow
-            latlab << " " << (int)lrintf(latinfo.incomingMs) ;
-            ////<< " = " << String(juce::CharPointer_UTF8 ("\xe2\x86\x91\xe2\x86\x93")) << (int)lrintf(latinfo.totalRoundtripMs)
-            //latlab << (latinfo.estimated ? " *" : "");
-            
-            pvf->latencyLabel->setText(latlab, dontSendNotification);
+            String latlab; // = juce::CharPointer_UTF8 ("\xe2\x86\x91"); // up arrow
+            latlab << (int)lrintf(latinfo.outgoingMs);
+            //latlab  << "   |   ";
+            //latlab << String(juce::CharPointer_UTF8 ("\xe2\x86\x93")); // down arrow
+            String downlatlab;
+            downlatlab << (int)lrintf(latinfo.incomingMs) ;
+
+            pvf->latencyUpLabel->setText(latlab, dontSendNotification);
+            pvf->latencyDownLabel->setText(downlatlab, dontSendNotification);
         }
 
         pvf->latActiveButton->setToggleState(latactive, dontSendNotification);
@@ -1837,7 +1885,8 @@ void PeersContainerView::startLatencyTest(int di)
     pvf->wasRecvActiveAtLatencyTest = processor.getRemotePeerRecvActive(i);
     pvf->wasSendActiveAtLatencyTest = processor.getRemotePeerSendActive(i);
     
-    pvf->latencyLabel->setText("****", dontSendNotification);
+    pvf->latencyUpLabel->setText("***", dontSendNotification);
+    pvf->latencyDownLabel->setText("***", dontSendNotification);
 
     processor.startRemotePeerLatencyTest(i);             
 }
@@ -1857,7 +1906,8 @@ void PeersContainerView::stopLatencyTest(int di)
     processor.getRemotePeerLatencyInfo(i, latinfo);
         
     if (latinfo.legacy && !latinfo.isreal) {
-        pvf->latencyLabel->setText(TRANS("PRESS"), dontSendNotification);
+        pvf->latencyUpLabel->setText(TRANS("PRESS"), dontSendNotification);
+        pvf->latencyDownLabel->setText("", dontSendNotification);
     } else {
         //pvf->latencyLabel->setText(String::formatted("%d ms", (int)lrintf(latinfo.totalRoundtripMs)) + (latinfo.estimated ? "*" : "") , dontSendNotification);
         updatePeerViews(i);
