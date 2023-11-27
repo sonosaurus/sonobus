@@ -930,14 +930,19 @@ client_endpoint::client_endpoint(server &s, int sock, const ip_address &addr)
     }
 #endif
 
+#ifdef TCP_KEEPINTVL
     if (setsockopt (socket, IPPROTO_TCP, TCP_KEEPINTVL, (char*) &keepinterval, sizeof (keepinterval)) < 0){
         LOG_WARNING("client_endpoint: couldn't set SO_KEEPINTVL");
         // ignore
     }
+#endif
+
+#ifdef TCP_KEEPCNT
     if (setsockopt (socket, IPPROTO_TCP, TCP_KEEPCNT, (char*) &keepcnt, sizeof (keepcnt)) < 0){
         LOG_WARNING("client_endpoint: couldn't set SO_KEEPCNT");
         // ignore
     }
+#endif
 
 #ifdef TCP_USER_TIMEOUT
     int utimeout = (keepidle + keepinterval * keepcnt - 1) * 1000;
