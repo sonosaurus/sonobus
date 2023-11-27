@@ -1382,13 +1382,20 @@ void PeersContainerView::updateLayout()
         peersBox.items.add(FlexItem(ppw, ppheight + 5, *ppvf).withMargin(1).withFlex(0));
         peersheight += ppheight + 5;
     }
-    
+
+
+    // get total min height on peersbox
+    int totPeersHeight = 0;
+    for (auto & item : peersBox.items) {
+        totPeersHeight += item.minHeight + item.margin.top + item.margin.bottom;
+    }
+
     if (isNarrow) {
-        peersMinHeight = std::max(singleph*2 + 14,  peersheight);
+        peersMinHeight = totPeersHeight;
         peersMinWidth = 300;
     }
     else {
-        peersMinHeight = std::max(singleph + 11,  peersheight);
+        peersMinHeight = totPeersHeight;
         peersMinWidth = 180 + 150 + mincheckheight + 50;
     }
     
