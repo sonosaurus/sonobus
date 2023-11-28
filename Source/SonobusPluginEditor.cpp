@@ -26,7 +26,7 @@
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
 #include "juce_core/juce_core.h"
-#include "juce_core/native/juce_android_JNIHelpers.h"
+#include "juce_core/native/juce_JNIHelpers_android.h"
 #endif
 
 
@@ -3063,7 +3063,7 @@ void SonobusAudioProcessorEditor::showVDONinjaView(bool show)
         Component* dw = this;
 
 #if JUCE_IOS || JUCE_ANDROID
-        const int defWidth = 260;
+        const int defWidth = 320;
         const int defHeight = 250;
 #else
         const int defWidth = 500;
@@ -3075,7 +3075,7 @@ void SonobusAudioProcessorEditor::showVDONinjaView(bool show)
         }
 
 
-        int prefwidth = jmin(defWidth, dw->getWidth() - 30);
+        int prefwidth = jmin(defWidth, dw->getWidth() - 10);
         
         // size it once, then get min height out of it
         mVDONinjaView->setBounds(Rectangle<int>(0,0,prefwidth,defHeight));
@@ -3116,8 +3116,8 @@ void SonobusAudioProcessorEditor::showSuggestGroupView(bool show)
         Component* dw = this;
 
 #if JUCE_IOS || JUCE_ANDROID
-        const int defWidth = 260;
-        const int defHeight = 300;
+        const int defWidth = 280;
+        const int defHeight = 360;
 #else
         const int defWidth = 260;
         const int defHeight = 360;

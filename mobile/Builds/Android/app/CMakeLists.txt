@@ -14,7 +14,7 @@ add_subdirectory (${OBOE_DIR} ./oboe)
 add_library("cpufeatures" STATIC "${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c")
 set_source_files_properties("${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c" PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-gnu-statement-expression")
 
-add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.6.3]] [[-DJUCE_APP_VERSION_HEX=0x10603]])
+add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCE_CONTENT_SHARING=1]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.7.0]] [[-DJUCE_APP_VERSION_HEX=0x10700]])
 
 include_directories( AFTER
     "../../../JuceLibraryCode"
@@ -30,7 +30,7 @@ if(JUCE_BUILD_CONFIGURATION MATCHES "DEBUG")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.6.3]] [[-DJUCE_APP_VERSION_HEX=0x10603]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DLOGLEVEL=2]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.7.0]] [[-DJUCE_APP_VERSION_HEX=0x10700]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -47,7 +47,7 @@ elseif(JUCE_BUILD_CONFIGURATION MATCHES "RELEASE")
         "../../../../deps/android/${ANDROID_ABI}"
     )
 
-    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.6.3]] [[-DJUCE_APP_VERSION_HEX=0x10603]] [[-DNDEBUG=1]])
+    add_definitions([[-DJUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1]] [[-DUSE_CODEC_OPUS=1]] [[-DAOO_TIMEFILTER_CHECK=0]] [[-DAOO_STATIC]] [[-DJUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE=0]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSNAME="com_sonosaurus_sonobus_SonoBusActivity"]] [[-DJUCE_ANDROID_ACTIVITY_OVERRIDE_CLASSPATH="com/sonosaurus/sonobus/SonoBusActivity"]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=1.7.0]] [[-DJUCE_APP_VERSION_HEX=0x10700]] [[-DNDEBUG=1]])
     include_directories( AFTER
         "../../../../deps/aoo/lib"
         "../../../../deps/aoo/deps"
@@ -120,6 +120,8 @@ add_library( ${BINARY_NAME}
     "../../../../localization/localized_pt-br.txt"
     "../../../../localization/localized_pt-pt.txt"
     "../../../../localization/localized_ru.txt"
+    "../../../../images/arrow-down-narrow.svg"
+    "../../../../images/arrow-up-narrow.svg"
     "../../../../images/bar_click.wav"
     "../../../../images/beat_click.wav"
     "../../../../images/chat.svg"
@@ -128,7 +130,6 @@ add_library( ${BINARY_NAME}
     "../../../../images/chevron_forward.svg"
     "../../../../images/continue.svg"
     "../../../../images/copy_icon.svg"
-    "../../../../Source/DejaVuSans.ttf"
     "../../../../images/dice_icon_128.png"
     "../../../../images/dispfull.svg"
     "../../../../images/dispminimal.svg"
@@ -140,6 +141,7 @@ add_library( ${BINARY_NAME}
     "../../../../images/eye.svg"
     "../../../../images/eyedropper.svg"
     "../../../../images/folder_icon.svg"
+    "../../../../Source/GoNotoKurrent-Regular.ttf"
     "../../../../images/hear-others.svg"
     "../../../../images/hold.svg"
     "../../../../images/incoming_allowed.svg"
@@ -270,6 +272,8 @@ add_library( ${BINARY_NAME}
     "../../../../Source/SonobusPluginProcessor.cpp"
     "../../../../Source/SonobusPluginProcessor.h"
     "../../../../Source/SonobusTypes.h"
+    "../../../../Source/SonoCallOutBox.cpp"
+    "../../../../Source/SonoCallOutBox.h"
     "../../../../Source/SonoChoiceButton.cpp"
     "../../../../Source/SonoChoiceButton.h"
     "../../../../Source/SonoDrawableButton.cpp"
@@ -298,6 +302,8 @@ add_library( ${BINARY_NAME}
     "../../../../Source/SoundboardView.h"
     "../../../../Source/SoundSampleButtonColourPicker.cpp"
     "../../../../Source/SoundSampleButtonColourPicker.h"
+    "../../../../Source/SuggestNewGroupView.cpp"
+    "../../../../Source/SuggestNewGroupView.h"
     "../../../../Source/VDONinjaView.h"
     "../../../../Source/VersionInfo.cpp"
     "../../../../Source/VersionInfo.h"
@@ -2271,6 +2277,7 @@ add_library( ${BINARY_NAME}
     "../../../JuceLibraryCode/AppConfig.h"
     "../../../JuceLibraryCode/BinaryData.cpp"
     "../../../JuceLibraryCode/BinaryData.h"
+    "../../../JuceLibraryCode/BinaryData2.cpp"
     "../../../JuceLibraryCode/include_ff_meters.cpp"
     "../../../JuceLibraryCode/include_juce_audio_basics.cpp"
     "../../../JuceLibraryCode/include_juce_audio_devices.cpp"
@@ -2333,6 +2340,8 @@ set_source_files_properties(
     "../../../../localization/localized_pt-br.txt"
     "../../../../localization/localized_pt-pt.txt"
     "../../../../localization/localized_ru.txt"
+    "../../../../images/arrow-down-narrow.svg"
+    "../../../../images/arrow-up-narrow.svg"
     "../../../../images/bar_click.wav"
     "../../../../images/beat_click.wav"
     "../../../../images/chat.svg"
@@ -2341,7 +2350,6 @@ set_source_files_properties(
     "../../../../images/chevron_forward.svg"
     "../../../../images/continue.svg"
     "../../../../images/copy_icon.svg"
-    "../../../../Source/DejaVuSans.ttf"
     "../../../../images/dice_icon_128.png"
     "../../../../images/dispfull.svg"
     "../../../../images/dispminimal.svg"
@@ -2353,6 +2361,7 @@ set_source_files_properties(
     "../../../../images/eye.svg"
     "../../../../images/eyedropper.svg"
     "../../../../images/folder_icon.svg"
+    "../../../../Source/GoNotoKurrent-Regular.ttf"
     "../../../../images/hear-others.svg"
     "../../../../images/hold.svg"
     "../../../../images/incoming_allowed.svg"
@@ -2460,6 +2469,7 @@ set_source_files_properties(
     "../../../../Source/SonobusPluginEditor.h"
     "../../../../Source/SonobusPluginProcessor.h"
     "../../../../Source/SonobusTypes.h"
+    "../../../../Source/SonoCallOutBox.h"
     "../../../../Source/SonoChoiceButton.h"
     "../../../../Source/SonoDrawableButton.h"
     "../../../../Source/SonoLookAndFeel.h"
@@ -2475,6 +2485,7 @@ set_source_files_properties(
     "../../../../Source/SoundboardProcessor.h"
     "../../../../Source/SoundboardView.h"
     "../../../../Source/SoundSampleButtonColourPicker.h"
+    "../../../../Source/SuggestNewGroupView.h"
     "../../../../Source/VDONinjaView.h"
     "../../../../Source/VersionInfo.h"
     "../../../../Source/WaveformTransportComponent.h"

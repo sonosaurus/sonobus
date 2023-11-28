@@ -9,34 +9,40 @@
 namespace BinaryData
 {
     extern const char*   localized_de_txt;
-    const int            localized_de_txtSize = 41259;
+    const int            localized_de_txtSize = 47609;
 
     extern const char*   localized_es_txt;
-    const int            localized_es_txtSize = 40860;
+    const int            localized_es_txtSize = 47146;
 
     extern const char*   localized_fr_txt;
-    const int            localized_fr_txtSize = 42503;
+    const int            localized_fr_txtSize = 49040;
 
     extern const char*   localized_it_txt;
-    const int            localized_it_txtSize = 41319;
+    const int            localized_it_txtSize = 47674;
 
     extern const char*   localized_ja_txt;
-    const int            localized_ja_txtSize = 45488;
+    const int            localized_ja_txtSize = 52698;
 
     extern const char*   localized_ko_txt;
-    const int            localized_ko_txtSize = 41451;
+    const int            localized_ko_txtSize = 47681;
 
     extern const char*   localized_nl_txt;
-    const int            localized_nl_txtSize = 38897;
+    const int            localized_nl_txtSize = 45021;
 
     extern const char*   localized_ptbr_txt;
-    const int            localized_ptbr_txtSize = 40612;
+    const int            localized_ptbr_txtSize = 46741;
 
     extern const char*   localized_ptpt_txt;
-    const int            localized_ptpt_txtSize = 40509;
+    const int            localized_ptpt_txtSize = 47118;
 
     extern const char*   localized_ru_txt;
-    const int            localized_ru_txtSize = 54011;
+    const int            localized_ru_txtSize = 62579;
+
+    extern const char*   arrowdownnarrow_svg;
+    const int            arrowdownnarrow_svgSize = 2153;
+
+    extern const char*   arrowupnarrow_svg;
+    const int            arrowupnarrow_svgSize = 2247;
 
     extern const char*   bar_click_wav;
     const int            bar_click_wavSize = 2846;
@@ -61,9 +67,6 @@ namespace BinaryData
 
     extern const char*   copy_icon_svg;
     const int            copy_icon_svgSize = 2218;
-
-    extern const char*   DejaVuSans_ttf;
-    const int            DejaVuSans_ttfSize = 757076;
 
     extern const char*   dice_icon_128_png;
     const int            dice_icon_128_pngSize = 3793;
@@ -97,6 +100,9 @@ namespace BinaryData
 
     extern const char*   folder_icon_svg;
     const int            folder_icon_svgSize = 4871;
+
+    extern const char*   GoNotoKurrentRegular_ttf;
+    const int            GoNotoKurrentRegular_ttfSize = 15515760;
 
     extern const char*   hearothers_svg;
     const int            hearothers_svgSize = 9200;
@@ -297,7 +303,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 96;
+    const int namedResourceListSize = 98;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

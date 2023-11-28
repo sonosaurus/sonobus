@@ -63,7 +63,7 @@ extern juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
 #include "android/SonoBusActivity.h"
 
 #if JUCE_USE_ANDROID_OPENSLES || JUCE_USE_ANDROID_OBOE
- #include "juce_audio_devices/native/juce_android_HighPerformanceAudioHelpers.h"
+  #include "juce_audio_devices/native/juce_HighPerformanceAudioHelpers_android.h"
 #endif
 
 #endif

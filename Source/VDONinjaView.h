@@ -207,6 +207,8 @@ public:
         minitemheight = 40;
         knobitemheight = 80;
         headerheight = 50;
+        smallbuttwidth = 70;
+        smalltoggwidth = 50;
 #endif
 
         const auto & state = processor.getVideoLinkInfo();
