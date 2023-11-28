@@ -1,5 +1,5 @@
 name: sonobus
-base: core20
+base: core22
 adopt-info: sonobus
 summary: SonoBus
 description: |
