@@ -7,8 +7,11 @@
 //#include "ConfigurationRowView.h"
 #include "SonoTextButton.h"
 
-
+#if JUCE_ANDROID
+float SonoLookAndFeel::fontScale = 1.0f;
+#else
 float SonoLookAndFeel::fontScale = 1.2f;
+#endif
 
 //==============================================================================
 
