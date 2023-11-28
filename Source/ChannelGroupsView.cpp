@@ -1066,7 +1066,7 @@ void ChannelGroupsView::configLabel(Label *label, int ltype)
         label->setMinimumHorizontalScale(0.3);
     }
     else if (ltype == LabelTypeSmall) {
-        label->setFont(12);
+        label->setFont(12 );
         label->setColour(Label::textColourId, regularTextColor);
         label->setJustificationType(Justification::centredRight);
         label->setMinimumHorizontalScale(0.3);
@@ -1166,7 +1166,7 @@ void ChannelGroupsView::showPopTip(const String & message, int timeoutMs, Compon
     AttributedString text(message);
     text.setJustification (Justification::centred);
     text.setColour (findColour (TextButton::textColourOffId));
-    text.setFont(Font(12));
+    text.setFont(Font(12* SonoLookAndFeel::getFontScale()));
     if (target) {
         popTip->showAt(target, text, timeoutMs);
     }
@@ -1203,7 +1203,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->nameLabel->setFont(15);
 
     pvf->nameEditor = std::make_unique<TextEditor>("name");
-    pvf->nameEditor->setFont(15);
+    pvf->nameEditor->setFont(15 * SonoLookAndFeel::getFontScale());
     //pvf->nameEditor->setReadOnly(mPeerMode);
     auto edcb = [this,pvf]() {
         auto changroup = pvf->group;
@@ -1298,7 +1298,7 @@ ChannelGroupView * ChannelGroupsView::createChannelGroupView(bool first)
     pvf->levelSlider->setLookAndFeel(&pvf->sonoSliderLNF);
 
     pvf->monitorSlider     = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
-    pvf->monitorSlider->setName("level");
+    pvf->monitorSlider->setName("monitor");
     pvf->monitorSlider->addListener(this);
 
     configLevelSlider(pvf->monitorSlider.get(), true);

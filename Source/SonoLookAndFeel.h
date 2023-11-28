@@ -101,14 +101,21 @@ public:
     void drawLabel (Graphics& g, Label& label) override;
     
     PopupMenu::Options getOptionsForComboBoxPopupMenu (ComboBox&, Label&) override;
+    Font getComboBoxFont (ComboBox&) override;
+    Font getPopupMenuFont() override;
+    void drawPopupMenuBackground (Graphics& g, [[maybe_unused]] int width, [[maybe_unused]] int height) override;
+  
+    void drawTooltip (Graphics& g, const String& text, int width, int height) override;
+
 
     Justification sliderTextJustification = Justification::centred;
 
+    static float getFontScale() { return fontScale; }
     
 protected:
     
     Font myFont;
-    float fontScale;
+    static float fontScale;
     
     float labelCornerRadius = 4.0f;
     String languageCode;

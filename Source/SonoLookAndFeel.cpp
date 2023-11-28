@@ -7,7 +7,28 @@
 //#include "ConfigurationRowView.h"
 #include "SonoTextButton.h"
 
+#if JUCE_ANDROID
+float SonoLookAndFeel::fontScale = 1.0f;
+#else
+float SonoLookAndFeel::fontScale = 1.2f;
+#endif
+
 //==============================================================================
+
+static TextLayout sonoLayoutTooltipText (const String& text, Colour colour) noexcept
+{
+    const float tooltipFontSize = 13.0f;
+    const int maxToolTipWidth = 400;
+
+    AttributedString s;
+    s.setJustification (Justification::centred);
+    s.append (text, Font (tooltipFontSize, Font::bold), colour);
+
+    TextLayout tl;
+    tl.createLayoutWithBalancedLineLengths (s, (float) maxToolTipWidth);
+    return tl;
+}
+
 SonoLookAndFeel::SonoLookAndFeel()
 {
     // setColour (mainBackgroundColourId, Colour::greyLevel (0.8f));
@@ -15,11 +36,11 @@ SonoLookAndFeel::SonoLookAndFeel()
     
     setUsingNativeAlertWindows(true);
 
-    fontScale = 1.0;
+    //fontScale = 1.2; // 1.125;
     
 
     setColourScheme(getDarkColourScheme());
-    
+
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::windowBackground, Colour::fromFloatRGBA(0.0, 0.0, 0.0, 1.0));
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0));
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::outline, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
@@ -128,12 +149,14 @@ void SonoLookAndFeel::setLanguageCode(const String & lang)
 {
     languageCode = lang;
 
+    /*
     if (lang.startsWith("zh")) {
         fontScale = 1.0f;
     }
     else if (lang.startsWith("ko")) {
         fontScale = 1.15f;
     }
+     */
 }
 
 Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
@@ -148,7 +171,8 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         }
         
         String slang = lang.initialSectionNotContaining("_").toLowerCase();
-        
+
+#if 0
         if (slang.startsWith("ja")) {
             DBG("Using japanese");
             Font jfont(font);
@@ -189,10 +213,14 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 #endif
             return Typeface::createSystemTypefaceFor (jfont);            
         }
-        else {
+        else
+#endif
+        {
             DBG("Creating custom typeface!!");
             
-            return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+            //return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+            //return Typeface::createSystemTypefaceFor (BinaryData::InterUnicode_ttf, BinaryData::InterUnicode_ttfSize);
+            return Typeface::createSystemTypefaceFor (BinaryData::GoNotoKurrentRegular_ttf, BinaryData::GoNotoKurrentRegular_ttfSize);
         }
     }
     return LookAndFeel_V4::getTypefaceForFont(font);
@@ -201,9 +229,25 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 #if 1
 
 
+//==============================================================================
+void SonoLookAndFeel::drawTooltip (Graphics& g, const String& text, int width, int height)
+{
+    Rectangle<int> bounds (width, height);
+    auto cornerSize = 5.0f;
+
+    g.setColour (findColour (TooltipWindow::backgroundColourId));
+    g.fillRoundedRectangle (bounds.toFloat(), cornerSize);
+
+    g.setColour (findColour (TooltipWindow::outlineColourId));
+    g.drawRoundedRectangle (bounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
+
+    sonoLayoutTooltipText (text, findColour (TooltipWindow::textColourId))
+        .draw (g, { static_cast<float> (width), static_cast<float> (height) });
+}
+
 Font SonoLookAndFeel::getMenuBarFont (MenuBarComponent& menuBar, int /*itemIndex*/, const String& /*itemText*/)
 {
-    return Font (menuBar.getHeight() * 0.7f);
+    return Font (menuBar.getHeight() * 0.7f * fontScale);
 }
 
 //==============================================================================
@@ -641,7 +685,7 @@ Label* SonoLookAndFeel::createSliderTextBox (Slider& slider)
 {
     Label * lab = LookAndFeel_V4::createSliderTextBox(slider);
     lab->setKeyboardType(TextInputTarget::decimalKeyboard);
-    lab->setFont(myFont.withHeight(16.0* fontScale));
+    lab->setFont(myFont.withHeight(14.0));
     lab->setMinimumHorizontalScale(0.5);
     lab->setJustificationType(Justification::centredRight);
     return lab;
@@ -821,6 +865,25 @@ void SonoLookAndFeel::layoutFileBrowserComponent (FileBrowserComponent& browserC
     filenameBox->setBounds (x + 50, y, w - 50, controlsHeight);
 }
 
+Font SonoLookAndFeel::getComboBoxFont (ComboBox& box)
+{
+    return { jmin (16.0f, (float) box.getHeight() * 0.9f) };
+}
+
+Font SonoLookAndFeel::getPopupMenuFont()
+{
+    return Font (17.0f * fontScale);
+}
+
+void SonoLookAndFeel::drawPopupMenuBackground (Graphics& g, [[maybe_unused]] int width, [[maybe_unused]] int height)
+{
+    g.fillAll (findColour (PopupMenu::backgroundColourId));
+
+   #if ! JUCE_MAC
+    g.setColour (findColour (PopupMenu::textColourId).brighter(0.1f).withAlpha(0.1f));
+    g.drawRect (0, 0, width, height);
+   #endif
+}
 
 PopupMenu::Options SonoLookAndFeel::getOptionsForComboBoxPopupMenu (ComboBox& box, Label& label)
 {
@@ -1326,7 +1389,7 @@ Label* SonoBigTextLookAndFeel::createSliderTextBox (Slider& slider)
 {
     Label * lab = LookAndFeel_V4::createSliderTextBox(slider);
     lab->setKeyboardType(TextInputTarget::decimalKeyboard);
-    lab->setFont(myFont.withHeight(maxSize * fontScale));
+    lab->setFont(myFont.withHeight(maxSize));
     lab->setJustificationType(textJustification);
     lab->setMinimumHorizontalScale(0.5);
 
@@ -1395,7 +1458,7 @@ Label* SonoPanSliderLookAndFeel::createSliderTextBox (Slider& slider)
 {
     Label * lab = LookAndFeel_V4::createSliderTextBox(slider);
     lab->setKeyboardType(TextInputTarget::decimalKeyboard);
-    lab->setFont(myFont.withHeight(maxSize * fontScale));
+    lab->setFont(myFont.withHeight(maxSize));
     lab->setJustificationType(textJustification);
     lab->setMinimumHorizontalScale(0.5);
 
@@ -1421,7 +1484,7 @@ int SonoPanSliderLookAndFeel::getSliderThumbRadius (Slider& slider)
 
 Font SonoPanSliderLookAndFeel::getSliderPopupFont (Slider&)
 {
-    return Font (maxSize, Font::bold);
+    return Font (maxSize * fontScale, Font::bold);
 }
 
 int SonoPanSliderLookAndFeel::getSliderPopupPlacement (Slider&)

@@ -479,6 +479,16 @@ public:
        #endif
     }
 
+    /** Parses this string as a 64-bit unsigned integer. */
+    uint64 getUIntValue64() const noexcept
+    {
+       #if JUCE_WINDOWS && ! JUCE_MINGW
+        return _strtoui64 (data, nullptr, 0);
+       #else
+        return strtoull (data, nullptr, 0);
+       #endif
+    }
+    
     /** Parses this string as a floating point double. */
     double getDoubleValue() const noexcept                      { return CharacterFunctions::getDoubleValue (*this); }
 

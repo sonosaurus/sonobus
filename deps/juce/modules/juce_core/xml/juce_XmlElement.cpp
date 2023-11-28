@@ -579,7 +579,7 @@ int XmlElement::getIntAttribute (StringRef attributeName, const int defaultRetur
 uint64 XmlElement::getUInt64Attribute (StringRef attributeName, const uint64 defaultReturnValue) const
 {
     if (auto* att = getAttribute (attributeName))
-        return (uint64) att->value.getLargeIntValue();
+        return att->value.getUnsignedLargeIntValue();
 
     return defaultReturnValue;
 }
@@ -1008,7 +1008,7 @@ void XmlElement::deleteAllTextElements() noexcept
 //==============================================================================
 #if JUCE_UNIT_TESTS
 
-class XmlElementTests  : public UnitTest
+class XmlElementTests final : public UnitTest
 {
 public:
     XmlElementTests()

@@ -6,7 +6,7 @@
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
 #include "juce_core/juce_core.h"
-#include "juce_core/native/juce_android_JNIHelpers.h"
+#include "juce_core/native/juce_JNIHelpers_android.h"
 #endif
 
 using namespace SonoAudio;
@@ -50,14 +50,17 @@ void OptionsView::initializeLanguages()
     languages.add(TRANS("Portuguese (Brazil)"));  languagesNative.add(CharPointer_UTF8 ("Portugu\xc3\xaas (Brasil)")); codes.add("pt-br");
     languages.add(TRANS("Dutch"));  languagesNative.add("Nederlands"); codes.add("nl");
 
-    //languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
-    languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
+    languages.add(TRANS("Japanese")); languagesNative.add(CharPointer_UTF8 ("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")); codes.add("ja");
+    //languages.add(TRANS("Japanese")); languagesNative.add("Japanese"); codes.add("ja"); // TODO fix and use above when we have a font that can display this all the time
 
-    languages.add(TRANS("Korean")); languagesNative.add("Korean"); codes.add("ko"); // TODO fix and use above when we have a font that can display this all the time
+    languages.add(TRANS("Korean")); languagesNative.add(juce::CharPointer_UTF8 ("\xed\x95\x9c\xea\xb5\xad\xec\x9d\xb8")); codes.add("ko");
+
+    //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add("Chinese (Simplified)"); codes.add("zh-hans");
+    languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh-hans");
+    //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh-hant");
+
     languages.add(TRANS("Russian"));  languagesNative.add(juce::CharPointer_UTF8 ("p\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9")); codes.add("ru");
 
-    //languages.add(TRANS("Chinese (Simplified)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xae\x80\xe4\xbd\x93\xef\xbc\x89")); codes.add("zh_hans");
-    //languages.add(TRANS("Chinese (Traditional)")); languagesNative.add(CharPointer_UTF8 ("\xe4\xb8\xad\xe6\x96\x87\xef\xbc\x88\xe7\xb9\x81\xe9\xab\x94\xef\xbc\x89")); codes.add("zh_hant");
 
     // TOOD - parse any user files with localized_%s.txt in our settings folder and add as options if not existing already
 
@@ -197,6 +200,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsRecSelfPostFxButton = std::make_unique<ToggleButton>(TRANS("Record yourself including input FX"));
     mOptionsRecSelfPostFxButton->addListener(this);
 
+    mOptionsRecSelfSilenceMutedButton = std::make_unique<ToggleButton>(TRANS("Silence self recording when input is muted"));
+    mOptionsRecSelfSilenceMutedButton->addListener(this);
+
 
     mRecFormatChoice = std::make_unique<SonoChoiceButton>();
     mRecFormatChoice->addChoiceListener(this);
@@ -264,7 +270,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mOptionsUdpPortEditor = std::make_unique<TextEditor>("udp");
     mOptionsUdpPortEditor->addListener(this);
-    mOptionsUdpPortEditor->setFont(Font(16));
+    mOptionsUdpPortEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mOptionsUdpPortEditor->setText(""); // 100.36.128.246:11000
     mOptionsUdpPortEditor->setKeyboardType(TextEditor::numericKeyboard);
     mOptionsUdpPortEditor->setInputRestrictions(5, "0123456789");
@@ -331,11 +337,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     
 
-#if JUCE_IOS
-    mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + String(SONOBUS_BUILD_VERSION)); // temporary
-#else
     mVersionLabel = std::make_unique<Label>("", TRANS("Version: ") + ProjectInfo::versionString);
-#endif
     configLabel(mVersionLabel.get(), true);
     mVersionLabel->setJustificationType(Justification::centredRight);
 
@@ -388,6 +390,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecMixMinusButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecOthersButton.get());
     mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfPostFxButton.get());
+    mRecOptionsComponent->addAndMakeVisible(mOptionsRecSelfSilenceMutedButton.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecBitsChoice.get());
     mRecOptionsComponent->addAndMakeVisible(mRecFormatStaticLabel.get());
@@ -626,6 +629,7 @@ void OptionsView::updateState(bool ignorecheck)
     mOptionsRecSelfButton->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, dontSendNotification);
 
     mOptionsRecSelfPostFxButton->setToggleState(!processor.getSelfRecordingPreFX(), dontSendNotification);
+    mOptionsRecSelfSilenceMutedButton->setToggleState(processor.getSelfRecordingSilenceWhenMuted(), dontSendNotification);
 
     mOptionsRecFinishOpenButton->setToggleState(processor.getRecordFinishOpens(), dontSendNotification);
 
@@ -873,6 +877,11 @@ void OptionsView::updateLayout()
     optionsRecordSelfPostFxBox.items.add(FlexItem(10, 12));
     optionsRecordSelfPostFxBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfPostFxButton).withMargin(0).withFlex(1));
 
+    optionsRecordSilentSelfMuteBox.items.clear();
+    optionsRecordSilentSelfMuteBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordSilentSelfMuteBox.items.add(FlexItem(10, 12));
+    optionsRecordSilentSelfMuteBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecSelfSilenceMutedButton).withMargin(0).withFlex(1));
+
     optionsRecordFinishBox.items.clear();
     optionsRecordFinishBox.flexDirection = FlexBox::Direction::row;
     optionsRecordFinishBox.items.add(FlexItem(10, 12));
@@ -896,6 +905,7 @@ void OptionsView::updateLayout()
     recOptionsBox.items.add(FlexItem(4, 4));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsMetRecordBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSelfPostFxBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSilentSelfMuteBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordFinishBox).withMargin(2).withFlex(0));
     minRecOptionsHeight = 0;
     for (auto & item : recOptionsBox.items) {
@@ -1075,6 +1085,9 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
     else if (buttonThatWasClicked == mOptionsRecSelfPostFxButton.get()) {
         processor.setSelfRecordingPreFX(!mOptionsRecSelfPostFxButton->getToggleState());
     }
+    else if (buttonThatWasClicked == mOptionsRecSelfSilenceMutedButton.get()) {
+        processor.setSelfRecordingSilenceWhenMuted(mOptionsRecSelfSilenceMutedButton->getToggleState());
+    }
     else if (buttonThatWasClicked == mOptionsRecFinishOpenButton.get()) {
         processor.setRecordFinishOpens(mOptionsRecFinishOpenButton->getToggleState());
     }
@@ -1207,69 +1220,63 @@ void OptionsView::chooseRecDirBrowser()
 {
     SafePointer<OptionsView> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir;
-        if (processor.getDefaultRecordingDirectory().isLocalFile()) {
-            recdir = processor.getDefaultRecordingDirectory().getLocalFile();
-        }
+    File recdir;
+    if (processor.getDefaultRecordingDirectory().isLocalFile()) {
+        recdir = processor.getDefaultRecordingDirectory().getLocalFile();
+    }
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
-                                           recdir,
-                                           "",
-                                           true, false, getTopLevelComponent()));
+    mFileChooser.reset(new FileChooser(TRANS("Choose the folder for new recordings"),
+                                       recdir,
+                                       "",
+                                       true, false, getTopLevelComponent()));
 
 
-        int modes = FileBrowserComponent::canSelectDirectories | FileBrowserComponent::openMode;
-        mFileChooser->launchAsync (modes,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
+    int modes = FileBrowserComponent::canSelectDirectories | FileBrowserComponent::openMode;
+    mFileChooser->launchAsync (modes,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
 
-                DBG("Chose directory: " <<  url.toString(false));
+            DBG("Chose directory: " <<  url.toString(false));
 
 #if JUCE_ANDROID
-                auto docdir = AndroidDocument::fromTree(url);
-                if (!docdir.hasValue()) {
-                    docdir = AndroidDocument::fromFile(url.getLocalFile());
+            auto docdir = AndroidDocument::fromTree(url);
+            if (!docdir.hasValue()) {
+                docdir = AndroidDocument::fromFile(url.getLocalFile());
+            }
+            
+            if (docdir.hasValue()) {
+                AndroidDocumentPermission::takePersistentReadWriteAccess(url);
+                if (docdir.getInfo().isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
                 }
-                
-                if (docdir.hasValue()) {
-                    AndroidDocumentPermission::takePersistentReadWriteAccess(url);
-                    if (docdir.getInfo().isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    }
-                }
+            }
 #else
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-                    if (lfile.isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    } else {
-                        auto parurl = URL(lfile.getParentDirectory());
-                        safeThis->processor.setDefaultRecordingDirectory(parurl);
-                    }
-
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+                if (lfile.isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
+                } else {
+                    auto parurl = URL(lfile.getParentDirectory());
+                    safeThis->processor.setDefaultRecordingDirectory(parurl);
                 }
+
+            }
 #endif
 
-                safeThis->updateState();
+            safeThis->updateState();
 
-            }
+        }
 
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-        }, nullptr);
+    }, nullptr);
 
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
 }
 
 
@@ -1293,7 +1300,7 @@ void OptionsView::showPopTip(const String & message, int timeoutMs, Component * 
     AttributedString text(message);
     text.setJustification (Justification::centred);
     text.setColour (findColour (TextButton::textColourOffId));
-    text.setFont(Font(12));
+    text.setFont(Font(12 * SonoLookAndFeel::getFontScale()));
     if (target) {
         popTip->showAt(target, text, timeoutMs);
     }

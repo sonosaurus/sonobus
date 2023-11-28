@@ -67,7 +67,8 @@ public:
     std::unique_ptr<Component> recvOptionsContainer;
 
     std::unique_ptr<Label>  staticLatencyLabel;
-    std::unique_ptr<Label>  latencyLabel;
+    std::unique_ptr<Label>  latencyUpLabel;
+    std::unique_ptr<Label>  latencyDownLabel;
     std::unique_ptr<Label>  staticPingLabel;
     std::unique_ptr<Label>  pingLabel;
 
@@ -82,6 +83,13 @@ public:
 
     std::unique_ptr<Label>  sendActualBitrateLabel;
     std::unique_ptr<Label>  recvActualBitrateLabel;
+
+    std::unique_ptr<Drawable>  sendUpArrow;
+    std::unique_ptr<Drawable>  recvDownArrow;
+
+    std::unique_ptr<Drawable>  latUpArrow;
+    std::unique_ptr<Drawable>  latDownArrow;
+
 
     double fillRatio = 0.0;
     std::unique_ptr<JitterBufferMeter> jitterBufferMeter;
@@ -111,7 +119,8 @@ public:
     FlexBox latencybox;
     FlexBox recvlevelbox;
     FlexBox pannerbox;
-    
+    FlexBox latencylabbox;
+
     FlexBox recvOptionsBox;
     FlexBox optionsNetbufBox;
     FlexBox optionsstatbox;
@@ -130,7 +139,10 @@ public:
     FlexBox squalbox;
     FlexBox netbufbox;
     FlexBox recvstatbox;
-    
+
+    FlexBox sendlabbox;
+    FlexBox recvlabbox;
+
     int64_t lastBytesRecv = 0;
     int64_t lastBytesSent = 0;
 

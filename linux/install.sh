@@ -39,5 +39,13 @@ if [ -d ${INSTBUILDDIR}/VST3/SonoBusInstrument.vst3 ] ; then
   echo "SonoBus VST3i plugin installed"
 fi
 
+if [ -d ${BUILDDIR}/LV2/SonoBus.lv2 ] ; then
+  mkdir -p ${PREFIX}/lib/lv2
+  cp -a ${BUILDDIR}/LV2/SonoBus.lv2 ${PREFIX}/lib/lv2/
+
+  echo "SonoBus LV2 plugin installed"
+fi
+
+
 echo "SonoBus application installed"
 

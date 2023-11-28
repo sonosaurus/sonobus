@@ -19,13 +19,14 @@
 #include "SoundboardView.h"
 #include "AutoUpdater.h"
 #include "LatencyMatchView.h"
-
+#include "SuggestNewGroupView.h"
+#include "SonoCallOutBox.h"
 #include <sstream>
 
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
 #include "juce_core/juce_core.h"
-#include "juce_core/native/juce_android_JNIHelpers.h"
+#include "juce_core/native/juce_JNIHelpers_android.h"
 #endif
 
 
@@ -761,7 +762,12 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMainLinkButton->setTitle(TRANS("Group Action Menu"));
     mMainLinkButton->addListener(this);
     mMainLinkButton->setTooltip(TRANS("Press for group action menu"));
-    
+
+    mMainLinkArrow = Drawable::createFromImageData(BinaryData::triangle_disclosure_svg, BinaryData::triangle_disclosure_svgSize);
+    mMainLinkArrow->setInterceptsMouseClicks(false, false);
+    mMainLinkArrow->setAlpha(0.7f);
+
+
     mPeerContainer = std::make_unique<PeersContainerView>(processor);
     mPeerContainer->addListener(this);
     mPeerContainer->setFocusContainerType(FocusContainerType::focusContainer);
@@ -820,7 +826,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     File supportDir = processor.getSupportDir();
 
     // Soundboard
-    mSoundboardView = std::make_unique<SoundboardView>(processor.getSoundboardProcessor(), supportDir);
+    mSoundboardView = std::make_unique<SoundboardView>(processor, processor.getSoundboardProcessor(), supportDir);
     mSoundboardView->setVisible(false);
     mSoundboardView->addComponentListener(this);
     mSoundboardView->onOpenSample = [this](const SoundSample& sample) {
@@ -865,6 +871,14 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mEffectsButton->setLookAndFeel(&smallLNF);
     mEffectsButton->addListener(this);
     mEffectsButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
+
+    mBufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::reset_buffer_icon_svg, BinaryData::reset_buffer_icon_svgSize));
+    mBufferMinButton->setImages(backimg.get());
+    mBufferMinButton->addListener(this);
+    mBufferMinButton->setTooltip(TRANS("Resets jitter buffer to the minimum for all."));
+    mBufferMinButton->setTitle(TRANS("Reset All Jitter Buffers"));
+    mBufferMinButton->setAlpha(0.8f);
 
     mSendChannelsChoice = std::make_unique<SonoChoiceButton>();
     mSendChannelsChoice->setTitle(TRANS("Send Channels"));
@@ -1119,6 +1133,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     //addAndMakeVisible(mTitleImage.get());
 
     mTopLevelContainer->addAndMakeVisible(mMainLinkButton.get());
+    mTopLevelContainer->addChildComponent(mMainLinkArrow.get());
     mTopLevelContainer->addAndMakeVisible(mMainGroupLabel.get());
     mTopLevelContainer->addAndMakeVisible(mMainPeerLabel.get());
     mTopLevelContainer->addAndMakeVisible(mMainMessageLabel.get());
@@ -1155,6 +1170,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mTopLevelContainer->addAndMakeVisible(mMetEnableButton.get());
     mTopLevelContainer->addAndMakeVisible(mMetConfigButton.get());
     mTopLevelContainer->addAndMakeVisible(mEffectsButton.get());
+    mTopLevelContainer->addAndMakeVisible(mBufferMinButton.get());
 
     mMetContainer->addAndMakeVisible(mMetLevelSlider.get());
     mMetContainer->addAndMakeVisible(mMetTempoSlider.get());
@@ -1697,6 +1713,17 @@ void SonobusAudioProcessorEditor::peerRequestedLatencyMatch(SonobusAudioProcesso
     triggerAsyncUpdate();
 }
 
+void SonobusAudioProcessorEditor::peerSuggestedNewGroup(SonobusAudioProcessor *comp, const String & username, const String & newgroup, const String & passwd, bool isPublic, const StringArray & others)
+{
+    {
+        const ScopedLock sl (clientStateLock);
+        clientEvents.add( ClientEvent::makeSuggestedNewGroupEvent(username, newgroup,  passwd, isPublic, others));
+    }
+
+    triggerAsyncUpdate();
+}
+
+
 void SonobusAudioProcessorEditor::peerBlockedInfoChanged(SonobusAudioProcessor *comp, const String & username, bool blocked)
 {
     {
@@ -2009,6 +2036,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         } else {
             showEffectsConfig(false);
         }        
+    }
+    else if (buttonThatWasClicked == mBufferMinButton.get()) {
+        resetJitterBufferForAll();
     }
     else if (buttonThatWasClicked == mMainMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
@@ -2356,138 +2386,137 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
 }
 
+void SonobusAudioProcessorEditor::resetJitterBufferForAll()
+{
+    // do it for everyone who's on auto
+    bool initCompleted = false;
+    for (int j=0; j < processor.getNumberRemotePeers(); ++j)
+    {
+        if (processor.getRemotePeerAutoresizeBufferMode(j, initCompleted) != SonobusAudioProcessor::AutoNetBufferModeOff) {
+            float buftime = 0.0;
+            processor.setRemotePeerBufferTime(j, buftime);
+        }
+    }
+}
+
+
 void SonobusAudioProcessorEditor::requestRecordDir(std::function<void (URL)> callback)
 {
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        
-        DBG("Requesting recdir");
-        
-        File initopendir = mCurrOpenDir;
+    DBG("Requesting recdir");
+    
+    File initopendir = mCurrOpenDir;
 #if JUCE_ANDROID
-        initopendir = File::getSpecialLocation(File::SpecialLocationType::userMusicDirectory);
-        // doens't work
+    initopendir = File::getSpecialLocation(File::SpecialLocationType::userMusicDirectory);
+    // doens't work
 #endif
-        
-        mFileChooser.reset(new FileChooser(TRANS("Choose a location to store recorded files."),
-                                           initopendir,
-                                           "",
-                                           true, false, getTopLevelComponent()));
-        
-        
-        
-        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                                   [safeThis,callback] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-                
-                DBG("Chosen recdir to save in: " <<  url.toString(false));
-                
+    
+    mFileChooser.reset(new FileChooser(TRANS("Choose a location to store recorded files."),
+                                       initopendir,
+                                       "",
+                                       true, false, getTopLevelComponent()));
+    
+    
+    
+    mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                               [safeThis,callback] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+            
+            DBG("Chosen recdir to save in: " <<  url.toString(false));
+            
 #if JUCE_ANDROID
-                auto docdir = AndroidDocument::fromTree(url);
-                if (!docdir.hasValue()) {
-                    docdir = AndroidDocument::fromFile(url.getLocalFile());
-                }
-                
-                if (docdir.hasValue()) {
-                    AndroidDocumentPermission::takePersistentReadWriteAccess(url);
-                    if (docdir.getInfo().isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    }
-                }
-#else
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-                    if (lfile.isDirectory()) {
-                        safeThis->processor.setDefaultRecordingDirectory(url);
-                    } else {
-                        auto parurl = URL(lfile.getParentDirectory());
-                        safeThis->processor.setDefaultRecordingDirectory(parurl);
-                    }
-
-                }
-#endif
-                
-                if (url.isLocalFile()) {
-                    safeThis->mCurrOpenDir = url.getLocalFile();
-                    safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
-                }
-
-                callback(url);
+            auto docdir = AndroidDocument::fromTree(url);
+            if (!docdir.hasValue()) {
+                docdir = AndroidDocument::fromFile(url.getLocalFile());
             }
             
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
+            if (docdir.hasValue()) {
+                AndroidDocumentPermission::takePersistentReadWriteAccess(url);
+                if (docdir.getInfo().isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
+                }
             }
-                        
-        }, nullptr);
+#else
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+                if (lfile.isDirectory()) {
+                    safeThis->processor.setDefaultRecordingDirectory(url);
+                } else {
+                    auto parurl = URL(lfile.getParentDirectory());
+                    safeThis->processor.setDefaultRecordingDirectory(parurl);
+                }
+
+            }
+#endif
+            
+            if (url.isLocalFile()) {
+                safeThis->mCurrOpenDir = url.getLocalFile();
+                safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
+            }
+
+            callback(url);
+        }
         
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
+                    
+    }, nullptr);
 }
 
 void SonobusAudioProcessorEditor::openFileBrowser()
 {
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
 #if !(JUCE_IOS || JUCE_ANDROID)
-        if (mCurrOpenDir.getFullPathName().isEmpty()) {
-            mCurrOpenDir = File(processor.getLastBrowseDirectory());
-            DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
-            
-        }
-#endif
+    if (mCurrOpenDir.getFullPathName().isEmpty()) {
+        mCurrOpenDir = File(processor.getLastBrowseDirectory());
+        DBG("curr open dir is: " << mCurrOpenDir.getFullPathName());
         
-        mFileChooser.reset(new FileChooser(TRANS("Choose an audio file to open..."),
-                                           mCurrOpenDir,
+    }
+#endif
+    
+    mFileChooser.reset(new FileChooser(TRANS("Choose an audio file to open..."),
+                                       mCurrOpenDir,
 #if (JUCE_IOS || JUCE_MAC)
-                                           "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf",
+                                       "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf",
 #else
-                                           "*.wav;*.flac;*.aif;*.ogg;*.mp3",
+                                       "*.wav;*.flac;*.aif;*.ogg;*.mp3",
 #endif
-                                           true, false, getTopLevelComponent()));
-        
-        
-        
-        mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-                
-                DBG("Attempting to load from: " <<  url.toString(false));
-                
-                if (url.isLocalFile()) {
-                    safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
-                    safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
-                }
+                                       true, false, getTopLevelComponent()));
+    
+    
+    
+    mFileChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+            
+            DBG("Attempting to load from: " <<  url.toString(false));
+            
+            if (url.isLocalFile()) {
+                safeThis->mCurrOpenDir = url.getLocalFile().getParentDirectory();
+                safeThis->processor.setLastBrowseDirectory(safeThis->mCurrOpenDir.getFullPathName());
+            }
 
-                safeThis->loadAudioFromURL(url);
-            }
-            
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
-            
-            safeThis->mDragDropBg->setVisible(false);    
-            
-        }, nullptr);
+            safeThis->loadAudioFromURL(url);
+        }
         
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
+        
+        safeThis->mDragDropBg->setVisible(false);    
+        
+    }, nullptr);
 }
 
 
@@ -2497,52 +2526,45 @@ void SonobusAudioProcessorEditor::showSaveSettingsPreset()
 
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
-        String * recentsfolder = nullptr;
-        if (getLastRecentsFolder) {
-            if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
-                recdir = File(*recentsfolder);
+    File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+    String * recentsfolder = nullptr;
+    if (getLastRecentsFolder) {
+        if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
+            recdir = File(*recentsfolder);
+        }
+    }
+    // TODO - on iOS we need to give it a name first
+
+    mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
+                                       recdir,
+                                       "*.sonobus",
+                                       true, false, getTopLevelComponent()));
+
+
+
+    mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+
+            DBG("Chose directory: " <<  url.toString(false));
+
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+
+                // save settings
+                safeThis->saveSettingsToFile(lfile);
             }
         }
-        // TODO - on iOS we need to give it a name first
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
-                                           recdir,
-                                           "*.sonobus",
-                                           true, false, getTopLevelComponent()));
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-
-
-        mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-
-                DBG("Chose directory: " <<  url.toString(false));
-
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-
-                    // save settings
-                    safeThis->saveSettingsToFile(lfile);
-                }
-            }
-
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
-
-        }, nullptr);
-
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+    }, nullptr);
 }
 
 void SonobusAudioProcessorEditor::showLoadSettingsPreset()
@@ -2551,51 +2573,44 @@ void SonobusAudioProcessorEditor::showLoadSettingsPreset()
 
     SafePointer<SonobusAudioProcessorEditor> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
-        String * recentsfolder = nullptr;
-        if (getLastRecentsFolder) {
-            if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
-                recdir = File(*recentsfolder);
+    File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+    String * recentsfolder = nullptr;
+    if (getLastRecentsFolder) {
+        if ((recentsfolder = getLastRecentsFolder()) != nullptr) {
+            recdir = File(*recentsfolder);
+        }
+    }
+
+    mFileChooser.reset(new FileChooser(TRANS("Choose a setup file to load"),
+                                       recdir,
+                                       "*.sonobus",
+                                       true, false, getTopLevelComponent()));
+
+
+
+    mFileChooser->launchAsync (FileBrowserComponent::openMode|FileBrowserComponent::canSelectFiles,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
+
+            DBG("Chose file: " <<  url.toString(false));
+
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
+
+                // load settings
+                safeThis->loadSettingsFromFile(lfile);
             }
         }
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose a setup file to load"),
-                                           recdir,
-                                           "*.sonobus",
-                                           true, false, getTopLevelComponent()));
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-
-
-        mFileChooser->launchAsync (FileBrowserComponent::openMode|FileBrowserComponent::canSelectFiles,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
-
-                DBG("Chose file: " <<  url.toString(false));
-
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
-
-                    // load settings
-                    safeThis->loadSettingsFromFile(lfile);
-                }
-            }
-
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
-
-        }, nullptr);
-
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
+    }, nullptr);
 }
 
 bool SonobusAudioProcessorEditor::loadSettingsFromFile(const File & file)
@@ -3022,14 +3037,17 @@ void SonobusAudioProcessorEditor::showLatencyMatchView(bool show)
 
         Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
         DBG("callout bounds: " << bounds.toString());
-        latmatchCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
-        if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+        latmatchCalloutBox = & SonoCallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false, [this](const Component * comp) {
+            if (comp == mMainLinkButton.get()) return false;
+            return true;
+        });
+        if (auto * box = dynamic_cast<SonoCallOutBox*>(latmatchCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
     }
     else {
         // dismiss it
-        if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+        if (auto * box = dynamic_cast<SonoCallOutBox*>(latmatchCalloutBox.get())) {
             box->dismiss();
             latmatchCalloutBox = nullptr;
         }
@@ -3045,7 +3063,7 @@ void SonobusAudioProcessorEditor::showVDONinjaView(bool show)
         Component* dw = this;
 
 #if JUCE_IOS || JUCE_ANDROID
-        const int defWidth = 260;
+        const int defWidth = 320;
         const int defHeight = 250;
 #else
         const int defWidth = 500;
@@ -3057,7 +3075,7 @@ void SonobusAudioProcessorEditor::showVDONinjaView(bool show)
         }
 
 
-        int prefwidth = jmin(defWidth, dw->getWidth() - 30);
+        int prefwidth = jmin(defWidth, dw->getWidth() - 10);
         
         // size it once, then get min height out of it
         mVDONinjaView->setBounds(Rectangle<int>(0,0,prefwidth,defHeight));
@@ -3085,6 +3103,63 @@ void SonobusAudioProcessorEditor::showVDONinjaView(bool show)
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(vdoninjaViewCalloutBox.get())) {
             box->dismiss();
             vdoninjaViewCalloutBox = nullptr;
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::showSuggestGroupView(bool show)
+{
+    if (show && suggestNewGroupViewCalloutBox == nullptr) {
+
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        const int defWidth = 280;
+        const int defHeight = 360;
+#else
+        const int defWidth = 260;
+        const int defHeight = 360;
+#endif
+
+        if (!mSuggestNewGroupView) {
+            mSuggestNewGroupView = std::make_unique<SuggestNewGroupView>(processor);
+
+            mSuggestNewGroupView->connectToGroup = [this] (const String & group, const String & groupPass, bool isPublic) {
+                currConnectionInfo.groupName = group;
+                currConnectionInfo.groupPassword = groupPass;
+                currConnectionInfo.groupIsPublic = isPublic;
+                connectWithInfo(currConnectionInfo);
+            };
+        }
+
+
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+
+
+        mSuggestNewGroupView->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        wrap->setViewedComponent(mSuggestNewGroupView.get(), false);
+        mSuggestNewGroupView->setVisible(true);
+
+        mSuggestNewGroupView->updatePeerRows(true);
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        suggestNewGroupViewCalloutBox = & SonoCallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false, [this](const Component * comp) {
+            if (comp == mMainLinkButton.get()) return false;
+            return true;
+        });
+        if (SonoCallOutBox * box = dynamic_cast<SonoCallOutBox*>(suggestNewGroupViewCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+    else {
+        // dismiss it
+        if (CallOutBox * box = dynamic_cast<CallOutBox*>(suggestNewGroupViewCalloutBox.get())) {
+            box->dismiss();
+            suggestNewGroupViewCalloutBox = nullptr;
         }
     }
 }
@@ -3564,7 +3639,8 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         mMainPersonImage->setVisible(true);
         mMainPeerLabel->setVisible(true);
         mMainLinkButton->setVisible(true);
-        
+        mMainLinkArrow->setVisible(true);
+
         if (processor.getNumberRemotePeers() == 0 && mPeerContainer->getPendingPeerCount() == 0) {
             String labstr;
             labstr << TRANS("Waiting for other users to join group") << " \"" << currGroup << "\"...";
@@ -3590,6 +3666,8 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         mMainPersonImage->setVisible(false);
         mMainPeerLabel->setVisible(false);
         mMainLinkButton->setVisible(false);
+        mMainLinkArrow->setVisible(false);
+
         mPeerRecImage->setVisible(false);
 
         mMainMessageLabel->setVisible(true);
@@ -3962,8 +4040,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             mPeerContainer->peerBlockedJoin(ev.group, ev.user, ev.message, (int) lrint(ev.floatVal));
         }
         else if (ev.type == ClientEvent::PeerRequestedLatencyMatchEvent) {
-
             showLatencyMatchPrompt(ev.message, ev.floatVal);
+        }
+        else if (ev.type == ClientEvent::PeerSuggestedNewGroupEvent) {
+            showSuggestedGroupPrompt(ev.user, ev.group, ev.message, ev.success, ev.array);
         }
         else if (ev.type == ClientEvent::PeerBlockedInfoChangedEvent) {
             updatePeerState(true);
@@ -3981,6 +4061,40 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
     }
 }
 
+void SonobusAudioProcessorEditor::copyGroupLink()
+{
+#if JUCE_IOS || JUCE_ANDROID
+    String message;
+    const bool singleurl = true;
+
+    if (mConnectView && mConnectView->copyInfoToClipboard(singleurl, &message)) {
+        /*
+         URL url(message);
+         if (url.isWellFormed()) {
+         Array<URL> urlarray;
+         urlarray.add(url);
+         safeThis->mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg);
+         safeThis->mScopedShareBox = {};
+         });
+         } else
+         */
+        // just share as text for now
+        {
+            SafePointer<SonobusAudioProcessorEditor> safeThis(this);
+            mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
+                safeThis->mScopedShareBox = {};
+            });
+        }
+    }
+#else
+    const bool singleurl = true;
+    if (mConnectView && mConnectView->copyInfoToClipboard(singleurl)) {
+        auto msg = TRANS("Copied group connection info to clipboard for you to share with others");
+        showPopTip(msg, 3000, mMainLinkButton.get());
+    }
+#endif
+}
+
 void SonobusAudioProcessorEditor::showGroupMenu(bool show)
 {
     Array<GenericItemChooserItem> items;
@@ -3994,7 +4108,9 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
     items.add(GenericItemChooserItem(TRANS("Group Latency Match..."), {}, nullptr, true));
 
     items.add(GenericItemChooserItem(TRANS("VDO.Ninja Video Link..."), {}, nullptr, true));
-    
+
+    items.add(GenericItemChooserItem(TRANS("Suggest New Group..."), {}, nullptr, true));
+
 
     Component* dw = mMainLinkButton->findParentComponentOfClass<AudioProcessorEditor>();
     if (!dw) dw = mMainLinkButton->findParentComponentOfClass<Component>();
@@ -4004,28 +4120,9 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
 
     auto callback = [safeThis,dw,bounds](GenericItemChooser* chooser,int index) mutable {
         if (!safeThis) return;
-
         if (index == 0) {
             // copy group link
-#if JUCE_IOS || JUCE_ANDROID
-            String message;
-            bool singleurl = true;
-            if (safeThis->mConnectView->copyInfoToClipboard(singleurl, &message)) {
-                URL url(message);
-                if (url.isWellFormed()) {
-                    Array<URL> urlarray;
-                    urlarray.add(url);
-                    ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
-                } else {
-                    ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });
-                }
-            }
-#else
-            if (safeThis->mConnectView->copyInfoToClipboard()) {
-                auto msg = TRANS("Copied group connection info to clipboard for you to share with others");
-                safeThis->showPopTip(msg, 3000, safeThis->mMainLinkButton.get());
-            }
-#endif
+            safeThis->copyGroupLink();
         } else if (index == 1) {
             // group latency
             safeThis->showLatencyMatchView(true);
@@ -4033,36 +4130,63 @@ void SonobusAudioProcessorEditor::showGroupMenu(bool show)
             // vdo ninja
             safeThis->showVDONinjaView(true);
         }
+        else if (index == 3) {
+            // suggest new group
+            safeThis->showSuggestGroupView(true);
+        }
     };
 
     GenericItemChooser::launchPopupChooser(items, bounds, dw, callback, -1, dw ? dw->getHeight()-30 : 0);
 }
 
+class SonobusAudioProcessorEditor::ApproveComponent : public Component
+{
+public:
+    ApproveComponent(const String & buttonlabel, const String & button2Label="") {
+
+        button.setButtonText(buttonlabel);
+
+        button2.setButtonText(button2Label);
+
+        addAndMakeVisible(label);
+        addAndMakeVisible(button);
+
+        if (button2Label.isNotEmpty()) {
+            addAndMakeVisible(button2);
+        }
+    }
+
+    void resized() override {
+        FlexBox buttBox;
+        buttBox.flexDirection = FlexBox::Direction::row;
+        buttBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+        buttBox.items.add(FlexItem(100, 38, button).withMargin(0).withFlex(4));
+        if (button2.isVisible()) {
+            buttBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+            buttBox.items.add(FlexItem(70, 38, button2).withMargin(0).withFlex(2));
+        }
+        buttBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
+
+        FlexBox mainBox;
+        mainBox.flexDirection = FlexBox::Direction::column;
+        mainBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(200, 40, label).withMargin(0).withFlex(1));
+        mainBox.items.add(FlexItem(100, 40, buttBox).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+
+
+        mainBox.performLayout(getLocalBounds());
+    }
+
+    Label  label;
+    TextButton button;
+    TextButton button2;
+};
 
 void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, float latencyms)
 {
-    if (!mLatMatchApproveContainer) {
-        mLatMatchApproveContainer = std::make_unique<Component>();
-        mLatMatchApproveLabel = std::make_unique<Label>();
-        mApproveLatMatchButton = std::make_unique<TextButton>();
-        mApproveLatMatchButton->setButtonText(TRANS("Match Latency"));
-
-        mLatMatchApproveContainer->addAndMakeVisible(mApproveLatMatchButton.get());
-        mLatMatchApproveContainer->addAndMakeVisible(mLatMatchApproveLabel.get());
-
-        latMatchButtBox.items.clear();
-        latMatchButtBox.flexDirection = FlexBox::Direction::row;
-        latMatchButtBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
-        latMatchButtBox.items.add(FlexItem(100, 48, *mApproveLatMatchButton).withMargin(0).withFlex(0));
-        latMatchButtBox.items.add(FlexItem(5, 5).withMargin(0).withFlex(1));
-
-        latMatchBox.items.clear();
-        latMatchBox.flexDirection = FlexBox::Direction::column;
-        latMatchBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
-        latMatchBox.items.add(FlexItem(100, 40, *mLatMatchApproveLabel).withMargin(0).withFlex(1));
-        latMatchBox.items.add(FlexItem(100, 40, latMatchButtBox).withMargin(0).withFlex(0));
-        latMatchBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
-
+    if (!mLatMatchApproveComponent) {
+        mLatMatchApproveComponent = std::make_unique<ApproveComponent>(TRANS("Match Latency"), TRANS("Ignore"));
     }
 
 
@@ -4083,20 +4207,20 @@ void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, fl
 
         wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
 
-        mLatMatchApproveContainer->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+        mLatMatchApproveComponent->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
 
-        wrap->setViewedComponent(mLatMatchApproveContainer.get(), false);
-        mLatMatchApproveContainer->setVisible(true);
+        wrap->setViewedComponent(mLatMatchApproveComponent.get(), false);
+        mLatMatchApproveComponent->setVisible(true);
 
-        latMatchBox.performLayout(mLatMatchApproveContainer->getLocalBounds());
+
 
         String mesg;
         mesg << name << " " << TRANS("requests to use a matched group latency of:");
         mesg << " " << lrintf(latencyms) << " ms";
         
-        mLatMatchApproveLabel->setText(mesg, dontSendNotification);
+        mLatMatchApproveComponent->label.setText(mesg, dontSendNotification);
 
-        mApproveLatMatchButton->onClick = [this,latencyms]() {
+        mLatMatchApproveComponent->button.onClick = [this,latencyms]() {
             processor.commitLatencyMatch(latencyms);
 
             // dismiss it
@@ -4110,6 +4234,83 @@ void SonobusAudioProcessorEditor::showLatencyMatchPrompt(const String & name, fl
         DBG("callout bounds: " << bounds.toString());
         latmatchCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(latmatchCalloutBox.get())) {
+            box->setDismissalMouseClicksAreAlwaysConsumed(true);
+        }
+    }
+
+}
+
+void SonobusAudioProcessorEditor::showSuggestedGroupPrompt(const String &name, const String &group, const String & grouppass, bool ispublic, const StringArray & others)
+{
+    if (!mSuggestedGroupComponent) {
+        mSuggestedGroupComponent = std::make_unique<ApproveComponent>(TRANS("Connect To Group"), TRANS("Ignore"));
+    }
+
+
+    if (suggestedGroupCalloutBox == nullptr) {
+        auto wrap = std::make_unique<Viewport>();
+
+        Component* dw = this;
+
+#if JUCE_IOS || JUCE_ANDROID
+        const int defWidth = 260;
+        const int defHeight = 190;
+#else
+        const int defWidth = 260;
+        const int defHeight = 170;
+#endif
+
+
+        wrap->setSize(jmin(defWidth, dw->getWidth() - 20), jmin(defHeight, dw->getHeight() - 24));
+
+        mSuggestedGroupComponent->setBounds(Rectangle<int>(0,0,defWidth,defHeight));
+
+        wrap->setViewedComponent(mSuggestedGroupComponent.get(), false);
+        mSuggestedGroupComponent->setVisible(true);
+
+        String mesg;
+        if (ispublic) {
+            mesg << TRANS("Requested to join a new public group:");
+        } else {
+            mesg << TRANS("Requested to join a new private group:");
+        }
+
+        mesg << "\n   " <<  TRANS("From: ") << name;
+        mesg << "\n   " <<  TRANS("New Group: ") << group;
+        mesg << "\n   " <<  TRANS("With: ") << others.joinIntoString(", ");
+
+        mSuggestedGroupComponent->label.setText(mesg, dontSendNotification);
+
+        mSuggestedGroupComponent->button.onClick = [this,group, grouppass, ispublic]() {
+            // join new group
+            currConnectionInfo.groupName = group;
+            currConnectionInfo.groupPassword = grouppass;
+            currConnectionInfo.groupIsPublic = ispublic;
+            connectWithInfo(currConnectionInfo);
+
+            // dismiss it
+            if (CallOutBox * box = dynamic_cast<CallOutBox*>(suggestedGroupCalloutBox.get())) {
+                box->dismiss();
+                suggestedGroupCalloutBox = nullptr;
+            }
+        };
+
+        mSuggestedGroupComponent->button2.onClick = [this]() {
+            // dismiss it
+            if (CallOutBox * box = dynamic_cast<CallOutBox*>(suggestedGroupCalloutBox.get())) {
+                box->dismiss();
+                suggestedGroupCalloutBox = nullptr;
+            }
+        };
+
+        Rectangle<int> bounds =  dw->getLocalArea(nullptr, mMainLinkButton->getScreenBounds());
+        DBG("callout bounds: " << bounds.toString());
+        suggestedGroupCalloutBox = & SonoCallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false, [this](const Component * comp) {
+            if (comp == mMainLinkButton.get()) return false;
+            return true;
+        });
+
+        if (SonoCallOutBox * box = dynamic_cast<SonoCallOutBox*>(suggestedGroupCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
         }
     }
@@ -4337,6 +4538,12 @@ void SonobusAudioProcessorEditor::resized()
     auto grouptextbounds = Rectangle<int>(mMainPeerLabel->getX(), mPeerLayoutFullButton->getY(), mMainUserLabel->getRight() - mMainPeerLabel->getX(),  mPeerLayoutFullButton->getHeight());
     mMainLinkButton->setBounds(grouptextbounds);
 
+    auto triwidth = 12;
+    auto triheight = 8;
+    //auto linkarrowrect = Rectangle<int>(mMainLinkButton->getRight() - triwidth - 4, mMainLinkButton->getBottom() - mMainLinkButton->getHeight()/2 - triheight + 2, triwidth, triheight);
+    auto linkarrowrect = Rectangle<int>(mMainLinkButton->getRight() - triwidth - 4, mMainLinkButton->getBottom() - triheight - 4, triwidth, triheight);
+    mMainLinkArrow->setTransformToFit(linkarrowrect.toFloat(), RectanglePlacement::stretchToFit);
+
 
     const auto precwidth = 20;
     auto peerrecbounds = Rectangle<int>(mMainLinkButton->getRight() - precwidth - 4, mMainLinkButton->getY() + mMainLinkButton->getHeight()/2 - precwidth/2, precwidth,  precwidth);
@@ -4493,6 +4700,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     outputMainBox.items.clear();
     outputMainBox.flexDirection = FlexBox::Direction::row;
     outputMainBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(toolwidth, minitemheight, *mBufferMinButton).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(toolwidth, minitemheight, *mEffectsButton).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(minSliderWidth, minitemheight, outBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
@@ -4779,7 +4988,7 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     if (!isNarrow) {
         toolbarBox.items.add(FlexItem(1, 5).withMargin(0).withFlex(0.1));
-        toolbarBox.items.add(FlexItem(100, minitemheight, outputMainBox).withMargin(0).withFlex(1).withMaxWidth(350));
+        toolbarBox.items.add(FlexItem(120, minitemheight, outputMainBox).withMargin(0).withFlex(1).withMaxWidth(390));
         toolbarBox.items.add(FlexItem(6, 6).withMargin(0).withFlex(0));
     }
     else {    
@@ -4895,8 +5104,11 @@ void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser 
 #if JUCE_IOS || JUCE_ANDROID
             // share
             Array<URL> urlarray;
+            SafePointer<SonobusAudioProcessorEditor> safeThis(this);
             urlarray.add(mCurrentAudioFile);
-            ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " << msg); });
+            mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " << msg);
+                safeThis->mScopedShareBox = {};
+            });
 #else
             // reveal
             if (mCurrentAudioFile.getFileName().isNotEmpty()) {
@@ -5146,6 +5358,7 @@ enum
 {
     MenuFileIndex = 0,
     MenuConnectIndex,
+    MenuGroupIndex,
     MenuTransportIndex,
     MenuViewIndex,
     MenuHelpIndex
@@ -5154,6 +5367,8 @@ enum
 
 void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCommandInfo& info) {
     bool useKeybindings = !processor.getDisableKeyboardShortcuts();
+    String name;
+
     switch (cmdID) {
         case SonobusCommands::MuteAllInput:
             info.setInfo (TRANS("Mute All Input"),
@@ -5368,6 +5583,15 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress('c', ModifierKeys::altModifier);
             }
             break;
+        case SonobusCommands::ShowGroupMenu:
+            info.setInfo(TRANS("Show Group Menu"),
+                TRANS("Show Group Menu"),
+                TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress('g', ModifierKeys::altModifier);
+            }
+            break;
         case SonobusCommands::ShowViewMenu:
             info.setInfo(TRANS("Show View Menu"),
                 TRANS("Show View Menu"),
@@ -5386,6 +5610,57 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress('t', ModifierKeys::altModifier);
             }
             break;
+        case SonobusCommands::CopyGroupLink:
+#if JUCE_IOS || JUCE_ANDROID
+            name = TRANS("Share Group Link");
+#else
+            name = TRANS("Copy Group Link");
+#endif
+
+            info.setInfo (name, name,
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('c', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::GroupLatencyMatch:
+            info.setInfo (TRANS("Group Latency Match..."),
+                          TRANS("Group Latency Match..."),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('l', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::VDONinjaVideoLink:
+            info.setInfo (TRANS("VDO.Ninja Video Link..."),
+                          TRANS("VDO.Ninja Video Link..."),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('v', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::SuggestNewGroup:
+            info.setInfo (TRANS("Suggest New Group..."),
+                          TRANS("Suggest New Group..."),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('s', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::ResetAllJitterBuffers:
+            info.setInfo (TRANS("Reset All Jitter Buffers"),
+                          TRANS("Reset All Jitter Buffers"),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
+                info.addDefaultKeypress ('j', ModifierKeys::commandModifier);
+            }
+            break;
+
     }
 }
 
@@ -5412,10 +5687,16 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::ShowFileMenu);
     cmds.add(SonobusCommands::ShowTransportMenu);
     cmds.add(SonobusCommands::ShowViewMenu);
+    cmds.add(SonobusCommands::ShowGroupMenu);
     cmds.add(SonobusCommands::ShowConnectMenu);
     cmds.add(SonobusCommands::ToggleFullInfoView);
     cmds.add(SonobusCommands::StopAllSoundboardPlayback);
     cmds.add(SonobusCommands::ToggleAllMonitorDelay);
+    cmds.add(SonobusCommands::CopyGroupLink);
+    cmds.add(SonobusCommands::GroupLatencyMatch);
+    cmds.add(SonobusCommands::VDONinjaVideoLink);
+    cmds.add(SonobusCommands::SuggestNewGroup);
+    cmds.add(SonobusCommands::ResetAllJitterBuffers);
 
 }
 
@@ -5468,6 +5749,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::ShowConnectMenu:
             if (mMenuBar) {
                 mMenuBar->showMenu(MenuConnectIndex);
+            }
+            break;
+        case SonobusCommands::ShowGroupMenu:
+            if (mMenuBar) {
+                mMenuBar->showMenu(MenuGroupIndex);
             }
             break;
         case SonobusCommands::ShowViewMenu:
@@ -5558,6 +5844,23 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::CheckForNewVersion:   
             LatestVersionCheckerAndUpdater::getInstance()->checkForNewVersion (true); 
             break;
+
+        case SonobusCommands::CopyGroupLink:
+            copyGroupLink();
+            break;
+        case SonobusCommands::GroupLatencyMatch:
+            showLatencyMatchView(true);
+            break;
+        case SonobusCommands::VDONinjaVideoLink:
+            showVDONinjaView(true);
+            break;
+        case SonobusCommands::SuggestNewGroup:
+            showSuggestGroupView(true);
+            break;
+        case SonobusCommands::ResetAllJitterBuffers:
+            resetJitterBufferForAll();
+            break;
+
         default:
             ret = false;
     }
@@ -5604,6 +5907,7 @@ StringArray SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuBarNames()
 {
     return StringArray(TRANS("File"),
                        TRANS("Connect"),
+                       TRANS("Group"),
                        TRANS("Transport"),
                        TRANS("View")
                        );
@@ -5651,6 +5955,13 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
             retval.addCommandItem (&parent.commandManager, SonobusCommands::MuteAllPeers);
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ToggleAllMonitorDelay);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::ResetAllJitterBuffers);
+            break;
+        case MenuGroupIndex:
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::CopyGroupLink);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::GroupLatencyMatch);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::VDONinjaVideoLink);
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::SuggestNewGroup);
             break;
         case MenuTransportIndex:
             retval.addCommandItem (&parent.commandManager, SonobusCommands::TogglePlayPause);

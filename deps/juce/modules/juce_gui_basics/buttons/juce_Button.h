@@ -495,6 +495,8 @@ protected:
     void focusLost (FocusChangeType) override;
     /** @internal */
     void enablementChanged() override;
+    /** @internal */
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
 private:
     //==============================================================================
@@ -522,8 +524,8 @@ private:
     bool triggerOnMouseDown = false;
     bool generateTooltip = false;
     bool isInDraggableViewport = false ,isDraggingToScroll = false;
+    bool hadMouseDown = false;
 
-    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
     void checkToggleableState (bool wasToggleable);
 
     void repeatTimerCallback();

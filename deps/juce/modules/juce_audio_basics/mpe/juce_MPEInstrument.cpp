@@ -875,7 +875,7 @@ void MPEInstrument::Listener::zoneLayoutChanged()                               
 //==============================================================================
 #if JUCE_UNIT_TESTS
 
-class MPEInstrumentTests : public UnitTest
+class MPEInstrumentTests final : public UnitTest
 {
 public:
     MPEInstrumentTests()
@@ -2210,8 +2210,8 @@ private:
     /* This mock class is used for unit testing whether the methods of
        MPEInstrument are called correctly.
     */
-    class UnitTestInstrument : public MPEInstrument,
-                               private MPEInstrument::Listener
+    class UnitTestInstrument final : public MPEInstrument,
+                                     private MPEInstrument::Listener
     {
         using Base = MPEInstrument;
 

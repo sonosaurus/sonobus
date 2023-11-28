@@ -334,6 +334,8 @@ public:
     int getIntValue32() const noexcept          { return CharacterFunctions::getIntValue <int, CharPointer_UTF32> (*this); }
     /** Parses this string as a 64-bit integer. */
     int64 getIntValue64() const noexcept        { return CharacterFunctions::getIntValue <int64, CharPointer_UTF32> (*this); }
+    /** Parses this string as a 64-bit integer. */
+    uint64 getUIntValue64() const noexcept        { return CharacterFunctions::getIntValue <uint64, CharPointer_UTF32> (*this); }
 
     /** Parses this string as a floating point double. */
     double getDoubleValue() const noexcept      { return CharacterFunctions::getDoubleValue (*this); }

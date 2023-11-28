@@ -43,9 +43,9 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.6.2</string>
+    <string>1.7.0</string>
     <key>CFBundleVersion</key>
-    <string>80</string>
+    <string>83</string>
     <key>NSHumanReadableCopyright</key>
     <string>2023 Sonosaurus LLC</string>
     <key>NSHighResolutionCapable</key>
@@ -79,7 +79,7 @@
         <key>subtype</key>
         <string>NBus</string>
         <key>version</key>
-        <integer>67074</integer>
+        <integer>67328</integer>
       </dict>
     </array>
   </dict>

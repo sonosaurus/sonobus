@@ -420,6 +420,16 @@ public:
        #endif
     }
 
+    /** Parses this string as a 64-bit integer. */
+    uint64 getUIntValue64() const noexcept
+    {
+       #if JUCE_MSVC
+        return _wcstoui64 (data, nullptr, 0);
+       #else
+        return CharacterFunctions::getIntValue<uint64, CharPointer_UTF16> (*this);
+       #endif
+    }
+    
     /** Parses this string as a floating point double. */
     double getDoubleValue() const noexcept                      { return CharacterFunctions::getDoubleValue (*this); }
 

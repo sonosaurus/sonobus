@@ -344,6 +344,18 @@ public:
        #endif
     }
 
+    /** Parses this string as a 64-bit unsigned integer. */
+    uint64 getUIntValue64() const noexcept
+    {
+       #if JUCE_LINUX || JUCE_BSD || JUCE_ANDROID || JUCE_MINGW
+        return strtoull (data, nullptr, 0);
+       #elif JUCE_WINDOWS
+        return _strtoui64 (data, nullptr, 0);
+       #else
+        return CharacterFunctions::getIntValue <uint64, CharPointer_ASCII> (*this);
+       #endif
+    }
+    
     /** Parses this string as a floating point double. */
     double getDoubleValue() const noexcept                      { return CharacterFunctions::getDoubleValue (*this); }
 
