@@ -552,7 +552,7 @@ public:
 		Clear();
     }
 
-	//get ouput and iterate
+	//get output and iterate
 	T operator()(T input)
     {
 		T output = buffer[index1];
@@ -641,7 +641,7 @@ public:
 		Clear();
     }
 
-	//get ouput and iterate
+	//get output and iterate
 	T operator()(T input)
     {
 		T output = buffer[index1];

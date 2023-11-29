@@ -50,7 +50,7 @@ struct ChannelGroupParams
     float pan[MAX_CHANNELS] = { 0.0f };
     // used when numChannels == 2
     float panStereo[2] = {-1.0f, 1.0f }; // only use 2
-    float centerPanLaw = 0.596f; // center pan attentuation (default -4.5dB)
+    float centerPanLaw = 0.596f; // center pan attenuation (default -4.5dB)
 
     int panDestStartIndex = 0; // destination channel index
     int panDestChannels = 2; // destination number of channels

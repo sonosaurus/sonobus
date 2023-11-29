@@ -2889,7 +2889,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
         } else {
             pvf->panLabel->setVisible(true);
-            pvf->panSlider->setDoubleClickReturnValue(true, (chi & 2) ? 1.0f : -1.0f); // double click defaults to altenating left/right
+            pvf->panSlider->setDoubleClickReturnValue(true, (chi & 2) ? 1.0f : -1.0f); // double click defaults to alternating left/right
             pvf->panSlider->setVisible(true);
 
         }

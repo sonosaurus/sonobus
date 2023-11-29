@@ -417,7 +417,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     # This cleans up the folder organization, especially on Xcode.
     # It tucks the Plugin varieties into a "Targets" folder and generate an Xcode Scheme manually
     # Xcode scheme generation is turned off globally to limit noise from other targets
-    # The non-hacky way of doing this is via the global PREDEFINED_TARGETS_FOLDER propety
+    # The non-hacky way of doing this is via the global PREDEFINED_TARGETS_FOLDER property
     # However that doesn't seem to be working in Xcode
     # Not all plugin types (au, vst) available on each build type (win, macos, linux)
     foreach(target ${formats} "All")

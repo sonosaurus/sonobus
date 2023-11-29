@@ -308,7 +308,7 @@ private:
     std::unique_ptr<SonoDrawableButton> createColourButton(const int index);
 
     /**
-     * Updates the colour buttons to show a checkmark if its colour is slected and hide the checkmark if that colour
+     * Updates the colour buttons to show a checkmark if its colour is selected and hide the checkmark if that colour
      * has not been selected.
      */
     void updateColourButtonCheckmark();
