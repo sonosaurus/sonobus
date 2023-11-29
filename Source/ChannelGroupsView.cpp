@@ -81,6 +81,7 @@ ChannelGroupEffectsView::~ChannelGroupEffectsView() {
     polarityInvertView->removeHeaderListener(this);
     polarityInvertView->removeListener(this);
 
+    effectsConcertina.reset();
 }
 
 juce::Rectangle<int> ChannelGroupEffectsView::getMinimumContentBounds() const {
@@ -457,6 +458,8 @@ ChannelGroupMonitorEffectsView::~ChannelGroupMonitorEffectsView()
     reverbSendView->removeListener(this);
     delayView->removeListener(this);
     delayView->removeHeaderListener(this);
+
+    effectsConcertina.reset();
 }
 
 juce::Rectangle<int> ChannelGroupMonitorEffectsView::getMinimumContentBounds() const {
@@ -758,6 +761,7 @@ ChannelGroupReverbEffectsView::ChannelGroupReverbEffectsView(SonobusAudioProcess
 ChannelGroupReverbEffectsView::~ChannelGroupReverbEffectsView()
 {
     reverbView->removeListener(this);
+    effectsConcertina.reset();
 }
 
 juce::Rectangle<int> ChannelGroupReverbEffectsView::getMinimumContentBounds() const {
