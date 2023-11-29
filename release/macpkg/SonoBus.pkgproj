@@ -2696,14 +2696,14 @@
 		<dict>
 			<key>BACKGROUND</key>
 			<dict>
-				<key>APPAREANCES</key>
+				<key>APPEARANCES</key>
 				<dict>
 					<key>DARK_AQUA</key>
 					<dict/>
 					<key>LIGHT_AQUA</key>
 					<dict/>
 				</dict>
-				<key>SHARED_SETTINGS_FOR_ALL_APPAREANCES</key>
+				<key>SHARED_SETTINGS_FOR_ALL_APPEARANCES</key>
 				<true/>
 			</dict>
 			<key>INSTALLATION TYPE</key>
