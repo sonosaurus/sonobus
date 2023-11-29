@@ -2409,7 +2409,7 @@ void SonobusAudioProcessorEditor::requestRecordDir(std::function<void (URL)> cal
     File initopendir = mCurrOpenDir;
 #if JUCE_ANDROID
     initopendir = File::getSpecialLocation(File::SpecialLocationType::userMusicDirectory);
-    // doens't work
+    // doesn't work
 #endif
     
     mFileChooser.reset(new FileChooser(TRANS("Choose a location to store recorded files."),
@@ -5196,7 +5196,7 @@ public:
                     success = true;
                 }
                 
-                DBG("Finished triming file JOB to: " << pathname);
+                DBG("Finished trimming file JOB to: " << pathname);
             }
         }
         else {

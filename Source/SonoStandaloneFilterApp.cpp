@@ -792,7 +792,7 @@ public:
             }
         }
         else {
-            DBG("was not actve: restarting");
+            DBG("was not active: restarting");
             mainWindow->getDeviceManager().restartLastAudioDevice();
         }
 

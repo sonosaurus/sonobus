@@ -830,7 +830,7 @@ void ChatView::processNewChatMessages(int index, int count)
         auto & event = allChatEvents.getReference(i);
 
         if (event.targets.isNotEmpty()) {
-            // targetted message
+            // targeted message
             auto targetnames = StringArray::fromTokens(event.targets, "|", "");
 
             // append a private tab for them if necessary
@@ -858,7 +858,7 @@ void ChatView::processNewChatMessages(int index, int count)
                 mLastPrivateChatViewEventIndex[event.from] = i;
             }
             else {
-                // we are showing global, so skip any targetted things
+                // we are showing global, so skip any targeted things
                 
                 if (event.type == SBChatEvent::UserType) {
                     // but mark unread on the chat tab from this person

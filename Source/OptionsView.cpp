@@ -62,7 +62,7 @@ void OptionsView::initializeLanguages()
     languages.add(TRANS("Russian"));  languagesNative.add(juce::CharPointer_UTF8 ("p\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9")); codes.add("ru");
 
 
-    // TOOD - parse any user files with localized_%s.txt in our settings folder and add as options if not existing already
+    // TODO - parse any user files with localized_%s.txt in our settings folder and add as options if not existing already
 
 }
 
