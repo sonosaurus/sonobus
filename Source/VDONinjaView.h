@@ -108,7 +108,7 @@ public:
         openLinkButton.setButtonText(TRANS("Open"));
         openLinkButton.setTooltip(TRANS("Open URL in browser"));
         openLinkButton.onClick = [this]() {
-            URL url(urlEditor.getText());
+            URL url = generateURL();
             url.launchInDefaultBrowser();
         };
 
@@ -125,7 +125,10 @@ public:
 
         customInfoLabel.setText(TRANS("Extra Parameters:"), dontSendNotification);
         customInfoLabel.setJustificationType(Justification::centredLeft);
+        customInfoLabel.setFont(14);
+        customInfoLabel.setMinimumHorizontalScale(0.65f);
 
+        customFieldEditor.setFont(Font(14 * SonoLookAndFeel::getFontScale()));
         customFieldEditor.setTooltip(TRANS("Enter extra URL parameters here (separated with &), for more details see Advanced Options in the VDO.Ninja documentation"));
         customFieldEditor.setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
         customFieldEditor.onTextChange = [this] () {
@@ -135,7 +138,8 @@ public:
         
         urlEditor.setReadOnly(true);
         urlEditor.setCaretVisible(false);
-        
+        urlEditor.setFont(Font(14 * SonoLookAndFeel::getFontScale()));
+
 #if JUCE_IOS
         infoLabel.setText(TRANS("VDO.Ninja is a high-quality web-based video streaming system."), dontSendNotification);
 #else
@@ -239,11 +243,11 @@ public:
 
         FlexBox customBox;
         customBox.flexDirection = FlexBox::Direction::row;
-        customBox.items.add(FlexItem(4, 4).withMargin(0));
-        customBox.items.add(FlexItem(smallbuttwidth, minitemheight, customInfoLabel).withMargin(0).withFlex(0));
-        customBox.items.add(FlexItem(12, 4).withMargin(0));
+        customBox.items.add(FlexItem(2, 4).withMargin(0));
+        customBox.items.add(FlexItem(100, minitemheight, customInfoLabel).withMargin(0).withFlex(0));
+        customBox.items.add(FlexItem(2, 4).withMargin(0));
         customBox.items.add(FlexItem(minKnobWidth, minitemheight, customFieldEditor).withMargin(0).withFlex(1));
-        customBox.items.add(FlexItem(4, 4).withMargin(0));
+        customBox.items.add(FlexItem(3, 4).withMargin(0));
         customBox.items.add(FlexItem(buttwidth, minitemheight, showNamesButton).withMargin(0).withFlex(0));
 
         

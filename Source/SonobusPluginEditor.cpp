@@ -4573,9 +4573,9 @@ void SonobusAudioProcessorEditor::resized()
     mOutGainSlider->setMouseDragSensitivity(jmax(128, mOutGainSlider->getWidth()));
     //mInGainSlider->setMouseDragSensitivity(jmax(128, mInGainSlider->getWidth()));
 
-    mDryLabel->setBounds(mDrySlider->getBounds().removeFromTop(14).removeFromLeft(mDrySlider->getWidth() - mDrySlider->getTextBoxWidth() + 3).translated(4, 0));
+    mDryLabel->setBounds(mDrySlider->getBounds().removeFromTop(17).removeFromLeft(mDrySlider->getWidth() - mDrySlider->getTextBoxWidth() + 3).translated(4, 0));
     //mInGainLabel->setBounds(mInGainSlider->getBounds().removeFromTop(14).removeFromLeft(mInGainSlider->getWidth() - mInGainSlider->getTextBoxWidth() + 3).translated(4, 0));
-    mOutGainLabel->setBounds(mOutGainSlider->getBounds().removeFromTop(14).removeFromLeft(mOutGainSlider->getWidth() - mOutGainSlider->getTextBoxWidth() + 3).translated(4, 0));
+    mOutGainLabel->setBounds(mOutGainSlider->getBounds().removeFromTop(17).removeFromLeft(mOutGainSlider->getWidth() - mOutGainSlider->getTextBoxWidth() + 3).translated(4, 0));
 
 
     
@@ -4725,7 +4725,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     //mainGroupBox.items.add(FlexItem(24, minitemheight/2, *mMainPeerLabel).withMargin(0).withFlex(0));
     mainGroupBox.items.add(FlexItem(iconwidth, iconheight, *mMainGroupImage).withMargin(0).withFlex(0));
     mainGroupBox.items.add(FlexItem(2, 4));
-    mainGroupBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 4, *mMainGroupLabel).withMargin(0).withFlex(1));
+    mainGroupBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 0, *mMainGroupLabel).withMargin(0).withFlex(1));
 
 
     mainUserBox.items.clear();
@@ -4733,14 +4733,15 @@ void SonobusAudioProcessorEditor::updateLayout()
     //mainUserBox.items.add(FlexItem(24, 4));
     mainUserBox.items.add(FlexItem(iconwidth, iconheight, *mMainPersonImage).withMargin(0).withFlex(0));
     mainUserBox.items.add(FlexItem(2, 4));
-    mainUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 4, *mMainUserLabel).withMargin(0).withFlex(1));
+    mainUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 0, *mMainUserLabel).withMargin(0).withFlex(1));
 
     mainGroupUserBox.items.clear();
     mainGroupUserBox.flexDirection = FlexBox::Direction::column;
-    mainGroupUserBox.items.add(FlexItem(2, 2));
+    //mainGroupUserBox.items.add(FlexItem(2, 2));
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 4, mainGroupBox).withMargin(0).withFlex(0));
     mainGroupUserBox.items.add(FlexItem(2, 2));
     mainGroupUserBox.items.add(FlexItem(minButtonWidth, minitemheight/2 - 4, mainUserBox).withMargin(0).withFlex(0));
+    mainGroupUserBox.items.add(FlexItem(2, 2));
 
     mainGroupLayoutBox.items.clear();
     mainGroupLayoutBox.flexDirection = FlexBox::Direction::row;
@@ -4751,7 +4752,7 @@ void SonobusAudioProcessorEditor::updateLayout()
     //mainGroupLayoutBox.items.add(FlexItem(toolwidth, minitemheight, *mChatButton).withMargin(0).withFlex(0) ); //.withMaxWidth(maxPannerWidth));
     mainGroupLayoutBox.items.add(FlexItem(4, 4));
     mainGroupLayoutBox.items.add(FlexItem(24, minitemheight, *mMainPeerLabel).withMargin(0).withFlex(0));
-    mainGroupLayoutBox.items.add(FlexItem(minButtonWidth, minitemheight - 8, mainGroupUserBox).withMargin(0).withFlex(1));
+    mainGroupLayoutBox.items.add(FlexItem(minButtonWidth, minitemheight - 5, mainGroupUserBox).withMargin(0).withFlex(1));
 
 
 

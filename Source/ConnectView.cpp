@@ -151,7 +151,7 @@ publicGroupsListModel(this)
 
     mServerUserStaticLabel = std::make_unique<Label>("serveruserst", TRANS("Your Displayed Name:"));
     configServerLabel(mServerUserStaticLabel.get());
-    mServerUserStaticLabel->setMinimumHorizontalScale(0.8);
+    mServerUserStaticLabel->setMinimumHorizontalScale(0.7);
 
     mServerUserPassStaticLabel = std::make_unique<Label>("serveruserpassst", TRANS("Password:"));
     configServerLabel(mServerUserPassStaticLabel.get());
@@ -502,7 +502,7 @@ void ConnectView::updateLayout()
     int sliderheight = 44;
     int inmeterwidth = 22 ;
     int outmeterwidth = 22 ;
-    int servLabelWidth = 72;
+    int servLabelWidth = 82;
     int iconheight = 24;
     int iconwidth = iconheight;
     int knoblabelheight = 18;
