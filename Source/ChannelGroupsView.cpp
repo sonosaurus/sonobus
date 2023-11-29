@@ -71,7 +71,17 @@ ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bo
     updateLayout();
 }
 
-ChannelGroupEffectsView::~ChannelGroupEffectsView() {}
+ChannelGroupEffectsView::~ChannelGroupEffectsView() {
+
+    compressorView->removeListener(this);
+    expanderView->removeListener(this);
+    expanderView->removeHeaderListener(this);
+    reverbSendView->removeHeaderListener(this);
+    reverbSendView->removeListener(this);
+    polarityInvertView->removeHeaderListener(this);
+    polarityInvertView->removeListener(this);
+
+}
 
 juce::Rectangle<int> ChannelGroupEffectsView::getMinimumContentBounds() const {
     auto minbounds = compressorView->getMinimumContentBounds();
@@ -444,6 +454,9 @@ ChannelGroupMonitorEffectsView::ChannelGroupMonitorEffectsView(SonobusAudioProce
 
 ChannelGroupMonitorEffectsView::~ChannelGroupMonitorEffectsView()
 {
+    reverbSendView->removeListener(this);
+    delayView->removeListener(this);
+    delayView->removeHeaderListener(this);
 }
 
 juce::Rectangle<int> ChannelGroupMonitorEffectsView::getMinimumContentBounds() const {
@@ -744,6 +757,7 @@ ChannelGroupReverbEffectsView::ChannelGroupReverbEffectsView(SonobusAudioProcess
 
 ChannelGroupReverbEffectsView::~ChannelGroupReverbEffectsView()
 {
+    reverbView->removeListener(this);
 }
 
 juce::Rectangle<int> ChannelGroupReverbEffectsView::getMinimumContentBounds() const {
