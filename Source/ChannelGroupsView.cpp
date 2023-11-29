@@ -893,7 +893,7 @@ void ChannelGroupView::resized()
     mainbox.performLayout(getLocalBounds());
     
     if (panLabel) {
-        panLabel->setBounds(panSlider->getBounds().removeFromTop(12).translated(0, 0));
+        panLabel->setBounds(panSlider->getBounds().removeFromTop(16).translated(0, -2));
     }
     
 
