@@ -4573,9 +4573,9 @@ void SonobusAudioProcessorEditor::resized()
     mOutGainSlider->setMouseDragSensitivity(jmax(128, mOutGainSlider->getWidth()));
     //mInGainSlider->setMouseDragSensitivity(jmax(128, mInGainSlider->getWidth()));
 
-    mDryLabel->setBounds(mDrySlider->getBounds().removeFromTop(17).removeFromLeft(mDrySlider->getWidth() - mDrySlider->getTextBoxWidth() + 3).translated(4, 0));
+    mDryLabel->setBounds(mDrySlider->getBounds().removeFromTop(17).removeFromLeft(mDrySlider->getWidth() - mDrySlider->getTextBoxWidth() + 3).translated(4, -2));
     //mInGainLabel->setBounds(mInGainSlider->getBounds().removeFromTop(14).removeFromLeft(mInGainSlider->getWidth() - mInGainSlider->getTextBoxWidth() + 3).translated(4, 0));
-    mOutGainLabel->setBounds(mOutGainSlider->getBounds().removeFromTop(17).removeFromLeft(mOutGainSlider->getWidth() - mOutGainSlider->getTextBoxWidth() + 3).translated(4, 0));
+    mOutGainLabel->setBounds(mOutGainSlider->getBounds().removeFromTop(17).removeFromLeft(mOutGainSlider->getWidth() - mOutGainSlider->getTextBoxWidth() + 3).translated(4, -2));
 
 
     
