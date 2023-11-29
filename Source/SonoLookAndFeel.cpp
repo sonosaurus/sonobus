@@ -14,7 +14,6 @@ float SonoLookAndFeel::fontScale = 1.0f;
 #elif JUCE_WINDOWS
 float SonoLookAndFeel::fontScale = 1.35f;
 #else
-#error blahhh
 float SonoLookAndFeel::fontScale = 1.25f;
 #endif
 
