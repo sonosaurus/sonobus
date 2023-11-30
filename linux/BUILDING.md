@@ -14,7 +14,7 @@ On Fedora run this script:
 ./fedora_get_prereqs.sh
 ```
 
-On other distros you'll have to insall the following development packages manually through your package manager:
+On other distros you'll have to install the following development packages manually through your package manager:
 
 * `libjack-jackd2-dev`
 * `libopus0`

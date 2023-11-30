@@ -33,7 +33,7 @@ You will need:
 *   STRONGLY Recommended: An Ethernet cable, and/or adapters for connecting the computer to your router or cable modem.  WiFi works, but is an extra layer of packet sequencing and always adds a lot of jitter, requiring increased buffer sizes. SonoBus strongly recommends connection by Ethernet.
 *   Recommended: Wired headphones or earbuds.  Bluetooth headphones will not work because of the added delay (as much as 250ms) inherent in Bluetooth audio. Sound-isolating headphones are best. Without headphones, other musicians will hear an irritating echo from your speakers feeding back into your microphone (if you are using one).
 *   If you are on Windows, it is HIGHLY recommended that you use the ASIO driver option, either with the ASIO driver that works with your audio interface, or by installing [ASIO4ALL](http://www.asio4all.org) for your built-in audio or anything that doesn't have an ASIO driver of its own. See Also Related Resources below.
-*   Set the power management options/plan on your system to "High Performance" if possible, particulary if using a laptop device. This will reduce the possibility of CPU throttling and/or automatic USB device sleep from interfering with the smooth flow of audio. 
+*   Set the power management options/plan on your system to "High Performance" if possible, particularly if using a laptop device. This will reduce the possibility of CPU throttling and/or automatic USB device sleep from interfering with the smooth flow of audio. 
 *   Your experience may vary.  Sometimes the setup is very frustrating, but that is why we are writing this document - to help you get started. SonoBus might not work well if your internet connection is not fast enough, or if there is a lot of heavy traffic on the Internet, during “Internet Rush Hour.” Just try during another time when there is less internet traffic. Sometimes you can help things by adding port forwarding settings on your home Internet router, or DSL or cable modem may help, but this is beyond the scope of this document.
 
 ## About Latency
@@ -130,7 +130,7 @@ To create your own group, enter a good name and press the Create Group button. F
 Remember that every SonoBus user can see these public group names and so anyone can connect with you.
 
 #### Direct Connection
-SonoBus includes a Direct Tab for connecting to other devices in your local network, but this feature has only undergone limited testing, and is so it has only limited support. This does open up some interesting possiblities, noteably the patchbay experimental feature, and it is provided for further testing. It is available in the 'dots' menu at the top right of the Connect window.
+SonoBus includes a Direct Tab for connecting to other devices in your local network, but this feature has only undergone limited testing, and is so it has only limited support. This does open up some interesting possibilities, notably the patchbay experimental feature, and it is provided for further testing. It is available in the 'dots' menu at the top right of the Connect window.
 
 These 'direct' connections are mutually exclusive with the group feature and connection server. Instead, You will need to fill in the 'host' field with the IP address of one of the 'local' SonoBus clients (for example, your own device) and, for example, UDP port 12000.
 

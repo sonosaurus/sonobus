@@ -61,10 +61,6 @@ public class SonoBusActivity   extends Activity
 
         // call the native C++ class constructor
         constructNativeClass();
-
-        startService(new Intent(this, SonoBusService.class));
-        // bind to the service.
-        bindService(new Intent(this, SonoBusService.class), mConnection, Context.BIND_AUTO_CREATE);
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
@@ -72,6 +68,8 @@ public class SonoBusActivity   extends Activity
             window.setNavigationBarColor(Color.BLACK);
         }
     }
+
+    
 
     @Override
     protected final void onDestroy()
@@ -105,6 +103,28 @@ public class SonoBusActivity   extends Activity
            sbService = null;
         }
     };
+
+
+    private final void startSonoBusService()
+    {
+    	startService(new Intent(this, SonoBusService.class));
+    	// bind to the service.
+    	bindService(new Intent(this, SonoBusService.class), mConnection, Context.BIND_AUTO_CREATE);
+	}
+	
+    @Override
+       protected final void onStart()
+       {
+           super.onStart();
+
+           // do this here to prevent issues starting service in background
+           if (sbService == null) {
+               int any_delay_in_ms = 1000; //1 Second delay
+               new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                   startSonoBusService();
+               }, any_delay_in_ms);
+           }
+       }
 
 
     public final void setForegroundServiceActive(boolean flag) 

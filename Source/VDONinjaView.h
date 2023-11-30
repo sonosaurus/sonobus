@@ -17,7 +17,7 @@
 //==============================================================================
 /*
 */
-class VDONinjaView    : public EffectsBaseView
+class VDONinjaView    : public EffectsBaseView, public SonoChoiceButton::Listener
 {
 public:
     VDONinjaView(SonobusAudioProcessor & processor_)  : processor(processor_)
@@ -77,23 +77,21 @@ public:
             resized();
         };
 
-        largescreenButton.setButtonText(TRANS("Large View"));
-        largescreenButton.setTooltip(TRANS("Select this to make your screen share show up larger than normal for other users"));
-        largescreenButton.onClick = [this]() {
-            processor.getVideoLinkInfo().largeShare = largescreenButton.getToggleState();
-            refreshURL();
-        };
+        //largescreenButton.setButtonText(TRANS("Large View"));
+        //largescreenButton.setTooltip(TRANS("Select this to make your screen share show up larger than normal for other users"));
+        //largescreenButton.onClick = [this]() {
+        //    processor.getVideoLinkInfo().largeShare = largescreenButton.getToggleState();
+        //    refreshURL();
+        //};
 
-        shareOnlyButton.setButtonText(TRANS("Push Only"));
-        shareOnlyButton.setTooltip(TRANS("Select this to avoid seeing others, using the link only to push your content"));
-        shareOnlyButton.onClick = [this]() {
-            processor.getVideoLinkInfo().shareOnly = shareOnlyButton.getToggleState();
-            refreshURL();
-        };
-
+        pushViewModeButton.setTooltip(TRANS("Choose whether to send and receive video, or either one only"));
+        pushViewModeButton.addItem(TRANS("Push and View"), SonobusAudioProcessor::VideoLinkInfo::PushAndView);
+        pushViewModeButton.addItem(TRANS("Push Only"), SonobusAudioProcessor::VideoLinkInfo::PushOnly);
+        pushViewModeButton.addItem(TRANS("View Only"), SonobusAudioProcessor::VideoLinkInfo::ViewOnly);
+        pushViewModeButton.addChoiceListener(this);
 
 
-        copyLinkButton.setButtonText(TRANS("Copy"));
+        copyLinkButton.setButtonText(TRANS("Copy Link"));
         copyLinkButton.setTooltip(TRANS("Copies URL to clipboard"));
         copyLinkButton.onClick = [this]() {
             SystemClipboard::copyTextToClipboard(urlEditor.getText());
@@ -105,15 +103,19 @@ public:
             refreshURL();
         };
 
-        openLinkButton.setButtonText(TRANS("Open"));
-        openLinkButton.setTooltip(TRANS("Open URL in browser"));
+        openLinkButton.setButtonText(TRANS("Join Video in Browser"));
+        openLinkButton.setColour(TextButton::buttonColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.6));
+        //openLinkButtonsetColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.6, 0.4, 0.6, 0.6));
+        openLinkButton.setColour(SonoTextButton::outlineColourId, Colour::fromFloatRGBA(0.5, 0.5, 0.5, 0.4));
+        openLinkButton.setTooltip(TRANS("Open VDO.Ninja group URL in the default web browser"));
         openLinkButton.onClick = [this]() {
-            URL url(urlEditor.getText());
+            URL url = generateURL();
             url.launchInDefaultBrowser();
         };
 
         moreInfoButton.setButtonText(TRANS("More Info..."));
         moreInfoButton.setTooltip(TRANS("Open VDO.Ninja documentation in browser"));
+        moreInfoButton.setAlpha(0.65f);
         moreInfoButton.onClick = [this]() {
             URL url("https://docs.vdo.ninja");
             url.launchInDefaultBrowser();
@@ -125,7 +127,10 @@ public:
 
         customInfoLabel.setText(TRANS("Extra Parameters:"), dontSendNotification);
         customInfoLabel.setJustificationType(Justification::centredLeft);
+        customInfoLabel.setFont(14);
+        customInfoLabel.setMinimumHorizontalScale(0.65f);
 
+        customFieldEditor.setFont(Font(14 * SonoLookAndFeel::getFontScale()));
         customFieldEditor.setTooltip(TRANS("Enter extra URL parameters here (separated with &), for more details see Advanced Options in the VDO.Ninja documentation"));
         customFieldEditor.setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
         customFieldEditor.onTextChange = [this] () {
@@ -135,13 +140,15 @@ public:
         
         urlEditor.setReadOnly(true);
         urlEditor.setCaretVisible(false);
-        
+        urlEditor.setFont(Font(14 * SonoLookAndFeel::getFontScale()));
+
 #if JUCE_IOS
         infoLabel.setText(TRANS("VDO.Ninja is a high-quality web-based video streaming system."), dontSendNotification);
 #else
         infoLabel.setText(TRANS("VDO.Ninja is a high-quality web-based video streaming system. Using with Chrome is highly recommended."), dontSendNotification);
 #endif
-        infoLabel.setJustificationType(Justification::centredLeft);
+        infoLabel.setJustificationType(Justification::centred);
+
         infoLabel.setFont(13);
         
         //modeInfoLabel.setText(TRANS("VDO Ninja Link"), dontSendNotification);
@@ -173,8 +180,8 @@ public:
         addAndMakeVisible(screenshareButton);
         addAndMakeVisible(webcamButton);
         addAndMakeVisible(camscreenInfoLabel);
-        addAndMakeVisible(largescreenButton);
-        addAndMakeVisible(shareOnlyButton);
+        //addAndMakeVisible(largescreenButton);
+        addAndMakeVisible(pushViewModeButton);
 
         addAndMakeVisible(titleLabel);
 
@@ -231,19 +238,19 @@ public:
         camBox.items.add(FlexItem(smallbuttwidth, minitemheight, webcamButton).withMargin(0).withFlex(1).withMaxWidth(130));
         camBox.items.add(FlexItem(smallbuttwidth, minitemheight, screenshareButton).withMargin(0).withFlex(1).withMaxWidth(130));
         camBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
-        camBox.items.add(FlexItem(smalltoggwidth, minitemheight, shareOnlyButton).withMargin(0).withFlex(0.2));
-        if (state.screenShareMode) {
-            camBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
-            camBox.items.add(FlexItem(smalltoggwidth, minitemheight, largescreenButton).withMargin(0).withFlex(0.2));
-        }
+        camBox.items.add(FlexItem(buttwidth, minitemheight, pushViewModeButton).withMargin(0).withFlex(0.2).withMaxWidth(140));
+        //if (state.screenShareMode) {
+        //    camBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
+        //    camBox.items.add(FlexItem(smalltoggwidth, minitemheight, largescreenButton).withMargin(0).withFlex(0.2));
+        //}
 
         FlexBox customBox;
         customBox.flexDirection = FlexBox::Direction::row;
-        customBox.items.add(FlexItem(4, 4).withMargin(0));
-        customBox.items.add(FlexItem(smallbuttwidth, minitemheight, customInfoLabel).withMargin(0).withFlex(0));
-        customBox.items.add(FlexItem(12, 4).withMargin(0));
+        customBox.items.add(FlexItem(2, 4).withMargin(0));
+        customBox.items.add(FlexItem(100, minitemheight, customInfoLabel).withMargin(0).withFlex(0));
+        customBox.items.add(FlexItem(2, 4).withMargin(0));
         customBox.items.add(FlexItem(minKnobWidth, minitemheight, customFieldEditor).withMargin(0).withFlex(1));
-        customBox.items.add(FlexItem(4, 4).withMargin(0));
+        customBox.items.add(FlexItem(3, 4).withMargin(0));
         customBox.items.add(FlexItem(buttwidth, minitemheight, showNamesButton).withMargin(0).withFlex(0));
 
         
@@ -256,11 +263,11 @@ public:
 
         FlexBox buttonBox;
         buttonBox.flexDirection = FlexBox::Direction::row;
-        buttonBox.items.add(FlexItem(12, 4).withMargin(1).withFlex(1));
-        buttonBox.items.add(FlexItem(buttwidth, minitemheight, copyLinkButton).withMargin(0).withFlex(0));
+        buttonBox.items.add(FlexItem(3, 4).withMargin(1).withFlex(1));
+        buttonBox.items.add(FlexItem(buttwidth, minitemheight, openLinkButton).withMargin(0).withFlex(2).withMaxWidth(200));
         buttonBox.items.add(FlexItem(12, 4).withMargin(0));
-        buttonBox.items.add(FlexItem(buttwidth, minitemheight, openLinkButton).withMargin(0).withFlex(0));
-        buttonBox.items.add(FlexItem(12, 4).withMargin(1).withFlex(1));
+        buttonBox.items.add(FlexItem(buttwidth, minitemheight, copyLinkButton).withMargin(0).withFlex(1).withMaxWidth(120));
+        buttonBox.items.add(FlexItem(3, 4).withMargin(1).withFlex(1));
 
         FlexBox infoBox;
         infoBox.flexDirection = FlexBox::Direction::row;
@@ -274,7 +281,11 @@ public:
         mainBox.items.clear();
         mainBox.flexDirection = FlexBox::Direction::column;
         mainBox.items.add(FlexItem(100, minitemheight, titleLabel).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(6, 6).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(100, minitemheight, buttonBox).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(6, 8).withMargin(0).withFlex(0));
+        mainBox.items.add(FlexItem(100, minitemheight, infoBox).withMargin(0).withFlex(1));
+        mainBox.items.add(FlexItem(6, 14).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, modeBox).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(6, 8).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, camBox).withMargin(0).withFlex(0));
@@ -283,11 +294,7 @@ public:
         mainBox.items.add(FlexItem(6, 14).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, editorBox).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
-        mainBox.items.add(FlexItem(100, minitemheight, buttonBox).withMargin(0).withFlex(0));
-        mainBox.items.add(FlexItem(6, 8).withMargin(0).withFlex(0));
-        mainBox.items.add(FlexItem(100, minitemheight, infoBox).withMargin(0).withFlex(1));
-        mainBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
-        
+
         mainBox.performLayout(getLocalBounds().reduced(2));
         
         int iph = 0;
@@ -298,6 +305,12 @@ public:
         minBounds.setSize(280, iph + 10);
     }
 
+    void choiceButtonSelected(SonoChoiceButton *comp, int index, int ident) override
+    {
+        auto & state = processor.getVideoLinkInfo();
+        state.pushViewMode = ident;
+        refreshURL();
+    }
     
     void updateState() {
         
@@ -311,11 +324,11 @@ public:
 
         webcamButton.setToggleState(!state.screenShareMode, dontSendNotification);
         screenshareButton.setToggleState(state.screenShareMode, dontSendNotification);
-        largescreenButton.setToggleState(state.largeShare, dontSendNotification);
-        shareOnlyButton.setToggleState(state.shareOnly, dontSendNotification);
+        //largescreenButton.setToggleState(state.largeShare, dontSendNotification);
+        pushViewModeButton.setSelectedId(state.pushViewMode, dontSendNotification);
 
         directorButton.setVisible(state.roomMode);
-        largescreenButton.setVisible(state.screenShareMode);
+        //largescreenButton.setVisible(state.screenShareMode);
         //shareOnlyButton.setVisible(!state.roomMode);
 
         refreshURL();
@@ -372,10 +385,7 @@ private:
                     params.set("nvb", ""); // no video button
                     params.set("nosettings", ""); // no settings button
                     params.set("ssb", ""); // allow changing screenshare later
-
-                    if (!state.largeShare) {
-                        params.set("smallshare", ""); // make it a small/normal share
-                    }
+                    params.set("smallshare", ""); // make it a small/normal share
                 }
                 else {
                     params.set("wc", ""); // go to webcam selection immediately
@@ -383,7 +393,7 @@ private:
                 }
             }
 
-            if (state.shareOnly) {
+            if (state.pushViewMode == SonobusAudioProcessor::VideoLinkInfo::PushOnly) {
                 params.set("view", ""); // means only push
             }
 
@@ -401,16 +411,14 @@ private:
                 params.set("nvb", ""); // no video button
                 params.set("ssb", ""); // allow changing screenshare later
                 params.set("nosettings", ""); // no settings button
-                if (!state.largeShare) {
-                    params.set("smallshare", ""); // make it a small/normal share
-                }
+                params.set("smallshare", ""); // make it a small/normal share
             }
             else {
                 params.set("wc", ""); // go to webcam selection immediately
                 params.set("ssb", ""); // allow screenshare later
             }
 
-            if (!state.shareOnly && others.size() > 0) {
+            if (state.pushViewMode != SonobusAudioProcessor::VideoLinkInfo::PushOnly && others.size() > 0) {
                 params.set("view", others.joinIntoString(","));
             }
         }
@@ -439,8 +447,19 @@ private:
                 params.set(key.trim(), val.trim());
             }
         }
-        
-        params.set("push", makeId(processor.getCurrentUsername(), state.screenShareMode));
+
+        if (state.pushViewMode != SonobusAudioProcessor::VideoLinkInfo::ViewOnly) {
+            // don't specify id if in room mode
+            if (!state.roomMode) {
+                params.set("push", makeId(processor.getCurrentUsername(), state.screenShareMode));
+            } else {
+                params.set("push","");
+            }
+        } else {
+            // no video at all
+            params.set("vd","0");
+            params.set("as",""); // and auto-start
+        }
 
         auto url = URL(baseurl).withParameters(params);
 
@@ -464,8 +483,7 @@ private:
     Label camscreenInfoLabel;
     TextButton   webcamButton;
     TextButton   screenshareButton;
-    ToggleButton largescreenButton;
-    ToggleButton shareOnlyButton;
+    SonoChoiceButton pushViewModeButton;
 
 
     TextButton   copyLinkButton;

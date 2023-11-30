@@ -4,7 +4,7 @@
               companyCopyright="2023 Sonosaurus LLC" companyEmail="support@sonosaurus.com"
               pluginFormats="buildAUv3,buildStandalone,enableIAA" pluginManufacturerCode="Sono"
               pluginCode="NBus" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1&#10;&#10;"
-              pluginDesc="SonoBus - Network Audio" version="1.7.0" cppLanguageStandard="17"
+              pluginDesc="SonoBus - Network Audio" version="1.7.1" cppLanguageStandard="17"
               projectLineFeed="&#10;" jucerFormatVersion="1" pluginAUMainType="'aufx'"
               pluginAUIsSandboxSafe="1">
   <MAINGROUP id="i87g34" name="SonoBus">
@@ -224,6 +224,8 @@
       <FILE id="hZVho3" name="triangle_disclosure_right.svg" compile="0"
             resource="1" file="../images/triangle_disclosure_right.svg"/>
       <FILE id="v307Tj" name="urei_main.wav" compile="0" resource="1" file="../images/urei_main.wav"/>
+      <FILE id="O0BeOw" name="videocam-outline.svg" compile="0" resource="1"
+            file="../images/videocam-outline.svg"/>
       <FILE id="yF2qUb" name="wordmaker.g" compile="0" resource="1" file="../Source/wordmaker.g"/>
       <FILE id="t7l3zq" name="x_icon.svg" compile="0" resource="1" file="../images/x_icon.svg"/>
     </GROUP>
@@ -410,7 +412,7 @@
                   UISupportsDocumentBrowser="1" UIFileSharingEnabled="1" customLaunchStoryboard="../images/LaunchScreen.storyboard"
                   iosScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
                   iPadScreenOrientation="UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight,UIInterfaceOrientationPortrait,UIInterfaceOrientationPortraitUpsideDown"
-                  UIRequiresFullScreen="0" buildNumber="83">
+                  UIRequiresFullScreen="0" buildNumber="85">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/ios/include&#10;"
                        libraryPath="../../../deps/ios/lib" defines="LOGLEVEL=2&#10;JUCE_IOS_AUDIO_LOGGING=1"
@@ -447,7 +449,7 @@
                    androidKeyStore="${user.home}/.android/sonouploadnew.jks" androidKeyStorePass="${sonoupload_keystore_password}"
                    androidKeyAlias="${sonoupload_key}" androidKeyAliasPass="${sonoupload_key_password}"
                    androidTheme="@android:style/Theme.NoTitleBar" androidActivitySubClassName="com.sonosaurus.sonobus.SonoBusActivity"
-                   androidVersionCode="83">
+                   androidVersionCode="85">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../deps/aoo/lib&#10;../../../deps/aoo/deps&#10;../../../deps/android&#10;"
                        libraryPath="../../../deps/android/${ANDROID_ABI}" defines="LOGLEVEL=2"/>

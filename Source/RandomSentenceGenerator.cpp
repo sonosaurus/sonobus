@@ -50,7 +50,7 @@ RandomSentenceGenerator::RandomSentenceGenerator(const std::string & fileName)
     ifstream inFile(fileName);
 
     
-    //if the file doesnt open
+    //if the file doesn't open
     if ( !inFile.is_open() )
     {
         cerr << "Unable to open " << fileName << " for reading. "; 

@@ -251,7 +251,7 @@ public:
             username = SystemStats::getComputerName();
         }
 
-        cmdlineConnInfo.userName = username;
+        cmdlineConnInfo.userName = username.trim();
 
         cmdlineConnInfo.serverHost = DEFAULT_SERVER_HOST;
         cmdlineConnInfo.serverPort = DEFAULT_SERVER_PORT;
@@ -391,7 +391,7 @@ public:
 
         auto groupname = arglist.removeValueForOption(groupSpec);
         if (groupname.isNotEmpty()) {
-            cmdlineConnInfo.groupName = groupname;
+            cmdlineConnInfo.groupName = groupname.trim();
             doInitialConnect = true;
             copyInfo = true;
         }
@@ -404,7 +404,7 @@ public:
 
         auto username = arglist.removeValueForOption(userNameSpec);
         if (username.isNotEmpty()) {
-            cmdlineConnInfo.userName = username;
+            cmdlineConnInfo.userName = username.trim();
             copyInfo = true;
         }
 
@@ -792,7 +792,7 @@ public:
             }
         }
         else {
-            DBG("was not actve: restarting");
+            DBG("was not active: restarting");
             mainWindow->getDeviceManager().restartLastAudioDevice();
         }
 

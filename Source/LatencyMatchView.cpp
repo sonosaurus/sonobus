@@ -237,7 +237,7 @@ void LatencyMatchView::updatePeerSliders()
 
 
         String peerstr;
-        peerstr << latinfo.sourceName << String(juce::CharPointer_UTF8 (" \xe2\x86\x92 ")) << latinfo.destName;
+        peerstr << latinfo.sourceName << String(" -> ") << latinfo.destName;
         label->setText(peerstr, dontSendNotification);
 
         peerSlidersBox.items.add(FlexItem(minButtonWidth, minitemheight, *slider).withMargin(1).withFlex(0));

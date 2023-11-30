@@ -71,7 +71,18 @@ ChannelGroupEffectsView::ChannelGroupEffectsView(SonobusAudioProcessor& proc, bo
     updateLayout();
 }
 
-ChannelGroupEffectsView::~ChannelGroupEffectsView() {}
+ChannelGroupEffectsView::~ChannelGroupEffectsView() {
+
+    compressorView->removeListener(this);
+    expanderView->removeListener(this);
+    expanderView->removeHeaderListener(this);
+    reverbSendView->removeHeaderListener(this);
+    reverbSendView->removeListener(this);
+    polarityInvertView->removeHeaderListener(this);
+    polarityInvertView->removeListener(this);
+
+    effectsConcertina.reset();
+}
 
 juce::Rectangle<int> ChannelGroupEffectsView::getMinimumContentBounds() const {
     auto minbounds = compressorView->getMinimumContentBounds();
@@ -444,6 +455,11 @@ ChannelGroupMonitorEffectsView::ChannelGroupMonitorEffectsView(SonobusAudioProce
 
 ChannelGroupMonitorEffectsView::~ChannelGroupMonitorEffectsView()
 {
+    reverbSendView->removeListener(this);
+    delayView->removeListener(this);
+    delayView->removeHeaderListener(this);
+
+    effectsConcertina.reset();
 }
 
 juce::Rectangle<int> ChannelGroupMonitorEffectsView::getMinimumContentBounds() const {
@@ -744,6 +760,8 @@ ChannelGroupReverbEffectsView::ChannelGroupReverbEffectsView(SonobusAudioProcess
 
 ChannelGroupReverbEffectsView::~ChannelGroupReverbEffectsView()
 {
+    reverbView->removeListener(this);
+    effectsConcertina.reset();
 }
 
 juce::Rectangle<int> ChannelGroupReverbEffectsView::getMinimumContentBounds() const {
@@ -879,7 +897,7 @@ void ChannelGroupView::resized()
     mainbox.performLayout(getLocalBounds());
     
     if (panLabel) {
-        panLabel->setBounds(panSlider->getBounds().removeFromTop(12).translated(0, 0));
+        panLabel->setBounds(panSlider->getBounds().removeFromTop(16).translated(0, -2));
     }
     
 
@@ -2889,7 +2907,7 @@ void ChannelGroupsView::updateInputModeChannelViews(int specific)
 
         } else {
             pvf->panLabel->setVisible(true);
-            pvf->panSlider->setDoubleClickReturnValue(true, (chi & 2) ? 1.0f : -1.0f); // double click defaults to altenating left/right
+            pvf->panSlider->setDoubleClickReturnValue(true, (chi & 2) ? 1.0f : -1.0f); // double click defaults to alternating left/right
             pvf->panSlider->setVisible(true);
 
         }

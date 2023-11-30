@@ -7528,7 +7528,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
     //int sendPanChannels = sendCh == 0 ?  inputBuffer.getNumChannels() : jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
     int sendPanChannels = sendCh == 0 ?  inputPostBuffer.getNumChannels() : jmin(sendWorkBuffer.getNumChannels(), sendCh);
     //int panChannels = jmin(inputBuffer.getNumChannels(), jmax(mainBusOutputChannels, sendCh));
-    // if sending as mono, split the difference about applying gain attentuation for the number of input channels
+    // if sending as mono, split the difference about applying gain attenuation for the number of input channels
     float tgain = sendPanChannels == 1 && inputPostBuffer.getNumChannels() > 0 ? (1.0f/std::max(1.0f, (float)(inputPostBuffer.getNumChannels() * 0.5f))) : 1.0f;
 
     sendWorkBuffer.clear(0, numSamples);
@@ -8456,7 +8456,7 @@ static String videoLinkShowNamesKey("showNames");
 static String videoLinkExtraParamsKey("extraParams");
 static String videoLinkBeDirectorKey("beDir");
 static String videoLinkLargeShareKey("largeShare");
-static String videoLinkShareOnlyKey("shareOnly");
+static String videoLinkPushViewModeKey("pushViewMode");
 static String videoLinkScreenShareParamsKey("screenShare");
 
 ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
@@ -8469,7 +8469,7 @@ ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
     item.setProperty(videoLinkExtraParamsKey, extraParams, nullptr);
     item.setProperty(videoLinkBeDirectorKey, beDirector, nullptr);
     item.setProperty(videoLinkLargeShareKey, largeShare, nullptr);
-    item.setProperty(videoLinkShareOnlyKey, shareOnly, nullptr);
+    item.setProperty(videoLinkPushViewModeKey, pushViewMode, nullptr);
 
     return item;
 }
@@ -8482,7 +8482,7 @@ void SonobusAudioProcessor::VideoLinkInfo::setFromValueTree(const ValueTree & it
     extraParams = item.getProperty(videoLinkExtraParamsKey, extraParams);
     beDirector = item.getProperty(videoLinkBeDirectorKey, beDirector);
     largeShare = item.getProperty(videoLinkLargeShareKey, largeShare);
-    largeShare = item.getProperty(videoLinkShareOnlyKey, shareOnly);
+    pushViewMode = item.getProperty(videoLinkPushViewModeKey, pushViewMode);
 }
 
 
@@ -8674,7 +8674,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
                 // doublecheck it's a valid URL due to bad update
                 auto url = URL(urlstr);
                 if (url.getScheme().isEmpty()) {
-                    // asssume its a file
+                    // assume it's a file
                     DBG("Bad saved record URL: " << urlstr);
                     url = URL(File(urlstr));
                 }

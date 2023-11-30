@@ -588,12 +588,19 @@ public:
         ValueTree getValueTree() const;
         void setFromValueTree(const ValueTree & val);
 
+        enum {
+            PushAndView = 0,
+            PushOnly = 1,
+            ViewOnly =2
+        };
+
+
         bool roomMode = true;
         bool showNames = true;
         bool beDirector = false;
         bool screenShareMode = false;
         bool largeShare = false;
-        bool shareOnly = false;
+        int pushViewMode = PushAndView;
         String extraParams;
     };
 

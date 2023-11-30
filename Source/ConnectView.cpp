@@ -151,7 +151,7 @@ publicGroupsListModel(this)
 
     mServerUserStaticLabel = std::make_unique<Label>("serveruserst", TRANS("Your Displayed Name:"));
     configServerLabel(mServerUserStaticLabel.get());
-    mServerUserStaticLabel->setMinimumHorizontalScale(0.8);
+    mServerUserStaticLabel->setMinimumHorizontalScale(0.7);
 
     mServerUserPassStaticLabel = std::make_unique<Label>("serveruserpassst", TRANS("Password:"));
     configServerLabel(mServerUserPassStaticLabel.get());
@@ -502,7 +502,7 @@ void ConnectView::updateLayout()
     int sliderheight = 44;
     int inmeterwidth = 22 ;
     int outmeterwidth = 22 ;
-    int servLabelWidth = 72;
+    int servLabelWidth = 82;
     int iconheight = 24;
     int iconwidth = iconheight;
     int knoblabelheight = 18;
@@ -785,7 +785,7 @@ void ConnectView::visibilityChanged ()
     if (!isVisible()) {
         // force password show to off here
         mServerGroupPasswordShowButton->setToggleState(false, dontSendNotification);
-        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.userName = mServerUsernameEditor->getText().trim();
         currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
         updateState();
@@ -806,7 +806,7 @@ void ConnectView::connectTabChanged (int newCurrentTabIndex)
         }
         publicGroupLogin();
         
-        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.userName = mServerUsernameEditor->getText().trim();
         currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
     }
@@ -833,7 +833,7 @@ void ConnectView::publicGroupLogin()
     }
 
     AooServerConnectionInfo info;
-    info.userName = mPublicServerUsernameEditor->getText();
+    info.userName = mPublicServerUsernameEditor->getText().trim();
     info.serverHost = host;
     info.serverPort = port;
 
@@ -973,7 +973,7 @@ void ConnectView::textEditorTextChanged (TextEditor& ed)
 {
     if (&ed == mPublicServerUsernameEditor.get() || &ed == mServerUsernameEditor.get()) {
         // try to set the current username, it will fail if we are connected, no big deal
-        processor.setCurrentUsername(ed.getText());
+        processor.setCurrentUsername(ed.getText().trim());
     }
 }
 
@@ -1042,7 +1042,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         AooServerConnectionInfo info;
-        info.userName = mServerUsernameEditor->getText();
+        info.userName = mServerUsernameEditor->getText().trim();
         info.groupName = mServerGroupEditor->getText().trim();
         info.groupPassword = mServerGroupPasswordEditor->getText();
         info.groupIsPublic = false;
@@ -1073,7 +1073,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         AooServerConnectionInfo info;
-        info.userName = mPublicServerUsernameEditor->getText();
+        info.userName = mPublicServerUsernameEditor->getText().trim();
         info.groupName = mPublicServerGroupEditor->getText().trim();
         info.groupPassword = "";
         info.groupIsPublic = true;
@@ -1089,7 +1089,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mServerGroupPasswordShowButton.get()) {
         mServerGroupPasswordShowButton->setToggleState(!mServerGroupPasswordShowButton->getToggleState(), dontSendNotification);
-        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.userName = mServerUsernameEditor->getText().trim();
         currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
         updateState();
@@ -1229,7 +1229,7 @@ void ConnectView::connectWithInfo(const AooServerConnectionInfo & info, bool all
         mPublicServerGroupEditor->repaint();
     }
 
-    if (currConnectionInfo.userName.isEmpty()) {
+    if (currConnectionInfo.userName.trim().isEmpty()) {
         String mesg = TRANS("You need to specify a user name!");
 
         if (info.groupIsPublic) {
@@ -1761,7 +1761,7 @@ void ConnectView::PublicGroupsListModel::groupSelected(int rowNumber)
     else {
 
         AooServerConnectionInfo cinfo;
-        cinfo.userName = parent->mPublicServerUsernameEditor->getText();
+        cinfo.userName = parent->mPublicServerUsernameEditor->getText().trim();
         cinfo.groupName = ginfo.groupName;
         cinfo.groupIsPublic = true;
         cinfo.serverHost = parent->currConnectionInfo.serverHost;
