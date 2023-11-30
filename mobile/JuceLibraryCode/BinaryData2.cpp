@@ -6682,8 +6682,77 @@ static const unsigned char temp_binary_data_95[] =
 
 const char* urei_main_wav = (const char*) temp_binary_data_95;
 
-//================== wordmaker.g ==================
+//================== videocam-outline.svg ==================
 static const unsigned char temp_binary_data_96[] =
+"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+"<svg\n"
+"   width=\"512\"\n"
+"   height=\"512\"\n"
+"   viewBox=\"0 0 512 512\"\n"
+"   version=\"1.1\"\n"
+"   id=\"svg2\"\n"
+"   sodipodi:docname=\"videocam-outline.svg\"\n"
+"   inkscape:version=\"1.3 (0e150ed, 2023-07-21)\"\n"
+"   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n"
+"   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"\n"
+"   xmlns=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
+"   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+"   xmlns:cc=\"http://creativecommons.org/ns#\"\n"
+"   xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n"
+"  <defs\n"
+"     id=\"defs2\" />\n"
+"  <sodipodi:namedview\n"
+"     id=\"namedview2\"\n"
+"     pagecolor=\"#505050\"\n"
+"     bordercolor=\"#ffffff\"\n"
+"     borderopacity=\"1\"\n"
+"     inkscape:showpageshadow=\"0\"\n"
+"     inkscape:pageopacity=\"0\"\n"
+"     inkscape:pagecheckerboard=\"1\"\n"
+"     inkscape:deskcolor=\"#d1d1d1\"\n"
+"     showgrid=\"false\"\n"
+"     inkscape:zoom=\"1.2421875\"\n"
+"     inkscape:cx=\"256\"\n"
+"     inkscape:cy=\"256\"\n"
+"     inkscape:window-width=\"1568\"\n"
+"     inkscape:window-height=\"849\"\n"
+"     inkscape:window-x=\"2176\"\n"
+"     inkscape:window-y=\"248\"\n"
+"     inkscape:window-maximized=\"0\"\n"
+"     inkscape:current-layer=\"svg2\" />\n"
+"  <title\n"
+"     id=\"title1\">ionicons-v5-g</title>\n"
+"  <rect\n"
+"     style=\"fill:none;stroke:none;stroke-width:22;stroke-linecap:round;stroke-opacity:1\"\n"
+"     id=\"rect24508\"\n"
+"     width=\"512\"\n"
+"     height=\"512\"\n"
+"     x=\"0\"\n"
+"     y=\"0\" />\n"
+"  <path\n"
+"     d=\"M374.79,308.78,457.5,367A16,16,0,0,0,480,352.38V159.62A16,16,0,0,0,457.5,145l-82.71,58.22A16,16,0,0,0,368,216.3v79.4A16,16,0,0,0,374.79,308.78Z\"\n"
+"     style=\"fill:none;stroke:#cccccc;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px;stroke-opacity:1\"\n"
+"     id=\"path1\" />\n"
+"  <path\n"
+"     d=\"M268,384H84a52.15,52.15,0,0,1-52-52V180a52.15,52.15,0,0,1,52-52H268.48A51.68,51.68,0,0,1,320,179.52V332A52.15,52.15,0,0,1,268,384Z\"\n"
+"     style=\"fill:none;stroke:#cccccc;stroke-miterlimit:10;stroke-width:32px;stroke-opacity:1\"\n"
+"     id=\"path2\" />\n"
+"  <metadata\n"
+"     id=\"metadata2\">\n"
+"    <rdf:RDF>\n"
+"      <cc:Work\n"
+"         rdf:about=\"\">\n"
+"        <dc:title>ionicons-v5-g</dc:title>\n"
+"      </cc:Work>\n"
+"    </rdf:RDF>\n"
+"  </metadata>\n"
+"</svg>\n";
+
+const char* videocamoutline_svg = (const char*) temp_binary_data_96;
+
+//================== wordmaker.g ==================
+static const unsigned char temp_binary_data_97[] =
 { 123,10,60,115,116,97,114,116,62,10,60,118,101,114,98,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,97,100,106,101,
 99,116,105,118,101,62,60,97,100,106,101,99,116,105,118,101,62,60,110,111,117,110,62,59,10,60,118,101,114,98,62,60,97,100,118,101,114,98,62,59,10,125,10,10,123,10,60,97,100,106,101,99,116,105,118,101,62,10,97,98,97,115,105,99,59,10,97,98,97,116,105,99,
 59,10,97,98,105,101,110,116,59,10,97,98,106,101,99,116,59,10,97,98,108,97,122,101,59,10,97,98,108,101,59,10,97,98,108,111,111,109,59,10,97,98,111,114,97,108,59,10,97,98,111,117,116,59,10,97,98,111,118,101,59,10,97,98,114,111,97,100,59,10,97,98,114,117,
@@ -8480,10 +8549,10 @@ static const unsigned char temp_binary_data_96[] =
 59,10,119,105,100,101,59,10,119,105,100,101,108,121,59,10,119,105,108,100,59,10,119,105,108,100,108,121,59,10,119,105,115,101,108,121,59,10,119,105,116,104,97,108,59,10,119,105,116,104,105,110,59,10,119,111,114,115,101,59,10,119,111,114,115,116,59,10,
 119,114,111,110,103,59,10,119,114,121,108,121,59,10,121,101,97,59,10,121,101,97,104,59,10,121,101,97,114,108,121,59,10,121,101,116,59,10,121,111,110,59,10,121,111,110,100,101,114,59,10,122,105,103,122,97,103,59,10,125,10,0,0 };
 
-const char* wordmaker_g = (const char*) temp_binary_data_96;
+const char* wordmaker_g = (const char*) temp_binary_data_97;
 
 //================== x_icon.svg ==================
-static const unsigned char temp_binary_data_97[] =
+static const unsigned char temp_binary_data_98[] =
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 "<svg\n"
 "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
@@ -8614,5 +8683,5 @@ static const unsigned char temp_binary_data_97[] =
 "  </g>\n"
 "</svg>\n";
 
-const char* x_icon_svg = (const char*) temp_binary_data_97;
+const char* x_icon_svg = (const char*) temp_binary_data_98;
 }

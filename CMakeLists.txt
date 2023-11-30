@@ -558,6 +558,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/triangle_disclosure.svg
         images/triangle_disclosure_right.svg
         images/urei_main.wav
+        images/videocam-outline.svg
         images/x_icon.svg
     )
 

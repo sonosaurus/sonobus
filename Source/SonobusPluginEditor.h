@@ -238,7 +238,7 @@ private:
     void showSuggestedGroupPrompt(const String & name, const String & group, const String & grouppass, bool ispublic, const StringArray & others);
     void showSuggestGroupView(bool show);
 
-    void showVDONinjaView(bool show);
+    void showVDONinjaView(bool show, bool fromVideoButton=true);
     void copyGroupLink();
 
     void resetJitterBufferForAll();
@@ -272,6 +272,7 @@ private:
 
     std::unique_ptr<SonoTextButton> mConnectButton;
     std::unique_ptr<SonoDrawableButton> mAltConnectButton;
+    std::unique_ptr<SonoDrawableButton> mVideoButton;
 
     std::unique_ptr<Label> mMainGroupLabel;
     std::unique_ptr<Label> mMainUserLabel;
@@ -535,6 +536,7 @@ private:
 
     int peersHeight = 0;
     bool isNarrow = false;
+    bool isReallyNarrow = false;
     bool settingsWasShownOnDown = false;
     WeakReference<Component> settingsCalloutBox;
 

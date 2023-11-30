@@ -296,6 +296,9 @@ namespace BinaryData
     extern const char*   urei_main_wav;
     const int            urei_main_wavSize = 632;
 
+    extern const char*   videocamoutline_svg;
+    const int            videocamoutline_svgSize = 2143;
+
     extern const char*   wordmaker_g;
     const int            wordmaker_gSize = 125047;
 
@@ -303,7 +306,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 98;
+    const int namedResourceListSize = 99;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

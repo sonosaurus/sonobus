@@ -8456,7 +8456,7 @@ static String videoLinkShowNamesKey("showNames");
 static String videoLinkExtraParamsKey("extraParams");
 static String videoLinkBeDirectorKey("beDir");
 static String videoLinkLargeShareKey("largeShare");
-static String videoLinkShareOnlyKey("shareOnly");
+static String videoLinkPushViewModeKey("pushViewMode");
 static String videoLinkScreenShareParamsKey("screenShare");
 
 ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
@@ -8469,7 +8469,7 @@ ValueTree SonobusAudioProcessor::VideoLinkInfo::getValueTree() const
     item.setProperty(videoLinkExtraParamsKey, extraParams, nullptr);
     item.setProperty(videoLinkBeDirectorKey, beDirector, nullptr);
     item.setProperty(videoLinkLargeShareKey, largeShare, nullptr);
-    item.setProperty(videoLinkShareOnlyKey, shareOnly, nullptr);
+    item.setProperty(videoLinkPushViewModeKey, pushViewMode, nullptr);
 
     return item;
 }
@@ -8482,7 +8482,7 @@ void SonobusAudioProcessor::VideoLinkInfo::setFromValueTree(const ValueTree & it
     extraParams = item.getProperty(videoLinkExtraParamsKey, extraParams);
     beDirector = item.getProperty(videoLinkBeDirectorKey, beDirector);
     largeShare = item.getProperty(videoLinkLargeShareKey, largeShare);
-    largeShare = item.getProperty(videoLinkShareOnlyKey, shareOnly);
+    pushViewMode = item.getProperty(videoLinkPushViewModeKey, pushViewMode);
 }
 
 
