@@ -2772,7 +2772,7 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             // args: s:username  f:latency
 
             auto it = message.ArgumentsBegin();
-            auto username = (it++)->AsString();
+            auto username = String(CharPointer_UTF8((it++)->AsString()));
             auto latency = (it++)->AsFloat();
 
             if (!isAddressBlocked(endpoint->ipaddr)) {
@@ -2817,7 +2817,7 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             // args: s:username  b:blocked
 
             auto it = message.ArgumentsBegin();
-            auto username = (it++)->AsString();
+            auto username = String(CharPointer_UTF8((it++)->AsString()));
             auto blocked = (it++)->AsBool();
 
             {

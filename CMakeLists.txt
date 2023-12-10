@@ -36,7 +36,7 @@ endif()
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(SonoBus VERSION 1.7.1)
+project(SonoBus VERSION 1.7.2)
 
 set(BUILDVERSION 80)
 
@@ -460,6 +460,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     juce_add_binary_data("${target_name}_SBData" SOURCES
         Source/wordmaker.g
         Source/GoNotoKurrent-Regular.ttf
+	Source/DejaVuSans.ttf
         localization/localized_de.txt
         localization/localized_es.txt
         localization/localized_fr.txt

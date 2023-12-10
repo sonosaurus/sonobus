@@ -12,7 +12,7 @@ class SonoLookAndFeel   : public LookAndFeel_V4, public foleys::LevelMeter::Look
 public:
     SonoLookAndFeel();
 
-    void setLanguageCode(const String & lang);
+    void setLanguageCode(const String & lang, bool useUniversalFont=false);
 
     //void fillWithBackgroundTexture (Graphics&);
     //static void fillWithBackgroundTexture (Component&, Graphics&);
@@ -119,6 +119,8 @@ protected:
     
     float labelCornerRadius = 4.0f;
     String languageCode;
+
+    bool mUseUniversalFont = false;
 
 public:
 
