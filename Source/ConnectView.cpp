@@ -35,7 +35,7 @@ enum {
 ConnectView::ConnectView(SonobusAudioProcessor& proc, AooServerConnectionInfo & info)
 : Component(), processor(proc), currConnectionInfo(info),
 recentsListModel(this),
-recentsGroupFont (17.0, Font::bold), recentsNameFont(15, Font::plain), recentsInfoFont(13, Font::plain),
+recentsGroupFont (17.0 * SonoLookAndFeel::getFontScale(), Font::bold), recentsNameFont(15 * SonoLookAndFeel::getFontScale(), Font::plain), recentsInfoFont(13 * SonoLookAndFeel::getFontScale(), Font::plain),
 publicGroupsListModel(this)
 {
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
@@ -91,7 +91,7 @@ publicGroupsListModel(this)
 
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
     mAddRemoteHostEditor->setTitle(TRANS("Remote Host:Port"));
-    mAddRemoteHostEditor->setFont(Font(16));
+    mAddRemoteHostEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mAddRemoteHostEditor->setText("", false); // 100.36.128.246:11000
     mAddRemoteHostEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
 
@@ -134,24 +134,24 @@ publicGroupsListModel(this)
 
     mServerHostEditor = std::make_unique<TextEditor>("srvaddredit");
     mServerHostEditor->setTitle(TRANS("Connection Server"));
-    mServerHostEditor->setFont(Font(14));
+    mServerHostEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     configEditor(mServerHostEditor.get());
 
     mServerUsernameEditor = std::make_unique<TextEditor>("srvaddredit");
     mServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
-    mServerUsernameEditor->setFont(Font(16));
+    mServerUsernameEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mServerUsernameEditor.get());
 
     mServerUserPasswordEditor = std::make_unique<TextEditor>("userpass"); // 0x25cf
-    mServerUserPasswordEditor->setFont(Font(14));
+    mServerUserPasswordEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     mServerUserPasswordEditor->setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
     configEditor(mServerUserPasswordEditor.get());
 
 
     mServerUserStaticLabel = std::make_unique<Label>("serveruserst", TRANS("Your Displayed Name:"));
     configServerLabel(mServerUserStaticLabel.get());
-    mServerUserStaticLabel->setMinimumHorizontalScale(0.8);
+    mServerUserStaticLabel->setMinimumHorizontalScale(0.7);
 
     mServerUserPassStaticLabel = std::make_unique<Label>("serveruserpassst", TRANS("Password:"));
     configServerLabel(mServerUserPassStaticLabel.get());
@@ -169,13 +169,13 @@ publicGroupsListModel(this)
 
     mServerGroupEditor = std::make_unique<TextEditor>("groupedit");
     mServerGroupEditor->setTitle(TRANS("Group Name:"));
-    mServerGroupEditor->setFont(Font(16));
+    mServerGroupEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mServerGroupEditor.get());
 
     mServerGroupPasswordEditor = std::make_unique<TextEditor>("grouppass"); // 0x25cf
     mServerGroupPasswordEditor->setTitle(TRANS("Optional Group Password"));
-    mServerGroupPasswordEditor->setFont(Font(14));
+    mServerGroupPasswordEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     mServerGroupPasswordEditor->setTextToShowWhenEmpty(TRANS("optional"), Colour(0x44ffffff));
     mServerGroupPasswordEditor->setText(currConnectionInfo.groupPassword, false);
     configEditor(mServerGroupPasswordEditor.get());
@@ -283,7 +283,7 @@ publicGroupsListModel(this)
 
     mPublicServerHostEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerHostEditor->setTitle(TRANS("Connection Server:"));
-    mPublicServerHostEditor->setFont(Font(14));
+    mPublicServerHostEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     configEditor(mPublicServerHostEditor.get());
     mPublicServerHostEditor->setTooltip(servaudioinfo);
 
@@ -300,7 +300,7 @@ publicGroupsListModel(this)
 
     mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
     mPublicServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
-    mPublicServerUsernameEditor->setFont(Font(16));
+    mPublicServerUsernameEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mPublicServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mPublicServerUsernameEditor.get());
 
@@ -311,7 +311,7 @@ publicGroupsListModel(this)
 
     mPublicServerInfoStaticLabel = std::make_unique<Label>("pubinfost", TRANS("Select existing group below OR "));
     configServerLabel(mPublicServerInfoStaticLabel.get());
-    mPublicServerInfoStaticLabel->setFont(16);
+    mPublicServerInfoStaticLabel->setFont(14);
     mPublicServerInfoStaticLabel->setMinimumHorizontalScale(0.8);
 
     mPublicServerAddGroupButton = std::make_unique<TextButton>("addgroup");
@@ -322,7 +322,7 @@ publicGroupsListModel(this)
 
     mPublicServerGroupEditor = std::make_unique<TextEditor>("pubgroupedit");
     mPublicServerGroupEditor->setTitle(TRANS("Public Group Name"));
-    mPublicServerGroupEditor->setFont(Font(16));
+    mPublicServerGroupEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mPublicServerGroupEditor->setText(currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mPublicServerGroupEditor.get());
     mPublicServerGroupEditor->setTextToShowWhenEmpty(TRANS("enter group name"), Colour(0x44ffffff));
@@ -413,7 +413,8 @@ void ConnectView::grabInitialFocus()
 {
     if (auto * butt = mConnectTab->getTabbedButtonBar().getTabButton(mConnectTab->getCurrentTabIndex())) {
         butt->setWantsKeyboardFocus(true);
-        butt->grabKeyboardFocus();
+        if (butt->isShowing())
+            butt->grabKeyboardFocus();
     }
 }
 
@@ -501,7 +502,7 @@ void ConnectView::updateLayout()
     int sliderheight = 44;
     int inmeterwidth = 22 ;
     int outmeterwidth = 22 ;
-    int servLabelWidth = 72;
+    int servLabelWidth = 82;
     int iconheight = 24;
     int iconwidth = iconheight;
     int knoblabelheight = 18;
@@ -784,7 +785,7 @@ void ConnectView::visibilityChanged ()
     if (!isVisible()) {
         // force password show to off here
         mServerGroupPasswordShowButton->setToggleState(false, dontSendNotification);
-        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.userName = mServerUsernameEditor->getText().trim();
         currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
         updateState();
@@ -800,10 +801,12 @@ void ConnectView::connectTabChanged (int newCurrentTabIndex)
     // public groups
     if (adjindex == 2) {
         // put focus somewhere a text editor won't activate on ios
-        mPublicServerAddGroupButton->grabKeyboardFocus();
+        if (mPublicServerAddGroupButton->isShowing()) {
+            mPublicServerAddGroupButton->grabKeyboardFocus();
+        }
         publicGroupLogin();
         
-        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.userName = mServerUsernameEditor->getText().trim();
         currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
     }
@@ -819,7 +822,7 @@ void ConnectView::publicGroupLogin()
     DBG("Public host enter pressed");
     // parse it
     StringArray toks = StringArray::fromTokens(hostport, ":", "");
-    String host = "aoo.sonobus.net";
+    String host = DEFAULT_SERVER_HOST;
     int port = DEFAULT_SERVER_PORT;
 
     if (toks.size() >= 1) {
@@ -830,7 +833,7 @@ void ConnectView::publicGroupLogin()
     }
 
     AooServerConnectionInfo info;
-    info.userName = mPublicServerUsernameEditor->getText();
+    info.userName = mPublicServerUsernameEditor->getText().trim();
     info.serverHost = host;
     info.serverPort = port;
 
@@ -866,13 +869,13 @@ bool ConnectView::copyInfoToClipboard(bool singleURL, String * retmessage)
 
     String hostport = mServerHostEditor->getText();
     if (hostport.isEmpty()) {
-        hostport = "aoo.sonobus.net";
+        hostport = DEFAULT_SERVER_HOST;
     }
 
     String groupName;
     String groupPassword;
 
-    if (!currConnected) {
+    if (!processor.isConnectedToServer()) {
         if (mConnectTab->getCurrentContentComponent() == mServerConnectViewport.get()) {
             groupName = mServerGroupEditor->getText().trim();
             groupPassword = mServerGroupPasswordEditor->getText();
@@ -899,7 +902,7 @@ bool ConnectView::copyInfoToClipboard(bool singleURL, String * retmessage)
             url2 = url2.withParameter("p", groupPassword);
         }
 
-        if (currConnected && currConnectionInfo.groupIsPublic) {
+        if (processor.isConnectedToServer() && currConnectionInfo.groupIsPublic) {
             url = url.withParameter("public", "1");
             url2 = url2.withParameter("public", "1");
         }
@@ -970,7 +973,7 @@ void ConnectView::textEditorTextChanged (TextEditor& ed)
 {
     if (&ed == mPublicServerUsernameEditor.get() || &ed == mServerUsernameEditor.get()) {
         // try to set the current username, it will fail if we are connected, no big deal
-        processor.setCurrentUsername(ed.getText());
+        processor.setCurrentUsername(ed.getText().trim());
     }
 }
 
@@ -1028,7 +1031,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         // parse it
         StringArray toks = StringArray::fromTokens(hostport, ":", "");
-        String host = "aoo.sonobus.net";
+        String host = DEFAULT_SERVER_HOST;
         int port = DEFAULT_SERVER_PORT;
 
         if (toks.size() >= 1) {
@@ -1039,7 +1042,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         AooServerConnectionInfo info;
-        info.userName = mServerUsernameEditor->getText();
+        info.userName = mServerUsernameEditor->getText().trim();
         info.groupName = mServerGroupEditor->getText().trim();
         info.groupPassword = mServerGroupPasswordEditor->getText();
         info.groupIsPublic = false;
@@ -1059,7 +1062,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         // parse it
         StringArray toks = StringArray::fromTokens(hostport, ":", "");
-        String host = "aoo.sonobus.net";
+        String host = DEFAULT_SERVER_HOST;
         int port = DEFAULT_SERVER_PORT;
 
         if (toks.size() >= 1) {
@@ -1070,7 +1073,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         AooServerConnectionInfo info;
-        info.userName = mPublicServerUsernameEditor->getText();
+        info.userName = mPublicServerUsernameEditor->getText().trim();
         info.groupName = mPublicServerGroupEditor->getText().trim();
         info.groupPassword = "";
         info.groupIsPublic = true;
@@ -1086,7 +1089,7 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mServerGroupPasswordShowButton.get()) {
         mServerGroupPasswordShowButton->setToggleState(!mServerGroupPasswordShowButton->getToggleState(), dontSendNotification);
-        currConnectionInfo.userName = mServerUsernameEditor->getText();
+        currConnectionInfo.userName = mServerUsernameEditor->getText().trim();
         currConnectionInfo.groupName = mServerGroupEditor->getText().trim();
         currConnectionInfo.groupPassword = mServerGroupPasswordEditor->getText();
         updateState();
@@ -1109,18 +1112,23 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mServerShareButton.get()) {
         String message;
-        bool singleurl = false;
+        bool singleurl = true;
 #if JUCE_IOS || JUCE_ANDROID
         singleurl = true;
 #endif
         if (copyInfoToClipboard(singleurl, &message)) {
             URL url(message);
+            SafePointer<ConnectView> safeThis(this);
             if (url.isWellFormed()) {
                 Array<URL> urlarray;
                 urlarray.add(url);
-                ContentSharer::getInstance()->shareFiles(urlarray, [](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg); });
+                mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg);
+                    safeThis->mScopedShareBox = {};
+                });
             } else {
-                ContentSharer::getInstance()->shareText(message, [](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg); });
+                mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
+                    safeThis->mScopedShareBox = {};
+                });
             }
         }
 
@@ -1221,7 +1229,7 @@ void ConnectView::connectWithInfo(const AooServerConnectionInfo & info, bool all
         mPublicServerGroupEditor->repaint();
     }
 
-    if (currConnectionInfo.userName.isEmpty()) {
+    if (currConnectionInfo.userName.trim().isEmpty()) {
         String mesg = TRANS("You need to specify a user name!");
 
         if (info.groupIsPublic) {
@@ -1470,7 +1478,7 @@ void ConnectView::showPopTip(const String & message, int timeoutMs, Component * 
     AttributedString text(message);
     text.setJustification (Justification::centred);
     text.setColour (findColour (TextButton::textColourOffId));
-    text.setFont(Font(12));
+    text.setFont(Font(12 * SonoLookAndFeel::getFontScale()));
     if (target) {
         popTip->showAt(target, text, timeoutMs);
     }
@@ -1557,7 +1565,9 @@ void ConnectView::RecentsListModel::paintListBoxItem (int rowNumber, Graphics &g
     float iconsize = height*yratio;
     float groupheight = height*yratio;
     g.drawImageWithin(groupImage, 0, 0, iconsize, iconsize, RectanglePlacement::fillDestination);
-    g.drawFittedText (info.groupName, iconsize + 4, 0, adjwidth*xratio - 8 - iconsize, groupheight, Justification::centredLeft, true);
+    String grouptext;
+    grouptext << (info.groupIsPublic ? TRANS("[P] ") : "") << info.groupName;
+    g.drawFittedText (grouptext, iconsize + 4, 0, adjwidth*xratio - 8 - iconsize, groupheight, Justification::centredLeft, true);
 
     g.setFont (parent->recentsNameFont);
     g.setColour (parent->findColour(nameTextColourId).withAlpha(0.8f));
@@ -1576,7 +1586,7 @@ void ConnectView::RecentsListModel::paintListBoxItem (int rowNumber, Graphics &g
 
     infostr += TRANS("on") + " " + Time(info.timestamp).toString(true, true, false) + " " ;
 
-    if (info.serverHost != "aoo.sonobus.net") {
+    if (info.serverHost != DEFAULT_SERVER_HOST) {
         infostr += TRANS("to") + " " +  info.serverHost;
     }
 
@@ -1751,7 +1761,7 @@ void ConnectView::PublicGroupsListModel::groupSelected(int rowNumber)
     else {
 
         AooServerConnectionInfo cinfo;
-        cinfo.userName = parent->mPublicServerUsernameEditor->getText();
+        cinfo.userName = parent->mPublicServerUsernameEditor->getText().trim();
         cinfo.groupName = ginfo.groupName;
         cinfo.groupIsPublic = true;
         cinfo.serverHost = parent->currConnectionInfo.serverHost;

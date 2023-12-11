@@ -10,9 +10,9 @@
 class SonoLookAndFeel   : public LookAndFeel_V4, public foleys::LevelMeter::LookAndFeelMethods
 {
 public:
-    SonoLookAndFeel();
+    SonoLookAndFeel(bool useUniversalFont=false);
 
-    void setLanguageCode(const String & lang);
+    void setLanguageCode(const String & lang, bool useUniversalFont=false);
 
     //void fillWithBackgroundTexture (Graphics&);
     //static void fillWithBackgroundTexture (Component&, Graphics&);
@@ -101,17 +101,29 @@ public:
     void drawLabel (Graphics& g, Label& label) override;
     
     PopupMenu::Options getOptionsForComboBoxPopupMenu (ComboBox&, Label&) override;
+    Font getComboBoxFont (ComboBox&) override;
+    Font getPopupMenuFont() override;
+    void drawPopupMenuBackground (Graphics& g, [[maybe_unused]] int width, [[maybe_unused]] int height) override;
+  
+    void drawTooltip (Graphics& g, const String& text, int width, int height) override;
+
 
     Justification sliderTextJustification = Justification::centred;
 
-    
+    static float getFontScale() { return fontScale; }
+    static void setFontScale(float scale) { fontScale = scale; }
+
+
 protected:
-    
+
+    static float fontScale;
+
     Font myFont;
-    float fontScale;
-    
+
     float labelCornerRadius = 4.0f;
     String languageCode;
+
+    bool mUseUniversalFont = false;
 
 public:
 

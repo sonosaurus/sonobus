@@ -5,6 +5,7 @@
 
 #include "ChatView.h"
 #include "GenericItemChooser.h"
+#include "SonoLookAndFeel.h"
 
 void FocusTextEditor::focusGained (FocusChangeType gtype)
 {
@@ -282,10 +283,10 @@ void ChatView::updateFontSizes()
 {
     auto offset = processor.getChatFontSizeOffset();
 
-    mChatNameFont = Font(13 + offset);
-    mChatMesgFont = Font(16 + offset);
+    mChatNameFont = Font((13 + offset) * SonoLookAndFeel::getFontScale());
+    mChatMesgFont = Font((16 + offset) * SonoLookAndFeel::getFontScale());
     mChatMesgFixedFont = Font(Font::getDefaultMonospacedFontName(), 15+offset, Font::plain);
-    mChatEditFont = Font(14 + offset);
+    mChatEditFont = Font((14 + offset) * SonoLookAndFeel::getFontScale());
     mChatEditFixedFont = Font(Font::getDefaultMonospacedFontName(), 15+offset, Font::plain);
     mChatSpacerFont = Font(6+offset);
 
@@ -312,7 +313,7 @@ void ChatView::updateTitles()
     
     mChatSendTextEditor->setEnabled(enabled);
     if (enabled) {
-        mesg = TRANS("Enter message here...") + String(juce::CharPointer_UTF8 (" \xe2\x86\x92 ")) + name;
+        mesg = TRANS("Enter message here...") + String(" -> ") + name;
     }
     else {
         mesg = name + TRANS(" is not connected");
@@ -648,50 +649,44 @@ void ChatView::showSaveChat()
 {
     SafePointer<ChatView> safeThis (this);
 
-    if (FileChooser::isPlatformDialogAvailable())
-    {
-        File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
+    File recdir; // = File::getSpecialLocation(File::userDocumentsDirectory).getChildFile("SonoBus Setups");
 
-        // TODO - on iOS we need to give it a name first
+    // TODO - on iOS we need to give it a name first
 //#if (JUCE_IOS || JUCE_ANDROID)
-        String filename = String("SonoBusChat_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
-        recdir = File::getSpecialLocation(File::userDocumentsDirectory).getNonexistentChildFile (filename, ".txt");
+    String filename = String("SonoBusChat_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
+    recdir = File::getSpecialLocation(File::userDocumentsDirectory).getNonexistentChildFile (filename, ".txt");
 //#endif
 
-        mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
-                                           recdir,
-                                           "*.txt",
-                                           true, false, getTopLevelComponent()));
+    mFileChooser.reset(new FileChooser(TRANS("Choose a location and name to store the setup"),
+                                       recdir,
+                                       "*.txt",
+                                       true, false, getTopLevelComponent()));
 
 
 
-        mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
-                                   [safeThis] (const FileChooser& chooser) mutable
-                                   {
-            auto results = chooser.getURLResults();
-            if (safeThis != nullptr && results.size() > 0)
-            {
-                auto url = results.getReference (0);
+    mFileChooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::doNotClearFileNameOnRootChange,
+                               [safeThis] (const FileChooser& chooser) mutable
+                               {
+        auto results = chooser.getURLResults();
+        if (safeThis != nullptr && results.size() > 0)
+        {
+            auto url = results.getReference (0);
 
-                DBG("Chose file to save chat: " <<  url.toString(false));
+            DBG("Chose file to save chat: " <<  url.toString(false));
 
-                if (url.isLocalFile()) {
-                    File lfile = url.getLocalFile();
+            if (url.isLocalFile()) {
+                File lfile = url.getLocalFile();
 
-                    lfile.replaceWithText(safeThis->mChatTextEditor->getText());
-                }
+                lfile.replaceWithText(safeThis->mChatTextEditor->getText());
             }
+        }
 
-            if (safeThis) {
-                safeThis->mFileChooser.reset();
-            }
+        if (safeThis) {
+            safeThis->mFileChooser.reset();
+        }
 
-        }, nullptr);
+    }, nullptr);
 
-    }
-    else {
-        DBG("Need to enable code signing");
-    }
 }
 
 
@@ -835,7 +830,7 @@ void ChatView::processNewChatMessages(int index, int count)
         auto & event = allChatEvents.getReference(i);
 
         if (event.targets.isNotEmpty()) {
-            // targetted message
+            // targeted message
             auto targetnames = StringArray::fromTokens(event.targets, "|", "");
 
             // append a private tab for them if necessary
@@ -863,7 +858,7 @@ void ChatView::processNewChatMessages(int index, int count)
                 mLastPrivateChatViewEventIndex[event.from] = i;
             }
             else {
-                // we are showing global, so skip any targetted things
+                // we are showing global, so skip any targeted things
                 
                 if (event.type == SBChatEvent::UserType) {
                     // but mark unread on the chat tab from this person

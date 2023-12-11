@@ -23,7 +23,7 @@ class SoundboardView : public Component,
     public FileDragAndDropTarget
 {
 public:
-    explicit SoundboardView(SoundboardChannelProcessor* channelProcessor, File supportDir);
+    explicit SoundboardView(SonobusAudioProcessor& audioproc, SoundboardChannelProcessor* channelProcessor, File supportDir);
 
     void paint(Graphics&) override;
 
@@ -37,6 +37,8 @@ public:
     void mouseDown (const MouseEvent& event) override;
     void mouseDrag (const MouseEvent& event) override;
     void mouseUp (const MouseEvent& event) override;
+    void mouseEnter (const MouseEvent&) override;
+
 
     /**
      * @param keyPress Pressed key code.
@@ -73,6 +75,8 @@ public:
      */
     std::function<void(const SoundSample& sample)> onOpenSample;
 
+    void updateMiscState();
+
 private:
     
 #if JUCE_IOS || JUCE_ANDROID
@@ -90,7 +94,9 @@ private:
     constexpr static const float ELEMENT_MARGIN = 4;
     constexpr static const float BUTTON_SPACING_MARGIN = 2;
 #endif
-    
+
+    SonobusAudioProcessor & audioProcessor;
+
     /**
      * Controller for soundboard view.
      */
@@ -193,6 +199,12 @@ private:
      * Button for stopping all playing sample playbacks.
      */
     std::unique_ptr<SonoDrawableButton> mStopAllPlayback;
+
+    SonoPanSliderLookAndFeel volSliderLNF = { 12 };
+    std::unique_ptr<Slider> mVolumeSlider;
+
+    std::unique_ptr<SonoDrawableButton> mSendAudioButton;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mSendAudioAttachment;
 
     WeakReference<Component> mSampleEditCalloutBox;
 

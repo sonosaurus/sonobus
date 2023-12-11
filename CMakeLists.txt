@@ -36,9 +36,9 @@ endif()
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(SonoBus VERSION 1.6.2)
+project(SonoBus VERSION 1.7.2)
 
-set(BUILDVERSION 77)
+set(BUILDVERSION 80)
 
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
@@ -87,6 +87,11 @@ set (FormatsToBuild VST3 Standalone)
 # On Mac, a AU version will be built too
 if (APPLE)
     list (APPEND FormatsToBuild AU)
+endif()
+
+# On Linux, LV2 will be built too
+if (UNIX)
+    list (APPEND FormatsToBuild LV2)
 endif()
 
 # If you are building a VST2 or AAX plugin, CMake needs to be told where to find these SDKs on your
@@ -161,7 +166,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         VST3_CATEGORIES "${vst3cats}"
         AAX_CATEGORY "AAX_ePlugInCategory_None"
 
-        
+	LV2URI "https://sonobus.net/lv2/sonobus"
+	
         # mac settings
         HARDENED_RUNTIME_ENABLED TRUE
         HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input"
@@ -281,6 +287,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/RunningCumulant.h
         Source/SampleEditView.cpp
         Source/SampleEditView.h
+        Source/SonoCallOutBox.cpp
+        Source/SonoCallOutBox.h
         Source/SonoChoiceButton.cpp
         Source/SonoChoiceButton.h
         Source/SonoDrawableButton.cpp
@@ -314,6 +322,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonobusPluginProcessor.cpp
         Source/SonobusPluginProcessor.h
         Source/SonobusTypes.h
+        Source/SuggestNewGroupView.cpp
+        Source/SuggestNewGroupView.h
         Source/VDONinjaView.h
         Source/VersionInfo.cpp
         Source/VersionInfo.h
@@ -407,7 +417,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     # This cleans up the folder organization, especially on Xcode.
     # It tucks the Plugin varieties into a "Targets" folder and generate an Xcode Scheme manually
     # Xcode scheme generation is turned off globally to limit noise from other targets
-    # The non-hacky way of doing this is via the global PREDEFINED_TARGETS_FOLDER propety
+    # The non-hacky way of doing this is via the global PREDEFINED_TARGETS_FOLDER property
     # However that doesn't seem to be working in Xcode
     # Not all plugin types (au, vst) available on each build type (win, macos, linux)
     foreach(target ${formats} "All")
@@ -449,7 +459,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 
     juce_add_binary_data("${target_name}_SBData" SOURCES
         Source/wordmaker.g
-        Source/DejaVuSans.ttf
+        Source/GoNotoKurrent-Regular.ttf
+	Source/DejaVuSans.ttf
         localization/localized_de.txt
         localization/localized_es.txt
         localization/localized_fr.txt
@@ -460,6 +471,10 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         localization/localized_pt-pt.txt
         localization/localized_ko.txt
         localization/localized_ru.txt
+        localization/localized_zh-hans.txt
+        images/arrow-up-narrow.svg
+        images/arrow-down-narrow.svg
+        images/dots.svg
         images/bar_click.wav
         images/beat_click.wav
         images/chat.svg
@@ -487,8 +502,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/incoming_disallowed.svg
         images/keyboard.svg
         images/keyboard_disabled.svg
-	images/keypad-num-disabled.svg
-	images/keypad-num.svg
+        images/keypad-num-disabled.svg
+        images/keypad-num.svg
         images/lgc_bar.wav
         images/link.svg
         images/link_all.svg
@@ -544,6 +559,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/triangle_disclosure.svg
         images/triangle_disclosure_right.svg
         images/urei_main.wav
+        images/videocam-outline.svg
         images/x_icon.svg
     )
 

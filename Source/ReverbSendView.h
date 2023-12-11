@@ -122,7 +122,7 @@ public:
         infoBox.flexDirection = FlexBox::Direction::row;
         //timeBox.items.add(FlexItem(minKnobWidth, knoblabelheight, timeLabel).withMargin(0).withFlex(0));
         infoBox.items.add(FlexItem(12, 4).withMargin(0));
-        infoBox.items.add(FlexItem(minKnobWidth, minitemheight, infoLabel).withMargin(0).withFlex(1));
+        infoBox.items.add(FlexItem(minKnobWidth, headerheight, infoLabel).withMargin(0).withFlex(1));
 
 
         checkBox.items.clear();
@@ -158,7 +158,7 @@ public:
         mainBox.items.add(FlexItem(6, 5).withMargin(0).withFlex(0));
         mainBox.items.add(FlexItem(100, minitemheight, sendBox).withMargin(0).withFlex(1));
         mainBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
-        mainBox.items.add(FlexItem(100, minitemheight, infoBox).withMargin(0).withFlex(1));
+        mainBox.items.add(FlexItem(100, headerheight, infoBox).withMargin(0).withFlex(1));
         mainBox.items.add(FlexItem(6, 4).withMargin(0).withFlex(0));
 
         int iph = 0;

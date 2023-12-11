@@ -34,12 +34,12 @@
 #include "JuceHeader.h"
 
 #include "juce_core/system/juce_TargetPlatform.h"
-#include "juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
+#include "juce_audio_plugin_client/detail/juce_CheckSettingMacros.h"
 
 #if !JUCE_LINUX
-#include "juce_audio_plugin_client/utility/juce_IncludeSystemHeaders.h"
-#include "juce_audio_plugin_client/utility/juce_IncludeModuleHeaders.h"
-#include "juce_audio_plugin_client/utility/juce_WindowsHooks.h"
+#include "juce_audio_plugin_client/detail/juce_IncludeSystemHeaders.h"
+#include "juce_audio_plugin_client/detail/juce_IncludeModuleHeaders.h"
+#include "juce_gui_basics/native/juce_WindowsHooks_windows.h"
 #endif
 
 #include <juce_audio_devices/juce_audio_devices.h>
@@ -63,7 +63,7 @@ extern juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
 #include "android/SonoBusActivity.h"
 
 #if JUCE_USE_ANDROID_OPENSLES || JUCE_USE_ANDROID_OBOE
- #include "juce_audio_devices/native/juce_android_HighPerformanceAudioHelpers.h"
+  #include "juce_audio_devices/native/juce_HighPerformanceAudioHelpers_android.h"
 #endif
 
 #endif
@@ -251,7 +251,7 @@ public:
             username = SystemStats::getComputerName();
         }
 
-        cmdlineConnInfo.userName = username;
+        cmdlineConnInfo.userName = username.trim();
 
         cmdlineConnInfo.serverHost = DEFAULT_SERVER_HOST;
         cmdlineConnInfo.serverPort = DEFAULT_SERVER_PORT;
@@ -391,7 +391,7 @@ public:
 
         auto groupname = arglist.removeValueForOption(groupSpec);
         if (groupname.isNotEmpty()) {
-            cmdlineConnInfo.groupName = groupname;
+            cmdlineConnInfo.groupName = groupname.trim();
             doInitialConnect = true;
             copyInfo = true;
         }
@@ -404,7 +404,7 @@ public:
 
         auto username = arglist.removeValueForOption(userNameSpec);
         if (username.isNotEmpty()) {
-            cmdlineConnInfo.userName = username;
+            cmdlineConnInfo.userName = username.trim();
             copyInfo = true;
         }
 
@@ -792,7 +792,7 @@ public:
             }
         }
         else {
-            DBG("was not actve: restarting");
+            DBG("was not active: restarting");
             mainWindow->getDeviceManager().restartLastAudioDevice();
         }
 
