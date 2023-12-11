@@ -10,7 +10,7 @@
 class SonoLookAndFeel   : public LookAndFeel_V4, public foleys::LevelMeter::LookAndFeelMethods
 {
 public:
-    SonoLookAndFeel();
+    SonoLookAndFeel(bool useUniversalFont=false);
 
     void setLanguageCode(const String & lang, bool useUniversalFont=false);
 
@@ -111,12 +111,15 @@ public:
     Justification sliderTextJustification = Justification::centred;
 
     static float getFontScale() { return fontScale; }
-    
+    static void setFontScale(float scale) { fontScale = scale; }
+
+
 protected:
-    
-    Font myFont;
+
     static float fontScale;
-    
+
+    Font myFont;
+
     float labelCornerRadius = 4.0f;
     String languageCode;
 

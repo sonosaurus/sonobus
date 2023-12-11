@@ -148,6 +148,7 @@ protected:
 
     std::unique_ptr<SonoChoiceButton> mOptionsLanguageChoice;
     std::unique_ptr<Label> mOptionsLanguageLabel;
+    std::unique_ptr<ToggleButton> mOptionsUnivFontButton;
 
 
     std::unique_ptr<Label> mOptionsRecFilesStaticLabel;

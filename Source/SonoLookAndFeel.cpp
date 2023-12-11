@@ -43,7 +43,7 @@ static TextLayout sonoLayoutTooltipText (const String& text, Colour colour) noex
     return tl;
 }
 
-SonoLookAndFeel::SonoLookAndFeel()
+SonoLookAndFeel::SonoLookAndFeel(bool useUniversalFont) : mUseUniversalFont(useUniversalFont)
 {
     // setColour (mainBackgroundColourId, Colour::greyLevel (0.8f));
     //DBG("Sonolook and feel");
@@ -51,7 +51,6 @@ SonoLookAndFeel::SonoLookAndFeel()
     setUsingNativeAlertWindows(true);
 
     //fontScale = 1.2; // 1.125;
-    
 
     setColourScheme(getDarkColourScheme());
 
@@ -153,7 +152,7 @@ SonoLookAndFeel::SonoLookAndFeel()
     setupDefaultMeterColours();
 
     if (auto * deflnf = dynamic_cast<SonoLookAndFeel*>(&LookAndFeel::getDefaultLookAndFeel())) {
-        setLanguageCode(deflnf->languageCode);
+        setLanguageCode(deflnf->languageCode, mUseUniversalFont);
     }
 
     //DBG("Myfont name " << myFont.getTypefaceName());
@@ -163,19 +162,6 @@ void SonoLookAndFeel::setLanguageCode(const String & lang, bool useUniversalFont
 {
     languageCode = lang;
     mUseUniversalFont = useUniversalFont;
-
-    if (mUseUniversalFont) {
-#if JUCE_ANDROID
-        SonoLookAndFeel::fontScale = 1.0f;
-#elif JUCE_WINDOWS
-        SonoLookAndFeel::fontScale = 1.35f;
-#else
-        SonoLookAndFeel::fontScale = 1.25f;
-#endif
-    }
-    else {
-        SonoLookAndFeel::fontScale = 1.0f;
-    }
 
     /*
     if (lang.startsWith("zh")) {
