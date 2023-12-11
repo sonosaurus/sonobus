@@ -57,7 +57,7 @@ parts:
     plugin: cmake
     source: https://github.com/sonosaurus/sonobus.git
     #source: .
-    source-tag: '1.7.1'
+    source-tag: '1.7.2'
     # source-subdir: "Builds/LinuxMakefile"
     build-packages:
       - libjack-dev
