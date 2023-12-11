@@ -1394,18 +1394,18 @@ static void doActuallyQuit (int result, SonobusAudioProcessorEditor* editor)
 bool SonobusAudioProcessorEditor::requestedQuit()
 {
     // allow quit if we are not connected
-    if (currConnected && currGroup.isNotEmpty()) {
-        // pop up confirmation
-        AlertWindow::showOkCancelBox (AlertWindow::WarningIcon,
-        TRANS("Quit Confirmation"),
-        TRANS("You are connected, are you sure you want to quit?"),
-        TRANS ("Quit"),
-        String(),
-        nullptr,
-        ModalCallbackFunction::create (doActuallyQuit, this));
+    // if (currConnected && currGroup.isNotEmpty()) {
+    //     // pop up confirmation
+    //     AlertWindow::showOkCancelBox (AlertWindow::WarningIcon,
+    //     TRANS("Quit Confirmation"),
+    //     TRANS("You are connected, are you sure you want to quit?"),
+    //     TRANS ("Quit"),
+    //     String(),
+    //     nullptr,
+    //     ModalCallbackFunction::create (doActuallyQuit, this));
         
-        return false;
-    }
+    //     return false;
+    // }
     return true;
 }
 
@@ -5689,4 +5689,3 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
     }
 #endif
 }
-
