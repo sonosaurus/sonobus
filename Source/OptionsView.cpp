@@ -77,6 +77,24 @@ void OptionsView::initializeLanguages()
 
 }
 
+void OptionsView::updatePacketRedundancySliderColour(int redundancy)
+{
+    switch (redundancy) {
+        case 1:
+        case 2:
+            mOptionsPacketRedundancySlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
+            break;
+        case 3:
+            mOptionsPacketRedundancySlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(1.0, 0.722, 0, 0.3));
+            break;
+        case 4:
+            mOptionsPacketRedundancySlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(1.0, 0.36, 0, 0.3));
+            break;
+        case 5:
+        default:
+            mOptionsPacketRedundancySlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(1.0, 0.0, 0, 0.3));
+    }
+}
 
 OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceManager*()> getaudiodevicemanager)
 : Component(), getAudioDeviceManager(getaudiodevicemanager), processor(proc), smallLNF(14), sonoSliderLNF(13)
@@ -336,11 +354,39 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mOptionsAutoDropThreshSlider->setTooltip(TRANS("This controls how sensitive the auto-jitter buffer adjustment is when there are audio dropouts. The jitter buffer size will be increased if there are any dropouts within the number of seconds specified here. When this value is smaller it will be less likely to increase the jitter buffer size automatically."));
 
-
     mOptionsAutoDropThreshLabel = std::make_unique<Label>("", autodropname);
     mOptionsAutoDropThreshLabel->setAccessible(false);
     configLabel(mOptionsAutoDropThreshLabel.get(), false);
     mOptionsAutoDropThreshLabel->setJustificationType(Justification::centredLeft);
+
+    auto packetredundancyname = TRANS("Packet redundancy");
+    mOptionsPacketRedundancySlider = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
+    mOptionsPacketRedundancySlider->setTitle(packetredundancyname);
+    mOptionsPacketRedundancySlider->setRange(1.0, 5.0, 1.0);
+    mOptionsPacketRedundancySlider->setSkewFactor(0.5);
+    mOptionsPacketRedundancySlider->setName("packetredundancy");
+    mOptionsPacketRedundancySlider->setTextValueSuffix(" " + TRANS("packets"));
+    mOptionsPacketRedundancySlider->setSliderSnapsToMousePosition(false);
+    mOptionsPacketRedundancySlider->setChangeNotificationOnlyOnRelease(true);
+    mOptionsPacketRedundancySlider->setDoubleClickReturnValue(true, 2.0);
+    mOptionsPacketRedundancySlider->setTextBoxIsEditable(false);
+    mOptionsPacketRedundancySlider->setScrollWheelEnabled(false);
+    mOptionsPacketRedundancySlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
+    mOptionsPacketRedundancySlider->setWantsKeyboardFocus(true);
+
+    mOptionsPacketRedundancySlider->onValueChange = [this]() {
+        int redundancy = jmax(1.0, mOptionsPacketRedundancySlider->getValue());
+        processor.setPacketRedundancy(redundancy);
+        updatePacketRedundancySliderColour(redundancy);
+    };
+
+    mOptionsPacketRedundancySlider->setTooltip(TRANS("This controls how many redundant packets will be sent. SonoBus uses UDP for fast transmission but it can be unreliable. Sending multiple redundant packets can help to decrease packet loss and as a consequence latency if enough bandwidth is available. Use this setting very carefully as it directly multiplies your uploads and the receivers download bandwidth requirement."));
+
+    mOptionsPacketRedundancyLabel = std::make_unique<Label>("", packetredundancyname);
+    mOptionsPacketRedundancyLabel->setAccessible(false);
+    configLabel(mOptionsPacketRedundancyLabel.get(), false);
+    mOptionsPacketRedundancyLabel->setJustificationType(Justification::centredLeft);
+
 
     mOptionsSavePluginDefaultButton = std::make_unique<TextButton>("saveopt");
     mOptionsSavePluginDefaultButton->setButtonText(TRANS("Save as default plugin options"));
@@ -380,6 +426,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshSlider.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsPacketRedundancySlider.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsPacketRedundancyLabel.get());
 
     if (!JUCEApplication::isStandaloneApp()) {
         mOptionsComponent->addAndMakeVisible(mOptionsSavePluginDefaultButton.get());
@@ -599,6 +647,10 @@ void OptionsView::updateState(bool ignorecheck)
 
     mOptionsAutoDropThreshSlider->setValue(1 / jmax(0.001f, processor.getAutoresizeBufferDropRateThreshold()), dontSendNotification);
 
+    int redundancy = jmax(1, processor.getPacketRedundancy());
+    mOptionsPacketRedundancySlider->setValue(redundancy, dontSendNotification);
+    updatePacketRedundancySliderColour(redundancy);
+
     int port = processor.getUseSpecificUdpPort();
     if (port > 0) {
         mOptionsUdpPortEditor->setText(String::formatted("%d", port), dontSendNotification);
@@ -755,6 +807,11 @@ void OptionsView::updateLayout()
     optionsUdpBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsUseSpecificUdpPortButton).withMargin(0).withFlex(1));
     optionsUdpBox.items.add(FlexItem(90, minitemheight, *mOptionsUdpPortEditor).withMargin(0).withFlex(0));
 
+    optionsPacketRedundancyBox.items.clear();
+    optionsPacketRedundancyBox.flexDirection = FlexBox::Direction::row;
+    optionsPacketRedundancyBox.items.add(FlexItem(42, 12));
+    optionsPacketRedundancyBox.items.add(FlexItem(100, minitemheight, *mOptionsPacketRedundancySlider).withMargin(0).withFlex(1));
+
     optionsDynResampleBox.items.clear();
     optionsDynResampleBox.flexDirection = FlexBox::Direction::row;
     optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
@@ -832,6 +889,8 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 3));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsPacketRedundancyBox).withMargin(2).withFlex(0));
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
         if (mOptionsAllowBluetoothInput) {
@@ -966,7 +1025,7 @@ void OptionsView::resized()  {
     mOptionsDefaultLevelSlider->setMouseDragSensitivity(jmax(128, mOptionsDefaultLevelSlider->getWidth()));
 
     mOptionsAutoDropThreshLabel->setBounds(mOptionsAutoDropThreshSlider->getBounds().removeFromLeft(mOptionsAutoDropThreshSlider->getWidth()*0.75));
-
+    mOptionsPacketRedundancyLabel->setBounds(mOptionsPacketRedundancySlider->getBounds().removeFromLeft(mOptionsPacketRedundancySlider->getWidth()*0.75));
 }
 
 void OptionsView::showAudioTab()
