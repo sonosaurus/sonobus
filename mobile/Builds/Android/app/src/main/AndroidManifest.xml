@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="85"
-          android:versionName="1.7.1">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sonosaurus.sonobus" android:versionCode="86"
+          android:versionName="1.7.2">
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:anyDensity="true"
                     android:xlargeScreens="true"/>

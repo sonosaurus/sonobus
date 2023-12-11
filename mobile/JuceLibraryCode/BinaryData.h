@@ -68,6 +68,9 @@ namespace BinaryData
     extern const char*   copy_icon_svg;
     const int            copy_icon_svgSize = 2218;
 
+    extern const char*   DejaVuSans_ttf;
+    const int            DejaVuSans_ttfSize = 757076;
+
     extern const char*   dice_icon_128_png;
     const int            dice_icon_128_pngSize = 3793;
 
@@ -306,7 +309,7 @@ namespace BinaryData
     const int            x_icon_svgSize = 4297;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 99;
+    const int namedResourceListSize = 100;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

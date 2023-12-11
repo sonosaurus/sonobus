@@ -9,12 +9,22 @@
 
 #include <JuceHeader.h>
 
-#if JUCE_ANDROID
+#define OLDFONTSTUFF 1
+
+#if OLDFONTSTUFF
+
 float SonoLookAndFeel::fontScale = 1.0f;
-#elif JUCE_WINDOWS
-float SonoLookAndFeel::fontScale = 1.35f;
+
 #else
-float SonoLookAndFeel::fontScale = 1.25f;
+
+ #if JUCE_ANDROID
+ float SonoLookAndFeel::fontScale = 1.0f;
+ #elif JUCE_WINDOWS
+ float SonoLookAndFeel::fontScale = 1.35f;
+ #else
+ float SonoLookAndFeel::fontScale = 1.25f;
+ #endif
+
 #endif
 
 //==============================================================================
@@ -33,7 +43,7 @@ static TextLayout sonoLayoutTooltipText (const String& text, Colour colour) noex
     return tl;
 }
 
-SonoLookAndFeel::SonoLookAndFeel()
+SonoLookAndFeel::SonoLookAndFeel(bool useUniversalFont) : mUseUniversalFont(useUniversalFont)
 {
     // setColour (mainBackgroundColourId, Colour::greyLevel (0.8f));
     //DBG("Sonolook and feel");
@@ -41,7 +51,6 @@ SonoLookAndFeel::SonoLookAndFeel()
     setUsingNativeAlertWindows(true);
 
     //fontScale = 1.2; // 1.125;
-    
 
     setColourScheme(getDarkColourScheme());
 
@@ -143,15 +152,16 @@ SonoLookAndFeel::SonoLookAndFeel()
     setupDefaultMeterColours();
 
     if (auto * deflnf = dynamic_cast<SonoLookAndFeel*>(&LookAndFeel::getDefaultLookAndFeel())) {
-        setLanguageCode(deflnf->languageCode);
+        setLanguageCode(deflnf->languageCode, mUseUniversalFont);
     }
 
     //DBG("Myfont name " << myFont.getTypefaceName());
 }
 
-void SonoLookAndFeel::setLanguageCode(const String & lang)
+void SonoLookAndFeel::setLanguageCode(const String & lang, bool useUniversalFont)
 {
     languageCode = lang;
+    mUseUniversalFont = useUniversalFont;
 
     /*
     if (lang.startsWith("zh")) {
@@ -162,6 +172,8 @@ void SonoLookAndFeel::setLanguageCode(const String & lang)
     }
      */
 }
+
+
 
 Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
 {
@@ -176,55 +188,66 @@ Typeface::Ptr SonoLookAndFeel::getTypefaceForFont (const Font& font)
         
         String slang = lang.initialSectionNotContaining("_").toLowerCase();
 
-#if 0
-        if (slang.startsWith("ja")) {
-            DBG("Using japanese");
-            Font jfont(font);
-#if (JUCE_MAC || JUCE_IOS)
-            jfont.setTypefaceName("Hiragino Sans W3");
-#elif JUCE_ANDROID
-            //jfont.setTypefaceName("Droid Sans Fallback");            
-            return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
-#elif JUCE_WINDOWS
-            jfont.setTypefaceName("Arial Unicode MS");
-#endif
-            return Typeface::createSystemTypefaceFor (jfont);            
-        }
-        else if (slang.startsWith("ko")) {
-            DBG("Using korean");
-            Font jfont(font);
-#if (JUCE_MAC || JUCE_IOS)
-            jfont.setTypefaceName("Apple SD Gothic Neo");
-#elif JUCE_ANDROID
-            //jfont.setTypefaceName("Droid Sans Fallback");
-            return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
-#elif JUCE_WINDOWS
-            jfont.setTypefaceName("Malgun Gothic");
-            //jfont.setTypefaceName("Arial Unicode MS");
-#endif
-            return Typeface::createSystemTypefaceFor (jfont);
-        }
-        else if (slang.startsWith("zh")) {
-            DBG("Using chinese");
-            Font jfont(font);
-#if (JUCE_MAC || JUCE_IOS)
-            jfont.setTypefaceName("PingFang SC");
-#elif JUCE_WINDOWS
-            jfont.setTypefaceName("Arial Unicode MS");
-#elif JUCE_ANDROID
-            jfont.setTypefaceName("DroidSansFallback");            
-            return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
-#endif
-            return Typeface::createSystemTypefaceFor (jfont);            
-        }
-        else
-#endif
+        if (!mUseUniversalFont)
         {
-            DBG("Creating custom typeface!!");
-            
-            //return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
-            //return Typeface::createSystemTypefaceFor (BinaryData::InterUnicode_ttf, BinaryData::InterUnicode_ttfSize);
-            return Typeface::createSystemTypefaceFor (BinaryData::GoNotoKurrentRegular_ttf, BinaryData::GoNotoKurrentRegular_ttfSize);
+            if (slang.startsWith("ja")) {
+                DBG("Using japanese");
+                Font jfont(font);
+#if (JUCE_MAC || JUCE_IOS)
+                jfont.setTypefaceName("Hiragino Sans W3");
+#elif JUCE_ANDROID
+                //jfont.setTypefaceName("Droid Sans Fallback");
+                return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+#elif JUCE_WINDOWS
+                jfont.setTypefaceName("Arial Unicode MS");
+#endif
+                return Typeface::createSystemTypefaceFor (jfont);
+            }
+            else if (slang.startsWith("ko")) {
+                DBG("Using korean");
+                Font jfont(font);
+#if (JUCE_MAC || JUCE_IOS)
+                jfont.setTypefaceName("Apple SD Gothic Neo");
+#elif JUCE_ANDROID
+                //jfont.setTypefaceName("Droid Sans Fallback");
+                return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+#elif JUCE_WINDOWS
+                jfont.setTypefaceName("Malgun Gothic");
+                //jfont.setTypefaceName("Arial Unicode MS");
+#endif
+                return Typeface::createSystemTypefaceFor (jfont);
+            }
+            else if (slang.startsWith("zh")) {
+                DBG("Using chinese");
+                Font jfont(font);
+#if (JUCE_MAC || JUCE_IOS)
+                jfont.setTypefaceName("PingFang SC");
+#elif JUCE_WINDOWS
+                jfont.setTypefaceName("Arial Unicode MS");
+#elif JUCE_ANDROID
+                jfont.setTypefaceName("DroidSansFallback");
+                return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+#endif
+                return Typeface::createSystemTypefaceFor (jfont);
+            }
+            else
+            {
+                DBG("Creating custom typeface!!");
+
+                return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+                //return Typeface::createSystemTypefaceFor (BinaryData::InterUnicode_ttf, BinaryData::InterUnicode_ttfSize);
+                //return Typeface::createSystemTypefaceFor (BinaryData::GoNotoKurrentRegular_ttf, BinaryData::GoNotoKurrentRegular_ttfSize);
+            }
+        }
+        else {
+            // universal font stuff
+            {
+                DBG("Creating custom typeface!!");
+
+                //return Typeface::createSystemTypefaceFor (BinaryData::DejaVuSans_ttf, BinaryData::DejaVuSans_ttfSize);
+                //return Typeface::createSystemTypefaceFor (BinaryData::InterUnicode_ttf, BinaryData::InterUnicode_ttfSize);
+                return Typeface::createSystemTypefaceFor (BinaryData::GoNotoKurrentRegular_ttf, BinaryData::GoNotoKurrentRegular_ttfSize);
+            }
         }
     }
     return LookAndFeel_V4::getTypefaceForFont(font);

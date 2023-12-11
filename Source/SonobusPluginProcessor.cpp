@@ -107,6 +107,7 @@ static String chatUseFixedWidthFontKey("chatFixedWidthFont");
 static String chatFontSizeOffsetKey("chatFontSizeOffset");
 static String linkMonitoringDelayTimesKey("linkMonDelayTimes");
 static String langOverrideCodeKey("langOverrideCode");
+static String useUnivFontKey("useUnivFont");
 static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
 static String autoresizeDropRateThreshKey("autoDropRateThreshNew");
@@ -2772,7 +2773,7 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             // args: s:username  f:latency
 
             auto it = message.ArgumentsBegin();
-            auto username = (it++)->AsString();
+            auto username = String(CharPointer_UTF8((it++)->AsString()));
             auto latency = (it++)->AsFloat();
 
             if (!isAddressBlocked(endpoint->ipaddr)) {
@@ -2817,7 +2818,7 @@ bool SonobusAudioProcessor::handleOtherMessage(EndpointState * endpoint, const c
             // args: s:username  b:blocked
 
             auto it = message.ArgumentsBegin();
-            auto username = (it++)->AsString();
+            auto username = String(CharPointer_UTF8((it++)->AsString()));
             auto blocked = (it++)->AsBool();
 
             {
@@ -8539,6 +8540,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(linkMonitoringDelayTimesKey, mLinkMonitoringDelayTimes, nullptr);
     extraTree.setProperty(lastUsernameKey, mCurrentUsername, nullptr);
     extraTree.setProperty(langOverrideCodeKey, mLangOverrideCode, nullptr);
+    extraTree.setProperty(useUnivFontKey, mUseUniversalFont, nullptr);
     extraTree.setProperty(lastWindowWidthKey, var((int)mPluginWindowWidth), nullptr);
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
     extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
@@ -8703,6 +8705,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             setLastSoundboardShown(extraTree.getProperty(lastSoundboardShownKey, mLastSoundboardShown));
             mCurrentUsername = extraTree.getProperty(lastUsernameKey, mCurrentUsername);
             mLangOverrideCode = extraTree.getProperty(langOverrideCodeKey, mLangOverrideCode);
+            mUseUniversalFont = extraTree.getProperty(useUnivFontKey, mUseUniversalFont);
             setChatFontSizeOffset((int) extraTree.getProperty(chatFontSizeOffsetKey, (int)mChatFontSizeOffset));
             setChatUseFixedWidthFont(extraTree.getProperty(chatUseFixedWidthFontKey, mChatUseFixedWidthFont));;
 

@@ -825,6 +825,9 @@ public:
     void setLanguageOverrideCode(const String & code) { mLangOverrideCode = code; }
     String getLanguageOverrideCode() const { return mLangOverrideCode; }
 
+    void setUseUniversalFont(bool flag) { mUseUniversalFont = flag; }
+    bool getUseUniversalFont() const { return mUseUniversalFont; }
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
@@ -1259,6 +1262,7 @@ private:
     ValueTree   mGlobalState;
     
     String mLangOverrideCode;
+    bool mUseUniversalFont = false;
 
     // main state
     AudioProcessorValueTreeState mState;

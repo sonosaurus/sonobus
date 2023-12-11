@@ -273,8 +273,21 @@ void SonobusAudioProcessorEditor::configEditor(TextEditor *editor, bool passwd)
 
 //==============================================================================
 SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor& p)
-    : AudioProcessorEditor (&p), processor (p),  sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12)
+    : AudioProcessorEditor (&p), processor (p),  sonoLookAndFeel(p.getUseUniversalFont()), sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12)
 {
+    if (p.getUseUniversalFont()) {
+#if JUCE_ANDROID
+        SonoLookAndFeel::setFontScale(1.0f);
+#elif JUCE_WINDOWS
+        SonoLookAndFeel::setFontScale(1.35f);
+#else
+        SonoLookAndFeel::setFontScale(1.25f);
+#endif
+    }
+    else {
+        SonoLookAndFeel::setFontScale(1.0f);
+    }
+
     LookAndFeel::setDefaultLookAndFeel(&sonoLookAndFeel);
     
     sonoLookAndFeel.setUsingNativeAlertWindows(true);
@@ -283,11 +296,11 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     setupLocalisation(processor.getLanguageOverrideCode());
 
-    sonoLookAndFeel.setLanguageCode(mActiveLanguageCode);
-    sonoSliderLNF.setLanguageCode(mActiveLanguageCode);
-    smallLNF.setLanguageCode(mActiveLanguageCode);
-    teensyLNF.setLanguageCode(mActiveLanguageCode);
-    panSliderLNF.setLanguageCode(mActiveLanguageCode);
+    sonoLookAndFeel.setLanguageCode(mActiveLanguageCode, processor.getUseUniversalFont());
+    sonoSliderLNF.setLanguageCode(mActiveLanguageCode, processor.getUseUniversalFont());
+    smallLNF.setLanguageCode(mActiveLanguageCode, processor.getUseUniversalFont());
+    teensyLNF.setLanguageCode(mActiveLanguageCode, processor.getUseUniversalFont());
+    panSliderLNF.setLanguageCode(mActiveLanguageCode, processor.getUseUniversalFont());
 
     setColour (nameTextColourId, Colour::fromFloatRGBA(1.0f, 1.0f, 1.0f, 0.9f));
     setColour (selectedColourId, Colour::fromFloatRGBA(0.0f, 0.4f, 0.8f, 0.5f));
