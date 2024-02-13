@@ -271,6 +271,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsDisableShortcutButton = std::make_unique<ToggleButton>(TRANS("Disable keyboard shortcuts"));
     mOptionsDisableShortcutButton->addListener(this);
 
+    mOptionsConfirmOnQuit = std::make_unique<ToggleButton>(TRANS("Require confirmation on quit"));
+    mOptionsConfirmOnQuit->addListener(this);
+
 #if JUCE_IOS
     if (JUCEApplicationBase::isStandaloneApp()) {
         mOptionsAllowBluetoothInput = std::make_unique<ToggleButton>(TRANS("Allow Bluetooth Input"));
@@ -397,6 +400,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     }
     mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsDisableShortcutButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsConfirmOnQuit.get());
 
 
 
@@ -640,6 +644,7 @@ void OptionsView::updateState(bool ignorecheck)
 
     mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
     mOptionsDisableShortcutButton->setToggleState(processor.getDisableKeyboardShortcuts(), dontSendNotification);
+    mOptionsConfirmOnQuit->setToggleState(processor.getConfirmOnQuit(), dontSendNotification);
 
     uint32 recmask = processor.getDefaultRecordingOptions();
 
@@ -794,6 +799,11 @@ void OptionsView::updateLayout()
     optionsDisableShortcutsBox.flexDirection = FlexBox::Direction::row;
     optionsDisableShortcutsBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsDisableShortcutsBox.items.add(FlexItem(180, minpassheight, *mOptionsDisableShortcutButton).withMargin(0).withFlex(1));
+
+    optionsDisableShortcutsBox.items.clear();
+    optionsDisableShortcutsBox.flexDirection = FlexBox::Direction::row;
+    optionsDisableShortcutsBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsDisableShortcutsBox.items.add(FlexItem(180, minpassheight, *mOptionsConfirmOnQuit).withMargin(0).withFlex(1));
 
 
     optionsAllowBluetoothBox.items.clear();
@@ -1168,6 +1178,13 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             updateKeybindings();
         }
     }
+    else if (buttonThatWasClicked == mOptionsConfirmOnQuit.get()) {
+        bool newval = mOptionsConfirmOnQuit->getToggleState();
+        processor.setConfirmOnQuit(newval);
+        if (updateConfirmOnQuit) {
+            updateConfirmOnQuit();
+        }
+    }
     else if (buttonThatWasClicked == mOptionsSavePluginDefaultButton.get()) {
         processor.saveCurrentAsDefaultPluginSettings();
     }
@@ -1388,4 +1405,3 @@ void OptionsView::paint(Graphics & g)
     g.drawRoundedRectangle(bounds.toFloat(), 6.0f, 0.5f);
 */
 }
-

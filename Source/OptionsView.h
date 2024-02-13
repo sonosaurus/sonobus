@@ -75,6 +75,7 @@ public:
     std::function<Value*()> getAllowBluetoothInputValue; // = []() { return 0; };
     std::function<void()> updateSliderSnap; // = []() { return 0; };
     std::function<void()> updateKeybindings; // = []() { return 0; };
+    std::function<void()> updateConfirmOnQuit; // = []() { return 0; };
     std::function<bool(const String &)> setupLocalisation; // = []() { return 0; };
     std::function<void()> saveSettingsIfNeeded; // = []() { return 0; };
 
@@ -136,6 +137,7 @@ protected:
     std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
     std::unique_ptr<ToggleButton> mOptionsAllowBluetoothInput;
     std::unique_ptr<ToggleButton> mOptionsDisableShortcutButton;
+    std::unique_ptr<ToggleButton> mOptionsConfirmOnQuit;
     std::unique_ptr<TextButton> mOptionsSavePluginDefaultButton;
     std::unique_ptr<TextButton> mOptionsResetPluginDefaultButton;
 
