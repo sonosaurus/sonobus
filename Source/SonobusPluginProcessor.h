@@ -582,6 +582,9 @@ public:
     bool getDisableKeyboardShortcuts() const { return mDisableKeyboardShortcuts; }
     void setDisableKeyboardShortcuts(bool flag) {  mDisableKeyboardShortcuts = flag; }
 
+    bool getConfirmOnQuit() const { return mConfirmOnQuit; }
+    void setConfirmOnQuit(bool flag) {  mConfirmOnQuit = flag; }
+
 
     struct VideoLinkInfo
     {
@@ -1254,6 +1257,7 @@ private:
     // misc
     bool mSliderSnapToMouse = true;
     bool mDisableKeyboardShortcuts = false;
+    bool mConfirmOnQuit = true;
     VideoLinkInfo mVideoLinkInfo;
     
     File mSupportDir;
