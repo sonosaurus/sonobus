@@ -41,7 +41,6 @@ typedef int socklen_t;
 #define SENDBUFSIZE_SCALAR 2.0f
 #define PEER_PING_INTERVAL_MS 2000.0
 
-String SonobusAudioProcessor::paramInGain     ("ingain");
 String SonobusAudioProcessor::paramDry     ("dry");
 String SonobusAudioProcessor::paramInMonitorMonoPan     ("inmonmonopan");
 String SonobusAudioProcessor::paramInMonitorPan1     ("inmonpan1");
@@ -602,10 +601,6 @@ soundboardChannelProcessor(std::make_unique<SoundboardChannelProcessor>()),
 mGlobalState("SonobusGlobalState"),
 mState (*this, &mUndoManager, "SonoBusAoO",
 {
-           std::make_unique<AudioParameterFloat>(ParameterID(paramInGain, 1),     TRANS ("In Gain"),    NormalisableRange<float>(0.0, 4.0, 0.0, 0.33), mInGain.get(), "", AudioProcessorParameter::genericParameter,
-                                          [](float v, int maxlen) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); }, 
-                                          [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); }),
-
     std::make_unique<AudioParameterFloat>(ParameterID(paramInMonitorMonoPan, 1),     TRANS ("In Pan"),    NormalisableRange<float>(-1.0, 1.0, 0.0), mInMonMonoPan.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { if (fabs(v) < 0.01) return TRANS("C"); return String((int)rint(abs(v*100.0f))) + ((v > 0 ? "% R" : "% L")) ; },
                                           [](const String& s) -> float { return s.getFloatValue()*1e-2f; }),
@@ -691,7 +686,6 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
 })
 {
-    mState.addParameterListener (paramInGain, this);
     mState.addParameterListener (paramDry, this);
     mState.addParameterListener (paramWet, this);
     mState.addParameterListener (paramInMonitorMonoPan, this);
@@ -6566,12 +6560,6 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
 {
     if (parameterID == paramDry) {
         mDry = newValue;
-    }
-    else if (parameterID == paramInGain) {
-        //mInGain = newValue; // NO LONGER USE GLOBAL mInGain
-
-        // for now just apply it to the first input channel group
-        //mInputChannelGroups[0].gain = newValue;
     }
     else if (parameterID == paramMetGain) {
         mMetGain = newValue;

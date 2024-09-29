@@ -21,6 +21,8 @@
 #include "LatencyMatchView.h"
 #include "SuggestNewGroupView.h"
 #include "SonoCallOutBox.h"
+#include "CrossPlatformUtils.h"
+
 #include <sstream>
 
 #if JUCE_ANDROID
@@ -423,12 +425,18 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mPeerLayoutMinimalButton->setRadioGroupId(PeerLayoutRadioGroupId);
 
 
+#if JUCE_IOS
     mInGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
     mInGainSlider->setName("ingain");
     mInGainSlider->setTitle(TRANS("In Level"));
+    mInGainSlider->addListener(this);
     mInGainSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mInGainSlider->setTextBoxIsEditable(true);
     mInGainSlider->setScrollWheelEnabled(false);
+    mInGainSlider->setRange(0.0, 1.0);
+    mInGainSlider->setNumDecimalPlacesToDisplay(2);
+    mInGainSlider->setValue(getInputGain());
+#endif
 
 
     mInMixerButton = std::make_unique<TextButton>("mix");
@@ -630,25 +638,31 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mOutGainSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
     mOutGainSlider->setScrollWheelEnabled(false);
 
+#if JUCE_IOS
     configLevelSlider(mInGainSlider.get());
+#endif
     configLevelSlider(mDrySlider.get());
     configLevelSlider(mOutGainSlider.get());
 
     mOutGainSlider->setTextBoxIsEditable(true);
     mDrySlider->setTextBoxIsEditable(true);
+#if JUCE_IOS
     //mInGainSlider->setTextBoxIsEditable(true);
+#endif
 
     mDrySlider->setWantsKeyboardFocus(true);
     mOutGainSlider->setWantsKeyboardFocus(true);
 
 
 
+#if JUCE_IOS
     mInGainLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("In Level"));
     configLabel(mInGainLabel.get(), false);
     mInGainLabel->setJustificationType(Justification::topLeft);
     mInGainLabel->setTooltip(TRANS("This reduces or boosts the level of your own audio input, and it will affect the level of your audio being sent to others and your own monitoring"));
     mInGainLabel->setInterceptsMouseClicks(true, false);
     mInGainLabel->setAccessible(false);
+#endif
 
     mDryLabel = std::make_unique<Label>(SonobusAudioProcessor::paramDry, TRANS("Monitor"));
     configLabel(mDryLabel.get(), false);
@@ -673,7 +687,6 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     smallerEditorFontsize = 16;
 #endif
     
-    mInGainAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramInGain, *mInGainSlider);
     mDryAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramDry, *mDrySlider);
     mWetAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramWet, *mOutGainSlider);
     mMainSendMuteAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (p.getValueTreeState(), SonobusAudioProcessor::paramMainSendMute, *mMainMuteButton);
@@ -805,6 +818,13 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mMainViewport->setViewedComponent(mMainContainer.get(), false);
 
     mMainContainer->addAndMakeVisible(mPeerContainer.get());
+
+#if JUCE_IOS
+    mInGainContainer = std::make_unique<Component>();
+    mInGainContainer->addAndMakeVisible(mInGainLabel.get());
+    mInGainContainer->addAndMakeVisible(mInGainSlider.get());
+    mMainContainer->addChildComponent(mInGainContainer.get());
+#endif
 
     mInputChannelsContainer = std::make_unique<ChannelGroupsView>(processor, false);
     mMainContainer->addChildComponent(mInputChannelsContainer.get());
@@ -1170,7 +1190,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     mTopLevelContainer->addAndMakeVisible(mDrySlider.get());
     mTopLevelContainer->addAndMakeVisible(mOutGainSlider.get());
+#if JUCE_IOS
     //mTopLevelContainer->addAndMakeVisible(mInGainSlider.get());
+#endif
     mTopLevelContainer->addAndMakeVisible(mMainMuteButton.get());
     mTopLevelContainer->addAndMakeVisible(mMainRecvMuteButton.get());
     mTopLevelContainer->addAndMakeVisible(mMainPushToTalkButton.get());
@@ -1246,7 +1268,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 
 
+#if JUCE_IOS
     //mTopLevelContainer->addAndMakeVisible(mInGainLabel.get());
+#endif
     mTopLevelContainer->addAndMakeVisible(mDryLabel.get());
     mTopLevelContainer->addAndMakeVisible(mOutGainLabel.get());
     mTopLevelContainer->addAndMakeVisible(inputMeter.get());
@@ -1938,6 +1962,8 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
         
 #if JUCE_IOS
         if (JUCEApplicationBase::isStandaloneApp()) {
+            getAudioDeviceManager()->addChangeListener(this);
+
             bool iaaconn = isInterAppAudioConnected();
             if (iaaconn != iaaConnected) {
                 iaaConnected = iaaconn;
@@ -2040,6 +2066,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }        
     }
     else if (buttonThatWasClicked == mInMixerButton.get()) {
+
+#if JUCE_IOS
+        mInGainContainer->setVisible(getIsInputGainSettable() && mInMixerButton->getToggleState());
+#endif
 
         mInputChannelsContainer->setVisible(mInMixerButton->getToggleState());
         mInputChannelsContainer->rebuildChannelViews();
@@ -2806,7 +2836,9 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
         slider->setSliderSnapsToMousePosition(slider->getWidth() > minsize && snap);
     };
 
-    //snapset(mInGainSlider.get());
+#if JUCE_IOS
+    snapset(mInGainSlider.get());
+#endif
     snapset(mOutGainSlider.get());
     snapset(mDrySlider.get());
     //snapset(mOptionsDefaultLevelSlider.get());
@@ -3207,6 +3239,14 @@ void SonobusAudioProcessorEditor::showConnectPopup(bool flag)
 
 void SonobusAudioProcessorEditor::sliderValueChanged (Slider* slider)
 {
+#if JUCE_IOS
+    if (slider == mInGainSlider.get()) {
+        if (getIsInputGainSettable()) {
+            setInputGain(slider->getValue());
+        }
+        return;
+    }
+#endif
 }
 
 void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event) 
@@ -4525,10 +4565,22 @@ void SonobusAudioProcessorEditor::resized()
     Rectangle<int> peersminbounds = mPeerContainer->getMinimumContentBounds();
     Rectangle<int> inmixminbounds = mInputChannelsContainer->getMinimumContentBounds();
 
+    Rectangle<int> ingainactualbounds = Rectangle<int>(0,0,0,0);
     Rectangle<int> inmixactualbounds = Rectangle<int>(0,0,0,0);
 
+#if JUCE_IOS
+    if (mInGainContainer->isVisible()) {
+        ingainactualbounds = Rectangle<int>(0, 5,
+                                            std::max(inmixminbounds.getWidth(), inchantargwidth),
+                                            45);
+
+        mInGainSlider->setBounds(ingainactualbounds);
+        mInGainContainer->setBounds(ingainactualbounds);
+    }
+#endif
+
     if (mInputChannelsContainer->isVisible()) {
-        inmixactualbounds = Rectangle<int>(0, 0,
+        inmixactualbounds = Rectangle<int>(0, ingainactualbounds.getBottom() + 5,
                                            std::max(inmixminbounds.getWidth(), inchantargwidth),
                                            inmixminbounds.getHeight() + 5);
 
@@ -4602,11 +4654,15 @@ void SonobusAudioProcessorEditor::resized()
 
     mDrySlider->setMouseDragSensitivity(jmax(128, mDrySlider->getWidth()));
     mOutGainSlider->setMouseDragSensitivity(jmax(128, mOutGainSlider->getWidth()));
-    //mInGainSlider->setMouseDragSensitivity(jmax(128, mInGainSlider->getWidth()));
+#if JUCE_IOS
+    mInGainSlider->setMouseDragSensitivity(jmax(128, mInGainSlider->getWidth()));
+#endif
 
-    mDryLabel->setBounds(mDrySlider->getBounds().removeFromTop(17).removeFromLeft(mDrySlider->getWidth() - mDrySlider->getTextBoxWidth() + 3).translated(4, -2));
-    //mInGainLabel->setBounds(mInGainSlider->getBounds().removeFromTop(14).removeFromLeft(mInGainSlider->getWidth() - mInGainSlider->getTextBoxWidth() + 3).translated(4, 0));
-    mOutGainLabel->setBounds(mOutGainSlider->getBounds().removeFromTop(17).removeFromLeft(mOutGainSlider->getWidth() - mOutGainSlider->getTextBoxWidth() + 3).translated(4, -2));
+    mDryLabel->setBounds(mDrySlider->getBounds().removeFromTop(14).removeFromLeft(mDrySlider->getWidth() - mDrySlider->getTextBoxWidth() + 3).translated(4, 0));
+#if JUCE_IOS
+    mInGainLabel->setBounds(mInGainSlider->getBounds().removeFromTop(14).removeFromLeft(mInGainSlider->getWidth() - mInGainSlider->getTextBoxWidth() + 3).translated(4, 0));
+#endif
+    mOutGainLabel->setBounds(mOutGainSlider->getBounds().removeFromTop(14).removeFromLeft(mOutGainSlider->getWidth() - mOutGainSlider->getTextBoxWidth() + 3).translated(4, 0));
 
 
     
@@ -4659,13 +4715,12 @@ void SonobusAudioProcessorEditor::updateLayout()
     int inmixw = 74;
     int choicew = inmixw + mutew + 3;
 
-    inGainBox.items.clear();
-    inGainBox.flexDirection = FlexBox::Direction::row;
-    //inGainBox.items.add(FlexItem(minKnobWidth, minitemheight, *mInGainSlider).withMargin(0).withFlex(1));
-    //inGainBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsLabel).withMargin(0).withFlex(0.5));
-    inGainBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
-    inGainBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1).withMaxWidth(160));
-    inGainBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+    sendChannelsBox.items.clear();
+    sendChannelsBox.flexDirection = FlexBox::Direction::row;
+    //sendChannelsBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsLabel).withMargin(0).withFlex(0.5));
+    sendChannelsBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
+    sendChannelsBox.items.add(FlexItem(choicew, minitemheight, *mSendChannelsChoice).withMargin(0).withFlex(1).withMaxWidth(160));
+    sendChannelsBox.items.add(FlexItem(2, 6).withMargin(0).withFlex(0.1));
 
     dryBox.items.clear();
     dryBox.flexDirection = FlexBox::Direction::row;
@@ -4696,7 +4751,7 @@ void SonobusAudioProcessorEditor::updateLayout()
 
     inputLeftBox.items.clear();
     inputLeftBox.flexDirection = FlexBox::Direction::column;
-    inputLeftBox.items.add(FlexItem(choicew + 4, minitemheight, inGainBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
+    inputLeftBox.items.add(FlexItem(choicew + 4, minitemheight, sendChannelsBox).withMargin(0).withFlex(1)); //.withMaxWidth(isNarrow ? 160 : 120));
     inputLeftBox.items.add(FlexItem(4, 4).withMargin(0).withFlex(0));
     inputLeftBox.items.add(FlexItem(mutew+inmixw + 10, minitemheight, inputPannerBox).withMargin(0).withFlex(1)); //.withMaxWidth(maxPannerWidth));
 
@@ -5174,6 +5229,15 @@ void SonobusAudioProcessorEditor::changeListenerCallback (ChangeBroadcaster* sou
     } else if (source == &(processor.getTransportSource())) {
         updateTransportState();
     }
+#if JUCE_IOS
+    else if (source == getAudioDeviceManager()) {
+        mInGainSlider->setValue(getInputGain(), sendNotificationSync);
+        if (mInMixerButton->getToggleState()) {
+          mInGainContainer->setVisible(getIsInputGainSettable());
+          resized();
+        }
+    }
+#endif
 }
 
 class SonobusAudioProcessorEditor::TrimFileJob : public ThreadPoolJob

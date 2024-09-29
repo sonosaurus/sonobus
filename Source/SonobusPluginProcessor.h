@@ -235,7 +235,6 @@ public:
     
     AudioProcessorValueTreeState& getValueTreeState();
 
-    static String paramInGain;
     static String paramInMonitorMonoPan;
     static String paramInMonitorPan1;
     static String paramInMonitorPan2;

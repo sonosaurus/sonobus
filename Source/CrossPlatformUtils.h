@@ -20,4 +20,7 @@ void *binaryDataToUrlBookmark(const void * data, size_t size);
 
 juce::URL generateUpdatedURL (juce::URL& urlToUse);
 
+bool getIsInputGainSettable();
+float getInputGain();
+bool setInputGain(float gain);
 #endif

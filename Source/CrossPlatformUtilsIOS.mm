@@ -15,6 +15,8 @@
 
 
 
+#import <AVFoundation/AVFoundation.h>
+
 #import <UIKit/UIView.h>
 
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -109,5 +111,21 @@ juce::URL generateUpdatedURL (juce::URL& urlToUse)
 }
 
 
+bool getIsInputGainSettable()
+{
+    auto* session = [AVAudioSession sharedInstance];
+    return [session isInputGainSettable];
+}
+
+float getInputGain() {
+    auto* session = [AVAudioSession sharedInstance];
+    return [session inputGain];
+}
+
+bool setInputGain(float gain) {
+    auto* session = [AVAudioSession sharedInstance];
+    NSError* error;
+    return [session setInputGain:gain error:&error];
+}
 
 #endif

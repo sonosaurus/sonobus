@@ -298,7 +298,9 @@ private:
     std::unique_ptr<SonoDrawableButton> mMainLinkButton;
     std::unique_ptr<Drawable> mMainLinkArrow;
 
+#if JUCE_IOS
     std::unique_ptr<Slider> mInGainSlider;
+#endif
 
     std::unique_ptr<TextButton> mInMixerButton;
 
@@ -332,7 +334,9 @@ private:
     std::unique_ptr<DrawableRectangle> mFileAreaBg;
 
 
+#if JUCE_IOS
     std::unique_ptr<Label> mInGainLabel;
+#endif
     std::unique_ptr<Label> mDryLabel;
     std::unique_ptr<Label> mWetLabel;
     std::unique_ptr<Label> mOutGainLabel;
@@ -531,6 +535,10 @@ private:
     std::unique_ptr<Component> mMainContainer;
     std::unique_ptr<PeersContainerView> mPeerContainer;
 
+#if JUCE_IOS
+    std::unique_ptr<Component> mInGainContainer;
+#endif
+
     std::unique_ptr<Viewport> mInputChannelsViewport;
     std::unique_ptr<ChannelGroupsView> mInputChannelsContainer;
 
@@ -626,7 +634,7 @@ private:
     FlexBox remoteSourceBox;
     FlexBox remoteSinkBox;
     FlexBox paramsBox;
-    FlexBox inGainBox;
+    FlexBox sendChannelsBox;
     FlexBox dryBox;
     FlexBox wetBox;
     FlexBox toolbarBox;
@@ -697,7 +705,6 @@ private:
     
     std::unique_ptr<CustomTooltipWindow> tooltipWindow;
     
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mInGainAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDryAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mWetAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mMainSendMuteAttachment;

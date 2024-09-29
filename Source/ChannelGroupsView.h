@@ -435,7 +435,6 @@ protected:
 
 
 
-    std::unique_ptr<Slider> mInGainSlider;
     std::unique_ptr<TextButton> mAddButton;
     std::unique_ptr<TextButton> mClearButton;
     std::unique_ptr<TextButton> mInReverbButton;

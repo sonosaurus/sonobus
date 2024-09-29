@@ -932,12 +932,6 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
     //bgColor = Colour::fromFloatRGBA(0.045f, 0.045f, 0.05f, 1.0f);
     bgColor = Colour::fromFloatRGBA(0.08f, 0.045f, 0.08f, 1.0f);
 
-    mInGainSlider     = std::make_unique<Slider>(Slider::LinearHorizontal,  Slider::TextBoxAbove);
-    mInGainSlider->setName("ingain");
-    mInGainSlider->setSliderSnapsToMousePosition(processor.getSlidersSnapToMousePosition());
-    mInGainSlider->setTextBoxIsEditable(true);
-    mInGainSlider->setScrollWheelEnabled(false);
-
     mAddButton = std::make_unique<TextButton>("+");
     mAddButton->setTitle(TRANS("Add Input Group"));
     mAddButton->onClick = [this] {  addGroupPressed(); };
