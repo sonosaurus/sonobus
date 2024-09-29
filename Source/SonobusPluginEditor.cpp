@@ -21,6 +21,8 @@
 #include "LatencyMatchView.h"
 #include "SuggestNewGroupView.h"
 #include "SonoCallOutBox.h"
+#include "CrossPlatformUtils.h"
+
 #include <sstream>
 
 #if JUCE_ANDROID
@@ -1938,6 +1940,8 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
         
 #if JUCE_IOS
         if (JUCEApplicationBase::isStandaloneApp()) {
+            getAudioDeviceManager()->addChangeListener(this);
+
             bool iaaconn = isInterAppAudioConnected();
             if (iaaconn != iaaConnected) {
                 iaaConnected = iaaconn;
@@ -5174,6 +5178,11 @@ void SonobusAudioProcessorEditor::changeListenerCallback (ChangeBroadcaster* sou
     } else if (source == &(processor.getTransportSource())) {
         updateTransportState();
     }
+#if JUCE_IOS
+    else if (source == getAudioDeviceManager()) {
+        setPreferredOutputNumberOfChannels(getMaximumOutputNumberOfChannels());
+    }
+#endif
 }
 
 class SonobusAudioProcessorEditor::TrimFileJob : public ThreadPoolJob

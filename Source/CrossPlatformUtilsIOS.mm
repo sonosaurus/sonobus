@@ -15,6 +15,8 @@
 
 
 
+#import <AVFoundation/AVFoundation.h>
+
 #import <UIKit/UIView.h>
 
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -108,6 +110,18 @@ juce::URL generateUpdatedURL (juce::URL& urlToUse)
     return returl;
 }
 
+int getMaximumOutputNumberOfChannels()
+{
+    auto* session = [AVAudioSession sharedInstance];
+    return [session maximumOutputNumberOfChannels];
+}
+
+bool setPreferredOutputNumberOfChannels(int count)
+{
+    auto* session = [AVAudioSession sharedInstance];
+    NSError* error;
+    return [session setPreferredOutputNumberOfChannels:count error:&error];
+}
 
 
 #endif

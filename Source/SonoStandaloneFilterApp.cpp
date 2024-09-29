@@ -442,6 +442,9 @@ public:
             return;
         };
 
+#if JUCE_IOS
+        setPreferredOutputNumberOfChannels(getMaximumOutputNumberOfChannels());
+#endif
 
         if (!doHeadless) {
             mainWindow.reset (createWindow());

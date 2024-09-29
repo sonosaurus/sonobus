@@ -20,4 +20,6 @@ void *binaryDataToUrlBookmark(const void * data, size_t size);
 
 juce::URL generateUpdatedURL (juce::URL& urlToUse);
 
+int getMaximumOutputNumberOfChannels();
+bool setPreferredOutputNumberOfChannels(int count);
 #endif
