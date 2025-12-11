@@ -1375,11 +1375,17 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     //setSize (defbounds.getWidth(), defbounds.getHeight());
 
-
     // to make sure transport area is initialized with the current state
     if (updateTransportWithURL(processor.getCurrentLoadedTransportURL())) {
         processor.getTransportSource().sendChangeMessage();
     }
+
+    // Initialize SoundFlip Connect views
+    setupSoundFlipViews();
+    
+    // Start with login screen (or home if already authenticated)
+    // TODO: Check for stored tokens to determine starting screen
+    showScreen(AppScreen::Login);
 
 }
 
@@ -4619,6 +4625,17 @@ void SonobusAudioProcessorEditor::resized()
 
     updateSliderSnap();
 
+    // Update SoundFlip view bounds
+    auto sfbounds = getLocalBounds();
+    if (mLoginView && mLoginView->isVisible()) mLoginView->setBounds(sfbounds);
+    if (mHomeView && mHomeView->isVisible()) mHomeView->setBounds(sfbounds);
+    if (mStartSessionView && mStartSessionView->isVisible()) mStartSessionView->setBounds(sfbounds);
+    if (mJoinSessionView && mJoinSessionView->isVisible()) mJoinSessionView->setBounds(sfbounds);
+    if (mActiveSessionView && mActiveSessionView->isVisible()) mActiveSessionView->setBounds(sfbounds);
+    if (mEndSessionView && mEndSessionView->isVisible()) mEndSessionView->setBounds(sfbounds);
+    if (mSessionDetailView && mSessionDetailView->isVisible()) mSessionDetailView->setBounds(sfbounds);
+    if (mSettingsView && mSettingsView->isVisible()) mSettingsView->setBounds(sfbounds);
+
 }
 
 
@@ -6041,3 +6058,173 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
 #endif
 }
 
+void SonobusAudioProcessorEditor::setupSoundFlipViews()
+{
+    // Create all views
+    mLoginView = std::make_unique<LoginView>();
+    mHomeView = std::make_unique<HomeView>();
+    mStartSessionView = std::make_unique<StartSessionView>();
+    mJoinSessionView = std::make_unique<JoinSessionView>();
+    mActiveSessionView = std::make_unique<ActiveSessionView>();
+    mEndSessionView = std::make_unique<EndSessionView>();
+    mSessionDetailView = std::make_unique<SessionDetailView>();
+    mSettingsView = std::make_unique<SettingsView>();
+    
+    // Add all to main container but hide initially
+    addChildComponent(mLoginView.get());
+    addChildComponent(mHomeView.get());
+    addChildComponent(mStartSessionView.get());
+    addChildComponent(mJoinSessionView.get());
+    addChildComponent(mActiveSessionView.get());
+    addChildComponent(mEndSessionView.get());
+    addChildComponent(mSessionDetailView.get());
+    addChildComponent(mSettingsView.get());
+    
+    // Setup callbacks
+    mLoginView->onSignInClicked = [this]() {
+        // TODO: Implement OAuth flow
+        showScreen(AppScreen::Home);
+    };
+    
+    mHomeView->onStartSessionClicked = [this]() {
+        showScreen(AppScreen::StartSession);
+    };
+    
+    mHomeView->onJoinSessionClicked = [this]() {
+        showScreen(AppScreen::JoinSession);
+    };
+    
+    mHomeView->onSettingsClicked = [this]() {
+        showScreen(AppScreen::Settings);
+    };
+    
+    mHomeView->onRecentSessionClicked = [this](int index) {
+        showScreen(AppScreen::SessionDetail);
+    };
+    
+    mStartSessionView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mStartSessionView->onStartClicked = [this]() {
+        // TODO: Create session via API, connect to server
+        showScreen(AppScreen::ActiveSession);
+    };
+    
+    mJoinSessionView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mJoinSessionView->onJoinClicked = [this]() {
+        // TODO: Parse invite link, fetch session, connect
+        showScreen(AppScreen::ActiveSession);
+    };
+    
+    mActiveSessionView->onEndClicked = [this]() {
+        showScreen(AppScreen::EndSession);
+    };
+    
+    mActiveSessionView->onRecordClicked = [this]() {
+        // TODO: Toggle recording
+    };
+    
+    mActiveSessionView->onChatClicked = [this]() {
+        // TODO: Show chat panel
+    };
+    
+    mActiveSessionView->onInviteClicked = [this]() {
+        // TODO: Copy invite link
+    };
+    
+    mEndSessionView->onUploadClicked = [this]() {
+        // TODO: Upload recording to session
+        showScreen(AppScreen::Home);
+    };
+    
+    mEndSessionView->onSaveLocallyClicked = [this]() {
+        // TODO: Save recording locally
+        showScreen(AppScreen::Home);
+    };
+    
+    mEndSessionView->onDiscardClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mSessionDetailView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mSessionDetailView->onOpenInSoundFlipClicked = [this]() {
+        // TODO: Open deep link to SoundFlip
+    };
+    
+    mSessionDetailView->onDownloadStemClicked = [this](int index) {
+        // TODO: Download stem
+    };
+    
+    mSettingsView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mSettingsView->onSignOutClicked = [this]() {
+        // TODO: Clear tokens
+        showScreen(AppScreen::Login);
+    };
+    
+    mSettingsView->onChangeRecordingFolderClicked = [this]() {
+        // TODO: Show folder picker
+    };
+}
+
+void SonobusAudioProcessorEditor::showScreen(AppScreen screen)
+{
+    // Hide all screens
+    mLoginView->setVisible(false);
+    mHomeView->setVisible(false);
+    mStartSessionView->setVisible(false);
+    mJoinSessionView->setVisible(false);
+    mActiveSessionView->setVisible(false);
+    mEndSessionView->setVisible(false);
+    mSessionDetailView->setVisible(false);
+    mSettingsView->setVisible(false);
+    
+    currentScreen = screen;
+    
+    auto bounds = getLocalBounds();
+    
+    // Show the requested screen
+    switch (screen) {
+        case AppScreen::Login:
+            mLoginView->setBounds(bounds);
+            mLoginView->setVisible(true);
+            break;
+        case AppScreen::Home:
+            mHomeView->setBounds(bounds);
+            mHomeView->setVisible(true);
+            break;
+        case AppScreen::StartSession:
+            mStartSessionView->setBounds(bounds);
+            mStartSessionView->setVisible(true);
+            break;
+        case AppScreen::JoinSession:
+            mJoinSessionView->setBounds(bounds);
+            mJoinSessionView->setVisible(true);
+            break;
+        case AppScreen::ActiveSession:
+            mActiveSessionView->setBounds(bounds);
+            mActiveSessionView->setVisible(true);
+            break;
+        case AppScreen::EndSession:
+            mEndSessionView->setBounds(bounds);
+            mEndSessionView->setVisible(true);
+            break;
+        case AppScreen::SessionDetail:
+            mSessionDetailView->setBounds(bounds);
+            mSessionDetailView->setVisible(true);
+            break;
+        case AppScreen::Settings:
+            mSettingsView->setBounds(bounds);
+            mSettingsView->setVisible(true);
+            break;
+    }
+}

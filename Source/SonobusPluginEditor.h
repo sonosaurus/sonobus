@@ -24,6 +24,14 @@
 #include "OptionsView.h"
 #include "ReverbView.h"
 #include "VDONinjaView.h"
+#include "views/LoginView.h"
+#include "views/HomeView.h"
+#include "views/StartSessionView.h"
+#include "views/JoinSessionView.h"
+#include "views/ActiveSessionView.h"
+#include "views/EndSessionView.h"
+#include "views/SessionDetailView.h"
+#include "views/SettingsView.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -726,7 +734,31 @@ private:
     bool iaaConnected = false;
 
     File mSettingsFolder;
+
+    // SoundFlip Connect Views
+    std::unique_ptr<LoginView> mLoginView;
+    std::unique_ptr<HomeView> mHomeView;
+    std::unique_ptr<StartSessionView> mStartSessionView;
+    std::unique_ptr<JoinSessionView> mJoinSessionView;
+    std::unique_ptr<ActiveSessionView> mActiveSessionView;
+    std::unique_ptr<EndSessionView> mEndSessionView;
+    std::unique_ptr<SessionDetailView> mSessionDetailView;
+    std::unique_ptr<SettingsView> mSettingsView;
     
+    enum class AppScreen {
+        Login,
+        Home,
+        StartSession,
+        JoinSession,
+        ActiveSession,
+        EndSession,
+        SessionDetail,
+        Settings
+    };
+    AppScreen currentScreen = AppScreen::Login;
+    
+    void showScreen(AppScreen screen);
+    void setupSoundFlipViews();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

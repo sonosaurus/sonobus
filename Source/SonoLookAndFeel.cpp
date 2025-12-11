@@ -54,20 +54,19 @@ SonoLookAndFeel::SonoLookAndFeel(bool useUniversalFont) : mUseUniversalFont(useU
 
     setColourScheme(getDarkColourScheme());
 
-    getCurrentColourScheme().setUIColour(ColourScheme::UIColour::windowBackground, Colour::fromFloatRGBA(0.0, 0.0, 0.0, 1.0));
-    getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0));
-    getCurrentColourScheme().setUIColour(ColourScheme::UIColour::outline, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
+    // SoundFlip Connect color scheme
+    getCurrentColourScheme().setUIColour(ColourScheme::UIColour::windowBackground, Colour(0xff1a1a2e));
+    getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, Colour(0xff2d2d44));
+    getCurrentColourScheme().setUIColour(ColourScheme::UIColour::outline, Colour::fromFloatRGBA(0.4, 0.4, 0.5, 0.5));
 
     setColour (Label::textColourId, Colour (0xffcccccc));
     setColour (Label::textWhenEditingColourId, Colour (0xffe9e9e9));
     
     setColour(ResizableWindow::backgroundColourId, Colour(0xff111111));
     
-    //setColour (TextButton::buttonColourId, Colour (0xff363636));
-    setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.7)); // old one
-    //setColour (TextButton::buttonColourId, Colour::fromFloatRGBA(0.15, 0.15, 0.15, 0.0));
-    //setColour (TextButton::buttonOnColourId, Colour (0xff3d70c8));
-    setColour (TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.8));
+    // SoundFlip Connect button colors - purple accent
+    setColour (TextButton::buttonColourId, Colour(0xff3d3d5c));
+    setColour (TextButton::buttonOnColourId, Colour(0xff6c5ce7));
     setColour (TextButton::textColourOnId, Colour (0xddcccccc));
     setColour (TextButton::textColourOffId, Colour (0xdde9e9e9));
 
@@ -96,10 +95,10 @@ SonoLookAndFeel::SonoLookAndFeel(bool useUniversalFont) : mUseUniversalFont(useU
     setColour (Slider::textBoxHighlightColourId, Colour (0xaa555555));
     setColour (Slider::textBoxOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
     
-    setColour (Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.8));
-    setColour (Slider::thumbColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.9));
-    //setColour (Slider::thumbColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 1.0));
-    setColour (Slider::rotarySliderFillColourId, Colour::fromFloatRGBA(0.5, 0.4, 0.6, 0.9));
+    // SoundFlip Connect slider colors - purple accent
+    setColour (Slider::trackColourId, Colour(0xff6c5ce7));
+    setColour (Slider::thumbColourId, Colour(0xff9b8cff));
+    setColour (Slider::rotarySliderFillColourId, Colour(0xff6c5ce7));
     
     setColour (TabbedButtonBar::tabOutlineColourId, Colour::fromFloatRGBA(0.3, 0.3, 0.3, 0.5));
 

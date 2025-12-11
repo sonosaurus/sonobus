@@ -19,7 +19,7 @@ endif()
 option(UniversalBinary "Build universal binary for mac" ON)
 
 if (APPLE)
-    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE INTERNAL "")
+    set (CMAKE_OSX_DEPLOYMENT_TARGET "14.0" CACHE INTERNAL "")
     if (UniversalBinary)
         set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
         #set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)        
@@ -325,6 +325,22 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SuggestNewGroupView.cpp
         Source/SuggestNewGroupView.h
         Source/VDONinjaView.h
+        Source/views/ActiveSessionView.cpp
+        Source/views/ActiveSessionView.h
+        Source/views/EndSessionView.cpp
+        Source/views/EndSessionView.h
+        Source/views/HomeView.cpp
+        Source/views/HomeView.h
+        Source/views/JoinSessionView.cpp
+        Source/views/JoinSessionView.h
+        Source/views/LoginView.cpp
+        Source/views/LoginView.h
+        Source/views/SessionDetailView.cpp
+        Source/views/SessionDetailView.h
+        Source/views/SettingsView.cpp
+        Source/views/SettingsView.h
+        Source/views/StartSessionView.cpp
+        Source/views/StartSessionView.h
         Source/VersionInfo.cpp
         Source/VersionInfo.h
         Source/WaveformTransportComponent.h
