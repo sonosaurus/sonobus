@@ -3,25 +3,33 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
+#include "../api/SoundFlipAuth.h"
 
 class LoginView : public Component,
-                  public Button::Listener
+                  public SoundFlipAuth::Listener
 {
 public:
-    LoginView();
+    LoginView(SoundFlipAuth& auth);
     ~LoginView() override;
 
-    void paint(Graphics&) override;
+    void paint(Graphics& g) override;
     void resized() override;
-    void buttonClicked(Button* buttonThatWasClicked) override;
 
-    std::function<void()> onSignInClicked;
+    // SoundFlipAuth::Listener
+    void authenticationSucceeded() override;
+    void authenticationFailed(const String& error) override;
+
+    // Callbacks
+    std::function<void()> onLoginSuccess;
 
 private:
-    std::unique_ptr<Label> titleLabel;
-    std::unique_ptr<Label> subtitleLabel;
-    std::unique_ptr<TextButton> signInButton;
+    SoundFlipAuth& auth;
+
+    Label titleLabel;
+    Label subtitleLabel;
+    TextButton signInButton;
+    Label statusLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LoginView)
 };

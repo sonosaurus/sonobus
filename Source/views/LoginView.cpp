@@ -3,50 +3,76 @@
 
 #include "LoginView.h"
 
-LoginView::LoginView()
+LoginView::LoginView(SoundFlipAuth& authRef)
+    : auth(authRef)
 {
-    titleLabel = std::make_unique<Label>("title", "SoundFlip Connect");
-    titleLabel->setFont(Font(32.0f, Font::bold));
-    titleLabel->setJustificationType(Justification::centred);
-    titleLabel->setColour(Label::textColourId, Colours::white);
-    addAndMakeVisible(titleLabel.get());
+    auth.addListener(this);
 
-    subtitleLabel = std::make_unique<Label>("subtitle", "Connect & Create Together");
-    subtitleLabel->setFont(Font(16.0f));
-    subtitleLabel->setJustificationType(Justification::centred);
-    subtitleLabel->setColour(Label::textColourId, Colours::grey);
-    addAndMakeVisible(subtitleLabel.get());
+    titleLabel.setText("SoundFlip Connect", dontSendNotification);
+    titleLabel.setFont(Font(32.0f, Font::bold));
+    titleLabel.setJustificationType(Justification::centred);
+    addAndMakeVisible(titleLabel);
 
-    signInButton = std::make_unique<TextButton>("Sign in with SoundFlip");
-    signInButton->addListener(this);
-    addAndMakeVisible(signInButton.get());
+    subtitleLabel.setText("Sign in to start collaborating", dontSendNotification);
+    subtitleLabel.setFont(Font(16.0f));
+    subtitleLabel.setJustificationType(Justification::centred);
+    subtitleLabel.setColour(Label::textColourId, Colours::grey);
+    addAndMakeVisible(subtitleLabel);
+
+    signInButton.setButtonText("Sign In with Google");
+    signInButton.onClick = [this]() {
+        statusLabel.setText("Opening browser...", dontSendNotification);
+        auth.startOAuthFlow();
+    };
+    addAndMakeVisible(signInButton);
+
+    statusLabel.setText("", dontSendNotification);
+    statusLabel.setFont(Font(14.0f));
+    statusLabel.setJustificationType(Justification::centred);
+    statusLabel.setColour(Label::textColourId, Colours::grey);
+    addAndMakeVisible(statusLabel);
 }
 
 LoginView::~LoginView()
 {
+    auth.removeListener(this);
 }
 
 void LoginView::paint(Graphics& g)
 {
-    g.fillAll(Colour(0xff1a1a2e));
+    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
 }
 
 void LoginView::resized()
 {
     auto bounds = getLocalBounds();
-    auto centerX = bounds.getCentreX();
-    auto centerY = bounds.getCentreY();
+    auto contentBounds = bounds.reduced(40);
 
-    titleLabel->setBounds(centerX - 150, centerY - 80, 300, 40);
-    subtitleLabel->setBounds(centerX - 150, centerY - 35, 300, 25);
-    signInButton->setBounds(centerX - 100, centerY + 20, 200, 40);
+    int centerY = contentBounds.getCentreY();
+
+    titleLabel.setBounds(contentBounds.getX(), centerY - 100, contentBounds.getWidth(), 40);
+    subtitleLabel.setBounds(contentBounds.getX(), centerY - 50, contentBounds.getWidth(), 30);
+    
+    int buttonWidth = jmin(300, contentBounds.getWidth() - 40);
+    signInButton.setBounds((getWidth() - buttonWidth) / 2, centerY, buttonWidth, 50);
+    
+    statusLabel.setBounds(contentBounds.getX(), centerY + 70, contentBounds.getWidth(), 30);
 }
 
-void LoginView::buttonClicked(Button* buttonThatWasClicked)
+void LoginView::authenticationSucceeded()
 {
-    if (buttonThatWasClicked == signInButton.get())
-    {
-        if (onSignInClicked)
-            onSignInClicked();
-    }
+    // Call on message thread
+    MessageManager::callAsync([this]() {
+        statusLabel.setText("Success!", dontSendNotification);
+        if (onLoginSuccess)
+            onLoginSuccess();
+    });
+}
+
+void LoginView::authenticationFailed(const String& error)
+{
+    MessageManager::callAsync([this, error]() {
+        statusLabel.setText("Error: " + error, dontSendNotification);
+        statusLabel.setColour(Label::textColourId, Colours::red);
+    });
 }

@@ -129,6 +129,14 @@ set (MacPList "<plist version=\"1.0\">
               <string>sonobus</string>
          </array>
       </dict>
+      <dict>
+         <key>CFBundleURLName</key>
+         <string>com.soundflip.connect</string>
+         <key>CFBundleURLSchemes</key>
+         <array>
+              <string>soundflipconnect</string>
+         </array>
+      </dict>
    </array>
 </dict>
 </plist>")
@@ -156,7 +164,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         NEEDS_MIDI_OUTPUT TRUE
         EDITOR_WANTS_KEYBOARD_FOCUS TRUE
         COMPANY_NAME "Sonosaurus"
-        BUNDLE_ID "com.Sonosaurus.SonoBus"
+        BUNDLE_ID "com.soundflip.connect"
         MICROPHONE_PERMISSION_ENABLED TRUE
         
         ICON_BIG "images/sonobus_icon_mac_1024.png"
@@ -207,7 +215,10 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     if (APPLE)
         list (APPEND HEADER_INCLUDES deps/mac/include)
         list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/mac/lib)
-        list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsMac.mm)
+        list (APPEND PlatSourceFiles  
+            Source/CrossPlatformUtilsMac.mm
+            Source/api/SoundFlipAuth_mac.mm
+        )
     elseif (WIN32)
         list (APPEND HEADER_INCLUDES deps/windows ../asiosdk/common)
         list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsWindows.cpp)
@@ -325,6 +336,12 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SuggestNewGroupView.cpp
         Source/SuggestNewGroupView.h
         Source/VDONinjaView.h
+        Source/api/SoundFlipAuth.cpp
+        Source/api/SoundFlipAuth.h
+        Source/api/SoundFlipAPI.cpp
+        Source/api/SoundFlipAPI.h
+        Source/managers/ScreenManager.cpp
+        Source/managers/ScreenManager.h
         Source/views/ActiveSessionView.cpp
         Source/views/ActiveSessionView.h
         Source/views/EndSessionView.cpp
@@ -341,6 +358,10 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/views/SettingsView.h
         Source/views/StartSessionView.cpp
         Source/views/StartSessionView.h
+        Source/api/SoundFlipAuth.cpp
+        Source/api/SoundFlipAuth.h
+        Source/api/SoundFlipAPI.cpp
+        Source/api/SoundFlipAPI.h
         Source/VersionInfo.cpp
         Source/VersionInfo.h
         Source/WaveformTransportComponent.h
@@ -628,6 +649,9 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             ${target_name}_SBData
 
             opus
+            
+            "$<$<PLATFORM_ID:Darwin>:-framework Security>"
+            "$<$<PLATFORM_ID:Darwin>:-framework CoreFoundation>"
         PUBLIC
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags
@@ -636,12 +660,12 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             
 endfunction()
 
+
 # most of the targets
-sono_add_custom_plugin_target(SonoBus SonoBus "${FormatsToBuild}" FALSE  "NBus")
+sono_add_custom_plugin_target(SoundFlipConnect "SoundFlipConnect" "${FormatsToBuild}" FALSE  "NBus")
 
 # Mobile targets
 #sono_add_custom_plugin_target(SonoBusMobile "AUv3 Standalone" FALSE "NBus")
 
 # add VSTi target
-sono_add_custom_plugin_target(SonoBusInst "SonoBusInstrument" "VST3" TRUE  "IBus")
-
+sono_add_custom_plugin_target(SoundFlipConnectInst "SoundFlipConnectInst" "VST3" TRUE  "IBus")

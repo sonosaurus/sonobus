@@ -3,47 +3,31 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 
-class ActiveSessionView : public Component,
-                          public Button::Listener,
-                          public Slider::Listener
+class ActiveSessionView : public Component
 {
 public:
     ActiveSessionView();
-    ~ActiveSessionView() override;
+    ~ActiveSessionView() override = default;
 
-    void paint(Graphics&) override;
+    void paint(Graphics& g) override;
     void resized() override;
-    void buttonClicked(Button* buttonThatWasClicked) override;
-    void sliderValueChanged(Slider* slider) override;
 
+    // Callbacks
     std::function<void()> onEndClicked;
     std::function<void()> onRecordClicked;
     std::function<void()> onChatClicked;
     std::function<void()> onInviteClicked;
+    std::function<void()> onSessionEnded;
 
 private:
-    std::unique_ptr<Label> sessionNameLabel;
-    std::unique_ptr<TextButton> endButton;
-    std::unique_ptr<TextButton> menuButton;
-
-    std::unique_ptr<Label> youLabel;
-    std::unique_ptr<Label> youLevelLabel;
-    std::unique_ptr<TextButton> youMuteButton;
-
-    std::unique_ptr<Label> peerLabel;
-    std::unique_ptr<Label> peerLevelLabel;
-    std::unique_ptr<Slider> peerVolumeSlider;
-
-    std::unique_ptr<Label> connectionStatusLabel;
-
-    std::unique_ptr<TextButton> recordButton;
-    std::unique_ptr<TextButton> chatButton;
-    std::unique_ptr<TextButton> inviteButton;
-
-    bool isRecording = false;
-    bool isMuted = false;
+    Label titleLabel;
+    Label statusLabel;
+    TextButton endSessionButton;
+    TextButton recordButton;
+    TextButton chatButton;
+    TextButton inviteButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ActiveSessionView)
 };

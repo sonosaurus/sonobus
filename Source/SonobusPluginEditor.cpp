@@ -23,6 +23,9 @@
 #include "SonoCallOutBox.h"
 #include <sstream>
 
+#include "api/SoundFlipAuth.h"
+#include "api/SoundFlipAPI.h"
+
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
 #include "juce_core/juce_core.h"
@@ -275,6 +278,10 @@ void SonobusAudioProcessorEditor::configEditor(TextEditor *editor, bool passwd)
 SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p),  sonoLookAndFeel(p.getUseUniversalFont()), sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12)
 {
+        // Initialize SoundFlip Connect auth
+    mSoundFlipAuth = std::make_unique<SoundFlipAuth>();
+    mSoundFlipAPI = std::make_unique<SoundFlipAPI>(*mSoundFlipAuth);
+
     if (p.getUseUniversalFont()) {
 #if JUCE_ANDROID
         SonoLookAndFeel::setFontScale(1.0f);
@@ -2824,6 +2831,16 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
 
 void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
 {
+    // Handle SoundFlip Connect auth callback
+    if (urlstr.startsWith("soundflipconnect://"))
+    {
+        if (mSoundFlipAuth)
+        {
+            mSoundFlipAuth->handleDeepLink(urlstr);
+        }
+        return;
+    }
+
     URL url(urlstr);
     if (url.isWellFormed()) {
         if (!currConnected || currGroup.isEmpty()) {
@@ -6060,8 +6077,8 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
 
 void SonobusAudioProcessorEditor::setupSoundFlipViews()
 {
-    // Create all views
-    mLoginView = std::make_unique<LoginView>();
+    // Create all views - LoginView needs the auth reference
+    mLoginView = std::make_unique<LoginView>(*mSoundFlipAuth);
     mHomeView = std::make_unique<HomeView>();
     mStartSessionView = std::make_unique<StartSessionView>();
     mJoinSessionView = std::make_unique<JoinSessionView>();
@@ -6081,8 +6098,7 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     addChildComponent(mSettingsView.get());
     
     // Setup callbacks
-    mLoginView->onSignInClicked = [this]() {
-        // TODO: Implement OAuth flow
+    mLoginView->onLoginSuccess = [this]() {
         showScreen(AppScreen::Home);
     };
     
@@ -6099,6 +6115,7 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mHomeView->onRecentSessionClicked = [this](int index) {
+        ignoreUnused(index);
         showScreen(AppScreen::SessionDetail);
     };
     
@@ -6159,6 +6176,7 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mSessionDetailView->onDownloadStemClicked = [this](int index) {
+        ignoreUnused(index);
         // TODO: Download stem
     };
     
@@ -6167,7 +6185,7 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mSettingsView->onSignOutClicked = [this]() {
-        // TODO: Clear tokens
+        mSoundFlipAuth->logout();
         showScreen(AppScreen::Login);
     };
     

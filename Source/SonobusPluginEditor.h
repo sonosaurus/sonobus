@@ -32,6 +32,8 @@
 #include "views/EndSessionView.h"
 #include "views/SessionDetailView.h"
 #include "views/SettingsView.h"
+#include "api/SoundFlipAuth.h"
+#include "api/SoundFlipAPI.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -759,6 +761,10 @@ private:
     
     void showScreen(AppScreen screen);
     void setupSoundFlipViews();
+
+    // SoundFlip Connect Auth
+    std::unique_ptr<SoundFlipAuth> mSoundFlipAuth;
+    std::unique_ptr<SoundFlipAPI> mSoundFlipAPI;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

@@ -3,31 +3,28 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "JuceHeader.h"
 
-class JoinSessionView : public Component,
-                        public Button::Listener
+class JoinSessionView : public Component
 {
 public:
     JoinSessionView();
-    ~JoinSessionView() override;
+    ~JoinSessionView() override = default;
 
-    void paint(Graphics&) override;
+    void paint(Graphics& g) override;
     void resized() override;
-    void buttonClicked(Button* buttonThatWasClicked) override;
 
-    std::function<void()> onBackClicked;
+    // Callbacks
     std::function<void()> onJoinClicked;
+    std::function<void()> onBackClicked;
+    std::function<void(const String& sessionId)> onSessionJoined;
 
 private:
-    std::unique_ptr<TextButton> backButton;
-    std::unique_ptr<Label> titleLabel;
-    std::unique_ptr<Label> inviteLinkLabel;
-    std::unique_ptr<TextEditor> inviteLinkInput;
-    std::unique_ptr<Label> audioInputLabel;
-    std::unique_ptr<ComboBox> audioInputCombo;
-    std::unique_ptr<Label> inputLevelLabel;
-    std::unique_ptr<TextButton> joinButton;
+    Label titleLabel;
+    Label codeLabel;
+    TextEditor codeEditor;
+    TextButton joinButton;
+    TextButton backButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JoinSessionView)
 };
