@@ -3,7 +3,6 @@
 
 #include "SoundFlipAPI.h"
 
-//==============================================================================
 SoundFlipAPI::SoundFlipAPI(SoundFlipAuth& authRef)
     : auth(authRef)
 {
@@ -14,271 +13,477 @@ SoundFlipAPI::~SoundFlipAPI()
 }
 
 //==============================================================================
-var SoundFlipAPI::makeRequest(const String& endpoint,
+// HTTP Request Helper
+
+var SoundFlipAPI::makeRequest(const String& endpoint, 
                                const String& method,
                                const var& body)
 {
-    lastError.clear();
+    lastError = "";
     lastStatusCode = 0;
     
-    String headers = "Content-Type: application/json\r\n";
-    headers += "Authorization: Bearer " + auth.getAccessToken();
+    String accessToken = auth.getAccessToken();
+    if (accessToken.isEmpty())
+    {
+        lastError = "Not authenticated";
+        lastStatusCode = 401;
+        return var();
+    }
     
     URL url(apiBaseUrl + endpoint);
     
-    bool hasBody = !body.isVoid() && (method == "POST" || method == "PUT" || method == "PATCH");
-    if (hasBody)
+    String extraHeaders = "Authorization: Bearer " + accessToken + "\r\n";
+    extraHeaders += "Content-Type: application/json\r\n";
+    
+    if (method == "POST" || method == "PATCH" || method == "PUT" || method == "DELETE")
     {
-        url = url.withPOSTData(JSON::toString(body));
+        String jsonBody = body.isVoid() ? "{}" : JSON::toString(body);
+        url = url.withPOSTData(jsonBody);
     }
     
-    auto paramHandling = (method == "GET") 
-        ? URL::ParameterHandling::inAddress 
-        : URL::ParameterHandling::inPostData;
+    // For methods other than GET/POST, we need to handle differently
+    // JUCE's URL class primarily supports GET and POST
+    // For PATCH/DELETE, we'll use POST with method override or handle via headers
     
-    // Build options chain - can't reassign due to const member
     std::unique_ptr<InputStream> stream;
     
-    if (method != "GET" && method != "POST")
+    if (method == "GET")
     {
-        // Need custom HTTP method
-        stream = url.createInputStream(
-            URL::InputStreamOptions(paramHandling)
-                .withExtraHeaders(headers)
-                .withConnectionTimeoutMs(30000)
-                .withStatusCode(&lastStatusCode)
-                .withHttpRequestCmd(method)
-        );
+        auto options = URL::InputStreamOptions(URL::ParameterHandling::inAddress)
+            .withExtraHeaders(extraHeaders)
+            .withConnectionTimeoutMs(30000);
+        
+        stream = url.createInputStream(options);
     }
     else
     {
-        stream = url.createInputStream(
-            URL::InputStreamOptions(paramHandling)
-                .withExtraHeaders(headers)
-                .withConnectionTimeoutMs(30000)
-                .withStatusCode(&lastStatusCode)
-        );
+        // Add method override header for non-GET/POST
+        if (method == "PATCH" || method == "DELETE" || method == "PUT")
+        {
+            extraHeaders += "X-HTTP-Method-Override: " + method + "\r\n";
+        }
+        
+        auto options = URL::InputStreamOptions(URL::ParameterHandling::inPostData)
+            .withExtraHeaders(extraHeaders)
+            .withHttpRequestCmd(method)
+            .withConnectionTimeoutMs(30000);
+        
+        stream = url.createInputStream(options);
     }
     
     if (stream == nullptr)
     {
-        // Check if token might be expired
-        if (auth.isTokenExpired())
-        {
-            // Try to refresh and retry
-            if (auth.refreshAccessToken())
-            {
-                headers = "Content-Type: application/json\r\n";
-                headers += "Authorization: Bearer " + auth.getAccessToken();
-                
-                URL retryUrl(apiBaseUrl + endpoint);
-                if (hasBody)
-                {
-                    retryUrl = retryUrl.withPOSTData(JSON::toString(body));
-                }
-                
-                if (method != "GET" && method != "POST")
-                {
-                    stream = retryUrl.createInputStream(
-                        URL::InputStreamOptions(paramHandling)
-                            .withExtraHeaders(headers)
-                            .withConnectionTimeoutMs(30000)
-                            .withStatusCode(&lastStatusCode)
-                            .withHttpRequestCmd(method)
-                    );
-                }
-                else
-                {
-                    stream = retryUrl.createInputStream(
-                        URL::InputStreamOptions(paramHandling)
-                            .withExtraHeaders(headers)
-                            .withConnectionTimeoutMs(30000)
-                            .withStatusCode(&lastStatusCode)
-                    );
-                }
-            }
-        }
-        
-        if (stream == nullptr)
-        {
-            lastError = "Network error - could not connect";
-            return var();
-        }
+        lastError = "Failed to connect to server";
+        lastStatusCode = 0;
+        return var();
     }
     
     String response = stream->readEntireStreamAsString();
     
-    var jsonResponse = JSON::parse(response);
+    // Try to get status code (JUCE doesn't expose this directly, but we can infer from response)
+    var result;
+    Result parseResult = JSON::parse(response, result);
     
-    if (jsonResponse.isVoid())
+    if (parseResult.failed())
     {
         lastError = "Invalid JSON response";
+        lastStatusCode = 500;
         return var();
     }
     
-    if (jsonResponse.hasProperty("error"))
+    // Check for error in response
+    if (result.hasProperty("statusCode") && (int)result["statusCode"] >= 400)
     {
-        lastError = jsonResponse["error"].toString();
+        lastStatusCode = (int)result["statusCode"];
+        lastError = result.hasProperty("message") ? result["message"].toString() : "Request failed";
         return var();
     }
     
-    return jsonResponse;
+    lastStatusCode = 200;
+    return result;
 }
 
 //==============================================================================
-SoundFlipAPI::Session SoundFlipAPI::parseSession(const var& json)
-{
-    Session session;
-    session.id = json["id"].toString();
-    session.name = json["name"].toString();
-    session.description = json["description"].toString();
-    session.hostUserId = json["hostUserId"].toString();
-    session.connectionCode = json["connectionCode"].toString();
-    session.status = json["status"].toString();
-    session.createdAt = (int64)json["createdAt"];
-    session.updatedAt = (int64)json["updatedAt"];
-    return session;
-}
+// Collab Session Management
 
-SoundFlipAPI::Stem SoundFlipAPI::parseStem(const var& json)
+SoundFlipAPI::CollabSession SoundFlipAPI::createCollabSession(const String& name)
 {
-    Stem stem;
-    stem.id = json["id"].toString();
-    stem.sessionId = json["sessionId"].toString();
-    stem.userId = json["userId"].toString();
-    stem.fileName = json["fileName"].toString();
-    stem.fileUrl = json["fileUrl"].toString();
-    stem.fileSize = (int64)json["fileSize"];
-    stem.status = json["status"].toString();
-    stem.createdAt = (int64)json["createdAt"];
-    return stem;
-}
-
-//==============================================================================
-SoundFlipAPI::Session SoundFlipAPI::createSession(const String& name, const String& description)
-{
-    DynamicObject::Ptr body = new DynamicObject();
-    body->setProperty("name", name);
-    if (description.isNotEmpty())
-        body->setProperty("description", description);
+    var body;
+    DynamicObject::Ptr obj = new DynamicObject();
     
-    var response = makeRequest("/sessions", "POST", var(body.get()));
+    if (name.isNotEmpty())
+        obj->setProperty("name", name);
+    
+    body = var(obj.get());
+    
+    var response = makeRequest("/api/collab-sessions", "POST", body);
     
     if (response.isVoid())
-        return Session();
+        return CollabSession();
     
-    return parseSession(response);
+    return parseCollabSession(response);
 }
 
-SoundFlipAPI::Session SoundFlipAPI::getSession(const String& sessionId)
+SoundFlipAPI::CollabSession SoundFlipAPI::getCollabSession(const String& sessionId)
 {
-    var response = makeRequest("/sessions/" + sessionId);
+    var response = makeRequest("/api/collab-sessions/" + sessionId);
     
     if (response.isVoid())
-        return Session();
+        return CollabSession();
     
-    return parseSession(response);
+    return parseCollabSession(response);
 }
 
-SoundFlipAPI::Session SoundFlipAPI::joinSession(const String& inviteCode)
+SoundFlipAPI::CollabSession SoundFlipAPI::getCollabSessionByInviteCode(const String& inviteCode)
 {
-    DynamicObject::Ptr body = new DynamicObject();
-    body->setProperty("inviteCode", inviteCode);
-    
-    var response = makeRequest("/sessions/join", "POST", var(body.get()));
+    var response = makeRequest("/api/collab-sessions/invite/" + inviteCode);
     
     if (response.isVoid())
-        return Session();
+        return CollabSession();
     
-    return parseSession(response);
+    return parseCollabSession(response);
 }
 
-bool SoundFlipAPI::leaveSession(const String& sessionId)
+SoundFlipAPI::CollabSession SoundFlipAPI::joinCollabSession(const String& sessionIdOrInviteCode)
 {
-    var response = makeRequest("/sessions/" + sessionId + "/leave", "POST");
-    return !response.isVoid();
+    var response = makeRequest("/api/collab-sessions/" + sessionIdOrInviteCode + "/join", "POST");
+    
+    if (response.isVoid())
+        return CollabSession();
+    
+    return parseCollabSession(response);
 }
 
-bool SoundFlipAPI::endSession(const String& sessionId)
+bool SoundFlipAPI::leaveCollabSession(const String& sessionId)
 {
-    var response = makeRequest("/sessions/" + sessionId + "/end", "POST");
-    return !response.isVoid();
+    var response = makeRequest("/api/collab-sessions/" + sessionId + "/leave", "POST");
+    
+    if (response.isVoid())
+        return false;
+    
+    return response.hasProperty("success") && (bool)response["success"];
 }
 
-Array<SoundFlipAPI::Session> SoundFlipAPI::listSessions()
+SoundFlipAPI::CollabSession SoundFlipAPI::updateCollabSession(const String& sessionId, 
+                                                              const String& name, 
+                                                              const String& status)
 {
-    Array<Session> sessions;
+    var body;
+    DynamicObject::Ptr obj = new DynamicObject();
     
-    var response = makeRequest("/sessions");
+    if (name.isNotEmpty())
+        obj->setProperty("name", name);
     
-    if (response.isVoid() || !response.isArray())
+    if (status.isNotEmpty())
+        obj->setProperty("status", status);
+    
+    body = var(obj.get());
+    
+    var response = makeRequest("/api/collab-sessions/" + sessionId, "PATCH", body);
+    
+    if (response.isVoid())
+        return CollabSession();
+    
+    return parseCollabSession(response);
+}
+
+Array<SoundFlipAPI::CollabSession> SoundFlipAPI::listCollabSessions(const String& status, 
+                                                                     int limit, 
+                                                                     int offset)
+{
+    String endpoint = "/api/collab-sessions?limit=" + String(limit) + "&offset=" + String(offset);
+    
+    if (status.isNotEmpty())
+        endpoint += "&status=" + status;
+    
+    var response = makeRequest(endpoint);
+    
+    Array<CollabSession> sessions;
+    
+    if (response.isVoid())
         return sessions;
     
-    for (int i = 0; i < response.size(); ++i)
+    if (response.hasProperty("sessions") && response["sessions"].isArray())
     {
-        sessions.add(parseSession(response[i]));
+        auto* sessionsArray = response["sessions"].getArray();
+        for (const auto& sessionJson : *sessionsArray)
+        {
+            sessions.add(parseCollabSession(sessionJson));
+        }
     }
     
     return sessions;
 }
 
 //==============================================================================
-String SoundFlipAPI::getUploadUrl(const String& sessionId, const String& fileName, int64 fileSize)
+// Stem Management
+
+SoundFlipAPI::UploadUrlResponse SoundFlipAPI::requestStemUploadUrl(const String& sessionId, 
+                                                                    const String& filename, 
+                                                                    const String& contentType,
+                                                                    int64 sizeBytes)
 {
-    DynamicObject::Ptr body = new DynamicObject();
-    body->setProperty("fileName", fileName);
-    body->setProperty("fileSize", fileSize);
+    var body;
+    DynamicObject::Ptr obj = new DynamicObject();
+    obj->setProperty("filename", filename);
+    obj->setProperty("contentType", contentType);
+    obj->setProperty("sizeBytes", sizeBytes);
+    body = var(obj.get());
     
-    var response = makeRequest("/sessions/" + sessionId + "/stems/upload-url", "POST", var(body.get()));
+    var response = makeRequest("/api/collab-sessions/" + sessionId + "/stems/upload-url", "POST", body);
     
     if (response.isVoid())
-        return {};
+        return UploadUrlResponse();
     
-    return response["uploadUrl"].toString();
+    return parseUploadUrlResponse(response);
 }
 
-SoundFlipAPI::Stem SoundFlipAPI::completeUpload(const String& sessionId, const String& uploadId)
+SoundFlipAPI::Stem SoundFlipAPI::completeStemUpload(const String& sessionId, 
+                                                     const String& stemId, 
+                                                     int durationSeconds)
 {
-    DynamicObject::Ptr body = new DynamicObject();
-    body->setProperty("uploadId", uploadId);
+    var body;
+    DynamicObject::Ptr obj = new DynamicObject();
     
-    var response = makeRequest("/sessions/" + sessionId + "/stems/complete", "POST", var(body.get()));
+    if (durationSeconds > 0)
+        obj->setProperty("durationSeconds", durationSeconds);
+    
+    body = var(obj.get());
+    
+    var response = makeRequest("/api/collab-sessions/" + sessionId + "/stems/" + stemId + "/complete", 
+                               "POST", body);
     
     if (response.isVoid())
         return Stem();
     
-    return parseStem(response);
+    // Response has { success: bool, stem: {...} }
+    if (response.hasProperty("stem"))
+        return parseStem(response["stem"]);
+    
+    return Stem();
 }
 
-Array<SoundFlipAPI::Stem> SoundFlipAPI::listStems(const String& sessionId)
+Array<SoundFlipAPI::Stem> SoundFlipAPI::listSessionStems(const String& sessionId)
 {
+    var response = makeRequest("/api/collab-sessions/" + sessionId + "/stems");
+    
     Array<Stem> stems;
     
-    var response = makeRequest("/sessions/" + sessionId + "/stems");
-    
-    if (response.isVoid() || !response.isArray())
+    if (response.isVoid())
         return stems;
     
-    for (int i = 0; i < response.size(); ++i)
+    if (response.hasProperty("stems") && response["stems"].isArray())
     {
-        stems.add(parseStem(response[i]));
+        auto* stemsArray = response["stems"].getArray();
+        for (const auto& stemJson : *stemsArray)
+        {
+            stems.add(parseStem(stemJson));
+        }
     }
     
     return stems;
 }
 
-String SoundFlipAPI::getDownloadUrl(const String& stemId)
+bool SoundFlipAPI::deleteStem(const String& sessionId, const String& stemId)
 {
-    var response = makeRequest("/stems/" + stemId + "/download-url");
+    var response = makeRequest("/api/collab-sessions/" + sessionId + "/stems/" + stemId, "DELETE");
     
     if (response.isVoid())
-        return {};
+        return false;
     
-    return response["downloadUrl"].toString();
+    return response.hasProperty("success") && (bool)response["success"];
 }
 
-bool SoundFlipAPI::deleteStem(const String& stemId)
+//==============================================================================
+// S3 Upload Helper
+
+bool SoundFlipAPI::uploadFileToS3(const String& presignedUrl, 
+                                   const File& file, 
+                                   const String& contentType)
 {
-    var response = makeRequest("/stems/" + stemId, "DELETE");
-    return !response.isVoid();
+    if (!file.existsAsFile())
+    {
+        lastError = "File does not exist";
+        return false;
+    }
+    
+    // Read file into memory
+    MemoryBlock fileData;
+    if (!file.loadFileAsData(fileData))
+    {
+        lastError = "Failed to read file";
+        return false;
+    }
+    
+    // Create URL and upload
+    URL url(presignedUrl);
+    
+    String extraHeaders = "Content-Type: " + contentType + "\r\n";
+    extraHeaders += "Content-Length: " + String(fileData.getSize()) + "\r\n";
+    
+    // Set the file data as POST data
+    url = url.withPOSTData(fileData);
+    
+    auto options = URL::InputStreamOptions(URL::ParameterHandling::inPostData)
+        .withExtraHeaders(extraHeaders)
+        .withConnectionTimeoutMs(300000)  // 5 min timeout for large files
+        .withHttpRequestCmd("PUT");
+    
+    auto stream = url.createInputStream(options);
+    
+    if (stream == nullptr)
+    {
+        lastError = "Failed to upload to S3";
+        return false;
+    }
+    
+    // Read response (S3 returns empty body on success)
+    String response = stream->readEntireStreamAsString();
+    
+    // S3 PUT returns 200 on success with empty body
+    // If there's an error, it would contain XML error message
+    if (response.contains("<Error>"))
+    {
+        lastError = "S3 upload error: " + response;
+        return false;
+    }
+    
+    return true;
+}
+
+//==============================================================================
+// JSON Parsing Helpers
+
+SoundFlipAPI::CollabSession SoundFlipAPI::parseCollabSession(const var& json)
+{
+    CollabSession session;
+    
+    session.id = json.getProperty("id", "").toString();
+    session.inviteCode = json.getProperty("inviteCode", "").toString();
+    session.name = json.getProperty("name", "").toString();
+    session.status = json.getProperty("status", "").toString();
+    session.inviteUrl = json.getProperty("inviteUrl", "").toString();
+    session.stemCount = (int)json.getProperty("stemCount", 0);
+    session.durationSeconds = (int)json.getProperty("durationSeconds", 0);
+    
+    // Parse connection info if present
+    if (json.hasProperty("connection"))
+    {
+        session.connection = parseConnectionInfo(json["connection"]);
+    }
+    
+    // Parse creator info
+    if (json.hasProperty("createdBy"))
+    {
+        var creator = json["createdBy"];
+        session.createdById = creator.getProperty("id", "").toString();
+        session.createdByUsername = creator.getProperty("username", "").toString();
+        session.createdByAvatar = creator.getProperty("avatar", "").toString();
+    }
+    
+    // Parse participants
+    if (json.hasProperty("participants") && json["participants"].isArray())
+    {
+        auto* participantsArray = json["participants"].getArray();
+        for (const auto& p : *participantsArray)
+        {
+            session.participants.add(parseParticipant(p));
+        }
+    }
+    
+    // Parse timestamps
+    if (json.hasProperty("createdAt"))
+    {
+        // Parse ISO date string to timestamp
+        String dateStr = json["createdAt"].toString();
+        Time t = Time::fromISO8601(dateStr);
+        session.createdAt = t.toMilliseconds();
+    }
+    
+    if (json.hasProperty("endedAt") && !json["endedAt"].isVoid())
+    {
+        String dateStr = json["endedAt"].toString();
+        Time t = Time::fromISO8601(dateStr);
+        session.endedAt = t.toMilliseconds();
+    }
+    
+    return session;
+}
+
+SoundFlipAPI::Participant SoundFlipAPI::parseParticipant(const var& json)
+{
+    Participant p;
+    
+    p.userId = json.getProperty("userId", "").toString();
+    p.username = json.getProperty("username", "").toString();
+    p.avatar = json.getProperty("avatar", "").toString();
+    
+    if (json.hasProperty("joinedAt"))
+    {
+        String dateStr = json["joinedAt"].toString();
+        Time t = Time::fromISO8601(dateStr);
+        p.joinedAt = t.toMilliseconds();
+    }
+    
+    if (json.hasProperty("leftAt") && !json["leftAt"].isVoid())
+    {
+        String dateStr = json["leftAt"].toString();
+        Time t = Time::fromISO8601(dateStr);
+        p.leftAt = t.toMilliseconds();
+    }
+    
+    return p;
+}
+
+SoundFlipAPI::ConnectionInfo SoundFlipAPI::parseConnectionInfo(const var& json)
+{
+    ConnectionInfo info;
+    
+    info.server = json.getProperty("server", "").toString();
+    info.port = (int)json.getProperty("port", 10999);
+    info.group = json.getProperty("group", "").toString();
+    info.password = json.getProperty("password", "").toString();
+    
+    return info;
+}
+
+SoundFlipAPI::Stem SoundFlipAPI::parseStem(const var& json)
+{
+    Stem stem;
+    
+    stem.id = json.getProperty("id", "").toString();
+    stem.filename = json.getProperty("filename", "").toString();
+    stem.downloadUrl = json.getProperty("downloadUrl", "").toString();
+    stem.sizeBytes = (int64)json.getProperty("sizeBytes", 0);
+    stem.durationSeconds = (int)json.getProperty("durationSeconds", 0);
+    
+    // Parse uploader info
+    if (json.hasProperty("uploadedBy"))
+    {
+        var uploader = json["uploadedBy"];
+        stem.uploadedById = uploader.getProperty("id", "").toString();
+        stem.uploadedByUsername = uploader.getProperty("username", "").toString();
+        stem.uploadedByAvatar = uploader.getProperty("avatar", "").toString();
+    }
+    
+    if (json.hasProperty("createdAt"))
+    {
+        String dateStr = json["createdAt"].toString();
+        Time t = Time::fromISO8601(dateStr);
+        stem.createdAt = t.toMilliseconds();
+    }
+    
+    return stem;
+}
+
+SoundFlipAPI::UploadUrlResponse SoundFlipAPI::parseUploadUrlResponse(const var& json)
+{
+    UploadUrlResponse response;
+    
+    response.uploadUrl = json.getProperty("uploadUrl", "").toString();
+    response.stemId = json.getProperty("stemId", "").toString();
+    response.s3Key = json.getProperty("s3Key", "").toString();
+    response.expiresIn = (int)json.getProperty("expiresIn", 3600);
+    
+    return response;
 }

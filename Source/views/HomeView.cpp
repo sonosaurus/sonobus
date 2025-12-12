@@ -2,9 +2,14 @@
 // Copyright (C) 2024 SoundFlip
 
 #include "HomeView.h"
+#include "../managers/SessionManager.h"
 
-HomeView::HomeView()
+HomeView::HomeView(SessionManager* sm)
+    : sessionManager(sm)
 {
+    if (sessionManager)
+        sessionManager->addChangeListener(this);
+    
     // Username label - will be updated with real name after login
     usernameLabel = std::make_unique<Label>("username", "Welcome");
     usernameLabel->setFont(Font(18.0f, Font::bold));
@@ -41,7 +46,7 @@ HomeView::HomeView()
     recentSessionsLabel->setColour(Label::textColourId, Colours::white);
     addAndMakeVisible(recentSessionsLabel.get());
 
-    // TODO: These will be populated from API in future
+    // Static placeholder buttons (shown when no SessionManager or no sessions)
     recentSession1Button = std::make_unique<TextButton>("Friday cookup with @mike\nDec 8 - 3 stems");
     recentSession1Button->addListener(this);
     addAndMakeVisible(recentSession1Button.get());
@@ -49,10 +54,165 @@ HomeView::HomeView()
     recentSession2Button = std::make_unique<TextButton>("Beat review with @sarah\nDec 5 - 2 stems");
     recentSession2Button->addListener(this);
     addAndMakeVisible(recentSession2Button.get());
+    
+    // If we have a session manager, fetch real sessions
+    if (sessionManager)
+    {
+        // Hide placeholder buttons - we'll use dynamic ones
+        recentSession1Button->setVisible(false);
+        recentSession2Button->setVisible(false);
+        
+        // Fetch sessions async to not block UI
+        MessageManager::callAsync([this]() {
+            refreshRecentSessions();
+        });
+    }
 }
 
 HomeView::~HomeView()
 {
+    if (sessionManager)
+        sessionManager->removeChangeListener(this);
+}
+
+//==============================================================================
+// Session Manager
+
+void HomeView::setSessionManager(SessionManager* sm)
+{
+    if (sessionManager)
+        sessionManager->removeChangeListener(this);
+    
+    sessionManager = sm;
+    
+    if (sessionManager)
+    {
+        sessionManager->addChangeListener(this);
+        
+        // Hide placeholders, use dynamic buttons
+        recentSession1Button->setVisible(false);
+        recentSession2Button->setVisible(false);
+        
+        refreshRecentSessions();
+    }
+    else
+    {
+        // Show placeholders again
+        recentSession1Button->setVisible(true);
+        recentSession2Button->setVisible(true);
+        
+        // Clear dynamic buttons
+        dynamicSessionButtons.clear();
+        recentSessionIds.clear();
+        usingDynamicSessions = false;
+    }
+    
+    resized();
+}
+
+void HomeView::refreshRecentSessions()
+{
+    if (sessionManager)
+    {
+        sessionManager->fetchRecentSessions(5);
+        // updateRecentSessionsUI() will be called via changeListenerCallback
+    }
+}
+
+void HomeView::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (source == sessionManager)
+    {
+        updateRecentSessionsUI();
+    }
+}
+
+void HomeView::updateRecentSessionsUI()
+{
+    if (!sessionManager)
+        return;
+    
+    const auto& sessions = sessionManager->getRecentSessions();
+    
+    // Clear existing dynamic buttons
+    dynamicSessionButtons.clear();
+    recentSessionIds.clear();
+    
+    if (sessions.isEmpty())
+    {
+        // Show placeholder buttons if no real sessions
+        recentSession1Button->setVisible(true);
+        recentSession2Button->setVisible(true);
+        usingDynamicSessions = false;
+    }
+    else
+    {
+        // Hide placeholders
+        recentSession1Button->setVisible(false);
+        recentSession2Button->setVisible(false);
+        usingDynamicSessions = true;
+        
+        // Create buttons for each session
+        for (int i = 0; i < jmin(5, sessions.size()); ++i)
+        {
+            const auto& session = sessions[i];
+            
+            // Format button text
+            String buttonText = session.name.isNotEmpty() ? session.name : "Untitled Session";
+            buttonText += "\n" + formatSessionDate(session.createdAt);
+            
+            if (session.stemCount > 0)
+                buttonText += " - " + String(session.stemCount) + " stem" + (session.stemCount > 1 ? "s" : "");
+            
+            // Add participants info (excluding current user)
+            if (session.participants.size() > 1)
+            {
+                buttonText += " with ";
+                int othersCount = 0;
+                for (const auto& p : session.participants)
+                {
+                    // Skip if this is likely the current user (we'd need user ID to be sure)
+                    if (othersCount < 2)
+                    {
+                        if (othersCount > 0) buttonText += ", ";
+                        buttonText += "@" + p.username;
+                        othersCount++;
+                    }
+                }
+                if (session.participants.size() > 3)
+                    buttonText += " +" + String(session.participants.size() - 3) + " more";
+            }
+            
+            auto* button = new TextButton(buttonText);
+            button->addListener(this);
+            addAndMakeVisible(button);
+            dynamicSessionButtons.add(button);
+            recentSessionIds.add(session.id);
+        }
+    }
+    
+    resized();
+    repaint();
+}
+
+String HomeView::formatSessionDate(int64 timestamp) const
+{
+    if (timestamp == 0)
+        return "";
+    
+    Time t(timestamp);
+    Time now = Time::getCurrentTime();
+    
+    RelativeTime diff = now - t;
+    
+    if (diff.inDays() < 1)
+        return "Today";
+    else if (diff.inDays() < 2)
+        return "Yesterday";
+    else if (diff.inDays() < 7)
+        return String((int)diff.inDays()) + " days ago";
+    else
+        return t.formatted("%b %d");
 }
 
 //==============================================================================
@@ -197,8 +357,24 @@ void HomeView::resized()
     
     int sessionButtonHeight = 50;
     int sessionSpacing = 10;
-    recentSession1Button->setBounds(20, recentY + 35, bounds.getWidth(), sessionButtonHeight);
-    recentSession2Button->setBounds(20, recentY + 35 + sessionButtonHeight + sessionSpacing, bounds.getWidth(), sessionButtonHeight);
+    
+    if (usingDynamicSessions && !dynamicSessionButtons.isEmpty())
+    {
+        // Position dynamic session buttons
+        int yPos = recentY + 35;
+        for (auto* button : dynamicSessionButtons)
+        {
+            button->setBounds(20, yPos, bounds.getWidth(), sessionButtonHeight);
+            yPos += sessionButtonHeight + sessionSpacing;
+        }
+    }
+    else
+    {
+        // Position static placeholder buttons
+        recentSession1Button->setBounds(20, recentY + 35, bounds.getWidth(), sessionButtonHeight);
+        recentSession2Button->setBounds(20, recentY + 35 + sessionButtonHeight + sessionSpacing, 
+                                        bounds.getWidth(), sessionButtonHeight);
+    }
 }
 
 //==============================================================================
@@ -230,5 +406,26 @@ void HomeView::buttonClicked(Button* buttonThatWasClicked)
     {
         if (onRecentSessionClicked)
             onRecentSessionClicked(1);
+    }
+    else
+    {
+        // Check if it's a dynamic session button
+        for (int i = 0; i < dynamicSessionButtons.size(); ++i)
+        {
+            if (buttonThatWasClicked == dynamicSessionButtons[i])
+            {
+                // Call new ID-based callback if available
+                if (onRecentSessionClickedById && i < recentSessionIds.size())
+                {
+                    onRecentSessionClickedById(recentSessionIds[i]);
+                }
+                // Fall back to index-based callback for compatibility
+                else if (onRecentSessionClicked)
+                {
+                    onRecentSessionClicked(i);
+                }
+                break;
+            }
+        }
     }
 }

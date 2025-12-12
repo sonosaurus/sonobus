@@ -5,16 +5,21 @@
 
 #include <JuceHeader.h>
 
+// Forward declaration
+class SessionManager;
+
 class HomeView : public Component,
-                 public Button::Listener
+                 public Button::Listener,
+                 public ChangeListener
 {
 public:
-    HomeView();
+    HomeView(SessionManager* sessionManager = nullptr);
     ~HomeView() override;
 
     void paint(Graphics&) override;
     void resized() override;
     void buttonClicked(Button* buttonThatWasClicked) override;
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     //==============================================================================
     // User Info Setters
@@ -30,6 +35,15 @@ public:
     
     /** Clear user info (for logout) */
     void clearUserInfo();
+    
+    //==============================================================================
+    // Session Management
+    
+    /** Refresh recent sessions from API */
+    void refreshRecentSessions();
+    
+    /** Set the session manager (can be set after construction) */
+    void setSessionManager(SessionManager* sm);
 
     //==============================================================================
     // Callbacks
@@ -37,9 +51,15 @@ public:
     std::function<void()> onStartSessionClicked;
     std::function<void()> onJoinSessionClicked;
     std::function<void()> onSettingsClicked;
-    std::function<void(int)> onRecentSessionClicked;
+    std::function<void(int)> onRecentSessionClicked;  // Legacy: index-based
+    std::function<void(const String&)> onRecentSessionClickedById;  // New: ID-based
 
 private:
+    //==============================================================================
+    // Session Manager
+    
+    SessionManager* sessionManager = nullptr;
+    
     //==============================================================================
     // UI Components
     
@@ -49,8 +69,15 @@ private:
     std::unique_ptr<TextButton> startSessionButton;
     std::unique_ptr<TextButton> joinSessionButton;
     std::unique_ptr<Label> recentSessionsLabel;
+    
+    // Static placeholder buttons (used when no SessionManager)
     std::unique_ptr<TextButton> recentSession1Button;
     std::unique_ptr<TextButton> recentSession2Button;
+    
+    // Dynamic session buttons (used with SessionManager)
+    OwnedArray<TextButton> dynamicSessionButtons;
+    Array<String> recentSessionIds;
+    bool usingDynamicSessions = false;
 
     //==============================================================================
     // User Data
@@ -69,6 +96,12 @@ private:
     
     /** Generate a consistent color based on the username */
     Colour getAvatarColour() const;
+    
+    /** Update UI with sessions from SessionManager */
+    void updateRecentSessionsUI();
+    
+    /** Format timestamp to readable date */
+    String formatSessionDate(int64 timestamp) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HomeView)
 };

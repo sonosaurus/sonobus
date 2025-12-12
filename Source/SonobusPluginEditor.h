@@ -34,6 +34,7 @@
 #include "views/SettingsView.h"
 #include "api/SoundFlipAuth.h"
 #include "api/SoundFlipAPI.h"
+#include "managers/SessionManager.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -765,6 +766,7 @@ private:
     // SoundFlip Connect Auth
     std::unique_ptr<SoundFlipAuth> mSoundFlipAuth;
     std::unique_ptr<SoundFlipAPI> mSoundFlipAPI;
+    std::unique_ptr<SessionManager> mSessionManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

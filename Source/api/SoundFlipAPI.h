@@ -13,67 +13,121 @@ public:
     ~SoundFlipAPI();
 
     //==============================================================================
-    // Session Management
+    // Connection Info (returned when creating/joining sessions)
     
-    struct Session
+    struct ConnectionInfo
+    {
+        String server;
+        int port;
+        String group;
+        String password;
+    };
+
+    //==============================================================================
+    // Participant Info
+    
+    struct Participant
+    {
+        String userId;
+        String username;
+        String avatar;
+        int64 joinedAt;
+        int64 leftAt;  // 0 if still active
+    };
+
+    //==============================================================================
+    // Collab Session Management
+    
+    struct CollabSession
     {
         String id;
+        String inviteCode;
         String name;
-        String description;
-        String hostUserId;
-        String connectionCode;
-        String status;
+        String status;  // "active", "ended", "archived"
+        String inviteUrl;
+        ConnectionInfo connection;
+        String createdById;
+        String createdByUsername;
+        String createdByAvatar;
+        Array<Participant> participants;
+        int stemCount;
+        int durationSeconds;
         int64 createdAt;
-        int64 updatedAt;
+        int64 endedAt;  // 0 if still active
     };
     
-    /** Create a new session */
-    Session createSession(const String& name, const String& description = "");
+    /** Create a new collab session */
+    CollabSession createCollabSession(const String& name = "");
     
-    /** Get session by ID */
-    Session getSession(const String& sessionId);
+    /** Get collab session by ID */
+    CollabSession getCollabSession(const String& sessionId);
     
-    /** Join a session using invite code */
-    Session joinSession(const String& inviteCode);
+    /** Get collab session by invite code */
+    CollabSession getCollabSessionByInviteCode(const String& inviteCode);
     
-    /** Leave current session */
-    bool leaveSession(const String& sessionId);
+    /** Join a collab session using session ID or invite code */
+    CollabSession joinCollabSession(const String& sessionIdOrInviteCode);
     
-    /** End a session (host only) */
-    bool endSession(const String& sessionId);
+    /** Leave a collab session */
+    bool leaveCollabSession(const String& sessionId);
     
-    /** List user's sessions */
-    Array<Session> listSessions();
+    /** Update a collab session (name, status) - creator only */
+    CollabSession updateCollabSession(const String& sessionId, 
+                                      const String& name = "", 
+                                      const String& status = "");
+    
+    /** List user's collab sessions */
+    Array<CollabSession> listCollabSessions(const String& status = "", 
+                                            int limit = 20, 
+                                            int offset = 0);
 
     //==============================================================================
     // Stem Management
     
+    struct UploadUrlResponse
+    {
+        String uploadUrl;
+        String stemId;
+        String s3Key;
+        int expiresIn;
+    };
+    
     struct Stem
     {
         String id;
-        String sessionId;
-        String userId;
-        String fileName;
-        String fileUrl;
-        int64 fileSize;
-        String status;
+        String filename;
+        String uploadedById;
+        String uploadedByUsername;
+        String uploadedByAvatar;
+        String downloadUrl;
+        int64 sizeBytes;
+        int durationSeconds;
         int64 createdAt;
     };
     
-    /** Get upload URL for a stem */
-    String getUploadUrl(const String& sessionId, const String& fileName, int64 fileSize);
+    /** Request presigned URL for stem upload */
+    UploadUrlResponse requestStemUploadUrl(const String& sessionId, 
+                                           const String& filename, 
+                                           const String& contentType,
+                                           int64 sizeBytes);
     
-    /** Mark upload as complete */
-    Stem completeUpload(const String& sessionId, const String& uploadId);
+    /** Mark stem upload as complete */
+    Stem completeStemUpload(const String& sessionId, 
+                            const String& stemId, 
+                            int durationSeconds = 0);
     
     /** List stems for a session */
-    Array<Stem> listStems(const String& sessionId);
-    
-    /** Get download URL for a stem */
-    String getDownloadUrl(const String& stemId);
+    Array<Stem> listSessionStems(const String& sessionId);
     
     /** Delete a stem */
-    bool deleteStem(const String& stemId);
+    bool deleteStem(const String& sessionId, const String& stemId);
+
+    //==============================================================================
+    // Helper: Upload file directly to S3 using presigned URL
+    
+    bool uploadFileToS3(const String& presignedUrl, 
+                        const File& file, 
+                        const String& contentType);
 
     //==============================================================================
     // Error handling
@@ -86,8 +140,11 @@ private:
                     const String& method = "GET",
                     const var& body = var());
     
-    Session parseSession(const var& json);
+    CollabSession parseCollabSession(const var& json);
+    Participant parseParticipant(const var& json);
+    ConnectionInfo parseConnectionInfo(const var& json);
     Stem parseStem(const var& json);
+    UploadUrlResponse parseUploadUrlResponse(const var& json);
     
     SoundFlipAuth& auth;
     
@@ -95,10 +152,10 @@ private:
     // URLs - Development vs Production
     
     // Development URL (local testing)
-    String apiBaseUrl = "http://localhost:4400/api";  // NestJS API
+    String apiBaseUrl = "http://localhost:4400";
     
-    // Production URL (uncomment this and comment above for production)
-    // String apiBaseUrl = "https://api.soundflip.xyz";  // NestJS API
+    // Production URL (uncomment for production)
+    // String apiBaseUrl = "https://api.soundflip.com";
 
     String lastError;
     int lastStatusCode = 0;

@@ -5,14 +5,31 @@
 
 #include "JuceHeader.h"
 
-class ActiveSessionView : public Component
+// Forward declarations
+class SessionManager;
+class SonobusAudioProcessor;
+
+class ActiveSessionView : public Component,
+                          public ChangeListener
 {
 public:
-    ActiveSessionView();
-    ~ActiveSessionView() override = default;
+    ActiveSessionView(SessionManager* sessionManager = nullptr,
+                      SonobusAudioProcessor* processor = nullptr);
+    ~ActiveSessionView() override;
 
     void paint(Graphics& g) override;
     void resized() override;
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+    
+    /** Set managers after construction if needed */
+    void setSessionManager(SessionManager* sm);
+    void setProcessor(SonobusAudioProcessor* proc) { processor = proc; }
+    
+    /** Update session info displayed in the view */
+    void setSessionInfo(const String& name, const String& inviteUrl);
+    
+    /** Refresh participant list */
+    void refreshParticipants();
 
     // Callbacks
     std::function<void()> onEndClicked;
@@ -22,8 +39,23 @@ public:
     std::function<void()> onSessionEnded;
 
 private:
+    void handleInviteClicked();
+    void handleEndSession();
+    void updateParticipantsUI();
+    
+    // Managers
+    SessionManager* sessionManager = nullptr;
+    SonobusAudioProcessor* processor = nullptr;
+    
+    // Session info
+    String currentSessionName;
+    String currentInviteUrl;
+    
+    // UI Components
     Label titleLabel;
     Label statusLabel;
+    Label participantsLabel;
+    Label participantListLabel;
     TextButton endSessionButton;
     TextButton recordButton;
     TextButton chatButton;

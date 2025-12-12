@@ -278,10 +278,11 @@ void SonobusAudioProcessorEditor::configEditor(TextEditor *editor, bool passwd)
 SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p),  sonoLookAndFeel(p.getUseUniversalFont()), sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12)
 {
-        // Initialize SoundFlip Connect auth
+   // Initialize SoundFlip Connect auth
     mSoundFlipAuth = std::make_unique<SoundFlipAuth>();
     mSoundFlipAPI = std::make_unique<SoundFlipAPI>(*mSoundFlipAuth);
-
+    mSessionManager = std::make_unique<SessionManager>(*mSoundFlipAPI);
+    
     if (p.getUseUniversalFont()) {
 #if JUCE_ANDROID
         SonoLookAndFeel::setFontScale(1.0f);
@@ -6079,10 +6080,10 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
 {
     // Create all views - LoginView needs the auth reference
     mLoginView = std::make_unique<LoginView>(*mSoundFlipAuth);
-    mHomeView = std::make_unique<HomeView>();
-    mStartSessionView = std::make_unique<StartSessionView>();
-    mJoinSessionView = std::make_unique<JoinSessionView>();
-    mActiveSessionView = std::make_unique<ActiveSessionView>();
+    mHomeView = std::make_unique<HomeView>(mSessionManager.get());
+    mStartSessionView = std::make_unique<StartSessionView>(mSessionManager.get(), &processor);
+    mJoinSessionView = std::make_unique<JoinSessionView>(mSessionManager.get(), &processor);
+    mActiveSessionView = std::make_unique<ActiveSessionView>(mSessionManager.get(), &processor);
     mEndSessionView = std::make_unique<EndSessionView>();
     mSessionDetailView = std::make_unique<SessionDetailView>();
     mSettingsView = std::make_unique<SettingsView>(getAudioDeviceManager);
