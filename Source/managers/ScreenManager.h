@@ -43,6 +43,9 @@ public:
 private:
     void setupViews();
     void hideAllViews();
+    
+    /** Update HomeView with current user info from auth */
+    void updateHomeViewUserInfo();
 
     SoundFlipAuth& auth;
     SoundFlipAPI& api;

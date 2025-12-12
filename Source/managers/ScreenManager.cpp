@@ -2,6 +2,7 @@
 // Copyright (C) 2024 SoundFlip
 
 #include "ScreenManager.h"
+#include <iostream>
 
 ScreenManager::ScreenManager(SoundFlipAuth& authRef, SoundFlipAPI& apiRef)
     : auth(authRef), api(apiRef)
@@ -12,10 +13,13 @@ ScreenManager::ScreenManager(SoundFlipAuth& authRef, SoundFlipAPI& apiRef)
     // Start on login or home based on auth state
     if (auth.isAuthenticated())
     {
+        std::cout << "=== ScreenManager: Already authenticated, showing Home ===" << std::endl;
+        updateHomeViewUserInfo();
         showScreen(Screen::Home);
     }
     else
     {
+        std::cout << "=== ScreenManager: Not authenticated, showing Login ===" << std::endl;
         showScreen(Screen::Login);
     }
 }
@@ -45,6 +49,8 @@ void ScreenManager::setupViews()
 
     // Setup callbacks
     loginView->onLoginSuccess = [this]() {
+        std::cout << "=== LoginView::onLoginSuccess callback fired ===" << std::endl;
+        updateHomeViewUserInfo();
         showScreen(Screen::Home);
     };
 
@@ -88,8 +94,29 @@ void ScreenManager::setupViews()
 
     settingsView->onSignOutClicked = [this]() {
         auth.logout();
-        showScreen(Screen::Login);
     };
+}
+
+void ScreenManager::updateHomeViewUserInfo()
+{
+    String displayName = auth.getDisplayName();
+    String email = auth.getUserEmail();
+    
+    std::cout << "=== updateHomeViewUserInfo ===" << std::endl;
+    std::cout << "    displayName from auth: \"" << displayName.toStdString() << "\"" << std::endl;
+    std::cout << "    email from auth: \"" << email.toStdString() << "\"" << std::endl;
+    
+    // If displayName is empty, try to use email prefix as fallback
+    if (displayName.isEmpty() && email.isNotEmpty())
+    {
+        int atIndex = email.indexOf("@");
+        if (atIndex > 0)
+            displayName = email.substring(0, atIndex);
+        std::cout << "    Using email fallback: \"" << displayName.toStdString() << "\"" << std::endl;
+    }
+    
+    std::cout << "    Calling homeView->setUserInfo()" << std::endl;
+    homeView->setUserInfo(displayName, email);
 }
 
 void ScreenManager::hideAllViews()
@@ -114,18 +141,24 @@ void ScreenManager::showScreen(Screen screen)
         case Screen::Login:
             viewToShow = loginView.get();
             break;
+            
         case Screen::Home:
+            updateHomeViewUserInfo();
             viewToShow = homeView.get();
             break;
+            
         case Screen::StartSession:
             viewToShow = startSessionView.get();
             break;
+            
         case Screen::JoinSession:
             viewToShow = joinSessionView.get();
             break;
+            
         case Screen::ActiveSession:
             viewToShow = activeSessionView.get();
             break;
+            
         case Screen::Settings:
             viewToShow = settingsView.get();
             break;
@@ -150,22 +183,32 @@ void ScreenManager::resized()
     settingsView->setBounds(bounds);
 }
 
+//==============================================================================
+// Auth Listener Callbacks
+
 void ScreenManager::authenticationSucceeded()
 {
+    std::cout << "=== authenticationSucceeded() called ===" << std::endl << std::flush;
+    std::cout << "    auth.getDisplayName(): \"" << auth.getDisplayName().toStdString() << "\"" << std::endl << std::flush;
+    
     MessageManager::callAsync([this]() {
+        std::cout << "=== Inside callAsync, updating UI ===" << std::endl << std::flush;
+        updateHomeViewUserInfo();
         showScreen(Screen::Home);
     });
 }
 
 void ScreenManager::authenticationFailed(const String& error)
 {
+    std::cout << "=== authenticationFailed(): " << error.toStdString() << std::endl;
     ignoreUnused(error);
-    // LoginView handles displaying the error
 }
 
 void ScreenManager::authenticationLoggedOut()
 {
+    std::cout << "=== authenticationLoggedOut() ===" << std::endl;
     MessageManager::callAsync([this]() {
+        homeView->clearUserInfo();
         showScreen(Screen::Login);
     });
 }

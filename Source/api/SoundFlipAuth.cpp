@@ -119,21 +119,29 @@ void SoundFlipAuth::exchangeCodeForTokens(const String& code)
         var user = jsonResponse["user"];
         if (user.isObject())
         {
+            std::cout << "=== USER JSON ===" << std::endl << std::flush;
+            std::cout << JSON::toString(user).toStdString() << std::endl << std::flush;
             userId = user["id"].toString();
             userEmail = user["email"].toString();
             displayName = user["displayName"].toString();
             teamId = user["teamId"].toString();
             workspaceId = user["workspaceId"].toString();
             defaultProjectId = user["defaultProjectId"].toString();
+            std::cout << "=== PARSED displayName: " << displayName.toStdString() << std::endl << std::flush;
         }
     }
     
     saveTokensToSecureStorage();
     startTimer(60000);
+
+    std::cout << "=== SoundFlipAuth: About to notify " << listeners.size() << " listeners ===" << std::endl << std::flush;
     
     listeners.call([](Listener& l) { 
+        std::cout << "=== Calling listener ===" << std::endl << std::flush;
         l.authenticationSucceeded(); 
     });
+    
+    std::cout << "=== SoundFlipAuth: Done notifying listeners ===" << std::endl << std::flush;
 }
 
 bool SoundFlipAuth::refreshAccessToken()

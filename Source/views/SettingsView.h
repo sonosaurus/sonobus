@@ -6,21 +6,35 @@
 #include <JuceHeader.h>
 
 class SettingsView : public Component,
-                     public Button::Listener
+                     public Button::Listener,
+                     public ComboBox::Listener
 {
 public:
-    SettingsView();
+    SettingsView(std::function<AudioDeviceManager*()> getAudioDeviceManager = nullptr);
     ~SettingsView() override;
 
     void paint(Graphics&) override;
     void resized() override;
     void buttonClicked(Button* buttonThatWasClicked) override;
+    void comboBoxChanged(ComboBox* comboBoxThatHasChanged) override;
+    void visibilityChanged() override;
 
     std::function<void()> onBackClicked;
     std::function<void()> onSignOutClicked;
     std::function<void()> onChangeRecordingFolderClicked;
 
 private:
+    void populateAudioDevices();
+
+    // Audio device manager accessor
+    std::function<AudioDeviceManager*()> getAudioDeviceManager;
+
+    // Store device names for lookup
+    StringArray inputDeviceNames;
+    StringArray outputDeviceNames;
+    StringArray sampleRates;
+    StringArray bufferSizes;
+
     std::unique_ptr<TextButton> backButton;
     std::unique_ptr<Label> titleLabel;
 
@@ -30,8 +44,11 @@ private:
     std::unique_ptr<Label> audioOutputLabel;
     std::unique_ptr<ComboBox> audioOutputCombo;
 
-    std::unique_ptr<Label> audioQualityLabel;
-    std::unique_ptr<ComboBox> audioQualityCombo;
+    std::unique_ptr<Label> sampleRateLabel;
+    std::unique_ptr<ComboBox> sampleRateCombo;
+
+    std::unique_ptr<Label> bufferSizeLabel;
+    std::unique_ptr<ComboBox> bufferSizeCombo;
 
     std::unique_ptr<Label> recordingFolderLabel;
     std::unique_ptr<Label> recordingFolderPath;

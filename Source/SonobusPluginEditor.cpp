@@ -6085,7 +6085,7 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     mActiveSessionView = std::make_unique<ActiveSessionView>();
     mEndSessionView = std::make_unique<EndSessionView>();
     mSessionDetailView = std::make_unique<SessionDetailView>();
-    mSettingsView = std::make_unique<SettingsView>();
+    mSettingsView = std::make_unique<SettingsView>(getAudioDeviceManager);
     
     // Add all to main container but hide initially
     addChildComponent(mLoginView.get());
@@ -6097,8 +6097,20 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     addChildComponent(mSessionDetailView.get());
     addChildComponent(mSettingsView.get());
     
-    // Setup callbacks
     mLoginView->onLoginSuccess = [this]() {
+        // Update home view with user info from auth
+        String displayName = mSoundFlipAuth->getDisplayName();
+        String email = mSoundFlipAuth->getUserEmail();
+        
+        // Fallback to email prefix if no display name
+        if (displayName.isEmpty() && email.isNotEmpty()) {
+            int atIndex = email.indexOf("@");
+            if (atIndex > 0)
+                displayName = email.substring(0, atIndex);
+        }
+        
+        mHomeView->setUserInfo(displayName, email);
+        
         showScreen(AppScreen::Home);
     };
     
