@@ -56,6 +56,26 @@ public:
 
 private:
     //==============================================================================
+    // Helper Methods
+    
+    void setupUI();
+    
+    /** Draw the user avatar circle with initials */
+    void drawAvatar(Graphics& g, int x, int y, int size);
+    
+    /** Extract initials from display name (e.g., "John Doe" -> "JD") */
+    String getInitials() const;
+    
+    /** Generate a consistent color based on the username */
+    Colour getAvatarColour() const;
+    
+    /** Update UI with sessions from SessionManager */
+    void updateRecentSessionsUI();
+    
+    /** Format timestamp to readable date */
+    String formatSessionDate(int64 timestamp) const;
+
+    //==============================================================================
     // Session Manager
     
     SessionManager* sessionManager = nullptr;
@@ -76,7 +96,7 @@ private:
     
     // Dynamic session buttons (used with SessionManager)
     OwnedArray<TextButton> dynamicSessionButtons;
-    Array<String> recentSessionIds;
+    StringArray recentSessionIds;
     bool usingDynamicSessions = false;
 
     //==============================================================================
@@ -84,24 +104,6 @@ private:
     
     String currentUsername;
     String currentEmail;
-    
-    //==============================================================================
-    // Helper Methods
-    
-    /** Draw the user avatar circle with initials */
-    void drawAvatar(Graphics& g, int x, int y, int size);
-    
-    /** Extract initials from display name (e.g., "John Doe" -> "JD") */
-    String getInitials() const;
-    
-    /** Generate a consistent color based on the username */
-    Colour getAvatarColour() const;
-    
-    /** Update UI with sessions from SessionManager */
-    void updateRecentSessionsUI();
-    
-    /** Format timestamp to readable date */
-    String formatSessionDate(int64 timestamp) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HomeView)
 };

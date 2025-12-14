@@ -3,102 +3,103 @@
 
 #pragma once
 
-#include "JuceHeader.h"
+#include <JuceHeader.h>
 #include "../api/SoundFlipAPI.h"
+
+struct SessionConnectionInfo
+{
+    String server;
+    int port = 10999;
+    String group;
+    String password;
+};
+
+struct SessionParticipant
+{
+    String odid;
+    String username;
+    String odidLinked;
+};
+
+// Recent session info (for HomeView)
+struct RecentSessionInfo
+{
+    String id;
+    String name;
+    String status;
+    int stemCount = 0;
+    int64 createdAt = 0;
+    Array<SessionParticipant> participants;
+};
 
 class SessionManager : public ChangeBroadcaster
 {
 public:
-    SessionManager(SoundFlipAPI& api);
-    ~SessionManager();
-
-    //==============================================================================
-    // Session State
-    
     enum class State
     {
-        Disconnected,
-        Creating,
-        Joining,
+        Idle,
+        CreatingSession,
+        JoiningSession,
+        Connecting,
         Connected,
-        Ending
+        Disconnecting,
+        Error
     };
     
-    State getCurrentState() const { return currentState; }
-    bool isConnected() const { return currentState == State::Connected; }
+    SessionManager(SoundFlipAPI& api);
+    ~SessionManager() = default;
     
-    //==============================================================================
-    // Session Management
-    
-    /** Create a new session and connect */
+    // Session lifecycle
     bool createSession(const String& name = "");
-    
-    /** Join a session by invite code or URL */
     bool joinSession(const String& inviteCodeOrUrl);
-    
-    /** Leave the current session */
     void leaveSession();
     
-    /** End the current session (host only) */
-    bool endSession();
-    
-    //==============================================================================
-    // Current Session Info
-    
-    String getCurrentSessionId() const { return currentSession.id; }
-    String getCurrentSessionName() const { return currentSession.name; }
-    String getInviteCode() const { return currentSession.inviteCode; }
-    String getInviteUrl() const { return currentSession.inviteUrl; }
-    SoundFlipAPI::ConnectionInfo getConnectionInfo() const { return currentSession.connection; }
-    const Array<SoundFlipAPI::Participant>& getParticipants() const { return currentSession.participants; }
-    
-    //==============================================================================
-    // Recent Sessions
-    
-    /** Fetch recent sessions from the API */
-    Array<SoundFlipAPI::CollabSession> fetchRecentSessions(int limit = 10);
-    
-    /** Get cached recent sessions */
-    const Array<SoundFlipAPI::CollabSession>& getRecentSessions() const { return recentSessions; }
-    
-    //==============================================================================
-    // Stem Management
-    
-    /** Upload a recorded file as a stem */
-    bool uploadStem(const File& audioFile, int durationSeconds = 0);
-    
-    /** Fetch stems for current session */
-    Array<SoundFlipAPI::Stem> fetchSessionStems();
-    
-    /** Fetch stems for any session */
-    Array<SoundFlipAPI::Stem> fetchSessionStems(const String& sessionId);
-    
-    /** Download a stem to local file */
-    bool downloadStem(const SoundFlipAPI::Stem& stem, const File& destinationFile);
-    
-    /** Delete a stem */
-    bool deleteStem(const String& stemId);
-    
-    //==============================================================================
-    // Helpers
-    
-    /** Parse invite code from URL or return as-is if already a code */
-    static String parseInviteCode(const String& input);
-    
-    /** Get last error message */
+    // State queries
+    bool isConnected() const { return currentState == State::Connected; }
+    State getState() const { return currentState; }
     String getLastError() const { return lastError; }
-
+    
+    // Session info
+    String getCurrentSessionId() const { return currentSessionId; }
+    String getCurrentSessionName() const { return currentSessionName; }
+    String getInviteUrl() const { return currentInviteUrl; }
+    SessionConnectionInfo getConnectionInfo() const { return connectionInfo; }
+    const Array<SessionParticipant>& getParticipants() const { return participants; }
+    
+    // Recent sessions (for HomeView)
+    void fetchRecentSessions(int limit = 5);
+    const Array<RecentSessionInfo>& getRecentSessions() const { return recentSessions; }
+    
+    // Called by editor when connection events occur
+    void onSessionConnected();
+    void onSessionDisconnected();
+    void onConnectionFailed(const String& error);
+    void onPeerJoined(const String& username);
+    void onPeerLeft(const String& username);
+    
+    // Callbacks for UI - set by editor
+    std::function<void()> onSessionConnectedCallback;
+    std::function<void()> onSessionDisconnectedCallback;
+    std::function<void(const String&)> onConnectionFailedCallback;
+    
 private:
     void setState(State newState);
-    void clearCurrentSession();
+    void clearSession();
+    String extractSessionCode(const String& input);
     
     SoundFlipAPI& api;
     
-    State currentState = State::Disconnected;
-    SoundFlipAPI::CollabSession currentSession;
-    Array<SoundFlipAPI::CollabSession> recentSessions;
-    
+    State currentState = State::Idle;
     String lastError;
-
+    
+    String currentSessionId;
+    String currentSessionName;
+    String currentInviteUrl;
+    SessionConnectionInfo connectionInfo;
+    Array<SessionParticipant> participants;
+    
+    // Recent sessions cache
+    Array<RecentSessionInfo> recentSessions;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SessionManager)
 };

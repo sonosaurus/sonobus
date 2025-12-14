@@ -13,6 +13,9 @@
 #include "../views/ActiveSessionView.h"
 #include "../views/SettingsView.h"
 
+// Forward declaration
+class SessionManager;
+
 class ScreenManager : public Component,
                       public SoundFlipAuth::Listener
 {
@@ -27,7 +30,7 @@ public:
         Settings
     };
 
-    ScreenManager(SoundFlipAuth& auth, SoundFlipAPI& api);
+    ScreenManager(SoundFlipAuth& auth, SoundFlipAPI& api, SessionManager* sessionManager = nullptr);
     ~ScreenManager() override;
 
     void showScreen(Screen screen);
@@ -49,6 +52,7 @@ private:
 
     SoundFlipAuth& auth;
     SoundFlipAPI& api;
+    SessionManager* sessionManager = nullptr;
     Screen currentScreen = Screen::Login;
 
     std::unique_ptr<LoginView> loginView;

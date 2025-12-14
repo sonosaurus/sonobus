@@ -1,37 +1,38 @@
-// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
-// Copyright (C) 2024 SoundFlip
-
 #pragma once
 
-#include "JuceHeader.h"
+#include <JuceHeader.h>
 
-// Forward declarations
 class SessionManager;
-class SonobusAudioProcessor;
+class SonobusAudioProcessorEditor;
+class SoundFlipAPI;
 
 class ActiveSessionView : public Component,
-                          public ChangeListener
+                          public ChangeListener,
+                          public Timer
 {
 public:
-    ActiveSessionView(SessionManager* sessionManager = nullptr,
-                      SonobusAudioProcessor* processor = nullptr);
+    ActiveSessionView();
+    
+    ActiveSessionView(SessionManager* sessionManager, 
+                      SonobusAudioProcessorEditor* editor);
+    
+    ActiveSessionView(SessionManager* sessionManager, 
+                      SonobusAudioProcessorEditor* editor,
+                      SoundFlipAPI* api);
+    
     ~ActiveSessionView() override;
 
     void paint(Graphics& g) override;
     void resized() override;
-    void changeListenerCallback(ChangeBroadcaster* source) override;
+    void timerCallback() override;
     
-    /** Set managers after construction if needed */
     void setSessionManager(SessionManager* sm);
-    void setProcessor(SonobusAudioProcessor* proc) { processor = proc; }
-    
-    /** Update session info displayed in the view */
+    void setSoundFlipAPI(SoundFlipAPI* api);
     void setSessionInfo(const String& name, const String& inviteUrl);
-    
-    /** Refresh participant list */
     void refreshParticipants();
+    
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
-    // Callbacks
     std::function<void()> onEndClicked;
     std::function<void()> onRecordClicked;
     std::function<void()> onChatClicked;
@@ -39,27 +40,30 @@ public:
     std::function<void()> onSessionEnded;
 
 private:
-    void handleInviteClicked();
+    void setupUI();
     void handleEndSession();
+    void handleInviteClicked();
     void updateParticipantsUI();
-    
-    // Managers
+    void fetchAndUpdateParticipants();
+
     SessionManager* sessionManager = nullptr;
-    SonobusAudioProcessor* processor = nullptr;
+    SonobusAudioProcessorEditor* editor = nullptr;
+    SoundFlipAPI* api = nullptr;
     
-    // Session info
-    String currentSessionName;
-    String currentInviteUrl;
-    
-    // UI Components
+    String currentSessionId;
+    static constexpr int pollIntervalMs = 60000;  // 60 seconds
+
     Label titleLabel;
     Label statusLabel;
     Label participantsLabel;
     Label participantListLabel;
-    TextButton endSessionButton;
     TextButton recordButton;
     TextButton chatButton;
     TextButton inviteButton;
+    TextButton endSessionButton;
+    
+    String currentSessionName;
+    String currentInviteUrl;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ActiveSessionView)
 };

@@ -8,332 +8,248 @@ SessionManager::SessionManager(SoundFlipAPI& apiRef)
 {
 }
 
-SessionManager::~SessionManager()
-{
-}
-
-//==============================================================================
-// State Management
-
-void SessionManager::setState(State newState)
-{
-    if (currentState != newState)
-    {
-        currentState = newState;
-        sendChangeMessage();
-    }
-}
-
-void SessionManager::clearCurrentSession()
-{
-    currentSession = SoundFlipAPI::CollabSession();
-}
-
-//==============================================================================
-// Session Management
-
 bool SessionManager::createSession(const String& name)
 {
-    lastError = "";
-    setState(State::Creating);
-    
-    auto session = api.createCollabSession(name);
-    
-    if (session.id.isEmpty())
+    if (currentState != State::Idle && currentState != State::Error)
     {
-        lastError = api.getLastError();
-        setState(State::Disconnected);
+        lastError = "Already in a session";
         return false;
     }
     
-    currentSession = session;
-    setState(State::Connected);
-    sendChangeMessage();
+    setState(State::CreatingSession);
+    
+    String sessionName = name.isEmpty() ? "SoundFlip Session" : name;
+    
+    // Use the API's createCollabSession method
+    auto result = api.createCollabSession(sessionName);
+    
+    if (result.id.isEmpty())
+    {
+        lastError = api.getLastError().isEmpty() ? "Failed to create session" : api.getLastError();
+        setState(State::Error);
+        return false;
+    }
+    
+    currentSessionId = result.id;
+    currentSessionName = result.name;
+    currentInviteUrl = result.inviteUrl;
+    
+    connectionInfo.server = result.connection.server;
+    connectionInfo.port = result.connection.port;
+    connectionInfo.group = result.connection.group;
+    connectionInfo.password = result.connection.password;
+    
+    DBG("SessionManager: Created session " + currentSessionId);
+    DBG("SessionManager: Connection - " + connectionInfo.server + ":" + 
+        String(connectionInfo.port) + " group: " + connectionInfo.group);
+    
+    setState(State::Connecting);
     
     return true;
 }
 
 bool SessionManager::joinSession(const String& inviteCodeOrUrl)
 {
-    lastError = "";
-    setState(State::Joining);
+    if (currentState != State::Idle && currentState != State::Error)
+    {
+        lastError = "Already in a session";
+        return false;
+    }
     
-    // Parse invite code from URL if needed
-    String inviteCode = parseInviteCode(inviteCodeOrUrl);
+    setState(State::JoiningSession);
     
-    if (inviteCode.isEmpty())
+    String sessionCode = extractSessionCode(inviteCodeOrUrl);
+    
+    if (sessionCode.isEmpty())
     {
         lastError = "Invalid invite code or URL";
-        setState(State::Disconnected);
+        setState(State::Error);
         return false;
     }
     
-    auto session = api.joinCollabSession(inviteCode);
+    // Use the API's joinCollabSession method
+    auto result = api.joinCollabSession(sessionCode);
     
-    if (session.id.isEmpty())
+    if (result.id.isEmpty())
     {
-        lastError = api.getLastError();
-        setState(State::Disconnected);
+        lastError = api.getLastError().isEmpty() ? "Failed to join session" : api.getLastError();
+        setState(State::Error);
         return false;
     }
     
-    currentSession = session;
-    setState(State::Connected);
-    sendChangeMessage();
+    currentSessionId = result.id;
+    currentSessionName = result.name;
+    currentInviteUrl = result.inviteUrl;
+    
+    connectionInfo.server = result.connection.server;
+    connectionInfo.port = result.connection.port;
+    connectionInfo.group = result.connection.group;
+    connectionInfo.password = result.connection.password;
+    
+    DBG("SessionManager: Joined session " + currentSessionId + " (" + currentSessionName + ")");
+    
+    setState(State::Connecting);
     
     return true;
 }
 
 void SessionManager::leaveSession()
 {
-    if (currentSession.id.isEmpty())
+    if (currentState == State::Idle)
         return;
     
-    // Call API to leave
-    api.leaveCollabSession(currentSession.id);
+    setState(State::Disconnecting);
     
-    clearCurrentSession();
-    setState(State::Disconnected);
+    // Notify API that we're leaving (for tracking purposes)
+    if (currentSessionId.isNotEmpty())
+    {
+        api.leaveCollabSession(currentSessionId);
+    }
+    
+    clearSession();
+    setState(State::Idle);
+    
     sendChangeMessage();
 }
 
-bool SessionManager::endSession()
+void SessionManager::fetchRecentSessions(int limit)
 {
-    if (currentSession.id.isEmpty())
+    // Fetch from API
+    auto sessions = api.listCollabSessions("", limit, 0);
+    
+    recentSessions.clear();
+    
+    for (const auto& session : sessions)
     {
-        lastError = "No active session";
-        return false;
+        RecentSessionInfo info;
+        info.id = session.id;
+        info.name = session.name;
+        info.status = session.status;
+        info.stemCount = session.stemCount;
+        info.createdAt = session.createdAt;
+        
+        // Convert participants
+        for (const auto& p : session.participants)
+        {
+            SessionParticipant participant;
+            participant.odid = p.userId;
+            participant.username = p.username;
+            info.participants.add(participant);
+        }
+        
+        recentSessions.add(info);
     }
     
-    setState(State::Ending);
-    
-    // Update session status to ended
-    auto updatedSession = api.updateCollabSession(currentSession.id, "", "ended");
-    
-    if (updatedSession.id.isEmpty())
-    {
-        lastError = api.getLastError();
-        setState(State::Connected); // Revert state
-        return false;
-    }
-    
-    clearCurrentSession();
-    setState(State::Disconnected);
+    // Notify listeners that data has changed
     sendChangeMessage();
-    
-    return true;
 }
 
-//==============================================================================
-// Recent Sessions
-
-Array<SoundFlipAPI::CollabSession> SessionManager::fetchRecentSessions(int limit)
+void SessionManager::onSessionConnected()
 {
-    recentSessions = api.listCollabSessions("", limit, 0);
-    sendChangeMessage();
-    return recentSessions;
-}
-
-//==============================================================================
-// Stem Management
-
-bool SessionManager::uploadStem(const File& audioFile, int durationSeconds)
-{
-    if (currentSession.id.isEmpty())
-    {
-        lastError = "No active session";
-        return false;
-    }
+    DBG("SessionManager: Session connected");
+    setState(State::Connected);
     
-    if (!audioFile.existsAsFile())
-    {
-        lastError = "File does not exist";
-        return false;
-    }
-    
-    // Determine content type from file extension
-    String extension = audioFile.getFileExtension().toLowerCase();
-    String contentType = "audio/wav"; // Default
-    
-    if (extension == ".mp3")
-        contentType = "audio/mpeg";
-    else if (extension == ".ogg")
-        contentType = "audio/ogg";
-    else if (extension == ".flac")
-        contentType = "audio/flac";
-    else if (extension == ".aiff" || extension == ".aif")
-        contentType = "audio/aiff";
-    
-    // Step 1: Request upload URL
-    auto uploadInfo = api.requestStemUploadUrl(
-        currentSession.id,
-        audioFile.getFileName(),
-        contentType,
-        audioFile.getSize()
-    );
-    
-    if (uploadInfo.uploadUrl.isEmpty())
-    {
-        lastError = api.getLastError();
-        return false;
-    }
-    
-    // Step 2: Upload to S3
-    bool uploaded = api.uploadFileToS3(uploadInfo.uploadUrl, audioFile, contentType);
-    
-    if (!uploaded)
-    {
-        lastError = api.getLastError();
-        return false;
-    }
-    
-    // Step 3: Confirm upload complete
-    auto stem = api.completeStemUpload(currentSession.id, uploadInfo.stemId, durationSeconds);
-    
-    if (stem.id.isEmpty())
-    {
-        lastError = api.getLastError();
-        return false;
-    }
-    
-    // Update stem count in current session
-    currentSession.stemCount++;
-    sendChangeMessage();
-    
-    return true;
-}
-
-Array<SoundFlipAPI::Stem> SessionManager::fetchSessionStems()
-{
-    if (currentSession.id.isEmpty())
-        return Array<SoundFlipAPI::Stem>();
-    
-    return api.listSessionStems(currentSession.id);
-}
-
-Array<SoundFlipAPI::Stem> SessionManager::fetchSessionStems(const String& sessionId)
-{
-    return api.listSessionStems(sessionId);
-}
-
-bool SessionManager::downloadStem(const SoundFlipAPI::Stem& stem, const File& destinationFile)
-{
-    if (stem.downloadUrl.isEmpty())
-    {
-        lastError = "No download URL for stem";
-        return false;
-    }
-    
-    // Download from presigned URL
-    URL url(stem.downloadUrl);
-    
-    auto options = URL::InputStreamOptions(URL::ParameterHandling::inAddress)
-        .withConnectionTimeoutMs(300000); // 5 min timeout
-    
-    auto stream = url.createInputStream(options);
-    
-    if (stream == nullptr)
-    {
-        lastError = "Failed to connect to download URL";
-        return false;
-    }
-    
-    // Write to file
-    FileOutputStream outputStream(destinationFile);
-    
-    if (!outputStream.openedOk())
-    {
-        lastError = "Failed to create output file";
-        return false;
-    }
-    
-    outputStream.writeFromInputStream(*stream, -1);
-    
-    return true;
-}
-
-bool SessionManager::deleteStem(const String& stemId)
-{
-    if (currentSession.id.isEmpty())
-    {
-        lastError = "No active session";
-        return false;
-    }
-    
-    bool success = api.deleteStem(currentSession.id, stemId);
-    
-    if (!success)
-    {
-        lastError = api.getLastError();
-        return false;
-    }
-    
-    // Update stem count
-    if (currentSession.stemCount > 0)
-        currentSession.stemCount--;
+    if (onSessionConnectedCallback)
+        onSessionConnectedCallback();
     
     sendChangeMessage();
-    
-    return true;
 }
 
-//==============================================================================
-// Helpers
+void SessionManager::onSessionDisconnected()
+{
+    DBG("SessionManager: Session disconnected");
+    
+    State previousState = currentState;
+    clearSession();
+    setState(State::Idle);
+    
+    // Only trigger callback if we were previously connected
+    if (previousState == State::Connected)
+    {
+        if (onSessionDisconnectedCallback)
+            onSessionDisconnectedCallback();
+    }
+    
+    sendChangeMessage();
+}
 
-String SessionManager::parseInviteCode(const String& input)
+void SessionManager::onConnectionFailed(const String& error)
+{
+    DBG("SessionManager: Connection failed - " + error);
+    lastError = error;
+    
+    clearSession();
+    setState(State::Error);
+    
+    if (onConnectionFailedCallback)
+        onConnectionFailedCallback(error);
+    
+    sendChangeMessage();
+}
+
+void SessionManager::onPeerJoined(const String& username)
+{
+    DBG("SessionManager: Peer joined - " + username);
+    
+    // Add to participants list
+    SessionParticipant participant;
+    participant.username = username;
+    participants.add(participant);
+    
+    sendChangeMessage();
+}
+
+void SessionManager::onPeerLeft(const String& username)
+{
+    DBG("SessionManager: Peer left - " + username);
+    
+    // Remove from participants list
+    for (int i = participants.size() - 1; i >= 0; --i)
+    {
+        if (participants[i].username == username)
+        {
+            participants.remove(i);
+            break;
+        }
+    }
+    
+    sendChangeMessage();
+}
+
+void SessionManager::setState(State newState)
+{
+    if (currentState != newState)
+    {
+        DBG("SessionManager: State change " + String((int)currentState) + " -> " + String((int)newState));
+        currentState = newState;
+    }
+}
+
+void SessionManager::clearSession()
+{
+    currentSessionId = "";
+    currentSessionName = "";
+    currentInviteUrl = "";
+    connectionInfo = SessionConnectionInfo();
+    participants.clear();
+    lastError = "";
+}
+
+String SessionManager::extractSessionCode(const String& input)
 {
     String trimmed = input.trim();
-    
-    if (trimmed.isEmpty())
-        return "";
     
     // Check if it's a URL
     if (trimmed.containsChar('/'))
     {
-        // Try to extract invite code from URL patterns:
-        // https://soundflip.xyz/session/ABC123
-        // soundflip.xyz/session/ABC123
-        // /session/ABC123
-        
-        // Look for /session/ pattern
-        int sessionIndex = trimmed.indexOf("/session/");
-        if (sessionIndex >= 0)
+        // Extract last path component as session code
+        int lastSlash = trimmed.lastIndexOf("/");
+        if (lastSlash >= 0 && lastSlash < trimmed.length() - 1)
         {
-            String code = trimmed.substring(sessionIndex + 9); // Length of "/session/"
-            
-            // Remove any trailing path or query params
-            int slashIndex = code.indexOf("/");
-            if (slashIndex > 0)
-                code = code.substring(0, slashIndex);
-            
-            int queryIndex = code.indexOf("?");
-            if (queryIndex > 0)
-                code = code.substring(0, queryIndex);
-            
-            return code.trim();
-        }
-        
-        // Check for invite= query param
-        int inviteIndex = trimmed.indexOf("invite=");
-        if (inviteIndex >= 0)
-        {
-            String code = trimmed.substring(inviteIndex + 7); // Length of "invite="
-            
-            int ampIndex = code.indexOf("&");
-            if (ampIndex > 0)
-                code = code.substring(0, ampIndex);
-            
-            return code.trim();
+            return trimmed.substring(lastSlash + 1);
         }
     }
     
-    // Assume it's a raw invite code
-    // Validate: should be 8 alphanumeric characters
-    if (trimmed.length() == 8 && trimmed.containsOnly("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
-    {
-        return trimmed;
-    }
-    
-    // If it's longer or different format, still return it and let the API validate
+    // Assume it's a direct code
     return trimmed;
 }

@@ -2,10 +2,11 @@
 // Copyright (C) 2024 SoundFlip
 
 #include "ScreenManager.h"
+#include "SessionManager.h"
 #include <iostream>
 
-ScreenManager::ScreenManager(SoundFlipAuth& authRef, SoundFlipAPI& apiRef)
-    : auth(authRef), api(apiRef)
+ScreenManager::ScreenManager(SoundFlipAuth& authRef, SoundFlipAPI& apiRef, SessionManager* sm)
+    : auth(authRef), api(apiRef), sessionManager(sm)
 {
     std::cout << "=== ScreenManager CONSTRUCTOR ===" << std::endl << std::flush;
     
@@ -35,9 +36,9 @@ ScreenManager::~ScreenManager()
 
 void ScreenManager::setupViews()
 {
-    // Create views
+    // Create views - use default constructors (no editor pointer needed for ScreenManager path)
     loginView = std::make_unique<LoginView>(auth);
-    homeView = std::make_unique<HomeView>();
+    homeView = std::make_unique<HomeView>(sessionManager);
     startSessionView = std::make_unique<StartSessionView>();
     joinSessionView = std::make_unique<JoinSessionView>();
     activeSessionView = std::make_unique<ActiveSessionView>();

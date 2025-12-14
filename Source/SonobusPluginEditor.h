@@ -132,6 +132,16 @@ public:
 
     void updateUseKeybindings();
 
+    // SoundFlip Connect integration
+    void connectToSoundFlipSession(const String& serverHost, 
+                                    int serverPort, 
+                                    const String& groupName, 
+                                    const String& groupPassword, 
+                                    const String& username);
+
+    void disconnectSoundFlipSession();
+    bool isSoundFlipSessionActive() const { return mIsSoundFlipSession; }
+
 
     // file drop
 
@@ -139,6 +149,8 @@ public:
     void filesDropped (const StringArray& files, int /*x*/, int /*y*/) override;
     void fileDragEnter (const StringArray& files, int x, int y) override;
     void fileDragExit (const StringArray& files) override;
+
+    
 
     // client listener
     void aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
@@ -222,7 +234,6 @@ private:
     void updateTransportState();
     
     void updateOptionsState(bool ignorecheck=false);
-
     
     String generateNewUsername(const AooServerConnectionInfo & info);
 
@@ -767,6 +778,11 @@ private:
     std::unique_ptr<SoundFlipAuth> mSoundFlipAuth;
     std::unique_ptr<SoundFlipAPI> mSoundFlipAPI;
     std::unique_ptr<SessionManager> mSessionManager;
+
+    // SoundFlip session tracking
+    bool mIsSoundFlipSession = false;
+    String mPendingSoundFlipGroup;
+    String mPendingSoundFlipGroupPassword;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

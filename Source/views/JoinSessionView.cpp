@@ -3,10 +3,21 @@
 
 #include "JoinSessionView.h"
 #include "../managers/SessionManager.h"
-#include "../SonobusPluginProcessor.h"
+#include "../SonobusPluginEditor.h"
 
-JoinSessionView::JoinSessionView(SessionManager* sm, SonobusAudioProcessor* proc)
-    : sessionManager(sm), processor(proc)
+JoinSessionView::JoinSessionView()
+    : sessionManager(nullptr), editor(nullptr)
+{
+    setupUI();
+}
+
+JoinSessionView::JoinSessionView(SessionManager* sm, SonobusAudioProcessorEditor* ed)
+    : sessionManager(sm), editor(ed)
+{
+    setupUI();
+}
+
+void JoinSessionView::setupUI()
 {
     titleLabel.setText("Join Session", dontSendNotification);
     titleLabel.setFont(Font(24.0f, Font::bold));
@@ -35,43 +46,10 @@ JoinSessionView::JoinSessionView(SessionManager* sm, SonobusAudioProcessor* proc
 
     backButton.setButtonText("Back");
     backButton.onClick = [this]() {
-        cleanupConnection();
         if (onBackClicked)
             onBackClicked();
     };
     addAndMakeVisible(backButton);
-
-    // Register as listener if processor is available
-    if (processor)
-    {
-        processor->addClientListener(this);
-    }
-}
-
-JoinSessionView::~JoinSessionView()
-{
-    stopTimer();
-    if (processor)
-    {
-        processor->removeClientListener(this);
-    }
-}
-
-void JoinSessionView::setProcessor(SonobusAudioProcessor* proc)
-{
-    // Unregister from old processor
-    if (processor)
-    {
-        processor->removeClientListener(this);
-    }
-    
-    processor = proc;
-    
-    // Register with new processor
-    if (processor)
-    {
-        processor->addClientListener(this);
-    }
 }
 
 void JoinSessionView::setInviteCode(const String& code)
@@ -81,20 +59,8 @@ void JoinSessionView::setInviteCode(const String& code)
 
 void JoinSessionView::handleJoinSession()
 {
-    if (isJoiningSession || isWaitingForConnect || isWaitingForGroupJoin)
+    if (isJoiningSession)
         return;
-    
-    if (!sessionManager)
-    {
-        showError("Session manager not available");
-        return;
-    }
-    
-    if (!processor)
-    {
-        showError("Audio processor not available");
-        return;
-    }
     
     String inviteInput = codeEditor.getText().trim();
     
@@ -104,222 +70,48 @@ void JoinSessionView::handleJoinSession()
         return;
     }
     
-    // Update UI state
-    isJoiningSession = true;
-    setUIEnabled(false);
-    showStatus("Looking up session...");
-    
-    // Join session via API - SessionManager handles URL/code parsing
-    bool success = sessionManager->joinSession(inviteInput);
-    
-    if (!success)
+    // If we have editor integration, use the full flow
+    if (sessionManager && editor)
     {
+        isJoiningSession = true;
+        setUIEnabled(false);
+        showStatus("Looking up session...");
+        
+        bool success = sessionManager->joinSession(inviteInput);
+        
+        if (!success)
+        {
+            isJoiningSession = false;
+            setUIEnabled(true);
+            showError(sessionManager->getLastError());
+            return;
+        }
+        
+        DBG("Joined session via API: " + sessionManager->getCurrentSessionId());
+        showStatus("Connecting to server...");
+        
+        auto connectionInfo = sessionManager->getConnectionInfo();
+        String username = "User_" + String(Random::getSystemRandom().nextInt(9999));
+        
+        editor->connectToSoundFlipSession(
+            connectionInfo.server,
+            connectionInfo.port,
+            connectionInfo.group,
+            connectionInfo.password,
+            username
+        );
+        
         isJoiningSession = false;
-        setUIEnabled(true);
-        showError(sessionManager->getLastError());
-        return;
-    }
-    
-    DBG("Joined session via API: " + sessionManager->getCurrentSessionId());
-    DBG("Session name: " + sessionManager->getCurrentSessionName());
-    showStatus("Connecting to server...");
-    
-    // Get connection info from SessionManager
-    auto connectionInfo = sessionManager->getConnectionInfo();
-    
-    // Store for later use in callbacks
-    pendingSessionId = sessionManager->getCurrentSessionId();
-    pendingGroupName = connectionInfo.group;
-    pendingGroupPassword = connectionInfo.password;
-    
-    DBG("Connection info - Server: " + connectionInfo.server + 
-        ":" + String(connectionInfo.port) + 
-        " Group: " + pendingGroupName);
-    
-    // Get current username from processor or use a default
-    String username = processor->getCurrentUsername();
-    if (username.isEmpty())
-    {
-        username = "User_" + String(Random::getSystemRandom().nextInt(9999));
-    }
-    
-    // Disconnect first if already connected to a different server/group
-    if (processor->isConnectedToServer())
-    {
-        DBG("Already connected, disconnecting first...");
-        processor->disconnectFromServer();
-    }
-    
-    // Start timeout timer
-    connectionCheckCount = 0;
-    startTimer(100);
-    
-    // Initiate connection to AOO server - this is ASYNC!
-    isWaitingForConnect = true;
-    isJoiningSession = false;
-    
-    bool initiated = processor->connectToServer(
-        connectionInfo.server,
-        connectionInfo.port,
-        username,
-        "" // user password (not group password)
-    );
-    
-    if (!initiated)
-    {
-        stopTimer();
-        isWaitingForConnect = false;
-        setUIEnabled(true);
-        showError("Failed to initiate server connection");
-        return;
-    }
-    
-    DBG("Connection initiated, waiting for callback...");
-    // Now we wait for aooClientConnected callback...
-}
-
-void JoinSessionView::aooClientConnected(SonobusAudioProcessor* proc, bool success, const String& errmesg)
-{
-    // Make sure this is for our connection attempt
-    if (!isWaitingForConnect || proc != processor)
-        return;
-    
-    isWaitingForConnect = false;
-    
-    DBG("aooClientConnected callback - success: " + String(success ? "yes" : "no") + " error: " + errmesg);
-    
-    if (!success)
-    {
-        stopTimer();
-        setUIEnabled(true);
-        showError("Connection failed: " + (errmesg.isEmpty() ? "Unknown error" : errmesg));
-        return;
-    }
-    
-    DBG("Connected to server, now joining group: " + pendingGroupName);
-    showStatus("Joining session...");
-    
-    // NOW we can join the group since we're connected
-    isWaitingForGroupJoin = true;
-    
-    bool joinInitiated = processor->joinServerGroup(
-        pendingGroupName,
-        pendingGroupPassword,
-        false // not public
-    );
-    
-    if (!joinInitiated)
-    {
-        stopTimer();
-        isWaitingForGroupJoin = false;
-        processor->disconnectFromServer();
-        setUIEnabled(true);
-        showError("Failed to initiate group join");
-        return;
-    }
-    
-    DBG("Group join initiated, waiting for callback...");
-    // Now we wait for aooClientGroupJoined callback...
-}
-
-void JoinSessionView::aooClientDisconnected(SonobusAudioProcessor* proc, bool success, const String& errmesg)
-{
-    // Handle unexpected disconnection during our connection flow
-    if ((isWaitingForConnect || isWaitingForGroupJoin) && proc == processor)
-    {
-        DBG("Unexpected disconnection during connection flow");
-        stopTimer();
-        isWaitingForConnect = false;
-        isWaitingForGroupJoin = false;
-        setUIEnabled(true);
-        showError("Disconnected: " + (errmesg.isEmpty() ? "Connection lost" : errmesg));
-    }
-}
-
-void JoinSessionView::aooClientGroupJoined(SonobusAudioProcessor* proc, bool success, const String& group, const String& errmesg)
-{
-    // Make sure this is for our group join attempt
-    if (!isWaitingForGroupJoin || proc != processor || group != pendingGroupName)
-        return;
-    
-    stopTimer();
-    isWaitingForGroupJoin = false;
-    
-    DBG("aooClientGroupJoined callback - group: " + group + " success: " + String(success ? "yes" : "no") + " error: " + errmesg);
-    
-    if (!success)
-    {
-        processor->disconnectFromServer();
-        setUIEnabled(true);
-        showError("Failed to join session: " + (errmesg.isEmpty() ? "Unknown error" : errmesg));
-        return;
-    }
-    
-    DBG("Successfully joined group: " + group);
-    
-    showStatus("Connected!");
-    statusLabel.setColour(Label::textColourId, Colours::green);
-    
-    // Small delay to show success message before transitioning
-    Timer::callAfterDelay(300, [this]() {
-        if (onJoinClicked)
-            onJoinClicked();
         
         if (onSessionJoined)
-            onSessionJoined(pendingSessionId);
-    });
-}
-
-void JoinSessionView::timerCallback()
-{
-    connectionCheckCount++;
-    
-    // Timeout check
-    if (connectionCheckCount >= maxConnectionChecks)
-    {
-        DBG("Connection timeout after " + String(connectionCheckCount * 100) + "ms");
-        cleanupConnection();
-        showError("Connection timed out");
-        return;
+            onSessionJoined(sessionManager->getCurrentSessionId());
     }
-    
-    // Update status with animated dots
-    int dots = (connectionCheckCount / 5) % 4;
-    String dotStr = String::repeatedString(".", dots);
-    
-    if (isWaitingForConnect)
+    else
     {
-        showStatus("Connecting to server" + dotStr);
+        // Fallback: just trigger callback
+        if (onSessionJoined)
+            onSessionJoined("placeholder_session_id");
     }
-    else if (isWaitingForGroupJoin)
-    {
-        showStatus("Joining session" + dotStr);
-    }
-}
-
-void JoinSessionView::cleanupConnection()
-{
-    stopTimer();
-    
-    bool wasConnecting = isWaitingForConnect || isWaitingForGroupJoin;
-    
-    isWaitingForConnect = false;
-    isWaitingForGroupJoin = false;
-    isJoiningSession = false;
-    
-    if (wasConnecting && processor)
-    {
-        if (processor->isConnectedToServer())
-        {
-            if (!pendingGroupName.isEmpty())
-            {
-                processor->leaveServerGroup(pendingGroupName);
-            }
-            processor->disconnectFromServer();
-        }
-    }
-    
-    setUIEnabled(true);
 }
 
 void JoinSessionView::showError(const String& message)
@@ -327,6 +119,7 @@ void JoinSessionView::showError(const String& message)
     DBG("JoinSessionView Error: " + message);
     statusLabel.setText(message.isEmpty() ? "An error occurred" : message, dontSendNotification);
     statusLabel.setColour(Label::textColourId, Colour(0xffe74c3c));
+    setUIEnabled(true);
 }
 
 void JoinSessionView::showStatus(const String& message)

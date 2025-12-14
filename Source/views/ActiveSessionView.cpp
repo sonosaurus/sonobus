@@ -1,16 +1,60 @@
-// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
-// Copyright (C) 2024 SoundFlip
-
 #include "ActiveSessionView.h"
 #include "../managers/SessionManager.h"
-#include "../SonobusPluginProcessor.h"
+#include "../SonobusPluginEditor.h"
+#include "../api/SoundFlipAPI.h"
 
-ActiveSessionView::ActiveSessionView(SessionManager* sm, SonobusAudioProcessor* proc)
-    : sessionManager(sm), processor(proc)
+ActiveSessionView::ActiveSessionView()
+    : sessionManager(nullptr), editor(nullptr), api(nullptr)
+{
+    setupUI();
+}
+
+ActiveSessionView::ActiveSessionView(SessionManager* sm, SonobusAudioProcessorEditor* ed)
+    : sessionManager(sm), editor(ed), api(nullptr)
 {
     if (sessionManager)
         sessionManager->addChangeListener(this);
     
+    setupUI();
+    
+    if (sessionManager && sessionManager->isConnected())
+    {
+        currentSessionId = sessionManager->getCurrentSessionId();
+        setSessionInfo(sessionManager->getCurrentSessionName(),
+                       sessionManager->getInviteUrl());
+        updateParticipantsUI();
+    }
+}
+
+ActiveSessionView::ActiveSessionView(SessionManager* sm, 
+                                     SonobusAudioProcessorEditor* ed,
+                                     SoundFlipAPI* apiRef)
+    : sessionManager(sm), editor(ed), api(apiRef)
+{
+    if (sessionManager)
+        sessionManager->addChangeListener(this);
+    
+    setupUI();
+    
+    if (sessionManager && sessionManager->isConnected())
+    {
+        currentSessionId = sessionManager->getCurrentSessionId();
+        setSessionInfo(sessionManager->getCurrentSessionName(),
+                       sessionManager->getInviteUrl());
+        startTimer(pollIntervalMs);
+        updateParticipantsUI();
+    }
+}
+
+ActiveSessionView::~ActiveSessionView()
+{
+    stopTimer();
+    if (sessionManager)
+        sessionManager->removeChangeListener(this);
+}
+
+void ActiveSessionView::setupUI()
+{
     titleLabel.setText("Active Session", dontSendNotification);
     titleLabel.setFont(Font(24.0f, Font::bold));
     titleLabel.setJustificationType(Justification::centred);
@@ -59,20 +103,11 @@ ActiveSessionView::ActiveSessionView(SessionManager* sm, SonobusAudioProcessor* 
         handleEndSession();
     };
     addAndMakeVisible(endSessionButton);
-    
-    // Update UI with session info if available
-    if (sessionManager && sessionManager->isConnected())
-    {
-        setSessionInfo(sessionManager->getCurrentSessionName(),
-                       sessionManager->getInviteUrl());
-        updateParticipantsUI();
-    }
 }
 
-ActiveSessionView::~ActiveSessionView()
+void ActiveSessionView::setSoundFlipAPI(SoundFlipAPI* apiRef)
 {
-    if (sessionManager)
-        sessionManager->removeChangeListener(this);
+    api = apiRef;
 }
 
 void ActiveSessionView::setSessionManager(SessionManager* sm)
@@ -88,8 +123,13 @@ void ActiveSessionView::setSessionManager(SessionManager* sm)
         
         if (sessionManager->isConnected())
         {
+            currentSessionId = sessionManager->getCurrentSessionId();
             setSessionInfo(sessionManager->getCurrentSessionName(),
                            sessionManager->getInviteUrl());
+            
+            if (api && !currentSessionId.isEmpty())
+                startTimer(pollIntervalMs);
+            
             updateParticipantsUI();
         }
     }
@@ -108,28 +148,72 @@ void ActiveSessionView::setSessionInfo(const String& name, const String& inviteU
 
 void ActiveSessionView::refreshParticipants()
 {
-    updateParticipantsUI();
+    fetchAndUpdateParticipants();
+}
+
+void ActiveSessionView::timerCallback()
+{
+    if (api && !currentSessionId.isEmpty())
+        fetchAndUpdateParticipants();
 }
 
 void ActiveSessionView::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (source == sessionManager)
     {
-        // Session state changed - update UI
         if (sessionManager->isConnected())
         {
+            currentSessionId = sessionManager->getCurrentSessionId();
             setSessionInfo(sessionManager->getCurrentSessionName(),
                            sessionManager->getInviteUrl());
-            updateParticipantsUI();
+            
+            if (api && !currentSessionId.isEmpty())
+                startTimer(pollIntervalMs);
+            
+            fetchAndUpdateParticipants();
             statusLabel.setText("Connected", dontSendNotification);
             statusLabel.setColour(Label::textColourId, Colours::green);
         }
         else
         {
+            stopTimer();
             statusLabel.setText("Disconnected", dontSendNotification);
             statusLabel.setColour(Label::textColourId, Colour(0xffe74c3c));
         }
     }
+}
+
+void ActiveSessionView::fetchAndUpdateParticipants()
+{
+    if (!api || currentSessionId.isEmpty())
+    {
+        updateParticipantsUI();
+        return;
+    }
+    
+    SoundFlipAPI::CollabSession session = api->getCollabSession(currentSessionId);
+    
+    if (api->getLastStatusCode() != 200)
+    {
+        DBG("Failed to fetch session participants: " + api->getLastError());
+        updateParticipantsUI();
+        return;
+    }
+    
+    if (session.participants.isEmpty())
+    {
+        participantListLabel.setText("Just you", dontSendNotification);
+        return;
+    }
+    
+    String participantText = "(" + String(session.participants.size()) + ") ";
+    for (int i = 0; i < session.participants.size(); ++i)
+    {
+        if (i > 0) participantText += ", ";
+        participantText += "@" + session.participants[i].username;
+    }
+    
+    participantListLabel.setText(participantText, dontSendNotification);
 }
 
 void ActiveSessionView::updateParticipantsUI()
@@ -148,7 +232,7 @@ void ActiveSessionView::updateParticipantsUI()
         return;
     }
     
-    String participantText;
+    String participantText = "(" + String(participants.size()) + ") ";
     for (int i = 0; i < participants.size(); ++i)
     {
         if (i > 0) participantText += ", ";
@@ -164,10 +248,8 @@ void ActiveSessionView::handleInviteClicked()
     {
         SystemClipboard::copyTextToClipboard(currentInviteUrl);
         
-        // Show feedback
         inviteButton.setButtonText("Copied!");
         
-        // Reset button text after 2 seconds
         Timer::callAfterDelay(2000, [this]() {
             if (inviteButton.isShowing())
                 inviteButton.setButtonText("Invite");
@@ -180,22 +262,16 @@ void ActiveSessionView::handleInviteClicked()
 
 void ActiveSessionView::handleEndSession()
 {
+    stopTimer();
+    
     if (onEndClicked)
         onEndClicked();
     
-    // Leave the AOO group and disconnect
-    if (processor && sessionManager)
+    if (editor)
     {
-        auto connectionInfo = sessionManager->getConnectionInfo();
-        
-        // Leave the group first
-        processor->leaveServerGroup(connectionInfo.group);
-        
-        // Then disconnect from server
-        processor->disconnectFromServer();
+        editor->disconnectSoundFlipSession();
     }
     
-    // Update session manager state
     if (sessionManager)
     {
         sessionManager->leaveSession();
@@ -220,7 +296,6 @@ void ActiveSessionView::resized()
     
     bounds.removeFromTop(20);
     
-    // Participants section
     participantsLabel.setBounds(bounds.removeFromTop(20));
     participantListLabel.setBounds(bounds.removeFromTop(25));
     
@@ -230,7 +305,6 @@ void ActiveSessionView::resized()
     int buttonHeight = 40;
     int spacing = 15;
     
-    // Action buttons row
     auto buttonRow = bounds.removeFromTop(buttonHeight);
     int totalButtonWidth = buttonWidth * 3 + spacing * 2;
     int startX = (buttonRow.getWidth() - totalButtonWidth) / 2;
@@ -241,6 +315,5 @@ void ActiveSessionView::resized()
     
     bounds.removeFromTop(30);
     
-    // End session button centered
     endSessionButton.setBounds((getWidth() - 150) / 2, bounds.getY(), 150, buttonHeight);
 }

@@ -10,6 +10,30 @@ HomeView::HomeView(SessionManager* sm)
     if (sessionManager)
         sessionManager->addChangeListener(this);
     
+    setupUI();
+    
+    // If we have a session manager, fetch real sessions
+    if (sessionManager)
+    {
+        // Hide placeholder buttons - we'll use dynamic ones
+        recentSession1Button->setVisible(false);
+        recentSession2Button->setVisible(false);
+        
+        // Fetch sessions async to not block UI
+        MessageManager::callAsync([this]() {
+            refreshRecentSessions();
+        });
+    }
+}
+
+HomeView::~HomeView()
+{
+    if (sessionManager)
+        sessionManager->removeChangeListener(this);
+}
+
+void HomeView::setupUI()
+{
     // Username label - will be updated with real name after login
     usernameLabel = std::make_unique<Label>("username", "Welcome");
     usernameLabel->setFont(Font(18.0f, Font::bold));
@@ -54,25 +78,6 @@ HomeView::HomeView(SessionManager* sm)
     recentSession2Button = std::make_unique<TextButton>("Beat review with @sarah\nDec 5 - 2 stems");
     recentSession2Button->addListener(this);
     addAndMakeVisible(recentSession2Button.get());
-    
-    // If we have a session manager, fetch real sessions
-    if (sessionManager)
-    {
-        // Hide placeholder buttons - we'll use dynamic ones
-        recentSession1Button->setVisible(false);
-        recentSession2Button->setVisible(false);
-        
-        // Fetch sessions async to not block UI
-        MessageManager::callAsync([this]() {
-            refreshRecentSessions();
-        });
-    }
-}
-
-HomeView::~HomeView()
-{
-    if (sessionManager)
-        sessionManager->removeChangeListener(this);
 }
 
 //==============================================================================

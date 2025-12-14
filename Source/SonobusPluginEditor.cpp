@@ -1604,8 +1604,6 @@ void SonobusAudioProcessorEditor::configLevelSlider(Slider * slider)
 
 
 
-//////////////////
-// these client listener callbacks will be from a different thread
 
 void SonobusAudioProcessorEditor::aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg) 
 {
@@ -1614,6 +1612,43 @@ void SonobusAudioProcessorEditor::aooClientConnected(SonobusAudioProcessor *comp
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::ConnectEvent, success, errmesg));
     }
+    
+    // SoundFlip session handling - auto-join group after connection
+    if (mIsSoundFlipSession && success && mPendingSoundFlipGroup.isNotEmpty())
+    {
+        DBG("SoundFlip: Connected to server, joining group: " + mPendingSoundFlipGroup);
+        
+        // Join the group now that we're connected
+        bool joinInitiated = processor.joinServerGroup(
+            mPendingSoundFlipGroup,
+            mPendingSoundFlipGroupPassword,
+            false // not public
+        );
+        
+        if (!joinInitiated)
+        {
+            DBG("SoundFlip: Failed to initiate group join");
+            mIsSoundFlipSession = false;
+            
+            if (mSessionManager)
+            {
+                mSessionManager->onConnectionFailed("Failed to join session group");
+            }
+        }
+    }
+    else if (mIsSoundFlipSession && !success)
+    {
+        DBG("SoundFlip: Connection failed - " + errmesg);
+        mIsSoundFlipSession = false;
+        mPendingSoundFlipGroup = "";
+        mPendingSoundFlipGroupPassword = "";
+        
+        if (mSessionManager)
+        {
+            mSessionManager->onConnectionFailed(errmesg);
+        }
+    }
+    
     triggerAsyncUpdate();
 }
 
@@ -1624,6 +1659,21 @@ void SonobusAudioProcessorEditor::aooClientDisconnected(SonobusAudioProcessor *c
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::DisconnectEvent, success, errmesg));
     }
+    
+    // SoundFlip session handling
+    if (mIsSoundFlipSession)
+    {
+        DBG("SoundFlip: Disconnected from session");
+        mIsSoundFlipSession = false;
+        mPendingSoundFlipGroup = "";
+        mPendingSoundFlipGroupPassword = "";
+        
+        if (mSessionManager)
+        {
+            mSessionManager->onSessionDisconnected();
+        }
+    }
+    
     triggerAsyncUpdate();
 }
 
@@ -1644,6 +1694,41 @@ void SonobusAudioProcessorEditor::aooClientGroupJoined(SonobusAudioProcessor *co
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::GroupJoinEvent, group, success, errmesg));
     }
+    
+    // SoundFlip session handling
+    if (mIsSoundFlipSession && group == mPendingSoundFlipGroup)
+    {
+        if (success)
+        {
+            DBG("SoundFlip: Successfully joined group: " + group);
+            
+            // Clear pending info
+            mPendingSoundFlipGroup = "";
+            mPendingSoundFlipGroupPassword = "";
+            
+            // Notify SessionManager - this triggers UI transition to ActiveSessionView
+            if (mSessionManager)
+            {
+                mSessionManager->onSessionConnected();
+            }
+        }
+        else
+        {
+            DBG("SoundFlip: Failed to join group - " + errmesg);
+            mIsSoundFlipSession = false;
+            mPendingSoundFlipGroup = "";
+            mPendingSoundFlipGroupPassword = "";
+            
+            // Disconnect since group join failed
+            processor.disconnectFromServer();
+            
+            if (mSessionManager)
+            {
+                mSessionManager->onConnectionFailed("Failed to join session: " + errmesg);
+            }
+        }
+    }
+    
     triggerAsyncUpdate();
 }
 
@@ -2920,6 +3005,74 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
     if (!copyInfoOnly) {
         mConnectView->connectWithInfo(currConnectionInfo, allowEmptyGroup);
     }
+}
+
+
+void SonobusAudioProcessorEditor::connectToSoundFlipSession(const String& serverHost,
+                                                             int serverPort,
+                                                             const String& groupName,
+                                                             const String& groupPassword,
+                                                             const String& username)
+{
+    DBG("connectToSoundFlipSession - Server: " + serverHost + ":" + String(serverPort) + 
+        " Group: " + groupName + " User: " + username);
+    
+    // Store SoundFlip session info
+    mIsSoundFlipSession = true;
+    mPendingSoundFlipGroup = groupName;
+    mPendingSoundFlipGroupPassword = groupPassword;
+    
+    // Populate the connection info struct that the editor uses for state tracking
+    currConnectionInfo.serverHost = serverHost;
+    currConnectionInfo.serverPort = serverPort;
+    currConnectionInfo.groupName = groupName;
+    currConnectionInfo.groupPassword = groupPassword;
+    currConnectionInfo.userName = username;
+    currConnectionInfo.groupIsPublic = false;
+    
+    // Disconnect if already connected
+    if (processor.isConnectedToServer())
+    {
+        DBG("Already connected, disconnecting first...");
+        processor.disconnectFromServer();
+    }
+    
+    // Update username in processor
+    processor.setCurrentUsername(username);
+    
+    // Initiate connection - this is async, callbacks will handle the rest
+    bool initiated = processor.connectToServer(serverHost, serverPort, username, "");
+    
+    if (!initiated)
+    {
+        DBG("Failed to initiate SoundFlip connection");
+        mIsSoundFlipSession = false;
+        mPendingSoundFlipGroup = "";
+        mPendingSoundFlipGroupPassword = "";
+        
+        // Notify SessionManager of failure
+        if (mSessionManager)
+        {
+            mSessionManager->onConnectionFailed("Failed to initiate connection");
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::disconnectSoundFlipSession()
+{
+    if (mIsSoundFlipSession && processor.isConnectedToServer())
+    {
+        String currentGroup = processor.getCurrentJoinedGroup();
+        if (currentGroup.isNotEmpty())
+        {
+            processor.leaveServerGroup(currentGroup);
+        }
+        processor.disconnectFromServer();
+    }
+    
+    mIsSoundFlipSession = false;
+    mPendingSoundFlipGroup = "";
+    mPendingSoundFlipGroupPassword = "";
 }
 
 
@@ -6095,12 +6248,12 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
 
 void SonobusAudioProcessorEditor::setupSoundFlipViews()
 {
-    // Create all views - LoginView needs the auth reference
+    // Create all views - pass editor pointer for connection management
     mLoginView = std::make_unique<LoginView>(*mSoundFlipAuth);
     mHomeView = std::make_unique<HomeView>(mSessionManager.get());
-    mStartSessionView = std::make_unique<StartSessionView>(mSessionManager.get(), &processor);
-    mJoinSessionView = std::make_unique<JoinSessionView>(mSessionManager.get(), &processor);
-    mActiveSessionView = std::make_unique<ActiveSessionView>(mSessionManager.get(), &processor);
+    mStartSessionView = std::make_unique<StartSessionView>(mSessionManager.get(), this);
+    mJoinSessionView = std::make_unique<JoinSessionView>(mSessionManager.get(), this);
+    mActiveSessionView = std::make_unique<ActiveSessionView>(mSessionManager.get(), this);
     mEndSessionView = std::make_unique<EndSessionView>();
     mSessionDetailView = std::make_unique<SessionDetailView>();
     mSettingsView = std::make_unique<SettingsView>(getAudioDeviceManager);
@@ -6115,12 +6268,29 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     addChildComponent(mSessionDetailView.get());
     addChildComponent(mSettingsView.get());
     
+    // Setup SessionManager callbacks for screen transitions
+    if (mSessionManager)
+    {
+        mSessionManager->onSessionConnectedCallback = [this]() {
+            showScreen(AppScreen::ActiveSession);
+        };
+        
+        mSessionManager->onSessionDisconnectedCallback = [this]() {
+            // Could show reconnect UI or go to end session
+            showScreen(AppScreen::EndSession);
+        };
+        
+        mSessionManager->onConnectionFailedCallback = [this](const String& error) {
+            // Stay on current screen but show error
+            // The view will handle displaying the error
+            ignoreUnused(error);
+        };
+    }
+    
     mLoginView->onLoginSuccess = [this]() {
-        // Update home view with user info from auth
         String displayName = mSoundFlipAuth->getDisplayName();
         String email = mSoundFlipAuth->getUserEmail();
         
-        // Fallback to email prefix if no display name
         if (displayName.isEmpty() && email.isNotEmpty()) {
             int atIndex = email.indexOf("@");
             if (atIndex > 0)
@@ -6128,7 +6298,6 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
         }
         
         mHomeView->setUserInfo(displayName, email);
-        
         showScreen(AppScreen::Home);
     };
     
@@ -6153,43 +6322,47 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
         showScreen(AppScreen::Home);
     };
     
-    mStartSessionView->onStartClicked = [this]() {
-        // TODO: Create session via API, connect to server
-        showScreen(AppScreen::ActiveSession);
+    mStartSessionView->onSessionStarted = [this]() {
+        // Session connected callback will handle transition
     };
     
     mJoinSessionView->onBackClicked = [this]() {
         showScreen(AppScreen::Home);
     };
     
-    mJoinSessionView->onJoinClicked = [this]() {
-        // TODO: Parse invite link, fetch session, connect
-        showScreen(AppScreen::ActiveSession);
+    mJoinSessionView->onSessionJoined = [this](const String& sessionId) {
+        ignoreUnused(sessionId);
+        // Session connected callback will handle transition
     };
     
     mActiveSessionView->onEndClicked = [this]() {
+        disconnectSoundFlipSession();
         showScreen(AppScreen::EndSession);
     };
     
     mActiveSessionView->onRecordClicked = [this]() {
-        // TODO: Toggle recording
+        buttonClicked(mRecordingButton.get());
     };
     
     mActiveSessionView->onChatClicked = [this]() {
-        // TODO: Show chat panel
+        showChatPanel(!mChatView->isVisible());
+        resized();
     };
     
     mActiveSessionView->onInviteClicked = [this]() {
-        // TODO: Copy invite link
+        if (mSessionManager) {
+            String inviteUrl = mSessionManager->getInviteUrl();
+            if (inviteUrl.isNotEmpty()) {
+                SystemClipboard::copyTextToClipboard(inviteUrl);
+            }
+        }
     };
     
     mEndSessionView->onUploadClicked = [this]() {
-        // TODO: Upload recording to session
         showScreen(AppScreen::Home);
     };
     
     mEndSessionView->onSaveLocallyClicked = [this]() {
-        // TODO: Save recording locally
         showScreen(AppScreen::Home);
     };
     
@@ -6202,12 +6375,11 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mSessionDetailView->onOpenInSoundFlipClicked = [this]() {
-        // TODO: Open deep link to SoundFlip
+        // Open deep link
     };
     
     mSessionDetailView->onDownloadStemClicked = [this](int index) {
         ignoreUnused(index);
-        // TODO: Download stem
     };
     
     mSettingsView->onBackClicked = [this]() {
@@ -6220,13 +6392,13 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mSettingsView->onChangeRecordingFolderClicked = [this]() {
-        // TODO: Show folder picker
+        requestRecordDir([](URL){});
     };
 }
 
 void SonobusAudioProcessorEditor::showScreen(AppScreen screen)
 {
-    // Hide all screens
+    // Hide all SoundFlip screens
     mLoginView->setVisible(false);
     mHomeView->setVisible(false);
     mStartSessionView->setVisible(false);
@@ -6240,39 +6412,57 @@ void SonobusAudioProcessorEditor::showScreen(AppScreen screen)
     
     auto bounds = getLocalBounds();
     
+    // Determine if we should show original SonoBus UI or SoundFlip UI
+    bool showSonoBusUI = (screen == AppScreen::ActiveSession);
+    
+    // Show/hide the main SonoBus container and viewport
+    mTopLevelContainer->setVisible(showSonoBusUI);
+    
     // Show the requested screen
     switch (screen) {
         case AppScreen::Login:
             mLoginView->setBounds(bounds);
             mLoginView->setVisible(true);
+            mLoginView->toFront(false);
             break;
         case AppScreen::Home:
             mHomeView->setBounds(bounds);
             mHomeView->setVisible(true);
+            mHomeView->toFront(false);
             break;
         case AppScreen::StartSession:
             mStartSessionView->setBounds(bounds);
             mStartSessionView->setVisible(true);
+            mStartSessionView->toFront(false);
             break;
         case AppScreen::JoinSession:
             mJoinSessionView->setBounds(bounds);
             mJoinSessionView->setVisible(true);
+            mJoinSessionView->toFront(false);
             break;
         case AppScreen::ActiveSession:
+            // For active session, we show the SonoBus UI
+            // The ActiveSessionView can overlay or integrate
             mActiveSessionView->setBounds(bounds);
             mActiveSessionView->setVisible(true);
+            mTopLevelContainer->setVisible(true);
+            mTopLevelContainer->toFront(false);
+            mActiveSessionView->toFront(false);
             break;
         case AppScreen::EndSession:
             mEndSessionView->setBounds(bounds);
             mEndSessionView->setVisible(true);
+            mEndSessionView->toFront(false);
             break;
         case AppScreen::SessionDetail:
             mSessionDetailView->setBounds(bounds);
             mSessionDetailView->setVisible(true);
+            mSessionDetailView->toFront(false);
             break;
         case AppScreen::Settings:
             mSettingsView->setBounds(bounds);
             mSettingsView->setVisible(true);
+            mSettingsView->toFront(false);
             break;
     }
 }
