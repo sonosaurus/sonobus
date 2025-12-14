@@ -6253,7 +6253,7 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     mHomeView = std::make_unique<HomeView>(mSessionManager.get());
     mStartSessionView = std::make_unique<StartSessionView>(mSessionManager.get(), this);
     mJoinSessionView = std::make_unique<JoinSessionView>(mSessionManager.get(), this);
-    mActiveSessionView = std::make_unique<ActiveSessionView>(mSessionManager.get(), this);
+    mActiveSessionView = std::make_unique<ActiveSessionView>(mSessionManager.get(), this, mSoundFlipAPI.get());
     mEndSessionView = std::make_unique<EndSessionView>();
     mSessionDetailView = std::make_unique<SessionDetailView>();
     mSettingsView = std::make_unique<SettingsView>(getAudioDeviceManager);

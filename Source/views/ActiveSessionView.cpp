@@ -185,6 +185,10 @@ void ActiveSessionView::changeListenerCallback(ChangeBroadcaster* source)
 
 void ActiveSessionView::fetchAndUpdateParticipants()
 {
+    DBG("=== fetchAndUpdateParticipants called ===");
+    DBG("API pointer: " + String(api == nullptr ? "NULL" : "valid"));
+    DBG("Session ID: " + currentSessionId);
+
     if (!api || currentSessionId.isEmpty())
     {
         updateParticipantsUI();
@@ -193,6 +197,9 @@ void ActiveSessionView::fetchAndUpdateParticipants()
     
     SoundFlipAPI::CollabSession session = api->getCollabSession(currentSessionId);
     
+    DBG("API Status Code: " + String(api->getLastStatusCode()));
+    DBG("Participants count from API: " + String(session.participants.size()));
+
     if (api->getLastStatusCode() != 200)
     {
         DBG("Failed to fetch session participants: " + api->getLastError());

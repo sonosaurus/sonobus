@@ -39,9 +39,9 @@ void ScreenManager::setupViews()
     // Create views - use default constructors (no editor pointer needed for ScreenManager path)
     loginView = std::make_unique<LoginView>(auth);
     homeView = std::make_unique<HomeView>(sessionManager);
-    startSessionView = std::make_unique<StartSessionView>();
-    joinSessionView = std::make_unique<JoinSessionView>();
-    activeSessionView = std::make_unique<ActiveSessionView>();
+    startSessionView = std::make_unique<StartSessionView>(sessionManager, nullptr);
+    joinSessionView = std::make_unique<JoinSessionView>(sessionManager, nullptr);
+    activeSessionView = std::make_unique<ActiveSessionView>(sessionManager, nullptr, &api);
     settingsView = std::make_unique<SettingsView>();
 
     // Add as children (hidden initially)
