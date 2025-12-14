@@ -34,6 +34,12 @@ SoundFlipAuth::~SoundFlipAuth()
 void SoundFlipAuth::startOAuthFlow()
 {
     URL authUrl(webAuthUrl);
+    
+    // Print URL for manual testing with different browsers
+    std::cout << "\n=== OAUTH URL (copy to incognito for different user) ===" << std::endl;
+    std::cout << authUrl.toString(true).toStdString() << std::endl;
+    std::cout << "=========================================================\n" << std::endl;
+    
     authUrl.launchInDefaultBrowser();
 }
 

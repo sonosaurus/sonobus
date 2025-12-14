@@ -1314,7 +1314,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     if (JUCEApplicationBase::isStandaloneApp()) {
 #if !(JUCE_IOS || JUCE_ANDROID)
-        processor.startAooServer();
+        // Don't start internal server - using external SoundFlip server
+        // processor.startAooServer();
 #endif
         setResizable(true, false);
 
@@ -1390,10 +1391,26 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     // Initialize SoundFlip Connect views
     setupSoundFlipViews();
-    
+
     // Start with login screen (or home if already authenticated)
-    // TODO: Check for stored tokens to determine starting screen
-    showScreen(AppScreen::Login);
+    if (mSoundFlipAuth->isAuthenticated())
+    {
+        // Update home view with user info
+        String displayName = mSoundFlipAuth->getDisplayName();
+        String email = mSoundFlipAuth->getUserEmail();
+        if (displayName.isEmpty() && email.isNotEmpty()) {
+            int atIndex = email.indexOf("@");
+            if (atIndex > 0)
+                displayName = email.substring(0, atIndex);
+        }
+        mHomeView->setUserInfo(displayName, email);
+        
+        showScreen(AppScreen::Home);
+    }
+    else
+    {
+        showScreen(AppScreen::Login);
+    }
 
 }
 

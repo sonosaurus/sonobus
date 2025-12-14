@@ -7,19 +7,23 @@
 ScreenManager::ScreenManager(SoundFlipAuth& authRef, SoundFlipAPI& apiRef)
     : auth(authRef), api(apiRef)
 {
+    std::cout << "=== ScreenManager CONSTRUCTOR ===" << std::endl << std::flush;
+    
     auth.addListener(this);
     setupViews();
+    
+    std::cout << "=== Checking auth.isAuthenticated() ===" << std::endl << std::flush;
     
     // Start on login or home based on auth state
     if (auth.isAuthenticated())
     {
-        std::cout << "=== ScreenManager: Already authenticated, showing Home ===" << std::endl;
+        std::cout << "=== ScreenManager: Already authenticated, showing Home ===" << std::endl << std::flush;
         updateHomeViewUserInfo();
         showScreen(Screen::Home);
     }
     else
     {
-        std::cout << "=== ScreenManager: Not authenticated, showing Login ===" << std::endl;
+        std::cout << "=== ScreenManager: Not authenticated, showing Login ===" << std::endl << std::flush;
         showScreen(Screen::Login);
     }
 }

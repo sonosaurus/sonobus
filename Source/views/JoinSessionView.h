@@ -4,18 +4,19 @@
 #pragma once
 
 #include "JuceHeader.h"
+#include "../SonobusPluginProcessor.h"
 
 // Forward declarations
 class SessionManager;
-class SonobusAudioProcessor;
 
 class JoinSessionView : public Component,
-                        public Timer
+                        public Timer,
+                        public SonobusAudioProcessor::ClientListener
 {
 public:
     JoinSessionView(SessionManager* sessionManager = nullptr,
                     SonobusAudioProcessor* processor = nullptr);
-    ~JoinSessionView() override = default;
+    ~JoinSessionView() override;
 
     void paint(Graphics& g) override;
     void resized() override;
@@ -23,10 +24,15 @@ public:
     
     /** Set managers after construction if needed */
     void setSessionManager(SessionManager* sm) { sessionManager = sm; }
-    void setProcessor(SonobusAudioProcessor* proc) { processor = proc; }
+    void setProcessor(SonobusAudioProcessor* proc);
     
     /** Pre-fill the invite code (e.g., from deep link) */
     void setInviteCode(const String& code);
+
+    // ClientListener callbacks
+    void aooClientConnected(SonobusAudioProcessor* processor, bool success, const String& errmesg) override;
+    void aooClientDisconnected(SonobusAudioProcessor* processor, bool success, const String& errmesg) override;
+    void aooClientGroupJoined(SonobusAudioProcessor* processor, bool success, const String& group, const String& errmesg) override;
 
     // Callbacks
     std::function<void()> onJoinClicked;
@@ -38,7 +44,7 @@ private:
     void showError(const String& message);
     void showStatus(const String& message);
     void setUIEnabled(bool enabled);
-    void checkConnectionStatus();
+    void cleanupConnection();
     
     // Managers
     SessionManager* sessionManager = nullptr;
@@ -54,11 +60,13 @@ private:
     
     // State
     bool isJoiningSession = false;
-    bool isWaitingForConnection = false;
+    bool isWaitingForConnect = false;
+    bool isWaitingForGroupJoin = false;
     String pendingSessionId;
     String pendingGroupName;
+    String pendingGroupPassword;
     int connectionCheckCount = 0;
-    static constexpr int maxConnectionChecks = 30;
+    static constexpr int maxConnectionChecks = 100; // 10 seconds at 100ms intervals
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JoinSessionView)
 };

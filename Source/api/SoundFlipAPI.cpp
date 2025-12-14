@@ -440,7 +440,7 @@ SoundFlipAPI::ConnectionInfo SoundFlipAPI::parseConnectionInfo(const var& json)
     ConnectionInfo info;
     
     info.server = json.getProperty("server", "").toString();
-    info.port = (int)json.getProperty("port", 10999);
+    info.port = (int)json.getProperty("port", 10998);
     info.group = json.getProperty("group", "").toString();
     info.password = json.getProperty("password", "").toString();
     
