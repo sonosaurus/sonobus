@@ -342,6 +342,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/api/SoundFlipAuth.h
         Source/api/SoundFlipAPI.cpp
         Source/api/SoundFlipAPI.h
+        Source/api/SoundFlipWebSocket.cpp
+        Source/api/SoundFlipWebSocket.h
         Source/managers/ScreenManager.cpp
         Source/managers/ScreenManager.h
         Source/managers/SessionManager.cpp

@@ -6,10 +6,13 @@
 SoundFlipAPI::SoundFlipAPI(SoundFlipAuth& authRef)
     : auth(authRef)
 {
+    // WebSocket is initialized but not connected until explicitly called
 }
 
 SoundFlipAPI::~SoundFlipAPI()
 {
+    // Ensure WebSocket is disconnected
+    webSocket.disconnect();
 }
 
 //==============================================================================
@@ -41,10 +44,6 @@ var SoundFlipAPI::makeRequest(const String& endpoint,
         url = url.withPOSTData(jsonBody);
     }
     
-    // For methods other than GET/POST, we need to handle differently
-    // JUCE's URL class primarily supports GET and POST
-    // For PATCH/DELETE, we'll use POST with method override or handle via headers
-    
     std::unique_ptr<InputStream> stream;
     
     if (method == "GET")
@@ -57,7 +56,6 @@ var SoundFlipAPI::makeRequest(const String& endpoint,
     }
     else
     {
-        // Add method override header for non-GET/POST
         if (method == "PATCH" || method == "DELETE" || method == "PUT")
         {
             extraHeaders += "X-HTTP-Method-Override: " + method + "\r\n";
@@ -80,7 +78,6 @@ var SoundFlipAPI::makeRequest(const String& endpoint,
     
     String response = stream->readEntireStreamAsString();
     
-    // Try to get status code (JUCE doesn't expose this directly, but we can infer from response)
     var result;
     Result parseResult = JSON::parse(response, result);
     
@@ -91,7 +88,6 @@ var SoundFlipAPI::makeRequest(const String& endpoint,
         return var();
     }
     
-    // Check for error in response
     if (result.hasProperty("statusCode") && (int)result["statusCode"] >= 400)
     {
         lastStatusCode = (int)result["statusCode"];
@@ -256,7 +252,6 @@ SoundFlipAPI::Stem SoundFlipAPI::completeStemUpload(const String& sessionId,
     if (response.isVoid())
         return Stem();
     
-    // Response has { success: bool, stem: {...} }
     if (response.hasProperty("stem"))
         return parseStem(response["stem"]);
     
@@ -307,7 +302,6 @@ bool SoundFlipAPI::uploadFileToS3(const String& presignedUrl,
         return false;
     }
     
-    // Read file into memory
     MemoryBlock fileData;
     if (!file.loadFileAsData(fileData))
     {
@@ -315,18 +309,16 @@ bool SoundFlipAPI::uploadFileToS3(const String& presignedUrl,
         return false;
     }
     
-    // Create URL and upload
     URL url(presignedUrl);
     
     String extraHeaders = "Content-Type: " + contentType + "\r\n";
     extraHeaders += "Content-Length: " + String(fileData.getSize()) + "\r\n";
     
-    // Set the file data as POST data
     url = url.withPOSTData(fileData);
     
     auto options = URL::InputStreamOptions(URL::ParameterHandling::inPostData)
         .withExtraHeaders(extraHeaders)
-        .withConnectionTimeoutMs(300000)  // 5 min timeout for large files
+        .withConnectionTimeoutMs(300000)
         .withHttpRequestCmd("PUT");
     
     auto stream = url.createInputStream(options);
@@ -337,11 +329,8 @@ bool SoundFlipAPI::uploadFileToS3(const String& presignedUrl,
         return false;
     }
     
-    // Read response (S3 returns empty body on success)
     String response = stream->readEntireStreamAsString();
     
-    // S3 PUT returns 200 on success with empty body
-    // If there's an error, it would contain XML error message
     if (response.contains("<Error>"))
     {
         lastError = "S3 upload error: " + response;
@@ -366,13 +355,11 @@ SoundFlipAPI::CollabSession SoundFlipAPI::parseCollabSession(const var& json)
     session.stemCount = (int)json.getProperty("stemCount", 0);
     session.durationSeconds = (int)json.getProperty("durationSeconds", 0);
     
-    // Parse connection info if present
     if (json.hasProperty("connection"))
     {
         session.connection = parseConnectionInfo(json["connection"]);
     }
     
-    // Parse creator info
     if (json.hasProperty("createdBy"))
     {
         var creator = json["createdBy"];
@@ -381,7 +368,6 @@ SoundFlipAPI::CollabSession SoundFlipAPI::parseCollabSession(const var& json)
         session.createdByAvatar = creator.getProperty("avatar", "").toString();
     }
     
-    // Parse participants
     if (json.hasProperty("participants") && json["participants"].isArray())
     {
         auto* participantsArray = json["participants"].getArray();
@@ -391,10 +377,8 @@ SoundFlipAPI::CollabSession SoundFlipAPI::parseCollabSession(const var& json)
         }
     }
     
-    // Parse timestamps
     if (json.hasProperty("createdAt"))
     {
-        // Parse ISO date string to timestamp
         String dateStr = json["createdAt"].toString();
         Time t = Time::fromISO8601(dateStr);
         session.createdAt = t.toMilliseconds();
@@ -414,7 +398,7 @@ SoundFlipAPI::Participant SoundFlipAPI::parseParticipant(const var& json)
 {
     Participant p;
     
-    p.userId = json.getProperty("userId", "").toString();
+    p.odId = json.getProperty("userId", "").toString();
     p.username = json.getProperty("username", "").toString();
     p.avatar = json.getProperty("avatar", "").toString();
     
@@ -457,7 +441,6 @@ SoundFlipAPI::Stem SoundFlipAPI::parseStem(const var& json)
     stem.sizeBytes = (int64)json.getProperty("sizeBytes", 0);
     stem.durationSeconds = (int)json.getProperty("durationSeconds", 0);
     
-    // Parse uploader info
     if (json.hasProperty("uploadedBy"))
     {
         var uploader = json["uploadedBy"];

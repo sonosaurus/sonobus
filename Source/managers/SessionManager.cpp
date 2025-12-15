@@ -6,6 +6,143 @@
 SessionManager::SessionManager(SoundFlipAPI& apiRef)
     : api(apiRef)
 {
+    setupWebSocketCallbacks();
+}
+
+SessionManager::~SessionManager()
+{
+    disconnectWebSocket();
+}
+
+void SessionManager::setupWebSocketCallbacks()
+{
+    auto& ws = api.getWebSocket();
+    
+    ws.onConnected = [this]() {
+        DBG("SessionManager: WebSocket connected");
+        webSocketConnected = true;
+        
+        if (currentSessionId.isNotEmpty())
+        {
+            api.getWebSocket().joinSession(currentSessionId);
+        }
+    };
+    
+    ws.onDisconnected = [this]() {
+        DBG("SessionManager: WebSocket disconnected");
+        webSocketConnected = false;
+    };
+    
+    ws.onConnectionError = [this](const String& error) {
+        DBG("SessionManager: WebSocket error - " + error);
+        webSocketConnected = false;
+    };
+    
+    ws.onSessionJoined = [this](const String& sessionId) {
+        DBG("SessionManager: Joined WebSocket room for session " + sessionId);
+    };
+    
+    ws.onSessionLeft = [this](const String& sessionId) {
+        DBG("SessionManager: Left WebSocket room for session " + sessionId);
+    };
+    
+    ws.onParticipantJoined = [this](const String& sessionId, const String& odId, 
+                                    const String& username, const String& avatar) {
+        DBG("SessionManager: Participant joined via WebSocket - " + username);
+        
+        bool found = false;
+        for (const auto& p : participants)
+        {
+            if (p.odId == odId)
+            {
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found)
+        {
+            SessionParticipant participant;
+            participant.odId = odId;
+            participant.username = username;
+            participant.avatar = avatar;
+            participants.add(participant);
+            
+            sendChangeMessage();
+        }
+        
+        onPeerJoined(username);
+    };
+    
+    ws.onParticipantLeft = [this](const String& sessionId, const String& odId, 
+                                  const String& username) {
+        DBG("SessionManager: Participant left via WebSocket - " + username);
+        
+        for (int i = participants.size() - 1; i >= 0; --i)
+        {
+            if (participants[i].odId == odId)
+            {
+                participants.remove(i);
+                break;
+            }
+        }
+        
+        sendChangeMessage();
+        
+        onPeerLeft(username);
+    };
+    
+    ws.onStemUploaded = [this](const String& sessionId, const String& stemId,
+                               const String& filename, const String& uploadedById,
+                               const String& uploadedByUsername, int64 sizeBytes,
+                               int durationSeconds) {
+        DBG("SessionManager: Stem uploaded via WebSocket - " + filename);
+        
+        if (onStemUploadedCallback)
+            onStemUploadedCallback(sessionId, stemId, filename);
+        
+        sendChangeMessage();
+    };
+    
+    ws.onStemDeleted = [this](const String& sessionId, const String& stemId,
+                              const String& deletedById) {
+        DBG("SessionManager: Stem deleted via WebSocket - " + stemId);
+        
+        if (onStemDeletedCallback)
+            onStemDeletedCallback(sessionId, stemId);
+        
+        sendChangeMessage();
+    };
+    
+    ws.onSessionUpdated = [this](const String& sessionId, const String& name,
+                                 const String& status) {
+        DBG("SessionManager: Session updated via WebSocket - name: " + name + ", status: " + status);
+        
+        if (name.isNotEmpty())
+            currentSessionName = name;
+        
+        if (onSessionUpdatedCallback)
+            onSessionUpdatedCallback(sessionId, name, status);
+        
+        sendChangeMessage();
+    };
+}
+
+void SessionManager::connectWebSocket()
+{
+    if (webSocketConnected)
+        return;
+    
+    DBG("SessionManager: Connecting WebSocket to " + api.getWebSocketUrl());
+}
+
+void SessionManager::disconnectWebSocket()
+{
+    if (!webSocketConnected)
+        return;
+    
+    api.getWebSocket().disconnect();
+    webSocketConnected = false;
 }
 
 bool SessionManager::createSession(const String& name)
@@ -20,7 +157,6 @@ bool SessionManager::createSession(const String& name)
     
     String sessionName = name.isEmpty() ? "SoundFlip Session" : name;
     
-    // Use the API's createCollabSession method
     auto result = api.createCollabSession(sessionName);
     
     if (result.id.isEmpty())
@@ -45,6 +181,11 @@ bool SessionManager::createSession(const String& name)
     
     setState(State::Connecting);
     
+    if (webSocketConnected)
+    {
+        api.getWebSocket().joinSession(currentSessionId);
+    }
+    
     return true;
 }
 
@@ -67,7 +208,6 @@ bool SessionManager::joinSession(const String& inviteCodeOrUrl)
         return false;
     }
     
-    // Use the API's joinCollabSession method
     auto result = api.joinCollabSession(sessionCode);
     
     if (result.id.isEmpty())
@@ -86,9 +226,24 @@ bool SessionManager::joinSession(const String& inviteCodeOrUrl)
     connectionInfo.group = result.connection.group;
     connectionInfo.password = result.connection.password;
     
+    participants.clear();
+    for (const auto& p : result.participants)
+    {
+        SessionParticipant participant;
+        participant.odId = p.odId;
+        participant.username = p.username;
+        participant.avatar = p.avatar;
+        participants.add(participant);
+    }
+    
     DBG("SessionManager: Joined session " + currentSessionId + " (" + currentSessionName + ")");
     
     setState(State::Connecting);
+    
+    if (webSocketConnected)
+    {
+        api.getWebSocket().joinSession(currentSessionId);
+    }
     
     return true;
 }
@@ -100,7 +255,11 @@ void SessionManager::leaveSession()
     
     setState(State::Disconnecting);
     
-    // Notify API that we're leaving (for tracking purposes)
+    if (webSocketConnected && currentSessionId.isNotEmpty())
+    {
+        api.getWebSocket().leaveSession();
+    }
+    
     if (currentSessionId.isNotEmpty())
     {
         api.leaveCollabSession(currentSessionId);
@@ -114,7 +273,6 @@ void SessionManager::leaveSession()
 
 void SessionManager::fetchRecentSessions(int limit)
 {
-    // Fetch from API
     auto sessions = api.listCollabSessions("", limit, 0);
     
     recentSessions.clear();
@@ -128,19 +286,18 @@ void SessionManager::fetchRecentSessions(int limit)
         info.stemCount = session.stemCount;
         info.createdAt = session.createdAt;
         
-        // Convert participants
         for (const auto& p : session.participants)
         {
             SessionParticipant participant;
-            participant.odid = p.userId;
+            participant.odId = p.odId;
             participant.username = p.username;
+            participant.avatar = p.avatar;
             info.participants.add(participant);
         }
         
         recentSessions.add(info);
     }
     
-    // Notify listeners that data has changed
     sendChangeMessage();
 }
 
@@ -163,7 +320,6 @@ void SessionManager::onSessionDisconnected()
     clearSession();
     setState(State::Idle);
     
-    // Only trigger callback if we were previously connected
     if (previousState == State::Connected)
     {
         if (onSessionDisconnectedCallback)
@@ -191,10 +347,22 @@ void SessionManager::onPeerJoined(const String& username)
 {
     DBG("SessionManager: Peer joined - " + username);
     
-    // Add to participants list
-    SessionParticipant participant;
-    participant.username = username;
-    participants.add(participant);
+    bool found = false;
+    for (const auto& p : participants)
+    {
+        if (p.username == username)
+        {
+            found = true;
+            break;
+        }
+    }
+    
+    if (!found)
+    {
+        SessionParticipant participant;
+        participant.username = username;
+        participants.add(participant);
+    }
     
     sendChangeMessage();
 }
@@ -203,7 +371,6 @@ void SessionManager::onPeerLeft(const String& username)
 {
     DBG("SessionManager: Peer left - " + username);
     
-    // Remove from participants list
     for (int i = participants.size() - 1; i >= 0; --i)
     {
         if (participants[i].username == username)
@@ -232,11 +399,9 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         return;
     }
     
-    // Run upload in background thread
     Thread::launch([this, audioFile, callback, sessionId = currentSessionId]() {
         DBG("SessionManager: Starting upload for session " + sessionId);
         
-        // Step 1: Get file info
         File localFile;
         if (audioFile.isLocalFile())
         {
@@ -268,9 +433,8 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         
         String filename = localFile.getFileName();
         int64 fileSize = localFile.getSize();
-        String contentType = "audio/flac"; // Default, could detect from extension
+        String contentType = "audio/flac";
         
-        // Detect content type from extension
         String extension = localFile.getFileExtension().toLowerCase();
         if (extension == ".wav")
             contentType = "audio/wav";
@@ -283,10 +447,8 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         
         DBG("SessionManager: Requesting upload URL for " + filename + " (" + String(fileSize) + " bytes)");
         
-        // Step 2: Request presigned upload URL from backend
         auto uploadInfo = api.requestStemUploadUrl(sessionId, filename, contentType, fileSize);
         
-        // FIX: Use uploadUrl instead of presignedUrl
         if (uploadInfo.uploadUrl.isEmpty() || uploadInfo.stemId.isEmpty())
         {
             String errorMsg = api.getLastError().isEmpty() ? "Failed to get upload URL" : api.getLastError();
@@ -302,7 +464,6 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         
         DBG("SessionManager: Got presigned URL, stemId: " + uploadInfo.stemId);
         
-        // Step 3: Upload file to S3 - FIX: Use uploadUrl
         bool s3Success = api.uploadFileToS3(uploadInfo.uploadUrl, localFile, contentType);
         
         if (!s3Success)
@@ -320,8 +481,6 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         
         DBG("SessionManager: S3 upload successful, marking complete");
         
-        // Step 4: Mark upload as complete in backend
-        // FIX: completeStemUpload returns Stem, not bool
         auto completedStem = api.completeStemUpload(sessionId, uploadInfo.stemId);
         bool completeSuccess = completedStem.id.isNotEmpty();
         
@@ -372,10 +531,8 @@ String SessionManager::extractSessionCode(const String& input)
 {
     String trimmed = input.trim();
     
-    // Check if it's a URL
     if (trimmed.containsChar('/'))
     {
-        // Extract last path component as session code
         int lastSlash = trimmed.lastIndexOf("/");
         if (lastSlash >= 0 && lastSlash < trimmed.length() - 1)
         {
@@ -383,6 +540,5 @@ String SessionManager::extractSessionCode(const String& input)
         }
     }
     
-    // Assume it's a direct code
     return trimmed;
 }

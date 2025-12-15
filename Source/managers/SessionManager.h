@@ -16,9 +16,9 @@ struct SessionConnectionInfo
 
 struct SessionParticipant
 {
-    String odid;
+    String odId;
     String username;
-    String odidLinked;
+    String avatar;
 };
 
 // Recent session info (for HomeView)
@@ -47,7 +47,7 @@ public:
     };
     
     SessionManager(SoundFlipAPI& api);
-    ~SessionManager() = default;
+    ~SessionManager();
     
     // Session lifecycle
     bool createSession(const String& name = "");
@@ -85,10 +85,20 @@ public:
     std::function<void()> onSessionDisconnectedCallback;
     std::function<void(const String&)> onConnectionFailedCallback;
     
+    // WebSocket event callbacks for UI
+    std::function<void(const String& sessionId, const String& stemId, const String& filename)> onStemUploadedCallback;
+    std::function<void(const String& sessionId, const String& stemId)> onStemDeletedCallback;
+    std::function<void(const String& sessionId, const String& name, const String& status)> onSessionUpdatedCallback;
+    
 private:
     void setState(State newState);
     void clearSession();
     String extractSessionCode(const String& input);
+    
+    // WebSocket management
+    void connectWebSocket();
+    void disconnectWebSocket();
+    void setupWebSocketCallbacks();
     
     SoundFlipAPI& api;
     
@@ -103,6 +113,9 @@ private:
     
     // Recent sessions cache
     Array<RecentSessionInfo> recentSessions;
+    
+    // WebSocket connected flag
+    bool webSocketConnected = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SessionManager)
 };

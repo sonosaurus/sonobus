@@ -5,6 +5,7 @@
 
 #include "JuceHeader.h"
 #include "SoundFlipAuth.h"
+#include "SoundFlipWebSocket.h"
 
 class SoundFlipAPI
 {
@@ -28,7 +29,7 @@ public:
     
     struct Participant
     {
-        String userId;
+        String odId;
         String username;
         String avatar;
         int64 joinedAt;
@@ -130,6 +131,15 @@ public:
                         const String& contentType);
 
     //==============================================================================
+    // WebSocket Access
+    
+    /** Get the WebSocket instance for real-time events */
+    SoundFlipWebSocket& getWebSocket() { return webSocket; }
+    
+    /** Get WebSocket server URL */
+    String getWebSocketUrl() const { return wsBaseUrl; }
+
+    //==============================================================================
     // Error handling
     
     String getLastError() const { return lastError; }
@@ -147,15 +157,18 @@ private:
     UploadUrlResponse parseUploadUrlResponse(const var& json);
     
     SoundFlipAuth& auth;
+    SoundFlipWebSocket webSocket;
     
     //==============================================================================
     // URLs - Development vs Production
     
     // Development URL (local testing)
     String apiBaseUrl = "http://localhost:4400";
+    String wsBaseUrl = "ws://localhost:4400/ws/collab";
     
     // Production URL (uncomment for production)
     // String apiBaseUrl = "https://api.soundflip.com";
+    // String wsBaseUrl = "wss://api.soundflip.com/ws/collab";
 
     String lastError;
     int lastStatusCode = 0;
