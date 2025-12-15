@@ -2934,16 +2934,83 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
 
 void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
 {
-    // Handle SoundFlip Connect auth callback
+    // Handle SoundFlip Connect deep links
     if (urlstr.startsWith("soundflipconnect://"))
     {
-        if (mSoundFlipAuth)
+        URL parsedUrl(urlstr);
+        
+        // Check which type of deep link this is
+        bool isCallback = urlstr.contains("soundflipconnect://callback");
+        bool isJoin = urlstr.contains("soundflipconnect://join");
+        
+        if (isCallback)
         {
-            mSoundFlipAuth->handleDeepLink(urlstr);
+            // Auth callback
+            if (mSoundFlipAuth)
+            {
+                mSoundFlipAuth->handleDeepLink(urlstr);
+            }
         }
+        else if (isJoin)
+        {
+            // Join session deep link
+            String inviteCode;
+            
+            // Extract invite parameter
+            StringArray paramNames = parsedUrl.getParameterNames();
+            StringArray paramValues = parsedUrl.getParameterValues();
+            
+            for (int i = 0; i < paramNames.size(); ++i)
+            {
+                if (paramNames[i] == "invite" || paramNames[i] == "code")
+                {
+                    inviteCode = paramValues[i];
+                    break;
+                }
+            }
+            
+            if (inviteCode.isNotEmpty())
+            {
+                DBG("SoundFlip: Received join deep link with invite code: " + inviteCode);
+                
+                // If authenticated, go to join view with pre-filled code
+                if (mSoundFlipAuth && mSoundFlipAuth->isAuthenticated())
+                {
+                    // Navigate to join session view and pre-fill the code
+                    showScreen(AppScreen::JoinSession);
+                    mJoinSessionView->setInviteCode(inviteCode);
+                }
+                else
+                {
+                    // Not authenticated - store pending invite and show login
+                    mPendingJoinInviteCode = inviteCode;
+                    showScreen(AppScreen::Login);
+                }
+            }
+            else
+            {
+                DBG("SoundFlip: Join deep link missing invite code");
+                
+                // Still navigate to join view, user can enter manually
+                if (mSoundFlipAuth && mSoundFlipAuth->isAuthenticated())
+                {
+                    showScreen(AppScreen::JoinSession);
+                }
+                else
+                {
+                    showScreen(AppScreen::Login);
+                }
+            }
+        }
+        else
+        {
+            DBG("SoundFlip: Unknown deep link path: " + urlstr);
+        }
+        
         return;
     }
 
+    // Handle SonoBus URLs (existing code)
     URL url(urlstr);
     if (url.isWellFormed()) {
         if (!currConnected || currGroup.isEmpty()) {
@@ -6298,7 +6365,18 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
         }
         
         mHomeView->setUserInfo(displayName, email);
-        showScreen(AppScreen::Home);
+        
+        // Check if we have a pending join invite from a deep link
+        if (mPendingJoinInviteCode.isNotEmpty())
+        {
+            showScreen(AppScreen::JoinSession);
+            mJoinSessionView->setInviteCode(mPendingJoinInviteCode);
+            mPendingJoinInviteCode.clear();
+        }
+        else
+        {
+            showScreen(AppScreen::Home);
+        }
     };
     
     mHomeView->onStartSessionClicked = [this]() {

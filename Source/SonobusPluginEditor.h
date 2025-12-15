@@ -783,6 +783,7 @@ private:
     bool mIsSoundFlipSession = false;
     String mPendingSoundFlipGroup;
     String mPendingSoundFlipGroupPassword;
+    String mPendingJoinInviteCode; 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };
