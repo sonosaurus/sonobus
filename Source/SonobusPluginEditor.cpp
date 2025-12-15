@@ -6365,6 +6365,9 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     mSettingsView = std::make_unique<SettingsView>([this]() -> AudioDeviceManager* { 
         return getAudioDeviceManager ? getAudioDeviceManager() : nullptr; 
     });
+
+    // *** ADD THIS: Connect ActiveSessionView to processor for meters and peer names ***
+    mActiveSessionView->setProcessor(&processor);
     
     // Add all to main container but hide initially
     addChildComponent(mLoginView.get());
@@ -6433,7 +6436,16 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mHomeView->onRecentSessionClicked = [this](int index) {
-        ignoreUnused(index);
+        // Get session ID from recent sessions
+        if (mSessionManager)
+        {
+            const auto& recentSessions = mSessionManager->getRecentSessions();
+            if (index >= 0 && index < recentSessions.size())
+            {
+                const auto& session = recentSessions[index];
+                mSessionDetailView->setSession(session.id, mSoundFlipAPI.get());
+            }
+        }
         showScreen(AppScreen::SessionDetail);
     };
     
@@ -6581,6 +6593,9 @@ void SonobusAudioProcessorEditor::showScreen(AppScreen screen)
             mJoinSessionView->toFront(false);
             break;
         case AppScreen::ActiveSession:
+            // *** ADD THIS: Ensure processor is connected for meters ***
+            mActiveSessionView->setProcessor(&processor);
+            
             // For active session, we show the SonoBus UI
             // The ActiveSessionView can overlay or integrate
             mActiveSessionView->setBounds(bounds);

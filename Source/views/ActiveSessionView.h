@@ -5,10 +5,13 @@
 class SessionManager;
 class SonobusAudioProcessorEditor;
 class SoundFlipAPI;
+class SonobusAudioProcessor;
+
+namespace foleys { class LevelMeter; }
 
 class ActiveSessionView : public Component,
                           public ChangeListener,
-                          public MultiTimer  // Changed from Timer
+                          public MultiTimer
 {
 public:
     ActiveSessionView();
@@ -24,10 +27,11 @@ public:
 
     void paint(Graphics& g) override;
     void resized() override;
-    void timerCallback(int timerId) override;  // MultiTimer signature
+    void timerCallback(int timerId) override;
     
     void setSessionManager(SessionManager* sm);
     void setSoundFlipAPI(SoundFlipAPI* api);
+    void setProcessor(SonobusAudioProcessor* proc);
     void setSessionInfo(const String& name, const String& inviteUrl);
     void refreshParticipants();
     
@@ -43,40 +47,55 @@ public:
 
 private:
     void setupUI();
+    void setupMeters();
     void handleEndSession();
     void handleInviteClicked();
     void updateParticipantsUI();
     void fetchAndUpdateParticipants();
     void updateRecordingTimeDisplay();
+    void updateMeters();
+    void updatePeerNamesFromProcessor();
 
     SessionManager* sessionManager = nullptr;
     SonobusAudioProcessorEditor* editor = nullptr;
     SoundFlipAPI* api = nullptr;
+    SonobusAudioProcessor* processor = nullptr;
     
     String currentSessionId;
     
     enum TimerIds {
         ParticipantPollTimerId = 1,
-        RecordingTimerId = 2
+        RecordingTimerId = 2,
+        MeterUpdateTimerId = 3
     };
     static constexpr int pollIntervalMs = 60000;
     static constexpr int recordingUpdateMs = 500;
+    static constexpr int meterUpdateMs = 50;
 
     Label titleLabel;
     Label statusLabel;
     Label participantsLabel;
     Label participantListLabel;
     Label recordingTimeLabel;
+    Label inputLevelLabel;
+    Label outputLevelLabel;
     TextButton recordButton;
     TextButton chatButton;
     TextButton inviteButton;
     TextButton endSessionButton;
+    
+    // Level meters
+    std::unique_ptr<foleys::LevelMeter> inputMeter;
+    std::unique_ptr<foleys::LevelMeter> outputMeter;
     
     String currentSessionName;
     String currentInviteUrl;
     
     bool isRecording = false;
     double recordingStartTime = 0.0;
+    
+    // Peer names from processor
+    StringArray peerNames;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ActiveSessionView)
 };

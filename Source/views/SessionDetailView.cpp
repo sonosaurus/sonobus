@@ -9,17 +9,17 @@ SessionDetailView::SessionDetailView()
     backButton->addListener(this);
     addAndMakeVisible(backButton.get());
 
-    sessionNameLabel = std::make_unique<Label>("name", "Friday night cookup");
+    sessionNameLabel = std::make_unique<Label>("name", "Session");
     sessionNameLabel->setFont(Font(24.0f, Font::bold));
     sessionNameLabel->setColour(Label::textColourId, Colours::white);
     addAndMakeVisible(sessionNameLabel.get());
 
-    sessionInfoLabel = std::make_unique<Label>("info", "Dec 8, 2024 - 45 min");
+    sessionInfoLabel = std::make_unique<Label>("info", "");
     sessionInfoLabel->setFont(Font(14.0f));
     sessionInfoLabel->setColour(Label::textColourId, Colours::grey);
     addAndMakeVisible(sessionInfoLabel.get());
 
-    participantsLabel = std::make_unique<Label>("participants", "with @mike");
+    participantsLabel = std::make_unique<Label>("participants", "");
     participantsLabel->setFont(Font(14.0f));
     participantsLabel->setColour(Label::textColourId, Colours::grey);
     addAndMakeVisible(participantsLabel.get());
@@ -28,14 +28,12 @@ SessionDetailView::SessionDetailView()
     stemsLabel->setFont(Font(18.0f, Font::bold));
     stemsLabel->setColour(Label::textColourId, Colours::white);
     addAndMakeVisible(stemsLabel.get());
-
-    stem1Button = std::make_unique<TextButton>("vocal_take_1.wav\n@mike - 3:24 - Download");
-    stem1Button->addListener(this);
-    addAndMakeVisible(stem1Button.get());
-
-    stem2Button = std::make_unique<TextButton>("beat_v2.wav\nYou - 2:48 - Download");
-    stem2Button->addListener(this);
-    addAndMakeVisible(stem2Button.get());
+    
+    noStemsLabel = std::make_unique<Label>("nostems", "No stems uploaded yet");
+    noStemsLabel->setFont(Font(14.0f));
+    noStemsLabel->setColour(Label::textColourId, Colours::grey);
+    noStemsLabel->setJustificationType(Justification::centred);
+    addAndMakeVisible(noStemsLabel.get());
 
     openInSoundFlipButton = std::make_unique<TextButton>("Open in SoundFlip");
     openInSoundFlipButton->addListener(this);
@@ -45,6 +43,180 @@ SessionDetailView::SessionDetailView()
 
 SessionDetailView::~SessionDetailView()
 {
+    clearStemRows();
+}
+
+void SessionDetailView::setSession(const String& sessionId, SoundFlipAPI* apiRef)
+{
+    currentSessionId = sessionId;
+    api = apiRef;
+    
+    if (api && currentSessionId.isNotEmpty())
+    {
+        auto session = api->getCollabSession(currentSessionId);
+        if (api->getLastStatusCode() == 200)
+        {
+            sessionName = session.name;
+            inviteCode = session.inviteCode;
+            sessionNameLabel->setText(sessionName, dontSendNotification);
+            
+            StringArray participantNames;
+            for (const auto& p : session.participants)
+            {
+                participantNames.add("@" + p.username);
+            }
+            sessionParticipants = participantNames;
+            
+            if (participantNames.size() > 0)
+            {
+                participantsLabel->setText("with " + participantNames.joinIntoString(", "), dontSendNotification);
+            }
+            else
+            {
+                participantsLabel->setText("", dontSendNotification);
+            }
+            
+            sessionInfoLabel->setText(formatDate(String(session.createdAt)), dontSendNotification);
+        }
+        
+        fetchStems();
+    }
+}
+
+void SessionDetailView::setSessionInfo(const String& name, const String& date, const String& duration, const StringArray& participants)
+{
+    sessionName = name;
+    sessionDate = date;
+    sessionDuration = duration;
+    sessionParticipants = participants;
+    
+    sessionNameLabel->setText(name, dontSendNotification);
+    
+    String infoText = date;
+    if (duration.isNotEmpty())
+        infoText += " - " + duration;
+    sessionInfoLabel->setText(infoText, dontSendNotification);
+    
+    if (participants.size() > 0)
+    {
+        participantsLabel->setText("with " + participants.joinIntoString(", "), dontSendNotification);
+    }
+    else
+    {
+        participantsLabel->setText("", dontSendNotification);
+    }
+}
+
+void SessionDetailView::fetchStems()
+{
+    if (!api || currentSessionId.isEmpty())
+        return;
+    
+    DBG("SessionDetailView: Fetching stems for session " + currentSessionId);
+    
+    auto fetchedStems = api->listSessionStems(currentSessionId);
+    
+    if (api->getLastStatusCode() == 200)
+    {
+        stems.clear();
+        for (const auto& stem : fetchedStems)
+        {
+            stems.add(stem);
+        }
+        
+        DBG("SessionDetailView: Fetched " + String(stems.size()) + " stems");
+        refreshStemList();
+    }
+    else
+    {
+        DBG("SessionDetailView: Failed to fetch stems - " + api->getLastError());
+    }
+}
+
+void SessionDetailView::refreshStemList()
+{
+    clearStemRows();
+    
+    if (stems.isEmpty())
+    {
+        noStemsLabel->setVisible(true);
+    }
+    else
+    {
+        noStemsLabel->setVisible(false);
+        
+        for (int i = 0; i < stems.size(); ++i)
+        {
+            createStemRow(stems[i], i);
+        }
+    }
+    
+    resized();
+}
+
+void SessionDetailView::createStemRow(const SoundFlipAPI::Stem& stem, int index)
+{
+    auto row = new StemRow();
+    
+    // Use correct field names from SoundFlipAPI::Stem
+    String infoText = stem.filename;
+    infoText += "\n@" + stem.uploadedByUsername;
+    if (stem.durationSeconds > 0)
+    {
+        infoText += " - " + formatDuration(stem.durationSeconds);
+    }
+    
+    row->infoLabel = std::make_unique<Label>("info" + String(index), infoText);
+    row->infoLabel->setFont(Font(13.0f));
+    row->infoLabel->setColour(Label::textColourId, Colours::white);
+    addAndMakeVisible(row->infoLabel.get());
+    
+    row->downloadButton = std::make_unique<TextButton>("Download");
+    row->downloadButton->setColour(TextButton::buttonColourId, Colour(0xff00cec9));
+    row->downloadButton->addListener(this);
+    row->downloadButton->setComponentID("download_" + String(index));
+    addAndMakeVisible(row->downloadButton.get());
+    
+    stemRows.add(row);
+}
+
+void SessionDetailView::clearStemRows()
+{
+    for (auto* row : stemRows)
+    {
+        if (row->infoLabel)
+            removeChildComponent(row->infoLabel.get());
+        if (row->downloadButton)
+            removeChildComponent(row->downloadButton.get());
+    }
+    stemRows.clear();
+}
+
+String SessionDetailView::formatDuration(int seconds)
+{
+    int mins = seconds / 60;
+    int secs = seconds % 60;
+    return String::formatted("%d:%02d", mins, secs);
+}
+
+String SessionDetailView::formatDate(const String& isoDate)
+{
+    if (isoDate.length() >= 10)
+    {
+        String datePart = isoDate.substring(0, 10);
+        StringArray parts = StringArray::fromTokens(datePart, "-", "");
+        if (parts.size() == 3)
+        {
+            static const char* months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+            int month = parts[1].getIntValue();
+            if (month >= 1 && month <= 12)
+            {
+                return String(months[month-1]) + " " + String(parts[2].getIntValue()) + ", " + parts[0];
+            }
+        }
+    }
+    return isoDate;
 }
 
 void SessionDetailView::paint(Graphics& g)
@@ -53,10 +225,17 @@ void SessionDetailView::paint(Graphics& g)
 
     auto bounds = getLocalBounds().reduced(20);
 
-    // Stem card backgrounds
     g.setColour(Colour(0xff2d2d44));
-    g.fillRoundedRectangle(20.0f, 195.0f, (float)bounds.getWidth(), 55.0f, 8.0f);
-    g.fillRoundedRectangle(20.0f, 260.0f, (float)bounds.getWidth(), 55.0f, 8.0f);
+    
+    int stemStartY = 195;
+    int stemRowHeight = 60;
+    int stemSpacing = 5;
+    
+    for (int i = 0; i < stemRows.size(); ++i)
+    {
+        int y = stemStartY + i * (stemRowHeight + stemSpacing);
+        g.fillRoundedRectangle(20.0f, (float)y, (float)bounds.getWidth(), (float)stemRowHeight, 8.0f);
+    }
 }
 
 void SessionDetailView::resized()
@@ -70,11 +249,27 @@ void SessionDetailView::resized()
     participantsLabel->setBounds(20, 115, bounds.getWidth(), 20);
 
     stemsLabel->setBounds(20, 160, 100, 25);
+    
+    int stemStartY = 195;
+    int stemRowHeight = 60;
+    int stemSpacing = 5;
+    int downloadButtonWidth = 80;
+    
+    if (stems.isEmpty())
+    {
+        noStemsLabel->setBounds(20, stemStartY, bounds.getWidth(), 40);
+    }
+    
+    for (int i = 0; i < stemRows.size(); ++i)
+    {
+        int y = stemStartY + i * (stemRowHeight + stemSpacing);
+        auto* row = stemRows[i];
+        
+        row->infoLabel->setBounds(30, y + 5, bounds.getWidth() - downloadButtonWidth - 40, stemRowHeight - 10);
+        row->downloadButton->setBounds(bounds.getWidth() - downloadButtonWidth + 10, y + 15, downloadButtonWidth, 30);
+    }
 
-    stem1Button->setBounds(25, 200, bounds.getWidth() - 10, 45);
-    stem2Button->setBounds(25, 265, bounds.getWidth() - 10, 45);
-
-    openInSoundFlipButton->setBounds(20, bounds.getHeight() - 20, bounds.getWidth(), 45);
+    openInSoundFlipButton->setBounds(20, getHeight() - 65, bounds.getWidth(), 45);
 }
 
 void SessionDetailView::buttonClicked(Button* buttonThatWasClicked)
@@ -86,17 +281,34 @@ void SessionDetailView::buttonClicked(Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == openInSoundFlipButton.get())
     {
+        if (inviteCode.isNotEmpty())
+        {
+            URL webUrl("https://soundflip.app/session/" + inviteCode);
+            webUrl.launchInDefaultBrowser();
+        }
+        
         if (onOpenInSoundFlipClicked)
             onOpenInSoundFlipClicked();
     }
-    else if (buttonThatWasClicked == stem1Button.get())
+    else
     {
-        if (onDownloadStemClicked)
-            onDownloadStemClicked(0);
-    }
-    else if (buttonThatWasClicked == stem2Button.get())
-    {
-        if (onDownloadStemClicked)
-            onDownloadStemClicked(1);
+        String componentId = buttonThatWasClicked->getComponentID();
+        if (componentId.startsWith("download_"))
+        {
+            int index = componentId.substring(9).getIntValue();
+            
+            if (index >= 0 && index < stems.size())
+            {
+                const auto& stem = stems[index];
+                if (stem.downloadUrl.isNotEmpty())
+                {
+                    URL downloadUrl(stem.downloadUrl);
+                    downloadUrl.launchInDefaultBrowser();
+                }
+                
+                if (onDownloadStemClicked)
+                    onDownloadStemClicked(index);
+            }
+        }
     }
 }

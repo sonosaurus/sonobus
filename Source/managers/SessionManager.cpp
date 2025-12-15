@@ -236,26 +236,114 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
     Thread::launch([this, audioFile, callback, sessionId = currentSessionId]() {
         DBG("SessionManager: Starting upload for session " + sessionId);
         
-        // TODO: Implement actual upload via SoundFlipAPI
-        // For now, this is a stub that simulates success after a delay
-        // 
-        // Future implementation would call something like:
-        // bool success = api.uploadStemToSession(sessionId, audioFile);
+        // Step 1: Get file info
+        File localFile;
+        if (audioFile.isLocalFile())
+        {
+            localFile = audioFile.getLocalFile();
+        }
+        else
+        {
+            DBG("SessionManager: Upload failed - not a local file");
+            if (callback)
+            {
+                MessageManager::callAsync([callback]() {
+                    callback(false, "Only local files can be uploaded");
+                });
+            }
+            return;
+        }
         
-        // Simulate upload delay
-        Thread::sleep(2000);
+        if (!localFile.existsAsFile())
+        {
+            DBG("SessionManager: Upload failed - file does not exist");
+            if (callback)
+            {
+                MessageManager::callAsync([callback]() {
+                    callback(false, "File does not exist");
+                });
+            }
+            return;
+        }
         
-        // For now, report success (stub)
-        // In real implementation, check api.getLastStatusCode() etc.
-        bool success = true;
-        String message = success ? "Upload complete" : "Upload failed";
+        String filename = localFile.getFileName();
+        int64 fileSize = localFile.getSize();
+        String contentType = "audio/flac"; // Default, could detect from extension
         
-        DBG("SessionManager: Upload " + String(success ? "succeeded" : "failed"));
+        // Detect content type from extension
+        String extension = localFile.getFileExtension().toLowerCase();
+        if (extension == ".wav")
+            contentType = "audio/wav";
+        else if (extension == ".mp3")
+            contentType = "audio/mpeg";
+        else if (extension == ".ogg")
+            contentType = "audio/ogg";
+        else if (extension == ".aif" || extension == ".aiff")
+            contentType = "audio/aiff";
+        
+        DBG("SessionManager: Requesting upload URL for " + filename + " (" + String(fileSize) + " bytes)");
+        
+        // Step 2: Request presigned upload URL from backend
+        auto uploadInfo = api.requestStemUploadUrl(sessionId, filename, contentType, fileSize);
+        
+        // FIX: Use uploadUrl instead of presignedUrl
+        if (uploadInfo.uploadUrl.isEmpty() || uploadInfo.stemId.isEmpty())
+        {
+            String errorMsg = api.getLastError().isEmpty() ? "Failed to get upload URL" : api.getLastError();
+            DBG("SessionManager: " + errorMsg);
+            if (callback)
+            {
+                MessageManager::callAsync([callback, errorMsg]() {
+                    callback(false, errorMsg);
+                });
+            }
+            return;
+        }
+        
+        DBG("SessionManager: Got presigned URL, stemId: " + uploadInfo.stemId);
+        
+        // Step 3: Upload file to S3 - FIX: Use uploadUrl
+        bool s3Success = api.uploadFileToS3(uploadInfo.uploadUrl, localFile, contentType);
+        
+        if (!s3Success)
+        {
+            String errorMsg = api.getLastError().isEmpty() ? "Failed to upload to S3" : api.getLastError();
+            DBG("SessionManager: S3 upload failed - " + errorMsg);
+            if (callback)
+            {
+                MessageManager::callAsync([callback, errorMsg]() {
+                    callback(false, errorMsg);
+                });
+            }
+            return;
+        }
+        
+        DBG("SessionManager: S3 upload successful, marking complete");
+        
+        // Step 4: Mark upload as complete in backend
+        // FIX: completeStemUpload returns Stem, not bool
+        auto completedStem = api.completeStemUpload(sessionId, uploadInfo.stemId);
+        bool completeSuccess = completedStem.id.isNotEmpty();
+        
+        if (!completeSuccess)
+        {
+            String errorMsg = api.getLastError().isEmpty() ? "Failed to complete upload" : api.getLastError();
+            DBG("SessionManager: Complete upload failed - " + errorMsg);
+            if (callback)
+            {
+                MessageManager::callAsync([callback, errorMsg]() {
+                    callback(false, errorMsg);
+                });
+            }
+            return;
+        }
+        
+        DBG("SessionManager: Upload completed successfully");
         
         if (callback)
         {
-            MessageManager::callAsync([callback, success, message]() {
-                callback(success, message);
+            MessageManager::callAsync([callback]() {
+                callback(true, "Upload complete");
             });
         }
     });

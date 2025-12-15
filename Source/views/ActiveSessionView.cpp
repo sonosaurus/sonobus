@@ -1,22 +1,26 @@
 #include "ActiveSessionView.h"
 #include "../managers/SessionManager.h"
 #include "../SonobusPluginEditor.h"
+#include "../SonobusPluginProcessor.h"
 #include "../api/SoundFlipAPI.h"
 #include "../SonoUtility.h"
+#include "../SonoLookAndFeel.h"
 
 ActiveSessionView::ActiveSessionView()
-    : sessionManager(nullptr), editor(nullptr), api(nullptr)
+    : sessionManager(nullptr), editor(nullptr), api(nullptr), processor(nullptr)
 {
     setupUI();
+    setupMeters();
 }
 
 ActiveSessionView::ActiveSessionView(SessionManager* sm, SonobusAudioProcessorEditor* ed)
-    : sessionManager(sm), editor(ed), api(nullptr)
+    : sessionManager(sm), editor(ed), api(nullptr), processor(nullptr)
 {
     if (sessionManager)
         sessionManager->addChangeListener(this);
     
     setupUI();
+    setupMeters();
     
     if (sessionManager && sessionManager->isConnected())
     {
@@ -30,12 +34,13 @@ ActiveSessionView::ActiveSessionView(SessionManager* sm, SonobusAudioProcessorEd
 ActiveSessionView::ActiveSessionView(SessionManager* sm, 
                                      SonobusAudioProcessorEditor* ed,
                                      SoundFlipAPI* apiRef)
-    : sessionManager(sm), editor(ed), api(apiRef)
+    : sessionManager(sm), editor(ed), api(apiRef), processor(nullptr)
 {
     if (sessionManager)
         sessionManager->addChangeListener(this);
     
     setupUI();
+    setupMeters();
     
     if (sessionManager && sessionManager->isConnected())
     {
@@ -51,6 +56,7 @@ ActiveSessionView::~ActiveSessionView()
 {
     stopTimer(ParticipantPollTimerId);
     stopTimer(RecordingTimerId);
+    stopTimer(MeterUpdateTimerId);
     if (sessionManager)
         sessionManager->removeChangeListener(this);
 }
@@ -83,6 +89,18 @@ void ActiveSessionView::setupUI()
     recordingTimeLabel.setColour(Label::textColourId, Colour(0xffff6b6b));
     recordingTimeLabel.setVisible(false);
     addAndMakeVisible(recordingTimeLabel);
+    
+    inputLevelLabel.setText("In", dontSendNotification);
+    inputLevelLabel.setFont(Font(12.0f));
+    inputLevelLabel.setJustificationType(Justification::centred);
+    inputLevelLabel.setColour(Label::textColourId, Colour(0xffaaaaaa));
+    addAndMakeVisible(inputLevelLabel);
+    
+    outputLevelLabel.setText("Out", dontSendNotification);
+    outputLevelLabel.setFont(Font(12.0f));
+    outputLevelLabel.setJustificationType(Justification::centred);
+    outputLevelLabel.setColour(Label::textColourId, Colour(0xffaaaaaa));
+    addAndMakeVisible(outputLevelLabel);
 
     recordButton.setButtonText("Record");
     recordButton.setColour(TextButton::buttonColourId, Colour(0xff6c5ce7));
@@ -112,6 +130,37 @@ void ActiveSessionView::setupUI()
         handleEndSession();
     };
     addAndMakeVisible(endSessionButton);
+}
+
+void ActiveSessionView::setupMeters()
+{
+    auto flags = foleys::LevelMeter::Minimal;
+    
+    inputMeter = std::make_unique<foleys::LevelMeter>(flags);
+    inputMeter->setRefreshRateHz(30);
+    addAndMakeVisible(inputMeter.get());
+    
+    outputMeter = std::make_unique<foleys::LevelMeter>(flags);
+    outputMeter->setRefreshRateHz(30);
+    addAndMakeVisible(outputMeter.get());
+    
+    // Start meter update timer
+    startTimer(MeterUpdateTimerId, meterUpdateMs);
+}
+
+void ActiveSessionView::setProcessor(SonobusAudioProcessor* proc)
+{
+    processor = proc;
+    
+    if (processor)
+    {
+        // Connect meters to processor meter sources
+        inputMeter->setMeterSource(&processor->getSendMeterSource());
+        outputMeter->setMeterSource(&processor->getOutputMeterSource());
+        
+        // Update peer names
+        updatePeerNamesFromProcessor();
+    }
 }
 
 void ActiveSessionView::setSoundFlipAPI(SoundFlipAPI* apiRef)
@@ -187,6 +236,55 @@ void ActiveSessionView::updateRecordingTimeDisplay()
     }
 }
 
+void ActiveSessionView::updateMeters()
+{
+    // Meters auto-update from their sources, but we can do additional processing here
+    // Update peer names periodically from processor
+    if (processor)
+    {
+        updatePeerNamesFromProcessor();
+    }
+}
+
+void ActiveSessionView::updatePeerNamesFromProcessor()
+{
+    if (!processor)
+        return;
+    
+    int numPeers = processor->getNumberRemotePeers();
+    StringArray newPeerNames;
+    
+    for (int i = 0; i < numPeers; ++i)
+    {
+        String peerName = processor->getRemotePeerUserName(i);
+        if (peerName.isNotEmpty())
+        {
+            newPeerNames.add(peerName);
+        }
+    }
+    
+    // Only update UI if peer names changed
+    if (newPeerNames != peerNames)
+    {
+        peerNames = newPeerNames;
+        
+        // Update participant display with real peer names
+        if (peerNames.isEmpty())
+        {
+            participantListLabel.setText("Just you", dontSendNotification);
+        }
+        else
+        {
+            String participantText = "(" + String(peerNames.size() + 1) + ") You";
+            for (const auto& name : peerNames)
+            {
+                participantText += ", " + name;
+            }
+            participantListLabel.setText(participantText, dontSendNotification);
+        }
+    }
+}
+
 void ActiveSessionView::refreshParticipants()
 {
     fetchAndUpdateParticipants();
@@ -202,6 +300,10 @@ void ActiveSessionView::timerCallback(int timerId)
     else if (timerId == RecordingTimerId)
     {
         updateRecordingTimeDisplay();
+    }
+    else if (timerId == MeterUpdateTimerId)
+    {
+        updateMeters();
     }
 }
 
@@ -237,6 +339,14 @@ void ActiveSessionView::fetchAndUpdateParticipants()
     DBG("API pointer: " + String(api == nullptr ? "NULL" : "valid"));
     DBG("Session ID: " + currentSessionId);
 
+    // First try to get names from processor (real-time audio peers)
+    if (processor)
+    {
+        updatePeerNamesFromProcessor();
+        return;
+    }
+
+    // Fall back to API if no processor
     if (!api || currentSessionId.isEmpty())
     {
         updateParticipantsUI();
@@ -319,6 +429,7 @@ void ActiveSessionView::handleEndSession()
 {
     stopTimer(ParticipantPollTimerId);
     stopTimer(RecordingTimerId);
+    stopTimer(MeterUpdateTimerId);
     
     if (isRecording && onRecordClicked)
     {
@@ -361,6 +472,22 @@ void ActiveSessionView::resized()
     participantListLabel.setBounds(bounds.removeFromTop(25));
     
     bounds.removeFromTop(20);
+    
+    // Level meters section
+    int meterWidth = 30;
+    int meterHeight = 100;
+    int meterSpacing = 60;
+    
+    auto metersArea = bounds.removeFromTop(meterHeight + 20);
+    int metersStartX = (metersArea.getWidth() - (meterWidth * 2 + meterSpacing)) / 2;
+    
+    inputLevelLabel.setBounds(metersArea.getX() + metersStartX, metersArea.getY(), meterWidth, 16);
+    inputMeter->setBounds(metersArea.getX() + metersStartX, metersArea.getY() + 18, meterWidth, meterHeight);
+    
+    outputLevelLabel.setBounds(metersArea.getX() + metersStartX + meterWidth + meterSpacing, metersArea.getY(), meterWidth, 16);
+    outputMeter->setBounds(metersArea.getX() + metersStartX + meterWidth + meterSpacing, metersArea.getY() + 18, meterWidth, meterHeight);
+    
+    bounds.removeFromTop(10);
     
     recordingTimeLabel.setBounds(bounds.removeFromTop(30));
     
