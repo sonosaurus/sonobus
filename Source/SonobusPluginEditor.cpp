@@ -1616,6 +1616,23 @@ void SonobusAudioProcessorEditor::aooClientConnected(SonobusAudioProcessor *comp
     // SoundFlip session handling - auto-join group after connection
     if (mIsSoundFlipSession && success && mPendingSoundFlipGroup.isNotEmpty())
     {
+        // Check if already in this group
+        String currentGroup = processor.getCurrentJoinedGroup();
+        if (currentGroup == mPendingSoundFlipGroup)
+        {
+            DBG("SoundFlip: Already in group " + mPendingSoundFlipGroup + ", skipping join");
+            mPendingSoundFlipGroup = "";
+            mPendingSoundFlipGroupPassword = "";
+            
+            if (mSessionManager)
+            {
+                mSessionManager->onSessionConnected();
+            }
+            
+            triggerAsyncUpdate();
+            return;
+        }
+        
         DBG("SoundFlip: Connected to server, joining group: " + mPendingSoundFlipGroup);
         
         // Join the group now that we're connected
@@ -3084,6 +3101,27 @@ void SonobusAudioProcessorEditor::connectToSoundFlipSession(const String& server
     DBG("connectToSoundFlipSession - Server: " + serverHost + ":" + String(serverPort) + 
         " Group: " + groupName + " User: " + username);
     
+    // Check if already connected to this exact group
+    if (processor.isConnectedToServer() && processor.getCurrentJoinedGroup() == groupName)
+    {
+        DBG("SoundFlip: Already connected to group " + groupName);
+        mIsSoundFlipSession = true;
+        
+        // Update connection info for consistency
+        currConnectionInfo.serverHost = serverHost;
+        currConnectionInfo.serverPort = serverPort;
+        currConnectionInfo.groupName = groupName;
+        currConnectionInfo.groupPassword = groupPassword;
+        currConnectionInfo.userName = username;
+        currConnectionInfo.groupIsPublic = false;
+        
+        if (mSessionManager)
+        {
+            mSessionManager->onSessionConnected();
+        }
+        return;
+    }
+    
     // Store SoundFlip session info
     mIsSoundFlipSession = true;
     mPendingSoundFlipGroup = groupName;
@@ -3097,10 +3135,10 @@ void SonobusAudioProcessorEditor::connectToSoundFlipSession(const String& server
     currConnectionInfo.userName = username;
     currConnectionInfo.groupIsPublic = false;
     
-    // Disconnect if already connected
+    // Disconnect if already connected to a different group/server
     if (processor.isConnectedToServer())
     {
-        DBG("Already connected, disconnecting first...");
+        DBG("Already connected to different group, disconnecting first...");
         processor.disconnectFromServer();
     }
     
@@ -6323,7 +6361,10 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     mActiveSessionView = std::make_unique<ActiveSessionView>(mSessionManager.get(), this, mSoundFlipAPI.get());
     mEndSessionView = std::make_unique<EndSessionView>();
     mSessionDetailView = std::make_unique<SessionDetailView>();
-    mSettingsView = std::make_unique<SettingsView>(getAudioDeviceManager);
+
+    mSettingsView = std::make_unique<SettingsView>([this]() -> AudioDeviceManager* { 
+        return getAudioDeviceManager ? getAudioDeviceManager() : nullptr; 
+    });
     
     // Add all to main container but hide initially
     addChildComponent(mLoginView.get());

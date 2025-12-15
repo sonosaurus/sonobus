@@ -135,6 +135,8 @@ public:
 
         AudioDeviceManager::AudioDeviceSetup setupOptions;
         setupOptions.sampleRate = 48000;
+        setupOptions.inputDeviceName = "";   // ADD THIS LINE
+        setupOptions.outputDeviceName = "";  // ADD THIS LINE
 #if JUCE_MAC
         setupOptions.bufferSize = 128;
 #elif JUCE_ANDROID
@@ -187,6 +189,8 @@ public:
 
         AudioDeviceManager::AudioDeviceSetup setupOptions;
         setupOptions.sampleRate = 48000;
+        setupOptions.inputDeviceName = "";   
+        setupOptions.outputDeviceName = ""; 
 #if JUCE_MAC
         setupOptions.bufferSize = 128;
 #elif JUCE_ANDROID

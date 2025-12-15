@@ -78,7 +78,7 @@ SettingsView::SettingsView(std::function<AudioDeviceManager*()> getAudioDeviceMa
     addAndMakeVisible(signOutButton.get());
 
     // Populate devices on construction
-    populateAudioDevices();
+    // populateAudioDevices();
 }
 
 SettingsView::~SettingsView()
@@ -88,15 +88,20 @@ SettingsView::~SettingsView()
 void SettingsView::populateAudioDevices()
 {
     auto* deviceManager = getAudioDeviceManager ? getAudioDeviceManager() : nullptr;
+    
+    DBG("SettingsView::populateAudioDevices - deviceManager: " << (deviceManager ? "valid" : "null"));
+    
     if (!deviceManager)
     {
-        // No device manager available - add placeholder items
+        DBG("SettingsView::populateAudioDevices - No device manager available");
+        
+        // Add placeholder items
         audioInputCombo->clear();
-        audioInputCombo->addItem("No audio device manager", 1);
+        audioInputCombo->addItem("No Audio Device Available", 1);
         audioInputCombo->setSelectedId(1, dontSendNotification);
         
         audioOutputCombo->clear();
-        audioOutputCombo->addItem("No audio device manager", 1);
+        audioOutputCombo->addItem("No Audio Device Available", 1);
         audioOutputCombo->setSelectedId(1, dontSendNotification);
         
         sampleRateCombo->clear();
@@ -106,10 +111,11 @@ void SettingsView::populateAudioDevices()
         bufferSizeCombo->clear();
         bufferSizeCombo->addItem("256 samples", 1);
         bufferSizeCombo->setSelectedId(1, dontSendNotification);
+        
         return;
     }
-
-    // Clear existing items
+    
+    // Clear existing items and stored names
     audioInputCombo->clear();
     audioOutputCombo->clear();
     sampleRateCombo->clear();
@@ -118,119 +124,204 @@ void SettingsView::populateAudioDevices()
     outputDeviceNames.clear();
     sampleRates.clear();
     bufferSizes.clear();
-
-    auto* currentType = deviceManager->getCurrentDeviceTypeObject();
-    if (!currentType)
-    {
-        DBG("No current device type");
-        return;
-    }
-
+    
+    // Get current device setup
     auto currentSetup = deviceManager->getAudioDeviceSetup();
-
-    // Populate input devices
-    auto inputNames = currentType->getDeviceNames(true);
-    int inputIndex = 1;
-    int selectedInput = 0;
-    for (const auto& name : inputNames)
-    {
-        audioInputCombo->addItem(name, inputIndex);
-        inputDeviceNames.add(name);
-        if (name == currentSetup.inputDeviceName)
-            selectedInput = inputIndex;
-        inputIndex++;
-    }
-    if (inputNames.isEmpty())
-    {
-        audioInputCombo->addItem("No input devices found", 1);
-    }
-    if (selectedInput > 0)
-        audioInputCombo->setSelectedId(selectedInput, dontSendNotification);
-    else if (audioInputCombo->getNumItems() > 0)
-        audioInputCombo->setSelectedId(1, dontSendNotification);
-
-    // Populate output devices
-    auto outputNames = currentType->getDeviceNames(false);
-    int outputIndex = 1;
-    int selectedOutput = 0;
-    for (const auto& name : outputNames)
-    {
-        audioOutputCombo->addItem(name, outputIndex);
-        outputDeviceNames.add(name);
-        if (name == currentSetup.outputDeviceName)
-            selectedOutput = outputIndex;
-        outputIndex++;
-    }
-    if (outputNames.isEmpty())
-    {
-        audioOutputCombo->addItem("No output devices found", 1);
-    }
-    if (selectedOutput > 0)
-        audioOutputCombo->setSelectedId(selectedOutput, dontSendNotification);
-    else if (audioOutputCombo->getNumItems() > 0)
-        audioOutputCombo->setSelectedId(1, dontSendNotification);
-
-    // Populate sample rates and buffer sizes from current device
-    auto* currentDevice = deviceManager->getCurrentAudioDevice();
-    if (currentDevice)
-    {
-        // Sample rates
-        auto availableRates = currentDevice->getAvailableSampleRates();
-        int rateIndex = 1;
-        int selectedRate = 0;
-        for (auto rate : availableRates)
+    DBG("SettingsView::populateAudioDevices - current input device: '" << currentSetup.inputDeviceName << "'");
+    DBG("SettingsView::populateAudioDevices - current output device: '" << currentSetup.outputDeviceName << "'");
+    DBG("SettingsView::populateAudioDevices - current sample rate: " << currentSetup.sampleRate);
+    DBG("SettingsView::populateAudioDevices - current buffer size: " << currentSetup.bufferSize);
+    
+    auto* currentType = deviceManager->getCurrentDeviceTypeObject();
+    DBG("SettingsView::populateAudioDevices - currentType: " << (currentType ? currentType->getTypeName() : "null"));
+    
+    // Helper lambda to populate devices from a device type
+    auto populateDevicesFromType = [&](AudioIODeviceType* type, bool scanFirst) {
+        if (type == nullptr) return;
+        
+        if (scanFirst)
         {
-            String rateStr = String((int)rate) + " Hz";
-            sampleRateCombo->addItem(rateStr, rateIndex);
-            sampleRates.add(String((int)rate));
-            if ((int)rate == (int)currentSetup.sampleRate)
-                selectedRate = rateIndex;
-            rateIndex++;
+            DBG("Scanning for devices of type: " << type->getTypeName());
+            type->scanForDevices();
         }
-        if (selectedRate > 0)
-            sampleRateCombo->setSelectedId(selectedRate, dontSendNotification);
-        else if (sampleRateCombo->getNumItems() > 0)
-            sampleRateCombo->setSelectedId(1, dontSendNotification);
-
-        // Buffer sizes
-        auto availableBuffers = currentDevice->getAvailableBufferSizes();
-        int bufferIndex = 1;
-        int selectedBuffer = 0;
-        for (auto size : availableBuffers)
+        
+        auto inputs = type->getDeviceNames(true);
+        DBG("  Found " << inputs.size() << " input devices from " << type->getTypeName());
+        for (const auto& name : inputs)
         {
-            String sizeStr = String(size) + " samples";
-            bufferSizeCombo->addItem(sizeStr, bufferIndex);
-            bufferSizes.add(String(size));
-            if (size == currentSetup.bufferSize)
-                selectedBuffer = bufferIndex;
-            bufferIndex++;
+            DBG("    Input: '" << name << "'");
+            if (!inputDeviceNames.contains(name))
+            {
+                inputDeviceNames.add(name);
+                audioInputCombo->addItem(name, inputDeviceNames.size());
+            }
         }
-        if (selectedBuffer > 0)
-            bufferSizeCombo->setSelectedId(selectedBuffer, dontSendNotification);
-        else if (bufferSizeCombo->getNumItems() > 0)
-            bufferSizeCombo->setSelectedId(1, dontSendNotification);
+        
+        auto outputs = type->getDeviceNames(false);
+        DBG("  Found " << outputs.size() << " output devices from " << type->getTypeName());
+        for (const auto& name : outputs)
+        {
+            DBG("    Output: '" << name << "'");
+            if (!outputDeviceNames.contains(name))
+            {
+                outputDeviceNames.add(name);
+                audioOutputCombo->addItem(name, outputDeviceNames.size());
+            }
+        }
+    };
+    
+    // First try the current device type
+    if (currentType)
+    {
+        populateDevicesFromType(currentType, true);
+    }
+    
+    // If we didn't find any devices, or if currentType is null, try all available types
+    if (inputDeviceNames.isEmpty() || outputDeviceNames.isEmpty() || !currentType)
+    {
+        DBG("Trying all available device types as fallback...");
+        
+        auto& availableTypes = deviceManager->getAvailableDeviceTypes();
+        DBG("Found " << availableTypes.size() << " available device types");
+        
+        for (auto* type : availableTypes)
+        {
+            if (type != nullptr && type != currentType) // Don't re-scan currentType
+            {
+                populateDevicesFromType(type, true);
+            }
+        }
+    }
+    
+    // Select the correct input device or show placeholder
+    if (audioInputCombo->getNumItems() > 0)
+    {
+        int selectedInputIndex = 1;
+        for (int i = 0; i < inputDeviceNames.size(); ++i)
+        {
+            if (inputDeviceNames[i] == currentSetup.inputDeviceName)
+            {
+                selectedInputIndex = i + 1;
+                break;
+            }
+        }
+        audioInputCombo->setSelectedId(selectedInputIndex, dontSendNotification);
+        DBG("Selected input device index: " << selectedInputIndex << " (" << inputDeviceNames[selectedInputIndex - 1] << ")");
     }
     else
     {
-        // No current device - add common defaults
-        sampleRateCombo->addItem("44100 Hz", 1);
-        sampleRateCombo->addItem("48000 Hz", 2);
-        sampleRateCombo->addItem("96000 Hz", 3);
-        sampleRateCombo->setSelectedId(2, dontSendNotification);
-        sampleRates.add("44100");
-        sampleRates.add("48000");
-        sampleRates.add("96000");
-
-        bufferSizeCombo->addItem("128 samples", 1);
-        bufferSizeCombo->addItem("256 samples", 2);
-        bufferSizeCombo->addItem("512 samples", 3);
-        bufferSizeCombo->addItem("1024 samples", 4);
-        bufferSizeCombo->setSelectedId(2, dontSendNotification);
-        bufferSizes.add("128");
-        bufferSizes.add("256");
-        bufferSizes.add("512");
-        bufferSizes.add("1024");
+        DBG("WARNING: No input devices found!");
+        audioInputCombo->addItem("No Input Devices Found", 1);
+        audioInputCombo->setSelectedId(1, dontSendNotification);
     }
+    
+    // Select the correct output device or show placeholder
+    if (audioOutputCombo->getNumItems() > 0)
+    {
+        int selectedOutputIndex = 1;
+        for (int i = 0; i < outputDeviceNames.size(); ++i)
+        {
+            if (outputDeviceNames[i] == currentSetup.outputDeviceName)
+            {
+                selectedOutputIndex = i + 1;
+                break;
+            }
+        }
+        audioOutputCombo->setSelectedId(selectedOutputIndex, dontSendNotification);
+        DBG("Selected output device index: " << selectedOutputIndex << " (" << outputDeviceNames[selectedOutputIndex - 1] << ")");
+    }
+    else
+    {
+        DBG("WARNING: No output devices found!");
+        audioOutputCombo->addItem("No Output Devices Found", 1);
+        audioOutputCombo->setSelectedId(1, dontSendNotification);
+    }
+    
+    // Populate sample rates and buffer sizes from current device
+    auto* currentDevice = deviceManager->getCurrentAudioDevice();
+    DBG("SettingsView::populateAudioDevices - currentDevice: " << (currentDevice ? currentDevice->getName() : "null"));
+    
+    if (currentDevice)
+    {
+        // Populate sample rates
+        auto availableSampleRates = currentDevice->getAvailableSampleRates();
+        DBG("Available sample rates: " << availableSampleRates.size());
+        
+        int selectedRateIndex = 1;
+        for (int i = 0; i < availableSampleRates.size(); ++i)
+        {
+            int rate = (int)availableSampleRates[i];
+            sampleRates.add(String(rate));
+            sampleRateCombo->addItem(String(rate) + " Hz", i + 1);
+            DBG("  Sample rate: " << rate);
+            
+            if (rate == (int)currentSetup.sampleRate)
+                selectedRateIndex = i + 1;
+        }
+        
+        if (sampleRateCombo->getNumItems() == 0)
+        {
+            sampleRates.add("48000");
+            sampleRateCombo->addItem("48000 Hz", 1);
+        }
+        sampleRateCombo->setSelectedId(selectedRateIndex, dontSendNotification);
+        
+        // Populate buffer sizes
+        auto availableBufferSizes = currentDevice->getAvailableBufferSizes();
+        DBG("Available buffer sizes: " << availableBufferSizes.size());
+        
+        int selectedBufferIndex = 1;
+        for (int i = 0; i < availableBufferSizes.size(); ++i)
+        {
+            int size = availableBufferSizes[i];
+            bufferSizes.add(String(size));
+            bufferSizeCombo->addItem(String(size) + " samples", i + 1);
+            DBG("  Buffer size: " << size);
+            
+            if (size == currentSetup.bufferSize)
+                selectedBufferIndex = i + 1;
+        }
+        
+        if (bufferSizeCombo->getNumItems() == 0)
+        {
+            bufferSizes.add("256");
+            bufferSizeCombo->addItem("256 samples", 1);
+        }
+        bufferSizeCombo->setSelectedId(selectedBufferIndex, dontSendNotification);
+    }
+    else
+    {
+        // No current device - add defaults
+        DBG("No current audio device, using default sample rates and buffer sizes");
+        
+        const int defaultSampleRates[] = { 44100, 48000, 88200, 96000 };
+        int selectedRateIndex = 2; // Default to 48000
+        for (int i = 0; i < 4; ++i)
+        {
+            int rate = defaultSampleRates[i];
+            sampleRates.add(String(rate));
+            sampleRateCombo->addItem(String(rate) + " Hz", i + 1);
+            
+            if (rate == (int)currentSetup.sampleRate)
+                selectedRateIndex = i + 1;
+        }
+        sampleRateCombo->setSelectedId(selectedRateIndex, dontSendNotification);
+        
+        const int defaultBufferSizes[] = { 64, 128, 256, 512, 1024, 2048 };
+        int selectedBufferIndex = 3; // Default to 256
+        for (int i = 0; i < 6; ++i)
+        {
+            int size = defaultBufferSizes[i];
+            bufferSizes.add(String(size));
+            bufferSizeCombo->addItem(String(size) + " samples", i + 1);
+            
+            if (size == currentSetup.bufferSize)
+                selectedBufferIndex = i + 1;
+        }
+        bufferSizeCombo->setSelectedId(selectedBufferIndex, dontSendNotification);
+    }
+    
+    DBG("SettingsView::populateAudioDevices - complete. Inputs: " << inputDeviceNames.size() << ", Outputs: " << outputDeviceNames.size());
 }
 
 void SettingsView::comboBoxChanged(ComboBox* comboBoxThatHasChanged)
@@ -307,8 +398,11 @@ void SettingsView::comboBoxChanged(ComboBox* comboBoxThatHasChanged)
 
 void SettingsView::visibilityChanged()
 {
+    DBG("SettingsView::visibilityChanged - isVisible: " << (isVisible() ? "true" : "false"));
+    
     if (isVisible())
     {
+        DBG("SettingsView::visibilityChanged - calling populateAudioDevices");
         populateAudioDevices();
     }
 }

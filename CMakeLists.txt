@@ -119,6 +119,8 @@ set (MacPList "<plist version=\"1.0\">
 <dict>
 <key>CFBundleVersion</key>
 <string>${BUILDVERSION}</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>SoundFlip Connect needs microphone access for audio collaboration.</string>
 <key>CFBundleURLTypes</key>
 <array>
      <dict>
