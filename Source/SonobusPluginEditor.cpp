@@ -2952,13 +2952,13 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
 void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
 {
     // Handle SoundFlip Connect deep links
-    if (urlstr.startsWith("soundflipconnect://"))
+    if (urlstr.startsWith("soundflipcollab://"))
     {
         URL parsedUrl(urlstr);
         
         // Check which type of deep link this is
-        bool isCallback = urlstr.contains("soundflipconnect://callback");
-        bool isJoin = urlstr.contains("soundflipconnect://join");
+        bool isCallback = urlstr.contains("soundflipcollab://callback");
+        bool isJoin = urlstr.contains("soundflipcollab://join");
         
         if (isCallback)
         {

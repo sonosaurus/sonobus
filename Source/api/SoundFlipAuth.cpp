@@ -45,7 +45,7 @@ void SoundFlipAuth::startOAuthFlow()
 
 void SoundFlipAuth::handleDeepLink(const String& url)
 {
-    if (!url.startsWith("soundflipconnect://callback"))
+    if (!url.startsWith("soundflipcollab://callback"))
     {
         listeners.call([](Listener& l) { 
             l.authenticationFailed("Invalid callback URL"); 
@@ -378,7 +378,7 @@ void SoundFlipAuth::clearSecureStorage()
 
 void SoundFlipAuth::saveToCredentialManager(const String& key, const String& value)
 {
-    String targetName = "SoundFlipConnect_" + key;
+    String targetName = "SoundFlipCollab_" + key;
     
     CREDENTIALW cred = { 0 };
     cred.Type = CRED_TYPE_GENERIC;
@@ -393,7 +393,7 @@ void SoundFlipAuth::saveToCredentialManager(const String& key, const String& val
 
 String SoundFlipAuth::loadFromCredentialManager(const String& key)
 {
-    String targetName = "SoundFlipConnect_" + key;
+    String targetName = "SoundFlipCollab_" + key;
     
     PCREDENTIALW pcred = nullptr;
     if (CredReadW((LPCWSTR)targetName.toWideCharPointer(), CRED_TYPE_GENERIC, 0, &pcred))
@@ -409,7 +409,7 @@ String SoundFlipAuth::loadFromCredentialManager(const String& key)
 
 void SoundFlipAuth::deleteFromCredentialManager(const String& key)
 {
-    String targetName = "SoundFlipConnect_" + key;
+    String targetName = "SoundFlipCollab_" + key;
     CredDeleteW((LPCWSTR)targetName.toWideCharPointer(), CRED_TYPE_GENERIC, 0);
 }
 
@@ -423,7 +423,7 @@ void SoundFlipAuth::deleteFromCredentialManager(const String& key)
 File SoundFlipAuth::getSecureStorageFile()
 {
     File configDir = File::getSpecialLocation(File::userApplicationDataDirectory)
-                         .getChildFile("SoundFlipConnect");
+                         .getChildFile("SoundFlipCollab");
     configDir.createDirectory();
     return configDir.getChildFile("auth.json");
 }

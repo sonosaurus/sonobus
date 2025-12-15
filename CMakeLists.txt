@@ -133,10 +133,10 @@ set (MacPList "<plist version=\"1.0\">
       </dict>
       <dict>
          <key>CFBundleURLName</key>
-         <string>com.soundflip.connect</string>
+         <string>com.soundflip.collab</string>
          <key>CFBundleURLSchemes</key>
          <array>
-              <string>soundflipconnect</string>
+              <string>soundflipcollab</string>
          </array>
       </dict>
    </array>
@@ -166,7 +166,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         NEEDS_MIDI_OUTPUT TRUE
         EDITOR_WANTS_KEYBOARD_FOCUS TRUE
         COMPANY_NAME "Sonosaurus"
-        BUNDLE_ID "com.soundflip.connect"
+        BUNDLE_ID "com.soundflip.collab"
         MICROPHONE_PERMISSION_ENABLED TRUE
         
         ICON_BIG "images/sonobus_icon_mac_1024.png"
@@ -666,10 +666,10 @@ endfunction()
 
 
 # most of the targets
-sono_add_custom_plugin_target(SoundFlipConnect "SoundFlipConnect" "${FormatsToBuild}" FALSE  "NBus")
+sono_add_custom_plugin_target(SoundFlipCollab "SoundFlipCollab" "${FormatsToBuild}" FALSE  "NBus")
 
 # Mobile targets
 #sono_add_custom_plugin_target(SonoBusMobile "AUv3 Standalone" FALSE "NBus")
 
 # add VSTi target
-sono_add_custom_plugin_target(SoundFlipConnectInst "SoundFlipConnectInst" "VST3" TRUE  "IBus")
+sono_add_custom_plugin_target(SoundFlipCollabInst "SoundFlipCollabInst" "VST3" TRUE  "IBus")

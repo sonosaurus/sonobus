@@ -16,7 +16,7 @@ extern "C" {
 // Helper function to get the service name (with optional test user suffix)
 static std::string getServiceName()
 {
-    std::string serviceName = "SoundFlipConnect";
+    std::string serviceName = "SoundFlipCollab";
     
     // Check for test user environment variable
     const char* testUser = std::getenv("SOUNDFLIP_TEST_USER");

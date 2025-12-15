@@ -8,7 +8,7 @@ LoginView::LoginView(SoundFlipAuth& authRef)
 {
     auth.addListener(this);
 
-    titleLabel.setText("SoundFlip Connect", dontSendNotification);
+    titleLabel.setText("SoundFlip Collab", dontSendNotification);
     titleLabel.setFont(Font(32.0f, Font::bold));
     titleLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(titleLabel);
