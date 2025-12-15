@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
+// Copyright (C) 2024 SoundFlip
+
 #pragma once
 
 #include <JuceHeader.h>
@@ -94,7 +97,7 @@ private:
     bool isRecording = false;
     double recordingStartTime = 0.0;
     
-    // Peer names from processor
+    // Peer names from processor (for real-time display)
     StringArray peerNames;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ActiveSessionView)

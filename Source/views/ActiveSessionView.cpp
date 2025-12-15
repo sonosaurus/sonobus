@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
+// Copyright (C) 2024 SoundFlip
+
 #include "ActiveSessionView.h"
 #include "../managers/SessionManager.h"
 #include "../SonobusPluginEditor.h"
@@ -157,9 +160,6 @@ void ActiveSessionView::setProcessor(SonobusAudioProcessor* proc)
         // Connect meters to processor meter sources
         inputMeter->setMeterSource(&processor->getSendMeterSource());
         outputMeter->setMeterSource(&processor->getOutputMeterSource());
-        
-        // Update peer names
-        updatePeerNamesFromProcessor();
     }
 }
 
@@ -238,12 +238,8 @@ void ActiveSessionView::updateRecordingTimeDisplay()
 
 void ActiveSessionView::updateMeters()
 {
-    // Meters auto-update from their sources, but we can do additional processing here
-    // Update peer names periodically from processor
-    if (processor)
-    {
-        updatePeerNamesFromProcessor();
-    }
+    // Meters auto-update from their sources
+    // This timer callback can be used for any additional meter-related processing
 }
 
 void ActiveSessionView::updatePeerNamesFromProcessor()
@@ -263,25 +259,10 @@ void ActiveSessionView::updatePeerNamesFromProcessor()
         }
     }
     
-    // Only update UI if peer names changed
+    // Only update if peer names changed
     if (newPeerNames != peerNames)
     {
         peerNames = newPeerNames;
-        
-        // Update participant display with real peer names
-        if (peerNames.isEmpty())
-        {
-            participantListLabel.setText("Just you", dontSendNotification);
-        }
-        else
-        {
-            String participantText = "(" + String(peerNames.size() + 1) + ") You";
-            for (const auto& name : peerNames)
-            {
-                participantText += ", " + name;
-            }
-            participantListLabel.setText(participantText, dontSendNotification);
-        }
     }
 }
 
@@ -339,14 +320,13 @@ void ActiveSessionView::fetchAndUpdateParticipants()
     DBG("API pointer: " + String(api == nullptr ? "NULL" : "valid"));
     DBG("Session ID: " + currentSessionId);
 
-    // First try to get names from processor (real-time audio peers)
+    // Update peer names from processor if available (for real-time peer tracking)
     if (processor)
     {
         updatePeerNamesFromProcessor();
-        return;
     }
 
-    // Fall back to API if no processor
+    // Always try to fetch from API for the authoritative participant list
     if (!api || currentSessionId.isEmpty())
     {
         updateParticipantsUI();
