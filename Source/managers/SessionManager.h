@@ -77,6 +77,9 @@ public:
     void onPeerJoined(const String& username);
     void onPeerLeft(const String& username);
     
+    // Upload stem to current session
+    void uploadStem(const URL& audioFile, std::function<void(bool success, const String& message)> callback);
+    
     // Callbacks for UI - set by editor
     std::function<void()> onSessionConnectedCallback;
     std::function<void()> onSessionDisconnectedCallback;

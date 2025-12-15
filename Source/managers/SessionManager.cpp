@@ -216,6 +216,51 @@ void SessionManager::onPeerLeft(const String& username)
     sendChangeMessage();
 }
 
+void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool success, const String& message)> callback)
+{
+    if (currentSessionId.isEmpty())
+    {
+        if (callback)
+            callback(false, "No active session");
+        return;
+    }
+    
+    if (audioFile.isEmpty())
+    {
+        if (callback)
+            callback(false, "No audio file specified");
+        return;
+    }
+    
+    // Run upload in background thread
+    Thread::launch([this, audioFile, callback, sessionId = currentSessionId]() {
+        DBG("SessionManager: Starting upload for session " + sessionId);
+        
+        // TODO: Implement actual upload via SoundFlipAPI
+        // For now, this is a stub that simulates success after a delay
+        // 
+        // Future implementation would call something like:
+        // bool success = api.uploadStemToSession(sessionId, audioFile);
+        
+        // Simulate upload delay
+        Thread::sleep(2000);
+        
+        // For now, report success (stub)
+        // In real implementation, check api.getLastStatusCode() etc.
+        bool success = true;
+        String message = success ? "Upload complete" : "Upload failed";
+        
+        DBG("SessionManager: Upload " + String(success ? "succeeded" : "failed"));
+        
+        if (callback)
+        {
+            MessageManager::callAsync([callback, success, message]() {
+                callback(success, message);
+            });
+        }
+    });
+}
+
 void SessionManager::setState(State newState)
 {
     if (currentState != newState)

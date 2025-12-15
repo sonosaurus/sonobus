@@ -2,6 +2,7 @@
 #include "../managers/SessionManager.h"
 #include "../SonobusPluginEditor.h"
 #include "../api/SoundFlipAPI.h"
+#include "../SonoUtility.h"
 
 ActiveSessionView::ActiveSessionView()
     : sessionManager(nullptr), editor(nullptr), api(nullptr)
@@ -41,14 +42,15 @@ ActiveSessionView::ActiveSessionView(SessionManager* sm,
         currentSessionId = sessionManager->getCurrentSessionId();
         setSessionInfo(sessionManager->getCurrentSessionName(),
                        sessionManager->getInviteUrl());
-        startTimer(pollIntervalMs);
+        startTimer(ParticipantPollTimerId, pollIntervalMs);
         updateParticipantsUI();
     }
 }
 
 ActiveSessionView::~ActiveSessionView()
 {
-    stopTimer();
+    stopTimer(ParticipantPollTimerId);
+    stopTimer(RecordingTimerId);
     if (sessionManager)
         sessionManager->removeChangeListener(this);
 }
@@ -74,6 +76,13 @@ void ActiveSessionView::setupUI()
     participantListLabel.setText("Loading...", dontSendNotification);
     participantListLabel.setColour(Label::textColourId, Colour(0xffaaaaaa));
     addAndMakeVisible(participantListLabel);
+    
+    recordingTimeLabel.setText("", dontSendNotification);
+    recordingTimeLabel.setFont(Font(16.0f, Font::bold));
+    recordingTimeLabel.setJustificationType(Justification::centred);
+    recordingTimeLabel.setColour(Label::textColourId, Colour(0xffff6b6b));
+    recordingTimeLabel.setVisible(false);
+    addAndMakeVisible(recordingTimeLabel);
 
     recordButton.setButtonText("Record");
     recordButton.setColour(TextButton::buttonColourId, Colour(0xff6c5ce7));
@@ -128,7 +137,7 @@ void ActiveSessionView::setSessionManager(SessionManager* sm)
                            sessionManager->getInviteUrl());
             
             if (api && !currentSessionId.isEmpty())
-                startTimer(pollIntervalMs);
+                startTimer(ParticipantPollTimerId, pollIntervalMs);
             
             updateParticipantsUI();
         }
@@ -146,15 +155,54 @@ void ActiveSessionView::setSessionInfo(const String& name, const String& inviteU
         titleLabel.setText("Active Session", dontSendNotification);
 }
 
+void ActiveSessionView::updateRecordingState(bool recording, double elapsedTime)
+{
+    isRecording = recording;
+    
+    if (recording)
+    {
+        recordingStartTime = Time::getMillisecondCounterHiRes() * 0.001 - elapsedTime;
+        recordButton.setButtonText("Stop");
+        recordButton.setColour(TextButton::buttonColourId, Colour(0xffe74c3c));
+        recordingTimeLabel.setVisible(true);
+        updateRecordingTimeDisplay();
+        startTimer(RecordingTimerId, recordingUpdateMs);
+    }
+    else
+    {
+        stopTimer(RecordingTimerId);
+        recordButton.setButtonText("Record");
+        recordButton.setColour(TextButton::buttonColourId, Colour(0xff6c5ce7));
+        recordingTimeLabel.setVisible(false);
+    }
+}
+
+void ActiveSessionView::updateRecordingTimeDisplay()
+{
+    if (isRecording)
+    {
+        double elapsed = Time::getMillisecondCounterHiRes() * 0.001 - recordingStartTime;
+        String timeStr = SonoUtility::durationToString(elapsed, true);
+        recordingTimeLabel.setText("REC " + timeStr, dontSendNotification);
+    }
+}
+
 void ActiveSessionView::refreshParticipants()
 {
     fetchAndUpdateParticipants();
 }
 
-void ActiveSessionView::timerCallback()
+void ActiveSessionView::timerCallback(int timerId)
 {
-    if (api && !currentSessionId.isEmpty())
-        fetchAndUpdateParticipants();
+    if (timerId == ParticipantPollTimerId)
+    {
+        if (api && !currentSessionId.isEmpty())
+            fetchAndUpdateParticipants();
+    }
+    else if (timerId == RecordingTimerId)
+    {
+        updateRecordingTimeDisplay();
+    }
 }
 
 void ActiveSessionView::changeListenerCallback(ChangeBroadcaster* source)
@@ -168,7 +216,7 @@ void ActiveSessionView::changeListenerCallback(ChangeBroadcaster* source)
                            sessionManager->getInviteUrl());
             
             if (api && !currentSessionId.isEmpty())
-                startTimer(pollIntervalMs);
+                startTimer(ParticipantPollTimerId, pollIntervalMs);
             
             fetchAndUpdateParticipants();
             statusLabel.setText("Connected", dontSendNotification);
@@ -176,7 +224,7 @@ void ActiveSessionView::changeListenerCallback(ChangeBroadcaster* source)
         }
         else
         {
-            stopTimer();
+            stopTimer(ParticipantPollTimerId);
             statusLabel.setText("Disconnected", dontSendNotification);
             statusLabel.setColour(Label::textColourId, Colour(0xffe74c3c));
         }
@@ -269,7 +317,13 @@ void ActiveSessionView::handleInviteClicked()
 
 void ActiveSessionView::handleEndSession()
 {
-    stopTimer();
+    stopTimer(ParticipantPollTimerId);
+    stopTimer(RecordingTimerId);
+    
+    if (isRecording && onRecordClicked)
+    {
+        onRecordClicked();
+    }
     
     if (onEndClicked)
         onEndClicked();
@@ -306,7 +360,11 @@ void ActiveSessionView::resized()
     participantsLabel.setBounds(bounds.removeFromTop(20));
     participantListLabel.setBounds(bounds.removeFromTop(25));
     
-    bounds.removeFromTop(30);
+    bounds.removeFromTop(20);
+    
+    recordingTimeLabel.setBounds(bounds.removeFromTop(30));
+    
+    bounds.removeFromTop(10);
     
     int buttonWidth = 120;
     int buttonHeight = 40;

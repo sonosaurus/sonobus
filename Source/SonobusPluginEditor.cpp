@@ -6455,12 +6455,33 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mActiveSessionView->onEndClicked = [this]() {
+        // Capture recording info BEFORE stopping/disconnecting
+        bool wasRecording = processor.isRecordingToFile();
+        double recordedDuration = processor.getElapsedRecordTime();
+        
+        // If still recording, stop it first
+        if (wasRecording)
+        {
+            processor.stopRecordingToFile();
+        }
+        
+        // Get the recorded file URL (lastRecordedFile is a member of SonobusPluginEditor)
+        URL recordedFile = lastRecordedFile;
+        
+        // Pass recording info to EndSessionView
+        mEndSessionView->setRecordingInfo(recordedFile, recordedDuration);
+        
         disconnectSoundFlipSession();
         showScreen(AppScreen::EndSession);
     };
     
     mActiveSessionView->onRecordClicked = [this]() {
         buttonClicked(mRecordingButton.get());
+        
+        // Update ActiveSessionView's recording state after toggle
+        bool isNowRecording = processor.isRecordingToFile();
+        double elapsed = isNowRecording ? 0.0 : processor.getElapsedRecordTime();
+        mActiveSessionView->updateRecordingState(isNowRecording, elapsed);
     };
     
     mActiveSessionView->onChatClicked = [this]() {
