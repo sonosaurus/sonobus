@@ -52,6 +52,14 @@ void JoinSessionView::setupUI()
     addAndMakeVisible(backButton);
 }
 
+void JoinSessionView::reset()
+{
+    isJoiningSession = false;
+    codeEditor.clear();
+    statusLabel.setText("", dontSendNotification);
+    setUIEnabled(true);
+}
+
 void JoinSessionView::setInviteCode(const String& code)
 {
     codeEditor.setText(code, dontSendNotification);
@@ -141,6 +149,8 @@ void JoinSessionView::paint(Graphics& g)
 {
     g.fillAll(Colour(0xff1a1a2e));
 }
+
+
 
 void JoinSessionView::resized()
 {

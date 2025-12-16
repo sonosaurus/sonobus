@@ -6424,10 +6424,12 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mHomeView->onStartSessionClicked = [this]() {
+        mStartSessionView->reset();
         showScreen(AppScreen::StartSession);
     };
     
     mHomeView->onJoinSessionClicked = [this]() {
+        mJoinSessionView->reset();
         showScreen(AppScreen::JoinSession);
     };
     
@@ -6511,16 +6513,23 @@ void SonobusAudioProcessorEditor::setupSoundFlipViews()
     };
     
     mEndSessionView->onUploadClicked = [this]() {
+        mStartSessionView->reset();
+        mJoinSessionView->reset();
         showScreen(AppScreen::Home);
     };
     
     mEndSessionView->onSaveLocallyClicked = [this]() {
+        mStartSessionView->reset();
+        mJoinSessionView->reset();
         showScreen(AppScreen::Home);
     };
     
     mEndSessionView->onDiscardClicked = [this]() {
+        mStartSessionView->reset();
+        mJoinSessionView->reset();
         showScreen(AppScreen::Home);
     };
+
     
     mSessionDetailView->onBackClicked = [this]() {
         showScreen(AppScreen::Home);

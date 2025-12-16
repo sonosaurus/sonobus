@@ -21,6 +21,7 @@ public:
 
     void paint(Graphics& g) override;
     void resized() override;
+    void reset();
 
     // Callbacks
     std::function<void()> onBackClicked;

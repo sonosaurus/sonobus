@@ -21,6 +21,7 @@ public:
 
     void paint(Graphics& g) override;
     void resized() override;
+    void reset();
     
     void setInviteCode(const String& code);
 

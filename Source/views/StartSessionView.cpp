@@ -109,6 +109,14 @@ void StartSessionView::handleCreateSession()
     }
 }
 
+void StartSessionView::reset()
+{
+    isCreatingSession = false;
+    sessionNameEditor.clear();
+    statusLabel.setText("", dontSendNotification);
+    setUIEnabled(true);
+}
+
 void StartSessionView::showError(const String& message)
 {
     DBG("StartSessionView Error: " + message);
