@@ -2,6 +2,10 @@
 // Copyright (C) 2024 SoundFlip
 
 #include "SessionManager.h"
+#include <iostream>
+
+// Use this macro for logging that works in both Debug and Release
+#define SM_LOG(msg) std::cerr << "[SessionManager] " << msg << std::endl
 
 SessionManager::SessionManager(SoundFlipAPI& apiRef)
     : api(apiRef)
@@ -19,35 +23,43 @@ void SessionManager::setupWebSocketCallbacks()
     auto& ws = api.getWebSocket();
     
     ws.onConnected = [this]() {
+        SM_LOG("WebSocket connected");
         DBG("SessionManager: WebSocket connected");
         webSocketConnected = true;
         
         if (currentSessionId.isNotEmpty())
         {
+            SM_LOG("Auto-joining session room: " << currentSessionId.toStdString());
+            DBG("SessionManager: Auto-joining session room: " + currentSessionId);
             api.getWebSocket().joinSession(currentSessionId);
         }
     };
     
     ws.onDisconnected = [this]() {
+        SM_LOG("WebSocket disconnected");
         DBG("SessionManager: WebSocket disconnected");
         webSocketConnected = false;
     };
     
     ws.onConnectionError = [this](const String& error) {
+        SM_LOG("WebSocket error - " << error.toStdString());
         DBG("SessionManager: WebSocket error - " + error);
         webSocketConnected = false;
     };
     
     ws.onSessionJoined = [this](const String& sessionId) {
+        SM_LOG("Joined WebSocket room for session " << sessionId.toStdString());
         DBG("SessionManager: Joined WebSocket room for session " + sessionId);
     };
     
     ws.onSessionLeft = [this](const String& sessionId) {
+        SM_LOG("Left WebSocket room for session " << sessionId.toStdString());
         DBG("SessionManager: Left WebSocket room for session " + sessionId);
     };
     
     ws.onParticipantJoined = [this](const String& sessionId, const String& odId, 
                                     const String& username, const String& avatar) {
+        SM_LOG("Participant joined via WebSocket - " << username.toStdString());
         DBG("SessionManager: Participant joined via WebSocket - " + username);
         
         bool found = false;
@@ -76,6 +88,7 @@ void SessionManager::setupWebSocketCallbacks()
     
     ws.onParticipantLeft = [this](const String& sessionId, const String& odId, 
                                   const String& username) {
+        SM_LOG("Participant left via WebSocket - " << username.toStdString());
         DBG("SessionManager: Participant left via WebSocket - " + username);
         
         for (int i = participants.size() - 1; i >= 0; --i)
@@ -96,6 +109,7 @@ void SessionManager::setupWebSocketCallbacks()
                                const String& filename, const String& uploadedById,
                                const String& uploadedByUsername, int64 sizeBytes,
                                int durationSeconds) {
+        SM_LOG("Stem uploaded via WebSocket - " << filename.toStdString());
         DBG("SessionManager: Stem uploaded via WebSocket - " + filename);
         
         if (onStemUploadedCallback)
@@ -106,6 +120,7 @@ void SessionManager::setupWebSocketCallbacks()
     
     ws.onStemDeleted = [this](const String& sessionId, const String& stemId,
                               const String& deletedById) {
+        SM_LOG("Stem deleted via WebSocket - " << stemId.toStdString());
         DBG("SessionManager: Stem deleted via WebSocket - " + stemId);
         
         if (onStemDeletedCallback)
@@ -116,6 +131,7 @@ void SessionManager::setupWebSocketCallbacks()
     
     ws.onSessionUpdated = [this](const String& sessionId, const String& name,
                                  const String& status) {
+        SM_LOG("Session updated via WebSocket - name: " << name.toStdString() << ", status: " << status.toStdString());
         DBG("SessionManager: Session updated via WebSocket - name: " + name + ", status: " + status);
         
         if (name.isNotEmpty())
@@ -130,10 +146,44 @@ void SessionManager::setupWebSocketCallbacks()
 
 void SessionManager::connectWebSocket()
 {
-    if (webSocketConnected)
-        return;
+    SM_LOG("connectWebSocket() called");
     
-    DBG("SessionManager: Connecting WebSocket to " + api.getWebSocketUrl());
+    if (webSocketConnected)
+    {
+        SM_LOG("WebSocket already connected, skipping connect");
+        DBG("SessionManager: WebSocket already connected, skipping connect");
+        return;
+    }
+    
+    String wsUrl = api.getWebSocketUrl();
+    String token = api.getAuthToken();
+    
+    SM_LOG("wsUrl = " << wsUrl.toStdString());
+    SM_LOG("token length = " << token.length());
+    SM_LOG("token preview = " << (token.length() > 20 ? token.substring(0, 20).toStdString() + "..." : token.toStdString()));
+    
+    DBG("SessionManager: connectWebSocket() called");
+    DBG("SessionManager: wsUrl = " + wsUrl);
+    DBG("SessionManager: token length = " + String(token.length()));
+    
+    if (token.isEmpty())
+    {
+        SM_LOG("Cannot connect WebSocket - no auth token");
+        DBG("SessionManager: Cannot connect WebSocket - no auth token");
+        return;
+    }
+    
+    if (wsUrl.isEmpty())
+    {
+        SM_LOG("Cannot connect WebSocket - no WebSocket URL");
+        DBG("SessionManager: Cannot connect WebSocket - no WebSocket URL");
+        return;
+    }
+    
+    SM_LOG("Connecting WebSocket to " << wsUrl.toStdString());
+    DBG("SessionManager: Connecting WebSocket to " + wsUrl);
+    
+    api.getWebSocket().connect(wsUrl, token);
 }
 
 void SessionManager::disconnectWebSocket()
@@ -141,15 +191,22 @@ void SessionManager::disconnectWebSocket()
     if (!webSocketConnected)
         return;
     
+    SM_LOG("Disconnecting WebSocket");
+    DBG("SessionManager: Disconnecting WebSocket");
     api.getWebSocket().disconnect();
     webSocketConnected = false;
 }
 
 bool SessionManager::createSession(const String& name)
 {
+    SM_LOG("createSession() called with name: " << name.toStdString());
+    DBG("SessionManager: createSession() called with name: " + name);
+    
     if (currentState != State::Idle && currentState != State::Error)
     {
         lastError = "Already in a session";
+        SM_LOG("createSession failed - " << lastError.toStdString());
+        DBG("SessionManager: createSession failed - " + lastError);
         return false;
     }
     
@@ -162,6 +219,8 @@ bool SessionManager::createSession(const String& name)
     if (result.id.isEmpty())
     {
         lastError = api.getLastError().isEmpty() ? "Failed to create session" : api.getLastError();
+        SM_LOG("createSession API failed - " << lastError.toStdString());
+        DBG("SessionManager: createSession API failed - " + lastError);
         setState(State::Error);
         return false;
     }
@@ -175,14 +234,28 @@ bool SessionManager::createSession(const String& name)
     connectionInfo.group = result.connection.group;
     connectionInfo.password = result.connection.password;
     
+    SM_LOG("Created session " << currentSessionId.toStdString());
+    SM_LOG("Connection - " << connectionInfo.server.toStdString() << ":" << connectionInfo.port << " group: " << connectionInfo.group.toStdString());
     DBG("SessionManager: Created session " + currentSessionId);
     DBG("SessionManager: Connection - " + connectionInfo.server + ":" + 
         String(connectionInfo.port) + " group: " + connectionInfo.group);
     
     setState(State::Connecting);
     
-    if (webSocketConnected)
+    // Connect WebSocket if not already connected
+    SM_LOG("webSocketConnected = " << (webSocketConnected ? "true" : "false"));
+    DBG("SessionManager: webSocketConnected = " + String(webSocketConnected ? "true" : "false"));
+    
+    if (!webSocketConnected)
     {
+        SM_LOG("Calling connectWebSocket() from createSession");
+        DBG("SessionManager: Calling connectWebSocket() from createSession");
+        connectWebSocket();
+    }
+    else
+    {
+        SM_LOG("WebSocket already connected, joining session room");
+        DBG("SessionManager: WebSocket already connected, joining session room");
         api.getWebSocket().joinSession(currentSessionId);
     }
     
@@ -191,19 +264,28 @@ bool SessionManager::createSession(const String& name)
 
 bool SessionManager::joinSession(const String& inviteCodeOrUrl)
 {
+    SM_LOG("joinSession() called with: " << inviteCodeOrUrl.toStdString());
+    DBG("SessionManager: joinSession() called with: " + inviteCodeOrUrl);
+    
     if (currentState != State::Idle && currentState != State::Error)
     {
         lastError = "Already in a session";
+        SM_LOG("joinSession failed - " << lastError.toStdString());
+        DBG("SessionManager: joinSession failed - " + lastError);
         return false;
     }
     
     setState(State::JoiningSession);
     
     String sessionCode = extractSessionCode(inviteCodeOrUrl);
+    SM_LOG("Extracted session code: " << sessionCode.toStdString());
+    DBG("SessionManager: Extracted session code: " + sessionCode);
     
     if (sessionCode.isEmpty())
     {
         lastError = "Invalid invite code or URL";
+        SM_LOG("joinSession failed - " << lastError.toStdString());
+        DBG("SessionManager: joinSession failed - " + lastError);
         setState(State::Error);
         return false;
     }
@@ -213,6 +295,8 @@ bool SessionManager::joinSession(const String& inviteCodeOrUrl)
     if (result.id.isEmpty())
     {
         lastError = api.getLastError().isEmpty() ? "Failed to join session" : api.getLastError();
+        SM_LOG("joinSession API failed - " << lastError.toStdString());
+        DBG("SessionManager: joinSession API failed - " + lastError);
         setState(State::Error);
         return false;
     }
@@ -236,12 +320,27 @@ bool SessionManager::joinSession(const String& inviteCodeOrUrl)
         participants.add(participant);
     }
     
+    SM_LOG("Joined session " << currentSessionId.toStdString() << " (" << currentSessionName.toStdString() << ")");
+    SM_LOG("Participants from API: " << participants.size());
     DBG("SessionManager: Joined session " + currentSessionId + " (" + currentSessionName + ")");
+    DBG("SessionManager: Participants from API: " + String(participants.size()));
     
     setState(State::Connecting);
     
-    if (webSocketConnected)
+    // FIX: Connect WebSocket if not already connected (was missing!)
+    SM_LOG("webSocketConnected = " << (webSocketConnected ? "true" : "false"));
+    DBG("SessionManager: webSocketConnected = " + String(webSocketConnected ? "true" : "false"));
+    
+    if (!webSocketConnected)
     {
+        SM_LOG("Calling connectWebSocket() from joinSession");
+        DBG("SessionManager: Calling connectWebSocket() from joinSession");
+        connectWebSocket();
+    }
+    else
+    {
+        SM_LOG("WebSocket already connected, joining session room");
+        DBG("SessionManager: WebSocket already connected, joining session room");
         api.getWebSocket().joinSession(currentSessionId);
     }
     
@@ -250,18 +349,29 @@ bool SessionManager::joinSession(const String& inviteCodeOrUrl)
 
 void SessionManager::leaveSession()
 {
+    SM_LOG("leaveSession() called");
+    DBG("SessionManager: leaveSession() called");
+    
     if (currentState == State::Idle)
+    {
+        SM_LOG("Already idle, nothing to leave");
+        DBG("SessionManager: Already idle, nothing to leave");
         return;
+    }
     
     setState(State::Disconnecting);
     
     if (webSocketConnected && currentSessionId.isNotEmpty())
     {
+        SM_LOG("Leaving WebSocket session room");
+        DBG("SessionManager: Leaving WebSocket session room");
         api.getWebSocket().leaveSession();
     }
     
     if (currentSessionId.isNotEmpty())
     {
+        SM_LOG("Calling API to leave session");
+        DBG("SessionManager: Calling API to leave session");
         api.leaveCollabSession(currentSessionId);
     }
     
@@ -303,7 +413,8 @@ void SessionManager::fetchRecentSessions(int limit)
 
 void SessionManager::onSessionConnected()
 {
-    DBG("SessionManager: Session connected");
+    SM_LOG("Session connected (AOO)");
+    DBG("SessionManager: Session connected (AOO)");
     setState(State::Connected);
     
     if (onSessionConnectedCallback)
@@ -314,7 +425,8 @@ void SessionManager::onSessionConnected()
 
 void SessionManager::onSessionDisconnected()
 {
-    DBG("SessionManager: Session disconnected");
+    SM_LOG("Session disconnected (AOO)");
+    DBG("SessionManager: Session disconnected (AOO)");
     
     State previousState = currentState;
     clearSession();
@@ -331,6 +443,7 @@ void SessionManager::onSessionDisconnected()
 
 void SessionManager::onConnectionFailed(const String& error)
 {
+    SM_LOG("Connection failed - " << error.toStdString());
     DBG("SessionManager: Connection failed - " + error);
     lastError = error;
     
@@ -345,6 +458,7 @@ void SessionManager::onConnectionFailed(const String& error)
 
 void SessionManager::onPeerJoined(const String& username)
 {
+    SM_LOG("Peer joined - " << username.toStdString());
     DBG("SessionManager: Peer joined - " + username);
     
     bool found = false;
@@ -369,6 +483,7 @@ void SessionManager::onPeerJoined(const String& username)
 
 void SessionManager::onPeerLeft(const String& username)
 {
+    SM_LOG("Peer left - " << username.toStdString());
     DBG("SessionManager: Peer left - " + username);
     
     for (int i = participants.size() - 1; i >= 0; --i)
@@ -400,6 +515,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
     }
     
     Thread::launch([this, audioFile, callback, sessionId = currentSessionId]() {
+        SM_LOG("Starting upload for session " << sessionId.toStdString());
         DBG("SessionManager: Starting upload for session " + sessionId);
         
         File localFile;
@@ -409,6 +525,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         }
         else
         {
+            SM_LOG("Upload failed - not a local file");
             DBG("SessionManager: Upload failed - not a local file");
             if (callback)
             {
@@ -421,6 +538,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         
         if (!localFile.existsAsFile())
         {
+            SM_LOG("Upload failed - file does not exist");
             DBG("SessionManager: Upload failed - file does not exist");
             if (callback)
             {
@@ -445,6 +563,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         else if (extension == ".aif" || extension == ".aiff")
             contentType = "audio/aiff";
         
+        SM_LOG("Requesting upload URL for " << filename.toStdString() << " (" << fileSize << " bytes)");
         DBG("SessionManager: Requesting upload URL for " + filename + " (" + String(fileSize) + " bytes)");
         
         auto uploadInfo = api.requestStemUploadUrl(sessionId, filename, contentType, fileSize);
@@ -452,6 +571,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         if (uploadInfo.uploadUrl.isEmpty() || uploadInfo.stemId.isEmpty())
         {
             String errorMsg = api.getLastError().isEmpty() ? "Failed to get upload URL" : api.getLastError();
+            SM_LOG(errorMsg.toStdString());
             DBG("SessionManager: " + errorMsg);
             if (callback)
             {
@@ -462,6 +582,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
             return;
         }
         
+        SM_LOG("Got presigned URL, stemId: " << uploadInfo.stemId.toStdString());
         DBG("SessionManager: Got presigned URL, stemId: " + uploadInfo.stemId);
         
         bool s3Success = api.uploadFileToS3(uploadInfo.uploadUrl, localFile, contentType);
@@ -469,6 +590,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         if (!s3Success)
         {
             String errorMsg = api.getLastError().isEmpty() ? "Failed to upload to S3" : api.getLastError();
+            SM_LOG("S3 upload failed - " << errorMsg.toStdString());
             DBG("SessionManager: S3 upload failed - " + errorMsg);
             if (callback)
             {
@@ -479,6 +601,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
             return;
         }
         
+        SM_LOG("S3 upload successful, marking complete");
         DBG("SessionManager: S3 upload successful, marking complete");
         
         auto completedStem = api.completeStemUpload(sessionId, uploadInfo.stemId);
@@ -487,6 +610,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
         if (!completeSuccess)
         {
             String errorMsg = api.getLastError().isEmpty() ? "Failed to complete upload" : api.getLastError();
+            SM_LOG("Complete upload failed - " << errorMsg.toStdString());
             DBG("SessionManager: Complete upload failed - " + errorMsg);
             if (callback)
             {
@@ -497,6 +621,7 @@ void SessionManager::uploadStem(const URL& audioFile, std::function<void(bool su
             return;
         }
         
+        SM_LOG("Upload completed successfully");
         DBG("SessionManager: Upload completed successfully");
         
         if (callback)
@@ -512,6 +637,7 @@ void SessionManager::setState(State newState)
 {
     if (currentState != newState)
     {
+        SM_LOG("State change " << (int)currentState << " -> " << (int)newState);
         DBG("SessionManager: State change " + String((int)currentState) + " -> " + String((int)newState));
         currentState = newState;
     }
@@ -519,6 +645,8 @@ void SessionManager::setState(State newState)
 
 void SessionManager::clearSession()
 {
+    SM_LOG("Clearing session data");
+    DBG("SessionManager: Clearing session data");
     currentSessionId = "";
     currentSessionName = "";
     currentInviteUrl = "";
@@ -526,6 +654,7 @@ void SessionManager::clearSession()
     participants.clear();
     lastError = "";
 }
+
 
 String SessionManager::extractSessionCode(const String& input)
 {

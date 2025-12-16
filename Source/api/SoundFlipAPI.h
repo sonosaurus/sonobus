@@ -144,6 +144,7 @@ public:
     
     String getLastError() const { return lastError; }
     int getLastStatusCode() const { return lastStatusCode; }
+    String getAuthToken() const { return auth.getAccessToken(); }
 
 private:
     var makeRequest(const String& endpoint, 
@@ -164,11 +165,11 @@ private:
     
     // Development URL (local testing)
     String apiBaseUrl = "http://localhost:4400";
-    String wsBaseUrl = "ws://localhost:4400/ws/collab";
+    String wsBaseUrl = "ws://localhost:4401";
     
     // Production URL (uncomment for production)
-    // String apiBaseUrl = "https://api.soundflip.com";
-    // String wsBaseUrl = "wss://api.soundflip.com/ws/collab";
+    // String apiBaseUrl = "https://api.soundflip.xyz";
+    // String wsBaseUrl = "wss://api.soundflip.xyz/4401";
 
     String lastError;
     int lastStatusCode = 0;
