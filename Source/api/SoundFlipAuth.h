@@ -110,12 +110,12 @@ private:
     // URLs - Development vs Production
     
     // Development URLs (local testing)
-    const String webAuthUrl = "http://localhost:3000/auth/desktop";  // Next.js web app (browser opens this)
-    const String apiBaseUrl = "http://localhost:4400/api";           // NestJS API (desktop app calls this)
+    // const String webAuthUrl = "http://localhost:3000/auth/desktop";  // Next.js web app (browser opens this)
+    // const String apiBaseUrl = "http://localhost:4400/api";           // NestJS API (desktop app calls this)
     
     // Production URLs (uncomment these and comment above for production)
-    // const String webAuthUrl = "https://soundflip.xyz/auth/desktop";  // Next.js web app
-    // const String apiBaseUrl = "https://api.soundflip.xyz";           // NestJS API
+    const String webAuthUrl = "https://soundflip.xyz/auth/desktop";  // Next.js web app
+    const String apiBaseUrl = "https://api.soundflip.xyz/api";           // NestJS API
     
     static constexpr int tokenRefreshMarginSeconds = 300; // Refresh 5 min before expiry
 

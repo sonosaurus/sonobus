@@ -26,6 +26,14 @@ var SoundFlipAPI::makeRequest(const String& endpoint,
     lastStatusCode = 0;
     
     String accessToken = auth.getAccessToken();
+
+        // Debug output
+    std::cout << "=== makeRequest ===" << std::endl;
+    std::cout << "Endpoint: " << endpoint.toStdString() << std::endl;
+    std::cout << "Full URL: " << (apiBaseUrl + endpoint).toStdString() << std::endl;
+    std::cout << "Method: " << method.toStdString() << std::endl;
+    std::cout << "Has Token: " << (accessToken.isNotEmpty() ? "YES" : "NO") << std::endl;
+    
     if (accessToken.isEmpty())
     {
         lastError = "Not authenticated";

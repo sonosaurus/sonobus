@@ -164,12 +164,12 @@ private:
     // URLs - Development vs Production
     
     // Development URL (local testing)
-    String apiBaseUrl = "http://localhost:4400";
-    String wsBaseUrl = "ws://localhost:4401";
+    // String apiBaseUrl = "http://localhost:4400";
+    // String wsBaseUrl = "ws://localhost:4401";
     
     // Production URL (uncomment for production)
-    // String apiBaseUrl = "https://api.soundflip.xyz";
-    // String wsBaseUrl = "wss://api.soundflip.xyz/4401";
+    String apiBaseUrl = "https://api.soundflip.xyz";
+    String wsBaseUrl = "wss://api.soundflip.xyz/ws/collab";
 
     String lastError;
     int lastStatusCode = 0;
