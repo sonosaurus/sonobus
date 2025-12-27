@@ -1089,7 +1089,7 @@ void SonobusAudioProcessor::startAooServer()
     {
         const ScopedWriteLock sl (mCoreLock);
         int32_t err;
-        mAooServer.reset(aoo::net::iserver::create(10999, &err));
+        mAooServer.reset(aoo::net::iserver::create(10998, &err));
         
         if (err != 0) {
             DBG("Error creating Aoo Server: " << err);

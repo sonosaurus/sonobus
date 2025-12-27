@@ -24,6 +24,17 @@
 #include "OptionsView.h"
 #include "ReverbView.h"
 #include "VDONinjaView.h"
+#include "views/LoginView.h"
+#include "views/HomeView.h"
+#include "views/StartSessionView.h"
+#include "views/JoinSessionView.h"
+#include "views/ActiveSessionView.h"
+#include "views/EndSessionView.h"
+#include "views/SessionDetailView.h"
+#include "views/SettingsView.h"
+#include "api/SoundFlipAuth.h"
+#include "api/SoundFlipAPI.h"
+#include "managers/SessionManager.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -121,6 +132,16 @@ public:
 
     void updateUseKeybindings();
 
+    // SoundFlip Connect integration
+    void connectToSoundFlipSession(const String& serverHost, 
+                                    int serverPort, 
+                                    const String& groupName, 
+                                    const String& groupPassword, 
+                                    const String& username);
+
+    void disconnectSoundFlipSession();
+    bool isSoundFlipSessionActive() const { return mIsSoundFlipSession; }
+
 
     // file drop
 
@@ -128,6 +149,8 @@ public:
     void filesDropped (const StringArray& files, int /*x*/, int /*y*/) override;
     void fileDragEnter (const StringArray& files, int x, int y) override;
     void fileDragExit (const StringArray& files) override;
+
+    
 
     // client listener
     void aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg="") override;
@@ -211,7 +234,6 @@ private:
     void updateTransportState();
     
     void updateOptionsState(bool ignorecheck=false);
-
     
     String generateNewUsername(const AooServerConnectionInfo & info);
 
@@ -726,7 +748,42 @@ private:
     bool iaaConnected = false;
 
     File mSettingsFolder;
+
+    // SoundFlip Connect Views
+    std::unique_ptr<LoginView> mLoginView;
+    std::unique_ptr<HomeView> mHomeView;
+    std::unique_ptr<StartSessionView> mStartSessionView;
+    std::unique_ptr<JoinSessionView> mJoinSessionView;
+    std::unique_ptr<ActiveSessionView> mActiveSessionView;
+    std::unique_ptr<EndSessionView> mEndSessionView;
+    std::unique_ptr<SessionDetailView> mSessionDetailView;
+    std::unique_ptr<SettingsView> mSettingsView;
     
+    enum class AppScreen {
+        Login,
+        Home,
+        StartSession,
+        JoinSession,
+        ActiveSession,
+        EndSession,
+        SessionDetail,
+        Settings
+    };
+    AppScreen currentScreen = AppScreen::Login;
+    
+    void showScreen(AppScreen screen);
+    void setupSoundFlipViews();
+
+    // SoundFlip Connect Auth
+    std::unique_ptr<SoundFlipAuth> mSoundFlipAuth;
+    std::unique_ptr<SoundFlipAPI> mSoundFlipAPI;
+    std::unique_ptr<SessionManager> mSessionManager;
+
+    // SoundFlip session tracking
+    bool mIsSoundFlipSession = false;
+    String mPendingSoundFlipGroup;
+    String mPendingSoundFlipGroupPassword;
+    String mPendingJoinInviteCode; 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

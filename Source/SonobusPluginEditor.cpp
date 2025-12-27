@@ -23,6 +23,9 @@
 #include "SonoCallOutBox.h"
 #include <sstream>
 
+#include "api/SoundFlipAuth.h"
+#include "api/SoundFlipAPI.h"
+
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
 #include "juce_core/juce_core.h"
@@ -275,6 +278,11 @@ void SonobusAudioProcessorEditor::configEditor(TextEditor *editor, bool passwd)
 SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p),  sonoLookAndFeel(p.getUseUniversalFont()), sonoSliderLNF(13), smallLNF(14), teensyLNF(11), panSliderLNF(12)
 {
+   // Initialize SoundFlip Connect auth
+    mSoundFlipAuth = std::make_unique<SoundFlipAuth>();
+    mSoundFlipAPI = std::make_unique<SoundFlipAPI>(*mSoundFlipAuth);
+    mSessionManager = std::make_unique<SessionManager>(*mSoundFlipAPI);
+    
     if (p.getUseUniversalFont()) {
 #if JUCE_ANDROID
         SonoLookAndFeel::setFontScale(1.0f);
@@ -1306,7 +1314,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     if (JUCEApplicationBase::isStandaloneApp()) {
 #if !(JUCE_IOS || JUCE_ANDROID)
-        processor.startAooServer();
+        // Don't start internal server - using external SoundFlip server
+        // processor.startAooServer();
 #endif
         setResizable(true, false);
 
@@ -1375,10 +1384,32 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
     //setSize (defbounds.getWidth(), defbounds.getHeight());
 
-
     // to make sure transport area is initialized with the current state
     if (updateTransportWithURL(processor.getCurrentLoadedTransportURL())) {
         processor.getTransportSource().sendChangeMessage();
+    }
+
+    // Initialize SoundFlip Connect views
+    setupSoundFlipViews();
+
+    // Start with login screen (or home if already authenticated)
+    if (mSoundFlipAuth->isAuthenticated())
+    {
+        // Update home view with user info
+        String displayName = mSoundFlipAuth->getDisplayName();
+        String email = mSoundFlipAuth->getUserEmail();
+        if (displayName.isEmpty() && email.isNotEmpty()) {
+            int atIndex = email.indexOf("@");
+            if (atIndex > 0)
+                displayName = email.substring(0, atIndex);
+        }
+        mHomeView->setUserInfo(displayName, email);
+        
+        showScreen(AppScreen::Home);
+    }
+    else
+    {
+        showScreen(AppScreen::Login);
     }
 
 }
@@ -1573,8 +1604,6 @@ void SonobusAudioProcessorEditor::configLevelSlider(Slider * slider)
 
 
 
-//////////////////
-// these client listener callbacks will be from a different thread
 
 void SonobusAudioProcessorEditor::aooClientConnected(SonobusAudioProcessor *comp, bool success, const String & errmesg) 
 {
@@ -1583,6 +1612,60 @@ void SonobusAudioProcessorEditor::aooClientConnected(SonobusAudioProcessor *comp
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::ConnectEvent, success, errmesg));
     }
+    
+    // SoundFlip session handling - auto-join group after connection
+    if (mIsSoundFlipSession && success && mPendingSoundFlipGroup.isNotEmpty())
+    {
+        // Check if already in this group
+        String currentGroup = processor.getCurrentJoinedGroup();
+        if (currentGroup == mPendingSoundFlipGroup)
+        {
+            DBG("SoundFlip: Already in group " + mPendingSoundFlipGroup + ", skipping join");
+            mPendingSoundFlipGroup = "";
+            mPendingSoundFlipGroupPassword = "";
+            
+            if (mSessionManager)
+            {
+                mSessionManager->onSessionConnected();
+            }
+            
+            triggerAsyncUpdate();
+            return;
+        }
+        
+        DBG("SoundFlip: Connected to server, joining group: " + mPendingSoundFlipGroup);
+        
+        // Join the group now that we're connected
+        bool joinInitiated = processor.joinServerGroup(
+            mPendingSoundFlipGroup,
+            mPendingSoundFlipGroupPassword,
+            false // not public
+        );
+        
+        if (!joinInitiated)
+        {
+            DBG("SoundFlip: Failed to initiate group join");
+            mIsSoundFlipSession = false;
+            
+            if (mSessionManager)
+            {
+                mSessionManager->onConnectionFailed("Failed to join session group");
+            }
+        }
+    }
+    else if (mIsSoundFlipSession && !success)
+    {
+        DBG("SoundFlip: Connection failed - " + errmesg);
+        mIsSoundFlipSession = false;
+        mPendingSoundFlipGroup = "";
+        mPendingSoundFlipGroupPassword = "";
+        
+        if (mSessionManager)
+        {
+            mSessionManager->onConnectionFailed(errmesg);
+        }
+    }
+    
     triggerAsyncUpdate();
 }
 
@@ -1593,6 +1676,21 @@ void SonobusAudioProcessorEditor::aooClientDisconnected(SonobusAudioProcessor *c
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::DisconnectEvent, success, errmesg));
     }
+    
+    // SoundFlip session handling
+    if (mIsSoundFlipSession)
+    {
+        DBG("SoundFlip: Disconnected from session");
+        mIsSoundFlipSession = false;
+        mPendingSoundFlipGroup = "";
+        mPendingSoundFlipGroupPassword = "";
+        
+        if (mSessionManager)
+        {
+            mSessionManager->onSessionDisconnected();
+        }
+    }
+    
     triggerAsyncUpdate();
 }
 
@@ -1613,6 +1711,41 @@ void SonobusAudioProcessorEditor::aooClientGroupJoined(SonobusAudioProcessor *co
         const ScopedLock sl (clientStateLock);        
         clientEvents.add(ClientEvent(ClientEvent::GroupJoinEvent, group, success, errmesg));
     }
+    
+    // SoundFlip session handling
+    if (mIsSoundFlipSession && group == mPendingSoundFlipGroup)
+    {
+        if (success)
+        {
+            DBG("SoundFlip: Successfully joined group: " + group);
+            
+            // Clear pending info
+            mPendingSoundFlipGroup = "";
+            mPendingSoundFlipGroupPassword = "";
+            
+            // Notify SessionManager - this triggers UI transition to ActiveSessionView
+            if (mSessionManager)
+            {
+                mSessionManager->onSessionConnected();
+            }
+        }
+        else
+        {
+            DBG("SoundFlip: Failed to join group - " + errmesg);
+            mIsSoundFlipSession = false;
+            mPendingSoundFlipGroup = "";
+            mPendingSoundFlipGroupPassword = "";
+            
+            // Disconnect since group join failed
+            processor.disconnectFromServer();
+            
+            if (mSessionManager)
+            {
+                mSessionManager->onConnectionFailed("Failed to join session: " + errmesg);
+            }
+        }
+    }
+    
     triggerAsyncUpdate();
 }
 
@@ -2818,6 +2951,83 @@ void SonobusAudioProcessorEditor::updateSliderSnap()
 
 void SonobusAudioProcessorEditor::handleURL(const String & urlstr)
 {
+    // Handle SoundFlip Connect deep links
+    if (urlstr.startsWith("soundflipcollab://"))
+    {
+        URL parsedUrl(urlstr);
+        
+        // Check which type of deep link this is
+        bool isCallback = urlstr.contains("soundflipcollab://callback");
+        bool isJoin = urlstr.contains("soundflipcollab://join");
+        
+        if (isCallback)
+        {
+            // Auth callback
+            if (mSoundFlipAuth)
+            {
+                mSoundFlipAuth->handleDeepLink(urlstr);
+            }
+        }
+        else if (isJoin)
+        {
+            // Join session deep link
+            String inviteCode;
+            
+            // Extract invite parameter
+            StringArray paramNames = parsedUrl.getParameterNames();
+            StringArray paramValues = parsedUrl.getParameterValues();
+            
+            for (int i = 0; i < paramNames.size(); ++i)
+            {
+                if (paramNames[i] == "invite" || paramNames[i] == "code")
+                {
+                    inviteCode = paramValues[i];
+                    break;
+                }
+            }
+            
+            if (inviteCode.isNotEmpty())
+            {
+                DBG("SoundFlip: Received join deep link with invite code: " + inviteCode);
+                
+                // If authenticated, go to join view with pre-filled code
+                if (mSoundFlipAuth && mSoundFlipAuth->isAuthenticated())
+                {
+                    // Navigate to join session view and pre-fill the code
+                    showScreen(AppScreen::JoinSession);
+                    mJoinSessionView->setInviteCode(inviteCode);
+                }
+                else
+                {
+                    // Not authenticated - store pending invite and show login
+                    mPendingJoinInviteCode = inviteCode;
+                    showScreen(AppScreen::Login);
+                }
+            }
+            else
+            {
+                DBG("SoundFlip: Join deep link missing invite code");
+                
+                // Still navigate to join view, user can enter manually
+                if (mSoundFlipAuth && mSoundFlipAuth->isAuthenticated())
+                {
+                    showScreen(AppScreen::JoinSession);
+                }
+                else
+                {
+                    showScreen(AppScreen::Login);
+                }
+            }
+        }
+        else
+        {
+            DBG("SoundFlip: Unknown deep link path: " + urlstr);
+        }
+        
+        return;
+    }
+
+    // Handle SonoBus URLs (existing code)
     URL url(urlstr);
     if (url.isWellFormed()) {
         if (!currConnected || currGroup.isEmpty()) {
@@ -2879,6 +3089,95 @@ void SonobusAudioProcessorEditor::connectWithInfo(const AooServerConnectionInfo 
     if (!copyInfoOnly) {
         mConnectView->connectWithInfo(currConnectionInfo, allowEmptyGroup);
     }
+}
+
+
+void SonobusAudioProcessorEditor::connectToSoundFlipSession(const String& serverHost,
+                                                             int serverPort,
+                                                             const String& groupName,
+                                                             const String& groupPassword,
+                                                             const String& username)
+{
+    DBG("connectToSoundFlipSession - Server: " + serverHost + ":" + String(serverPort) + 
+        " Group: " + groupName + " User: " + username);
+    
+    // Check if already connected to this exact group
+    if (processor.isConnectedToServer() && processor.getCurrentJoinedGroup() == groupName)
+    {
+        DBG("SoundFlip: Already connected to group " + groupName);
+        mIsSoundFlipSession = true;
+        
+        // Update connection info for consistency
+        currConnectionInfo.serverHost = serverHost;
+        currConnectionInfo.serverPort = serverPort;
+        currConnectionInfo.groupName = groupName;
+        currConnectionInfo.groupPassword = groupPassword;
+        currConnectionInfo.userName = username;
+        currConnectionInfo.groupIsPublic = false;
+        
+        if (mSessionManager)
+        {
+            mSessionManager->onSessionConnected();
+        }
+        return;
+    }
+    
+    // Store SoundFlip session info
+    mIsSoundFlipSession = true;
+    mPendingSoundFlipGroup = groupName;
+    mPendingSoundFlipGroupPassword = groupPassword;
+    
+    // Populate the connection info struct that the editor uses for state tracking
+    currConnectionInfo.serverHost = serverHost;
+    currConnectionInfo.serverPort = serverPort;
+    currConnectionInfo.groupName = groupName;
+    currConnectionInfo.groupPassword = groupPassword;
+    currConnectionInfo.userName = username;
+    currConnectionInfo.groupIsPublic = false;
+    
+    // Disconnect if already connected to a different group/server
+    if (processor.isConnectedToServer())
+    {
+        DBG("Already connected to different group, disconnecting first...");
+        processor.disconnectFromServer();
+    }
+    
+    // Update username in processor
+    processor.setCurrentUsername(username);
+    
+    // Initiate connection - this is async, callbacks will handle the rest
+    bool initiated = processor.connectToServer(serverHost, serverPort, username, "");
+    
+    if (!initiated)
+    {
+        DBG("Failed to initiate SoundFlip connection");
+        mIsSoundFlipSession = false;
+        mPendingSoundFlipGroup = "";
+        mPendingSoundFlipGroupPassword = "";
+        
+        // Notify SessionManager of failure
+        if (mSessionManager)
+        {
+            mSessionManager->onConnectionFailed("Failed to initiate connection");
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::disconnectSoundFlipSession()
+{
+    if (mIsSoundFlipSession && processor.isConnectedToServer())
+    {
+        String currentGroup = processor.getCurrentJoinedGroup();
+        if (currentGroup.isNotEmpty())
+        {
+            processor.leaveServerGroup(currentGroup);
+        }
+        processor.disconnectFromServer();
+    }
+    
+    mIsSoundFlipSession = false;
+    mPendingSoundFlipGroup = "";
+    mPendingSoundFlipGroupPassword = "";
 }
 
 
@@ -4619,6 +4918,17 @@ void SonobusAudioProcessorEditor::resized()
 
     updateSliderSnap();
 
+    // Update SoundFlip view bounds
+    auto sfbounds = getLocalBounds();
+    if (mLoginView && mLoginView->isVisible()) mLoginView->setBounds(sfbounds);
+    if (mHomeView && mHomeView->isVisible()) mHomeView->setBounds(sfbounds);
+    if (mStartSessionView && mStartSessionView->isVisible()) mStartSessionView->setBounds(sfbounds);
+    if (mJoinSessionView && mJoinSessionView->isVisible()) mJoinSessionView->setBounds(sfbounds);
+    if (mActiveSessionView && mActiveSessionView->isVisible()) mActiveSessionView->setBounds(sfbounds);
+    if (mEndSessionView && mEndSessionView->isVisible()) mEndSessionView->setBounds(sfbounds);
+    if (mSessionDetailView && mSessionDetailView->isVisible()) mSessionDetailView->setBounds(sfbounds);
+    if (mSettingsView && mSettingsView->isVisible()) mSettingsView->setBounds(sfbounds);
+
 }
 
 
@@ -6041,3 +6351,282 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
 #endif
 }
 
+void SonobusAudioProcessorEditor::setupSoundFlipViews()
+{
+    // Create all views - pass editor pointer for connection management
+    mLoginView = std::make_unique<LoginView>(*mSoundFlipAuth);
+    mHomeView = std::make_unique<HomeView>(mSessionManager.get());
+    mStartSessionView = std::make_unique<StartSessionView>(mSessionManager.get(), this);
+    mJoinSessionView = std::make_unique<JoinSessionView>(mSessionManager.get(), this);
+    mActiveSessionView = std::make_unique<ActiveSessionView>(mSessionManager.get(), this, mSoundFlipAPI.get());
+    mEndSessionView = std::make_unique<EndSessionView>();
+    mSessionDetailView = std::make_unique<SessionDetailView>();
+
+    mSettingsView = std::make_unique<SettingsView>([this]() -> AudioDeviceManager* { 
+        return getAudioDeviceManager ? getAudioDeviceManager() : nullptr; 
+    });
+
+    // *** ADD THIS: Connect ActiveSessionView to processor for meters and peer names ***
+    mActiveSessionView->setProcessor(&processor);
+    
+    // Add all to main container but hide initially
+    addChildComponent(mLoginView.get());
+    addChildComponent(mHomeView.get());
+    addChildComponent(mStartSessionView.get());
+    addChildComponent(mJoinSessionView.get());
+    addChildComponent(mActiveSessionView.get());
+    addChildComponent(mEndSessionView.get());
+    addChildComponent(mSessionDetailView.get());
+    addChildComponent(mSettingsView.get());
+    
+    // Setup SessionManager callbacks for screen transitions
+    if (mSessionManager)
+    {
+        mSessionManager->onSessionConnectedCallback = [this]() {
+            showScreen(AppScreen::ActiveSession);
+        };
+        
+        mSessionManager->onSessionDisconnectedCallback = [this]() {
+            // Could show reconnect UI or go to end session
+            showScreen(AppScreen::EndSession);
+        };
+        
+        mSessionManager->onConnectionFailedCallback = [this](const String& error) {
+            // Stay on current screen but show error
+            // The view will handle displaying the error
+            ignoreUnused(error);
+        };
+    }
+    
+    mLoginView->onLoginSuccess = [this]() {
+        String displayName = mSoundFlipAuth->getDisplayName();
+        String email = mSoundFlipAuth->getUserEmail();
+        
+        if (displayName.isEmpty() && email.isNotEmpty()) {
+            int atIndex = email.indexOf("@");
+            if (atIndex > 0)
+                displayName = email.substring(0, atIndex);
+        }
+        
+        mHomeView->setUserInfo(displayName, email);
+        
+        // Check if we have a pending join invite from a deep link
+        if (mPendingJoinInviteCode.isNotEmpty())
+        {
+            showScreen(AppScreen::JoinSession);
+            mJoinSessionView->setInviteCode(mPendingJoinInviteCode);
+            mPendingJoinInviteCode.clear();
+        }
+        else
+        {
+            showScreen(AppScreen::Home);
+        }
+    };
+    
+    mHomeView->onStartSessionClicked = [this]() {
+        mStartSessionView->reset();
+        showScreen(AppScreen::StartSession);
+    };
+    
+    mHomeView->onJoinSessionClicked = [this]() {
+        mJoinSessionView->reset();
+        showScreen(AppScreen::JoinSession);
+    };
+    
+    mHomeView->onSettingsClicked = [this]() {
+        showScreen(AppScreen::Settings);
+    };
+    
+    mHomeView->onRecentSessionClicked = [this](int index) {
+        // Get session ID from recent sessions
+        if (mSessionManager)
+        {
+            const auto& recentSessions = mSessionManager->getRecentSessions();
+            if (index >= 0 && index < recentSessions.size())
+            {
+                const auto& session = recentSessions[index];
+                mSessionDetailView->setSession(session.id, mSoundFlipAPI.get());
+            }
+        }
+        showScreen(AppScreen::SessionDetail);
+    };
+    
+    mStartSessionView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mStartSessionView->onSessionStarted = [this]() {
+        // Session connected callback will handle transition
+    };
+    
+    mJoinSessionView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mJoinSessionView->onSessionJoined = [this](const String& sessionId) {
+        ignoreUnused(sessionId);
+        // Session connected callback will handle transition
+    };
+    
+    mActiveSessionView->onEndClicked = [this]() {
+        // Capture recording info BEFORE stopping/disconnecting
+        bool wasRecording = processor.isRecordingToFile();
+        double recordedDuration = processor.getElapsedRecordTime();
+        
+        // If still recording, stop it first
+        if (wasRecording)
+        {
+            processor.stopRecordingToFile();
+        }
+        
+        // Get the recorded file URL (lastRecordedFile is a member of SonobusPluginEditor)
+        URL recordedFile = lastRecordedFile;
+        
+        // Pass recording info to EndSessionView
+        mEndSessionView->setRecordingInfo(recordedFile, recordedDuration);
+        
+        disconnectSoundFlipSession();
+        showScreen(AppScreen::EndSession);
+    };
+    
+    mActiveSessionView->onRecordClicked = [this]() {
+        buttonClicked(mRecordingButton.get());
+        
+        // Update ActiveSessionView's recording state after toggle
+        bool isNowRecording = processor.isRecordingToFile();
+        double elapsed = isNowRecording ? 0.0 : processor.getElapsedRecordTime();
+        mActiveSessionView->updateRecordingState(isNowRecording, elapsed);
+    };
+    
+    mActiveSessionView->onChatClicked = [this]() {
+        showChatPanel(!mChatView->isVisible());
+        resized();
+    };
+    
+    mActiveSessionView->onInviteClicked = [this]() {
+        if (mSessionManager) {
+            String inviteUrl = mSessionManager->getInviteUrl();
+            if (inviteUrl.isNotEmpty()) {
+                SystemClipboard::copyTextToClipboard(inviteUrl);
+            }
+        }
+    };
+    
+    mEndSessionView->onUploadClicked = [this]() {
+        mStartSessionView->reset();
+        mJoinSessionView->reset();
+        showScreen(AppScreen::Home);
+    };
+    
+    mEndSessionView->onSaveLocallyClicked = [this]() {
+        mStartSessionView->reset();
+        mJoinSessionView->reset();
+        showScreen(AppScreen::Home);
+    };
+    
+    mEndSessionView->onDiscardClicked = [this]() {
+        mStartSessionView->reset();
+        mJoinSessionView->reset();
+        showScreen(AppScreen::Home);
+    };
+
+    
+    mSessionDetailView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mSessionDetailView->onOpenInSoundFlipClicked = [this]() {
+        // Open deep link
+    };
+    
+    mSessionDetailView->onDownloadStemClicked = [this](int index) {
+        ignoreUnused(index);
+    };
+    
+    mSettingsView->onBackClicked = [this]() {
+        showScreen(AppScreen::Home);
+    };
+    
+    mSettingsView->onSignOutClicked = [this]() {
+        mSoundFlipAuth->logout();
+        showScreen(AppScreen::Login);
+    };
+    
+    mSettingsView->onChangeRecordingFolderClicked = [this]() {
+        requestRecordDir([](URL){});
+    };
+}
+
+void SonobusAudioProcessorEditor::showScreen(AppScreen screen)
+{
+    // Hide all SoundFlip screens
+    mLoginView->setVisible(false);
+    mHomeView->setVisible(false);
+    mStartSessionView->setVisible(false);
+    mJoinSessionView->setVisible(false);
+    mActiveSessionView->setVisible(false);
+    mEndSessionView->setVisible(false);
+    mSessionDetailView->setVisible(false);
+    mSettingsView->setVisible(false);
+    
+    currentScreen = screen;
+    
+    auto bounds = getLocalBounds();
+    
+    // Determine if we should show original SonoBus UI or SoundFlip UI
+    bool showSonoBusUI = (screen == AppScreen::ActiveSession);
+    
+    // Show/hide the main SonoBus container and viewport
+    mTopLevelContainer->setVisible(showSonoBusUI);
+    
+    // Show the requested screen
+    switch (screen) {
+        case AppScreen::Login:
+            mLoginView->setBounds(bounds);
+            mLoginView->setVisible(true);
+            mLoginView->toFront(false);
+            break;
+        case AppScreen::Home:
+            mHomeView->setBounds(bounds);
+            mHomeView->setVisible(true);
+            mHomeView->toFront(false);
+            break;
+        case AppScreen::StartSession:
+            mStartSessionView->setBounds(bounds);
+            mStartSessionView->setVisible(true);
+            mStartSessionView->toFront(false);
+            break;
+        case AppScreen::JoinSession:
+            mJoinSessionView->setBounds(bounds);
+            mJoinSessionView->setVisible(true);
+            mJoinSessionView->toFront(false);
+            break;
+        case AppScreen::ActiveSession:
+            // *** ADD THIS: Ensure processor is connected for meters ***
+            mActiveSessionView->setProcessor(&processor);
+            
+            // For active session, we show the SonoBus UI
+            // The ActiveSessionView can overlay or integrate
+            mActiveSessionView->setBounds(bounds);
+            mActiveSessionView->setVisible(true);
+            mTopLevelContainer->setVisible(true);
+            mTopLevelContainer->toFront(false);
+            mActiveSessionView->toFront(false);
+            break;
+        case AppScreen::EndSession:
+            mEndSessionView->setBounds(bounds);
+            mEndSessionView->setVisible(true);
+            mEndSessionView->toFront(false);
+            break;
+        case AppScreen::SessionDetail:
+            mSessionDetailView->setBounds(bounds);
+            mSessionDetailView->setVisible(true);
+            mSessionDetailView->toFront(false);
+            break;
+        case AppScreen::Settings:
+            mSettingsView->setBounds(bounds);
+            mSettingsView->setVisible(true);
+            mSettingsView->toFront(false);
+            break;
+    }
+}
