@@ -1022,7 +1022,7 @@ private:
     Atomic<bool>   mSyncMetToHost  { false };
     Atomic<bool>   mSyncMetStartToPlayback  { false };
     Atomic<bool>   mReconnectAfterServerLoss  { true };
-    Atomic<float>   mMaxRecvPaddingMs  { 2.0f };
+    Atomic<float>   mMaxRecvPaddingMs  { 0.0f };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };
