@@ -87,7 +87,7 @@ void OSCManager::registerControl(const juce::String& address, ControlCallback ca
     controlRegistry[address] = callback;
     // Also register as a listener for this OSC address pattern
     addListener(this, address);
-    juce::Logger::writeToLog("Registered control for OSC address: " + address);
+    // juce::Logger::writeToLog("Registered control for OSC address: " + address);
 }
 
 // Unregister Control
@@ -99,7 +99,7 @@ void OSCManager::unregisterControl(const juce::String& address)
         controlRegistry.erase(it);
         // Note: JUCE doesn't provide a way to remove a specific listener,
         // but the callback will no longer be called since it's removed from the registry
-        juce::Logger::writeToLog("Unregistered control for OSC address: " + address);
+        // juce::Logger::writeToLog("Unregistered control for OSC address: " + address);
     }
 }
 
@@ -107,7 +107,7 @@ void OSCManager::unregisterControl(const juce::String& address)
 void OSCManager::oscMessageReceived(const juce::OSCMessage& message)
 {
     juce::String address = message.getAddressPattern().toString();
-    juce::Logger::writeToLog("Incoming OSC message: " + address);
+    // juce::Logger::writeToLog("Incoming OSC message: " + address);
     
     // Check if a callback is registered for this address
     auto it = controlRegistry.find(address);

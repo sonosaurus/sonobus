@@ -4388,7 +4388,7 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
 
 void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
 {
-    juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
+    // juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
     
     if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
         juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
@@ -4398,7 +4398,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     OSCManager& oscManager = processor.getOSCManager();
     String peerNum = String(peerIndex + 1);
     
-    juce::Logger::writeToLog("Clearing OSC state for Peer" + peerNum);
+    // juce::Logger::writeToLog("Clearing OSC state for Peer" + peerNum);
     
     // Clear username to empty string
     oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
