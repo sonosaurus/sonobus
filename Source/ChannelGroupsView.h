@@ -143,6 +143,10 @@ public:
 
     void effectsHeaderClicked(EffectsBaseView *comp) override;
 
+    // Public accessors for OSC control
+    MonitorDelayView* getDelayView() { return delayView.get(); }
+    ReverbSendView* getReverbSendView() { return reverbSendView.get(); }
+
 
     int  groupIndex = 0;
     bool peerMode = false;
@@ -373,6 +377,13 @@ public:
     void applyToAllSliders(std::function<void(Slider *)> & routine);
 
     void updateLayout(bool notify=true);
+    
+    // Getters for OSC access to nested controls
+    ChannelGroupView* getFileChannelView() { return mFileChannelView.get(); }
+    ChannelGroupView* getSoundboardChannelView() { return mSoundboardChannelView.get(); }
+    ChannelGroupView* getMetChannelView() { return mMetChannelView.get(); }
+    TextButton* getInReverbButton() { return mInReverbButton.get(); }
+    TextButton* getMonDelayButton() { return mMonDelayButton.get(); }
 
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };

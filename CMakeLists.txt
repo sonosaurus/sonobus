@@ -280,6 +280,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/MonitorDelayView.h
         Source/OptionsView.cpp
         Source/OptionsView.h
+        Source/OSCManager.cpp
+        Source/OSCManager.h
         Source/ParametricEqView.h
         Source/PeersContainerView.cpp
         Source/PeersContainerView.h
@@ -614,6 +616,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             juce::juce_dsp
 	    juce::juce_cryptography
             juce::juce_audio_plugin_client
+            juce::juce_osc
             
             ff_meters
             

@@ -22,7 +22,7 @@ if [ ! -d 'VST3' ]; then
   exit 2
 fi
 
-cd VST3 && cp -a * $TARGET
+cd VST3 && cp -av * $TARGET
 
 codesign --force --deep --sign - $TARGET/SonoBusMendeni.vst3/Contents/MacOS/SonoBusMendeni || exit 3
 

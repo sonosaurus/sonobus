@@ -27,26 +27,23 @@ jobs:
         if: runner.os == 'Windows'
         run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION:BOOL=ON -DJUCE_ASIO:BOOL=ON
 
-      - name: Configure CMake / Setup (Linux & macOS)
+      - name: Configure CMake (Linux & macOS)
         if: runner.os != 'Windows'
-        run: |
-          ./setupcmake.sh
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
+      - name: Build
         run: |
           cmake --build build --config Release --target SonoBusMendeni_Standalone
           cmake --build build --config Release --target SonoBusMendeni_VST3
 
-      - name: Build (Linux & macOS)
-        if: runner.os != 'Windows'
+      - name: Stage TouchOSC
         run: |
-          ./buildcmake.sh
+           cp util/SonoBusMendeni.tosc build/SonoBusMendeni_artefacts/Release
 
       - name: Stage VST3 Install Script (macOS)
         if: runner.os == 'macOS'
         run: |
-           cp -a util/install-macos-vst3.sh build/SonoBusMendeni_artefacts/Release
+           cp util/install-macos-vst3.sh build/SonoBusMendeni_artefacts/Release
 
       - name: Upload Sonobus artifacts (Windows & Linux)
         if: runner.os != 'macOS'
@@ -56,6 +53,7 @@ jobs:
           path: |
             build/SonoBusMendeni_artefacts/Release/Standalone
             build/SonoBusMendeni_artefacts/Release/VST3
+            build/SonoBusMendeni_artefacts/Release/SonoBusMendeni.tosc
 
       - name: Upload Sonobus artifacts
         if: runner.os == 'macOS'
@@ -66,3 +64,4 @@ jobs:
             build/SonoBusMendeni_artefacts/Release/Standalone
             build/SonoBusMendeni_artefacts/Release/VST3
             build/SonoBusMendeni_artefacts/Release/install-macos-vst3.sh
+            build/SonoBusMendeni_artefacts/Release/SonoBusMendeni.tosc

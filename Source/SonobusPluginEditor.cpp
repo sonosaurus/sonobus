@@ -5,6 +5,7 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonobusPluginEditor.h"
+#include "OSCManager.h"
 
 #include "BeatToggleGrid.h"
 
@@ -702,6 +703,31 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
+    
+    // Add parameter listeners for OSC message sending
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramWet, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDry, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetGain, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetTempo, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbLevel, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbSize, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbDamping, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbPreDelay, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbLevel, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbSize, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbDamping, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbPreDelay, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSyncMetToHost, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSyncMetToFilePlayback, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainInMute, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainMonitorSolo, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDynamicResampling, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramAutoReconnectLast, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultPeerLevel, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultAutoNetbuf, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultSendQual, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultNetbufMs, this);
 
 
     mConnectButton = std::make_unique<SonoTextButton>("directconnect");
@@ -1125,7 +1151,13 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         mPlaybackSlider->setPopupDisplayEnabled(true, true, this);
         mPlaybackSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
         mPlaybackSlider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
-        mPlaybackSlider->onValueChange = [this] { processor.setFilePlaybackGain(mPlaybackSlider->getValue()); };
+        mPlaybackSlider->onValueChange = [this] { 
+            processor.setFilePlaybackGain(mPlaybackSlider->getValue()); 
+            // Send OSC message for PlaybackSlider value change
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/PlaybackSlider", static_cast<float>(mPlaybackSlider->getValue()));
+            }
+        };
         mPlaybackSlider->setWantsKeyboardFocus(true);
 
         mFileSendAudioButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
@@ -1365,7 +1397,17 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
     processor.addClientListener(this);
     processor.getTransportSource().addChangeListener (this);
-
+    
+    // Register OSC controls with the OSCManager
+    // OSC controls are registered via registerAllOSCControls() when OSC is enabled
+    
+    // Register OSC controls if OSC is enabled
+    if (processor.getOSCEnabled()) {
+        registerAllOSCControls();
+        // Send all OSC state on startup to ensure controllers receive complete state
+        sendAllOSCState();
+    }
+    
     // handles registering commands
     updateUseKeybindings();
         
@@ -1396,8 +1438,3018 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 }
 
+
+void SonobusAudioProcessorEditor::registerAllOSCControls()
+{
+    if (mOSCControlsRegistered) {
+        return; // Already registered
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    
+    // Register OutGainSlider - updates slider value with a float
+    oscManager.registerControl("/OutGainSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+            juce::MessageManager::callAsync([this, value]() {
+                if (mOutGainSlider) {
+                    mOutGainSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MainMuteButton - toggles mute button state with a boolean
+    oscManager.registerControl("/MainMuteButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool muteState = false;
+            if (message[0].isInt32()) {
+                muteState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                muteState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, muteState]() {
+                if (mMainMuteButton) {
+                    mMainMuteButton->setToggleState(muteState, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register RecvSyncButton - triggers button click event (accepts only integer 1)
+    oscManager.registerControl("/RecvSyncButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            int value = message[0].getFloat32();
+            if (value == 1) {
+                juce::MessageManager::callAsync([this]() {
+                    if (mRecvSyncButton) {
+                        buttonClicked(mRecvSyncButton.get());
+                    }
+                });
+            }
+        }
+    });
+    
+    // Register OptionsMaxRecvPaddingSlider - updates sync receive padding parameter directly
+    oscManager.registerControl("/OptionsMaxRecvPaddingSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                // Set the parameter directly, which updates the processor's internal value
+                // and any UI controls (like the slider in Options view if open)
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMaxRecvPaddingMs)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecStealth - toggles stealth recording state with a boolean
+    oscManager.registerControl("/OptionsRecStealth", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool stealthState = false;
+            if (message[0].isInt32()) {
+                stealthState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                stealthState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, stealthState]() {
+                // Set the processor value directly, which updates internal state
+                // and any UI controls (like the checkbox in Options view if open)
+                processor.setRecordStealth(stealthState);
+                // Also update the UI checkbox if Options view is open
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecStealth()) {
+                        checkbox->setToggleState(stealthState, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register DrySlider - updates slider value with a float
+    oscManager.registerControl("/DrySlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+            juce::MessageManager::callAsync([this, value]() {
+                if (mDrySlider) {
+                    mDrySlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MainRecvMuteButton - toggles receive mute button state with a boolean
+    oscManager.registerControl("/MainRecvMuteButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool muteState = false;
+            if (message[0].isInt32()) {
+                muteState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                muteState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, muteState]() {
+                if (mMainRecvMuteButton) {
+                    mMainRecvMuteButton->setToggleState(muteState, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MainPushToTalkButton - triggers push to talk action (1 = press, 0 = release)
+    oscManager.registerControl("/MainPushToTalkButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mMainPushToTalkButton && mMainPushToTalkButton->isEnabled()) {
+                    if (value == 1) {
+                        // Push down
+                        if (auto* sendMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)) {
+                            mPushToTalkWasMuted = sendMuteParam->getValue() > 0;
+                        }
+                        if (auto* recvMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)) {
+                            recvMuteParam->setValueNotifyingHost(1.0);
+                        }
+                        if (auto* sendMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)) {
+                            sendMuteParam->setValueNotifyingHost(0.0);
+                        }
+                    } else if (value == 0) {
+                        // Release
+                        if (auto* sendMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)) {
+                            sendMuteParam->setValueNotifyingHost(mPushToTalkWasMuted ? 1.0 : 0.0);
+                        }
+                        if (auto* recvMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)) {
+                            recvMuteParam->setValueNotifyingHost(0.0);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register MetLevelSlider - updates slider value with a float
+    oscManager.registerControl("/MetLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mMetLevelSlider) {
+                    mMetLevelSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MetEnableButton - toggles metronome enable state with a boolean
+    oscManager.registerControl("/MetEnableButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool enableState = false;
+            if (message[0].isInt32()) {
+                enableState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                enableState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, enableState]() {
+                if (mMetEnableButton) {
+                    mMetEnableButton->setToggleState(enableState, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MetTempoSlider - updates slider value with a float
+    oscManager.registerControl("/MetTempoSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mMetTempoSlider) {
+                    mMetTempoSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register RecordingButton - toggles recording state with a boolean
+    oscManager.registerControl("/RecordingButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool recordState = false;
+            if (message[0].isInt32()) {
+                recordState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                recordState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, recordState]() {
+                if (mRecordingButton) {
+                    // Only trigger if state is different from current
+                    if (mRecordingButton->getToggleState() != recordState) {
+                        buttonClicked(mRecordingButton.get());
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register BufferMinButton - triggers buffer reset button click event (accepts only integer 1)
+    oscManager.registerControl("/BufferMinButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            int value = message[0].getFloat32();
+            if (value == 1) {
+                juce::MessageManager::callAsync([this]() {
+                    if (mBufferMinButton) {
+                        buttonClicked(mBufferMinButton.get());
+                    }
+                });
+            }
+        }
+    });
+    
+    // Register OptionsDynamicResamplingButton - toggles dynamic resampling state
+    oscManager.registerControl("/OptionsDynamicResamplingButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDynamicResampling)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsAutoReconnectButton - toggles auto-reconnect state
+    oscManager.registerControl("/OptionsAutoReconnectButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramAutoReconnectLast)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsInputLimiterButton - toggles input limiter state
+    oscManager.registerControl("/OptionsInputLimiterButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                // Apply limiter state to all input groups, matching the button handler behavior
+                SonoAudio::CompressorParams params;
+                for (int j=0; j < processor.getInputGroupCount(); ++j) {
+                    processor.getInputLimiterParams(j, params);
+                    params.enabled = state;
+                    processor.setInputLimiterParams(j, params);
+                }
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsInputLimiterButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsDefaultLevelSlider - updates default peer level parameter
+    oscManager.registerControl("/OptionsDefaultLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsAutosizeDefaultChoice - updates default autonetbuf parameter
+    oscManager.registerControl("/OptionsAutosizeDefaultChoice", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultAutoNetbuf)) {
+                    float normalizedValue = param->convertTo0to1(static_cast<float>(value));
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsFormatChoiceDefaultChoice - updates default send quality parameter
+    oscManager.registerControl("/OptionsFormatChoiceDefaultChoice", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultSendQual)) {
+                    float normalizedValue = param->convertTo0to1(static_cast<float>(value));
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsMetRecordedButton - toggles metronome recorded state
+    oscManager.registerControl("/OptionsMetRecordedButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMetIsRecorded)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecMixButton - toggles record mix state
+    oscManager.registerControl("/OptionsRecMixButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordMix;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordMix;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecMixButton()) {
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordMix) != 0, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecSelfButton - toggles record self state
+    oscManager.registerControl("/OptionsRecSelfButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordSelf;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordSelf;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecSelfButton()) {
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecOthersButton - toggles record others state
+    oscManager.registerControl("/OptionsRecOthersButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordIndividualUsers;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordIndividualUsers;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecOthersButton()) {
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecMixMinusButton
+    oscManager.registerControl("/OptionsRecMixMinusButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordMixMinusSelf;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordMixMinusSelf;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecMixMinusButton()) {
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordMixMinusSelf) != 0, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register MainReverbEnabled (replaces EffectsButton for OSC)
+    oscManager.registerControl("/MainReverbEnabled", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainReverbEnabled)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register ReverbLevelSlider
+    oscManager.registerControl("/ReverbLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mReverbLevelSlider) {
+                    mReverbLevelSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register ReverbSizeSlider
+    oscManager.registerControl("/ReverbSizeSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mReverbSizeSlider) {
+                    mReverbSizeSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register ReverbDampingSlider
+    oscManager.registerControl("/ReverbDampingSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mReverbDampingSlider) {
+                    mReverbDampingSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register ReverbPreDelaySlider
+    oscManager.registerControl("/ReverbPreDelaySlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mReverbPreDelaySlider) {
+                    mReverbPreDelaySlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MetSyncButton
+    oscManager.registerControl("/MetSyncButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSyncMetToHost)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register MetSyncFileButton
+    oscManager.registerControl("/MetSyncFileButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSyncMetToFilePlayback)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register InMuteButton
+    oscManager.registerControl("/InMuteButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainInMute)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register InSoloButton
+    oscManager.registerControl("/InSoloButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainMonitorSolo)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecSelfPostFxButton
+    oscManager.registerControl("/OptionsRecSelfPostFxButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setSelfRecordingPreFX(!state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecSelfPostFxButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecSelfSilenceMutedButton
+    oscManager.registerControl("/OptionsRecSelfSilenceMutedButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setSelfRecordingSilenceWhenMuted(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecSelfSilenceMutedButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsDisableShortcutButton
+    oscManager.registerControl("/OptionsDisableShortcutButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setDisableKeyboardShortcuts(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsDisableShortcutButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsChangeAllFormatButton
+    oscManager.registerControl("/OptionsChangeAllFormatButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setChangingDefaultAudioCodecSetsExisting(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsChangeAllFormatButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsAutoDropThreshSlider
+    oscManager.registerControl("/OptionsAutoDropThreshSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                // The slider value is converted to threshold: thresh = 1.0 / max(1.0, sliderValue)
+                auto thresh = 1.0 / jmax(1.0, static_cast<double>(value));
+                processor.setAutoresizeBufferDropRateThreshold(thresh);
+                if (mOptionsView) {
+                    if (auto* slider = mOptionsView->getOptionsAutoDropThreshSlider()) {
+                        slider->setValue(value, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register BufferTimeSlider
+    oscManager.registerControl("/BufferTimeSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultNetbufMs)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsUseSpecificUdpPortButton
+    oscManager.registerControl("/OptionsUseSpecificUdpPortButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setUseSpecificUdpPort(state ? processor.getUseSpecificUdpPort() : 0);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsUseSpecificUdpPortButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsOverrideSamplerateButton
+    oscManager.registerControl("/OptionsOverrideSamplerateButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsOverrideSamplerateButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsShouldCheckForUpdateButton
+    oscManager.registerControl("/OptionsShouldCheckForUpdateButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsShouldCheckForUpdateButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsUdpPortEditor
+    oscManager.registerControl("/OptionsUdpPortEditor", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int port = message[0].getInt32();
+            juce::MessageManager::callAsync([this, port]() {
+                processor.setUseSpecificUdpPort(port);
+                if (mOptionsView) {
+                    if (auto* editor = mOptionsView->getOptionsUdpPortEditor()) {
+                        editor->setText(String(port), juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OSCTargetIPAddress
+    oscManager.registerControl("/OSCTargetIPAddress", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isString()) {
+            String ipAddress = message[0].getString();
+            juce::MessageManager::callAsync([this, ipAddress]() {
+                processor.setOSCTargetIPAddress(ipAddress);
+                if (mOptionsView) {
+                    if (auto* editor = mOptionsView->getOSCTargetIPAddressEditor()) {
+                        editor->setText(ipAddress, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OSCTargetPort
+    oscManager.registerControl("/OSCTargetPort", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int port = message[0].getInt32();
+            juce::MessageManager::callAsync([this, port]() {
+                if (port >= 1 && port <= 65535) {
+                    processor.setOSCTargetPort(port);
+                    if (mOptionsView) {
+                        if (auto* editor = mOptionsView->getOSCTargetPortEditor()) {
+                            editor->setText(String(port), juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OSCReceivePort
+    oscManager.registerControl("/OSCReceivePort", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int port = message[0].getInt32();
+            juce::MessageManager::callAsync([this, port]() {
+                if (port >= 1 && port <= 65535) {
+                    processor.setOSCReceivePort(port);
+                    if (mOptionsView) {
+                        if (auto* editor = mOptionsView->getOSCReceivePortEditor()) {
+                            editor->setText(String(port), juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsSliderSnapToMouseButton
+    oscManager.registerControl("/OptionsSliderSnapToMouseButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setSlidersSnapToMousePosition(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsSliderSnapToMouseButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register MetSendButton
+    oscManager.registerControl("/MetSendButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendMetAudio)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register FileSendButton
+    oscManager.registerControl("/FileSendButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendFileAudio)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardSendButton
+    oscManager.registerControl("/SoundboardSendButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendSoundboardAudio)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register PlaybackSlider
+    oscManager.registerControl("/PlaybackSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setFilePlaybackGain(value);
+                if (mPlaybackSlider) {
+                    mPlaybackSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardLevelSlider
+    oscManager.registerControl("/SoundboardLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (processor.getSoundboardProcessor()) {
+                    processor.getSoundboardProcessor()->setGain(value);
+                    // Update UI if available
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        if (auto* soundboardView = channelGroups->getSoundboardChannelView()) {
+                            if (soundboardView->levelSlider) {
+                                soundboardView->levelSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardMonitorSlider
+    oscManager.registerControl("/SoundboardMonitorSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (processor.getSoundboardProcessor()) {
+                    processor.getSoundboardProcessor()->setMonitorGain(value);
+                    // Update UI if available
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        if (auto* soundboardView = channelGroups->getSoundboardChannelView()) {
+                            if (soundboardView->monitorSlider) {
+                                soundboardView->monitorSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register FileMonitorSlider
+    oscManager.registerControl("/FileMonitorSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setFilePlaybackMonitor(value);
+                // Update UI if available
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* fileView = channelGroups->getFileChannelView()) {
+                        if (fileView->monitorSlider) {
+                            fileView->monitorSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register MetPanSlider
+    oscManager.registerControl("/MetPanSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setMetronomePan(value);
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* metView = channelGroups->getMetChannelView()) {
+                        if (metView->panSlider) {
+                            metView->panSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register MetMonitorSlider
+    oscManager.registerControl("/MetMonitorSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setMetronomeMonitor(value);
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* metView = channelGroups->getMetChannelView()) {
+                        if (metView->monitorSlider) {
+                            metView->monitorSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbLevel
+    oscManager.registerControl("/InputReverbLevel", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbLevel)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbSize
+    oscManager.registerControl("/InputReverbSize", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbSize)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbDamping
+    oscManager.registerControl("/InputReverbDamping", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbDamping)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbPreDelay
+    oscManager.registerControl("/InputReverbPreDelay", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbPreDelay)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InReverbButton
+    oscManager.registerControl("/InReverbButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int trigger = message[0].getInt32();
+            if (trigger != 0) {
+                juce::MessageManager::callAsync([this]() {
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        if (auto* button = channelGroups->getInReverbButton()) {
+                            button->triggerClick();
+                        }
+                    }
+                });
+            }
+        }
+    });
+    
+    // Register MonDelayButton
+    oscManager.registerControl("/MonDelayButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* button = channelGroups->getMonDelayButton()) {
+                        if (button->getToggleState() != state) {
+                            button->triggerClick();
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register Input Group Pre Level sliders (support up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        String oscAddress = "/InputGroup" + String(groupIndex + 1) + "PreLevel";
+        oscManager.registerControl(oscAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    // Only set if the input group exists
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputGroupGain(groupIndex, value);
+                        // Update UI if the channel groups view exists
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Register File Playback Pre Level slider
+    oscManager.registerControl("/FilePlaybackPreLevel", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setFilePlaybackGain(value);
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    channelGroups->updateChannelViews();
+                }
+            });
+        }
+    });
+
+    // Register Input Group Pan, Monitor, and M.FX controls (support up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        // Pan slider (single channel)
+        String panAddress = "/InputGroup" + String(groupIndex + 1) + "Pan";
+        oscManager.registerControl(panAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputChannelPan(groupIndex, 0, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Pan slider (dual channel left)
+        String panLeftAddress = "/InputGroup" + String(groupIndex + 1) + "PanLeft";
+        oscManager.registerControl(panLeftAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputChannelPan(groupIndex, 0, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Pan slider (dual channel right)
+        String panRightAddress = "/InputGroup" + String(groupIndex + 1) + "PanRight";
+        oscManager.registerControl(panRightAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputChannelPan(groupIndex, 1, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Monitor slider
+        String monitorAddress = "/InputGroup" + String(groupIndex + 1) + "Monitor";
+        oscManager.registerControl(monitorAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputMonitor(groupIndex, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // M.FX Additional Monitoring Delay Enable
+        String monDelayEnableAddress = "/InputGroup" + String(groupIndex + 1) + "MonDelayEnable";
+        oscManager.registerControl(monDelayEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::DelayParams params;
+                        processor.getInputMonitorDelayParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputMonitorDelayParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // M.FX Delay Time
+        String monDelayTimeAddress = "/InputGroup" + String(groupIndex + 1) + "MonDelayTime";
+        oscManager.registerControl(monDelayTimeAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float delayTime = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, delayTime]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::DelayParams params;
+                        processor.getInputMonitorDelayParams(groupIndex, params);
+                        params.delayTimeMs = delayTime;
+                        processor.setInputMonitorDelayParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // M.FX Link Delay Time
+        String monDelayLinkAddress = "/InputGroup" + String(groupIndex + 1) + "MonDelayLink";
+        oscManager.registerControl(monDelayLinkAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool linked = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, linked]() {
+                    // Link delay is a global setting, not per-group
+                    processor.setLinkMonitoringDelayTimes(linked);
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        channelGroups->updateChannelViews();
+                    }
+                });
+            }
+        });
+        
+        // M.FX Main Reverb Send
+        String monReverbSendAddress = "/InputGroup" + String(groupIndex + 1) + "MonReverbSend";
+        oscManager.registerControl(monReverbSendAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float reverbSend = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, reverbSend]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputReverbSend(groupIndex, reverbSend, false);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Register Input Group Mute, Solo, and FX controls (support up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        // Mute toggle
+        String muteAddress = "/InputGroup" + String(groupIndex + 1) + "Mute";
+        oscManager.registerControl(muteAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool muted = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, muted]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputGroupMuted(groupIndex, muted);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Solo toggle
+        String soloAddress = "/InputGroup" + String(groupIndex + 1) + "Solo";
+        oscManager.registerControl(soloAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool soloed = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, soloed]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputGroupSoloed(groupIndex, soloed);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Input Reverb Send slider
+        String inputReverbSendAddress = "/InputGroup" + String(groupIndex + 1) + "InputReverbSend";
+        oscManager.registerControl(inputReverbSendAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float reverbSend = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, reverbSend]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputReverbSend(groupIndex, reverbSend, true);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Polarity Invert toggle
+        String polarityInvertAddress = "/InputGroup" + String(groupIndex + 1) + "PolarityInvert";
+        oscManager.registerControl(polarityInvertAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool inverted = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, inverted]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputPolarityInvert(groupIndex, inverted);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Enable toggle
+        String compressorEnableAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorEnable";
+        oscManager.registerControl(compressorEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Threshold
+        String compressorThresholdAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorThreshold";
+        oscManager.registerControl(compressorThresholdAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float threshold = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, threshold]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.thresholdDb = threshold;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Ratio
+        String compressorRatioAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorRatio";
+        oscManager.registerControl(compressorRatioAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, ratio]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.ratio = ratio;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Attack
+        String compressorAttackAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorAttack";
+        oscManager.registerControl(compressorAttackAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, attack]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.attackMs = attack;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Release
+        String compressorReleaseAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorRelease";
+        oscManager.registerControl(compressorReleaseAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, release]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.releaseMs = release;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Makeup Gain
+        String compressorMakeupGainAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorMakeupGain";
+        oscManager.registerControl(compressorMakeupGainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float makeupGain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, makeupGain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.makeupGainDb = makeupGain;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Auto Makeup Gain
+        String compressorAutoAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorAuto";
+        oscManager.registerControl(compressorAutoAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool autoMakeup = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, autoMakeup]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.automakeupGain = autoMakeup;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander (Noise Gate) Enable toggle
+        String expanderEnableAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderEnable";
+        oscManager.registerControl(expanderEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Noise Floor
+        String expanderNoiseFloorAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderNoiseFloor";
+        oscManager.registerControl(expanderNoiseFloorAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float noiseFloor = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, noiseFloor]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.thresholdDb = noiseFloor;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Ratio
+        String expanderRatioAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderRatio";
+        oscManager.registerControl(expanderRatioAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, ratio]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.ratio = ratio;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Attack
+        String expanderAttackAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderAttack";
+        oscManager.registerControl(expanderAttackAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, attack]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.attackMs = attack;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Release
+        String expanderReleaseAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderRelease";
+        oscManager.registerControl(expanderReleaseAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, release]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.releaseMs = release;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Parametric EQ Enable toggle
+        String eqEnableAddress = "/InputGroup" + String(groupIndex + 1) + "EqEnable";
+        oscManager.registerControl(eqEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Low Shelf Frequency
+        String eqLowShelfFreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqLowShelfFreq";
+        oscManager.registerControl(eqLowShelfFreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.lowShelfFreq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Low Shelf Gain
+        String eqLowShelfGainAddress = "/InputGroup" + String(groupIndex + 1) + "EqLowShelfGain";
+        oscManager.registerControl(eqLowShelfGainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.lowShelfGain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 1 Frequency
+        String eqPara1FreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara1Freq";
+        oscManager.registerControl(eqPara1FreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para1Freq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 1 Gain
+        String eqPara1GainAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara1Gain";
+        oscManager.registerControl(eqPara1GainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para1Gain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 1 Q
+        String eqPara1QAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara1Q";
+        oscManager.registerControl(eqPara1QAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, q]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para1Q = q;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ High Shelf Frequency
+        String eqHighShelfFreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqHighShelfFreq";
+        oscManager.registerControl(eqHighShelfFreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.highShelfFreq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ High Shelf Gain
+        String eqHighShelfGainAddress = "/InputGroup" + String(groupIndex + 1) + "EqHighShelfGain";
+        oscManager.registerControl(eqHighShelfGainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.highShelfGain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 2 Frequency
+        String eqPara2FreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara2Freq";
+        oscManager.registerControl(eqPara2FreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para2Freq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 2 Gain
+        String eqPara2GainAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara2Gain";
+        oscManager.registerControl(eqPara2GainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para2Gain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 2 Q
+        String eqPara2QAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara2Q";
+        oscManager.registerControl(eqPara2QAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, q]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para2Q = q;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Register Peer OSC controls (support up to 16 remote peers)
+    // Each peer maps to the first channel group (changroup=0) for FX controls
+    for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
+        // Peer Mute - Controls receive active state
+        String peerMuteAddress = "/Peer" + String(peerIndex + 1) + "Mute";
+        oscManager.registerControl(peerMuteAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool muted = message[0].getFloat32() != 0.0f;
+                juce::MessageManager::callAsync([this, peerIndex, muted]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        // Match UI behavior: when muting, use setRemotePeerRecvAllow to turn off receiving and allow
+                        // when unmuting, use setRemotePeerRecvActive to allow receiving and invites
+                        if (muted) {
+                            processor.setRemotePeerRecvAllow(peerIndex, false);
+                        } else {
+                            processor.setRemotePeerRecvActive(peerIndex, true);
+                        }
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Mute", muted ? 1.0 : 0.0);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Solo
+        String peerSoloAddress = "/Peer" + String(peerIndex + 1) + "Solo";
+        oscManager.registerControl(peerSoloAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool soloed = message[0].getFloat32() != 0.0f;
+                juce::MessageManager::callAsync([this, peerIndex, soloed]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerSoloed(peerIndex, soloed);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Solo", soloed ? 1.0 : 0.0);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Buffer Min - Resets jitter buffer to minimum (push button)
+        String peerBufferMinAddress = "/Peer" + String(peerIndex + 1) + "BufferMin";
+        oscManager.registerControl(peerBufferMinAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool trigger = message[0].getInt32() != 0;
+                if (trigger) {
+                    juce::MessageManager::callAsync([this, peerIndex]() {
+                        if (peerIndex < processor.getNumberRemotePeers()) {
+                            // Reset buffer time to minimum (0.0)
+                            float buftime = 0.0;
+                            processor.setRemotePeerBufferTime(peerIndex, buftime);
+                            // Update peer views
+                            if (auto* peersContainer = getPeersContainerView()) {
+                                peersContainer->updatePeerViews(peerIndex);
+                            }
+                            // Send OSC feedback (push button sends 1 when triggered)
+                            if (processor.getOSCEnabled()) {
+                                processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "BufferMin", 1);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        
+        // Peer Reset Drop - Resets packet drop statistics (push button)
+        String peerResetDropAddress = "/Peer" + String(peerIndex + 1) + "ResetDrop";
+        oscManager.registerControl(peerResetDropAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool trigger = message[0].getInt32() != 0;
+                if (trigger) {
+                    juce::MessageManager::callAsync([this, peerIndex]() {
+                        if (peerIndex < processor.getNumberRemotePeers()) {
+                            processor.resetRemotePeerPacketStats(peerIndex);
+                            // Send OSC feedback (push button sends 1 when triggered)
+                            if (processor.getOSCEnabled()) {
+                                processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ResetDrop", 1);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        
+        // Peer Level - Controls the level/gain for the peer
+        String peerLevelAddress = "/Peer" + String(peerIndex + 1) + "Level";
+        oscManager.registerControl(peerLevelAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float level = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+                juce::MessageManager::callAsync([this, peerIndex, level]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerLevelGain(peerIndex, level);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Level", level);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Pan - Controls the pan for the peer (channel group 0, channel 0)
+        String peerPanAddress = "/Peer" + String(peerIndex + 1) + "Pan";
+        oscManager.registerControl(peerPanAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float pan = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+                juce::MessageManager::callAsync([this, peerIndex, pan]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        // Set pan for channel group 0, channel 0
+                        processor.setRemotePeerChannelPan(peerIndex, 0, 0, pan);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Pan", pan);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Input Reverb Send (channel group 0)
+        String peerInputReverbSendAddress = "/Peer" + String(peerIndex + 1) + "InputReverbSend";
+        oscManager.registerControl(peerInputReverbSendAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float revSend = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, revSend]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerChannelReverbSend(peerIndex, 0, revSend);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "InputReverbSend", revSend);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Polarity Invert (channel group 0)
+        String peerPolarityInvertAddress = "/Peer" + String(peerIndex + 1) + "PolarityInvert";
+        oscManager.registerControl(peerPolarityInvertAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool inverted = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, inverted]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerPolarityInvert(peerIndex, 0, inverted);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "PolarityInvert", inverted ? 1 : 0);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Enable (channel group 0)
+        String peerCompressorEnableAddress = "/Peer" + String(peerIndex + 1) + "CompressorEnable";
+        oscManager.registerControl(peerCompressorEnableAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool enabled = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, enabled]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.enabled = enabled;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorEnable", enabled ? 1 : 0);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Threshold (channel group 0)
+        String peerCompressorThresholdAddress = "/Peer" + String(peerIndex + 1) + "CompressorThreshold";
+        oscManager.registerControl(peerCompressorThresholdAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float threshold = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, threshold]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.thresholdDb = threshold;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorThreshold", threshold);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Ratio (channel group 0)
+        String peerCompressorRatioAddress = "/Peer" + String(peerIndex + 1) + "CompressorRatio";
+        oscManager.registerControl(peerCompressorRatioAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, ratio]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.ratio = ratio;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRatio", ratio);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Attack (channel group 0)
+        String peerCompressorAttackAddress = "/Peer" + String(peerIndex + 1) + "CompressorAttack";
+        oscManager.registerControl(peerCompressorAttackAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, attack]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.attackMs = attack;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAttack", attack);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Release (channel group 0)
+        String peerCompressorReleaseAddress = "/Peer" + String(peerIndex + 1) + "CompressorRelease";
+        oscManager.registerControl(peerCompressorReleaseAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, release]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.releaseMs = release;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRelease", release);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Makeup Gain (channel group 0)
+        String peerCompressorMakeupGainAddress = "/Peer" + String(peerIndex + 1) + "CompressorMakeupGain";
+        oscManager.registerControl(peerCompressorMakeupGainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float makeupGain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, makeupGain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.makeupGainDb = makeupGain;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorMakeupGain", makeupGain);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Auto (channel group 0)
+        String peerCompressorAutoAddress = "/Peer" + String(peerIndex + 1) + "CompressorAuto";
+        oscManager.registerControl(peerCompressorAutoAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool autoMakeup = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, autoMakeup]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.automakeupGain = autoMakeup;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAuto", autoMakeup ? 1 : 0);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander (Noise Gate) Enable (channel group 0)
+        String peerExpanderEnableAddress = "/Peer" + String(peerIndex + 1) + "ExpanderEnable";
+        oscManager.registerControl(peerExpanderEnableAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool enabled = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, enabled]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.enabled = enabled;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderEnable", enabled ? 1 : 0);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Noise Floor (channel group 0)
+        String peerExpanderNoiseFloorAddress = "/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor";
+        oscManager.registerControl(peerExpanderNoiseFloorAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float noiseFloor = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, noiseFloor]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.thresholdDb = noiseFloor;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor", noiseFloor);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Ratio (channel group 0)
+        String peerExpanderRatioAddress = "/Peer" + String(peerIndex + 1) + "ExpanderRatio";
+        oscManager.registerControl(peerExpanderRatioAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, ratio]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.ratio = ratio;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRatio", ratio);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Attack (channel group 0)
+        String peerExpanderAttackAddress = "/Peer" + String(peerIndex + 1) + "ExpanderAttack";
+        oscManager.registerControl(peerExpanderAttackAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, attack]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.attackMs = attack;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderAttack", attack);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Release (channel group 0)
+        String peerExpanderReleaseAddress = "/Peer" + String(peerIndex + 1) + "ExpanderRelease";
+        oscManager.registerControl(peerExpanderReleaseAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, release]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.releaseMs = release;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRelease", release);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Parametric EQ Enable (channel group 0)
+        String peerEqEnableAddress = "/Peer" + String(peerIndex + 1) + "EqEnable";
+        oscManager.registerControl(peerEqEnableAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool enabled = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, enabled]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.enabled = enabled;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqEnable", enabled ? 1 : 0);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Low Shelf Frequency (channel group 0)
+        String peerEqLowShelfFreqAddress = "/Peer" + String(peerIndex + 1) + "EqLowShelfFreq";
+        oscManager.registerControl(peerEqLowShelfFreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.lowShelfFreq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfFreq", freq);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Low Shelf Gain (channel group 0)
+        String peerEqLowShelfGainAddress = "/Peer" + String(peerIndex + 1) + "EqLowShelfGain";
+        oscManager.registerControl(peerEqLowShelfGainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.lowShelfGain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfGain", gain);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 1 Frequency (channel group 0)
+        String peerEqPara1FreqAddress = "/Peer" + String(peerIndex + 1) + "EqPara1Freq";
+        oscManager.registerControl(peerEqPara1FreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para1Freq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Freq", freq);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 1 Gain (channel group 0)
+        String peerEqPara1GainAddress = "/Peer" + String(peerIndex + 1) + "EqPara1Gain";
+        oscManager.registerControl(peerEqPara1GainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para1Gain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Gain", gain);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 1 Q (channel group 0)
+        String peerEqPara1QAddress = "/Peer" + String(peerIndex + 1) + "EqPara1Q";
+        oscManager.registerControl(peerEqPara1QAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, q]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para1Q = q;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Q", q);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ High Shelf Frequency (channel group 0)
+        String peerEqHighShelfFreqAddress = "/Peer" + String(peerIndex + 1) + "EqHighShelfFreq";
+        oscManager.registerControl(peerEqHighShelfFreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.highShelfFreq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfFreq", freq);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ High Shelf Gain (channel group 0)
+        String peerEqHighShelfGainAddress = "/Peer" + String(peerIndex + 1) + "EqHighShelfGain";
+        oscManager.registerControl(peerEqHighShelfGainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.highShelfGain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfGain", gain);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 2 Frequency (channel group 0)
+        String peerEqPara2FreqAddress = "/Peer" + String(peerIndex + 1) + "EqPara2Freq";
+        oscManager.registerControl(peerEqPara2FreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para2Freq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Freq", freq);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 2 Gain (channel group 0)
+        String peerEqPara2GainAddress = "/Peer" + String(peerIndex + 1) + "EqPara2Gain";
+        oscManager.registerControl(peerEqPara2GainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para2Gain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Gain", gain);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 2 Q (channel group 0)
+        String peerEqPara2QAddress = "/Peer" + String(peerIndex + 1) + "EqPara2Q";
+        oscManager.registerControl(peerEqPara2QAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, q]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para2Q = q;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Q", q);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    
+    mOSCControlsRegistered = true;
+}
+
+void SonobusAudioProcessorEditor::unregisterAllOSCControls()
+{
+    if (!mOSCControlsRegistered) {
+        return; // Not registered
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    oscManager.unregisterControl("/OutGainSlider");
+    oscManager.unregisterControl("/MainMuteButton");
+    oscManager.unregisterControl("/RecvSyncButton");
+    oscManager.unregisterControl("/OptionsMaxRecvPaddingSlider");
+    oscManager.unregisterControl("/OptionsRecStealth");
+    oscManager.unregisterControl("/DrySlider");
+    oscManager.unregisterControl("/MainRecvMuteButton");
+    oscManager.unregisterControl("/MainPushToTalkButton");
+    oscManager.unregisterControl("/MetLevelSlider");
+    oscManager.unregisterControl("/MetEnableButton");
+    oscManager.unregisterControl("/MetTempoSlider");
+    oscManager.unregisterControl("/RecordingButton");
+    oscManager.unregisterControl("/BufferMinButton");
+    oscManager.unregisterControl("/OptionsDynamicResamplingButton");
+    oscManager.unregisterControl("/OptionsAutoReconnectButton");
+    oscManager.unregisterControl("/OptionsInputLimiterButton");
+    oscManager.unregisterControl("/OptionsDefaultLevelSlider");
+    oscManager.unregisterControl("/OptionsAutosizeDefaultChoice");
+    oscManager.unregisterControl("/OptionsFormatChoiceDefaultChoice");
+    oscManager.unregisterControl("/OptionsMetRecordedButton");
+    oscManager.unregisterControl("/OptionsRecMixButton");
+    oscManager.unregisterControl("/OptionsRecSelfButton");
+    oscManager.unregisterControl("/OptionsRecOthersButton");
+    oscManager.unregisterControl("/OptionsRecMixMinusButton");
+    oscManager.unregisterControl("/MainReverbEnabled");
+    oscManager.unregisterControl("/ReverbLevelSlider");
+    oscManager.unregisterControl("/ReverbSizeSlider");
+    oscManager.unregisterControl("/ReverbDampingSlider");
+    oscManager.unregisterControl("/ReverbPreDelaySlider");
+    oscManager.unregisterControl("/MetSyncButton");
+    oscManager.unregisterControl("/MetSyncFileButton");
+    oscManager.unregisterControl("/InMuteButton");
+    oscManager.unregisterControl("/InSoloButton");
+    oscManager.unregisterControl("/OptionsRecSelfPostFxButton");
+    oscManager.unregisterControl("/OptionsRecSelfSilenceMutedButton");
+    oscManager.unregisterControl("/OptionsDisableShortcutButton");
+    oscManager.unregisterControl("/OptionsChangeAllFormatButton");
+    oscManager.unregisterControl("/OptionsAutoDropThreshSlider");
+    oscManager.unregisterControl("/BufferTimeSlider");
+    oscManager.unregisterControl("/OptionsUseSpecificUdpPortButton");
+    oscManager.unregisterControl("/OptionsOverrideSamplerateButton");
+    oscManager.unregisterControl("/OptionsShouldCheckForUpdateButton");
+    oscManager.unregisterControl("/OptionsUdpPortEditor");
+    oscManager.unregisterControl("/OSCTargetIPAddress");
+    oscManager.unregisterControl("/OSCTargetPort");
+    oscManager.unregisterControl("/OSCReceivePort");
+    oscManager.unregisterControl("/OptionsSliderSnapToMouseButton");
+    oscManager.unregisterControl("/MetSendButton");
+    oscManager.unregisterControl("/FileSendButton");
+    oscManager.unregisterControl("/SoundboardSendButton");
+    oscManager.unregisterControl("/PlaybackSlider");
+    oscManager.unregisterControl("/SoundboardLevelSlider");
+    oscManager.unregisterControl("/SoundboardMonitorSlider");
+    oscManager.unregisterControl("/FileMonitorSlider");
+    oscManager.unregisterControl("/MetPanSlider");
+    oscManager.unregisterControl("/MetMonitorSlider");
+    oscManager.unregisterControl("/InputReverbLevel");
+    oscManager.unregisterControl("/InputReverbSize");
+    oscManager.unregisterControl("/InputReverbDamping");
+    oscManager.unregisterControl("/InputReverbPreDelay");
+    oscManager.unregisterControl("/InReverbButton");
+    oscManager.unregisterControl("/MonDelayButton");
+    
+    // Unregister Input Group Pre Level sliders (up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        String oscAddress = "/InputGroup" + String(groupIndex + 1) + "PreLevel";
+        oscManager.unregisterControl(oscAddress);
+    }
+    
+    // Unregister File Playback Pre Level
+    oscManager.unregisterControl("/FilePlaybackPreLevel");
+    
+    // Unregister Input Group Pan, Monitor, and M.FX controls (up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Pan");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "PanLeft");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "PanRight");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Monitor");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayTime");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayLink");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonReverbSend");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Mute");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Solo");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "InputReverbSend");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "PolarityInvert");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorThreshold");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorRatio");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorAttack");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorRelease");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorMakeupGain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorAuto");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderNoiseFloor");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderRatio");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderAttack");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderRelease");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqLowShelfFreq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqLowShelfGain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara1Freq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara1Gain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara1Q");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqHighShelfFreq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqHighShelfGain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Freq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Gain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Q");
+    }
+    
+    // Unregister Peer OSC controls (up to 16 peers)
+    for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Mute");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Solo");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "BufferMin");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ResetDrop");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Level");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Pan");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "InputReverbSend");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "PolarityInvert");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorEnable");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorThreshold");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorRatio");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorAttack");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorRelease");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorMakeupGain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorAuto");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderEnable");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderRatio");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderAttack");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderRelease");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqEnable");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqLowShelfFreq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqLowShelfGain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara1Freq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara1Gain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara1Q");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqHighShelfFreq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqHighShelfGain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Freq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Gain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Q");
+    }
+    
+    
+    mOSCControlsRegistered = false;
+}
+void SonobusAudioProcessorEditor::sendAllOSCState()
+{
+    if (!processor.getOSCEnabled()) {
+        return; // Don't send if OSC is not enabled
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    auto& vts = processor.getValueTreeState();
+    
+    // Send main controls
+    if (mOutGainSlider) {
+        oscManager.sendMessage("/OutGainSlider", static_cast<float>(mOutGainSlider->getValue()));
+    }
+    if (mDrySlider) {
+        oscManager.sendMessage("/DrySlider", static_cast<float>(mDrySlider->getValue()));
+    }
+    if (mMainMuteButton) {
+        oscManager.sendMessage("/MainMuteButton", mMainMuteButton->getToggleState() ? 1 : 0);
+    }
+    if (mMainRecvMuteButton) {
+        oscManager.sendMessage("/MainRecvMuteButton", mMainRecvMuteButton->getToggleState() ? 1 : 0);
+    }
+    if (mMainPushToTalkButton) {
+        oscManager.sendMessage("/MainPushToTalkButton", mMainPushToTalkButton->getToggleState() ? 1 : 0);
+    }
+    if (mInMuteButton) {
+        oscManager.sendMessage("/InMuteButton", mInMuteButton->getToggleState() ? 1 : 0);
+    }
+    if (mInSoloButton) {
+        oscManager.sendMessage("/InSoloButton", mInSoloButton->getToggleState() ? 1 : 0);
+    }
+    
+    // Send recording controls
+    if (mRecordingButton) {
+        oscManager.sendMessage("/RecordingButton", mRecordingButton->getToggleState() ? 1 : 0);
+    }
+    
+    // Send buffer controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramBufferTime)) {
+        oscManager.sendMessage("/BufferTimeSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    // Send metronome controls
+    if (mMetLevelSlider) {
+        oscManager.sendMessage("/MetLevelSlider", static_cast<float>(mMetLevelSlider->getValue()));
+    }
+    if (mMetEnableButton) {
+        oscManager.sendMessage("/MetEnableButton", mMetEnableButton->getToggleState() ? 1 : 0);
+    }
+    if (mMetTempoSlider) {
+        oscManager.sendMessage("/MetTempoSlider", static_cast<float>(mMetTempoSlider->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramMetIsRecorded)) {
+        oscManager.sendMessage("/OptionsMetRecordedButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendMetAudio)) {
+        oscManager.sendMessage("/MetSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSyncMetToFilePlayback)) {
+        oscManager.sendMessage("/MetSyncFileButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    // Send file playback controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendFileAudio)) {
+        oscManager.sendMessage("/FileSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (mPlaybackSlider) {
+        oscManager.sendMessage("/PlaybackSlider", static_cast<float>(mPlaybackSlider->getValue()));
+    }
+    oscManager.sendMessage("/FilePlaybackPreLevel", processor.getFilePlaybackGain());
+    oscManager.sendMessage("/FileMonitorSlider", processor.getFilePlaybackMonitor());
+    
+    // Send soundboard controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendSoundboardAudio)) {
+        oscManager.sendMessage("/SoundboardSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (processor.getSoundboardProcessor()) {
+        oscManager.sendMessage("/SoundboardLevelSlider", processor.getSoundboardProcessor()->getGain());
+        oscManager.sendMessage("/SoundboardMonitorSlider", processor.getSoundboardProcessor()->getMonitorGain());
+    }
+    
+    // Send metronome additional controls
+    oscManager.sendMessage("/MetPanSlider", processor.getMetronomePan());
+    oscManager.sendMessage("/MetMonitorSlider", processor.getMetronomeMonitor());
+    
+    // Send input reverb controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbLevel)) {
+        oscManager.sendMessage("/InputReverbLevel", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbSize)) {
+        oscManager.sendMessage("/InputReverbSize", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbDamping)) {
+        oscManager.sendMessage("/InputReverbDamping", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbPreDelay)) {
+        oscManager.sendMessage("/InputReverbPreDelay", param->convertFrom0to1(param->getValue()));
+    }
+    
+    // Send reverb controls
+    if (mReverbEnabledButton) {
+        oscManager.sendMessage("/MainReverbEnabled", mReverbEnabledButton->getToggleState() ? 1 : 0);
+    }
+    if (mReverbLevelSlider) {
+        oscManager.sendMessage("/ReverbLevelSlider", static_cast<float>(mReverbLevelSlider->getValue()));
+    }
+    if (mReverbSizeSlider) {
+        oscManager.sendMessage("/ReverbSizeSlider", static_cast<float>(mReverbSizeSlider->getValue()));
+    }
+    if (mReverbDampingSlider) {
+        oscManager.sendMessage("/ReverbDampingSlider", static_cast<float>(mReverbDampingSlider->getValue()));
+    }
+    if (mReverbPreDelaySlider) {
+        oscManager.sendMessage("/ReverbPreDelaySlider", static_cast<float>(mReverbPreDelaySlider->getValue()));
+    }
+    
+    // Send options controls that we know exist
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramMaxRecvPaddingMs)) {
+        oscManager.sendMessage("/OptionsMaxRecvPaddingSlider", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDynamicResampling)) {
+        oscManager.sendMessage("/OptionsDynamicResamplingButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramAutoReconnectLast)) {
+        oscManager.sendMessage("/OptionsAutoReconnectButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDefaultNetbufMs)) {
+        oscManager.sendMessage("/OptionsDefaultLevelSlider", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDefaultAutoNetbuf)) {
+        oscManager.sendMessage("/OptionsAutosizeDefaultChoice", static_cast<int>(param->getValue()));
+    }
+    oscManager.sendMessage("/OptionsRecStealth", processor.getRecordStealth() ? 1 : 0);
+    
+    // Send recording options controls
+    uint32 recOptions = processor.getDefaultRecordingOptions();
+    oscManager.sendMessage("/OptionsRecMixButton", (recOptions & SonobusAudioProcessor::RecordMix) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecMixMinusButton", (recOptions & SonobusAudioProcessor::RecordMixMinusSelf) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecSelfButton", (recOptions & SonobusAudioProcessor::RecordSelf) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecOthersButton", (recOptions & SonobusAudioProcessor::RecordIndividualUsers) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecSelfPostFxButton", !processor.getSelfRecordingPreFX() ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecSelfSilenceMutedButton", processor.getSelfRecordingSilenceWhenMuted() ? 1 : 0);
+    
+    // Send peer controls for all 16 slots
+    // Send active peer states for existing peers
+    int numPeers = processor.getNumberRemotePeers();
+    
+    for (int peerIndex = 0; peerIndex < numPeers && peerIndex < 16; ++peerIndex) {
+        String peerNum = String(peerIndex + 1);
+        
+        // Send active peer state
+        String username = processor.getRemotePeerUserName(peerIndex);
+        oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", username);
+        
+        // Peer mute/solo
+        bool muted = !processor.getRemotePeerRecvAllow(peerIndex);
+        oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1.0 : 0.0);
+        
+        bool soloed = processor.getRemotePeerSoloed(peerIndex);
+        oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1.0 : 0.0);
+        
+        // Peer level
+        float level = processor.getRemotePeerLevelGain(peerIndex);
+        oscManager.sendMessage("/Peer" + peerNum + "Level", level);
+        
+        // Peer pan
+        float pan = processor.getRemotePeerChannelPan(peerIndex, 0, 0);
+        oscManager.sendMessage("/Peer" + peerNum + "Pan", pan);
+        
+        // Peer FX - Compressor
+        SonoAudio::CompressorParams compParams;
+        processor.getRemotePeerCompressorParams(peerIndex, 0, compParams);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", compParams.enabled ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorThreshold", compParams.thresholdDb);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorRatio", compParams.ratio);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorAttack", compParams.attackMs);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorRelease", compParams.releaseMs);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorMakeupGain", compParams.makeupGainDb);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorAuto", compParams.automakeupGain ? 1 : 0);
+        
+        // Peer FX - Expander
+        SonoAudio::CompressorParams expanderParams;
+        processor.getRemotePeerExpanderParams(peerIndex, 0, expanderParams);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderEnable", expanderParams.enabled ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderNoiseFloor", expanderParams.thresholdDb);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderRatio", expanderParams.ratio);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderAttack", expanderParams.attackMs);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderRelease", expanderParams.releaseMs);
+        
+        // Peer FX - EQ
+        SonoAudio::ParametricEqParams eqParams;
+        processor.getRemotePeerEqParams(peerIndex, 0, eqParams);
+        oscManager.sendMessage("/Peer" + peerNum + "EqEnable", eqParams.enabled ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfFreq", eqParams.lowShelfFreq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfGain", eqParams.lowShelfGain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara1Freq", eqParams.para1Freq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara1Gain", eqParams.para1Gain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara1Q", eqParams.para1Q);
+        oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfFreq", eqParams.highShelfFreq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfGain", eqParams.highShelfGain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara2Freq", eqParams.para2Freq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara2Gain", eqParams.para2Gain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara2Q", eqParams.para2Q);
+        
+        // Peer FX - Reverb Send
+        float reverbSend = processor.getRemotePeerChannelReverbSend(peerIndex, 0);
+        oscManager.sendMessage("/Peer" + peerNum + "InputReverbSend", reverbSend);
+        
+        // Peer FX - Polarity Invert
+        bool polarityInvert = processor.getRemotePeerPolarityInvert(peerIndex, 0);
+        oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", polarityInvert ? 1 : 0);
+    }
+    
+    // Clear empty peer slots (from numPeers to 15) to ensure pristine state
+    for (int i = numPeers; i < 16; ++i) {
+        clearPeerOSCState(i);
+    }
+}
+
+void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
+{
+    if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= processor.getNumberRemotePeers()) {
+        return;
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    String peerNum = String(peerIndex + 1);
+    
+    // Send username (read-only control)
+    String username = processor.getRemotePeerUserName(peerIndex);
+    oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", username);
+    
+    // Send peer mute/solo
+    bool muted = !processor.getRemotePeerRecvAllow(peerIndex);
+    oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1.0 : 0.0);
+    
+    bool soloed = processor.getRemotePeerSoloed(peerIndex);
+    oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1.0 : 0.0);
+    
+    // Send peer level
+    float level = processor.getRemotePeerLevelGain(peerIndex);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", level);
+    
+    // Send peer pan (channel group 0, channel 0)
+    float pan = processor.getRemotePeerChannelPan(peerIndex, 0, 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Pan", pan);
+    
+    // Send compressor FX
+    SonoAudio::CompressorParams compParams;
+    processor.getRemotePeerCompressorParams(peerIndex, 0, compParams);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", compParams.enabled ? 1 : 0);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorThreshold", compParams.thresholdDb);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorRatio", compParams.ratio);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorAttack", compParams.attackMs);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorRelease", compParams.releaseMs);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorMakeupGain", compParams.makeupGainDb);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorAuto", compParams.automakeupGain ? 1 : 0);
+    
+    // Send expander FX
+    SonoAudio::CompressorParams expanderParams;
+    processor.getRemotePeerExpanderParams(peerIndex, 0, expanderParams);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderEnable", expanderParams.enabled ? 1 : 0);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderNoiseFloor", expanderParams.thresholdDb);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderRatio", expanderParams.ratio);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderAttack", expanderParams.attackMs);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderRelease", expanderParams.releaseMs);
+    
+    // Send EQ FX
+    SonoAudio::ParametricEqParams eqParams;
+    processor.getRemotePeerEqParams(peerIndex, 0, eqParams);
+    oscManager.sendMessage("/Peer" + peerNum + "EqEnable", eqParams.enabled ? 1 : 0);
+    oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfFreq", eqParams.lowShelfFreq);
+    oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfGain", eqParams.lowShelfGain);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara1Freq", eqParams.para1Freq);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara1Gain", eqParams.para1Gain);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara1Q", eqParams.para1Q);
+    oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfFreq", eqParams.highShelfFreq);
+    oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfGain", eqParams.highShelfGain);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara2Freq", eqParams.para2Freq);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara2Gain", eqParams.para2Gain);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara2Q", eqParams.para2Q);
+    
+    // Send reverb send
+    float reverbSend = processor.getRemotePeerChannelReverbSend(peerIndex, 0);
+    oscManager.sendMessage("/Peer" + peerNum + "InputReverbSend", reverbSend);
+    
+    // Send polarity invert
+    bool polarityInvert = processor.getRemotePeerPolarityInvert(peerIndex, 0);
+    oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", polarityInvert ? 1 : 0);
+}
+
+void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
+{
+    // juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
+    
+    if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
+        juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
+        return;
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    String peerNum = String(peerIndex + 1);
+    
+    // juce::Logger::writeToLog("Clearing OSC state for Peer" + peerNum);
+    
+    // Clear username to empty string
+    oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
+    
+    // Clear all other peer controls to default/off states
+    oscManager.sendMessage("/Peer" + peerNum + "Mute", 0.0);
+    oscManager.sendMessage("/Peer" + peerNum + "Solo", 0.0);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
+    
+    // Clear compressor
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", 0);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorThreshold", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorRatio", 1.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorAttack", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorRelease", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorMakeupGain", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "CompressorAuto", 0);
+    
+    // Clear expander
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderEnable", 0);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderNoiseFloor", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderRatio", 1.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderAttack", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "ExpanderRelease", 0.0f);
+    
+    // Clear EQ
+    oscManager.sendMessage("/Peer" + peerNum + "EqEnable", 0);
+    oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfFreq", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfGain", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara1Freq", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara1Gain", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara1Q", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfFreq", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfGain", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara2Freq", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara2Gain", 0.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "EqPara2Q", 0.0f);
+    
+    // Clear reverb send
+    oscManager.sendMessage("/Peer" + peerNum + "InputReverbSend", 0.0f);
+    
+    // Clear polarity invert
+    oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", 0);
+}
+
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 {
+    // Unregister OSC controls to prevent use-after-free
+    unregisterAllOSCControls();
+    
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
 #if JUCE_MAC
@@ -1425,6 +4477,31 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
+    
+    // Remove parameter listeners for OSC message sending
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramWet, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDry, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetGain, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetTempo, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbLevel, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbSize, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbDamping, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbPreDelay, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbLevel, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbSize, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbDamping, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbPreDelay, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSyncMetToHost, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSyncMetToFilePlayback, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainInMute, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainMonitorSolo, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDynamicResampling, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramAutoReconnectLast, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultPeerLevel, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultAutoNetbuf, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultSendQual, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultNetbufMs, this);
 
 
     
@@ -1704,9 +4781,31 @@ void SonobusAudioProcessorEditor::aooClientPeerJoinBlocked(SonobusAudioProcessor
 void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user)  
 {
     DBG("Client peer '" << user  << "' left group '" <<  group << "'");
+    
+    // Find peer index NOW before the peer is removed from the processor's list
+    int peerIndex = -1;
+    if (processor.getOSCEnabled()) {
+        int numPeers = processor.getNumberRemotePeers();
+        juce::Logger::writeToLog("Looking for peer '" + user + "' among " + String(numPeers) + " peers for OSC clear");
+        for (int i = 0; i < jmin(numPeers, 16); ++i) {
+            String peerName = processor.getRemotePeerUserName(i);
+            juce::Logger::writeToLog("Checking peer " + String(i) + ": " + peerName);
+            if (peerName == user) {
+                peerIndex = i;
+                juce::Logger::writeToLog("Found peer '" + user + "' at index " + String(peerIndex));
+                break;
+            }
+        }
+        if (peerIndex < 0) {
+            juce::Logger::writeToLog("WARNING: Could not find peer '" + user + "' in peer list - OSC state will not be cleared");
+        }
+    }
+    
     {
         const ScopedLock sl (clientStateLock);        
-        clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user));
+        // Store the peer index in floatVal so we can clear OSC state in async handler
+        juce::Logger::writeToLog("Storing peerIndex " + String(peerIndex) + " for peer '" + user + "' in PeerLeaveEvent");
+        clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user, static_cast<float>(peerIndex)));
     }
     triggerAsyncUpdate();
 
@@ -2022,6 +5121,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             mConnectButton->setTextJustification(Justification::centredTop);
             mConnectionTimeLabel->setEnabled(true);
 
+            // Clear OSC state for all peer slots when disconnecting
+            if (processor.getOSCEnabled()) {
+                for (int i = 0; i < 16; ++i) {
+                    clearPeerOSCState(i);
+                }
+            }
+
             if (processor.getWatchPublicGroups()) {
                 processor.leaveServerGroup(processor.getCurrentJoinedGroup());
             }
@@ -2080,10 +5186,15 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showEffectsConfig(true);
         } else {
             showEffectsConfig(false);
-        }        
+        }
     }
     else if (buttonThatWasClicked == mBufferMinButton.get()) {
         resetJitterBufferForAll();
+        
+        // Send OSC message for BufferMinButton click
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/BufferMinButton", 1);
+        }
     }
     else if (buttonThatWasClicked == mRecvSyncButton.get()) {
         SonobusAudioProcessor::LatencyInfo latinfo;
@@ -2110,6 +5221,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             // set peer jitter buffer to new value
             processor.setRemotePeerBufferTime(j, processor.getRemotePeerBufferTime(j) + deltaMs);
         }
+        
+        // Send OSC message for RecvSyncButton click
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/RecvSyncButton", 1);
+        }
     }
     else if (buttonThatWasClicked == mMainMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
@@ -2118,6 +5234,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showPopTip(TRANS("Not sending your audio anywhere"), 3000, mMainMuteButton.get());
         } else {
             showPopTip(TRANS("Sending your audio to others"), 3000, mMainMuteButton.get());
+        }
+        
+        // Send OSC message for MainMuteButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainMuteButton", mMainMuteButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mMonDelayButton.get()) {
@@ -2145,6 +5266,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             } else {
                 showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMainRecvMuteButton.get());
             }
+        }
+        
+        // Send OSC message for MainRecvMuteButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainRecvMuteButton", mMainRecvMuteButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mMetSendButton.get()) {
@@ -2369,6 +5495,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             mFileRecordingLabel->setText("", dontSendNotification);
             mRecordingButton->setToggleState(true, dontSendNotification);
 
+        }
+        
+        // Send OSC message for RecordingButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/RecordingButton", processor.isRecordingToFile() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mFileBrowseButton.get()) {
@@ -3344,6 +6475,11 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
             mPushToTalkWasMuted = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue() > 0;
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(1.0);            
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
+            
+            // Send OSC message for MainPushToTalkButton press
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/MainPushToTalkButton", 1);
+            }
         }
     }
 }
@@ -3361,6 +6497,11 @@ void SonobusAudioProcessorEditor::mouseUp (const MouseEvent& event)
             // back to mute self, hear others
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(mPushToTalkWasMuted ? 1.0 : 0.0);            
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(0.0);
+            
+            // Send OSC message for MainPushToTalkButton release
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/MainPushToTalkButton", 0);
+            }
         }
     }
     else if (event.eventComponent == mReverbTitleLabel.get()) {
@@ -3840,14 +6981,52 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         }
         triggerAsyncUpdate();
     }
-    else if (pname == SonobusAudioProcessor::paramMainRecvMute) {
+    else if (pname == SonobusAudioProcessor::paramWet) {
+        // Send OSC message for OutGainSlider (wet) value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OutGainSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMaxRecvPaddingMs) {
+        // Send OSC message for OptionsMaxRecvPaddingSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsMaxRecvPaddingSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDry) {
+        // Send OSC message for DrySlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/DrySlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMetGain) {
+        // Send OSC message for MetLevelSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetLevelSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMetTempo) {
+        // Send OSC message for MetTempoSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetTempoSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMetEnabled) {
+        // Send OSC message for MetEnableButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetEnableButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
         }
         triggerAsyncUpdate();
     }
-    else if (pname == SonobusAudioProcessor::paramMetEnabled) {
+    else if (pname == SonobusAudioProcessor::paramMainRecvMute) {
+        // Send OSC message for MainRecvMuteButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainRecvMuteButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -3855,13 +7034,57 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramMetIsRecorded) {
+        // Send OSC message for OptionsMetRecordedButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsMetRecordedButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
         }
         triggerAsyncUpdate();
     }
+    else if (pname == SonobusAudioProcessor::paramDynamicResampling) {
+        // Send OSC message for OptionsDynamicResamplingButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsDynamicResamplingButton", newValue > 0 ? 1 : 0);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramAutoReconnectLast) {
+        // Send OSC message for OptionsAutoReconnectButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsAutoReconnectButton", newValue > 0 ? 1 : 0);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultPeerLevel) {
+        // Send OSC message for OptionsDefaultLevelSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsDefaultLevelSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultAutoNetbuf) {
+        // Send OSC message for OptionsAutosizeDefaultChoice value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsAutosizeDefaultChoice", static_cast<int>(newValue));
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultSendQual) {
+        // Send OSC message for OptionsFormatChoiceDefaultChoice value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsFormatChoiceDefaultChoice", static_cast<int>(newValue));
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultNetbufMs) {
+        // Send OSC message for BufferTimeSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/BufferTimeSlider", newValue);
+        }
+    }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {
+        // Send OSC message for FileSendButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/FileSendButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -3869,6 +7092,21 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramSendSoundboardAudio) {
+        // Send OSC message for SoundboardSendButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/SoundboardSendButton", newValue > 0 ? 1 : 0);
+        }
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramSendMetAudio) {
+        // Send OSC message for MetSendButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetSendButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -3883,11 +7121,87 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramMainReverbEnabled) {
+        // Send OSC message for MainReverbEnabled state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainReverbEnabled", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
         }
         triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramMainReverbLevel) {
+        // Send OSC message for ReverbLevelSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/ReverbLevelSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMainReverbSize) {
+        // Send OSC message for ReverbSizeSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/ReverbSizeSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMainReverbDamping) {
+        // Send OSC message for ReverbDampingSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/ReverbDampingSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMainReverbPreDelay) {
+        // Send OSC message for ReverbPreDelaySlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/ReverbPreDelaySlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbLevel) {
+        // Send OSC message for InputReverbLevel value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbLevel", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbSize) {
+        // Send OSC message for InputReverbSize value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbSize", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbDamping) {
+        // Send OSC message for InputReverbDamping value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbDamping", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbPreDelay) {
+        // Send OSC message for InputReverbPreDelay value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbPreDelay", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramSyncMetToHost) {
+        // Send OSC message for MetSyncButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetSyncButton", newValue > 0 ? 1 : 0);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramSyncMetToFilePlayback) {
+        // Send OSC message for MetSyncFileButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetSyncFileButton", newValue > 0 ? 1 : 0);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMainInMute) {
+        // Send OSC message for InMuteButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InMuteButton", newValue > 0 ? 1 : 0);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMainMonitorSolo) {
+        // Send OSC message for InSoloButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InSoloButton", newValue > 0 ? 1 : 0);
+        }
     }
     else if (pname == SonobusAudioProcessor::paramSendChannels) {
         {
@@ -4098,6 +7412,13 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             if (ev.success) {
                 statstr = TRANS("Left Group: ") + ev.group;
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+                
+                // Clear OSC state for all peer slots when leaving group
+                if (processor.getOSCEnabled()) {
+                    for (int i = 0; i < 16; ++i) {
+                        clearPeerOSCState(i);
+                    }
+                }
             } else {
                 // this situation is frequent but inactionable by users
                 // statstr = TRANS("Failed to leave group: ") + ev.message;
@@ -4130,10 +7451,21 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
             }
 
-            // delay update
-            Timer::callAfterDelay(200, [this] {
+            // delay update and send OSC state
+            Timer::callAfterDelay(200, [this, username = ev.user] {
                 updatePeerState(true);
                 updateState(false);
+                
+                // Send OSC state for the newly joined peer
+                if (processor.getOSCEnabled()) {
+                    int numPeers = processor.getNumberRemotePeers();
+                    for (int i = 0; i < jmin(numPeers, 16); ++i) {
+                        if (processor.getRemotePeerUserName(i) == username) {
+                            sendPeerOSCState(i);
+                            break;
+                        }
+                    }
+                }
             });
         }
         else if (ev.type == ClientEvent::PeerLeaveEvent) {
@@ -4141,6 +7473,13 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 String mesg;
                 mesg << ev.user << TRANS(" - left group");
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            }
+
+            // Clear OSC state using the peer index that was captured when aooClientPeerLeft was called
+            // (stored in floatVal field)
+            if (processor.getOSCEnabled() && ev.floatVal >= 0.0f) {
+                int peerIndex = static_cast<int>(ev.floatVal);
+                clearPeerOSCState(peerIndex);
             }
 
             mPeerContainer->peerLeftGroup(ev.group, ev.user);
@@ -5967,6 +9306,12 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             DBG("got disconnect!");
             
             if (currConnected && currGroup.isNotEmpty()) {
+                // Clear OSC state for all peer slots when disconnecting
+                if (processor.getOSCEnabled()) {
+                    for (int i = 0; i < 16; ++i) {
+                        clearPeerOSCState(i);
+                    }
+                }
                 buttonClicked(mConnectButton.get());
             }
 
@@ -6140,4 +9485,3 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
     }
 #endif
 }
-

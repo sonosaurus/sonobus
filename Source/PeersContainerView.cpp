@@ -2031,6 +2031,11 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                     // turns off receiving and allow
                     processor.setRemotePeerRecvAllow(i, false);             
                 }
+                
+                // Send OSC feedback for Peer Mute (only for first 16 peers)
+                if (processor.getOSCEnabled() && i < 16) {
+                    processor.getOSCManager().sendMessage("/Peer" + String(i + 1) + "Mute", pvf->recvMutedButton->getToggleState() ? 1.0 : 0.0);
+                }
             }
             return;
         }
@@ -2046,6 +2051,12 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                     else {
                         processor.setRemotePeerSoloed(j, false); 
                     }
+                    
+                    // Send OSC feedback for each peer Solo state (only for first 16 peers)
+                    if (processor.getOSCEnabled() && j < 16) {
+                        bool soloState = buttonThatWasClicked->getToggleState() && (i == j);
+                        processor.getOSCManager().sendMessage("/Peer" + String(j + 1) + "Solo", soloState ? 1.0 : 0.0);
+                    }
                 }
                     
                 // disable solo for main monitor too
@@ -2054,6 +2065,12 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                 updatePeerViews();
             } else {
                 processor.setRemotePeerSoloed(i, buttonThatWasClicked->getToggleState()); 
+                
+                // Send OSC feedback for Peer Solo (only for first 16 peers)
+                if (processor.getOSCEnabled() && i < 16) {
+                    processor.getOSCManager().sendMessage("/Peer" + String(i + 1) + "Solo", buttonThatWasClicked->getToggleState() ? 1.0 : 0.0);
+                }
+                
                 updatePeerViews();
             }
             return;
@@ -2144,13 +2161,23 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                         processor.setRemotePeerBufferTime(j, buftime);
                         if (i==j) {
                             pvf->bufferTimeSlider->setValue(buftime, dontSendNotification);
-                        }                            
+                        }
+                        
+                        // Send OSC feedback for BufferMin (only for first 16 peers)
+                        if (processor.getOSCEnabled() && j < 16) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(j + 1) + "BufferMin", 1);
+                        }
                     }
                 }
             } else {
                 float buftime = 0.0;
                 processor.setRemotePeerBufferTime(i, buftime);
                 pvf->bufferTimeSlider->setValue(buftime, dontSendNotification);
+                
+                // Send OSC feedback for BufferMin (only for first 16 peers)
+                if (processor.getOSCEnabled() && i < 16) {
+                    processor.getOSCManager().sendMessage("/Peer" + String(i + 1) + "BufferMin", 1);
+                }
             }
             
             updatePeerViews();

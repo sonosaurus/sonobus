@@ -55,6 +55,11 @@ public:
         linkButton.setButtonText(TRANS("Link Delay Time with other inputs"));
         linkButton.onClick = [this]() {
             processor.setLinkMonitoringDelayTimes(linkButton.getToggleState());
+            
+            // Send OSC message for link button state change (only for input groups >= 0)
+            if (processor.getOSCEnabled() && mGroupIndex >= 0) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(mGroupIndex + 1) + "MonDelayLink", linkButton.getToggleState() ? 1.0f : 0.0f);
+            }
         };
 
         // these are in the header component
@@ -189,6 +194,11 @@ public:
         if (buttonThatWasClicked == &enableButton) {
             mParams.enabled = enableButton.getToggleState();
             headerComponent.repaint();
+            
+            // Send OSC message for enable button state change (only for input groups >= 0)
+            if (processor.getOSCEnabled() && mGroupIndex >= 0) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(mGroupIndex + 1) + "MonDelayEnable", mParams.enabled ? 1.0f : 0.0f);
+            }
         }
         else if (buttonThatWasClicked == &autoButton) {
             auto autoScalar = autoModeChoice.getSelectedItemIndex() == 1 ? 2.0f : 1.0f;
@@ -206,6 +216,11 @@ public:
         mParams.enabled = !enableButton.getToggleState();
         //processor.setMonitoringDelayActive(!enableButton.getToggleState());
         updateParams(mParams);
+        
+        // Send OSC message for enable button state change (only for input groups >= 0)
+        if (processor.getOSCEnabled() && mGroupIndex >= 0) {
+            processor.getOSCManager().sendMessage("/InputGroup" + String(mGroupIndex + 1) + "MonDelayEnable", mParams.enabled ? 1.0f : 0.0f);
+        }
 
         listeners.call (&MonitorDelayView::Listener::monitorDelayParamsChanged, this, mParams);
     }
@@ -249,6 +264,10 @@ public:
         headerComponent.repaint();
     }
 
+    // Setter for group index (needed for OSC addressing)
+    void setGroupIndex(int index) { mGroupIndex = index; }
+    int getGroupIndex() const { return mGroupIndex; }
+
     
 private:
     
@@ -274,6 +293,7 @@ private:
     FlexBox infoBox;
 
     SonoAudio::DelayParams mParams;
+    int mGroupIndex = 0;  // Group index for OSC addressing
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MonitorDelayView)
