@@ -33,6 +33,12 @@ public:
 private:
     void oscMessageReceived(const juce::OSCMessage& message) override;
 
+    // Helper: addresses that use inverted 0/1 semantics on the wire
+    static inline bool isInvertedOSCAddress(const juce::String& address)
+    {
+        return address == "/MainMuteButton" || address == "/BufferMinButton";
+    }
+
     juce::OSCSender sender;
     bool senderConnected = false;  // Track sender connection state
     
