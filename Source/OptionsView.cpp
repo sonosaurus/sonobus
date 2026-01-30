@@ -366,7 +366,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mMaxRecvPaddingAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMaxRecvPaddingMs, *mOptionsMaxRecvPaddingSlider);
 
-    mOptionsMaxRecvPaddingSlider->setTooltip(TRANS("This controls the padding value added to the maximum receive latency when using the Receive Sync feature. The value is in milliseconds and can range from 0 to 500. The default is 2ms."));
+    mOptionsMaxRecvPaddingSlider->setTooltip(TRANS("This controls the padding value added to the maximum receive latency when using the Receive Sync feature. The value is in milliseconds and can range from 0 to 500. The default is 0ms."));
 
     mOptionsMaxRecvPaddingLabel = std::make_unique<Label>("", maxrecvpadname);
     mOptionsMaxRecvPaddingLabel->setAccessible(false);
