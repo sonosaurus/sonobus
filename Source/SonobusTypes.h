@@ -40,7 +40,8 @@ public:
         GroupLatencyMatch,
         VDONinjaVideoLink,
         SuggestNewGroup,
-        ResetAllJitterBuffers
+        ResetAllJitterBuffers,
+        RecvSyncToggle
     };
     
 };
