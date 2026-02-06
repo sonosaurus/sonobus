@@ -41,7 +41,9 @@ public:
         VDONinjaVideoLink,
         SuggestNewGroup,
         ResetAllJitterBuffers,
-        RecvSyncToggle
+        RecvSyncToggle,
+        FocusChatInput,
+        ClearChatMessages
     };
     
 };

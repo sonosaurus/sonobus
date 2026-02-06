@@ -263,6 +263,8 @@ Toggle Loop       = Alt-L
 Record Toggle     = Control-R
 
 Show/Hide Chat    = Control-Y
+Focus Chat Input  = Control-Alt-J
+Clear All Chat Messages = Control-Shift-K
 Toggle Full Detail View = Control-I
 
 Show Main Menus (on Windows or Linux standalone):

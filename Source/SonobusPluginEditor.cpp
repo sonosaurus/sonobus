@@ -7374,7 +7374,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
                 showConnectPopup(false);
 
-                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+                // these interfere with screen readers
+                // mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
 
                 if (JUCEApplicationBase::isStandaloneApp() && saveSettingsIfNeeded) {
                     DBG("Saving settings");
@@ -7445,11 +7446,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
 
-            if (!currConnectionInfo.groupIsPublic) {
-                String mesg;
-                mesg << ev.user << TRANS(" - joined group");
-                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
-            }
+            // these interfere with screen readers
+            // if (!currConnectionInfo.groupIsPublic) {
+            //     String mesg;
+            //     mesg << ev.user << TRANS(" - joined group");
+            //     mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            // }
 
             // delay update and send OSC state
             Timer::callAfterDelay(200, [this, username = ev.user] {
@@ -7469,11 +7471,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             });
         }
         else if (ev.type == ClientEvent::PeerLeaveEvent) {
-            if (!currConnectionInfo.groupIsPublic) {
-                String mesg;
-                mesg << ev.user << TRANS(" - left group");
-                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
-            }
+            // these interfere with screen readers
+            // if (!currConnectionInfo.groupIsPublic) {
+            //     String mesg;
+            //     mesg << ev.user << TRANS(" - left group");
+            //     mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            // }
 
             // Clear OSC state using the peer index that was captured when aooClientPeerLeft was called
             // (stored in floatVal field)
@@ -7509,6 +7512,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
     if (haveNewChatEvents.compareAndSetBool(false, true))
     {
+        // Show chat panel if not already visible (for accessibility)
+        if (!mChatView->isVisible()) {
+            showChatPanel(true, false);
+        }
         mChatView->refreshMessages();
     }
 
@@ -9148,6 +9155,24 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             }
             break;
+        case SonobusCommands::FocusChatInput:
+            info.setInfo (TRANS("Focus Chat Input"),
+                          TRANS("Focus the chat input field"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::ClearChatMessages:
+            info.setInfo (TRANS("Clear All Chat Messages"),
+                          TRANS("Clear all chat messages in the chat pane"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('k', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            }
+            break;
 
     }
 }
@@ -9186,6 +9211,8 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::SuggestNewGroup);
     cmds.add(SonobusCommands::ResetAllJitterBuffers);
     cmds.add(SonobusCommands::RecvSyncToggle);
+    cmds.add(SonobusCommands::FocusChatInput);
+    cmds.add(SonobusCommands::ClearChatMessages);
 
 }
 
@@ -9358,6 +9385,22 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::RecvSyncToggle:
             if (mRecvSyncButton) {
                 buttonClicked(mRecvSyncButton.get());
+            }
+            break;
+        case SonobusCommands::FocusChatInput:
+            DBG("got focus chat input!");
+            if (mChatView) {
+                if (!mChatView->isVisible()) {
+                    showChatPanel(true);
+                    resized();
+                }
+                mChatView->setFocusToChat();
+            }
+            break;
+        case SonobusCommands::ClearChatMessages:
+            DBG("got clear chat messages!");
+            if (mChatView) {
+                mChatView->clearAll();
             }
             break;
 
