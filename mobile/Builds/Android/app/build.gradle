@@ -14,11 +14,16 @@ android {
     }
     signingConfigs {
         juceSigning {
-            storeFile     file("${System.properties['user.home']}${File.separator}.android${File.separator}sonouploadnew.jks")
-            storePassword "${sonoupload_keystore_password}"
-            keyAlias      "${sonoupload_key}"
-            keyPassword   "${sonoupload_key_password}"
-            storeType     "jks"
+            def keystoreExists = file("${System.properties['user.home']}${File.separator}.android${File.separator}sonouploadnew.jks").exists()
+            def hasKeystoreProps = project.hasProperty('sonoupload_keystore_password') && project.hasProperty('sonoupload_key') && project.hasProperty('sonoupload_key_password')
+            
+            if (keystoreExists && hasKeystoreProps) {
+                storeFile     file("${System.properties['user.home']}${File.separator}.android${File.separator}sonouploadnew.jks")
+                storePassword "${sonoupload_keystore_password}"
+                keyAlias      "${sonoupload_key}"
+                keyPassword   "${sonoupload_key_password}"
+                storeType     "jks"
+            }
         }
     }
 
@@ -38,13 +43,17 @@ android {
              initWith debug
              debuggable    true
              jniDebuggable true
-             signingConfig signingConfigs.juceSigning
+             if (signingConfigs.juceSigning.storeFile != null) {
+                 signingConfig signingConfigs.juceSigning
+             }
          }
          release {
              initWith release
              debuggable    false
              jniDebuggable false
-             signingConfig signingConfigs.juceSigning
+             if (signingConfigs.juceSigning.storeFile != null) {
+                 signingConfig signingConfigs.juceSigning
+             }
          }
     }
 
@@ -107,8 +116,6 @@ android {
     dependencies {
         implementation 'androidx.appcompat:appcompat:1.0.2'
     }
-
-ndkVersion "22.0.7026061"
 
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <juce_osc/juce_osc.h>
+#include "JuceHeader.h"
 #include <functional>
 #include <map>
 

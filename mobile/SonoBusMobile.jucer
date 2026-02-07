@@ -189,6 +189,8 @@
       <FILE id="QUforj" name="record_active_alt.svg" compile="0" resource="1"
             file="../images/record_active_alt.svg"/>
       <FILE id="N6DLmO" name="rectape.svg" compile="0" resource="1" file="../images/rectape.svg"/>
+      <FILE id="X9M2Pk" name="rectapestealth.svg" compile="0" resource="1" file="../images/rectapestealth.svg"/>
+      <FILE id="Z7N4Qm" name="receive_sync.svg" compile="0" resource="1" file="../images/receive_sync.svg"/>
       <FILE id="YDzjVZ" name="replay_icon.svg" compile="0" resource="1" file="../images/replay_icon.svg"/>
       <FILE id="VFKIt9" name="reset_buffer_icon.svg" compile="0" resource="1"
             file="../images/reset_buffer_icon.svg"/>
@@ -302,6 +304,8 @@
       <FILE id="SdZGA6" name="MVerb.h" compile="0" resource="0" file="../Source/MVerb.h"/>
       <FILE id="IPOu54" name="OptionsView.cpp" compile="1" resource="0" file="../Source/OptionsView.cpp"/>
       <FILE id="MFUFCy" name="OptionsView.h" compile="0" resource="0" file="../Source/OptionsView.h"/>
+      <FILE id="OSCMcpp" name="OSCManager.cpp" compile="1" resource="0" file="../Source/OSCManager.cpp"/>
+      <FILE id="OSCMhdr" name="OSCManager.h" compile="0" resource="0" file="../Source/OSCManager.h"/>
       <FILE id="B4nZqy" name="ParametricEqView.h" compile="0" resource="0"
             file="../Source/ParametricEqView.h"/>
       <FILE id="DeK0oj" name="PeersContainerView.cpp" compile="1" resource="0"
@@ -423,6 +427,7 @@
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_osc" path="../deps/juce/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../deps/juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../deps/juce/modules"/>
         <MODULEPATH id="juce_graphics" path="../deps/juce/modules"/>
@@ -459,6 +464,7 @@
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl" path="../deps/juce/modules"/>
+        <MODULEPATH id="juce_osc" path="../deps/juce/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../deps/juce/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../deps/juce/modules"/>
         <MODULEPATH id="juce_graphics" path="../deps/juce/modules"/>
@@ -495,6 +501,7 @@
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
   <LIVE_SETTINGS>
     <OSX/>
