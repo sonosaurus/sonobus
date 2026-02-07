@@ -1,13 +1,13 @@
-# build for Android
-name: SonoBus — Build Android
+# build for Android and iOS
+name: SonoBus — Build Mobile
 
 on:
   push:
-    branches:
-      - 1.7.*
+    # branches:
+    #   - 1.7.*
 
 jobs:
-  build:
+  build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
 
@@ -41,5 +41,159 @@ jobs:
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: SonoBusMendeni-latest
+          name: SonoBusMendeni-Android-latest
           path: mobile/Builds/Android/app/build/outputs/apk/**/*.apk
+
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Regenerate Xcode project with Projucer
+        run: |
+          set -e
+          echo "Building Projucer..."
+          cd deps/juce/extras/Projucer/Builds/MacOSX
+          xcodebuild -project Projucer.xcodeproj \
+            -target "Projucer - App" \
+            -configuration Release \
+            build
+
+          echo "Running Projucer to regenerate mobile Xcode project..."
+          PROJUCER_APP="build/Release/Projucer.app/Contents/MacOS/Projucer"
+          cd "$GITHUB_WORKSPACE"
+          "$GITHUB_WORKSPACE/deps/juce/extras/Projucer/Builds/MacOSX/$PROJUCER_APP" \
+            --resave mobile/SonoBusMobile.jucer
+
+          echo "✅ Xcode project regenerated"
+
+      - name: Build iOS app for iPhone and iPad
+        working-directory: mobile/Builds/iOS
+        run: |
+          set -e  # Exit on any error
+          set -o pipefail  # Ensure pipe failures are caught
+
+          # Build for iOS Device (iPhone and iPad)
+          echo "Building for iOS Device..."
+          xcodebuild clean build \
+            -project SonoBus.xcodeproj \
+            -scheme "SonoBus - Standalone Plugin" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty
+          echo "✅ iOS Device build succeeded"
+
+          # Note: Skipping iOS Simulator build due to architecture conflicts
+          # with prebuilt libraries
+
+      - name: Package iOS builds
+        working-directory: mobile/Builds/iOS
+        run: |
+          set -e  # Exit on any error
+          set -o pipefail  # Ensure pipe failures are caught
+
+          # Create output directory
+          mkdir -p ios-builds
+
+          echo "=== Packaging iOS builds ==="
+
+          # Check if build actually produced binaries
+          echo "Checking for .app bundles..."
+          if [ -d "build/Release" ]; then
+            echo "Contents of build/Release:"
+            ls -lah build/Release/
+            if [ -d "build/Release/SonoBus.app" ]; then
+              echo ""
+              echo "Contents of SonoBus.app:"
+              ls -lah build/Release/SonoBus.app/
+              if [ -f "build/Release/SonoBus.app/SonoBus" ]; then
+                echo "✅ Binary found in .app bundle"
+                ls -lh build/Release/SonoBus.app/SonoBus
+              else
+                echo "❌ ERROR: No binary found in .app bundle!"
+                echo "This means the build failed to produce the executable."
+                exit 1
+              fi
+            fi
+          fi
+
+          # Find and package .app bundles into .ipa files
+          # An .ipa is a zip archive with a Payload directory containing the .app
+
+          for app_bundle in build/Release/*.app; do
+            if [ -d "$app_bundle" ]; then
+              app_name=$(basename "$app_bundle" .app)
+              echo ""
+              echo "📦 Creating .ipa for $app_name..."
+
+              # Verify the binary exists before packaging
+              if [ ! -f "$app_bundle/$app_name" ]; then
+                echo "❌ ERROR: Binary $app_name not found in $app_bundle"
+                echo "Build did not complete successfully!"
+                exit 1
+              fi
+
+              # Create temporary Payload directory
+              mkdir -p "Payload"
+
+              # Copy the .app bundle into Payload
+              cp -R "$app_bundle" "Payload/"
+
+              # Create .ipa file (which is just a zip)
+              zip -r "ios-builds/${app_name}.ipa" "Payload"
+
+              # Clean up
+              rm -rf "Payload"
+
+              echo "✅ Created ${app_name}.ipa"
+            fi
+          done
+
+          # Also check Release-iphoneos directory
+          if [ -d "build/Release-iphoneos" ]; then
+            for app_bundle in build/Release-iphoneos/*.app; do
+              if [ -d "$app_bundle" ]; then
+                app_name=$(basename "$app_bundle" .app)
+                echo "📦 Creating .ipa for $app_name (device)..."
+
+                # Verify the binary exists
+                if [ ! -f "$app_bundle/$app_name" ]; then
+                  echo "❌ ERROR: Binary $app_name not found in $app_bundle"
+                  exit 1
+                fi
+
+                mkdir -p "Payload"
+                cp -R "$app_bundle" "Payload/"
+                zip -r "ios-builds/${app_name}-device.ipa" "Payload"
+                rm -rf "Payload"
+
+                echo "✅ Created ${app_name}-device.ipa"
+              fi
+            done
+          fi
+
+          # List what we created
+          echo ""
+          echo "=== Contents of ios-builds directory ==="
+          ls -lh ios-builds/
+          echo ""
+          echo "=== File sizes ==="
+          du -h ios-builds/*
+
+      - name: Upload iOS builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoBusMendeni-iOS-latest
+          path: mobile/Builds/iOS/ios-builds/*.ipa
