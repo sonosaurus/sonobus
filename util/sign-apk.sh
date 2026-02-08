@@ -6,8 +6,8 @@ if [ ! -e "$1" ]; then
   exit 1
 fi
 
-KEYSTORE="debug.keystore"
-ALIAS="debug"
+KEYSTORE="mendeni.keystore"
+ALIAS="mendeni"
 
 if [ ! $APK_PASSWORD ]; then
   echo "Set APK_PASSWORD environment variable"
@@ -19,7 +19,7 @@ if [ -f "$KEYSTORE" ]; then
   rm "$KEYSTORE"
 fi
 
-echo "Creating debug keystore..."
+echo "Creating mendeni keystore..."
 
 keytool -genkeypair -v \
   -keystore "$KEYSTORE" \
@@ -29,14 +29,13 @@ keytool -genkeypair -v \
   -keyalg RSA \
   -keysize 2048 \
   -validity 10000 \
-  -dname "CN=Android Debug,O=Android,C=US"
+  -dname "CN=Mendeni,O=Mendeni,C=US"
 
 echo "✔ Keystore created: $KEYSTORE"
 
 APK="$1"
-KEYSTORE="debug.keystore"
-ALIAS="debug"
-# APK_PASSWORD="28f6c2050e3bae5ead"
+KEYSTORE="mendeni.keystore"
+ALIAS="mendeni"
 
 if [ -z "$APK" ]; then
   echo "Usage: ./sign-apk.sh <apk-file>"
@@ -50,7 +49,6 @@ fi
 
 if [ ! -f "$KEYSTORE" ]; then
   echo "❌ Keystore not found: $KEYSTORE"
-  echo "Run ./make-debug-keystore.sh first"
   exit 1
 fi
 
