@@ -32,17 +32,20 @@ jobs:
           sdkmanager --install "ndk;25.2.9519653"
           sdkmanager --install "cmake;3.22.1"
 
-      - name: Build release APK
+      - name: Build APK
         working-directory: mobile/Builds/Android
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease_Release --no-daemon --warning-mode all
 
-      - name: Upload Android APK
+      - name: Stage APK
+        run: cp ./mobile/Builds/Android/app/build/outputs/apk/release_/release/app-release_-release-unsigned.apk ./mobile/Builds/Android/app/build/SonoBusMendeni-Android-latest.apk
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-Android-latest
-          path: mobile/Builds/Android/app/build/outputs/apk/**/*.apk
+          path: ./mobile/Builds/Android/app/build/SonoBusMendeni-Android-latest.apk
 
   build-ios:
     name: Build iOS App
