@@ -34,7 +34,8 @@
 
 enum {
     PeriodicUpdateTimerId = 0,
-    CheckForNewVersionTimerId
+    CheckForNewVersionTimerId,
+    PeerLevelMeteringTimerId
 };
 
 
@@ -1416,6 +1417,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     setWantsKeyboardFocus(true);
     
     startTimer(PeriodicUpdateTimerId, 1000);
+    startTimer(PeerLevelMeteringTimerId, 150); // lower is faster
 
 #if (JUCE_WINDOWS || JUCE_MAC)
     if (JUCEApplicationBase::isStandaloneApp()) {
@@ -4391,7 +4393,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     // juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
     
     if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
-        juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
+        // juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
         return;
     }
     
@@ -4406,8 +4408,9 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     // Clear all other peer controls to default/off states
     oscManager.sendMessage("/Peer" + peerNum + "Mute", 0.0);
     oscManager.sendMessage("/Peer" + peerNum + "Solo", 0.0);
-    oscManager.sendMessage("/Peer" + peerNum + "Level", 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", 0); // Level Slider
     oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
+    oscManager.sendMessage("/Peer" + peerNum + "RecvMeterLevel", 0.0f); // Level Meter
     
     // Clear compressor
     oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", 0);
@@ -4786,25 +4789,25 @@ void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp,
     int peerIndex = -1;
     if (processor.getOSCEnabled()) {
         int numPeers = processor.getNumberRemotePeers();
-        juce::Logger::writeToLog("Looking for peer '" + user + "' among " + String(numPeers) + " peers for OSC clear");
+        // juce::Logger::writeToLog("Looking for peer '" + user + "' among " + String(numPeers) + " peers for OSC clear");
         for (int i = 0; i < jmin(numPeers, 16); ++i) {
             String peerName = processor.getRemotePeerUserName(i);
-            juce::Logger::writeToLog("Checking peer " + String(i) + ": " + peerName);
+            // juce::Logger::writeToLog("Checking peer " + String(i) + ": " + peerName);
             if (peerName == user) {
                 peerIndex = i;
-                juce::Logger::writeToLog("Found peer '" + user + "' at index " + String(peerIndex));
+                // juce::Logger::writeToLog("Found peer '" + user + "' at index " + String(peerIndex));
                 break;
             }
         }
         if (peerIndex < 0) {
-            juce::Logger::writeToLog("WARNING: Could not find peer '" + user + "' in peer list - OSC state will not be cleared");
+            // juce::Logger::writeToLog("WARNING: Could not find peer '" + user + "' in peer list - OSC state will not be cleared");
         }
     }
     
     {
         const ScopedLock sl (clientStateLock);        
         // Store the peer index in floatVal so we can clear OSC state in async handler
-        juce::Logger::writeToLog("Storing peerIndex " + String(peerIndex) + " for peer '" + user + "' in PeerLeaveEvent");
+        // juce::Logger::writeToLog("Storing peerIndex " + String(peerIndex) + " for peer '" + user + "' in PeerLeaveEvent");
         clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user, static_cast<float>(peerIndex)));
     }
     triggerAsyncUpdate();
@@ -5085,6 +5088,39 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             }
         }
         stopTimer(CheckForNewVersionTimerId);
+    }
+    else if (timerid == PeerLevelMeteringTimerId) {
+        // Send peer level data via OSC if enabled
+        if (processor.getOSCEnabled() && processor.getOSCSendPeerLevels()) {
+            OSCManager& oscManager = processor.getOSCManager();
+            int numPeers = processor.getNumberRemotePeers();
+            
+            // Iterate through all connected peers (up to 16)
+            for (int peerIndex = 0; peerIndex < numPeers && peerIndex < 16; ++peerIndex) {
+                String peerNum = String(peerIndex + 1);
+                
+                // Get the meter source for this peer
+                if (auto* meterSource = processor.getRemotePeerRecvMeterSource(peerIndex)) {
+                    int numChannels = meterSource->getNumChannels();
+                    
+                    // Calculate average RMS level across all channels
+                    float averageRmsLevel = 0.0f;
+                    if (numChannels > 0) {
+                        for (int chan = 0; chan < numChannels; ++chan) {
+                            averageRmsLevel += meterSource->getRMSLevel(chan);
+                        }
+                        averageRmsLevel /= numChannels;
+                    }
+                    
+                    // Multiply by 10 and divide by 1.20 for TouchOSC slider compatibility
+                    float oscValue = (averageRmsLevel * 10.0f)/1.20; //
+                    
+                    // Send single OSC message per peer: /Peer[N]RecvMeterLevel
+                    String oscAddress = "/Peer" + peerNum + "RecvMeterLevel";
+                    oscManager.sendMessage(oscAddress, oscValue);
+                }
+            }
+        }
     }
 }
 

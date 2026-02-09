@@ -382,6 +382,10 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOSCSendStateOnStartButton->addListener(this);
     mOSCSendStateOnStartButton->setTooltip(TRANS("When enabled, sends current values of all OSC-enabled controls to the target address when OSC is enabled"));
 
+    mOSCSendPeerLevelsButton = std::make_unique<ToggleButton>(TRANS("Send peer levels via OSC"));
+    mOSCSendPeerLevelsButton->addListener(this);
+    mOSCSendPeerLevelsButton->setTooltip(TRANS("When enabled, sends real-time audio level data for connected peers via OSC at 10 Hz"));
+
     // OSC Configuration UI elements
     mOSCTargetIPAddressLabel = std::make_unique<Label>("", TRANS("OSC Target IP Address:"));
     configLabel(mOSCTargetIPAddressLabel.get(), false);
@@ -461,6 +465,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     // Add OSC Configuration UI elements
     mOptionsComponent->addAndMakeVisible(mOSCEnabledButton.get());
     mOptionsComponent->addAndMakeVisible(mOSCSendStateOnStartButton.get());
+    mOptionsComponent->addAndMakeVisible(mOSCSendPeerLevelsButton.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetIPAddressLabel.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetIPAddressEditor.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetPortLabel.get());
@@ -746,6 +751,7 @@ void OptionsView::updateState(bool ignorecheck)
     bool oscEnabled = processor.getOSCEnabled();
     mOSCEnabledButton->setToggleState(oscEnabled, dontSendNotification);
     mOSCSendStateOnStartButton->setToggleState(processor.getOSCSendStateOnStart(), dontSendNotification);
+    mOSCSendPeerLevelsButton->setToggleState(processor.getOSCSendPeerLevels(), dontSendNotification);
     mOSCTargetIPAddressEditor->setText(processor.getOSCTargetIPAddress(), dontSendNotification);
     mOSCTargetPortEditor->setText(String(processor.getOSCTargetPort()), dontSendNotification);
     mOSCReceivePortEditor->setText(String(processor.getOSCReceivePort()), dontSendNotification);
@@ -753,6 +759,8 @@ void OptionsView::updateState(bool ignorecheck)
     // Enable/disable OSC fields based on OSC enabled state
     mOSCSendStateOnStartButton->setEnabled(oscEnabled);
     mOSCSendStateOnStartButton->setAlpha(oscEnabled ? 1.0 : 0.6);
+    mOSCSendPeerLevelsButton->setEnabled(oscEnabled);
+    mOSCSendPeerLevelsButton->setAlpha(oscEnabled ? 1.0 : 0.6);
     mOSCTargetIPAddressEditor->setEnabled(oscEnabled);
     mOSCTargetIPAddressEditor->setAlpha(oscEnabled ? 1.0 : 0.6);
     mOSCTargetPortEditor->setEnabled(oscEnabled);
@@ -871,6 +879,11 @@ void OptionsView::updateLayout()
     optionsOSCSendStateOnStartBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsOSCSendStateOnStartBox.items.add(FlexItem(220, minpassheight, *mOSCSendStateOnStartButton).withMargin(0).withFlex(1));
     
+    optionsOSCSendPeerLevelsBox.items.clear();
+    optionsOSCSendPeerLevelsBox.flexDirection = FlexBox::Direction::row;
+    optionsOSCSendPeerLevelsBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsOSCSendPeerLevelsBox.items.add(FlexItem(220, minpassheight, *mOSCSendPeerLevelsButton).withMargin(0).withFlex(1));
+    
     optionsOSCTargetIPBox.items.clear();
     optionsOSCTargetIPBox.flexDirection = FlexBox::Direction::row;
     optionsOSCTargetIPBox.items.add(FlexItem(10, 12));
@@ -979,6 +992,8 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsOSCEnabledBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsOSCSendStateOnStartBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 3));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsOSCSendPeerLevelsBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsOSCTargetIPBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
@@ -1364,6 +1379,8 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         // Update the enabled/disabled state of OSC fields
         mOSCSendStateOnStartButton->setEnabled(enabled);
         mOSCSendStateOnStartButton->setAlpha(enabled ? 1.0 : 0.6);
+        mOSCSendPeerLevelsButton->setEnabled(enabled);
+        mOSCSendPeerLevelsButton->setAlpha(enabled ? 1.0 : 0.6);
         mOSCTargetIPAddressEditor->setEnabled(enabled);
         mOSCTargetIPAddressEditor->setAlpha(enabled ? 1.0 : 0.6);
         mOSCTargetPortEditor->setEnabled(enabled);
@@ -1392,6 +1409,10 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
                 }
             }
         }
+    }
+    else if (buttonThatWasClicked == mOSCSendPeerLevelsButton.get()) {
+        bool enabled = mOSCSendPeerLevelsButton->getToggleState();
+        processor.setOSCSendPeerLevels(enabled);
     }
     else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
         if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {

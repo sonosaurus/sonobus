@@ -790,6 +790,9 @@ public:
     bool getOSCSendStateOnStart() const { return mOSCSendStateOnStart; }
     void setOSCSendStateOnStart(bool enabled) { mOSCSendStateOnStart = enabled; }
     
+    bool getOSCSendPeerLevels() const { return mOSCSendPeerLevels; }
+    void setOSCSendPeerLevels(bool enabled) { mOSCSendPeerLevels = enabled; }
+    
     String getOSCTargetIPAddress() const { return mOSCTargetIPAddress; }
     void setOSCTargetIPAddress(const String& ipAddress);
     
@@ -1251,6 +1254,7 @@ private:
     // OSC Configuration
     bool mOSCEnabled = false;  // OSC disabled by default
     bool mOSCSendStateOnStart = true;  // Send state on start by default
+    bool mOSCSendPeerLevels = false;  // Send peer levels via OSC, disabled by default
     String mOSCTargetIPAddress = "127.0.0.1";
     int mOSCTargetPort = 6001;
     int mOSCReceivePort = 6000;
