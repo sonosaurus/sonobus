@@ -43,7 +43,8 @@ public:
         ResetAllJitterBuffers,
         RecvSyncToggle,
         FocusChatInput,
-        ClearChatMessages
+        ClearChatMessages,
+        HideChatView
     };
     
 };

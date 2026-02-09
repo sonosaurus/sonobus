@@ -262,8 +262,9 @@ Return to Start   = 0 or Control-0
 Toggle Loop       = Alt-L
 Record Toggle     = Control-R
 
-Show/Hide Chat    = Control-Y
-Focus Chat Input  = Control-Alt-J
+Focus Chat Messages = Control-Y
+Hide Chat         = Control-Shift-Y
+Focus Chat Input  = Control-Alt-Y
 Clear All Chat Messages = Control-Shift-K
 Toggle Full Detail View = Control-I
 

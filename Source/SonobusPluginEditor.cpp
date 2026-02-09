@@ -9001,8 +9001,8 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             }
             break;
         case SonobusCommands::ChatToggle:
-            info.setInfo (TRANS("Show/Hide Chat"),
-                          TRANS("Show or hide chat area"),
+            info.setInfo (TRANS("Focus Chat Messages"),
+                          TRANS("Open chat if not visible and focus the message display area"),
                           TRANS("Popup"), 0);
             info.setActive(true);
             if (useKeybindings) {
@@ -9197,7 +9197,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(true);
             if (useKeybindings) {
-                info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+                info.addDefaultKeypress ('y', ModifierKeys::commandModifier | ModifierKeys::altModifier);
             }
             break;
         case SonobusCommands::ClearChatMessages:
@@ -9207,6 +9207,15 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
             info.setActive(true);
             if (useKeybindings) {
                 info.addDefaultKeypress ('k', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            }
+            break;
+        case SonobusCommands::HideChatView:
+            info.setInfo (TRANS("Hide Chat"),
+                          TRANS("Hide the chat panel"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('y', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             }
             break;
 
@@ -9249,6 +9258,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::RecvSyncToggle);
     cmds.add(SonobusCommands::FocusChatInput);
     cmds.add(SonobusCommands::ClearChatMessages);
+    cmds.add(SonobusCommands::HideChatView);
 
 }
 
@@ -9357,8 +9367,14 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
 
             break;
         case SonobusCommands::ChatToggle:
-            showChatPanel(!mChatView->isVisible());
-            resized();
+            DBG("got focus chat messages!");
+            if (mChatView) {
+                if (!mChatView->isVisible()) {
+                    showChatPanel(true);
+                    resized();
+                }
+                mChatView->setFocusToMessageDisplay();
+            }
             break;
         case SonobusCommands::SoundboardToggle:
             showSoundboardPanel(!mSoundboardView->isVisible());
@@ -9437,6 +9453,13 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             DBG("got clear chat messages!");
             if (mChatView) {
                 mChatView->clearAll();
+            }
+            break;
+        case SonobusCommands::HideChatView:
+            DBG("got hide chat view!");
+            if (mChatView && mChatView->isVisible()) {
+                showChatPanel(false);
+                resized();
             }
             break;
 
