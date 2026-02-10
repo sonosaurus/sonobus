@@ -195,8 +195,11 @@ jobs:
           echo "=== File sizes ==="
           du -h ios-builds/*
 
+      - name: Stage IPA
+         run: cp ./mobile/Builds/iOS/ios-builds/SonoBus.ipa ./mobile/Builds/iOS/ios-builds/SonoBusMendeni-iOS-latest.ipa
+
       - name: Upload iOS builds
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-iOS-latest
-          path: mobile/Builds/iOS/ios-builds/*.ipa
+          path: mobile/Builds/iOS/ios-builds/SonoBusMendeni-iOS-latest.ipa
