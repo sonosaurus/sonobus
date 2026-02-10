@@ -2,7 +2,7 @@
 // Copyright (C) 2020 Jesse Chappell
 
 
-package com.sonosaurus.sonobus;
+package com.sonosaurus.sonobusmendeni;
 
 import android.app.Activity;
 import android.content.Context;

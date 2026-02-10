@@ -33,11 +33,11 @@
     <key>CFBundleExecutable</key>
     <string>${EXECUTABLE_NAME}</string>
     <key>CFBundleIdentifier</key>
-    <string>com.Sonosaurus.SonoBus</string>
+    <string>com.Sonosaurus.SonoBusMendeni</string>
     <key>CFBundleName</key>
     <string>SonoBus</string>
     <key>CFBundleDisplayName</key>
-    <string>SonoBus</string>
+    <string>SonoBusMendeni</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>

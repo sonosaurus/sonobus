@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPLv3-or-later
 // Copyright (C) 2020 Jesse Chappell
 
-package com.sonosaurus.sonobus;
+package com.sonosaurus.sonobusmendeni;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
