@@ -4901,7 +4901,11 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
             
             // Send OSC feedback for peer level slider (only for first 16 peers)
             if (processor.getOSCEnabled() && mPeerIndex < 16) {
-                processor.getOSCManager().sendMessage("/Peer" + String(mPeerIndex + 1) + "Level", static_cast<float>(mMainChannelView->levelSlider->getValue()));
+                double value = mMainChannelView->levelSlider->getValue();
+                // Convert value to skewed position (0.0-1.0) for OSC
+                double skewedPosition = mMainChannelView->levelSlider->valueToProportionOfLength(value);
+                
+                processor.getOSCManager().sendMessage("/Peer" + String(mPeerIndex + 1) + "Level", static_cast<float>(skewedPosition));
             }
             return;
         }

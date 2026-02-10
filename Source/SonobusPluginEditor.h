@@ -184,6 +184,10 @@ public:
     void sendAllOSCState();
     void sendPeerOSCState(int peerIndex);
     void clearPeerOSCState(int peerIndex);
+    
+    // Helper methods for peer level slider skew conversion
+    static double peerLevelValueToOSCPosition(double value);
+    static double peerLevelOSCPositionToValue(double position);
 
 private:
 
