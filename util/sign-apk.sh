@@ -6,7 +6,7 @@ if [ ! -e "$1" ]; then
   exit 1
 fi
 
-KEYSTORE="mendeni.keystore"
+KEYSTORE="mendeni.keystore.$$"
 ALIAS="mendeni"
 
 if [ ! $APK_PASSWORD ]; then
@@ -34,7 +34,7 @@ keytool -genkeypair -v \
 echo "✔ Keystore created: $KEYSTORE"
 
 APK="$1"
-KEYSTORE="mendeni.keystore"
+KEYSTORE="mendeni.keystore.$$"
 ALIAS="mendeni"
 
 if [ -z "$APK" ]; then
@@ -70,3 +70,4 @@ apksigner verify --verbose "$SIGNED_APK"
 
 echo "✔ Signed APK created:"
 echo "  $SIGNED_APK"
+rm "$KEYSTORE"
