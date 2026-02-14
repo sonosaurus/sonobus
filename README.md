@@ -12,7 +12,7 @@ Works as a standalone application on macOS, Windows, iOS, and Linux, and as an a
 Easy to setup and use, yet still provides all the details that audio nerds want to see. Audio quality can be instantly adjusted from full uncompressed PCM (16, 24, or 32 bit) or with various compressed bitrates (16-256 kbps per channel) using the low-latency Opus codec, and you can do this independently for any of the users you are connected with in a group.
 
 The receive sync button <img src="images/receive-sync-icon.svg" alt="Receive Sync Icon" width="16">
-  synchronizes streams from all remote players by measuring the receive latency from each, noting the largest value, then padding your receive jitter buffer. More about <a href="images/receive-sync.svg">receive synchronization from a listener perspective</a>.
+  synchronizes streams from all remote players by measuring the receive latency from each, noting the largest value, then padding your receive jitter buffer. More about <a href="doc/Receive%20Synchronization%20from%20a%20Listener%20Perspective.png">receive synchronization from a listener perspective</a>.
 
 
 <img src="images/sonobus-desktop-app.png" />
