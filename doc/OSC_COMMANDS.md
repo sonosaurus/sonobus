@@ -62,8 +62,15 @@ Choice buttons accept and send integer values representing the selected option I
 **Type**: Slider  
 **Description**: Controls the output (wet) level - mix of all incoming audio  
 **Data Type**: Float  
-**Range**: Audio level in decibels  
+**Range**: 0.0 - 1.0 (maps to -INF to +6.0dB; 0.0 = silence, ~0.707 = unity/0dB, 1.0 = +6dB)  
+**Direction**: Bidirectional (both send and receive)  
 **Parameter**: `paramWet`
+
+**Notes**: 
+- The slider uses a skew factor for better control precision at lower levels
+- OSC value ~0.707 corresponds to unity gain (0dB)
+- Automatically resets to 0.0 when application closes
+- Full application range (-INF to +6dB) is addressable via OSC 0.0-1.0
 
 ### Main Control Buttons
 
@@ -241,14 +248,19 @@ Choice buttons accept and send integer values representing the selected option I
 **Type**: Slider  
 **Description**: Controls the soundboard volume (main volume slider in the soundboard panel)  
 **Data Type**: Float  
-**Range**: 0.0 - 2.0 (where 1.0 is unity gain)  
+**Range**: 0.0 - 1.0 (maps to -INF to +6.0dB; 0.0 = silence, ~0.707 = unity/0dB, 1.0 = +6dB)  
 **Direction**: Bidirectional (both send and receive)  
 **Examples**:
-- `/SoundboardVolumeSlider f 1.0` - Set to unity gain
-- `/SoundboardVolumeSlider f 0.5` - Set to half volume
-- `/SoundboardVolumeSlider f 2.0` - Set to double volume (max)
+- `/SoundboardVolumeSlider f 0.707` - Set to unity gain (0dB)
+- `/SoundboardVolumeSlider f 0.5` - Set to approximately -6dB
+- `/SoundboardVolumeSlider f 1.0` - Set to maximum (+6dB)
 
-**Note**: This control adjusts the volume slider visible in the soundboard panel UI. Changes via OSC will update the UI slider, and UI changes will send OSC messages.
+**Notes**: 
+- The slider uses a skew factor for better control precision at lower levels
+- OSC value ~0.707 corresponds to unity gain (0dB)
+- Automatically resets to 0.0 when application closes
+- Full application range (-INF to +6dB) is addressable via OSC 0.0-1.0
+- This control adjusts the volume slider visible in the soundboard panel UI
 
 #### `/SoundboardStopAllPlayback`
 **Type**: Momentary Push Button  
@@ -639,12 +651,19 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 **Type**: Slider  
 **Description**: Controls the level/gain for the specified peer  
 **Data Type**: Float  
-**Range**: 0.0 - 2.0 (0.0 = silence, 1.0 = unity gain, 2.0 = +6dB)  
+**Range**: 0.0 - 1.0 (maps to -INF to +6.0dB; 0.0 = silence, ~0.707 = unity/0dB, 1.0 = +6dB)  
+**Direction**: Bidirectional (both send and receive)  
 **Examples**:
-- `/Peer1Level` - Controls level for Peer 1
-- `/Peer2Level` - Controls level for Peer 2
+- `/Peer1Level f 0.707` - Set Peer 1 to unity gain (0dB)
+- `/Peer2Level f 0.5` - Set Peer 2 to approximately -6dB
+- `/Peer3Level f 1.0` - Set Peer 3 to maximum (+6dB)
 
-**Note**: Adjusts the output level/gain for the peer's audio. This is equivalent to moving the level slider in the peer's UI panel.
+**Notes**: 
+- The slider uses a skew factor for better control precision at lower levels
+- OSC value ~0.707 corresponds to unity gain (0dB)
+- Automatically resets to 0.0 when peer disconnects (via `clearPeerOSCState()`)
+- Full application range (-INF to +6dB) is addressable via OSC 0.0-1.0
+- Adjusts the output level/gain for the peer's audio (equivalent to moving the level slider in the peer's UI panel)
 
 #### `/Peer[1-16]Pan`
 **Type**: Slider  

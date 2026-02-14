@@ -191,6 +191,11 @@ public:
     // Helper methods for peer level slider skew conversion
     static double peerLevelValueToOSCPosition(double value);
     static double peerLevelOSCPositionToValue(double position);
+    
+    // Helper methods for gain slider skew conversion (OutGainSlider, SoundboardVolumeSlider)
+    // These sliders have range [0.0, 2.0] with skew factor 0.5
+    static double gainValueToOSCPosition(double value);
+    static double oscPositionToGainValue(double position);
 
 private:
 

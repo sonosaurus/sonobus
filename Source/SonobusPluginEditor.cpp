@@ -1447,22 +1447,53 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 // instead of the skewed UI position, providing intuitive OSC slider behavior.
 double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
 {
-    // To get unity gain (1.0) at 75% on OSC slider:
-    // position = value * 1.5
-    // With OSC_SCALE_FACTOR (0.5), this produces 0.75 on TouchOSC (75%)
-    // Clamp value to valid range [0.0, 2.0] to ensure valid result
-    value = juce::jlimit(0.0, 2.0, value);
-    return value * 1.5;
+    // Peer level sliders also use range [0.0, 2.0] with skew factor 0.5
+    // Keep these wrapper functions for clarity and potential future customization
+    // They currently delegate to the same gain conversion used by OutGainSlider
+    return gainValueToOSCPosition(value);
 }
 
 double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
 {
-    // Inverse of the outbound conversion:
-    // value = position / 1.5
-    // Note: position here is AFTER OSC_INVERSE_SCALE_FACTOR has been applied
-    // Max position = 3.0 (when value is 2.0: 2.0 * 1.5 = 3.0)
-    position = juce::jlimit(0.0, 3.0, position);
-    return position / 1.5;
+    // Peer level sliders also use range [0.0, 2.0] with skew factor 0.5
+    // Keep these wrapper functions for clarity and potential future customization
+    // They currently delegate to the same gain conversion used by OutGainSlider
+    return oscPositionToGainValue(position);
+}
+
+double SonobusAudioProcessorEditor::gainValueToOSCPosition(double value)
+{
+    // Convert application slider value (0.0-2.0) to OSC position before OSC_SCALE_FACTOR
+    // For sliders with skew=0.5 where unity (1.0) should be at ~0.707 on OSC
+    // 
+    // The slider has a skew factor of 0.5, which means:
+    // - proportion = sqrt(value / maxValue)
+    // 
+    // We want OSC to receive:
+    // - value 0.0 → OSC 0.0
+    // - value 1.0 (unity, 0dB) → OSC ~0.707
+    // - value 2.0 (max, +6dB) → OSC 1.0
+    // 
+    // After OSC_SCALE_FACTOR (0.5) is applied in sendMessage():
+    // - We send position 2.0, OSC receives 1.0 ✓
+    // - We send position 1.414, OSC receives 0.707 ✓
+    // - We send position 0.0, OSC receives 0.0 ✓
+    value = juce::jlimit(0.0, 2.0, value);
+    return std::sqrt(value / 2.0) * 2.0;
+}
+
+double SonobusAudioProcessorEditor::oscPositionToGainValue(double position)
+{
+    // Convert OSC position (after OSC_INVERSE_SCALE_FACTOR) to application slider value
+    // This is the inverse of gainValueToOSCPosition
+    // 
+    // OSC controller sends [0.0, 1.0], which becomes [0.0, 2.0] after OSC_INVERSE_SCALE_FACTOR
+    // We need to convert this to slider value [0.0, 2.0] accounting for skew factor 0.5
+    // 
+    // Formula: value = (position / 2.0)^2 * 2.0
+    position = juce::jlimit(0.0, 2.0, position);
+    double proportion = position / 2.0;  // Convert to proportion [0.0, 1.0]
+    return proportion * proportion * 2.0;  // Apply inverse skew (square) and scale back to [0.0, 2.0]
 }
 
 
@@ -1478,8 +1509,8 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
     oscManager.registerControl("/OutGainSlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
             float oscPosition = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
-            // Convert OSC position to slider value accounting for skew
-            double value = peerLevelOSCPositionToValue(oscPosition);
+            // Convert OSC position to slider value accounting for skew factor 0.5
+            double value = oscPositionToGainValue(oscPosition);
             juce::MessageManager::callAsync([this, value]() {
                 if (mOutGainSlider) {
                     mOutGainSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
@@ -2420,7 +2451,9 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
     // Register SoundboardVolumeSlider
     oscManager.registerControl("/SoundboardVolumeSlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
-            float value = message[0].getFloat32();
+            float oscPosition = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+            // Convert OSC position to slider value accounting for skew factor 0.5
+            float value = static_cast<float>(oscPositionToGainValue(oscPosition));
             // Clamp value to valid range 0-2
             value = juce::jlimit(0.0f, 2.0f, value);
             juce::MessageManager::callAsync([this, value]() {
@@ -4205,7 +4238,7 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     // Send main controls
     if (mOutGainSlider) {
         double value = mOutGainSlider->getValue();
-        double position = peerLevelValueToOSCPosition(value);
+        double position = gainValueToOSCPosition(value);
         oscManager.sendMessage("/OutGainSlider", static_cast<float>(position));
     }
     if (mDrySlider) {
@@ -4278,7 +4311,9 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     // Send SoundboardVolumeSlider state
     if (auto* soundboardView = getSoundboardView()) {
         if (auto* volumeSlider = soundboardView->getVolumeSlider()) {
-            oscManager.sendMessage("/SoundboardVolumeSlider", static_cast<float>(volumeSlider->getValue()));
+            double value = volumeSlider->getValue();
+            double position = gainValueToOSCPosition(value);
+            oscManager.sendMessage("/SoundboardVolumeSlider", static_cast<float>(position));
         }
     }
     // Note: SoundboardStopAllPlayback is a momentary button with no state to send
@@ -4631,6 +4666,9 @@ void SonobusAudioProcessorEditor::clearSoundboardOSCState()
             oscManager.sendMessage("/Soundboard" + soundboardNum + "Track" + trackNum, "");
         }
     }
+    
+    // Reset volume sliders to 0.0 on application close
+    oscManager.sendMessage("/SoundboardVolumeSlider", 0.0f);
 }
 
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
@@ -4640,6 +4678,8 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     // when the application closes, similar to how peer slots are cleared on disconnect
     if (processor.getOSCEnabled()) {
         clearSoundboardOSCState();
+        // Reset OutGainSlider to 0.0 on application close
+        processor.getOSCManager().sendMessage("/OutGainSlider", 0.0f);
     }
     
     // Unregister OSC controls to prevent use-after-free
@@ -7212,7 +7252,7 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
     else if (pname == SonobusAudioProcessor::paramWet) {
         // Send OSC message for OutGainSlider (wet) value change
         if (processor.getOSCEnabled()) {
-            double position = peerLevelValueToOSCPosition(newValue);
+            double position = gainValueToOSCPosition(newValue);
             processor.getOSCManager().sendMessage("/OutGainSlider", static_cast<float>(position));
         }
     }

@@ -191,7 +191,10 @@ void SoundboardView::createControlPanel()
         audioProcessor.getSoundboardProcessor()->setGain(mVolumeSlider->getValue());
         // Send OSC message for SoundboardVolumeSlider value change
         if (audioProcessor.getOSCEnabled()) {
-            audioProcessor.getOSCManager().sendMessage("/SoundboardVolumeSlider", static_cast<float>(mVolumeSlider->getValue()));
+            double value = mVolumeSlider->getValue();
+            // Convert value to OSC position accounting for skew factor 0.5
+            double position = SonobusAudioProcessorEditor::gainValueToOSCPosition(value);
+            audioProcessor.getOSCManager().sendMessage("/SoundboardVolumeSlider", static_cast<float>(position));
         }
     };
     mVolumeSlider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
