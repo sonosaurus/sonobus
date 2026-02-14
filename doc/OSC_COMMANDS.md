@@ -237,6 +237,29 @@ Choice buttons accept and send integer values representing the selected option I
 **Range**: Audio level  
 **Action**: Sets soundboard monitor volume
 
+#### `/SoundboardVolumeSlider`
+**Type**: Slider  
+**Description**: Controls the soundboard volume (main volume slider in the soundboard panel)  
+**Data Type**: Float  
+**Range**: 0.0 - 2.0 (where 1.0 is unity gain)  
+**Direction**: Bidirectional (both send and receive)  
+**Examples**:
+- `/SoundboardVolumeSlider f 1.0` - Set to unity gain
+- `/SoundboardVolumeSlider f 0.5` - Set to half volume
+- `/SoundboardVolumeSlider f 2.0` - Set to double volume (max)
+
+**Note**: This control adjusts the volume slider visible in the soundboard panel UI. Changes via OSC will update the UI slider, and UI changes will send OSC messages.
+
+#### `/SoundboardStopAllPlayback`
+**Type**: Momentary Push Button  
+**Description**: Stops all currently playing soundboard samples  
+**Data Type**: Float (1.0 to trigger, or any value >= 0.5)  
+**Direction**: Receive only (OSC controller → SonoBus)  
+**Examples**:
+- `/SoundboardStopAllPlayback f 1.0` - Stops all playback
+
+**Note**: This is a momentary button with no state. Send a value >= 0.5 to trigger the action. No OSC messages are sent from SonoBus for this control.
+
 ### Metronome Advanced Controls
 
 #### `/MetSendButton`
@@ -1237,6 +1260,109 @@ server = osc_server.ThreadingOSCUDPServer(("127.0.0.1", 9000), disp)
 print("Listening for OSC messages...")
 server.serve_forever()
 ```
+
+## Soundboard Controls
+
+SonoBus supports OSC control for up to 16 Soundboards, each with up to 16 tracks. The soundboard OSC implementation provides both outbound messages (for status/info) and inbound messages (for triggering tracks).
+
+### Overview
+
+- **Soundboards supported**: Up to 16 (numbered 1-16)
+- **Tracks per soundboard**: Up to 16 (numbered 1-16)
+- **Outbound messages**: Soundboard names and track names are sent automatically when soundboards change
+- **Inbound messages**: Tracks can be triggered via OSC messages
+
+### Soundboard Status Messages (Outbound)
+
+These messages are automatically sent by SonoBus to inform OSC controllers about soundboard names and track names:
+
+#### `/Soundboard[1-16]Name`
+**Type**: Status Message  
+**Description**: Provides the name of the specified soundboard  
+**Data Type**: String  
+**Direction**: Send only (SonoBus → OSC controller)  
+**Examples**:
+- `/Soundboard1Name` - Name of Soundboard 1 (e.g., "StarTrek")
+- `/Soundboard2Name` - Name of Soundboard 2
+- `/Soundboard16Name` - Name of Soundboard 16
+
+**Note**: This is a read-only control. SonoBus automatically sends the soundboard name when:
+- OSC is enabled and "Send state to target on start" is active
+- A soundboard is created, renamed, or deleted
+- The soundboard list changes
+
+Empty soundboard slots (those that don't exist) will have an empty string as their name.
+
+#### `/Soundboard[1-16]Track[1-16]`
+**Type**: Bidirectional Control/Status Message  
+**Description**: For outbound messages, provides the name of the specified track. For inbound messages, triggers the track.  
+**Data Type**: 
+- **Outbound (status)**: String (track name)
+- **Inbound (control)**: Float (1.0 to trigger)
+
+**Direction**: Bidirectional (both send and receive)
+
+**Outbound Examples (Track Names)**:
+```
+/Soundboard1Name s "StarTrek"
+/Soundboard1Track1 s "Balok HaHa"
+/Soundboard1Track2 s "Spock Pain"
+/Soundboard1Track3 s "Beam Me Up"
+```
+
+**Inbound Examples (Track Triggers)**:
+```
+/Soundboard1Track1 f 1.0    # Triggers track 1 on soundboard 1
+/Soundboard2Track5 f 1.0    # Triggers track 5 on soundboard 2
+/Soundboard16Track16 f 1.0  # Triggers track 16 on soundboard 16
+```
+
+**Behavior Notes**:
+- **As Status (Outbound)**: SonoBus sends track names as strings when soundboards or tracks change
+- **As Control (Inbound)**: Sending a float value of `1.0` (or any value >= 0.5) triggers/plays the specified track
+- Empty track slots (those that don't exist) will have an empty string as their name
+- Triggering respects the track's button behavior (TOGGLE, HOLD, or ONE_SHOT):
+  - **TOGGLE**: If the track is playing, it stops; if stopped, it plays
+  - **HOLD/ONE_SHOT**: Always starts playback
+- Invalid soundboard or track indices are ignored (no error)
+
+### Usage Example: TouchOSC or Similar Controllers
+
+To control soundboards via OSC:
+
+1. **Enable OSC** in SonoBus Options tab
+2. **Configure target IP/port** to point to your OSC controller
+3. **Configure receive port** to listen for control messages
+4. **Map incoming track name messages** to display labels showing available tracks
+5. **Map outgoing trigger messages** to buttons that send `/Soundboard[N]Track[M] f 1.0`
+
+**Example Workflow**:
+```
+# SonoBus sends (when OSC is enabled):
+/Soundboard1Name s "Sound Effects"
+/Soundboard1Track1 s "Applause"
+/Soundboard1Track2 s "Drum Roll"
+/Soundboard1Track3 s "Rimshot"
+
+# Your controller displays these track names on buttons
+
+# When user presses button for Track 1, your controller sends:
+/Soundboard1Track1 f 1.0
+
+# SonoBus plays the "Applause" sample
+```
+
+### Integration Notes
+
+- Soundboard and track indices are 1-based (1-16), not 0-based
+- The same OSC address is used for both status (string) and control (float)
+- Track names update in real-time when:
+  - Tracks are added or removed
+  - Track names are changed in the UI
+  - Soundboards are switched or modified
+- Soundboard names update in real-time when:
+  - Soundboards are created, renamed, or deleted
+  - The application starts with "Send state to target on start" enabled
 
 ## Notes
 

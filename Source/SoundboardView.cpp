@@ -8,6 +8,7 @@
 #include "SoundboardView.h"
 #include "SoundboardEditView.h"
 #include "SampleEditView.h"
+#include "SonobusPluginEditor.h"
 
 SoundboardView::SoundboardView(SonobusAudioProcessor& audioproc, SoundboardChannelProcessor* channelProcessor, File supportDir)
         : audioProcessor(audioproc), processor(std::make_unique<SoundboardProcessor>(channelProcessor, supportDir))
@@ -188,6 +189,10 @@ void SoundboardView::createControlPanel()
     //mVolumeSlider->addListener(this);
     mVolumeSlider->onValueChange = [this]() {
         audioProcessor.getSoundboardProcessor()->setGain(mVolumeSlider->getValue());
+        // Send OSC message for SoundboardVolumeSlider value change
+        if (audioProcessor.getOSCEnabled()) {
+            audioProcessor.getOSCManager().sendMessage("/SoundboardVolumeSlider", static_cast<float>(mVolumeSlider->getValue()));
+        }
     };
     mVolumeSlider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
     mVolumeSlider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
@@ -643,6 +648,34 @@ bool SoundboardView::triggerSampleAtIndex(int sampleIndex)
     return true;
 }
 
+bool SoundboardView::triggerSampleBySoundboardAndTrackIndex(int soundboardIndex, int trackIndex)
+{
+    if (soundboardIndex < 0 || trackIndex < 0) {
+        return false;
+    }
+    
+    if (soundboardIndex >= getSoundboardProcessor()->getNumberOfSoundboards()) {
+        return false;
+    }
+    
+    auto& soundboard = getSoundboardProcessor()->getSoundboard(soundboardIndex);
+    auto& samples = soundboard.getSamples();
+    if (trackIndex >= static_cast<int>(samples.size())) {
+        return false;
+    }
+    
+    auto& sample = samples[trackIndex];
+    
+    if (sample.getButtonBehaviour() == SoundSample::ButtonBehaviour::TOGGLE
+        && getSoundboardProcessor()->getChannelProcessor()->findPlaybackManager(sample).has_value()) {
+        stopSample(sample);
+    }
+    else {
+        playSample(sample, nullptr);
+    }
+    return true;
+}
+
 void SoundboardView::showMenuButtonContextMenu()
 {
     Array<GenericItemChooserItem> items;
@@ -684,6 +717,13 @@ void SoundboardView::clickedAddSoundboard()
         Soundboard& createdSoundboard = processor->addSoundboard(name, true);
         updateSoundboardSelector();
         rebuildButtons();
+        
+        // Send OSC update
+        if (audioProcessor.getOSCEnabled()) {
+            if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(audioProcessor.getActiveEditor())) {
+                editor->sendSoundboardOSCState();
+            }
+        }
     };
 
     auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
@@ -707,6 +747,13 @@ void SoundboardView::clickedRenameSoundboard()
         int selectedSoundboardIndex = mBoardSelectComboBox->getSelectedItemIndex();
         processor->renameSoundboard(selectedSoundboardIndex, name);
         updateSoundboardSelector();
+        
+        // Send OSC update
+        if (audioProcessor.getOSCEnabled()) {
+            if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(audioProcessor.getActiveEditor())) {
+                editor->sendSoundboardOSCState();
+            }
+        }
     };
 
     auto& currentSoundboard = processor->getSoundboard(mBoardSelectComboBox->getSelectedItemIndex());
@@ -737,6 +784,13 @@ void SoundboardView::clickedDuplicateSoundboard()
         createdSoundboard.setName(name);
         updateSoundboardSelector();
         rebuildButtons();
+        
+        // Send OSC update
+        if (audioProcessor.getOSCEnabled()) {
+            if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(audioProcessor.getActiveEditor())) {
+                editor->sendSoundboardOSCState();
+            }
+        }
     };
 
     auto content = std::make_unique<SoundboardEditView>(callback, nullptr);
@@ -786,6 +840,13 @@ void SoundboardView::clickedDeleteSoundboard()
             safeThis->processor->deleteSoundboard(selectedIndex);
             safeThis->updateSoundboardSelector();
             safeThis->rebuildButtons();
+            
+            // Send OSC update
+            if (safeThis->audioProcessor.getOSCEnabled()) {
+                if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(safeThis->audioProcessor.getActiveEditor())) {
+                    editor->sendSoundboardOSCState();
+                }
+            }
         }
     };
 
@@ -809,6 +870,13 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
         if (editView.isDeleteSample()) {
             processor->deleteSoundSample(sample);
             rebuildButtons();
+            
+            // Send OSC update when sample deleted
+            if (audioProcessor.getOSCEnabled()) {
+                if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(audioProcessor.getActiveEditor())) {
+                    editor->sendSoundboardOSCState();
+                }
+            }
         }
         else {
             auto sampleName = editView.getSampleName();
@@ -836,6 +904,13 @@ void SoundboardView::clickedEditSoundSample(Component& button, SoundSample& samp
                 updateButton(pbutton, sample);
             } else {
                 rebuildButtons();
+            }
+            
+            // Send OSC update when sample edited
+            if (audioProcessor.getOSCEnabled()) {
+                if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(audioProcessor.getActiveEditor())) {
+                    editor->sendSoundboardOSCState();
+                }
             }
         }
     };
@@ -1074,6 +1149,13 @@ void SoundboardView::filesDropped(const StringArray& files, int x, int y)
     // Open the edit view by default if only 1 file was dragged
     if (files.size() == 1) {
         clickedEditSoundSample(*mSoundButtons[mSoundButtons.size() - 1].get(), *createdSample);
+    }
+    
+    // Send OSC update when samples added via drag and drop
+    if (audioProcessor.getOSCEnabled()) {
+        if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(audioProcessor.getActiveEditor())) {
+            editor->sendSoundboardOSCState();
+        }
     }
 }
 

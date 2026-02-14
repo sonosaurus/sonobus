@@ -168,6 +168,7 @@ public:
 
     ChannelGroupsView * getInputChannelGroupsView() { return mInputChannelsContainer.get(); }
     PeersContainerView * getPeersContainerView() { return mPeerContainer.get(); }
+    SoundboardView * getSoundboardView() { return mSoundboardView.get(); }
 
     // if returns true signifies go ahead and quit now, otherwise we'll handle it
     bool requestedQuit();
@@ -184,6 +185,8 @@ public:
     void sendAllOSCState();
     void sendPeerOSCState(int peerIndex);
     void clearPeerOSCState(int peerIndex);
+    void sendSoundboardOSCState();
+    void clearSoundboardOSCState();
     
     // Helper methods for peer level slider skew conversion
     static double peerLevelValueToOSCPosition(double value);

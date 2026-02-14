@@ -190,6 +190,14 @@ sleep 2
 oscsend localhost 6000 /SoundboardMonitorSlider f 0.4
 sleep 2
 
+oscsend localhost 6000 /SoundboardVolumeSlider f 1.5
+sleep 2
+oscsend localhost 6000 /SoundboardVolumeSlider f 0.8
+sleep 2
+
+oscsend localhost 6000 /SoundboardStopAllPlayback f 1.0
+sleep 2
+
 echo "=== Input Group 1 Controls ==="
 oscsend localhost 6000 /InputGroup1PreLevel f 0.8
 sleep 2

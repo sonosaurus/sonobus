@@ -77,6 +77,27 @@ public:
 
     void updateMiscState();
 
+    /**
+     * Triggers a sample on a specific soundboard by index.
+     * Used for OSC control.
+     * @param soundboardIndex 0-based index of the soundboard
+     * @param trackIndex 0-based index of the track/sample within the soundboard
+     * @return true if the sample was triggered, false if indices are out of bounds
+     */
+    bool triggerSampleBySoundboardAndTrackIndex(int soundboardIndex, int trackIndex);
+
+    /**
+     * Get the soundboard processor for accessing soundboard data.
+     * @return Pointer to the soundboard processor
+     */
+    SoundboardProcessor* getSoundboardProcessor() { return processor.get(); }
+    
+    /**
+     * Get the volume slider for OSC control.
+     * @return Pointer to the volume slider
+     */
+    Slider* getVolumeSlider() { return mVolumeSlider.get(); }
+
 private:
     
 #if JUCE_IOS || JUCE_ANDROID
@@ -101,8 +122,6 @@ private:
      * Controller for soundboard view.
      */
     std::unique_ptr<SoundboardProcessor> processor;
-
-    SoundboardProcessor* getSoundboardProcessor() { return processor.get(); };
 
     /**
      * The outer soundboard panel box.

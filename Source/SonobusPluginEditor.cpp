@@ -2417,6 +2417,37 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         }
     });
     
+    // Register SoundboardVolumeSlider
+    oscManager.registerControl("/SoundboardVolumeSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            // Clamp value to valid range 0-2
+            value = juce::jlimit(0.0f, 2.0f, value);
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* soundboardView = getSoundboardView()) {
+                    if (auto* volumeSlider = soundboardView->getVolumeSlider()) {
+                        volumeSlider->setValue(value, juce::NotificationType::sendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardStopAllPlayback (momentary button)
+    oscManager.registerControl("/SoundboardStopAllPlayback", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            // Trigger on values >= 0.5
+            if (value >= 0.5f) {
+                juce::MessageManager::callAsync([this]() {
+                    if (auto* soundboardView = getSoundboardView()) {
+                        soundboardView->stopAllSamples();
+                    }
+                });
+            }
+        }
+    });
+    
     // Register FileMonitorSlider
     oscManager.registerControl("/FileMonitorSlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
@@ -3973,6 +4004,26 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         });
     }
 
+    // Register Soundboard OSC controls for triggering tracks
+    // Support up to 16 soundboards and up to 16 tracks per soundboard
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+            String address = "/Soundboard" + String(soundboardIndex + 1) + "Track" + String(trackIndex + 1);
+            oscManager.registerControl(address, [this, soundboardIndex, trackIndex](const juce::OSCMessage& message) {
+                if (message.size() > 0 && message[0].isFloat32()) {
+                    float value = message[0].getFloat32();
+                    if (value >= 0.5f) {
+                        juce::MessageManager::callAsync([this, soundboardIndex, trackIndex]() {
+                            if (auto* soundboardView = getSoundboardView()) {
+                                soundboardView->triggerSampleBySoundboardAndTrackIndex(soundboardIndex, trackIndex);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
     
     mOSCControlsRegistered = true;
 }
@@ -4037,6 +4088,8 @@ void SonobusAudioProcessorEditor::unregisterAllOSCControls()
     oscManager.unregisterControl("/PlaybackSlider");
     oscManager.unregisterControl("/SoundboardLevelSlider");
     oscManager.unregisterControl("/SoundboardMonitorSlider");
+    oscManager.unregisterControl("/SoundboardVolumeSlider");
+    oscManager.unregisterControl("/SoundboardStopAllPlayback");
     oscManager.unregisterControl("/FileMonitorSlider");
     oscManager.unregisterControl("/MetPanSlider");
     oscManager.unregisterControl("/MetMonitorSlider");
@@ -4130,6 +4183,13 @@ void SonobusAudioProcessorEditor::unregisterAllOSCControls()
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Q");
     }
     
+    // Unregister Soundboard OSC controls (up to 16 soundboards, 16 tracks each)
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+            oscManager.unregisterControl("/Soundboard" + String(soundboardIndex + 1) + "Track" + String(trackIndex + 1));
+        }
+    }
+    
     
     mOSCControlsRegistered = false;
 }
@@ -4215,6 +4275,13 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
         oscManager.sendMessage("/SoundboardLevelSlider", processor.getSoundboardProcessor()->getGain());
         oscManager.sendMessage("/SoundboardMonitorSlider", processor.getSoundboardProcessor()->getMonitorGain());
     }
+    // Send SoundboardVolumeSlider state
+    if (auto* soundboardView = getSoundboardView()) {
+        if (auto* volumeSlider = soundboardView->getVolumeSlider()) {
+            oscManager.sendMessage("/SoundboardVolumeSlider", static_cast<float>(volumeSlider->getValue()));
+        }
+    }
+    // Note: SoundboardStopAllPlayback is a momentary button with no state to send
     
     // Send metronome additional controls
     oscManager.sendMessage("/MetPanSlider", processor.getMetronomePan());
@@ -4354,6 +4421,9 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     for (int i = numPeers; i < 16; ++i) {
         clearPeerOSCState(i);
     }
+    
+    // Send soundboard state (names and tracks)
+    sendSoundboardOSCState();
 }
 
 void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
@@ -4490,8 +4560,88 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", 0);
 }
 
+void SonobusAudioProcessorEditor::sendSoundboardOSCState()
+{
+    if (!processor.getOSCEnabled()) {
+        return;
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    
+    auto* soundboardView = getSoundboardView();
+    if (!soundboardView || !soundboardView->getSoundboardProcessor()) {
+        // If no soundboard view or processor, clear all soundboard slots
+        clearSoundboardOSCState();
+        return;
+    }
+    
+    auto* soundboardProcessor = soundboardView->getSoundboardProcessor();
+    size_t numSoundboards = soundboardProcessor->getNumberOfSoundboards();
+    
+    // Send state for all soundboards (up to 16)
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        String soundboardNum = String(soundboardIndex + 1);
+        
+        if (soundboardIndex < static_cast<int>(numSoundboards)) {
+            // Send soundboard name
+            auto& soundboard = soundboardProcessor->getSoundboard(soundboardIndex);
+            String soundboardName = soundboard.getName();
+            oscManager.sendMessage("/Soundboard" + soundboardNum + "Name", soundboardName);
+            
+            // Send track names (up to 16 tracks per soundboard)
+            auto& samples = soundboard.getSamples();
+            for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+                String trackNum = String(trackIndex + 1);
+                String trackAddress = "/Soundboard" + soundboardNum + "Track" + trackNum;
+                
+                if (trackIndex < static_cast<int>(samples.size())) {
+                    String trackName = samples[trackIndex].getName();
+                    oscManager.sendMessage(trackAddress, trackName);
+                } else {
+                    // Clear unused track slots
+                    oscManager.sendMessage(trackAddress, "");
+                }
+            }
+        } else {
+            // Clear unused soundboard slots
+            oscManager.sendMessage("/Soundboard" + soundboardNum + "Name", "");
+            for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+                String trackNum = String(trackIndex + 1);
+                oscManager.sendMessage("/Soundboard" + soundboardNum + "Track" + trackNum, "");
+            }
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::clearSoundboardOSCState()
+{
+    if (!processor.getOSCEnabled()) {
+        return;
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    
+    // Clear all soundboard names and tracks (16 soundboards, 16 tracks each)
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        String soundboardNum = String(soundboardIndex + 1);
+        oscManager.sendMessage("/Soundboard" + soundboardNum + "Name", "");
+        
+        for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+            String trackNum = String(trackIndex + 1);
+            oscManager.sendMessage("/Soundboard" + soundboardNum + "Track" + trackNum, "");
+        }
+    }
+}
+
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 {
+    // Clear Soundboard OSC state before unregistering controls
+    // This ensures OSC controllers receive empty strings for all soundboard slots
+    // when the application closes, similar to how peer slots are cleared on disconnect
+    if (processor.getOSCEnabled()) {
+        clearSoundboardOSCState();
+    }
+    
     // Unregister OSC controls to prevent use-after-free
     unregisterAllOSCControls();
     
