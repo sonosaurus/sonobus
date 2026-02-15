@@ -105,6 +105,13 @@
          style="fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#cccccc;stroke-width:1pt;stroke-opacity:1"
          transform="scale(-0.4)" />
     </marker>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
   <rect
      style="opacity:1;fill:#000000;fill-opacity:0;stroke:none;stroke-width:0.214092;stroke-linecap:round;stroke-opacity:1"
@@ -118,5 +125,6 @@
      cy="11.142753"
      cx="15"
      id="path886"
-     style="fill:#b773e8;fill-opacity:1;stroke:#cccccc;stroke-width:1.03096;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+     filter="url(#glow)"
+     style="fill:#A100FF;fill-opacity:1;stroke:#ffffff;stroke-width:1.03096;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.6" />
 </svg>
