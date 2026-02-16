@@ -44,6 +44,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
            cp util/install-macos-vst3.sh build/SonoBusMendeni_artefacts/Release
+           cp util/install-macos-standalone.sh build/SonoBusMendeni_artefacts/Release
 
       - name: Upload Sonobus artifacts (Windows & Linux)
         if: runner.os != 'macOS'
@@ -64,5 +65,6 @@ jobs:
             build/SonoBusMendeni_artefacts/Release/Standalone
             build/SonoBusMendeni_artefacts/Release/VST3
             build/SonoBusMendeni_artefacts/Release/install-macos-vst3.sh
+            build/SonoBusMendeni_artefacts/Release/install-macos-standalone.sh
             build/SonoBusMendeni_artefacts/Release/SonoBusMendeni.tosc
 
