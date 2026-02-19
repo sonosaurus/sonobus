@@ -73,26 +73,26 @@
      x="0"
      y="0" />
   <g
-     style="stroke:#A100FF;stroke-opacity:1"
+     style="stroke:#FF3EE7FF;stroke-opacity:1"
      transform="translate(0,4.5783208)"
      id="g1591">
     <circle
        id="circle927"
-       style="fill:none;stroke:#A100FF;stroke-width:32px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       style="fill:none;stroke:#FF3EE7FF;stroke-width:32px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
        filter="url(#glow)"
        r="96"
        cy="256"
        cx="128" />
     <circle
        id="circle929"
-       style="fill:none;stroke:#A100FF;stroke-width:32px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       style="fill:none;stroke:#FF3EE7FF;stroke-width:32px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
        filter="url(#glow)"
        r="96"
        cy="256"
        cx="384" />
     <line
        id="line931"
-       style="fill:none;stroke:#A100FF;stroke-width:32px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       style="fill:none;stroke:#FF3EE7FF;stroke-width:32px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
        y2="352"
        x2="384"
        y1="352"

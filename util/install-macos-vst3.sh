@@ -14,7 +14,7 @@ fi
 TARGET='/Library/Audio/Plug-Ins/VST3/SonoBusMendeni'
 
 if [ ! -d $TARGET ]; then
-  mkdir $TARGET || exit 1
+  mkdir -p $TARGET || exit 1
 fi
 
 if [ ! -d 'VST3' ]; then
