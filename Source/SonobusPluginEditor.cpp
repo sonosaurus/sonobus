@@ -5481,6 +5481,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             maxrecvMs = maxrecvMs + processor.getMaxRecvPaddingMs();
         }
 
+        // subtract MaxRecvPaddingMs if greater than maxrecvMs
+        if (maxrecvMs >= processor.getMaxRecvPaddingMs()){
+            maxrecvMs = maxrecvMs - processor.getMaxRecvPaddingMs();
+        }
+
         // add the delta between maxrecvMs and incomingMs to jitter buffer
         for (int j=0; j < processor.getNumberRemotePeers(); ++j) {
             processor.getRemotePeerLatencyInfo(j, latinfo);
