@@ -1085,10 +1085,10 @@ void OptionsView::updateLayout()
     optionsRecordFinishBox.items.add(FlexItem(10, 12));
     optionsRecordFinishBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecFinishOpenButton).withMargin(0).withFlex(1));
 
-    optionsRecordFinishBox.items.clear();
-    optionsRecordFinishBox.flexDirection = FlexBox::Direction::row;
-    optionsRecordFinishBox.items.add(FlexItem(10, 12));
-    optionsRecordFinishBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecStealth).withMargin(0).withFlex(1));
+    optionsRecordStealthBox.items.clear();
+    optionsRecordStealthBox.flexDirection = FlexBox::Direction::row;
+    optionsRecordStealthBox.items.add(FlexItem(10, 12));
+    optionsRecordStealthBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecStealth).withMargin(0).withFlex(1));
 
     recOptionsBox.items.clear();
     recOptionsBox.flexDirection = FlexBox::Direction::column;
@@ -1109,6 +1109,7 @@ void OptionsView::updateLayout()
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSelfPostFxBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordSilentSelfMuteBox).withMargin(2).withFlex(0));
     recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordFinishBox).withMargin(2).withFlex(0));
+    recOptionsBox.items.add(FlexItem(100, minpassheight, optionsRecordStealthBox).withMargin(2).withFlex(0));
     minRecOptionsHeight = 0;
     for (auto & item : recOptionsBox.items) {
         minRecOptionsHeight += item.minHeight + item.margin.top + item.margin.bottom;

@@ -254,6 +254,7 @@ protected:
     FlexBox optionsRecordSelfPostFxBox;
     FlexBox optionsRecordSilentSelfMuteBox;
     FlexBox optionsRecordFinishBox;
+    FlexBox optionsRecordStealthBox;
 
 
     std::unique_ptr<TabbedComponent> mSettingsTab;
