@@ -11,7 +11,7 @@ if [ $USER != 'root' ]; then
   exit 1
 fi
 
-TARGET='/Library/Audio/Plug-Ins/VST3/SonoBusMendeni'
+TARGET='/Library/Audio/Plug-Ins/VST3'
 
 if [ ! -d $TARGET ]; then
   mkdir -p $TARGET || exit 1
