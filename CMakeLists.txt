@@ -321,9 +321,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonobusPluginEditor.h
         Source/SonobusPluginProcessor.cpp
         Source/SonobusPluginProcessor.h
-        Source/ProcessAudioCapture.cpp
-        Source/ProcessAudioCapture.h
-        Source/ApplicationAudioDevice.h
         Source/SonobusTypes.h
         Source/SuggestNewGroupView.cpp
         Source/SuggestNewGroupView.h

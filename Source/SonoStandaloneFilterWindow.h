@@ -37,9 +37,6 @@
 // HACK
 #include "SonobusPluginEditor.h"
 
-#if JUCE_WINDOWS
-#include "ApplicationAudioDevice.h"
-#endif
 
 #include <limits>
 #include <algorithm>
@@ -450,11 +447,6 @@ public:
                                   preferredDefaultDeviceName,
                                   prefSetupOptions.get());
 
-       #if JUCE_WINDOWS
-        // Add Application Audio AFTER initialise so WASAPI is the default device type
-        if (ProcessAudioCapture::isSupported())
-            deviceManager.addAudioDeviceType (std::make_unique<ApplicationAudioDeviceType>());
-       #endif
 
 #if JUCE_IOS
         // get current audio device and change a setting if necessary

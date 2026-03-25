@@ -1,4 +1,4 @@
-# SonoBus Fork — WASAPI Loopback & Application Audio Capture
+# SonoBus Fork — WASAPI Loopback Capture
 
 A fork of [SonoBus](https://github.com/sonosaurus/sonobus) that adds native Windows audio capture features, eliminating the need for Voicemeeter, VB-Cable, or any virtual audio cable software.
 
@@ -7,14 +7,8 @@ A fork of [SonoBus](https://github.com/sonosaurus/sonobus) that adds native Wind
 ### WASAPI Loopback Capture
 Every output device (speakers, headphones, monitors) now appears as a **(Loopback)** input device in SonoBus. Select one to capture all audio playing through that device — lossless, digital, no extra software.
 
-### Application Audio Capture (Windows 11)
-A new **"Application Audio"** device type that lists running processes. Select a specific app (e.g. SnowRunner.exe) to capture only its audio. No output device needed at all. Requires Windows 10 Build 20348+ / Windows 11.
-
 ### Save Direct Connect Address
 The last used direct connect IP:port is saved and pre-filled on next launch.
-
-### Auto-Reconnect Direct Peer
-The "Reconnect Last" option now also reconnects to the last direct peer connection on startup.
 
 ## Direct Ethernet Setup Guide
 
@@ -53,7 +47,6 @@ On each PC, configure the ethernet adapter with a static IP:
 - Output: **<< none >>**
 - Set Windows default output to any device, mute it in Windows if you don't want local sound
 
-Or use **Application Audio** device type to capture a specific game directly (Win11 only).
 
 **Receiving PC (with DAC/amp/speakers):**
 - Audio Device Type: **Windows Audio**
@@ -69,9 +62,7 @@ Three options, from easiest to most involved:
 
 1. **Mute a real device** — Set any real output device (e.g. Realtek onboard) as Windows default, mute it in Windows. WASAPI loopback still captures audio even when muted. Easiest option.
 
-2. **Application Audio** — Use the "Application Audio" device type to capture a specific app directly. No output device needed. Windows 11 only.
-
-3. **Virtual Audio Driver** — If your PC genuinely has no audio output at all, install [Virtual-Audio-Driver](https://github.com/VirtualDrivers/Virtual-Audio-Driver) (open source, MIT) to create a virtual output, then use its loopback. Requires test signing mode.
+2. **Virtual Audio Driver** — If your PC genuinely has no audio output at all, install [Virtual-Audio-Driver](https://github.com/VirtualDrivers/Virtual-Audio-Driver) (open source, MIT) to create a virtual output, then use its loopback. Requires test signing mode.
 
 ## Download
 
@@ -111,13 +102,6 @@ CMAKE_TOOLCHAIN_FILE="" cmake --build build --config Release --target SonoBus_St
 - Lossless PCM capture, digitally before the DAC
 - Forces shared mode (required by Windows)
 - Changes in `deps/juce/modules/juce_audio_devices/native/juce_WASAPI_windows.cpp`
-
-### Per-Process Audio Capture
-- `ActivateAudioInterfaceAsync` with `AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS`
-- Captures from a specific process tree
-- No output device, virtual cable, or driver needed
-- Windows 10 Build 20348+ (checked at runtime)
-- `Source/ProcessAudioCapture.cpp` and `Source/ApplicationAudioDevice.h`
 
 ## Upstream Issues Addressed
 - [#241 — WASAPI Loopback as Input Device](https://github.com/sonosaurus/sonobus/issues/241)
