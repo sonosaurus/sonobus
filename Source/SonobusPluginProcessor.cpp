@@ -8849,23 +8849,9 @@ void SonobusAudioProcessor::ServerReconnectTimer::timerCallback()
 
 bool SonobusAudioProcessor::reconnectToMostRecent()
 {
-    // Try reconnecting to last direct peer connection first
-    if (mLastDirectConnectAddress.isNotEmpty()) {
-        StringArray toks = StringArray::fromTokens(mLastDirectConnectAddress, ":/ ", "");
-        String host;
-        int port = 11000;
-
-        if (toks.size() >= 1) host = toks[0].trim();
-        if (toks.size() >= 2) port = toks[1].trim().getIntValue();
-
-        if (host.isNotEmpty() && port != 0) {
-            DBG("Reconnecting to direct peer: " << host << ":" << port);
-            connectRemotePeer(host, port, "", "", true);
-            return true;
-        }
-    }
-
-    // Otherwise try reconnecting to last server/group
+    // Note: direct peer auto-reconnect is not feasible because SonoBus uses
+    // ephemeral UDP ports that change on each launch. The saved address only
+    // pre-fills the Direct Connect text field for convenience.
     Array<AooServerConnectionInfo> recents;
     getRecentServerConnectionInfos(recents);
 
