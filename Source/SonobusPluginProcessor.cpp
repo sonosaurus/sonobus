@@ -112,6 +112,7 @@ static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
 static String autoresizeDropRateThreshKey("autoDropRateThreshNew");
 static String reconnectServerLossKey("reconnServLoss");
+static String lastDirectConnectAddressKey("lastDirectConnectAddr");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -8545,6 +8546,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
     extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
     extraTree.setProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get(), nullptr);
+    extraTree.setProperty(lastDirectConnectAddressKey, mLastDirectConnectAddress, nullptr);
 
     extraTree.appendChild(mVideoLinkInfo.getValueTree(), nullptr);
     
@@ -8716,7 +8718,8 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
             setReconnectAfterServerLoss(extraTree.getProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get()));
 
-            
+            mLastDirectConnectAddress = extraTree.getProperty(lastDirectConnectAddressKey, "").toString();
+
             ValueTree videoinfo = extraTree.getChildWithName(videoLinkInfoKey);
             if (videoinfo.isValid()) {
                 mVideoLinkInfo.setFromValueTree(videoinfo);
@@ -8846,9 +8849,26 @@ void SonobusAudioProcessor::ServerReconnectTimer::timerCallback()
 
 bool SonobusAudioProcessor::reconnectToMostRecent()
 {
+    // Try reconnecting to last direct peer connection first
+    if (mLastDirectConnectAddress.isNotEmpty()) {
+        StringArray toks = StringArray::fromTokens(mLastDirectConnectAddress, ":/ ", "");
+        String host;
+        int port = 11000;
+
+        if (toks.size() >= 1) host = toks[0].trim();
+        if (toks.size() >= 2) port = toks[1].trim().getIntValue();
+
+        if (host.isNotEmpty() && port != 0) {
+            DBG("Reconnecting to direct peer: " << host << ":" << port);
+            connectRemotePeer(host, port, "", "", true);
+            return true;
+        }
+    }
+
+    // Otherwise try reconnecting to last server/group
     Array<AooServerConnectionInfo> recents;
     getRecentServerConnectionInfos(recents);
-    
+
     if (recents.size() > 0) {
         const auto & info = recents.getReference(0);
 

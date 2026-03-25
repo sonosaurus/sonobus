@@ -415,12 +415,30 @@ static bool supportsSampleRateConversion (WASAPIDeviceMode deviceMode) noexcept
 }
 
 //==============================================================================
+static const String loopbackDeviceIdPrefix ("JUCE_LOOPBACK::");
+
+static bool isLoopbackDeviceId (const String& deviceId)
+{
+    return deviceId.startsWith (loopbackDeviceIdPrefix);
+}
+
+static String makeLoopbackDeviceId (const String& renderDeviceId)
+{
+    return loopbackDeviceIdPrefix + renderDeviceId;
+}
+
+static String getRenderDeviceIdFromLoopback (const String& loopbackDeviceId)
+{
+    return loopbackDeviceId.fromFirstOccurrenceOf (loopbackDeviceIdPrefix, false, false);
+}
+
 class WASAPIDeviceBase
 {
 public:
-    WASAPIDeviceBase (const ComSmartPtr<IMMDevice>& d, WASAPIDeviceMode mode)
+    WASAPIDeviceBase (const ComSmartPtr<IMMDevice>& d, WASAPIDeviceMode mode, bool loopback = false)
         : device (d),
-          deviceMode (mode)
+          deviceMode (mode),
+          isLoopbackDevice (loopback)
     {
         clientEvent = CreateEvent (nullptr, false, false, nullptr);
 
@@ -439,7 +457,7 @@ public:
         rates.addUsingDefaultSort (defaultSampleRate);
         defaultFormatChannelMask = format->dwChannelMask;
 
-        if (isExclusiveMode (deviceMode))
+        if (isExclusiveMode (deviceMode) && ! isLoopbackDevice)
             if (auto optFormat = findSupportedFormat (tempClient, defaultNumChannels, defaultSampleRate))
                 format = optFormat;
 
@@ -542,6 +560,7 @@ public:
     ComSmartPtr<IAudioClient> client;
 
     WASAPIDeviceMode deviceMode;
+    bool isLoopbackDevice = false;
 
     double sampleRate = 0, defaultSampleRate = 0;
     int numChannels = 0, actualNumChannels = 0, maxNumChannels = 0, defaultNumChannels = 0;
@@ -699,11 +718,12 @@ private:
 
             WAVEFORMATEX* nearestFormat = nullptr;
 
-            if (SUCCEEDED (audioClient->IsFormatSupported (isExclusiveMode (deviceMode) ? AUDCLNT_SHAREMODE_EXCLUSIVE
-                                                                                        : AUDCLNT_SHAREMODE_SHARED,
+            const bool useExclusiveSR = isExclusiveMode (deviceMode) && ! isLoopbackDevice;
+            if (SUCCEEDED (audioClient->IsFormatSupported (useExclusiveSR ? AUDCLNT_SHAREMODE_EXCLUSIVE
+                                                                          : AUDCLNT_SHAREMODE_SHARED,
                                                            (WAVEFORMATEX*) &format,
-                                                           isExclusiveMode (deviceMode) ? nullptr
-                                                                                        : &nearestFormat)))
+                                                           useExclusiveSR ? nullptr
+                                                                          : &nearestFormat)))
             {
                 if (nearestFormat != nullptr)
                     rate = (double) nearestFormat->nSamplesPerSec;
@@ -736,7 +756,7 @@ private:
 
     static std::optional<WAVEFORMATEXTENSIBLE> tryFormat (const AudioSampleFormat sampleFormat, IAudioClient* clientToUse,
                                                           WASAPIDeviceMode mode, int newNumChannels, double newSampleRate,
-                                                          DWORD newMixFormatChannelMask)
+                                                          DWORD newMixFormatChannelMask, bool loopback = false)
     {
         WAVEFORMATEXTENSIBLE format;
         zerostruct (format);
@@ -762,11 +782,12 @@ private:
 
         WAVEFORMATEX* nearestFormat = nullptr;
 
-        HRESULT hr = clientToUse->IsFormatSupported (isExclusiveMode (mode) ? AUDCLNT_SHAREMODE_EXCLUSIVE
-                                                                            : AUDCLNT_SHAREMODE_SHARED,
+        const bool useExclusive = isExclusiveMode (mode) && ! loopback;
+        HRESULT hr = clientToUse->IsFormatSupported (useExclusive ? AUDCLNT_SHAREMODE_EXCLUSIVE
+                                                                  : AUDCLNT_SHAREMODE_SHARED,
                                                      (WAVEFORMATEX*) &format,
-                                                     isExclusiveMode (mode) ? nullptr
-                                                                            : &nearestFormat);
+                                                     useExclusive ? nullptr
+                                                                  : &nearestFormat);
         logFailure (hr);
 
         auto supportsSRC = supportsSampleRateConversion (mode);
@@ -803,7 +824,7 @@ private:
             auto mixFormatChannelMask = (ch == defaultNumChannels ? defaultFormatChannelMask : maskWithLowestNBitsSet);
 
             for (auto const& sampleFormat: formatsToTry)
-                if (auto format = tryFormat (sampleFormat, clientToUse, deviceMode, ch, newSampleRate, mixFormatChannelMask))
+                if (auto format = tryFormat (sampleFormat, clientToUse, deviceMode, ch, newSampleRate, mixFormatChannelMask, isLoopbackDevice))
                     return format;
         }
 
@@ -826,7 +847,7 @@ private:
 
             for (auto rate : rates)
                 for (auto const& sampleFormat: formatsToTry)
-                    if (auto format = tryFormat (sampleFormat, clientToUse, deviceMode, ch, rate, channelMask))
+                    if (auto format = tryFormat (sampleFormat, clientToUse, deviceMode, ch, rate, channelMask, isLoopbackDevice))
                         result = jmax (static_cast<int> (format->Format.nChannels), result);
         }
 
@@ -837,9 +858,18 @@ private:
     {
         DWORD streamFlags = 0x40000; /*AUDCLNT_STREAMFLAGS_EVENTCALLBACK*/
 
-        if (supportsSampleRateConversion (deviceMode))
+        if (isLoopbackDevice)
+        {
+            streamFlags |= 0x00020000; /*AUDCLNT_STREAMFLAGS_LOOPBACK*/
+            // Loopback always needs sample rate conversion flags since it must use shared mode
             streamFlags |= (0x80000000    /*AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM*/
                             | 0x8000000); /*AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY*/
+        }
+        else if (supportsSampleRateConversion (deviceMode))
+        {
+            streamFlags |= (0x80000000    /*AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM*/
+                            | 0x8000000); /*AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY*/
+        }
 
         return streamFlags;
     }
@@ -861,17 +891,19 @@ private:
 
         check (client->GetDevicePeriod (&defaultPeriod, &minPeriod));
 
-        if (isExclusiveMode (deviceMode) && bufferSizeSamples > 0)
+        const bool useExclusive = isExclusiveMode (deviceMode) && ! isLoopbackDevice;
+
+        if (useExclusive && bufferSizeSamples > 0)
             defaultPeriod = jmax (minPeriod, samplesToRefTime (bufferSizeSamples, format.Format.nSamplesPerSec));
 
         for (;;)
         {
             GUID session;
-            auto hr = client->Initialize (isExclusiveMode (deviceMode) ? AUDCLNT_SHAREMODE_EXCLUSIVE
-                                                                       : AUDCLNT_SHAREMODE_SHARED,
+            auto hr = client->Initialize (useExclusive ? AUDCLNT_SHAREMODE_EXCLUSIVE
+                                                       : AUDCLNT_SHAREMODE_SHARED,
                                           getStreamFlags(),
                                           defaultPeriod,
-                                          isExclusiveMode (deviceMode) ? defaultPeriod : 0,
+                                          useExclusive ? defaultPeriod : 0,
                                           (WAVEFORMATEX*) &format,
                                           &session);
 
@@ -926,8 +958,8 @@ private:
 class WASAPIInputDevice final : public WASAPIDeviceBase
 {
 public:
-    WASAPIInputDevice (const ComSmartPtr<IMMDevice>& d, WASAPIDeviceMode mode)
-        : WASAPIDeviceBase (d, mode)
+    WASAPIInputDevice (const ComSmartPtr<IMMDevice>& d, WASAPIDeviceMode mode, bool loopback = false)
+        : WASAPIDeviceBase (d, mode, loopback)
     {
     }
 
@@ -1646,6 +1678,11 @@ private:
         if (! check (deviceCollection->GetCount (&numDevices)))
             return false;
 
+        // Check if input is a loopback device
+        const bool inputIsLoopback = isLoopbackDeviceId (inputDeviceId);
+        const String actualInputDeviceId = inputIsLoopback ? getRenderDeviceIdFromLoopback (inputDeviceId)
+                                                           : inputDeviceId;
+
         for (UINT32 i = 0; i < numDevices; ++i)
         {
             ComSmartPtr<IMMDevice> device;
@@ -1660,9 +1697,17 @@ private:
 
             auto flow = getDataFlow (device);
 
-            if (deviceId == inputDeviceId && flow == eCapture)
+            if (inputIsLoopback && deviceId == actualInputDeviceId && flow == eRender)
+            {
+                // Open the render device as a loopback capture device (shared mode forced)
+                inputDevice.reset (new WASAPIInputDevice (device, deviceMode, true));
+            }
+            else if (! inputIsLoopback && deviceId == inputDeviceId && flow == eCapture)
+            {
                 inputDevice.reset (new WASAPIInputDevice (device, deviceMode));
-            else if (deviceId == outputDeviceId && flow == eRender)
+            }
+
+            if (deviceId == outputDeviceId && flow == eRender)
                 outputDevice.reset (new WASAPIOutputDevice (device, deviceMode));
         }
 
@@ -1930,6 +1975,10 @@ private:
                 const int index = (deviceId == defaultRenderer) ? 0 : -1;
                 result.outputDeviceIds.insert (index, deviceId);
                 result.outputDeviceNames.insert (index, name);
+
+                // Also add as a loopback input device
+                result.inputDeviceIds.add (makeLoopbackDeviceId (deviceId));
+                result.inputDeviceNames.add (name + " (Loopback)");
             }
             else if (flow == eCapture)
             {

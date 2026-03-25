@@ -92,7 +92,9 @@ publicGroupsListModel(this)
     mAddRemoteHostEditor = std::make_unique<TextEditor>("remaddredit");
     mAddRemoteHostEditor->setTitle(TRANS("Remote Host:Port"));
     mAddRemoteHostEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
-    mAddRemoteHostEditor->setText("", false); // 100.36.128.246:11000
+    // Pre-fill with last used direct connect address
+    String lastAddr = processor.getLastDirectConnectAddress();
+    mAddRemoteHostEditor->setText(lastAddr, false);
     mAddRemoteHostEditor->setTextToShowWhenEmpty(TRANS("IPaddress:port"), Colour(0x44ffffff));
 
 
@@ -1006,6 +1008,8 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
 
         if (host.isNotEmpty() && port != 0) {
             if (processor.connectRemotePeer(host, port, "", "", processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->getValue() == 0)) {
+                // Save last used direct connect address
+                processor.setLastDirectConnectAddress(hostport);
                 setVisible(false);
                 if (auto * callout = dynamic_cast<CallOutBox*>(directConnectCalloutBox.get())) {
                     callout->dismiss();
