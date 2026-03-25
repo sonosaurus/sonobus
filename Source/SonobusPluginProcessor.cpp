@@ -112,6 +112,7 @@ static String lastWindowWidthKey("lastWindowWidth");
 static String lastWindowHeightKey("lastWindowHeight");
 static String autoresizeDropRateThreshKey("autoDropRateThreshNew");
 static String reconnectServerLossKey("reconnServLoss");
+static String lastDirectConnectAddressKey("lastDirectConnectAddr");
 
 static String compressorStateKey("CompressorState");
 static String expanderStateKey("ExpanderState");
@@ -8545,6 +8546,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(lastWindowHeightKey, var((int)mPluginWindowHeight), nullptr);
     extraTree.setProperty(autoresizeDropRateThreshKey, var((float)mAutoresizeDropRateThresh), nullptr);
     extraTree.setProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get(), nullptr);
+    extraTree.setProperty(lastDirectConnectAddressKey, mLastDirectConnectAddress, nullptr);
 
     extraTree.appendChild(mVideoLinkInfo.getValueTree(), nullptr);
     
@@ -8716,7 +8718,8 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
             setReconnectAfterServerLoss(extraTree.getProperty(reconnectServerLossKey, mReconnectAfterServerLoss.get()));
 
-            
+            mLastDirectConnectAddress = extraTree.getProperty(lastDirectConnectAddressKey, "").toString();
+
             ValueTree videoinfo = extraTree.getChildWithName(videoLinkInfoKey);
             if (videoinfo.isValid()) {
                 mVideoLinkInfo.setFromValueTree(videoinfo);
@@ -8846,9 +8849,12 @@ void SonobusAudioProcessor::ServerReconnectTimer::timerCallback()
 
 bool SonobusAudioProcessor::reconnectToMostRecent()
 {
+    // Note: direct peer auto-reconnect is not feasible because SonoBus uses
+    // ephemeral UDP ports that change on each launch. The saved address only
+    // pre-fills the Direct Connect text field for convenience.
     Array<AooServerConnectionInfo> recents;
     getRecentServerConnectionInfos(recents);
-    
+
     if (recents.size() > 0) {
         const auto & info = recents.getReference(0);
 

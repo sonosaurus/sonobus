@@ -37,6 +37,7 @@
 // HACK
 #include "SonobusPluginEditor.h"
 
+
 #include <limits>
 #include <algorithm>
 
@@ -445,6 +446,7 @@ public:
                                   true,
                                   preferredDefaultDeviceName,
                                   prefSetupOptions.get());
+
 
 #if JUCE_IOS
         // get current audio device and change a setting if necessary

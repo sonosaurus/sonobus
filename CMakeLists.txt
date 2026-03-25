@@ -600,18 +600,19 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         ${LIB_PATHS}
     )
 
-    target_link_libraries("${target_name}" 
+    target_link_libraries("${target_name}"
         PRIVATE
             juce::juce_audio_utils
             juce::juce_dsp
 	    juce::juce_cryptography
             juce::juce_audio_plugin_client
-            
+
             ff_meters
-            
+
             ${target_name}_SBData
 
             opus
+            $<$<PLATFORM_ID:Windows>:mmdevapi>
         PUBLIC
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags

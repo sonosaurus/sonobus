@@ -315,6 +315,9 @@ public:
     int getRecentServerConnectionInfos(Array<AooServerConnectionInfo> & retarray);
     void clearRecentServerConnectionInfos();
 
+    void setLastDirectConnectAddress(const String & address) { mLastDirectConnectAddress = address; }
+    String getLastDirectConnectAddress() const { return mLastDirectConnectAddress; }
+
     bool setCurrentUsername(const String & name);
     String getCurrentUsername() const { return mCurrentUsername; }
 
@@ -1122,6 +1125,7 @@ private:
 
     Array<AooServerConnectionInfo> mRecentConnectionInfos;
     CriticalSection  mRecentsLock;
+    String mLastDirectConnectAddress;
     
     AooServerConnectionInfo mPendingReconnectInfo;
     bool mPendingReconnect = false;
