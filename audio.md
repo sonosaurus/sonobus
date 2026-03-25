@@ -31,15 +31,14 @@ Fork SonoBus to add WASAPI loopback capture, per-process audio capture, and UX i
   - `WASAPIInputDevice` constructor accepts loopback flag
 
 ### 3. Per-Process Audio Capture (Win11 API) — DONE
-- New files: `Source/ProcessAudioCapture.h`, `Source/ProcessAudioCapture.cpp`
+- New files: `Source/ProcessAudioCapture.h`, `Source/ProcessAudioCapture.cpp`, `Source/ApplicationAudioDevice.h`
 - Uses `AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS` + `ActivateAudioInterfaceAsync`
 - Captures audio from a specific app (e.g. SnowRunner.exe) instead of all system audio
 - No special permissions needed, no drivers
 - Windows 10 Build 20348+ / Windows 11
-- Includes runtime API availability check (`isSupported()`)
-- Includes process enumeration (`getAudioProcesses()`)
-- Standalone capture class — not wired into JUCE device enumeration yet
-- **TODO**: Wire into SonoBus UI (process picker dropdown in input settings)
+- Shows as **"Application Audio"** in Audio Device Type dropdown
+- Lists running processes as input devices
+- Fully wired into SonoBus UI
 
 ### 4. Auto-Reconnect Direct Peer — DONE
 - Extended existing `reconnectToMostRecent()` to also try last direct peer connection
@@ -80,11 +79,39 @@ Fork SonoBus to add WASAPI loopback capture, per-process audio capture, and UX i
 - Direct connect: `processor.connectRemotePeer(host, port, ...)`
 
 ## Build
+
+**Important:** If you have Android SDK/NDK installed, you MUST unset the CMAKE_TOOLCHAIN_FILE
+env var or CMake will try to use the Android NDK Clang compiler instead of MSVC.
+
+**ASIO SDK:** Clone https://github.com/audiosdk/asio.git to `../asiosdk` (sibling of sonobus dir).
+
 ```bash
-cmake -B build -G "Visual Studio 17 2022"
-cmake --build build --config Release
+# Clone ASIO SDK (one-time)
+git clone https://github.com/audiosdk/asio.git ../asiosdk
+
+# Unset Android toolchain and configure
+CMAKE_TOOLCHAIN_FILE="" cmake -B build -G "Visual Studio 17 2022" -A x64
+
+# Build standalone app
+CMAKE_TOOLCHAIN_FILE="" cmake --build build --config Release --target SonoBus_Standalone
+
+# Output: build/SonoBus_artefacts/Release/Standalone/SonoBus.exe (25MB)
 ```
-Requires: CMake 3.15+, Visual Studio 2022, Windows SDK
+Requires: CMake 3.15+, Visual Studio 2022, Windows SDK, ASIO SDK
+
+## How to Use WASAPI Loopback
+
+1. Open SonoBus (the built exe, not the installed one)
+2. Go to the gear/settings icon
+3. Set **Audio Device Type** to **"Windows Audio"** (this is WASAPI shared mode)
+4. In the **Input** dropdown, you should now see your output devices listed with **(Loopback)** suffix, e.g.:
+   - `Speakers (Realtek High Definition Audio) (Loopback)`
+   - `DELL S2722QC (NVIDIA High Definition Audio) (Loopback)`
+5. Select the loopback device matching where your game/desktop audio plays
+6. The **Output** dropdown stays as your normal playback device (or leave empty if you're only sending)
+7. Connect to your other PC via Direct Connect as usual
+
+This captures your desktop/game audio digitally (lossless PCM) and sends it over SonoBus — no Voicemeeter, no virtual cables, no restart issues.
 
 ## Key Files
 - `Source/ConnectView.cpp` — direct connect UI, saves last address
