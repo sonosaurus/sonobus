@@ -5,55 +5,37 @@
 
 #if JUCE_WINDOWS
 
+// Ensure we get the Win10 FE (Iron/20H1) APIs for per-process loopback
+#ifndef NTDDI_WIN10_FE
+#define NTDDI_WIN10_FE 0x0A00000A
+#endif
+#if !defined(NTDDI_VERSION) || (NTDDI_VERSION < NTDDI_WIN10_FE)
+#undef NTDDI_VERSION
+#define NTDDI_VERSION NTDDI_WIN10_FE
+#endif
+
 #include <mmdeviceapi.h>
 #include <audioclient.h>
+#include <audioclientactivationparams.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <audiopolicy.h>
+#include <wrl/implements.h>
+#include <wrl/client.h>
 
-// Forward declarations for Windows 11 per-process loopback API
-// These are defined in audioclientactivationparams.h (Windows 11 SDK)
-// We define them here to support building with older SDKs
-
-#ifndef AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK
-#define AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK 1
-
-typedef enum PROCESS_LOOPBACK_MODE
-{
-    PROCESS_LOOPBACK_MODE_INCLUDE_TARGET_PROCESS_TREE = 0,
-    PROCESS_LOOPBACK_MODE_EXCLUDE_TARGET_PROCESS_TREE = 1
-} PROCESS_LOOPBACK_MODE;
-
-typedef struct AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS
-{
-    DWORD TargetProcessId;
-    PROCESS_LOOPBACK_MODE ProcessLoopbackMode;
-} AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS;
-
-typedef enum AUDIOCLIENT_ACTIVATION_TYPE
-{
-    AUDIOCLIENT_ACTIVATION_TYPE_DEFAULT = 0,
-    AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK_TYPE = 1
-} AUDIOCLIENT_ACTIVATION_TYPE;
-
-typedef struct AUDIOCLIENT_ACTIVATION_PARAMS
-{
-    AUDIOCLIENT_ACTIVATION_TYPE ActivationType;
-    union
-    {
-        AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS ProcessLoopbackParams;
-    };
-} AUDIOCLIENT_ACTIVATION_PARAMS;
-
-#endif // AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK
-
-// Virtual audio device path for process loopback
-static const LPCWSTR VIRTUAL_AUDIO_DEVICE_PROCESS_LOOPBACK = L"VAD\\Process_Loopback";
+using namespace Microsoft::WRL;
 
 //==============================================================================
-// IActivateAudioInterfaceCompletionHandler implementation
-class LoopbackActivationHandler : public IActivateAudioInterfaceCompletionHandler
+// Completion handler using WRL RuntimeClass with FtmBase for free-threaded marshaling.
+// This is REQUIRED by ActivateAudioInterfaceAsync — a bare IUnknown implementation
+// will return CO_E_NOT_SUPPORTED (0x8000000E).
+class LoopbackActivationHandler :
+    public RuntimeClass<RuntimeClassFlags<ClassicCom>, FtmBase, IActivateAudioInterfaceCompletionHandler>
 {
 public:
+    HANDLE completionEvent = nullptr;
+    IAudioClient* resultClient = nullptr;
+    HRESULT activateResult = E_FAIL;
+
     LoopbackActivationHandler()
     {
         completionEvent = CreateEvent (nullptr, TRUE, FALSE, nullptr);
@@ -65,30 +47,7 @@ public:
             CloseHandle (completionEvent);
     }
 
-    // IUnknown
-    ULONG STDMETHODCALLTYPE AddRef() override  { return InterlockedIncrement (&refCount); }
-    ULONG STDMETHODCALLTYPE Release() override
-    {
-        auto count = InterlockedDecrement (&refCount);
-        if (count == 0)
-            delete this;
-        return count;
-    }
-
-    HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, void** ppvObject) override
-    {
-        if (riid == __uuidof (IUnknown) || riid == __uuidof (IActivateAudioInterfaceCompletionHandler))
-        {
-            *ppvObject = static_cast<IActivateAudioInterfaceCompletionHandler*> (this);
-            AddRef();
-            return S_OK;
-        }
-        *ppvObject = nullptr;
-        return E_NOINTERFACE;
-    }
-
-    // IActivateAudioInterfaceCompletionHandler
-    HRESULT STDMETHODCALLTYPE ActivateCompleted (IActivateAudioInterfaceAsyncOperation* operation) override
+    STDMETHOD(ActivateCompleted) (IActivateAudioInterfaceAsyncOperation* operation) override
     {
         HRESULT hrActivateResult = E_FAIL;
         IUnknown* activatedInterface = nullptr;
@@ -96,29 +55,45 @@ public:
         HRESULT hr = operation->GetActivateResult (&hrActivateResult, &activatedInterface);
 
         if (SUCCEEDED (hr) && SUCCEEDED (hrActivateResult) && activatedInterface != nullptr)
-        {
             activatedInterface->QueryInterface (__uuidof (IAudioClient), (void**) &resultClient);
-        }
 
         activateResult = hrActivateResult;
         SetEvent (completionEvent);
         return S_OK;
     }
 
-    bool waitForCompletion (DWORD timeoutMs = 5000)
+    bool waitForCompletion (DWORD timeoutMs = 10000)
     {
         return WaitForSingleObject (completionEvent, timeoutMs) == WAIT_OBJECT_0;
     }
-
-    IAudioClient* getClient() { return resultClient; }
-    HRESULT getResult() const { return activateResult; }
-
-private:
-    LONG refCount = 1;
-    HANDLE completionEvent = nullptr;
-    IAudioClient* resultClient = nullptr;
-    HRESULT activateResult = E_FAIL;
 };
+
+//==============================================================================
+static String getProcessNameFromPid (DWORD pid)
+{
+    HANDLE snapshot = CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE)
+        return {};
+
+    PROCESSENTRY32W pe;
+    pe.dwSize = sizeof (pe);
+    String name;
+
+    if (Process32FirstW (snapshot, &pe))
+    {
+        do
+        {
+            if (pe.th32ProcessID == pid)
+            {
+                name = String (pe.szExeFile);
+                break;
+            }
+        } while (Process32NextW (snapshot, &pe));
+    }
+
+    CloseHandle (snapshot);
+    return name;
+}
 
 //==============================================================================
 ProcessAudioCapture::~ProcessAudioCapture()
@@ -128,8 +103,7 @@ ProcessAudioCapture::~ProcessAudioCapture()
 
 bool ProcessAudioCapture::isSupported()
 {
-    // Check if ActivateAudioInterfaceAsync is available (Win8+)
-    // and if the process loopback feature works (Win10 20348+ / Win11)
+    // Check if ActivateAudioInterfaceAsync is available
     HMODULE mmdevapi = GetModuleHandleW (L"mmdevapi.dll");
     if (mmdevapi == nullptr)
         mmdevapi = LoadLibraryW (L"mmdevapi.dll");
@@ -137,76 +111,117 @@ bool ProcessAudioCapture::isSupported()
     if (mmdevapi == nullptr)
         return false;
 
-    auto activateFunc = GetProcAddress (mmdevapi, "ActivateAudioInterfaceAsync");
-    if (activateFunc == nullptr)
+    if (GetProcAddress (mmdevapi, "ActivateAudioInterfaceAsync") == nullptr)
         return false;
 
-    // Check Windows version - need build 20348+
+    // Check Windows build number using RtlGetVersion (reliable, not affected by manifests)
+    using RtlGetVersionFunc = LONG (WINAPI*)(OSVERSIONINFOEXW*);
+    auto ntdll = GetModuleHandleW (L"ntdll.dll");
+    if (ntdll == nullptr)
+        return false;
+
+    auto rtlGetVersion = reinterpret_cast<RtlGetVersionFunc> (GetProcAddress (ntdll, "RtlGetVersion"));
+    if (rtlGetVersion == nullptr)
+        return false;
+
     OSVERSIONINFOEXW osvi = {};
     osvi.dwOSVersionInfoSize = sizeof (osvi);
+    rtlGetVersion (&osvi);
 
-    using RtlGetVersionFunc = NTSTATUS (WINAPI*)(PRTL_OSVERSIONINFOW);
-    auto ntdll = GetModuleHandleW (L"ntdll.dll");
-    if (ntdll != nullptr)
-    {
-        auto rtlGetVersion = reinterpret_cast<RtlGetVersionFunc> (GetProcAddress (ntdll, "RtlGetVersion"));
-        if (rtlGetVersion != nullptr)
-        {
-            rtlGetVersion (reinterpret_cast<PRTL_OSVERSIONINFOW> (&osvi));
-            // Build 20348 is the minimum for process loopback
-            return osvi.dwBuildNumber >= 20348;
-        }
-    }
-
-    return false;
+    return osvi.dwBuildNumber >= 20348;
 }
 
 Array<ProcessAudioCapture::ProcessInfo> ProcessAudioCapture::getAudioProcesses()
 {
     Array<ProcessInfo> result;
 
-    // Get all running processes
-    HANDLE snapshot = CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
-    if (snapshot == INVALID_HANDLE_VALUE)
+    // Use IAudioSessionManager2 to enumerate only processes with active audio sessions
+    CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+
+    IMMDeviceEnumerator* enumerator = nullptr;
+    HRESULT hr = CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr,
+                                    CLSCTX_ALL, __uuidof (IMMDeviceEnumerator),
+                                    (void**) &enumerator);
+    if (FAILED (hr) || enumerator == nullptr)
         return result;
 
-    PROCESSENTRY32W pe;
-    pe.dwSize = sizeof (pe);
-
-    if (Process32FirstW (snapshot, &pe))
+    IMMDevice* device = nullptr;
+    hr = enumerator->GetDefaultAudioEndpoint (eRender, eConsole, &device);
+    if (FAILED (hr) || device == nullptr)
     {
-        do
-        {
-            // Skip system processes
-            if (pe.th32ProcessID == 0 || pe.th32ProcessID == 4)
-                continue;
-
-            String name = String (pe.szExeFile);
-
-            // Skip known non-audio system processes
-            if (name.equalsIgnoreCase ("svchost.exe")
-                || name.equalsIgnoreCase ("csrss.exe")
-                || name.equalsIgnoreCase ("smss.exe")
-                || name.equalsIgnoreCase ("lsass.exe")
-                || name.equalsIgnoreCase ("services.exe")
-                || name.equalsIgnoreCase ("wininit.exe")
-                || name.equalsIgnoreCase ("winlogon.exe")
-                || name.equalsIgnoreCase ("dwm.exe")
-                || name.equalsIgnoreCase ("System"))
-                continue;
-
-            ProcessInfo info;
-            info.pid = pe.th32ProcessID;
-            info.name = name;
-            info.displayName = name + " (PID " + String (pe.th32ProcessID) + ")";
-            result.add (info);
-
-        } while (Process32NextW (snapshot, &pe));
+        enumerator->Release();
+        return result;
     }
 
-    CloseHandle (snapshot);
+    IAudioSessionManager2* sessionManager = nullptr;
+    hr = device->Activate (__uuidof (IAudioSessionManager2), CLSCTX_ALL,
+                           nullptr, (void**) &sessionManager);
+    if (FAILED (hr) || sessionManager == nullptr)
+    {
+        device->Release();
+        enumerator->Release();
+        return result;
+    }
 
-    // Sort by name using JUCE comparator
+    IAudioSessionEnumerator* sessionEnumerator = nullptr;
+    hr = sessionManager->GetSessionEnumerator (&sessionEnumerator);
+    if (FAILED (hr) || sessionEnumerator == nullptr)
+    {
+        sessionManager->Release();
+        device->Release();
+        enumerator->Release();
+        return result;
+    }
+
+    int sessionCount = 0;
+    sessionEnumerator->GetCount (&sessionCount);
+
+    Array<DWORD> seenPids;
+
+    for (int i = 0; i < sessionCount; ++i)
+    {
+        IAudioSessionControl* sessionControl = nullptr;
+        if (FAILED (sessionEnumerator->GetSession (i, &sessionControl)) || sessionControl == nullptr)
+            continue;
+
+        IAudioSessionControl2* sessionControl2 = nullptr;
+        hr = sessionControl->QueryInterface (__uuidof (IAudioSessionControl2), (void**) &sessionControl2);
+        sessionControl->Release();
+
+        if (FAILED (hr) || sessionControl2 == nullptr)
+            continue;
+
+        if (sessionControl2->IsSystemSoundsSession() == S_OK)
+        {
+            sessionControl2->Release();
+            continue;
+        }
+
+        DWORD pid = 0;
+        hr = sessionControl2->GetProcessId (&pid);
+        sessionControl2->Release();
+
+        if (FAILED (hr) || pid == 0 || seenPids.contains (pid))
+            continue;
+
+        seenPids.add (pid);
+
+        String name = getProcessNameFromPid (pid);
+        if (name.isEmpty())
+            continue;
+
+        ProcessInfo info;
+        info.pid = pid;
+        info.name = name;
+        info.displayName = name + " (PID " + String (pid) + ")";
+        result.add (info);
+    }
+
+    sessionEnumerator->Release();
+    sessionManager->Release();
+    device->Release();
+    enumerator->Release();
+
     struct ProcessInfoComparator
     {
         int compareElements (const ProcessInfo& a, const ProcessInfo& b) const
@@ -230,7 +245,7 @@ bool ProcessAudioCapture::startCapture (DWORD processId, double sampleRate, int 
 
     // Set up activation params for process loopback
     AUDIOCLIENT_ACTIVATION_PARAMS activationParams = {};
-    activationParams.ActivationType = AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK_TYPE;
+    activationParams.ActivationType = AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK;
     activationParams.ProcessLoopbackParams.TargetProcessId = processId;
     activationParams.ProcessLoopbackParams.ProcessLoopbackMode = PROCESS_LOOPBACK_MODE_INCLUDE_TARGET_PROCESS_TREE;
 
@@ -239,59 +254,68 @@ bool ProcessAudioCapture::startCapture (DWORD processId, double sampleRate, int 
     activateParamsPropVariant.blob.cbSize = sizeof (activationParams);
     activateParamsPropVariant.blob.pBlobData = reinterpret_cast<BYTE*> (&activationParams);
 
-    // Create completion handler
-    auto handler = new LoopbackActivationHandler();
+    // Create completion handler using WRL (FtmBase required for free-threaded marshaling)
+    ComPtr<LoopbackActivationHandler> handler;
+    HRESULT hr = MakeAndInitialize<LoopbackActivationHandler> (&handler);
+    if (FAILED (hr))
+        return false;
+
     IActivateAudioInterfaceAsyncOperation* asyncOp = nullptr;
 
-    HRESULT hr = ActivateAudioInterfaceAsync (
+    hr = ActivateAudioInterfaceAsync (
         VIRTUAL_AUDIO_DEVICE_PROCESS_LOOPBACK,
         __uuidof (IAudioClient),
         &activateParamsPropVariant,
-        handler,
+        handler.Get(),
         &asyncOp);
 
     if (FAILED (hr))
     {
-        handler->Release();
         if (asyncOp) asyncOp->Release();
         return false;
     }
 
-    // Wait for async activation to complete
-    if (! handler->waitForCompletion (5000))
+    if (! handler->waitForCompletion (10000))
     {
-        handler->Release();
         if (asyncOp) asyncOp->Release();
         return false;
     }
 
-    if (FAILED (handler->getResult()) || handler->getClient() == nullptr)
+    if (FAILED (handler->activateResult) || handler->resultClient == nullptr)
     {
-        handler->Release();
         if (asyncOp) asyncOp->Release();
         return false;
     }
 
-    audioClient = handler->getClient();
-    audioClient->AddRef(); // Take ownership
+    audioClient = handler->resultClient;
+    audioClient->AddRef();
 
-    handler->Release();
     if (asyncOp) asyncOp->Release();
 
-    // Get mix format
+    // GetMixFormat returns E_NOTIMPL for process loopback — use requested format
     WAVEFORMATEX* mixFormat = nullptr;
     hr = audioClient->GetMixFormat (&mixFormat);
+
+    bool usingDefaultFormat = false;
+    static WAVEFORMATEX defaultFormat = {};
+
     if (FAILED (hr) || mixFormat == nullptr)
     {
-        audioClient->Release();
-        audioClient = nullptr;
-        return false;
+        defaultFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+        defaultFormat.nChannels = 2;
+        defaultFormat.nSamplesPerSec = (DWORD) sampleRate;
+        defaultFormat.wBitsPerSample = 32;
+        defaultFormat.nBlockAlign = defaultFormat.nChannels * defaultFormat.wBitsPerSample / 8;
+        defaultFormat.nAvgBytesPerSec = defaultFormat.nSamplesPerSec * defaultFormat.nBlockAlign;
+        defaultFormat.cbSize = 0;
+        mixFormat = &defaultFormat;
+        usingDefaultFormat = true;
     }
 
     captureSampleRate = mixFormat->nSamplesPerSec;
     captureNumChannels = mixFormat->nChannels;
 
-    // Initialize in shared mode (required for loopback)
+    // Initialize with loopback flag (matches Microsoft's sample)
     REFERENCE_TIME bufferDuration = 10000000LL; // 1 second buffer
     hr = audioClient->Initialize (
         AUDCLNT_SHAREMODE_SHARED,
@@ -301,7 +325,8 @@ bool ProcessAudioCapture::startCapture (DWORD processId, double sampleRate, int 
         mixFormat,
         nullptr);
 
-    CoTaskMemFree (mixFormat);
+    if (! usingDefaultFormat)
+        CoTaskMemFree (mixFormat);
 
     if (FAILED (hr))
     {
@@ -339,9 +364,7 @@ void ProcessAudioCapture::stopCapture()
     capturing.store (false);
 
     if (audioClient != nullptr)
-    {
         audioClient->Stop();
-    }
 
     if (captureClient != nullptr)
     {
@@ -383,13 +406,11 @@ int ProcessAudioCapture::readSamples (AudioBuffer<float>& buffer, int numFrames)
 
         if (flags & AUDCLNT_BUFFERFLAGS_SILENT)
         {
-            // Fill with silence
             for (int ch = 0; ch < buffer.getNumChannels() && ch < captureNumChannels; ++ch)
                 FloatVectorOperations::clear (buffer.getWritePointer (ch, framesRead), framesToCopy);
         }
         else if (data != nullptr)
         {
-            // Convert interleaved float data to JUCE buffer
             const float* src = reinterpret_cast<const float*> (data);
             for (int frame = 0; frame < framesToCopy; ++frame)
             {
