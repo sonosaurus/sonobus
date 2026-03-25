@@ -136,7 +136,7 @@ Array<ProcessAudioCapture::ProcessInfo> ProcessAudioCapture::getAudioProcesses()
     Array<ProcessInfo> result;
 
     // Use IAudioSessionManager2 to enumerate only processes with active audio sessions
-    CoInitializeEx (nullptr, COINIT_MULTITHREADED);
+    // Note: do NOT call CoInitializeEx here — JUCE's message thread already has COM initialized
 
     IMMDeviceEnumerator* enumerator = nullptr;
     HRESULT hr = CoCreateInstance (__uuidof (MMDeviceEnumerator), nullptr,

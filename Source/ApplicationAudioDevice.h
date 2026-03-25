@@ -162,6 +162,9 @@ public:
     ApplicationAudioDeviceType()
         : AudioIODeviceType ("Application Audio")
     {
+        // JUCE's AudioDeviceSelectorComponent crashes if output device list is empty,
+        // so provide a dummy output device name
+        outputNames.add ("(No output - capture only)");
     }
 
     void scanForDevices() override
@@ -176,14 +179,14 @@ public:
         auto processes = ProcessAudioCapture::getAudioProcesses();
         for (auto& proc : processes)
         {
-            inputNames.add (proc.name + " (PID " + String (proc.pid) + ")");
+            inputNames.add (proc.displayName);
             inputPids.add (proc.pid);
         }
     }
 
     StringArray getDeviceNames (bool wantInputNames) const override
     {
-        return wantInputNames ? inputNames : StringArray();
+        return wantInputNames ? inputNames : outputNames;
     }
 
     int getDefaultDeviceIndex (bool) const override
@@ -193,7 +196,7 @@ public:
 
     int getIndexOfDevice (AudioIODevice* device, bool asInput) const override
     {
-        if (! asInput)
+        if (device == nullptr || ! asInput)
             return -1;
 
         for (int i = 0; i < inputNames.size(); ++i)
@@ -219,6 +222,7 @@ public:
 private:
     bool hasScanned = false;
     StringArray inputNames;
+    StringArray outputNames;
     Array<DWORD> inputPids;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ApplicationAudioDeviceType)

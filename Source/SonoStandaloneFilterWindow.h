@@ -443,18 +443,18 @@ public:
             totalOutChannels = defaultConfig.numOuts;
         }
 
-       #if JUCE_WINDOWS
-        // Add Application Audio device type for per-process audio capture (Win11+)
-        if (ProcessAudioCapture::isSupported())
-            deviceManager.addAudioDeviceType (std::make_unique<ApplicationAudioDeviceType>());
-       #endif
-
         deviceManager.initialise (enableAudioInput ? totalInChannels : 0,
                                   totalOutChannels,
                                   savedState.get(),
                                   true,
                                   preferredDefaultDeviceName,
                                   prefSetupOptions.get());
+
+       #if JUCE_WINDOWS
+        // Add Application Audio AFTER initialise so WASAPI is the default device type
+        if (ProcessAudioCapture::isSupported())
+            deviceManager.addAudioDeviceType (std::make_unique<ApplicationAudioDeviceType>());
+       #endif
 
 #if JUCE_IOS
         // get current audio device and change a setting if necessary
