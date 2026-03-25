@@ -37,6 +37,10 @@
 // HACK
 #include "SonobusPluginEditor.h"
 
+#if JUCE_WINDOWS
+#include "ApplicationAudioDevice.h"
+#endif
+
 #include <limits>
 #include <algorithm>
 
@@ -438,6 +442,12 @@ public:
             totalInChannels  = defaultConfig.numIns;
             totalOutChannels = defaultConfig.numOuts;
         }
+
+       #if JUCE_WINDOWS
+        // Add Application Audio device type for per-process audio capture (Win11+)
+        if (ProcessAudioCapture::isSupported())
+            deviceManager.addAudioDeviceType (std::make_unique<ApplicationAudioDeviceType>());
+       #endif
 
         deviceManager.initialise (enableAudioInput ? totalInChannels : 0,
                                   totalOutChannels,

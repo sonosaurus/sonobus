@@ -8,9 +8,11 @@
 #if JUCE_WINDOWS
 
 #include <windows.h>
-#include <mmdeviceapi.h>
-#include <audioclient.h>
 #include <tlhelp32.h>
+
+// Forward declarations — actual Windows audio COM types are only used in .cpp
+struct IAudioClient;
+struct IAudioCaptureClient;
 
 //==============================================================================
 /**
@@ -35,7 +37,7 @@ public:
         String displayName; // e.g. "SnowRunner.exe (PID 1234)"
     };
 
-    /** Returns a list of currently running processes that have active audio sessions. */
+    /** Returns a list of currently running processes. */
     static Array<ProcessInfo> getAudioProcesses();
 
     /** Returns true if the per-process capture API is available on this OS version. */
@@ -65,7 +67,6 @@ private:
     double captureSampleRate = 0;
     int captureNumChannels = 0;
 
-    // COM pointers managed via raw pointers with Release() in destructor
     IAudioClient* audioClient = nullptr;
     IAudioCaptureClient* captureClient = nullptr;
 
