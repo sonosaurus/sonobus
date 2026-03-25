@@ -204,10 +204,17 @@ Array<ProcessAudioCapture::ProcessInfo> ProcessAudioCapture::getAudioProcesses()
 
     CloseHandle (snapshot);
 
-    // Sort by name
-    result.sort ([] (const ProcessInfo& a, const ProcessInfo& b) {
-        return a.name.compareIgnoreCase (b.name);
-    });
+    // Sort by name using JUCE comparator
+    struct ProcessInfoComparator
+    {
+        int compareElements (const ProcessInfo& a, const ProcessInfo& b) const
+        {
+            return a.name.compareIgnoreCase (b.name);
+        }
+    };
+
+    ProcessInfoComparator comparator;
+    result.sort (comparator);
 
     return result;
 }
