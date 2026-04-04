@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg15961"
+   sodipodi:docname="keypad-num-disabled.svg"
+   inkscape:version="1.2 (dc2aeda, 2022-05-15)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs15965">
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6-0" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6-3" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6-5" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6-6" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6-00" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6-4" />
+    <rect
+       x="80"
+       y="16"
+       width="96"
+       height="96"
+       id="rect16534-6-9" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview15963"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     showgrid="false"
+     inkscape:zoom="0.99448325"
+     inkscape:cx="310.71413"
+     inkscape:cy="254.40348"
+     inkscape:window-width="1371"
+     inkscape:window-height="802"
+     inkscape:window-x="2472"
+     inkscape:window-y="695"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg15961" />
+  <title
+     id="title15939">ionicons-v5-g</title>
+  <metadata
+     id="metadata16100">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>ionicons-v5-g</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect
+     style="fill:none;stroke:none;stroke-width:0;stroke-dasharray:none"
+     id="rect22547"
+     width="512"
+     height="512"
+     x="0"
+     y="0" />
+  <rect
+     x="80"
+     y="80"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15941"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="208"
+     y="80"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15943"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="336"
+     y="80"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15945"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="80"
+     y="208"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15947"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="208"
+     y="208"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15949"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="336"
+     y="208"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15951"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="80"
+     y="336"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15953"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="208"
+     y="336"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15955"
+     style="fill:#ff5555;fill-opacity:1" />
+  <rect
+     x="336"
+     y="336"
+     width="96"
+     height="96"
+     rx="8"
+     ry="8"
+     id="rect15959"
+     style="fill:#ff5555;fill-opacity:1" />
+  <text
+     xml:space="preserve"
+     id="text16532"
+     style="white-space:pre;shape-inside:url(#rect16534);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(21.854175,322.84883)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26912"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26910">1</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1"
+     style="white-space:pre;shape-inside:url(#rect16534-6);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(151.37501,323.28633)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26916"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26914">2</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1-9"
+     style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect16534-6-0);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(279.66668,322.86967)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26918">3</tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1-4"
+     style="white-space:pre;shape-inside:url(#rect16534-6-3);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(23.583344,194.84883)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26922"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26920">4</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1-7"
+     style="white-space:pre;shape-inside:url(#rect16534-6-5);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(151.47918,194.43217)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26926"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26924">5</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1-47"
+     style="white-space:pre;shape-inside:url(#rect16534-6-6);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(279.50001,194.78633)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26930"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26928">6</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1-6"
+     style="white-space:pre;shape-inside:url(#rect16534-6-00);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(23.854177,66.807166)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26934"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26932">7</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1-1"
+     style="white-space:pre;shape-inside:url(#rect16534-6-4);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(151.62501,66.828)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26938"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26936">8</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     id="text16532-1-99"
+     style="white-space:pre;shape-inside:url(#rect16534-6-9);display:inline;opacity:0.384615;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.4"
+     transform="translate(279.75001,66.786333)"><tspan
+       x="80"
+       y="91.609488"
+       id="tspan26942"><tspan
+         style="font-weight:bold;font-size:85.3333px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans, Bold'"
+         id="tspan26940">9</tspan></tspan></text>
+  <path
+     style="fill:#ff5555;fill-opacity:1;stroke:#ff0101;stroke-width:20;stroke-dasharray:none;stroke-opacity:1"
+     d="M 45.198341,41.653373 471.48073,467.93577"
+     id="path19857" />
+</svg>

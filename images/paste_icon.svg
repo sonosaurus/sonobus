@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4f, 2020-05-01)"
+   sodipodi:docname="paste_icon.svg"
+   id="svg20603"
+   version="1.1"
+   viewBox="0 0 512 512"
+   height="512"
+   width="512">
+  <metadata
+     id="metadata20609">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>ionicons-v5-l</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs20607" />
+  <sodipodi:namedview
+     inkscape:current-layer="svg20603"
+     inkscape:window-maximized="0"
+     inkscape:window-y="239"
+     inkscape:window-x="1571"
+     inkscape:cy="90.050386"
+     inkscape:cx="67.404316"
+     inkscape:zoom="0.35489354"
+     showgrid="false"
+     id="namedview20605"
+     inkscape:window-height="674"
+     inkscape:window-width="1223"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
+  <title
+     id="title20597">ionicons-v5-l</title>
+  <rect
+     y="0"
+     x="1.8097677e-05"
+     height="512"
+     width="512"
+     id="rect24508"
+     style="fill:none;stroke:none;stroke-width:22;stroke-linecap:round;stroke-opacity:1" />
+  <path
+     id="path20599"
+     style="fill:none;stroke:#cccccc;stroke-linejoin:round;stroke-width:32px;stroke-opacity:1"
+     d="M336,64h32a48,48,0,0,1,48,48V432a48,48,0,0,1-48,48H144a48,48,0,0,1-48-48V112a48,48,0,0,1,48-48h32" />
+  <rect
+     id="rect20601"
+     style="fill:none;stroke:#cccccc;stroke-linejoin:round;stroke-width:32px;stroke-opacity:1"
+     ry="26.13"
+     rx="26.13"
+     height="64"
+     width="160"
+     y="32"
+     x="176" />
+</svg>

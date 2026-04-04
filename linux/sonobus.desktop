@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=SonoBus
+Comment=High Quality Network Audio Streaming 
+GenericName=Network Audio Streaming Software
+Exec=sonobus %u
+Icon=sonobus
+Terminal=false
+Type=Application
+Categories=AudioVideo;Audio;Mixer;
+Keywords=live;online;music;conference;
+MimeType=x-scheme-handler/sonobus
