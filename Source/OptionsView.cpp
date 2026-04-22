@@ -149,7 +149,40 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mOptionsFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Default Send Quality:"));
     configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
-    mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
+    mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredLeft);
+    mOptionsFormatChoiceStaticLabel->setAccessible(false);
+
+    // MIDI Options
+    mMidiOptionsViewport = std::make_unique<Viewport>();
+    mMidiOptionsComponent = std::make_unique<Component>();
+
+    mMidiRelayDeviceLabel = std::make_unique<Label>("", TRANS("MIDI Relay Input Device:"));
+    configLabel(mMidiRelayDeviceLabel.get(), false);
+    mMidiRelayDeviceChoice = std::make_unique<SonoChoiceButton>();
+    mMidiRelayDeviceChoice->addChoiceListener(this);
+
+    mMidiLearnDeviceLabel = std::make_unique<Label>("", TRANS("MIDI Learn Input Device:"));
+    configLabel(mMidiLearnDeviceLabel.get(), false);
+    mMidiLearnDeviceChoice = std::make_unique<SonoChoiceButton>();
+    mMidiLearnDeviceChoice->addChoiceListener(this);
+
+    auto devices = MidiInput::getAvailableDevices();
+    mMidiRelayDeviceChoice->addItem(TRANS("None"), 0);
+    mMidiLearnDeviceChoice->addItem(TRANS("None"), 0);
+    int di = 1;
+    for (auto& d : devices) {
+        mMidiRelayDeviceChoice->addItem(d.name, di);
+        mMidiLearnDeviceChoice->addItem(d.name, di);
+        di++;
+    }
+
+    mMidiOptionsComponent->addAndMakeVisible(mMidiRelayDeviceLabel.get());
+    mMidiOptionsComponent->addAndMakeVisible(mMidiRelayDeviceChoice.get());
+    mMidiOptionsComponent->addAndMakeVisible(mMidiLearnDeviceLabel.get());
+    mMidiOptionsComponent->addAndMakeVisible(mMidiLearnDeviceChoice.get());
+
+    mMidiOptionsViewport->setScrollBarsShown(true, false);
+    mMidiOptionsViewport->setViewedComponent (mMidiOptionsComponent.get(), false);
 
 
     mOptionsLanguageChoice = std::make_unique<SonoChoiceButton>();
@@ -226,6 +259,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mRecFormatChoice->addItem(TRANS("FLAC"), SonobusAudioProcessor::FileFormatFLAC);
     mRecFormatChoice->addItem(TRANS("WAV"), SonobusAudioProcessor::FileFormatWAV);
     mRecFormatChoice->addItem(TRANS("OGG"), SonobusAudioProcessor::FileFormatOGG);
+    mRecFormatChoice->addItem(TRANS("MOGG"), SonobusAudioProcessor::FileFormatMOGG);
 
     mRecBitsChoice = std::make_unique<SonoChoiceButton>();
     mRecBitsChoice->addChoiceListener(this);
@@ -500,6 +534,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mRecordOptionsViewport->setViewedComponent(mRecOptionsComponent.get(), false);
 
     mSettingsTab->addTab(TRANS("RECORDING"),Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mRecordOptionsViewport.get(), false);
+    mSettingsTab->addTab(TRANS("MIDI"), Colour::fromFloatRGBA(0.1, 0.1, 0.1, 1.0), mMidiOptionsViewport.get(), false);
+
 
     setFocusContainerType(FocusContainerType::keyboardFocusContainer);
 
@@ -598,6 +634,18 @@ void OptionsView::updateState(bool ignorecheck)
     mOptionsChangeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
 
     mOptionsAutoDropThreshSlider->setValue(1 / jmax(0.001f, processor.getAutoresizeBufferDropRateThreshold()), dontSendNotification);
+
+    // MIDI state
+    auto devs = MidiInput::getAvailableDevices();
+    int relayIndex = 0;
+    int learnIndex = 0;
+    for (int i=0; i < devs.size(); ++i) {
+        if (devs[i].name == processor.getMidiRelayDevice()) relayIndex = i + 1;
+        if (devs[i].name == processor.getMidiLearnDevice()) learnIndex = i + 1;
+    }
+    mMidiRelayDeviceChoice->setSelectedItemIndex(relayIndex, dontSendNotification);
+    mMidiLearnDeviceChoice->setSelectedItemIndex(learnIndex, dontSendNotification);
+
 
     int port = processor.getUseSpecificUdpPort();
     if (port > 0) {
@@ -909,7 +957,24 @@ void OptionsView::updateLayout()
     optionsRecordFinishBox.items.add(FlexItem(minButtonWidth, minpassheight, *mOptionsRecFinishOpenButton).withMargin(0).withFlex(1));
 
 
+    midiRelayBox.items.clear();
+    midiRelayBox.flexDirection = FlexBox::Direction::row;
+    midiRelayBox.items.add(FlexItem(160, minitemheight, *mMidiRelayDeviceLabel).withMargin(2).withFlex(0));
+    midiRelayBox.items.add(FlexItem(minitemheight, minitemheight, *mMidiRelayDeviceChoice).withMargin(2).withFlex(1.0));
+
+    midiLearnBox.items.clear();
+    midiLearnBox.flexDirection = FlexBox::Direction::row;
+    midiLearnBox.items.add(FlexItem(160, minitemheight, *mMidiLearnDeviceLabel).withMargin(2).withFlex(0));
+    midiLearnBox.items.add(FlexItem(minitemheight, minitemheight, *mMidiLearnDeviceChoice).withMargin(2).withFlex(1.0));
+
+    midiOptionsBox.items.clear();
+    midiOptionsBox.flexDirection = FlexBox::Direction::column;
+    midiOptionsBox.items.add(FlexItem(100, minitemheight, midiRelayBox).withMargin(2).withFlex(0));
+    midiOptionsBox.items.add(FlexItem(100, minitemheight, midiLearnBox).withMargin(2).withFlex(0));
+
+
     recOptionsBox.items.clear();
+
     recOptionsBox.flexDirection = FlexBox::Direction::column;
     recOptionsBox.items.add(FlexItem(4, 6));
 //#if !(JUCE_IOS || JUCE_ANDROID)
@@ -952,11 +1017,14 @@ void OptionsView::resized()  {
     }
     mOptionsComponent->setBounds(Rectangle<int>(0,0,innerbounds.getWidth() - 10, minOptionsHeight));
     mRecOptionsComponent->setBounds(Rectangle<int>(0,0,innerbounds.getWidth() - 10, minRecOptionsHeight));
+    mMidiOptionsComponent->setBounds(Rectangle<int>(0,0,innerbounds.getWidth() - 10, 100));
 
 
 
     optionsBox.performLayout(mOptionsComponent->getLocalBounds());
     recOptionsBox.performLayout(mRecOptionsComponent->getLocalBounds());
+    midiOptionsBox.performLayout(mMidiOptionsComponent->getLocalBounds());
+
 
     mOptionsAutosizeStaticLabel->setBounds(mBufferTimeSlider->getBounds().removeFromLeft(mBufferTimeSlider->getWidth()*0.75));
 
@@ -1232,6 +1300,13 @@ void OptionsView::choiceButtonSelected(SonoChoiceButton *comp, int index, int id
     else if (comp == mRecBitsChoice.get()) {
         processor.setDefaultRecordingBitsPerSample(ident);
     }
+    else if (comp == mMidiRelayDeviceChoice.get()) {
+        processor.setMidiRelayDevice(ident == 0 ? "" : comp->getItemText(index));
+    }
+    else if (comp == mMidiLearnDeviceChoice.get()) {
+        processor.setMidiLearnDevice(ident == 0 ? "" : comp->getItemText(index));
+    }
+
     else if (comp == mOptionsLanguageChoice.get()) {
         String code = codes[ident];
         //app->mainConfig.languageOverrideCode =  codes[comp->getRowId()].toStdString();

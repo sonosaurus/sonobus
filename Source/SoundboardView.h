@@ -8,7 +8,9 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonoDrawableButton.h"
+#include "SonoSlider.h"
 #include "SonoPlaybackProgressButton.h"
+
 #include "SonoChoiceButton.h"
 #include "SoundboardProcessor.h"
 
@@ -201,12 +203,18 @@ private:
     std::unique_ptr<SonoDrawableButton> mStopAllPlayback;
 
     SonoPanSliderLookAndFeel volSliderLNF = { 12 };
-    std::unique_ptr<Slider> mVolumeSlider;
+    std::unique_ptr<SonoSlider> mVolumeSlider;
+
 
     std::unique_ptr<SonoDrawableButton> mSendAudioButton;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mSendAudioAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mVolumeAttachment;
+
+
+    void showMidiMenu(Component* source, SonobusAudioProcessor::MidiTargetType type, int data = 0);
 
     WeakReference<Component> mSampleEditCalloutBox;
+
 
     /**
      * Creates the outer UI panels.

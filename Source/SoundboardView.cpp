@@ -182,14 +182,13 @@ void SoundboardView::createControlPanel()
     };
     addAndMakeVisible(mStopAllPlayback.get());
 
-    mVolumeSlider  = std::make_unique<Slider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
-    mVolumeSlider->setName("level");
+    mVolumeSlider  = std::make_unique<SonoSlider>(Slider::RotaryHorizontalVerticalDrag,  Slider::TextBoxRight);
+    mVolumeSlider->setName("soundboard_level");
     mVolumeSlider->setTitle(TRANS("Soundboard volume"));
-    //mVolumeSlider->addListener(this);
-    mVolumeSlider->onValueChange = [this]() {
-        audioProcessor.getSoundboardProcessor()->setGain(mVolumeSlider->getValue());
-    };
+    mVolumeSlider->addMouseListener(this, false);
+
     mVolumeSlider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
+
     mVolumeSlider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
     mVolumeSlider->setColour(Slider::textBoxTextColourId, Colour(0x90eeeeee));
     mVolumeSlider->setColour(TooltipWindow::textColourId, Colour(0xf0eeeeee));
@@ -206,7 +205,9 @@ void SoundboardView::createControlPanel()
     mVolumeSlider->textFromValueFunction = [](float v) -> String { return String(TRANS("Level: ")) + Decibels::toString(Decibels::gainToDecibels(v), 1); };
     mVolumeSlider->setLookAndFeel(&volSliderLNF);
     mVolumeSlider->setTextBoxStyle(Slider::NoTextBox, true, 60, 14);
-    mVolumeSlider->setValue(audioProcessor.getSoundboardProcessor()->getGain());
+    // mVolumeSlider->setValue(audioProcessor.getSoundboardProcessor()->getGain());
+    mVolumeAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (audioProcessor.getValueTreeState(), SonobusAudioProcessor::paramSoundboardGain, *mVolumeSlider);
+
     mVolumeSlider->setPopupDisplayEnabled(true, true, this);
 
     addAndMakeVisible(mVolumeSlider.get());
@@ -421,7 +422,15 @@ void SoundboardView::mouseEnter (const MouseEvent&)
 
 void SoundboardView::mouseDown (const MouseEvent& event)
 {
+    if (event.mods.isRightButtonDown()) {
+        if (event.eventComponent == mVolumeSlider.get()) {
+            showMidiMenu(mVolumeSlider.get(), SonobusAudioProcessor::MidiTarget_SoundboardLevel);
+            return;
+        }
+    }
+
     for (int i=0; i < mSoundButtons.size(); ++i) {
+
         auto & sbutton = mSoundButtons[i];
 
         if (event.eventComponent == sbutton.get()) {
@@ -1144,5 +1153,30 @@ void HoldSampleButtonMouseListener::mouseUp(const MouseEvent& event)
         posDragging = false;
         button->setPositionDragging(posDragging);
     }
+}
+
+
+void SoundboardView::showMidiMenu(Component* source, SonobusAudioProcessor::MidiTargetType type, int data)
+{
+    int ccNum = -1, midiCh = 0;
+    bool hasMapped = audioProcessor.getMidiMapping(type, data, ccNum, midiCh);
+
+    auto* menuComp = new PopupMenu();
+    menuComp->addItem(1, TRANS("MIDI Learn"));
+
+    String forgetText = TRANS("MIDI Forget");
+    if (hasMapped) forgetText += " (CC " + String(ccNum) + ", Ch " + String(midiCh) + ")";
+    menuComp->addItem(2, forgetText, hasMapped, false);
+
+    SafePointer<SoundboardView> safeThis(this);
+    menuComp->showMenuAsync(PopupMenu::Options().withMousePosition(), [safeThis, type, data, hasMapped](int result) {
+        if (safeThis == nullptr) return;
+        if (result == 1) {
+            safeThis->audioProcessor.startMidiLearn(type, data);
+        }
+        else if (result == 2 && hasMapped) {
+            safeThis->audioProcessor.clearMidiMapping(type, data);
+        }
+    });
 }
 
